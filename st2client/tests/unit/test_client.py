@@ -52,7 +52,7 @@ class TestClientEndpoints(unittest2.TestCase):
     def test_default(self):
         base_url = 'http://127.0.0.1'
         api_url = 'http://127.0.0.1:9101/v1'
-        stream_url = 'http://127.0.0.1:9102/v1/stream'
+        stream_url = 'http://127.0.0.1:9102/v1'
 
         client = Client()
         endpoints = client.endpoints
@@ -63,7 +63,7 @@ class TestClientEndpoints(unittest2.TestCase):
     def test_env(self):
         base_url = 'http://www.stackstorm.com'
         api_url = 'http://www.st2.com:9101/v1'
-        stream_url = 'http://www.st2.com:9102/v1/stream'
+        stream_url = 'http://www.st2.com:9102/v1'
 
         os.environ['ST2_BASE_URL'] = base_url
         os.environ['ST2_API_URL'] = api_url
@@ -81,7 +81,7 @@ class TestClientEndpoints(unittest2.TestCase):
     def test_env_base_only(self):
         base_url = 'http://www.stackstorm.com'
         api_url = 'http://www.stackstorm.com:9101/v1'
-        stream_url = 'http://www.stackstorm.com:9102/v1/stream'
+        stream_url = 'http://www.stackstorm.com:9102/v1'
 
         os.environ['ST2_BASE_URL'] = base_url
         self.assertEqual(os.environ.get('ST2_BASE_URL'), base_url)
@@ -97,7 +97,7 @@ class TestClientEndpoints(unittest2.TestCase):
     def test_args(self):
         base_url = 'http://www.stackstorm.com'
         api_url = 'http://www.st2.com:9101/v1'
-        stream_url = 'http://www.st2.com:9102/v1/stream'
+        stream_url = 'http://www.st2.com:9102/v1'
 
         client = Client(base_url=base_url, api_url=api_url, stream_url=stream_url)
         endpoints = client.endpoints
@@ -109,7 +109,7 @@ class TestClientEndpoints(unittest2.TestCase):
         # Valid value, boolean True
         base_url = 'http://www.stackstorm.com'
         api_url = 'http://www.st2.com:9101/v1'
-        stream_url = 'http://www.st2.com:9102/v1/stream'
+        stream_url = 'http://www.st2.com:9102/v1'
 
         client = Client(base_url=base_url, api_url=api_url, stream_url=stream_url, cacert=True)
         self.assertEqual(client.cacert, True)
@@ -117,7 +117,7 @@ class TestClientEndpoints(unittest2.TestCase):
         # Valid value, boolean False
         base_url = 'http://www.stackstorm.com'
         api_url = 'http://www.st2.com:9101/v1'
-        stream_url = 'http://www.st2.com:9102/v1/stream'
+        stream_url = 'http://www.st2.com:9102/v1'
 
         client = Client(base_url=base_url, api_url=api_url, stream_url=stream_url, cacert=False)
         self.assertEqual(client.cacert, False)
@@ -136,7 +136,7 @@ class TestClientEndpoints(unittest2.TestCase):
     def test_args_base_only(self):
         base_url = 'http://www.stackstorm.com'
         api_url = 'http://www.stackstorm.com:9101/v1'
-        stream_url = 'http://www.stackstorm.com:9102/v1/stream'
+        stream_url = 'http://www.stackstorm.com:9102/v1'
 
         client = Client(base_url=base_url)
         endpoints = client.endpoints
