@@ -29,6 +29,11 @@ Fixed
   (bug fix)
 
   Contributed by carbineneutral. #3534 #3544
+* st2 pack commands now work when StackStorm servers are behind a HTTP/HTTPS proxy. You can set
+  ``http_proxy`` or ``https_proxy`` environment variables for ``st2api`` and ``st2actionrunner``
+  processes and pack commands will work with proxy. Refer to documentation for details on
+  proxy configuration. (bug-fix) #3137
+
 
 2.3.1 - July 07, 2017
 ---------------------
