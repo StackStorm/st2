@@ -96,48 +96,43 @@ function init_mistral(){
         exit 1
     fi
 
-    # Delete mistral database
-    # (May look into doing something a bit more fancy in the future so we don't have to recreate mistral database each time,
-    # but this works for now)
+    # Ensure services are stopped, so DB script will work
     st2stop
-    rm "${ST2_REPO}/mistral.db"
 
-    # Initialize mistral database if it doesn't already exist
-    if [ ! -f "${ST2_REPO}/mistral.db" ]; then
-        echo "Initializing Mistral database. This will take some time because tox needs to download deps. Please be patient..."
-
-        # We're using the StackStorm venv for everything
-        # TODO (mierdin): Evaluate if it's worth using a separate venv for installing and running mistral
-        source "${ST2_REPO}/virtualenv/bin/activate"
-
-        # Install Mistral and st2 plugins
-        pip install -r "${MISTRAL_REPO}/requirements.txt" > /dev/null
-        cd "${MISTRAL_REPO}"
-        python setup.py install > /dev/null
-        cd "${ST2MISTRAL_REPO}"
-        python setup.py install > /dev/null
-
-        # Tox is required by Mistral database initialization (will set up mistral/.tox)
-        pip install tox > /dev/null
-
-        # sync_db will run Tox, so we need to be in the mistral repo for that
-        cd "${MISTRAL_REPO}"
-
-        # Using mistral-db-manage doesn't seem to work with sqlite (tries to use ALTER) so we're using mistral's
-        # sync_db.sh script to do the table creation.
-        tools/sync_db.sh --config-file "${MISTRAL_CONF}" > /dev/null
-        mistral-db-manage --config-file "${MISTRAL_CONF}" populate > /dev/null
-
-        # Using sync_db.sh means mistral.db will be created in the mistral repo,
-        # so we have to move it to the st2 repo to reflect the relative path in mistral.conf
-        mv "${MISTRAL_REPO}/mistral.db" "${ST2_REPO}"
-
-        cd "${ST2_REPO}"
-        deactivate
-        echo "Mistral database initialized."
-    else
-        echo "Mistral database already initialized. Skipping."
+    # Create mistral virtualenv if doesn't exist
+    if [[ ! -d "${MISTRAL_REPO}/.venv" ]]; then
+        virtualenv ${MISTRAL_REPO}/.venv > /dev/null
     fi
+
+    # Install Mistral and st2 plugins
+    echo "Installing mistral, st2mistral, and all dependencies..."
+    source "${MISTRAL_REPO}/.venv/bin/activate"
+    # pip install pytz
+    cd "${MISTRAL_REPO}"
+    pip install -r requirements.txt
+    python setup.py install
+    cd "${ST2MISTRAL_REPO}"
+    pip install -r requirements.txt
+    python setup.py install
+    deactivate
+
+
+    if [ -f /etc/lsb-release ]; then
+        DISTRO="ubuntu"
+    else
+        DISTRO="fedora"
+    fi
+
+    # TODO(mierdin): Only do this on startclean
+    ${ST2_REPO}/tools/setup_mistral_db.sh \
+        "${MISTRAL_REPO}" \
+        "${MISTRAL_CONF}" \
+        "${DISTRO}" \
+        postgresql \
+        mistral \
+        mistral \
+        StackStorm \
+        StackStorm
 }
 
 function exportsdir(){
@@ -322,18 +317,24 @@ function st2start(){
     fi
 
     if [ "${include_mistral}" = true ]; then
+
         # Run mistral-server
         echo 'Starting screen session mistral-server...'
-        screen -d -m -S mistral-server ./virtualenv/bin/python \
-            ./virtualenv/bin/mistral-server \
+        screen -d -m -S mistral-server ${MISTRAL_REPO}/.venv/bin/python \
+            ${MISTRAL_REPO}/.venv/bin/mistral-server \
             --server engine,executor \
             --config-file $MISTRAL_CONF \
             --log-file "$LOGDIR/mistral-server.log"
 
+
+        # screen -d -m -S mistral-server /home/vagrant/mistral/.venv/bin/python /home/vagrant/mistral/.venv/bin/mistral-server --server engine,executor --config-file /home/vagrant/st2/conf/mistral.dev/mistral.dev.conf --log-file /home/vagrant/st2/logs/mistral-server.log
+        # screen -d -m -S mistral-api /home/vagrant/mistral/.venv/bin/python /home/vagrant/mistral/.venv/bin/mistral-server --server api --config-file /home/vagrant/st2/conf/mistral.dev/mistral.dev.conf --log-file /home/vagrant/st2/logs/mistral-server.log
+
+
         # Run mistral-api
         echo 'Starting screen session mistral-api...'
-        screen -d -m -S mistral-api ./virtualenv/bin/python \
-            ./virtualenv/bin/mistral-server \
+        screen -d -m -S mistral-api ${MISTRAL_REPO}/.venv/bin/python \
+            ${MISTRAL_REPO}/.venv/bin/mistral-server \
             --server api \
             --config-file $MISTRAL_CONF \
             --log-file "$LOGDIR/mistral-api.log"
