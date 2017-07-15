@@ -107,13 +107,13 @@ function init_mistral(){
     # Install Mistral and st2 plugins
     echo "Installing mistral, st2mistral, and all dependencies..."
     source "${MISTRAL_REPO}/.venv/bin/activate"
-    # pip install pytz
+    pip install pytz > /dev/null
     cd "${MISTRAL_REPO}"
-    pip install -r requirements.txt
-    python setup.py install
+    pip install -r requirements.txt > /dev/null
+    python setup.py install > /dev/null
     cd "${ST2MISTRAL_REPO}"
-    pip install -r requirements.txt
-    python setup.py install
+    pip install -r requirements.txt > /dev/null
+    python setup.py install > /dev/null
     deactivate
 }
 
