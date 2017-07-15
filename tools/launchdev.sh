@@ -107,14 +107,28 @@ function init_mistral(){
     # Install Mistral and st2 plugins
     echo "Installing mistral, st2mistral, and all dependencies..."
     source "${MISTRAL_REPO}/.venv/bin/activate"
-    pip install pytz > /dev/null
     cd "${MISTRAL_REPO}"
+
+    # There's something funky going on with installation of Babel in mistral/requirements.txt
+    # I noticed that the install script in mistral_dev is doing some replacements for Babel to set
+    # the version but installation of Babel still fails for me even with that code. Only
+    # thing I've managed to get working is manually installing pytz myself here.
+    pip install pytz
+
     pip install -r requirements.txt > /dev/null
     python setup.py install > /dev/null
     cd "${ST2MISTRAL_REPO}"
     pip install -r requirements.txt > /dev/null
     python setup.py install > /dev/null
     deactivate
+
+    MISTRAL_DB_COUNT=$(PGUSER=mistral PGPASSWORD=StackStorm PGDATABASE=mistral PGHOST=127.0.0.1 PGPORT=5432 psql mistral -c "select count(*) from action_definitions_v2" | grep -oP '\d{4}')
+    if [ ! $? -eq 0 ]; then
+        MISTRAL_DB_COUNT=0
+    fi
+    if [ "$MISTRAL_DB_COUNT" -lt 1200 ] ; then
+      setup_mistral_db
+    fi
 }
 
 function exportsdir(){
@@ -397,6 +411,10 @@ function st2clean(){
         rm -rf ${EXPORTS_DIR}
     fi
 
+    setup_mistral_db
+}
+
+function setup_mistral_db(){
     # Ensure services are stopped, so DB script will work
     st2stop
 
@@ -415,7 +433,6 @@ function st2clean(){
         mistral \
         StackStorm \
         StackStorm
-
 }
 
 case ${subcommand} in
