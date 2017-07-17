@@ -31,6 +31,11 @@ Fixed
   (bug fix)
 
   Contributed by carbineneutral. #3534 #3544
+* Fix an API bug and allow users to create rules which reference actions which don't yet exist in
+  the system when RBAC is enabled and user doesn't have system admin permission. (bug fix)
+  #3572
+
+  Reported by sibirajal.
 
 2.3.1 - July 07, 2017
 ---------------------
