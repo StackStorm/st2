@@ -406,6 +406,8 @@ ALL_PERMISSION_TYPES = RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP.values()
 ALL_PERMISSION_TYPES = list(itertools.chain(*ALL_PERMISSION_TYPES))
 LIST_PERMISSION_TYPES = [permission_type for permission_type in ALL_PERMISSION_TYPES if
                          permission_type.endswith('_list')]
+CREATE_PERMISSION_TYPES = [permission_type for permission_type in ALL_PERMISSION_TYPES if
+                         permission_type.endswith('_create')]
 
 # List of global permissions (ones which don't apply to a specific resource)
 GLOBAL_PERMISSION_TYPES = [
@@ -430,7 +432,7 @@ GLOBAL_PERMISSION_TYPES = [
 
     # Execution
     PermissionType.EXECUTION_VIEWS_FILTERS_LIST
-] + LIST_PERMISSION_TYPES
+] + LIST_PERMISSION_TYPES + CREATE_PERMISSION_TYPES
 
 GLOBAL_PACK_PERMISSION_TYPES = [permission_type for permission_type in GLOBAL_PERMISSION_TYPES if
                                 permission_type.startswith('pack_')]
