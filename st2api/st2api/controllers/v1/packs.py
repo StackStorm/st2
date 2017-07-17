@@ -180,7 +180,7 @@ class PackSearchController(object):
 
     def post(self, pack_search_request):
 
-        proxy_config = self._get_proxy_config(pack_search_request)
+        proxy_config = self._get_proxy_config()
 
         if hasattr(pack_search_request, 'query'):
             packs = packs_service.search_pack_index(pack_search_request.query,
@@ -192,24 +192,19 @@ class PackSearchController(object):
                                                      proxy_config=proxy_config)
             return PackAPI(**pack) if pack else []
 
-    def _get_proxy_config(self, pack_search_request):
-        proxy_config = None
-        if hasattr(pack_search_request, 'proxy_config'):
-            LOG.debug('Loading proxy configuration from pack search HTTP request.')
-            proxy_config = pack_search_request.proxy_config
-        else:
-            LOG.debug('Loading proxy configuration from env variables %s.', os.environ)
-            http_proxy = os.environ.get('http_proxy', None)
-            https_proxy = os.environ.get('https_proxy', None)
-            no_proxy = os.environ.get('no_proxy', None)
-            proxy_ca_bundle_path = os.environ.get('proxy_ca_bundle_path', None)
+    def _get_proxy_config(self):
+        LOG.debug('Loading proxy configuration from env variables %s.', os.environ)
+        http_proxy = os.environ.get('http_proxy', None)
+        https_proxy = os.environ.get('https_proxy', None)
+        no_proxy = os.environ.get('no_proxy', None)
+        proxy_ca_bundle_path = os.environ.get('proxy_ca_bundle_path', None)
 
-            proxy_config = {
-                'http_proxy': http_proxy,
-                'https_proxy': https_proxy,
-                'proxy_ca_bundle_path': proxy_ca_bundle_path,
-                'no_proxy': no_proxy
-            }
+        proxy_config = {
+            'http_proxy': http_proxy,
+            'https_proxy': https_proxy,
+            'proxy_ca_bundle_path': proxy_ca_bundle_path,
+            'no_proxy': no_proxy
+        }
 
         LOG.debug('Proxy configuration: %s', proxy_config)
 
