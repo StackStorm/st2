@@ -198,6 +198,9 @@ def install_requirements(virtualenv_path, requirements_file_path, proxy_config=N
         https_proxy = proxy_config.get('https_proxy', None)
         http_proxy = proxy_config.get('http_proxy', None)
 
+        if http_proxy and https_proxy:
+            raise Exception('Either specify "http_proxy" or "https_proxy" but not both.')
+
         if http_proxy:
             cmd.extend(['--proxy', http_proxy])
 
@@ -238,6 +241,9 @@ def install_requirement(virtualenv_path, requirement, proxy_config=None, logger=
         cert = proxy_config.get('proxy_ca_bundle_path', None)
         https_proxy = proxy_config.get('https_proxy', None)
         http_proxy = proxy_config.get('http_proxy', None)
+
+        if http_proxy and https_proxy:
+            raise Exception('Either specify "http_proxy" or "https_proxy" but not both.')
 
         if http_proxy:
             cmd.extend(['--proxy', http_proxy])

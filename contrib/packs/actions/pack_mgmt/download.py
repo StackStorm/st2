@@ -81,6 +81,9 @@ class DownloadGitRepoAction(Action):
         if self.proxy_ca_bundle_path and not os.environ.get('proxy_ca_bundle_path', None):
             os.environ['no_proxy'] = self.no_proxy
 
+        if self.http_proxy and self.https_proxy:
+            raise Exception('Either specify "http_proxy" or "https_proxy" but not both.')
+
     def run(self, packs, abs_repo_base, verifyssl=True, force=False):
         result = {}
 
