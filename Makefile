@@ -243,7 +243,7 @@ requirements: virtualenv .sdist-requirements
 	@echo "==================== requirements ===================="
 	@echo
 	# Make sure we use latest version of pip
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip>=8.1.2,<8.2"
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip>=9.0,<9.1"
 	$(VIRTUALENV_DIR)/bin/pip install virtualenv  # Required for packs.install in dev envs.
 
 	# Generate all requirements to support current CI pipeline.
