@@ -104,9 +104,7 @@ jobs:
 
   # Build & Test st2 packages
   packages:
-    # TODO: Revert 4 when debug is finished
-    #parallelism: 4
-    parallelism: 2
+    parallelism: 4
     # 4CPUs & 8GB RAM CircleCI machine
     # sadly, it doesn't work with 'setup_remote_docker'
     resource_class: large
@@ -245,20 +243,18 @@ workflows:
   version: 2
   package-test-and-deploy:
     jobs:
-# TODO: Revert when debug is finished
-#      - unit
-#      - integration
-#      - lint
+      - unit
+      - integration
+      - lint
       - packages
       - trigger_e2etests:
           requires:
             - packages
       - deploy:
           requires:
-# TODO: Revert when debug is finished
-#            - unit
-#            - integration
-#            - lint
+            - unit
+            - integration
+            - lint
             - packages
           filters:
             branches:
@@ -266,7 +262,7 @@ workflows:
                 - master
                 - /v[0-9]+\.[0-9]+/
                 - feature/circleci
-#                - experimental/circle-2.0-workflows
+                #- experimental/circle-2.0-workflows
 
 experimental:
   notify:
