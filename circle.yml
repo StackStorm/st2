@@ -118,7 +118,8 @@ jobs:
       - DISTROS: "trusty xenial el6 el7"
       - ST2_PACKAGES_REPO: https://github.com/StackStorm/st2-packages
       - ST2_PACKAGES: "st2"
-      - DEPLOY_PACKAGES: 0
+      - ST2_CHECKOUT: 0
+      - ST2_GITDIR: /tmp/st2
       - BASH_ENV: ~/.buildenv
     steps:
       - checkout
@@ -153,11 +154,11 @@ jobs:
             # Remove st2-packages-vol container if exists in CircleCI cache
             docker rm -f st2-packages-vol || true
             # creating dummy container which will hold a volume with data files
-            docker create -v /root/st2-packages -v /tmp/st2 -v /root/build -v /var/log/st2 -v /var/log/mistral -v /root/.cache/pip -v /tmp/wheelhouse --name st2-packages-vol alpine:3.4 /bin/true
+            docker create -v /root/st2-packages -v ${ST2_GITDIR} -v /root/build -v /var/log/st2 -v /var/log/mistral -v /root/.cache/pip -v /tmp/wheelhouse --name st2-packages-vol alpine:3.4 /bin/true
             # copy st2-packages data files into this volume
             docker cp ~/st2-packages st2-packages-vol:/root
             # copy st2 source files into this volume
-            docker cp ~/st2/. st2-packages-vol:/tmp/st2
+            docker cp . st2-packages-vol:${ST2_GITDIR}
       - run:
           name: Pull dependent Docker Images
           command: |
@@ -173,9 +174,6 @@ jobs:
             # Once build container finishes we can copy packages directly from it
             mkdir -p ~/st2/packages/${DISTRO}/log/
             docker cp st2-packages-vol:/root/build ~/st2/packages/${DISTRO}
-          environment:
-            ST2_CHECKOUT: 0
-            ST2_GITDIR: /tmp/st2
           working_directory: ~/st2-packages
 #      # TODO: It works! (~0.5-1min speed-up) Enable CircleCI2.0 cache for pip and wheelhouse later
 #      - run:
