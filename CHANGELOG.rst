@@ -18,6 +18,7 @@ Added
   Contributed by Nick Maludy. #3508
 * Update ``st2`` CLI so it also displays "there are more results" note when ``-n`` flag is
   used and there are more items available. (improvement) #3552
+* Add ability to explicitly set ``stream_url`` in st2client.
 
 Changed
 ~~~~~~~
@@ -35,6 +36,7 @@ Fixed
   ``http_proxy`` or ``https_proxy`` environment variables for ``st2api`` and ``st2actionrunner``
   processes and pack commands will work with proxy. Refer to documentation for details on
   proxy configuration. (bug-fix) #3137
+* Fix no-member linting error on U16 by ignoring mistralclient.api.v2.executions module.
 
 
 2.3.1 - July 07, 2017

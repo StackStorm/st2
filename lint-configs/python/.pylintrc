@@ -23,7 +23,7 @@ disable=C0103,C0111,I0011,I0012,W0704,W0142,W0212,W0232,W0613,W0702,R0201,W0614,
 [TYPECHECK]
 # Note: This modules are manipulated during the runtime so we can't detect all the properties during
 # static analysis
-ignored-modules=distutils,eventlet.green.subprocess,six,six.moves
+ignored-modules=distutils,eventlet.green.subprocess,six,six.moves,mistralclient.api.v2.executions
 
 [FORMAT]
 max-line-length=100
