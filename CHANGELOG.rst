@@ -33,6 +33,8 @@ Fixed
   ``http_proxy`` or ``https_proxy`` environment variables for ``st2api`` and ``st2actionrunner``
   processes and pack commands will work with proxy. Refer to documentation for details on
   proxy configuration. (bug-fix) #3137
+* Fix API validation regression so all input data sent to some POST and PUT API endpoints is
+  correctly validated. (bug fix) #3580
 
 2.3.1 - July 07, 2017
 ---------------------
