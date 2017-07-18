@@ -365,7 +365,7 @@ class Router(object):
                             # Call validate on the API model - note we should eventually move all
                             # those model schema definitions into openapi.yaml
                             try:
-                                instance.validate()
+                                instance = instance.validate()
                             except (jsonschema.ValidationError, ValueError) as e:
                                 raise exc.HTTPBadRequest(detail=e.message,
                                                          comment=traceback.format_exc())
