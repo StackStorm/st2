@@ -63,6 +63,9 @@ class CLIConfigParserTestCase(unittest2.TestCase):
             },
             'auth': {
                 'url': 'http://127.0.0.1:9100/'
+            },
+            'stream': {
+                'url': 'http://127.0.0.1:9102/v1/stream'
             }
         }
         parser = CLIConfigParser(config_file_path=CONFIG_FILE_PATH_FULL,
