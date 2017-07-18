@@ -391,28 +391,28 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
     def test_post_with_st2_context_in_headers(self):
         resp = self._do_post(copy.deepcopy(LIVE_ACTION_1))
         self.assertEqual(resp.status_int, 201)
-        parent_user = unicode(resp.json['context']['user'])
-        parent_exec_id = unicode(resp.json['id'])
+        parent_user = resp.json['context']['user']
+        parent_exec_id = str(resp.json['id'])
         context = {
-            u'parent': {
-                u'execution_id': parent_exec_id,
-                u'user': parent_user
+            'parent': {
+                'execution_id': parent_exec_id,
+                'user': parent_user
             },
-            u'user': None,
-            u'other': {u'k1': u'v1'}
+            'user': None,
+            'other': {'k1': 'v1'}
         }
         headers = {'content-type': 'application/json', 'st2-context': json.dumps(context)}
         resp = self._do_post(copy.deepcopy(LIVE_ACTION_1), headers=headers)
         self.assertEqual(resp.status_int, 201)
         self.assertEqual(resp.json['context']['user'], parent_user, 'Should use parent\'s user.')
         expected = {
-            u'pack': u'sixpack',
-            u'parent': {
-                u'execution_id': parent_exec_id,
-                u'user': parent_user
+            'parent': {
+                'execution_id': parent_exec_id,
+                'user': parent_user
             },
-            u'user': parent_user,
-            u'other': {u'k1': u'v1'}
+            'user': parent_user,
+            'pack': 'sixpack',
+            'other': {'k1': 'v1'}
         }
         self.assertDictEqual(resp.json['context'], expected)
 
@@ -481,13 +481,13 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         trace = trace_service.get_trace_db_by_action_execution(action_execution_id=execution_id)
 
         expected_context = {
-            u'user': u'stanley',
-            u'pack': u'starterpack',
-            u're-run': {
-                u'ref': execution_id
+            'user': 'stanley',
+            'pack': 'starterpack',
+            're-run': {
+                'ref': execution_id
             },
-            u'trace_context': {
-                u'id_': str(trace.id)
+            'trace_context': {
+                'id_': str(trace.id)
             }
         }
 
@@ -497,10 +497,10 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         # Create a new execution
         post_resp = self._do_post(LIVE_ACTION_4)
         self.assertEqual(post_resp.status_int, 201)
-        execution_id = unicode(self._get_actionexecution_id(post_resp))
+        execution_id = self._get_actionexecution_id(post_resp)
 
         # Re-run created execution (tasks option for non workflow)
-        data = {u'tasks': [u'x']}
+        data = {'tasks': ['x']}
         re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id),
                                          data, expect_errors=True)
 
@@ -510,11 +510,11 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         trace = trace_service.get_trace_db_by_action_execution(action_execution_id=execution_id)
 
         expected_context = {
-            u'pack': u'starterpack',
-            u'user': u'stanley',
-            u're-run': {
-                u'ref': execution_id,
-                u'tasks': data['tasks']
+            'pack': 'starterpack',
+            'user': 'stanley',
+            're-run': {
+                'ref': execution_id,
+                'tasks': data['tasks']
             },
             'trace_context': {
                 'id_': str(trace.id)
@@ -527,10 +527,10 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         # Create a new execution
         post_resp = self._do_post(LIVE_ACTION_4)
         self.assertEqual(post_resp.status_int, 201)
-        execution_id = unicode(self._get_actionexecution_id(post_resp))
+        execution_id = self._get_actionexecution_id(post_resp)
 
         # Re-run created execution (tasks option for non workflow)
-        data = {u'tasks': [u'x', u'y']}
+        data = {'tasks': ['x', 'y']}
         re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id),
                                          data, expect_errors=True)
 
@@ -540,14 +540,14 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         trace = trace_service.get_trace_db_by_action_execution(action_execution_id=execution_id)
 
         expected_context = {
-            u'pack': u'starterpack',
-            u'user': u'stanley',
-            u're-run': {
-                u'ref': execution_id,
-                u'tasks': data['tasks']
+            'pack': 'starterpack',
+            'user': 'stanley',
+            're-run': {
+                'ref': execution_id,
+                'tasks': data['tasks']
             },
-            u'trace_context': {
-                u'id_': unicode(trace.id)
+            'trace_context': {
+                'id_': str(trace.id)
             }
         }
 
@@ -557,10 +557,10 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         # Create a new execution
         post_resp = self._do_post(LIVE_ACTION_4)
         self.assertEqual(post_resp.status_int, 201)
-        execution_id = unicode(self._get_actionexecution_id(post_resp))
+        execution_id = self._get_actionexecution_id(post_resp)
 
         # Re-run created execution (tasks option for non workflow)
-        data = {u'tasks': [u'x', u'y'], u'reset': [u'y']}
+        data = {'tasks': ['x', 'y'], 'reset': ['y']}
         re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id),
                                          data, expect_errors=True)
 
@@ -570,15 +570,15 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         trace = trace_service.get_trace_db_by_action_execution(action_execution_id=execution_id)
 
         expected_context = {
-            u'pack': u'starterpack',
-            u'user': u'stanley',
-            u're-run': {
-                u'ref': execution_id,
-                u'tasks': data['tasks'],
-                u'reset': data['reset']
+            'pack': 'starterpack',
+            'user': 'stanley',
+            're-run': {
+                'ref': execution_id,
+                'tasks': data['tasks'],
+                'reset': data['reset']
             },
-            u'trace_context': {
-                u'id_': unicode(trace.id)
+            'trace_context': {
+                'id_': str(trace.id)
             }
         }
 
