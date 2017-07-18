@@ -25,6 +25,7 @@ from st2common.persistence.keyvalue import KeyValuePair
 from st2common.transport.publishers import PoolPublisher
 from st2common.util import date as date_utils
 from st2common.util import param as param_utils
+from st2common.util.config_loader import get_config
 from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
 
@@ -559,7 +560,7 @@ class ParamsUtilsTest(DbTestCase):
                                 action_ref='foo.doesntexist', params={})
 
     def test_get_finalized_params_with_config(self):
-        with mock.patch('st2common.util.param.ContentPackConfigLoader') as config_loader:
+        with mock.patch('st2common.util.config_loader.ContentPackConfigLoader') as config_loader:
             config_loader().get_config.return_value = {
                 'generic_config_param': 'So generic'
             }
@@ -580,18 +581,18 @@ class ParamsUtilsTest(DbTestCase):
             )
 
     def test_get_config(self):
-        with mock.patch('st2common.util.param.ContentPackConfigLoader') as config_loader:
+        with mock.patch('st2common.util.config_loader.ContentPackConfigLoader') as config_loader:
             mock_config_return = {
                 'generic_config_param': 'So generic'
             }
 
             config_loader().get_config.return_value = mock_config_return
 
-            self.assertEqual(param_utils._get_config(None, None), {})
-            self.assertEqual(param_utils._get_config('pack', None), {})
-            self.assertEqual(param_utils._get_config(None, 'user'), {})
+            self.assertEqual(get_config(None, None), {})
+            self.assertEqual(get_config('pack', None), {})
+            self.assertEqual(get_config(None, 'user'), {})
             self.assertEqual(
-                param_utils._get_config('pack', 'user'), mock_config_return
+                get_config('pack', 'user'), mock_config_return
             )
 
             config_loader.assert_called_with(pack_name='pack', user='user')

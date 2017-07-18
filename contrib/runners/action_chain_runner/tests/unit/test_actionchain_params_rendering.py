@@ -67,9 +67,7 @@ class ActionChainRunnerResolveParamsTests(unittest2.TestCase):
             pass
 
     def test_render_params_with_config(self):
-        with mock.patch(
-            'action_chain_runner.ContentPackConfigLoader'
-        ) as config_loader:
+        with mock.patch('st2common.util.config_loader.ContentPackConfigLoader') as config_loader:
             config_loader().get_config.return_value = {
                 'amazing_config_value_fo_lyfe': 'no'
             }
