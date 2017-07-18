@@ -35,6 +35,7 @@ Fixed
   ``http_proxy`` or ``https_proxy`` environment variables for ``st2api`` and ``st2actionrunner``
   processes and pack commands will work with proxy. Refer to documentation for details on
   proxy configuration. (bug-fix) #3137
+* Fix no-member linting error on U16 by ignoring mistralclient.api.v2.executions module.
 
 
 2.3.1 - July 07, 2017
