@@ -502,7 +502,8 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
         body = json.loads(put_resp.body)
         self.assertEqual(body['description'], action['description'])
         self.assertEqual(body['pack'], pack)
-        self.__do_delete(self.__get_action_id(post_resp))
+        delete_resp = self.__do_delete(self.__get_action_id(post_resp))
+        self.assertEqual(delete_resp.status_int, 204)
 
     def test_post_invalid_runner_type(self):
         post_resp = self.__do_post(ACTION_5, expect_errors=True)

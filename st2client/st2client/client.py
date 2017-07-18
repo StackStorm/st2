@@ -145,6 +145,12 @@ class Client(object):
         self.managers['Stream'] = StreamManager(
             self.endpoints['stream'], cacert=self.cacert, debug=self.debug)
 
+        # RBAC
+        self.managers['Role'] = ResourceManager(
+            models.Role, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        self.managers['UserRoleAssignment'] = ResourceManager(
+            models.UserRoleAssignment, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+
     @property
     def actions(self):
         return self.managers['Action']

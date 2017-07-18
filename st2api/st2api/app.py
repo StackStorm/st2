@@ -13,45 +13,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-
-import pecan
 from oslo_config import cfg
-from pecan.middleware.static import StaticFileMiddleware
 
 from st2api import config as st2api_config
-from st2common import hooks
 from st2common import log as logging
+from st2common.middleware.error_handling import ErrorHandlingMiddleware
+from st2common.middleware.cors import CorsMiddleware
+from st2common.middleware.request_id import RequestIDMiddleware
+from st2common.middleware.logging import LoggingMiddleware
+from st2common.router import Router
 from st2common.util.monkey_patch import monkey_patch
 from st2common.constants.system import VERSION_STRING
 from st2common.service_setup import setup as common_setup
+from st2common.util import spec_loader
+from st2api.validation import validate_rbac_is_correctly_configured
 
 LOG = logging.getLogger(__name__)
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-def _get_pecan_config():
-    opts = cfg.CONF.api_pecan
+def setup_app(config={}):
+    LOG.info('Creating st2api: %s as OpenAPI app.', VERSION_STRING)
 
-    cfg_dict = {
-        'app': {
-            'root': opts.root,
-            'template_path': opts.template_path,
-            'modules': opts.modules,
-            'debug': opts.debug,
-            'auth_enable': opts.auth_enable,
-            'errors': opts.errors,
-            'guess_content_type_from_ext': False
-        }
-    }
-
-    return pecan.configuration.conf_from_dict(cfg_dict)
-
-
-def setup_app(config=None):
-    LOG.info('Creating st2api: %s as Pecan app.', VERSION_STRING)
-
-    is_gunicorn = getattr(config, 'is_gunicorn', False)
+    is_gunicorn = config.get('is_gunicorn', False)
     if is_gunicorn:
         # Note: We need to perform monkey patching in the worker. If we do it in
         # the master process (gunicorn_config.py), it breaks tons of things
@@ -67,34 +50,27 @@ def setup_app(config=None):
                      register_signal_handlers=True,
                      register_internal_trigger_types=True,
                      run_migrations=True,
-                     config_args=config.config_args)
+                     config_args=config.get('config_args', None))
 
-    if not config:
-        # standalone HTTP server case
-        config = _get_pecan_config()
-    else:
-        # gunicorn case
-        if is_gunicorn:
-            config.app = _get_pecan_config().app
+    # Additional pre-run time checks
+    validate_rbac_is_correctly_configured()
 
-    app_conf = dict(config.app)
+    router = Router(debug=cfg.CONF.api.debug, auth=cfg.CONF.auth.enable)
 
-    active_hooks = [hooks.RequestIDHook(), hooks.JSONErrorResponseHook(),
-                    hooks.LoggingHook()]
+    spec = spec_loader.load_spec('st2common', 'openapi.yaml.j2')
+    transforms = {
+        '^/api/v1/': ['/', '/v1/'],
+        '^/api/v1/executions': ['/actionexecutions', '/v1/actionexecutions'],
+        '^/api/exp/': ['/exp/']
+    }
+    router.add_spec(spec, transforms=transforms)
 
-    active_hooks.append(hooks.AuthHook())
-    active_hooks.append(hooks.CorsHook())
+    app = router.as_wsgi
 
-    app = pecan.make_app(app_conf.pop('root'),
-                         logging=getattr(config, 'logging', {}),
-                         hooks=active_hooks,
-                         **app_conf
-                         )
-
-    # Static middleware which servers common static assets such as logos
-    static_root = os.path.join(BASE_DIR, 'public')
-    app = StaticFileMiddleware(app=app, directory=static_root)
-
-    LOG.info('%s app created.' % __name__)
+    # Order is important. Check middleware for detailed explanation.
+    app = ErrorHandlingMiddleware(app)
+    app = CorsMiddleware(app)
+    app = LoggingMiddleware(app, router)
+    app = RequestIDMiddleware(app)
 
     return app

@@ -36,6 +36,7 @@ PYTHON_EXTENSIONS = ('.py')
 # Cache for dynamically loaded runner modules
 RUNNER_MODULES_CACHE = {}
 QUERIER_MODULES_CACHE = {}
+CALLBACK_MODULES_CACHE = {}
 
 
 def _register_plugin_path(plugin_dir_abs_path):
@@ -174,9 +175,7 @@ def register_plugin(plugin_base_class, plugin_abs_file_path):
 
 def register_runner(module_name):
     base_path = cfg.CONF.system.base_path
-    module_path = os.path.join(
-        "%s/runners/%s/%s.py" % (base_path, module_name, module_name)
-    )
+    module_path = os.path.join(base_path, 'runners', module_name, module_name + '.py')
 
     if module_name not in RUNNER_MODULES_CACHE:
         LOG.info('Loading runner module from "%s".', module_path)
@@ -189,9 +188,7 @@ def register_runner(module_name):
 
 def register_query_module(module_name):
     base_path = cfg.CONF.system.base_path
-    module_path = os.path.join(
-        "%s/runners/%s/query/%s.py" % (base_path, module_name, module_name)
-    )
+    module_path = os.path.join(base_path, 'runners', module_name, 'query', module_name + '.py')
 
     if module_name not in QUERIER_MODULES_CACHE:
         LOG.info('Loading query module from "%s".', module_path)
@@ -200,6 +197,19 @@ def register_query_module(module_name):
         LOG.info('Reusing query module "%s" from cache.', module_path)
 
     return QUERIER_MODULES_CACHE[module_name]
+
+
+def register_callback_module(module_name):
+    base_path = cfg.CONF.system.base_path
+    module_path = os.path.join(base_path, 'runners', module_name, 'callback', module_name + '.py')
+
+    if module_name not in CALLBACK_MODULES_CACHE:
+        LOG.info('Loading callback module from "%s".', module_path)
+        CALLBACK_MODULES_CACHE[module_name] = imp.load_source(module_name, module_path)
+    else:
+        LOG.info('Reusing callback module "%s" from cache.', module_path)
+
+    return CALLBACK_MODULES_CACHE[module_name]
 
 
 ALLOWED_EXTS = ['.json', '.yaml', '.yml']

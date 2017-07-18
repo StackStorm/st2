@@ -27,8 +27,8 @@ def transform_to_bool(value):
 
     Any other representation will be rejected.
     """
-    if value in ['1', 'true', 'True']:
+    if value in ['1', 'true', 'True', True]:
         return True
-    elif value in ['0', 'false', 'False']:
+    elif value in ['0', 'false', 'False', False]:
         return False
     raise ValueError('Invalid bool representation "%s" provided.' % value)

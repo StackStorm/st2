@@ -17,12 +17,11 @@ import abc
 import six
 from oslo_config import cfg
 
-from st2actions import handlers
 from st2common import log as logging
 from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.util import action_db as action_utils
-from st2common.util.loader import register_runner
+from st2common.util.loader import register_runner, register_callback_module
 from st2common.util.api import get_full_public_api_url
 
 
@@ -108,12 +107,24 @@ class ActionRunner(object):
 
     def post_run(self, status, result):
         callback = self.callback or {}
+
         if callback and not (set(['url', 'source']) - set(callback.keys())):
-            handler = handlers.get_handler(callback['source'])
-            handler.callback(callback['url'],
-                             self.context,
-                             status,
-                             result)
+            callback_url = callback['url']
+            callback_module_name = callback['source']
+
+            try:
+                callback_module = register_callback_module(callback_module_name)
+            except:
+                LOG.exception('Failed importing callback module: %s', callback_module_name)
+
+            callback_handler = callback_module.get_instance()
+
+            callback_handler.callback(
+                callback_url,
+                self.context,
+                status,
+                result
+            )
 
     def get_pack_name(self):
         """

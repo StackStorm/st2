@@ -13,21 +13,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from mongoengine.queryset.visitor import Q
+
 from st2common.rbac.types import PermissionType
 from st2common.rbac.types import ResourceType
 from st2common.rbac.types import SystemRole
 from st2common.persistence.rbac import Role
 from st2common.persistence.rbac import UserRoleAssignment
 from st2common.persistence.rbac import PermissionGrant
+from st2common.persistence.rbac import GroupToRoleMapping
 from st2common.models.db.rbac import RoleDB
 from st2common.models.db.rbac import UserRoleAssignmentDB
 from st2common.models.db.rbac import PermissionGrantDB
+from st2common.models.db.rbac import GroupToRoleMappingDB
 
 
 __all__ = [
     'get_all_roles',
     'get_system_roles',
     'get_roles_for_user',
+    'get_all_role_assignments',
     'get_role_assignments_for_user',
     'get_role_by_name',
 
@@ -40,7 +45,12 @@ __all__ = [
     'get_all_permission_grants_for_user',
     'create_permission_grant',
     'create_permission_grant_for_resource_db',
-    'remove_permission_grant_for_resource_db'
+    'remove_permission_grant_for_resource_db',
+
+    'get_all_group_to_role_maps',
+    'create_group_to_role_map',
+
+    'validate_roles_exists'
 ]
 
 
@@ -71,30 +81,73 @@ def get_system_roles():
     return result
 
 
-def get_roles_for_user(user_db):
+def get_roles_for_user(user_db, include_remote=True):
     """
     Retrieve all the roles assigned to the provided user.
 
     :param user_db: User to retrieve the roles for.
     :type user_db: :class:`UserDB`
 
+    :param include_remote: True to also include remote role assignments.
+    :type include_remote: ``bool``
+
     :rtype: ``list`` of :class:`RoleDB`
     """
-    role_names = UserRoleAssignment.query(user=user_db.name).only('role').scalar('role')
+    if include_remote:
+        queryset = UserRoleAssignment.query(user=user_db.name)
+    else:
+        # when upgrading from pre v2.3.0 when this field didn't exist yet
+        # Note: We also include None for pre v2.3 when this field didn't exist yet
+        queryset_filter = (Q(user=user_db.name) &
+                           (Q(is_remote=False) | Q(is_remote__exists=False)))
+        queryset = UserRoleAssignmentDB.objects(queryset_filter)
+
+    role_names = queryset.only('role').scalar('role')
     result = Role.query(name__in=role_names)
     return result
 
 
-def get_role_assignments_for_user(user_db):
+def get_all_role_assignments(include_remote=True):
+    """
+    Retrieve all the UserRoleAssignmentDB objects.
+
+    :param include_remote: True to also include remote role assignments.
+    :type include_remote: ``bool``
+
+    :rtype: ``list`` of :class:`UserRoleAssignmentDB`
+    """
+    if include_remote:
+        result = UserRoleAssignment.query()
+    else:
+        # Note: We also include documents with no "is_remote" field so it also works correctly
+        # when upgrading from pre v2.3.0 when this field didn't exist yet
+        queryset_filter = (Q(is_remote=False) | Q(is_remote__exists=False))
+        result = UserRoleAssignmentDB.objects(queryset_filter)
+
+    return result
+
+
+def get_role_assignments_for_user(user_db, include_remote=True):
     """
     Retrieve all the UserRoleAssignmentDB objects for a particular user.
 
     :param user_db: User to retrieve the role assignments for.
     :type user_db: :class:`UserDB`
 
+    :param include_remote: True to also include remote role assignments.
+    :type include_remote: ``bool``
+
     :rtype: ``list`` of :class:`UserRoleAssignmentDB`
     """
-    result = UserRoleAssignment.query(user=user_db.name)
+    if include_remote:
+        result = UserRoleAssignment.query(user=user_db.name)
+    else:
+        # Note: We also include documents with no "is_remote" field so it also works correctly
+        # when upgrading from pre v2.3.0 when this field didn't exist yet
+        queryset_filter = (Q(user=user_db.name) &
+                           (Q(is_remote=False) | Q(is_remote__exists=False)))
+        result = UserRoleAssignmentDB.objects(queryset_filter)
+
     return result
 
 
@@ -132,7 +185,7 @@ def delete_role(name):
     return result
 
 
-def assign_role_to_user(role_db, user_db, description=None):
+def assign_role_to_user(role_db, user_db, description=None, is_remote=False):
     """
     Assign role to a user.
 
@@ -144,9 +197,13 @@ def assign_role_to_user(role_db, user_db, description=None):
 
     :param description: Optional assingment description.
     :type description: ``str``
+
+    :param include_remote: True if this a remote assignment.
+    :type include_remote: ``bool``
     """
     role_assignment_db = UserRoleAssignmentDB(user=user_db.name, role=role_db.name,
-                                              description=description)
+                                              description=description,
+                                              is_remote=is_remote)
     role_assignment_db = UserRoleAssignment.add_or_update(role_assignment_db)
     return role_assignment_db
 
@@ -263,6 +320,36 @@ def remove_permission_grant_for_resource_db(role_db, resource_db, permission_typ
     role_db.update(pull__permission_grants=str(permission_grant_db.id))
 
     return permission_grant_db
+
+
+def get_all_group_to_role_maps():
+    result = GroupToRoleMapping.get_all()
+    return result
+
+
+def create_group_to_role_map(group, roles, description=None, enabled=True):
+    group_to_role_map_db = GroupToRoleMappingDB(group=group,
+                                                roles=roles,
+                                                description=description,
+                                                enabled=enabled)
+
+    group_to_role_map_db = GroupToRoleMapping.add_or_update(group_to_role_map_db)
+    return group_to_role_map_db
+
+
+def validate_roles_exists(role_names):
+    """
+    Verify that the roles with the provided names exists in the system.
+
+    :param role_name: Name of the role.
+    :type role_name: ``str``
+    """
+    role_dbs = get_all_roles()
+    existing_role_names = [role_db.name for role_db in role_dbs]
+
+    for role_name in role_names:
+        if role_name not in existing_role_names:
+            raise ValueError('Role "%s" doesn\'t exist in the database' % (role_name))
 
 
 def _validate_resource_type(resource_db):

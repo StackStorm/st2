@@ -31,7 +31,7 @@ class WiringTest(base.TestWorkflowExecution):
 
         # Create temporary directory used by the tests
         _, self.temp_dir_path = tempfile.mkstemp()
-        os.chmod(self.temp_dir_path, 0666)   # nosec
+        os.chmod(self.temp_dir_path, 0755)   # nosec
 
     def tearDown(self):
         if self.temp_dir_path and os.path.exists(self.temp_dir_path):
@@ -102,8 +102,44 @@ class WiringTest(base.TestWorkflowExecution):
         execution = self._execute_workflow('examples.mistral-test-cancel', {'sleep': 10})
         execution = self._wait_for_state(execution, ['running'])
         self.st2client.liveactions.delete(execution)
-        execution = self._wait_for_completion(execution, expect_tasks_completed=False)
+
+        execution = self._wait_for_completion(
+            execution,
+            expect_tasks=False,
+            expect_tasks_completed=False
+        )
+
         self._assert_canceled(execution, are_tasks_completed=False)
+
+    def test_cancellation_cascade_subworkflow_action(self):
+        execution = self._execute_workflow(
+            'examples.mistral-test-cancel-subworkflow-action',
+            {'sleep': 30}
+        )
+
+        execution = self._wait_for_state(execution, ['running'])
+        self.st2client.liveactions.delete(execution)
+
+        execution = self._wait_for_completion(
+            execution,
+            expect_tasks=False,
+            expect_tasks_completed=False
+        )
+
+        self.assertEqual(execution.status, 'canceled')
+
+        task_executions = [e for e in self.st2client.liveactions.get_all()
+                           if e.context.get('parent', {}).get('execution_id') == execution.id]
+
+        subworkflow_execution = self.st2client.liveactions.get_by_id(task_executions[0].id)
+
+        subworkflow_execution = self._wait_for_completion(
+            subworkflow_execution,
+            expect_tasks=False,
+            expect_tasks_completed=False
+        )
+
+        self.assertEqual(execution.status, 'canceled')
 
     def test_task_cancellation(self):
         execution = self._execute_workflow('examples.mistral-test-cancel', {'sleep': 30})
@@ -116,12 +152,11 @@ class WiringTest(base.TestWorkflowExecution):
 
         self.st2client.liveactions.delete(task_executions[0])
         execution = self._wait_for_completion(execution, expect_tasks_completed=True)
-        self._assert_failure(execution)
+        self._assert_canceled(execution, are_tasks_completed=True)
 
         task_results = execution.result.get('tasks', [])
         self.assertGreater(len(task_results), 0)
-        expected_state_info = '{error: Execution canceled by user.}'
-        self.assertEqual(task_results[0]['state_info'], expected_state_info)
+        self.assertEqual(task_results[0]['state'], 'CANCELLED')
 
     def test_basic_rerun(self):
         path = self.temp_dir_path

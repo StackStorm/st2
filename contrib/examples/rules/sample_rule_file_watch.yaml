@@ -1,0 +1,17 @@
+---
+name: sample_rule_file_watch
+pack: "examples"
+description: Sample rule custom trigger type - add a file to be watched by file_watch_sensor in linux pack.
+enabled: true
+
+trigger:
+  parameters:
+    file_path: /tmp/st2_test
+  type: linux.file_watch.line
+
+criteria: {}
+
+action:
+  parameters:
+    cmd: echo "{{trigger}}"
+  ref: core.local

@@ -23,12 +23,18 @@ from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.auth import NoNicknameOriginProvidedError, AmbiguousUserError
 from st2common.exceptions.auth import NotServiceUserError
 from st2common.persistence.auth import User
-from st2common.util.pecan_util import abort_request
+from st2common.router import abort
 from st2common.services.access import create_token
 from st2common.models.api.auth import TokenAPI
+from st2common.models.db.auth import UserDB
+from st2common.rbac.syncer import RBACRemoteGroupToRoleSyncer
 from st2auth.backends import get_backend_instance
 
 LOG = logging.getLogger(__name__)
+
+
+def abort_request(status_code=http_client.UNAUTHORIZED, message='Invalid or missing credentials'):
+    return abort(status_code, message)
 
 
 class AuthHandlerBase(object):
@@ -148,27 +154,62 @@ class StandaloneAuthHandler(AuthHandlerBase):
             abort_request()
             return
 
-        split = auth_value.split(':')
+        split = auth_value.split(':', 1)
         if len(split) != 2:
             LOG.audit('Invalid authorization header', extra=extra)
             abort_request()
             return
 
         username, password = split
-        result = self._auth_backend
 
         result = self._auth_backend.authenticate(username=username, password=password)
+
         if result is True:
             ttl = getattr(request, 'ttl', None)
             username = self._get_username_for_request(username, request)
             try:
-                token = self._create_token_for_user(
-                    username=username, ttl=ttl)
-                return token
+                token = self._create_token_for_user(username=username, ttl=ttl)
             except TTLTooLargeException as e:
                 abort_request(status_code=http_client.BAD_REQUEST,
                               message=e.message)
                 return
+
+            # If remote group sync is enabled, sync the remote groups with local StackStorm roles
+            if cfg.CONF.rbac.sync_remote_groups:
+                LOG.debug('Retrieving auth backend groups for user "%s"' % (username),
+                          extra=extra)
+                try:
+                    user_groups = self._auth_backend.get_user_groups(username=username)
+                except NotImplementedError:
+                    LOG.debug('Configured auth backend doesn\'t expose user group membership '
+                              'information, skipping sync...')
+                    return token
+
+                if not user_groups:
+                    # No groups, return early
+                    return token
+
+                extra['username'] = username
+                extra['user_groups'] = user_groups
+
+                LOG.debug('Found "%s" groups for user "%s"' % (len(user_groups), username),
+                          extra=extra)
+
+                user_db = UserDB(name=username)
+                syncer = RBACRemoteGroupToRoleSyncer()
+
+                try:
+                    syncer.sync(user_db=user_db, groups=user_groups)
+                except Exception as e:
+                    # Note: Failed sync is not fatal
+                    LOG.exception('Failed to synchronize remote groups for user "%s"' % (username),
+                                  extra=extra)
+                else:
+                    LOG.debug('Successfuly synchronized groups for user "%s"' % (username),
+                              extra=extra)
+
+                return token
+            return token
 
         LOG.audit('Invalid credentials provided', extra=extra)
         abort_request()

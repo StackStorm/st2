@@ -1,0 +1,12 @@
+---
+name: "match"
+pack: chatops
+runner_type: "run-python"
+description: "Match a string to an action alias"
+enabled: true
+entry_point: "match.py"
+parameters:
+  text:
+    type: "string"
+    description: "The text to match"
+    required: true

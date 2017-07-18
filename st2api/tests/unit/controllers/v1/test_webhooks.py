@@ -19,8 +19,13 @@ import mock
 import six
 from tests import FunctionalTest
 
-from st2api.controllers.v1.webhooks import WebhooksController, HooksHolder
+import st2common.services.triggers as trigger_service
+
+with mock.patch.object(trigger_service, 'create_trigger_type_db', mock.MagicMock()):
+    from st2api.controllers.v1.webhooks import WebhooksController, HooksHolder
+
 from st2common.constants.triggers import WEBHOOK_TRIGGER_TYPES
+from st2common.models.api.trigger import TriggerAPI
 from st2common.models.db.trigger import TriggerDB
 from st2common.transport.reactor import TriggerInstancePublisher
 
@@ -40,9 +45,21 @@ ST2_WEBHOOK = {
 
 DUMMY_TRIGGER = TriggerDB(name='pr-merged', pack='git')
 DUMMY_TRIGGER.type = WEBHOOK_TRIGGER_TYPES.keys()[0]
+DUMMY_TRIGGER_API = TriggerAPI.from_model(DUMMY_TRIGGER)
 
 
 class TestWebhooksController(FunctionalTest):
+
+    @mock.patch.object(TriggerInstancePublisher, 'publish_trigger', mock.MagicMock(
+        return_value=True))
+    @mock.patch.object(WebhooksController, '_is_valid_hook', mock.MagicMock(
+        return_value=True))
+    @mock.patch.object(HooksHolder, 'get_all', mock.MagicMock(
+        return_value=[vars(DUMMY_TRIGGER)]))
+    def test_get_all(self):
+        get_resp = self.app.get('/v1/webhooks', expect_errors=False)
+        self.assertEqual(get_resp.status_int, http_client.OK)
+        self.assertEqual(get_resp.json, [vars(DUMMY_TRIGGER)])
 
     @mock.patch.object(TriggerInstancePublisher, 'publish_trigger', mock.MagicMock(
         return_value=True))

@@ -28,6 +28,8 @@ from st2api import config
 config.register_opts()
 from st2api import app
 
+from st2api.validation import validate_rbac_is_correctly_configured
+
 __all__ = [
     'main'
 ]
@@ -44,6 +46,9 @@ def _setup():
     common_setup(service='api', config=config, setup_db=True, register_mq_exchanges=True,
                  register_signal_handlers=True, register_internal_trigger_types=True)
 
+    # Additional pre-run time checks
+    validate_rbac_is_correctly_configured()
+
 
 def _run_server():
     host = cfg.CONF.api.host
@@ -55,7 +60,7 @@ def _run_server():
     worker_pool = eventlet.GreenPool(max_pool_size)
     sock = eventlet.listen((host, port))
 
-    wsgi.server(sock, app.setup_app(), custom_pool=worker_pool)
+    wsgi.server(sock, app.setup_app(), custom_pool=worker_pool, log=LOG, log_output=False)
     return 0
 
 

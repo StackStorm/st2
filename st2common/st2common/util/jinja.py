@@ -17,6 +17,7 @@ import json
 import six
 
 from st2common import log as logging
+from st2common.util.compat import to_unicode
 
 
 __all__ = [
@@ -51,6 +52,7 @@ def get_filters():
     from st2common.jinja.filters import complex_type
     from st2common.jinja.filters import time
     from st2common.jinja.filters import version
+    from st2common.jinja.filters import json_escape
 
     return {
         'decrypt_kv': crypto.decrypt_kv,
@@ -62,6 +64,7 @@ def get_filters():
         'regex_match': regex.regex_match,
         'regex_replace': regex.regex_replace,
         'regex_search': regex.regex_search,
+        'regex_substring': regex.regex_substring,
 
         'to_human_time_from_seconds': time.to_human_time_from_seconds,
 
@@ -74,7 +77,9 @@ def get_filters():
         'version_bump_minor': version.version_bump_minor,
         'version_bump_patch': version.version_bump_patch,
         'version_strip_patch': version.version_strip_patch,
-        'use_none': use_none
+        'use_none': use_none,
+
+        'json_escape': json_escape.json_escape
     }
 
 
@@ -134,7 +139,12 @@ def render_values(mapping=None, context=None, allow_undefined=False):
             v = json.dumps(v)
             reverse_json_dumps = True
         else:
-            v = str(v)
+            # Special case for text type to handle unicode
+            if isinstance(v, six.string_types):
+                v = to_unicode(v)
+            else:
+                # Other types (e.g. boolean, etc.)
+                v = str(v)
 
         try:
             LOG.info('Rendering string %s. Super context=%s', v, super_context)

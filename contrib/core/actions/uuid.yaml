@@ -1,0 +1,14 @@
+---
+name: uuid
+runner_type: "python-script"
+description: Generate a new UUID (default uuid4)
+enabled: true
+entry_point: generate_uuid.py
+parameters:
+  uuid_type:
+    type: string
+    default: uuid4
+    description: UUID type (uuid1 or uuid4). Defaults to uuid4
+    enum:
+      - uuid1
+      - uuid4

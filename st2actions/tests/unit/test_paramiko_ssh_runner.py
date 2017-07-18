@@ -143,7 +143,7 @@ class ParamikoSSHRunnerTestCase(unittest2.TestCase):
         }
         mock_client.assert_called_with(**expected_kwargs)
 
-        # Private key provided as path to the private key file + passpharse
+        # Private key provided as path to the private key file + passphrase
         runner = Runner('id')
         runner.context = {}
         runner_parameters = {
@@ -190,3 +190,34 @@ class ParamikoSSHRunnerTestCase(unittest2.TestCase):
             'connect': True
         }
         mock_client.assert_called_with(**expected_kwargs)
+
+    @mock.patch('st2common.runners.paramiko_ssh_runner.ParallelSSHClient')
+    def test_post_run(self, mock_client):
+        # Verify that the SSH connections are closed on post_run
+        runner = Runner('id')
+        runner.context = {}
+        runner_parameters = {
+            RUNNER_HOSTS: 'localhost',
+            RUNNER_USERNAME: 'someuser1',
+            RUNNER_PASSWORD: 'somepassword'
+        }
+        runner.runner_parameters = runner_parameters
+        runner.pre_run()
+
+        expected_kwargs = {
+            'hosts': ['localhost'],
+            'user': 'someuser1',
+            'password': 'somepassword',
+            'port': None,
+            'concurrency': 1,
+            'bastion_host': None,
+            'raise_on_any_error': False,
+            'connect': True
+        }
+        mock_client.assert_called_with(**expected_kwargs)
+        self.assertEqual(runner._parallel_ssh_client.close.call_count, 0)
+
+        runner.post_run(result=None, status=None)
+
+        # Verify connections are closed
+        self.assertEqual(runner._parallel_ssh_client.close.call_count, 1)

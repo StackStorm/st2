@@ -1,0 +1,23 @@
+---
+name: "run"
+pack: chatops
+runner_type: "action-chain"
+description: "Match a text chatops command, execute it and post the result"
+enabled: true
+entry_point: "workflows/run.yaml"
+parameters:
+  user:
+    type: "string"
+    description: "Explicitly notify a user"
+  whisper:
+    type: "boolean"
+    description: "Send a private message to user"
+    default: false
+  text:
+    type: "string"
+    description: "Chatops command"
+    required: true
+  channel:
+    type: "string"
+    description: "Channel to post to"
+    required: true

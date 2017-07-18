@@ -13,30 +13,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-try:
-    import simplejson as json
-except ImportError:
-    import json
-
 import six
-import pecan
 import uuid
-from pecan import abort
-from pecan.rest import RestController
 from six.moves.urllib import parse as urlparse  # pylint: disable=import-error
 urljoin = urlparse.urljoin
 
 from st2common import log as logging
 from st2common.constants.triggers import WEBHOOK_TRIGGER_TYPES
-from st2common.models.api.base import jsexpose
 from st2common.models.api.trace import TraceContext
 from st2common.models.api.trigger import TriggerAPI
+from st2common.models.db.webhook import WebhookDB
 import st2common.services.triggers as trigger_service
+from st2common.rbac.types import PermissionType
+from st2common.rbac import utils as rbac_utils
 from st2common.services.triggerwatcher import TriggerWatcher
 from st2common.transport.reactor import TriggerDispatcher
-from st2common.util.http import parse_content_type_header
-from st2common.rbac.types import PermissionType
-from st2common.rbac.decorators import request_user_has_webhook_permission
+from st2common.router import abort
+from st2common.router import Response
 
 http_client = six.moves.http_client
 
@@ -85,9 +78,8 @@ class HooksHolder(object):
         return triggers
 
 
-class WebhooksController(RestController):
+class WebhooksController(object):
     def __init__(self, *args, **kwargs):
-        super(WebhooksController, self).__init__(*args, **kwargs)
         self._hooks = HooksHolder()
         self._base_url = '/webhooks/'
         self._trigger_types = WEBHOOK_TRIGGER_TYPES.keys()
@@ -103,86 +95,64 @@ class WebhooksController(RestController):
         self._trigger_watcher.start()
         self._register_webhook_trigger_types()
 
-    @jsexpose()
     def get_all(self):
         # Return only the hooks known by this controller.
         return self._hooks.get_all()
 
-    @jsexpose()
-    def get_one(self, name):
+    def get_one(self, name, requester_user):
         triggers = self._hooks.get_triggers_for_hook(name)
 
         if not triggers:
             abort(http_client.NOT_FOUND)
             return
 
+        permission_type = PermissionType.WEBHOOK_VIEW
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=WebhookDB(name=name),
+                                                          permission_type=permission_type)
+
         # For demonstration purpose return 1st
         return triggers[0]
 
-    @request_user_has_webhook_permission(permission_type=PermissionType.WEBHOOK_SEND)
-    @jsexpose(arg_types=[str], status_code=http_client.ACCEPTED)
-    def post(self, *args, **kwargs):
-        hook = '/'.join(args)  # TODO: There must be a better way to do this.
+    def post(self, hook, body, headers, requester_user):
+        body = vars(body)
 
-        # Note: For backward compatibility reasons we default to application/json if content
-        # type is not explicitly provided
-        content_type = pecan.request.headers.get('Content-Type', 'application/json')
-        content_type = parse_content_type_header(content_type=content_type)[0]
-        body = pecan.request.body
+        permission_type = PermissionType.WEBHOOK_SEND
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=WebhookDB(name=hook),
+                                                          permission_type=permission_type)
 
-        try:
-            body = self._parse_request_body(content_type=content_type, body=body)
-        except Exception as e:
-            self._log_request('Failed to parse request body: %s.' % (str(e)), pecan.request)
-            msg = 'Failed to parse request body "%s": %s' % (body, str(e))
-            return pecan.abort(http_client.BAD_REQUEST, msg)
-
-        headers = self._get_headers_as_dict(pecan.request.headers)
+        headers = self._get_headers_as_dict(headers)
         # If webhook contains a trace-tag use that else create create a unique trace-tag.
         trace_context = self._create_trace_context(trace_tag=headers.pop(TRACE_TAG_HEADER, None),
                                                    hook=hook)
 
         if hook == 'st2' or hook == 'st2/':
-            return self._handle_st2_webhook(body, trace_context=trace_context)
+            trigger = body.get('trigger', None)
+            payload = body.get('payload', None)
 
-        if not self._is_valid_hook(hook):
-            self._log_request('Invalid hook.', pecan.request)
-            msg = 'Webhook %s not registered with st2' % hook
-            return pecan.abort(http_client.NOT_FOUND, msg)
+            if not trigger:
+                msg = 'Trigger not specified.'
+                return abort(http_client.BAD_REQUEST, msg)
 
-        triggers = self._hooks.get_triggers_for_hook(hook)
-        payload = {}
-
-        payload['headers'] = headers
-        payload['body'] = body
-        # Dispatch trigger instance for each of the trigger found
-        for trigger in triggers:
-            self._trigger_dispatcher.dispatch(trigger, payload=payload,
-                trace_context=trace_context)
-
-        return body
-
-    def _parse_request_body(self, content_type, body):
-        if content_type == 'application/json':
-            self._log_request('Parsing request body as JSON', request=pecan.request)
-            body = json.loads(body)
-        elif content_type in ['application/x-www-form-urlencoded', 'multipart/form-data']:
-            self._log_request('Parsing request body as form encoded data', request=pecan.request)
-            body = urlparse.parse_qs(body)
+            self._trigger_dispatcher.dispatch(trigger, payload=payload, trace_context=trace_context)
         else:
-            raise ValueError('Unsupported Content-Type: "%s"' % (content_type))
+            if not self._is_valid_hook(hook):
+                self._log_request('Invalid hook.', headers, body)
+                msg = 'Webhook %s not registered with st2' % hook
+                return abort(http_client.NOT_FOUND, msg)
 
-        return body
+            triggers = self._hooks.get_triggers_for_hook(hook)
+            payload = {}
 
-    def _handle_st2_webhook(self, body, trace_context):
-        trigger = body.get('trigger', None)
-        payload = body.get('payload', None)
-        if not trigger:
-            msg = 'Trigger not specified.'
-            return pecan.abort(http_client.BAD_REQUEST, msg)
-        self._trigger_dispatcher.dispatch(trigger, payload=payload, trace_context=trace_context)
+            payload['headers'] = headers
+            payload['body'] = body
+            # Dispatch trigger instance for each of the trigger found
+            for trigger in triggers:
+                self._trigger_dispatcher.dispatch(trigger, payload=payload,
+                    trace_context=trace_context)
 
-        return body
+        return Response(json=body, status=http_client.ACCEPTED)
 
     def _is_valid_hook(self, hook):
         # TODO: Validate hook payload with payload_schema.
@@ -230,9 +200,9 @@ class WebhooksController(RestController):
             headers_dict[key] = value
         return headers_dict
 
-    def _log_request(self, msg, request, log_method=LOG.debug):
-        headers = self._get_headers_as_dict(request.headers)
-        body = str(request.body)
+    def _log_request(self, msg, headers, body, log_method=LOG.debug):
+        headers = self._get_headers_as_dict(headers)
+        body = str(body)
         log_method('%s\n\trequest.header: %s.\n\trequest.body: %s.', msg, headers, body)
 
     ##############################################
@@ -257,3 +227,6 @@ class WebhooksController(RestController):
     def _sanitize_trigger(self, trigger):
         sanitized = TriggerAPI.from_model(trigger).to_dict()
         return sanitized
+
+
+webhooks_controller = WebhooksController()

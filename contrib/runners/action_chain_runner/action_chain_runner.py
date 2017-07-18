@@ -234,7 +234,7 @@ class ActionChainRunner(ActionRunner):
         self._meta_loader = MetaLoader()
         self._stopped = False
         self._skip_notify_tasks = []
-        self._display_published = False
+        self._display_published = True
         self._chain_notify = None
 
     def pre_run(self):
@@ -272,7 +272,7 @@ class ActionChainRunner(ActionRunner):
             self._chain_notify = getattr(self.liveaction, 'notify', None)
         if self.runner_parameters:
             self._skip_notify_tasks = self.runner_parameters.get('skip_notify', [])
-            self._display_published = self.runner_parameters.get('display_published', False)
+            self._display_published = self.runner_parameters.get('display_published', True)
 
         # Perform some pre-run chain validation
         try:

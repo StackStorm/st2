@@ -1,0 +1,19 @@
+---
+name: "forloop_increase_index_and_check_condition"
+runner_type: "python-script"
+description: "Increase a for-loop index by a certain value and return false if condition is broken"
+enabled: true
+entry_point: "pythonactions/forloop_increase_index_and_check_condition.py"
+parameters:
+  index:
+    type: "string"
+    description: "Index to be operated on"
+    required: true
+  pagesize:
+    type: "string"
+    description: "Expected number of items on each page"
+    required: true
+  input:
+    type: object
+    description: "Dataset to compare to the pagesize"
+    required: true

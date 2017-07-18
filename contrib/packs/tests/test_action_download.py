@@ -269,17 +269,17 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
     def test_resolve_urls(self):
         url = DownloadGitRepoAction._eval_repo_url(
             "https://github.com/StackStorm-Exchange/stackstorm-test")
-        self.assertEqual(url, "https://github.com/StackStorm-Exchange/stackstorm-test.git")
+        self.assertEqual(url, "https://github.com/StackStorm-Exchange/stackstorm-test")
 
         url = DownloadGitRepoAction._eval_repo_url(
             "https://github.com/StackStorm-Exchange/stackstorm-test.git")
         self.assertEqual(url, "https://github.com/StackStorm-Exchange/stackstorm-test.git")
 
         url = DownloadGitRepoAction._eval_repo_url("StackStorm-Exchange/stackstorm-test")
-        self.assertEqual(url, "https://github.com/StackStorm-Exchange/stackstorm-test.git")
+        self.assertEqual(url, "https://github.com/StackStorm-Exchange/stackstorm-test")
 
         url = DownloadGitRepoAction._eval_repo_url("git://StackStorm-Exchange/stackstorm-test")
-        self.assertEqual(url, "git://StackStorm-Exchange/stackstorm-test.git")
+        self.assertEqual(url, "git://StackStorm-Exchange/stackstorm-test")
 
         url = DownloadGitRepoAction._eval_repo_url("git://StackStorm-Exchange/stackstorm-test.git")
         self.assertEqual(url, "git://StackStorm-Exchange/stackstorm-test.git")
@@ -289,6 +289,12 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
 
         url = DownloadGitRepoAction._eval_repo_url("file:///home/vagrant/stackstorm-test")
         self.assertEqual(url, "file:///home/vagrant/stackstorm-test")
+
+        url = DownloadGitRepoAction._eval_repo_url('ssh://<user@host>/AutomationStackStorm')
+        self.assertEqual(url, 'ssh://<user@host>/AutomationStackStorm')
+
+        url = DownloadGitRepoAction._eval_repo_url('ssh://joe@local/AutomationStackStorm')
+        self.assertEqual(url, 'ssh://joe@local/AutomationStackStorm')
 
     def test_run_pack_download_edge_cases(self):
         """

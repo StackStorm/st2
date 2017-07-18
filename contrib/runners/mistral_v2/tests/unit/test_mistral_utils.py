@@ -19,32 +19,44 @@ import unittest2
 import st2tests.config as tests_config
 tests_config.parse_args()
 
-from st2actions.handlers.mistral import get_action_execution_id_from_url
+from st2common.util import loader
+
+
+MISTRAL_RUNNER_NAME = 'mistral_v2'
 
 
 class MistralUtilityTest(unittest2.TestCase):
 
     def test_get_action_execution_id_from_url(self):
+        mistral_callback_module = loader.register_callback_module(MISTRAL_RUNNER_NAME)
+
         self.assertEqual(
             '12345',
-            get_action_execution_id_from_url('http://127.0.0.1:8989/v2/action_executions/12345'))
+            mistral_callback_module.get_action_execution_id_from_url(
+                'http://127.0.0.1:8989/v2/action_executions/12345'
+            )
+        )
 
         self.assertRaises(
             ValueError,
-            get_action_execution_id_from_url,
-            'http://127.0.0.1:8989/v2/action_executions')
+            mistral_callback_module.get_action_execution_id_from_url,
+            'http://127.0.0.1:8989/v2/action_executions'
+        )
 
         self.assertRaises(
             ValueError,
-            get_action_execution_id_from_url,
-            '/action_executions/12345')
+            mistral_callback_module.get_action_execution_id_from_url,
+            '/action_executions/12345'
+        )
 
         self.assertRaises(
             ValueError,
-            get_action_execution_id_from_url,
-            '/action_executions')
+            mistral_callback_module.get_action_execution_id_from_url,
+            '/action_executions'
+        )
 
         self.assertRaises(
             ValueError,
-            get_action_execution_id_from_url,
-            'http://127.0.0.1:8989/v2/workflows/abcde')
+            mistral_callback_module.get_action_execution_id_from_url,
+            'http://127.0.0.1:8989/v2/workflows/abcde'
+        )
