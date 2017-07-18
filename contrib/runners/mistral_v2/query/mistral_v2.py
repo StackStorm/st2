@@ -134,13 +134,11 @@ class MistralResultsQuerier(Querier):
                 raise exceptions.ReferenceNotFoundError(mistral_exc.message)
             raise mistral_exc
 
-        result = jsonify.try_loads(
-            execution.output  # pylint: disable=no-member
-        ) if execution.state in DONE_STATES else {}  # pylint: disable=no-member
+        result = jsonify.try_loads(execution.output) if execution.state in DONE_STATES else {}
 
         result['extra'] = {
-            'state': execution.state,  # pylint: disable=no-member
-            'state_info': execution.state_info  # pylint: disable=no-member
+            'state': execution.state,
+            'state_info': execution.state_info
         }
 
         return result
