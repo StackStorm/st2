@@ -31,6 +31,8 @@ Fixed
   (bug fix)
 
   Contributed by carbineneutral. #3534 #3544
+* Fix API validation regression so all input data sent to some POST and PUT API endpoints is
+  correctly validated. (bug fix)
 
 2.3.1 - July 07, 2017
 ---------------------
