@@ -34,7 +34,6 @@ Fixed
   processes and pack commands will work with proxy. Refer to documentation for details on
   proxy configuration. (bug-fix) #3137
 
-
 2.3.1 - July 07, 2017
 ---------------------
 
