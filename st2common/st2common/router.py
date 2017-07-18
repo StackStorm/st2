@@ -370,6 +370,8 @@ class Router(object):
                                 raise exc.HTTPBadRequest(detail=e.message,
                                                          comment=traceback.format_exc())
                         else:
+                            LOG.debug('Missing x-api-model definition for %s, using generic Body '
+                                      'model.' % (endpoint['operationId']))
                             model = Body
                             instance = model(**data)
 
