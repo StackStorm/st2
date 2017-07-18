@@ -20,7 +20,7 @@ import networkx as nx
 
 from jinja2 import meta
 from st2common import log as logging
-from st2common.util.config_loader import ContentPackConfigLoader
+from st2common.util.config_loader import get_config
 from st2common.constants.action import ACTION_CONTEXT_KV_PREFIX
 from st2common.constants.pack import PACK_CONFIG_CONTEXT_KV_PREFIX
 from st2common.constants.keyvalue import DATASTORE_PARENT_SCOPE, SYSTEM_SCOPE, FULL_SYSTEM_SCOPE
@@ -38,25 +38,6 @@ __all__ = [
     'render_live_params',
     'render_final_params',
 ]
-
-
-def _get_config(pack, user):
-    LOG.debug('Attempting to get config')
-    if pack and user:
-        LOG.debug('Pack and user found. Loading config.')
-        config_loader = ContentPackConfigLoader(
-            pack_name=pack,
-            user=user
-        )
-
-        config = config_loader.get_config()
-
-    else:
-        config = {}
-
-    LOG.debug('Config: %s', config)
-
-    return config
 
 
 def _split_params(runner_parameters, action_parameters, mixed_params):
@@ -240,7 +221,7 @@ def render_live_params(runner_parameters, action_parameters, params, action_cont
     Renders list of parameters. Ensures that there's no cyclic or missing dependencies. Returns a
     dict of plain rendered parameters.
     '''
-    config = _get_config(action_context.get('pack'), action_context.get('user'))
+    config = get_config(action_context.get('pack'), action_context.get('user'))
 
     G = _create_graph(action_context, config)
 
@@ -260,7 +241,7 @@ def render_final_params(runner_parameters, action_parameters, params, action_con
     plain values instead of trying to render them again. Returns dicts for action and runner
     parameters.
     '''
-    config = _get_config(action_context.get('pack'), action_context.get('user'))
+    config = get_config(action_context.get('pack'), action_context.get('user'))
 
     G = _create_graph(action_context, config)
 

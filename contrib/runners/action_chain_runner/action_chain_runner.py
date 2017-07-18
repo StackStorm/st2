@@ -46,7 +46,7 @@ from st2common.util import action_db as action_db_util
 from st2common.util import isotime
 from st2common.util import date as date_utils
 from st2common.util import jinja as jinja_utils
-from st2common.util.config_loader import ContentPackConfigLoader
+from st2common.util.config_loader import get_config
 
 
 LOG = logging.getLogger(__name__)
@@ -323,7 +323,7 @@ class ActionChainRunner(ActionRunner):
             }
 
         parent_context = {
-            'execution_id': self.execution_id,
+            'execution_id': self.execution_id
         }
         if getattr(self.liveaction, 'context', None):
             parent_context.update(self.liveaction.context)
@@ -512,15 +512,7 @@ class ActionChainRunner(ActionRunner):
         pack = chain_parent.get('pack')
         user = chain_parent.get('user')
 
-        if pack and user:
-            config_loader = ContentPackConfigLoader(
-                pack_name=pack,
-                user=user
-            )
-
-            config = config_loader.get_config()
-        else:
-            config = {}
+        config = get_config(pack, user)
 
         context = {}
         context.update(original_parameters)
