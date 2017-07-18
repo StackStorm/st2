@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import os
+import pwd
 import json
 import logging
 import time
@@ -35,6 +36,9 @@ from st2client.utils.misc import merge_dicts
 __all__ = [
     'BaseCLIApp'
 ]
+
+# Fix for "os.getlogin()) OSError: [Errno 2] No such file or directory"
+os.getlogin = lambda: pwd.getpwuid(os.getuid())[0]
 
 # How many seconds before the token actual expiration date we should consider the token as
 # expired. This is used to prevent the operation from failing durig the API request because the
