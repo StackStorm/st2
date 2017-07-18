@@ -360,10 +360,20 @@ class Router(object):
 
                         if 'x-api-model' in schema:
                             Model = op_resolver(schema['x-api-model'])
-                        else:
-                            Model = Body
+                            instance = Model(**data)
 
-                        kw[argument_name] = Model(**data)
+                            # Call validate on the API model - note we should eventually move all
+                            # those model schema definitions into openapi.yaml
+                            try:
+                                instance.validate()
+                            except (jsonschema.ValidationError, ValueError) as e:
+                                raise exc.HTTPBadRequest(detail=e.message,
+                                                         comment=traceback.format_exc())
+                        else:
+                            model = Body
+                            instance = model(**data)
+
+                        kw[argument_name] = instance
                 else:
                     kw[argument_name] = None
 
