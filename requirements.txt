@@ -32,7 +32,7 @@ pyinotify==0.9.6
 pymongo==3.4.0
 python-dateutil
 python-editor==1.0.3
-python-gnupg==0.4.3
+python-gnupg==0.4.1
 python-json-logger
 python-keyczar==0.716
 pytz
