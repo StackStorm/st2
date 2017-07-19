@@ -32,7 +32,12 @@ PIP_OPTIONS := $(ST2_PIP_OPTIONS)
 
 NODE_INDEX ?= 0
 NODE_TOTAL ?= 1
-TEST_DB_NAME := st2-test-$(NODE_INDEX)
+
+ifeq ($(shell test $(NODE_TOTAL) -gt 1; echo $$?),0)
+  TEST_DB_NAME := st2-test-$(NODE_INDEX)
+else
+  TEST_DB_NAME := st2-test
+endif
 
 NOSE_OPTS := --rednose --immediate --with-parallel
 NOSE_TIME := $(NOSE_TIME)
