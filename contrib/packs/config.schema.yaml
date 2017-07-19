@@ -1,0 +1,23 @@
+---
+  https_proxy:
+    description: >
+      URL to https proxy. E.g. https://192.168.13:8080
+      Note that HTTPS proxying requires
+      valid certificates in client to talk to proxy.
+    type: "string"
+    required: false
+  proxy_ca_bundle_path:
+    description: >
+      Path to certificate bundles. If you are using full SSL MITM proxy, you should specify
+      the path to the certifiate bundle for the proxy. Python requests module needs this.
+    type: string
+    required: false  # Required if you are using https_proxy.
+  http_proxy:
+    description: "URL to http proxy. E.g. http://192.168.1.13:8080"
+    type: "string"
+    required: false
+  no_proxy:
+    description: >
+      Comma separated list of domain elements or IP address elements to skip HTTP proxying for.
+    required: false
+    default: "localhost, 127.0.0.1"

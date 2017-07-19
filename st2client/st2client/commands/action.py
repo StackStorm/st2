@@ -991,17 +991,17 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
             resource.get_plural_display_name().lower(),
             *args, **kwargs)
 
+        self.default_limit = 50
+        self.resource_name = resource.get_plural_display_name().lower()
         self.group = self.parser.add_argument_group()
         self.parser.add_argument('-n', '--last', type=int, dest='last',
-                                 default=50,
-                                 help=('List N most recent %s.' %
-                                       resource.get_plural_display_name().lower()))
+                                 default=self.default_limit,
+                                 help=('List N most recent %s.' % self.resource_name))
         self.parser.add_argument('-s', '--sort', type=str, dest='sort_order',
                                  default='descending',
                                  help=('Sort %s by start timestamp, '
                                        'asc|ascending (earliest first) '
-                                       'or desc|descending (latest first)' %
-                                       resource.get_plural_display_name().lower()))
+                                       'or desc|descending (latest first)' % self.resource_name))
 
         # Filter options
         self.group.add_argument('--action', help='Action reference to filter the list.')
@@ -1062,20 +1062,30 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
         exclude_attributes = ','.join(exclude_attributes)
         kwargs['exclude_attributes'] = exclude_attributes
 
-        return self.manager.query(limit=args.last, **kwargs)
+        result, count = self.manager.query(limit=args.last, **kwargs)
+        return (result, count)
 
     def run_and_print(self, args, **kwargs):
-        instances = format_wf_instances(self.run(args, **kwargs))
 
-        if not args.json and not args.yaml:
+        result, count = self.run(args, **kwargs)
+        instances = format_wf_instances(result)
+
+        if args.json or args.yaml:
+            self.print_output(reversed(instances), table.MultiColumnTable,
+                              attributes=args.attr, widths=args.width,
+                              json=args.json,
+                              yaml=args.yaml,
+                              attribute_transform_functions=self.attribute_transform_functions)
+
+        else:
             # Include elapsed time for running executions
             instances = format_execution_statuses(instances)
+            self.print_output(reversed(instances), table.MultiColumnTable,
+                              attributes=args.attr, widths=args.width,
+                              attribute_transform_functions=self.attribute_transform_functions)
 
-        self.print_output(reversed(instances), table.MultiColumnTable,
-                          attributes=args.attr, widths=args.width,
-                          json=args.json,
-                          yaml=args.yaml,
-                          attribute_transform_functions=self.attribute_transform_functions)
+            if args.last and count and int(count) > args.last:
+                table.SingleRowTable.note_box(self.resource_name, args.last)
 
 
 class ActionExecutionGetCommand(ActionRunCommandMixin, ActionExecutionReadCommand):

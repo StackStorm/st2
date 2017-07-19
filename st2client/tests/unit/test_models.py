@@ -95,29 +95,35 @@ class TestResourceManager(unittest2.TestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK',
+                                                      {'X-Total-Count': '40'})))
     def test_resource_query(self):
         mgr = models.ResourceManager(base.FakeResource, base.FAKE_ENDPOINT)
-        resources = mgr.query(name='abc')
+        resources, count = mgr.query(name='abc')
         actual = [resource.serialize() for resource in resources]
         expected = json.loads(json.dumps([base.RESOURCES[0]]))
         self.assertEqual(actual, expected)
+        self.assertEqual(count, '40')
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK',
+                                                      {'X-Total-Count': '30'})))
     def test_resource_query_with_limit(self):
         mgr = models.ResourceManager(base.FakeResource, base.FAKE_ENDPOINT)
-        resources = mgr.query(name='abc', limit=50)
+        resources, count = mgr.query(name='abc', limit=50)
         actual = [resource.serialize() for resource in resources]
         expected = json.loads(json.dumps([base.RESOURCES[0]]))
         self.assertEqual(actual, expected)
+        self.assertEqual(count, '30')
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse('', 404, 'NOT FOUND')))
+        mock.MagicMock(return_value=base.FakeResponse('', 404, 'NOT FOUND',
+                                                      {'X-Total-Count': '30'})))
     def test_resource_query_404(self):
         mgr = models.ResourceManager(base.FakeResource, base.FAKE_ENDPOINT)
+        # No X-Total-Count
         resources = mgr.query(name='abc')
         self.assertListEqual(resources, [])
 
@@ -130,9 +136,11 @@ class TestResourceManager(unittest2.TestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK',
+                                                      {})))
     def test_resource_get_by_name(self):
         mgr = models.ResourceManager(base.FakeResource, base.FAKE_ENDPOINT)
+        # No X-Total-Count
         resource = mgr.get_by_name('abc')
         actual = resource.serialize()
         expected = json.loads(json.dumps(base.RESOURCES[0]))
@@ -198,7 +206,8 @@ class TestResourceManager(unittest2.TestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK',
+                                                      {})))
     @mock.patch.object(
         httpclient.HTTPClient, 'delete',
         mock.MagicMock(return_value=base.FakeResponse('', 204, 'NO CONTENT')))
@@ -217,7 +226,8 @@ class TestResourceManager(unittest2.TestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK',
+                                                      {})))
     @mock.patch.object(
         httpclient.HTTPClient, 'delete',
         mock.MagicMock(return_value=base.FakeResponse('', 500, 'INTERNAL SERVER ERROR')))
