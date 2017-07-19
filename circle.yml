@@ -10,12 +10,12 @@ jobs:
     environment:
       - DEBIAN_FRONTEND: noninteractive
       - LANG: C.UTF-8
-    working_directory: ~/st2
+    working_directory: /tmp/st2
     steps:
       - checkout
 #      - restore_cache:
 #          keys:
-#            - st2-unit-002-{{ checksum "fixed-requirements.txt" }}-{{ checksum "test-requirements.txt" }}
+#            - st2-unit-precise-{{ checksum "fixed-requirements.txt" }}-{{ checksum "test-requirements.txt" }}
       - run:
           name: Install dependencies
           command: |
@@ -36,12 +36,20 @@ jobs:
           command: sudo .circle/add-itest-user.sh
       - run:
           name: Install pip requirements
-          command: make requirements
+          command: |
+            su - stanley
+            cd /tmp/st2
+            make requirements
       - run:
           name: Run st2 Unit Tests
-          command: make ci-unit
+          command: |
+            su - stanley
+            cd /tmp/st2
+            # Workaround for table width/height used in some tests
+            stty rows 50 cols 132
+            make ci-unit
 #      - save_cache:
-#          key: st2-unit-002-{{ checksum "fixed-requirements.txt" }}-{{ checksum "test-requirements.txt" }}
+#          key: st2-unit-precise-{{ checksum "fixed-requirements.txt" }}-{{ checksum "test-requirements.txt" }}
 #          paths:
 #            - ~/.cache/pip/
 #            - virtualenv/
