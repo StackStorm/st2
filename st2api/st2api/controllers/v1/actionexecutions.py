@@ -100,6 +100,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         action_ref = liveaction_api.action
         action_db = action_utils.get_action_by_ref(action_ref)
         user = liveaction_api.user or requester_user.name
+        pack = action_db.pack
 
         assert_user_has_resource_db_permission(user_db=requester_user, resource_db=action_db,
                                                permission_type=PermissionType.ACTION_EXECUTE)
@@ -113,7 +114,8 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
                                             requester_user=requester_user,
                                             user=user,
                                             context_string=context_string,
-                                            show_secrets=show_secrets)
+                                            show_secrets=show_secrets,
+                                            pack=pack)
         except ValueError as e:
             LOG.exception('Unable to execute action.')
             abort(http_client.BAD_REQUEST, str(e))
@@ -128,13 +130,19 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
             LOG.exception('Unable to execute action. Unexpected error encountered.')
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
 
-    def _schedule_execution(self, liveaction, requester_user, user=None, context_string=None,
-                            show_secrets=False):
+    def _schedule_execution(self,
+                            liveaction,
+                            requester_user,
+                            user=None,
+                            context_string=None,
+                            show_secrets=False,
+                            pack=None):
         # Initialize execution context if it does not exist.
         if not hasattr(liveaction, 'context'):
             liveaction.context = dict()
 
         liveaction.context['user'] = user
+        liveaction.context['pack'] = pack
         LOG.debug('User is: %s' % liveaction.context['user'])
 
         # Retrieve other st2 context from request header.

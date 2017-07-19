@@ -411,6 +411,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
                 'user': parent_user
             },
             'user': parent_user,
+            'pack': 'sixpack',
             'other': {'k1': 'v1'}
         }
         self.assertDictEqual(resp.json['context'], expected)
@@ -481,6 +482,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
 
         expected_context = {
             'user': 'stanley',
+            'pack': 'starterpack',
             're-run': {
                 'ref': execution_id
             },
@@ -508,6 +510,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         trace = trace_service.get_trace_db_by_action_execution(action_execution_id=execution_id)
 
         expected_context = {
+            'pack': 'starterpack',
             'user': 'stanley',
             're-run': {
                 'ref': execution_id,
@@ -537,6 +540,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         trace = trace_service.get_trace_db_by_action_execution(action_execution_id=execution_id)
 
         expected_context = {
+            'pack': 'starterpack',
             'user': 'stanley',
             're-run': {
                 'ref': execution_id,
@@ -566,6 +570,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         trace = trace_service.get_trace_db_by_action_execution(action_execution_id=execution_id)
 
         expected_context = {
+            'pack': 'starterpack',
             'user': 'stanley',
             're-run': {
                 'ref': execution_id,

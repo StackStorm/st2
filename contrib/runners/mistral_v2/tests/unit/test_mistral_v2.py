@@ -258,6 +258,7 @@ class MistralRunnerTest(DbTestCase):
                         'api_url': 'http://0.0.0.0:9101/v1',
                         'endpoint': 'http://0.0.0.0:9101/v1/actionexecutions',
                         'parent': {
+                            'pack': 'mistral_tests',
                             'execution_id': str(execution.id)
                         },
                         'notify': {},
@@ -308,6 +309,7 @@ class MistralRunnerTest(DbTestCase):
                         'api_url': 'https://0.0.0.0:9101/v1',
                         'endpoint': 'https://0.0.0.0:9101/v1/actionexecutions',
                         'parent': {
+                            'pack': 'mistral_tests',
                             'execution_id': str(execution.id)
                         },
                         'notify': {},
@@ -359,6 +361,7 @@ class MistralRunnerTest(DbTestCase):
                         'api_url': 'http://0.0.0.0:9101/v1',
                         'endpoint': 'http://0.0.0.0:9101/v1/actionexecutions',
                         'parent': {
+                            'pack': 'mistral_tests',
                             'execution_id': str(execution.id)
                         },
                         'notify': NotificationsHelper.from_model(liveaction.notify),
