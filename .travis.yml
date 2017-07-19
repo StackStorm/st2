@@ -1,6 +1,7 @@
 # Used old infrastructure, needed for integration tests:
 # http://docs.travis-ci.com/user/workers/standard-infrastructure/
 sudo: required
+dist: precise
 language: python
 python:
   - 2.7
