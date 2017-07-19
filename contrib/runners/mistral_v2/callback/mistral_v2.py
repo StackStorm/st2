@@ -46,6 +46,9 @@ STATUS_MAP = {
     action_constants.LIVEACTION_STATUS_RESUMING: 'RUNNING'
 }
 
+MISTRAL_ACCEPTED_STATES = action_constants.LIVEACTION_COMPLETED_STATES
+MISTRAL_ACCEPTED_STATES += [action_constants.LIVEACTION_STATUS_PAUSED]
+
 
 def get_instance():
     return MistralCallbackHandler
@@ -86,7 +89,8 @@ class MistralCallbackHandler(callback.AsyncActionExecutionCallbackHandler):
 
     @classmethod
     def callback(cls, url, context, status, result):
-        if status not in action_constants.LIVEACTION_COMPLETED_STATES:
+        if status not in MISTRAL_ACCEPTED_STATES:
+            LOG.warning('Unable to callback %s because status "%s" is not supported.', url, status)
             return
 
         try:

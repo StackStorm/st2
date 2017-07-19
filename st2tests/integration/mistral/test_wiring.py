@@ -383,6 +383,50 @@ class WiringTest(base.TestWorkflowExecution):
         execution = self._wait_for_completion(execution)
         self._assert_success(execution, num_tasks=2)
 
+    def test_resume_auto_pause(self):
+        # Launch the workflow. The workflow will pause automatically after the first task.
+        params = {'message': 'foobar'}
+        execution = self._execute_workflow('examples.mistral-test-pause-before-task', params)
+        execution = self._wait_for_task(execution, 'task1', 'SUCCESS')
+        execution = self._wait_for_state(execution, ['paused'])
+
+        # Resume the execution.
+        execution = self.st2client.liveactions.resume(execution.id)
+
+        # Wait for completion.
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=2)
+
+    def test_resume_auto_pause_cascade_subworkflow_action(self):
+        # Launch the workflow. The workflow will pause automatically after the first task.
+        workflow = 'examples.mistral-test-pause-before-task-subworkflow-action'
+        params = {'message': 'foobar'}
+        execution = self._execute_workflow(workflow, params)
+        execution = self._wait_for_task(execution, 'task1', 'PAUSED')
+        execution = self._wait_for_state(execution, ['paused'])
+
+        # Resume the execution.
+        execution = self.st2client.liveactions.resume(execution.id)
+
+        # Wait for completion.
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=2)
+
+    def test_resume_auto_pause_cascade_workbook_subworkflow(self):
+        # Launch the workflow. The workflow will pause automatically after the first task.
+        workflow = 'examples.mistral-test-pause-before-task-subworkflow-workbook'
+        params = {'message': 'foobar'}
+        execution = self._execute_workflow(workflow, params)
+        execution = self._wait_for_task(execution, 'task1', 'PAUSED')
+        execution = self._wait_for_state(execution, ['paused'])
+
+        # Resume the execution.
+        execution = self.st2client.liveactions.resume(execution.id)
+
+        # Wait for completion.
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=2)
+
     def test_pause_resume_cascade_subworkflow_action(self):
         # A temp file is created during test setup. Ensure the temp file exists.
         path = self.temp_dir_path

@@ -156,7 +156,7 @@ class MistralRunnerCallbackTest(DbTestCase):
             }
         )
 
-        for status in action_constants.LIVEACTION_COMPLETED_STATES:
+        for status in self.callback_module.MISTRAL_ACCEPTED_STATES:
             expected_mistral_status = self.status_map[status]
             local_runner_cls.run = mock.Mock(return_value=(status, NON_EMPTY_RESULT, None))
             liveaction, execution = action_service.request(liveaction)
