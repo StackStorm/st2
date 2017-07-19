@@ -36,15 +36,12 @@ jobs:
           command: sudo .circle/add-itest-user.sh
       - run:
           name: Install pip requirements
-          command: |
-            set -x
-            sudo chown -R stanley:stanley /tmp/st2 /root/.cache/pip
-            sudo -u stanley make requirements
+          command: make requirements
       - run:
           name: Run st2 Unit Tests
           command: |
             stty rows 50 cols 132
-            sudo -u stanley make ci-unit
+            make ci-unit
 #      - save_cache:
 #          key: st2-unit-precise-{{ checksum "fixed-requirements.txt" }}-{{ checksum "test-requirements.txt" }}
 #          paths:
