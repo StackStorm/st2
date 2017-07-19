@@ -37,14 +37,14 @@ jobs:
       - run:
           name: Install pip requirements
           command: |
-            sudo su - stanley
+            sudo -u stanley bash
             whoami
             cd /tmp/st2
             make requirements
       - run:
           name: Run st2 Unit Tests
           command: |
-            sudo su - stanley
+            sudo -u stanley bash
             whoami
             cd /tmp/st2
             # Workaround for table width/height used in some tests
