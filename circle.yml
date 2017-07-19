@@ -7,6 +7,9 @@ jobs:
       - image: buildpack-deps:precise
       - image: mongo:3.4
       - image: rabbitmq:3
+    environment:
+      - DEBIAN_FRONTEND: noninteractive
+      - LANG: C.UTF-8
     working_directory: ~/st2
     steps:
       - checkout
@@ -20,9 +23,12 @@ jobs:
             apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
             echo "deb [ arch=amd64 ] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.4 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-3.4.list
             apt-get -qq -y update
+            apt-get -qq -y upgrade
             # Download the mongo shell, needed to connect to Docker container + delete the DB
             apt-get -qq -y install mongodb-org-shell
-            apt-get -qq -y install python-virtualenv python-dev sudo
+            apt-get -qq -y install python-virtualenv python-dev sudo libssl-dev curl git
+      - run: |
+          python --version
       - run:
           name: Create stanley user
           command: sudo .circle/add-itest-user.sh
