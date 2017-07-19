@@ -13,9 +13,9 @@ jobs:
     working_directory: /tmp/st2
     steps:
       - checkout
-#      - restore_cache:
-#          keys:
-#            - st2-unit-precise-{{ checksum "fixed-requirements.txt" }}-{{ checksum "test-requirements.txt" }}
+      - restore_cache:
+          keys:
+            - st2-unit-precise-{{ checksum "fixed-requirements.txt" }}-{{ checksum "test-requirements.txt" }}
       - run:
           name: Install dependencies
           command: |
@@ -42,11 +42,11 @@ jobs:
           command: |
             stty rows 50 cols 132
             make ci-unit
-#      - save_cache:
-#          key: st2-unit-precise-{{ checksum "fixed-requirements.txt" }}-{{ checksum "test-requirements.txt" }}
-#          paths:
-#            - ~/.cache/pip/
-#            - virtualenv/
+      - save_cache:
+          key: st2-unit-precise-{{ checksum "fixed-requirements.txt" }}-{{ checksum "test-requirements.txt" }}
+          paths:
+            - ~/.cache/pip/
+            - virtualenv/
 
   # Run st2 Integration tests
   integration:
