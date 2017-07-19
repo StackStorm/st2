@@ -293,7 +293,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
 
         resp = self.app.get('/v1/executions?offset=%s&limit=1' % total_count)
         self.assertEqual(resp.status_int, 200)
-        self.assertTrue(len(resp.json), 0)
+        self.assertEqual(len(resp.json), 1)
 
     def test_get_one_fail(self):
         resp = self.app.get('/v1/executions/100', expect_errors=True)
