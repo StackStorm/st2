@@ -36,7 +36,10 @@ jobs:
           command: sudo .circle/add-itest-user.sh
       - run:
           name: Install pip requirements
-          command: sudo -u stanley make requirements
+          command: |
+            set -x
+            sudo chown -R stanley:stanley /tmp/st2
+            sudo -u stanley make requirements
       - run:
           name: Run st2 Unit Tests
           command: |
