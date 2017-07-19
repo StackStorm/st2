@@ -2,7 +2,7 @@ version: 2
 jobs:
   # Run st2 Unit Tests
   unit:
-    parallelism: 2
+    parallelism: 4
     resource_class: large
     docker:
       - image: buildpack-deps:precise
