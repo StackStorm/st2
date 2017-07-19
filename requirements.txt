@@ -32,7 +32,7 @@ pyinotify==0.9.6
 pymongo==3.4.0
 python-dateutil
 python-editor==1.0.3
-python-gnupg==0.4.0
+python-gnupg==0.4.3
 python-json-logger
 python-keyczar==0.716
 pytz
@@ -44,8 +44,8 @@ routes==2.4.1
 semver==2.7.7
 six==1.10.0
 sseclient==0.0.18
-stevedore==1.23.0
-tooz==1.57.2
+stevedore==1.22.0
+tooz==1.57.4
 unittest2
-webob==1.7.2
+webob==1.7.3
 zake==0.2.2
