@@ -2,22 +2,26 @@ version: 2
 jobs:
   # Run st2 Unit Tests
   unit:
-    # 'machine' executor runs Unit tests ~x1.5 faster, comparing to 'docker' executor
-    # but the fastest is still ~x1.5-2 slower, comparing to Travis
-    machine: true
     parallelism: 4
+    docker:
+      - image: buildpack-deps:precise
+      - image: mongo:3.4
+      - image: rabbitmq:3
     working_directory: ~/st2
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - st2-unit-001-{{ checksum "fixed-requirements.txt" }}-{{ checksum "test-requirements.txt" }}
+#      - restore_cache:
+#          keys:
+#            - st2-unit-002-{{ checksum "fixed-requirements.txt" }}-{{ checksum "test-requirements.txt" }}
       - run:
-          name: Prepare the environment
+          name: Install dependencies
           command: |
             set -x
-            sudo .circle/install-mongo.sh
-            sudo .circle/configure-rabbitmq.sh
+            sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
+            echo "deb [ arch=amd64 ] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
+            sudo apt-get -qq -y update
+            # Download the mongo shell, needed to connect to Docker container + delete the DB
+            sudo apt-get -qq -y install mongodb-org-shell
             sudo apt-get -qq -y install python-virtualenv python-dev
       - run:
           name: Create stanley user
@@ -27,15 +31,12 @@ jobs:
           command: make requirements
       - run:
           name: Run st2 Unit Tests
-          command: |
-            # Workaround for table width/height used in some tests
-            stty rows 50 cols 132
-            make ci-unit
-      - save_cache:
-          key: st2-unit-001-{{ checksum "fixed-requirements.txt" }}-{{ checksum "test-requirements.txt" }}
-          paths:
-            - ~/.cache/pip/
-            - virtualenv/
+          command: make ci-unit
+#      - save_cache:
+#          key: st2-unit-002-{{ checksum "fixed-requirements.txt" }}-{{ checksum "test-requirements.txt" }}
+#          paths:
+#            - ~/.cache/pip/
+#            - virtualenv/
 
   # Run st2 Integration tests
   integration:
