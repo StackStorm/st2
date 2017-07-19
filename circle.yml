@@ -245,24 +245,24 @@ workflows:
   package-test-and-deploy:
     jobs:
       - unit
-      - integration
-      - lint
-      - packages
-      - trigger_e2etests:
-          requires:
-            - packages
-      - deploy:
-          requires:
-            - unit
-            - integration
-            - lint
-            - packages
-          filters:
-            branches:
-              only:
-                - master
-                - /v[0-9]+\.[0-9]+/
-                - feature/circleci
+#      - integration
+#      - lint
+#      - packages
+#      - trigger_e2etests:
+#          requires:
+#            - packages
+#      - deploy:
+#          requires:
+#            - unit
+#            - integration
+#            - lint
+#            - packages
+#          filters:
+#            branches:
+#              only:
+#                - master
+#                - /v[0-9]+\.[0-9]+/
+#                - feature/circleci
                 #- experimental/circle-2.0-workflows
 
 experimental:
