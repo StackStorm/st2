@@ -2,7 +2,7 @@ version: 2
 jobs:
   # Run st2 Unit Tests
   unit:
-    parallelism: 1
+    parallelism: 2
     docker:
       - image: buildpack-deps:precise
       - image: mongo:3.4
