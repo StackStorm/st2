@@ -38,7 +38,7 @@ jobs:
           name: Install pip requirements
           command: |
             set -x
-            sudo chown -R stanley:stanley /tmp/st2
+            sudo chown -R stanley:stanley /tmp/st2 /root/.cache/pip
             sudo -u stanley make requirements
       - run:
           name: Run st2 Unit Tests
