@@ -3,6 +3,7 @@ jobs:
   # Run st2 Unit Tests
   unit:
     parallelism: 2
+    resource_class: large
     docker:
       - image: buildpack-deps:precise
       - image: mongo:3.4
