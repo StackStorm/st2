@@ -27,14 +27,14 @@ from st2reactor.container.process_container import PROCESS_EXIT_TIMEOUT
 from st2common.util.green.shell import run_command
 from st2common.bootstrap.sensorsregistrar import register_sensors
 from st2tests.base import IntegrationTestCase
+from st2tests.base import get_temporary_tests_config_path
 
 __all__ = [
     'SensorContainerTestCase'
 ]
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-ST2_CONFIG_PATH = os.path.join(BASE_DIR, '../../../conf/st2.tests.conf')
-ST2_CONFIG_PATH = os.path.abspath(ST2_CONFIG_PATH)
+ST2_CONFIG_PATH = get_temporary_tests_config_path()
 BINARY = os.path.join(BASE_DIR, '../../../st2reactor/bin/st2sensorcontainer')
 BINARY = os.path.abspath(BINARY)
 CMD = [BINARY, '--config-file', ST2_CONFIG_PATH, '--sensor-ref=examples.SamplePollingSensor']

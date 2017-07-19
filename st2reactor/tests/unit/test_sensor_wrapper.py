@@ -4,13 +4,15 @@ import unittest2
 import mock
 
 import st2tests.config as tests_config
-from st2tests.base import TESTS_CONFIG_PATH
 from st2common.models.db.trigger import TriggerDB
 from st2reactor.container.sensor_wrapper import SensorWrapper
 from st2reactor.sensor.base import Sensor, PollingSensor
+from st2tests.base import get_temporary_tests_config_path
 
 CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
 RESOURCES_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '../resources'))
+
+TESTS_CONFIG_PATH = get_temporary_tests_config_path()
 
 __all__ = [
     'SensorWrapperTestCase'

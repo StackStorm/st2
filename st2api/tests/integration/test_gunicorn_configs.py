@@ -25,10 +25,14 @@ from eventlet.green import subprocess
 from st2common.models.utils import profiling
 from st2common.util.shell import kill_process
 from st2tests.base import IntegrationTestCase
+from st2tests.base import get_temporary_tests_config_path
+
+__all__ = [
+    'GunicornWSGIEntryPointTestCase'
+]
 
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-ST2_CONFIG_PATH = os.path.join(BASE_DIR, '../../../conf/st2.tests.conf')
+ST2_CONFIG_PATH = get_temporary_tests_config_path()
 
 
 class GunicornWSGIEntryPointTestCase(IntegrationTestCase):

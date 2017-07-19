@@ -25,6 +25,7 @@ from st2common.models.db.execution import ActionExecutionDB
 from st2common.persistence.execution import ActionExecution
 from st2tests.base import IntegrationTestCase
 from st2tests.base import CleanDbTestCase
+from st2tests.base import get_temporary_tests_config_path
 
 __all__ = [
     'GarbageCollectorServiceTestCase'
@@ -32,8 +33,7 @@ __all__ = [
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-ST2_CONFIG_PATH = os.path.join(BASE_DIR, '../../../conf/st2.tests.conf')
-ST2_CONFIG_PATH = os.path.abspath(ST2_CONFIG_PATH)
+ST2_CONFIG_PATH = get_temporary_tests_config_path()
 BINARY = os.path.join(BASE_DIR, '../../../st2reactor/bin/st2garbagecollector')
 BINARY = os.path.abspath(BINARY)
 CMD = [BINARY, '--config-file', ST2_CONFIG_PATH]
