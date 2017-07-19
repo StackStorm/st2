@@ -37,13 +37,15 @@ jobs:
       - run:
           name: Install pip requirements
           command: |
-            su - stanley
+            sudo su - stanley
+            whoami
             cd /tmp/st2
             make requirements
       - run:
           name: Run st2 Unit Tests
           command: |
-            su - stanley
+            sudo su - stanley
+            whoami
             cd /tmp/st2
             # Workaround for table width/height used in some tests
             stty rows 50 cols 132
