@@ -305,3 +305,165 @@ class MistralRunnerPauseResumeTest(DbTestCase):
 
             liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
             self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_RUNNING)
+
+    @mock.patch.object(
+        workflows.WorkflowManager, 'list',
+        mock.MagicMock(return_value=[]))
+    @mock.patch.object(
+        workflows.WorkflowManager, 'get',
+        mock.MagicMock(side_effect=[WF2, WF1]))
+    @mock.patch.object(
+        workflows.WorkflowManager, 'create',
+        mock.MagicMock(side_effect=[[WF2], [WF1]]))
+    @mock.patch.object(
+        executions.ExecutionManager, 'create',
+        mock.MagicMock(side_effect=[
+            executions.Execution(None, WF2_EXEC),
+            executions.Execution(None, WF1_EXEC)]))
+    @mock.patch.object(
+        executions.ExecutionManager, 'update',
+        mock.MagicMock(side_effect=[
+            executions.Execution(None, WF2_EXEC_PAUSED),
+            executions.Execution(None, WF1_EXEC_PAUSED),
+            executions.Execution(None, WF2_EXEC),
+            executions.Execution(None, WF1_EXEC)]))
+    def test_pause_missing_subworkflow_action(self):
+        requester = cfg.CONF.system_user.user
+
+        liveaction1 = LiveActionDB(action=WF2_NAME, parameters=ACTION_PARAMS)
+        liveaction1, execution1 = action_service.request(liveaction1)
+        liveaction1 = LiveAction.get_by_id(str(liveaction1.id))
+        self.assertEqual(liveaction1.status, action_constants.LIVEACTION_STATUS_RUNNING)
+
+        # Mock the children of the parent execution to make this
+        # test case has subworkflow execution.
+        with mock.patch.object(
+                ActionExecutionDB, 'children',
+                new_callable=mock.PropertyMock) as action_ex_children_mock:
+            action_ex_children_mock.return_value = [uuid.uuid4().hex]
+
+            mistral_context = liveaction1.context.get('mistral', None)
+            self.assertIsNotNone(mistral_context)
+            self.assertEqual(mistral_context['execution_id'], WF2_EXEC.get('id'))
+            self.assertEqual(mistral_context['workflow_name'], WF2_EXEC.get('workflow_name'))
+
+            # Pause the parent liveaction and check that the request is cascaded down.
+            liveaction1, execution1 = action_service.request_pause(liveaction1, requester)
+
+            self.assertTrue(executions.ExecutionManager.update.called)
+            self.assertEqual(executions.ExecutionManager.update.call_count, 1)
+
+            calls = [
+                mock.call(WF2_EXEC.get('id'), 'PAUSED'),
+            ]
+
+            executions.ExecutionManager.update.assert_has_calls(calls, any_order=False)
+
+            # The workflow execution will fail because the liveaction for the subworkflow
+            # should not be missing and we do not know what state it is in.
+            liveaction1 = LiveAction.get_by_id(str(liveaction1.id))
+            self.assertEqual(liveaction1.status, action_constants.LIVEACTION_STATUS_FAILED)
+            self.assertIn('not a valid ObjectId', liveaction1.result.get('error', ''))
+
+    @mock.patch.object(
+        workflows.WorkflowManager, 'list',
+        mock.MagicMock(return_value=[]))
+    @mock.patch.object(
+        workflows.WorkflowManager, 'get',
+        mock.MagicMock(side_effect=[WF2, WF1]))
+    @mock.patch.object(
+        workflows.WorkflowManager, 'create',
+        mock.MagicMock(side_effect=[[WF2], [WF1]]))
+    @mock.patch.object(
+        executions.ExecutionManager, 'create',
+        mock.MagicMock(side_effect=[
+            executions.Execution(None, WF2_EXEC),
+            executions.Execution(None, WF1_EXEC)]))
+    @mock.patch.object(
+        executions.ExecutionManager, 'update',
+        mock.MagicMock(side_effect=[
+            executions.Execution(None, WF2_EXEC_PAUSED),
+            executions.Execution(None, WF1_EXEC_PAUSED),
+            executions.Execution(None, WF2_EXEC),
+            executions.Execution(None, WF1_EXEC)]))
+    def test_resume_missing_subworkflow_action(self):
+        requester = cfg.CONF.system_user.user
+
+        liveaction1 = LiveActionDB(action=WF2_NAME, parameters=ACTION_PARAMS)
+        liveaction1, execution1 = action_service.request(liveaction1)
+        liveaction1 = LiveAction.get_by_id(str(liveaction1.id))
+        self.assertEqual(liveaction1.status, action_constants.LIVEACTION_STATUS_RUNNING)
+
+        liveaction2 = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
+        liveaction2, execution2 = action_service.request(liveaction2)
+        liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
+        self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_RUNNING)
+
+        # Mock the children of the parent execution to make this
+        # test case has subworkflow execution.
+        with mock.patch.object(
+                ActionExecutionDB, 'children',
+                new_callable=mock.PropertyMock) as action_ex_children_mock:
+            action_ex_children_mock.return_value = [execution2.id]
+
+            mistral_context = liveaction1.context.get('mistral', None)
+            self.assertIsNotNone(mistral_context)
+            self.assertEqual(mistral_context['execution_id'], WF2_EXEC.get('id'))
+            self.assertEqual(mistral_context['workflow_name'], WF2_EXEC.get('workflow_name'))
+
+            # Pause the parent liveaction and check that the request is cascaded down.
+            liveaction1, execution1 = action_service.request_pause(liveaction1, requester)
+
+            self.assertTrue(executions.ExecutionManager.update.called)
+            self.assertEqual(executions.ExecutionManager.update.call_count, 2)
+
+            calls = [
+                mock.call(WF2_EXEC.get('id'), 'PAUSED'),
+                mock.call(WF1_EXEC.get('id'), 'PAUSED')
+            ]
+
+            executions.ExecutionManager.update.assert_has_calls(calls, any_order=False)
+
+            liveaction1 = LiveAction.get_by_id(str(liveaction1.id))
+            self.assertEqual(liveaction1.status, action_constants.LIVEACTION_STATUS_PAUSING)
+
+            liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
+            self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_PAUSING)
+
+            # Manually set the liveaction status to PAUSED.
+            action_service.update_status(liveaction2, action_constants.LIVEACTION_STATUS_PAUSED)
+            action_service.update_status(liveaction1, action_constants.LIVEACTION_STATUS_PAUSED)
+
+            liveaction1 = LiveAction.get_by_id(str(liveaction1.id))
+            self.assertEqual(liveaction1.status, action_constants.LIVEACTION_STATUS_PAUSED)
+
+            liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
+            self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_PAUSED)
+
+        # Mock the children of the parent execution to make this
+        # test case has subworkflow execution.
+        with mock.patch.object(
+                ActionExecutionDB, 'children',
+                new_callable=mock.PropertyMock) as action_ex_children_mock:
+            action_ex_children_mock.return_value = [uuid.uuid4().hex]
+
+            # Resume the parent liveaction and check that the request is cascaded down.
+            liveaction1, execution1 = action_service.request_resume(liveaction1, requester)
+
+            # Includes the previous calls.
+            self.assertTrue(executions.ExecutionManager.update.called)
+            self.assertEqual(executions.ExecutionManager.update.call_count, 3)
+
+            calls = [
+                mock.call(WF2_EXEC.get('id'), 'PAUSED'),
+                mock.call(WF1_EXEC.get('id'), 'PAUSED'),
+                mock.call(WF2_EXEC.get('id'), 'RUNNING'),
+            ]
+
+            executions.ExecutionManager.update.assert_has_calls(calls, any_order=False)
+
+            # The workflow execution will fail because the liveaction for the subworkflow
+            # should not be missing and we do not know what state it is in.
+            liveaction1 = LiveAction.get_by_id(str(liveaction1.id))
+            self.assertEqual(liveaction1.status, action_constants.LIVEACTION_STATUS_FAILED)
+            self.assertIn('not a valid ObjectId', liveaction1.result.get('error', ''))

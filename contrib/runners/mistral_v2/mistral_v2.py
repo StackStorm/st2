@@ -393,7 +393,7 @@ class MistralRunner(AsyncActionRunner):
 
         # Identify the list of action executions that are workflows and cascade pause.
         for child_exec_id in self.execution.children:
-            child_exec = ActionExecution.get(id=child_exec_id)
+            child_exec = ActionExecution.get(id=child_exec_id, raise_exception=True)
             if (child_exec.runner['name'] in action_constants.WORKFLOW_RUNNER_TYPES and
                     child_exec.status == action_constants.LIVEACTION_STATUS_RUNNING):
                 action_service.request_pause(
@@ -424,7 +424,7 @@ class MistralRunner(AsyncActionRunner):
 
         # Identify the list of action executions that are workflows and cascade resume.
         for child_exec_id in self.execution.children:
-            child_exec = ActionExecution.get(id=child_exec_id)
+            child_exec = ActionExecution.get(id=child_exec_id, raise_exception=True)
             if (child_exec.runner['name'] in action_constants.WORKFLOW_RUNNER_TYPES and
                     child_exec.status == action_constants.LIVEACTION_STATUS_PAUSED):
                 action_service.request_resume(

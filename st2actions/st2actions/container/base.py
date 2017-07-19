@@ -211,8 +211,28 @@ class RunnerContainer(object):
         except:
             _, ex, tb = sys.exc_info()
             # include the error message and traceback to try and provide some hints.
+            status = action_constants.LIVEACTION_STATUS_FAILED
             result = {'error': str(ex), 'traceback': ''.join(traceback.format_tb(tb, 20))}
             LOG.exception('Failed to pause action %s.' % (liveaction_db.id), extra=result)
+
+            try:
+                updated_liveaction_db = self._update_live_action_db(
+                    liveaction_db.id, status, result, liveaction_db.context)
+            except Exception as e:
+                msg = 'Cannot update LiveAction object for id: %s, status: %s, result: %s.' % (
+                    liveaction_db.id, status, result)
+                LOG.exception(msg)
+                raise e
+
+            try:
+                executions.update_execution(updated_liveaction_db)
+                extra = {'liveaction_db': updated_liveaction_db}
+                LOG.debug('Updated liveaction after run', extra=extra)
+            except Exception as e:
+                msg = 'Cannot update ActionExecution object for id: %s, status: %s, result: %s.' % (
+                    updated_liveaction_db.id, status, result)
+                LOG.exception(msg)
+                raise e
         finally:
             # Always clean-up the auth_token
             status = liveaction_db.status
