@@ -19,6 +19,8 @@ Added
 * Update ``st2`` CLI so it also displays "there are more results" note when ``-n`` flag is
   used and there are more items available. (improvement) #3552
 * Add ability to explicitly set ``stream_url`` in st2client.
+* Add pack config into action context. This is made available under the
+  ``config_context`` key.
 
 Changed
 ~~~~~~~
