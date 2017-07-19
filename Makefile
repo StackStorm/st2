@@ -316,8 +316,8 @@ unit-tests: requirements .unit-tests
 	@echo
 	@echo "==================== tests ===================="
 	@echo
-	@echo "----- Dropping st2-test db -----"
-	@mongo st2-test --eval "db.dropDatabase();"
+	@echo "----- Dropping $(TEST_DB_NAME) db -----"
+	@mongo $(TEST_DB_NAME) --eval "db.dropDatabase();"
 	@for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
@@ -330,8 +330,8 @@ unit-tests: requirements .unit-tests
 	@echo
 	@echo "==================== unit tests with coverage (HTML reports) ===================="
 	@echo
-	@echo "----- Dropping st2-test db -----"
-	@mongo st2-test --eval "db.dropDatabase();"
+	@echo "----- Dropping $(TEST_DB_NAME) db -----"
+	@mongo $(TEST_DB_NAME) --eval "db.dropDatabase();"
 	@for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
@@ -349,8 +349,8 @@ itests: requirements .itests
 	@echo
 	@echo "==================== integration tests ===================="
 	@echo
-	@echo "----- Dropping st2-test db -----"
-	@mongo st2-test --eval "db.dropDatabase();"
+	@echo "----- Dropping $(TEST_DB_NAME) db -----"
+	@mongo $(TEST_DB_NAME) --eval "db.dropDatabase();"
 	@for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
