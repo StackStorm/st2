@@ -210,6 +210,12 @@ class TestRuleController(FunctionalTest):
         self.assertEqual(post_resp_2.json['conflict-id'], org_id)
         self.__do_delete(org_id)
 
+    def test_post_invalid_rule_data(self):
+        post_resp = self.__do_post({'name': 'rule'})
+        self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
+        expected_msg = "'trigger' is a required property"
+        self.assertEqual(post_resp.json['faultstring'], expected_msg)
+
     def test_post_trigger_parameter_schema_validation_fails(self):
         post_resp = self.__do_post(TestRuleController.RULE_2)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
