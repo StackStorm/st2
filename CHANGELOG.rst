@@ -18,6 +18,7 @@ Added
   Contributed by Nick Maludy. #3508
 * Update ``st2`` CLI so it also displays "there are more results" note when ``-n`` flag is
   used and there are more items available. (improvement) #3552
+* Add ability to explicitly set ``stream_url`` in st2client.
 
 Changed
 ~~~~~~~
@@ -31,8 +32,13 @@ Fixed
   (bug fix)
 
   Contributed by carbineneutral. #3534 #3544
+* st2 pack commands now work when StackStorm servers are behind a HTTP/HTTPS proxy. You can set
+  ``http_proxy`` or ``https_proxy`` environment variables for ``st2api`` and ``st2actionrunner``
+  processes and pack commands will work with proxy. Refer to documentation for details on
+  proxy configuration. (bug-fix) #3137
+* Fix no-member linting error on U16 by ignoring mistralclient.api.v2.executions module.
 * Fix API validation regression so all input data sent to some POST and PUT API endpoints is
-  correctly validated. (bug fix)
+  correctly validated. (bug fix) #3580
 
 2.3.1 - July 07, 2017
 ---------------------

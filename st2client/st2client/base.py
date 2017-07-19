@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import os
+import pwd
 import json
 import logging
 import time
@@ -36,6 +37,9 @@ __all__ = [
     'BaseCLIApp'
 ]
 
+# Fix for "os.getlogin()) OSError: [Errno 2] No such file or directory"
+os.getlogin = lambda: pwd.getpwuid(os.getuid())[0]
+
 # How many seconds before the token actual expiration date we should consider the token as
 # expired. This is used to prevent the operation from failing durig the API request because the
 # token was just about to expire.
@@ -44,6 +48,7 @@ TOKEN_EXPIRATION_GRACE_PERIOD_SECONDS = 15
 CONFIG_OPTION_TO_CLIENT_KWARGS_MAP = {
     'base_url': ['general', 'base_url'],
     'auth_url': ['auth', 'url'],
+    'stream_url': ['stream', 'url'],
     'api_url': ['api', 'url'],
     'api_version': ['general', 'api_version'],
     'api_key': ['credentials', 'api_key'],
@@ -72,7 +77,7 @@ class BaseCLIApp(object):
 
         # Note: Options provided as the CLI argument have the highest precedence
         # Precedence order: cli arguments > environment variables > rc file variables
-        cli_options = ['base_url', 'auth_url', 'api_url', 'api_version', 'cacert']
+        cli_options = ['base_url', 'auth_url', 'api_url', 'stream_url', 'api_version', 'cacert']
         cli_options = {opt: getattr(args, opt, None) for opt in cli_options}
         config_file_options = self._get_config_file_options(args=args)
 
@@ -369,6 +374,7 @@ class BaseCLIApp(object):
         print('ST2_BASE_URL: %s' % (client.endpoints['base']))
         print('ST2_AUTH_URL: %s' % (client.endpoints['auth']))
         print('ST2_API_URL: %s' % (client.endpoints['api']))
+        print('ST2_STREAM_URL: %s' % (client.endpoints['stream']))
         print('ST2_AUTH_TOKEN: %s' % (os.environ.get('ST2_AUTH_TOKEN')))
         print('')
         print('Proxy settings:')
