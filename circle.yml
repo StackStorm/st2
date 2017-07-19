@@ -26,8 +26,9 @@ jobs:
             apt-get -qq -y upgrade
             # Download the mongo shell, needed to connect to Docker container + delete the DB
             apt-get -qq -y install mongodb-org-shell
-            apt-get -qq -y install python-dev sudo libssl-dev curl git bash
-            sudo pip install -U pip setuptools virtualenv
+            apt-get -qq -y install sudo python-dev libssl-dev curl git bash
+            curl --silent --show-error --retry 5 https://raw.github.com/pypa/pip/master/contrib/get-pip.py | python2.7
+            sudo pip install -U virtualenv
       - run: |
           python --version
       - run:
