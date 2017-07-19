@@ -17,7 +17,8 @@ env:
     - TASK=ci-unit NODE_INDEX=0 NODE_TOTAL=3
     - TASK=ci-unit NODE_INDEX=1 NODE_TOTAL=3
     - TASK=ci-unit NODE_INDEX=2 NODE_TOTAL=3
-    - TASK=ci-integration
+    - TASK=ci-integration NODE_INDEX=0 NODE_TOTAL=2
+    - TASK=ci-integration NODE_INDEX=1 NODE_TOTAL=2
     - TASK="ci-checks ci-packs-tests"
 
 addons:
