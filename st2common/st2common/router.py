@@ -437,15 +437,30 @@ class Router(object):
             resp = Response(json=resp)
 
         responses = endpoint.get('responses', {})
-        response_spec = responses.get(str(resp.status_code), responses.get('default', None))
+        response_spec = responses.get(str(resp.status_code), None)
+        default_response_spec = responses.get('default', None)
+
+        if not response_spec and default_response_spec:
+            LOG.debug('No custom response spec found for endpoint "%s", using a default one' %
+                      (endpoint['operationId']))
+            response_spec_name = 'default'
+        else:
+            response_spec_name = str(resp.status_code)
+
+        response_spec = response_spec or default_response_spec
 
         if response_spec and 'schema' in response_spec:
+            LOG.debug('Using response spec "%s" for endpoint %s and status code %s' %
+                     (response_spec_name, endpoint['operationId'], resp.status_code))
+
             try:
                 validator = CustomValidator(response_spec['schema'], resolver=self.spec_resolver)
                 validator.validate(resp.json)
             except (jsonschema.ValidationError, ValueError):
                 LOG.exception('Response validation failed.')
                 resp.headers.add('Warning', '199 OpenAPI "Response validation failed"')
+        else:
+            LOG.debug('No response spec found for endpoint "%s"' % (endpoint['operationId']))
 
         return resp
 
