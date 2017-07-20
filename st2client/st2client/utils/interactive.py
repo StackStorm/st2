@@ -389,7 +389,7 @@ class InteractiveForm(object):
                 try:
                     result[field] = self._read_field(field)
                 except ReaderNotImplemented as e:
-                    print('%s. Skipping...', str(e))
+                    print('%s. Skipping...' % str(e))
         except DialogInterrupted:
             if self.reraise:
                 raise
