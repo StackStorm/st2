@@ -20,13 +20,15 @@ from st2tests.base import IntegrationTestCase
 from st2common.util.shell import run_command
 from st2tests import config as test_config
 from st2tests.fixturesloader import get_fixtures_packs_base_path
+from st2tests.base import get_temporary_tests_config_path
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SCRIPT_PATH = os.path.join(BASE_DIR, '../../bin/st2-register-content')
 SCRIPT_PATH = os.path.abspath(SCRIPT_PATH)
 
-BASE_CMD_ARGS = [SCRIPT_PATH, '--config-file=conf/st2.tests.conf', '-v']
+ST2_CONFIG_PATH = get_temporary_tests_config_path()
+BASE_CMD_ARGS = [SCRIPT_PATH, '--config-file=%s' % (ST2_CONFIG_PATH), '-v']
 BASE_REGISTER_ACTIONS_CMD_ARGS = BASE_CMD_ARGS + ['--register-actions']
 
 PACKS_PATH = get_fixtures_packs_base_path()

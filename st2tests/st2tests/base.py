@@ -23,6 +23,7 @@ import os.path
 import sys
 import shutil
 import logging
+import tempfile
 
 import six
 import eventlet
@@ -72,7 +73,11 @@ __all__ = [
     # Pack test classes
     'BaseSensorTestCase',
     'BaseActionTestCase',
-    'BaseActionAliasTestCase'
+    'BaseActionAliasTestCase',
+
+    'get_fixtures_path',
+
+    'get_temporary_tests_config_path'
 ]
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -92,7 +97,7 @@ ALL_MODELS.extend(policy_model.MODELS)
 ALL_MODELS.extend(rule_enforcement_model.MODELS)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-TESTS_CONFIG_PATH = os.path.join(BASE_DIR, '../conf/st2.conf')
+TESTS_CONFIG_PATH = os.path.abspath(os.path.join(BASE_DIR, '../../conf/st2.tests.conf'))
 
 
 class RunnerTestCase(unittest2.TestCase):
@@ -475,3 +480,22 @@ def get_fixtures_path():
 
 def get_resources_path():
     return os.path.join(os.path.dirname(__file__), 'resources')
+
+
+def get_temporary_tests_config_path():
+    """
+    Return a temporary config file path which has a correct value for database.db_name field based
+    on the ${TEST_DB_NAME} environment variable value.
+    """
+    with open(TESTS_CONFIG_PATH, 'r') as fp:
+        original_config_content = fp.read()
+
+    _, temp_config_path = tempfile.mkstemp(prefix='st2-conf-', suffix='.conf')
+
+    db_name = os.environ.get('TEST_DB_NAME', 'st2-test')
+    modified_config_content = original_config_content.replace('st2-test', db_name)
+
+    with open(temp_config_path, 'w') as fp:
+        fp.write(modified_config_content)
+
+    return temp_config_path

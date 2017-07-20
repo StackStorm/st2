@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 from oslo_config import cfg, types
 
 from st2common import log as logging
@@ -63,7 +65,8 @@ def _register_config_opts():
 
 
 def _override_db_opts():
-    CONF.set_override(name='db_name', override='st2-test', group='database')
+    db_name = os.environ.get('TEST_DB_NAME', 'st2-test')
+    CONF.set_override(name='db_name', override=db_name, group='database')
     CONF.set_override(name='host', override='127.0.0.1', group='database')
 
 

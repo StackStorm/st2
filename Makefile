@@ -30,6 +30,15 @@ PYTHON_TARGET := 2.7
 REQUIREMENTS := test-requirements.txt requirements.txt
 PIP_OPTIONS := $(ST2_PIP_OPTIONS)
 
+NODE_INDEX ?= 0
+NODE_TOTAL ?= 1
+
+ifeq ($(shell test $(NODE_TOTAL) -gt 1; echo $$?),0)
+  TEST_DB_NAME := st2-test-$(NODE_INDEX)
+else
+  TEST_DB_NAME := st2-test
+endif
+
 NOSE_OPTS := --rednose --immediate --with-parallel
 NOSE_TIME := $(NOSE_TIME)
 
@@ -51,6 +60,7 @@ play:
 	@echo COMPONENTS_TEST=$(COMPONENTS_TEST)
 	@echo COMPONENTS_TEST_COMMA=$(COMPONENTS_TEST_COMMA)
 	@echo COMPONENT_PYTHONPATH=$(COMPONENT_PYTHONPATH)
+	@echo TEST_DB_NAME=$(TEST_DB_NAME)
 
 
 .PHONY: check
@@ -306,8 +316,8 @@ unit-tests: requirements .unit-tests
 	@echo
 	@echo "==================== tests ===================="
 	@echo
-	@echo "----- Dropping st2-test db -----"
-	@mongo st2-test --eval "db.dropDatabase();"
+	@echo "----- Dropping $(TEST_DB_NAME) db -----"
+	@mongo $(TEST_DB_NAME) --eval "db.dropDatabase();"
 	@for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
@@ -320,8 +330,8 @@ unit-tests: requirements .unit-tests
 	@echo
 	@echo "==================== unit tests with coverage (HTML reports) ===================="
 	@echo
-	@echo "----- Dropping st2-test db -----"
-	@mongo st2-test --eval "db.dropDatabase();"
+	@echo "----- Dropping $(TEST_DB_NAME) db -----"
+	@mongo $(TEST_DB_NAME) --eval "db.dropDatabase();"
 	@for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
@@ -339,8 +349,8 @@ itests: requirements .itests
 	@echo
 	@echo "==================== integration tests ===================="
 	@echo
-	@echo "----- Dropping st2-test db -----"
-	@mongo st2-test --eval "db.dropDatabase();"
+	@echo "----- Dropping $(TEST_DB_NAME) db -----"
+	@mongo $(TEST_DB_NAME) --eval "db.dropDatabase();"
 	@for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
@@ -353,13 +363,13 @@ itests: requirements .itests
 	@echo
 	@echo "================ integration tests with coverage (HTML reports) ================"
 	@echo
-	@echo "----- Dropping st2-test db -----"
-	@mongo st2-test --eval "db.dropDatabase();"
+	@echo "----- Dropping $(TEST_DB_NAME) db -----"
+	@mongo $(TEST_DB_NAME) --eval "db.dropDatabase();"
 	@for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v --with-coverage \
+		. $(VIRTUALENV_DIR)/bin/activate; TEST_DB_NAME=$(TEST_DB_NAME) nosetests $(NOSE_OPTS) -s -v --with-coverage \
 			--cover-inclusive --cover-html \
 			--cover-package=$(COMPONENTS_TEST_COMMA) $$component/tests/integration || exit 1; \
 	done

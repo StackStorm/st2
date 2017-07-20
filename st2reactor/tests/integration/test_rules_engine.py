@@ -21,6 +21,7 @@ from eventlet.green import subprocess
 from st2common.constants.timer import TIMER_ENABLED_LOG_LINE, TIMER_DISABLED_LOG_LINE
 from st2tests.base import IntegrationTestCase
 from st2tests.base import CleanDbTestCase
+from st2tests.base import get_temporary_tests_config_path
 
 __all__ = [
     'TimerEnableDisableTestCase'
@@ -28,8 +29,7 @@ __all__ = [
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-ST2_CONFIG_PATH = os.path.join(BASE_DIR, '../../../conf/st2.tests.conf')
-ST2_CONFIG_PATH = os.path.abspath(ST2_CONFIG_PATH)
+ST2_CONFIG_PATH = get_temporary_tests_config_path()
 BINARY = os.path.join(BASE_DIR, '../../../st2reactor/bin/st2rulesengine')
 BINARY = os.path.abspath(BINARY)
 CMD = [BINARY, '--config-file']
