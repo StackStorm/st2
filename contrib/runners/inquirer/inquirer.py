@@ -22,6 +22,7 @@ from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_STATUS_PENDING  #TODO(mierdin): Need to implement this
 from st2common.runners.base import ActionRunner
 from st2common.runners import python_action_wrapper
+from st2common.util import action_db as action_utils
 
 LOG = logging.getLogger(__name__)
 
@@ -60,11 +61,11 @@ class Inquirer(ActionRunner):
         # assigned on the runner instance is even worse. Those arguments should
         # be passed to the constructor.
         self._schema = self.runner_parameters.get(RUNNER_SCHEMA, self._schema)
-        self._roles_param = self.runner_parameters.get(RUNNER_ROLES, self._schema)
-        self._users_param = self.runner_parameters.get(RUNNER_USERS, self._schema)
+        self._roles_param = self.runner_parameters.get(RUNNER_ROLES, self._roles_param)
+        self._users_param = self.runner_parameters.get(RUNNER_USERS, self._users_param)
 
         # Probably not needed, since this isn't used in the runner or action
-        # self._tag = self.runner_parameters.get(RUNNER_TAG, self._schema)
+        # self._tag = self.runner_parameters.get(RUNNER_TAG, self._tag)
 
     def run(self, action_parameters):
         """This runner provides the bulk of the implementation for st2.ask.
@@ -83,6 +84,10 @@ class Inquirer(ActionRunner):
         # atm, and I think Lakshmi also had some concerns about this. So I can flex here, just doing
         # this for now.
         response_data = self.context.get("response_data")
+        #
+        # WIP - use result instead
+        # liveaction_db = action_utils.get_liveaction_by_id(liveaction.id)
+        # response_data = liveaction_db.result.get("response_data")
 
         # Determine if the currently authenticated user is allowed to provide a response
         if not self.has_permission():
