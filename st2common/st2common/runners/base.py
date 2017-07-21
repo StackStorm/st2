@@ -103,10 +103,12 @@ class ActionRunner(object):
         raise NotImplementedError()
 
     def pause(self):
-        raise NotImplementedError()
+        runner_name = getattr(self.runner_type_db, 'name', 'unknown')
+        raise NotImplementedError('Pause is not supported for runner %s.' % runner_name)
 
     def resume(self):
-        raise NotImplementedError()
+        runner_name = getattr(self.runner_type_db, 'name', 'unknown')
+        raise NotImplementedError('Resume is not supported for runner %s.' % runner_name)
 
     def cancel(self):
         pass
