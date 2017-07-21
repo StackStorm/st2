@@ -764,12 +764,12 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         updates = {'status': 'pausing'}
         put_resp = self._do_put(execution_id, updates, expect_errors=True)
         self.assertEqual(put_resp.status_int, 400)
-        self.assertIn('request is not supported', put_resp.json['faultstring'])
+        self.assertIn('it is not supported', put_resp.json['faultstring'])
 
         updates = {'status': 'paused'}
         put_resp = self._do_put(execution_id, updates, expect_errors=True)
         self.assertEqual(put_resp.status_int, 400)
-        self.assertIn('request is not supported', put_resp.json['faultstring'])
+        self.assertIn('it is not supported', put_resp.json['faultstring'])
 
     def test_put_pause(self):
         # Add the runner type to the list of runners that support pause and resume.
@@ -887,7 +887,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         updates = {'status': 'resuming'}
         put_resp = self._do_put(execution_id, updates, expect_errors=True)
         self.assertEqual(put_resp.status_int, 400)
-        self.assertIn('request is not supported', put_resp.json['faultstring'])
+        self.assertIn('it is not supported', put_resp.json['faultstring'])
 
     def test_put_resume(self):
         # Add the runner type to the list of runners that support pause and resume.

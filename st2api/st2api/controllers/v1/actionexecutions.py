@@ -544,16 +544,10 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
                 actionexecution_db = ActionExecution.get(liveaction__id=str(liveaction_db.id))
         except runner_exc.InvalidActionRunnerOperationError as e:
             LOG.exception('Failed updating liveaction %s. %s', liveaction_db.id, str(e))
-            abort(
-                http_client.BAD_REQUEST,
-                'Failed updating execution because the specific type of request is not supported.'
-            )
+            abort(http_client.BAD_REQUEST, 'Failed updating execution. %s' % str(e))
         except runner_exc.UnexpectedActionExecutionStatusError as e:
             LOG.exception('Failed updating liveaction %s. %s', liveaction_db.id, str(e))
-            abort(
-                http_client.BAD_REQUEST,
-                'Failed updating execution. %s' % str(e)
-            )
+            abort(http_client.BAD_REQUEST, 'Failed updating execution. %s' % str(e))
         except Exception as e:
             LOG.exception('Failed updating liveaction %s. %s', liveaction_db.id, str(e))
             abort(
