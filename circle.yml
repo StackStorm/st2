@@ -184,7 +184,6 @@ jobs:
       - run:
           name: Test the Packages
           command: |
-            set -x
             set +e
             .circle/docker-compose2.sh test ${DISTRO} || export TEST_FAILED=1
             # Once test container finishes we can copy logs directly from it
