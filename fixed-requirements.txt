@@ -4,7 +4,7 @@ greenlet==0.4.12
 # Note: 0.20.0 removed select.poll() on which some of our code and libraries we
 # depend on rely
 eventlet==0.19.0
-gunicorn==19.7.1
+gunicorn==19.6.0
 kombu==4.0.2
 # Note: amqp is used by kombu
 amqp==2.2.1
@@ -12,7 +12,7 @@ oslo.config>=1.12.1,<1.13
 oslo.utils<3.1.0
 six==1.10.0
 pyyaml>=3.12,<4.0
-requests[security]>=2.18.1,<2.19
+requests[security]<2.15,>=2.14.1
 apscheduler==3.3.1
 gitpython==2.1.5
 jsonschema==2.6.0
