@@ -152,7 +152,7 @@ jobs:
             # Remove st2-packages-vol container if exists in CircleCI cache
             docker rm -f st2-packages-vol || true
             # creating dummy container which will hold a volume with data files
-            docker create -v /root/st2-packages -v ${ST2_GITDIR} -v /root/build -v /var/log/st2 -v /var/log/mistral -v /root/.cache/pip -v /tmp/wheelhouse --name st2-packages-vol alpine:3.4 /bin/true
+            docker create -v /root/st2-packages -v ${ST2_GITDIR} -v /root/build -v /var/log/st2 -v /root/.cache/pip -v /tmp/wheelhouse --name st2-packages-vol alpine:3.4 /bin/true
             # copy st2-packages data files into this volume
             docker cp ~/st2-packages st2-packages-vol:/root
             # copy st2 source files into this volume
@@ -184,12 +184,13 @@ jobs:
       - run:
           name: Test the Packages
           command: |
-            .circle/docker-compose2.sh test ${DISTRO}
+            set +e
+            .circle/docker-compose2.sh test ${DISTRO} || export TEST_FAILED=1
             # Once test container finishes we can copy logs directly from it
             docker cp st2-packages-vol:/var/log/st2 ~/st2/packages/${DISTRO}/log/st2
-            docker cp st2-packages-vol:/var/log/mistral ~/st2/packages/${DISTRO}/log/mistral
             # Clean-up running containers
             .circle/docker-compose2.sh clean
+            test -z "$TEST_FAILED"
           working_directory: ~/st2-packages
       - store_artifacts:
           path: ~/st2/packages
