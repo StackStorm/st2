@@ -519,15 +519,12 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
             abort(http_client.BAD_REQUEST, 'Execution is already in completed state.')
 
         if (getattr(liveaction_api, 'result', None) is not None and
-                liveaction_db.status in [
+                liveaction_api.status in [
                     action_constants.LIVEACTION_STATUS_PAUSING,
                     action_constants.LIVEACTION_STATUS_PAUSED,
                     action_constants.LIVEACTION_STATUS_RESUMING]):
-            LOG.warning(
-                'The given result attribute of the liveaction update for %s '
-                'is ignored for status change to pause or resume.',
-                liveaction_id
-            )
+            abort(http_client.BAD_REQUEST,
+                  'The result is not applicable for pausing and resuming execution.')
 
         try:
             if (liveaction_api.status == action_constants.LIVEACTION_STATUS_PAUSING or

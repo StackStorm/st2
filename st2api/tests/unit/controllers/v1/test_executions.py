@@ -761,12 +761,12 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
 
         execution_id = self._get_actionexecution_id(post_resp)
 
-        updates = {'status': 'pausing', 'result': {'stdout': 'foobar'}}
+        updates = {'status': 'pausing'}
         put_resp = self._do_put(execution_id, updates, expect_errors=True)
         self.assertEqual(put_resp.status_int, 400)
         self.assertIn('request is not supported', put_resp.json['faultstring'])
 
-        updates = {'status': 'paused', 'result': {'stdout': 'foobar'}}
+        updates = {'status': 'paused'}
         put_resp = self._do_put(execution_id, updates, expect_errors=True)
         self.assertEqual(put_resp.status_int, 400)
         self.assertIn('request is not supported', put_resp.json['faultstring'])
@@ -786,7 +786,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
             self.assertEqual(put_resp.status_int, 200)
             self.assertEqual(put_resp.json['status'], 'running')
 
-            updates = {'status': 'pausing', 'result': {'stdout': 'foobar'}}
+            updates = {'status': 'pausing'}
             put_resp = self._do_put(execution_id, updates)
             self.assertEqual(put_resp.status_int, 200)
             self.assertEqual(put_resp.json['status'], 'pausing')
@@ -810,7 +810,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
 
             execution_id = self._get_actionexecution_id(post_resp)
 
-            updates = {'status': 'pausing', 'result': {'stdout': 'foobar'}}
+            updates = {'status': 'pausing'}
             put_resp = self._do_put(execution_id, updates, expect_errors=True)
             self.assertEqual(put_resp.status_int, 400)
             self.assertIn('is not in a running state', put_resp.json['faultstring'])
@@ -837,14 +837,14 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
             self.assertEqual(put_resp.status_int, 200)
             self.assertEqual(put_resp.json['status'], 'running')
 
-            updates = {'status': 'pausing', 'result': {'stdout': 'foobar'}}
+            updates = {'status': 'pausing'}
             put_resp = self._do_put(execution_id, updates)
             self.assertEqual(put_resp.status_int, 200)
             self.assertEqual(put_resp.json['status'], 'pausing')
             self.assertIsNone(put_resp.json.get('result'))
 
             with mock.patch.object(action_service, 'update_status', return_value=None) as mocked:
-                updates = {'status': 'pausing', 'result': {'stdout': 'foobar'}}
+                updates = {'status': 'pausing'}
                 put_resp = self._do_put(execution_id, updates)
                 self.assertEqual(put_resp.status_int, 200)
                 self.assertEqual(put_resp.json['status'], 'pausing')
@@ -857,12 +857,34 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         finally:
             action_constants.WORKFLOW_RUNNER_TYPES.remove(ACTION_1['runner_type'])
 
+    def test_put_pause_with_result(self):
+        # Add the runner type to the list of runners that support pause and resume.
+        action_constants.WORKFLOW_RUNNER_TYPES.append(ACTION_1['runner_type'])
+
+        try:
+            post_resp = self._do_post(LIVE_ACTION_1)
+            self.assertEqual(post_resp.status_int, 201)
+
+            execution_id = self._get_actionexecution_id(post_resp)
+
+            updates = {'status': 'running'}
+            put_resp = self._do_put(execution_id, updates)
+            self.assertEqual(put_resp.status_int, 200)
+            self.assertEqual(put_resp.json['status'], 'running')
+
+            updates = {'status': 'pausing', 'result': {'stdout': 'foobar'}}
+            put_resp = self._do_put(execution_id, updates, expect_errors=True)
+            self.assertEqual(put_resp.status_int, 400)
+            self.assertIn('result is not applicable', put_resp.json['faultstring'])
+        finally:
+            action_constants.WORKFLOW_RUNNER_TYPES.remove(ACTION_1['runner_type'])
+
     def test_put_resume_unsupported(self):
         post_resp = self._do_post(LIVE_ACTION_1)
         self.assertEqual(post_resp.status_int, 201)
 
         execution_id = self._get_actionexecution_id(post_resp)
-        updates = {'status': 'resuming', 'result': {'stdout': 'foobar'}}
+        updates = {'status': 'resuming'}
         put_resp = self._do_put(execution_id, updates, expect_errors=True)
         self.assertEqual(put_resp.status_int, 400)
         self.assertIn('request is not supported', put_resp.json['faultstring'])
@@ -882,7 +904,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
             self.assertEqual(put_resp.status_int, 200)
             self.assertEqual(put_resp.json['status'], 'running')
 
-            updates = {'status': 'pausing', 'result': {'stdout': 'foobar'}}
+            updates = {'status': 'pausing'}
             put_resp = self._do_put(execution_id, updates)
             self.assertEqual(put_resp.status_int, 200)
             self.assertEqual(put_resp.json['status'], 'pausing')
@@ -899,7 +921,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
             self.assertEqual(get_resp.json['status'], 'paused')
             self.assertIsNone(get_resp.json.get('result'))
 
-            updates = {'status': 'resuming', 'result': {'stdout': 'foobar'}}
+            updates = {'status': 'resuming'}
             put_resp = self._do_put(execution_id, updates)
             self.assertEqual(put_resp.status_int, 200)
             self.assertEqual(put_resp.json['status'], 'resuming')
@@ -927,13 +949,13 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
             self.assertEqual(put_resp.status_int, 200)
             self.assertEqual(put_resp.json['status'], 'running')
 
-            updates = {'status': 'pausing', 'result': {'stdout': 'foobar'}}
+            updates = {'status': 'pausing'}
             put_resp = self._do_put(execution_id, updates)
             self.assertEqual(put_resp.status_int, 200)
             self.assertEqual(put_resp.json['status'], 'pausing')
             self.assertIsNone(put_resp.json.get('result'))
 
-            updates = {'status': 'resuming', 'result': {'stdout': 'foobar'}}
+            updates = {'status': 'resuming'}
             put_resp = self._do_put(execution_id, updates, expect_errors=True)
             self.assertEqual(put_resp.status_int, 400)
             self.assertIn('is not in a paused state', put_resp.json['faultstring'])
@@ -961,7 +983,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
             self.assertEqual(put_resp.json['status'], 'running')
 
             with mock.patch.object(action_service, 'update_status', return_value=None) as mocked:
-                updates = {'status': 'resuming', 'result': {'stdout': 'foobar'}}
+                updates = {'status': 'resuming'}
                 put_resp = self._do_put(execution_id, updates)
                 self.assertEqual(put_resp.status_int, 200)
                 self.assertEqual(put_resp.json['status'], 'running')
@@ -971,5 +993,44 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
             self.assertEqual(get_resp.status_int, 200)
             self.assertEqual(get_resp.json['status'], 'running')
             self.assertIsNone(get_resp.json.get('result'))
+        finally:
+            action_constants.WORKFLOW_RUNNER_TYPES.remove(ACTION_1['runner_type'])
+
+    def test_put_resume_with_result(self):
+        # Add the runner type to the list of runners that support pause and resume.
+        action_constants.WORKFLOW_RUNNER_TYPES.append(ACTION_1['runner_type'])
+
+        try:
+            post_resp = self._do_post(LIVE_ACTION_1)
+            self.assertEqual(post_resp.status_int, 201)
+
+            execution_id = self._get_actionexecution_id(post_resp)
+
+            updates = {'status': 'running'}
+            put_resp = self._do_put(execution_id, updates)
+            self.assertEqual(put_resp.status_int, 200)
+            self.assertEqual(put_resp.json['status'], 'running')
+
+            updates = {'status': 'pausing'}
+            put_resp = self._do_put(execution_id, updates)
+            self.assertEqual(put_resp.status_int, 200)
+            self.assertEqual(put_resp.json['status'], 'pausing')
+            self.assertIsNone(put_resp.json.get('result'))
+
+            # Manually change the status to paused because only the runner pause method should
+            # set the paused status directly to the liveaction and execution database objects.
+            liveaction_id = self._get_liveaction_id(post_resp)
+            liveaction = action_db_util.get_liveaction_by_id(liveaction_id)
+            action_service.update_status(liveaction, action_constants.LIVEACTION_STATUS_PAUSED)
+
+            get_resp = self._do_get_one(execution_id)
+            self.assertEqual(get_resp.status_int, 200)
+            self.assertEqual(get_resp.json['status'], 'paused')
+            self.assertIsNone(get_resp.json.get('result'))
+
+            updates = {'status': 'resuming', 'result': {'stdout': 'foobar'}}
+            put_resp = self._do_put(execution_id, updates, expect_errors=True)
+            self.assertEqual(put_resp.status_int, 400)
+            self.assertIn('result is not applicable', put_resp.json['faultstring'])
         finally:
             action_constants.WORKFLOW_RUNNER_TYPES.remove(ACTION_1['runner_type'])
