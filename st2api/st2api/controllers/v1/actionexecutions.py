@@ -96,16 +96,21 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         if not requester_user:
             requester_user = UserDB(cfg.CONF.system_user.user)
 
-        # Assert the permissions
+        # Assert action ref is valid
         action_ref = liveaction_api.action
         action_db = action_utils.get_action_by_ref(action_ref)
-        user = liveaction_api.user or requester_user.name
-        pack = action_db.pack
 
+        if not action_db:
+            message = 'Action "%s" cannot be found.' % action_ref
+            LOG.warning(message)
+            abort(http_client.BAD_REQUEST, message)
+
+        # Assert the permissions
         assert_user_has_resource_db_permission(user_db=requester_user, resource_db=action_db,
                                                permission_type=PermissionType.ACTION_EXECUTE)
 
         # Validate that the authenticated user is admin if user query param is provided
+        user = liveaction_api.user or requester_user.name
         assert_user_is_admin_if_user_query_param_is_provided(user_db=requester_user,
                                                              user=user)
 
@@ -115,7 +120,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
                                             user=user,
                                             context_string=context_string,
                                             show_secrets=show_secrets,
-                                            pack=pack)
+                                            pack=action_db.pack)
         except ValueError as e:
             LOG.exception('Unable to execute action.')
             abort(http_client.BAD_REQUEST, str(e))

@@ -46,6 +46,7 @@ Fixed
   #3572 #3573
 
   Reported by sibirajal.
+* Add a check to make sure action exists in the POST of the action execution API. (bug fix)
 
 2.3.1 - July 07, 2017
 ---------------------

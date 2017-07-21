@@ -340,6 +340,14 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         self.assertEqual(delete_resp.status_int, 200)
         self.assertEqual(delete_resp.json['status'], 'canceled')
 
+    def test_post_nonexistent_action(self):
+        live_action = copy.deepcopy(LIVE_ACTION_1)
+        live_action['action'] = 'mock.foobar'
+        post_resp = self._do_post(live_action, expect_errors=True)
+        self.assertEqual(post_resp.status_int, 400)
+        expected_error = 'Action "%s" cannot be found.' % live_action['action']
+        self.assertEqual(expected_error, post_resp.json['faultstring'])
+
     def test_post_parameter_validation_failed(self):
         execution = copy.deepcopy(LIVE_ACTION_1)
 
