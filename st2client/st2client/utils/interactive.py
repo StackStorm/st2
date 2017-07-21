@@ -310,6 +310,29 @@ class ArrayReader(StringReader):
         return [item.strip() for item in response.split(',')]
 
 
+class ArrayObjectReader(StringReader):
+    @staticmethod
+    def condition(spec):
+        return spec.get('type', None) == 'array' and spec.get('items', {}).get('type') == 'object'
+
+    def read(self):
+        results = []
+        prefix = u'{}.'.format(self.name)
+        properties = self.spec.get('items', {}).get('properties', {})
+        message = 'Would you like to continue to set other settings of "%s"?' % self.name
+
+        is_continue = True
+        while is_continue:
+            results.append(InteractiveForm(properties,
+                                           prefix=prefix,
+                                           reraise=True).initiate_dialog())
+
+            if Question(message, {'default': 'y'}).read() != 'y':
+                is_continue = False
+
+        return results
+
+
 class ArrayEnumReader(EnumReader):
     def __init__(self, name, spec, prefix=None):
         self.items = spec.get('items', {})
@@ -371,6 +394,7 @@ class InteractiveForm(object):
         IntegerReader,
         ObjectReader,
         ArrayEnumReader,
+        ArrayObjectReader,
         ArrayReader,
         SecretStringReader,
         StringReader
