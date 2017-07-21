@@ -33,13 +33,15 @@ Fixed
   ``http_proxy`` or ``https_proxy`` environment variables for ``st2api`` and ``st2actionrunner``
   processes and pack commands will work with proxy. Refer to documentation for details on
   proxy configuration. (bug-fix) #3137
-* Fix an API bug and allow users to create rules which reference actions which don't yet exist in
-  the system when RBAC is enabled and user doesn't have system admin permission. (bug fix)
-  #3572
-
-  Reported by sibirajal.
 * Fix API validation regression so all input data sent to some POST and PUT API endpoints is
   correctly validated. (bug fix) #3580
+* Fix an API bug and allow users to create rules which reference actions which don't yet exist in
+  the system when RBAC is enabled and user doesn't have system admin permission. (bug fix)
+  #3572 #3573
+
+  Reported by sibirajal.
+* Add a check to make sure action exists in the POST of the action execution API. (bug fix)
+* Fix api key generation, to use system user, when auth is disabled. (bug fix) #3578 #3593
 
 2.3.1 - July 07, 2017
 ---------------------
