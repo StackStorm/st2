@@ -184,12 +184,15 @@ jobs:
       - run:
           name: Test the Packages
           command: |
-            .circle/docker-compose2.sh test ${DISTRO}
+            set -x
+            set +e
+            .circle/docker-compose2.sh test ${DISTRO} || export TEST_FAILED=1
             # Once test container finishes we can copy logs directly from it
             docker cp st2-packages-vol:/var/log/st2 ~/st2/packages/${DISTRO}/log/st2
             docker cp st2-packages-vol:/var/log/mistral ~/st2/packages/${DISTRO}/log/mistral
             # Clean-up running containers
             .circle/docker-compose2.sh clean
+            test -z "$TEST_FAILED"
           working_directory: ~/st2-packages
       - store_artifacts:
           path: ~/st2/packages
