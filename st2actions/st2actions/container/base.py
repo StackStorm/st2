@@ -74,6 +74,12 @@ class RunnerContainer(object):
             action_constants.LIVEACTION_STATUS_RESUMING: self._do_resume
         }
 
+        if liveaction_db.status not in funcs:
+            raise actionrunner.ActionRunnerDispatchError(
+                'Action runner is unable to dispatch the liveaction because it is '
+                'in an unsupported status of "%s".' % liveaction_db.status
+            )
+
         liveaction_db = funcs[liveaction_db.status](
             runner=runner,
             runnertype_db=runnertype_db,
