@@ -24,6 +24,7 @@ import traceback
 import six
 import requests
 
+# pylint: disable=import-error
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 from st2client import models
