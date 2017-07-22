@@ -56,7 +56,8 @@ setup(
         'prettytable',
         'python-dateutil',
         'pyyaml<4.0,>=3.11',
-        'requests<3.0,>=2.7.0',
+        'requests[security]==2.18.1',
+        'certifi',
         'six==1.10.0'
     ],
     dependency_links=[],
