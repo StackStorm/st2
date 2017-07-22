@@ -12,11 +12,13 @@ oslo.config>=1.12.1,<1.13
 oslo.utils<3.1.0
 six==1.10.0
 pyyaml>=3.12,<4.0
-requests[security]>=2.18.1,<2.19
+requests[security]==2.18.1
 apscheduler==3.3.1
 gitpython==2.1.5
 jsonschema==2.6.0
-mongoengine==0.13.0
+# Note: mongoengine v0.13.0 introduces memory usage regression so we can't
+# upgrade - https://github.com/StackStorm/st2/pull/3597
+mongoengine==0.12.0
 pymongo==3.4.0
 passlib==1.7.1
 lockfile==0.12.2
@@ -40,3 +42,4 @@ routes==2.4.1
 flex==6.10.0
 webob==1.7.3
 prance==0.6.1
+certifi==2017.4.17
