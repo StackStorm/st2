@@ -1,6 +1,48 @@
 Changelog
 =========
 
+2.3.2 - July 29, 2017
+---------------------
+
+Added
+~~~~~
+
+* Add ``regex_substring`` Jinja filter for searching for a pattern in a provided string and
+  returning the result. (improvement)
+
+  Contributed by mierdin. #3482
+* Add test coverage and test timing capabilities to ``st2-run-pack-tests``.
+  The ``-c`` option enables test coverage and the ``-t`` option enables test timings.
+  These capabilities have also been enabled in the ci pipeline for packs in the exchange.
+
+  Contributed by Nick Maludy. #3508
+* Update ``st2`` CLI so it also displays "there are more results" note when ``-n`` flag is
+  used and there are more items available. (improvement) #3552
+* Add ability to explicitly set ``stream_url`` in st2client and CLI. (improvement) #3432
+
+Fixed
+~~~~~
+
+* Fix st2client to display unicode characters in pack content description. (bug-fix)
+* Don't automatically append ``.git`` suffix to repo URIs passed to ``packs.download`` action.
+  This fixes a bug and now action also works with repo urls which don't contain ``.git`` suffix.
+  (bug fix)
+
+  Contributed by carbineneutral. #3534 #3544
+* st2 pack commands now work when StackStorm servers are behind a HTTP/HTTPS proxy. You can set
+  ``http_proxy`` or ``https_proxy`` environment variables for ``st2api`` and ``st2actionrunner``
+  processes and pack commands will work with proxy. Refer to documentation for details on
+  proxy configuration. (bug-fix) #3137
+* Fix API validation regression so all input data sent to some POST and PUT API endpoints is
+  correctly validated. (bug fix) #3580
+* Fix an API bug and allow users to create rules which reference actions which don't yet exist in
+  the system when RBAC is enabled and user doesn't have system admin permission. (bug fix)
+  #3572 #3573
+
+  Reported by sibirajal.
+* Add a check to make sure action exists in the POST of the action execution API. (bug fix)
+* Fix api key generation, to use system user, when auth is disabled. (bug fix) #3578 #3593
+
 2.3.1 - July 07, 2017
 ---------------------
 
