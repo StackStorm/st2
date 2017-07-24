@@ -27,4 +27,3 @@ routes
 flex
 webob
 prance
-certifi
