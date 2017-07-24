@@ -377,10 +377,10 @@ function st2stop(){
         screen -ls | grep st2 | cut -d. -f1 | awk '{print $1}' | xargs -L 1 pkill -P
     fi
 
-    screen -ls | grep st2 &> /dev/null
+    screen -ls | grep mistral &> /dev/null
     if [ $? == 0 ]; then
         echo 'Killing existing mistral screen sessions...'
-        screen -ls | grep mistral | cut -d. -f1 | awk '{print $1}' | xargs -L 1 pkill -P
+        screen -ls | grep mistral | cut -d. -f1 | awk '{print $1}' | xargs -L 1 pkill -9 -P
     fi
 
     if [ "${use_gunicorn}" = true ]; then
