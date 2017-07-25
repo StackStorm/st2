@@ -29,6 +29,7 @@ from st2common.models.api.notification import NotificationsHelper
 from st2common.persistence.execution import ActionExecution
 from st2common.persistence.liveaction import LiveAction
 from st2common.services import action as action_service
+from st2common.util import jinja
 from st2common.util.workflow import mistral as utils
 from st2common.util.url import get_url_without_trailing_slash
 from st2common.util.api import get_full_public_api_url
@@ -161,8 +162,16 @@ class MistralRunner(AsyncActionRunner):
         parent_context = {
             'execution_id': self.execution_id
         }
+
         if getattr(self.liveaction, 'context', None):
             parent_context.update(self.liveaction.context)
+
+        # Convert jinja expressions in the params of Action Chain under the parent context
+        # into raw block. If there is any jinja expressions, Mistral will try to evaulate
+        # the expression. If there is a local context reference, the evaluation will fail
+        # because the local context reference is out of scope.
+        for k, v in six.iteritems(parent_context.get('chain', {}).get('params', {})):
+            parent_context['chain']['params'][k] = jinja.convert_jinja_to_raw_block(v)
 
         st2_execution_context = {
             'api_url': api_url,
