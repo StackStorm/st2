@@ -173,8 +173,10 @@ class MistralRunnerPolicyTest(DbTestCase):
 
         # Mock the mistral runner cancel method to assert cancel is called.
         mistral_runner_cls = self.get_runner_class('mistral_v2')
+        mock_cancel_return_value = (action_constants.LIVEACTION_STATUS_CANCELING, None, None)
+        mock_cancel = mock.MagicMock(return_value=mock_cancel_return_value)
 
-        with mock.patch.object(mistral_runner_cls, 'cancel', mock.MagicMock(return_value=None)):
+        with mock.patch.object(mistral_runner_cls, 'cancel', mock_cancel):
             # Launch another instance of the workflow with mistral callback defined
             # to indicate that this is executed under a workflow.
             callback = {
@@ -186,17 +188,10 @@ class MistralRunnerPolicyTest(DbTestCase):
 
             liveaction2 = LiveActionDB(action=WF1_NAME, parameters=params, callback=callback)
             liveaction2, execution2 = action_service.request(liveaction2)
-
-            action_executions.ActionExecutionManager.update.assert_called_once_with(
-                '12345',
-                output='{"error": "Execution canceled by user."}',
-                state='CANCELLED'
-            )
-
             liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
-            self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_CANCELED)
 
             # Assert cancel has been called.
+            self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_CANCELING)
             mistral_runner_cls.cancel.assert_called_once_with()
 
     @mock.patch.object(
@@ -242,8 +237,10 @@ class MistralRunnerPolicyTest(DbTestCase):
 
         # Mock the mistral runner cancel method to assert cancel is called.
         mistral_runner_cls = self.get_runner_class('mistral_v2')
+        mock_cancel_return_value = (action_constants.LIVEACTION_STATUS_CANCELING, None, None)
+        mock_cancel = mock.MagicMock(return_value=mock_cancel_return_value)
 
-        with mock.patch.object(mistral_runner_cls, 'cancel', mock.MagicMock(return_value=None)):
+        with mock.patch.object(mistral_runner_cls, 'cancel', mock_cancel):
             # Launch another instance of the workflow with mistral callback defined
             # to indicate that this is executed under a workflow.
             callback = {
@@ -253,15 +250,8 @@ class MistralRunnerPolicyTest(DbTestCase):
 
             liveaction2 = LiveActionDB(action=WF1_NAME, parameters=params, callback=callback)
             liveaction2, execution2 = action_service.request(liveaction2)
-
-            action_executions.ActionExecutionManager.update.assert_called_once_with(
-                '12345',
-                output='{"error": "Execution canceled by user."}',
-                state='CANCELLED'
-            )
-
             liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
-            self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_CANCELED)
 
             # Assert cancel has been called.
+            self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_CANCELING)
             mistral_runner_cls.cancel.assert_called_once_with()

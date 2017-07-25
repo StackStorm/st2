@@ -18,7 +18,8 @@ import six
 from oslo_config import cfg
 
 from st2common import log as logging
-from st2common.constants.pack import DEFAULT_PACK_NAME
+from st2common.constants import action as action_constants
+from st2common.constants import pack as pack_constants
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.util import action_db as action_utils
 from st2common.util.loader import register_runner, register_callback_module
@@ -29,7 +30,6 @@ __all__ = [
     'ActionRunner',
     'AsyncActionRunner',
     'ShellRunnerMixin',
-
     'get_runner'
 ]
 
@@ -111,7 +111,11 @@ class ActionRunner(object):
         raise NotImplementedError('Resume is not supported for runner %s.' % runner_name)
 
     def cancel(self):
-        pass
+        return (
+            action_constants.LIVEACTION_STATUS_CANCELED,
+            self.liveaction.result,
+            self.liveaction.context
+        )
 
     def post_run(self, status, result):
         callback = self.callback or {}
@@ -143,7 +147,7 @@ class ActionRunner(object):
         if self.action:
             return self.action.pack
 
-        return DEFAULT_PACK_NAME
+        return pack_constants.DEFAULT_PACK_NAME
 
     def get_user(self):
         """

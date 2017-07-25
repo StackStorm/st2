@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import ast
+import copy
 import json
 import re
 import retrying
@@ -39,14 +40,14 @@ STATUS_MAP = {
     action_constants.LIVEACTION_STATUS_FAILED: 'ERROR',
     action_constants.LIVEACTION_STATUS_TIMED_OUT: 'ERROR',
     action_constants.LIVEACTION_STATUS_ABANDONED: 'ERROR',
-    action_constants.LIVEACTION_STATUS_CANCELING: 'RUNNING',
+    action_constants.LIVEACTION_STATUS_CANCELING: 'CANCELLED',
     action_constants.LIVEACTION_STATUS_CANCELED: 'CANCELLED',
-    action_constants.LIVEACTION_STATUS_PAUSING: 'RUNNING',
+    action_constants.LIVEACTION_STATUS_PAUSING: 'PAUSED',
     action_constants.LIVEACTION_STATUS_PAUSED: 'PAUSED',
     action_constants.LIVEACTION_STATUS_RESUMING: 'RUNNING'
 }
 
-MISTRAL_ACCEPTED_STATES = action_constants.LIVEACTION_COMPLETED_STATES
+MISTRAL_ACCEPTED_STATES = copy.deepcopy(action_constants.LIVEACTION_COMPLETED_STATES)
 MISTRAL_ACCEPTED_STATES += [action_constants.LIVEACTION_STATUS_PAUSED]
 
 

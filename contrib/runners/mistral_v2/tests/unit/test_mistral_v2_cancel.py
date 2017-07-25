@@ -159,7 +159,7 @@ class MistralRunnerCancelTest(DbTestCase):
         liveaction, execution = action_service.request_cancellation(liveaction, requester)
         executions.ExecutionManager.update.assert_called_with(WF1_EXEC.get('id'), 'CANCELLED')
         liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELED)
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELING)
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',
@@ -247,7 +247,7 @@ class MistralRunnerCancelTest(DbTestCase):
         liveaction, execution = action_service.request_cancellation(liveaction, requester)
         executions.ExecutionManager.update.assert_called_with(WF1_EXEC.get('id'), 'CANCELLED')
         liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELED)
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELING)
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',

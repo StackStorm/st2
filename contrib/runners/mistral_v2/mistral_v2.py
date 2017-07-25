@@ -401,6 +401,12 @@ class MistralRunner(AsyncActionRunner):
                     self.context.get('user', None)
                 )
 
+        return (
+            action_constants.LIVEACTION_STATUS_PAUSING,
+            self.liveaction.result,
+            self.liveaction.context
+        )
+
     @retrying.retry(
         retry_on_exception=utils.retry_on_exceptions,
         wait_exponential_multiplier=cfg.CONF.mistral.retry_exp_msec,
@@ -462,6 +468,12 @@ class MistralRunner(AsyncActionRunner):
                     LiveAction.get(id=child_exec.liveaction['id']),
                     self.context.get('user', None)
                 )
+
+        return (
+            action_constants.LIVEACTION_STATUS_CANCELING,
+            self.liveaction.result,
+            self.liveaction.context
+        )
 
     @staticmethod
     def _build_mistral_context(parent, current):
