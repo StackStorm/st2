@@ -53,6 +53,9 @@ Fixed
 * Add a check to make sure action exists in the POST of the action execution API. (bug fix)
 * Fix api key generation, to use system user, when auth is disabled. (bug fix) #3578 #3593
 * Fix invocation of Mistral workflow from Action Chain with jinja in params. (bug fix) #3440
+* Fix st2client API bug, a backward incompatible change in `query()` method, introduced in note
+  implementation(#3514) in 2.3.1. The `query()` method is now backward compatible (pre 2.3) and
+  `query_and_count()` method is used for results pagination and note. #3616
 
 2.3.1 - July 07, 2017
 ---------------------
