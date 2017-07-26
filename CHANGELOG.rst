@@ -18,7 +18,11 @@ Added
   Contributed by Nick Maludy. #3508
 * Update ``st2`` CLI so it also displays "there are more results" note when ``-n`` flag is
   used and there are more items available. (improvement) #3552
-* Add ability to explicitly set ``stream_url`` in st2client and CLI. (improvement) #3432
+* Add ability to explicitly set ``stream_url`` in st2client. (improvement) #3432
+* Add support for handling arrays of dictionaries to ``st2 config`` CLI command. (improvement)
+  #3594
+
+  Contributed by Hiroyasu OHYAMA.
 
 Fixed
 ~~~~~
