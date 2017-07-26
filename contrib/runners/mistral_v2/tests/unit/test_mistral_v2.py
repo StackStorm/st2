@@ -293,6 +293,9 @@ class MistralRunnerTest(DbTestCase):
                     'var4': {
                         'foobar': '{{foobar}}'
                     },
+                    'var5': {
+                        'foobar': '{% for item in items %}foobar{% end for %}'
+                    }
                 }
             }
         }
@@ -332,6 +335,12 @@ class MistralRunnerTest(DbTestCase):
                                     ],
                                     'var4': {
                                         'foobar': '{% raw %}{{foobar}}{% endraw %}'
+                                    },
+                                    'var5': {
+                                        'foobar': (
+                                            '{% raw %}{% for item in items %}'
+                                            'foobar{% end for %}{% endraw %}'
+                                        )
                                     }
                                 }
                             }
