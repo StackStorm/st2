@@ -347,3 +347,7 @@ class WiringTest(base.TestWorkflowExecution):
 
         children = self.st2client.liveactions.get_property(execution.id, 'children')
         self.assertEqual(len(children), 2)
+
+    def test_invoke_from_action_chain(self):
+        execution = self._execute_workflow('examples.invoke-mistral-with-jinja', {'cmd': 'date'})
+        execution = self._wait_for_state(execution, ['succeeded'])
