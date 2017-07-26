@@ -1,0 +1,20 @@
+version: '2.0'
+
+examples.mistral-customfilters-regex_match:
+    description: A workflow for testing regex_match custom filter in mistral
+    type: direct
+    vars:
+        regex_pattern: "([0-9]{3} \\w+ (?:Ave|St|Dr))"
+    input:
+        - input_str
+    output:
+        result_jinja: <% $.result_jinja %>
+        result_yaql: <% $.result_yaql %>
+    tasks:
+
+        task1:
+            action: std.noop
+            publish:
+                result_jinja: '{{ _.input_str | regex_match(_.regex_pattern)}}'
+                result_yaql: '<% regex_match($.input_str, $.regex_pattern) %>'
+

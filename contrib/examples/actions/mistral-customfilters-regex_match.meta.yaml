@@ -1,0 +1,11 @@
+---
+description: Test regex_match custom filter in mistral
+enabled: true
+runner_type: mistral-v2
+entry_point: workflows/customfilters/mistral-regex_match.yaml
+name: mistral-customfilters-regex_match
+pack: examples
+parameters:
+  input_str:
+    required: true
+    type: string
