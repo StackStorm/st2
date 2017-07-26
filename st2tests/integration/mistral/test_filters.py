@@ -38,18 +38,16 @@ class RegexFiltersTest(base.TestWorkflowExecution):
         self.assertEqual(execution.result['result_yaql'], False)
 
 
-# class UseNoneFiltersTest(base.TestWorkflowExecution):
-#     """This set of tests ensures that StackStorm's custom Jinja filters work in Mistral workflows
-#     """
+class UseNoneFiltersTest(base.TestWorkflowExecution):
 
-#     def test_usenone(self):
-#         """ if input is None, replace with string: '%*****__%NONE%__*****%'
-#         """
-
-#         inputs = {'inputstr': None}
-#         execution = self._execute_workflow(
-#             'examples.mistral-customfilter-usenone', parameters=inputs
-#         )
-#         execution = self._wait_for_completion(execution)
-#         self._assert_success(execution, num_tasks=1)
-#         self.assertEqual(len(execution.result['result']['stdout']), '%*****__%NONE%__*****%')
+    def test_usenone(self):
+        inputs = {'input_str': 'foo'}
+        execution = self._execute_workflow(
+            'examples.mistral-customfilters-use_none', parameters=inputs
+        )
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=2)
+        self.assertEqual(execution.result['none_result_jinja'], '%*****__%NONE%__*****%')
+        self.assertEqual(execution.result['none_result_yaql'], '%*****__%NONE%__*****%')
+        self.assertEqual(execution.result['str_result_jinja'], 'foo')
+        self.assertEqual(execution.result['str_result_yaql'], 'foo')
