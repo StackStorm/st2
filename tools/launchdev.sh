@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function usage() {
-    echo "Usage: $0 [start|stop|restart|startclean] [-r runner_count] [-g] [-x] [-c] [-6]" >&2
+    echo "Usage: $0 [start|stop|restart|startclean] [-r runner_count] [-g] [-x] [-c] [-6] [-m]" >&2
 }
 
 subcommand=$1; shift
@@ -10,8 +10,9 @@ use_gunicorn=true
 copy_examples=false
 load_content=true
 use_ipv6=false
+include_mistral=false
 
-while getopts ":r:gxcu6" o; do
+while getopts ":r:gxcu6m" o; do
     case "${o}" in
         r)
             runner_count=${OPTARG}
@@ -27,6 +28,9 @@ while getopts ":r:gxcu6" o; do
             ;;
         6)
             use_ipv6=true
+            ;;
+        m)
+            include_mistral=true
             ;;
         \?)
             echo "Invalid option: -$OPTARG" >&2
@@ -55,7 +59,6 @@ function init(){
         ST2_REPO=${CURRENT_DIR}/${COMMAND_PATH}/..
     fi
 
-
     if [ -z "$ST2_CONF" ]; then
         ST2_CONF=${ST2_REPO}/conf/st2.dev.conf
     fi
@@ -64,6 +67,67 @@ function init(){
     if [ ! -f "$ST2_CONF" ]; then
         echo "Config file $ST2_CONF does not exist."
         exit 1
+    fi
+
+    # Optionally, initialize mistral
+    if [ "${include_mistral}" = true ]; then
+        init_mistral
+    fi
+}
+
+function init_mistral(){
+
+    echo "Initializing Mistral..."
+
+    # Both the mistral and st2mistral repos must be present alongside the st2 repo
+    MISTRAL_REPO="${ST2_REPO}/../mistral"
+    ST2MISTRAL_REPO="${ST2_REPO}/../st2mistral"
+
+    if [ ! -d "$MISTRAL_REPO" ] || [ ! -d "$ST2MISTRAL_REPO" ] ; then
+        echo "You specified the Mistral option, but either the mistral or st2mistral directories were not found."
+        echo "Please place a clone of both mistral and st2mistral repositories alongside the st2 repository."
+        exit 1
+    fi
+
+    if [ -z "$MISTRAL_CONF" ]; then
+        MISTRAL_CONF=${ST2_REPO}/conf/mistral.dev/mistral.dev.conf
+    fi
+    echo "Using mistral config file: $MISTRAL_CONF"
+
+    if [ ! -f "$MISTRAL_CONF" ]; then
+        echo "Config file $MISTRAL_CONF does not exist."
+        exit 1
+    fi
+
+    # Create mistral virtualenv if doesn't exist
+    if [[ ! -d "${MISTRAL_REPO}/.venv" ]]; then
+        virtualenv ${MISTRAL_REPO}/.venv > /dev/null
+    fi
+
+    # Install Mistral and st2 plugins
+    echo "Installing mistral, st2mistral, and all dependencies..."
+    source "${MISTRAL_REPO}/.venv/bin/activate"
+    cd "${MISTRAL_REPO}"
+
+    # There's something funky going on with installation of Babel in mistral/requirements.txt
+    # I noticed that the install script in mistral_dev is doing some replacements for Babel to set
+    # the version but installation of Babel still fails for me even with that code. Only
+    # thing I've managed to get working is manually installing pytz myself here.
+    pip install pytz
+
+    pip install -r requirements.txt > /dev/null
+    python setup.py install > /dev/null
+    cd "${ST2MISTRAL_REPO}"
+    pip install -r requirements.txt > /dev/null
+    python setup.py install > /dev/null
+    deactivate
+
+    MISTRAL_DB_COUNT=$(PGUSER=mistral PGPASSWORD=StackStorm PGDATABASE=mistral PGHOST=127.0.0.1 PGPORT=5432 psql mistral -c "select count(*) from action_definitions_v2" | grep -oP '\d{4}')
+    if [ ! $? -eq 0 ]; then
+        MISTRAL_DB_COUNT=0
+    fi
+    if [ "$MISTRAL_DB_COUNT" -lt 1200 ] ; then
+      setup_mistral_db
     fi
 }
 
@@ -156,6 +220,12 @@ function st2start(){
         screen -ls | grep st2 | cut -d. -f1 | awk '{print $1}' | xargs kill
     fi
 
+    screen -ls | grep mistral &> /dev/null
+    if [ $? == 0 ]; then
+        echo 'Killing existing mistral screen sessions...'
+        screen -ls | grep mistral | cut -d. -f1 | awk '{print $1}' | xargs kill
+    fi
+
     # Run the st2 API server
     echo 'Starting screen session st2-api...'
     if [ "${use_gunicorn}" = true ]; then
@@ -231,6 +301,7 @@ function st2start(){
             --config-file $ST2_CONF
     fi
 
+    # Start Exporter
     if [ -n "$ST2_EXPORTER" ]; then
         EXPORTS_DIR=$(exportsdir)
         sudo mkdir -p $EXPORTS_DIR
@@ -239,6 +310,27 @@ function st2start(){
         screen -d -m -S st2-exporter ./virtualenv/bin/python \
             ./st2exporter/bin/st2exporter \
             --config-file $ST2_CONF
+    fi
+
+    if [ "${include_mistral}" = true ]; then
+
+        LOGDIR=${ST2_REPO}/logs
+
+        # Run mistral-server
+        echo 'Starting screen session mistral-server...'
+        screen -d -m -S mistral-server ${MISTRAL_REPO}/.venv/bin/python \
+            ${MISTRAL_REPO}/.venv/bin/mistral-server \
+            --server engine,executor \
+            --config-file $MISTRAL_CONF \
+            --log-file "$LOGDIR/mistral-server.log"
+
+        # Run mistral-api
+        echo 'Starting screen session mistral-api...'
+        screen -d -m -S mistral-api ${MISTRAL_REPO}/.venv/bin/python \
+            ${MISTRAL_REPO}/.venv/bin/mistral-server \
+            --server api \
+            --config-file $MISTRAL_CONF \
+            --log-file "$LOGDIR/mistral-api.log"
     fi
 
     # Check whether screen sessions are started
@@ -251,6 +343,11 @@ function st2start(){
         "st2-notifier"
         "st2-auth"
     )
+
+    if [ "${include_mistral}" = true ]; then
+        SCREENS+=("mistral-server")
+        SCREENS+=("mistral-api")
+    fi
 
     echo
     for s in "${SCREENS[@]}"
@@ -280,6 +377,12 @@ function st2stop(){
         screen -ls | grep st2 | cut -d. -f1 | awk '{print $1}' | xargs -L 1 pkill -P
     fi
 
+    screen -ls | grep mistral &> /dev/null
+    if [ $? == 0 ]; then
+        echo 'Killing existing mistral screen sessions...'
+        screen -ls | grep mistral | cut -d. -f1 | awk '{print $1}' | xargs -L 1 pkill -9 -P
+    fi
+
     if [ "${use_gunicorn}" = true ]; then
         pids=`ps -ef | grep "gunicorn_config.py" | awk '{print $2}'`
         if [ -n "$pids" ]; then
@@ -307,6 +410,29 @@ function st2clean(){
         echo "Removing $EXPORTS_DIR..."
         rm -rf ${EXPORTS_DIR}
     fi
+
+    setup_mistral_db
+}
+
+function setup_mistral_db(){
+    # Ensure services are stopped, so DB script will work
+    st2stop
+
+    if [ -f /etc/lsb-release ]; then
+        DISTRO="ubuntu"
+    else
+        DISTRO="fedora"
+    fi
+
+    ${ST2_REPO}/tools/setup_mistral_db.sh \
+        "${MISTRAL_REPO}" \
+        "${MISTRAL_CONF}" \
+        "${DISTRO}" \
+        postgresql \
+        mistral \
+        mistral \
+        StackStorm \
+        StackStorm
 }
 
 case ${subcommand} in

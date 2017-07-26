@@ -16,6 +16,15 @@ Added
   These capabilities have also been enabled in the ci pipeline for packs in the exchange.
 
   Contributed by Nick Maludy. #3508
+* Update ``st2`` CLI so it also displays "there are more results" note when ``-n`` flag is
+  used and there are more items available. (improvement) #3552
+* Add ability to explicitly set ``stream_url`` in st2client.
+* Add pack config into action context. This is made available under the
+  ``config_context`` key.
+* Add support for handling arrays of dictionaries to ``st2 config`` CLI command. (improvement)
+  #3594
+
+  Contributed by Hiroyasu OHYAMA.
 
 Changed
 ~~~~~~~
@@ -29,6 +38,20 @@ Fixed
   (bug fix)
 
   Contributed by carbineneutral. #3534 #3544
+* st2 pack commands now work when StackStorm servers are behind a HTTP/HTTPS proxy. You can set
+  ``http_proxy`` or ``https_proxy`` environment variables for ``st2api`` and ``st2actionrunner``
+  processes and pack commands will work with proxy. Refer to documentation for details on
+  proxy configuration. (bug-fix) #3137
+* Fix no-member linting error on U16 by ignoring mistralclient.api.v2.executions module.
+* Fix API validation regression so all input data sent to some POST and PUT API endpoints is
+  correctly validated. (bug fix) #3580
+* Fix an API bug and allow users to create rules which reference actions which don't yet exist in
+  the system when RBAC is enabled and user doesn't have system admin permission. (bug fix)
+  #3572 #3573
+
+  Reported by sibirajal.
+* Add a check to make sure action exists in the POST of the action execution API. (bug fix)
+* Fix api key generation, to use system user, when auth is disabled. (bug fix) #3578 #3593
 
 2.3.1 - July 07, 2017
 ---------------------

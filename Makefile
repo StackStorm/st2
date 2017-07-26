@@ -30,15 +30,15 @@ PYTHON_TARGET := 2.7
 REQUIREMENTS := test-requirements.txt requirements.txt
 PIP_OPTIONS := $(ST2_PIP_OPTIONS)
 
-NOSE_OPTS := --rednose --immediate
+NOSE_OPTS := --rednose --immediate --with-parallel
 NOSE_TIME := $(NOSE_TIME)
 
 ifdef NOSE_TIME
-	NOSE_OPTS := --rednose --immediate --with-timer
+	NOSE_OPTS := --rednose --immediate --with-parallel --with-timer
 endif
 
 ifndef PIP_OPTIONS
-	PIP_OPTIONS := -U -q
+	PIP_OPTIONS :=
 endif
 
 .PHONY: all
@@ -243,7 +243,7 @@ requirements: virtualenv .sdist-requirements
 	@echo "==================== requirements ===================="
 	@echo
 	# Make sure we use latest version of pip
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip>=8.1.2,<8.2"
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip>=9.0,<9.1"
 	$(VIRTUALENV_DIR)/bin/pip install virtualenv  # Required for packs.install in dev envs.
 
 	# Generate all requirements to support current CI pipeline.
@@ -262,7 +262,7 @@ $(VIRTUALENV_DIR)/bin/activate:
 	@echo
 	@echo "==================== virtualenv ===================="
 	@echo
-	test -d $(VIRTUALENV_DIR) || virtualenv --no-site-packages $(VIRTUALENV_DIR)
+	test -f $(VIRTUALENV_DIR)/bin/activate || virtualenv --no-site-packages $(VIRTUALENV_DIR)
 
 	# Setup PYTHONPATH in bash activate script...
 	echo '' >> $(VIRTUALENV_DIR)/bin/activate
@@ -447,7 +447,7 @@ debs:
 ci: ci-checks ci-unit ci-integration ci-mistral ci-packs-tests
 
 .PHONY: ci-checks
-ci-checks: compile pylint flake8 bandit .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check
+ci-checks: compile .pylint .flake8 .bandit .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check
 
 .PHONY: .rst-check
 .rst-check:
@@ -457,7 +457,7 @@ ci-checks: compile pylint flake8 bandit .st2client-dependencies-check .st2common
 	. $(VIRTUALENV_DIR)/bin/activate; rstcheck --report warning CHANGELOG.rst
 
 .PHONY: ci-unit
-ci-unit: compile .unit-tests-coverage-html
+ci-unit: .unit-tests-coverage-html
 
 .PHONY: .ci-prepare-integration
 .ci-prepare-integration:

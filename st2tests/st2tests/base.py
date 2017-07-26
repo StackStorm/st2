@@ -436,11 +436,22 @@ class IntegrationTestCase(TestCase):
         Assert that a long running process provided Process object as returned by subprocess.Popen
         has succesfuly started and is running.
         """
+        if not process:
+            raise ValueError('process is None')
+
         return_code = process.poll()
 
         if return_code is not None:
-            stdout = process.stdout.read()
-            stderr = process.stderr.read()
+            if process.stdout:
+                stdout = process.stdout.read()
+            else:
+                stdout = ''
+
+            if process.stderr:
+                stderr = process.stderr.read()
+            else:
+                stderr = ''
+
             msg = ('Process exited with code=%s.\nStdout:\n%s\n\nStderr:\n%s' %
                    (return_code, stdout, stderr))
             self.fail(msg)

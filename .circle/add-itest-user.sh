@@ -17,6 +17,8 @@ chmod 0600 /home/stanley/.ssh/authorized_keys
 chmod 0700 /home/stanley/.ssh
 chown -R stanley:stanley /home/stanley
 
-# Enable passwordless sudo
+# Apply sudo fix for local 'circleci' user
+sh -c 'echo "circleci    ALL=(ALL)       NOPASSWD: SETENV: ALL" >> /etc/sudoers.d/st2'
+# Enable passwordless sudo for 'stanley' user
 sh -c 'echo "stanley    ALL=(ALL)       NOPASSWD: SETENV: ALL" >> /etc/sudoers.d/st2'
 chmod 0440 /etc/sudoers.d/st2
