@@ -1,0 +1,14 @@
+---
+description: Test regex_replace custom filter in mistral
+enabled: true
+runner_type: mistral-v2
+entry_point: workflows/customfilters/mistral-regex_replace.yaml
+name: mistral-customfilters-regex_replace
+pack: examples
+parameters:
+  input_str:
+    required: true
+    type: string
+  replacement_str:
+    required: true
+    type: string

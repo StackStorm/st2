@@ -22,23 +22,42 @@ REGEX_SEARCH_STR = "Your address is 567 Elsewhere Dr. My address is 123 Somewher
 REGEX_SEARCH_STR_2 = "567 Elsewhere Dr is your address. My address is 123 Somewhere Ave."
 
 
-class RegexFiltersTest(base.TestWorkflowExecution):
+class RegexMatchFiltersTest(base.TestWorkflowExecution):
 
     def test_regex_match(self):
         execution = self._execute_workflow('examples.mistral-customfilters-regex_match',
                                            parameters={"input_str": REGEX_SEARCH_STR_2})
         execution = self._wait_for_completion(execution)
         self._assert_success(execution, num_tasks=1)
-        self.assertEqual(execution.result['result_jinja'], True)
-        self.assertEqual(execution.result['result_yaql'], True)
+        self.assertTrue(execution.result['result_jinja'])
+        self.assertTrue(execution.result['result_yaql'])
 
     def test_regex_nomatch(self):
         execution = self._execute_workflow('examples.mistral-customfilters-regex_match',
                                            parameters={"input_str": REGEX_SEARCH_STR})
         execution = self._wait_for_completion(execution)
         self._assert_success(execution, num_tasks=1)
-        self.assertEqual(execution.result['result_jinja'], False)
-        self.assertEqual(execution.result['result_yaql'], False)
+        self.assertFalse(execution.result['result_jinja'])
+        self.assertFalse(execution.result['result_yaql'])
+
+
+class RegexReplaceFiltersTest(base.TestWorkflowExecution):
+
+    def test_regex_replace(self):
+        execution = self._execute_workflow(
+            'examples.mistral-customfilters-regex_replace',
+            parameters={
+                "input_str": REGEX_SEARCH_STR_2,
+                "replacement_str": "foo"
+            }
+        )
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=1)
+        self.assertEqual(
+            execution.result['result_jinja'],
+            "foo is your address. My address is foo."
+        )
+        self.assertEqual(execution.result['result_yaql'], "foo is your address. My address is foo.")
 
 
 class UseNoneFiltersTest(base.TestWorkflowExecution):
