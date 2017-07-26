@@ -163,8 +163,7 @@ class TraceListCommand(resource.ResourceCommand, SingleTraceDisplayMixin):
                 kwargs['sort_asc'] = True
             elif args.sort_order in ['desc', 'descending']:
                 kwargs['sort_desc'] = True
-        result, count = self.manager.query(limit=args.last, **kwargs)
-        return (result, count)
+        return self.manager.query_and_count(limit=args.last, **kwargs)
 
     def run_and_print(self, args, **kwargs):
         instances, count = self.run(args, **kwargs)

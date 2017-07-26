@@ -83,8 +83,7 @@ class RuleListCommand(resource.ResourceTableCommand):
             # switch attr to display the trigger and action
             args.attr = self.display_attributes_iftt
 
-        result, count = self.manager.query(limit=args.last, **kwargs)
-        return (result, count)
+        return self.manager.query_and_count(limit=args.last, **kwargs)
 
     def run_and_print(self, args, **kwargs):
         instances, count = self.run(args, **kwargs)
