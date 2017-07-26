@@ -15,19 +15,41 @@
 
 from integration.mistral import base
 
+REGEX_SEARCH_STR = "Your address is 567 Elsewhere Dr. My address is 123 Somewhere Ave."
+REGEX_SEARCH_STR_2 = "567 Elsewhere Dr is your address. My address is 123 Somewhere Ave."
 
-class JinjaFiltersTest(base.TestWorkflowExecution):
-    """This set of tests ensures that StackStorm's custom Jinja filters work in Mistral workflows
-    """
 
-    def test_usenone(self):
-        """ if input is None, replace with string: '%*****__%NONE%__*****%'
-        """
+class RegexFiltersTest(base.TestWorkflowExecution):
 
-        inputs = {'inputstr': None}
-        execution = self._execute_workflow(
-            'examples.mistral-customfilter-usenone', parameters=inputs
-        )
+    def test_regex_match(self):
+        execution = self._execute_workflow('examples.mistral-customfilters-regex_match',
+                                           parameters={"input_str": REGEX_SEARCH_STR_2})
         execution = self._wait_for_completion(execution)
         self._assert_success(execution, num_tasks=1)
-        self.assertEqual(len(execution.result['result']['stdout']), '%*****__%NONE%__*****%')
+        self.assertEqual(execution.result['result_jinja'], True)
+        self.assertEqual(execution.result['result_yaql'], True)
+
+    def test_regex_nomatch(self):
+        execution = self._execute_workflow('examples.mistral-customfilters-regex_match',
+                                           parameters={"input_str": REGEX_SEARCH_STR})
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=1)
+        self.assertEqual(execution.result['result_jinja'], False)
+        self.assertEqual(execution.result['result_yaql'], False)
+
+
+# class UseNoneFiltersTest(base.TestWorkflowExecution):
+#     """This set of tests ensures that StackStorm's custom Jinja filters work in Mistral workflows
+#     """
+
+#     def test_usenone(self):
+#         """ if input is None, replace with string: '%*****__%NONE%__*****%'
+#         """
+
+#         inputs = {'inputstr': None}
+#         execution = self._execute_workflow(
+#             'examples.mistral-customfilter-usenone', parameters=inputs
+#         )
+#         execution = self._wait_for_completion(execution)
+#         self._assert_success(execution, num_tasks=1)
+#         self.assertEqual(len(execution.result['result']['stdout']), '%*****__%NONE%__*****%')
