@@ -87,7 +87,8 @@ class TimersController(resource.ContentPackResourceController):
 
     def get_all(self, timer_type=None):
         if timer_type and timer_type not in self._allowed_timer_types:
-            msg = 'Timer type %s not in supported types - %s.' % self._allowed_timer_types
+            msg = 'Timer type %s not in supported types - %s.' % (timer_type,
+                                                                  self._allowed_timer_types)
             abort(http_client.BAD_REQUEST, msg)
 
         t_all = self._timers.get_all(timer_type=timer_type)
