@@ -170,7 +170,10 @@ class MistralRunner(AsyncActionRunner):
         # into raw block. If there is any jinja expressions, Mistral will try to evaulate
         # the expression. If there is a local context reference, the evaluation will fail
         # because the local context reference is out of scope.
-        for k, v in six.iteritems(parent_context.get('chain', {}).get('params', {})):
+        chain_ctx = parent_context.get('chain') or {}
+        chain_params_ctx = chain_ctx.get('params') or {}
+
+        for k, v in six.iteritems(chain_params_ctx):
             parent_context['chain']['params'][k] = jinja.convert_jinja_to_raw_block(v)
 
         st2_execution_context = {
