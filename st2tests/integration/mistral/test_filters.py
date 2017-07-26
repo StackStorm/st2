@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
+
 from integration.mistral import base
 
 REGEX_SEARCH_STR = "Your address is 567 Elsewhere Dr. My address is 123 Somewhere Ave."
@@ -40,7 +42,7 @@ class RegexFiltersTest(base.TestWorkflowExecution):
 
 class UseNoneFiltersTest(base.TestWorkflowExecution):
 
-    def test_usenone(self):
+    def test_use_none(self):
         inputs = {'input_str': 'foo'}
         execution = self._execute_workflow(
             'examples.mistral-customfilters-use_none', parameters=inputs
@@ -51,3 +53,19 @@ class UseNoneFiltersTest(base.TestWorkflowExecution):
         self.assertEqual(execution.result['none_result_yaql'], '%*****__%NONE%__*****%')
         self.assertEqual(execution.result['str_result_jinja'], 'foo')
         self.assertEqual(execution.result['str_result_yaql'], 'foo')
+
+
+class ToJsonStringFiltersTest(base.TestWorkflowExecution):
+
+    def test_to_json_string(self):
+        execution = self._execute_workflow(
+            'examples.mistral-customfilters-to_json_string'
+        )
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=2)
+        jinja_dict = json.loads(execution.result['result_jinja'])
+        yaql_dict = json.loads(execution.result['result_yaql'])
+        self.assertTrue(isinstance(jinja_dict, dict))
+        self.assertEqual(jinja_dict["a"], "b")
+        self.assertTrue(isinstance(yaql_dict, dict))
+        self.assertEqual(yaql_dict["a"], "b")
