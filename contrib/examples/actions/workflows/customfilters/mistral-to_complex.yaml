@@ -1,0 +1,20 @@
+version: '2.0'
+
+examples.mistral-customfilters-to_complex:
+    description: Example for using the custom filter "to_complex"
+    type: direct
+    output:
+        result_jinja: <% $.result_jinja %>
+        result_yaql: <% $.result_yaql %>
+    tasks:
+
+        task1:
+            action: examples.object_return
+            on-success:
+              - task2
+
+        task2:
+            action: std.noop
+            publish:
+              result_jinja: "{{ task('task1').result.result | to_complex}}"
+              result_yaql: '<% to_complex(task(task1).result.result) %>'          

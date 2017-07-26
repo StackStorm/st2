@@ -86,3 +86,19 @@ class ToYamlStringFiltersTest(base.TestWorkflowExecution):
         self.assertEqual(jinja_dict["a"], "b")
         self.assertTrue(isinstance(yaql_dict, dict))
         self.assertEqual(yaql_dict["a"], "b")
+
+
+class ToComplexFiltersTest(base.TestWorkflowExecution):
+
+    def test_to_complex(self):
+        execution = self._execute_workflow(
+            'examples.mistral-customfilters-to_complex'
+        )
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=2)
+        jinja_dict = json.loads(execution.result['result_jinja'])
+        yaql_dict = json.loads(execution.result['result_yaql'])
+        self.assertTrue(isinstance(jinja_dict, dict))
+        self.assertEqual(jinja_dict["a"], "b")
+        self.assertTrue(isinstance(yaql_dict, dict))
+        self.assertEqual(yaql_dict["a"], "b")
