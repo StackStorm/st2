@@ -366,7 +366,7 @@ class TestInteractive(unittest2.TestCase):
         self.is_continued = False
 
         def side_effect(msg, **kwargs):
-            if re.match(r'^Would you like to continue to set other settings.*', msg):
+            if re.match(r'^~~~ Would you like to add another item to.*', msg):
                 # prompt requires the input to judge continuing setting, or not
                 if not self.is_continued:
                     # continuing the configuration only once

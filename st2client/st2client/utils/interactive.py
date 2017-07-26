@@ -317,16 +317,18 @@ class ArrayObjectReader(StringReader):
 
     def read(self):
         results = []
-        prefix = u'{}.'.format(self.name)
         properties = self.spec.get('items', {}).get('properties', {})
-        message = 'Would you like to continue to set other settings of "%s"?' % self.name
+        message = '~~~ Would you like to add another item to  "%s" array / list?' % self.name
 
         is_continue = True
+        index = 0
         while is_continue:
+            prefix = u'{name}[{index}].'.format(name=self.name, index=index)
             results.append(InteractiveForm(properties,
                                            prefix=prefix,
                                            reraise=True).initiate_dialog())
 
+            index += 1
             if Question(message, {'default': 'y'}).read() != 'y':
                 is_continue = False
 
