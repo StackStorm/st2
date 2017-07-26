@@ -21,6 +21,10 @@ Added
 * Add ability to explicitly set ``stream_url`` in st2client.
 * Add pack config into action context. This is made available under the
   ``config_context`` key.
+* Add support for handling arrays of dictionaries to ``st2 config`` CLI command. (improvement)
+  #3594
+
+  Contributed by Hiroyasu OHYAMA.
 
 Changed
 ~~~~~~~
