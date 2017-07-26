@@ -1,7 +1,7 @@
 version: '2.0'
 
-examples.mistral-customfilters-to_json_string:
-    description: Example for using the custom filter "to_json_string"
+examples.mistral-customfilters-to_yaml_string:
+    description: Example for using the custom filter "to_yaml_string"
     type: direct
     output:
         result_jinja: <% $.result_jinja %>
@@ -16,5 +16,5 @@ examples.mistral-customfilters-to_json_string:
         task2:
             action: std.noop
             publish:
-              result_jinja: "{{ task('task1').result.result | to_json_string}}"
-              result_yaql: '<% to_json_string(task(task1).result.result) %>'          
+              result_jinja: "{{ task('task1').result.result | to_yaml_string}}"
+              result_yaql: '<% to_yaml_string(task(task1).result.result) %>'          

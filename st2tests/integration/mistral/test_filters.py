@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import json
+import yaml
 
 from integration.mistral import base
 
@@ -65,6 +66,22 @@ class ToJsonStringFiltersTest(base.TestWorkflowExecution):
         self._assert_success(execution, num_tasks=2)
         jinja_dict = json.loads(execution.result['result_jinja'])
         yaql_dict = json.loads(execution.result['result_yaql'])
+        self.assertTrue(isinstance(jinja_dict, dict))
+        self.assertEqual(jinja_dict["a"], "b")
+        self.assertTrue(isinstance(yaql_dict, dict))
+        self.assertEqual(yaql_dict["a"], "b")
+
+
+class ToYamlStringFiltersTest(base.TestWorkflowExecution):
+
+    def test_to_yaml_string(self):
+        execution = self._execute_workflow(
+            'examples.mistral-customfilters-to_yaml_string'
+        )
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=2)
+        jinja_dict = yaml.load(execution.result['result_jinja'])
+        yaql_dict = yaml.load(execution.result['result_yaql'])
         self.assertTrue(isinstance(jinja_dict, dict))
         self.assertEqual(jinja_dict["a"], "b")
         self.assertTrue(isinstance(yaql_dict, dict))
