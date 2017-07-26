@@ -59,3 +59,58 @@ class JinjaUtilsRenderTestCase(unittest2.TestCase):
             allow_undefined=True)
 
         self.assertEqual(actual, expected)
+
+    def test_convert_str_to_raw(self):
+        jinja_expr = '{{foobar}}'
+        expected_raw_block = '{% raw %}{{foobar}}{% endraw %}'
+        self.assertEqual(expected_raw_block, jinja_utils.convert_jinja_to_raw_block(jinja_expr))
+
+        jinja_block_expr = '{% for item in items %}foobar{% end for %}'
+        expected_raw_block = '{% raw %}{% for item in items %}foobar{% end for %}{% endraw %}'
+        self.assertEqual(
+            expected_raw_block,
+            jinja_utils.convert_jinja_to_raw_block(jinja_block_expr)
+        )
+
+    def test_convert_list_to_raw(self):
+        jinja_expr = [
+            'foobar',
+            '{{foo}}',
+            '{{bar}}',
+            '{% for item in items %}foobar{% end for %}',
+            {'foobar': '{{foobar}}'}
+        ]
+
+        expected_raw_block = [
+            'foobar',
+            '{% raw %}{{foo}}{% endraw %}',
+            '{% raw %}{{bar}}{% endraw %}',
+            '{% raw %}{% for item in items %}foobar{% end for %}{% endraw %}',
+            {'foobar': '{% raw %}{{foobar}}{% endraw %}'}
+        ]
+
+        self.assertListEqual(expected_raw_block, jinja_utils.convert_jinja_to_raw_block(jinja_expr))
+
+    def test_convert_dict_to_raw(self):
+        jinja_expr = {
+            'var1': 'foobar',
+            'var2': ['{{foo}}', '{{bar}}'],
+            'var3': {'foobar': '{{foobar}}'},
+            'var4': {'foobar': '{% for item in items %}foobar{% end for %}'}
+        }
+
+        expected_raw_block = {
+            'var1': 'foobar',
+            'var2': [
+                '{% raw %}{{foo}}{% endraw %}',
+                '{% raw %}{{bar}}{% endraw %}'
+            ],
+            'var3': {
+                'foobar': '{% raw %}{{foobar}}{% endraw %}'
+            },
+            'var4': {
+                'foobar': '{% raw %}{% for item in items %}foobar{% end for %}{% endraw %}'
+            }
+        }
+
+        self.assertDictEqual(expected_raw_block, jinja_utils.convert_jinja_to_raw_block(jinja_expr))
