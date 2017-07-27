@@ -268,7 +268,7 @@ class ResourceManager(object):
             response = self.client.get(url)
 
         if response.status_code == 404:
-            # for query and query_and_count
+            # for query and query_with_count
             return [], None
         if response.status_code != 200:
             self.handle_error(response)
@@ -282,7 +282,7 @@ class ResourceManager(object):
         return instances
 
     @add_auth_token_to_kwargs_from_env
-    def query_and_count(self, **kwargs):
+    def query_with_count(self, **kwargs):
         instances, response = self._query_details(**kwargs)
         if response and 'X-Total-Count' in response.headers:
             return (instances, response.headers['X-Total-Count'])

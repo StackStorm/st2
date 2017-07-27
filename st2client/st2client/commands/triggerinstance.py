@@ -118,7 +118,7 @@ class TriggerInstanceListCommand(resource.ResourceCommand):
         if args.status:
             kwargs['status'] = args.status
 
-        return self.manager.query_and_count(limit=args.last, **kwargs)
+        return self.manager.query_with_count(limit=args.last, **kwargs)
 
     def run_and_print(self, args, **kwargs):
 

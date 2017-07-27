@@ -1062,7 +1062,7 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
         exclude_attributes = ','.join(exclude_attributes)
         kwargs['exclude_attributes'] = exclude_attributes
 
-        return self.manager.query_and_count(limit=args.last, **kwargs)
+        return self.manager.query_with_count(limit=args.last, **kwargs)
 
     def run_and_print(self, args, **kwargs):
 
