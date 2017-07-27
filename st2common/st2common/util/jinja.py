@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import json
+import re
 import six
 
 from st2common import log as logging
@@ -33,6 +34,12 @@ JINJA_EXPRESSIONS_START_MARKERS = [
     '{{',
     '{%'
 ]
+
+JINJA_REGEX = '({{(.*)}})'
+JINJA_REGEX_PTRN = re.compile(JINJA_REGEX)
+JINJA_BLOCK_REGEX = '({%(.*)%})'
+JINJA_BLOCK_REGEX_PTRN = re.compile(JINJA_BLOCK_REGEX)
+
 
 LOG = logging.getLogger(__name__)
 
@@ -183,3 +190,17 @@ def is_jinja_expression(value):
             return True
 
     return False
+
+
+def convert_jinja_to_raw_block(value):
+    if isinstance(value, dict):
+        return {k: convert_jinja_to_raw_block(v) for k, v in six.iteritems(value)}
+
+    if isinstance(value, list):
+        return [convert_jinja_to_raw_block(v) for v in value]
+
+    if isinstance(value, six.string_types):
+        if JINJA_REGEX_PTRN.findall(value) or JINJA_BLOCK_REGEX_PTRN.findall(value):
+            return '{% raw %}' + value + '{% endraw %}'
+
+    return value
