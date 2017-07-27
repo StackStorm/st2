@@ -355,3 +355,19 @@ class VersionBumpPatchFiltersTest(base.TestWorkflowExecution):
         self._assert_success(execution, num_tasks=1)
         self.assertEqual(execution.result['result_jinja'], '0.10.2')
         self.assertEqual(execution.result['result_yaql'], '0.10.2')
+
+
+class VersionStripPatchFiltersTest(base.TestWorkflowExecution):
+
+    def test_version_strip_patch(self):
+
+        execution = self._execute_workflow(
+            'examples.mistral-customfilters-version_strip_patch',
+            parameters={
+                "version": '0.10.1'
+            }
+        )
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=1)
+        self.assertEqual(execution.result['result_jinja'], '0.10')
+        self.assertEqual(execution.result['result_yaql'], '0.10')
