@@ -189,7 +189,7 @@ class ToYamlStringFiltersTest(base.TestWorkflowExecution):
 
 class VersionCompareFiltersTest(base.TestWorkflowExecution):
 
-    def test_to_yaml_string(self):
+    def test_version_compare(self):
 
         versions = {
             '0.9.3': 1,
@@ -200,6 +200,30 @@ class VersionCompareFiltersTest(base.TestWorkflowExecution):
         for compare_version, expected_result in versions.items():
             execution = self._execute_workflow(
                 'examples.mistral-customfilters-version_compare',
+                parameters={
+                    "version_a": '0.10.1',
+                    "version_b": compare_version
+                }
+            )
+            execution = self._wait_for_completion(execution)
+            self._assert_success(execution, num_tasks=1)
+            self.assertEqual(execution.result['result_jinja'], expected_result)
+            self.assertEqual(execution.result['result_yaql'], expected_result)
+
+
+class VersionMoreThanFiltersTest(base.TestWorkflowExecution):
+
+    def test_version_more_than(self):
+
+        versions = {
+            '0.9.3': True,
+            '0.10.1': False,
+            '0.10.2': False
+        }
+
+        for compare_version, expected_result in versions.items():
+            execution = self._execute_workflow(
+                'examples.mistral-customfilters-version_more_than',
                 parameters={
                     "version_a": '0.10.1',
                     "version_b": compare_version
