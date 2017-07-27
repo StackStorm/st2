@@ -25,7 +25,7 @@ REGEX_SEARCH_STR_3 = "No address to be found here! Well, maybe 127.0.0.1"
 
 class JsonEscapeFiltersTest(base.TestWorkflowExecution):
 
-    def test_to_complex(self):
+    def test_json_escape(self):
         breaking_str = 'This text """ breaks JSON'
         inputs = {'input_str': breaking_str}
         execution = self._execute_workflow(
@@ -111,9 +111,9 @@ class RegexSubstringFiltersTest(base.TestWorkflowExecution):
         self.assertEqual(execution.result['result_yaql_index_1'], '123 Somewhere Ave')
 
 
-class ToHumanTimeInSecondsFiltersTest(base.TestWorkflowExecution):
+class ToHumanTimeFromSecondsFiltersTest(base.TestWorkflowExecution):
 
-    def test_to_human_time_in_seconds(self):
+    def test_to_human_time_from_seconds(self):
         execution = self._execute_workflow(
             'examples.mistral-customfilters-to_human_time_from_seconds',
             parameters={"seconds": 4587}
