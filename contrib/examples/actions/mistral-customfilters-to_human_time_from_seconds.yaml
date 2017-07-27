@@ -1,0 +1,11 @@
+---
+description: Test to_human_time_from_seconds custom filter in mistral
+enabled: true
+runner_type: mistral-v2
+entry_point: workflows/customfilters/mistral-to_human_time_from_seconds.yaml
+name: mistral-customfilters-to_human_time_from_seconds
+pack: examples
+parameters:
+  seconds:
+    required: true
+    type: integer

@@ -93,6 +93,19 @@ class RegexSubstringFiltersTest(base.TestWorkflowExecution):
         self.assertEqual(execution.result['result_yaql_index_1'], '123 Somewhere Ave')
 
 
+class ToHumanTimeInSecondsFiltersTest(base.TestWorkflowExecution):
+
+    def test_to_human_time_in_seconds(self):
+        execution = self._execute_workflow(
+            'examples.mistral-customfilters-to_human_time_from_seconds',
+            parameters={"seconds": 4587}
+        )
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=1)
+        self.assertEqual(execution.result['result_jinja'], '1h16m27s')
+        self.assertEqual(execution.result['result_yaql'], '1h16m27s')
+
+
 class UseNoneFiltersTest(base.TestWorkflowExecution):
 
     def test_use_none(self):
