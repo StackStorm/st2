@@ -121,7 +121,6 @@ class TriggerInstanceListCommand(resource.ResourceCommand):
         return self.manager.query_with_count(limit=args.last, **kwargs)
 
     def run_and_print(self, args, **kwargs):
-
         instances, count = self.run(args, **kwargs)
         if args.json or args.yaml:
             self.print_output(reversed(instances), table.MultiColumnTable,
@@ -132,7 +131,7 @@ class TriggerInstanceListCommand(resource.ResourceCommand):
             self.print_output(reversed(instances), table.MultiColumnTable,
                               attributes=args.attr, widths=args.width,
                               attribute_transform_functions=self.attribute_transform_functions)
-            if args.last and count and int(count) > args.last:
+            if args.last and count and count > args.last:
                 table.SingleRowTable.note_box(self.resource_name, args.last)
 
 

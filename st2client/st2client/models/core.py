@@ -285,7 +285,7 @@ class ResourceManager(object):
     def query_with_count(self, **kwargs):
         instances, response = self._query_details(**kwargs)
         if response and 'X-Total-Count' in response.headers:
-            return (instances, response.headers['X-Total-Count'])
+            return (instances, int(response.headers['X-Total-Count']))
         else:
             return (instances, None)
 
