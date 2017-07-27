@@ -95,7 +95,7 @@ class RuleListCommand(resource.ResourceTableCommand):
             self.print_output(instances, table.MultiColumnTable,
                               attributes=args.attr, widths=args.width)
 
-            if args.last and count and int(count) > args.last:
+            if args.last and count and count > args.last:
                 table.SingleRowTable.note_box(self.resource_name, args.last)
 
 

@@ -114,7 +114,7 @@ class TestResourceManager(unittest2.TestCase):
         actual = [resource.serialize() for resource in resources]
         expected = json.loads(json.dumps([base.RESOURCES[0]]))
         self.assertEqual(actual, expected)
-        self.assertEqual(count, '50')
+        self.assertEqual(count, 50)
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
