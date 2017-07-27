@@ -1,0 +1,14 @@
+---
+description: Test version_compare custom filter in mistral
+enabled: true
+runner_type: mistral-v2
+entry_point: workflows/customfilters/mistral-version_compare.yaml
+name: mistral-customfilters-version_compare
+pack: examples
+parameters:
+  version_a:
+    required: true
+    type: string
+  version_b:
+    required: true
+    type: string
