@@ -1,0 +1,11 @@
+---
+description: Test regex_substring custom filter in mistral
+enabled: true
+runner_type: mistral-v2
+entry_point: workflows/customfilters/mistral-regex_substring.yaml
+name: mistral-customfilters-regex_substring
+pack: examples
+parameters:
+  input_str:
+    required: true
+    type: string

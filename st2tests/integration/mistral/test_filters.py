@@ -80,6 +80,19 @@ class RegexSearchFiltersTest(base.TestWorkflowExecution):
         self.assertFalse(execution.result['result_yaql'])
 
 
+class RegexSubstringFiltersTest(base.TestWorkflowExecution):
+
+    def test_regex_substring(self):
+        execution = self._execute_workflow('examples.mistral-customfilters-regex_substring',
+                                           parameters={"input_str": REGEX_SEARCH_STR})
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=1)
+        self.assertEqual(execution.result['result_jinja'], '567 Elsewhere Dr')
+        self.assertEqual(execution.result['result_yaql'], '567 Elsewhere Dr')
+        self.assertEqual(execution.result['result_jinja_index_1'], '123 Somewhere Ave')
+        self.assertEqual(execution.result['result_yaql_index_1'], '123 Somewhere Ave')
+
+
 class UseNoneFiltersTest(base.TestWorkflowExecution):
 
     def test_use_none(self):
