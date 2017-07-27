@@ -1,0 +1,11 @@
+---
+description: Test version_bump_patch custom filter in mistral
+enabled: true
+runner_type: mistral-v2
+entry_point: workflows/customfilters/mistral-version_bump_patch.yaml
+name: mistral-customfilters-version_bump_patch
+pack: examples
+parameters:
+  version:
+    required: true
+    type: string

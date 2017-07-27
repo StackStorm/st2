@@ -307,3 +307,51 @@ class VersionMatchFiltersTest(base.TestWorkflowExecution):
             self._assert_success(execution, num_tasks=1)
             self.assertEqual(execution.result['result_jinja'], expected_result)
             self.assertEqual(execution.result['result_yaql'], expected_result)
+
+
+class VersionBumpMajorFiltersTest(base.TestWorkflowExecution):
+
+    def test_version_bump_major(self):
+
+        execution = self._execute_workflow(
+            'examples.mistral-customfilters-version_bump_major',
+            parameters={
+                "version": '0.10.1'
+            }
+        )
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=1)
+        self.assertEqual(execution.result['result_jinja'], '1.0.0')
+        self.assertEqual(execution.result['result_yaql'], '1.0.0')
+
+
+class VersionBumpMinorFiltersTest(base.TestWorkflowExecution):
+
+    def test_version_bump_minor(self):
+
+        execution = self._execute_workflow(
+            'examples.mistral-customfilters-version_bump_minor',
+            parameters={
+                "version": '0.10.1'
+            }
+        )
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=1)
+        self.assertEqual(execution.result['result_jinja'], '0.11.0')
+        self.assertEqual(execution.result['result_yaql'], '0.11.0')
+
+
+class VersionBumpPatchFiltersTest(base.TestWorkflowExecution):
+
+    def test_version_bump_patch(self):
+
+        execution = self._execute_workflow(
+            'examples.mistral-customfilters-version_bump_patch',
+            parameters={
+                "version": '0.10.1'
+            }
+        )
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=1)
+        self.assertEqual(execution.result['result_jinja'], '0.10.2')
+        self.assertEqual(execution.result['result_yaql'], '0.10.2')
