@@ -18,7 +18,11 @@ Added
   Contributed by Nick Maludy. #3508
 * Update ``st2`` CLI so it also displays "there are more results" note when ``-n`` flag is
   used and there are more items available. (improvement) #3552
-* Add ability to explicitly set ``stream_url`` in st2client and CLI. (improvement) #3432
+* Add ability to explicitly set ``stream_url`` in st2client. (improvement) #3432
+* Add support for handling arrays of dictionaries to ``st2 config`` CLI command. (improvement)
+  #3594
+
+  Contributed by Hiroyasu OHYAMA.
 
 Fixed
 ~~~~~
@@ -42,6 +46,10 @@ Fixed
   Reported by sibirajal.
 * Add a check to make sure action exists in the POST of the action execution API. (bug fix)
 * Fix api key generation, to use system user, when auth is disabled. (bug fix) #3578 #3593
+* Fix invocation of Mistral workflow from Action Chain with jinja in params. (bug fix) #3440
+* Fix st2client API bug, a backward incompatible change in `query()` method, introduced in note
+  implementation (#3514) in 2.3.1. The `query()` method is now backward compatible (pre 2.3) and
+  `query_with_count()` method is used for results pagination and note. #3616
 
 2.3.1 - July 07, 2017
 ---------------------

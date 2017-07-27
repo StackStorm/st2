@@ -46,8 +46,7 @@ class TimerListCommand(resource.ResourceListCommand):
             kwargs['timer_type'] = args.timer_type
 
         if kwargs:
-            result, _ = self.manager.query(**kwargs)
-            return result
+            return self.manager.query(**kwargs)
         else:
             return self.manager.get_all(**kwargs)
 

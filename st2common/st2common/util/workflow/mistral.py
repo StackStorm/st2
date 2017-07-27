@@ -61,10 +61,10 @@ SPEC_TYPES = {
     }
 }
 
-JINJA_WITH_ST2KV = '{{st2kv\..*?|.*?\sst2kv\..*?}}'
-JINJA_WITH_ST2KV_PTRN = re.compile(JINJA_WITH_ST2KV)
-JINJA_WITH_LOCAL_CTX = '{{.*?_\..*?}}'
-JINJA_WITH_LOCAL_CTX_PTRN = re.compile(JINJA_WITH_LOCAL_CTX)
+JINJA_REGEX_WITH_ST2KV = '{{st2kv\..*?|.*?\sst2kv\..*?}}'
+JINJA_REGEX_WITH_ST2KV_PTRN = re.compile(JINJA_REGEX_WITH_ST2KV)
+JINJA_REGEX_WITH_LOCAL_CTX = '{{.*?_\..*?}}'
+JINJA_REGEX_WITH_LOCAL_CTX_PTRN = re.compile(JINJA_REGEX_WITH_LOCAL_CTX)
 
 
 def _parse_cmd_and_input(cmd_str):
@@ -147,8 +147,8 @@ def _transform_action_param(action_ref, param_name, param_value):
         }
 
     if isinstance(param_value, six.string_types):
-        st2kv_matches = JINJA_WITH_ST2KV_PTRN.findall(param_value)
-        local_ctx_matches = JINJA_WITH_LOCAL_CTX_PTRN.findall(param_value)
+        st2kv_matches = JINJA_REGEX_WITH_ST2KV_PTRN.findall(param_value)
+        local_ctx_matches = JINJA_REGEX_WITH_LOCAL_CTX_PTRN.findall(param_value)
 
         if st2kv_matches and local_ctx_matches:
             raise WorkflowDefinitionException('Parameter "%s" for action "%s" containing '
