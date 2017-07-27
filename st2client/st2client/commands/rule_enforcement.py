@@ -110,7 +110,7 @@ class RuleEnforcementListCommand(resource.ResourceCommand):
         if args.timestamp_lt:
             kwargs['enforced_at_lt'] = args.timestamp_lt
 
-        return self.manager.query_and_count(limit=args.last, **kwargs)
+        return self.manager.query_with_count(limit=args.last, **kwargs)
 
     def run_and_print(self, args, **kwargs):
         instances, count = self.run(args, **kwargs)

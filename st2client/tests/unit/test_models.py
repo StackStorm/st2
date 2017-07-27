@@ -108,9 +108,9 @@ class TestResourceManager(unittest2.TestCase):
         httpclient.HTTPClient, 'get',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK',
                                                       {'X-Total-Count': '50'})))
-    def test_resource_query_and_count(self):
+    def test_resource_query_with_count(self):
         mgr = models.ResourceManager(base.FakeResource, base.FAKE_ENDPOINT)
-        resources, count = mgr.query_and_count(name='abc')
+        resources, count = mgr.query_with_count(name='abc')
         actual = [resource.serialize() for resource in resources]
         expected = json.loads(json.dumps([base.RESOURCES[0]]))
         self.assertEqual(actual, expected)
@@ -141,9 +141,9 @@ class TestResourceManager(unittest2.TestCase):
         httpclient.HTTPClient, 'get',
         mock.MagicMock(return_value=base.FakeResponse('', 404, 'NOT FOUND',
                                                       {'X-Total-Count': '30'})))
-    def test_resource_query_and_count_404(self):
+    def test_resource_query_with_count_404(self):
         mgr = models.ResourceManager(base.FakeResource, base.FAKE_ENDPOINT)
-        resources, count = mgr.query_and_count(name='abc')
+        resources, count = mgr.query_with_count(name='abc')
         self.assertListEqual(resources, [])
         self.assertIsNone(count)
 
