@@ -20,6 +20,7 @@ from integration.mistral import base
 
 REGEX_SEARCH_STR = "Your address is 567 Elsewhere Dr. My address is 123 Somewhere Ave."
 REGEX_SEARCH_STR_2 = "567 Elsewhere Dr is your address. My address is 123 Somewhere Ave."
+REGEX_SEARCH_STR_3 = "No address to be found here! Well, maybe 127.0.0.1"
 
 
 class RegexMatchFiltersTest(base.TestWorkflowExecution):
@@ -58,6 +59,25 @@ class RegexReplaceFiltersTest(base.TestWorkflowExecution):
             "foo is your address. My address is foo."
         )
         self.assertEqual(execution.result['result_yaql'], "foo is your address. My address is foo.")
+
+
+class RegexSearchFiltersTest(base.TestWorkflowExecution):
+
+    def test_regex_search(self):
+        execution = self._execute_workflow('examples.mistral-customfilters-regex_search',
+                                           parameters={"input_str": REGEX_SEARCH_STR})
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=1)
+        self.assertTrue(execution.result['result_jinja'])
+        self.assertTrue(execution.result['result_yaql'])
+
+    def test_regex_nosearch(self):
+        execution = self._execute_workflow('examples.mistral-customfilters-regex_search',
+                                           parameters={"input_str": REGEX_SEARCH_STR_3})
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=1)
+        self.assertFalse(execution.result['result_jinja'])
+        self.assertFalse(execution.result['result_yaql'])
 
 
 class UseNoneFiltersTest(base.TestWorkflowExecution):
