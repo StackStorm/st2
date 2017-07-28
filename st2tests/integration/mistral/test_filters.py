@@ -49,7 +49,8 @@ class RegexMatchFiltersTest(base.TestWorkflowExecution):
         execution = self._execute_workflow(
             'examples.mistral-customfilters-regex_match',
             parameters={
-                "input_str": REGEX_SEARCH_STRINGS[1]
+                "input_str": REGEX_SEARCH_STRINGS[1],
+                "regex_pattern": "([0-9]{3} \\w+ (?:Ave|St|Dr))"
             }
         )
         execution = self._wait_for_completion(execution)
@@ -61,7 +62,8 @@ class RegexMatchFiltersTest(base.TestWorkflowExecution):
         execution = self._execute_workflow(
             'examples.mistral-customfilters-regex_match',
             parameters={
-                "input_str": REGEX_SEARCH_STRINGS[0]
+                "input_str": REGEX_SEARCH_STRINGS[0],
+                "regex_pattern": "([0-9]{3} \\w+ (?:Ave|St|Dr))"
             }
         )
         execution = self._wait_for_completion(execution)
@@ -77,6 +79,7 @@ class RegexReplaceFiltersTest(base.TestWorkflowExecution):
             'examples.mistral-customfilters-regex_replace',
             parameters={
                 "input_str": REGEX_SEARCH_STRINGS[1],
+                "regex_pattern": "([0-9]{3} \\w+ (?:Ave|St|Dr))",
                 "replacement_str": "foo"
             }
         )
@@ -95,7 +98,8 @@ class RegexSearchFiltersTest(base.TestWorkflowExecution):
         execution = self._execute_workflow(
             'examples.mistral-customfilters-regex_search',
             parameters={
-                "input_str": REGEX_SEARCH_STRINGS[0]
+                "input_str": REGEX_SEARCH_STRINGS[0],
+                "regex_pattern": "([0-9]{3} \\w+ (?:Ave|St|Dr))"
             }
         )
         execution = self._wait_for_completion(execution)
@@ -107,7 +111,8 @@ class RegexSearchFiltersTest(base.TestWorkflowExecution):
         execution = self._execute_workflow(
             'examples.mistral-customfilters-regex_search',
             parameters={
-                "input_str": REGEX_SEARCH_STRINGS[2]
+                "input_str": REGEX_SEARCH_STRINGS[2],
+                "regex_pattern": "([0-9]{3} \\w+ (?:Ave|St|Dr))"
             }
         )
         execution = self._wait_for_completion(execution)
@@ -122,7 +127,8 @@ class RegexSubstringFiltersTest(base.TestWorkflowExecution):
         execution = self._execute_workflow(
             'examples.mistral-customfilters-regex_substring',
             parameters={
-                "input_str": REGEX_SEARCH_STRINGS[0]
+                "input_str": REGEX_SEARCH_STRINGS[0],
+                "regex_pattern": "([0-9]{3} \\w+ (?:Ave|St|Dr))"
             }
         )
         execution = self._wait_for_completion(execution)

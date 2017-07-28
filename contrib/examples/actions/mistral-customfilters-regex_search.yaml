@@ -9,3 +9,6 @@ parameters:
   input_str:
     required: true
     type: string
+  regex_pattern:
+    required: true
+    type: string

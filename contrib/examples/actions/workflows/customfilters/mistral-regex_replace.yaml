@@ -3,10 +3,9 @@ version: '2.0'
 examples.mistral-customfilters-regex_replace:
     description: A workflow for testing regex_replace custom filter in mistral
     type: direct
-    vars:
-        regex_pattern: "([0-9]{3} \\w+ (?:Ave|St|Dr))"
     input:
         - input_str
+        - regex_pattern
         - replacement_str
     output:
         result_jinja: <% $.result_jinja %>
