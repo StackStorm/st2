@@ -18,9 +18,11 @@ import yaml
 
 from integration.mistral import base
 
-REGEX_SEARCH_STR = "Your address is 567 Elsewhere Dr. My address is 123 Somewhere Ave."
-REGEX_SEARCH_STR_2 = "567 Elsewhere Dr is your address. My address is 123 Somewhere Ave."
-REGEX_SEARCH_STR_3 = "No address to be found here! Well, maybe 127.0.0.1"
+REGEX_SEARCH_STRINGS = [
+    "Your address is 567 Elsewhere Dr. My address is 123 Somewhere Ave.",
+    "567 Elsewhere Dr is your address. My address is 123 Somewhere Ave.",
+    "No address to be found here! Well, maybe 127.0.0.1"
+]
 
 
 class JsonEscapeFiltersTest(base.TestWorkflowExecution):
@@ -45,7 +47,7 @@ class RegexMatchFiltersTest(base.TestWorkflowExecution):
 
     def test_regex_match(self):
         execution = self._execute_workflow('examples.mistral-customfilters-regex_match',
-                                           parameters={"input_str": REGEX_SEARCH_STR_2})
+                                           parameters={"input_str": REGEX_SEARCH_STRINGS[1]})
         execution = self._wait_for_completion(execution)
         self._assert_success(execution, num_tasks=1)
         self.assertTrue(execution.result['result_jinja'])
@@ -53,7 +55,7 @@ class RegexMatchFiltersTest(base.TestWorkflowExecution):
 
     def test_regex_nomatch(self):
         execution = self._execute_workflow('examples.mistral-customfilters-regex_match',
-                                           parameters={"input_str": REGEX_SEARCH_STR})
+                                           parameters={"input_str": REGEX_SEARCH_STRINGS[0]})
         execution = self._wait_for_completion(execution)
         self._assert_success(execution, num_tasks=1)
         self.assertFalse(execution.result['result_jinja'])
@@ -66,7 +68,7 @@ class RegexReplaceFiltersTest(base.TestWorkflowExecution):
         execution = self._execute_workflow(
             'examples.mistral-customfilters-regex_replace',
             parameters={
-                "input_str": REGEX_SEARCH_STR_2,
+                "input_str": REGEX_SEARCH_STRINGS[1],
                 "replacement_str": "foo"
             }
         )
@@ -83,7 +85,7 @@ class RegexSearchFiltersTest(base.TestWorkflowExecution):
 
     def test_regex_search(self):
         execution = self._execute_workflow('examples.mistral-customfilters-regex_search',
-                                           parameters={"input_str": REGEX_SEARCH_STR})
+                                           parameters={"input_str": REGEX_SEARCH_STRINGS[0]})
         execution = self._wait_for_completion(execution)
         self._assert_success(execution, num_tasks=1)
         self.assertTrue(execution.result['result_jinja'])
@@ -91,7 +93,7 @@ class RegexSearchFiltersTest(base.TestWorkflowExecution):
 
     def test_regex_nosearch(self):
         execution = self._execute_workflow('examples.mistral-customfilters-regex_search',
-                                           parameters={"input_str": REGEX_SEARCH_STR_3})
+                                           parameters={"input_str": REGEX_SEARCH_STRINGS[2]})
         execution = self._wait_for_completion(execution)
         self._assert_success(execution, num_tasks=1)
         self.assertFalse(execution.result['result_jinja'])
@@ -102,7 +104,7 @@ class RegexSubstringFiltersTest(base.TestWorkflowExecution):
 
     def test_regex_substring(self):
         execution = self._execute_workflow('examples.mistral-customfilters-regex_substring',
-                                           parameters={"input_str": REGEX_SEARCH_STR})
+                                           parameters={"input_str": REGEX_SEARCH_STRINGS[0]})
         execution = self._wait_for_completion(execution)
         self._assert_success(execution, num_tasks=1)
         self.assertEqual(execution.result['result_jinja'], '567 Elsewhere Dr')
