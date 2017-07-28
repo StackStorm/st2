@@ -200,20 +200,6 @@ jobs:
           paths:
             - .
 
-  # Trigger st2 webhook to run end2end tests
-  trigger_e2etests:
-    docker:
-      # The primary container is an instance of the first list image listed. Your build commands run in this container.
-      - image: circleci/python:2.7
-    working_directory: ~/st2
-    steps:
-      - run:
-          name: Docker version
-          command: |
-            set -x
-            docker --version
-            docker-compose --version
-
   # Deploy produced deb/rpm packages to PackageCloud staging
   deploy:
     docker:
@@ -239,6 +225,7 @@ jobs:
           name: Deploy deb/rpm packages to PackageCloud
           command: "parallel -v -j0 --line-buffer packagecloud.sh deploy {} {}/build ::: ${DISTROS}"
 
+# TODO: Return to workflows when "Auto-cancel redundant builds” feature is implemented for Workflows: https://discuss.circleci.com/t/auto-cancel-redundant-builds-not-working-for-workflow/13852
 # Putting everything together
 workflows:
   version: 2
