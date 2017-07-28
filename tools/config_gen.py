@@ -45,6 +45,7 @@ AUTH_OPTIONS = {
         'logging',
         'api_url',
         'token_ttl',
+        'service_token_ttl',
         'debug'
     ],
     'standalone': [
