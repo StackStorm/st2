@@ -195,6 +195,8 @@ logging = conf/logging.notifier.conf
 [resultstracker]
 # Location of the logging configuration file.
 logging = conf/logging.resultstracker.conf
+# The time, in seconds, for polling 3rd party workflow systems (such as mistral)
+query_interval = 20
 
 [rulesengine]
 # Location of the logging configuration file.
