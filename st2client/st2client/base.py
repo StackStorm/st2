@@ -24,6 +24,9 @@ import traceback
 import six
 import requests
 
+# pylint: disable=import-error
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+
 from st2client import models
 from st2client.config_parser import CLIConfigParser
 from st2client.config_parser import ST2_CONFIG_DIRECTORY
@@ -103,7 +106,8 @@ class BaseCLIApp(object):
         # Silence SSL warnings
         silence_ssl_warnings = rc_config.get('general', {}).get('silence_ssl_warnings', False)
         if silence_ssl_warnings:
-            requests.packages.urllib3.disable_warnings()
+            # pylint: disable=no-member
+            requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
         # We skip automatic authentication for some commands such as auth
         try:

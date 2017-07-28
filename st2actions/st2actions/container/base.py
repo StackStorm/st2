@@ -52,6 +52,8 @@ class RunnerContainer(object):
         if not action_db:
             raise Exception('Action %s not found in DB.' % (liveaction_db.action))
 
+        liveaction_db.context['pack'] = action_db.pack
+
         runnertype_db = get_runnertype_by_name(action_db.runner_type['name'])
 
         extra = {'liveaction_db': liveaction_db, 'runnertype_db': runnertype_db}
@@ -59,6 +61,7 @@ class RunnerContainer(object):
 
         # Get runner instance.
         runner = self._get_runner(runnertype_db, action_db, liveaction_db)
+
         LOG.debug('Runner instance for RunnerType "%s" is: %s', runnertype_db.name, runner)
 
         # Process the request.

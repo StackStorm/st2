@@ -42,7 +42,7 @@ class BaseCLIAppTestCase(unittest2.TestCase):
         # 2. Path relative to user home directory, should get expanded
         args.config_file = '~/.st2/config.ini'
         result = app._get_config_file_path(args=args)
-        expected = '/home/%s/.st2/config.ini' % (USER)
+        expected = os.path.join(os.path.expanduser('~' + USER), '.st2/config.ini')
         self.assertEqual(result, expected)
 
         # 3. Relative path (should get converted to absolute one)

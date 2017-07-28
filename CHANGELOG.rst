@@ -19,6 +19,12 @@ Added
 * Update ``st2`` CLI so it also displays "there are more results" note when ``-n`` flag is
   used and there are more items available. (improvement) #3552
 * Add ability to explicitly set ``stream_url`` in st2client.
+* Add pack config into action context. This is made available under the
+  ``config_context`` key.
+* Add support for handling arrays of dictionaries to ``st2 config`` CLI command. (improvement)
+  #3594
+
+  Contributed by Hiroyasu OHYAMA.
 
 Changed
 ~~~~~~~
@@ -37,7 +43,19 @@ Fixed
   processes and pack commands will work with proxy. Refer to documentation for details on
   proxy configuration. (bug-fix) #3137
 * Fix no-member linting error on U16 by ignoring mistralclient.api.v2.executions module.
+* Fix API validation regression so all input data sent to some POST and PUT API endpoints is
+  correctly validated. (bug fix) #3580
+* Fix an API bug and allow users to create rules which reference actions which don't yet exist in
+  the system when RBAC is enabled and user doesn't have system admin permission. (bug fix)
+  #3572 #3573
 
+  Reported by sibirajal.
+* Add a check to make sure action exists in the POST of the action execution API. (bug fix)
+* Fix api key generation, to use system user, when auth is disabled. (bug fix) #3578 #3593
+* Fix invocation of Mistral workflow from Action Chain with jinja in params. (bug fix) #3440
+* Fix st2client API bug, a backward incompatible change in `query()` method, introduced in note
+  implementation (#3514) in 2.3.1. The `query()` method is now backward compatible (pre 2.3) and
+  `query_with_count()` method is used for results pagination and note. #3616
 
 2.3.1 - July 07, 2017
 ---------------------

@@ -83,8 +83,7 @@ class RuleListCommand(resource.ResourceTableCommand):
             # switch attr to display the trigger and action
             args.attr = self.display_attributes_iftt
 
-        result, count = self.manager.query(limit=args.last, **kwargs)
-        return (result, count)
+        return self.manager.query_with_count(limit=args.last, **kwargs)
 
     def run_and_print(self, args, **kwargs):
         instances, count = self.run(args, **kwargs)
@@ -96,7 +95,7 @@ class RuleListCommand(resource.ResourceTableCommand):
             self.print_output(instances, table.MultiColumnTable,
                               attributes=args.attr, widths=args.width)
 
-            if args.last and count and int(count) > args.last:
+            if args.last and count and count > args.last:
                 table.SingleRowTable.note_box(self.resource_name, args.last)
 
 

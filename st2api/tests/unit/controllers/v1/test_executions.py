@@ -340,6 +340,14 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         self.assertEqual(delete_resp.status_int, 200)
         self.assertEqual(delete_resp.json['status'], 'canceled')
 
+    def test_post_nonexistent_action(self):
+        live_action = copy.deepcopy(LIVE_ACTION_1)
+        live_action['action'] = 'mock.foobar'
+        post_resp = self._do_post(live_action, expect_errors=True)
+        self.assertEqual(post_resp.status_int, 400)
+        expected_error = 'Action "%s" cannot be found.' % live_action['action']
+        self.assertEqual(expected_error, post_resp.json['faultstring'])
+
     def test_post_parameter_validation_failed(self):
         execution = copy.deepcopy(LIVE_ACTION_1)
 
@@ -411,6 +419,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
                 'user': parent_user
             },
             'user': parent_user,
+            'pack': 'sixpack',
             'other': {'k1': 'v1'}
         }
         self.assertDictEqual(resp.json['context'], expected)
@@ -481,6 +490,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
 
         expected_context = {
             'user': 'stanley',
+            'pack': 'starterpack',
             're-run': {
                 'ref': execution_id
             },
@@ -508,6 +518,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         trace = trace_service.get_trace_db_by_action_execution(action_execution_id=execution_id)
 
         expected_context = {
+            'pack': 'starterpack',
             'user': 'stanley',
             're-run': {
                 'ref': execution_id,
@@ -537,6 +548,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         trace = trace_service.get_trace_db_by_action_execution(action_execution_id=execution_id)
 
         expected_context = {
+            'pack': 'starterpack',
             'user': 'stanley',
             're-run': {
                 'ref': execution_id,
@@ -566,6 +578,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         trace = trace_service.get_trace_db_by_action_execution(action_execution_id=execution_id)
 
         expected_context = {
+            'pack': 'starterpack',
             'user': 'stanley',
             're-run': {
                 'ref': execution_id,

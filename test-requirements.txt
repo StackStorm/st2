@@ -20,7 +20,7 @@ nose-parallel
 # Required by st2client tests
 pyyaml<4.0,>=3.12
 RandomWords
-gunicorn==19.6.0
+gunicorn==19.7.1
 psutil
 webtest==2.0.25
 rstcheck>=3.1.0,<3.2

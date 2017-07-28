@@ -437,6 +437,7 @@ class MistralRunnerTest(DbTestCase):
                         'endpoint': 'http://0.0.0.0:9101/v1/actionexecutions',
                         'notify': {},
                         'parent': {
+                            'pack': 'mistral_tests',
                             're-run': context['re-run'],
                             'execution_id': str(execution2.id)
                         },
@@ -551,6 +552,7 @@ class MistralRunnerTest(DbTestCase):
                         'endpoint': 'http://0.0.0.0:9101/v1/actionexecutions',
                         'notify': {},
                         'parent': {
+                            'pack': 'mistral_tests',
                             're-run': context['re-run'],
                             'execution_id': str(execution2.id)
                         },
