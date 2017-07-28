@@ -18,4 +18,3 @@ examples.mistral-customfilters-regex_replace:
             publish:
                 result_jinja: '{{ _.input_str | regex_replace(_.regex_pattern, _.replacement_str)}}'
                 result_yaql: '<% regex_replace($.input_str, $.regex_pattern, $.replacement_str) %>'
-

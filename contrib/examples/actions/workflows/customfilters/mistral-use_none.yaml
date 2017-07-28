@@ -27,4 +27,3 @@ examples.mistral-customfilters-use_none:
             publish:
               str_result_jinja: '{{ _.input_str | use_none}}'
               str_result_yaql: '<% use_none($.input_str) %>'          
-

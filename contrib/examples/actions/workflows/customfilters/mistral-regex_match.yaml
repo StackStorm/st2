@@ -17,4 +17,3 @@ examples.mistral-customfilters-regex_match:
             publish:
                 result_jinja: '{{ _.input_str | regex_match(_.regex_pattern)}}'
                 result_yaql: '<% regex_match($.input_str, $.regex_pattern) %>'
-

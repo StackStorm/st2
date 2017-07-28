@@ -15,4 +15,3 @@ examples.mistral-customfilters-version_strip_patch:
             publish:
                 result_jinja: '{{ _.version | version_strip_patch}}'
                 result_yaql: '<% version_strip_patch($.version) %>'
-

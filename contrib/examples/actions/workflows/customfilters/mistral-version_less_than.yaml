@@ -16,4 +16,3 @@ examples.mistral-customfilters-version_less_than:
             publish:
                 result_jinja: '{{ _.version_a | version_less_than(_.version_b)}}'
                 result_yaql: '<% version_less_than($.version_a, $.version_b) %>'
-

@@ -15,4 +15,3 @@ examples.mistral-customfilters-version_bump_major:
             publish:
                 result_jinja: '{{ _.version | version_bump_major}}'
                 result_yaql: '<% version_bump_major($.version) %>'
-

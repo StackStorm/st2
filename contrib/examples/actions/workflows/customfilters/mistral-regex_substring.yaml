@@ -25,4 +25,3 @@ examples.mistral-customfilters-regex_substring:
                 # Optionally, you can specify an index to extract, if multiple are found
                 result_jinja_index_1: '{{ _.input_str | regex_substring(_.regex_pattern, 1)}}'
                 result_yaql_index_1: '<% regex_substring($.input_str, $.regex_pattern, 1) %>'
-
