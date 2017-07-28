@@ -5,3 +5,7 @@ entry_point: workflows/customfilters/mistral-to_json_string.yaml
 name: mistral-customfilters-to_json_string
 pack: examples
 runner_type: mistral-v2
+parameters:
+  input_obj:
+    required: true
+    type: object

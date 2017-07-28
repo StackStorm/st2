@@ -5,3 +5,7 @@ entry_point: workflows/customfilters/mistral-to_complex.yaml
 name: mistral-customfilters-to_complex
 pack: examples
 runner_type: mistral-v2
+parameters:
+  input_obj:
+    required: true
+    type: object

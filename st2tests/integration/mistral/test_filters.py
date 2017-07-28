@@ -28,6 +28,7 @@ REGEX_SEARCH_STRINGS = [
 class JsonEscapeFiltersTest(base.TestWorkflowExecution):
 
     def test_json_escape(self):
+
         breaking_str = 'This text """ breaks JSON'
         inputs = {'input_str': breaking_str}
         execution = self._execute_workflow(
@@ -46,6 +47,7 @@ class JsonEscapeFiltersTest(base.TestWorkflowExecution):
 class RegexMatchFiltersTest(base.TestWorkflowExecution):
 
     def test_regex_match(self):
+
         execution = self._execute_workflow(
             'examples.mistral-customfilters-regex_match',
             parameters={
@@ -59,6 +61,7 @@ class RegexMatchFiltersTest(base.TestWorkflowExecution):
         self.assertTrue(execution.result['result_yaql'])
 
     def test_regex_nomatch(self):
+
         execution = self._execute_workflow(
             'examples.mistral-customfilters-regex_match',
             parameters={
@@ -75,6 +78,7 @@ class RegexMatchFiltersTest(base.TestWorkflowExecution):
 class RegexReplaceFiltersTest(base.TestWorkflowExecution):
 
     def test_regex_replace(self):
+
         execution = self._execute_workflow(
             'examples.mistral-customfilters-regex_replace',
             parameters={
@@ -95,6 +99,7 @@ class RegexReplaceFiltersTest(base.TestWorkflowExecution):
 class RegexSearchFiltersTest(base.TestWorkflowExecution):
 
     def test_regex_search(self):
+
         execution = self._execute_workflow(
             'examples.mistral-customfilters-regex_search',
             parameters={
@@ -108,6 +113,7 @@ class RegexSearchFiltersTest(base.TestWorkflowExecution):
         self.assertTrue(execution.result['result_yaql'])
 
     def test_regex_nosearch(self):
+
         execution = self._execute_workflow(
             'examples.mistral-customfilters-regex_search',
             parameters={
@@ -124,6 +130,7 @@ class RegexSearchFiltersTest(base.TestWorkflowExecution):
 class RegexSubstringFiltersTest(base.TestWorkflowExecution):
 
     def test_regex_substring(self):
+
         execution = self._execute_workflow(
             'examples.mistral-customfilters-regex_substring',
             parameters={
@@ -142,6 +149,7 @@ class RegexSubstringFiltersTest(base.TestWorkflowExecution):
 class ToHumanTimeFromSecondsFiltersTest(base.TestWorkflowExecution):
 
     def test_to_human_time_from_seconds(self):
+
         execution = self._execute_workflow(
             'examples.mistral-customfilters-to_human_time_from_seconds',
             parameters={"seconds": 4587}
@@ -155,6 +163,7 @@ class ToHumanTimeFromSecondsFiltersTest(base.TestWorkflowExecution):
 class UseNoneFiltersTest(base.TestWorkflowExecution):
 
     def test_use_none(self):
+
         inputs = {'input_str': 'foo'}
         execution = self._execute_workflow(
             'examples.mistral-customfilters-use_none', parameters=inputs
@@ -170,11 +179,15 @@ class UseNoneFiltersTest(base.TestWorkflowExecution):
 class ToComplexFiltersTest(base.TestWorkflowExecution):
 
     def test_to_complex(self):
+
         execution = self._execute_workflow(
-            'examples.mistral-customfilters-to_complex'
+            'examples.mistral-customfilters-to_complex',
+            parameters={
+                "input_obj": {"a": "b"}
+            }
         )
         execution = self._wait_for_completion(execution)
-        self._assert_success(execution, num_tasks=2)
+        self._assert_success(execution, num_tasks=1)
         jinja_dict = json.loads(execution.result['result_jinja'])
         yaql_dict = json.loads(execution.result['result_yaql'])
         self.assertTrue(isinstance(jinja_dict, dict))
@@ -186,11 +199,15 @@ class ToComplexFiltersTest(base.TestWorkflowExecution):
 class ToJsonStringFiltersTest(base.TestWorkflowExecution):
 
     def test_to_json_string(self):
+
         execution = self._execute_workflow(
-            'examples.mistral-customfilters-to_json_string'
+            'examples.mistral-customfilters-to_json_string',
+            parameters={
+                "input_obj": {"a": "b"}
+            }
         )
         execution = self._wait_for_completion(execution)
-        self._assert_success(execution, num_tasks=2)
+        self._assert_success(execution, num_tasks=1)
         jinja_dict = json.loads(execution.result['result_jinja'])
         yaql_dict = json.loads(execution.result['result_yaql'])
         self.assertTrue(isinstance(jinja_dict, dict))
@@ -202,11 +219,15 @@ class ToJsonStringFiltersTest(base.TestWorkflowExecution):
 class ToYamlStringFiltersTest(base.TestWorkflowExecution):
 
     def test_to_yaml_string(self):
+
         execution = self._execute_workflow(
-            'examples.mistral-customfilters-to_yaml_string'
+            'examples.mistral-customfilters-to_yaml_string',
+            parameters={
+                "input_obj": {"a": "b"}
+            }
         )
         execution = self._wait_for_completion(execution)
-        self._assert_success(execution, num_tasks=2)
+        self._assert_success(execution, num_tasks=1)
         jinja_dict = yaml.load(execution.result['result_jinja'])
         yaql_dict = yaml.load(execution.result['result_yaql'])
         self.assertTrue(isinstance(jinja_dict, dict))
@@ -224,7 +245,6 @@ class VersionCompareFiltersTest(base.TestWorkflowExecution):
             '0.10.1': 0,
             '0.10.2': -1
         }
-
         for compare_version, expected_result in versions.items():
             execution = self._execute_workflow(
                 'examples.mistral-customfilters-version_compare',
@@ -248,7 +268,6 @@ class VersionMoreThanFiltersTest(base.TestWorkflowExecution):
             '0.10.1': False,
             '0.10.2': False
         }
-
         for compare_version, expected_result in versions.items():
             execution = self._execute_workflow(
                 'examples.mistral-customfilters-version_more_than',
@@ -272,7 +291,6 @@ class VersionLessThanFiltersTest(base.TestWorkflowExecution):
             '0.10.1': False,
             '0.10.2': True
         }
-
         for compare_version, expected_result in versions.items():
             execution = self._execute_workflow(
                 'examples.mistral-customfilters-version_less_than',
@@ -296,7 +314,6 @@ class VersionEqualFiltersTest(base.TestWorkflowExecution):
             '0.10.1': True,
             '0.10.2': False
         }
-
         for compare_version, expected_result in versions.items():
             execution = self._execute_workflow(
                 'examples.mistral-customfilters-version_equal',
@@ -322,7 +339,6 @@ class VersionMatchFiltersTest(base.TestWorkflowExecution):
             '<=0.10.1': True,
             '<0.10.2': True
         }
-
         for compare_version, expected_result in versions.items():
             execution = self._execute_workflow(
                 'examples.mistral-customfilters-version_match',
