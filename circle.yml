@@ -1,3 +1,6 @@
+# Setup in CircleCI account the following ENV variables:
+# PACKAGECLOUD_ORGANIZATION (default: stackstorm)
+# PACKAGECLOUD_TOKEN
 version: 2
 jobs:
   # Run st2 Unit Tests
@@ -248,3 +251,7 @@ experimental:
       only:
         - master
         - /v[0-9]+\.[0-9]+/
+
+notify:
+  webhooks:
+    - url: https://ci-webhooks.stackstorm.net/webhooks/build/events
