@@ -107,7 +107,7 @@ jobs:
 
   # Dummy rule for testing CircleCI Webhooks
   dummy_packages:
-    parallelism: 4
+    parallelism: 1
     # 4CPUs & 8GB RAM CircleCI machine
     # sadly, it doesn't work with 'setup_remote_docker'
     resource_class: large
@@ -257,7 +257,7 @@ workflows:
       - dummy_packages
       - deploy:
           requires:
-            - packages
+            - dummy_packages
           filters:
             branches:
               only:
