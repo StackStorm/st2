@@ -198,12 +198,6 @@ retry_exp_max_msec = 300000
 # Location of the logging configuration file.
 logging = conf/logging.notifier.conf
 
-[results_tracker]
-# Time interval between subsequent queries for a context to external workflow system.
-query_interval = None
-# Number of threads to use to query external workflow systems.
-thread_pool_size = None
-
 [resultstracker]
 # Time interval between subsequent queries for a context to external workflow system.
 query_interval = 20
