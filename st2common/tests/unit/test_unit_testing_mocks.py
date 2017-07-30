@@ -67,7 +67,7 @@ class BaseMockResourceServiceTestCase(object):
 class BaseSensorTestCaseTestCase(BaseSensorTestCase):
     sensor_cls = MockSensorClass
 
-    def test_dispatch_and_assertTriggerDispacthed(self):
+    def test_dispatch_and_assertTriggerDispatched(self):
         sensor_service = self.sensor_service
 
         expected_msg = 'Trigger "nope" hasn\'t been dispatched'
