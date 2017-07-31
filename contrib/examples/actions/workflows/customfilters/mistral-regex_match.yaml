@@ -14,5 +14,5 @@ examples.mistral-customfilters-regex_match:
         task1:
             action: std.noop
             publish:
-                result_jinja: '{{ _.input_str | regex_match(_.regex_pattern)}}'
+                result_jinja: '{{ regex_match(_.input_str, _.regex_pattern) }}'
                 result_yaql: '<% regex_match($.input_str, $.regex_pattern) %>'

@@ -13,5 +13,5 @@ examples.mistral-customfilters-version_strip_patch:
         task1:
             action: std.noop
             publish:
-                result_jinja: '{{ _.version | version_strip_patch}}'
+                result_jinja: '{{ version_strip_patch(_.version) }}'
                 result_yaql: '<% version_strip_patch($.version) %>'

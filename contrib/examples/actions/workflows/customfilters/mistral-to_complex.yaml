@@ -12,5 +12,5 @@ examples.mistral-customfilters-to_complex:
         task1:
             action: std.noop
             publish:
-              result_jinja: "{{ _.input_obj | to_complex}}"
+              result_jinja: "{{ to_complex(_.input_obj) }}"
               result_yaql: '<% to_complex($.input_obj) %>'          

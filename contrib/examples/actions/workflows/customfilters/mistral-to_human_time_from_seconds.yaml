@@ -13,5 +13,5 @@ examples.mistral-customfilters-to_human_time_from_seconds:
         task1:
             action: std.noop
             publish:
-                result_jinja: '{{ _.seconds | to_human_time_from_seconds}}'
+                result_jinja: '{{ to_human_time_from_seconds(_.seconds) }}'
                 result_yaql: '<% to_human_time_from_seconds($.seconds) %>'

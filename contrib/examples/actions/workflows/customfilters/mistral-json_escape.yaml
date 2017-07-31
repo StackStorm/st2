@@ -13,5 +13,5 @@ examples.mistral-customfilters-json_escape:
         task2:
             action: std.noop
             publish:
-                result_jinja: '[{"title": "{{ _.input_str|json_escape }}"}]'
+                result_jinja: '[{"title": "{{ json_escape(_.input_str) }}"}]'
                 result_yaql: '[{"title": "<% json_escape($.input_str) %>"}]'

@@ -17,7 +17,7 @@ examples.mistral-customfilters-use_none:
         task1:
             action: std.noop
             publish:
-                result_jinja: '{{ _.none_input | use_none}}'
+                result_jinja: '{{ use_none(_.none_input) }}'
                 result_yaql: '<% use_none($.none_input) %>'
             on-complete:
               - task2
@@ -25,5 +25,5 @@ examples.mistral-customfilters-use_none:
         task2:
             action: std.noop
             publish:
-              str_result_jinja: '{{ _.input_str | use_none}}'
+              str_result_jinja: '{{ use_none(_.input_str) }}'
               str_result_yaql: '<% use_none($.input_str) %>'          

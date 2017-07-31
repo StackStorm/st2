@@ -12,5 +12,5 @@ examples.mistral-customfilters-to_json_string:
         task1:
             action: std.noop
             publish:
-              result_jinja: "{{ _.input_obj | to_json_string}}"
+              result_jinja: "{{ to_json_string(_.input_obj) }}"
               result_yaql: '<% to_json_string($.input_obj) %>'          

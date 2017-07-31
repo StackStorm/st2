@@ -14,5 +14,5 @@ examples.mistral-customfilters-regex_search:
         task1:
             action: std.noop
             publish:
-                result_jinja: '{{ _.input_str | regex_search(_.regex_pattern)}}'
+                result_jinja: '{{ regex_search(_.input_str, _.regex_pattern) }}'
                 result_yaql: '<% regex_search($.input_str, $.regex_pattern) %>'

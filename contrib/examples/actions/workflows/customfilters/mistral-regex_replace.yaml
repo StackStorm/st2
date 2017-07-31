@@ -15,5 +15,5 @@ examples.mistral-customfilters-regex_replace:
         task1:
             action: std.noop
             publish:
-                result_jinja: '{{ _.input_str | regex_replace(_.regex_pattern, _.replacement_str)}}'
+                result_jinja: '{{ regex_replace(_.input_str, _.regex_pattern, _.replacement_str) }}'
                 result_yaql: '<% regex_replace($.input_str, $.regex_pattern, $.replacement_str) %>'

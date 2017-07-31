@@ -13,5 +13,5 @@ examples.mistral-customfilters-version_bump_patch:
         task1:
             action: std.noop
             publish:
-                result_jinja: '{{ _.version | version_bump_patch}}'
+                result_jinja: '{{ version_bump_patch(_.version) }}'
                 result_yaql: '<% version_bump_patch($.version) %>'

@@ -14,5 +14,5 @@ examples.mistral-customfilters-version_match:
         task1:
             action: std.noop
             publish:
-                result_jinja: '{{ _.version_a | version_match(_.version_b)}}'
+                result_jinja: '{{ version_match(_.version_a, _.version_b) }}'
                 result_yaql: '<% version_match($.version_a, $.version_b) %>'
