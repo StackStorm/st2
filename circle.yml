@@ -194,7 +194,7 @@ jobs:
             .circle/docker-compose2.sh build ${DISTRO}
             # Once build container finishes we can copy packages directly from it
             mkdir -p ~/st2/packages/${DISTRO}/log/
-            docker cp st2-packages-vol:/root/build ~/st2/packages/${DISTRO}
+            docker cp st2-packages-vol:/root/build/. ~/st2/packages/${DISTRO}
           working_directory: ~/st2-packages
 #      # TODO: It works! (~0.5-1min speed-up) Enable CircleCI2.0 cache for pip and wheelhouse later
 #      - run:
@@ -246,7 +246,7 @@ jobs:
             sudo wget -O /usr/local/bin/packagecloud.sh https://raw.githubusercontent.com/StackStorm/st2-packages/master/.circle/packagecloud.sh && sudo chmod +x /usr/local/bin/packagecloud.sh
       - run:
           name: Deploy deb/rpm packages to PackageCloud
-          command: "parallel -v -j0 --line-buffer packagecloud.sh deploy {} {}/build ::: ${DISTROS}"
+          command: "parallel -v -j0 --line-buffer packagecloud.sh deploy {} {} ::: ${DISTROS}"
 
 # TODO: Return to workflows when "Auto-cancel redundant builds” feature is implemented for Workflows: https://discuss.circleci.com/t/auto-cancel-redundant-builds-not-working-for-workflow/13852
 # Putting everything together
@@ -254,10 +254,10 @@ workflows:
   version: 2
   package-test-and-deploy:
     jobs:
-      - dummy_packages
+      - packages
       - deploy:
           requires:
-            - dummy_packages
+            - packages
           filters:
             branches:
               only:
