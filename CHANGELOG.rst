@@ -56,6 +56,11 @@ Fixed
 * Fix st2client API bug, a backward incompatible change in `query()` method, introduced in note
   implementation (#3514) in 2.3.1. The `query()` method is now backward compatible (pre 2.3) and
   `query_with_count()` method is used for results pagination and note. #3616
+* Fix logrotate script so that it no longer prints the `st2ctl` PID status to stdout
+  for each file that it rotates. Also, it will no longer print an error if
+  /var/log/st2/st2web.log is missing.
+  
+  Contributed by Nick Maludy. #3633
 
 2.3.1 - July 07, 2017
 ---------------------
