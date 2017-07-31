@@ -1,0 +1,11 @@
+---
+description: Example for using the custom filter "to_yaml_string"
+enabled: true
+entry_point: workflows/tests/mistral-to-yaml-string.yaml
+name: mistral-customfilters-to-yaml-string
+pack: examples
+runner_type: mistral-v2
+parameters:
+  input_obj:
+    required: true
+    type: object

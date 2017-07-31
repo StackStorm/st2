@@ -1,0 +1,11 @@
+---
+description: Test version_bump_major custom filter in mistral
+enabled: true
+runner_type: mistral-v2
+entry_point: workflows/tests/mistral-version-bump-major.yaml
+name: mistral-customfilters-version-bump-major
+pack: examples
+parameters:
+  version:
+    required: true
+    type: string

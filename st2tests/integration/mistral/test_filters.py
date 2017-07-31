@@ -32,7 +32,7 @@ class JsonEscapeFiltersTest(base.TestWorkflowExecution):
         breaking_str = 'This text """ breaks JSON'
         inputs = {'input_str': breaking_str}
         execution = self._execute_workflow(
-            'examples.mistral-customfilters-json_escape', parameters=inputs
+            'examples.mistral-customfilters-json-escape', parameters=inputs
         )
         execution = self._wait_for_completion(execution)
         self._assert_success(execution, num_tasks=1)
@@ -49,7 +49,7 @@ class RegexMatchFiltersTest(base.TestWorkflowExecution):
     def test_regex_match(self):
 
         execution = self._execute_workflow(
-            'examples.mistral-customfilters-regex_match',
+            'examples.mistral-customfilters-regex-match',
             parameters={
                 "input_str": REGEX_SEARCH_STRINGS[1],
                 "regex_pattern": "([0-9]{3} \\w+ (?:Ave|St|Dr))"
@@ -63,7 +63,7 @@ class RegexMatchFiltersTest(base.TestWorkflowExecution):
     def test_regex_nomatch(self):
 
         execution = self._execute_workflow(
-            'examples.mistral-customfilters-regex_match',
+            'examples.mistral-customfilters-regex-match',
             parameters={
                 "input_str": REGEX_SEARCH_STRINGS[0],
                 "regex_pattern": "([0-9]{3} \\w+ (?:Ave|St|Dr))"
@@ -80,7 +80,7 @@ class RegexReplaceFiltersTest(base.TestWorkflowExecution):
     def test_regex_replace(self):
 
         execution = self._execute_workflow(
-            'examples.mistral-customfilters-regex_replace',
+            'examples.mistral-customfilters-regex-replace',
             parameters={
                 "input_str": REGEX_SEARCH_STRINGS[1],
                 "regex_pattern": "([0-9]{3} \\w+ (?:Ave|St|Dr))",
@@ -101,7 +101,7 @@ class RegexSearchFiltersTest(base.TestWorkflowExecution):
     def test_regex_search(self):
 
         execution = self._execute_workflow(
-            'examples.mistral-customfilters-regex_search',
+            'examples.mistral-customfilters-regex-search',
             parameters={
                 "input_str": REGEX_SEARCH_STRINGS[0],
                 "regex_pattern": "([0-9]{3} \\w+ (?:Ave|St|Dr))"
@@ -115,7 +115,7 @@ class RegexSearchFiltersTest(base.TestWorkflowExecution):
     def test_regex_nosearch(self):
 
         execution = self._execute_workflow(
-            'examples.mistral-customfilters-regex_search',
+            'examples.mistral-customfilters-regex-search',
             parameters={
                 "input_str": REGEX_SEARCH_STRINGS[2],
                 "regex_pattern": "([0-9]{3} \\w+ (?:Ave|St|Dr))"
@@ -132,7 +132,7 @@ class RegexSubstringFiltersTest(base.TestWorkflowExecution):
     def test_regex_substring(self):
 
         execution = self._execute_workflow(
-            'examples.mistral-customfilters-regex_substring',
+            'examples.mistral-customfilters-regex-substring',
             parameters={
                 "input_str": REGEX_SEARCH_STRINGS[0],
                 "regex_pattern": "([0-9]{3} \\w+ (?:Ave|St|Dr))"
@@ -151,7 +151,7 @@ class ToHumanTimeFromSecondsFiltersTest(base.TestWorkflowExecution):
     def test_to_human_time_from_seconds(self):
 
         execution = self._execute_workflow(
-            'examples.mistral-customfilters-to_human_time_from_seconds',
+            'examples.mistral-customfilters-to-human-time-from-seconds',
             parameters={"seconds": 4587}
         )
         execution = self._wait_for_completion(execution)
@@ -181,7 +181,7 @@ class ToComplexFiltersTest(base.TestWorkflowExecution):
     def test_to_complex(self):
 
         execution = self._execute_workflow(
-            'examples.mistral-customfilters-to_complex',
+            'examples.mistral-customfilters-to-complex',
             parameters={
                 "input_obj": {"a": "b"}
             }
@@ -201,7 +201,7 @@ class ToJsonStringFiltersTest(base.TestWorkflowExecution):
     def test_to_json_string(self):
 
         execution = self._execute_workflow(
-            'examples.mistral-customfilters-to_json_string',
+            'examples.mistral-customfilters-to-json-string',
             parameters={
                 "input_obj": {"a": "b"}
             }
@@ -221,7 +221,7 @@ class ToYamlStringFiltersTest(base.TestWorkflowExecution):
     def test_to_yaml_string(self):
 
         execution = self._execute_workflow(
-            'examples.mistral-customfilters-to_yaml_string',
+            'examples.mistral-customfilters-to-yaml-string',
             parameters={
                 "input_obj": {"a": "b"}
             }
@@ -247,7 +247,7 @@ class VersionCompareFiltersTest(base.TestWorkflowExecution):
         }
         for compare_version, expected_result in versions.items():
             execution = self._execute_workflow(
-                'examples.mistral-customfilters-version_compare',
+                'examples.mistral-customfilters-version-compare',
                 parameters={
                     "version_a": '0.10.1',
                     "version_b": compare_version
@@ -270,7 +270,7 @@ class VersionMoreThanFiltersTest(base.TestWorkflowExecution):
         }
         for compare_version, expected_result in versions.items():
             execution = self._execute_workflow(
-                'examples.mistral-customfilters-version_more_than',
+                'examples.mistral-customfilters-version-more-than',
                 parameters={
                     "version_a": '0.10.1',
                     "version_b": compare_version
@@ -293,7 +293,7 @@ class VersionLessThanFiltersTest(base.TestWorkflowExecution):
         }
         for compare_version, expected_result in versions.items():
             execution = self._execute_workflow(
-                'examples.mistral-customfilters-version_less_than',
+                'examples.mistral-customfilters-version-less-than',
                 parameters={
                     "version_a": '0.10.1',
                     "version_b": compare_version
@@ -316,7 +316,7 @@ class VersionEqualFiltersTest(base.TestWorkflowExecution):
         }
         for compare_version, expected_result in versions.items():
             execution = self._execute_workflow(
-                'examples.mistral-customfilters-version_equal',
+                'examples.mistral-customfilters-version-equal',
                 parameters={
                     "version_a": '0.10.1',
                     "version_b": compare_version
@@ -341,7 +341,7 @@ class VersionMatchFiltersTest(base.TestWorkflowExecution):
         }
         for compare_version, expected_result in versions.items():
             execution = self._execute_workflow(
-                'examples.mistral-customfilters-version_match',
+                'examples.mistral-customfilters-version-match',
                 parameters={
                     "version_a": '0.10.1',
                     "version_b": compare_version
@@ -358,7 +358,7 @@ class VersionBumpMajorFiltersTest(base.TestWorkflowExecution):
     def test_version_bump_major(self):
 
         execution = self._execute_workflow(
-            'examples.mistral-customfilters-version_bump_major',
+            'examples.mistral-customfilters-version-bump-major',
             parameters={
                 "version": '0.10.1'
             }
@@ -374,7 +374,7 @@ class VersionBumpMinorFiltersTest(base.TestWorkflowExecution):
     def test_version_bump_minor(self):
 
         execution = self._execute_workflow(
-            'examples.mistral-customfilters-version_bump_minor',
+            'examples.mistral-customfilters-version-bump-minor',
             parameters={
                 "version": '0.10.1'
             }
@@ -390,7 +390,7 @@ class VersionBumpPatchFiltersTest(base.TestWorkflowExecution):
     def test_version_bump_patch(self):
 
         execution = self._execute_workflow(
-            'examples.mistral-customfilters-version_bump_patch',
+            'examples.mistral-customfilters-version-bump-patch',
             parameters={
                 "version": '0.10.1'
             }
@@ -406,7 +406,7 @@ class VersionStripPatchFiltersTest(base.TestWorkflowExecution):
     def test_version_strip_patch(self):
 
         execution = self._execute_workflow(
-            'examples.mistral-customfilters-version_strip_patch',
+            'examples.mistral-customfilters-version-strip-patch',
             parameters={
                 "version": '0.10.1'
             }

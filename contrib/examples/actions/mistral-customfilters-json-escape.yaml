@@ -1,0 +1,11 @@
+---
+description: Example for using the custom filter "json_escape"
+enabled: true
+entry_point: workflows/tests/mistral-json-escape.yaml
+name: mistral-customfilters-json-escape
+pack: examples
+runner_type: mistral-v2
+parameters:
+  input_str:
+    type: "string"
+    required: true

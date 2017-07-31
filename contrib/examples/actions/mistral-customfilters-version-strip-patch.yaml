@@ -1,0 +1,11 @@
+---
+description: Test version_strip_patch custom filter in mistral
+enabled: true
+runner_type: mistral-v2
+entry_point: workflows/tests/mistral-version-strip-patch.yaml
+name: mistral-customfilters-version-strip-patch
+pack: examples
+parameters:
+  version:
+    required: true
+    type: string

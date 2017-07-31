@@ -1,0 +1,11 @@
+---
+description: Test version_bump_minor custom filter in mistral
+enabled: true
+runner_type: mistral-v2
+entry_point: workflows/tests/mistral-version-bump-minor.yaml
+name: mistral-customfilters-version-bump-minor
+pack: examples
+parameters:
+  version:
+    required: true
+    type: string
