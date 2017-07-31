@@ -61,6 +61,9 @@ def get_filters():
     from st2common.jinja.filters import version
     from st2common.jinja.filters import json_escape
 
+    # IMPORTANT NOTE - these filters were recently duplicated in st2mistral so that
+    # they are also available in Mistral workflows. Please ensure any additions you
+    # make here are also made there so that feature parity is maintained.
     return {
         'decrypt_kv': crypto.decrypt_kv,
         'to_json_string': data.to_json_string,
