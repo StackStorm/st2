@@ -7,6 +7,21 @@ in development
 Added
 ~~~~~
 
+* Add pack config into action context. This is made available under the ``config_context`` key.
+  #3183
+
+Changed
+~~~~~~~
+
+Fixed
+~~~~~
+
+2.3.2 - July 28, 2017
+---------------------
+
+Added
+~~~~~
+
 * Add ``regex_substring`` Jinja filter for searching for a pattern in a provided string and
   returning the result. (improvement)
 
@@ -18,9 +33,7 @@ Added
   Contributed by Nick Maludy. #3508
 * Update ``st2`` CLI so it also displays "there are more results" note when ``-n`` flag is
   used and there are more items available. (improvement) #3552
-* Add ability to explicitly set ``stream_url`` in st2client.
-* Add pack config into action context. This is made available under the
-  ``config_context`` key.
+* Add ability to explicitly set ``stream_url`` in st2client. (improvement) #3432
 * Add support for handling arrays of dictionaries to ``st2 config`` CLI command. (improvement)
   #3594
 
@@ -31,9 +44,6 @@ Added
   enabled via optional parameter).
 
   Contributed by mierdin. #3565
-
-Changed
-~~~~~~~
 
 Fixed
 ~~~~~
@@ -48,7 +58,6 @@ Fixed
   ``http_proxy`` or ``https_proxy`` environment variables for ``st2api`` and ``st2actionrunner``
   processes and pack commands will work with proxy. Refer to documentation for details on
   proxy configuration. (bug-fix) #3137
-* Fix no-member linting error on U16 by ignoring mistralclient.api.v2.executions module.
 * Fix API validation regression so all input data sent to some POST and PUT API endpoints is
   correctly validated. (bug fix) #3580
 * Fix an API bug and allow users to create rules which reference actions which don't yet exist in
