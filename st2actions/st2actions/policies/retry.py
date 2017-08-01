@@ -125,6 +125,9 @@ class ExecutionRetryPolicyApplicator(ResourcePolicyApplicator):
             re_run_live_action()
             return target
 
+        LOG.info('Invalid status "%s" for live action "%s", wont retry' %
+                (live_action_db.status, str(live_action_db.id)), extra=extra)
+
         return target
 
     def _is_live_action_part_of_workflow_action(self, live_action_db):
