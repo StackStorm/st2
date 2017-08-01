@@ -103,6 +103,11 @@ class ExecutionRetryPolicyApplicator(ResourcePolicyApplicator):
                                                    self._re_run_live_action,
                                                    live_action_db=live_action_db)
         else:
+            # Even if delay is 0, use a small delay (0.1 seconds) to prevent busy wait
+            re_run_live_action = functools.partial(eventlet.spawn_after, 0.1,
+                                                   self._re_run_live_action,
+                                                   live_action_db=live_action_db)
+
             re_run_live_action = functools.partial(self._re_run_live_action,
                                                    live_action_db=live_action_db)
 
