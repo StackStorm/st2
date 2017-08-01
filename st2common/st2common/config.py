@@ -114,7 +114,7 @@ def register_opts(ignore_errors=False):
     do_register_opts(webui_opts, 'webui', ignore_errors)
 
     db_opts = [
-        cfg.StrOpt('host', default='0.0.0.0', help='host of db server'),
+        cfg.StrOpt('host', default='127.0.0.1', help='host of db server'),
         cfg.IntOpt('port', default=27017, help='port of db server'),
         cfg.StrOpt('db_name', default='st2', help='name of database'),
         cfg.StrOpt('username', help='username for db login'),
@@ -185,7 +185,7 @@ def register_opts(ignore_errors=False):
 
     # Common API options
     api_opts = [
-        cfg.StrOpt('host', default='0.0.0.0', help='StackStorm API server host'),
+        cfg.StrOpt('host', default='127.0.0.1', help='StackStorm API server host'),
         cfg.IntOpt('port', default=9101, help='StackStorm API server port'),
         cfg.ListOpt('allow_origin', default=['http://127.0.0.1:3000'],
                     help='List of origins allowed for api, auth and stream'),
