@@ -67,7 +67,10 @@ checklogs:
 pylint: requirements .pylint
 
 .PHONY: configgen
-configgen:
+configgen: requirements .configgen
+
+.PHONY: .configgen
+.configgen:
 	@echo
 	@echo "================== config gen ===================="
 	@echo
@@ -293,7 +296,7 @@ tests: pytests
 pytests: compile requirements .flake8 .pylint .pytests-coverage
 
 .PHONY: .pytests
-.pytests: compile .generate-api-spec .unit-tests .itests clean
+.pytests: compile .configgen .generate-api-spec .unit-tests .itests clean
 
 .PHONY: .pytests-coverage
 .pytests-coverage: .unit-tests-coverage-html .itests-coverage-html clean
