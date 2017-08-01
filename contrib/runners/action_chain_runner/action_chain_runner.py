@@ -18,30 +18,23 @@ import traceback
 import uuid
 import datetime
 
-from jsonschema import exceptions as json_schema_exceptions
+from jsonschema import exceptions as json_schema_exc
 
 from st2common.runners.base import ActionRunner
 from st2common import log as logging
-from st2common.constants.action import ACTION_CONTEXT_KV_PREFIX
-from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
-from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
-from st2common.constants.action import LIVEACTION_STATUS_FAILED
-from st2common.constants.action import LIVEACTION_STATUS_CANCELED
-from st2common.constants.action import LIVEACTION_COMPLETED_STATES
-from st2common.constants.action import LIVEACTION_FAILED_STATES
-from st2common.constants.pack import PACK_CONFIG_CONTEXT_KV_PREFIX
-from st2common.constants.keyvalue import FULL_SYSTEM_SCOPE, SYSTEM_SCOPE, DATASTORE_PARENT_SCOPE
+from st2common.constants import action as action_constants
+from st2common.constants import pack as pack_constants
+from st2common.constants import keyvalue as kv_constants
 from st2common.content.loader import MetaLoader
-from st2common.exceptions.action import (ParameterRenderingFailedException,
-                                         InvalidActionReferencedException)
-from st2common.exceptions import actionrunner as runnerexceptions
+from st2common.exceptions import action as action_exc
+from st2common.exceptions import actionrunner as runner_exc
 from st2common.models.api.notification import NotificationsHelper
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.system import actionchain
 from st2common.models.utils import action_param_utils
 from st2common.persistence.execution import ActionExecution
 from st2common.services import action as action_service
-from st2common.services.keyvalues import KeyValueLookup
+from st2common.services import keyvalues as kv_service
 from st2common.util import action_db as action_db_util
 from st2common.util import isotime
 from st2common.util import date as date_utils
@@ -196,8 +189,9 @@ class ChainHolder(object):
             return {}
         context = {}
         context.update({
-            DATASTORE_PARENT_SCOPE: {
-                SYSTEM_SCOPE: KeyValueLookup(scope=FULL_SYSTEM_SCOPE)
+            kv_constants.DATASTORE_PARENT_SCOPE: {
+                kv_constants.SYSTEM_SCOPE: kv_service.KeyValueLookup(
+                    scope=kv_constants.FULL_SYSTEM_SCOPE)
             }
         })
         context.update(action_parameters)
@@ -211,8 +205,8 @@ class ChainHolder(object):
             if node.name == node_name:
                 return node
         if raise_on_failure:
-            raise runnerexceptions.ActionRunnerException('Unable to find node with name "%s".' %
-                                                         (node_name))
+            raise runner_exc.ActionRunnerException(
+                'Unable to find node with name "%s".' % (node_name))
         return None
 
     def get_next_node(self, curr_node_name=None, condition='on-success'):
@@ -223,7 +217,7 @@ class ChainHolder(object):
             return self.get_node(current_node.on_success, raise_on_failure=True)
         elif condition == 'on-failure':
             return self.get_node(current_node.on_failure, raise_on_failure=True)
-        raise runnerexceptions.ActionRunnerException('Unknown condition %s.' % condition)
+        raise runner_exc.ActionRunnerException('Unknown condition %s.' % condition)
 
 
 class ActionChainRunner(ActionRunner):
@@ -251,20 +245,20 @@ class ActionChainRunner(ActionRunner):
             message = ('Failed to parse action chain definition from "%s": %s' %
                        (chainspec_file, str(e)))
             LOG.exception('Failed to load action chain definition.')
-            raise runnerexceptions.ActionRunnerPreRunError(message)
+            raise runner_exc.ActionRunnerPreRunError(message)
 
         try:
             self.chain_holder = ChainHolder(chainspec, self.action_name)
-        except json_schema_exceptions.ValidationError as e:
+        except json_schema_exc.ValidationError as e:
             # preserve the whole nasty jsonschema message as that is better to get to the
             # root cause
             message = str(e)
             LOG.exception('Failed to instantiate ActionChain.')
-            raise runnerexceptions.ActionRunnerPreRunError(message)
+            raise runner_exc.ActionRunnerPreRunError(message)
         except Exception as e:
             message = e.message or str(e)
             LOG.exception('Failed to instantiate ActionChain.')
-            raise runnerexceptions.ActionRunnerPreRunError(message)
+            raise runner_exc.ActionRunnerPreRunError(message)
 
         # Runner attributes are set lazily. So these steps
         # should happen outside the constructor.
@@ -278,7 +272,7 @@ class ActionChainRunner(ActionRunner):
         try:
             self.chain_holder.validate()
         except Exception as e:
-            raise runnerexceptions.ActionRunnerPreRunError(e.message)
+            raise runner_exc.ActionRunnerPreRunError(e.message)
 
     def run(self, action_parameters):
         # holds final result we store.
@@ -307,7 +301,7 @@ class ActionChainRunner(ActionRunner):
             }
             result['error'] = top_level_error['error']
             result['traceback'] = top_level_error['traceback']
-            return (LIVEACTION_STATUS_FAILED, result, None)
+            return (action_constants.LIVEACTION_STATUS_FAILED, result, None)
 
         try:
             action_node = self.chain_holder.get_next_node()
@@ -340,7 +334,7 @@ class ActionChainRunner(ActionRunner):
                 liveaction = self._get_next_action(
                     action_node=action_node, parent_context=parent_context,
                     action_params=action_parameters, context_result=context_result)
-            except InvalidActionReferencedException as e:
+            except action_exc.InvalidActionReferencedException as e:
                 error = ('Failed to run task "%s". Action with reference "%s" doesn\'t exist.' %
                          (action_node.name, action_node.ref))
                 LOG.exception(error)
@@ -351,7 +345,7 @@ class ActionChainRunner(ActionRunner):
                     'traceback': traceback.format_exc(10)
                 }
                 break
-            except ParameterRenderingFailedException as e:
+            except action_exc.ParameterRenderingFailedException as e:
                 # Rendering parameters failed before we even got to running this action, abort and
                 # fail the whole action chain
                 LOG.exception('Failed to run action "%s".', action_node.name)
@@ -410,7 +404,7 @@ class ActionChainRunner(ActionRunner):
 
                 if self._stopped:
                     LOG.info('Chain execution (%s) canceled by user.', self.liveaction_id)
-                    status = LIVEACTION_STATUS_CANCELED
+                    status = action_constants.LIVEACTION_STATUS_CANCELED
                     return (status, result, None)
 
                 try:
@@ -418,19 +412,19 @@ class ActionChainRunner(ActionRunner):
                         fail = True
                         action_node = self.chain_holder.get_next_node(action_node.name,
                                                                       condition='on-failure')
-                    elif liveaction.status in LIVEACTION_FAILED_STATES:
-                        if liveaction and liveaction.status == LIVEACTION_STATUS_TIMED_OUT:
+                    elif liveaction.status in action_constants.LIVEACTION_FAILED_STATES:
+                        if liveaction.status == action_constants.LIVEACTION_STATUS_TIMED_OUT:
                             timeout = True
                         else:
                             fail = True
                         action_node = self.chain_holder.get_next_node(action_node.name,
                                                                       condition='on-failure')
-                    elif liveaction.status == LIVEACTION_STATUS_CANCELED:
+                    elif liveaction.status == action_constants.LIVEACTION_STATUS_CANCELED:
                         # User canceled an action (task) in the workflow - cancel the execution of
                         # rest of the workflow
                         self._stopped = True
                         LOG.info('Chain execution (%s) canceled by user.', self.liveaction_id)
-                    elif liveaction.status == LIVEACTION_STATUS_SUCCEEDED:
+                    elif liveaction.status == action_constants.LIVEACTION_STATUS_SUCCEEDED:
                         action_node = self.chain_holder.get_next_node(action_node.name,
                                                                       condition='on-success')
                 except Exception as e:
@@ -450,15 +444,15 @@ class ActionChainRunner(ActionRunner):
 
                 if self._stopped:
                     LOG.info('Chain execution (%s) canceled by user.', self.liveaction_id)
-                    status = LIVEACTION_STATUS_CANCELED
+                    status = action_constants.LIVEACTION_STATUS_CANCELED
                     return (status, result, None)
 
         if fail:
-            status = LIVEACTION_STATUS_FAILED
+            status = action_constants.LIVEACTION_STATUS_FAILED
         elif timeout:
-            status = LIVEACTION_STATUS_TIMED_OUT
+            status = action_constants.LIVEACTION_STATUS_TIMED_OUT
         else:
-            status = LIVEACTION_STATUS_SUCCEEDED
+            status = action_constants.LIVEACTION_STATUS_SUCCEEDED
 
         if top_level_error:
             # Include top level error information
@@ -486,10 +480,16 @@ class ActionChainRunner(ActionRunner):
         context.update(previous_execution_results)
         context.update(chain_vars)
         context.update({RESULTS_KEY: previous_execution_results})
-        context.update({SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)})
+
         context.update({
-            DATASTORE_PARENT_SCOPE: {
-                SYSTEM_SCOPE: KeyValueLookup(scope=FULL_SYSTEM_SCOPE)
+            kv_constants.SYSTEM_SCOPE: kv_service.KeyValueLookup(
+                scope=kv_constants.SYSTEM_SCOPE)
+        })
+
+        context.update({
+            kv_constants.DATASTORE_PARENT_SCOPE: {
+                kv_constants.SYSTEM_SCOPE: kv_service.KeyValueLookup(
+                    scope=kv_constants.FULL_SYSTEM_SCOPE)
             }
         })
 
@@ -501,7 +501,7 @@ class ActionChainRunner(ActionRunner):
             value = getattr(e, 'value', None)
             msg = ('Failed rendering value for publish parameter "%s" in task "%s" '
                    '(template string=%s): %s' % (key, action_node.name, value, str(e)))
-            raise ParameterRenderingFailedException(msg)
+            raise action_exc.ParameterRenderingFailedException(msg)
 
         return rendered_result
 
@@ -519,14 +519,20 @@ class ActionChainRunner(ActionRunner):
         context.update(results)
         context.update(chain_vars)
         context.update({RESULTS_KEY: results})
-        context.update({SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)})
+
         context.update({
-            DATASTORE_PARENT_SCOPE: {
-                SYSTEM_SCOPE: KeyValueLookup(scope=FULL_SYSTEM_SCOPE)
+            kv_constants.SYSTEM_SCOPE: kv_service.KeyValueLookup(
+                scope=kv_constants.SYSTEM_SCOPE)
+        })
+
+        context.update({
+            kv_constants.DATASTORE_PARENT_SCOPE: {
+                kv_constants.SYSTEM_SCOPE: kv_service.KeyValueLookup(
+                    scope=kv_constants.FULL_SYSTEM_SCOPE)
             }
         })
-        context.update({ACTION_CONTEXT_KV_PREFIX: chain_context})
-        context.update({PACK_CONFIG_CONTEXT_KV_PREFIX: config})
+        context.update({action_constants.ACTION_CONTEXT_KV_PREFIX: chain_context})
+        context.update({pack_constants.PACK_CONFIG_CONTEXT_KV_PREFIX: config})
         try:
             rendered_params = jinja_utils.render_values(mapping=action_node.get_parameters(),
                                                         context=context)
@@ -537,7 +543,7 @@ class ActionChainRunner(ActionRunner):
             value = getattr(e, 'value', None)
             msg = ('Failed rendering value for action parameter "%s" in task "%s" '
                    '(template string=%s): %s') % (key, action_node.name, value, str(e))
-            raise ParameterRenderingFailedException(msg)
+            raise action_exc.ParameterRenderingFailedException(msg)
         LOG.debug('Rendered params: %s: Type: %s', rendered_params, type(rendered_params))
         return rendered_params
 
@@ -550,7 +556,7 @@ class ActionChainRunner(ActionRunner):
 
         if not action_db:
             error = 'Task :: %s - Action with ref %s not registered.' % (task_name, action_ref)
-            raise InvalidActionReferencedException(error)
+            raise action_exc.InvalidActionReferencedException(error)
 
         resolved_params = ActionChainRunner._resolve_params(
             action_node=action_node, original_parameters=action_params,
@@ -573,11 +579,12 @@ class ActionChainRunner(ActionRunner):
             # request return canceled
             liveaction, _ = action_service.request(liveaction)
         except Exception as e:
-            liveaction.status = LIVEACTION_STATUS_FAILED
+            liveaction.status = action_constants.LIVEACTION_STATUS_FAILED
             LOG.exception('Failed to schedule liveaction.')
             raise e
 
-        while (wait_for_completion and liveaction.status not in LIVEACTION_COMPLETED_STATES):
+        while (wait_for_completion and
+                liveaction.status not in action_constants.LIVEACTION_COMPLETED_STATES):
             eventlet.sleep(sleep_delay)
             liveaction = action_db_util.get_liveaction_by_id(liveaction.id)
 
@@ -635,7 +642,7 @@ class ActionChainRunner(ActionRunner):
         result['updated_at'] = isotime.format(dt=updated_at)
 
         if error or not liveaction_db:
-            result['state'] = LIVEACTION_STATUS_FAILED
+            result['state'] = action_constants.LIVEACTION_STATUS_FAILED
         else:
             result['state'] = liveaction_db.status
 
