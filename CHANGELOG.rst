@@ -17,6 +17,11 @@ Changed
   3.2 was installed by default). If you want to upgrade an existing installation, please follow 
   official instructions at https://docs.mongodb.com/v3.4/release-notes/3.4-upgrade-standalone/.
   (improvement)
+* Increase maximum retry delay for ``action.retry`` policy from 5 seconds to 120 seconds. Because
+  of the way retries are currently implemented (they are not st2notifier service restart safe),
+  long retry delays are not recommended. For more information on this limitation please refer to
+  the documentation - https://docs.stackstorm.com/reference/policies.html#retry.
+  #3630
 
 Fixed
 ~~~~~
