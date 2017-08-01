@@ -16,11 +16,13 @@
 import os
 import shlex
 import signal
-import subprocess
 from subprocess import list2cmdline
 from ctypes import cdll
 
 import six
+# NOTE: eventlet 0.19.0 removed support for sellect.poll() so we not only provide green version of
+# subprocess functionality and run_command
+from eventlet.green import subprocess
 
 from st2common import log as logging
 

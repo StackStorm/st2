@@ -21,7 +21,11 @@ from oslo_config import cfg
 
 from st2tests import config
 from st2tests.base import CleanFilesTestCase
+import st2common.util.virtualenvs as virtualenvs
+from st2common.util.virtualenvs import install_requirement
+from st2common.util.virtualenvs import install_requirements
 from st2common.util.virtualenvs import setup_pack_virtualenv
+
 
 __all__ = [
     'VirtualenvUtilsTestCase'
@@ -120,6 +124,170 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
             self.assertTrue('No matching distribution found for someinvalidname' in str(e))
         else:
             self.fail('Exception not thrown')
+
+    @mock.patch.object(virtualenvs, 'run_command', mock.MagicMock(return_value=(0, '', '')))
+    @mock.patch.object(virtualenvs, 'get_env_for_subprocess_command',
+                       mock.MagicMock(return_value={}))
+    def test_install_requirement_without_proxy(self):
+        pack_virtualenv_dir = '/opt/stackstorm/virtualenvs/dummy_pack_tests/'
+        requirement = 'six>=1.9.0'
+        install_requirement(pack_virtualenv_dir, requirement, proxy_config=None)
+        expected_args = {
+            'cmd': [
+                '/opt/stackstorm/virtualenvs/dummy_pack_tests/bin/pip',
+                'install', 'six>=1.9.0'
+            ],
+            'env': {}
+        }
+        virtualenvs.run_command.assert_called_once_with(**expected_args)
+
+    @mock.patch.object(virtualenvs, 'run_command', mock.MagicMock(return_value=(0, '', '')))
+    @mock.patch.object(virtualenvs, 'get_env_for_subprocess_command',
+                       mock.MagicMock(return_value={}))
+    def test_install_requirement_with_http_proxy(self):
+        pack_virtualenv_dir = '/opt/stackstorm/virtualenvs/dummy_pack_tests/'
+        requirement = 'six>=1.9.0'
+        proxy_config = {
+            'http_proxy': 'http://192.168.1.5:8080'
+        }
+        install_requirement(pack_virtualenv_dir, requirement, proxy_config=proxy_config)
+        expected_args = {
+            'cmd': [
+                '/opt/stackstorm/virtualenvs/dummy_pack_tests/bin/pip',
+                '--proxy', 'http://192.168.1.5:8080',
+                'install', 'six>=1.9.0'
+            ],
+            'env': {}
+        }
+        virtualenvs.run_command.assert_called_once_with(**expected_args)
+
+    @mock.patch.object(virtualenvs, 'run_command', mock.MagicMock(return_value=(0, '', '')))
+    @mock.patch.object(virtualenvs, 'get_env_for_subprocess_command',
+                       mock.MagicMock(return_value={}))
+    def test_install_requirement_with_https_proxy(self):
+        pack_virtualenv_dir = '/opt/stackstorm/virtualenvs/dummy_pack_tests/'
+        requirement = 'six>=1.9.0'
+        proxy_config = {
+            'https_proxy': 'https://192.168.1.5:8080',
+            'proxy_ca_bundle_path': '/etc/ssl/certs/mitmproxy-ca.pem'
+        }
+        install_requirement(pack_virtualenv_dir, requirement, proxy_config=proxy_config)
+        expected_args = {
+            'cmd': [
+                '/opt/stackstorm/virtualenvs/dummy_pack_tests/bin/pip',
+                '--proxy', 'https://192.168.1.5:8080',
+                '--cert', '/etc/ssl/certs/mitmproxy-ca.pem',
+                'install', 'six>=1.9.0'
+            ],
+            'env': {}
+        }
+        virtualenvs.run_command.assert_called_once_with(**expected_args)
+
+    @mock.patch.object(virtualenvs, 'run_command', mock.MagicMock(return_value=(0, '', '')))
+    @mock.patch.object(virtualenvs, 'get_env_for_subprocess_command',
+                       mock.MagicMock(return_value={}))
+    def test_install_requirement_with_https_proxy_no_cert(self):
+        pack_virtualenv_dir = '/opt/stackstorm/virtualenvs/dummy_pack_tests/'
+        requirement = 'six>=1.9.0'
+        proxy_config = {
+            'https_proxy': 'https://192.168.1.5:8080',
+        }
+        install_requirement(pack_virtualenv_dir, requirement, proxy_config=proxy_config)
+        expected_args = {
+            'cmd': [
+                '/opt/stackstorm/virtualenvs/dummy_pack_tests/bin/pip',
+                '--proxy', 'https://192.168.1.5:8080',
+                'install', 'six>=1.9.0'
+            ],
+            'env': {}
+        }
+        virtualenvs.run_command.assert_called_once_with(**expected_args)
+
+    @mock.patch.object(virtualenvs, 'run_command', mock.MagicMock(return_value=(0, '', '')))
+    @mock.patch.object(virtualenvs, 'get_env_for_subprocess_command',
+                       mock.MagicMock(return_value={}))
+    def test_install_requirements_without_proxy(self):
+        pack_virtualenv_dir = '/opt/stackstorm/virtualenvs/dummy_pack_tests/'
+        requirements_file_path = '/opt/stackstorm/packs/dummy_pack_tests/requirements.txt'
+        install_requirements(pack_virtualenv_dir, requirements_file_path, proxy_config=None)
+        expected_args = {
+            'cmd': [
+                '/opt/stackstorm/virtualenvs/dummy_pack_tests/bin/pip',
+                'install', '-U',
+                '-r', requirements_file_path
+            ],
+            'env': {}
+        }
+        virtualenvs.run_command.assert_called_once_with(**expected_args)
+
+    @mock.patch.object(virtualenvs, 'run_command', mock.MagicMock(return_value=(0, '', '')))
+    @mock.patch.object(virtualenvs, 'get_env_for_subprocess_command',
+                       mock.MagicMock(return_value={}))
+    def test_install_requirements_with_http_proxy(self):
+        pack_virtualenv_dir = '/opt/stackstorm/virtualenvs/dummy_pack_tests/'
+        requirements_file_path = '/opt/stackstorm/packs/dummy_pack_tests/requirements.txt'
+        proxy_config = {
+            'http_proxy': 'http://192.168.1.5:8080'
+        }
+        install_requirements(pack_virtualenv_dir, requirements_file_path,
+                             proxy_config=proxy_config)
+        expected_args = {
+            'cmd': [
+                '/opt/stackstorm/virtualenvs/dummy_pack_tests/bin/pip',
+                '--proxy', 'http://192.168.1.5:8080',
+                'install', '-U',
+                '-r', requirements_file_path
+            ],
+            'env': {}
+        }
+        virtualenvs.run_command.assert_called_once_with(**expected_args)
+
+    @mock.patch.object(virtualenvs, 'run_command', mock.MagicMock(return_value=(0, '', '')))
+    @mock.patch.object(virtualenvs, 'get_env_for_subprocess_command',
+                       mock.MagicMock(return_value={}))
+    def test_install_requirements_with_https_proxy(self):
+        pack_virtualenv_dir = '/opt/stackstorm/virtualenvs/dummy_pack_tests/'
+        requirements_file_path = '/opt/stackstorm/packs/dummy_pack_tests/requirements.txt'
+        proxy_config = {
+            'https_proxy': 'https://192.168.1.5:8080',
+            'proxy_ca_bundle_path': '/etc/ssl/certs/mitmproxy-ca.pem'
+        }
+        install_requirements(pack_virtualenv_dir, requirements_file_path,
+                             proxy_config=proxy_config)
+        expected_args = {
+            'cmd': [
+                '/opt/stackstorm/virtualenvs/dummy_pack_tests/bin/pip',
+                '--proxy', 'https://192.168.1.5:8080',
+                '--cert', '/etc/ssl/certs/mitmproxy-ca.pem',
+                'install', '-U',
+                '-r', requirements_file_path
+            ],
+            'env': {}
+        }
+        virtualenvs.run_command.assert_called_once_with(**expected_args)
+
+    @mock.patch.object(virtualenvs, 'run_command', mock.MagicMock(return_value=(0, '', '')))
+    @mock.patch.object(virtualenvs, 'get_env_for_subprocess_command',
+                       mock.MagicMock(return_value={}))
+    def test_install_requirements_with_https_proxy_no_cert(self):
+        pack_virtualenv_dir = '/opt/stackstorm/virtualenvs/dummy_pack_tests/'
+        requirements_file_path = '/opt/stackstorm/packs/dummy_pack_tests/requirements.txt'
+        proxy_config = {
+            'https_proxy': 'https://192.168.1.5:8080',
+        }
+        install_requirements(pack_virtualenv_dir, requirements_file_path,
+                             proxy_config=proxy_config)
+
+        expected_args = {
+            'cmd': [
+                '/opt/stackstorm/virtualenvs/dummy_pack_tests/bin/pip',
+                '--proxy', 'https://192.168.1.5:8080',
+                'install', '-U',
+                '-r', requirements_file_path
+            ],
+            'env': {}
+        }
+        virtualenvs.run_command.assert_called_once_with(**expected_args)
 
     def assertVirtulenvExists(self, virtualenv_dir):
         self.assertTrue(os.path.exists(virtualenv_dir))

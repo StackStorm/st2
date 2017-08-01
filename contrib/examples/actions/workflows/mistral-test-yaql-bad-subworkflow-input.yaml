@@ -1,5 +1,5 @@
 version: '2.0'
-name: examples.mistral-error-bad-wf-input-yaql
+name: examples.mistral-test-yaql-bad-subworkflow-input
 description: A sample workflow used to test invalid input passed to subworkflow.
 workflows:
     wf1:

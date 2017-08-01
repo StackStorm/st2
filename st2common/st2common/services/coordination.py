@@ -55,8 +55,8 @@ class NoOpDriver(coordination.CoordinationDriver):
     This driver is used if coordination service is not configured.
     """
 
-    def __init__(self, member_id):
-        super(NoOpDriver, self).__init__(member_id)
+    def __init__(self, member_id, parsed_url=None, options=None):
+        super(NoOpDriver, self).__init__(member_id, parsed_url, options)
 
     def watch_join_group(self, group_id, callback):
         self._hooks_join_group[group_id].append(callback)

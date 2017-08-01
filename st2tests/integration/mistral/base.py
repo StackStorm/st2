@@ -53,7 +53,7 @@ class TestWorkflowExecution(unittest2.TestCase):
             self.assertIn('tasks', execution.result)
             self.assertGreater(len(execution.result['tasks']), 0)
 
-        if expect_tasks_completed:
+        if expect_tasks and expect_tasks_completed:
             tasks = execution.result['tasks']
             self.assertTrue(all([t['state'] in ['SUCCESS', 'ERROR', 'CANCELLED'] for t in tasks]))
 

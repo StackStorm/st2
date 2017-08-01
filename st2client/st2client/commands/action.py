@@ -992,17 +992,16 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
             *args, **kwargs)
 
         self.default_limit = 50
+        self.resource_name = resource.get_plural_display_name().lower()
         self.group = self.parser.add_argument_group()
         self.parser.add_argument('-n', '--last', type=int, dest='last',
                                  default=self.default_limit,
-                                 help=('List N most recent %s.' %
-                                       resource.get_plural_display_name().lower()))
+                                 help=('List N most recent %s.' % self.resource_name))
         self.parser.add_argument('-s', '--sort', type=str, dest='sort_order',
                                  default='descending',
                                  help=('Sort %s by start timestamp, '
                                        'asc|ascending (earliest first) '
-                                       'or desc|descending (latest first)' %
-                                       resource.get_plural_display_name().lower()))
+                                       'or desc|descending (latest first)' % self.resource_name))
 
         # Filter options
         self.group.add_argument('--action', help='Action reference to filter the list.')
@@ -1063,8 +1062,7 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
         exclude_attributes = ','.join(exclude_attributes)
         kwargs['exclude_attributes'] = exclude_attributes
 
-        result, count = self.manager.query(limit=args.last, **kwargs)
-        return (result, count)
+        return self.manager.query_with_count(limit=args.last, **kwargs)
 
     def run_and_print(self, args, **kwargs):
 
@@ -1085,9 +1083,8 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
                               attributes=args.attr, widths=args.width,
                               attribute_transform_functions=self.attribute_transform_functions)
 
-            if args.last >= self.default_limit and count and int(count) > args.last:
-                table.SingleRowTable.note_box("Note: Only first %s results are displayed. "
-                                              "Use -n/--last flag for more results." % args.last)
+            if args.last and count and count > args.last:
+                table.SingleRowTable.note_box(self.resource_name, args.last)
 
 
 class ActionExecutionGetCommand(ActionRunCommandMixin, ActionExecutionReadCommand):

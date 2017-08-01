@@ -29,7 +29,7 @@ max_page_size = 100
 # True to mask secrets in the API responses
 mask_secrets = True
 # StackStorm API server host
-host = 0.0.0.0
+host = 127.0.0.1
 # None
 debug = False
 # StackStorm API server port
@@ -60,7 +60,7 @@ cert = /etc/apache2/ssl/mycert.crt
 # JSON serialized arguments which are passed to the authentication backend in a standalone mode.
 backend_kwargs = None
 # Host on which the service should listen on.
-host = 0.0.0.0
+host = 127.0.0.1
 # Path to the SSL private key file. Only used when "use_ssl" is specified.
 key = /etc/apache2/ssl/mycert.key
 # Specify to enable SSL / TLS mode
@@ -110,7 +110,7 @@ ssl_cert_reqs = None
 # Create the connection to mongodb using SSL
 ssl = False
 # host of db server
-host = 0.0.0.0
+host = 127.0.0.1
 # name of database
 db_name = st2
 # Backoff multiplier (seconds).
@@ -195,6 +195,8 @@ logging = conf/logging.notifier.conf
 [resultstracker]
 # Location of the logging configuration file.
 logging = conf/logging.resultstracker.conf
+# The time, in seconds, for polling 3rd party workflow systems (such as mistral)
+query_interval = 20
 
 [rulesengine]
 # Location of the logging configuration file.
@@ -240,7 +242,7 @@ debug = False
 # Send empty message every N seconds to keep connection open
 heartbeat = 25
 # StackStorm stream API server host
-host = 0.0.0.0
+host = 127.0.0.1
 # location of the logging.conf file
 logging = conf/logging.conf
 # StackStorm API stream, server port
