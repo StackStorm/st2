@@ -57,14 +57,14 @@ EXCHANGES = [
 # Redis one. Even though kombu requires queues to be pre-declared upfront in such scenarios,
 # RabbitMQ transport doesn't require that.
 QUEUES = [
-    actionexecutionstate.get_queue(name='init', routing_key='init'),
-    announcement.get_queue(name='init', routing_key='init'),
-    execution.get_queue(name='init', routing_key='init'),
-    liveaction.get_queue(name='init', routing_key='init'),
-    liveaction.get_status_management_queue(name='init', routing_key='init'),
-    reactor.get_trigger_cud_queue(name='init', routing_key='init'),
-    reactor.get_trigger_instances_queue(name='init', routing_key='init'),
-    reactor.get_sensor_cud_queue(name='init', routing_key='init'),
+    actionexecutionstate.get_queue(name='st2.preinit', routing_key='init'),
+    announcement.get_queue(name='st2.preinit', routing_key='init'),
+    execution.get_queue(name='st2.preinit', routing_key='init'),
+    liveaction.get_queue(name='st2.preinit', routing_key='init'),
+    liveaction.get_status_management_queue(name='st2.preinit', routing_key='init'),
+    reactor.get_trigger_cud_queue(name='st2.preinit', routing_key='init'),
+    reactor.get_trigger_instances_queue(name='st2.preinit', routing_key='init'),
+    reactor.get_sensor_cud_queue(name='st2.preinit', routing_key='init'),
 ]
 
 
