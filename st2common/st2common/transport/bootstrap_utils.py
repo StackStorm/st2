@@ -94,7 +94,7 @@ def _do_predeclare_queue(channel, queue):
 
     try:
         bound_queue = queue(channel)
-        bound_queue.declare()
+        bound_queue.declare(nowait=False)
         LOG.debug('Predeclared queue for exchange "%s"' % (queue.exchange.name))
     except Exception:
         LOG.exception('Failed to predeclare queue for exchange "%s"' % (queue.exchange.name))
