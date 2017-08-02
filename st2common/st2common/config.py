@@ -157,9 +157,9 @@ def register_opts(ignore_errors=False):
         cfg.IntOpt('connection_retry_wait', default=10000,
                    help='How long should we wait between connection retries.'),
         cfg.BoolOpt('predeclare_queues', default=False,
-                   help=('True to pre-declare all the queues on service setup. This is required '
-                         'with some non-standard kombu transports such as Redis one.'))
-
+                   help=('Set this to True to pre-declare all the AMQP queues on service startup. '
+                         'This is required with some non-standard kombu transports such as the '
+                         'Redis one.'))
     ]
     do_register_opts(messaging_opts, 'messaging', ignore_errors)
 

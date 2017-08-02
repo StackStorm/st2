@@ -163,7 +163,7 @@ mask_secrets = True
 url = amqp://guest:guest@127.0.0.1:5672//
 # How long should we wait between connection retries.
 connection_retry_wait = 10000
-# True to pre-declare all the queues on service setup. This is required with some non-standard kombu transports such as Redis one.
+# Set this to True to pre-declare all the AMQP queues on service startup. This is required with some non-standard kombu transports such as the Redis one.
 predeclare_queues = False
 # How many times should we retry connection before failing.
 connection_retries = 10
