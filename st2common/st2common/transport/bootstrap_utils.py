@@ -47,16 +47,16 @@ def _do_register_exchange(exchange, connection, channel, retry_wrapper):
             'auto_delete': exchange.auto_delete,
             'arguments': exchange.arguments,
             'nowait': False,
-            'passive': None
+            'passive': False
         }
         # Use the retry wrapper to increase resiliency in recoverable errors.
         retry_wrapper.ensured(connection=connection,
                               obj=channel,
                               to_ensure_func=channel.exchange_declare,
                               **kwargs)
-        LOG.debug('registered exchange %s.', exchange.name)
+        LOG.debug('Registered exchange %s (%s).' % (exchange.name, str(kwargs)))
     except Exception:
-        LOG.exception('Failed to register exchange : %s.', exchange.name)
+        LOG.exception('Failed to register exchange: %s.', exchange.name)
 
 
 def register_exchanges():
@@ -75,8 +75,11 @@ def register_exchanges():
 
 
 def register_exchanges_with_retry():
+    def retry_if_io_error(exception):
+        return isinstance(exception, socket.error)
+
     retrying_obj = retrying.Retrying(
-        retry_on_exception=socket.error,
+        retry_on_exception=retry_if_io_error,
         wait_fixed=cfg.CONF.messaging.connection_retry_wait,
         stop_max_attempt_number=cfg.CONF.messaging.connection_retries
     )

@@ -21,6 +21,10 @@ Changed
 Fixed
 ~~~~~
 
+* Fix retrying in message bus exchange registration. (bug fix) #3635 #3638
+
+  Reported by John Arnold.
+
 2.3.2 - July 28, 2017
 ---------------------
 
