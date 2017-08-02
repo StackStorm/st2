@@ -75,8 +75,11 @@ def register_exchanges():
 
 
 def register_exchanges_with_retry():
+    def retry_if_io_error(exception):
+        return isinstance(exception, socket.error)
+
     retrying_obj = retrying.Retrying(
-        retry_on_exception=socket.error,
+        retry_on_exception=retry_if_io_error,
         wait_fixed=cfg.CONF.messaging.connection_retry_wait,
         stop_max_attempt_number=cfg.CONF.messaging.connection_retries
     )
