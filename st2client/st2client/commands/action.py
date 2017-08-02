@@ -360,7 +360,7 @@ class ActionRunCommandMixin(object):
 
         status_index = options['attributes'].index('status')
 
-        if isinstance(instance.result, dict):
+        if hasattr(instance, 'result') and isinstance(instance.result, dict):
             tasks = instance.result.get('tasks', [])
         else:
             tasks = []
