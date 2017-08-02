@@ -37,7 +37,10 @@ from st2common.transport import reactor
 LOG = logging.getLogger('st2common.transport.bootstrap')
 
 __all__ = [
-    'register_exchanges'
+    'register_exchanges',
+
+    'EXCHANGES',
+    'QUEUES'
 ]
 
 # List of exchanges which are pre-declared on service set up.
@@ -92,12 +95,16 @@ def _do_register_exchange(exchange, connection, channel, retry_wrapper):
 def _do_predeclare_queue(channel, queue):
     LOG.debug('Predeclaring queue for exchange "%s"' % (queue.exchange.name))
 
+    bound_queue = None
+
     try:
         bound_queue = queue(channel)
         bound_queue.declare(nowait=False)
         LOG.debug('Predeclared queue for exchange "%s"' % (queue.exchange.name))
     except Exception:
         LOG.exception('Failed to predeclare queue for exchange "%s"' % (queue.exchange.name))
+
+    return bound_queue
 
 
 def register_exchanges():
