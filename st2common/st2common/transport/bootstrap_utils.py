@@ -13,10 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import retrying
 import socket
+
+import retrying
 from oslo_config import cfg
 from kombu import Connection
+
 from st2common import log as logging
 from st2common.transport import utils as transport_utils
 from st2common.transport.actionexecutionstate import ACTIONEXECUTIONSTATE_XCHG
@@ -26,7 +28,6 @@ from st2common.transport.execution import EXECUTION_XCHG
 from st2common.transport.liveaction import LIVEACTION_XCHG, LIVEACTION_STATUS_MGMT_XCHG
 from st2common.transport.reactor import SENSOR_CUD_XCHG
 from st2common.transport.reactor import TRIGGER_CUD_XCHG, TRIGGER_INSTANCE_XCHG
-
 from st2common.transport import actionexecutionstate
 from st2common.transport import announcement
 from st2common.transport import execution
@@ -40,9 +41,16 @@ __all__ = [
 ]
 
 # List of exchanges which are pre-declared on service set up.
-EXCHANGES = [ACTIONEXECUTIONSTATE_XCHG, ANNOUNCEMENT_XCHG, EXECUTION_XCHG, LIVEACTION_XCHG,
-             LIVEACTION_STATUS_MGMT_XCHG, TRIGGER_CUD_XCHG, TRIGGER_INSTANCE_XCHG,
-             SENSOR_CUD_XCHG]
+EXCHANGES = [
+    ACTIONEXECUTIONSTATE_XCHG,
+    ANNOUNCEMENT_XCHG,
+    EXECUTION_XCHG,
+    LIVEACTION_XCHG,
+    LIVEACTION_STATUS_MGMT_XCHG,
+    TRIGGER_CUD_XCHG,
+    TRIGGER_INSTANCE_XCHG,
+    SENSOR_CUD_XCHG
+]
 
 # List of queues which are pre-declared on service set up.
 # Because of the worker model used, this is required with some non-standard transports such as
