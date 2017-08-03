@@ -52,6 +52,12 @@ def enable_debugging():
 def disable_debugging():
     global ENABLE_DEBUGGING
     ENABLE_DEBUGGING = False
+
+    set_log_level_for_all_loggers(level=stdlib_logging.INFO)
+
+    setup_logging(loglevel=stdlib_logging.INFO)
+    paramiko.common.logging.basicConfig(level=paramiko.common.INFO)
+
     return ENABLE_DEBUGGING
 
 
