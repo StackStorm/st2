@@ -55,7 +55,6 @@ class SensorWatcherTestCase(IntegrationTestCase):
             done = len(sw_queues) > 0 or (monotonic() - start() < 5)
 
         sensor_watcher.stop()
-        print('All queues post SW stop: %s' % sw_queues)
         sw_queues = self._get_sensor_watcher_amqp_queues(queue_name='st2.sensor.watch.covfefe')
         self.assertTrue(len(sw_queues) == 0)
 
