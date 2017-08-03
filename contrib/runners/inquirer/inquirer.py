@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import uuid
 
 from st2common import log as logging
@@ -23,7 +22,6 @@ from st2common.constants.action import LIVEACTION_STATUS_PENDING
 from st2common.constants.triggers import INQUIRY_TRIGGER
 from st2common.models.system.common import ResourceReference
 from st2common.runners.base import ActionRunner
-from st2common.runners import python_action_wrapper
 from st2common.services import action as action_service
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.util import action_db as action_utils
@@ -40,9 +38,6 @@ RUNNER_SCHEMA = 'schema'
 RUNNER_ROLES = 'roles'
 RUNNER_USERS = 'users'
 RUNNER_TAG = 'tag'
-
-#TODO
-BASE_DIR = os.path.dirname(os.path.abspath(python_action_wrapper.__file__))
 
 
 def get_runner():
