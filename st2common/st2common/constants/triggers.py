@@ -109,7 +109,12 @@ INQUIRY_TRIGGER = {
     'payload_schema': {
         'type': 'object',
         'properties': {
-            'response': {}
+            'liveaction_id': {},
+            'response': {},
+            'schema': {},
+            'roles': {},
+            'users': {},
+            'tag': {}
         }
     }
 }
