@@ -41,8 +41,6 @@ before_script:
   - sudo wget http://guest:guest@localhost:15672/cli/rabbitmqadmin -O /usr/local/bin/rabbitmqadmin
   - sudo chmod +x /usr/local/bin/rabbitmqadmin
   - sudo service rabbitmq-server restart
-  - rabbitmqadmin list queues vhost name node messages messages_unacknowledged
-  - for q in `rabbitmqadmin -f long -d 3 list queues | grep name | grep sensor | awk '{print $2}'`;do rabbitmqadmin delete queue name=$q;done
 
 cache:
   pip: true

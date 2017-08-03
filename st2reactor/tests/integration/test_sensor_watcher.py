@@ -40,17 +40,20 @@ class SensorWatcherTestCase(IntegrationTestCase):
         def delete_handler(sensor_db):
             pass
 
-        sensor_watcher = SensorWatcher(create_handler, update_handler, delete_handler)
+        sensor_watcher = SensorWatcher(create_handler, update_handler, delete_handler,
+                                       queue_suffix='covfefe')
         sensor_watcher.start()
-        queues = self._get_sensor_watcher_amqp_queues()
+        all_queues = self._get_sensor_watcher_amqp_queues()
+        sw_queues = set(filter(lambda q_name: 'st2.sensor.watch.covfefe' in q_name, all_queues))
 
-        self.assertTrue(len(queues) == 1)
+        self.assertTrue(len(sw_queues) == 1)
         sensor_watcher.stop()
-        queues = self._get_sensor_watcher_amqp_queues()
-        self.assertTrue(len(queues) == 0)
+        all_queues = self._get_sensor_watcher_amqp_queues()
+        sw_queues = set(filter(lambda q_name: 'st2.sensor.watch.covfefe' in q_name, all_queues))
+
+        self.assertTrue(len(sw_queues) == 0)
 
     def _get_sensor_watcher_amqp_queues(self):
         rabbit_client = Client('localhost:15672', 'guest', 'guest')
         queues = [q['name'] for q in rabbit_client.get_queues()]
-        print('Queues: %s' % queues)
-        return set(filter(lambda q_name: 'st2.sensor.watch' in q_name, queues))
+        return queues
