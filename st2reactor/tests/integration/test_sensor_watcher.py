@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import eventlet
+from monotonic import monotonic
 from pyrabbit.api import Client
 
 from st2common.services.sensor_watcher import SensorWatcher
@@ -43,19 +45,25 @@ class SensorWatcherTestCase(IntegrationTestCase):
         sensor_watcher = SensorWatcher(create_handler, update_handler, delete_handler,
                                        queue_suffix='covfefe')
         sensor_watcher.start()
-        all_queues = self._get_sensor_watcher_amqp_queues()
-        sw_queues = set(filter(lambda q_name: 'st2.sensor.watch.covfefe' in q_name, all_queues))
-        print('All queues: %s' % all_queues)
+        sw_queues = self._get_sensor_watcher_amqp_queues(queue_name='st2.sensor.watch.covfefe')
 
-        self.assertTrue(len(sw_queues) == 1)
+        start = monotonic()
+        done = False
+        while not done:
+            eventlet.sleep(0.01)
+            sw_queues = self._get_sensor_watcher_amqp_queues(queue_name='st2.sensor.watch.covfefe')
+            done = len(sw_queues) > 0 or (monotonic() - start() < 5)
+
         sensor_watcher.stop()
-        all_queues = self._get_sensor_watcher_amqp_queues()
-        print('All queues post SW stop: %s' % all_queues)
-        sw_queues = set(filter(lambda q_name: 'st2.sensor.watch.covfefe' in q_name, all_queues))
-
+        print('All queues post SW stop: %s' % sw_queues)
+        sw_queues = self._get_sensor_watcher_amqp_queues(queue_name='st2.sensor.watch.covfefe')
         self.assertTrue(len(sw_queues) == 0)
 
-    def _get_sensor_watcher_amqp_queues(self):
+    def _list_amqp_queues(self):
         rabbit_client = Client('localhost:15672', 'guest', 'guest')
         queues = [q['name'] for q in rabbit_client.get_queues()]
         return queues
+
+    def _get_sensor_watcher_amqp_queues(self, queue_name):
+        all_queues = self._list_amqp_queues()
+        return set(filter(lambda q_name: queue_name in q_name, all_queues))
