@@ -52,4 +52,5 @@ class SensorWatcherTestCase(IntegrationTestCase):
     def _get_sensor_watcher_amqp_queues(self):
         rabbit_client = Client('localhost:15672', 'guest', 'guest')
         queues = [q['name'] for q in rabbit_client.get_queues()]
+        print('Queues: %s' % queues)
         return set(filter(lambda q_name: 'st2.sensor.watch' in q_name, queues))
