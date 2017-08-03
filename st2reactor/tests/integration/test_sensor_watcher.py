@@ -45,10 +45,12 @@ class SensorWatcherTestCase(IntegrationTestCase):
         sensor_watcher.start()
         all_queues = self._get_sensor_watcher_amqp_queues()
         sw_queues = set(filter(lambda q_name: 'st2.sensor.watch.covfefe' in q_name, all_queues))
+        print('All queues: %s' % all_queues)
 
         self.assertTrue(len(sw_queues) == 1)
         sensor_watcher.stop()
         all_queues = self._get_sensor_watcher_amqp_queues()
+        print('All queues post SW stop: %s' % all_queues)
         sw_queues = set(filter(lambda q_name: 'st2.sensor.watch.covfefe' in q_name, all_queues))
 
         self.assertTrue(len(sw_queues) == 0)
