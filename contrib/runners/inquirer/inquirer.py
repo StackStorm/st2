@@ -66,34 +66,38 @@ class Inquirer(ActionRunner):
 
     def run(self, action_parameters):
 
-        # Retrieve existing result (initialize if needed)
         liveaction_db = action_utils.get_liveaction_by_id(self.liveaction_id)
+
+        # Retrieve existing response if exists
         response_data = liveaction_db.result.get("response_data", {})
 
-        # Request pause of parent execution
+        # Return immediately if response is already valid
+        if action_service.validate_response(self.schema, response_data):
+            return (LIVEACTION_STATUS_SUCCEEDED, response_data, None)
+
+        # Fail if there is no parent execution
         parent = liveaction_db.context.get("parent")
-        if parent:
-            # TODO get current user
-            action_service.request_pause(parent, "st2admin")
-        else:
+        if not parent:
             LOG.error("Inquiries must be run within a workflow.")
             return (LIVEACTION_STATUS_FAILED, response_data, None)
 
-        # Validate repsonse and return
-        if action_service.validate_response(self.schema, response_data):
-            return (LIVEACTION_STATUS_SUCCEEDED, response_data, None)
-        else:
-            trigger_ref = ResourceReference.to_string_reference(
-                pack=INQUIRY_TRIGGER['pack'],
-                name=INQUIRY_TRIGGER['name']
-            )
-            trigger_payload = {
-                "liveaction_id": self.liveaction_id,
-                "response": response_data,
-                "schema": self.schema,
-                "roles": self.roles_param,
-                "users": self.users_param,
-                "tag": self.tag
-            }
-            self.trigger_dispatcher.dispatch(trigger_ref, trigger_payload)
-            return (LIVEACTION_STATUS_PENDING, response_data, None)
+        # Assemble and dispatch trigger
+        trigger_ref = ResourceReference.to_string_reference(
+            pack=INQUIRY_TRIGGER['pack'],
+            name=INQUIRY_TRIGGER['name']
+        )
+        trigger_payload = {
+            "liveaction_id": self.liveaction_id,
+            "response": response_data,
+            "schema": self.schema,
+            "roles": self.roles_param,
+            "users": self.users_param,
+            "tag": self.tag
+        }
+        self.trigger_dispatcher.dispatch(trigger_ref, trigger_payload)
+
+        # Request pause as final step before returning (to ensure other logic works)
+        action_service.request_pause(parent, self.context.get('user', None))
+
+        # TODO there's an issue here, because response_data is {}
+        return (LIVEACTION_STATUS_PENDING, response_data, None)
