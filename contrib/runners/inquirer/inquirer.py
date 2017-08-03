@@ -20,11 +20,13 @@ from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_STATUS_PENDING
+from st2common.constants.triggers import INQUIRY_TRIGGER
+from st2common.models.system.common import ResourceReference
 from st2common.runners.base import ActionRunner
 from st2common.runners import python_action_wrapper
 from st2common.services import action as action_service
+from st2common.transport.reactor import TriggerDispatcher
 from st2common.util import action_db as action_utils
-
 
 LOG = logging.getLogger(__name__)
 
@@ -54,6 +56,7 @@ class Inquirer(ActionRunner):
 
     def __init__(self, runner_id):
         super(Inquirer, self).__init__(runner_id=runner_id)
+        self.trigger_dispatcher = TriggerDispatcher(LOG)
 
     def pre_run(self):
         super(Inquirer, self).pre_run()
@@ -74,9 +77,10 @@ class Inquirer(ActionRunner):
             response_data = {"response": {}}
 
         # Request pause of parent execution
-        if liveaction_db.parent:
+        parent = liveaction_db.context.get("parent")
+        if parent:
             # TODO get current user
-            action_service.request_pause(self.liveaction_id, "st2admin")
+            action_service.request_pause(parent, "st2admin")
         else:
             LOG.error("Inquiries must be run within a workflow.")
             return (LIVEACTION_STATUS_FAILED, response_data, None)
@@ -85,6 +89,12 @@ class Inquirer(ActionRunner):
         if action_service.validate_response(self.schema, response_data):
             return (LIVEACTION_STATUS_SUCCEEDED, response_data, None)
         else:
-
-            # TODO raise trigger
+            trigger_ref = ResourceReference.to_string_reference(
+                pack=INQUIRY_TRIGGER['pack'],
+                name=INQUIRY_TRIGGER['name']
+            )
+            trigger_payload = {
+                "response": response_data
+            }
+            self.trigger_dispatcher.dispatch(trigger_ref, trigger_payload)
             return (LIVEACTION_STATUS_PENDING, response_data, None)

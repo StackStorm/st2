@@ -222,11 +222,11 @@ def request_cancellation(liveaction, requester):
     return (liveaction, execution)
 
 
-def validate_response(self, schema, response_data):
+def validate_response(schema, response_data):
     """Perform JSONschema validation against the response data using the provided
        schema
     """
-    return True
+    return False
 
 
 def _cleanup_liveaction(liveaction):
