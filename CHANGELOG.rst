@@ -14,9 +14,16 @@ Changed
 ~~~~~~~
 
 * Install scripts and documentation has been updated to install MongoDB 3.4 by default (previously
-  3.2 was installed by default). If you want to upgrade an existing installation, please follow 
+  3.2 was installed by default). If you want to upgrade an existing installation, please follow
   official instructions at https://docs.mongodb.com/v3.4/release-notes/3.4-upgrade-standalone/.
   (improvement)
+* Add ability to pre-declare all used message bus queues (and as such, exchanges) on service setup
+  by setting new ``messaging.predeclare_queues`` config option to ``True``. This is required by
+  some non-default kombu backends such as the Redis one.
+
+  Keep in mind that the only officially supported and used messaging backend still is RabbitMQ.
+  We offer no support for other backends and you use them at your own discretion and risk.
+  (improvement) #3635 #3639
 
 Fixed
 ~~~~~
