@@ -8,3 +8,7 @@ examples.mistral-ask-basic:
     tasks:
         task1:
             action: core.ask
+            input:
+              tag: developers
+              users:
+                - st2admin

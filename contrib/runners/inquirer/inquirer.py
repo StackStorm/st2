@@ -67,14 +67,13 @@ class Inquirer(ActionRunner):
         self.schema = self.runner_parameters.get(RUNNER_SCHEMA, None)
         self.roles_param = self.runner_parameters.get(RUNNER_ROLES, None)
         self.users_param = self.runner_parameters.get(RUNNER_USERS, None)
+        self.tag = self.runner_parameters.get(RUNNER_TAG, None)
 
     def run(self, action_parameters):
 
         # Retrieve existing result (initialize if needed)
         liveaction_db = action_utils.get_liveaction_by_id(self.liveaction_id)
-        response_data = liveaction_db.result.get("response_data")
-        if not response_data:
-            response_data = {"response": {}}
+        response_data = liveaction_db.result.get("response_data", {})
 
         # Request pause of parent execution
         parent = liveaction_db.context.get("parent")
@@ -94,7 +93,12 @@ class Inquirer(ActionRunner):
                 name=INQUIRY_TRIGGER['name']
             )
             trigger_payload = {
-                "response": response_data
+                "liveaction_id": self.liveaction_id,
+                "response": response_data,
+                "schema": self.schema,
+                "roles": self.roles_param,
+                "users": self.users_param,
+                "tag": self.tag
             }
             self.trigger_dispatcher.dispatch(trigger_ref, trigger_payload)
             return (LIVEACTION_STATUS_PENDING, response_data, None)
