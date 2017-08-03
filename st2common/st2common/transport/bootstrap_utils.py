@@ -13,10 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import retrying
 import socket
+
+import retrying
 from oslo_config import cfg
 from kombu import Connection
+
 from st2common import log as logging
 from st2common.transport import utils as transport_utils
 from st2common.transport.actionexecutionstate import ACTIONEXECUTIONSTATE_XCHG
@@ -26,16 +28,47 @@ from st2common.transport.execution import EXECUTION_XCHG
 from st2common.transport.liveaction import LIVEACTION_XCHG, LIVEACTION_STATUS_MGMT_XCHG
 from st2common.transport.reactor import SENSOR_CUD_XCHG
 from st2common.transport.reactor import TRIGGER_CUD_XCHG, TRIGGER_INSTANCE_XCHG
+from st2common.transport import actionexecutionstate
+from st2common.transport import announcement
+from st2common.transport import execution
+from st2common.transport import liveaction
+from st2common.transport import reactor
 
 LOG = logging.getLogger('st2common.transport.bootstrap')
 
 __all__ = [
-    'register_exchanges'
+    'register_exchanges',
+
+    'EXCHANGES',
+    'QUEUES'
 ]
 
-EXCHANGES = [ACTIONEXECUTIONSTATE_XCHG, ANNOUNCEMENT_XCHG, EXECUTION_XCHG, LIVEACTION_XCHG,
-             LIVEACTION_STATUS_MGMT_XCHG, TRIGGER_CUD_XCHG, TRIGGER_INSTANCE_XCHG,
-             SENSOR_CUD_XCHG]
+# List of exchanges which are pre-declared on service set up.
+EXCHANGES = [
+    ACTIONEXECUTIONSTATE_XCHG,
+    ANNOUNCEMENT_XCHG,
+    EXECUTION_XCHG,
+    LIVEACTION_XCHG,
+    LIVEACTION_STATUS_MGMT_XCHG,
+    TRIGGER_CUD_XCHG,
+    TRIGGER_INSTANCE_XCHG,
+    SENSOR_CUD_XCHG
+]
+
+# List of queues which are pre-declared on service set up.
+# Because of the worker model used, this is required with some non-standard transports such as
+# Redis one. Even though kombu requires queues to be pre-declared upfront in such scenarios,
+# RabbitMQ transport doesn't require that.
+QUEUES = [
+    actionexecutionstate.get_queue(name='st2.preinit', routing_key='init'),
+    announcement.get_queue(name='st2.preinit', routing_key='init'),
+    execution.get_queue(name='st2.preinit', routing_key='init'),
+    liveaction.get_queue(name='st2.preinit', routing_key='init'),
+    liveaction.get_status_management_queue(name='st2.preinit', routing_key='init'),
+    reactor.get_trigger_cud_queue(name='st2.preinit', routing_key='init'),
+    reactor.get_trigger_instances_queue(name='st2.preinit', routing_key='init'),
+    reactor.get_sensor_cud_queue(name='st2.preinit', routing_key='init'),
+]
 
 
 def _do_register_exchange(exchange, connection, channel, retry_wrapper):
@@ -59,6 +92,21 @@ def _do_register_exchange(exchange, connection, channel, retry_wrapper):
         LOG.exception('Failed to register exchange: %s.', exchange.name)
 
 
+def _do_predeclare_queue(channel, queue):
+    LOG.debug('Predeclaring queue for exchange "%s"' % (queue.exchange.name))
+
+    bound_queue = None
+
+    try:
+        bound_queue = queue(channel)
+        bound_queue.declare(nowait=False)
+        LOG.debug('Predeclared queue for exchange "%s"' % (queue.exchange.name))
+    except Exception:
+        LOG.exception('Failed to predeclare queue for exchange "%s"' % (queue.exchange.name))
+
+    return bound_queue
+
+
 def register_exchanges():
     LOG.debug('Registering exchanges...')
     connection_urls = transport_utils.get_messaging_urls()
@@ -72,6 +120,13 @@ def register_exchanges():
                                       retry_wrapper=retry_wrapper)
 
         retry_wrapper.run(connection=conn, wrapped_callback=wrapped_register_exchanges)
+
+        def wrapped_predeclare_queues(connection, channel):
+            for queue in QUEUES:
+                _do_predeclare_queue(channel=channel, queue=queue)
+
+        if cfg.CONF.messaging.predeclare_queues:
+            retry_wrapper.run(connection=conn, wrapped_callback=wrapped_predeclare_queues)
 
 
 def register_exchanges_with_retry():
