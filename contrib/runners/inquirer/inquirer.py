@@ -19,10 +19,12 @@ import uuid
 from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
-from st2common.constants.action import LIVEACTION_STATUS_PENDING  #TODO(mierdin): Need to implement this
+from st2common.constants.action import LIVEACTION_STATUS_PENDING
 from st2common.runners.base import ActionRunner
 from st2common.runners import python_action_wrapper
+from st2common.services import action as action_service
 from st2common.util import action_db as action_utils
+
 
 LOG = logging.getLogger(__name__)
 
@@ -37,6 +39,7 @@ RUNNER_ROLES = 'roles'
 RUNNER_USERS = 'users'
 RUNNER_TAG = 'tag'
 
+#TODO
 BASE_DIR = os.path.dirname(os.path.abspath(python_action_wrapper.__file__))
 
 
@@ -46,9 +49,7 @@ def get_runner():
 
 
 class Inquirer(ActionRunner):
-    """ This runner is responsible for handling st2.ask actions (i.e. can return "pending" status)
-
-    This approach gives safer access to setting execution status and examining data in context
+    """This runner implements the ability to ask for more input during a workflow
     """
 
     def __init__(self, runner_id):
@@ -60,72 +61,30 @@ class Inquirer(ActionRunner):
         # TODO :This is awful, but the way "runner_parameters" and other variables get
         # assigned on the runner instance is even worse. Those arguments should
         # be passed to the constructor.
-        self._schema = self.runner_parameters.get(RUNNER_SCHEMA, self._schema)
-        self._roles_param = self.runner_parameters.get(RUNNER_ROLES, self._roles_param)
-        self._users_param = self.runner_parameters.get(RUNNER_USERS, self._users_param)
-
-        # Probably not needed, since this isn't used in the runner or action
-        # self._tag = self.runner_parameters.get(RUNNER_TAG, self._tag)
+        self.schema = self.runner_parameters.get(RUNNER_SCHEMA, None)
+        self.roles_param = self.runner_parameters.get(RUNNER_ROLES, None)
+        self.users_param = self.runner_parameters.get(RUNNER_USERS, None)
 
     def run(self, action_parameters):
-        """This runner provides the bulk of the implementation for st2.ask.
 
-        The high-level steps are:
+        # Retrieve existing result (initialize if needed)
+        liveaction_db = action_utils.get_liveaction_by_id(self.liveaction_id)
+        response_data = liveaction_db.result.get("response_data")
+        if not response_data:
+            response_data = {"response": {}}
 
-        1. Retrieve response data and JSONschema from parameters
-        2. Ensure the current user has permission to provide a response
-           (based off of provided "users" and "roles" params)
-        3. Validate respond data against provided schema
-        4. Return appropriate status based on validation
-        """
-
-        # NOTE - I am using self.context for storing the response data right now. I know there was
-        # some discussion about using response instead; I'm just not quite sure how that would work
-        # atm, and I think Lakshmi also had some concerns about this. So I can flex here, just doing
-        # this for now.
-        response_data = self.context.get("response_data")
-        #
-        # WIP - use result instead
-        # liveaction_db = action_utils.get_liveaction_by_id(liveaction.id)
-        # response_data = liveaction_db.result.get("response_data")
-
-        # Determine if the currently authenticated user is allowed to provide a response
-        if not self.has_permission():
-            LOG.debug('Current user not permitted to respond to this execution.')  #TODO(mierdin): Could probably use more detail
-            return (LIVEACTION_STATUS_PENDING, response_data)
-
-        # Validate response against provided schema.
-        # If valid, set status to success. If not valid, set status to pending.
-        # Return this status as well as response data
-        if self.validate_data(self.schema, response_data):
-            return (LIVEACTION_STATUS_SUCCEEDED, response_data)
+        # Request pause of parent execution
+        if liveaction_db.parent:
+            # TODO get current user
+            action_service.request_pause(self.liveaction_id, "st2admin")
         else:
-            return (LIVEACTION_STATUS_PENDING, response_data)
+            LOG.error("Inquiries must be run within a workflow.")
+            return (LIVEACTION_STATUS_FAILED, response_data, None)
 
-    def has_permission(self):
-        """Determine if the current user has permission to respond to the action execution
-        """
+        # Validate repsonse and return
+        if action_service.validate_response(self.schema, response_data):
+            return (LIVEACTION_STATUS_SUCCEEDED, response_data, None)
+        else:
 
-        # Grant permission if users and roles list is empty
-        if not self._users_param and not self._roles_param:
-            return True
-
-        current_user = self.get_user()
-        roles = get_roles_for_user(current_user)  # Just made this function name up for now
-
-        # Grant permission if user is in provided list
-        if current_user in self._users_param:
-            return True
-
-        # Grant permission if user is in one of the provided roles
-        for role in roles:
-            if role in self._roles_param:
-                return True
-
-        return False
-
-    def validate_data(self, schema, response_data):
-        """Perform JSONschema validation against the response data using the provided
-           schema
-        """
-        pass
+            # TODO raise trigger
+            return (LIVEACTION_STATUS_PENDING, response_data, None)
