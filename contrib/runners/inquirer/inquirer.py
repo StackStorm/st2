@@ -40,7 +40,6 @@ RUNNER_TAG = 'tag'
 
 
 def get_runner():
-    'RunnerTestCase',
     return Inquirer(str(uuid.uuid4()))
 
 
