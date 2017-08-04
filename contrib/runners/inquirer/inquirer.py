@@ -16,7 +16,6 @@
 import uuid
 
 from st2common import log as logging
-from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_STATUS_PENDING
 from st2common.constants.triggers import INQUIRY_TRIGGER
