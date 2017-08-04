@@ -50,10 +50,34 @@ class InquiryTestCase(RunnerTestCase):
         runner.runner_parameters = {}
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
+        mock_liveaction_db.context = {
+            "parent": "1234567890"
+        }
         (status, output, _) = runner.run({})
         self.assertEqual(status, LIVEACTION_STATUS_PENDING)
         self.assertTrue(output is not None)
         self.assertEqual(output, {"response_data": {}})
+        mock_trigger_dispatcher.return_value.dispatch.assert_called_once()
+
+    @mock.patch('inquirer.TriggerDispatcher', mock_trigger_dispatcher)
+    @mock.patch('inquirer.action_utils', mock_action_utils)
+    def test_inquiry_failed_no_parent(self):
+        runner = inquirer.get_runner()
+        runner.context = {
+            'user': 'st2admin'
+        }
+        runner.action = self._get_mock_action_obj()
+        runner.runner_parameters = {}
+        runner.container_service = service.RunnerContainerService()
+        runner.pre_run()
+        mock_liveaction_db.context = {
+            "parent": None
+        }
+        (status, output, _) = runner.run({})
+        self.assertEqual(status, LIVEACTION_STATUS_FAILED)
+        self.assertTrue(output is not None)
+        self.assertEqual(output, {"response_data": {}})
+        mock_trigger_dispatcher.return_value.dispatch.assert_not_called()
 
     def _get_mock_action_obj(self):
         action = mock.Mock()
