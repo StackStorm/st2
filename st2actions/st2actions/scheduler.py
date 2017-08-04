@@ -29,7 +29,8 @@ from st2common.util import action_db as action_utils
 from st2common.constants.queues import ACTIONSCHEDULER_REQUEST_QUEUE
 
 __all__ = [
-    'get_scheduler',
+    'ActionExecutionScheduler',
+    'get_scheduler'
 ]
 
 

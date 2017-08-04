@@ -33,7 +33,8 @@ from st2exporter.exporter.dumper import Dumper
 from st2common.constants.queues import EXPORTER_WORK_QUEUE
 
 __all__ = [
-    'ExecutionsExporter'
+    'ExecutionsExporter',
+    'get_worker'
 ]
 
 COMPLETION_STATUSES = [LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED,

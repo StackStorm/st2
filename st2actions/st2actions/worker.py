@@ -34,6 +34,11 @@ from st2common.util import system_info
 from st2common.constants.queues import ACTIONRUNNER_WORK_QUEUE
 from st2common.constants.queues import ACTIONRUNNER_CANCEL_QUEUE
 
+__all__ = [
+    'ActionExecutionDispatcher',
+    'get_worker'
+]
+
 
 LOG = logging.getLogger(__name__)
 
