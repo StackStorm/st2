@@ -26,7 +26,7 @@ from st2common.persistence.executionstate import ActionExecutionState
 from st2common.transport import consumers
 from st2common.transport import utils as transport_utils
 from st2common.util.loader import register_query_module
-from st2common.constants.queues import RESULTSTRACKER_ACTIONSTATE_WORK_QUEUE
+from st2common.transport.queues import RESULTSTRACKER_ACTIONSTATE_WORK_QUEUE
 
 __all__ = [
     'ResultsTracker',

@@ -26,7 +26,7 @@ from st2common import policies
 from st2common.transport import consumers
 from st2common.transport import utils as transport_utils
 from st2common.util import action_db as action_utils
-from st2common.constants.queues import ACTIONSCHEDULER_REQUEST_QUEUE
+from st2common.transport.queues import ACTIONSCHEDULER_REQUEST_QUEUE
 
 __all__ = [
     'ActionExecutionScheduler',

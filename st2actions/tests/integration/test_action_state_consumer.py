@@ -17,7 +17,7 @@ import mock
 
 from kombu import Connection
 
-from st2common.constants.queues import RESULTSTRACKER_ACTIONSTATE_WORK_QUEUE
+from st2common.transport.queues import RESULTSTRACKER_ACTIONSTATE_WORK_QUEUE
 from st2actions.resultstracker.resultstracker import ResultsTracker
 from st2common.models.db.executionstate import ActionExecutionStateDB
 from st2common.persistence.executionstate import ActionExecutionState

@@ -30,7 +30,7 @@ from st2common.transport import consumers
 from st2common.transport import utils as transport_utils
 from st2common.util import isotime
 from st2exporter.exporter.dumper import Dumper
-from st2common.constants.queues import EXPORTER_WORK_QUEUE
+from st2common.transport.queues import EXPORTER_WORK_QUEUE
 
 __all__ = [
     'ExecutionsExporter',

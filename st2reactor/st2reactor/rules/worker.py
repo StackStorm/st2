@@ -24,7 +24,7 @@ from st2common.transport import consumers
 from st2common.transport import utils as transport_utils
 import st2reactor.container.utils as container_utils
 from st2reactor.rules.engine import RulesEngine
-from st2common.constants.queues import RULESENGINE_WORK_QUEUE
+from st2common.transport.queues import RULESENGINE_WORK_QUEUE
 
 
 LOG = logging.getLogger(__name__)

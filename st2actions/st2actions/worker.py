@@ -31,8 +31,8 @@ from st2common.transport.consumers import ActionsQueueConsumer
 from st2common.transport import utils as transport_utils
 from st2common.util import action_db as action_utils
 from st2common.util import system_info
-from st2common.constants.queues import ACTIONRUNNER_WORK_QUEUE
-from st2common.constants.queues import ACTIONRUNNER_CANCEL_QUEUE
+from st2common.transport.queues import ACTIONRUNNER_WORK_QUEUE
+from st2common.transport.queues import ACTIONRUNNER_CANCEL_QUEUE
 
 __all__ = [
     'ActionExecutionDispatcher',

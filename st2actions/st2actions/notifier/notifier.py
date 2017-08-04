@@ -43,7 +43,7 @@ from st2common.constants.action import ACTION_PARAMETERS_KV_PREFIX
 from st2common.constants.action import ACTION_RESULTS_KV_PREFIX
 from st2common.constants.keyvalue import FULL_SYSTEM_SCOPE, SYSTEM_SCOPE, DATASTORE_PARENT_SCOPE
 from st2common.services.keyvalues import KeyValueLookup
-from st2common.constants.queues import NOTIFIER_ACTIONUPDATE_WORK_QUEUE
+from st2common.transport.queues import NOTIFIER_ACTIONUPDATE_WORK_QUEUE
 
 __all__ = [
     'Notifier',

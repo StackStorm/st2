@@ -29,13 +29,13 @@ from st2common.transport.liveaction import LIVEACTION_XCHG, LIVEACTION_STATUS_MG
 from st2common.transport.reactor import SENSOR_CUD_XCHG
 from st2common.transport.reactor import TRIGGER_CUD_XCHG, TRIGGER_INSTANCE_XCHG
 from st2common.transport import reactor
-from st2common.constants.queues import ACTIONSCHEDULER_REQUEST_QUEUE
-from st2common.constants.queues import ACTIONRUNNER_WORK_QUEUE
-from st2common.constants.queues import ACTIONRUNNER_CANCEL_QUEUE
-from st2common.constants.queues import EXPORTER_WORK_QUEUE
-from st2common.constants.queues import NOTIFIER_ACTIONUPDATE_WORK_QUEUE
-from st2common.constants.queues import RESULTSTRACKER_ACTIONSTATE_WORK_QUEUE
-from st2common.constants.queues import RULESENGINE_WORK_QUEUE
+from st2common.transport.queues import ACTIONSCHEDULER_REQUEST_QUEUE
+from st2common.transport.queues import ACTIONRUNNER_WORK_QUEUE
+from st2common.transport.queues import ACTIONRUNNER_CANCEL_QUEUE
+from st2common.transport.queues import EXPORTER_WORK_QUEUE
+from st2common.transport.queues import NOTIFIER_ACTIONUPDATE_WORK_QUEUE
+from st2common.transport.queues import RESULTSTRACKER_ACTIONSTATE_WORK_QUEUE
+from st2common.transport.queues import RULESENGINE_WORK_QUEUE
 
 LOG = logging.getLogger('st2common.transport.bootstrap')
 
