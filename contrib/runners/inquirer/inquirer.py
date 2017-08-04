@@ -68,12 +68,8 @@ class Inquirer(ActionRunner):
 
         liveaction_db = action_utils.get_liveaction_by_id(self.liveaction_id)
 
-        # Retrieve existing response if exists
+        # Retrieve existing response data
         response_data = liveaction_db.result.get("response_data", {})
-
-        # Return immediately if response is already valid
-        if action_service.validate_response(self.schema, response_data):
-            return (LIVEACTION_STATUS_SUCCEEDED, response_data, None)
 
         # Fail if there is no parent execution
         parent = liveaction_db.context.get("parent")
@@ -99,5 +95,4 @@ class Inquirer(ActionRunner):
         # Request pause as final step before returning (to ensure other logic works)
         action_service.request_pause(parent, self.context.get('user', None))
 
-        # TODO there's an issue here, because response_data is {}
-        return (LIVEACTION_STATUS_PENDING, response_data, None)
+        return (LIVEACTION_STATUS_PENDING, {"response_data": response_data}, None)
