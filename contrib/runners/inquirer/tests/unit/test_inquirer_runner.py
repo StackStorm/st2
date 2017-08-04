@@ -29,6 +29,8 @@ mock_liveaction_db.result = {"response_data": {}}
 mock_action_utils = mock.Mock()
 mock_action_utils.get_liveaction_by_id.return_value = mock_liveaction_db
 
+mock_action_service = mock.Mock()
+
 mock_trigger_dispatcher = mock.Mock()
 
 
@@ -41,6 +43,7 @@ class InquiryTestCase(RunnerTestCase):
 
     @mock.patch('inquirer.TriggerDispatcher', mock_trigger_dispatcher)
     @mock.patch('inquirer.action_utils', mock_action_utils)
+    @mock.patch('inquirer.action_service', mock_action_service)
     def test_simple_inquiry(self):
         runner = inquirer.get_runner()
         runner.context = {
@@ -58,9 +61,11 @@ class InquiryTestCase(RunnerTestCase):
         self.assertTrue(output is not None)
         self.assertEqual(output, {"response_data": {}})
         mock_trigger_dispatcher.return_value.dispatch.assert_called_once()
+        mock_action_service.request_pause.assert_called_once()
 
     @mock.patch('inquirer.TriggerDispatcher', mock_trigger_dispatcher)
     @mock.patch('inquirer.action_utils', mock_action_utils)
+    @mock.patch('inquirer.action_service', mock_action_service)
     def test_inquiry_failed_no_parent(self):
         runner = inquirer.get_runner()
         runner.context = {
@@ -78,6 +83,7 @@ class InquiryTestCase(RunnerTestCase):
         self.assertTrue(output is not None)
         self.assertEqual(output, {"response_data": {}})
         mock_trigger_dispatcher.return_value.dispatch.assert_not_called()
+        mock_action_service.request_pause.assert_not_called()
 
     def _get_mock_action_obj(self):
         action = mock.Mock()

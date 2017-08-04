@@ -44,12 +44,6 @@ def _get_immutable_params(parameters):
     return [k for k, v in six.iteritems(parameters) if v.get('immutable', False)]
 
 
-# JUST A STUB FUNCTION FOR TESTING - will remove before merging this PR
-# Will be properly implemented by https://github.com/StackStorm/st2/pull/3507
-def request_pause(liveaction, requester):
-    pass
-
-
 def create_request(liveaction):
     """
     Create an action execution.
@@ -220,13 +214,6 @@ def request_cancellation(liveaction, requester):
     execution = ActionExecution.get(liveaction__id=str(liveaction.id))
 
     return (liveaction, execution)
-
-
-def validate_response(schema, response_data):
-    """Perform JSONschema validation against the response data using the provided
-       schema
-    """
-    return False
 
 
 def _cleanup_liveaction(liveaction):
