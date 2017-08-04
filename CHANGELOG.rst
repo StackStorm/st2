@@ -31,6 +31,7 @@ Fixed
 * Fix retrying in message bus exchange registration. (bug fix) #3635 #3638
 
   Reported by John Arnold.
+* Fix logrotate configuration to delete stale compressed st2actionrunner logs #3647
 
 2.3.2 - July 28, 2017
 ---------------------
