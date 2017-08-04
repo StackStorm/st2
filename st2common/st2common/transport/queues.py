@@ -20,11 +20,14 @@ They are located inside this module so they can be referenced inside multiple pl
 encountering cylic import issues.
 """
 
+from kombu import Queue
+
 from st2common.constants import action as action_constants
 from st2common.transport import reactor
 from st2common.transport import liveaction
 from st2common.transport import execution
 from st2common.transport import actionexecutionstate
+from st2common.transport import announcement
 from st2common.transport import publishers
 
 __all__ = [
@@ -39,7 +42,11 @@ __all__ = [
 
     'RESULTSTRACKER_ACTIONSTATE_WORK_QUEUE',
 
-    'RULESENGINE_WORK_QUEUE'
+    'RULESENGINE_WORK_QUEUE',
+
+    'STREAM_ANNOUNCEMENT_WORK_QUEUE',
+    'STREAM_EXECUTION_WORK_QUEUE',
+    'STREAM_LIVEACTION_WORK_QUEUE'
 ]
 
 # Used by the action scheduler service
@@ -49,7 +56,6 @@ ACTIONSCHEDULER_REQUEST_QUEUE = liveaction.get_status_management_queue(
 # Used by the action runner service
 ACTIONRUNNER_WORK_QUEUE = liveaction.get_status_management_queue(
     'st2.actionrunner.work', routing_key=action_constants.LIVEACTION_STATUS_SCHEDULED)
-
 ACTIONRUNNER_CANCEL_QUEUE = liveaction.get_status_management_queue(
     'st2.actionrunner.canel', routing_key=action_constants.LIVEACTION_STATUS_CANCELING)
 
@@ -68,3 +74,11 @@ RESULTSTRACKER_ACTIONSTATE_WORK_QUEUE = actionexecutionstate.get_queue('st2.resu
 # Used by the rules engine service
 RULESENGINE_WORK_QUEUE = reactor.get_trigger_instances_queue(
     name='st2.trigger_instances_dispatch.rules_engine', routing_key='#')
+
+# Used by the stream service
+STREAM_ANNOUNCEMENT_WORK_QUEUE = announcement.get_queue(routing_key=publishers.ANY_RK,
+                                                        exclusive=True)
+STREAM_EXECUTION_WORK_QUEUE = execution.get_queue(routing_key=publishers.ANY_RK,
+                                                  exclusive=True)
+STREAM_LIVEACTION_WORK_QUEUE = Queue(None, liveaction.LIVEACTION_XCHG,
+                                     routing_key=publishers.ANY_RK, exclusive=True)
