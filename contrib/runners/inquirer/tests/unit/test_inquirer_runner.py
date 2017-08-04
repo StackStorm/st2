@@ -33,6 +33,16 @@ mock_action_service = mock.Mock()
 
 mock_trigger_dispatcher = mock.Mock()
 
+test_user = 'st2admin'
+test_parent_id = '1234567890'
+
+runner_params = {
+    "users": [],
+    "roles": [],
+    "tag": "developers",
+    "schema": {}
+}
+
 
 class InquiryTestCase(RunnerTestCase):
 
@@ -47,21 +57,34 @@ class InquiryTestCase(RunnerTestCase):
     def test_simple_inquiry(self):
         runner = inquirer.get_runner()
         runner.context = {
-            'user': 'st2admin'
+            'user': test_user
         }
         runner.action = self._get_mock_action_obj()
-        runner.runner_parameters = {}
+        runner.runner_parameters = runner_params
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
         mock_liveaction_db.context = {
-            "parent": "1234567890"
+            "parent": test_parent_id
         }
         (status, output, _) = runner.run({})
         self.assertEqual(status, LIVEACTION_STATUS_PENDING)
         self.assertTrue(output is not None)
         self.assertEqual(output, {"response_data": {}})
-        mock_trigger_dispatcher.return_value.dispatch.assert_called_once()
-        mock_action_service.request_pause.assert_called_once()
+        mock_trigger_dispatcher.return_value.dispatch.assert_called_once_with(
+            'core.st2.generic.inquiry',
+            {
+                'users': [],
+                'roles': [],
+                'liveaction_id': None,
+                'tag': "developers",
+                'response': {},
+                'schema': {}
+            }
+        )
+        mock_action_service.request_pause.assert_called_once_with(
+            test_parent_id,
+            test_user
+        )
 
     @mock.patch('inquirer.TriggerDispatcher', mock_trigger_dispatcher)
     @mock.patch('inquirer.action_utils', mock_action_utils)
@@ -72,7 +95,7 @@ class InquiryTestCase(RunnerTestCase):
             'user': 'st2admin'
         }
         runner.action = self._get_mock_action_obj()
-        runner.runner_parameters = {}
+        runner.runner_parameters = runner_params
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
         mock_liveaction_db.context = {
@@ -88,4 +111,6 @@ class InquiryTestCase(RunnerTestCase):
     def _get_mock_action_obj(self):
         action = mock.Mock()
         action.pack = SYSTEM_PACK_NAME
+        action.users = []
+        action.roles = []
         return action
