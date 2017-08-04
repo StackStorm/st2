@@ -75,7 +75,7 @@ class Inquirer(ActionRunner):
         parent = liveaction_db.context.get("parent")
         if not parent:
             LOG.error("Inquiries must be run within a workflow.")
-            return (LIVEACTION_STATUS_FAILED, response_data, None)
+            return (LIVEACTION_STATUS_FAILED, {"response_data": response_data}, None)
 
         # Assemble and dispatch trigger
         trigger_ref = ResourceReference.to_string_reference(
