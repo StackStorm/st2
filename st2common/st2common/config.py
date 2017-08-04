@@ -114,7 +114,7 @@ def register_opts(ignore_errors=False):
     do_register_opts(webui_opts, 'webui', ignore_errors)
 
     db_opts = [
-        cfg.StrOpt('host', default='0.0.0.0', help='host of db server'),
+        cfg.StrOpt('host', default='127.0.0.1', help='host of db server'),
         cfg.IntOpt('port', default=27017, help='port of db server'),
         cfg.StrOpt('db_name', default='st2', help='name of database'),
         cfg.StrOpt('username', help='username for db login'),
@@ -155,7 +155,11 @@ def register_opts(ignore_errors=False):
         cfg.IntOpt('connection_retries', default=10,
                    help='How many times should we retry connection before failing.'),
         cfg.IntOpt('connection_retry_wait', default=10000,
-                   help='How long should we wait between connection retries.')
+                   help='How long should we wait between connection retries.'),
+        cfg.BoolOpt('predeclare_queues', default=False,
+                   help=('Set this to True to pre-declare all the AMQP queues on service startup. '
+                         'This is required with some non-standard kombu transports such as the '
+                         'Redis one.'))
     ]
     do_register_opts(messaging_opts, 'messaging', ignore_errors)
 
@@ -185,7 +189,7 @@ def register_opts(ignore_errors=False):
 
     # Common API options
     api_opts = [
-        cfg.StrOpt('host', default='0.0.0.0', help='StackStorm API server host'),
+        cfg.StrOpt('host', default='127.0.0.1', help='StackStorm API server host'),
         cfg.IntOpt('port', default=9101, help='StackStorm API server port'),
         cfg.ListOpt('allow_origin', default=['http://127.0.0.1:3000'],
                     help='List of origins allowed for api, auth and stream'),

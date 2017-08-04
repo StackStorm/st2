@@ -7,6 +7,37 @@ in development
 Added
 ~~~~~
 
+* Add pack config into action context. This is made available under the ``config_context`` key.
+  #3183
+
+Changed
+~~~~~~~
+
+* Install scripts and documentation has been updated to install MongoDB 3.4 by default (previously
+  3.2 was installed by default). If you want to upgrade an existing installation, please follow
+  official instructions at https://docs.mongodb.com/v3.4/release-notes/3.4-upgrade-standalone/.
+  (improvement)
+* Add ability to pre-declare all used message bus queues (and as such, exchanges) on service setup
+  by setting new ``messaging.predeclare_queues`` config option to ``True``. This is required by
+  some non-default kombu backends such as the Redis one.
+
+  Keep in mind that the only officially supported and used messaging backend still is RabbitMQ.
+  We offer no support for other backends and you use them at your own discretion and risk.
+  (improvement) #3635 #3639
+
+Fixed
+~~~~~
+
+* Fix retrying in message bus exchange registration. (bug fix) #3635 #3638
+
+  Reported by John Arnold.
+
+2.3.2 - July 28, 2017
+---------------------
+
+Added
+~~~~~
+
 * Add ``regex_substring`` Jinja filter for searching for a pattern in a provided string and
   returning the result. (improvement)
 
@@ -18,9 +49,7 @@ Added
   Contributed by Nick Maludy. #3508
 * Update ``st2`` CLI so it also displays "there are more results" note when ``-n`` flag is
   used and there are more items available. (improvement) #3552
-* Add ability to explicitly set ``stream_url`` in st2client.
-* Add pack config into action context. This is made available under the
-  ``config_context`` key.
+* Add ability to explicitly set ``stream_url`` in st2client. (improvement) #3432
 * Add support for handling arrays of dictionaries to ``st2 config`` CLI command. (improvement)
   #3594
 
@@ -31,9 +60,6 @@ Added
   enabled via optional parameter).
 
   Contributed by mierdin. #3565
-
-Changed
-~~~~~~~
 
 Fixed
 ~~~~~
@@ -48,7 +74,6 @@ Fixed
   ``http_proxy`` or ``https_proxy`` environment variables for ``st2api`` and ``st2actionrunner``
   processes and pack commands will work with proxy. Refer to documentation for details on
   proxy configuration. (bug-fix) #3137
-* Fix no-member linting error on U16 by ignoring mistralclient.api.v2.executions module.
 * Fix API validation regression so all input data sent to some POST and PUT API endpoints is
   correctly validated. (bug fix) #3580
 * Fix an API bug and allow users to create rules which reference actions which don't yet exist in
@@ -62,6 +87,11 @@ Fixed
 * Fix st2client API bug, a backward incompatible change in `query()` method, introduced in note
   implementation (#3514) in 2.3.1. The `query()` method is now backward compatible (pre 2.3) and
   `query_with_count()` method is used for results pagination and note. #3616
+* Fix logrotate script so that it no longer prints the `st2ctl` PID status to stdout
+  for each file that it rotates. Also, it will no longer print an error if
+  /var/log/st2/st2web.log is missing.
+  
+  Contributed by Nick Maludy. #3633
 
 2.3.1 - July 07, 2017
 ---------------------
