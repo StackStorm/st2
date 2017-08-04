@@ -26,21 +26,20 @@ from st2common.models.api.execution import ActionExecutionAPI
 from st2common.models.db.execution import ActionExecutionDB
 from st2common.persistence.execution import ActionExecution
 from st2common.persistence.marker import DumperMarker
-from st2common.transport import consumers, execution, publishers
+from st2common.transport import consumers
 from st2common.transport import utils as transport_utils
 from st2common.util import isotime
 from st2exporter.exporter.dumper import Dumper
+from st2common.transport.queues import EXPORTER_WORK_QUEUE
 
 __all__ = [
-    'ExecutionsExporter'
+    'ExecutionsExporter',
+    'get_worker'
 ]
 
 COMPLETION_STATUSES = [LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED,
                        LIVEACTION_STATUS_CANCELED]
 LOG = logging.getLogger(__name__)
-
-EXPORTER_WORK_Q = execution.get_queue(
-    'st2.exporter.work', routing_key=publishers.UPDATE_RK)
 
 
 class ExecutionsExporter(consumers.MessageHandler):
@@ -127,4 +126,4 @@ class ExecutionsExporter(consumers.MessageHandler):
 
 def get_worker():
     with Connection(transport_utils.get_messaging_urls()) as conn:
-        return ExecutionsExporter(conn, [EXPORTER_WORK_Q])
+        return ExecutionsExporter(conn, [EXPORTER_WORK_QUEUE])
