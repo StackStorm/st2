@@ -29,7 +29,7 @@ Fixed
   This could happen in a scenario when API service came online and served a request before action
   runner service came online.
 
-  This also fixes an issue with Redis kombu backend not working. (bug fix) #3635 #3639
+  This also fixes an issue with Redis kombu backend not working. (bug fix) #3635 #3639 #3648
 
 2.3.2 - July 28, 2017
 ---------------------
