@@ -30,6 +30,7 @@ Fixed
   runner service came online.
 
   This also fixes an issue with Redis kombu backend not working. (bug fix) #3635 #3639 #3648
+* Fix logrotate configuration to delete stale compressed st2actionrunner logs #3647
 
 2.3.2 - July 28, 2017
 ---------------------
