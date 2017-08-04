@@ -17,13 +17,6 @@ Changed
   3.2 was installed by default). If you want to upgrade an existing installation, please follow
   official instructions at https://docs.mongodb.com/v3.4/release-notes/3.4-upgrade-standalone/.
   (improvement)
-* Add ability to pre-declare all used message bus queues (and as such, exchanges) on service setup
-  by setting new ``messaging.predeclare_queues`` config option to ``True``. This is required by
-  some non-default kombu backends such as the Redis one.
-
-  Keep in mind that the only officially supported and used messaging backend still is RabbitMQ.
-  We offer no support for other backends and you use them at your own discretion and risk.
-  (improvement) #3635 #3639
 
 Fixed
 ~~~~~
@@ -31,6 +24,12 @@ Fixed
 * Fix retrying in message bus exchange registration. (bug fix) #3635 #3638
 
   Reported by John Arnold.
+* Fix message bus related race condition which could, under some rare scenarios, cause first
+  published message to be ignored because there were no consumers for that particular queue yet.
+  This could happen in a scenario when API service came online and served a request before action
+  runner service came online.
+
+  This also fixes an issue with Redis kombu backend not working. (bug fix) #3635 #3639 #3648
 * Fix logrotate configuration to delete stale compressed st2actionrunner logs #3647
 
 2.3.2 - July 28, 2017

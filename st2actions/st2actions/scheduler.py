@@ -23,19 +23,18 @@ from st2common.services import action as action_service
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.policy import Policy
 from st2common import policies
-from st2common.transport import consumers, liveaction
+from st2common.transport import consumers
 from st2common.transport import utils as transport_utils
 from st2common.util import action_db as action_utils
+from st2common.transport.queues import ACTIONSCHEDULER_REQUEST_QUEUE
 
 __all__ = [
-    'get_scheduler',
+    'ActionExecutionScheduler',
+    'get_scheduler'
 ]
 
 
 LOG = logging.getLogger(__name__)
-
-ACTIONRUNNER_REQUEST_Q = liveaction.get_status_management_queue(
-    'st2.actionrunner.req', routing_key=action_constants.LIVEACTION_STATUS_REQUESTED)
 
 
 class ActionExecutionScheduler(consumers.MessageHandler):
@@ -108,4 +107,4 @@ class ActionExecutionScheduler(consumers.MessageHandler):
 
 def get_scheduler():
     with Connection(transport_utils.get_messaging_urls()) as conn:
-        return ActionExecutionScheduler(conn, [ACTIONRUNNER_REQUEST_Q])
+        return ActionExecutionScheduler(conn, [ACTIONSCHEDULER_REQUEST_QUEUE])
