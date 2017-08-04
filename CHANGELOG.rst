@@ -25,7 +25,7 @@ Fixed
 
   Reported by John Arnold.
 * Fix message bus related race condition which could, under some rare scenarios, cause first
-  published message to get ignored because there were no consumers for a particular queue yet.
+  published message to be ignored because there were no consumers for that particular queue yet.
   This could happen in a scenario when API service came online and served a request before action
   runner service came online.
 
