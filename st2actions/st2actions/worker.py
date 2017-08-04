@@ -26,21 +26,16 @@ from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.persistence.execution import ActionExecution
 from st2common.services import executions
-from st2common.transport import liveaction
 from st2common.transport.consumers import MessageHandler
 from st2common.transport.consumers import ActionsQueueConsumer
 from st2common.transport import utils as transport_utils
 from st2common.util import action_db as action_utils
 from st2common.util import system_info
+from st2common.constants.queues import ACTIONRUNNER_WORK_QUEUE
+from st2common.constants.queues import ACTIONRUNNER_CANCEL_QUEUE
 
 
 LOG = logging.getLogger(__name__)
-
-ACTIONRUNNER_WORK_Q = liveaction.get_status_management_queue(
-    'st2.actionrunner.work', routing_key=action_constants.LIVEACTION_STATUS_SCHEDULED)
-
-ACTIONRUNNER_CANCEL_Q = liveaction.get_status_management_queue(
-    'st2.actionrunner.canel', routing_key=action_constants.LIVEACTION_STATUS_CANCELING)
 
 
 class ActionExecutionDispatcher(MessageHandler):
@@ -176,4 +171,5 @@ class ActionExecutionDispatcher(MessageHandler):
 
 def get_worker():
     with Connection(transport_utils.get_messaging_urls()) as conn:
-        return ActionExecutionDispatcher(conn, [ACTIONRUNNER_WORK_Q, ACTIONRUNNER_CANCEL_Q])
+        return ActionExecutionDispatcher(conn, [ACTIONRUNNER_WORK_QUEUE,
+                                                ACTIONRUNNER_CANCEL_QUEUE])
