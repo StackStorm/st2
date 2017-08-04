@@ -177,7 +177,8 @@ class DownloadGitRepoAction(Action):
         if active_branch.name not in branches or use_branch:
             branch = 'origin/%s' % ref if use_branch else branches[0]
             short_branch = ref if use_branch else branches[0].split('/')[-1]
-            repo.git.checkout('-b', short_branch, branch)
+            if short_branch != branch:
+                repo.git.checkout('-b', short_branch, branch)
             branch = repo.head.reference
         else:
             branch = repo.active_branch.name
