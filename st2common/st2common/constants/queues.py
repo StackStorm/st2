@@ -28,7 +28,7 @@ from st2common.transport import actionexecutionstate
 from st2common.transport import publishers
 
 __all__ = [
-    'ACTIONRUNNER_REQUEST_QUEUE',
+    'ACTIONSCHEDULER_REQUEST_QUEUE',
 
     'ACTIONRUNNER_WORK_QUEUE',
     'ACTIONRUNNER_CANCEL_QUEUE',
@@ -43,7 +43,7 @@ __all__ = [
 ]
 
 # Used by the action scheduler service
-ACTIONRUNNER_REQUEST_QUEUE = liveaction.get_status_management_queue(
+ACTIONSCHEDULER_REQUEST_QUEUE = liveaction.get_status_management_queue(
     'st2.actionrunner.req', routing_key=action_constants.LIVEACTION_STATUS_REQUESTED)
 
 # Used by the action runner service
