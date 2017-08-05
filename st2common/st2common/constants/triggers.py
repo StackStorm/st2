@@ -66,7 +66,6 @@ ACTION_SENSOR_TRIGGER = {
     }
 }
 
-
 ACTION_FILE_WRITTEN_TRIGGER = {
     'name': 'st2.action.file_writen',
     'pack': SYSTEM_PACK_NAME,
