@@ -25,7 +25,7 @@ from functools import wraps
 
 import six
 
-from st2common.logging.filters import ExclusionFilter
+from st2common.logging.filters import LoggerNameExclusionFilter
 
 # Those are here for backward compatibility reasons
 from st2common.logging.handlers import FormatNamedFileHandler
@@ -168,7 +168,7 @@ logging.Logger.audit = _audit
 def _add_exclusion_filters(handlers, excludes=None):
     if excludes:
         for h in handlers:
-            h.addFilter(ExclusionFilter(excludes))
+            h.addFilter(LoggerNameExclusionFilter(excludes))
 
 
 def _redirect_stderr():
