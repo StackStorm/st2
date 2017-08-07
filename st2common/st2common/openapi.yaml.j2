@@ -1187,6 +1187,29 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /api/v1/inquiries:
+    post:
+      operationId: st2api.controllers.v1.inquiries:inquiries_controller.post
+      description: |
+        Respond to an Inquiry.
+      parameters:
+        - name: response
+          in: body
+          description: Inquiry response
+          schema:
+            $ref: '#/definitions/InquiryResponse'
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '204':
+          description: Response received
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   /api/v1/keys:
     get:
       operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.get_all
@@ -3999,6 +4022,18 @@ definitions:
     additionalProperties: False
   ExecutionFilters:
     type: object
+  InquiryResponse:
+    type: object
+    required:
+      - inquiry_id
+      - response_data
+    properties:
+      inquiry_id:
+        description: ID of inquiry to which this response is directed
+        type: string
+      response_data:
+        description: response data
+        type: object
   KeyValuePair:
     type: object
   KeyValuePairRequest:
