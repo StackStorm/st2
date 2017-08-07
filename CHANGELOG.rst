@@ -9,12 +9,15 @@ Added
 
 * Add pack config into action context. This is made available under the ``config_context`` key.
   #3183
+* Add limit/"-n" flag and pagination note(stderr) in the CLI for ``st2 key list``.
+  Default limit is 50.
+  #3641
 
 Changed
 ~~~~~~~
 
 * Install scripts and documentation has been updated to install MongoDB 3.4 by default (previously
-  3.2 was installed by default). If you want to upgrade an existing installation, please follow 
+  3.2 was installed by default). If you want to upgrade an existing installation, please follow
   official instructions at https://docs.mongodb.com/v3.4/release-notes/3.4-upgrade-standalone/.
   (improvement)
 
@@ -83,7 +86,7 @@ Fixed
 * Fix logrotate script so that it no longer prints the `st2ctl` PID status to stdout
   for each file that it rotates. Also, it will no longer print an error if
   /var/log/st2/st2web.log is missing.
-  
+
   Contributed by Nick Maludy. #3633
 
 2.3.1 - July 07, 2017
