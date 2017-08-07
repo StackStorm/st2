@@ -20,7 +20,6 @@ from os.path import join as pjoin
 
 from st2client.commands import resource
 from st2client.commands.noop import NoopCommand
-from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
 from st2client.formatters import table
 from st2client.models.keyvalue import KeyValuePair
 from st2client.utils.date import format_isodate_for_user_timezone
@@ -86,24 +85,35 @@ class KeyValuePairListCommand(resource.ResourceTableCommand):
                                  help=('List N most recent %s. Default is 50.' %
                                        self.resource_name))
 
-    @add_auth_token_to_kwargs_from_cli
-    def run_and_print(self, args, **kwargs):
+    @resource.add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        # Filtering options
         if args.prefix:
             kwargs['prefix'] = args.prefix
-
         decrypt = getattr(args, 'decrypt', False)
-        kwargs['params'] = {'decrypt': str(decrypt).lower()}
+        kwargs['decrypt'] = str(decrypt).lower()
         scope = getattr(args, 'scope', DEFAULT_SCOPE)
-        kwargs['params']['scope'] = scope
-        kwargs['params']['user'] = args.user
+        kwargs['scope'] = scope
+        if args.user:
+            kwargs['user'] = args.user
         kwargs['limit'] = args.last
+        return self.manager.query_with_count(**kwargs)
 
-        instances = self.run(args, **kwargs)
-        self.print_output(reversed(instances), table.MultiColumnTable,
-                          attributes=args.attr, widths=args.width,
-                          json=args.json,
-                          yaml=args.yaml,
-                          attribute_transform_functions=self.attribute_transform_functions)
+    @resource.add_auth_token_to_kwargs_from_cli
+    def run_and_print(self, args, **kwargs):
+        instances, count = self.run(args, **kwargs)
+        if args.json or args.yaml:
+            self.print_output(reversed(instances), table.MultiColumnTable,
+                              attributes=args.attr, widths=args.width,
+                              json=args.json, yaml=args.yaml,
+                              attribute_transform_functions=self.attribute_transform_functions)
+        else:
+            self.print_output(instances, table.MultiColumnTable,
+                              attributes=args.attr, widths=args.width,
+                              attribute_transform_functions=self.attribute_transform_functions)
+
+            if args.last and count and count > args.last:
+                table.SingleRowTable.note_box(self.resource_name, args.last)
 
 
 class KeyValuePairGetCommand(resource.ResourceGetCommand):
@@ -117,7 +127,7 @@ class KeyValuePairGetCommand(resource.ResourceGetCommand):
         self.parser.add_argument('-s', '--scope', default=DEFAULT_SCOPE, dest='scope',
                                  help='Scope item is under. Example: "user".')
 
-    @add_auth_token_to_kwargs_from_cli
+    @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         resource_name = getattr(args, self.pk_argument_name, None)
         decrypt = getattr(args, 'decrypt', False)
@@ -188,7 +198,7 @@ class KeyValuePairDeleteCommand(resource.ResourceDeleteCommand):
         self.parser.add_argument('-u', '--user', dest='user', default=None,
                                  help='User for user scoped items (admin only).')
 
-    @add_auth_token_to_kwargs_from_cli
+    @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         resource_id = getattr(args, self.pk_argument_name, None)
         scope = getattr(args, 'scope', DEFAULT_SCOPE)
@@ -219,7 +229,7 @@ class KeyValuePairDeleteByPrefixCommand(resource.ResourceCommand):
         self.parser.add_argument('-p', '--prefix', required=True,
                                  help='Name prefix (e.g. twitter.TwitterSensor:)')
 
-    @add_auth_token_to_kwargs_from_cli
+    @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         prefix = args.prefix
         key_pairs = self.manager.get_all(prefix=prefix)
@@ -260,7 +270,7 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
             'file', help=('JSON file containing the %s to create.'
                           % resource.get_plural_display_name().lower()))
 
-    @add_auth_token_to_kwargs_from_cli
+    @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         file_path = os.path.normpath(pjoin(os.getcwd(), args.file))
 
