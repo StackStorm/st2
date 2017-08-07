@@ -1188,7 +1188,58 @@ paths:
           schema:
             $ref: '#/definitions/Error'
   /api/v1/inquiries:
-    post:
+    get:
+      operationId: st2api.controllers.v1.inquiries:inquiries_controller.get_all
+      description: Returns a list of all inquiries
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: List of inquries
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Inquiry'
+          examples:
+            application/json:
+              ref: 'core.local'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/inquiries/{id}:
+    get:
+      operationId: st2api.controllers.v1.inquiries:inquiries_controller.get_one
+      description: |
+        Get a specific Inquiry based on ID.
+      parameters:
+        - name: id
+          in: path
+          description: Inquiry ID
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Inquiry requested.
+          schema:
+            $ref: '#/definitions/Inquiry'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
       operationId: st2api.controllers.v1.inquiries:inquiries_controller.post
       description: |
         Respond to an Inquiry.
@@ -4021,6 +4072,8 @@ definitions:
         type: object
     additionalProperties: False
   ExecutionFilters:
+    type: object
+  Inquiry:
     type: object
   InquiryResponse:
     type: object

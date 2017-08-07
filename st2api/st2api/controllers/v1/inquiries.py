@@ -23,13 +23,23 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 
+test_inquiry = {
+    "id": "abcdef",
+    "params": {
+        "tag": "developers",
+        "users": [],
+        "roles": []
+    }
+}
+
+
 class InquiriesController(ResourceController):
 
     def get_all(self):
-        pass
+        return [test_inquiry]
 
     def get_one(self):
-        pass
+        return test_inquiry
 
     def put(self, id, liveaction_api, requester_user, show_secrets=False):
         """
