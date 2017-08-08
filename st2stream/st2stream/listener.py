@@ -15,14 +15,16 @@
 
 import eventlet
 
-from kombu import Connection, Queue
+from kombu import Connection
 from kombu.mixins import ConsumerMixin
 from oslo_config import cfg
 
 from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.execution import ActionExecutionAPI
-from st2common.transport import announcement, liveaction, execution, publishers
 from st2common.transport import utils as transport_utils
+from st2common.transport.queues import STREAM_ANNOUNCEMENT_WORK_QUEUE
+from st2common.transport.queues import STREAM_EXECUTION_WORK_QUEUE
+from st2common.transport.queues import STREAM_LIVEACTION_WORK_QUEUE
 from st2common import log as logging
 
 __all__ = [
@@ -44,20 +46,15 @@ class Listener(ConsumerMixin):
 
     def get_consumers(self, consumer, channel):
         return [
-            consumer(queues=[announcement.get_queue(routing_key=publishers.ANY_RK,
-                                                    exclusive=True)],
+            consumer(queues=[STREAM_ANNOUNCEMENT_WORK_QUEUE],
                      accept=['pickle'],
                      callbacks=[self.processor()]),
 
-            consumer(queues=[execution.get_queue(routing_key=publishers.ANY_RK,
-                                                 exclusive=True)],
+            consumer(queues=[STREAM_EXECUTION_WORK_QUEUE],
                      accept=['pickle'],
                      callbacks=[self.processor(ActionExecutionAPI)]),
 
-            consumer(queues=[Queue(None,
-                                   liveaction.LIVEACTION_XCHG,
-                                   routing_key=publishers.ANY_RK,
-                                   exclusive=True)],
+            consumer(queues=[STREAM_LIVEACTION_WORK_QUEUE],
                      accept=['pickle'],
                      callbacks=[self.processor(LiveActionAPI)])
         ]
