@@ -57,7 +57,7 @@ class InquiriesController(ResourceController):
     def get_one(self, id, requester_user=None):
         return [i for i in test_inquiries if i["id"] == id][0]
 
-    def put(self, id, requester_user=None):
+    def put(self, id, response_data, requester_user=None):
         """
         This function in particular will:
 

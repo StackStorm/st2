@@ -1233,11 +1233,16 @@ paths:
           schema:
             $ref: '#/definitions/Error'
     put:
-      operationId: st2api.controllers.v1.inquiries:inquiries_controller.post
+      operationId: st2api.controllers.v1.inquiries:inquiries_controller.put
       description: |
         Respond to an Inquiry.
       parameters:
-        - name: response
+        - name: id
+          in: path
+          description: Inquiry ID
+          type: string
+          required: true
+        - name: response_data
           in: body
           description: Inquiry response
           schema:
@@ -4071,12 +4076,8 @@ definitions:
   InquiryResponse:
     type: object
     required:
-      - inquiry_id
       - response_data
     properties:
-      inquiry_id:
-        description: ID of inquiry to which this response is directed
-        type: string
       response_data:
         description: response data
         type: object
