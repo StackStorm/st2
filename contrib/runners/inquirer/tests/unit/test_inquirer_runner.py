@@ -74,7 +74,7 @@ class InquiryTestCase(RunnerTestCase):
             {
                 'users': [],
                 'roles': [],
-                'liveaction_id': None,
+                'id': None,
                 'tag': "developers",
                 'response': {},
                 'schema': {}
@@ -115,7 +115,7 @@ class InquiryTestCase(RunnerTestCase):
             {
                 'users': [],
                 'roles': [],
-                'liveaction_id': None,
+                'id': None,
                 'tag': "developers",
                 'response': {},
                 'schema': {}

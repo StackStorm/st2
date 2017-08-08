@@ -74,7 +74,7 @@ class Inquirer(ActionRunner):
             name=INQUIRY_TRIGGER['name']
         )
         trigger_payload = {
-            "liveaction_id": self.liveaction_id,
+            "id": self.liveaction_id,
             "response": response_data,
             "schema": self.schema,
             "roles": self.roles_param,

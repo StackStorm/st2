@@ -108,12 +108,36 @@ INQUIRY_TRIGGER = {
     'payload_schema': {
         'type': 'object',
         'properties': {
-            'liveaction_id': {},
-            'response': {},
-            'schema': {},
-            'roles': {},
-            'users': {},
-            'tag': {}
+            'id': {
+                'type': 'string',
+                'description': 'ID of this inquiry'
+            },
+            'response': {
+                'type': 'object',
+                'description': 'Response data'
+            },
+            'schema': {
+                'type': 'object',
+                'description': 'JSON schema used to validate repsonse(s)'
+            },
+            'roles': {
+                'type': 'array',
+                'description': 'List of RBAC roles permitted to respond to this inquiry',
+                'items': {
+                    'type': 'string'
+                }
+            },
+            'users': {
+                'type': 'array',
+                'description': 'List of users permitted to respond to this inquiry',
+                'items': {
+                    'type': 'string'
+                }
+            },
+            'tag': {
+                'type': 'string',
+                'description': 'User-defined, arbitrary field for tracking intent for inquiry'
+            }
         }
     }
 }
