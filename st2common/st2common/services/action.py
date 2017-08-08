@@ -21,6 +21,8 @@ from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.trace import TraceNotFoundException
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
+from st2common.models.db.execution import ActionExecutionStdoutOutputDB
+from st2common.models.db.execution import ActionExecutionStderrOutputDB
 from st2common.services import executions
 from st2common.services import trace as trace_service
 from st2common.util import date as date_utils
@@ -32,7 +34,9 @@ __all__ = [
     'request',
     'create_request',
     'publish_request',
-    'is_action_canceled_or_canceling'
+    'is_action_canceled_or_canceling',
+    'store_execution_stdout_line',
+    'store_execution_stderr_line'
 ]
 
 LOG = logging.getLogger(__name__)
@@ -214,6 +218,30 @@ def request_cancellation(liveaction, requester):
     execution = ActionExecution.get(liveaction__id=str(liveaction.id))
 
     return (liveaction, execution)
+
+
+def store_execution_stdout_line(execution_id, line, timestamp=None):
+    """
+    Store a line from stdout from a particular execution in the database.
+    """
+    timestamp = timestamp or date_utils.get_datetime_utc_now()
+    document = ActionExecutionStdoutOutputDB(execution_id=execution_id,
+            timestamp=timestamp, line=line)
+    document.save()
+
+    return document
+
+
+def store_execution_stderr_line(execution_id, line, timestamp=None):
+    """
+    Store a line from stderr from a particular execution in the database.
+    """
+    timestamp = timestamp or date_utils.get_datetime_utc_now()
+    document = ActionExecutionStderrOutputDB(execution_id=execution_id,
+            timestamp=timestamp, line=line)
+    document.save()
+
+    return document
 
 
 def _cleanup_liveaction(liveaction):
