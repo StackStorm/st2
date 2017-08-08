@@ -26,7 +26,9 @@ from st2common.util.secrets import mask_secret_parameters
 from st2common.constants.types import ResourceType
 
 __all__ = [
-    'ActionExecutionDB'
+    'ActionExecutionDB',
+    'ActionExecutionStdoutOutputDB',
+    'ActionExecutionStderrOutputDB',
 ]
 
 
@@ -121,4 +123,45 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
         return serializable_dict['parameters']
 
 
-MODELS = [ActionExecutionDB]
+class ActionExecutionStdoutOutputDB(stormbase.StormFoundationDB):
+    """
+    Stores stdout output of a particular action.
+
+    New document is inserted dynamically when a new line is received which means you can simulate
+    tail behavior by periodically reading from this collection.
+    """
+    execution_id = me.StringField(required=True)
+    timestamp = me.DateTimeField(required=True)
+
+    line = me.StringField()
+
+    meta = {
+        'indexes': [
+            {'fields': ['execution_id']},
+            {'fields': ['timestamp']}
+        ]
+    }
+
+
+class ActionExecutionStderrOutputDB(stormbase.StormFoundationDB):
+    """
+    Stores stderr output of a particular action.
+
+    New document is inserted dynamically when a new line is received which means you can simulate
+    tail behavior by periodically reading from this collection.
+    """
+    execution_id = me.StringField(required=True)
+    timestamp = me.DateTimeField(required=True)
+
+    line = me.StringField()
+
+    meta = {
+        'indexes': [
+            {'fields': ['execution_id']},
+            {'fields': ['timestamp']}
+        ]
+    }
+
+
+MODELS = [ActionExecutionDB, ActionExecutionStdoutOutputDB,
+        ActionExecutionStderrOutputDB]
