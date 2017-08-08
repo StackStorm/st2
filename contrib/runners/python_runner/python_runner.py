@@ -18,6 +18,7 @@ import re
 import sys
 import json
 import uuid
+from StringIO import StringIO
 from subprocess import list2cmdline
 
 from eventlet.green import subprocess
@@ -40,6 +41,8 @@ from st2common.util.sandboxing import get_sandbox_python_path
 from st2common.util.sandboxing import get_sandbox_python_binary_path
 from st2common.util.sandboxing import get_sandbox_virtualenv_path
 from st2common.runners import python_action_wrapper
+from st2common.services.action import store_execution_stdout_line
+from st2common.services.action import store_execution_stderr_line
 
 LOG = logging.getLogger(__name__)
 
@@ -141,12 +144,50 @@ class PythonRunner(ActionRunner):
         datastore_env_vars = self._get_datastore_access_env_vars()
         env.update(datastore_env_vars)
 
+        stdout = StringIO()
+        stderr = StringIO()
+
+        execution_id = str(self.execution.id)
+
+        def read_and_store_stdout(stream, buff):
+            try:
+                while not stream.closed:
+                    line = stream.readline()
+                    if not line:
+                        break
+
+                    # TODO: Also dispatch server-sent event
+                    store_execution_stdout_line(execution_id=execution_id, line=line)
+                    buff.write(line)
+            except RuntimeError:
+                # process was terminated abruptly
+                pass
+
+        def read_and_store_stderr(stream, buff):
+            try:
+                while not stream.closed:
+                    line = stream.readline()
+                    if not line:
+                        break
+
+                    # TODO: Also dispatch server-sent event
+                    store_execution_stderr_line(execution_id=execution_id, line=line)
+                    buff.write(line)
+            except RuntimeError:
+                # process was terminated abruptly
+                pass
+
         command_string = list2cmdline(args)
         LOG.debug('Running command: PATH=%s PYTHONPATH=%s %s' % (env['PATH'], env['PYTHONPATH'],
                                                                  command_string))
         exit_code, stdout, stderr, timed_out = run_command(cmd=args, stdout=subprocess.PIPE,
                                                            stderr=subprocess.PIPE, shell=False,
-                                                           env=env, timeout=self._timeout)
+                                                           env=env,
+                                                           timeout=self._timeout,
+                                                           read_stdout_func=read_and_store_stdout,
+                                                           read_stderr_func=read_and_store_stderr,
+                                                           read_stdout_buffer=stdout,
+                                                           read_stderr_buffer=stderr)
         LOG.debug('Returning values: %s, %s, %s, %s' % (exit_code, stdout, stderr, timed_out))
         LOG.debug('Returning.')
         return self._get_output_values(exit_code, stdout, stderr, timed_out)
