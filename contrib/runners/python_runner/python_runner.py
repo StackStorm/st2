@@ -35,6 +35,7 @@ from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT
 from st2common.constants.system import API_URL_ENV_VARIABLE_NAME
 from st2common.constants.system import AUTH_TOKEN_ENV_VARIABLE_NAME
 from st2common.util.api import get_full_public_api_url
+from st2common.util.pack import get_pack_common_libs_path
 from st2common.util.sandboxing import get_sandbox_path
 from st2common.util.sandboxing import get_sandbox_python_path
 from st2common.util.sandboxing import get_sandbox_python_binary_path
@@ -128,8 +129,13 @@ class PythonRunner(ActionRunner):
         LOG.debug('Setting env.')
         env = os.environ.copy()
         env['PATH'] = get_sandbox_path(virtualenv_path=virtualenv_path)
-        env['PYTHONPATH'] = get_sandbox_python_path(inherit_from_parent=True,
-                                                    inherit_parent_virtualenv=True)
+
+
+        sandbox_python_path = get_sandbox_python_path(inherit_from_parent=True,
+                                                      inherit_parent_virtualenv=True)
+        pack_common_libs_path = get_pack_common_libs_path(pack_db=pack_db)
+
+        env['PYTHONPATH'] = pack_common_libs_path + ':' + sandbox_python_path
 
         # Include user provided environment variables (if any)
         user_env_vars = self._get_env_vars()
