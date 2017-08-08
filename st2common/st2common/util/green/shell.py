@@ -83,7 +83,7 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
 
     :rtype: ``tuple`` (exit_code, stdout, stderr, timed_out)
     """
-    LOG.debug("Entering run_command.")
+    LOG.debug('Entering run_command.')
     assert isinstance(cmd, (list, tuple) + six.string_types)
 
     if (read_stdout_callback and not read_stderr_callback) or (read_stderr_callback and
@@ -95,13 +95,13 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         raise ValueError('read_stdout_buffer and read_stderr_buffer arguments need to be provided '
                          'when read_stdout_callback is provided')
 
-    LOG.debug("Setting env if not set.")
+    LOG.debug('Setting env if not set.')
     if not env:
         env = os.environ.copy()
 
     # Note: We are using eventlet friendly implementation of subprocess
     # which uses GreenPipe so it doesn't block
-    LOG.debug("Creating subprocess.")
+    LOG.debug('Creating subprocess.')
     process = subprocess.Popen(args=cmd, stdin=stdin, stdout=stdout, stderr=stderr,
                                env=env, cwd=cwd, shell=shell, preexec_fn=preexec_func)
 
@@ -117,24 +117,24 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         global timed_out
 
         try:
-            LOG.debug("Starting process wait.")
+            LOG.debug('Starting process wait.')
             process.wait(timeout=timeout)
         except subprocess.TimeoutExpired:
             # Command has timed out, kill the process and propagate the error.
             # Note: We explicitly set the returncode to indicate the timeout.
-            LOG.debug("Timeout.")
+            LOG.debug('Timeout.')
             process.returncode = TIMEOUT_EXIT_CODE
 
             if kill_func:
-                LOG.debug("Kill_func.")
+                LOG.debug('Kill_func.')
                 kill_func(process=process)
             else:
-                LOG.debug("Kill process.")
+                LOG.debug('Kill process.')
                 process.kill()
 
-    LOG.debug("Setting up process and callback.")
+    LOG.debug('Setting up process and callback.')
     timeout_thread = eventlet.spawn(on_timeout_expired, timeout)
-    LOG.debug("Attaching to process.")
+    LOG.debug('Attaching to process.')
 
     if read_stderr_callback or read_stderr_callback:
         LOG.debug('Using live stdout and stderr read mode, calling process.wait()')
@@ -151,11 +151,11 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         stderr = read_stderr_buffer.getvalue()
 
     if exit_code == TIMEOUT_EXIT_CODE:
-        LOG.debug("Timeout.")
+        LOG.debug('Timeout.')
         timed_out = True
     else:
-        LOG.debug("No timeout.")
+        LOG.debug('No timeout.')
         timed_out = False
 
-    LOG.debug("Returning.")
+    LOG.debug('Returning.')
     return (exit_code, stdout, stderr, timed_out)
