@@ -1203,9 +1203,6 @@ paths:
             type: array
             items:
               $ref: '#/definitions/Inquiry'
-          examples:
-            application/json:
-              ref: 'core.local'
         default:
           description: Unexpected error
           schema:
@@ -1231,10 +1228,6 @@ paths:
           description: Inquiry requested.
           schema:
             $ref: '#/definitions/Inquiry'
-          examples:
-            application/json:
-              ref: 'core.local'
-              # and stuff
         default:
           description: Unexpected error
           schema:
