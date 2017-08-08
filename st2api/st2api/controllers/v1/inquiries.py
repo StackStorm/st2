@@ -23,27 +23,43 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 
-test_inquiry = {
-    "id": "abcdef",
-    "params": {
-        "tag": "developers",
-        "users": [],
-        "roles": []
+test_inquiries = [
+    {
+        "id": "abcdef",
+        "params": {
+            "tag": "developers",
+            "users": [],
+            "roles": []
+        }
+    },
+    {
+        "id": "123456",
+        "params": {
+            "tag": "ops",
+            "users": [],
+            "roles": []
+        }
     }
-}
+]
 
 
 class InquiriesController(ResourceController):
+    """Everything in this controller is just a PoC at this point. Just getting my feet wet and
+       using dummy data before diving into the actual back-end queries.
+    """
+    supported_filters = {}
+    model = None
+    access = None
 
-    def get_all(self):
-        return [test_inquiry]
+    def get_all(self, requester_user=None):
+        return [test_inquiries]
 
-    def get_one(self):
-        return test_inquiry
+    def get_one(self, id, requester_user=None):
+        return [i for i in test_inquiries if i["id"] == id][0]
 
-    def put(self, id, liveaction_api, requester_user, show_secrets=False):
+    def put(self, id, requester_user=None):
         """
-        Things to implement in this function:
+        This function in particular will:
 
         1. Retrieve details of the inquiry via ID (i.e. params like schema)
         2. Get current roles of which `requester_user` is a member (if any)
@@ -54,7 +70,7 @@ class InquiriesController(ResourceController):
         6. Retrieve parent execution for the inquiry, and pass this to action_service.request_resume
 
         """
-        pass
+        return "Received data for inquiry %s" % id
 
 
 inquiries_controller = InquiriesController()
