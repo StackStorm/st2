@@ -16,7 +16,6 @@
 import uuid
 
 from st2common import log as logging
-from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_STATUS_PENDING
 from st2common.constants.triggers import INQUIRY_TRIGGER
 from st2common.models.system.common import ResourceReference
@@ -69,12 +68,6 @@ class Inquirer(ActionRunner):
         # Retrieve existing response data
         response_data = liveaction_db.result.get("response_data", {})
 
-        # Fail if there is no parent execution
-        parent = liveaction_db.context.get("parent")
-        if not parent:
-            LOG.error("Inquiries must be run within a workflow.")
-            return (LIVEACTION_STATUS_FAILED, {"response_data": response_data}, None)
-
         # Assemble and dispatch trigger
         trigger_ref = ResourceReference.to_string_reference(
             pack=INQUIRY_TRIGGER['pack'],
@@ -90,7 +83,9 @@ class Inquirer(ActionRunner):
         }
         self.trigger_dispatcher.dispatch(trigger_ref, trigger_payload)
 
-        # Request pause as final step before returning (to ensure other logic works)
-        action_service.request_pause(parent, self.context.get('user', None))
+        # Request pause if parent execution exists (workflow)
+        parent = liveaction_db.context.get("parent")
+        if parent:
+            action_service.request_pause(parent, self.context.get('user', None))
 
         return (LIVEACTION_STATUS_PENDING, {"response_data": response_data}, None)

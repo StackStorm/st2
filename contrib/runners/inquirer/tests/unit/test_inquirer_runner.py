@@ -18,7 +18,6 @@ import mock
 import inquirer
 from st2actions.container import service
 from st2common.constants.action import LIVEACTION_STATUS_PENDING
-from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.pack import SYSTEM_PACK_NAME
 from st2tests.base import RunnerTestCase
 
@@ -85,11 +84,17 @@ class InquiryTestCase(RunnerTestCase):
             test_parent_id,
             test_user
         )
+        mock_trigger_dispatcher.reset_mock()
+        mock_action_utils.reset_mock()
+        mock_action_service.reset_mock()
 
     @mock.patch('inquirer.TriggerDispatcher', mock_trigger_dispatcher)
     @mock.patch('inquirer.action_utils', mock_action_utils)
     @mock.patch('inquirer.action_service', mock_action_service)
-    def test_inquiry_failed_no_parent(self):
+    def test_inquiry_no_parent(self):
+        """Should behave like a regular execution, but without requesting a pause
+        """
+
         runner = inquirer.get_runner()
         runner.context = {
             'user': 'st2admin'
@@ -102,11 +107,24 @@ class InquiryTestCase(RunnerTestCase):
             "parent": None
         }
         (status, output, _) = runner.run({})
-        self.assertEqual(status, LIVEACTION_STATUS_FAILED)
+        self.assertEqual(status, LIVEACTION_STATUS_PENDING)
         self.assertTrue(output is not None)
         self.assertEqual(output, {"response_data": {}})
-        mock_trigger_dispatcher.return_value.dispatch.assert_not_called()
+        mock_trigger_dispatcher.return_value.dispatch.assert_called_once_with(
+            'core.st2.generic.inquiry',
+            {
+                'users': [],
+                'roles': [],
+                'liveaction_id': None,
+                'tag': "developers",
+                'response': {},
+                'schema': {}
+            }
+        )
         mock_action_service.request_pause.assert_not_called()
+        mock_trigger_dispatcher.reset_mock()
+        mock_action_utils.reset_mock()
+        mock_action_service.reset_mock()
 
     def _get_mock_action_obj(self):
         action = mock.Mock()
