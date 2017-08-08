@@ -19,6 +19,8 @@ import httplib
 import sys
 import traceback
 
+import six
+import eventlet
 import jsonschema
 from oslo_config import cfg
 from six.moves import http_client
@@ -40,6 +42,7 @@ from st2common.models.api.execution import ActionExecutionAPI
 from st2common.models.db.auth import UserDB
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
+from st2common.persistence.execution import ActionExecutionStdoutOutput
 from st2common.router import abort
 from st2common.router import Response
 from st2common.services import action as action_service
@@ -284,6 +287,35 @@ class ActionExecutionAttributeController(BaseActionExecutionNestedController):
 
         result = getattr(action_exec_db, attribute, None)
         return result
+
+
+class ActionExecutionStdoutController(ActionExecutionsControllerMixin, ResourceController):
+    supported_filters = {}
+    exclude_fields = []
+
+    def get_one(self, id, requester_user):
+        execution_db = self._get_one_by_id(id=id, requester_user=requester_user,
+                                           permission_type=PermissionType.EXECUTION_VIEW)
+        execution_id = str(execution_db.id)
+
+        def test_iter():
+            # Consume and return all of the existing data
+            stdout_dbs = ActionExecutionStdoutOutput.query(execution_id=execution_id)
+
+            for stdout_db in stdout_dbs:
+                yield six.binary_type(stdout_db.line)
+
+            # TODO
+            # Wait and return any new data which may come in
+            # Return when execution completes
+
+        def make_response():
+            res = Response(content_type='text/plain',
+                           app_iter=test_iter())
+            return res
+
+        stream = make_response()
+        return stream
 
 
 class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceController):
@@ -609,6 +641,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
 
 
 action_executions_controller = ActionExecutionsController()
+action_execution_stdout_controller = ActionExecutionStdoutController()
 action_execution_rerun_controller = ActionExecutionReRunController()
 action_execution_attribute_controller = ActionExecutionAttributeController()
 action_execution_children_controller = ActionExecutionChildrenController()

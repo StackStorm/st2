@@ -16,8 +16,14 @@
 from st2common import transport
 from st2common.models.db import MongoDBAccess
 from st2common.models.db.execution import ActionExecutionDB
+from st2common.models.db.execution import ActionExecutionStdoutOutputDB
 from st2common.persistence.base import Access
 from st2common.transport import utils as transport_utils
+
+__all__ = [
+    'ActionExecution',
+    'ActionExecutionStdoutOutput'
+]
 
 
 class ActionExecution(Access):
@@ -38,3 +44,11 @@ class ActionExecution(Access):
     @classmethod
     def delete_by_query(cls, **query):
         return cls._get_impl().delete_by_query(**query)
+
+
+class ActionExecutionStdoutOutput(Access):
+    impl = MongoDBAccess(ActionExecutionStdoutOutputDB)
+
+    @classmethod
+    def _get_impl(cls):
+        return cls.impl

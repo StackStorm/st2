@@ -1027,6 +1027,31 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /api/v1/executions/{id}/stdout:
+    get:
+      operationId: st2api.controllers.v1.actionexecutions:action_execution_stdout_controller.get_one
+      x-log-result: false
+      x-is-stream-endpoint: true
+      description: |
+        Retrieve execution stdout.
+      parameters:
+        - name: id
+          in: path
+          description: Execution id
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Execution stdout.
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   /api/v1/executions/{id}/re_run:
     post:
       operationId: st2api.controllers.v1.actionexecutions:action_execution_rerun_controller.post
