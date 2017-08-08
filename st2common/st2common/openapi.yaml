@@ -1240,8 +1240,14 @@ paths:
       description: |
         Respond to an Inquiry.
       parameters:
+        - name: id
+          in: path
+          description: Inquiry ID
+          type: string
+          required: true
         - name: response_data
           in: body
+          required: true
           description: Inquiry response
           schema:
             $ref: '#/definitions/InquiryResponse'
