@@ -34,7 +34,9 @@ LOG = logging.getLogger(__name__)
 
 
 def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False,
-                cwd=None, env=None, timeout=60, preexec_func=None, kill_func=None):
+                cwd=None, env=None, timeout=60, preexec_func=None, kill_func=None,
+                read_stdout_callback=None, read_stderr_callback=None,
+                read_stdout_buffer=None, read_stderr_buffer=None):
     """
     Run the provided command in a subprocess and wait until it completes.
 
@@ -70,11 +72,28 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                       If not provided, it defaults to `process.kill`
     :type kill_func: ``callable``
 
+    :param read_stdout_callback: Function which is responsible for reading process stdout when
+                                 using live read mode.
+    :type read_stdout_callback: ``func``
+
+    :param read_stdout_callback: Function which is responsible for reading process stderr when
+                                 using live read mode.
+    :type read_stdout_callback: ``func``
+
 
     :rtype: ``tuple`` (exit_code, stdout, stderr, timed_out)
     """
     LOG.debug("Entering run_command.")
     assert isinstance(cmd, (list, tuple) + six.string_types)
+
+    if (read_stdout_callback and not read_stderr_callback) or (read_stderr_callback and
+                                                               not read_stdout_callback):
+        raise ValueError('Both read_stdout_callback and read_stderr_callback arguments need '
+                         'to be provided.')
+
+    if read_stdout_callback and not (read_stdout_buffer or read_stderr_buffer):
+        raise ValueError('read_stdout_buffer and read_stderr_buffer arguments need to be provided '
+                         'when read_stdout_callback is provided')
 
     LOG.debug("Setting env if not set.")
     if not env:
@@ -85,6 +104,14 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     LOG.debug("Creating subprocess.")
     process = subprocess.Popen(args=cmd, stdin=stdin, stdout=stdout, stderr=stderr,
                                env=env, cwd=cwd, shell=shell, preexec_fn=preexec_func)
+
+    if read_stdout_callback:
+        LOG.debug('Spawning read_stdout_callback function')
+        eventlet.spawn(read_stdout_callback, process.stdout, read_stdout_buffer)
+
+    if read_stderr_callback:
+        LOG.debug('Spawning read_stderr_callback function')
+        eventlet.spawn(read_stderr_callback, process.stderr, read_stderr_buffer)
 
     def on_timeout_expired(timeout):
         global timed_out
@@ -108,9 +135,20 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     LOG.debug("Setting up process and callback.")
     timeout_thread = eventlet.spawn(on_timeout_expired, timeout)
     LOG.debug("Attaching to process.")
-    stdout, stderr = process.communicate()
+
+    if read_stderr_callback or read_stderr_callback:
+        LOG.debug('Using live stdout and stderr read mode, calling process.wait()')
+        process.wait()
+    else:
+        LOG.debug('Using delayed stdout and stderr read mode, calling process.communicate()')
+        stdout, stderr = process.communicate()
+
     timeout_thread.cancel()
     exit_code = process.returncode
+
+    if read_stderr_callback or read_stderr_callback:
+        stdout = read_stdout_buffer.getvalue()
+        stderr = read_stderr_buffer.getvalue()
 
     if exit_code == TIMEOUT_EXIT_CODE:
         LOG.debug("Timeout.")
