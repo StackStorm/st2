@@ -301,18 +301,16 @@ class ActionExecutionStdoutController(ActionExecutionsControllerMixin, ResourceC
         execution_id = str(execution_db.id)
 
         def existing_stdout_iter():
-            print 'in common'
             # Consume and return all of the existing data
             stdout_dbs = ActionExecutionStdoutOutput.query(execution_id=execution_id)
-            print stdout_dbs
 
             lines = ''.join([stdout_db.line for stdout_db in stdout_dbs])
             yield six.binary_type(lines)
 
         def new_stdout_iter():
-            print 'in new'
             # Wait for and return any new stdout which may come in
             # TODO: Terminate when execution finishes
+            # TODO: Only set up stdout consumer for listener
             events = ['st2.execution.stdout__create']
             execution_ids = [execution_id]
             gen = get_listener().generator(events=events, execution_ids=execution_ids)
