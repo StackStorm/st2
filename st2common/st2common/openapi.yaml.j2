@@ -3794,7 +3794,14 @@ paths:
           required: false
         - name: action_refs
           in: query
-          description: List of action_refs to filter on.
+          description: List of action refs to filter on.
+          type: array
+          items:
+            type: string
+          required: false
+        - name: execution_ids
+          in: query
+          description: List of execution ids to filter on.
           type: array
           items:
             type: string

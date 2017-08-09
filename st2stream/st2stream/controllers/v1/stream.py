@@ -53,12 +53,14 @@ def format(gen):
 
 
 class StreamController(object):
-    def get_all(self, events=None, action_refs=None):
+    def get_all(self, events=None, action_refs=None, execution_ids=None):
         events = events.split(',') if events else DEFAULT_EVENTS_WHITELIST
         action_refs = action_refs.split(',') if action_refs else None
+        execution_ids = execution_ids.split(',') if execution_ids else None
 
         def make_response():
-            app_iter = format(get_listener().generator(events=events, action_refs=action_refs))
+            app_iter = format(get_listener().generator(events=events, action_refs=action_refs,
+                                                       execution_ids=execution_ids))
             res = Response(content_type='text/event-stream', app_iter=app_iter)
             return res
 
