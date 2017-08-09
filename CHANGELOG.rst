@@ -9,6 +9,11 @@ Added
 
 * Add pack config into action context. This is made available under the ``config_context`` key.
   #3183
+* Added a new field ``timestamp_f`` to the GELF logging formatter that represents
+  the time of the logging even in fractional time (resolution is dependent on your
+  system). This allows adjacent logging events to be distinguished more accurately
+  by the time they occurred.
+  Contributed by Nick Maludy (Encore Technologies) #3362
 
 Changed
 ~~~~~~~
