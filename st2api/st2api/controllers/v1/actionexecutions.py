@@ -308,6 +308,13 @@ class ActionExecutionStdoutController(ActionExecutionsControllerMixin, ResourceC
             yield six.binary_type(lines)
 
         def new_stdout_iter():
+            def noop_gen():
+                yield ''
+
+            # Bail out if execution has already completed
+            if execution_db.status in LIVEACTION_COMPLETED_STATES:
+                return noop_gen()
+
             # Wait for and return any new stdout which may come in
             # TODO: Terminate when execution finishes
             # TODO: Only set up stdout consumer for listener
