@@ -95,6 +95,7 @@ class TestStreamController(FunctionalTest):
 
     @mock.patch.object(st2common.stream.listener, 'listen', mock.Mock())
     def test_get_all(self):
+        stream.DEFAULT_EVENTS_WHITELIST = None
         resp = stream.StreamController().get_all()
         self.assertEqual(resp._status, '200 OK')
         self.assertIn(('Content-Type', 'text/event-stream; charset=UTF-8'), resp._headerlist)
