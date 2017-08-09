@@ -290,6 +290,13 @@ def register_opts(ignore_errors=False):
     ]
     do_register_opts(query_opts, group='results_tracker', ignore_errors=ignore_errors)
 
+    # Common stream options
+    stream_opts = [
+        cfg.IntOpt('heartbeat', default=25,
+                   help='Send empty message every N seconds to keep connection open')
+    ]
+    do_register_opts(stream_opts, group='stream', ignore_errors=ignore_errors)
+
     # Common CLI options
     debug = cfg.BoolOpt('debug', default=False,
         help='Enable debug mode. By default this will set all log levels to DEBUG.')
