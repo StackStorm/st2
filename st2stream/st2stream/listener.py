@@ -90,7 +90,7 @@ class Listener(ConsumerMixin):
         for queue in self.queues:
             queue.put(pack)
 
-    def generator(self, events=None):
+    def generator(self, events=None, action_refs=None):
         queue = eventlet.Queue()
         queue.put('')
         self.queues.append(queue)
@@ -110,6 +110,10 @@ class Listener(ConsumerMixin):
                     if events and event_name not in events:
                         continue
 
+                    action_ref = self._get_action_ref_for_body(body=body)
+                    if action_refs and action_ref and action_ref not in action_refs:
+                        continue
+
                     yield message
                 except eventlet.queue.Empty:
                     yield
@@ -118,6 +122,24 @@ class Listener(ConsumerMixin):
 
     def shutdown(self):
         self._stopped = True
+
+    def _get_action_ref_for_body(self, body):
+        """
+        Retrieve action_ref for the provided message body.
+        """
+        if not body:
+            return None
+
+        action_ref = None
+
+        if isinstance(body, ActionExecutionAPI):
+            action_ref = body.action
+        elif isinstance(body, LiveActionAPI):
+            action_ref = body.action
+        elif isinstance(body, (ActionExecutionStdoutAPI, ActionExecutionStderrAPI)):
+            action_ref = body.action_ref
+
+        return action_ref
 
 
 def listen(listener):

@@ -3792,6 +3792,13 @@ paths:
           items:
             type: string
           required: false
+        - name: action_refs
+          in: query
+          description: List of action_refs to filter on.
+          type: array
+          items:
+            type: string
+          required: false
       responses:
         '200':
           description: EventSource compatible stream of events
