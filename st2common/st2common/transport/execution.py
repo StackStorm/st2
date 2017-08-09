@@ -18,14 +18,43 @@
 from kombu import Exchange, Queue
 from st2common.transport import publishers
 
+__all__ = [
+    'ActionExecutionPublisher',
+    'ActionExecutionStdoutPublisher',
+    'ActionExecutionStderrPublisher',
+
+    'get_queue',
+    'get_stdout_queue',
+    'get_stderr_queue'
+]
+
 EXECUTION_XCHG = Exchange('st2.execution', type='topic')
+EXECUTION_STDOUT_XCHG = Exchange('st2.execution.stdout', type='topic')
+EXECUTION_STDERR_XCHG = Exchange('st2.execution.stderr', type='topic')
 
 
 class ActionExecutionPublisher(publishers.CUDPublisher):
-
     def __init__(self, urls):
         super(ActionExecutionPublisher, self).__init__(urls, EXECUTION_XCHG)
 
 
+class ActionExecutionStdoutPublisher(publishers.CUDPublisher):
+    def __init__(self, urls):
+        super(ActionExecutionPublisher, self).__init__(urls, EXECUTION_STDOUT_XCHG)
+
+
+class ActionExecutionStderrPublisher(publishers.CUDPublisher):
+    def __init__(self, urls):
+        super(ActionExecutionPublisher, self).__init__(urls, EXECUTION_STDERR_XCHG)
+
+
 def get_queue(name=None, routing_key=None, exclusive=False):
     return Queue(name, EXECUTION_XCHG, routing_key=routing_key, exclusive=exclusive)
+
+
+def get_stdout_queue(name=None, routing_key=None, exclusive=False):
+    return Queue(name, EXECUTION_STDOUT_XCHG, routing_key=routing_key, exclusive=exclusive)
+
+
+def get_stderr_queue(name=None, routing_key=None, exclusive=False):
+    return Queue(name, EXECUTION_STDERR_XCHG, routing_key=routing_key, exclusive=exclusive)
