@@ -1030,6 +1030,57 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /api/v1/executions/{id}/stdout:
+    get:
+      operationId: st2api.controllers.v1.actionexecutions:action_execution_stdout_controller.get_one
+      x-log-result: false
+      x-is-stream-endpoint: true
+      description: |
+        Retrieve execution stdout.
+      parameters:
+        - name: id
+          in: path
+          description: Execution id
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Execution stdout.
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/executions/{id}/stderr:
+    get:
+      operationId: st2api.controllers.v1.actionexecutions:action_execution_stderr_controller.get_one
+      x-log-result: false
+      x-is-stream-endpoint: true
+      description: |
+        Retrieve execution stderr.
+      parameters:
+        - name: id
+          in: path
+          description: Execution id
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Execution stderr.
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
   /api/v1/executions/{id}/re_run:
     post:
       operationId: st2api.controllers.v1.actionexecutions:action_execution_rerun_controller.post
@@ -3736,6 +3787,28 @@ paths:
       operationId: st2stream.controllers.v1.stream:stream_controller.get_all
       description: |
         Event stream endpoint.
+      parameters:
+        - name: events
+          in: query
+          description: List of events to listen for. If not provided, it listens to all events.
+          type: array
+          items:
+            type: string
+          required: false
+        - name: action_refs
+          in: query
+          description: List of action refs to filter on.
+          type: array
+          items:
+            type: string
+          required: false
+        - name: execution_ids
+          in: query
+          description: List of execution ids to filter on.
+          type: array
+          items:
+            type: string
+          required: false
       responses:
         '200':
           description: EventSource compatible stream of events
