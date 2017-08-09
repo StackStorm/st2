@@ -26,6 +26,7 @@ from oslo_config import cfg
 
 from st2stream import config as st2stream_config
 from st2common import log as logging
+from st2common.middleware.streaming import StreamingMiddleware
 from st2common.middleware.error_handling import ErrorHandlingMiddleware
 from st2common.middleware.cors import CorsMiddleware
 from st2common.middleware.request_id import RequestIDMiddleware
@@ -37,18 +38,6 @@ from st2common.service_setup import setup as common_setup
 from st2common.util import spec_loader
 
 LOG = logging.getLogger(__name__)
-
-
-class StreamingMiddleware(object):
-    def __init__(self, app):
-        self.app = app
-
-    def __call__(self, environ, start_response):
-        # Forces eventlet to respond immediately upon receiving a new chunk from endpoint rather
-        # than buffering it until the sufficient chunk size is reached. The order for this
-        # middleware is not important since it acts as pass-through.
-        environ['eventlet.minimum_write_chunk_size'] = 0
-        return self.app(environ, start_response)
 
 
 def setup_app(config={}):
