@@ -18,9 +18,9 @@ import re
 import httplib
 import sys
 import traceback
+import itertools
 
 import six
-import eventlet
 import jsonschema
 from oslo_config import cfg
 from six.moves import http_client
@@ -58,6 +58,7 @@ from st2common.rbac.types import PermissionType
 from st2common.rbac import utils as rbac_utils
 from st2common.rbac.utils import assert_user_has_resource_db_permission
 from st2common.rbac.utils import assert_user_is_admin_if_user_query_param_is_provided
+from st2common.stream.listener import get_listener
 
 __all__ = [
     'ActionExecutionsController'
@@ -299,20 +300,38 @@ class ActionExecutionStdoutController(ActionExecutionsControllerMixin, ResourceC
                                            permission_type=PermissionType.EXECUTION_VIEW)
         execution_id = str(execution_db.id)
 
-        def stdout_iter():
+        def existing_stdout_iter():
+            print 'in common'
             # Consume and return all of the existing data
             stdout_dbs = ActionExecutionStdoutOutput.query(execution_id=execution_id)
+            print stdout_dbs
 
             lines = ''.join([stdout_db.line for stdout_db in stdout_dbs])
             yield six.binary_type(lines)
 
-            # TODO
-            # Wait and return any new data which may come in
-            # Return when execution completes
+        def new_stdout_iter():
+            print 'in new'
+            # Wait for and return any new stdout which may come in
+            # TODO: Terminate when execution finishes
+            events = ['st2.execution.stdout__create']
+            execution_ids = [execution_id]
+            gen = get_listener().generator(events=events, execution_ids=execution_ids)
+
+            def format(gen):
+                for pack in gen:
+                    if not pack:
+                        continue
+                    else:
+                        (_, stdout_db) = pack
+                        # Note: gunicorn wsgi handler expect bytes, not unicode
+                        yield six.binary_type(stdout_db.line)
+
+            gen = format(gen)
+            return gen
 
         def make_response():
-            res = Response(content_type='text/plain',
-                           app_iter=stdout_iter())
+            app_iter = itertools.chain(existing_stdout_iter(), new_stdout_iter())
+            res = Response(content_type='text/plain', app_iter=app_iter)
             return res
 
         res = make_response()
