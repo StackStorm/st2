@@ -90,14 +90,27 @@ class Listener(ConsumerMixin):
         for queue in self.queues:
             queue.put(pack)
 
-    def generator(self):
+    def generator(self, events=None):
         queue = eventlet.Queue()
         queue.put('')
         self.queues.append(queue)
+
         try:
             while not self._stopped:
                 try:
-                    yield queue.get(timeout=cfg.CONF.stream.heartbeat)
+                    message = queue.get(timeout=cfg.CONF.stream.heartbeat)
+
+                    if not message:
+                        yield
+                        continue
+
+                    event_name, body = message
+                    # TODO: We now do late filtering, but this could also be performed on the
+                    # message bus level if we modified our exchange layout and utilize routing keys
+                    if events and event_name not in events:
+                        continue
+
+                    yield message
                 except eventlet.queue.Empty:
                     yield
         finally:

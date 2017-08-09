@@ -3784,6 +3784,14 @@ paths:
       operationId: st2stream.controllers.v1.stream:stream_controller.get_all
       description: |
         Event stream endpoint.
+      parameters:
+        - name: events
+          in: query
+          description: List of events to listen for. If not provided, it listens to all events.
+          type: array
+          items:
+            type: string
+          required: false
       responses:
         '200':
           description: EventSource compatible stream of events
