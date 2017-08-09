@@ -147,8 +147,6 @@ class PythonRunner(ActionRunner):
         stdout = StringIO()
         stderr = StringIO()
 
-        execution_id = str(self.execution.id)
-
         def read_and_store_stdout(stream, buff):
             try:
                 while not stream.closed:
@@ -157,7 +155,8 @@ class PythonRunner(ActionRunner):
                         break
 
                     # TODO: Also dispatch server-sent event
-                    store_execution_stdout_line(execution_id=execution_id, line=line)
+                    store_execution_stdout_line(execution_db=self.execution, action_db=self.action,
+                                                line=line)
                     buff.write(line)
             except RuntimeError:
                 # process was terminated abruptly
@@ -171,7 +170,8 @@ class PythonRunner(ActionRunner):
                         break
 
                     # TODO: Also dispatch server-sent event
-                    store_execution_stderr_line(execution_id=execution_id, line=line)
+                    store_execution_stderr_line(execution_db=self.execution, action_db=self.action,
+                                                line=line)
                     buff.write(line)
             except RuntimeError:
                 # process was terminated abruptly

@@ -220,25 +220,33 @@ def request_cancellation(liveaction, requester):
     return (liveaction, execution)
 
 
-def store_execution_stdout_line(execution_id, line, timestamp=None):
+def store_execution_stdout_line(execution_db, action_db, line, timestamp=None):
     """
     Store a line from stdout from a particular execution in the database.
     """
+    execution_id = str(execution_db.id)
+    action_ref = action_db.ref
     timestamp = timestamp or date_utils.get_datetime_utc_now()
     document = ActionExecutionStdoutOutputDB(execution_id=execution_id,
-            timestamp=timestamp, line=line)
+                                             action_ref=action_ref,
+                                             timestamp=timestamp,
+                                             line=line)
     document.save()
 
     return document
 
 
-def store_execution_stderr_line(execution_id, line, timestamp=None):
+def store_execution_stderr_line(execution_db, action_db, line, timestamp=None):
     """
     Store a line from stderr from a particular execution in the database.
     """
+    execution_id = str(execution_db.id)
+    action_ref = action_db.ref
     timestamp = timestamp or date_utils.get_datetime_utc_now()
     document = ActionExecutionStderrOutputDB(execution_id=execution_id,
-            timestamp=timestamp, line=line)
+                                             action_ref=action_ref,
+                                             timestamp=timestamp,
+                                             line=line)
     document.save()
 
     return document
