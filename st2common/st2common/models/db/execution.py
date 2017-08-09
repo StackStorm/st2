@@ -131,6 +131,7 @@ class ActionExecutionStdoutOutputDB(stormbase.StormFoundationDB):
     tail behavior by periodically reading from this collection.
     """
     execution_id = me.StringField(required=True)
+    action_ref = me.StringField(required=True)
     timestamp = me.DateTimeField(required=True)
 
     line = me.StringField()
@@ -138,7 +139,8 @@ class ActionExecutionStdoutOutputDB(stormbase.StormFoundationDB):
     meta = {
         'indexes': [
             {'fields': ['execution_id']},
-            {'fields': ['timestamp']}
+            {'fields': ['timestamp']},
+            {'fields': ['action_ref']}
         ]
     }
 
@@ -151,6 +153,7 @@ class ActionExecutionStderrOutputDB(stormbase.StormFoundationDB):
     tail behavior by periodically reading from this collection.
     """
     execution_id = me.StringField(required=True)
+    action_ref = me.StringField(required=True)
     timestamp = me.DateTimeField(required=True)
 
     line = me.StringField()
@@ -158,7 +161,8 @@ class ActionExecutionStderrOutputDB(stormbase.StormFoundationDB):
     meta = {
         'indexes': [
             {'fields': ['execution_id']},
-            {'fields': ['timestamp']}
+            {'fields': ['timestamp']},
+            {'fields': ['action_ref']}
         ]
     }
 
