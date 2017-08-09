@@ -21,6 +21,8 @@ from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.trace import TraceNotFoundException
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
+from st2common.persistence.execution import ActionExecutionStdoutOutput
+from st2common.persistence.execution import ActionExecutionStderrOutput
 from st2common.models.db.execution import ActionExecutionStdoutOutputDB
 from st2common.models.db.execution import ActionExecutionStderrOutputDB
 from st2common.services import executions
@@ -227,13 +229,15 @@ def store_execution_stdout_line(execution_db, action_db, line, timestamp=None):
     execution_id = str(execution_db.id)
     action_ref = action_db.ref
     timestamp = timestamp or date_utils.get_datetime_utc_now()
-    document = ActionExecutionStdoutOutputDB(execution_id=execution_id,
+
+    model_db = ActionExecutionStdoutOutputDB(execution_id=execution_id,
                                              action_ref=action_ref,
                                              timestamp=timestamp,
                                              line=line)
-    document.save()
+    model_db = ActionExecutionStdoutOutput.add_or_update(model_db, publish=True,
+                                                         dispatch_trigger=False)
 
-    return document
+    return model_db
 
 
 def store_execution_stderr_line(execution_db, action_db, line, timestamp=None):
@@ -243,13 +247,15 @@ def store_execution_stderr_line(execution_db, action_db, line, timestamp=None):
     execution_id = str(execution_db.id)
     action_ref = action_db.ref
     timestamp = timestamp or date_utils.get_datetime_utc_now()
-    document = ActionExecutionStderrOutputDB(execution_id=execution_id,
+
+    model_db = ActionExecutionStderrOutputDB(execution_id=execution_id,
                                              action_ref=action_ref,
                                              timestamp=timestamp,
                                              line=line)
-    document.save()
+    model_db = ActionExecutionStderrOutput.add_or_update(model_db, publish=True,
+                                                         dispatch_trigger=False)
 
-    return document
+    return model_db
 
 
 def _cleanup_liveaction(liveaction):
