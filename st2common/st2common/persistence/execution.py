@@ -55,6 +55,13 @@ class ActionExecutionStdoutOutput(Access):
     def _get_impl(cls):
         return cls.impl
 
+    @classmethod
+    def _get_publisher(cls):
+        if not cls.publisher:
+            cls.publisher = transport.execution.ActionExecutionStdoutPublisher(
+                urls=transport_utils.get_messaging_urls())
+        return cls.publisher
+
 
 class ActionExecutionStderrOutput(Access):
     impl = MongoDBAccess(ActionExecutionStderrOutputDB)
@@ -62,3 +69,10 @@ class ActionExecutionStderrOutput(Access):
     @classmethod
     def _get_impl(cls):
         return cls.impl
+
+    @classmethod
+    def _get_publisher(cls):
+        if not cls.publisher:
+            cls.publisher = transport.execution.ActionExecutionStderrPublisher(
+                urls=transport_utils.get_messaging_urls())
+        return cls.publisher

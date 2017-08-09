@@ -40,12 +40,12 @@ class ActionExecutionPublisher(publishers.CUDPublisher):
 
 class ActionExecutionStdoutPublisher(publishers.CUDPublisher):
     def __init__(self, urls):
-        super(ActionExecutionPublisher, self).__init__(urls, EXECUTION_STDOUT_XCHG)
+        super(ActionExecutionStdoutPublisher, self).__init__(urls, EXECUTION_STDOUT_XCHG)
 
 
 class ActionExecutionStderrPublisher(publishers.CUDPublisher):
     def __init__(self, urls):
-        super(ActionExecutionPublisher, self).__init__(urls, EXECUTION_STDERR_XCHG)
+        super(ActionExecutionStderrPublisher, self).__init__(urls, EXECUTION_STDERR_XCHG)
 
 
 def get_queue(name=None, routing_key=None, exclusive=False):
