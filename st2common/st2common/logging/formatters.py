@@ -17,7 +17,6 @@ from __future__ import absolute_import
 
 import logging
 import socket
-import time
 import json
 import copy
 import traceback

@@ -19,6 +19,7 @@ import sys
 import json
 import uuid
 import tempfile
+import time
 import logging as logbase
 
 import mock
@@ -48,6 +49,7 @@ class MockRecord(object):
     msg = None
     exc_info = None
     exc_text = None
+    created  = time.time()
 
     def getMessage(self):
         return self.msg
