@@ -19,8 +19,8 @@ from st2common.models.api.action import ActionAPI, RunnerTypeAPI
 from st2common.models.api.execution import LiveActionAPI
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.persistence.action import Action, RunnerType
+import st2common.stream.listener
 from st2stream.controllers.v1 import stream
-import st2stream.listener
 from st2tests.api import SUPER_SECRET_PARAMETER
 from base import FunctionalTest
 
@@ -93,13 +93,13 @@ class TestStreamController(FunctionalTest):
         instance = ActionAPI(**ACTION_1)
         Action.add_or_update(ActionAPI.to_model(instance))
 
-    @mock.patch.object(st2stream.listener, 'listen', mock.Mock())
+    @mock.patch.object(st2common.stream.listener, 'listen', mock.Mock())
     def test_get_all(self):
         resp = stream.StreamController().get_all()
         self.assertEqual(resp._status, '200 OK')
         self.assertIn(('Content-Type', 'text/event-stream; charset=UTF-8'), resp._headerlist)
 
-        listener = st2stream.listener.get_listener()
+        listener = st2common.stream.listener.get_listener()
         process = listener.processor(LiveActionAPI)
 
         message = None

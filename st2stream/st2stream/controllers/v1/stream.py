@@ -18,7 +18,7 @@ import six
 from st2common import log as logging
 from st2common.router import Response
 from st2common.util.jsonify import json_encode
-from st2stream.listener import get_listener
+from st2common.stream.listener import get_listener
 
 __all__ = [
     'StreamController'

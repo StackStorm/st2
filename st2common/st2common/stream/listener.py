@@ -98,10 +98,11 @@ class Listener(ConsumerMixin):
         try:
             while not self._stopped:
                 try:
+                    # TODO: Move to common option
                     message = queue.get(timeout=cfg.CONF.stream.heartbeat)
 
                     if not message:
-                        yield
+                        yield message
                         continue
 
                     event_name, body = message

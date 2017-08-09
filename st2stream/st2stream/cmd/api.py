@@ -23,9 +23,9 @@ from eventlet import wsgi
 from st2common import log as logging
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
+from st2commmon.stream.listener import get_listener_if_set
 from st2common.util.wsgi import shutdown_server_kill_pending_requests
 from st2stream.signal_handlers import register_stream_signal_handlers
-from st2stream.listener import get_listener_if_set
 from st2stream import config
 config.register_opts()
 from st2stream import app
