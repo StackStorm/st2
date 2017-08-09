@@ -298,12 +298,12 @@ class ActionExecutionStdoutController(ActionExecutionsControllerMixin, ResourceC
                                            permission_type=PermissionType.EXECUTION_VIEW)
         execution_id = str(execution_db.id)
 
-        def test_iter():
+        def stdout_iter():
             # Consume and return all of the existing data
             stdout_dbs = ActionExecutionStdoutOutput.query(execution_id=execution_id)
 
-            for stdout_db in stdout_dbs:
-                yield six.binary_type(stdout_db.line)
+            lines = ''.join([stdout_db.line for stdout_db in stdout_dbs])
+            yield six.binary_type(lines)
 
             # TODO
             # Wait and return any new data which may come in
@@ -311,11 +311,11 @@ class ActionExecutionStdoutController(ActionExecutionsControllerMixin, ResourceC
 
         def make_response():
             res = Response(content_type='text/plain',
-                           app_iter=test_iter())
+                           app_iter=stdout_iter())
             return res
 
-        stream = make_response()
-        return stream
+        res = make_response()
+        return res
 
 
 class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceController):
