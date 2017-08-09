@@ -17,12 +17,14 @@ from st2common import transport
 from st2common.models.db import MongoDBAccess
 from st2common.models.db.execution import ActionExecutionDB
 from st2common.models.db.execution import ActionExecutionStdoutOutputDB
+from st2common.models.db.execution import ActionExecutionStderrOutputDB
 from st2common.persistence.base import Access
 from st2common.transport import utils as transport_utils
 
 __all__ = [
     'ActionExecution',
-    'ActionExecutionStdoutOutput'
+    'ActionExecutionStdoutOutput',
+    'ActionExecutionStderrOutput',
 ]
 
 
@@ -48,6 +50,14 @@ class ActionExecution(Access):
 
 class ActionExecutionStdoutOutput(Access):
     impl = MongoDBAccess(ActionExecutionStdoutOutputDB)
+
+    @classmethod
+    def _get_impl(cls):
+        return cls.impl
+
+
+class ActionExecutionStderrOutput(Access):
+    impl = MongoDBAccess(ActionExecutionStderrOutputDB)
 
     @classmethod
     def _get_impl(cls):
