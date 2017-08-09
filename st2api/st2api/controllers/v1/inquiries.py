@@ -15,6 +15,13 @@
 
 from st2api.controllers.resource import ResourceController
 from st2common import log as logging
+from st2common.util import action_db as action_utils
+from st2common.util import system_info
+from st2common.services import executions
+from st2common.rbac.types import PermissionType
+from st2common.rbac import utils as rbac_utils
+from st2common.models.api.execution import ActionExecutionAPI
+from st2common.persistence.execution import ActionExecution
 
 __all__ = [
     'InquiriesController'
@@ -48,8 +55,10 @@ class InquiriesController(ResourceController):
        using dummy data before diving into the actual back-end queries.
     """
     supported_filters = {}
-    model = None
-    access = None
+
+    # No data model currently exists for Inquiries, so we're "borrowing" ActionExecutions
+    model = ActionExecutionAPI
+    access = ActionExecution
 
     def get_all(self, requester_user=None):
         return [test_inquiries]
@@ -57,20 +66,81 @@ class InquiriesController(ResourceController):
     def get_one(self, id, requester_user=None):
         return [i for i in test_inquiries if i["id"] == id][0]
 
-    def put(self, id, response_data, requester_user=None):
+    def put(self, iid, rdata, requester_user):
         """
         This function in particular will:
 
         1. Retrieve details of the inquiry via ID (i.e. params like schema)
-        2. Get current roles of which `requester_user` is a member (if any)
-        3. Compare params of inquiry with roles of current user, reject if not allowed to respond
-        4. Validate the body of the response against the schema parameter for this inquiry,
+        2. Determine permission of this user to respond to this Inquiry
+        3. Validate the body of the response against the schema parameter for this inquiry,
            (reject if invalid)
-        5. Update inquiry's execution result with a successful status and the validated response
-        6. Retrieve parent execution for the inquiry, and pass this to action_service.request_resume
+        4. Update inquiry's execution result with a successful status and the validated response
+        5. Retrieve parent execution for the inquiry, and pass this to action_service.request_resume
 
         """
-        return "Received data for inquiry %s" % id
+
+        #
+        # Retrieve details of the inquiry via ID (i.e. params like schema)
+        #
+        existing_inquiry = self._get_one_by_id(
+            id=iid,
+            requester_user=requester_user,
+            permission_type=PermissionType.EXECUTION_VIEW
+        )
+        LOG.info("Got existing inquiry ID: %s" % existing_inquiry.id)
+
+        #
+        # Determine permission of this user to respond to this Inquiry
+        #
+        if not requester_user:
+                # TODO(mierdin) figure out how to return this in an HTTP code
+                # (and modify the openapi def accordingly)
+            raise Exception("Not permitted")
+        roles = existing_inquiry.parameters.get('roles')
+        users = existing_inquiry.parameters.get('users')
+        if roles:
+            for role in roles:
+                LOG.info("Checking user %s is in role %s" % (requester_user, role))
+                LOG.info(rbac_utils.user_has_role(requester_user, role))
+                # TODO(mierdin): Note that this will always return True if Rbac is not enabled
+                # Need to test with rbac enabled and configured
+                if rbac_utils.user_has_role(requester_user, role):
+                    break
+            else:
+                # TODO(mierdin) figure out how to return this in an HTTP code
+                # (and modify the openapi def accordingly)
+                raise Exception("Not permitted")
+        if users:
+            if requester_user not in users:
+                # TODO(mierdin) figure out how to return this in an HTTP code
+                # (and modify the openapi def accordingly)
+                raise Exception("Not permitted")
+
+        #
+        # Validate the body of the response against the schema parameter for this inquiry,
+        #
+
+        #
+        # Update inquiry's execution result with a successful status and the validated response
+        #
+        # # stamp liveaction with process_info
+        # runner_info = system_info.get_process_info()
+        # # Update liveaction status to "running"
+        # liveaction_db = action_utils.update_liveaction_status(
+        #     status=action_constants.LIVEACTION_STATUS_RUNNING,
+        #     runner_info=runner_info,
+        #     liveaction_id=liveaction_db.id)
+        # self._running_liveactions.add(liveaction_db.id)
+        # action_execution_db = executions.update_execution(liveaction_db)
+
+        # return "Received data for inquiry %s" % id
+
+        response_data = getattr(rdata, 'response_data')
+
+        return {
+            "id": iid,
+            "response_data": response_data
+        }
 
 
 inquiries_controller = InquiriesController()

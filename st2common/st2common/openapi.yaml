@@ -1210,13 +1210,13 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /api/exp/inquiries/{id}:
+  /api/exp/inquiries/{iid}:
     get:
       operationId: st2api.controllers.v1.inquiries:inquiries_controller.get_one
       description: |
         Get a specific Inquiry based on ID.
       parameters:
-        - name: id
+        - name: iid
           in: path
           description: Inquiry ID
           type: string
@@ -1240,12 +1240,12 @@ paths:
       description: |
         Respond to an Inquiry.
       parameters:
-        - name: id
+        - name: iid
           in: path
           description: Inquiry ID
           type: string
           required: true
-        - name: response_data
+        - name: rdata
           in: body
           required: true
           description: Inquiry response
@@ -1257,8 +1257,14 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '204':
-          description: Response received
+        '200':
+          description: Response received TODO update with invalid status
+          schema:
+            $ref: '#/definitions/InquiryResponse'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
         default:
           description: Unexpected error
           schema:
@@ -4110,8 +4116,12 @@ definitions:
   InquiryResponse:
     type: object
     required:
+      - id
       - response_data
     properties:
+      id:
+        description: Inquiry ID
+        type: string
       response_data:
         description: response data
         type: object
