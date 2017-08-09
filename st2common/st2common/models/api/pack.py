@@ -192,7 +192,7 @@ class PackAPI(BaseAPI):
         email = pack.email
         contributors = getattr(pack, 'contributors', [])
         files = getattr(pack, 'files', [])
-        pack_dir = getattr(pack, 'dir', None)
+        pack_dir = getattr(pack, 'path', None)
         dependencies = getattr(pack, 'dependencies', [])
         system = getattr(pack, 'system', {})
 

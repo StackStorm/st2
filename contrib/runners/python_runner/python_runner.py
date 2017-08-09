@@ -23,6 +23,7 @@ from subprocess import list2cmdline
 from eventlet.green import subprocess
 
 from st2common import log as logging
+from st2common.persistence.pack import Pack
 from st2common.runners.base import ActionRunner
 from st2common.util.green.shell import run_command
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
@@ -91,7 +92,8 @@ class PythonRunner(ActionRunner):
     def run(self, action_parameters):
         LOG.debug('Running pythonrunner.')
         LOG.debug('Getting pack name.')
-        pack = self.get_pack_name()
+        pack = self.get_pack_ref()
+        pack_db = Pack.get_by_ref(pack)
         LOG.debug('Getting user.')
         user = self.get_user()
         LOG.debug('Serializing parameters.')
@@ -135,7 +137,10 @@ class PythonRunner(ActionRunner):
                                                       inherit_parent_virtualenv=True)
         pack_common_libs_path = get_pack_common_libs_path(pack_db=pack_db)
 
-        env['PYTHONPATH'] = pack_common_libs_path + ':' + sandbox_python_path
+        if pack_common_libs_path:
+            env['PYTHONPATH'] = pack_common_libs_path + ':' + sandbox_python_path
+        else:
+            env['PYTHONPATH'] = sandbox_python_path
 
         # Include user provided environment variables (if any)
         user_env_vars = self._get_env_vars()

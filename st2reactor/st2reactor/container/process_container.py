@@ -296,7 +296,11 @@ class ProcessSensorContainer(object):
         pack_common_libs_path = get_pack_common_libs_path(pack_db=pack_db)
 
         env = os.environ.copy()
-        env['PYTHONPATH'] = pack_common_libs_path + ':' + sandbox_python_path
+
+        if pack_common_libs_path:
+            env['PYTHONPATH'] = pack_common_libs_path + ':' + sandbox_python_path
+        else:
+            env['PYTHONPATH'] = sandbox_python_path
 
         # Include full api URL and API token specific to that sensor
         ttl = cfg.CONF.auth.service_token_ttl

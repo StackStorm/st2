@@ -174,7 +174,7 @@ class ResourceRegistrar(object):
         # Include a list of pack files
         pack_file_list = get_file_list(directory=pack_dir, exclude_patterns=EXCLUDE_FILE_PATTERNS)
         content['files'] = pack_file_list
-        content['pack'] = pack_dir
+        content['path'] = pack_dir
 
         pack_api = PackAPI(**content)
         pack_api.validate()
