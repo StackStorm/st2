@@ -21,10 +21,14 @@ from oslo_config import cfg
 
 from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.execution import ActionExecutionAPI
+from st2common.models.api.execution import ActionExecutionStdoutAPI
+from st2common.models.api.execution import ActionExecutionStderrAPI
 from st2common.transport import utils as transport_utils
 from st2common.transport.queues import STREAM_ANNOUNCEMENT_WORK_QUEUE
 from st2common.transport.queues import STREAM_EXECUTION_WORK_QUEUE
 from st2common.transport.queues import STREAM_LIVEACTION_WORK_QUEUE
+from st2common.transport.queues import STREAM_EXECUTION_STDOUT_QUEUE
+from st2common.transport.queues import STREAM_EXECUTION_STDERR_QUEUE
 from st2common import log as logging
 
 __all__ = [
@@ -56,7 +60,14 @@ class Listener(ConsumerMixin):
 
             consumer(queues=[STREAM_LIVEACTION_WORK_QUEUE],
                      accept=['pickle'],
-                     callbacks=[self.processor(LiveActionAPI)])
+                     callbacks=[self.processor(LiveActionAPI)]),
+
+            consumer(queues=[STREAM_EXECUTION_STDOUT_QUEUE],
+                     accept=['pickle'],
+                     callbacks=[self.processor(ActionExecutionStdoutAPI)]),
+            consumer(queues=[STREAM_EXECUTION_STDERR_QUEUE],
+                     accept=['pickle'],
+                     callbacks=[self.processor(ActionExecutionStderrAPI)])
         ]
 
     def processor(self, model=None):
