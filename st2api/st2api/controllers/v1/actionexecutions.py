@@ -39,6 +39,7 @@ from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.action import LiveActionCreateAPI
 from st2common.models.api.base import cast_argument_value
 from st2common.models.api.execution import ActionExecutionAPI
+from st2common.models.api.execution import ActionExecutionStdoutAPI
 from st2common.models.db.auth import UserDB
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
@@ -318,7 +319,7 @@ class ActionExecutionStdoutController(ActionExecutionsControllerMixin, ResourceC
             # Wait for and return any new stdout which may come in
             # TODO: Terminate when execution finishes
             # TODO: Only set up stdout consumer for listener
-            events = ['st2.execution.stdout__create']
+            events = ['st2.execution.stdout__create', 'st2.execution__update']
             execution_ids = [execution_id]
             gen = get_listener().generator(events=events, execution_ids=execution_ids)
 
@@ -327,9 +328,15 @@ class ActionExecutionStdoutController(ActionExecutionsControllerMixin, ResourceC
                     if not pack:
                         continue
                     else:
-                        (_, stdout_db) = pack
+                        (_, model_api) = pack
+
                         # Note: gunicorn wsgi handler expect bytes, not unicode
-                        yield six.binary_type(stdout_db.line)
+                        if isinstance(model_api, ActionExecutionStdoutAPI):
+                            yield six.binary_type(model_api.line)
+                        elif isinstance(model_api, ActionExecutionAPI):
+                            if model_api.status in LIVEACTION_COMPLETED_STATES:
+                                yield ''
+                                break
 
             gen = format(gen)
             return gen
