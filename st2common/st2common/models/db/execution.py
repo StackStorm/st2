@@ -132,7 +132,7 @@ class ActionExecutionStdoutOutputDB(stormbase.StormFoundationDB):
     """
     execution_id = me.StringField(required=True)
     action_ref = me.StringField(required=True)
-    timestamp = me.DateTimeField(required=True)
+    timestamp = me.DateTimeField(required=True, default=date_utils.get_datetime_utc_now)
 
     line = me.StringField()
 
@@ -154,7 +154,7 @@ class ActionExecutionStderrOutputDB(stormbase.StormFoundationDB):
     """
     execution_id = me.StringField(required=True)
     action_ref = me.StringField(required=True)
-    timestamp = me.DateTimeField(required=True)
+    timestamp = me.DateTimeField(required=True, default=date_utils.get_datetime_utc_now)
 
     line = me.StringField()
 
