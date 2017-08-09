@@ -108,10 +108,13 @@ class Listener(ConsumerMixin):
                     # TODO: We now do late filtering, but this could also be performed on the
                     # message bus level if we modified our exchange layout and utilize routing keys
                     if events and event_name not in events:
+                        LOG.debug('Skipping event "%s"' % (event_name))
                         continue
 
                     action_ref = self._get_action_ref_for_body(body=body)
                     if action_refs and action_ref and action_ref not in action_refs:
+                        LOG.debug('Skipping event "%s" with action_ref "%s"' % (event_name,
+                                                                                action_ref))
                         continue
 
                     yield message
@@ -133,7 +136,7 @@ class Listener(ConsumerMixin):
         action_ref = None
 
         if isinstance(body, ActionExecutionAPI):
-            action_ref = body.action
+            action_ref = body.action.get('ref', None) if body.action else None
         elif isinstance(body, LiveActionAPI):
             action_ref = body.action
         elif isinstance(body, (ActionExecutionStdoutAPI, ActionExecutionStderrAPI)):
