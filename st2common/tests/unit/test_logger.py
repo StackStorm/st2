@@ -261,7 +261,7 @@ class GelfLogFormatterTestCase(unittest.TestCase):
         formatter = GelfLogFormatter()
 
         expected_keys = ['version', 'host', 'short_message', 'full_message',
-                         'timestamp', 'level']
+                         'timestamp', 'timestamp_f', 'level']
 
         # No extra attributes
         mock_message = 'test message 1'
@@ -288,6 +288,7 @@ class GelfLogFormatterTestCase(unittest.TestCase):
         record._user_id = 1
         record._value = 'bar'
         record.ignored = 'foo'  # this one is ignored since it doesnt have a prefix
+        record.created = 1234.5678
 
         message = formatter.format(record=record)
         parsed = json.loads(message)
@@ -299,6 +300,8 @@ class GelfLogFormatterTestCase(unittest.TestCase):
         self.assertEqual(parsed['full_message'], mock_message)
         self.assertEqual(parsed['_user_id'], 1)
         self.assertEqual(parsed['_value'], 'bar')
+        self.assertEqual(parsed['timestamp'], 1234)
+        self.assertEqual(parsed['timestamp_f'], 1234.5678)
         self.assertTrue('ignored' not in parsed)
 
         # Record with an exception

@@ -244,7 +244,8 @@ class GelfLogFormatter(BaseExtraLogFormatter):
 
         msg = record.msg
         exc_info = record.exc_info
-        now = int(time.time())
+        time_now_float = record.created
+        time_now_sec = int(time_now_float)
         level = self.PYTHON_TO_GELF_LEVEL_MAP.get(record.levelno, self.DEFAULT_LOG_LEVEL)
 
         common_attributes = self._get_common_extra_attributes(record=record)
@@ -255,7 +256,8 @@ class GelfLogFormatter(BaseExtraLogFormatter):
             'host': HOSTNAME,
             'short_message': msg,
             'full_message': full_msg,
-            'timestamp': now,
+            'timestamp': time_now_sec,
+            'timestamp_f': time_now_float,
             'level': level
         }
 
