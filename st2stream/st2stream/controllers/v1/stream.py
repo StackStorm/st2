@@ -20,7 +20,23 @@ from st2common.router import Response
 from st2common.util.jsonify import json_encode
 from st2stream.listener import get_listener
 
+__all__ = [
+    'StreamController'
+]
+
 LOG = logging.getLogger(__name__)
+
+DEFAULT_EVENTS_WHITELIST = [
+    'st2.announcement.chatops',
+
+    'st2.execution__create',
+    'st2.execution__update',
+    'st2.execution__delete',
+
+    'st2.liveaction__create',
+    'st2.liveaction__update',
+    'st2.liveaction__delete',
+]
 
 
 def format(gen):
@@ -38,7 +54,7 @@ def format(gen):
 
 class StreamController(object):
     def get_all(self, events=None, action_refs=None):
-        events = events.split(',') if events else None
+        events = events.split(',') if events else DEFAULT_EVENTS_WHITELIST
         action_refs = action_refs.split(',') if action_refs else None
 
         def make_response():
