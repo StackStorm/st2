@@ -88,7 +88,7 @@ def main():
     except SystemExit as exit_code:
         sys.exit(exit_code)
     except KeyboardInterrupt:
-        listener = get_listener_if_set()
+        listener = get_listener_if_set(name='stream')
 
         if listener:
             listener.shutdown()

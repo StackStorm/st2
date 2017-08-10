@@ -318,10 +318,10 @@ class ActionExecutionStdoutController(ActionExecutionsControllerMixin, ResourceC
 
             # Wait for and return any new stdout which may come in
             # TODO: Terminate when execution finishes
-            # TODO: Only set up stdout consumer for listener
             events = ['st2.execution.stdout__create', 'st2.execution__update']
             execution_ids = [execution_id]
-            gen = get_listener().generator(events=events, execution_ids=execution_ids)
+            listener = get_listener(name='execution_output')
+            gen = listener.generator(events=events, execution_ids=execution_ids)
 
             def format(gen):
                 for pack in gen:

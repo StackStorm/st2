@@ -59,8 +59,9 @@ class StreamController(object):
         execution_ids = execution_ids.split(',') if execution_ids else None
 
         def make_response():
-            app_iter = format(get_listener().generator(events=events, action_refs=action_refs,
-                                                       execution_ids=execution_ids))
+            listener = get_listener(name='stream')
+            app_iter = format(listener.generator(events=events, action_refs=action_refs,
+                                                 execution_ids=execution_ids))
             res = Response(content_type='text/event-stream', app_iter=app_iter)
             return res
 

@@ -100,7 +100,7 @@ class TestStreamController(FunctionalTest):
         self.assertEqual(resp._status, '200 OK')
         self.assertIn(('Content-Type', 'text/event-stream; charset=UTF-8'), resp._headerlist)
 
-        listener = st2common.stream.listener.get_listener()
+        listener = st2common.stream.listener.get_listener(name='stream')
         process = listener.processor(LiveActionAPI)
 
         message = None
