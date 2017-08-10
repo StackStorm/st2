@@ -500,22 +500,28 @@ class StreamManager(object):
         self.cacert = cacert
 
     @add_auth_token_to_kwargs_from_env
-    def listen(self, events, **kwargs):
+    def listen(self, events=None, **kwargs):
         # Late import to avoid very expensive in-direct import (~1 second) when this function is
         # not called / used
         from sseclient import SSEClient
 
         url = self._url
+        query_params = {}
 
-        if 'token' in kwargs:
-            url += '?x-auth-token=%s' % kwargs.get('token')
-
-        if 'api_key' in kwargs:
-            url += '?st2-api-key=%s' % kwargs.get('api_key')
-
-        if isinstance(events, six.string_types):
+        if events and isinstance(events, six.string_types):
             events = [events]
 
+        if 'token' in kwargs:
+            query_params['x-auth-token'] = kwargs.get('token')
+
+        if 'api_key' in kwargs:
+            query_params['st2-api-key'] = kwargs.get('api_key')
+
+        if events:
+            query_params = ','.join(events)
+
+        query_string = '?' + urllib.parse.urlencode(query_params)
+        url = url + query_string
+
         for message in SSEClient(url):
-            if message.event in events:
-                yield json.loads(message.data)
+            yield json.loads(message.data)
