@@ -298,17 +298,21 @@ class ActionChainRunner(ActionRunner):
         )
 
     def resume(self):
-        # Restore chain holder if it is not initialized.
-        if not self.chain_holder:
-            self.pre_run()
-
-        # Restore action parameters if it is not provided.
-        _, action_parameters = param_utils.render_final_params(
+        # Restore runner and action parameters since they are not provided on resume.
+        runner_parameters, action_parameters = param_utils.render_final_params(
             self.runner_type_db.runner_parameters,
             self.action.parameters,
             self.liveaction.parameters,
             self.liveaction.context
         )
+
+        # Assign runner parameters needed for pre-run.
+        if runner_parameters:
+            self.runner_parameters = runner_parameters
+
+        # Restore chain holder if it is not initialized.
+        if not self.chain_holder:
+            self.pre_run()
 
         # Change the status of the liveaction from resuming to running.
         self.liveaction = action_service.update_status(
