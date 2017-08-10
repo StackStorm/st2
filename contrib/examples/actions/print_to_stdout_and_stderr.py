@@ -29,6 +29,6 @@ class PrintToStdoutAndStderrAction(Action):
                 text = 'stdout'
                 stream = sys.stdout
 
-            stream.write('[%s] Line: %s\n' % (text, (i + 1)))
+            stream.write('%s -> Line: %s\n' % (text, (i + 1)))
             stream.flush()
             time.sleep(sleep_delay)
