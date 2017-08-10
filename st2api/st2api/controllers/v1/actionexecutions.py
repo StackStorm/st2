@@ -41,6 +41,7 @@ from st2common.models.api.action import LiveActionCreateAPI
 from st2common.models.api.base import cast_argument_value
 from st2common.models.api.execution import ActionExecutionAPI
 from st2common.models.api.execution import ActionExecutionStdoutAPI
+from st2common.models.api.execution import ActionExecutionStderrAPI
 from st2common.models.db.auth import UserDB
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
@@ -304,6 +305,7 @@ class BaseActionExecutionOutputStreamController(ActionExecutionsControllerMixin,
     exclude_fields = []
 
     persistance_class = abc.abstractproperty
+    api_model_class = abc.abstractproperty
     listener_name = abc.abstractproperty
 
     def get_one(self, id, requester_user):
@@ -343,12 +345,14 @@ class BaseActionExecutionOutputStreamController(ActionExecutionsControllerMixin,
                         (_, model_api) = pack
 
                         # Note: gunicorn wsgi handler expect bytes, not unicode
-                        if isinstance(model_api, ActionExecutionStdoutAPI):
+                        if isinstance(model_api, self.api_model_class):
                             yield six.binary_type(model_api.line)
                         elif isinstance(model_api, ActionExecutionAPI):
                             if model_api.status in LIVEACTION_COMPLETED_STATES:
                                 yield ''
                                 break
+                        else:
+                            LOG.debug('Unrecognized message type: %s' % (model_api))
 
             gen = format(gen)
             return gen
@@ -367,6 +371,7 @@ class ActionExecutionStdoutController(BaseActionExecutionOutputStreamController)
     exclude_fields = []
 
     persistance_class = ActionExecutionStdoutOutput
+    api_model_class = ActionExecutionStdoutAPI
     listener_name = 'execution_stdout'
 
 
@@ -375,6 +380,7 @@ class ActionExecutionStderrController(BaseActionExecutionOutputStreamController)
     exclude_fields = []
 
     persistance_class = ActionExecutionStderrOutput
+    api_model_class = ActionExecutionStderrAPI
     listener_name = 'execution_stderr'
 
 
