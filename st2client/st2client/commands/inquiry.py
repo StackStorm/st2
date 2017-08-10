@@ -13,17 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import json
+# import os
+# import json
 import logging
-from os.path import join as pjoin
+# from os.path import join as pjoin
 
 from st2client.commands import resource
-from st2client.commands.noop import NoopCommand
-from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
+# from st2client.commands.noop import NoopCommand
+# from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
 from st2client.formatters import table
 from st2client.models.inquiry import Inquiry
-from st2client.utils.date import format_isodate_for_user_timezone
+# from st2client.utils.date import format_isodate_for_user_timezone
 
 LOG = logging.getLogger(__name__)
 
@@ -38,7 +38,7 @@ class InquiryBranch(resource.ResourceBranch):
             parent_parser=parent_parser,
             commands={
                 'list': InquiryListCommand,
-                # 'get': InquiryGetCommand
+                'get': InquiryGetCommand
             })
 
         # Registers extended commands
@@ -52,32 +52,21 @@ class InquiryBranch(resource.ResourceBranch):
 
 
 class InquiryListCommand(resource.ResourceListCommand):
+
+    # Omitting "schema" and "response", as those don't really show up in a table well
+    # The user can drill into a specific Inquiry to get these
     display_attributes = [
         'id',
-        'response',
-        'schema',
+        'parent',
         'roles',
         'users',
         'tag'
     ]
 
-    # attribute_transform_functions = {
-    #     'expire_timestamp': format_isodate_for_user_timezone,
-    # }
-
     def __init__(self, *args, **kwargs):
         super(InquiryListCommand, self).__init__(*args, **kwargs)
 
     def run_and_print(self, args, **kwargs):
-        # if args.prefix:
-        #     kwargs['prefix'] = args.prefix
-
-        # decrypt = getattr(args, 'decrypt', False)
-        # kwargs['params'] = {'decrypt': str(decrypt).lower()}
-        # scope = getattr(args, 'scope', DEFAULT_SCOPE)
-        # kwargs['params']['scope'] = scope
-        # kwargs['params']['user'] = args.user
-
         instances = self.run(args, **kwargs)
         self.print_output(reversed(instances), table.MultiColumnTable,
                           attributes=args.attr, widths=args.width,
@@ -85,25 +74,21 @@ class InquiryListCommand(resource.ResourceListCommand):
                           yaml=args.yaml)
 
 
-# class KeyValuePairGetCommand(resource.ResourceGetCommand):
-#     pk_argument_name = 'name'
-#     display_attributes = ['name', 'value', 'secret', 'encrypted', 'scope', 'expire_timestamp']
+class InquiryGetCommand(resource.ResourceGetCommand):
+    pk_argument_name = 'id'
+    display_attributes = ['id', 'parent', 'roles', 'users', 'tag', 'response_schema']
 
-#     def __init__(self, kv_resource, *args, **kwargs):
-#         super(KeyValuePairGetCommand, self).__init__(kv_resource, *args, **kwargs)
-#         self.parser.add_argument('-d', '--decrypt', action='store_true',
-#                                  help='Decrypt secret if encrypted and show plain text.')
-#         self.parser.add_argument('-s', '--scope', default=DEFAULT_SCOPE, dest='scope',
-#                                  help='Scope item is under. Example: "user".')
+    def __init__(self, kv_resource, *args, **kwargs):
+        super(InquiryGetCommand, self).__init__(kv_resource, *args, **kwargs)
 
-#     @resource.add_auth_token_to_kwargs_from_cli
-#     def run(self, args, **kwargs):
-#         resource_name = getattr(args, self.pk_argument_name, None)
-#         decrypt = getattr(args, 'decrypt', False)
-#         scope = getattr(args, 'scope', DEFAULT_SCOPE)
-#         kwargs['params'] = {'decrypt': str(decrypt).lower()}
-#         kwargs['params']['scope'] = scope
-#         return self.get_resource_by_id(id=resource_name, **kwargs)
+    @resource.add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        resource_name = getattr(args, self.pk_argument_name, None)
+        decrypt = getattr(args, 'decrypt', False)
+        scope = getattr(args, 'scope', DEFAULT_SCOPE)
+        kwargs['params'] = {'decrypt': str(decrypt).lower()}
+        kwargs['params']['scope'] = scope
+        return self.get_resource_by_id(id=resource_name, **kwargs)
 
 
 # class KeyValuePairSetCommand(resource.ResourceCommand):

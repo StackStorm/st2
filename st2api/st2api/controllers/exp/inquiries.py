@@ -30,22 +30,35 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 
+test_schema = {
+    "type": "object",
+    "required": [
+        'approval'
+    ],
+    "properties": {
+        "approval": {
+            "description": "",
+            "type": "boolean"
+        }
+    }
+}
+
 test_inquiries = [
     {
         "id": "abcdef",
-        "params": {
-            "tag": "developers",
-            "users": [],
-            "roles": []
-        }
+        "parent": "aaaaaa",
+        "response_schema": test_schema,
+        "tag": "developers",
+        "users": ["mierdin", "st2admin"],
+        "roles": []
     },
     {
         "id": "123456",
-        "params": {
-            "tag": "ops",
-            "users": [],
-            "roles": []
-        }
+        "parent": "111111",
+        "response_schema": test_schema,
+        "tag": "ops",
+        "users": [],
+        "roles": ["admins"]
     }
 ]
 
@@ -61,10 +74,16 @@ class InquiriesController(ResourceController):
     access = ActionExecution
 
     def get_all(self, requester_user=None):
+
+        # Basically, get all ActionExecutions with a `pending` status.
+
         return test_inquiries
 
-    def get_one(self, id, requester_user=None):
-        return [i for i in test_inquiries if i["id"] == id][0]
+    def get_one(self, iid, requester_user=None):
+
+        # Should be identical to getting an execution by ID, only with different fields.
+
+        return [i for i in test_inquiries if i["id"] == iid][0]
 
     def put(self, iid, rdata, requester_user):
         """
