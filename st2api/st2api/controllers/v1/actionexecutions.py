@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import abc
 import copy
 import re
 import httplib
@@ -292,23 +293,34 @@ class ActionExecutionAttributeController(BaseActionExecutionNestedController):
         return result
 
 
-class ActionExecutionStdoutController(ActionExecutionsControllerMixin, ResourceController):
+@six.add_metaclass(abc.ABCMeta)
+class BaseActionExecutionOutputStreamController(ActionExecutionsControllerMixin,
+                                                ResourceController):
+    """
+    Base class for execution stdout and stderr stream controllers.
+    """
+
     supported_filters = {}
     exclude_fields = []
+
+    persistance_class = abc.abstractproperty
+    listener_name = abc.abstractproperty
 
     def get_one(self, id, requester_user):
         execution_db = self._get_one_by_id(id=id, requester_user=requester_user,
                                            permission_type=PermissionType.EXECUTION_VIEW)
         execution_id = str(execution_db.id)
 
-        def existing_stdout_iter():
-            # Consume and return all of the existing data
-            stdout_dbs = ActionExecutionStdoutOutput.query(execution_id=execution_id)
+        def existing_output_iter():
+            # Consume and return all of the existing lines
+            output_dbs = self.persistance_class.query(execution_id=execution_id)
 
-            lines = ''.join([stdout_db.line for stdout_db in stdout_dbs])
+            # Note: We return all at once intestead of yield line by line to avoid multiple socket
+            # writes and to achieve better performance
+            lines = ''.join([output_db.line for output_db in output_dbs])
             yield six.binary_type(lines)
 
-        def new_stdout_iter():
+        def new_output_iter():
             def noop_gen():
                 yield ''
 
@@ -318,11 +330,10 @@ class ActionExecutionStdoutController(ActionExecutionsControllerMixin, ResourceC
             if execution_db.status in LIVEACTION_COMPLETED_STATES:
                 return noop_gen()
 
-            # Wait for and return any new stdout which may come in
-            events = ['st2.execution.stdout__create', 'st2.execution__update']
+            # Wait for and return any new line which may come in
             execution_ids = [execution_id]
-            listener = get_listener(name='execution_stdout')
-            gen = listener.generator(events=events, execution_ids=execution_ids)
+            listener = get_listener(name=self.listener_name)
+            gen = listener.generator(execution_ids=execution_ids)
 
             def format(gen):
                 for pack in gen:
@@ -343,7 +354,7 @@ class ActionExecutionStdoutController(ActionExecutionsControllerMixin, ResourceC
             return gen
 
         def make_response():
-            app_iter = itertools.chain(existing_stdout_iter(), new_stdout_iter())
+            app_iter = itertools.chain(existing_output_iter(), new_output_iter())
             res = Response(content_type='text/plain', app_iter=app_iter)
             return res
 
@@ -351,34 +362,20 @@ class ActionExecutionStdoutController(ActionExecutionsControllerMixin, ResourceC
         return res
 
 
-class ActionExecutionStderrController(ActionExecutionsControllerMixin, ResourceController):
-    # TODO: Refactor in common ActionExecutionBaseOutputController class
+class ActionExecutionStdoutController(BaseActionExecutionOutputStreamController):
     supported_filters = {}
     exclude_fields = []
 
-    def get_one(self, id, requester_user):
-        execution_db = self._get_one_by_id(id=id, requester_user=requester_user,
-                                           permission_type=PermissionType.EXECUTION_VIEW)
-        execution_id = str(execution_db.id)
+    persistance_class = ActionExecutionStdoutOutput
+    listener_name = 'execution_stdout'
 
-        def stderr_iter():
-            # Consume and return all of the existing data
-            stdout_dbs = ActionExecutionStderrOutput.query(execution_id=execution_id)
 
-            lines = ''.join([stdout_db.line for stdout_db in stdout_dbs])
-            yield six.binary_type(lines)
+class ActionExecutionStderrController(BaseActionExecutionOutputStreamController):
+    supported_filters = {}
+    exclude_fields = []
 
-            # TODO
-            # Wait and return any new data which may come in
-            # Return when execution completes
-
-        def make_response():
-            res = Response(content_type='text/plain',
-                           app_iter=stderr_iter())
-            return res
-
-        res = make_response()
-        return res
+    persistance_class = ActionExecutionStderrOutput
+    listener_name = 'execution_stderr'
 
 
 class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceController):
