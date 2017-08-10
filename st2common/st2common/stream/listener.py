@@ -223,9 +223,6 @@ def get_listener(name):
     global _stream_listener
     global _execution_output_listener
 
-    if name not in ['stream', 'execution_output']:
-        raise ValueError('Invalid listener name: %s' % (name))
-
     if name == 'stream':
         if not _stream_listener:
             with Connection(transport_utils.get_messaging_urls()) as conn:
@@ -235,19 +232,20 @@ def get_listener(name):
     elif name == 'execution_output':
         if not _execution_output_listener:
             with Connection(transport_utils.get_messaging_urls()) as conn:
-                _execution_output_listener = StreamListener(conn)
+                _execution_output_listener = APIExecutionOutputListener(conn)
                 eventlet.spawn_n(listen, _execution_output_listener)
-        return _stream_listener
+        return _execution_output_listener
+    else:
+        raise ValueError('Invalid listener name: %s' % (name))
 
 
 def get_listener_if_set(name):
     global _stream_listener
     global _execution_output_listener
 
-    if name not in ['stream', 'execution_output']:
-        raise ValueError('Invalid listener name: %s' % (name))
-
     if name == 'stream':
         return _stream_listener
     elif name == 'execution_output':
-        return _stream_listener
+        return _execution_output_listener
+    else:
+        raise ValueError('Invalid listener name: %s' % (name))
