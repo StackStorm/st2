@@ -33,10 +33,13 @@ class StreamingMiddleware(object):
         matches = False
         req_path = environ.get('PATH_INFO', None)
 
-        for path_whitelist in self._path_whitelist:
-            if fnmatch.fnmatch(req_path, path_whitelist):
-                matches = True
-                break
+        if not self._path_whitelist:
+            matches = True
+        else:
+            for path_whitelist in self._path_whitelist:
+                if fnmatch.fnmatch(req_path, path_whitelist):
+                    matches = True
+                    break
 
         if matches:
             environ['eventlet.minimum_write_chunk_size'] = 0
