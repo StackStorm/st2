@@ -26,7 +26,6 @@ from st2common.content.loader import MetaLoader
 __all__ = [
     'get_pack_ref_from_metadata',
     'get_pack_metadata',
-    'get_pack_path_from_metadata',
 
     'validate_config_against_schema',
 

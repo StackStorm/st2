@@ -132,7 +132,6 @@ class PythonRunner(ActionRunner):
         env = os.environ.copy()
         env['PATH'] = get_sandbox_path(virtualenv_path=virtualenv_path)
 
-
         sandbox_python_path = get_sandbox_python_path(inherit_from_parent=True,
                                                       inherit_parent_virtualenv=True)
         pack_common_libs_path = get_pack_common_libs_path(pack_db=pack_db)
