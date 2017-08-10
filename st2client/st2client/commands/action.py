@@ -30,7 +30,6 @@ from st2client import models
 from st2client.commands import resource
 from st2client.commands.resource import ResourceNotFoundError
 from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
-from st2client.exceptions.operations import OperationFailureException
 from st2client.formatters import table
 from st2client.formatters import execution as execution_formatter
 from st2client.utils import jsutil
@@ -939,6 +938,8 @@ class ActionExecutionBranch(resource.ResourceBranch):
                                                               self.subparsers, add_help=False)
         self.commands['cancel'] = ActionExecutionCancelCommand(self.resource, self.app,
                                                                self.subparsers, add_help=False)
+        self.commands['tail'] = ActionExecutionTailCommand(self.resource, self.app,
+                                                           self.subparsers, add_help=False)
 
 
 POSSIBLE_ACTION_STATUS_VALUES = ('succeeded', 'running', 'scheduled', 'failed', 'canceled')
@@ -1238,3 +1239,72 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
                                                args=args, **kwargs)
 
         return execution
+
+
+class ActionExecutionTailCommand(resource.ResourceCommand):
+    def __init__(self, resource, *args, **kwargs):
+        super(ActionExecutionTailCommand, self).__init__(
+            resource, kwargs.pop('name', 'tail'),
+            'A command to tail stdout and stderr of a particular execution.',
+            *args, **kwargs)
+
+        self.parser.add_argument('id', nargs='?',
+                                 metavar='id',
+                                 default='last',
+                                 help='ID of action execution to tail.')
+        self.parser.add_argument('--stdout', dest='tail_stdout', action='store_true',
+                                 help='Tail stdout.')
+        self.parser.add_argument('--stderr', dest='tail_stderr', action='store_true',
+                                 help='Tail stderr.')
+        self.parser.add_argument('-h', '--help',
+                                 action='store_true', dest='help',
+                                 help='Print usage for the given command.')
+
+    def run(self, args, **kwargs):
+        pass
+
+    @add_auth_token_to_kwargs_from_cli
+    def run_and_print(self, args, **kwargs):
+        execution_id = args.id
+        tail_stdout = getattr(args, 'tail_stdout', None)
+        tail_stderr = getattr(args, 'tail_stderr', None)
+
+        # Special case for id "last"
+        if execution_id == 'last':
+            executions = self.manager.query(limit=1)
+            execution = executions[0] if executions else None
+            execution_id = execution.id
+        else:
+            execution = self.manager.get_by_id(execution_id, **kwargs)
+
+        if not execution:
+            raise ResourceNotFoundError('Execution  with id %s not found.' % (args.id))
+
+        # Execution has already finished
+        if execution.status in LIVEACTION_COMPLETED_STATES:
+            print('Execution %s has completed.' % (execution_id))
+            return
+
+        # If none is provided, we default to tailing both
+        if not tail_stdout and not tail_stderr:
+            tail_stdout, tail_stderr = True, True
+
+        stream_mgr = self.app.client.managers['Stream']
+        events = ['st2.execution__update']
+
+        if tail_stdout:
+            events.append('st2.execution.stdout__create')
+
+        if tail_stderr:
+            events.append('st2.execution.stderr__create')
+
+        for event in stream_mgr.listen(events, **kwargs):
+            status = getattr(event, 'status', None)
+            is_execution_event = 'status' in event
+
+            if is_execution_event:
+                # Execution has completed
+                if status in LIVEACTION_COMPLETED_STATES:
+                    break
+            else:
+                sys.stdout.write('[%s][%s]%s' % (event['timestamp'], event['type'], event['line']))
