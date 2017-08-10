@@ -61,7 +61,7 @@ class InquiriesController(ResourceController):
     access = ActionExecution
 
     def get_all(self, requester_user=None):
-        return [test_inquiries]
+        return test_inquiries
 
     def get_one(self, id, requester_user=None):
         return [i for i in test_inquiries if i["id"] == id][0]

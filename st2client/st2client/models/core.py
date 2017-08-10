@@ -390,6 +390,10 @@ class LiveActionResourceManager(ResourceManager):
         return instance
 
 
+class InquiryResourceManager(ResourceManager):
+    pass
+
+
 class TriggerInstanceResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
     def re_emit(self, trigger_instance_id, **kwargs):
