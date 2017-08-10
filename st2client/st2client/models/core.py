@@ -518,7 +518,7 @@ class StreamManager(object):
             query_params['st2-api-key'] = kwargs.get('api_key')
 
         if events:
-            query_params = ','.join(events)
+            query_params['events'] = ','.join(events)
 
         query_string = '?' + urllib.parse.urlencode(query_params)
         url = url + query_string
