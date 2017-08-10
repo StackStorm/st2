@@ -96,44 +96,49 @@ class InquiriesController(ResourceController):
         4. Update inquiry's execution result with a successful status and the validated response
         5. Retrieve parent execution for the inquiry, and pass this to action_service.request_resume
 
+        TODO(mierdin): The header param (iid) and the body field (rdata.id) are redundant, but
+        other API endpoints do the same. Should figure out if this should/can be pruned - you'll
+        only actually use one of them
         """
 
-        #
-        # Retrieve details of the inquiry via ID (i.e. params like schema)
-        #
-        existing_inquiry = self._get_one_by_id(
-            id=iid,
-            requester_user=requester_user,
-            permission_type=PermissionType.EXECUTION_VIEW
-        )
-        LOG.info("Got existing inquiry ID: %s" % existing_inquiry.id)
+        LOG.info("Inquiry %s received response payload: %s" % (iid, rdata.response))
 
-        #
-        # Determine permission of this user to respond to this Inquiry
-        #
-        if not requester_user:
-                # TODO(mierdin) figure out how to return this in an HTTP code
-                # (and modify the openapi def accordingly)
-            raise Exception("Not permitted")
-        roles = existing_inquiry.parameters.get('roles')
-        users = existing_inquiry.parameters.get('users')
-        if roles:
-            for role in roles:
-                LOG.info("Checking user %s is in role %s" % (requester_user, role))
-                LOG.info(rbac_utils.user_has_role(requester_user, role))
-                # TODO(mierdin): Note that this will always return True if Rbac is not enabled
-                # Need to test with rbac enabled and configured
-                if rbac_utils.user_has_role(requester_user, role):
-                    break
-            else:
-                # TODO(mierdin) figure out how to return this in an HTTP code
-                # (and modify the openapi def accordingly)
-                raise Exception("Not permitted")
-        if users:
-            if requester_user not in users:
-                # TODO(mierdin) figure out how to return this in an HTTP code
-                # (and modify the openapi def accordingly)
-                raise Exception("Not permitted")
+        # #
+        # # Retrieve details of the inquiry via ID (i.e. params like schema)
+        # #
+        # existing_inquiry = self._get_one_by_id(
+        #     id=iid,
+        #     requester_user=requester_user,
+        #     permission_type=PermissionType.EXECUTION_VIEW
+        # )
+        # LOG.info("Got existing inquiry ID: %s" % existing_inquiry.id)
+
+        # #
+        # # Determine permission of this user to respond to this Inquiry
+        # #
+        # if not requester_user:
+        #         # TODO(mierdin) figure out how to return this in an HTTP code
+        #         # (and modify the openapi def accordingly)
+        #     raise Exception("Not permitted")
+        # roles = existing_inquiry.parameters.get('roles')
+        # users = existing_inquiry.parameters.get('users')
+        # if roles:
+        #     for role in roles:
+        #         LOG.info("Checking user %s is in role %s" % (requester_user, role))
+        #         LOG.info(rbac_utils.user_has_role(requester_user, role))
+        #         # TODO(mierdin): Note that this will always return True if Rbac is not enabled
+        #         # Need to test with rbac enabled and configured
+        #         if rbac_utils.user_has_role(requester_user, role):
+        #             break
+        #     else:
+        #         # TODO(mierdin) figure out how to return this in an HTTP code
+        #         # (and modify the openapi def accordingly)
+        #         raise Exception("Not permitted")
+        # if users:
+        #     if requester_user not in users:
+        #         # TODO(mierdin) figure out how to return this in an HTTP code
+        #         # (and modify the openapi def accordingly)
+        #         raise Exception("Not permitted")
 
         #
         # Validate the body of the response against the schema parameter for this inquiry,
@@ -154,11 +159,11 @@ class InquiriesController(ResourceController):
 
         # return "Received data for inquiry %s" % id
 
-        response_data = getattr(rdata, 'response_data')
+        response = getattr(rdata, 'response')
 
         return {
             "id": iid,
-            "response_data": response_data
+            "response": response
         }
 
 

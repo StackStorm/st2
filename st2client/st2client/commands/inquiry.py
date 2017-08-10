@@ -14,7 +14,7 @@
 # limitations under the License.
 
 # import os
-# import json
+import json
 import logging
 # from os.path import join as pjoin
 
@@ -42,8 +42,8 @@ class InquiryBranch(resource.ResourceBranch):
             })
 
         # Registers extended commands
-        # self.commands['respond'] = InquiryRespondCommand(self.resource, self.app,
-        #                                               self.subparsers)
+        self.commands['respond'] = InquiryRespondCommand(self.resource, self.app,
+                                                         self.subparsers)
 
         # Remove unsupported commands
         # TODO: Refactor parent class and make it nicer
@@ -91,53 +91,53 @@ class InquiryGetCommand(resource.ResourceGetCommand):
         return self.get_resource_by_id(id=resource_name, **kwargs)
 
 
-# class KeyValuePairSetCommand(resource.ResourceCommand):
-#     display_attributes = ['name', 'value', 'expire_timestamp']
+class InquiryRespondCommand(resource.ResourceCommand):
+    display_attributes = ['id', 'response']
 
-#     def __init__(self, resource, *args, **kwargs):
-#         super(KeyValuePairSetCommand, self).__init__(
-#             resource, 'set',
-#             'Set an existing %s.' % resource.get_display_name().lower(),
-#             *args, **kwargs
-#         )
+    def __init__(self, resource, *args, **kwargs):
+        super(InquiryRespondCommand, self).__init__(
+            resource, 'respond',
+            'Respond to an %s.' % resource.get_display_name().lower(),
+            *args, **kwargs
+        )
 
-#         self.parser.add_argument('name',
-#                                  metavar='name',
-#                                  help='Name of the key value pair.')
-#         self.parser.add_argument('value', help='Value paired with the key.')
-#         self.parser.add_argument('-l', '--ttl', dest='ttl', type=int, default=None,
-#                                  help='TTL (in seconds) for this value.')
-#         self.parser.add_argument('-e', '--encrypt', dest='secret',
-#                                  action='store_true',
-#                                  help='Encrypt value before saving the value.')
-#         self.parser.add_argument('-s', '--scope', dest='scope', default=DEFAULT_SCOPE,
-#                                  help='Specify the scope under which you want ' +
-#                                       'to place the item.')
-#         self.parser.add_argument('-u', '--user', dest='user', default=None,
-#                                  help='User for user scoped items (admin only).')
+        self.parser.add_argument('id',
+                                 metavar='id',
+                                 help='Inquiry ID')
+        self.parser.add_argument('response',
+                                 metavar='response',
+                                 help='response body (json)')
+        # self.parser.add_argument('value', help='Value paired with the key.')
+        # self.parser.add_argument('-l', '--ttl', dest='ttl', type=int, default=None,
+        #                          help='TTL (in seconds) for this value.')
+        # self.parser.add_argument('-e', '--encrypt', dest='secret',
+        #                          action='store_true',
+        #                          help='Encrypt value before saving the value.')
+        # self.parser.add_argument('-s', '--scope', dest='scope', default=DEFAULT_SCOPE,
+        #                          help='Specify the scope under which you want ' +
+        #                               'to place the item.')
+        # self.parser.add_argument('-u', '--user', dest='user', default=None,
+        #                          help='User for user scoped items (admin only).')
 
-#     @add_auth_token_to_kwargs_from_cli
-#     def run(self, args, **kwargs):
-#         instance = KeyValuePair()
-#         instance.id = args.name  # TODO: refactor and get rid of id
-#         instance.name = args.name
-#         instance.value = args.value
-#         instance.scope = args.scope
-#         instance.user = args.user
+    @resource.add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        instance = Inquiry()
+        instance.id = args.id
+        instance.response = json.loads(args.response)
 
-#         if args.secret:
-#             instance.secret = args.secret
+        # if args.secret:
+        #     instance.secret = args.secret
 
-#         if args.ttl:
-#             instance.ttl = args.ttl
+        # if args.ttl:
+        #     instance.ttl = args.ttl
 
-#         return self.manager.update(instance, **kwargs)
+        return self.manager.update(instance, **kwargs)
 
-#     def run_and_print(self, args, **kwargs):
-#         instance = self.run(args, **kwargs)
-#         self.print_output(instance, table.PropertyValueTable,
-#                           attributes=self.display_attributes, json=args.json,
-#                           yaml=args.yaml)
+    def run_and_print(self, args, **kwargs):
+        instance = self.run(args, **kwargs)
+        self.print_output(instance, table.PropertyValueTable,
+                          attributes=self.display_attributes, json=args.json,
+                          yaml=args.yaml)
 
 
 # class KeyValuePairDeleteCommand(resource.ResourceDeleteCommand):
