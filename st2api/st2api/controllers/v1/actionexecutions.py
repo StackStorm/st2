@@ -321,7 +321,7 @@ class ActionExecutionStdoutController(ActionExecutionsControllerMixin, ResourceC
             # Wait for and return any new stdout which may come in
             events = ['st2.execution.stdout__create', 'st2.execution__update']
             execution_ids = [execution_id]
-            listener = get_listener(name='execution_output')
+            listener = get_listener(name='execution_stdout')
             gen = listener.generator(events=events, execution_ids=execution_ids)
 
             def format(gen):

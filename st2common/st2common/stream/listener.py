@@ -33,10 +33,9 @@ from st2common.transport.queues import STREAM_EXECUTION_STDERR_QUEUE
 from st2common import log as logging
 
 __all__ = [
-    'BaseListener',
-
     'StreamListener',
-    'APIExecutionOutputListener',
+    'ExecutionStdoutListener',
+    'ExecutionStderrListener',
 
     'get_listener',
     'get_listener_if_set'
@@ -47,7 +46,8 @@ LOG = logging.getLogger(__name__)
 
 # Stores references to instantiated listeners
 _stream_listener = None
-_execution_output_listener = None
+_execution_stdout_listener = None
+_execution_stderr_listener = None
 
 
 class BaseListener(ConsumerMixin):
@@ -190,11 +190,11 @@ class StreamListener(BaseListener):
         ]
 
 
-class APIExecutionOutputListener(BaseListener):
+class ExecutionStdoutListener(BaseListener):
     """
-    Listener used inside action execution /stdout and /stderr endpoints.
+    Listener used inside action execution /stdout endpoint.
 
-    Only listens to action execution work, stdout and stderr queues.
+    Only listens to action execution work and stdout queue.
     """
 
     def get_consumers(self, consumer, channel):
@@ -205,7 +205,23 @@ class APIExecutionOutputListener(BaseListener):
 
             consumer(queues=[STREAM_EXECUTION_STDOUT_QUEUE],
                      accept=['pickle'],
-                     callbacks=[self.processor(ActionExecutionStdoutAPI)]),
+                     callbacks=[self.processor(ActionExecutionStdoutAPI)])
+        ]
+
+
+class ExecutionStderrListener(BaseListener):
+    """
+    Listener used inside action execution /stdout endpoint.
+
+    Only listens to action execution work and stdout queue.
+    """
+
+    def get_consumers(self, consumer, channel):
+        return [
+            consumer(queues=[STREAM_EXECUTION_UPDATE_WORK_QUEUE],
+                     accept=['pickle'],
+                     callbacks=[self.processor(ActionExecutionAPI)]),
+
             consumer(queues=[STREAM_EXECUTION_STDERR_QUEUE],
                      accept=['pickle'],
                      callbacks=[self.processor(ActionExecutionStderrAPI)])
@@ -221,7 +237,8 @@ def listen(listener):
 
 def get_listener(name):
     global _stream_listener
-    global _execution_output_listener
+    global _execution_stdout_listener
+    global _execution_stderr_listener
 
     if name == 'stream':
         if not _stream_listener:
@@ -229,23 +246,33 @@ def get_listener(name):
                 _stream_listener = StreamListener(conn)
                 eventlet.spawn_n(listen, _stream_listener)
         return _stream_listener
-    elif name == 'execution_output':
-        if not _execution_output_listener:
+    elif name == 'execution_stdout':
+        if not _execution_stdout_listener:
             with Connection(transport_utils.get_messaging_urls()) as conn:
-                _execution_output_listener = APIExecutionOutputListener(conn)
-                eventlet.spawn_n(listen, _execution_output_listener)
-        return _execution_output_listener
+                _execution_stdout_listener = ExecutionStdoutListener(conn)
+                eventlet.spawn_n(listen, _execution_stdout_listener)
+        return _execution_stdout_listener
+    elif name == 'execution_stderr':
+        if not _execution_stderr_listener:
+            with Connection(transport_utils.get_messaging_urls()) as conn:
+                _execution_stderr_listener = ExecutionStderrListener(conn)
+                eventlet.spawn_n(listen, _execution_stderr_listener)
+        return _execution_stderr_listener
+
     else:
         raise ValueError('Invalid listener name: %s' % (name))
 
 
 def get_listener_if_set(name):
     global _stream_listener
-    global _execution_output_listener
+    global _execution_stdout_listener
+    global _execution_stderr_listener
 
     if name == 'stream':
         return _stream_listener
-    elif name == 'execution_output':
-        return _execution_output_listener
+    elif name == 'execution_stdout':
+        return _execution_stdout_listener
+    elif name == 'execution_stderr':
+        return _execution_stderr_listener
     else:
         raise ValueError('Invalid listener name: %s' % (name))
