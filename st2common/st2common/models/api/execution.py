@@ -211,6 +211,10 @@ class ActionExecutionStdoutAPI(BaseAPI):
             },
             'line': {
                 'type': 'string'
+            },
+            'type': {
+                'type': 'string',
+                'default': 'stdout'
             }
         },
         'additionalProperties': False
@@ -220,6 +224,7 @@ class ActionExecutionStdoutAPI(BaseAPI):
     def from_model(cls, model, mask_secrets=True):
         doc = cls._from_model(model, mask_secrets=mask_secrets)
         doc['timestamp'] = isotime.format(model.timestamp, offset=False)
+        doc['type'] = 'stdout'
 
         attrs = {attr: value for attr, value in six.iteritems(doc) if value is not None}
         return cls(**attrs)
@@ -245,6 +250,10 @@ class ActionExecutionStderrAPI(BaseAPI):
             },
             'line': {
                 'type': 'string'
+            },
+            'type': {
+                'type': 'string',
+                'default': 'stderr'
             }
         },
         'additionalProperties': False
@@ -254,6 +263,7 @@ class ActionExecutionStderrAPI(BaseAPI):
     def from_model(cls, model, mask_secrets=True):
         doc = cls._from_model(model, mask_secrets=mask_secrets)
         doc['timestamp'] = isotime.format(model.timestamp, offset=False)
+        doc['type'] = 'stderr'
 
         attrs = {attr: value for attr, value in six.iteritems(doc) if value is not None}
         return cls(**attrs)
