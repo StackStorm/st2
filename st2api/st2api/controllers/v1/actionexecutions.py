@@ -313,11 +313,12 @@ class ActionExecutionStdoutController(ActionExecutionsControllerMixin, ResourceC
                 yield ''
 
             # Bail out if execution has already completed
+            # TODO: Should we also bail out in PAUSE? Perhaps not a bad idea to avoid potentially
+            # very long opened connection
             if execution_db.status in LIVEACTION_COMPLETED_STATES:
                 return noop_gen()
 
             # Wait for and return any new stdout which may come in
-            # TODO: Terminate when execution finishes
             events = ['st2.execution.stdout__create', 'st2.execution__update']
             execution_ids = [execution_id]
             listener = get_listener(name='execution_output')
