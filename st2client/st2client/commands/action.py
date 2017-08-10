@@ -28,6 +28,7 @@ from os.path import join as pjoin
 
 from st2client import models
 from st2client.commands import resource
+from st2client.commands.resource import ResourceNotFoundError
 from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
 from st2client.exceptions.operations import OperationFailureException
 from st2client.formatters import table
@@ -1125,7 +1126,7 @@ class ActionExecutionGetCommand(ActionRunCommandMixin, ActionExecutionReadComman
                 execution = format_execution_status(execution)
         except resource.ResourceNotFoundError:
             self.print_not_found(args.id)
-            raise OperationFailureException('Execution %s not found.' % (args.id))
+            raise ResourceNotFoundError('Execution with id %s not found.' % (args.id))
         return self._print_execution_details(execution=execution, args=args, **kwargs)
 
 
