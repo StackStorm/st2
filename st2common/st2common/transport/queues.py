@@ -45,7 +45,8 @@ __all__ = [
     'RULESENGINE_WORK_QUEUE',
 
     'STREAM_ANNOUNCEMENT_WORK_QUEUE',
-    'STREAM_EXECUTION_WORK_QUEUE',
+    'STREAM_EXECUTION_ALL_WORK_QUEUE',
+    'STREAM_EXECUTION_UPDATE_WORK_QUEUE',
     'STREAM_LIVEACTION_WORK_QUEUE'
 ]
 
@@ -78,8 +79,10 @@ RULESENGINE_WORK_QUEUE = reactor.get_trigger_instances_queue(
 # Used by the stream service
 STREAM_ANNOUNCEMENT_WORK_QUEUE = announcement.get_queue(routing_key=publishers.ANY_RK,
                                                         exclusive=True)
-STREAM_EXECUTION_WORK_QUEUE = execution.get_queue(routing_key=publishers.ANY_RK,
-                                                  exclusive=True)
+STREAM_EXECUTION_ALL_WORK_QUEUE = execution.get_queue(routing_key=publishers.ANY_RK,
+                                                      exclusive=True)
+STREAM_EXECUTION_UPDATE_WORK_QUEUE = execution.get_queue(routing_key=publishers.UPDATE_RK,
+                                                         exclusive=True)
 STREAM_LIVEACTION_WORK_QUEUE = Queue(None, liveaction.LIVEACTION_XCHG,
                                      routing_key=publishers.ANY_RK, exclusive=True)
 

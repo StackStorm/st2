@@ -37,7 +37,7 @@ from st2common.transport.queues import NOTIFIER_ACTIONUPDATE_WORK_QUEUE
 from st2common.transport.queues import RESULTSTRACKER_ACTIONSTATE_WORK_QUEUE
 from st2common.transport.queues import RULESENGINE_WORK_QUEUE
 from st2common.transport.queues import STREAM_ANNOUNCEMENT_WORK_QUEUE
-from st2common.transport.queues import STREAM_EXECUTION_WORK_QUEUE
+from st2common.transport.queues import STREAM_EXECUTION_ALL_WORK_QUEUE
 from st2common.transport.queues import STREAM_LIVEACTION_WORK_QUEUE
 
 LOG = logging.getLogger('st2common.transport.bootstrap')
@@ -74,7 +74,7 @@ QUEUES = [
     RULESENGINE_WORK_QUEUE,
 
     STREAM_ANNOUNCEMENT_WORK_QUEUE,
-    STREAM_EXECUTION_WORK_QUEUE,
+    STREAM_EXECUTION_ALL_WORK_QUEUE,
     STREAM_LIVEACTION_WORK_QUEUE,
 
     # Those queues are dynamically / late created on some class init but we still need to
