@@ -1307,4 +1307,4 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
                 if status in LIVEACTION_COMPLETED_STATES:
                     break
             else:
-                sys.stdout.write('[%s][%s]%s' % (event['timestamp'], event['type'], event['line']))
+                sys.stdout.write('[%s][%s] %s' % (event['timestamp'], event['type'], event['line']))
