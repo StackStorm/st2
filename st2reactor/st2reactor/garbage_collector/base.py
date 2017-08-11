@@ -100,10 +100,12 @@ class GarbageCollectorService(object):
         Validate that a user has supplied reasonable TTL values.
         """
         if self._action_executions_ttl and self._action_executions_ttl < MINIMUM_TTL_DAYS:
-            raise ValueError('Minimum possible TTL in days is %s' % (MINIMUM_TTL_DAYS))
+            raise ValueError('Minimum possible TTL for action_executions_ttl in days is %s' %
+                              (MINIMUM_TTL_DAYS))
 
         if self._trigger_instances_ttl and self._trigger_instances_ttl < MINIMUM_TTL_DAYS:
-            raise ValueError('Minimum possible TTL in days is %s' % (MINIMUM_TTL_DAYS))
+            raise ValueError('Minimum possible TTL for trigger_instances_ttl in days is %s' %
+                              (MINIMUM_TTL_DAYS))
 
     def _perform_garbage_collection(self):
         LOG.info('Performing garbage collection...')
