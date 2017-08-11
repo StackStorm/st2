@@ -22,7 +22,11 @@ from eventlet.green import subprocess
 from st2common.constants import action as action_constants
 from st2common.util import date as date_utils
 from st2common.models.db.execution import ActionExecutionDB
+from st2common.models.db.execution import ActionExecutionStdoutOutputDB
+from st2common.models.db.execution import ActionExecutionStderrOutputDB
 from st2common.persistence.execution import ActionExecution
+from st2common.persistence.execution import ActionExecutionStdoutOutput
+from st2common.persistence.execution import ActionExecutionStderrOutput
 from st2tests.base import IntegrationTestCase
 from st2tests.base import CleanDbTestCase
 
@@ -65,6 +69,16 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
                                                     liveaction={'ref': 'foo'})
             ActionExecution.add_or_update(action_execution_db)
 
+            stdout_db = ActionExecutionStdoutOutputDB(execution_id=str(action_execution_db.id),
+                                                      action_ref='core.local',
+                                                      line='stdout')
+            ActionExecutionStdoutOutput.add_or_update(stdout_db)
+
+            stderr_db = ActionExecutionStderrOutputDB(execution_id=str(action_execution_db.id),
+                                                      action_ref='core.local',
+                                                      line='stderr')
+            ActionExecutionStderrOutput.add_or_update(stderr_db)
+
         # Insert come mock ActionExecutionDB objects with start_timestamp > TTL defined in the
         # config
         new_executions_count = 5
@@ -79,8 +93,23 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
                                                     liveaction={'ref': 'foo'})
             ActionExecution.add_or_update(action_execution_db)
 
+            stdout_db = ActionExecutionStdoutOutputDB(execution_id=str(action_execution_db.id),
+                                                      action_ref='core.local',
+                                                      line='stdout')
+            ActionExecutionStdoutOutput.add_or_update(stdout_db)
+
+            stderr_db = ActionExecutionStderrOutputDB(execution_id=str(action_execution_db.id),
+                                                      action_ref='core.local',
+                                                      line='stderr')
+            ActionExecutionStderrOutput.add_or_update(stderr_db)
+
         execs = ActionExecution.get_all()
         self.assertEqual(len(execs), (old_executions_count + new_executions_count))
+
+        stdout_dbs = ActionExecutionStdoutOutput.get_all()
+        self.assertEqual(len(stdout_dbs), (old_executions_count + new_executions_count))
+        stderr_dbs = ActionExecutionStderrOutput.get_all()
+        self.assertEqual(len(stderr_dbs), (old_executions_count + new_executions_count))
 
         # Start garbage collector
         process = self._start_garbage_collector()
@@ -90,9 +119,14 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
         process.send_signal(signal.SIGKILL)
         self.remove_process(process=process)
 
-        # Old execution should have been garbage collected
+        # Old executions and corresponding objects should have been garbage collected
         execs = ActionExecution.get_all()
         self.assertEqual(len(execs), (new_executions_count))
+
+        stdout_dbs = ActionExecutionStdoutOutput.get_all()
+        self.assertEqual(len(stdout_dbs), (new_executions_count))
+        stderr_dbs = ActionExecutionStderrOutput.get_all()
+        self.assertEqual(len(stderr_dbs), (new_executions_count))
 
     def _start_garbage_collector(self):
         process = subprocess.Popen(CMD, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
