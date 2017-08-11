@@ -29,6 +29,8 @@ Changed
   3.2 was installed by default). If you want to upgrade an existing installation, please follow
   official instructions at https://docs.mongodb.com/v3.4/release-notes/3.4-upgrade-standalone/.
   (improvement)
+* Update garbage collector service to delete corresponding stdout and stderr objects which belong
+  to executions which are to be deleted. #2175 #3657
 
 Fixed
 ~~~~~
