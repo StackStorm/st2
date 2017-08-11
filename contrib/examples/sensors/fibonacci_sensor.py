@@ -1,6 +1,7 @@
 from st2reactor.sensor.base import PollingSensor
 
-from base import get_environ
+from environ import get_environ
+
 
 class FibonacciSensor(PollingSensor):
 
