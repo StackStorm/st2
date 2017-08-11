@@ -66,7 +66,7 @@ class Inquirer(ActionRunner):
         liveaction_db = action_utils.get_liveaction_by_id(self.liveaction_id)
 
         # Retrieve existing response data
-        response_data = liveaction_db.result.get("response_data", {})
+        response_data = liveaction_db.result.get("response", {})
 
         # Assemble and dispatch trigger
         trigger_ref = ResourceReference.to_string_reference(
@@ -88,4 +88,4 @@ class Inquirer(ActionRunner):
         if parent:
             action_service.request_pause(parent, self.context.get('user', None))
 
-        return (LIVEACTION_STATUS_PENDING, {"response_data": response_data}, None)
+        return (LIVEACTION_STATUS_PENDING, {"response": response_data}, None)
