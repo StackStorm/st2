@@ -315,6 +315,7 @@ class BaseActionExecutionOutputStreamController(ActionExecutionsControllerMixin,
 
         def existing_output_iter():
             # Consume and return all of the existing lines
+            # pylint: disable=no-member
             output_dbs = self.persistance_class.query(execution_id=execution_id)
 
             # Note: We return all at once intestead of yield line by line to avoid multiple socket
@@ -334,7 +335,7 @@ class BaseActionExecutionOutputStreamController(ActionExecutionsControllerMixin,
 
             # Wait for and return any new line which may come in
             execution_ids = [execution_id]
-            listener = get_listener(name=self.listener_name)
+            listener = get_listener(name=self.listener_name)  # pylint: disable=no-member
             gen = listener.generator(execution_ids=execution_ids)
 
             def format(gen):
@@ -345,6 +346,7 @@ class BaseActionExecutionOutputStreamController(ActionExecutionsControllerMixin,
                         (_, model_api) = pack
 
                         # Note: gunicorn wsgi handler expect bytes, not unicode
+                        # pylint: disable=no-member
                         if isinstance(model_api, self.api_model_class):
                             yield six.binary_type(model_api.line)
                         elif isinstance(model_api, ActionExecutionAPI):
