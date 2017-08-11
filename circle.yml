@@ -153,7 +153,6 @@ jobs:
           name: Pre Docker cleanup
           command: |
             set -x
-            docker ps -a
             # Clean-up running containers
             .circle/docker-compose2.sh clean
             # Remove st2-packages-vol container
