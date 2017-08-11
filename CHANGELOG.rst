@@ -15,11 +15,13 @@ Added
   events are returned. (new feature)
 * Add new feature which allows Python runner action output (stdout and stderr) to be streamed
   and consumed in real-time by using one of the following approaches:
-    * ``/v1/executions/<execution id>/stdout`` and ``/v1/executions/<execution id>/stderr`` API
-      endpoint.
-    * ``/v1/stream/`` stream endpoint and listening for ``st2.execution.stdout__create`` and
-      ``st2.execution.stdout__create`` events.
-    * ``st2 execution tail <execution id>`` CLI command (underneath it uses stream API endpoint).
+
+  - ``/v1/executions/<execution id>/stdout`` and ``/v1/executions/<execution id>/stderr`` API
+     endpoint.
+  - ``/v1/stream/`` stream endpoint and listening for ``st2.execution.stdout__create`` and
+    ``st2.execution.stdout__create`` events.
+  - ``st2 execution tail <execution id>`` CLI command (underneath it uses stream API endpoint).
+
   (new feature) #2175 #3657
 
 Changed
@@ -104,7 +106,7 @@ Fixed
 * Fix logrotate script so that it no longer prints the `st2ctl` PID status to stdout
   for each file that it rotates. Also, it will no longer print an error if
   /var/log/st2/st2web.log is missing.
-  
+
   Contributed by Nick Maludy. #3633
 
 2.3.1 - July 07, 2017
