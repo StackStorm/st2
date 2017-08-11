@@ -147,10 +147,13 @@ jobs:
             export ST2_GITREV=${CIRCLE_BRANCH}
             .circle/buildenv_st2.sh
           working_directory: ~/st2-packages
+      # Verify that Docker environment is properle cleaned up and there is nothing left from the previous build
+      # See issue: https://discuss.circleci.com/t/no-space-left-on-device-while-creating-mongo/11532/13
       - run:
           name: Pre Docker cleanup
           command: |
             set -x
+            docker ps -a
             # Clean-up running containers
             .circle/docker-compose2.sh clean
             # Remove st2-packages-vol container
@@ -171,11 +174,7 @@ jobs:
             docker cp . st2-packages-vol:${ST2_GITDIR}
       - run:
           name: Pull dependent Docker Images
-          command: |
-            # Clean-up running containers from the previous build
-            .circle/docker-compose2.sh clean
-            # Pull Docker images
-            .circle/docker-compose2.sh pull ${DISTRO}
+          command: .circle/docker-compose2.sh pull ${DISTRO}
           working_directory: ~/st2-packages
       - run:
           name: Build the ${DISTRO} Packages
@@ -208,8 +207,12 @@ jobs:
           root: packages
           paths:
             - .
+      # Verify that Docker environment is properle cleaned up, and there is nothing left for the next build
+      # See issue: https://discuss.circleci.com/t/no-space-left-on-device-while-creating-mongo/11532/13
       - run:
           name: Post Docker cleanup
+          # don't cleanup resources on error since failed container might be used for SSH debug
+          when: on_success
           command: |
             set -x
             # Clean-up running containers
