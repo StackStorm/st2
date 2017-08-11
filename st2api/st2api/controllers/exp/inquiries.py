@@ -13,15 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from oslo_config import cfg
+
 import json
 
 from six.moves import http_client
-
+from st2common.models.db.auth import UserDB
 from st2api.controllers.resource import ResourceController
 from st2common import log as logging
 from st2common.util import action_db as action_utils
 from st2common.util import system_info
 from st2common.services import executions
+from st2common.constants import action as action_constants
 from st2common.rbac.types import PermissionType
 from st2common.rbac import utils as rbac_utils
 from st2common.router import abort
@@ -133,6 +136,9 @@ class InquiriesController(ResourceController):
         )
         LOG.info("Got existing inquiry ID: %s" % existing_inquiry.id)
 
+        if not requester_user:
+            requester_user = UserDB(cfg.CONF.system_user.user)
+
         #
         # Determine permission of this user to respond to this Inquiry
         #
@@ -145,6 +151,7 @@ class InquiriesController(ResourceController):
             )
         roles = existing_inquiry.parameters.get('roles')
         users = existing_inquiry.parameters.get('users')
+        # LOG.info(users)
         if roles:
             for role in roles:
                 LOG.info("Checking user %s is in role %s" % (requester_user, role))
@@ -158,7 +165,7 @@ class InquiriesController(ResourceController):
                 # (and modify the openapi def accordingly)
                 abort(http_client.FORBIDDEN, 'Insufficient permission to respond to this Inquiry.')
         if users:
-            if requester_user not in users:
+            if requester_user.name not in users:
                 # TODO(mierdin) figure out how to return this in an HTTP code
                 # (and modify the openapi def accordingly)
                 abort(http_client.FORBIDDEN, 'Insufficient permission to respond to this Inquiry.')
@@ -172,17 +179,18 @@ class InquiriesController(ResourceController):
         #
         # stamp liveaction with process_info
         runner_info = system_info.get_process_info()
-        # Update liveaction status to "running"
-        # liveaction_db = action_utils.update_liveaction_status(
-        #     status=action_constants.LIVEACTION_STATUS_RUNNING,
-        #     runner_info=runner_info,
-        #     liveaction_id=liveaction_db.id)
-        # self._running_liveactions.add(liveaction_db.id)
-        # action_execution_db = executions.update_execution(liveaction_db)
 
-        return "Received data for inquiry %s" % id
-
+        # TODO(mierdin): rename response_data to response in inquirer runner
         response = getattr(rdata, 'response')
+        result = existing_inquiry.result
+        result['response'] = response
+
+        liveaction_db = action_utils.update_liveaction_status(
+            status=action_constants.LIVEACTION_STATUS_SUCCEEDED,
+            runner_info=runner_info,
+            result=result,
+            liveaction_id=existing_inquiry.liveaction.get('id'))
+        executions.update_execution(liveaction_db)
 
         return {
             "id": iid,
