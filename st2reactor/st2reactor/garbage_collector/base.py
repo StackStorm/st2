@@ -19,6 +19,7 @@ Garbage collection service which deletes old data from the database.
 
 import signal
 import datetime
+import random
 
 import eventlet
 from eventlet.support import greenlets as greenlet
@@ -61,7 +62,8 @@ class GarbageCollectorService(object):
 
         # Wait a couple of seconds before performing initial collection to prevent thundering herd
         # effect when restarting multiple services at the same time
-        eventlet.sleep(2)
+        jitter_seconds = random.uniform(0, 3)
+        eventlet.sleep(jitter_seconds)
 
         try:
             self._main_loop()
