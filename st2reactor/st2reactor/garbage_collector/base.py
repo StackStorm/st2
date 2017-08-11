@@ -55,9 +55,9 @@ class GarbageCollectorService(object):
         self._trigger_instances_ttl = cfg.CONF.garbagecollector.trigger_instances_ttl
         self._validate_ttl_values()
 
+    def run(self):
         self._running = True
 
-    def run(self):
         self._register_signal_handlers()
 
         # Wait a couple of seconds before performing initial collection to prevent thundering herd
@@ -101,11 +101,11 @@ class GarbageCollectorService(object):
         """
         if self._action_executions_ttl and self._action_executions_ttl < MINIMUM_TTL_DAYS:
             raise ValueError('Minimum possible TTL for action_executions_ttl in days is %s' %
-                              (MINIMUM_TTL_DAYS))
+                             (MINIMUM_TTL_DAYS))
 
         if self._trigger_instances_ttl and self._trigger_instances_ttl < MINIMUM_TTL_DAYS:
             raise ValueError('Minimum possible TTL for trigger_instances_ttl in days is %s' %
-                              (MINIMUM_TTL_DAYS))
+                             (MINIMUM_TTL_DAYS))
 
     def _perform_garbage_collection(self):
         LOG.info('Performing garbage collection...')
