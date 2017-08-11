@@ -13,6 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
+
+from six.moves import http_client
+
 from st2api.controllers.resource import ResourceController
 from st2common import log as logging
 from st2common.util import action_db as action_utils
@@ -20,6 +24,7 @@ from st2common.util import system_info
 from st2common.services import executions
 from st2common.rbac.types import PermissionType
 from st2common.rbac import utils as rbac_utils
+from st2common.router import abort
 from st2common.models.api.execution import ActionExecutionAPI
 from st2common.persistence.execution import ActionExecution
 
@@ -75,9 +80,52 @@ class InquiriesController(ResourceController):
 
     def get_all(self, requester_user=None):
 
-        # Basically, get all ActionExecutions with a `pending` status.
+        # TODO(mierdin): Evaluate which options need to be carried over from execution list
+        # And update client with those options (such as "limit")
 
-        return test_inquiries
+        raw_inquiries = super(InquiriesController, self)._get_all(
+            raw_filters={'status': 'pending'}
+        )
+
+        inquiries = []
+        for raw_inquiry in json.loads(raw_inquiries.body):
+            new_inquiry = self._transform_inquiry(raw_inquiry)
+            if new_inquiry:
+                inquiries.append(new_inquiry)
+
+        return inquiries
+
+    def _transform_inquiry(self, raw_inquiry):
+        """Transform ActionExecutionAPI model into something specific to Inquiries
+
+        We're borrowing the ActionExecution data model for the time being, so we
+        need to pick and choose fields from this to form a new franken-model for Inquiries
+        so we don't return a bunch of extra crap. The idea is to provide data in response to
+        requests that make it look like Inquiry is its own data model.
+        """
+
+        # The status filter returns all executions that either HAVE that status, or
+        # have subexecutions with that status, so we want to make sure we're ONLY
+        # returning Inquiries that represent subexecutions, not workflows
+        if not raw_inquiry.get("parent"):
+            return None
+
+        # Retrieve response schema from parameters if exists.
+        # If not, assume default from runner.
+        schema = raw_inquiry["parameters"].get(
+            "schema",
+            # TODO(mierdin): Gross.
+            raw_inquiry["runner"]["runner_parameters"]["schema"]["default"]
+        )
+
+        return {
+            "id": raw_inquiry.get("id"),
+            "parent": raw_inquiry.get("parent"),
+            "tag": raw_inquiry["parameters"].get("tag", ""),
+            "users": raw_inquiry["parameters"].get("users", []),
+            "roles": raw_inquiry["parameters"].get("roles", []),
+            "schema": schema
+        }
 
     def get_one(self, iid, requester_user=None):
 
@@ -101,44 +149,47 @@ class InquiriesController(ResourceController):
         only actually use one of them
         """
 
-        LOG.info("Inquiry %s received response payload: %s" % (iid, rdata.response))
+        LOG.debug("Inquiry %s received response payload: %s" % (iid, rdata.response))
 
-        # #
-        # # Retrieve details of the inquiry via ID (i.e. params like schema)
-        # #
-        # existing_inquiry = self._get_one_by_id(
-        #     id=iid,
-        #     requester_user=requester_user,
-        #     permission_type=PermissionType.EXECUTION_VIEW
-        # )
-        # LOG.info("Got existing inquiry ID: %s" % existing_inquiry.id)
+        #
+        # Retrieve details of the inquiry via ID (i.e. params like schema)
+        #
+        existing_inquiry = self._get_one_by_id(
+            id=iid,
+            requester_user=requester_user,
+            permission_type=PermissionType.EXECUTION_VIEW
+        )
+        LOG.info("Got existing inquiry ID: %s" % existing_inquiry.id)
 
-        # #
-        # # Determine permission of this user to respond to this Inquiry
-        # #
-        # if not requester_user:
-        #         # TODO(mierdin) figure out how to return this in an HTTP code
-        #         # (and modify the openapi def accordingly)
-        #     raise Exception("Not permitted")
-        # roles = existing_inquiry.parameters.get('roles')
-        # users = existing_inquiry.parameters.get('users')
-        # if roles:
-        #     for role in roles:
-        #         LOG.info("Checking user %s is in role %s" % (requester_user, role))
-        #         LOG.info(rbac_utils.user_has_role(requester_user, role))
-        #         # TODO(mierdin): Note that this will always return True if Rbac is not enabled
-        #         # Need to test with rbac enabled and configured
-        #         if rbac_utils.user_has_role(requester_user, role):
-        #             break
-        #     else:
-        #         # TODO(mierdin) figure out how to return this in an HTTP code
-        #         # (and modify the openapi def accordingly)
-        #         raise Exception("Not permitted")
-        # if users:
-        #     if requester_user not in users:
-        #         # TODO(mierdin) figure out how to return this in an HTTP code
-        #         # (and modify the openapi def accordingly)
-        #         raise Exception("Not permitted")
+        #
+        # Determine permission of this user to respond to this Inquiry
+        #
+        if not requester_user:
+
+            # TODO(mierdin): do we need to update openapi def with possible error responses?
+            abort(
+                http_client.FORBIDDEN,
+                'Requesting user must be provided to respond to an Inquiry'
+            )
+        roles = existing_inquiry.parameters.get('roles')
+        users = existing_inquiry.parameters.get('users')
+        if roles:
+            for role in roles:
+                LOG.info("Checking user %s is in role %s" % (requester_user, role))
+                LOG.info(rbac_utils.user_has_role(requester_user, role))
+                # TODO(mierdin): Note that this will always return True if Rbac is not enabled
+                # Need to test with rbac enabled and configured
+                if rbac_utils.user_has_role(requester_user, role):
+                    break
+            else:
+                # TODO(mierdin) figure out how to return this in an HTTP code
+                # (and modify the openapi def accordingly)
+                abort(http_client.FORBIDDEN, 'Insufficient permission to respond to this Inquiry.')
+        if users:
+            if requester_user not in users:
+                # TODO(mierdin) figure out how to return this in an HTTP code
+                # (and modify the openapi def accordingly)
+                abort(http_client.FORBIDDEN, 'Insufficient permission to respond to this Inquiry.')
 
         #
         # Validate the body of the response against the schema parameter for this inquiry,
@@ -147,9 +198,9 @@ class InquiriesController(ResourceController):
         #
         # Update inquiry's execution result with a successful status and the validated response
         #
-        # # stamp liveaction with process_info
-        # runner_info = system_info.get_process_info()
-        # # Update liveaction status to "running"
+        # stamp liveaction with process_info
+        runner_info = system_info.get_process_info()
+        # Update liveaction status to "running"
         # liveaction_db = action_utils.update_liveaction_status(
         #     status=action_constants.LIVEACTION_STATUS_RUNNING,
         #     runner_info=runner_info,
@@ -157,7 +208,7 @@ class InquiriesController(ResourceController):
         # self._running_liveactions.add(liveaction_db.id)
         # action_execution_db = executions.update_execution(liveaction_db)
 
-        # return "Received data for inquiry %s" % id
+        return "Received data for inquiry %s" % id
 
         response = getattr(rdata, 'response')
 
