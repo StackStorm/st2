@@ -1,0 +1,14 @@
+vars:
+    var1: "{{message}}"
+chain:
+    -
+        name: task1
+        ref: core.local
+        params:
+            cmd: "while [ -e '{{tempfile}}' ]; do sleep 0.1; done"
+        on-success: task2
+    -
+        name: task2
+        ref: core.local
+        params:
+            cmd: echo "{{var1}}"
