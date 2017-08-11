@@ -127,10 +127,10 @@ class GarbageCollectorService(object):
 
     def _purge_action_executions(self):
         """
-        Purge action executions and corresponding live actions which match the criteria defined in
-        the config.
+        Purge action executions and corresponding live action, stdout and stderr object which match
+        the criteria defined in the config.
         """
-        LOG.info('Performing garbage collection for action executions')
+        LOG.info('Performing garbage collection for action executions and related objects')
 
         utc_now = get_datetime_utc_now()
         timestamp = (utc_now - datetime.timedelta(days=self._action_executions_ttl))
