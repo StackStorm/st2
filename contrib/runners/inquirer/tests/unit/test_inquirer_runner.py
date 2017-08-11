@@ -23,7 +23,7 @@ from st2tests.base import RunnerTestCase
 
 
 mock_liveaction_db = mock.Mock()
-mock_liveaction_db.result = {"response_data": {}}
+mock_liveaction_db.result = {"response": {}}
 
 mock_action_utils = mock.Mock()
 mock_action_utils.get_liveaction_by_id.return_value = mock_liveaction_db
@@ -68,7 +68,7 @@ class InquiryTestCase(RunnerTestCase):
         (status, output, _) = runner.run({})
         self.assertEqual(status, LIVEACTION_STATUS_PENDING)
         self.assertTrue(output is not None)
-        self.assertEqual(output, {"response_data": {}})
+        self.assertEqual(output, {"response": {}})
         mock_trigger_dispatcher.return_value.dispatch.assert_called_once_with(
             'core.st2.generic.inquiry',
             {
@@ -109,7 +109,7 @@ class InquiryTestCase(RunnerTestCase):
         (status, output, _) = runner.run({})
         self.assertEqual(status, LIVEACTION_STATUS_PENDING)
         self.assertTrue(output is not None)
-        self.assertEqual(output, {"response_data": {}})
+        self.assertEqual(output, {"response": {}})
         mock_trigger_dispatcher.return_value.dispatch.assert_called_once_with(
             'core.st2.generic.inquiry',
             {
