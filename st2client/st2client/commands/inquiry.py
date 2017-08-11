@@ -53,8 +53,8 @@ class InquiryBranch(resource.ResourceBranch):
 
 class InquiryListCommand(resource.ResourceListCommand):
 
-    # Omitting "schema" and "response", as those don't really show up in a table well
-    # The user can drill into a specific Inquiry to get these
+    # Omitting "schema" and "response", as it doesn't really show up in a table well
+    # The user can drill into a specific Inquiry to get this
     display_attributes = [
         'id',
         'parent',
@@ -76,7 +76,7 @@ class InquiryListCommand(resource.ResourceListCommand):
 
 class InquiryGetCommand(resource.ResourceGetCommand):
     pk_argument_name = 'id'
-    display_attributes = ['id', 'parent', 'roles', 'users', 'tag', 'response_schema']
+    display_attributes = ['id', 'parent', 'roles', 'users', 'tag', 'schema']
 
     def __init__(self, kv_resource, *args, **kwargs):
         super(InquiryGetCommand, self).__init__(kv_resource, *args, **kwargs)
@@ -84,10 +84,6 @@ class InquiryGetCommand(resource.ResourceGetCommand):
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         resource_name = getattr(args, self.pk_argument_name, None)
-        decrypt = getattr(args, 'decrypt', False)
-        scope = getattr(args, 'scope', DEFAULT_SCOPE)
-        kwargs['params'] = {'decrypt': str(decrypt).lower()}
-        kwargs['params']['scope'] = scope
         return self.get_resource_by_id(id=resource_name, **kwargs)
 
 

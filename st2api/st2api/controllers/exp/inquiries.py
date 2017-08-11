@@ -35,39 +35,6 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 
-test_schema = {
-    "type": "object",
-    "required": [
-        'approval'
-    ],
-    "properties": {
-        "approval": {
-            "description": "",
-            "type": "boolean"
-        }
-    }
-}
-
-test_inquiries = [
-    {
-        "id": "abcdef",
-        "parent": "aaaaaa",
-        "response_schema": test_schema,
-        "tag": "developers",
-        "users": ["mierdin", "st2admin"],
-        "roles": []
-    },
-    {
-        "id": "123456",
-        "parent": "111111",
-        "response_schema": test_schema,
-        "tag": "ops",
-        "users": [],
-        "roles": ["admins"]
-    }
-]
-
-
 class InquiriesController(ResourceController):
     """Everything in this controller is just a PoC at this point. Just getting my feet wet and
        using dummy data before diving into the actual back-end queries.
@@ -94,6 +61,17 @@ class InquiriesController(ResourceController):
                 inquiries.append(new_inquiry)
 
         return inquiries
+
+    def get_one(self, iid, requester_user=None):
+        """Retrieve a single Inquiry
+        """
+
+        raw_inquiry = self._get_one_by_id(
+            id=iid,
+            requester_user=requester_user,
+            permission_type=PermissionType.EXECUTION_VIEW
+        )
+        return self._transform_inquiry(raw_inquiry.__dict__)
 
     def _transform_inquiry(self, raw_inquiry):
         """Transform ActionExecutionAPI model into something specific to Inquiries
@@ -126,12 +104,6 @@ class InquiriesController(ResourceController):
             "roles": raw_inquiry["parameters"].get("roles", []),
             "schema": schema
         }
-
-    def get_one(self, iid, requester_user=None):
-
-        # Should be identical to getting an execution by ID, only with different fields.
-
-        return [i for i in test_inquiries if i["id"] == iid][0]
 
     def put(self, iid, rdata, requester_user):
         """
