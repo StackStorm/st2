@@ -154,11 +154,10 @@ class PythonRunner(ActionRunner):
                     if not line:
                         break
 
-                    # Filter out result delimter lines
+                    # Filter out result delimiter lines
                     if ACTION_OUTPUT_RESULT_DELIMITER in line:
                         break
 
-                    # TODO: Also dispatch server-sent event
                     store_execution_stdout_line(execution_db=self.execution, action_db=self.action,
                                                 line=line)
                     buff.write(line)
@@ -173,7 +172,6 @@ class PythonRunner(ActionRunner):
                     if not line:
                         break
 
-                    # TODO: Also dispatch server-sent event
                     store_execution_stderr_line(execution_db=self.execution, action_db=self.action,
                                                 line=line)
                     buff.write(line)
