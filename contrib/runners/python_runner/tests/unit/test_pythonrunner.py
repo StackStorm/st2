@@ -51,6 +51,9 @@ NON_SIMPLE_TYPE_ACTION = os.path.join(tests_base.get_resources_path(), 'packs',
 mock_sys = mock.Mock()
 mock_sys.argv = []
 
+MOCK_EXECUTION = mock.Mock()
+MOCK_EXECUTION.id = '598dbf0c0640fd54bffc688b'
+
 
 @mock.patch('python_runner.sys', mock_sys)
 class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
@@ -66,6 +69,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         # Actions returns non-simple type which can't be serialized, verify result is simple str()
         # representation of the result
         runner = python_runner.get_runner()
+        runner.execution = MOCK_EXECUTION
         runner.action = self._get_mock_action_obj()
         runner.runner_parameters = {}
         runner.entry_point = NON_SIMPLE_TYPE_ACTION
@@ -294,6 +298,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         mock_popen.return_value = mock_process
 
         runner = python_runner.get_runner()
+        runner.execution = MOCK_EXECUTION
         runner.action = self._get_mock_action_obj()
         runner.runner_parameters = {}
         runner.entry_point = PASCAL_ROW_ACTION_PATH
@@ -483,6 +488,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         Pack gets set to the system pack so the action doesn't require a separate virtualenv.
         """
         action = mock.Mock()
+        action.ref = 'dummy.action'
         action.pack = SYSTEM_PACK_NAME
         action.entry_point = 'foo.py'
         return action
