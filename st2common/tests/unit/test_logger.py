@@ -49,7 +49,7 @@ class MockRecord(object):
     msg = None
     exc_info = None
     exc_text = None
-    created  = time.time()
+    created = time.time()
 
     def getMessage(self):
         return self.msg
