@@ -31,6 +31,9 @@ Fixed
 
   This also fixes an issue with Redis kombu backend not working. (bug fix) #3635 #3639 #3648
 * Fix logrotate configuration to delete stale compressed st2actionrunner logs #3647
+* Fix ``st2ctl clean`` not using database connection information from config. (bug fix) #3659
+
+  Contributed by Nick Maludy (Encore Technologies).
 
 2.3.2 - July 28, 2017
 ---------------------
