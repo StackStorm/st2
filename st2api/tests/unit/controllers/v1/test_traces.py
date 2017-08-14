@@ -50,10 +50,37 @@ class TestTraces(FunctionalTest):
 
         # Note: traces are returned sorted by start_timestamp in descending order by default
         retrieved_trace_tags = [trace['trace_tag'] for trace in resp.json]
-
         self.assertEqual(retrieved_trace_tags,
                          [self.trace3.trace_tag, self.trace2.trace_tag, self.trace1.trace_tag],
                          'Incorrect traces retrieved.')
+
+    def test_get_all_ascending_and_descending(self):
+        resp = self.app.get('/v1/traces?sort_asc=True')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 3, '/v1/traces did not return all traces.')
+
+        retrieved_trace_tags = [trace['trace_tag'] for trace in resp.json]
+        self.assertEqual(retrieved_trace_tags,
+                         [self.trace1.trace_tag, self.trace2.trace_tag, self.trace3.trace_tag],
+                         'Incorrect traces retrieved.')
+
+        resp = self.app.get('/v1/traces?sort_desc=True')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 3, '/v1/traces did not return all traces.')
+
+        retrieved_trace_tags = [trace['trace_tag'] for trace in resp.json]
+        self.assertEqual(retrieved_trace_tags,
+                         [self.trace3.trace_tag, self.trace2.trace_tag, self.trace1.trace_tag],
+                         'Incorrect traces retrieved.')
+
+    def test_get_all_limit(self):
+        resp = self.app.get('/v1/traces?limit=1')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 1, '/v1/traces did not return all traces.')
+
+        retrieved_trace_tags = [trace['trace_tag'] for trace in resp.json]
+        self.assertEqual(retrieved_trace_tags,
+                         [self.trace3.trace_tag], 'Incorrect traces retrieved.')
 
     def test_get_by_id(self):
         resp = self.app.get('/v1/traces/%s' % self.trace1.id)
