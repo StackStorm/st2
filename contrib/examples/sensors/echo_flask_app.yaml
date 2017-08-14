@@ -1,7 +1,7 @@
 ---
   class_name: "EchoFlaskSensor"
-  entry_point: "echo_flask_sensor.py"
-  description: "Simple echo flask app sensor that echo's its input."
+  entry_point: "echo_flask_app.py"
+  description: "Simple echo flask app sensor that echoes its input."
   trigger_types:
     -
       name: "echoflasksensor"

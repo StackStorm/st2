@@ -1,4 +1,4 @@
-from flask import request, Flask, jsonify
+from flask import request, Flask
 
 from st2reactor.sensor.base import Sensor
 
@@ -24,9 +24,11 @@ class EchoFlaskSensor(Sensor):
     def run(self):
         @self._app.route(self._path, methods=['POST'])
         def echo():
+            payload = request.get_json(force=True)
             self._sensor_service.dispatch(trigger="examples.echo_flask",
-                                          payload=jsonify(
-                                              request.get_json(force=True)))
+                                          payload=payload)
+            return request.data
+
         self._log.info('Listening for payload on http://%s:%s%s' %
                        (self._host, self._port, self._path))
         self._app.run(host=self._host, port=self._port)
