@@ -41,11 +41,10 @@ class TracesController(ResourceController):
         # Use a custom sort order when filtering on a timestamp so we return a correct result as
         # expected by the user
         query_options = None
-        if 'sort_desc' in raw_filters:
-            query_options = {'sort': ['-start_timestamp', 'action.ref']}
-        elif 'sort_asc' in raw_filters:
-            query_options = {'sort': ['+start_timestamp', 'action.ref']}
-
+        if 'sort_desc' in raw_filters and raw_filters['sort_desc'] == 'True':
+            query_options = {'sort': ['-start_timestamp', 'trace_tag']}
+        elif 'sort_asc' in raw_filters and raw_filters['sort_asc'] == 'True':
+            query_options = {'sort': ['+start_timestamp', 'trace_tag']}
         return self._get_all(sort=sort,
                              offset=offset,
                              limit=limit,

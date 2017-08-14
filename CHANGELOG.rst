@@ -33,6 +33,9 @@ Fixed
 
   This also fixes an issue with Redis kombu backend not working. (bug fix) #3635 #3639 #3648
 * Fix logrotate configuration to delete stale compressed st2actionrunner logs #3647
+* Fix trace list API endpoint sorting by `start_timestamp`, using ?sort_desc=True|False query
+  parameters and by passing --sort=asc|desc parameter to the st2 trace list CLI command.
+  Descending order by default.(bug fix) #3237 #3665
 
 2.3.2 - July 28, 2017
 ---------------------
@@ -92,7 +95,7 @@ Fixed
 * Fix logrotate script so that it no longer prints the `st2ctl` PID status to stdout
   for each file that it rotates. Also, it will no longer print an error if
   /var/log/st2/st2web.log is missing.
-  
+
   Contributed by Nick Maludy. #3633
 
 2.3.1 - July 07, 2017
