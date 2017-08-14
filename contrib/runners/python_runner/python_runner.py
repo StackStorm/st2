@@ -43,6 +43,7 @@ from st2common.util.sandboxing import get_sandbox_virtualenv_path
 from st2common.runners import python_action_wrapper
 from st2common.services.action import store_execution_stdout_line
 from st2common.services.action import store_execution_stderr_line
+from utils import make_read_and_store_stream_func
 
 LOG = logging.getLogger(__name__)
 
@@ -147,35 +148,10 @@ class PythonRunner(ActionRunner):
         stdout = StringIO()
         stderr = StringIO()
 
-        def make_read_and_store_stream_func(store_line_func):
-            """
-            Factory function which returns a function for reading from a stream (stdout / stderr).
-
-            This function writes read data into a buffer and stores it in a database.
-            """
-            def read_and_store_stream(stream, buff):
-                try:
-                    while not stream.closed:
-                        line = stream.readline()
-                        if not line:
-                            break
-
-                        buff.write(line)
-
-                        # Filter out result delimiter lines
-                        if ACTION_OUTPUT_RESULT_DELIMITER in line:
-                            continue
-
-                        store_line_func(execution_db=self.execution, action_db=self.action,
-                                        line=line)
-                except RuntimeError:
-                    # process was terminated abruptly
-                    pass
-
-            return read_and_store_stream
-
-        read_and_store_stdout = make_read_and_store_stream_func(store_execution_stdout_line)
-        read_and_store_stderr = make_read_and_store_stream_func(store_execution_stderr_line)
+        read_and_store_stdout = make_read_and_store_stream_func(execution_db=self.execution,
+            action_db=self.action, store_line_func=store_execution_stdout_line)
+        read_and_store_stderr = make_read_and_store_stream_func(execution_db=self.execution,
+            action_db=self.action, store_line_func=store_execution_stderr_line)
 
         command_string = list2cmdline(args)
         LOG.debug('Running command: PATH=%s PYTHONPATH=%s %s' % (env['PATH'], env['PYTHONPATH'],
