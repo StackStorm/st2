@@ -326,6 +326,14 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
                 'method': 'GET'
             },
             {
+                'path': '/v1/executions/%s/stdout' % (execution_model.id),
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/executions/%s/stderr' % (execution_model.id),
+                'method': 'GET'
+            },
+            {
                 'path': '/v1/executions',
                 'method': 'POST',
                 'payload': {'action': 'core.local'}  # schedule execution / run action
