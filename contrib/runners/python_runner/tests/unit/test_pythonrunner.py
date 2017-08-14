@@ -68,10 +68,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     def test_action_returns_non_serializable_result(self):
         # Actions returns non-simple type which can't be serialized, verify result is simple str()
         # representation of the result
-        runner = python_runner.get_runner()
-        runner.execution = MOCK_EXECUTION
-        runner.action = self._get_mock_action_obj()
-        runner.runner_parameters = {}
+        runner = self._get_mock_runner_obj()
         runner.entry_point = NON_SIMPLE_TYPE_ACTION
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
@@ -86,9 +83,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertTrue(match)
 
     def test_simple_action_with_result_no_status(self):
-        runner = python_runner.get_runner()
-        runner.action = self._get_mock_action_obj()
-        runner.runner_parameters = {}
+        runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
@@ -98,9 +93,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(output['result'], [1, 5, 10, 10, 5, 1])
 
     def test_simple_action_with_result_as_None_no_status(self):
-        runner = python_runner.get_runner()
-        runner.action = self._get_mock_action_obj()
-        runner.runner_parameters = {}
+        runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
@@ -112,8 +105,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
     def test_simple_action_timeout(self):
         timeout = 0
-        runner = python_runner.get_runner()
-        runner.action = self._get_mock_action_obj()
+        runner = self._get_mock_runner_obj()
         runner.runner_parameters = {python_runner.RUNNER_TIMEOUT: timeout}
         runner.entry_point = PASCAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
@@ -126,9 +118,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(output['exit_code'], -9)
 
     def test_simple_action_with_status_succeeded(self):
-        runner = python_runner.get_runner()
-        runner.action = self._get_mock_action_obj()
-        runner.runner_parameters = {}
+        runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
@@ -138,9 +128,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(output['result'], [1, 4, 6, 4, 1])
 
     def test_simple_action_with_status_failed(self):
-        runner = python_runner.get_runner()
-        runner.action = self._get_mock_action_obj()
-        runner.runner_parameters = {}
+        runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
@@ -152,9 +140,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     def test_simple_action_with_status_complex_type_returned_for_result(self):
         # Result containing a complex type shouldn't break the returning a tuple with status
         # behavior
-        runner = python_runner.get_runner()
-        runner.action = self._get_mock_action_obj()
-        runner.runner_parameters = {}
+        runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
@@ -165,9 +151,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertTrue('<pascal_row.PascalRowAction object at' in output['result'])
 
     def test_simple_action_with_status_failed_result_none(self):
-        runner = python_runner.get_runner()
-        runner.action = self._get_mock_action_obj()
-        runner.runner_parameters = {}
+        runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
@@ -177,9 +161,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(output['result'], None)
 
     def test_exception_in_simple_action_with_invalid_status(self):
-        runner = python_runner.get_runner()
-        runner.action = self._get_mock_action_obj()
-        runner.runner_parameters = {}
+        runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
@@ -187,9 +169,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
                           runner.run, action_parameters={'row_index': 'd'})
 
     def test_simple_action_no_status_backward_compatibility(self):
-        runner = python_runner.get_runner()
-        runner.action = self._get_mock_action_obj()
-        runner.runner_parameters = {}
+        runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
@@ -228,9 +208,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(instance.config['private_key_path'], 'foopath')
 
     def test_simple_action_fail(self):
-        runner = python_runner.get_runner()
-        runner.action = self._get_mock_action_obj()
-        runner.runner_parameters = {}
+        runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
@@ -239,9 +217,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
 
     def test_simple_action_no_file(self):
-        runner = python_runner.get_runner()
-        runner.action = self._get_mock_action_obj()
-        runner.runner_parameters = {}
+        runner = self._get_mock_runner_obj()
         runner.entry_point = 'foo.py'
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
@@ -250,9 +226,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
 
     def test_simple_action_no_entry_point(self):
-        runner = python_runner.get_runner()
-        runner.action = self._get_mock_action_obj()
-        runner.runner_parameters = {}
+        runner = self._get_mock_runner_obj()
         runner.entry_point = ''
         runner.container_service = service.RunnerContainerService()
 
@@ -267,8 +241,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         mock_process.communicate.return_value = ('', '')
         mock_popen.return_value = mock_process
 
-        runner = python_runner.get_runner()
-        runner.action = self._get_mock_action_obj()
+        runner = self._get_mock_runner_obj()
         runner.runner_parameters = {'env': env_vars}
         runner.entry_point = PASCAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
@@ -297,16 +270,15 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         mock_process.returncode = 0
         mock_popen.return_value = mock_process
 
-        runner = python_runner.get_runner()
-        runner.execution = MOCK_EXECUTION
-        runner.action = self._get_mock_action_obj()
-        runner.runner_parameters = {}
+        runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
         (_, output, _) = runner.run({'row_index': 4})
 
         self.assertEqual(output['stdout'], '')
+        print 'xxxxxxx'
+        print output
         self.assertEqual(output['stderr'], mock_stderr)
         self.assertEqual(output['result'], 'None')
         self.assertEqual(output['exit_code'], 0)
@@ -360,11 +332,9 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         mock_process.communicate.return_value = ('', '')
         mock_popen.return_value = mock_process
 
-        runner = python_runner.get_runner()
+        runner = self._get_mock_runner_obj()
         runner.auth_token = mock.Mock()
         runner.auth_token.token = 'ponies'
-        runner.action = self._get_mock_action_obj()
-        runner.runner_parameters = {}
         runner.entry_point = PASCAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
@@ -418,9 +388,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(action3.action_service, action_service)
 
     def test_action_with_same_module_name_as_module_in_stdlib(self):
-        runner = python_runner.get_runner()
-        runner.action = self._get_mock_action_obj()
-        runner.runner_parameters = {}
+        runner = self._get_mock_runner_obj()
         runner.entry_point = TEST_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
@@ -432,9 +400,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     def test_python_action_wrapper_script_doesnt_get_added_to_sys_path(self):
         # Validate that the directory where python_action_wrapper.py script is located
         # (st2common/runners) doesn't get added to sys.path
-        runner = python_runner.get_runner()
-        runner.action = self._get_mock_action_obj()
-        runner.runner_parameters = {}
+        runner = self._get_mock_runner_obj()
         runner.entry_point = PATHS_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
@@ -480,6 +446,14 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
                        '\(action file most likely doesn\'t exist or contains invalid syntax\): '
                        'No module named invalid')
         self.assertRaisesRegexp(Exception, expected_msg, wrapper._get_action_instance)
+
+    def _get_mock_runner_obj(self):
+        runner = python_runner.get_runner()
+        runner.execution = MOCK_EXECUTION
+        runner.action = self._get_mock_action_obj()
+        runner.runner_parameters = {}
+
+        return runner
 
     def _get_mock_action_obj(self):
         """
