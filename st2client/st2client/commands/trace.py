@@ -180,12 +180,12 @@ class TraceListCommand(resource.ResourceCommand, SingleTraceDisplayMixin):
                         table.SingleRowTable.note_box(self.resource_name, 1)
         else:
             if args.json or args.yaml:
-                self.print_output(reversed(instances), table.MultiColumnTable,
+                self.print_output(instances, table.MultiColumnTable,
                                   attributes=args.attr, widths=args.width,
                                   json=args.json, yaml=args.yaml,
                                   attribute_transform_functions=self.attribute_transform_functions)
             else:
-                self.print_output(reversed(instances), table.MultiColumnTable,
+                self.print_output(instances, table.MultiColumnTable,
                                   attributes=args.attr, widths=args.width,
                                   attribute_transform_functions=self.attribute_transform_functions)
 

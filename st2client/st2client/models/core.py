@@ -389,6 +389,30 @@ class LiveActionResourceManager(ResourceManager):
         instance = self.resource.deserialize(response.json())
         return instance
 
+    @add_auth_token_to_kwargs_from_env
+    def pause(self, execution_id, **kwargs):
+        url = '/%s/%s' % (self.resource.get_url_path_name(), execution_id)
+        data = {'status': 'pausing'}
+
+        response = self.client.put(url, data, **kwargs)
+
+        if response.status_code != 200:
+            self.handle_error(response)
+
+        return self.resource.deserialize(response.json())
+
+    @add_auth_token_to_kwargs_from_env
+    def resume(self, execution_id, **kwargs):
+        url = '/%s/%s' % (self.resource.get_url_path_name(), execution_id)
+        data = {'status': 'resuming'}
+
+        response = self.client.put(url, data, **kwargs)
+
+        if response.status_code != 200:
+            self.handle_error(response)
+
+        return self.resource.deserialize(response.json())
+
 
 class TriggerInstanceResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
