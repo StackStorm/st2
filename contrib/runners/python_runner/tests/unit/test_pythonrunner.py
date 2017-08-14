@@ -17,6 +17,7 @@ import os
 import re
 
 import mock
+from oslo_config import cfg
 
 import python_runner
 from st2common.runners.python_action_wrapper import PythonActionWrapper
@@ -61,6 +62,11 @@ MOCK_EXECUTION.id = '598dbf0c0640fd54bffc688b'
 class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     register_packs = True
     register_pack_configs = True
+
+    def setUp(self):
+        super(PythonRunnerTestCase, self).setUp()
+
+        cfg.CONF.set_override(name='store_output', group='actionrunner', override=True)
 
     def test_runner_creation(self):
         runner = python_runner.get_runner()
