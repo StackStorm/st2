@@ -260,15 +260,34 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
     @mock.patch('st2common.util.green.shell.subprocess.Popen')
     def test_stdout_interception_and_parsing(self, mock_popen):
+        # Utility functions for mocking read_and_store_{stdout,stderr} functions
+        def make_mock_stdout_readline(mock_stream, mock_data):
+            def mock_stdout_readline():
+                mock_stream.closed = True
+                return mock_data
+
+            return mock_stdout_readline
+
+        def make_mock_stderr_readline(mock_stream, mock_data):
+            def mock_stderr_readline():
+                mock_stream.closed = True
+                return mock_data
+
+            return mock_stderr_readline
+
         values = {'delimiter': ACTION_OUTPUT_RESULT_DELIMITER}
 
         # No output to stdout and no result (implicit None)
         mock_stdout = '%(delimiter)sNone%(delimiter)s' % values
         mock_stderr = 'foo stderr'
+
         mock_process = mock.Mock()
-        mock_process.communicate.return_value = (mock_stdout, mock_stderr)
         mock_process.returncode = 0
         mock_popen.return_value = mock_process
+        mock_process.stdout.closed = False
+        mock_process.stderr.closed = False
+        mock_process.stdout.readline = make_mock_stdout_readline(mock_process.stdout, mock_stdout)
+        mock_process.stderr.readline = make_mock_stderr_readline(mock_process.stderr, mock_stderr)
 
         runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
@@ -277,49 +296,52 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         (_, output, _) = runner.run({'row_index': 4})
 
         self.assertEqual(output['stdout'], '')
-        print 'xxxxxxx'
-        print output
         self.assertEqual(output['stderr'], mock_stderr)
         self.assertEqual(output['result'], 'None')
         self.assertEqual(output['exit_code'], 0)
 
-        # Output to stdout, no result (implicit None),return_code 1 and status
-        # failed
+        # Output to stdout, no result (implicit None), return_code 1 and status failed
         mock_stdout = 'pre result%(delimiter)sNone%(delimiter)spost result' % values
         mock_stderr = 'foo stderr'
+
         mock_process = mock.Mock()
-        mock_process.communicate.return_value = (mock_stdout, mock_stderr)
         mock_process.returncode = 1
         mock_popen.return_value = mock_process
+        mock_process.stdout.closed = False
+        mock_process.stderr.closed = False
+        mock_process.stdout.readline = make_mock_stdout_readline(mock_process.stdout, mock_stdout)
+        mock_process.stderr.readline = make_mock_stderr_readline(mock_process.stderr, mock_stderr)
 
-        runner = python_runner.get_runner()
-        runner.action = self._get_mock_action_obj()
-        runner.runner_parameters = {}
+        runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 4})
+
         self.assertEqual(output['stdout'], 'pre resultpost result')
         self.assertEqual(output['stderr'], mock_stderr)
         self.assertEqual(output['result'], 'None')
         self.assertEqual(output['exit_code'], 1)
         self.assertEqual(status, 'failed')
 
-        # Output to stdout, no result (implicit None), return_code 1 and status
-        # succedded
+        # Output to stdout, no result (implicit None), return_code 1 and status succeeded
         mock_stdout = 'pre result%(delimiter)sNone%(delimiter)spost result' % values
         mock_stderr = 'foo stderr'
+
         mock_process = mock.Mock()
-        mock_process.communicate.return_value = (mock_stdout, mock_stderr)
         mock_process.returncode = 0
         mock_popen.return_value = mock_process
-        runner = python_runner.get_runner()
-        runner.action = self._get_mock_action_obj()
-        runner.runner_parameters = {}
+        mock_process.stdout.closed = False
+        mock_process.stderr.closed = False
+        mock_process.stdout.readline = make_mock_stdout_readline(mock_process.stdout, mock_stdout)
+        mock_process.stderr.readline = make_mock_stderr_readline(mock_process.stderr, mock_stderr)
+
+        runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 4})
+
         self.assertEqual(output['stdout'], 'pre resultpost result')
         self.assertEqual(output['stderr'], mock_stderr)
         self.assertEqual(output['result'], 'None')
