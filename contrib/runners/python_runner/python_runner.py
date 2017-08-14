@@ -147,44 +147,35 @@ class PythonRunner(ActionRunner):
         stdout = StringIO()
         stderr = StringIO()
 
-        def read_and_store_stdout(stream, buff):
-            try:
-                while not stream.closed:
-                    line = stream.readline()
-                    if not line:
-                        break
+        def make_read_and_store_stream_func(store_line_func):
+            """
+            Factory function which returns a function for reading from a stream (stdout / stderr).
 
-                    buff.write(line)
+            This function writes read data into a buffer and stores it in a database.
+            """
+            def read_and_store_stream(stream, buff):
+                try:
+                    while not stream.closed:
+                        line = stream.readline()
+                        if not line:
+                            break
 
-                    # Filter out result delimiter lines
-                    if ACTION_OUTPUT_RESULT_DELIMITER in line:
-                        continue
+                        buff.write(line)
 
-                    store_execution_stdout_line(execution_db=self.execution,
-                                                action_db=self.action,
-                                                line=line)
-            except RuntimeError:
-                # process was terminated abruptly
-                pass
+                        # Filter out result delimiter lines
+                        if ACTION_OUTPUT_RESULT_DELIMITER in line:
+                            continue
 
-        def read_and_store_stderr(stream, buff):
-            try:
-                while not stream.closed:
-                    line = stream.readline()
-                    if not line:
-                        break
+                        store_line_func(execution_db=self.execution, action_db=self.action,
+                                        line=line)
+                except RuntimeError:
+                    # process was terminated abruptly
+                    pass
 
-                    buff.write(line)
+            return read_and_store_stream
 
-                    if ACTION_OUTPUT_RESULT_DELIMITER in line:
-                        continue
-
-                    store_execution_stderr_line(execution_db=self.execution,
-                                                action_db=self.action,
-                                                line=line)
-            except RuntimeError:
-                # process was terminated abruptly
-                pass
+        read_and_store_stdout = make_read_and_store_stream_func(store_execution_stdout_line)
+        read_and_store_stderr = make_read_and_store_stream_func(store_execution_stderr_line)
 
         command_string = list2cmdline(args)
         LOG.debug('Running command: PATH=%s PYTHONPATH=%s %s' % (env['PATH'], env['PYTHONPATH'],
