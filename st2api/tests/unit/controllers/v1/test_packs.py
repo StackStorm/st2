@@ -301,6 +301,70 @@ class PacksControllerTestCase(FunctionalTest):
             }
         })
 
+    @mock.patch.object(pack_service, '_build_index_list',
+                       mock.MagicMock(return_value=['http://main']))
+    @mock.patch.object(requests, 'get', mock_index_get)
+    def test_index(self):
+        resp = self.app.get('/v1/packs/index')
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, {
+            'status': [{
+                'url': 'http://main',
+                'message': 'Success.',
+                'packs': 2,
+                'error': None
+            }],
+            'index': PACK_INDEX
+        })
+
+    @mock.patch.object(pack_service, '_build_index_list',
+                       mock.MagicMock(return_value=['http://fallback', 'http://main']))
+    @mock.patch.object(requests, 'get', mock_index_get)
+    def test_index_fallback(self):
+        resp = self.app.get('/v1/packs/index')
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, {
+            'status': [{
+                'url': 'http://fallback',
+                'message': 'Success.',
+                'packs': 1,
+                'error': None
+            }, {
+                'url': 'http://main',
+                'message': 'Success.',
+                'packs': 2,
+                'error': None
+            }],
+            'index': PACK_INDEX
+        })
+
+    @mock.patch.object(pack_service, '_build_index_list',
+                       mock.MagicMock(return_value=['http://main', 'http://override']))
+    @mock.patch.object(requests, 'get', mock_index_get)
+    def test_index_override(self):
+        resp = self.app.get('/v1/packs/index')
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, {
+            'status': [{
+                'url': 'http://main',
+                'message': 'Success.',
+                'packs': 2,
+                'error': None
+            }, {
+                'url': 'http://override',
+                'message': 'Success.',
+                'packs': 1,
+                'error': None
+            }],
+            'index': {
+                'test': PACK_INDEX['test'],
+                'test2': PACK_INDEXES['http://override']['test2']
+            }
+        })
+
     def test_packs_register_endpoint_resource_register_order(self):
         # Verify that resources are registered in the same order as they are inside
         # st2-register-content.

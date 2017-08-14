@@ -1406,6 +1406,8 @@ paths:
   /api/v1/packs/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.packs:packs_controller.get_one
+      x-requirements:
+        ref_or_id: (?!index)(?!views).*
       description: Get information about an installed pack.
       parameters:
         - name: ref_or_id
@@ -1501,6 +1503,23 @@ paths:
             application/json:
               ref: 'core.webhook'
               # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/packs/index:
+    get:
+      operationId: st2api.controllers.v1.packs:packs_controller.index.get_all
+      x-permissions: {{ PERMISSION_TYPE.PACK_SEARCH }}
+      description: To list all the packs of all indexes used by your StackStorm instance.
+      responses:
+        '200':
+          description: Pack index.
+          schema:
+            $ref: '#/definitions/PackIndex'
+          examples:
+            application/json:
+              ref: 'core.local'
         default:
           description: Unexpected error
           schema:
