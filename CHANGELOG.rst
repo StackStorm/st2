@@ -9,6 +9,8 @@ Added
 
 * Add pack config into action context. This is made available under the ``config_context`` key.
   #3183
+* Implement pause and resume for Mistral workflow. Pause and resume will cascade down to
+  subworkflows. Pause from a subworkflow will cascade to the parent workflow.
 
 Changed
 ~~~~~~~
