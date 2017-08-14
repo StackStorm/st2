@@ -259,21 +259,24 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
                 self.assertEqual(actual_env[key], value)
 
     @mock.patch('st2common.util.green.shell.subprocess.Popen')
+    def test_action_stdout_and_stderr_is_stored_in_the_db(self, mock_popen):
+        pass
+
+    @mock.patch('st2common.util.green.shell.subprocess.Popen')
     def test_stdout_interception_and_parsing(self, mock_popen):
         # Utility functions for mocking read_and_store_{stdout,stderr} functions
-        def make_mock_stdout_readline(mock_stream, mock_data):
-            def mock_stdout_readline():
-                mock_stream.closed = True
+        def make_mock_stream_readline(mock_stream, mock_data, stop_counter=2):
+            mock_stream.counter = 0
+            def mock_stream_readline():
+                mock_stream.counter +=1
+
+                if mock_stream.counter >= stop_counter:
+                    mock_stream.closed = True
+                    return
+
                 return mock_data
 
-            return mock_stdout_readline
-
-        def make_mock_stderr_readline(mock_stream, mock_data):
-            def mock_stderr_readline():
-                mock_stream.closed = True
-                return mock_data
-
-            return mock_stderr_readline
+            return mock_stream_readline
 
         values = {'delimiter': ACTION_OUTPUT_RESULT_DELIMITER}
 
@@ -286,8 +289,8 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         mock_popen.return_value = mock_process
         mock_process.stdout.closed = False
         mock_process.stderr.closed = False
-        mock_process.stdout.readline = make_mock_stdout_readline(mock_process.stdout, mock_stdout)
-        mock_process.stderr.readline = make_mock_stderr_readline(mock_process.stderr, mock_stderr)
+        mock_process.stdout.readline = make_mock_stream_readline(mock_process.stdout, mock_stdout)
+        mock_process.stderr.readline = make_mock_stream_readline(mock_process.stderr, mock_stderr)
 
         runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
@@ -309,8 +312,8 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         mock_popen.return_value = mock_process
         mock_process.stdout.closed = False
         mock_process.stderr.closed = False
-        mock_process.stdout.readline = make_mock_stdout_readline(mock_process.stdout, mock_stdout)
-        mock_process.stderr.readline = make_mock_stderr_readline(mock_process.stderr, mock_stderr)
+        mock_process.stdout.readline = make_mock_stream_readline(mock_process.stdout, mock_stdout)
+        mock_process.stderr.readline = make_mock_stream_readline(mock_process.stderr, mock_stderr)
 
         runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
@@ -333,8 +336,8 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         mock_popen.return_value = mock_process
         mock_process.stdout.closed = False
         mock_process.stderr.closed = False
-        mock_process.stdout.readline = make_mock_stdout_readline(mock_process.stdout, mock_stdout)
-        mock_process.stderr.readline = make_mock_stderr_readline(mock_process.stderr, mock_stderr)
+        mock_process.stdout.readline = make_mock_stream_readline(mock_process.stdout, mock_stdout)
+        mock_process.stderr.readline = make_mock_stream_readline(mock_process.stderr, mock_stderr)
 
         runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
