@@ -9,6 +9,10 @@ Added
 
 * Add pack config into action context. This is made available under the ``config_context`` key.
   #3183
+* Add ability to share common code between python sensors and python actions. You can now place
+  common code inside a ``lib`` directory inside a pack (with an ``__init__.py`` inside ``lib``
+  directory to declare it a python package). You can then import the common code in sensors and
+  actions. Please refer to documentation for samples and guidelines. #3490
 
 Changed
 ~~~~~~~
@@ -90,7 +94,7 @@ Fixed
 * Fix logrotate script so that it no longer prints the `st2ctl` PID status to stdout
   for each file that it rotates. Also, it will no longer print an error if
   /var/log/st2/st2web.log is missing.
-  
+
   Contributed by Nick Maludy. #3633
 
 2.3.1 - July 07, 2017
