@@ -15,14 +15,17 @@ class FibonacciSensor(PollingSensor):
         self.a = None
         self.b = None
         self.count = None
+        self.logger = None
 
     def setup(self):
         self.a = 0
         self.b = 1
         self.count = 2
+        self.logger = self.sensor_service.get_logger(name=self.__class__.__name__)
 
     def poll(self):
         fib = self.a + self.b
+        self.logger.debug('Count: %d, a: %d, b: %d', self.count, self.a, self.b)
 
         payload = {
             "count": self.count,
