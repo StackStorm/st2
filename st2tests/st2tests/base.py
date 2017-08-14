@@ -27,6 +27,7 @@ import logging
 import six
 import eventlet
 import psutil
+import mock
 from oslo_config import cfg
 from unittest2 import TestCase
 
@@ -72,7 +73,12 @@ __all__ = [
     # Pack test classes
     'BaseSensorTestCase',
     'BaseActionTestCase',
-    'BaseActionAliasTestCase'
+    'BaseActionAliasTestCase',
+
+    'get_fixtures_path',
+    'get_resources_path',
+
+    'blocking_eventlet_spawn'
 ]
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -486,3 +492,8 @@ def get_fixtures_path():
 
 def get_resources_path():
     return os.path.join(os.path.dirname(__file__), 'resources')
+
+
+def blocking_eventlet_spawn(func, *args, **kwargs):
+    func(*args, **kwargs)
+    return mock.Mock()

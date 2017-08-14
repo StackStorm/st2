@@ -33,6 +33,7 @@ from st2common.persistence.execution import ActionExecutionStdoutOutput
 from st2common.persistence.execution import ActionExecutionStderrOutput
 from st2tests.base import RunnerTestCase
 from st2tests.base import CleanDbTestCase
+from st2tests.base import blocking_eventlet_spawn
 import st2tests.base as tests_base
 
 
@@ -62,11 +63,6 @@ MOCK_EXECUTION.id = '598dbf0c0640fd54bffc688b'
 class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     register_packs = True
     register_pack_configs = True
-
-    def setUp(self):
-        super(PythonRunnerTestCase, self).setUp()
-
-        cfg.CONF.set_override(name='store_output', group='actionrunner', override=True)
 
     def test_runner_creation(self):
         runner = python_runner.get_runner()
@@ -268,16 +264,92 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
     @mock.patch('st2common.util.green.shell.subprocess.Popen')
     @mock.patch('st2common.util.green.shell.eventlet.spawn')
-    def test_action_stdout_and_stderr_is_stored_in_the_db(self, mock_spawn, mock_popen):
+    def test_action_stdout_and_stderr_is_not_stored_in_db_by_default(self, mock_spawn, mock_popen):
+        # Feature should be disabled by default
         values = {'delimiter': ACTION_OUTPUT_RESULT_DELIMITER}
 
         # Note: We need to mock spawn function so we can test everything in single event loop
         # iteration
-        def mock_spawn_func(func, *args, **kwargs):
-            func(*args, **kwargs)
-            return mock.Mock()
+        mock_spawn.side_effect = blocking_eventlet_spawn
 
-        mock_spawn.side_effect = mock_spawn_func
+        # No output to stdout and no result (implicit None)
+        mock_stdout = [
+            'pre result line 1\n',
+            '%(delimiter)sTrue%(delimiter)s' % values,
+            'post result line 1'
+        ]
+        mock_stderr = [
+            'stderr line 1\n',
+            'stderr line 2\n',
+            'stderr line 3\n'
+        ]
+
+        mock_process = mock.Mock()
+        mock_process.returncode = 0
+        mock_popen.return_value = mock_process
+        mock_process.stdout.closed = False
+        mock_process.stderr.closed = False
+        mock_process.stdout.readline = make_mock_stream_readline(mock_process.stdout, mock_stdout,
+                                                                 stop_counter=3)
+        mock_process.stderr.readline = make_mock_stream_readline(mock_process.stderr, mock_stderr,
+                                                                 stop_counter=3)
+
+        runner = self._get_mock_runner_obj()
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.container_service = service.RunnerContainerService()
+        runner.pre_run()
+        (_, output, _) = runner.run({'row_index': 4})
+
+        self.assertEqual(output['stdout'], 'pre result line 1\npost result line 1')
+        self.assertEqual(output['stderr'], 'stderr line 1\nstderr line 2\nstderr line 3\n')
+        self.assertEqual(output['result'], 'True')
+        self.assertEqual(output['exit_code'], 0)
+
+        stdout_dbs = ActionExecutionStdoutOutput.get_all()
+        self.assertEqual(len(stdout_dbs), 0)
+
+        stderr_dbs = ActionExecutionStderrOutput.get_all()
+        self.assertEqual(len(stderr_dbs), 0)
+
+        # False is a default behavior so end result should be the same
+        cfg.CONF.set_override(name='store_output', group='actionrunner', override=False)
+
+        mock_process = mock.Mock()
+        mock_process.returncode = 0
+        mock_popen.return_value = mock_process
+        mock_process.stdout.closed = False
+        mock_process.stderr.closed = False
+        mock_process.stdout.readline = make_mock_stream_readline(mock_process.stdout, mock_stdout,
+                                                                 stop_counter=3)
+        mock_process.stderr.readline = make_mock_stream_readline(mock_process.stderr, mock_stderr,
+                                                                 stop_counter=3)
+
+        runner.container_service = service.RunnerContainerService()
+        runner.pre_run()
+        (_, output, _) = runner.run({'row_index': 4})
+
+        self.assertEqual(output['stdout'], 'pre result line 1\npost result line 1')
+        self.assertEqual(output['stderr'], 'stderr line 1\nstderr line 2\nstderr line 3\n')
+        self.assertEqual(output['result'], 'True')
+        self.assertEqual(output['exit_code'], 0)
+
+        stdout_dbs = ActionExecutionStdoutOutput.get_all()
+        self.assertEqual(len(stdout_dbs), 0)
+
+        stderr_dbs = ActionExecutionStderrOutput.get_all()
+        self.assertEqual(len(stderr_dbs), 0)
+
+    @mock.patch('st2common.util.green.shell.subprocess.Popen')
+    @mock.patch('st2common.util.green.shell.eventlet.spawn')
+    def test_action_stdout_and_stderr_is_stored_in_the_db(self, mock_spawn, mock_popen):
+        # Feature is enabled
+        cfg.CONF.set_override(name='store_output', group='actionrunner', override=True)
+
+        values = {'delimiter': ACTION_OUTPUT_RESULT_DELIMITER}
+
+        # Note: We need to mock spawn function so we can test everything in single event loop
+        # iteration
+        mock_spawn.side_effect = blocking_eventlet_spawn
 
         # No output to stdout and no result (implicit None)
         mock_stdout = [
