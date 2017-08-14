@@ -1539,7 +1539,7 @@ paths:
   # TODO: No unit test for /packs/index/health
   /api/v1/packs/index/health:
     get:
-      operationId: st2api.controllers.v1.packs:packs_controller.index.get
+      operationId: st2api.controllers.v1.packs:packs_controller.index.health.get
       x-permissions: {{ PERMISSION_TYPE.PACK_VIEWS_INDEX_HEALTH }}
       description: To get the state of all indexes used by your StackStorm instance.
       responses:

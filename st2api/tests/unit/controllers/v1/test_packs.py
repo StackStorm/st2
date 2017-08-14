@@ -13,8 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import os
 
+import requests
 import mock
 
 from st2common.content.loader import ContentPackLoader
@@ -52,6 +54,48 @@ PACK_INDEX = {
         "description": "another st2 pack to test package management pipeline"
     }
 }
+
+PACK_INDEXES = {
+    'http://main': PACK_INDEX,
+    'http://fallback': {
+        "test": {
+            "version": "0.1.0",
+            "name": "test",
+            "repo_url": "https://github.com/StackStorm-Exchange/stackstorm-test",
+            "author": "st2-dev",
+            "keywords": ["some", "search", "another", "terms"],
+            "email": "info@stackstorm.com",
+            "description": "st2 pack to test package management pipeline"
+        }
+    },
+    'http://override': {
+        "test2": {
+            "version": "1.0.0",
+            "name": "test2",
+            "repo_url": "https://github.com/StackStorm-Exchange/stackstorm-test2",
+            "author": "stanley",
+            "keywords": ["some", "special", "terms"],
+            "email": "info@stackstorm.com",
+            "description": "another st2 pack to test package management pipeline"
+        }
+    },
+    'http://broken': requests.exceptions.RequestException('index is broken')
+}
+
+
+def mock_index_get(url, *args, **kwargs):
+    index = PACK_INDEXES[url]
+
+    if isinstance(index, requests.exceptions.RequestException):
+        raise index
+
+    response = requests.Response()
+    response._content = json.dumps({
+        'metadata': {},
+        'packs': index
+    })
+
+    return response
 
 
 class PacksControllerTestCase(FunctionalTest):
@@ -199,6 +243,63 @@ class PacksControllerTestCase(FunctionalTest):
 
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json, PACK_INDEX['test2'])
+
+    @mock.patch.object(pack_service, '_build_index_list',
+                       mock.MagicMock(return_value=['http://main']))
+    @mock.patch.object(requests, 'get', mock_index_get)
+    def test_index_health(self):
+        resp = self.app.get('/v1/packs/index/health')
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, {
+            'packs': {
+                'count': 2
+            },
+            'indexes': {
+                'count': 1,
+                'status': [{
+                    'url': 'http://main',
+                    'message': 'Success.',
+                    'packs': 2,
+                    'error': None
+                }],
+                'valid': 1,
+                'errors': {},
+                'invalid': 0
+            }
+        })
+
+    @mock.patch.object(pack_service, '_build_index_list',
+                       mock.MagicMock(return_value=['http://main', 'http://broken']))
+    @mock.patch.object(requests, 'get', mock_index_get)
+    def test_index_health_broken(self):
+        resp = self.app.get('/v1/packs/index/health')
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, {
+            'packs': {
+                'count': 2
+            },
+            'indexes': {
+                'count': 2,
+                'status': [{
+                    'url': 'http://main',
+                    'message': 'Success.',
+                    'packs': 2,
+                    'error': None
+                }, {
+                    'url': 'http://broken',
+                    'message': "RequestException('index is broken',)",
+                    'packs': 0,
+                    'error': 'unresponsive'
+                }],
+                'valid': 1,
+                'errors': {
+                    'unresponsive': 1
+                },
+                'invalid': 1
+            }
+        })
 
     def test_packs_register_endpoint_resource_register_order(self):
         # Verify that resources are registered in the same order as they are inside
