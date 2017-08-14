@@ -265,24 +265,25 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     @mock.patch('st2common.util.green.shell.subprocess.Popen')
     def test_stdout_interception_and_parsing(self, mock_popen):
         # Utility functions for mocking read_and_store_{stdout,stderr} functions
-        def make_mock_stream_readline(mock_stream, mock_data, stop_counter=2):
+        def make_mock_stream_readline(mock_stream, mock_data, stop_counter=1):
             mock_stream.counter = 0
-            def mock_stream_readline():
-                mock_stream.counter +=1
 
+            def mock_stream_readline():
                 if mock_stream.counter >= stop_counter:
                     mock_stream.closed = True
                     return
 
-                return mock_data
+                line = mock_data[mock_stream.counter]
+                mock_stream.counter += 1
+                return line
 
             return mock_stream_readline
 
         values = {'delimiter': ACTION_OUTPUT_RESULT_DELIMITER}
 
         # No output to stdout and no result (implicit None)
-        mock_stdout = '%(delimiter)sNone%(delimiter)s' % values
-        mock_stderr = 'foo stderr'
+        mock_stdout = ['%(delimiter)sNone%(delimiter)s' % values]
+        mock_stderr = ['foo stderr']
 
         mock_process = mock.Mock()
         mock_process.returncode = 0
@@ -299,13 +300,13 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         (_, output, _) = runner.run({'row_index': 4})
 
         self.assertEqual(output['stdout'], '')
-        self.assertEqual(output['stderr'], mock_stderr)
+        self.assertEqual(output['stderr'], mock_stderr[0])
         self.assertEqual(output['result'], 'None')
         self.assertEqual(output['exit_code'], 0)
 
         # Output to stdout, no result (implicit None), return_code 1 and status failed
-        mock_stdout = 'pre result%(delimiter)sNone%(delimiter)spost result' % values
-        mock_stderr = 'foo stderr'
+        mock_stdout = ['pre result%(delimiter)sNone%(delimiter)spost result' % values]
+        mock_stderr = ['foo stderr']
 
         mock_process = mock.Mock()
         mock_process.returncode = 1
@@ -322,14 +323,14 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         (status, output, _) = runner.run({'row_index': 4})
 
         self.assertEqual(output['stdout'], 'pre resultpost result')
-        self.assertEqual(output['stderr'], mock_stderr)
+        self.assertEqual(output['stderr'], mock_stderr[0])
         self.assertEqual(output['result'], 'None')
         self.assertEqual(output['exit_code'], 1)
         self.assertEqual(status, 'failed')
 
         # Output to stdout, no result (implicit None), return_code 1 and status succeeded
-        mock_stdout = 'pre result%(delimiter)sNone%(delimiter)spost result' % values
-        mock_stderr = 'foo stderr'
+        mock_stdout = ['pre result%(delimiter)sNone%(delimiter)spost result' % values]
+        mock_stderr = ['foo stderr']
 
         mock_process = mock.Mock()
         mock_process.returncode = 0
@@ -346,7 +347,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         (status, output, _) = runner.run({'row_index': 4})
 
         self.assertEqual(output['stdout'], 'pre resultpost result')
-        self.assertEqual(output['stderr'], mock_stderr)
+        self.assertEqual(output['stderr'], mock_stderr[0])
         self.assertEqual(output['result'], 'None')
         self.assertEqual(output['exit_code'], 0)
         self.assertEqual(status, 'succeeded')
