@@ -53,7 +53,7 @@ def format(gen):
 
 
 class StreamController(object):
-    def get_all(self, events=None, action_refs=None, execution_ids=None):
+    def get_all(self, events=None, action_refs=None, execution_ids=None, requster_user=None):
         events = events.split(',') if events else DEFAULT_EVENTS_WHITELIST
         action_refs = action_refs.split(',') if action_refs else None
         execution_ids = execution_ids.split(',') if execution_ids else None

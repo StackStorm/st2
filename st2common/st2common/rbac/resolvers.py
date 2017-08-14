@@ -48,6 +48,7 @@ __all__ = [
     'WebhookPermissionsResolver',
     'TracePermissionsResolver',
     'TriggerPermissionsResolver',
+    'StreamPermissionsResolver',
 
     'get_resolver_for_resource_type',
     'get_resolver_for_permission_type'
@@ -1037,6 +1038,15 @@ class PolicyPermissionsResolver(ContentPackResourcePermissionsResolver):
                                                   permission_type=permission_type)
 
 
+class StreamPermissionsResolver(PermissionsResolver):
+    resource_type = ResourceType.STREAM
+    view_grant_permission_types = []
+
+    def user_has_permission(self, user_db, permission_type):
+        assert permission_type in [PermissionType.STREAM_VIEW]
+        return self._user_has_global_permission(user_db=user_db, permission_type=permission_type)
+
+
 def get_resolver_for_resource_type(resource_type):
     """
     Return resolver instance for the provided resource type.
@@ -1075,6 +1085,8 @@ def get_resolver_for_resource_type(resource_type):
         resolver_cls = PolicyTypePermissionsResolver
     elif resource_type == ResourceType.POLICY:
         resolver_cls = PolicyPermissionsResolver
+    elif resource_type == ResourceType.STREAM:
+        resolver_cls = StreamPermissionsResolver
     else:
         raise ValueError('Unsupported resource: %s' % (resource_type))
 
