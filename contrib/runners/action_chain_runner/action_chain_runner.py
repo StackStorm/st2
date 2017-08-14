@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 import eventlet
 import traceback
 import uuid
@@ -74,6 +75,9 @@ class ChainHolder(object):
         if self.actionchain.vars:
             self.vars = self._get_rendered_vars(self.actionchain.vars,
                                                 action_parameters=action_parameters)
+
+    def restore_vars(self, ctx_vars):
+        self.vars.update(copy.deepcopy(ctx_vars))
 
     def validate(self):
         """
@@ -340,8 +344,24 @@ class ActionChainRunner(ActionRunner):
         action_node = None
         last_task = None
 
+        try:
+            # Initialize vars with the action parameters.
+            # This allows action parameers to be referenced from vars.
+            self.chain_holder.init_vars(action_parameters)
+        except Exception as e:
+            chain_status = action_constants.LIVEACTION_STATUS_FAILED
+            m = 'Failed initializing ``vars`` in chain.'
+            LOG.exception(m)
+            top_level_error = self._format_error(e, m)
+            result.update(top_level_error)
+            return (chain_status, result, None)
+
         # Restore state on resuming an existing chain execution.
         if resuming:
+            # Restore vars is any from the liveaction.
+            ctx_vars = self.liveaction.context.pop('vars', {})
+            self.chain_holder.restore_vars(ctx_vars)
+
             # Restore result if any from the liveaction.
             if self.liveaction and hasattr(self.liveaction, 'result') and self.liveaction.result:
                 result = self.liveaction.result
@@ -358,18 +378,6 @@ class ActionChainRunner(ActionRunner):
                     'error': result.get('error'),
                     'traceback': result.get('traceback')
                 }
-
-        try:
-            # Initialize vars with the action parameters.
-            # This allows action parameers to be referenced from vars.
-            self.chain_holder.init_vars(action_parameters)
-        except Exception as e:
-            chain_status = action_constants.LIVEACTION_STATUS_FAILED
-            m = 'Failed initializing ``vars`` in chain.'
-            LOG.exception(m)
-            top_level_error = self._format_error(e, m)
-            result.update(top_level_error)
-            return (chain_status, result, None)
 
         # If there are no executed tasks in the chain, then get the first node.
         if len(result['tasks']) <= 0:
@@ -521,6 +529,7 @@ class ActionChainRunner(ActionRunner):
                         LOG.info('Chain execution (%s) paused because task "%s" is paused.',
                                  self.liveaction_id, action_node.name)
                         chain_status = action_constants.LIVEACTION_STATUS_PAUSED
+                        self._save_vars()
                         action_node = None
                     elif liveaction.status in action_constants.LIVEACTION_FAILED_STATES:
                         chain_status = action_constants.LIVEACTION_STATUS_FAILED
@@ -548,18 +557,23 @@ class ActionChainRunner(ActionRunner):
             if action_service.is_action_paused_or_pausing(self.liveaction.id):
                 LOG.info('Chain execution (%s) paused by user.', self.liveaction.id)
                 chain_status = action_constants.LIVEACTION_STATUS_PAUSED
-                return (chain_status, result, None)
+                self._save_vars()
+                return (chain_status, result, self.liveaction.context)
 
         if top_level_error and isinstance(top_level_error, dict):
             result.update(top_level_error)
 
-        return (chain_status, result, None)
+        return (chain_status, result, self.liveaction.context)
 
     def _format_error(self, e, msg):
         return {
             'error': '%s. %s' % (msg, str(e)),
             'traceback': traceback.format_exc(10)
         }
+
+    def _save_vars(self):
+        # Save the context vars in the liveaction context.
+        self.liveaction.context['vars'] = self.chain_holder.vars
 
     @staticmethod
     def _render_publish_vars(action_node, action_parameters, execution_result,

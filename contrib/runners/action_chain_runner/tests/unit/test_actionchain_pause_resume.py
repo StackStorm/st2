@@ -620,4 +620,4 @@ class ActionChainRunnerPauseResumeTest(DbTestCase):
         # Check liveaction result.
         self.assertIn('tasks', liveaction.result)
         self.assertEqual(len(liveaction.result['tasks']), 2)
-        self.assertEqual(liveaction.result['tasks'][1]['result']['stdout'], 'foobar')
+        self.assertEqual(liveaction.result['tasks'][1]['result']['stdout'], 'FOOBAR')
