@@ -32,7 +32,6 @@ from st2common.transport import reactor
 from st2common.transport.queues import ACTIONSCHEDULER_REQUEST_QUEUE
 from st2common.transport.queues import ACTIONRUNNER_WORK_QUEUE
 from st2common.transport.queues import ACTIONRUNNER_CANCEL_QUEUE
-from st2common.transport.queues import EXPORTER_WORK_QUEUE
 from st2common.transport.queues import NOTIFIER_ACTIONUPDATE_WORK_QUEUE
 from st2common.transport.queues import RESULTSTRACKER_ACTIONSTATE_WORK_QUEUE
 from st2common.transport.queues import RULESENGINE_WORK_QUEUE
@@ -68,7 +67,6 @@ QUEUES = [
     ACTIONSCHEDULER_REQUEST_QUEUE,
     ACTIONRUNNER_WORK_QUEUE,
     ACTIONRUNNER_CANCEL_QUEUE,
-    EXPORTER_WORK_QUEUE,
     NOTIFIER_ACTIONUPDATE_WORK_QUEUE,
     RESULTSTRACKER_ACTIONSTATE_WORK_QUEUE,
     RULESENGINE_WORK_QUEUE,
