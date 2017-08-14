@@ -24,18 +24,10 @@ from st2tests.api import BaseAPIControllerWithRBACTestCase
 
 
 class FunctionalTest(BaseFunctionalTest):
-    """
-    Base test case class for testing API controllers with auth and RBAC disabled.
-    """
-
     app_module = app
 
 
 class APIControllerWithRBACTestCase(BaseAPIControllerWithRBACTestCase):
-    """
-    Base test case class for testing API controllers with RBAC enabled.
-    """
-
     app_module = app
 
 

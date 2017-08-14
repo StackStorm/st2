@@ -31,8 +31,7 @@ from st2common.persistence.action import Action, RunnerType
 import st2common.stream.listener
 from st2stream.controllers.v1 import stream
 from st2tests.api import SUPER_SECRET_PARAMETER
-from st2api.tests.base import FunctionalTest
-#from base import FunctionalTest
+from base import FunctionalTest
 
 
 RUNNER_TYPE_1 = {
@@ -122,9 +121,8 @@ class TestStreamController(FunctionalTest):
         Action.add_or_update(ActionAPI.to_model(instance))
 
     @mock.patch.object(st2common.stream.listener, 'listen', mock.Mock())
+    @mock.patch('st2stream.controllers.v1.stream.DEFAULT_EVENTS_WHITELIST', None)
     def test_get_all(self):
-        return
-        stream.DEFAULT_EVENTS_WHITELIST = None
         resp = stream.StreamController().get_all()
         self.assertEqual(resp._status, '200 OK')
         self.assertIn(('Content-Type', 'text/event-stream; charset=UTF-8'), resp._headerlist)
