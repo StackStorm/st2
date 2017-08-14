@@ -157,11 +157,12 @@ class PythonRunner(ActionRunner):
                     buff.write(line)
 
                     # Filter out result delimiter lines
-                    if ACTION_OUTPUT_RESULT_DELIMITER not in line:
-                        store_execution_stdout_line(execution_db=self.execution,
-                                                    action_db=self.action,
-                                                    line=line)
+                    if ACTION_OUTPUT_RESULT_DELIMITER in line:
+                        continue
 
+                    store_execution_stdout_line(execution_db=self.execution,
+                                                action_db=self.action,
+                                                line=line)
             except RuntimeError:
                 # process was terminated abruptly
                 pass
@@ -175,10 +176,12 @@ class PythonRunner(ActionRunner):
 
                     buff.write(line)
 
-                    if ACTION_OUTPUT_RESULT_DELIMITER not in line:
-                        store_execution_stderr_line(execution_db=self.execution,
-                                                    action_db=self.action,
-                                                    line=line)
+                    if ACTION_OUTPUT_RESULT_DELIMITER in line:
+                        continue
+
+                    store_execution_stderr_line(execution_db=self.execution,
+                                                action_db=self.action,
+                                                line=line)
             except RuntimeError:
                 # process was terminated abruptly
                 pass
