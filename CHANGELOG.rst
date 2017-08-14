@@ -26,6 +26,8 @@ Added
   off by default. To enable it, set ``actionrunner.store_output`` config option to ``True``.
 
   (new feature) #2175 #3657
+* Require new ``STREAM_VIEW`` RBAC permission type to be able to view ``/v1/stream`` stream API
+  endpoint. (improvement) #3657
 
 Changed
 ~~~~~~~
