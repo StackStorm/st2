@@ -28,6 +28,8 @@ from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
 from st2common.constants.pack import SYSTEM_PACK_NAME
+from st2common.persistence.execution import ActionExecutionStdoutOutput
+from st2common.persistence.execution import ActionExecutionStderrOutput
 from st2tests.base import RunnerTestCase
 from st2tests.base import CleanDbTestCase
 import st2tests.base as tests_base
@@ -259,26 +261,69 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
                 self.assertEqual(actual_env[key], value)
 
     @mock.patch('st2common.util.green.shell.subprocess.Popen')
-    def test_action_stdout_and_stderr_is_stored_in_the_db(self, mock_popen):
-        pass
+    @mock.patch('st2common.util.green.shell.eventlet.spawn')
+    def test_action_stdout_and_stderr_is_stored_in_the_db(self, mock_spawn, mock_popen):
+        values = {'delimiter': ACTION_OUTPUT_RESULT_DELIMITER}
+
+        # Note: We need to mock spawn function so we can test everything in single event loop
+        # iteration
+        def mock_spawn_func(func, *args, **kwargs):
+            func(*args, **kwargs)
+            return mock.Mock()
+
+        mock_spawn.side_effect = mock_spawn_func
+
+        # No output to stdout and no result (implicit None)
+        mock_stdout = [
+            'pre result line 1\n',
+            'pre result line 2\n',
+            '%(delimiter)sTrue%(delimiter)s' % values,
+            'post result line 1'
+        ]
+        mock_stderr = [
+            'stderr line 1\n',
+            'stderr line 2\n',
+            'stderr line 3\n'
+        ]
+
+        mock_process = mock.Mock()
+        mock_process.returncode = 0
+        mock_popen.return_value = mock_process
+        mock_process.stdout.closed = False
+        mock_process.stderr.closed = False
+        mock_process.stdout.readline = make_mock_stream_readline(mock_process.stdout, mock_stdout,
+                                                                 stop_counter=4)
+        mock_process.stderr.readline = make_mock_stream_readline(mock_process.stderr, mock_stderr,
+                                                                 stop_counter=3)
+
+        runner = self._get_mock_runner_obj()
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.container_service = service.RunnerContainerService()
+        runner.pre_run()
+        (_, output, _) = runner.run({'row_index': 4})
+
+        self.assertEqual(output['stdout'],
+                         'pre result line 1\npre result line 2\npost result line 1')
+        self.assertEqual(output['stderr'], 'stderr line 1\nstderr line 2\nstderr line 3\n')
+        self.assertEqual(output['result'], 'True')
+        self.assertEqual(output['exit_code'], 0)
+
+        # Verify stdout and stderr lines have been correctly stored in the db
+        # Note - result delimiter should not be stored in the db
+        stdout_dbs = ActionExecutionStdoutOutput.get_all()
+        self.assertEqual(len(stdout_dbs), 3)
+        self.assertEqual(stdout_dbs[0].line, mock_stdout[0])
+        self.assertEqual(stdout_dbs[1].line, mock_stdout[1])
+        self.assertEqual(stdout_dbs[2].line, mock_stdout[3])
+
+        stderr_dbs = ActionExecutionStderrOutput.get_all()
+        self.assertEqual(len(stderr_dbs), 3)
+        self.assertEqual(stderr_dbs[0].line, mock_stderr[0])
+        self.assertEqual(stderr_dbs[1].line, mock_stderr[1])
+        self.assertEqual(stderr_dbs[2].line, mock_stderr[2])
 
     @mock.patch('st2common.util.green.shell.subprocess.Popen')
     def test_stdout_interception_and_parsing(self, mock_popen):
-        # Utility functions for mocking read_and_store_{stdout,stderr} functions
-        def make_mock_stream_readline(mock_stream, mock_data, stop_counter=1):
-            mock_stream.counter = 0
-
-            def mock_stream_readline():
-                if mock_stream.counter >= stop_counter:
-                    mock_stream.closed = True
-                    return
-
-                line = mock_data[mock_stream.counter]
-                mock_stream.counter += 1
-                return line
-
-            return mock_stream_readline
-
         values = {'delimiter': ACTION_OUTPUT_RESULT_DELIMITER}
 
         # No output to stdout and no result (implicit None)
@@ -492,3 +537,19 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         action.pack = SYSTEM_PACK_NAME
         action.entry_point = 'foo.py'
         return action
+
+
+# Utility function for mocking read_and_store_{stdout,stderr} functions
+def make_mock_stream_readline(mock_stream, mock_data, stop_counter=1):
+    mock_stream.counter = 0
+
+    def mock_stream_readline():
+        if mock_stream.counter >= stop_counter:
+            mock_stream.closed = True
+            return
+
+        line = mock_data[mock_stream.counter]
+        mock_stream.counter += 1
+        return line
+
+    return mock_stream_readline
