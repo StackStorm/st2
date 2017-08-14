@@ -3750,8 +3750,14 @@ paths:
   /stream/v1/stream:
     get:
       operationId: st2stream.controllers.v1.stream:stream_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.STREAM_VIEW }}
       description: |
         Event stream endpoint.
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: EventSource compatible stream of events
