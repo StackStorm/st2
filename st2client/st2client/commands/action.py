@@ -554,7 +554,7 @@ class ActionRunCommandMixin(object):
             if all([isinstance(x, str) and ':' in x for x in result]):
                 result_dict = {}
                 for (k, v) in [x.split(':') for x in result]:
-                      result_dict[k] = v
+                    result_dict[k] = v
                 return [result_dict]
 
             return result
