@@ -22,6 +22,9 @@ Added
     ``st2.execution.stdout__create`` events.
   - ``st2 execution tail <execution id>`` CLI command (underneath it uses stream API endpoint).
 
+  Note: This feature is still experimental and it's only available for Python runner actions and
+  off by default. To enable it, set ``actionrunner.store_output`` config option to ``True``.
+
   (new feature) #2175 #3657
 
 Changed
