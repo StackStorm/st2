@@ -31,7 +31,8 @@ from st2common.persistence.action import Action, RunnerType
 import st2common.stream.listener
 from st2stream.controllers.v1 import stream
 from st2tests.api import SUPER_SECRET_PARAMETER
-from base import FunctionalTest
+from st2api.tests.base import FunctionalTest
+#from base import FunctionalTest
 
 
 RUNNER_TYPE_1 = {
