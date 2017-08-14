@@ -89,6 +89,8 @@ class BaseFunctionalTest(DbTestCase):
     # By default auth is disabled
     enable_auth = False
 
+    register_runners = True
+
     @classmethod
     def setUpClass(cls):
         super(BaseFunctionalTest, cls).setUpClass()
@@ -104,7 +106,8 @@ class BaseFunctionalTest(DbTestCase):
 
         # TODO(manas) : register action types here for now. RunnerType registration can be moved
         # to posting to /runnertypes but that implies implementing POST.
-        runners_registrar.register_runners()
+        if cls.register_runners:
+            runners_registrar.register_runners()
 
         cls.app = TestApp(cls.app_module.setup_app())
 
