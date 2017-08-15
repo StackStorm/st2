@@ -17,12 +17,12 @@ import abc
 import six
 from oslo_config import cfg
 
-from st2actions import handlers
 from st2common import log as logging
-from st2common.constants.pack import DEFAULT_PACK_NAME
+from st2common.constants import action as action_constants
+from st2common.constants import pack as pack_constants
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.util import action_db as action_utils
-from st2common.util.loader import register_runner
+from st2common.util.loader import register_runner, register_callback_module
 from st2common.util.api import get_full_public_api_url
 
 
@@ -30,7 +30,6 @@ __all__ = [
     'ActionRunner',
     'AsyncActionRunner',
     'ShellRunnerMixin',
-
     'get_runner'
 ]
 
@@ -103,17 +102,41 @@ class ActionRunner(object):
     def run(self, action_parameters):
         raise NotImplementedError()
 
+    def pause(self):
+        runner_name = getattr(self.runner_type_db, 'name', 'unknown')
+        raise NotImplementedError('Pause is not supported for runner %s.' % runner_name)
+
+    def resume(self):
+        runner_name = getattr(self.runner_type_db, 'name', 'unknown')
+        raise NotImplementedError('Resume is not supported for runner %s.' % runner_name)
+
     def cancel(self):
-        pass
+        return (
+            action_constants.LIVEACTION_STATUS_CANCELED,
+            self.liveaction.result,
+            self.liveaction.context
+        )
 
     def post_run(self, status, result):
         callback = self.callback or {}
+
         if callback and not (set(['url', 'source']) - set(callback.keys())):
-            handler = handlers.get_handler(callback['source'])
-            handler.callback(callback['url'],
-                             self.context,
-                             status,
-                             result)
+            callback_url = callback['url']
+            callback_module_name = callback['source']
+
+            try:
+                callback_module = register_callback_module(callback_module_name)
+            except:
+                LOG.exception('Failed importing callback module: %s', callback_module_name)
+
+            callback_handler = callback_module.get_instance()
+
+            callback_handler.callback(
+                callback_url,
+                self.context,
+                status,
+                result
+            )
 
     def get_pack_name(self):
         """
@@ -124,7 +147,7 @@ class ActionRunner(object):
         if self.action:
             return self.action.pack
 
-        return DEFAULT_PACK_NAME
+        return pack_constants.DEFAULT_PACK_NAME
 
     def get_user(self):
         """

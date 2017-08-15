@@ -25,7 +25,6 @@ from st2common.constants.keyvalue import USER_SCOPE
 from st2common.constants.pack import PACK_REF_WHITELIST_REGEX
 from st2common.constants.pack import PACK_VERSION_REGEX
 from st2common.constants.pack import ST2_VERSION_REGEX
-from st2common.constants.pack import NORMALIZE_PACK_VERSION
 from st2common.persistence.pack import ConfigSchema
 from st2common.models.api.base import BaseAPI
 from st2common.models.db.pack import PackDB
@@ -33,7 +32,6 @@ from st2common.models.db.pack import ConfigSchemaDB
 from st2common.models.db.pack import ConfigDB
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.util.pack import validate_config_against_schema
-from st2common.util.pack import normalize_pack_version
 
 __all__ = [
     'PackAPI',
@@ -144,25 +142,10 @@ class PackAPI(BaseAPI):
     }
 
     def __init__(self, **values):
-        name = values.get('name', None)
-
         # Note: If some version values are not explicitly surrounded by quotes they are recognized
         # as numbers so we cast them to string
         if values.get('version', None):
             values['version'] = str(values['version'])
-
-        # Special case for old version which didn't follow semver format (e.g. 0.1, 1.0, etc.)
-        # In case the version doesn't match that format, we simply append ".0" to the end (e.g.
-        # 0.1 -> 0.1.0, 1.0, -> 1.0.0, etc.)
-        if NORMALIZE_PACK_VERSION:
-            new_version = normalize_pack_version(version=values['version'])
-            if new_version != values['version']:
-                LOG.warning('Pack "%s" contains invalid semver version specifer, casting it to a '
-                            'full semver version specifier (%s -> %s).\n'
-                            'Short versions will become INVALID in StackStorm 2.2, and the pack '
-                            'will stop working. Update the pack version in "pack.yaml".'
-                            % (name, values['version'], new_version))
-            values['version'] = new_version
 
         super(PackAPI, self).__init__(**values)
 
@@ -295,7 +278,7 @@ class ConfigAPI(BaseAPI):
 
         # Note: We are doing optional validation so for now, we do allow additional properties
         instance = self.values or {}
-        schema = config_schema_db.attributes
+        schema = config_schema_db.attributes or {}
 
         configs_path = os.path.join(cfg.CONF.system.base_path, 'configs/')
         config_path = os.path.join(configs_path, '%s.yaml' % (self.pack))

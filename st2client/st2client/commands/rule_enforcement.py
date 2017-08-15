@@ -60,12 +60,12 @@ class RuleEnforcementListCommand(resource.ResourceCommand):
             resource, 'list', 'Get the list of the 50 most recent %s.' %
             resource.get_plural_display_name().lower(),
             *args, **kwargs)
-
+        self.default_limit = 50
+        self.resource_name = resource.get_plural_display_name().lower()
         self.group = self.parser.add_argument_group()
         self.parser.add_argument('-n', '--last', type=int, dest='last',
-                                 default=50,
-                                 help=('List N most recent %s.' %
-                                       resource.get_plural_display_name().lower()))
+                                 default=self.default_limit,
+                                 help=('List N most recent %s.' % self.resource_name))
 
         # Filter options
         self.group.add_argument('--trigger-instance',
@@ -110,11 +110,17 @@ class RuleEnforcementListCommand(resource.ResourceCommand):
         if args.timestamp_lt:
             kwargs['enforced_at_lt'] = args.timestamp_lt
 
-        return self.manager.query(limit=args.last, **kwargs)
+        return self.manager.query_with_count(limit=args.last, **kwargs)
 
     def run_and_print(self, args, **kwargs):
-        instances = self.run(args, **kwargs)
-        self.print_output(reversed(instances), table.MultiColumnTable,
-                          attributes=args.attr, widths=args.width,
-                          json=args.json, yaml=args.yaml,
-                          attribute_transform_functions=self.attribute_transform_functions)
+        instances, count = self.run(args, **kwargs)
+        if args.json or args.yaml:
+            self.print_output(reversed(instances), table.MultiColumnTable,
+                              attributes=args.attr, widths=args.width,
+                              json=args.json, yaml=args.yaml,
+                              attribute_transform_functions=self.attribute_transform_functions)
+        else:
+            self.print_output(instances, table.MultiColumnTable,
+                              attributes=args.attr, widths=args.width)
+            if args.last and count and count > args.last:
+                table.SingleRowTable.note_box(self.resource_name, args.last)

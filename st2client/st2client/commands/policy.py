@@ -49,7 +49,8 @@ class PolicyTypeListCommand(resource.ResourceListCommand):
         if args.resource_type:
             filters = {'resource_type': args.resource_type}
             filters.update(**kwargs)
-            return self.manager.query(**filters)
+            instances = self.manager.query(**filters)
+            return instances
         else:
             return self.manager.get_all(**kwargs)
 

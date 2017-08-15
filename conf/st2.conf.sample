@@ -29,7 +29,9 @@ max_page_size = 100
 # True to mask secrets in the API responses
 mask_secrets = True
 # StackStorm API server host
-host = 0.0.0.0
+host = 127.0.0.1
+# None
+debug = False
 # StackStorm API server port
 port = 9101
 
@@ -43,6 +45,8 @@ enable = True
 logging = conf/logging.conf
 # Base URL to the API endpoint excluding the version
 api_url = None
+# Service token ttl in seconds.
+service_token_ttl = 86400
 # Access token ttl in seconds.
 token_ttl = 86400
 # Authentication mode (proxy,standalone)
@@ -58,14 +62,14 @@ cert = /etc/apache2/ssl/mycert.crt
 # JSON serialized arguments which are passed to the authentication backend in a standalone mode.
 backend_kwargs = None
 # Host on which the service should listen on.
-host = 0.0.0.0
+host = 127.0.0.1
 # Path to the SSL private key file. Only used when "use_ssl" is specified.
 key = /etc/apache2/ssl/mycert.key
 # Specify to enable SSL / TLS mode
 use_ssl = False
 # Port on which the service should listen on.
 port = 9100
-# Authentication backend to use in a standalone mode. Available backends: flat_file.
+# Authentication backend to use in a standalone mode. Available backends: flat_file, ldap.
 backend = flat_file
 
 [cloudslang]
@@ -75,10 +79,14 @@ home_dir = /opt/cslang
 [content]
 # A URL pointing to the pack index. StackStorm Exchange is used by default. Use a comma-separated list for multiple indexes if you want to get other packs discovered with "st2 pack search".
 index_url = https://index.stackstorm.org/v1/index.json # comma separated list allowed here.
-# Path to the directory which contains system packs.
-system_packs_base_path = /opt/stackstorm/packs
+# Path to the directory which contains system runners.
+system_runners_base_path = /opt/stackstorm/runners
+# Paths which will be searched for runners.
+runners_base_paths = None
 # User group that can write to packs directory.
 pack_group = st2packs
+# Path to the directory which contains system packs.
+system_packs_base_path = /opt/stackstorm/packs
 # Paths which will be searched for integration packs.
 packs_base_paths = None
 
@@ -104,7 +112,7 @@ ssl_cert_reqs = None
 # Create the connection to mongodb using SSL
 ssl = False
 # host of db server
-host = 0.0.0.0
+host = 127.0.0.1
 # name of database
 db_name = st2
 # Backoff multiplier (seconds).
@@ -136,7 +144,7 @@ collection_interval = 600
 
 [keyvalue]
 # Location of the symmetric encryption key for encrypting values in kvstore. This key should be in JSON and should've been generated using keyczar.
-encryption_key_path =
+encryption_key_path = 
 # Allow encryption of values in key value stored qualified as "secret".
 enable_encryption = True
 
@@ -145,6 +153,8 @@ enable_encryption = True
 redirect_stderr = False
 # Exclusion list of loggers to omit.
 excludes =  # comma separated list allowed here.
+# Blacklist of additional attribute names to mask in the log messages.
+mask_secrets_blacklist =  # comma separated list allowed here.
 # True to mask secrets in the log files.
 mask_secrets = True
 
@@ -163,6 +173,8 @@ cluster_urls =  # comma separated list allowed here.
 api_url = None
 # Multiplier for the exponential backoff.
 retry_exp_msec = 1000
+# Jitter interval to smooth out HTTP requests to mistral tasks and executions API.
+jitter_interval = 1
 # Allow insecure communication with Mistral.
 insecure = False
 # Username for authentication.
@@ -187,8 +199,12 @@ retry_exp_max_msec = 300000
 logging = conf/logging.notifier.conf
 
 [resultstracker]
+# Time interval between subsequent queries for a context to external workflow system.
+query_interval = 20
 # Location of the logging configuration file.
 logging = conf/logging.resultstracker.conf
+# Number of threads to use to query external workflow systems.
+thread_pool_size = 10
 
 [rulesengine]
 # Location of the logging configuration file.
@@ -223,7 +239,7 @@ max_parallel_actions = 50
 remote_dir = /tmp
 # Use the .ssh/config file. Useful to override ports etc.
 use_ssh_config = False
-# Path to the ssh config file. Useful to override the default path
+# Path to the ssh config file.
 ssh_config_file_path = ~/.ssh/config
 # How partial success of actions run on multiple nodes should be treated.
 allow_partial_failure = False
@@ -234,7 +250,7 @@ debug = False
 # Send empty message every N seconds to keep connection open
 heartbeat = 25
 # StackStorm stream API server host
-host = 0.0.0.0
+host = 127.0.0.1
 # location of the logging.conf file
 logging = conf/logging.conf
 # StackStorm API stream, server port
@@ -253,6 +269,10 @@ facility = local7
 [system]
 # Enable debug mode.
 debug = False
+# True to validate parameters for non-system trigger types when creatinga rule. By default, only parameters for system triggers are validated
+validate_trigger_parameters = False
+# True to validate payload for non-system trigger types when dispatchinga trigger inside the sensor. By default, only payload for system triggers is validated.
+validate_trigger_payload = False
 # Base path to all st2 artifacts.
 base_path = /opt/stackstorm
 

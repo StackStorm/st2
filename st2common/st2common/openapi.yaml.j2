@@ -1,0 +1,4442 @@
+swagger: '2.0'
+
+info:
+  version: "1.0.0"
+  title: StackStorm API
+  description: |
+    {% raw %}
+    ## Welcome
+
+    Welcome to the StackStorm API Reference documentation! You can use the StackStorm API to integrate StackStorm with 3rd-party systems and custom applications. Example integrations include writing your own self-service user portal, or integrating with other orchestration systems.
+
+    This document provides an overview of how to use the API. Use the menu on the left to look up details of specific API endpoints. For more information about how StackStorm works, and how to use it, check out the main [StackStorm documentation](https://docs.stackstorm.com).
+
+    > ### A Quick Note
+    > This API is intended for software developers, and those are who are comfortable working with RESTful APIs, and writing some code. You do not need to use this API to work with StackStorm, or to use and write integration packs for StackStorm.
+
+    ## Accessing the API
+
+    Usually the API is available at `https://$ST2_HOSTNAME/api`. The default implementation is to use Nginx as a front-end, passing `/api` requests through to the `st2api` service, which by default listens on port `9101`. On a [reference single-system deployment](https://docs.stackstorm.com/install/index.html), all processes run on the same system. If you have a [multi-system deployment](https://docs.stackstorm.com/reference/ha.html), the components may be running on multiple systems, and may be load-balanced.
+
+    ## Authentication
+
+    To authenticate against the StackStorm API, either an authentication token or an API key (but not both) should be provided in the HTTP request headers. The headers are named `X-Auth-Token` and `St2-Api-Key` respectively. In situation when it is impossble to provide a header to the response, query parameters `x-auth-token` and `st2-api-key` could be used instead, but would require you to weight in on security implications.
+
+    An authentication token is a time-limited access token, granted once a user authenticates, typically using a username and password. This is suitable for short-term, interactive sessions. [API Keys](https://docs.stackstorm.com/authentication.html#api-keys) do not expire, and are therefore better suited for use with integrating other applications.
+
+    ### Authentication Tokens
+
+    If you are using authentication tokens, you need to first obtain a token using the `/auth` endpoint, and then use the token for future requests against the `/api` endpoint. To obain a token:
+
+    ```
+    curl -X POST -u 'yourusername:yourpassword' https://$ST2_HOSTNAME/auth/v1/tokens
+    ```
+
+    You can then use the token like this:
+
+    ```
+    # Token as header
+    curl -H "X-Auth-Token: 4d76e023841a4a91a9c66aa4541156fe" https://$ST2_HOSTNAME/api/v1/actions
+
+    # Token as query parameter
+    curl "https://$ST2_HOSTNAME/api/v1/actions?x-auth-token=4d76e023841a4a91a9c66aa4541156fe"
+    ```
+
+    ### API Keys
+
+    API Keys can be generated once, and then used indefinitely. To obtain an API Key, you can use the `st2` CLI:
+
+    ```
+    st2 apikey create -k -m '{"used_by": "my integration"}'
+    ```
+
+    Note the use of the option `-m` flag to provide key metadata. This is good practice, because it helps to identify what the key is used for. This is useful if you need to later revoke or disable keys.
+
+    Keys can also be created using the [apikeys](api/v1/apikeys/) API.
+
+    Using the API key:
+
+    ```
+    # Key as header
+    curl -H "St2-Api-Key: <API-KEY-VALUE>" https://$ST2_HOSTNAME/api/v1/actions
+
+    # Key as query parameter
+    curl https://$ST2_HOSTNAME/api/v1/actions?st2-api-key=<API-KEY-VALUE>
+    ```
+
+    ## HTTP Methods
+
+    The StackStorm API supports these HTTP methods:
+
+    * **GET:** Use to retrieve data, e.g. current status of an execution. GET requests will not update or change data.
+    * **POST:** Use to create new resources. For example, make a POST request to create a new rule, or execute an action.
+    * **PUT:** Use to create or update a resource, e.g. to update an existing Key-Value pair.
+    * **DELETE:** Remove a resource, e.g. delete an API key.
+
+    There is also an implicit support of **OPTIONS** method that will return a set of CORS-related headers.
+
+    Methods **HEAD** and **PATCH** are not supported in API v1, but might be considered in future iterations.
+
+    ## SSL
+
+    The default StackStorm installation creates a self-signed certificate. If you are testing this with `curl`, you may need to disable certificate validation with `curl -k`. We **strongly** recommend you configure valid, signed certificates for StackStorm.
+
+    ## JSON
+
+    The StackStorm API only supports JSON, not XML. Most POST requests require a well-formatted JSON object body.
+
+    ## Code Examples
+
+    These are some examples to show how to use the StackStorm API with cURL. You can use any REST-capable client, library or programming language to access the StackStorm API.
+
+    Obtaining an authentication token:
+
+    ```
+    $ curl -X POST -k -u st2admin:'Ch@ngeMe' https://$ST2_HOSTNAME/auth/v1/tokens
+    {"user": "st2admin", "token": "866218ad67e141e4aaddbbb92964e67e", "expiry": "2017-04-06T01:15:06.602758Z", "id": "58e4451ac4da5f1e040fb859", "metadata": {}}
+    ```
+
+    List rules for the ChatOps pack:
+
+    ```
+    $ curl -k -X GET -H 'X-Auth-Token: b99d3f74a16e471992f2a10935637916' 'https://$ST2_HOSTNAME/api/v1/rules?limit=50&pack=chatops'
+    [{"description": "Notification rule to send results of action executions to stream for chatops", "tags": [], "type": {"ref": "standard", "parameters": {}}, "enabled": true, "name": "notify", "trigger": {"ref": "core.st2.generic.notifytrigger", "type": "core.st2.generic.notifytrigger", "parameters": {}}, "criteria": {"trigger.route": {"pattern": "hubot", "type": "equals"}}, "action": {"ref": "chatops.post_result", "parameters": {"user": "{{trigger.data.user}}", "execution_id": "{{trigger.execution_id}}", "channel": "{{trigger.data.source_channel}}"}}, "pack": "chatops", "ref": "chatops.notify", "id": "58b7089ac4da5f6aa779b85a", "uid": "rule:chatops:notify"}]
+    ```
+
+    Load a new rule:
+
+    ```
+    $ curl -X POST -H 'content-type: application/json' -H 'X-Auth-Token: b99d3f74a16e471992f2a10935637916' --data-binary '{"description": "Sample rule using an Interval Timer.", "enabled": false, "trigger": {"type": "core.st2.IntervalTimer", "parameters": {"unit": "seconds", "delta": 5}}, "criteria": {}, "action": {"ref": "core.local", "parameters": {"cmd": "echo \"{{trigger.executed_at}}\""}}, "pack": "examples", "name": "sample_rule_with_timer"}' https://$ST2_HOSTNAME/api/v1/rules
+    {
+        "description": "Sample rule using an Interval Timer.",
+        "tags": [],
+        "type": {
+            "ref": "standard",
+            "parameters": {}
+        },
+        "enabled": false,
+        "name": "sample_rule_with_timer",
+        "trigger": {
+            "ref": "core.cab3cb5f-f0c5-466b-b27c-dc481fc19fac",
+            "type": "core.st2.IntervalTimer",
+            "parameters": {
+                "unit": "seconds",
+                "delta": 5
+            }
+        },
+        "criteria": {},
+        "action": {
+            "ref": "core.local",
+            "parameters": {
+                "cmd": "echo \"{{trigger.executed_at}}\""
+            }
+        },
+        "pack": "examples",
+        "ref": "examples.sample_rule_with_timer",
+        "id": "58eddb871878c12be65c9fdd",
+        "uid": "rule:examples:sample_rule_with_timer"
+    }
+    ```
+
+    ### Further examples
+
+    For further examples of using the API, check out the `st2 --debug` command. If you know which st2 command you want, run `st2 --debug <st2 command>`, and it will display the equivalent cURL commands. For example:
+
+    ```
+    st2 --debug action list -p chatops
+    2017-04-05 00:56:01,935  DEBUG - Using cached token from file "/home/vagrant/.st2/token-st2admin"
+    # -------- begin 37703888 request ----------
+    curl -X GET -H  'Connection: keep-alive' -H  'Accept-Encoding: gzip, deflate' -H  'Accept: */*' -H  'User-Agent: python-requests/2.11.1' -H  'X-Auth-Token: b99d3f74a16e471992f2a10935637916' 'http://127.0.0.1:9101/v1/actions?pack=chatops'
+    # -------- begin 37703888 response ----------
+    [{"name": "format_execution_result", "parameters": {"execution_id": {"required": true, "type": "string", "description": "Id of execution to format"}}, "tags": [], "description": "Format an execution result for chatops", "enabled": true, "entry_point": "format_execution_result.py", "notify": {}, "uid": "action:chatops:format_execution_result", "pack": "chatops", "ref": "chatops.format_execution_result", "id": "58b7089ac4da5f6aa779b847", "runner_type": "run-python"}, {"name": "post_message", "parameters": {"extra": {"type": "object", "description": "Extra adapter-specific parameters."}, "whisper": {"default": false, "type": "boolean", "description": "Send a private message to user"}, "route": {"default": "chatops"}, "experimental": {"default": true, "immutable": true}, "user": {"type": "string", "description": "Explicitly notify a user"}, "message": {"required": true, "type": "string", "description": "Message to send."}, "channel": {"required": true, "type": "string", "description": "Channel to post to"}}, "tags": [], "description": "Post a message to stream for chatops", "enabled": true, "entry_point": "", "notify": {}, "uid": "action:chatops:post_message", "pack": "chatops", "ref": "chatops.post_message", "id": "58b7089ac4da5f6aa779b848", "runner_type": "announcement"}, {"name": "post_result", "parameters": {"whisper": {"default": false, "type": "boolean", "description": "Send a private message to user"}, "user": {"type": "string", "description": "Explicitly notify a user"}, "execution_id": {"required": true, "type": "string", "description": "ID of an execution to send"}, "channel": {"required": true, "type": "string", "description": "Channel to post to"}}, "tags": [], "description": "Post an execution result to stream for chatops", "enabled": true, "entry_point": "workflows/post_result.yaml", "notify": {}, "uid": "action:chatops:post_result", "pack": "chatops", "ref": "chatops.post_result", "id": "58b7089ac4da5f6aa779b849", "runner_type": "action-chain"}]
+    # -------- end 37703888 response ------------
+
+    +---------------------------------+---------+--------------------------------------------+
+    | ref                             | pack    | description                                |
+    +---------------------------------+---------+--------------------------------------------+
+    | chatops.format_execution_result | chatops | Format an execution result for chatops     |
+    | chatops.post_message            | chatops | Post a message to stream for chatops       |
+    | chatops.post_result             | chatops | Post an execution result to stream for     |
+    |                                 |         | chatops                                    |
+    +---------------------------------+---------+--------------------------------------------+
+    ```
+
+    **NOTE**: The URL displayed in the `curl` commands above is directly accessing the API service on port 9101. If you are connecting to the ST2 API from a remote system, you should modify this to work with Nginx on port 443. In the above output, `http://127.0.0.1:9101/v1/actions?pack=chatops` would become `https://myhost.example.com/api/v1/actions?pack=chatops`.
+
+    ## Errors
+
+    API errors have a standard HTTP response code, and a human-readable message. For example, if you try to create a rule with the same name as an existing rule, you will see an HTTP 409 response:
+
+    ```
+    < HTTP/1.1 409 Conflict
+    < Server: nginx/1.10.3
+    < Date: Wed, 05 Apr 2017 00:44:32 GMT
+    < Content-Type: application/json
+    < Content-Length: 230
+    < Connection: keep-alive
+    < Access-Control-Allow-Origin: http://127.0.0.1:3000
+    < Access-Control-Allow-Methods: GET,POST,PUT,DELETE,OPTIONS
+    < Access-Control-Allow-Headers: Content-Type,Authorization,X-Auth-Token,St2-Api-Key,X-Request-ID
+    < Access-Control-Expose-Headers: Content-Type,X-Limit,X-Total-Count,X-Request-ID
+    < X-Request-ID: 68de2f2a-6fc0-4827-9ee9-b7124553d3e8
+    <
+    {
+        "conflict-id": "58e43d58c4da5f35c286a81f",
+        "faultstring": "Tried to save duplicate unique keys (E11000 duplicate key error collection: st2.rule_d_b index: uid_1 dup key: { : \"rule:examples:sample_rule_with_timer\" })"
+    }
+    ```
+
+    `4xx` codes indicate a bad request, whereas `5xx` errors indicate a server-side problem with StackStorm.
+
+    ## Support
+
+    Join our [Slack Community](https://stackstorm.com/community-signup) to get help from the engineering team and fellow users. You can also create issues against the main [StackStorm GitHub repo](https://github.com/StackStorm/st2/issues), or the [st2apidocs repo](https://github.com/StackStorm/st2apidocs) for documentation-specific issues.
+
+    We also recommend reviewing the main [StackStorm documentation](https://docs.stackstorm.com/).
+    {% endraw %}
+
+paths:
+  /api/v1/:
+    get:
+      operationId: st2api.controllers.root:root_controller.index
+      description: General API info.
+      responses:
+        '200':
+          description: General API info.
+          schema:
+            type: object
+            properties:
+              version:
+                type: string
+              docs_url:
+                type: string
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/actions:
+    get:
+      operationId: st2api.controllers.v1.actions:actions_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.ACTION_LIST }}
+      description: Returns a list of all actions.
+      parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: limit
+          in: query
+          description: Number of actions to get
+          type: integer
+        - name: offset
+          in: query
+          description: Number of actions to offset
+          type: integer
+          default: 0
+        - name: id
+          in: query
+          description: Action id filter
+          type: array
+          items:
+            type: string
+        - name: name
+          in: query
+          description: Action name filter
+          type: string
+        - name: pack
+          in: query
+          description: Action pack name filter
+          type: string
+      responses:
+        '200':
+          description: List of actions
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Action'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      operationId: st2api.controllers.v1.actions:actions_controller.post
+      description: |
+        Create a new action.
+      parameters:
+        - name: action
+          in: body
+          description: Action content
+          schema:
+            $ref: '#/definitions/ActionCreateRequest'
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '201':
+          description: Single action being created
+          schema:
+            $ref: '#/definitions/Action'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/actions/{ref_or_id}:
+    get:
+      operationId: st2api.controllers.v1.actions:actions_controller.get_one
+      description: |
+        Get one action.
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Action requested
+          schema:
+            $ref: '#/definitions/Action'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      operationId: st2api.controllers.v1.actions:actions_controller.put
+      description: |
+        Update an action.
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+        - name: action
+          in: body
+          description: Action content
+          schema:
+            $ref: '#/definitions/ActionUpdateRequest'
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Action updated
+          schema:
+            $ref: '#/definitions/Action'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      operationId: st2api.controllers.v1.actions:actions_controller.delete
+      description: |
+        Delete an action.
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '204':
+          description: Action deleted
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/actions/views/parameters/{action_id}:
+    get:
+      operationId: st2api.controllers.v1.actionviews:parameters_view_controller.get_one
+      description: |
+        Get parameters for an action.
+      parameters:
+        - name: action_id
+          in: path
+          description: Entity id
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: An object containing action parameters
+          schema:
+            $ref: '#/definitions/ActionParameters'
+          examples:
+            application/json:
+              parameters:
+                cmd:
+                  type: string
+                # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/actions/views/overview:
+    get:
+      operationId: st2api.controllers.v1.actionviews:overview_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.ACTION_LIST }}
+      description: Returns a list of all the actions with runner parameters included.
+      parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: limit
+          in: query
+          description: Number of actions to get
+          type: integer
+        - name: offset
+          in: query
+          description: Number of actions to offset
+          type: integer
+          default: 0
+        - name: id
+          in: query
+          description: Action id filter
+          type: string
+        - name: name
+          in: query
+          description: Action name filter
+          type: string
+        - name: pack
+          in: query
+          description: Action pack name filter
+          type: string
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: List of actions
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Action'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/actions/views/overview/{ref_or_id}:
+    get:
+      operationId: st2api.controllers.v1.actionviews:overview_controller.get_one
+      description: |
+        Get one action with runner parameters included.
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
+      responses:
+        '200':
+          description: Action requested
+          schema:
+            $ref: '#/definitions/Action'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/actions/views/entry_point/{ref_or_id}:
+    get:
+      operationId: st2api.controllers.v1.actionviews:entry_point_controller.get_one
+      description: |
+        Get code of the action's entry_point.
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Entry point code
+          schema:
+            type: string
+          examples:
+            text/plain: |-
+              # Licensed to the StackStorm, Inc ('StackStorm') under one or more
+              # contributor license agreements.  See the NOTICE file distributed with
+              # this work for additional information regarding copyright ownership.
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/actionalias:
+    get:
+      operationId: st2api.controllers.v1.actionalias:action_alias_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.ACTION_ALIAS_LIST }}
+      description: |
+          Get list of action-aliases.
+      parameters:
+        - name: name
+          in: query
+          description: Entity name filter
+          type: string
+        - name: pack
+          in: query
+          description: Only return resources belonging to the provided pack
+          type: string
+      responses:
+        '200':
+          description: List of action aliases.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ActionAlias'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      operationId: st2api.controllers.v1.actionalias:action_alias_controller.post
+      description: |
+        Create actionalias.
+      parameters:
+        - name: action_alias
+          in: body
+          description: Action alias file.
+          schema:
+            $ref: '#/definitions/ActionAlias'
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '201':
+          description: Action alias created
+          schema:
+            $ref: '#/definitions/ActionAlias'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/actionalias/{ref_or_id}:
+    get:
+      operationId: st2api.controllers.v1.actionalias:action_alias_controller.get_one
+      x-requirements:
+        ref_or_id: (?!match)(?!help).*
+      description: |
+        Get a specific actionalias based on ref or id.
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Action alias requested
+          schema:
+            $ref: '#/definitions/ActionAlias'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      operationId: st2api.controllers.v1.actionalias:action_alias_controller.put
+      description: Update action alias
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Name or ID of the action alias.
+          type: string
+          required: true
+        - name: action_alias
+          in: body
+          description: JSON/YAML file containing the action alias to update.
+          schema:
+            $ref: '#/definitions/ActionAlias'
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Action alias updated.
+          schema:
+            $ref: '#/definitions/ActionAlias'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      operationId: st2api.controllers.v1.actionalias:action_alias_controller.delete
+      description: |
+        Delete action alias based on ref_or_id.
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Name or ID of the action alias.
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '204':
+          description: Action alias deleted
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/actionalias/match:
+    post:
+      operationId: st2api.controllers.v1.actionalias:action_alias_controller.match
+      x-permissions: {{ PERMISSION_TYPE.ACTION_ALIAS_MATCH }}
+      description: |
+        Match action alias based on format (representation or display).
+      parameters:
+        - name: action_alias_match_api
+          in: body
+          description: Object containing the format to be matched.
+          schema:
+            $ref: '#/definitions/ActionAliasMatchRequest'
+      responses:
+        '201':
+          description: Action alias match pattern
+          schema:
+            $ref: '#/definitions/ActionAliasMatch'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/actionalias/help:
+    get:
+      operationId: st2api.controllers.v1.actionalias:action_alias_controller.help
+      x-permissions: {{ PERMISSION_TYPE.ACTION_ALIAS_HELP }}
+      description: |
+        Get available help strings for action aliases.
+      parameters:
+        - name: pack
+          in: query
+          description: Entity pack
+          type: string
+        - name: filter
+          in: query
+          description: Regex filter
+          type: string
+        - name: limit
+          in: query
+          description: Number of actions alias to get
+          type: integer
+          default: 100
+        - name: offset
+          in: query
+          description: Number of actions alias to offset
+          type: integer
+          default: 0
+      responses:
+        '200':
+          description: Action alias match pattern
+          schema:
+            $ref: '#/definitions/ActionAliasHelp'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/aliasexecution:
+    post:
+      operationId: st2api.controllers.v1.aliasexecution:action_alias_execution_controller.post
+      description: |
+        Create alias execution.
+      parameters:
+        - name: payload
+          in: body
+          description: Alias execution payload.
+          schema:
+            $ref: '#/definitions/AliasExecution'
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '201':
+          description: Action alias created
+          schema:
+            $ref: '#/definitions/AliasExecution'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/executions:
+    get:
+      operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.EXECUTION_LIST }}
+      x-log-result: false
+      description: Returns a list of all executions.
+      parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: limit
+          in: query
+          description: Number of executions to get
+          type: integer
+          default: 100
+        - name: offset
+          in: query
+          description: Number of executions to offset
+          type: integer
+          default: 0
+        - name: sort
+          in: query
+          description: Comma-separated list of fields to sort by
+          type: string
+        - name: sort_asc
+          in: query
+          description: Sort in ascending order
+          type: string
+        - name: sort_desc
+          in: query
+          description: Sort in descending order
+          type: string
+        - name: id
+          in: query
+          description: Execution id filter
+          type: array
+          items:
+            type: string
+        - name: status
+          in: query
+          description: Execution status filter
+          type: string
+        - name: parent
+          in: query
+          description: Parent execution filter
+          type: string
+        - name: trigger_type
+          in: query
+          description: Trigger type filter
+          type: string
+        - name: trigger
+          in: query
+          description: Trigger filter
+          type: string
+        - name: trigger_instance
+          in: query
+          description: Trigger instance filter
+          type: string
+        - name: rule
+          in: query
+          description: Rule filter
+          type: string
+        - name: action
+          in: query
+          description: Action ref filter
+          type: string
+        - name: runner
+          in: query
+          description: Runner filter
+          type: string
+        - name: user
+          in: query
+          description: User filter
+          type: string
+        - name: liveaction
+          in: query
+          description: Liveaction id filter
+          type: string
+        - name: timestamp
+          in: query
+          description: Start timestamp filter
+          type: string
+          pattern: {{ ISO8601_UTC_REGEX }}
+        - name: timestamp_lt
+          in: query
+          description: Start timestamp less than filter
+          type: string
+          pattern: {{ ISO8601_UTC_REGEX }}
+        - name: timestamp_gt
+          in: query
+          description: Start timestamp greater than filter
+          type: string
+          pattern: {{ ISO8601_UTC_REGEX }}
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: List of executions
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Execution'
+          examples:
+            application/json:
+              - trigger:
+                  type: object
+                action:
+                  type: object
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.post
+      x-log-result: false
+      description: |
+        Create a new execution.
+      parameters:
+        - name: liveaction_api
+          in: body
+          description: Execution request
+          schema:
+            $ref: '#/definitions/ExecutionRequest'
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
+        - name: st2-context
+          in: header
+          x-as: context_string
+          description: Additional execution context
+          type: string
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '201':
+          description: Execution being created
+          schema:
+            $ref: '#/definitions/Execution'
+          examples:
+            application/json:
+              trigger:
+                type: object
+              action:
+                type: object
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/executions/{id}:
+    get:
+      operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.get_one
+      x-log-result: false
+      description: |
+        Get one execution.
+      parameters:
+        - name: id
+          in: path
+          description: Entity id
+          type: string
+          required: true
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Execution requested
+          schema:
+            $ref: '#/definitions/Execution'
+          examples:
+            application/json:
+              trigger:
+                type: object
+              action:
+                type: object
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.put
+      description: |
+        Update status and result for an execution.
+      parameters:
+        - name: id
+          in: path
+          description: Entity id
+          type: string
+          required: true
+        - name: liveaction_api
+          in: body
+          description: Execution update request
+          schema:
+            $ref: '#/definitions/ExecutionUpdateRequest'
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Execution that was updated
+          schema:
+            $ref: '#/definitions/Execution'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.delete
+      description: |
+        Cancel an execution.
+      parameters:
+        - name: id
+          in: path
+          description: Entity id
+          type: string
+          required: true
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Execution cancelled
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/executions/{id}/re_run:
+    post:
+      operationId: st2api.controllers.v1.actionexecutions:action_execution_rerun_controller.post
+      x-log-result: false
+      description: |
+        Create a new execution.
+      parameters:
+        - name: id
+          in: path
+          description: Entity id
+          type: string
+          required: true
+        - name: spec_api
+          in: body
+          description: Execution request
+          schema:
+            type: object
+            properties:
+              parameters:
+                type: object
+                default: {}
+              tasks:
+                type: array
+                default: []
+              reset:
+                type: array
+                default: []
+              user:
+                type: string
+                default: ''
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '201':
+          description: Single action being created
+          schema:
+            $ref: '#/definitions/Execution'
+          examples:
+            application/json:
+              trigger:
+                type: object
+              action:
+                type: object
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/executions/{id}/attribute/{attribute}:
+    get:
+      operationId: st2api.controllers.v1.actionexecutions:action_execution_attribute_controller.get
+      x-log-result: false
+      description: |
+        Get one execution.
+      parameters:
+        - name: id
+          in: path
+          description: Entity id
+          type: string
+          required: true
+        - name: attribute
+          in: path
+          description: Attribute to fetch
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Execution attribute requested
+          examples:
+            application/json:
+              trigger:
+                type: object
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/executions/{id}/children:
+    get:
+      operationId: st2api.controllers.v1.actionexecutions:action_execution_children_controller.get_one
+      x-log-result: false
+      description: |
+        Get one execution.
+      parameters:
+        - name: id
+          in: path
+          description: Entity id
+          type: string
+          required: true
+        - name: depth
+          in: query
+          description: Depth to fetch
+          type: integer
+          default: -1
+        - name: result_fmt
+          in: query
+          description: Result format
+          type: string
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Execution attribute requested
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Execution'
+          examples:
+            application/json:
+              trigger:
+                type: object
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/executions/views/filters:
+    get:
+      operationId: st2api.controllers.v1.executionviews:filters_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.EXECUTION_VIEWS_FILTERS_LIST }}
+      description: |
+        Get a list of distinct values for the execution filters.
+      parameters:
+        - name: types
+          in: query
+          description: List of types of filters to return
+          type: array
+          items:
+            type: string
+      responses:
+        '200':
+          description: A number of distinct values for the requested filters
+          schema:
+            $ref: '#/definitions/ExecutionFilters'
+          examples:
+            application/json:
+              trigger:
+                type: object
+              action:
+                type: object
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/keys:
+    get:
+      operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.KEY_VALUE_PAIR_LIST }}
+      description: Returns a list of all key value pairs.
+      parameters:
+        - name: prefix
+          in: query
+          description: |
+              Only return values which name starts with the provided prefix.
+          type: string
+        - name: scope
+          in: query
+          description: "Scope the item is under. Example: 'user'."
+          type: string
+        - name: decrypt
+          in: query
+          description: Decrypt secrets and display plain text
+          type: boolean
+        - name: user
+          in: query
+          description: Entity owner
+          type: string
+        - name: limit
+          in: query
+          description: Number of keys to get
+          type: integer
+          default: 100
+        - name: offset
+          in: query
+          description: Number of keys to offset
+          type: integer
+          default: 0
+        - name: sort
+          in: query
+          description: Comma-separated list of fields to sort by
+          type: string
+        - name: id
+          in: query
+          description: Entity id filter
+          type: string
+        - name: name
+          in: query
+          description: Entity name filter
+          type: string
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: List of key value pairs
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/KeyValuePair'
+          examples:
+            application/json:
+              ref: 'core.local'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/keys/{name}:
+    get:
+      operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.get_one
+      description: |
+        Get a specific key vale pair based on key_name.
+      parameters:
+        - name: name
+          in: path
+          description: Key Name
+          type: string
+          required: true
+        - name: scope
+          in: query
+          description: "Scope the item is under. Example: 'user'."
+          type: string
+        - name: decrypt
+          in: query
+          description: Decrypt secrets and display plain text.
+          type: boolean
+        - name: user
+          in: query
+          description: Entity owner
+          type: string
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Key value pair requested.
+          schema:
+            $ref: '#/definitions/KeyValuePair'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.put
+      description: |
+        Create a new key value pair or update an existing one.
+      parameters:
+        - name: name
+          in: path
+          description: Key Name.
+          type: string
+          required: true
+        - name: kvp
+          in: body
+          description: Key Value pair content.
+          schema:
+            $ref: '#/definitions/KeyValuePairRequest'
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Key set/updated.
+          schema:
+            $ref: '#/definitions/KeyValuePair'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.delete
+      description: Delete a Key.
+      parameters:
+        - name: name
+          in: path
+          description: Key Name.
+          type: string
+          required: true
+        - name: scope
+          in: query
+          description: "Scope the item is under. Example: 'user'."
+          type: string
+        - name: user
+          in: query
+          description: Entity owner
+          type: string
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '204':
+          description: Key deleted.
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/packs:
+    get:
+      operationId: st2api.controllers.v1.packs:packs_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.PACK_LIST }}
+      description: Get list of installed packs.
+      parameters:
+        - name: limit
+          in: query
+          description: Number of packs to get
+          type: integer
+          default: 100
+        - name: offset
+          in: query
+          description: Number of packs to offset
+          type: integer
+          default: 0
+        - name: sort
+          in: query
+          description: Comma-separated list of fields to sort by
+          type: string
+        - name: id
+          in: query
+          description: Entity id filter
+          type: array
+          items:
+            type: string
+        - name: name
+          in: query
+          description: Entity name filter
+          type: string
+        - name: ref
+          in: query
+          description: Entity ref filter
+          type: string
+      responses:
+        '200':
+          description: List of installed packs.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/PacksList'
+          examples:
+            application/json:
+              ref: 'core.local'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/packs/{ref_or_id}:
+    get:
+      operationId: st2api.controllers.v1.packs:packs_controller.get_one
+      description: Get information about an installed pack.
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Reference of the pack.
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Information about a pack.
+          schema:
+            $ref: '#/definitions/PackView'
+          examples:
+            application/json:
+              ref: 'core.local'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/packs/install:
+    post:
+      operationId: st2api.controllers.v1.packs:packs_controller.install.post
+      x-permissions: {{ PERMISSION_TYPE.PACK_INSTALL }}
+      description: |
+        Install new packs..
+      parameters:
+        - name: pack_install_request
+          in: body
+          description: Packs to be installed
+          schema:
+            $ref: '#/definitions/PacksInstall'
+      responses:
+        '202':
+          description: Pack installation request has been accepted
+          schema:
+            $ref: '#/definitions/AsyncRequest'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/packs/uninstall:
+    post:
+      operationId: st2api.controllers.v1.packs:packs_controller.uninstall.post
+      x-permissions: {{ PERMISSION_TYPE.PACK_UNINSTALL }}
+      description: |
+        Uninstall packs.
+      parameters:
+        - name: pack_uninstall_request
+          in: body
+          description: Packs to be uninstalled
+          schema:
+            $ref: '#/definitions/PacksUninstall'
+      responses:
+        '202':
+          description: Pack uninstallation request has been accepted
+          schema:
+            $ref: '#/definitions/AsyncRequest'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/packs/register:
+    post:
+      operationId: st2api.controllers.v1.packs:packs_controller.register.post
+      x-permissions: {{ PERMISSION_TYPE.PACK_REGISTER }}
+      description: |
+        Register pack(s): sync all file changes with DB.
+      parameters:
+        - name: pack_register_request
+          in: body
+          description: Pack(s) to be Registered
+          schema:
+            $ref: '#/definitions/PacksRegister'
+      responses:
+        '200':
+          description: Pack(s) Registered.
+          schema:
+            $ref: '#/definitions/PacksList'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/packs/index/search:
+    post:
+      operationId: st2api.controllers.v1.packs:packs_controller.index.search.post
+      x-permissions: {{ PERMISSION_TYPE.PACK_SEARCH }}
+      description: |
+        Search the index with a query or Get information about an available pack from the index.
+      parameters:
+        - name: pack_search_request
+          in: body
+          description: A query to search a pack or a pack name to get its details
+          schema:
+            $ref: '#/definitions/PacksSearchShow'
+      responses:
+        '200':
+          description: Pack search results.
+          schema:
+            type:
+              - array
+              - object
+            # Ideally, we should return array every time and when we request a pack, it should be an
+            # array of a single element. Currently it's not the case though so we have to fallback
+            # to broader kind of scheme. Fixing this would require breaking changes to this endpoint.
+            # $ref: '#/definitions/PacksList'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  # TODO: No unit test for /packs/index/health
+  /api/v1/packs/index/health:
+    get:
+      operationId: st2api.controllers.v1.packs:packs_controller.index.get
+      x-permissions: {{ PERMISSION_TYPE.PACK_VIEWS_INDEX_HEALTH }}
+      description: To get the state of all indexes used by your StackStorm instance.
+      responses:
+        '200':
+          description: Index health.
+          schema:
+            $ref: '#/definitions/PackIndex'
+          examples:
+            application/json:
+              ref: 'core.local'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/packs/views/files/{ref_or_id}:
+    get:
+      operationId: st2api.controllers.v1.packs:packs_controller.views.files.get_one
+      x-log-result: false
+      description: Get information about an installed pack.
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Reference of the pack.
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Information about a pack.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/PackView'
+          examples:
+            application/json:
+              ref: 'core.local'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/packs/views/file/{ref_or_id}/{file_path}:
+    get:
+      operationId: st2api.controllers.v1.packs:packs_controller.views.file.get_one
+      x-requirements:
+        file_path: .*
+      x-log-result: false
+      description: Get information about an installed pack.
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Reference of the pack.
+          type: string
+          required: true
+        - name: file_path
+          in: path
+          description: Path to the file.
+          type: string
+          required: true
+        - name: if-none-match
+          in: header
+          x-as: if_none_match
+          description: ETag to compare to.
+          type: string
+        - name: if-modified-since
+          in: header
+          x-as: if_modified_since
+          description: Date of last known modification.
+          type: string
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Content of the file.
+        '304':
+          description: File has not been modified.
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/configs:
+    get:
+      operationId: st2api.controllers.v1.pack_configs:pack_configs_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.PACK_LIST }}
+      description: Retrieve configs for all the packs.
+      parameters:
+        - name: limit
+          in: query
+          description: Number of configs to get
+          type: integer
+          default: 100
+        - name: offset
+          in: query
+          description: Number of configs to offset
+          type: integer
+          default: 0
+        - name: sort
+          in: query
+          description: Comma-separated list of fields to sort by
+          type: string
+        - name: id
+          in: query
+          description: Entity id filter
+          type: array
+          items:
+            type: string
+        - name: name
+          in: query
+          description: Entity name filter
+          type: array
+          items:
+            type: string
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Get packs config.
+          # schema:
+            # type: array
+              # items:
+                # $ref: '#/definitions/PackConfig'
+          examples:
+            application/json:
+              ref: 'core.local'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/configs/{pack_ref}:
+    get:
+      operationId: st2api.controllers.v1.pack_configs:pack_configs_controller.get_one
+      description: Retrieve config for a particular pack.
+      parameters:
+        - name: pack_ref
+          type: string
+          in: path
+          description: Pack ref to retrieve config for the pack.
+          required: true
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Config for a particular pack.
+          schema:
+            $ref: '#/definitions/PackConfigView'
+          examples:
+            application/json:
+              ref: 'core.local'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      operationId: st2api.controllers.v1.pack_configs:pack_configs_controller.put
+      x-permissions: {{ PERMISSION_TYPE.PACK_CONFIG }}
+      description: Create a new config for the action.
+      parameters:
+        - name: pack_ref
+          in: path
+          description: Pack ref to create config.
+          type: string
+          required: true
+        - name: pack_uninstall_request
+          in: body
+          description: Pack config content
+          schema:
+            $ref: '#/definitions/PackConfigContent'
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Config for a particular pack.
+          schema:
+            $ref: '#/definitions/PackConfigCreate'
+          examples:
+            application/json:
+              ref: 'core.local'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/config_schemas:
+    get:
+      operationId: st2api.controllers.v1.pack_config_schemas:pack_config_schema_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.PACK_LIST }}
+      description: Retrieve config schema for all the packs.
+      parameters:
+        - name: limit
+          in: query
+          description: Number of config schemas to get
+          type: integer
+          default: 100
+        - name: offset
+          in: query
+          description: Number of config schemas to offset
+          type: integer
+          default: 0
+        - name: sort
+          in: query
+          description: Comma-separated list of fields to sort by
+          type: string
+        - name: id
+          in: query
+          description: Entity id filter
+          type: array
+          items:
+            type: string
+        - name: name
+          in: query
+          description: Entity name filter
+          type: array
+          items:
+            type: string
+      responses:
+        '200':
+          description: Get packs config schema.
+          # schema:
+            # type: array
+              # items:
+                # $ref: '#/definitions/PackConfig'
+          examples:
+            application/json:
+              ref: 'core.local'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/config_schemas/{pack_ref}:
+    get:
+      operationId: st2api.controllers.v1.pack_config_schemas:pack_config_schema_controller.get_one
+      description: Retrieve config schema for a particular pack.
+      parameters:
+        - name: pack_ref
+          type: string
+          in: path
+          description: Pack ref to retrieve config schema for the pack.
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Config schema for a particular pack.
+          schema:
+            $ref: '#/definitions/PackConfigView'
+          examples:
+            application/json:
+              ref: 'core.local'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/policytypes:
+    get:
+      operationId: st2api.controllers.v1.policies:policy_type_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.POLICY_TYPE_LIST }}
+      description: Returns a list of all the policy types.
+      parameters:
+        - name: resource_type
+          in: query
+          description: Policy type resource type
+          type: string
+        - name: limit
+          in: query
+          description: Number of policy types to get
+          type: integer
+          default: 100
+        - name: offset
+          in: query
+          description: Number of policy types to offset
+          type: integer
+          default: 0
+        - name: sort
+          in: query
+          description: Comma-separated list of fields to sort by
+          type: string
+        - name: id
+          in: query
+          description: Entity id filter
+          type: array
+          items:
+            type: string
+        - name: name
+          in: query
+          description: Entity name filter
+          type: array
+          items:
+            type: string
+      responses:
+        '200':
+          description: List of policy types
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/PolicyTypeList'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/policytypes/{ref_or_id}:
+    get:
+      operationId: st2api.controllers.v1.policies:policy_type_controller.get_one
+      description: Returns a policy types based on id.
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Entity reference or id.
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Specific policy type.
+          schema:
+            $ref: '#/definitions/PolicyTypeList'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/policies:
+    get:
+      operationId: st2api.controllers.v1.policies:policy_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.POLICY_LIST }}
+      description: |
+        List of policies
+      parameters:
+        - name: pack
+          in: query
+          description: Policies pack
+          type: string
+        - name: name
+          in: query
+          description: Policies name
+          type: string
+        - name: limit
+          in: query
+          description: Number of policies to get
+          type: integer
+          default: 100
+        - name: offset
+          in: query
+          description: Number of policies to offset
+          type: integer
+          default: 0
+      responses:
+        '200':
+          description: Policy created successfully.
+          schema:
+            type: array
+            items:
+              - $ref: '#/definitions/PolicyList'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      operationId: st2api.controllers.v1.policies:policy_controller.post
+      description: |
+        Create Policy
+      parameters:
+        - name: instance
+          in: body
+          description: Policy details in yaml/json file
+          schema:
+            $ref: '#/definitions/PolicyCreate'
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '201':
+          description: Policy created successfully.
+          schema:
+            $ref: '#/definitions/PolicyList'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/policies/{ref_or_id}:
+    get:
+      operationId: st2api.controllers.v1.policies:policy_controller.get_one
+      description: |
+        Get deatials of specific policy based on ref or id
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Entity reference or id.
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Policy found.
+          schema:
+            $ref: '#/definitions/PolicyList'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      operationId: st2api.controllers.v1.policies:policy_controller.put
+      description: |
+        Update Policy
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Entity reference or id.
+          type: string
+          required: true
+        - name: instance
+          in: body
+          description: Policy details in yaml/json file
+          schema:
+            $ref: '#/definitions/PolicyCreate'
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Policy updated successfully.
+          schema:
+            $ref: '#/definitions/PolicyList'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      operationId: st2api.controllers.v1.policies:policy_controller.delete
+      description: |
+        Delete a policy.
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Entity reference or id.
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '204':
+          description: Policy deleted
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/rbac/permission_types:
+    get:
+      operationId: st2api.controllers.v1.rbac:permission_types_controller.get_all
+      description: Returns a list of all permission types.
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Dictionary of permission types by resource types.
+          schema:
+            type: object
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/rbac/permission_types/{resource_type}:
+    get:
+      operationId: st2api.controllers.v1.rbac:permission_types_controller.get_one
+      description: Returns a list of all permission types for particular resource type.
+      parameters:
+        - name: resource_type
+          in: path
+          description: Resource type.
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: List of permission types.
+          schema:
+            type: object
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/rbac/roles:
+    get:
+      operationId: st2api.controllers.v1.rbac:roles_controller.get_all
+      description: Returns a list of all roles.
+      parameters:
+        - name: system
+          in: query
+          description: True to only return system roles.
+          type: boolean
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: List of all roles.
+          schema:
+            type: array
+            items:
+              type: object
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/rbac/roles/{name_or_id}:
+    get:
+      operationId: st2api.controllers.v1.rbac:roles_controller.get_one
+      description: Get one role.
+      parameters:
+        - name: name_or_id
+          in: path
+          description: Entity name or id.
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: List of roles.
+          schema:
+            type: object
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/rbac/role_assignments:
+    get:
+      operationId: st2api.controllers.v1.rbac:role_assignments_controller.get_all
+      description: Returns a list of all the role assignments.
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      parameters:
+        - name: user
+          in: query
+          description: User to filter on and return role assignments for.
+          type: string
+        - name: role
+          in: query
+          description: Role to filter on.
+          type: string
+        - name: remote
+          in: query
+          description: Only include remote role assignments.
+          type: boolean
+      responses:
+        '200':
+          description: List of all role assignments.
+          schema:
+            type: array
+            items:
+              type: object
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/rbac/role_assignments/{id}:
+    get:
+      operationId: st2api.controllers.v1.rbac:role_assignments_controller.get_one
+      description: Get one role.
+      parameters:
+        - name: id
+          in: path
+          description: Role assignment id.
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Role assignment object.
+          schema:
+            type: object
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /api/v1/rules:
+    get:
+      operationId: st2api.controllers.v1.rules:rule_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.RULE_LIST }}
+      description: Returns a list of all rules.
+      parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: limit
+          in: query
+          description: Number of entities to get
+          type: integer
+        - name: id
+          in: query
+          description: Entity id filter
+          type: array
+          items:
+            type: string
+        - name: name
+          in: query
+          description: Entity name filter
+          type: string
+        - name: pack
+          in: query
+          description: Entity pack name filter
+          type: string
+        - name: action
+          in: query
+          description: Action ref filter
+          type: string
+        - name: trigger
+          in: query
+          description: Trigger filter
+          type: string
+        - name: enabled
+          in: query
+          description: Enabled filter
+          type: string
+      responses:
+        '200':
+          description: List of rules
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Rule'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      operationId: st2api.controllers.v1.rules:rule_controller.post
+      description: |
+        Create a new rule.
+      parameters:
+        - name: rule
+          in: body
+          description: Rule content
+          schema:
+            $ref: '#/definitions/Rule'
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '201':
+          description: Single action being created
+          schema:
+            $ref: '#/definitions/Rule'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/rules/{ref_or_id}:
+    get:
+      x-requirements:
+        ref_or_id: (?!views).*
+      operationId: st2api.controllers.v1.rules:rule_controller.get_one
+      description: |
+        Get one rule.
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Rule requested
+          schema:
+            $ref: '#/definitions/Rule'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/rules/{rule_ref_or_id}:
+    put:
+      operationId: st2api.controllers.v1.rules:rule_controller.put
+      description: |
+        Update a rule.
+      parameters:
+        - name: rule_ref_or_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+        - name: rule
+          in: body
+          description: Rule content
+          schema:
+            $ref: '#/definitions/Rule'
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Action updated
+          schema:
+            $ref: '#/definitions/Rule'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      operationId: st2api.controllers.v1.rules:rule_controller.delete
+      description: |
+        Delete a rule.
+      parameters:
+        - name: rule_ref_or_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '204':
+          description: Rule deleted
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/rules/views:
+    get:
+      operationId: st2api.controllers.v1.ruleviews:rule_view_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.RULE_LIST }}
+      description: Returns a list of all rules.
+      parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: limit
+          in: query
+          description: Number of entities to get
+          type: integer
+        - name: id
+          in: query
+          description: Entity id filter
+          type: array
+          items:
+            type: string
+        - name: name
+          in: query
+          description: Entity name filter
+          type: string
+        - name: pack
+          in: query
+          description: Entity pack name filter
+          type: string
+        - name: action
+          in: query
+          description: Action ref filter
+          type: string
+        - name: trigger
+          in: query
+          description: Trigger filter
+          type: string
+        - name: enabled
+          in: query
+          description: Enabled filter
+          type: string
+      responses:
+        '200':
+          description: List of rules
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Rule'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/rules/views/{ref_or_id}:
+    get:
+      operationId: st2api.controllers.v1.ruleviews:rule_view_controller.get_one
+      description: |
+        Get one rule.
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
+      responses:
+        '200':
+          description: Rule requested
+          schema:
+            $ref: '#/definitions/Rule'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/ruletypes:
+    get:
+      operationId: st2api.controllers.v1.ruletypes:rule_types_controller.get_all
+      description: Returns a list of all rule types.
+      responses:
+        '200':
+          description: List of rules
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/RuleType'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/ruletypes/{id}:
+    get:
+      operationId: st2api.controllers.v1.ruletypes:rule_types_controller.get_one
+      description: Get one rule type.
+      parameters:
+        - name: id
+          in: path
+          description: Entity id.
+          type: string
+          required: true
+      responses:
+        '200':
+          description: RuleType requested
+          schema:
+            $ref: '#/definitions/RuleType'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/runnertypes:
+    get:
+      operationId: st2api.controllers.v1.runnertypes:runner_types_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.RUNNER_LIST }}
+      description: Returns a list of all runner types.
+      parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: limit
+          in: query
+          description: Number of runner types to get
+          type: integer
+          default: 100
+        - name: offset
+          in: query
+          description: Number of runner types to offset
+          type: integer
+          default: 0
+        - name: sort
+          in: query
+          description: Comma-separated list of fields to sort by
+          type: string
+        - name: id
+          in: query
+          description: Entity id filter
+          type: array
+          items:
+            type: string
+        - name: name
+          in: query
+          description: Entity name filter
+          type: array
+          items:
+            type: string
+      responses:
+        '200':
+          description: List of rules
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/RunnerType'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/runnertypes/{name_or_id}:
+    get:
+      operationId: st2api.controllers.v1.runnertypes:runner_types_controller.get_one
+      description: |
+        Get one runner type.
+      parameters:
+        - name: name_or_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: RunnerType requested
+          schema:
+            $ref: '#/definitions/RunnerType'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      operationId: st2api.controllers.v1.runnertypes:runner_types_controller.put
+      description: |
+        Update a runner type.
+      parameters:
+        - name: name_or_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+        - name: runner_type_api
+          in: body
+          description: RunnerType content
+          schema:
+            $ref: '#/definitions/RunnerType'
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: RunnerType updated
+          schema:
+            $ref: '#/definitions/RunnerType'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/sensortypes:
+    get:
+      operationId: st2api.controllers.v1.sensors:sensor_type_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.SENSOR_LIST }}
+      description: Returns a list of all sensor types.
+      parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: limit
+          in: query
+          description: Number of entities to get
+          type: integer
+        - name: id
+          in: query
+          description: Entity id filter
+          type: array
+          items:
+            type: string
+        - name: name
+          in: query
+          description: Entity name filter
+          type: string
+        - name: pack
+          in: query
+          description: Entity pack name filter
+          type: string
+        - name: action
+          in: query
+          description: Action ref filter
+          type: string
+        - name: trigger
+          in: query
+          description: Trigger filter
+          type: string
+        - name: enabled
+          in: query
+          description: Enabled filter
+          type: string
+      responses:
+        '200':
+          description: List of rules
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/SensorType'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/sensortypes/{ref_or_id}:
+    get:
+      operationId: st2api.controllers.v1.sensors:sensor_type_controller.get_one
+      description: |
+        Get one sensor type.
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: SensorType requested
+          schema:
+            $ref: '#/definitions/SensorType'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      operationId: st2api.controllers.v1.sensors:sensor_type_controller.put
+      description: |
+        Update a sensor type.
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+        - name: sensor_type
+          in: body
+          description: SensorType content
+          schema:
+            $ref: '#/definitions/SensorType'
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: SensorType updated
+          schema:
+            $ref: '#/definitions/SensorType'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/apikeys:
+    get:
+      operationId: st2api.controllers.v1.auth:api_key_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.API_KEY_LIST }}
+      description: Returns a list of all actions.
+      parameters:
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
+        - name: limit
+          in: query
+          description: Number of API keys to get
+          type: integer
+          default: 50
+        - name: offset
+          in: query
+          description: Number of API keys to offset
+          type: integer
+          default: 0
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: List of actions
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ApiKey'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      operationId: st2api.controllers.v1.auth:api_key_controller.post
+      description: |
+        Create a new action.
+      parameters:
+        - name: api_key_api
+          in: body
+          description: Action content
+          schema:
+            $ref: '#/definitions/ApiKey'
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '201':
+          description: Single action being created
+          schema:
+            $ref: '#/definitions/ApiKey'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/apikeys/{api_key_id_or_key}:
+    get:
+      operationId: st2api.controllers.v1.auth:api_key_controller.get_one
+      description: |
+        Get one action.
+      parameters:
+        - name: api_key_id_or_key
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Action requested
+          schema:
+            $ref: '#/definitions/ApiKey'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      operationId: st2api.controllers.v1.auth:api_key_controller.put
+      description: |
+        Update an action.
+      parameters:
+        - name: api_key_id_or_key
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+        - name: api_key_api
+          in: body
+          description: Action content
+          schema:
+            $ref: '#/definitions/ApiKey'
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Action updated
+          schema:
+            $ref: '#/definitions/ApiKey'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      operationId: st2api.controllers.v1.auth:api_key_controller.delete
+      description: |
+        Delete an action.
+      parameters:
+        - name: api_key_id_or_key
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '204':
+          description: Action deleted
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/ruleenforcements:
+    get:
+      operationId: st2api.controllers.v1.rule_enforcements:rule_enforcements_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.RULE_ENFORCEMENT_LIST }}
+      description: Returns a list of all the rule enforcements.
+      parameters:
+        - name: limit
+          in: query
+          description: List N most recent rule enforcements.
+          type: integer
+          default: 50
+        - name: offset
+          in: query
+          description: Number of rule enforcements to offset
+          type: integer
+          default: 0
+        - name: sort
+          in: query
+          description: Comma-separated list of fields to sort by
+          type: string
+        - name: id
+          in: query
+          description: Entity id filter
+          type: array
+          items:
+            type: string
+        - name: name
+          in: query
+          description: Entity name filter
+          type: array
+          items:
+            type: string
+        - name: execution
+          in: query
+          description: Execution to filter the list.
+          type: string
+        - name: rule_ref
+          in: query
+          description: Rule ref to filter the list.
+          type: string
+        - name: rule_id
+          in: query
+          description: Rule id to filter the list..
+          type: string
+        - name: trigger_instance
+          in: query
+          description: Trace instance id to filter the list.
+          type: string
+        - name: enforced_at_gt
+          in: query
+          description: |
+              Only return enforcements with enforced_at greater than the one provided. Use time in the format.
+          type: string
+          pattern: {{ ISO8601_UTC_REGEX }}
+        - name: enforced_at_lt
+          in: query
+          description: |
+              Only return enforcements with enforced_at lower than the one provided. Use time in the format.
+          type: string
+          pattern: {{ ISO8601_UTC_REGEX }}
+      responses:
+        '200':
+          description: List of rule enforcements
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/RuleEnforcementsList'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/ruleenforcements/{id}:
+    get:
+      operationId: st2api.controllers.v1.rule_enforcements:rule_enforcements_controller.get_one
+      description: Return a specific rule enforcement based on id.
+      parameters:
+        - name: id
+          in: path
+          description: Entity id
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Rule Enforcements based on ref or id
+          schema:
+            $ref: '#/definitions/RuleEnforcementsList'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/timers:
+    get:
+      operationId: st2api.controllers.v1.timers:timers_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.TIMER_LIST }}
+      description: Returns a list of all the timers.
+      parameters:
+        - name: timer_type
+          in: query
+          description: Type of timer
+          type: string
+      responses:
+        '200':
+          description: List of timers
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/TimersList'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/timers/{ref_or_id}:
+    get:
+      operationId: st2api.controllers.v1.timers:timers_controller.get_one
+      description: Return a specific timer based on id.
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: entities id
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation
+      responses:
+        '200':
+          description: Trace
+          schema:
+            $ref: '#/definitions/TimersList'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/traces:
+    get:
+      operationId: st2api.controllers.v1.traces:traces_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.TRACE_LIST }}
+      description: Returns a list of all the traces.
+      parameters:
+        - name: limit
+          in: query
+          description: Number of traces to get
+          type: integer
+          default: 100
+        - name: offset
+          in: query
+          description: Number of traces to offset
+          type: integer
+          default: 0
+        - name: sort
+          in: query
+          description: Comma-separated list of fields to sort by
+          type: string
+        - name: id
+          in: query
+          description: Entity id filter
+          type: array
+          items:
+            type: string
+        - name: name
+          in: query
+          description: Entity name filter
+          type: array
+          items:
+            type: string
+        - name: trace_tag
+          in: query
+          description: Trace-tag to filter the list.
+          type: string
+        - name: execution
+          in: query
+          description: Execution to filter the list.
+          type: string
+        - name: rule
+          in: query
+          description: Rule to filter the list..
+          type: string
+        - name: trigger_instance
+          in: query
+          description: TraceInstance to filter the list.
+          type: string
+        - name: sort_asc
+          in: query
+          description: |
+              Sort in ascending order by start timestamp, asc/ascending (earliest first)
+          type: string
+        - name: sort_desc
+          in: query
+          description: |
+              Sort in descending order by start timestamp, desc/descending (latest first)
+          type: string
+      responses:
+        '200':
+          description: List of traces
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/TracesList'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/traces/{id}:
+    get:
+      operationId: st2api.controllers.v1.traces:traces_controller.get_one
+      description: Returns a list of all the traces.
+      parameters:
+        - name: id
+          in: path
+          description: entities id
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation
+      responses:
+        '200':
+          description: Trace
+          schema:
+            $ref: '#/definitions/TracesList'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/triggertypes:
+    get:
+      operationId: st2api.controllers.v1.triggers:triggertype_controller.get_all
+      description: Returns a list of all trigger types.
+      parameters:
+        - name: limit
+          in: query
+          description: Number of trigger types to get
+          type: integer
+          default: 100
+        - name: offset
+          in: query
+          description: Number of trigger types to offset
+          type: integer
+          default: 0
+        - name: sort
+          in: query
+          description: Comma-separated list of fields to sort by
+          type: string
+        - name: id
+          in: query
+          description: Entity id filter
+          type: array
+          items:
+            type: string
+        - name: name
+          in: query
+          description: Entity name filter
+          type: array
+          items:
+            type: string
+        - name: pack
+          in: query
+          description: Pack name filter
+          type: string
+      responses:
+        '200':
+          description: List of trigger types
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/TriggerType'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      operationId: st2api.controllers.v1.triggers:triggertype_controller.post
+      description: |
+        Create a new trigger type.
+      parameters:
+        - name: triggertype
+          in: body
+          description: TriggerType content
+          schema:
+            $ref: '#/definitions/TriggerTypeRequest'
+      responses:
+        '201':
+          description: Single trigger type being created
+          schema:
+            $ref: '#/definitions/TriggerType'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/triggertypes/{triggertype_ref_or_id}:
+    get:
+      operationId: st2api.controllers.v1.triggers:triggertype_controller.get_one
+      description: |
+        Get one trigger type.
+      parameters:
+        - name: triggertype_ref_or_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+      responses:
+        '200':
+          description: TriggerType requested
+          schema:
+            $ref: '#/definitions/TriggerType'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      operationId: st2api.controllers.v1.triggers:triggertype_controller.put
+      description: |
+        Update a trigger type.
+      parameters:
+        - name: triggertype_ref_or_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+        - name: triggertype
+          in: body
+          description: TriggerType content
+          schema:
+            $ref: '#/definitions/TriggerTypeRequest'
+      responses:
+        '200':
+          description: TriggerType updated
+          schema:
+            $ref: '#/definitions/TriggerType'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      operationId: st2api.controllers.v1.triggers:triggertype_controller.delete
+      description: |
+        Delete a trigger type.
+      parameters:
+        - name: triggertype_ref_or_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+      responses:
+        '204':
+          description: TriggerType deleted
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/triggers:
+    get:
+      operationId: st2api.controllers.v1.triggers:trigger_controller.get_all
+      description: Returns a list of all triggers.
+      responses:
+        '200':
+          description: List of triggers
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Trigger'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      operationId: st2api.controllers.v1.triggers:trigger_controller.post
+      description: |
+        Create a new triggers.
+      parameters:
+        - name: trigger
+          in: body
+          description: Trigger content
+          schema:
+            $ref: '#/definitions/TriggerRequest'
+      responses:
+        '201':
+          description: Single trigger being created
+          schema:
+            $ref: '#/definitions/Trigger'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/triggers/{trigger_id}:
+    get:
+      operationId: st2api.controllers.v1.triggers:trigger_controller.get_one
+      description: |
+        Get one trigger.
+      parameters:
+        - name: trigger_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+      responses:
+        '200':
+          description: Trigger requested
+          schema:
+            $ref: '#/definitions/Trigger'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      operationId: st2api.controllers.v1.triggers:trigger_controller.put
+      description: |
+        Update a trigger.
+      parameters:
+        - name: trigger_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+        - name: trigger
+          in: body
+          description: Trigger content
+          schema:
+            $ref: '#/definitions/TriggerRequest'
+      responses:
+        '200':
+          description: Trigger updated
+          schema:
+            $ref: '#/definitions/Trigger'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      operationId: st2api.controllers.v1.triggers:trigger_controller.delete
+      description: |
+        Delete a trigger.
+      parameters:
+        - name: trigger_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+      responses:
+        '204':
+          description: Trigger deleted
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/triggerinstances:
+    get:
+      operationId: st2api.controllers.v1.triggers:triggerinstance_controller.get_all
+      description: Returns a list of all trigger instances.
+      parameters:
+        - name: limit
+          in: query
+          description: Number of trigger instances to get
+          type: integer
+          default: 100
+        - name: offset
+          in: query
+          description: Number of trigger instances to offset
+          type: integer
+          default: 0
+        - name: sort
+          in: query
+          description: Comma-separated list of fields to sort by
+          type: string
+        - name: id
+          in: query
+          description: Entity id filter
+          type: array
+          items:
+            type: string
+        - name: name
+          in: query
+          description: Entity name filter
+          type: array
+          items:
+            type: string
+        - name: trigger
+          in: query
+          description: Trigger filter
+          type: string
+        - name: timestamp_lt
+          in: query
+          description: Start timestamp less than filter
+          type: string
+          pattern: {{ ISO8601_UTC_REGEX }}
+        - name: timestamp_gt
+          in: query
+          description: Start timestamp greater than filter
+          type: string
+          pattern: {{ ISO8601_UTC_REGEX }}
+      responses:
+        '200':
+          description: List of trigger instances
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/TriggerInstance'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/triggerinstances/{instance_id}:
+    get:
+      operationId: st2api.controllers.v1.triggers:triggerinstance_controller.get_one
+      description: |
+        Get one trigger instance.
+      parameters:
+        - name: instance_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+      responses:
+        '200':
+          description: Trigger instance requested
+          schema:
+            $ref: '#/definitions/TriggerInstance'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/triggerinstances/{trigger_instance_id}/re_emit:
+    post:
+      operationId: st2api.controllers.v1.triggers:triggerinstance_resend_controller.post
+      description: |
+        Re-emit a trigger instance.
+      parameters:
+        - name: trigger_instance_id
+          in: path
+          description: Entity id
+          type: string
+          required: true
+      responses:
+        '200':
+          description: Trigger instance being re-emitted
+          schema:
+            $ref: '#/definitions/TriggerInstance'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/webhooks:
+    get:
+      operationId: st2api.controllers.v1.webhooks:webhooks_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.WEBHOOK_LIST }}
+      description: Returns a list of all webhooks.
+      responses:
+        '200':
+          description: List of webhooks
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Webhook'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/webhooks/{hook}:
+    post:
+      operationId: st2api.controllers.v1.webhooks:webhooks_controller.post
+      x-requirements:
+        hook: .*
+      description: |
+        Trigger a webhook.
+      parameters:
+        - name: hook
+          in: path
+          description: Webhook path
+          type: string
+          required: true
+        - name: body
+          in: body
+          description: Webhook payload
+          schema:
+            $ref: '#/definitions/WebhookBody'
+      x-parameters:
+        - name: headers
+          in: request
+          description: List of headers attached to the request.
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '202':
+          description: Single action being created
+          schema:
+            $ref: '#/definitions/WebhookBody'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/webhooks/{name}:
+    get:
+      operationId: st2api.controllers.v1.webhooks:webhooks_controller.get_one
+      description: |
+        Get one action.
+      parameters:
+        - name: name
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Action requested
+          schema:
+            $ref: '#/definitions/Webhook'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /api/exp/validation/mistral:
+    post:
+      operationId: st2api.controllers.exp.validation:mistral_validation_controller.post
+      description: |
+        Validate Mistral YAML definition.
+      parameters:
+        - name: def_yaml
+          in: body
+          description: Mistral definition
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of validation errors
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ValidationError'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /auth/v1/tokens:
+    post:
+      x-log-result: false
+      operationId: st2auth.controllers.v1.auth:token_controller.post
+      description: |
+        Authenticates a user with `Authorization` header and returns a `token`
+        object.
+      parameters:
+        - name: authorization
+          in: header
+          description: base64 encoded string containing login and password
+          type: string
+        - name: x-forwarded-for
+          in: header
+          description: set externally to indicate real source of the request
+          type: string
+        - name: request
+          in: body
+          description: Lifespan of the token
+          schema:
+            $ref: '#/definitions/TokenRequest'
+      x-parameters:
+        - name: remote_addr
+          in: environ
+          description: source of the request
+          type: string
+        - name: remote_user
+          in: environ
+          description: set externally to indicate user identity in case of proxy auth
+          type: string
+      responses:
+        '201':
+          description: New token has been created
+          schema:
+            $ref: '#/definitions/Token'
+          headers:
+            x-api-url:
+              type: string
+          examples:
+            application/json:
+              user: st2admin
+              token: '5e86421776f946e98faea36c29e5a7c7'
+              expiry: '2016-05-28T12:39:28.650231Z'
+              id: '574840001878c10d0b6e8fbf'
+              metadata: {}
+        '401':
+          description: Invalid or missing credentials has been provided
+          schema:
+            $ref: '#/definitions/Error'
+          examples:
+            application/json:
+              faultstring: Invalid or missing credentials
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+      security: []
+  /auth/v1/tokens/validate:
+    post:
+      operationId: st2auth.controllers.v1.auth:token_validation_controller.post
+      description: |
+        Validates a token provided in the request body.
+      parameters:
+        - name: request
+          in: body
+          description: Token to validate
+          schema:
+            $ref: '#/definitions/TokenValidationRequest'
+      responses:
+        '200':
+          description: Validation results
+          schema:
+            $ref: '#/definitions/TokenValidationResult'
+          examples:
+            application/json:
+              valid: false
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /stream/v1/stream:
+    get:
+      operationId: st2stream.controllers.v1.stream:stream_controller.get_all
+      description: |
+        Event stream endpoint.
+      responses:
+        '200':
+          description: EventSource compatible stream of events
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
+
+definitions:
+  Action:
+    x-api-model: st2common.models.api.action:ActionAPI
+    type: object
+    required:
+      - name
+      - runner_type
+    properties:
+      id:
+        type: string
+        description: The unique identifier for the action.
+      ref:
+        type: string
+        description: |
+          System computed user friendly reference for the action. Provided value will be overridden by computed value.
+      uid:
+        type: string
+      name:
+        type: string
+        description: The name of the action.
+      description:
+        type: string
+        description: The description of the action.
+      enabled:
+        type: boolean
+        description: Enable or disable the action from invocation.
+        default: True
+      runner_type:
+        type: string
+        description: The type of runner that executes the action.
+      entry_point:
+        type: string
+        description: The entry point for the action.
+        default: ''
+      pack:
+        type: string
+        description: The content pack this action belongs to.
+      parameters:
+        $ref: '#/definitions/ActionParametersSubSchema'
+      tags:
+        type: array
+        description: User associated metadata assigned to this object.
+        items:
+          type: object
+      notify:
+        description: Notification settings for action.
+        type: object
+        properties:
+          on-complete: {$ref: '#/definitions/NotificationPropertySubSchema'}
+          on-failure: {$ref: '#/definitions/NotificationPropertySubSchema'}
+          on-success: {$ref: '#/definitions/NotificationPropertySubSchema'}
+        additionalProperties: False
+    # additionalProperties: false
+  ActionCreateRequest:
+    x-api-model: st2common.models.api.action:ActionCreateAPI
+    allOf:
+      - type: object
+        properties:
+          pack:
+            type: string
+            description: The content pack this action belongs to.
+            default: '{{ DEFAULT_PACK_NAME }}'
+      - $ref: '#/definitions/Action'
+      - $ref: '#/definitions/DataFilesSubSchema'
+  ActionUpdateRequest:
+    x-api-model: st2common.models.api.action:ActionUpdateAPI
+    allOf:
+      - $ref: '#/definitions/Action'
+      - $ref: '#/definitions/DataFilesSubSchema'
+  ActionParameters:
+    type: object
+    properties:
+      parameters:
+        $ref: '#/definitions/ActionParametersSubSchema'
+  ActionAlias:
+    x-api-model: st2common.models.api.action:ActionAliasAPI
+    type: object
+  ActionAliasRequest:
+    type: object
+    required:
+        - name
+        - ref
+        - pack
+        - action_ref
+    properties:
+      name:
+        description: Alias name.
+        type: string
+      ref:
+        description: Alias reference (pack + name).
+        type: string
+      pack:
+        description: Pack to which this alias belongs.
+        type: string
+      action_ref:
+        description: Reference of an action this alias belongs.
+        type: string
+      id:
+        type: string
+        description: The unique identifier for the action.
+      uid:
+        type: string
+      enabled:
+        type: boolean
+        description: Enable or disable the action from invocation.
+        default: True
+  ActionAliasMatchRequest:
+      type: object
+      required:
+        - command
+      properties:
+        command:
+          description: Command string to try to match the aliases against.
+          type: string
+  ActionAliasMatch:
+      type: object
+      properties:
+        name:
+          description: Name of the Action alias
+          type: string
+        description:
+          description: Description of the Action Alias
+          type: string
+  ActionAliasHelp:
+    type: object
+    properties:
+      avaliable:
+        description: Total number of matching help strings
+        type: integer
+      helpstrings:
+        description: List of matched helpstrings
+        type: array
+        items:
+          type: object
+          properties:
+            pack:
+              type: string
+            display:
+              type: string
+            description:
+              description: Description of the Action Alias
+              type: string
+  AliasExecution:
+    type: object
+  Execution:
+    title: ActionExecution
+    description: Record of the execution of an action.
+    type: object
+    properties:
+      id:
+        type: string
+      trigger:
+        $ref: '#/definitions/Trigger'
+      trigger_type:
+        $ref: '#/definitions/TriggerType'
+      trigger_instance:
+        $ref: '#/definitions/TriggerInstance'
+      rule:
+        $ref: '#/definitions/Rule'
+      action:
+        $ref: '#/definitions/Action'
+      runner:
+        $ref: '#/definitions/RunnerType'
+      liveaction:
+        $ref: '#/definitions/LiveAction'
+      status:
+        description: The current status of the action execution.
+        type: string
+        enum: {{ LIVEACTION_STATUSES }}
+      start_timestamp:
+        description: The start time when the action is executed.
+        type: string
+        pattern: {{ ISO8601_UTC_REGEX }}
+      end_timestamp:
+        description: The timestamp when the action has finished.
+        type: string
+        pattern: {{ ISO8601_UTC_REGEX }}
+      elapsed_seconds:
+        description: Time duration in seconds taken for completion of this execution.
+        type: number
+#        required: False
+      web_url:
+        description: History URL for this execution if you want to view in UI.
+        type: string
+#        required: False
+      parameters:
+        description: Input parameters for the action.
+        type: object
+#        patternProperties:
+#          ^\w+$:
+#            anyOf:
+#              - type: array
+#              - type: boolean
+#              - type: integer
+#              - type: number
+#              - type: object
+#              - type: string
+#        additionalProperties: False
+      context:
+        type: object
+      result:
+        type: object
+#        anyOf:
+#          - type: array
+#          - type: boolean
+#          - type: integer
+#          - type: number
+#          - type: object
+#          - type: string
+      parent:
+        type: string
+      children:
+        type: array
+        items:
+          type: string
+        uniqueItems: True
+      log:
+        description: Contains information about execution state transitions.
+        type: array
+        items:
+          type: object
+          properties:
+            timestamp:
+              type: string
+              pattern: {{ ISO8601_UTC_REGEX }}
+            status:
+              type: string
+              enum: {{ LIVEACTION_STATUSES }}
+    required:
+      - id
+    additionalProperties: False
+  ExecutionRequest:
+    allOf:
+      - $ref: '#/definitions/LiveAction'
+      - type: object
+        properties:
+          user:
+            type: string
+            x-nullable: true
+            description: User context under which action should run (admins only)
+            default: ''
+  ExecutionUpdateRequest:
+    type: object
+    properties:
+      status:
+        description: The current status of the action execution.
+        type: string
+        enum: {{ LIVEACTION_STATUSES }}
+      result:
+        type: object
+    additionalProperties: False
+  ExecutionFilters:
+    type: object
+  KeyValuePair:
+    type: object
+  KeyValuePairRequest:
+    type: object
+    required:
+      - name
+      - value
+    properties:
+      name:
+        description: Key Name.
+        type: string
+      value:
+        description: Key's value.
+        type: string
+      secret:
+        description: Encrypt value before saving the value.
+        type: boolean
+      scope:
+        description: "Scope the item is under. Example: 'user'."
+        type: string
+      user:
+        description: User for user scoped items (admin only).
+        type: string
+        x-nullable: true
+  PacksList:
+    type: object
+    properties:
+      author:
+        description: Author of the pack.
+        type: string
+      description:
+        description: Description of the pack.
+        type: string
+      name:
+        description: Name of the pack.
+        type: string
+      ref:
+        description: Reference of the pack.
+        type: string
+      version:
+        description: Version of the pack.
+        type: string
+      # for pack show and search
+      content:
+        description: Content type in the pack.
+        type: object
+      keywords:
+        description: Keywords associated with the pack.
+        type: array
+        items:
+          type: string
+      repo_url:
+        description: "URL of the Pack's repo."
+        type: string
+  PackView:
+    type: object
+    properties:
+      author:
+        description: Author of the pack.
+        type: string
+      description:
+        description: Description of the pack.
+        type: string
+      email:
+        description: Email of the author.
+        type: string
+      keywords:
+        description: Keywords associated with the pack.
+        type: array
+        items:
+          type: string
+      name:
+        description: Name of the pack.
+        type: string
+      version:
+        description: Version of the pack.
+        type: string
+  PacksInstall:
+    type: object
+    properties:
+      packs:
+        description: ref of the packs in Exchange, or a git repo URL.
+        type: array
+        items:
+          type: string
+      force:
+        description: Force pack installation.
+        type: boolean
+        default: false
+  PacksUninstall:
+    type: object
+    properties:
+      ref_or_id:
+        description: ref or id of the pack
+        type: string
+      packs:
+        description: Name of the packs in Exchange, or a git repo URL.
+        type: array
+        items:
+          type: string
+  PacksRegister:
+    type: object
+    properties:
+      packs:
+        description: ref of the packs in Exchange, or a git repo URL.
+        type: array
+        items:
+          type: string
+      types:
+        description: Types of content to register.
+        type: array
+        items:
+          $ref: '#/definitions/PacksContentRegisterType'
+  PacksContentRegisterType:
+          type: string
+          enum: ['all',
+                  'runner',
+                  'action',
+                  'actions',
+                  'trigger',
+                  'triggers',
+                  'sensor',
+                  'sensors',
+                  'rule',
+                  'rules',
+                  'rule_type',
+                  'rule_types',
+                  'alias',
+                  'aliases',
+                  'policy_type',
+                  'policy_types',
+                  'policy',
+                  'policies',
+                  'config',
+                  'configs']
+  PacksSearchShow:
+    type: object
+    properties:
+      pack:
+        description: Name of the pack to show.
+        type: string
+      query:
+        description: Search query.
+        type: string
+  PackIndex:
+    type: object
+    properties:
+      indexes:
+        description: Index details.
+        type: object
+        properties:
+          count:
+            description: Number of index.
+            type: integer
+          errors:
+            description: Errors.
+            type: object
+          invalid:
+            description: Invalid.
+            type: integer
+          status:
+            description: Status of the index.
+            type: array
+          valid:
+            description: Valid.
+            type: integer
+      packs:
+        description: Number of packs in the index.
+        type: object
+  PackConfig:
+    type: array
+    items:
+      type: object
+  PackConfigView:
+    type: object
+  PackConfigContent:
+    type: object
+  PackConfigCreate:
+    type: object
+  PolicyTypeList:
+    type: object
+  PolicyList:
+    type: object
+  PolicyCreate:
+    x-api-model: st2common.models.api.policy:PolicyAPI
+    type: object
+  RunnerType:
+    type: object
+  Rule:
+    x-api-model: st2common.models.api.rule:RuleAPI
+    type: object
+  RuleType:
+    type: object
+  RuleEnforcementsList:
+    type: object
+  SensorType:
+    type: object
+  TimersList:
+    type: object
+  TracesList:
+    type: object
+  Trigger:
+    type: object
+  TriggerRequest:
+    type: object
+  TriggerType:
+    type: object
+  TriggerTypeRequest:
+    type: object
+  TriggerInstance:
+    type: object
+  LiveAction:
+    title: liveaction
+    description: An execution of an action.
+    type: object
+    properties:
+      id:
+        description: The unique identifier for the action execution.
+        type: string
+      status:
+        description: The current status of the action execution.
+        type: string
+        enum: {{ LIVEACTION_STATUSES }}
+      start_timestamp:
+        description: The start time when the action is executed.
+        type: string
+        pattern: {{ ISO8601_UTC_REGEX }}
+      end_timestamp:
+        description: The timestamp when the action has finished.
+        type: string
+        pattern: {{ ISO8601_UTC_REGEX }}
+      action:
+        description: Reference to the action to be executed.
+        type: string
+      action_is_workflow:
+        description: Flag indicating workflow action.
+        type: boolean
+      parameters:
+        description: Input parameters for the action.
+        type: object
+        # patternProperties:
+        #   ^\w+$:
+        #     anyOf: [
+        #       type: array
+        #       type: boolean
+        #       type: integer
+        #       type: number
+        #       type: object
+        #       type: string
+        #       type: null
+        #     ]
+        # 'additionalProperties': False
+      result:
+        type: object
+        # anyOf: [type: array
+        #      type: boolean
+        #      type: integer
+        #      type: number
+        #      type: object
+        #      type: string]
+      context:
+        type: object
+      callback:
+        type: object
+      runner_info:
+        type: object
+      notify:
+        description: Notification settings for liveaction.
+        type: object
+        properties:
+          on-complete: {$ref: '#/definitions/NotificationPropertySubSchema'}
+          on-failure: {$ref: '#/definitions/NotificationPropertySubSchema'}
+          on-success: {$ref: '#/definitions/NotificationPropertySubSchema'}
+        additionalProperties: False
+    required:
+      - action
+  Webhook:
+    type: object
+  WebhookBody:
+    description: Given support of Content-Type header, that could be anything.
+  ActionParametersSubSchema:
+    type: object
+    description: Input parameters for the action.
+    # patternProperties:
+    #     ^\w+$:
+    #       type: object  # util_schema.get_action_parameters_schema() is too complex for now
+    # additionalProperties: False
+    x-additional-check: st2api.controllers.resource:parameter_validation
+    default: {}
+  AsyncRequest:
+    type: object
+    properties:
+      execution_id:
+        type: string
+    required:
+      - execution_id
+    additionalProperties: false
+  DataFilesSubSchema:
+    type: object
+    properties:
+      data_files:
+        description: Optional action script and data files which are written to the filesystem.
+        type: array
+        items:
+          type: object
+          required:
+            - file_path
+            - content
+          properties:
+            file_path:
+              type: string
+            content:
+              type: string
+          additionalProperties: False
+        default: []
+    # additionalProperties: false
+  NotificationPropertySubSchema:
+    type: object
+    properties:
+      message:
+        type: string
+        description: Message to use for notification
+      data:
+        type: object
+        description: Data to be sent as part of notification
+      routes:
+        type: array
+        description: Channels to post notifications to.
+        items:
+          type: string
+      channels:  # Deprecated. Only here for backward compatibility.
+        type: array
+        description: Channels to post notifications to.
+        items:
+          type: string
+    additionalProperties: false
+  TokenRequest:
+    type: object
+    properties:
+      ttl:
+        type:
+          - integer
+          - 'null'
+        minimum: 1
+  Token:
+    type: object
+    properties:
+      expiry:
+        type: string
+        format: datetime
+      id:
+        type: string
+        format: uuid
+      metadata:
+        type: object
+      token:
+        type: string
+      user:
+        type: string
+  TokenValidationRequest:
+    type: object
+    properties:
+      token:
+        type:
+          - string
+          - 'null'
+  TokenValidationResult:
+    type: object
+    properties:
+      valid:
+        type: boolean
+  ApiKey:
+    x-api-model: st2common.models.api.auth:ApiKeyAPI
+    type: object
+    properties:
+      id:
+        type: string
+        description: The unique identifier for the API key.
+      uid:
+        type: string
+      user:
+        type: string
+      key_hash:
+        type: string
+      metadata:
+        type: object
+      created_at:
+        type: string
+        pattern: {{ ISO8601_UTC_REGEX }}
+      enabled:
+        type: boolean
+        default: True
+
+  ValidationError:
+    type: object
+    properties:
+      type:
+        type: string
+      path:
+        type: string
+      message:
+        type: string
+  Error:
+    type: object
+    properties:
+      faultstring:
+        type: string
+    required:
+      - faultstring
+
+securityDefinitions:
+  X-Auth-Token:
+    description: Header representing user's short-lived access token.
+    type: apiKey
+    name: X-Auth-Token
+    in: header
+    x-operationId: st2common.util.auth:validate_token
+  St2-Api-Key:
+    description: Header representing service's long-lived API key.
+    type: apiKey
+    name: St2-Api-Key
+    in: header
+    x-operationId: st2common.util.auth:validate_api_key
+  x-auth-token:
+    description: Query parameter representing user's short-lived access token. Used as a backup authentication strategy for environments where it is impossible to provide a header.
+    type: apiKey
+    name: x-auth-token
+    in: query
+    x-operationId: st2common.util.auth:validate_token
+  st2-api-key:
+    description: Query parameter representing service's long-lived API key. Used as a backup authentication strategy for environments where it is impossible to provide a header.
+    type: apiKey
+    name: st2-api-key
+    in: query
+    x-operationId: st2common.util.auth:validate_api_key
+
+security:
+  - X-Auth-Token: []
+  - St2-Api-Key: []
+  - x-auth-token: []
+  - st2-api-key: []

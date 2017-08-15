@@ -41,6 +41,7 @@ HOSTNAME = socket.gethostname()
 GELF_SPEC_VERSION = '1.1'
 
 COMMON_ATTRIBUTE_NAMES = [
+    'name',
     'process',
     'processName',
     'module',
@@ -77,9 +78,11 @@ def process_attribute_value(key, value):
     if not cfg.CONF.log.mask_secrets:
         return value
 
+    blacklisted_attribute_names = MASKED_ATTRIBUTES_BLACKLIST + cfg.CONF.log.mask_secrets_blacklist
+
     # NOTE: This can be expensive when processing large dicts or objects
     if isinstance(value, SIMPLE_TYPES):
-        if key in MASKED_ATTRIBUTES_BLACKLIST:
+        if key in blacklisted_attribute_names:
             value = MASKED_ATTRIBUTE_VALUE
     elif isinstance(value, dict):
         # Note: We don't want to modify the original value

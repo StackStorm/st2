@@ -122,7 +122,7 @@ def cast_params(action_ref, params, cast_overrides=None):
         except Exception as e:
             v_type = type(v).__name__
             msg = ('Failed to cast value "%s" (type: %s) for parameter "%s" of type "%s": %s. '
-                   'Perhaphs the value is of an invalid type?' %
+                   'Perhaps the value is of an invalid type?' %
                    (v, v_type, k, parameter_type, str(e)))
             raise ValueError(msg)
 

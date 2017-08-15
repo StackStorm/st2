@@ -15,14 +15,16 @@
 
 import eventlet
 
-from kombu import Connection, Queue
+from kombu import Connection
 from kombu.mixins import ConsumerMixin
 from oslo_config import cfg
 
 from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.execution import ActionExecutionAPI
-from st2common.transport import announcement, liveaction, execution, publishers
 from st2common.transport import utils as transport_utils
+from st2common.transport.queues import STREAM_ANNOUNCEMENT_WORK_QUEUE
+from st2common.transport.queues import STREAM_EXECUTION_WORK_QUEUE
+from st2common.transport.queues import STREAM_LIVEACTION_WORK_QUEUE
 from st2common import log as logging
 
 __all__ = [
@@ -44,33 +46,27 @@ class Listener(ConsumerMixin):
 
     def get_consumers(self, consumer, channel):
         return [
-            consumer(queues=[announcement.get_queue(routing_key=publishers.ANY_RK,
-                                                    exclusive=True)],
+            consumer(queues=[STREAM_ANNOUNCEMENT_WORK_QUEUE],
                      accept=['pickle'],
                      callbacks=[self.processor()]),
 
-            consumer(queues=[execution.get_queue(routing_key=publishers.ANY_RK,
-                                                 exclusive=True)],
+            consumer(queues=[STREAM_EXECUTION_WORK_QUEUE],
                      accept=['pickle'],
                      callbacks=[self.processor(ActionExecutionAPI)]),
 
-            consumer(queues=[Queue(None,
-                                   liveaction.LIVEACTION_XCHG,
-                                   routing_key=publishers.ANY_RK,
-                                   exclusive=True)],
+            consumer(queues=[STREAM_LIVEACTION_WORK_QUEUE],
                      accept=['pickle'],
                      callbacks=[self.processor(LiveActionAPI)])
         ]
 
     def processor(self, model=None):
         def process(body, message):
-            from_model_kwargs = {'mask_secrets': cfg.CONF.api.mask_secrets}
             meta = message.delivery_info
             event_name = '%s__%s' % (meta.get('exchange'), meta.get('routing_key'))
 
             try:
                 if model:
-                    body = model.from_model(body, **from_model_kwargs)
+                    body = model.from_model(body, mask_secrets=cfg.CONF.api.mask_secrets)
 
                 self.emit(event_name, body)
             finally:
@@ -85,6 +81,7 @@ class Listener(ConsumerMixin):
 
     def generator(self):
         queue = eventlet.Queue()
+        queue.put('')
         self.queues.append(queue)
         try:
             while not self._stopped:

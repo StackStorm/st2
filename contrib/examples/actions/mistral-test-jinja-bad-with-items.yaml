@@ -1,0 +1,7 @@
+---
+name: mistral-test-jinja-bad-with-items
+pack: examples
+description: A sample workflow for testing bad input to with-items statement.
+enabled: true
+entry_point: workflows/mistral-test-jinja-bad-with-items.yaml
+runner_type: mistral-v2

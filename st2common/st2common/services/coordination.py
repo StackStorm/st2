@@ -55,8 +55,8 @@ class NoOpDriver(coordination.CoordinationDriver):
     This driver is used if coordination service is not configured.
     """
 
-    def __init__(self):
-        super(NoOpDriver, self).__init__()
+    def __init__(self, member_id, parsed_url=None, options=None):
+        super(NoOpDriver, self).__init__(member_id, parsed_url, options)
 
     def watch_join_group(self, group_id, callback):
         self._hooks_join_group[group_id].append(callback)
@@ -156,7 +156,7 @@ def coordinator_setup():
         # Note: We don't use tooz to obtain a reference since for this to work we would need to
         # register a plugin inside setup.py entry_point and use python setup.py develop for tests
         # to work
-        coordinator = NoOpDriver()
+        coordinator = NoOpDriver(member_id)
 
     coordinator.start()
     return coordinator

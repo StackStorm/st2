@@ -47,6 +47,7 @@ from st2client.commands import timer
 from st2client.commands import webhook
 from st2client.commands import rule
 from st2client.commands import rule_enforcement
+from st2client.commands import rbac
 from st2client.config import set_config
 from st2client.exceptions.operations import OperationFailureException
 from st2client.utils.logging import LogLevelFilter, set_log_level_for_all_loggers
@@ -92,7 +93,7 @@ class Shell(BaseCLIApp):
             dest='base_url',
             default=None,
             help='Base URL for the API servers. Assumes all servers use the '
-                 'same base URL and default ports are used. Get ST2_BASE_URL'
+                 'same base URL and default ports are used. Get ST2_BASE_URL '
                  'from the environment variables by default.'
         )
 
@@ -101,7 +102,7 @@ class Shell(BaseCLIApp):
             action='store',
             dest='auth_url',
             default=None,
-            help='URL for the authentication service. Get ST2_AUTH_URL'
+            help='URL for the authentication service. Get ST2_AUTH_URL '
                  'from the environment variables by default.'
         )
 
@@ -110,7 +111,16 @@ class Shell(BaseCLIApp):
             action='store',
             dest='api_url',
             default=None,
-            help='URL for the API server. Get ST2_API_URL'
+            help='URL for the API server. Get ST2_API_URL '
+                 'from the environment variables by default.'
+        )
+
+        self.parser.add_argument(
+            '--stream-url',
+            action='store',
+            dest='stream_url',
+            default=None,
+            help='URL for the stream endpoint. Get ST2_STREAM_URL'
                  'from the environment variables by default.'
         )
 
@@ -119,7 +129,7 @@ class Shell(BaseCLIApp):
             action='store',
             dest='api_version',
             default=None,
-            help='API version to use. Get ST2_API_VERSION'
+            help='API version to use. Get ST2_API_VERSION '
                  'from the environment variables by default.'
         )
 
@@ -223,7 +233,7 @@ class Shell(BaseCLIApp):
             self, self.subparsers, read_only=True, has_disable=True)
 
         self.commands['sensor'] = sensor.SensorBranch(
-            'An adapter which allows you to integrate StackStorm with external system ',
+            'An adapter which allows you to integrate StackStorm with external system.',
             self, self.subparsers)
 
         self.commands['trace'] = trace.TraceBranch(
@@ -252,6 +262,14 @@ class Shell(BaseCLIApp):
 
         self.commands['rule-enforcement'] = rule_enforcement.RuleEnforcementBranch(
             'Models that represent enforcement of rules.',
+            self, self.subparsers)
+
+        # RBAC
+        self.commands['role'] = rbac.RoleBranch(
+            'RBAC roles.',
+            self, self.subparsers)
+        self.commands['role-assignment'] = rbac.RoleAssignmentBranch(
+            'RBAC role assignments.',
             self, self.subparsers)
 
     def run(self, argv):

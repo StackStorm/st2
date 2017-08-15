@@ -14,21 +14,19 @@
 # limitations under the License.
 
 from mongoengine import ValidationError
-from pecan import abort
-from pecan.rest import RestController
 import six
 
 from st2common import log as logging
-from st2common.models.api.base import jsexpose
 from st2common.models.api.rule import RuleTypeAPI
 from st2common.persistence.rule import RuleType
+from st2common.router import abort
 
 http_client = six.moves.http_client
 
 LOG = logging.getLogger(__name__)
 
 
-class RuleTypesController(RestController):
+class RuleTypesController(object):
     """
         Implements the RESTful web endpoint that handles
         the lifecycle of a RuleType in the system.
@@ -51,27 +49,28 @@ class RuleTypesController(RestController):
             LOG.debug('Database lookup for name="%s" resulted in exception : %s.', name, e)
             return []
 
-    @jsexpose(arg_types=[str])
     def get_one(self, id):
         """
             List RuleType objects by id.
 
             Handle:
-                GET /runnertypes/1
+                GET /ruletypes/1
         """
-        runnertype_db = RuleTypesController.__get_by_id(id)
-        runnertype_api = RuleTypeAPI.from_model(runnertype_db)
-        return runnertype_api
+        ruletype_db = RuleTypesController.__get_by_id(id)
+        ruletype_api = RuleTypeAPI.from_model(ruletype_db)
+        return ruletype_api
 
-    @jsexpose(arg_types=[str])
-    def get_all(self, **kw):
+    def get_all(self):
         """
             List all RuleType objects.
 
             Handles requests:
-                GET /runnertypes/
+                GET /ruletypes/
         """
-        runnertype_dbs = RuleType.get_all(**kw)
-        runnertype_apis = [RuleTypeAPI.from_model(runnertype_db)
-                           for runnertype_db in runnertype_dbs]
-        return runnertype_apis
+        ruletype_dbs = RuleType.get_all()
+        ruletype_apis = [RuleTypeAPI.from_model(runnertype_db)
+                         for runnertype_db in ruletype_dbs]
+        return ruletype_apis
+
+
+rule_types_controller = RuleTypesController()

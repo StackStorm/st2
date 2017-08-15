@@ -30,15 +30,15 @@ PYTHON_TARGET := 2.7
 REQUIREMENTS := test-requirements.txt requirements.txt
 PIP_OPTIONS := $(ST2_PIP_OPTIONS)
 
-NOSE_OPTS := --rednose --immediate
+NOSE_OPTS := --rednose --immediate --with-parallel
 NOSE_TIME := $(NOSE_TIME)
 
 ifdef NOSE_TIME
-	NOSE_OPTS := --rednose --immediate --with-timer
+	NOSE_OPTS := --rednose --immediate --with-parallel --with-timer
 endif
 
 ifndef PIP_OPTIONS
-	PIP_OPTIONS := -U -q
+	PIP_OPTIONS :=
 endif
 
 .PHONY: all
@@ -67,7 +67,10 @@ checklogs:
 pylint: requirements .pylint
 
 .PHONY: configgen
-configgen:
+configgen: requirements .configgen
+
+.PHONY: .configgen
+.configgen:
 	@echo
 	@echo "================== config gen ===================="
 	@echo
@@ -107,6 +110,36 @@ configgen:
 	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models tools/*.py || exit 1;
 	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./lint-configs/python/.pylintrc pylint_plugins/*.py || exit 1;
 
+.PHONY: lint-api-spec
+lint-api-spec: requirements .lint-api-spec
+
+.PHONY: .lint-api-spec
+.lint-api-spec:
+	@echo
+	@echo "================== Lint API spec ===================="
+	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; st2common/bin/st2-validate-api-spec
+
+.PHONY: generate-api-spec
+generate-api-spec: requirements .generate-api-spec
+
+.PHONY: .generate-api-spec
+.generate-api-spec:
+	@echo
+	@echo "================== Generate openapi.yaml file ===================="
+	@echo
+	echo "# NOTE: This file is auto-generated - DO NOT EDIT MANUALLY" > st2common/st2common/openapi.yaml
+	echo "# Edit st2common/st2common/openapi.yaml.j2 and then run" >> st2common/st2common/openapi.yaml
+	echo "# make .generate-api-spec make target to generate the final spec file" >> st2common/st2common/openapi.yaml
+	. virtualenv/bin/activate; st2common/bin/st2-generate-api-spec >> st2common/st2common/openapi.yaml
+
+.PHONY: circle-lint-api-spec
+circle-lint-api-spec:
+	@echo
+	@echo "================== Lint API spec ===================="
+	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; st2common/bin/st2-validate-api-spec || echo "Open API spec lint failed."
+
 .PHONY: flake8
 flake8: requirements .flake8
 
@@ -138,7 +171,7 @@ bandit: requirements .bandit
 lint: requirements .lint
 
 .PHONY: .lint
-.lint: .flake8 .pylint .bandit .st2client-dependencies-check .st2common-circular-dependencies-check
+.lint: .generate-api-spec .flake8 .pylint .bandit .st2client-dependencies-check .st2common-circular-dependencies-check .rst-check
 
 .PHONY: clean
 clean: .cleanpycs
@@ -163,7 +196,7 @@ compile:
 .st2common-circular-dependencies-check:
 	@echo "Checking st2common for circular dependencies"
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2reactor ; test $$? -eq 1
-	find ${ROOT_DIR}/st2common/st2common/ \( -name \*.py ! -name runnersregistrar\.py ! -wholename "*runners/base.py" ! -name python_action_wrapper.py ! -wholename "*/query/base.py" \) -type f -print0 | xargs -0 cat | grep st2actions ; test $$? -eq 1
+	find ${ROOT_DIR}/st2common/st2common/ \( -name \*.py ! -name runnersregistrar\.py ! -wholename "*runners/base.py" ! -name python_action_wrapper.py ! -wholename "*/query/base.py" ! -wholename "*/runners/utils.py" \) -type f -print0 | xargs -0 cat | grep st2actions ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2api ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2auth ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2debug; test $$? -eq 1
@@ -212,9 +245,8 @@ requirements: virtualenv .sdist-requirements
 	@echo
 	@echo "==================== requirements ===================="
 	@echo
-
 	# Make sure we use latest version of pip
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip>=8.1.2,<8.2"
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip>=9.0,<9.1"
 	$(VIRTUALENV_DIR)/bin/pip install virtualenv  # Required for packs.install in dev envs.
 
 	# Generate all requirements to support current CI pipeline.
@@ -233,7 +265,7 @@ $(VIRTUALENV_DIR)/bin/activate:
 	@echo
 	@echo "==================== virtualenv ===================="
 	@echo
-	test -d $(VIRTUALENV_DIR) || virtualenv --no-site-packages $(VIRTUALENV_DIR)
+	test -f $(VIRTUALENV_DIR)/bin/activate || virtualenv --no-site-packages $(VIRTUALENV_DIR)
 
 	# Setup PYTHONPATH in bash activate script...
 	echo '' >> $(VIRTUALENV_DIR)/bin/activate
@@ -264,7 +296,7 @@ tests: pytests
 pytests: compile requirements .flake8 .pylint .pytests-coverage
 
 .PHONY: .pytests
-.pytests: compile .unit-tests .itests clean
+.pytests: compile .configgen .generate-api-spec .unit-tests .itests clean
 
 .PHONY: .pytests-coverage
 .pytests-coverage: .unit-tests-coverage-html .itests-coverage-html clean
@@ -297,7 +329,7 @@ unit-tests: requirements .unit-tests
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; nosetests -sv --with-coverage \
+		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v --with-coverage \
 			--cover-inclusive --cover-html \
 			--cover-package=$(COMPONENTS_TEST_COMMA) $$component/tests/unit || exit 1; \
 	done
@@ -316,7 +348,7 @@ itests: requirements .itests
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -sv $$component/tests/integration || exit 1; \
+		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v $$component/tests/integration || exit 1; \
 	done
 
 .PHONY: .itests-coverage-html
@@ -330,7 +362,7 @@ itests: requirements .itests
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; nosetests -sv --with-coverage \
+		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v --with-coverage \
 			--cover-inclusive --cover-html \
 			--cover-package=$(COMPONENTS_TEST_COMMA) $$component/tests/integration || exit 1; \
 	done
@@ -344,7 +376,7 @@ mistral-itests: requirements .mistral-itests
 	@echo "==================== MISTRAL integration tests ===================="
 	@echo "The tests assume both st2 and mistral are running on 127.0.0.1."
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v st2tests/integration/mistral || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v st2tests/integration/mistral || exit 1;
 
 .PHONY: .mistral-itests-coverage-html
 .mistral-itests-coverage-html:
@@ -352,7 +384,7 @@ mistral-itests: requirements .mistral-itests
 	@echo "==================== MISTRAL integration tests with coverage (HTML reports) ===================="
 	@echo "The tests assume both st2 and mistral are running on 127.0.0.1."
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v --with-coverage \
+	. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v --with-coverage \
 		--cover-inclusive --cover-html st2tests/integration/mistral || exit 1;
 
 .PHONY: packs-tests
@@ -363,7 +395,7 @@ packs-tests: requirements .packs-tests
 	@echo
 	@echo "==================== packs-tests ===================="
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; find ${ROOT_DIR}/contrib/* -maxdepth 0 -type d -print0 | xargs -0 -I FILENAME ./st2common/bin/st2-run-pack-tests -x -p FILENAME
+	. $(VIRTUALENV_DIR)/bin/activate; find ${ROOT_DIR}/contrib/* -maxdepth 0 -type d -print0 | xargs -0 -I FILENAME ./st2common/bin/st2-run-pack-tests -c -t -x -p FILENAME
 
 .PHONY: cli
 cli:
@@ -414,16 +446,21 @@ debs:
 	#done
 
 
-
-
 .PHONY: ci
 ci: ci-checks ci-unit ci-integration ci-mistral ci-packs-tests
 
 .PHONY: ci-checks
-ci-checks: compile pylint flake8 bandit .st2client-dependencies-check .st2common-circular-dependencies-check
+ci-checks: compile .pylint .flake8 .bandit .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check
+
+.PHONY: .rst-check
+.rst-check:
+	@echo
+	@echo "==================== rst-check ===================="
+	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; rstcheck --report warning CHANGELOG.rst
 
 .PHONY: ci-unit
-ci-unit: compile .unit-tests-coverage-html
+ci-unit: .unit-tests-coverage-html
 
 .PHONY: .ci-prepare-integration
 .ci-prepare-integration:

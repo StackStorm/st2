@@ -1,27 +1,24 @@
 #!/usr/bin/env bash
 
 function usage() {
-    echo "Usage: $0 [start|stop|restart|startclean] [-r runner_count] [-g] [-x] [-c] [-6]" >&2
+    echo "Usage: $0 [start|stop|restart|startclean] [-r runner_count] [-g] [-x] [-c] [-6] [-m]" >&2
 }
 
 subcommand=$1; shift
 runner_count=1
 use_gunicorn=true
-use_uwsgi_for_auth=false
 copy_examples=false
 load_content=true
 use_ipv6=false
+include_mistral=false
 
-while getopts ":r:gxcu6" o; do
+while getopts ":r:gxcu6m" o; do
     case "${o}" in
         r)
             runner_count=${OPTARG}
             ;;
         g)
             use_gunicorn=false
-            ;;
-        u)
-            use_uwsgi_for_auth=true
             ;;
         x)
             copy_examples=true
@@ -31,6 +28,9 @@ while getopts ":r:gxcu6" o; do
             ;;
         6)
             use_ipv6=true
+            ;;
+        m)
+            include_mistral=true
             ;;
         \?)
             echo "Invalid option: -$OPTARG" >&2
@@ -59,7 +59,6 @@ function init(){
         ST2_REPO=${CURRENT_DIR}/${COMMAND_PATH}/..
     fi
 
-
     if [ -z "$ST2_CONF" ]; then
         ST2_CONF=${ST2_REPO}/conf/st2.dev.conf
     fi
@@ -68,6 +67,67 @@ function init(){
     if [ ! -f "$ST2_CONF" ]; then
         echo "Config file $ST2_CONF does not exist."
         exit 1
+    fi
+
+    # Optionally, initialize mistral
+    if [ "${include_mistral}" = true ]; then
+        init_mistral
+    fi
+}
+
+function init_mistral(){
+
+    echo "Initializing Mistral..."
+
+    # Both the mistral and st2mistral repos must be present alongside the st2 repo
+    MISTRAL_REPO="${ST2_REPO}/../mistral"
+    ST2MISTRAL_REPO="${ST2_REPO}/../st2mistral"
+
+    if [ ! -d "$MISTRAL_REPO" ] || [ ! -d "$ST2MISTRAL_REPO" ] ; then
+        echo "You specified the Mistral option, but either the mistral or st2mistral directories were not found."
+        echo "Please place a clone of both mistral and st2mistral repositories alongside the st2 repository."
+        exit 1
+    fi
+
+    if [ -z "$MISTRAL_CONF" ]; then
+        MISTRAL_CONF=${ST2_REPO}/conf/mistral.dev/mistral.dev.conf
+    fi
+    echo "Using mistral config file: $MISTRAL_CONF"
+
+    if [ ! -f "$MISTRAL_CONF" ]; then
+        echo "Config file $MISTRAL_CONF does not exist."
+        exit 1
+    fi
+
+    # Create mistral virtualenv if doesn't exist
+    if [[ ! -d "${MISTRAL_REPO}/.venv" ]]; then
+        virtualenv ${MISTRAL_REPO}/.venv > /dev/null
+    fi
+
+    # Install Mistral and st2 plugins
+    echo "Installing mistral, st2mistral, and all dependencies..."
+    source "${MISTRAL_REPO}/.venv/bin/activate"
+    cd "${MISTRAL_REPO}"
+
+    # There's something funky going on with installation of Babel in mistral/requirements.txt
+    # I noticed that the install script in mistral_dev is doing some replacements for Babel to set
+    # the version but installation of Babel still fails for me even with that code. Only
+    # thing I've managed to get working is manually installing pytz myself here.
+    pip install pytz
+
+    pip install -r requirements.txt > /dev/null
+    python setup.py install > /dev/null
+    cd "${ST2MISTRAL_REPO}"
+    pip install -r requirements.txt > /dev/null
+    python setup.py install > /dev/null
+    deactivate
+
+    MISTRAL_DB_COUNT=$(PGUSER=mistral PGPASSWORD=StackStorm PGDATABASE=mistral PGHOST=127.0.0.1 PGPORT=5432 psql mistral -c "select count(*) from action_definitions_v2" | grep -oP '\d{4}')
+    if [ ! $? -eq 0 ]; then
+        MISTRAL_DB_COUNT=0
+    fi
+    if [ "$MISTRAL_DB_COUNT" -lt 1200 ] ; then
+      setup_mistral_db
     fi
 }
 
@@ -139,6 +199,7 @@ function st2start(){
     sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $PACKS_BASE_DIR
     sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $RUNNERS_BASE_DIR
     sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $VIRTUALENVS_DIR
+    sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $CONFIG_BASE_DIR
     cp -Rp ./contrib/core/ $PACKS_BASE_DIR
     cp -Rp ./contrib/packs/ $PACKS_BASE_DIR
     cp -Rp ./contrib/runners/* $RUNNERS_BASE_DIR
@@ -159,13 +220,19 @@ function st2start(){
         screen -ls | grep st2 | cut -d. -f1 | awk '{print $1}' | xargs kill
     fi
 
+    screen -ls | grep mistral &> /dev/null
+    if [ $? == 0 ]; then
+        echo 'Killing existing mistral screen sessions...'
+        screen -ls | grep mistral | cut -d. -f1 | awk '{print $1}' | xargs kill
+    fi
+
     # Run the st2 API server
     echo 'Starting screen session st2-api...'
     if [ "${use_gunicorn}" = true ]; then
         echo '  using gunicorn to run st2-api...'
         export ST2_CONFIG_PATH=${ST2_CONF}
-        screen -d -m -S st2-api ./virtualenv/bin/gunicorn_pecan \
-            ./st2api/st2api/gunicorn_config.py -k eventlet -b "$BINDING_ADDRESS:9101" --workers 1
+        screen -d -m -S st2-api ./virtualenv/bin/gunicorn \
+            st2api.wsgi:application -k eventlet -b "$BINDING_ADDRESS:9101" --workers 1
     else
         screen -d -m -S st2-api ./virtualenv/bin/python \
             ./st2api/bin/st2api \
@@ -176,8 +243,8 @@ function st2start(){
     if [ "${use_gunicorn}" = true ]; then
         echo '  using gunicorn to run st2-stream'
         export ST2_CONFIG_PATH=${ST2_CONF}
-        screen -d -m -S st2-stream ./virtualenv/bin/gunicorn_pecan \
-            ./st2stream/st2stream/gunicorn_config.py -k eventlet -b "$BINDING_ADDRESS:9102" --workers 1
+        screen -d -m -S st2-stream ./virtualenv/bin/gunicorn \
+            st2stream.wsgi:application -k eventlet -b "$BINDING_ADDRESS:9102" --workers 1
     else
         screen -d -m -S st2-stream ./virtualenv/bin/python \
             ./st2stream/bin/st2stream \
@@ -223,23 +290,18 @@ function st2start(){
 
     # Run the auth API server
     echo 'Starting screen session st2-auth...'
-    if [ "${use_uwsgi_for_auth}" = true ]; then
-        echo '  using uwsgi for auth...'
-        export ST2_CONFIG_PATH=${ST2_CONF}
-        screen -d -m -S st2-auth ./virtualenv/bin/uwsgi \
-            --http "$BINDING_ADDRESS:9100" --wsgi-file ./st2auth/st2auth/wsgi.py --processes 1 --threads 10 \
-            --buffer-size=32768
-    elif [ "${use_gunicorn}" = true ]; then
+    if [ "${use_gunicorn}" = true ]; then
         echo '  using gunicorn to run st2-auth...'
         export ST2_CONFIG_PATH=${ST2_CONF}
-        screen -d -m -S st2-auth ./virtualenv/bin/gunicorn_pecan \
-            ./st2auth/st2auth/gunicorn_config.py -k eventlet -b "$BINDING_ADDRESS:9100" --workers 1
+        screen -d -m -S st2-auth ./virtualenv/bin/gunicorn \
+            st2auth.wsgi:application -k eventlet -b "$BINDING_ADDRESS:9100" --workers 1
     else
         screen -d -m -S st2-auth ./virtualenv/bin/python \
-        ./st2auth/bin/st2auth \
-        --config-file $ST2_CONF
+            ./st2auth/bin/st2auth \
+            --config-file $ST2_CONF
     fi
 
+    # Start Exporter
     if [ -n "$ST2_EXPORTER" ]; then
         EXPORTS_DIR=$(exportsdir)
         sudo mkdir -p $EXPORTS_DIR
@@ -248,6 +310,27 @@ function st2start(){
         screen -d -m -S st2-exporter ./virtualenv/bin/python \
             ./st2exporter/bin/st2exporter \
             --config-file $ST2_CONF
+    fi
+
+    if [ "${include_mistral}" = true ]; then
+
+        LOGDIR=${ST2_REPO}/logs
+
+        # Run mistral-server
+        echo 'Starting screen session mistral-server...'
+        screen -d -m -S mistral-server ${MISTRAL_REPO}/.venv/bin/python \
+            ${MISTRAL_REPO}/.venv/bin/mistral-server \
+            --server engine,executor \
+            --config-file $MISTRAL_CONF \
+            --log-file "$LOGDIR/mistral-server.log"
+
+        # Run mistral-api
+        echo 'Starting screen session mistral-api...'
+        screen -d -m -S mistral-api ${MISTRAL_REPO}/.venv/bin/python \
+            ${MISTRAL_REPO}/.venv/bin/mistral-server \
+            --server api \
+            --config-file $MISTRAL_CONF \
+            --log-file "$LOGDIR/mistral-api.log"
     fi
 
     # Check whether screen sessions are started
@@ -260,6 +343,11 @@ function st2start(){
         "st2-notifier"
         "st2-auth"
     )
+
+    if [ "${include_mistral}" = true ]; then
+        SCREENS+=("mistral-server")
+        SCREENS+=("mistral-api")
+    fi
 
     echo
     for s in "${SCREENS[@]}"
@@ -289,6 +377,12 @@ function st2stop(){
         screen -ls | grep st2 | cut -d. -f1 | awk '{print $1}' | xargs -L 1 pkill -P
     fi
 
+    screen -ls | grep mistral &> /dev/null
+    if [ $? == 0 ]; then
+        echo 'Killing existing mistral screen sessions...'
+        screen -ls | grep mistral | cut -d. -f1 | awk '{print $1}' | xargs -L 1 pkill -9 -P
+    fi
+
     if [ "${use_gunicorn}" = true ]; then
         pids=`ps -ef | grep "gunicorn_config.py" | awk '{print $2}'`
         if [ -n "$pids" ]; then
@@ -316,6 +410,29 @@ function st2clean(){
         echo "Removing $EXPORTS_DIR..."
         rm -rf ${EXPORTS_DIR}
     fi
+
+    setup_mistral_db
+}
+
+function setup_mistral_db(){
+    # Ensure services are stopped, so DB script will work
+    st2stop
+
+    if [ -f /etc/lsb-release ]; then
+        DISTRO="ubuntu"
+    else
+        DISTRO="fedora"
+    fi
+
+    ${ST2_REPO}/tools/setup_mistral_db.sh \
+        "${MISTRAL_REPO}" \
+        "${MISTRAL_CONF}" \
+        "${DISTRO}" \
+        postgresql \
+        mistral \
+        mistral \
+        StackStorm \
+        StackStorm
 }
 
 case ${subcommand} in

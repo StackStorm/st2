@@ -19,7 +19,6 @@ __all__ = [
     'PACK_RESERVED_CHARACTERS',
     'PACK_VERSION_SEPARATOR',
     'PACK_VERSION_REGEX',
-    'NORMALIZE_PACK_VERSION',
     'ST2_VERSION_REGEX',
     'SYSTEM_PACK_NAME',
     'PACKS_PACK_NAME',
@@ -32,14 +31,14 @@ __all__ = [
     'CONFIG_SCHEMA_FILE_NAME'
 ]
 
+# Prefix for render context w/ config
+PACK_CONFIG_CONTEXT_KV_PREFIX = 'config_context'
+
 # A list of allowed characters for the pack name
 PACK_REF_WHITELIST_REGEX = r'^[a-z0-9_]+$'
 
 # Check for a valid semver string
 PACK_VERSION_REGEX = r'^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[\da-z\-]+(?:\.[\da-z\-]+)*)?(?:\+[\da-z\-]+(?:\.[\da-z\-]+)*)?$'  # noqa
-
-# If True, non semver valid pack versions will be normalized on register (e.g. 0.2 -> 0.2.0)
-NORMALIZE_PACK_VERSION = True
 
 # Special characters which can't be used in pack names
 PACK_RESERVED_CHARACTERS = [

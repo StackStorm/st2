@@ -15,6 +15,7 @@
 
 from st2client import models
 from st2client.commands import resource
+from st2client.formatters import table
 
 
 class RuleBranch(resource.ResourceBranch):
@@ -34,20 +35,27 @@ class RuleBranch(resource.ResourceBranch):
         self.commands['disable'] = RuleDisableCommand(self.resource, self.app, self.subparsers)
 
 
-class RuleListCommand(resource.ContentPackResourceListCommand):
+class RuleListCommand(resource.ResourceTableCommand):
     display_attributes = ['ref', 'pack', 'description', 'enabled']
     display_attributes_iftt = ['ref', 'trigger.ref', 'action.ref', 'enabled']
 
     def __init__(self, resource, *args, **kwargs):
-        super(RuleListCommand, self).__init__(resource, *args, **kwargs)
-
+        super(RuleListCommand, self).__init__(resource, 'list',
+                                              'Get the list of the 50 most recent %s.' %
+                                              resource.get_plural_display_name().lower(),
+                                              *args, **kwargs)
+        self.default_limit = 50
+        self.resource_name = resource.get_plural_display_name().lower()
         self.group = self.parser.add_argument_group()
         self.parser.add_argument('-n', '--last', type=int, dest='last',
-                                 default=50,
-                                 help=('List N most recent %s.' %
-                                       resource.get_plural_display_name().lower()))
+                                 default=self.default_limit,
+                                 help=('List N most recent %s. Default is 50.' %
+                                       self.resource_name))
         self.parser.add_argument('--iftt', action='store_true',
                                  help='Show trigger and action in display list.')
+        self.parser.add_argument('-p', '--pack', type=str,
+                                 help=('Only return resources belonging to the'
+                                       ' provided pack'))
         self.group.add_argument('-c', '--action',
                                 help='Action reference to filter the list.')
         self.group.add_argument('-g', '--trigger',
@@ -75,7 +83,20 @@ class RuleListCommand(resource.ContentPackResourceListCommand):
             # switch attr to display the trigger and action
             args.attr = self.display_attributes_iftt
 
-        return self.manager.query(limit=args.last, **kwargs)
+        return self.manager.query_with_count(limit=args.last, **kwargs)
+
+    def run_and_print(self, args, **kwargs):
+        instances, count = self.run(args, **kwargs)
+        if args.json or args.yaml:
+            self.print_output(instances, table.MultiColumnTable,
+                              attributes=args.attr, widths=args.width,
+                              json=args.json, yaml=args.yaml)
+        else:
+            self.print_output(instances, table.MultiColumnTable,
+                              attributes=args.attr, widths=args.width)
+
+            if args.last and count and count > args.last:
+                table.SingleRowTable.note_box(self.resource_name, args.last)
 
 
 class RuleGetCommand(resource.ContentPackResourceGetCommand):

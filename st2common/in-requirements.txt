@@ -17,7 +17,13 @@ retrying
 semver
 six
 tooz
+# Required by tooz - on new versions of tooz, all the backend dependencies need
+# to be installed manually
+zake
 ipaddr
-git+https://github.com/StackStorm/pecan.git@st2-patched#egg=pecan
 # Note: our fork of entrypoints contains a fix for backports mess
 git+https://github.com/Kami/entrypoints.git@dont_use_backports#egg=entrypoints
+routes
+flex
+webob
+prance

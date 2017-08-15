@@ -4,3 +4,4 @@
   regions:
     - "us-west-1"
   private_key_path: "{{st2kv.system.private_key_path}}"  # global pack datastore value
+  non_required_with_default_value: "config value"

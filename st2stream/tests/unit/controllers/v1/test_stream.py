@@ -14,21 +14,101 @@
 # limitations under the License.
 
 import mock
-import pecan
 
+from st2common.models.api.action import ActionAPI, RunnerTypeAPI
+from st2common.models.api.execution import LiveActionAPI
+from st2common.models.db.liveaction import LiveActionDB
+from st2common.persistence.action import Action, RunnerType
 from st2stream.controllers.v1 import stream
-from st2stream import listener
+import st2stream.listener
+from st2tests.api import SUPER_SECRET_PARAMETER
 from base import FunctionalTest
 
 
-@mock.patch.object(pecan, 'request', type('request', (object,), {'environ': {}}))
-@mock.patch.object(pecan, 'response', mock.MagicMock())
+RUNNER_TYPE_1 = {
+    'description': '',
+    'enabled': True,
+    'name': 'local-shell-cmd',
+    'runner_module': 'local_runner',
+    'runner_parameters': {}
+}
+
+ACTION_1 = {
+    'name': 'st2.dummy.action1',
+    'description': 'test description',
+    'enabled': True,
+    'entry_point': '/tmp/test/action1.sh',
+    'pack': 'sixpack',
+    'runner_type': 'local-shell-cmd',
+    'parameters': {
+        'a': {
+            'type': 'string',
+            'default': 'abc'
+        },
+        'b': {
+            'type': 'number',
+            'default': 123
+        },
+        'c': {
+            'type': 'number',
+            'default': 123,
+            'immutable': True
+        },
+        'd': {
+            'type': 'string',
+            'secret': True
+        }
+    }
+}
+
+LIVE_ACTION_1 = {
+    'action': 'sixpack.st2.dummy.action1',
+    'parameters': {
+        'hosts': 'localhost',
+        'cmd': 'uname -a',
+        'd': SUPER_SECRET_PARAMETER
+    }
+}
+
+
+class META(object):
+    delivery_info = {
+        'exchange': 'some',
+        'routing_key': 'thing'
+    }
+
+    def ack(self):
+        pass
+
+
 class TestStreamController(FunctionalTest):
 
-    @mock.patch.object(stream, 'format', mock.Mock())
-    @mock.patch.object(listener, 'get_listener', mock.Mock())
+    @classmethod
+    def setUpClass(cls):
+        super(TestStreamController, cls).setUpClass()
+
+        instance = RunnerTypeAPI(**RUNNER_TYPE_1)
+        RunnerType.add_or_update(RunnerTypeAPI.to_model(instance))
+
+        instance = ActionAPI(**ACTION_1)
+        Action.add_or_update(ActionAPI.to_model(instance))
+
+    @mock.patch.object(st2stream.listener, 'listen', mock.Mock())
     def test_get_all(self):
         resp = stream.StreamController().get_all()
-        self.assertIsInstance(resp._app_iter, mock.Mock)
         self.assertEqual(resp._status, '200 OK')
         self.assertIn(('Content-Type', 'text/event-stream; charset=UTF-8'), resp._headerlist)
+
+        listener = st2stream.listener.get_listener()
+        process = listener.processor(LiveActionAPI)
+
+        message = None
+
+        for message in resp._app_iter:
+            if message != '\n':
+                break
+            process(LiveActionDB(**LIVE_ACTION_1), META())
+
+        self.assertIn('event: some__thing', message)
+        self.assertIn('data: {"', message)
+        self.assertNotIn(SUPER_SECRET_PARAMETER, message)

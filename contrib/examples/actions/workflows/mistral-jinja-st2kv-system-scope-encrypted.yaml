@@ -7,7 +7,7 @@ examples.mistral-jinja-st2kv-system-scope-encrypted:
         task1:
             action: core.local
             input:
-                cmd: 'echo "{{ st2kv.system.foobar | decrypt_kv }}"'
+                cmd: echo "{{ st2kv('system.foobar', decrypt=True) }}"
             publish:
                 foobar: <% task(task1).result.stdout %>
             on-complete:

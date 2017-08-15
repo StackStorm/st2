@@ -1,0 +1,14 @@
+---
+name: mistral-test-pause-resume-subworkflow-action
+description: A sample workflow used to test the cascading pause and resume of subworkflow action.
+pack: examples
+runner_type: mistral-v2
+entry_point: workflows/mistral-test-pause-resume-subworkflow-action.yaml
+enabled: true
+parameters:
+    tempfile:
+        type: string
+        required: true
+    message:
+        type: string
+        required: true

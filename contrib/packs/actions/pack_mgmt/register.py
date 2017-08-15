@@ -24,11 +24,16 @@ __all__ = [
 ]
 
 COMPATIBILITY_TRANSFORMATIONS = {
+    'runners': 'runner',
     'triggers': 'trigger',
     'sensors': 'sensor',
     'actions': 'action',
     'rules': 'rule',
-    'aliases': 'alias'
+    'rule_types': 'rule_type',
+    'aliases': 'alias',
+    'policiy_types': 'policy_type',
+    'policies': 'policy',
+    'configs': 'config',
 }
 
 

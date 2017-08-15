@@ -34,4 +34,6 @@ parameters:
     default: 1
     description: Overrides runner default. Will be overriden by live action
     type: integer
+  config_param:
+    default: "no_config"
 runner_type: test-runner-1
