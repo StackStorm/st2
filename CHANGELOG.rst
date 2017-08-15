@@ -16,6 +16,8 @@ Added
 Changed
 ~~~~~~~
 
+* Rename ST2 action runner cancel queue from ``st2.actionrunner.canel``
+  to ``st2.actionrunner.cancel``. (improvement) #3247
 * Install scripts and documentation has been updated to install MongoDB 3.4 by default (previously
   3.2 was installed by default). If you want to upgrade an existing installation, please follow
   official instructions at https://docs.mongodb.com/v3.4/release-notes/3.4-upgrade-standalone/.
