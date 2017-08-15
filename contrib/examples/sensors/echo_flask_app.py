@@ -31,7 +31,7 @@ class EchoFlaskSensor(Sensor):
 
         self._log.info('Listening for payload on http://%s:%s%s' %
                        (self._host, self._port, self._path))
-        self._app.run(host=self._host, port=self._port)
+        self._app.run(host=self._host, port=self._port, threaded=True)
 
     def cleanup(self):
         pass
