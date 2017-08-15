@@ -7,6 +7,7 @@ in development
 Added
 ~~~~~
 
+* Add sample passive sensor at `contrib/examples/sensors/echo_flask_app`. (improvement) #3667
 * Add pack config into action context. This is made available under the ``config_context`` key.
   #3183
 * Implement pause and resume for Mistral workflow. Pause and resume will cascade down to
