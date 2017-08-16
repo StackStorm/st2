@@ -372,7 +372,7 @@ class ActionChainRunner(ActionRunner):
                 context_result[task['name']] = task['result']
 
             # Restore or initialize the top_level_error
-            # thata stores a reference to a top level error.
+            # that stores a reference to a top level error.
             if 'error' in result or 'traceback' in result:
                 top_level_error = {
                     'error': result.get('error'),
