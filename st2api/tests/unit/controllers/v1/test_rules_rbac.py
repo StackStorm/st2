@@ -65,6 +65,11 @@ class RuleControllerRBACTestCase(APIControllerWithRBACTestCase):
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'rules': [file_name]})['rules'][file_name]
 
+        file_name = 'rule_action_doesnt_exist.yaml'
+        RuleControllerRBACTestCase.RULE_3 = self.fixtures_loader.load_fixtures(
+            fixtures_pack=FIXTURES_PACK,
+            fixtures_dict={'rules': [file_name]})['rules'][file_name]
+
         # Insert mock users, roles and assignments
 
         # Users
@@ -153,6 +158,17 @@ class RuleControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.__do_post(RuleControllerRBACTestCase.RULE_1)
         expected_msg = ('User "rule_create" doesn\'t have required permission (webhook_create) '
                         'to use trigger core.st2.webhook')
+        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.json['faultstring'], expected_msg)
+
+    def test_post_user_has_no_permission_on_action_which_doesnt_exist_in_db(self):
+        # User has rule_create, but no action_execute on the action which doesn't exist in the db
+        user_db = self.users['rule_create_webhook_create']
+        self.use_user(user_db)
+
+        resp = self.__do_post(RuleControllerRBACTestCase.RULE_3)
+        expected_msg = ('User "rule_create_webhook_create" doesn\'t have required (action_execute)'
+                        ' permission to use action wolfpack.action-doesnt-exist-woo')
         self.assertEqual(resp.status_code, httplib.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 

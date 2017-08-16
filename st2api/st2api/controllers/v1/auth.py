@@ -137,7 +137,10 @@ class ApiKeyController(BaseRestControllerMixin):
         api_key = None
         try:
             if not getattr(api_key_api, 'user', None):
-                api_key_api.user = requester_user.name or cfg.CONF.system_user.user
+                if requester_user:
+                    api_key_api.user = requester_user.name
+                else:
+                    api_key_api.user = cfg.CONF.system_user.user
 
             try:
                 User.get_by_name(api_key_api.user)

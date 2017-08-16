@@ -54,7 +54,7 @@ def _register_action_runner_opts():
     CONF.register_opts(dispatcher_pool_opts, group='actionrunner')
 
     db_opts = [
-        cfg.StrOpt('host', default='0.0.0.0', help='host of db server'),
+        cfg.StrOpt('host', default='127.0.0.1', help='host of db server'),
         cfg.IntOpt('port', default=27017, help='port of db server'),
         cfg.StrOpt('db_name', default='st2', help='name of database')
     ]

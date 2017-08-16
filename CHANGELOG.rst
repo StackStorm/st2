@@ -7,6 +7,44 @@ in development
 Added
 ~~~~~
 
+* Add pack config into action context. This is made available under the ``config_context`` key.
+  #3183
+* Implement pause and resume for Mistral workflow. Pause and resume will cascade down to
+  subworkflows. Pause from a subworkflow will cascade to the parent workflow.
+
+Changed
+~~~~~~~
+
+* Rename ST2 action runner cancel queue from ``st2.actionrunner.canel``
+  to ``st2.actionrunner.cancel``. (improvement) #3247
+* Install scripts and documentation has been updated to install MongoDB 3.4 by default (previously
+  3.2 was installed by default). If you want to upgrade an existing installation, please follow
+  official instructions at https://docs.mongodb.com/v3.4/release-notes/3.4-upgrade-standalone/.
+  (improvement)
+
+Fixed
+~~~~~
+
+* Fix retrying in message bus exchange registration. (bug fix) #3635 #3638
+
+  Reported by John Arnold.
+* Fix message bus related race condition which could, under some rare scenarios, cause first
+  published message to be ignored because there were no consumers for that particular queue yet.
+  This could happen in a scenario when API service came online and served a request before action
+  runner service came online.
+
+  This also fixes an issue with Redis kombu backend not working. (bug fix) #3635 #3639 #3648
+* Fix logrotate configuration to delete stale compressed st2actionrunner logs #3647
+* Fix trace list API endpoint sorting by `start_timestamp`, using ?sort_desc=True|False query
+  parameters and by passing --sort=asc|desc parameter to the st2 trace list CLI command.
+  Descending order by default.(bug fix) #3237 #3665
+
+2.3.2 - July 28, 2017
+---------------------
+
+Added
+~~~~~
+
 * Add ``regex_substring`` Jinja filter for searching for a pattern in a provided string and
   returning the result. (improvement)
 
@@ -16,9 +54,19 @@ Added
   These capabilities have also been enabled in the ci pipeline for packs in the exchange.
 
   Contributed by Nick Maludy. #3508
+* Update ``st2`` CLI so it also displays "there are more results" note when ``-n`` flag is
+  used and there are more items available. (improvement) #3552
+* Add ability to explicitly set ``stream_url`` in st2client. (improvement) #3432
+* Add support for handling arrays of dictionaries to ``st2 config`` CLI command. (improvement)
+  #3594
 
-Changed
-~~~~~~~
+  Contributed by Hiroyasu OHYAMA.
+* Copy nearly all existing Jinja filters and make them available in both Jinja and YAQL within
+  Mistral workflows (https://github.com/StackStorm/st2mistral/pull/30). Modify st2kv default
+  behavior (BREAKING CHANGE) to not decrypt ciphertext in datastore by default (now explicitly
+  enabled via optional parameter).
+
+  Contributed by mierdin. #3565
 
 Fixed
 ~~~~~
@@ -29,6 +77,28 @@ Fixed
   (bug fix)
 
   Contributed by carbineneutral. #3534 #3544
+* st2 pack commands now work when StackStorm servers are behind a HTTP/HTTPS proxy. You can set
+  ``http_proxy`` or ``https_proxy`` environment variables for ``st2api`` and ``st2actionrunner``
+  processes and pack commands will work with proxy. Refer to documentation for details on
+  proxy configuration. (bug-fix) #3137
+* Fix API validation regression so all input data sent to some POST and PUT API endpoints is
+  correctly validated. (bug fix) #3580
+* Fix an API bug and allow users to create rules which reference actions which don't yet exist in
+  the system when RBAC is enabled and user doesn't have system admin permission. (bug fix)
+  #3572 #3573
+
+  Reported by sibirajal.
+* Add a check to make sure action exists in the POST of the action execution API. (bug fix)
+* Fix api key generation, to use system user, when auth is disabled. (bug fix) #3578 #3593
+* Fix invocation of Mistral workflow from Action Chain with jinja in params. (bug fix) #3440
+* Fix st2client API bug, a backward incompatible change in `query()` method, introduced in note
+  implementation (#3514) in 2.3.1. The `query()` method is now backward compatible (pre 2.3) and
+  `query_with_count()` method is used for results pagination and note. #3616
+* Fix logrotate script so that it no longer prints the `st2ctl` PID status to stdout
+  for each file that it rotates. Also, it will no longer print an error if
+  /var/log/st2/st2web.log is missing.
+
+  Contributed by Nick Maludy. #3633
 
 2.3.1 - July 07, 2017
 ---------------------

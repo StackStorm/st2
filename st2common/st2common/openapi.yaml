@@ -288,7 +288,7 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        '201':
           description: Single action being created
           schema:
             $ref: '#/definitions/Action'
@@ -686,7 +686,7 @@ paths:
           schema:
             $ref: '#/definitions/ActionAliasMatchRequest'
       responses:
-        '200':
+        '201':
           description: Action alias match pattern
           schema:
             $ref: '#/definitions/ActionAliasMatch'
@@ -919,7 +919,7 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        '201':
           description: Execution being created
           schema:
             $ref: '#/definitions/Execution'
@@ -1024,7 +1024,7 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '204':
+        '200':
           description: Execution cancelled
         default:
           description: Unexpected error
@@ -1070,7 +1070,7 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        '201':
           description: Single action being created
           schema:
             $ref: '#/definitions/Execution'
@@ -1446,10 +1446,10 @@ paths:
           schema:
             $ref: '#/definitions/PacksInstall'
       responses:
-        '200':
-          description: Packs Installed.
+        '202':
+          description: Pack installation request has been accepted
           schema:
-            $ref: '#/definitions/PacksList'
+            $ref: '#/definitions/AsyncRequest'
           examples:
             application/json:
               ref: 'core.webhook'
@@ -1471,10 +1471,10 @@ paths:
           schema:
             $ref: '#/definitions/PacksUninstall'
       responses:
-        '200':
-          description: Packs Uninstalled.
+        '202':
+          description: Pack uninstallation request has been accepted
           schema:
-            $ref: '#/definitions/PacksList'
+            $ref: '#/definitions/AsyncRequest'
           examples:
             application/json:
               ref: 'core.webhook'
@@ -1960,7 +1960,7 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        '201':
           description: Policy created successfully.
           schema:
             $ref: '#/definitions/PolicyList'
@@ -2296,7 +2296,7 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        '201':
           description: Single action being created
           schema:
             $ref: '#/definitions/Rule'
@@ -2816,7 +2816,7 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        '201':
           description: Single action being created
           schema:
             $ref: '#/definitions/ApiKey'
@@ -3234,7 +3234,7 @@ paths:
           schema:
             $ref: '#/definitions/TriggerTypeRequest'
       responses:
-        '200':
+        '201':
           description: Single trigger type being created
           schema:
             $ref: '#/definitions/TriggerType'
@@ -3345,7 +3345,7 @@ paths:
           schema:
             $ref: '#/definitions/TriggerRequest'
       responses:
-        '200':
+        '201':
           description: Single trigger being created
           schema:
             $ref: '#/definitions/Trigger'
@@ -3523,7 +3523,7 @@ paths:
           required: true
       responses:
         '200':
-          description: Single trigger being created
+          description: Trigger instance being re-emitted
           schema:
             $ref: '#/definitions/TriggerInstance'
           examples:
@@ -3581,7 +3581,7 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '201':
+        '202':
           description: Single action being created
           schema:
             $ref: '#/definitions/WebhookBody'
@@ -4291,6 +4291,14 @@ definitions:
     # additionalProperties: False
     x-additional-check: st2api.controllers.resource:parameter_validation
     default: {}
+  AsyncRequest:
+    type: object
+    properties:
+      execution_id:
+        type: string
+    required:
+      - execution_id
+    additionalProperties: false
   DataFilesSubSchema:
     type: object
     properties:
@@ -4401,6 +4409,8 @@ definitions:
     properties:
       faultstring:
         type: string
+    required:
+      - faultstring
 
 securityDefinitions:
   auth-token-header:

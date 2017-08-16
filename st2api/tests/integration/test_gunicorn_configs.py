@@ -35,7 +35,7 @@ class GunicornWSGIEntryPointTestCase(IntegrationTestCase):
     @unittest2.skipIf(profiling.is_enabled(), 'Profiling is enabled')
     def test_st2api_wsgi_entry_point(self):
         port = random.randint(10000, 30000)
-        cmd = ('gunicorn st2api.wsgi:application -k eventlet -b "0.0.0.0:%s" --workers 1' % port)
+        cmd = ('gunicorn st2api.wsgi:application -k eventlet -b "127.0.0.1:%s" --workers 1' % port)
         env = os.environ.copy()
         env['ST2_CONFIG_PATH'] = ST2_CONFIG_PATH
         process = subprocess.Popen(cmd, env=env, shell=True, preexec_fn=os.setsid)
@@ -51,7 +51,7 @@ class GunicornWSGIEntryPointTestCase(IntegrationTestCase):
     @unittest2.skipIf(profiling.is_enabled(), 'Profiling is enabled')
     def test_st2auth(self):
         port = random.randint(10000, 30000)
-        cmd = ('gunicorn st2auth.wsgi:application -k eventlet -b "0.0.0.0:%s" --workers 1' % port)
+        cmd = ('gunicorn st2auth.wsgi:application -k eventlet -b "127.0.0.1:%s" --workers 1' % port)
         env = os.environ.copy()
         env['ST2_CONFIG_PATH'] = ST2_CONFIG_PATH
         process = subprocess.Popen(cmd, env=env, shell=True, preexec_fn=os.setsid)

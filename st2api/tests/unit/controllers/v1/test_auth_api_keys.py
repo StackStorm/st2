@@ -13,13 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import random
-import string
-
 from oslo_config import cfg
 
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
-from st2common.models.db.auth import UserDB
 from st2common.persistence.auth import ApiKey
 from st2tests.fixturesloader import FixturesLoader
 from tests import FunctionalTest
@@ -29,14 +25,6 @@ FIXTURES_PACK = 'generic'
 TEST_MODELS = {
     'apikeys': ['apikey1.yaml', 'apikey2.yaml', 'apikey3.yaml', 'apikey_disabled.yaml',
                 'apikey_malformed.yaml']
-}
-
-
-USERNAME = ''.join(random.choice(string.lowercase) for i in range(10))
-PECAN_CONTEXT = {
-    'auth': {
-        'user': UserDB(name=USERNAME)
-    }
 }
 
 # Hardcoded keys matching the fixtures. Lazy way to workound one-way hash and still use fixtures.
@@ -182,6 +170,14 @@ class TestApiKeyController(FunctionalTest):
 
         resp = self.app.delete('/v1/apikeys/%s' % resp2.json['key'])
         self.assertEqual(resp.status_int, 204)
+
+        # With auth disabled, use system_user
+        resp3 = self.app.post_json('/v1/apikeys', {})
+        self.assertEqual(resp3.status_int, 201)
+        self.assertTrue(resp3.json['key'], 'Key should be non-None.')
+        self.assertNotEqual(resp3.json['key'], MASKED_ATTRIBUTE_VALUE,
+                            'Key should not be masked.')
+        self.assertTrue(resp3.json['user'], cfg.CONF.system_user.user)
 
     def test_post_delete_same_key_hash(self):
         api_key = {

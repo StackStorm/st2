@@ -91,7 +91,7 @@ class TriggerWatcher(ConsumerMixin):
 
             trigger_type = getattr(body, 'type', None)
             if self._trigger_types and trigger_type not in self._trigger_types:
-                LOG.debug('Skipping message %s since\'t trigger_type doesn\'t match (type=%s)',
+                LOG.debug('Skipping message %s since trigger_type doesn\'t match (type=%s)',
                           message, trigger_type)
                 return
 

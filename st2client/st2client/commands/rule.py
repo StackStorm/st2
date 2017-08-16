@@ -45,11 +45,12 @@ class RuleListCommand(resource.ResourceTableCommand):
                                               resource.get_plural_display_name().lower(),
                                               *args, **kwargs)
         self.default_limit = 50
+        self.resource_name = resource.get_plural_display_name().lower()
         self.group = self.parser.add_argument_group()
         self.parser.add_argument('-n', '--last', type=int, dest='last',
                                  default=self.default_limit,
                                  help=('List N most recent %s. Default is 50.' %
-                                       resource.get_plural_display_name().lower()))
+                                       self.resource_name))
         self.parser.add_argument('--iftt', action='store_true',
                                  help='Show trigger and action in display list.')
         self.parser.add_argument('-p', '--pack', type=str,
@@ -82,8 +83,7 @@ class RuleListCommand(resource.ResourceTableCommand):
             # switch attr to display the trigger and action
             args.attr = self.display_attributes_iftt
 
-        result, count = self.manager.query(limit=args.last, **kwargs)
-        return (result, count)
+        return self.manager.query_with_count(limit=args.last, **kwargs)
 
     def run_and_print(self, args, **kwargs):
         instances, count = self.run(args, **kwargs)
@@ -95,9 +95,8 @@ class RuleListCommand(resource.ResourceTableCommand):
             self.print_output(instances, table.MultiColumnTable,
                               attributes=args.attr, widths=args.width)
 
-            if args.last >= self.default_limit and count and int(count) > args.last:
-                table.SingleRowTable.note_box("Note: Only first %s results are displayed. "
-                                              "Use -n/--last flag for more results." % args.last)
+            if args.last and count and count > args.last:
+                table.SingleRowTable.note_box(self.resource_name, args.last)
 
 
 class RuleGetCommand(resource.ContentPackResourceGetCommand):

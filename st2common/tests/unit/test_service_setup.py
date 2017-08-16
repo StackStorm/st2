@@ -15,7 +15,11 @@
 
 import tempfile
 
+import mock
+
 from st2common import service_setup
+from st2common.transport.bootstrap_utils import register_exchanges
+from st2common.transport.bootstrap_utils import QUEUES
 
 from st2tests.base import CleanFilesTestCase
 from st2tests import config
@@ -87,3 +91,11 @@ class ServiceSetupTestCase(CleanFilesTestCase):
                                 register_signal_handlers=False,
                                 register_internal_trigger_types=False,
                                 run_migrations=False)
+
+    @mock.patch('kombu.Queue.declare')
+    def test_register_exchanges_predeclare_queues(self, mock_declare):
+        # Verify that queues are correctly pre-declared
+        self.assertEqual(mock_declare.call_count, 0)
+
+        register_exchanges()
+        self.assertEqual(mock_declare.call_count, len(QUEUES))

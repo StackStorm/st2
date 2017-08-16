@@ -212,6 +212,7 @@ class ContentPackResourcePermissionsResolver(PermissionsResolver):
         self._log('Checking user resource permissions', extra=log_context)
 
         # First check the system role permissions
+        self._log('Checking grants via system role permissions', extra=log_context)
         has_system_role_permission = self._user_has_system_role_permission(
             user_db=user_db, permission_type=permission_type)
 
@@ -235,6 +236,7 @@ class ContentPackResourcePermissionsResolver(PermissionsResolver):
             permission_types = [permission_type]
 
         # Check direct grants on the specified resource
+        self._log('Checking direct grans on the specified resource', extra=log_context)
         resource_types = [self.resource_type]
         permission_grants = get_all_permission_grants_for_user(user_db=user_db,
                                                                resource_uid=resource_uid,
@@ -245,6 +247,7 @@ class ContentPackResourcePermissionsResolver(PermissionsResolver):
             return True
 
         # Check grants on the parent pack
+        self._log('Checking grants on the parent resource', extra=log_context)
         resource_types = [ResourceType.PACK]
         permission_grants = get_all_permission_grants_for_user(user_db=user_db,
                                                                resource_uid=pack_uid,

@@ -116,6 +116,15 @@ class Shell(BaseCLIApp):
         )
 
         self.parser.add_argument(
+            '--stream-url',
+            action='store',
+            dest='stream_url',
+            default=None,
+            help='URL for the stream endpoint. Get ST2_STREAM_URL'
+                 'from the environment variables by default.'
+        )
+
+        self.parser.add_argument(
             '--api-version',
             action='store',
             dest='api_version',

@@ -1,0 +1,7 @@
+---
+name: mistral-test-yaql-bad-publish
+pack: examples
+description: A basic workflow for testing YAQL evaluation error.
+runner_type: mistral-v2
+entry_point: workflows/mistral-test-yaql-bad-publish.yaml
+enabled: true

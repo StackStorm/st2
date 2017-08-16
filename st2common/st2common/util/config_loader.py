@@ -204,3 +204,24 @@ class ContentPackConfigLoader(object):
             value = None
 
         return value
+
+
+def get_config(pack, user):
+    """Returns config for given pack and user.
+    """
+    LOG.debug('Attempting to get config')
+    if pack and user:
+        LOG.debug('Pack and user found. Loading config.')
+        config_loader = ContentPackConfigLoader(
+            pack_name=pack,
+            user=user
+        )
+
+        config = config_loader.get_config()
+
+    else:
+        config = {}
+
+    LOG.debug('Config: %s', config)
+
+    return config

@@ -7,6 +7,6 @@ examples.mistral-yaql-st2kv-user-scope:
         task1:
             action: std.noop
             publish:
-                polo: <% st2kv('marco') %>
+                polo: <% st2kv('marco', decrypt => true) %>
             on-complete:
                 - fail: <% $.polo != polo %>

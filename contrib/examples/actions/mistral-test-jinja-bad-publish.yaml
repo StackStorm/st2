@@ -1,0 +1,7 @@
+---
+name: mistral-test-jinja-bad-publish
+pack: examples
+description: A basic workflow for testing Jinja evaluation error.
+runner_type: mistral-v2
+entry_point: workflows/mistral-test-jinja-bad-publish.yaml
+enabled: true

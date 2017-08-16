@@ -26,21 +26,35 @@ from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.persistence.execution import ActionExecution
 from st2common.services import executions
-from st2common.transport import liveaction
 from st2common.transport.consumers import MessageHandler
 from st2common.transport.consumers import ActionsQueueConsumer
 from st2common.transport import utils as transport_utils
 from st2common.util import action_db as action_utils
 from st2common.util import system_info
+from st2common.transport import queues
+
+
+__all__ = [
+    'ActionExecutionDispatcher',
+    'get_worker'
+]
 
 
 LOG = logging.getLogger(__name__)
 
-ACTIONRUNNER_WORK_Q = liveaction.get_status_management_queue(
-    'st2.actionrunner.work', routing_key=action_constants.LIVEACTION_STATUS_SCHEDULED)
+ACTIONRUNNER_QUEUES = [
+    queues.ACTIONRUNNER_WORK_QUEUE,
+    queues.ACTIONRUNNER_CANCEL_QUEUE,
+    queues.ACTIONRUNNER_PAUSE_QUEUE,
+    queues.ACTIONRUNNER_RESUME_QUEUE
+]
 
-ACTIONRUNNER_CANCEL_Q = liveaction.get_status_management_queue(
-    'st2.actionrunner.canel', routing_key=action_constants.LIVEACTION_STATUS_CANCELING)
+ACTIONRUNNER_DISPATCHABLE_STATES = [
+    action_constants.LIVEACTION_STATUS_SCHEDULED,
+    action_constants.LIVEACTION_STATUS_CANCELING,
+    action_constants.LIVEACTION_STATUS_PAUSING,
+    action_constants.LIVEACTION_STATUS_RESUMING
+]
 
 
 class ActionExecutionDispatcher(MessageHandler):
@@ -79,8 +93,7 @@ class ActionExecutionDispatcher(MessageHandler):
                 executions.update_execution(updated_liveaction)
             return
 
-        if liveaction.status not in [action_constants.LIVEACTION_STATUS_SCHEDULED,
-                                     action_constants.LIVEACTION_STATUS_CANCELING]:
+        if liveaction.status not in ACTIONRUNNER_DISPATCHABLE_STATES:
             LOG.info('%s is not dispatching %s (id=%s) with "%s" status.',
                      self.__class__.__name__, type(liveaction), liveaction.id, liveaction.status)
             return
@@ -91,9 +104,23 @@ class ActionExecutionDispatcher(MessageHandler):
             LOG.exception('Failed to find liveaction %s in the database.', liveaction.id)
             raise
 
-        return (self._run_action(liveaction_db)
-                if liveaction.status == action_constants.LIVEACTION_STATUS_SCHEDULED
-                else self._cancel_action(liveaction_db))
+        if liveaction.status != liveaction_db.status:
+            LOG.warning(
+                'The status of liveaction %s has changed from %s to %s '
+                'while in the queue waiting for processing.',
+                liveaction.id,
+                liveaction.status,
+                liveaction_db.status
+            )
+
+        dispatchers = {
+            action_constants.LIVEACTION_STATUS_SCHEDULED: self._run_action,
+            action_constants.LIVEACTION_STATUS_CANCELING: self._cancel_action,
+            action_constants.LIVEACTION_STATUS_PAUSING: self._pause_action,
+            action_constants.LIVEACTION_STATUS_RESUMING: self._resume_action
+        }
+
+        return dispatchers[liveaction.status](liveaction)
 
     def shutdown(self):
         super(ActionExecutionDispatcher, self).shutdown()
@@ -173,7 +200,47 @@ class ActionExecutionDispatcher(MessageHandler):
 
         return result
 
+    def _pause_action(self, liveaction_db):
+        action_execution_db = ActionExecution.get(liveaction__id=str(liveaction_db.id))
+        extra = {'action_execution_db': action_execution_db, 'liveaction_db': liveaction_db}
+        LOG.audit('Pausing action execution.', extra=extra)
+
+        # the extra field will not be shown in non-audit logs so temporarily log at info.
+        LOG.info('Dispatched {~}action_execution: %s / {~}live_action: %s with "%s" status.',
+                 action_execution_db.id, liveaction_db.id, liveaction_db.status)
+
+        try:
+            result = self.container.dispatch(liveaction_db)
+            LOG.debug('Runner dispatch produced result: %s', result)
+        except:
+            _, ex, tb = sys.exc_info()
+            extra['error'] = str(ex)
+            LOG.info('Failed to pause action execution %s.' % (liveaction_db.id), extra=extra)
+            raise
+
+        return result
+
+    def _resume_action(self, liveaction_db):
+        action_execution_db = ActionExecution.get(liveaction__id=str(liveaction_db.id))
+        extra = {'action_execution_db': action_execution_db, 'liveaction_db': liveaction_db}
+        LOG.audit('Resuming action execution.', extra=extra)
+
+        # the extra field will not be shown in non-audit logs so temporarily log at info.
+        LOG.info('Dispatched {~}action_execution: %s / {~}live_action: %s with "%s" status.',
+                 action_execution_db.id, liveaction_db.id, liveaction_db.status)
+
+        try:
+            result = self.container.dispatch(liveaction_db)
+            LOG.debug('Runner dispatch produced result: %s', result)
+        except:
+            _, ex, tb = sys.exc_info()
+            extra['error'] = str(ex)
+            LOG.info('Failed to resume action execution %s.' % (liveaction_db.id), extra=extra)
+            raise
+
+        return result
+
 
 def get_worker():
     with Connection(transport_utils.get_messaging_urls()) as conn:
-        return ActionExecutionDispatcher(conn, [ACTIONRUNNER_WORK_Q, ACTIONRUNNER_CANCEL_Q])
+        return ActionExecutionDispatcher(conn, ACTIONRUNNER_QUEUES)

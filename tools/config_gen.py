@@ -35,7 +35,7 @@ CONFIGS = ['st2actions.config',
            'st2reactor.sensor.config',
            'st2reactor.garbage_collector.config']
 
-SKIP_GROUPS = ['api_pecan', 'rbac']
+SKIP_GROUPS = ['api_pecan', 'rbac', 'results_tracker']
 
 # We group auth options together to nake it a bit more clear what applies where
 AUTH_OPTIONS = {
@@ -45,6 +45,7 @@ AUTH_OPTIONS = {
         'logging',
         'api_url',
         'token_ttl',
+        'service_token_ttl',
         'debug'
     ],
     'standalone': [

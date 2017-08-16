@@ -368,10 +368,22 @@ class Router(object):
 
                         if 'x-api-model' in schema:
                             Model = op_resolver(schema['x-api-model'])
-                        else:
-                            Model = Body
+                            instance = Model(**data)
 
-                        kw[argument_name] = Model(**data)
+                            # Call validate on the API model - note we should eventually move all
+                            # those model schema definitions into openapi.yaml
+                            try:
+                                instance = instance.validate()
+                            except (jsonschema.ValidationError, ValueError) as e:
+                                raise exc.HTTPBadRequest(detail=e.message,
+                                                         comment=traceback.format_exc())
+                        else:
+                            LOG.debug('Missing x-api-model definition for %s, using generic Body '
+                                      'model.' % (endpoint['operationId']))
+                            model = Body
+                            instance = model(**data)
+
+                        kw[argument_name] = instance
                 else:
                     kw[argument_name] = None
 
@@ -433,15 +445,30 @@ class Router(object):
             resp = Response(json=resp)
 
         responses = endpoint.get('responses', {})
-        response_spec = responses.get(str(resp.status_code), responses.get('default', None))
+        response_spec = responses.get(str(resp.status_code), None)
+        default_response_spec = responses.get('default', None)
+
+        if not response_spec and default_response_spec:
+            LOG.debug('No custom response spec found for endpoint "%s", using a default one' %
+                      (endpoint['operationId']))
+            response_spec_name = 'default'
+        else:
+            response_spec_name = str(resp.status_code)
+
+        response_spec = response_spec or default_response_spec
 
         if response_spec and 'schema' in response_spec:
+            LOG.debug('Using response spec "%s" for endpoint %s and status code %s' %
+                     (response_spec_name, endpoint['operationId'], resp.status_code))
+
             try:
                 validator = CustomValidator(response_spec['schema'], resolver=self.spec_resolver)
                 validator.validate(resp.json)
             except (jsonschema.ValidationError, ValueError):
                 LOG.exception('Response validation failed.')
                 resp.headers.add('Warning', '199 OpenAPI "Response validation failed"')
+        else:
+            LOG.debug('No response spec found for endpoint "%s"' % (endpoint['operationId']))
 
         if cookie_token:
             resp.headerlist.append(('Set-Cookie', cookie_token))

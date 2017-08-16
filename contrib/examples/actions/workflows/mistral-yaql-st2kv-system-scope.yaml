@@ -7,6 +7,6 @@ examples.mistral-yaql-st2kv-system-scope:
         task1:
             action: std.noop
             publish:
-                foobar: <% st2kv('system.foobar') %>
+                foobar: <% st2kv('system.foobar', decrypt => true) %>
             on-complete:
                 - fail: <% $.foobar != foobar %>

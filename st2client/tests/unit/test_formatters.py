@@ -22,10 +22,12 @@ import logging
 import tempfile
 import unittest2
 
+from io import BytesIO
 from tests import base
 from tests.fixtures import loader
 
 from st2client import shell
+from st2client.formatters import table
 from st2client.utils import jsutil
 from st2client.utils import httpclient
 from st2client.utils import color
@@ -55,6 +57,7 @@ class TestExecutionResultFormatter(unittest2.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestExecutionResultFormatter, self).__init__(*args, **kwargs)
         self.shell = shell.Shell()
+        self.table = table.SingleRowTable()
         color.DISABLED = True
 
     def setUp(self):
@@ -176,3 +179,32 @@ class TestExecutionResultFormatter(unittest2.TestCase):
             content = fd.read()
 
         return content
+
+    def test_SinlgeRowTable_notebox_one(self):
+        with mock.patch('sys.stderr', new=BytesIO()) as fackety_fake:
+            expected = "Note: Only one action execution is displayed. Use -n/--last flag for " \
+                "more results."
+            print self.table.note_box("action executions", 1)
+            content = (fackety_fake.getvalue().split("|")[1].strip())
+            self.assertEquals(content, expected)
+
+    def test_SinlgeRowTable_notebox_zero(self):
+        with mock.patch('sys.stderr', new=BytesIO()) as fackety_fake:
+            print self.table.note_box("action executions", 0)
+            contents = (fackety_fake.getvalue())
+            print "sdf", contents
+            self.assertEquals(contents, "")
+
+    def test_SinlgeRowTable_notebox_default(self):
+        with mock.patch('sys.stderr', new=BytesIO()) as fackety_fake:
+            expected = "Note: Only first 50 action executions are displayed. Use -n/--last flag " \
+                "for more results."
+            print(self.table.note_box("action executions", 50))
+            content = (fackety_fake.getvalue().split("|")[1].strip())
+            self.assertEquals(content, expected)
+        with mock.patch('sys.stderr', new=BytesIO()) as fackety_fake:
+            expected = "Note: Only first 15 action executions are displayed. Use -n/--last flag " \
+                "for more results."
+            print(self.table.note_box("action executions", 15))
+            content = (fackety_fake.getvalue().split("|")[1].strip())
+            self.assertEquals(content, expected)

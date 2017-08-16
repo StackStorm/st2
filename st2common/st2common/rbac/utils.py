@@ -21,6 +21,8 @@ import six
 
 from oslo_config import cfg
 
+from st2common.models.db.action import ActionDB
+from st2common.models.system.common import ResourceReference
 from st2common.exceptions.rbac import AccessDeniedError
 from st2common.exceptions.rbac import ResourceTypeAccessDeniedError
 from st2common.exceptions.rbac import ResourceAccessDeniedError
@@ -162,11 +164,20 @@ def user_has_rule_action_permission(user_db, action_ref):
     """
     Check that the currently logged-in has necessary permissions on the action used / referenced
     inside the rule.
+
+    Note: Rules can reference actions which don't yet exist in the system.
     """
     if not cfg.CONF.rbac.enable:
         return True
 
     action_db = action_utils.get_action_by_ref(ref=action_ref)
+
+    if not action_db:
+        # We allow rules to be created for actions which don't yet exist in the
+        # system
+        ref = ResourceReference.from_string_reference(ref=action_ref)
+        action_db = ActionDB(pack=ref.pack, name=ref.name, ref=action_ref)
+
     action_resolver = resolvers.get_resolver_for_resource_type(ResourceType.ACTION)
     has_action_permission = action_resolver.user_has_resource_db_permission(
         user_db=user_db, resource_db=action_db, permission_type=PermissionType.ACTION_EXECUTE)

@@ -160,7 +160,7 @@ def _register_stream_opts():
 
 def _register_auth_opts():
     auth_opts = [
-        cfg.StrOpt('host', default='0.0.0.0'),
+        cfg.StrOpt('host', default='127.0.0.1'),
         cfg.IntOpt('port', default=9100),
         cfg.BoolOpt('use_ssl', default=False),
         cfg.StrOpt('mode', default='proxy'),

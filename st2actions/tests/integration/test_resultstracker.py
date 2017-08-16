@@ -273,8 +273,8 @@ class ResultsTrackerTests(EventletTestCase, DbTestCase):
         # Ensure deletes are called.
         self.assertEqual(2, querier._delete_state_object.call_count)
 
-        # Ensure invoke_post_run is not called.
-        runners_utils.invoke_post_run.assert_not_called()
+        # Ensure invoke_post_run is called.
+        self.assertEqual(2, runners_utils.invoke_post_run.call_count)
 
     @mock.patch.object(
         Action, 'get_by_ref', mock.MagicMock(return_value=None))

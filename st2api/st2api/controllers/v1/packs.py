@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import re
 
 from collections import defaultdict
@@ -178,13 +179,36 @@ class PackRegisterController(object):
 class PackSearchController(object):
 
     def post(self, pack_search_request):
+
+        proxy_config = self._get_proxy_config()
+
         if hasattr(pack_search_request, 'query'):
             packs = packs_service.search_pack_index(pack_search_request.query,
-                                                    case_sensitive=False)
+                                                    case_sensitive=False,
+                                                    proxy_config=proxy_config)
             return [PackAPI(**pack) for pack in packs]
         else:
-            pack = packs_service.get_pack_from_index(pack_search_request.pack)
+            pack = packs_service.get_pack_from_index(pack_search_request.pack,
+                                                     proxy_config=proxy_config)
             return PackAPI(**pack) if pack else []
+
+    def _get_proxy_config(self):
+        LOG.debug('Loading proxy configuration from env variables %s.', os.environ)
+        http_proxy = os.environ.get('http_proxy', None)
+        https_proxy = os.environ.get('https_proxy', None)
+        no_proxy = os.environ.get('no_proxy', None)
+        proxy_ca_bundle_path = os.environ.get('proxy_ca_bundle_path', None)
+
+        proxy_config = {
+            'http_proxy': http_proxy,
+            'https_proxy': https_proxy,
+            'proxy_ca_bundle_path': proxy_ca_bundle_path,
+            'no_proxy': no_proxy
+        }
+
+        LOG.debug('Proxy configuration: %s', proxy_config)
+
+        return proxy_config
 
 
 class IndexHealthController(object):

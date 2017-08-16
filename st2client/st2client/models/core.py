@@ -242,8 +242,7 @@ class ResourceManager(object):
     def get_by_ref_or_id(self, ref_or_id, **kwargs):
         return self.get_by_id(id=ref_or_id, **kwargs)
 
-    @add_auth_token_to_kwargs_from_env
-    def query(self, **kwargs):
+    def _query_details(self, **kwargs):
         if not kwargs:
             raise Exception('Query parameter is not provided.')
         if 'limit' in kwargs and kwargs.get('limit') <= 0:
@@ -269,31 +268,37 @@ class ResourceManager(object):
             response = self.client.get(url)
 
         if response.status_code == 404:
-            return []
+            # for query and query_with_count
+            return [], None
         if response.status_code != 200:
             self.handle_error(response)
         items = response.json()
         instances = [self.resource.deserialize(item) for item in items]
+        return instances, response
 
-        if 'X-Total-Count' in response.headers:
-            return (instances, response.headers['X-Total-Count'])
+    @add_auth_token_to_kwargs_from_env
+    def query(self, **kwargs):
+        instances, _ = self._query_details(**kwargs)
+        return instances
+
+    @add_auth_token_to_kwargs_from_env
+    def query_with_count(self, **kwargs):
+        instances, response = self._query_details(**kwargs)
+        if response and 'X-Total-Count' in response.headers:
+            return (instances, int(response.headers['X-Total-Count']))
         else:
             return (instances, None)
 
     @add_auth_token_to_kwargs_from_env
     def get_by_name(self, name, **kwargs):
-        results = self.query(name=name, **kwargs)
-        if results:
-            instances, _ = results
-            if not instances:
-                return None
-            else:
-                if len(instances) > 1:
-                    raise Exception('More than one %s named "%s" are found.' %
-                                    (self.resource.__name__.lower(), name))
-            return instances[0]
-        else:
+        instances = self.query(name=name, **kwargs)
+        if not instances:
             return None
+        else:
+            if len(instances) > 1:
+                raise Exception('More than one %s named "%s" are found.' %
+                                (self.resource.__name__.lower(), name))
+            return instances[0]
 
     @add_auth_token_to_kwargs_from_env
     def create(self, instance, **kwargs):
@@ -383,6 +388,30 @@ class LiveActionResourceManager(ResourceManager):
 
         instance = self.resource.deserialize(response.json())
         return instance
+
+    @add_auth_token_to_kwargs_from_env
+    def pause(self, execution_id, **kwargs):
+        url = '/%s/%s' % (self.resource.get_url_path_name(), execution_id)
+        data = {'status': 'pausing'}
+
+        response = self.client.put(url, data, **kwargs)
+
+        if response.status_code != 200:
+            self.handle_error(response)
+
+        return self.resource.deserialize(response.json())
+
+    @add_auth_token_to_kwargs_from_env
+    def resume(self, execution_id, **kwargs):
+        url = '/%s/%s' % (self.resource.get_url_path_name(), execution_id)
+        data = {'status': 'resuming'}
+
+        response = self.client.put(url, data, **kwargs)
+
+        if response.status_code != 200:
+            self.handle_error(response)
+
+        return self.resource.deserialize(response.json())
 
 
 class TriggerInstanceResourceManager(ResourceManager):

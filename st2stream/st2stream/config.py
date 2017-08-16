@@ -49,7 +49,7 @@ def _register_app_opts():
     # Note "allow_origin", "mask_secrets" options are registered as part of st2common config since
     # they are also used outside st2stream
     api_opts = [
-        cfg.StrOpt('host', default='0.0.0.0', help='StackStorm stream API server host'),
+        cfg.StrOpt('host', default='127.0.0.1', help='StackStorm stream API server host'),
         cfg.IntOpt('port', default=9102, help='StackStorm API stream, server port'),
         cfg.IntOpt('heartbeat', default=25,
                    help='Send empty message every N seconds to keep connection open'),

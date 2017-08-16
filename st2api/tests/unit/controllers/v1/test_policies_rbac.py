@@ -42,7 +42,8 @@ FIXTURES_PACK = 'generic'
 TEST_FIXTURES = {
     'policytypes': [
         'fake_policy_type_1.yaml',
-        'fake_policy_type_2.yaml'
+        'fake_policy_type_2.yaml',
+        'fake_policy_type_3.yaml'
     ],
     'policies': [
         'policy_1.yaml',
@@ -143,7 +144,7 @@ class PolicyTypeControllerRBACTestCase(APIControllerWithRBACTestCase):
         # policy_type_list permission, but no policy_type_view permission
         resp = self.app.get('/v1/policytypes')
         self.assertEqual(resp.status_code, httplib.OK)
-        self.assertEqual(len(resp.json), 2)
+        self.assertEqual(len(resp.json), 3)
 
         policy_type_id = self.models['policytypes']['fake_policy_type_1.yaml'].id
         policy_type_uid = self.models['policytypes']['fake_policy_type_1.yaml'].get_uid()

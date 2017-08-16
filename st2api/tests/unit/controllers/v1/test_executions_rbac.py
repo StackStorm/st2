@@ -92,6 +92,7 @@ class ActionExecutionRBACControllerTestCase(BaseActionExecutionControllerTestCas
         self.assertEqual(resp.status_int, 201)
 
         expected_context = {
+            'pack': 'wolfpack',
             'user': 'admin',
             'rbac': {
                 'user': 'admin',
@@ -109,6 +110,7 @@ class ActionExecutionRBACControllerTestCase(BaseActionExecutionControllerTestCas
         self.assertEqual(resp.status_int, 201)
 
         expected_context = {
+            'pack': 'wolfpack',
             'user': 'multiple_roles',
             'rbac': {
                 'user': 'multiple_roles',

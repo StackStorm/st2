@@ -23,15 +23,18 @@ from st2common.query.base import QueryContext
 from st2common import log as logging
 from st2common.models.db.executionstate import ActionExecutionStateDB
 from st2common.persistence.executionstate import ActionExecutionState
-from st2common.transport import actionexecutionstate, consumers, publishers
+from st2common.transport import consumers
 from st2common.transport import utils as transport_utils
 from st2common.util.loader import register_query_module
+from st2common.transport.queues import RESULTSTRACKER_ACTIONSTATE_WORK_QUEUE
+
+__all__ = [
+    'ResultsTracker',
+    'get_tracker'
+]
 
 
 LOG = logging.getLogger(__name__)
-
-ACTIONSTATE_WORK_Q = actionexecutionstate.get_queue('st2.resultstracker.work',
-                                                    routing_key=publishers.CREATE_RK)
 
 
 class ResultsTracker(consumers.MessageHandler):
@@ -108,4 +111,4 @@ class ResultsTracker(consumers.MessageHandler):
 
 def get_tracker():
     with Connection(transport_utils.get_messaging_urls()) as conn:
-        return ResultsTracker(conn, [ACTIONSTATE_WORK_Q])
+        return ResultsTracker(conn, [RESULTSTRACKER_ACTIONSTATE_WORK_QUEUE])
