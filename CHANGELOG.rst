@@ -11,6 +11,8 @@ Added
   #3183
 * Implement pause and resume for Mistral workflow. Pause and resume will cascade down to
   subworkflows. Pause from a subworkflow will cascade to the parent workflow.
+* Add pack index endpoint. It will made a request for every index defined in st2.conf and return
+  the combined list of available packs.
 
 Changed
 ~~~~~~~
@@ -38,6 +40,7 @@ Fixed
 * Fix trace list API endpoint sorting by `start_timestamp`, using ?sort_desc=True|False query
   parameters and by passing --sort=asc|desc parameter to the st2 trace list CLI command.
   Descending order by default.(bug fix) #3237 #3665
+* Fix pack index health endpoint. It now points to the right controller. #3672
 
 2.3.2 - July 28, 2017
 ---------------------
