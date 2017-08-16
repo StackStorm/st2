@@ -500,6 +500,8 @@ class TestActionChainRunner(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_FIRST_TASK_RENDER_FAIL_PATH
         chain_runner.action = ACTION_1
+        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name, pack=ACTION_1.pack)
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({})
@@ -514,6 +516,8 @@ class TestActionChainRunner(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_FIRST_TASK_RENDER_FAIL_PATH
         chain_runner.action = ACTION_1
+        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name, pack=ACTION_1.pack)
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         status, result, _ = chain_runner.run({})
@@ -729,6 +733,8 @@ class TestActionChainRunner(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_WITH_INVALID_ACTION
         chain_runner.action = ACTION_2
+        action_ref = ResourceReference.to_string_reference(name=ACTION_2.name, pack=ACTION_2.pack)
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
 
