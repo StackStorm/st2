@@ -175,9 +175,9 @@ class PackShowCommand(PackResourceCommand):
 
 class PackInstallCommand(PackAsyncCommand):
     def __init__(self, resource, *args, **kwargs):
-        super(PackInstallCommand, self).__init__(resource, 'install',
-            'Install new %s.' % resource.get_plural_display_name().lower(),
-            *args, **kwargs)
+        super(PackInstallCommand, self).__init__(resource, 'install', 'Install new %s.'
+                                                 % resource.get_plural_display_name().lower(),
+                                                 *args, **kwargs)
 
         self.parser.add_argument('packs',
                                  nargs='+',
@@ -190,12 +190,42 @@ class PackInstallCommand(PackAsyncCommand):
                                  help='Force pack installation.')
 
     def run(self, args, **kwargs):
+        if args.packs:
+            if len(args.packs) == 1:
+                args.pack = args.packs[0]
+                pack_info = self.manager.search(args, **kwargs)
+                content = getattr(pack_info, 'content', '')
+                if content:
+                    print '\nFor "%s" pack following content will be registered:\n' % args.pack
+                    for entity in ['actions', 'sensors', 'rules', 'aliases']:
+                        if entity in content:
+                            print '%s:  %s' % (entity, content[entity]['count'])
+
+                    print '\nIt may take a while based on number of items in content.'
+            else:
+                pack_content = {}
+                for pack in args.packs:
+                    args.pack = pack
+                    pack_info = self.manager.search(args, **kwargs)
+                    content = getattr(pack_info, 'content', '')
+                    for entity in ['actions', 'sensors', 'rules', 'aliases']:
+                        if entity in content:
+                            if entity not in pack_content:
+                                pack_content[entity] = content[entity]['count']
+                            else:
+                                pack_content[entity] += content[entity]['count']
+                if content:
+                    print '\nFor "%s" packs following content will be registered:\n' \
+                        % ', '.join(args.packs)
+                    for item, count in pack_content.items():
+                        print '%s:  %s' % (item, count)
+                    print '\nIt may take a while based on number of items in content.'
+
         return self.manager.install(args.packs, force=args.force, **kwargs)
 
     @add_auth_token_to_kwargs_from_cli
     def run_and_print(self, args, **kwargs):
         instance = super(PackInstallCommand, self).run_and_print(args, **kwargs)
-
         # Hack to get a list of resolved references of installed packs
         packs = instance.result['tasks'][1]['result']['result']
 
@@ -219,9 +249,9 @@ class PackInstallCommand(PackAsyncCommand):
 
 class PackRemoveCommand(PackAsyncCommand):
     def __init__(self, resource, *args, **kwargs):
-        super(PackRemoveCommand, self).__init__(resource, 'remove',
-            'Remove %s.' % resource.get_plural_display_name().lower(),
-            *args, **kwargs)
+        super(PackRemoveCommand, self).__init__(resource, 'remove', 'Remove %s.'
+                                                % resource.get_plural_display_name().lower(),
+                                                *args, **kwargs)
 
         self.parser.add_argument('packs',
                                  nargs='+',
@@ -271,9 +301,9 @@ class PackRemoveCommand(PackAsyncCommand):
 class PackRegisterCommand(PackResourceCommand):
     def __init__(self, resource, *args, **kwargs):
         super(PackRegisterCommand, self).__init__(resource, 'register',
-              'Register %s(s): sync all file changes with DB.' %
-                                                  resource.get_display_name().lower(),
-              *args, **kwargs)
+                                                  'Register %s(s): sync all file changes with DB.'
+                                                  % resource.get_display_name().lower(),
+                                                  *args, **kwargs)
 
         self.parser.add_argument('packs',
                                  nargs='*',
@@ -296,10 +326,10 @@ class PackSearchCommand(resource.ResourceTableCommand):
 
     def __init__(self, resource, *args, **kwargs):
         super(PackSearchCommand, self).__init__(resource, 'search',
-            'Search the index for a %s with any attribute matching the query.'
-            % resource.get_display_name().lower(),
-            *args, **kwargs
-        )
+                                                'Search the index for a %s with any attribute \
+                                                matching the query.'
+                                                % resource.get_display_name().lower(),
+                                                *args, **kwargs)
 
         self.parser.add_argument('query',
                                  help='Search query.')
@@ -312,8 +342,9 @@ class PackSearchCommand(resource.ResourceTableCommand):
 class PackConfigCommand(resource.ResourceCommand):
     def __init__(self, resource, *args, **kwargs):
         super(PackConfigCommand, self).__init__(resource, 'config',
-              'Configure a %s based on config schema.' % resource.get_display_name().lower(),
-              *args, **kwargs)
+                                                'Configure a %s based on config schema.'
+                                                % resource.get_display_name().lower(),
+                                                *args, **kwargs)
 
         self.parser.add_argument('name',
                                  help='Name of the %s(s) to configure.' %
@@ -332,7 +363,8 @@ class PackConfigCommand(resource.ResourceCommand):
 
         message = '---\nDo you want to preview the config in an editor before saving?'
         description = 'Secrets would be shown in plain text.'
-        preview_dialog = interactive.Question(message, {'default': 'y', 'description': description})
+        preview_dialog = interactive.Question(message, {'default': 'y',
+                                                        'description': description})
         if preview_dialog.read() == 'y':
             try:
                 contents = yaml.safe_dump(config, indent=4, default_flow_style=False)
