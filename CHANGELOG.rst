@@ -18,6 +18,8 @@ Added
   system). This allows adjacent logging events to be distinguished more accurately
   by the time they occurred.
   Contributed by Nick Maludy (Encore Technologies) #3362
+* Require new ``STREAM_VIEW`` RBAC permission type to be able to view ``/v1/stream`` stream API
+  endpoint. (improvement) #3676
 * Add new ``?events``, ``?action_refs`` and ``?execution_ids`` query params to ``/v1/stream/``
   API endpoint. Those query parameters allow user to filter out which events to receive based
   on the event type, action ref and execution id. By default, when no filters are provided, all
