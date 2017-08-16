@@ -190,37 +190,48 @@ class PackInstallCommand(PackAsyncCommand):
                                  help='Force pack installation.')
 
     def run(self, args, **kwargs):
+        self._get_content_counts_for_pack(args, **kwargs)
+        return self.manager.install(args.packs, force=args.force, **kwargs)
+
+    def _get_content_counts_for_pack(self, args, **kwargs):
+        # Global content list, excluding "tests"
+        pack_content = {'actions': 0, 'rules': 0, 'sensors': 0, 'aliases': 0, 'triggers': 0}
+
         if args.packs:
             if len(args.packs) == 1:
                 args.pack = args.packs[0]
                 pack_info = self.manager.search(args, **kwargs)
                 content = getattr(pack_info, 'content', {})
+
                 if content:
-                    print '\nFor "%s" pack following content will be registered:\n' % args.pack
                     for entity in content.keys():
-                        if entity != 'tests':
-                            print '%s:  %s' % (entity, content[entity]['count'])
-                    print '\nIt may take a while based on number of items in content.'
+                        if entity in pack_content:
+                            pack_content[entity] += content[entity]['count']
+                    self._print_pack_content(args.packs, pack_content)
+
             else:
-                pack_content = {}
+                pack_content = pack_content.fromkeys(pack_content, 0)
+                # TODO: Better solution is to update endpoint query param for one API call
+                #       ?packs=pack1,pack2,pack3
                 for pack in args.packs:
+                    # args.pack required for search
                     args.pack = pack
                     pack_info = self.manager.search(args, **kwargs)
                     content = getattr(pack_info, 'content', {})
-                    for entity in content.keys():
-                        if entity != 'tests':
-                            if entity not in pack_content:
-                                pack_content[entity] = content[entity]['count']
-                            else:
+                    if content:
+                        for entity in content.keys():
+                            if entity in pack_content:
                                 pack_content[entity] += content[entity]['count']
-                if pack_content:
-                    print '\nFor "%s" packs following content will be registered:\n' \
-                        % ', '.join(args.packs)
-                    for item, count in pack_content.items():
-                        print '%s:  %s' % (item, count)
-                    print '\nIt may take a while based on number of items in content.'
+                if content:
+                    self._print_pack_content(args.packs, pack_content)
 
-        return self.manager.install(args.packs, force=args.force, **kwargs)
+    @staticmethod
+    def _print_pack_content(pack_name, pack_content):
+        print('\nFor "%s" %s following content will be registered:\n'
+              % (', '.join(pack_name), 'pack' if len(pack_name) == 1 else 'packs'))
+        for item, count in pack_content.items():
+            print('%-10s|  %s' % (item, count))
+        print('\nIt may take a while based on number of items.')
 
     @add_auth_token_to_kwargs_from_cli
     def run_and_print(self, args, **kwargs):
