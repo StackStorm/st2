@@ -329,8 +329,8 @@ class ActionChainRunner(ActionRunner):
         return self._run_chain(action_parameters, resuming=True)
 
     def _run_chain(self, action_parameters, resuming=False):
-        # Set chain status initially to success until chain cancels, fails, or times out below.
-        chain_status = action_constants.LIVEACTION_STATUS_SUCCEEDED
+        # Set chain status to fail unless explicitly set to succeed.
+        chain_status = action_constants.LIVEACTION_STATUS_FAILED
 
         # Result holds the final result that the chain store in the database.
         result = {'tasks': []}
