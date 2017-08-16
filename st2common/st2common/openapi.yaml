@@ -4413,33 +4413,42 @@ definitions:
       - faultstring
 
 securityDefinitions:
-  X-Auth-Token:
+  auth-token-header:
     description: Header representing user's short-lived access token.
     type: apiKey
     name: X-Auth-Token
     in: header
     x-operationId: st2common.util.auth:validate_token
-  St2-Api-Key:
+    x-set-cookie: auth-token
+  api-key-header:
     description: Header representing service's long-lived API key.
     type: apiKey
     name: St2-Api-Key
     in: header
     x-operationId: st2common.util.auth:validate_api_key
-  x-auth-token:
+  auth-token-query:
     description: Query parameter representing user's short-lived access token. Used as a backup authentication strategy for environments where it is impossible to provide a header.
     type: apiKey
     name: x-auth-token
     in: query
     x-operationId: st2common.util.auth:validate_token
-  st2-api-key:
+    x-set-cookie: auth-token
+  api-key-query:
     description: Query parameter representing service's long-lived API key. Used as a backup authentication strategy for environments where it is impossible to provide a header.
     type: apiKey
     name: st2-api-key
     in: query
     x-operationId: st2common.util.auth:validate_api_key
+  auth-token-cookie:
+    description: Cookie representing user's short-lived access token.
+    type: apiKey
+    name: auth-token
+    in: cookie
+    x-operationId: st2common.util.auth:validate_token
 
 security:
-  - X-Auth-Token: []
-  - St2-Api-Key: []
-  - x-auth-token: []
-  - st2-api-key: []
+  - auth-token-header: []
+  - api-key-header: []
+  - auth-token-query: []
+  - api-key-query: []
+  - auth-token-cookie: []
