@@ -3753,8 +3753,14 @@ paths:
   /stream/v1/stream:
     get:
       operationId: st2stream.controllers.v1.stream:stream_controller.get_all
+      x-permissions: stream_view
       description: |
         Event stream endpoint.
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: EventSource compatible stream of events
@@ -3936,7 +3942,7 @@ definitions:
       status:
         description: The current status of the action execution.
         type: string
-        enum: ['requested', 'scheduled', 'delayed', 'running', 'succeeded', 'failed', 'timeout', 'abandoned', 'canceling', 'canceled']
+        enum: ['requested', 'scheduled', 'delayed', 'running', 'succeeded', 'failed', 'timeout', 'abandoned', 'canceling', 'canceled', 'pausing', 'paused', 'resuming']
       start_timestamp:
         description: The start time when the action is executed.
         type: string
@@ -3995,7 +4001,7 @@ definitions:
               pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
             status:
               type: string
-              enum: ['requested', 'scheduled', 'delayed', 'running', 'succeeded', 'failed', 'timeout', 'abandoned', 'canceling', 'canceled']
+              enum: ['requested', 'scheduled', 'delayed', 'running', 'succeeded', 'failed', 'timeout', 'abandoned', 'canceling', 'canceled', 'pausing', 'paused', 'resuming']
     required:
       - id
     additionalProperties: False
@@ -4015,7 +4021,7 @@ definitions:
       status:
         description: The current status of the action execution.
         type: string
-        enum: ['requested', 'scheduled', 'delayed', 'running', 'succeeded', 'failed', 'timeout', 'abandoned', 'canceling', 'canceled']
+        enum: ['requested', 'scheduled', 'delayed', 'running', 'succeeded', 'failed', 'timeout', 'abandoned', 'canceling', 'canceled', 'pausing', 'paused', 'resuming']
       result:
         type: object
     additionalProperties: False
@@ -4243,7 +4249,7 @@ definitions:
       status:
         description: The current status of the action execution.
         type: string
-        enum: ['requested', 'scheduled', 'delayed', 'running', 'succeeded', 'failed', 'timeout', 'abandoned', 'canceling', 'canceled']
+        enum: ['requested', 'scheduled', 'delayed', 'running', 'succeeded', 'failed', 'timeout', 'abandoned', 'canceling', 'canceled', 'pausing', 'paused', 'resuming']
       start_timestamp:
         description: The start time when the action is executed.
         type: string
