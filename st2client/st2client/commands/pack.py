@@ -194,27 +194,26 @@ class PackInstallCommand(PackAsyncCommand):
             if len(args.packs) == 1:
                 args.pack = args.packs[0]
                 pack_info = self.manager.search(args, **kwargs)
-                content = getattr(pack_info, 'content', '')
+                content = getattr(pack_info, 'content', {})
                 if content:
                     print '\nFor "%s" pack following content will be registered:\n' % args.pack
-                    for entity in ['actions', 'sensors', 'rules', 'aliases']:
-                        if entity in content:
+                    for entity in content.keys():
+                        if entity != 'tests':
                             print '%s:  %s' % (entity, content[entity]['count'])
-
                     print '\nIt may take a while based on number of items in content.'
             else:
                 pack_content = {}
                 for pack in args.packs:
                     args.pack = pack
                     pack_info = self.manager.search(args, **kwargs)
-                    content = getattr(pack_info, 'content', '')
-                    for entity in ['actions', 'sensors', 'rules', 'aliases']:
-                        if entity in content:
+                    content = getattr(pack_info, 'content', {})
+                    for entity in content.keys():
+                        if entity != 'tests':
                             if entity not in pack_content:
                                 pack_content[entity] = content[entity]['count']
                             else:
                                 pack_content[entity] += content[entity]['count']
-                if content:
+                if pack_content:
                     print '\nFor "%s" packs following content will be registered:\n' \
                         % ', '.join(args.packs)
                     for item, count in pack_content.items():
