@@ -9,10 +9,21 @@ Added
 
 * Add pack config into action context. This is made available under the ``config_context`` key.
   #3183
+* Implement pause and resume for Mistral workflow. Pause and resume will cascade down to
+  subworkflows. Pause from a subworkflow will cascade to the parent workflow.
+* Add pack index endpoint. It will made a request for every index defined in st2.conf and return
+  the combined list of available packs.
+* Added a new field ``timestamp_f`` to the GELF logging formatter that represents
+  the time of the logging even in fractional time (resolution is dependent on your
+  system). This allows adjacent logging events to be distinguished more accurately
+  by the time they occurred.
+  Contributed by Nick Maludy (Encore Technologies) #3362
+* Require new ``STREAM_VIEW`` RBAC permission type to be able to view ``/v1/stream`` stream API
+  endpoint. (improvement) #3676
 * Add new ``?events``, ``?action_refs`` and ``?execution_ids`` query params to ``/v1/stream/``
   API endpoint. Those query parameters allow user to filter out which events to receive based
   on the event type, action ref and execution id. By default, when no filters are provided, all
-  events are returned. (new feature)
+  events are returned. (new feature) #3677
 * Add new feature which allows Python runner action output (stdout and stderr) to be streamed
   and consumed in real-time by using one of the following approaches:
 
@@ -26,12 +37,12 @@ Added
   off by default. To enable it, set ``actionrunner.store_output`` config option to ``True``.
 
   (new feature) #2175 #3657
-* Require new ``STREAM_VIEW`` RBAC permission type to be able to view ``/v1/stream`` stream API
-  endpoint. (improvement) #3657
 
 Changed
 ~~~~~~~
 
+* Rename ST2 action runner cancel queue from ``st2.actionrunner.canel``
+  to ``st2.actionrunner.cancel``. (improvement) #3247
 * Install scripts and documentation has been updated to install MongoDB 3.4 by default (previously
   3.2 was installed by default). If you want to upgrade an existing installation, please follow
   official instructions at https://docs.mongodb.com/v3.4/release-notes/3.4-upgrade-standalone/.
@@ -52,6 +63,10 @@ Fixed
 
   This also fixes an issue with Redis kombu backend not working. (bug fix) #3635 #3639 #3648
 * Fix logrotate configuration to delete stale compressed st2actionrunner logs #3647
+* Fix trace list API endpoint sorting by `start_timestamp`, using ?sort_desc=True|False query
+  parameters and by passing --sort=asc|desc parameter to the st2 trace list CLI command.
+  Descending order by default.(bug fix) #3237 #3665
+* Fix pack index health endpoint. It now points to the right controller. #3672
 
 2.3.2 - July 28, 2017
 ---------------------

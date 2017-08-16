@@ -30,3 +30,11 @@ class ActionRunnerDispatchError(ActionRunnerException):
 
 class ActionRunnerPreRunError(ActionRunnerException):
     pass
+
+
+class InvalidActionRunnerOperationError(ActionRunnerException):
+    pass
+
+
+class UnexpectedActionExecutionStatusError(ActionRunnerException):
+    pass

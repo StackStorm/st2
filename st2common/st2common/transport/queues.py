@@ -35,6 +35,8 @@ __all__ = [
 
     'ACTIONRUNNER_WORK_QUEUE',
     'ACTIONRUNNER_CANCEL_QUEUE',
+    'ACTIONRUNNER_PAUSE_QUEUE',
+    'ACTIONRUNNER_RESUME_QUEUE',
 
     'EXPORTER_WORK_QUEUE',
 
@@ -58,7 +60,11 @@ ACTIONSCHEDULER_REQUEST_QUEUE = liveaction.get_status_management_queue(
 ACTIONRUNNER_WORK_QUEUE = liveaction.get_status_management_queue(
     'st2.actionrunner.work', routing_key=action_constants.LIVEACTION_STATUS_SCHEDULED)
 ACTIONRUNNER_CANCEL_QUEUE = liveaction.get_status_management_queue(
-    'st2.actionrunner.canel', routing_key=action_constants.LIVEACTION_STATUS_CANCELING)
+    'st2.actionrunner.cancel', routing_key=action_constants.LIVEACTION_STATUS_CANCELING)
+ACTIONRUNNER_PAUSE_QUEUE = liveaction.get_status_management_queue(
+    'st2.actionrunner.pause', routing_key=action_constants.LIVEACTION_STATUS_PAUSING)
+ACTIONRUNNER_RESUME_QUEUE = liveaction.get_status_management_queue(
+    'st2.actionrunner.resume', routing_key=action_constants.LIVEACTION_STATUS_RESUMING)
 
 # Used by the exporter service
 EXPORTER_WORK_QUEUE = execution.get_queue(

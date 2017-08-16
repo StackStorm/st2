@@ -55,6 +55,12 @@ class ResponseLeakError(ValueError):
 
 class TestApp(webtest.TestApp):
     def do_request(self, req, **kwargs):
+        self.cookiejar.clear()
+
+        if req.environ['REQUEST_METHOD'] != 'OPTIONS':
+            # Making sure endpoint handles OPTIONS method properly
+            self.options(req.environ['PATH_INFO'])
+
         res = super(TestApp, self).do_request(req, **kwargs)
 
         if res.headers.get('Warning', None):
@@ -68,11 +74,6 @@ class TestApp(webtest.TestApp):
 
         if 'Access-Control-Allow-Origin' not in res.headers:
             raise ResponseValidationError('Response missing a required CORS header')
-
-        if req.environ['REQUEST_METHOD'] != 'OPTIONS':
-            # The request will then also be checked with do_request() method making sure OPTIONS
-            # response also has proper headers set.
-            self.options(req.environ['PATH_INFO'])
 
         return res
 
