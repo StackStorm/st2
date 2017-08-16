@@ -72,6 +72,25 @@ ENTITIES = OrderedDict([
 ])
 
 
+def _get_proxy_config():
+    LOG.debug('Loading proxy configuration from env variables %s.', os.environ)
+    http_proxy = os.environ.get('http_proxy', None)
+    https_proxy = os.environ.get('https_proxy', None)
+    no_proxy = os.environ.get('no_proxy', None)
+    proxy_ca_bundle_path = os.environ.get('proxy_ca_bundle_path', None)
+
+    proxy_config = {
+        'http_proxy': http_proxy,
+        'https_proxy': https_proxy,
+        'proxy_ca_bundle_path': proxy_ca_bundle_path,
+        'no_proxy': no_proxy
+    }
+
+    LOG.debug('Proxy configuration: %s', proxy_config)
+
+    return proxy_config
+
+
 class PackInstallController(ActionExecutionsControllerMixin):
 
     def post(self, pack_install_request):
@@ -180,7 +199,7 @@ class PackSearchController(object):
 
     def post(self, pack_search_request):
 
-        proxy_config = self._get_proxy_config()
+        proxy_config = _get_proxy_config()
 
         if hasattr(pack_search_request, 'query'):
             packs = packs_service.search_pack_index(pack_search_request.query,
@@ -192,24 +211,6 @@ class PackSearchController(object):
                                                      proxy_config=proxy_config)
             return PackAPI(**pack) if pack else []
 
-    def _get_proxy_config(self):
-        LOG.debug('Loading proxy configuration from env variables %s.', os.environ)
-        http_proxy = os.environ.get('http_proxy', None)
-        https_proxy = os.environ.get('https_proxy', None)
-        no_proxy = os.environ.get('no_proxy', None)
-        proxy_ca_bundle_path = os.environ.get('proxy_ca_bundle_path', None)
-
-        proxy_config = {
-            'http_proxy': http_proxy,
-            'https_proxy': https_proxy,
-            'proxy_ca_bundle_path': proxy_ca_bundle_path,
-            'no_proxy': no_proxy
-        }
-
-        LOG.debug('Proxy configuration: %s', proxy_config)
-
-        return proxy_config
-
 
 class IndexHealthController(object):
 
@@ -218,7 +219,9 @@ class IndexHealthController(object):
         Check if all listed indexes are healthy: they should be reachable,
         return valid JSON objects, and yield more than one result.
         """
-        _, status = packs_service.fetch_pack_index(allow_empty=True)
+        proxy_config = _get_proxy_config()
+
+        _, status = packs_service.fetch_pack_index(allow_empty=True, proxy_config=proxy_config)
 
         health = {
             "indexes": {
@@ -289,6 +292,16 @@ class BasePacksController(ResourceController):
 class PacksIndexController():
     search = PackSearchController()
     health = IndexHealthController()
+
+    def get_all(self):
+        proxy_config = _get_proxy_config()
+
+        index, status = packs_service.fetch_pack_index(proxy_config=proxy_config)
+
+        return {
+            'status': status,
+            'index': index
+        }
 
 
 class PacksController(BasePacksController):
