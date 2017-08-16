@@ -19,6 +19,7 @@ import six
 
 from st2common.persistence.rbac import UserRoleAssignment
 from st2common.models.db.rbac import UserRoleAssignmentDB
+from st2common.rbac.types import PermissionType
 
 from base import APIControllerWithRBACTestCase
 
@@ -54,10 +55,14 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
         self.use_user(self.users['no_permissions'])
         for endpoint in supported_endpoints:
             response = self._perform_request_for_endpoint(endpoint=endpoint)
+            expected_msg = ('User "%s" doesn\'t have required permission "%s"' %
+                            (self.users['no_permissions'].name, PermissionType.STREAM_VIEW))
+
             msg = '%s "%s" didn\'t return 403 status code (body=%s)' % (endpoint['method'],
                                                                         endpoint['path'],
                                                                         response.body)
             self.assertEqual(response.status_code, httplib.FORBIDDEN, msg)
+            self.assertRegexpMatches(response.json['faultstring'], expected_msg)
 
     def _perform_request_for_endpoint(self, endpoint):
         if endpoint['method'] == 'GET':
