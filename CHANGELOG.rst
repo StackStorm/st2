@@ -21,7 +21,7 @@ Added
 * Add new ``?events``, ``?action_refs`` and ``?execution_ids`` query params to ``/v1/stream/``
   API endpoint. Those query parameters allow user to filter out which events to receive based
   on the event type, action ref and execution id. By default, when no filters are provided, all
-  events are returned. (new feature)
+  events are returned. (new feature) #3677
 
 Changed
 ~~~~~~~
