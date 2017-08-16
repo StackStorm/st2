@@ -138,8 +138,6 @@ class Listener(ConsumerMixin):
             action_ref = body.action.get('ref', None) if body.action else None
         elif isinstance(body, LiveActionAPI):
             action_ref = body.action
-        elif isinstance(body, (ActionExecutionStdoutAPI, ActionExecutionStderrAPI)):
-            action_ref = body.action_ref
 
         return action_ref
 
@@ -153,8 +151,6 @@ class Listener(ConsumerMixin):
             execution_id = str(body.id)
         elif isinstance(body, LiveActionAPI):
             execution_id = None
-        elif isinstance(body, (ActionExecutionStdoutAPI, ActionExecutionStderrAPI)):
-            execution_id = body.execution_id
 
         return execution_id
 
