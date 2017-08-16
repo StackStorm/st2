@@ -37,7 +37,7 @@ def format(gen):
 
 
 class StreamController(object):
-    def get_all(self):
+    def get_all(self, requester_user):
         def make_response():
             res = Response(content_type='text/event-stream',
                            app_iter=format(get_listener().generator()))
