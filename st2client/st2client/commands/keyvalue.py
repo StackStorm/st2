@@ -90,13 +90,15 @@ class KeyValuePairListCommand(resource.ResourceTableCommand):
         # Filtering options
         if args.prefix:
             kwargs['prefix'] = args.prefix
+
         decrypt = getattr(args, 'decrypt', False)
-        kwargs['decrypt'] = str(decrypt).lower()
+        kwargs['params'] = {'decrypt': str(decrypt).lower()}
         scope = getattr(args, 'scope', DEFAULT_SCOPE)
-        kwargs['scope'] = scope
+        kwargs['params']['scope'] = scope
         if args.user:
-            kwargs['user'] = args.user
-        kwargs['limit'] = args.last
+            kwargs['params']['user'] = args.user
+        kwargs['params']['limit'] = args.last
+
         return self.manager.query_with_count(**kwargs)
 
     @resource.add_auth_token_to_kwargs_from_cli
