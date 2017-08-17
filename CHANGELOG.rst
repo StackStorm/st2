@@ -25,6 +25,9 @@ Added
   API endpoint. Those query parameters allow user to filter out which events to receive based
   on the event type, action ref and execution id. By default, when no filters are provided, all
   events are returned. (new feature) #3677
+* Show count of pack content (actions, sensors, triggers, rules and aliases) to be registered
+  before the ``st2 pack install`` so that the delay in install is not mistaken as no response
+  or hanging command. (improvement) #3586 #3675
 
 Changed
 ~~~~~~~
