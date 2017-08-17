@@ -423,6 +423,10 @@ class ActionChainRunner(ActionRunner):
                     )
                 )
 
+        # If there are no action node to run next, then mark the chain successful.
+        if not action_node:
+            chain_status = action_constants.LIVEACTION_STATUS_SUCCEEDED
+
         # Setup parent context.
         parent_context = {
             'execution_id': self.execution_id
