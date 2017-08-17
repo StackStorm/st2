@@ -42,7 +42,8 @@ TEST_FIXTURES = {
         'test_pause_resume_with_subworkflow.yaml',
         'test_pause_resume_with_context_access.yaml',
         'test_pause_resume_with_init_vars.yaml',
-        'test_pause_resume_with_no_more_task.yaml'
+        'test_pause_resume_with_no_more_task.yaml',
+        'test_pause_resume_last_task_failed_with_no_next_task.yaml'
     ],
     'actions': [
         'test_pause_resume.yaml',
@@ -51,7 +52,8 @@ TEST_FIXTURES = {
         'test_pause_resume_with_subworkflow.yaml',
         'test_pause_resume_with_context_access.yaml',
         'test_pause_resume_with_init_vars.yaml',
-        'test_pause_resume_with_no_more_task.yaml'
+        'test_pause_resume_with_no_more_task.yaml',
+        'test_pause_resume_last_task_failed_with_no_next_task.yaml'
     ]
 }
 
@@ -672,3 +674,57 @@ class ActionChainRunnerPauseResumeTest(DbTestCase):
         # Check liveaction result.
         self.assertIn('tasks', liveaction.result)
         self.assertEqual(len(liveaction.result['tasks']), 1)
+
+    def test_chain_pause_resume_last_task_failed_with_no_next_task(self):
+        # A temp file is created during test setup. Ensure the temp file exists.
+        # The test action chain will stall until this file is deleted. This gives
+        # the unit test a moment to run any test related logic.
+        path = self.temp_file_path
+        self.assertTrue(os.path.exists(path))
+
+        action = TEST_PACK + '.' + 'test_pause_resume_last_task_failed_with_no_next_task'
+        params = {'tempfile': path, 'message': 'foobar'}
+        liveaction = LiveActionDB(action=action, parameters=params)
+        liveaction, execution = action_service.request(liveaction)
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+
+        # Wait until the liveaction is running.
+        liveaction = self._wait_for_status(liveaction, action_constants.LIVEACTION_STATUS_RUNNING)
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+
+        # Request action chain to pause.
+        liveaction, execution = action_service.request_pause(liveaction, USERNAME)
+
+        # Wait until the liveaction is pausing.
+        liveaction = self._wait_for_status(liveaction, action_constants.LIVEACTION_STATUS_PAUSING)
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSING)
+
+        # Delete the temporary file that the action chain is waiting on.
+        os.remove(path)
+        self.assertFalse(os.path.exists(path))
+
+        # Wait until the liveaction is paused.
+        liveaction = self._wait_for_status(liveaction, action_constants.LIVEACTION_STATUS_PAUSED)
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSED)
+
+        # Wait for non-blocking threads to complete. Ensure runner is not running.
+        MockLiveActionPublisherNonBlocking.wait_all()
+
+        # Request action chain to resume.
+        liveaction, execution = action_service.request_resume(liveaction, USERNAME)
+
+        # Wait until the liveaction is completed.
+        liveaction = self._wait_for_status(liveaction, action_constants.LIVEACTION_STATUS_FAILED)
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
+
+        # Wait for non-blocking threads to complete.
+        MockLiveActionPublisherNonBlocking.wait_all()
+
+        # Check liveaction result.
+        self.assertIn('tasks', liveaction.result)
+        self.assertEqual(len(liveaction.result['tasks']), 1)
+
+        self.assertEqual(
+            liveaction.result['tasks'][0]['state'],
+            action_constants.LIVEACTION_STATUS_FAILED
+        )

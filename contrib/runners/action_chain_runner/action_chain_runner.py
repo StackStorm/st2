@@ -388,6 +388,10 @@ class ActionChainRunner(ActionRunner):
                 LOG.exception(m)
                 top_level_error = self._format_error(e, m)
 
+            # If there are no action node to run next, then mark the chain successful.
+            if not action_node:
+                chain_status = action_constants.LIVEACTION_STATUS_SUCCEEDED
+
         # Otherwise, figure out the last task executed and
         # its state to determine where to begin executing.
         else:
@@ -412,20 +416,17 @@ class ActionChainRunner(ActionRunner):
             if liveaction.status == action_constants.LIVEACTION_STATUS_PAUSED:
                 pass
 
-            # If the last task was completed, then get the next action node.
-            if liveaction.status in action_constants.LIVEACTION_COMPLETED_STATES:
+            # If the last task succeeded, then get the next on-success action node.
+            if liveaction.status == action_constants.LIVEACTION_STATUS_SUCCEEDED:
+                chain_status = action_constants.LIVEACTION_STATUS_SUCCEEDED
                 action_node = self.chain_holder.get_next_node(
-                    last_task['name'],
-                    condition=(
-                        'on-failure'
-                        if liveaction.status in action_constants.LIVEACTION_FAILED_STATES
-                        else 'on-success'
-                    )
-                )
+                    last_task['name'], condition='on-success')
 
-        # If there are no action node to run next, then mark the chain successful.
-        if not action_node:
-            chain_status = action_constants.LIVEACTION_STATUS_SUCCEEDED
+            # If the last task failed, then get the next on-failure action node.
+            if liveaction.status in action_constants.LIVEACTION_FAILED_STATES:
+                chain_status = action_constants.LIVEACTION_STATUS_FAILED
+                action_node = self.chain_holder.get_next_node(
+                    last_task['name'], condition='on-failure')
 
         # Setup parent context.
         parent_context = {
