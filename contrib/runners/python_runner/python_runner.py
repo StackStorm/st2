@@ -43,7 +43,7 @@ from st2common.util.sandboxing import get_sandbox_virtualenv_path
 from st2common.runners import python_action_wrapper
 from st2common.services.action import store_execution_stdout_line
 from st2common.services.action import store_execution_stderr_line
-from utils import make_read_and_store_stream_func
+from st2common.runners.utils import make_read_and_store_stream_func
 
 LOG = logging.getLogger(__name__)
 
