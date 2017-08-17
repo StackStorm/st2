@@ -26,7 +26,7 @@ from oslo_config import cfg
 import routes
 from six.moves.urllib import parse as urlparse  # pylint: disable=import-error
 import webob
-from webob import exc, Request
+from webob import cookies, exc, Request
 from webob.compat import url_unquote
 
 from st2common.exceptions import rbac as rbac_exc
@@ -34,6 +34,7 @@ from st2common.exceptions import auth as auth_exc
 from st2common import log as logging
 from st2common.persistence.auth import User
 from st2common.rbac import resolvers
+from st2common.util import date as date_utils
 from st2common.util.jsonify import json_encode
 from st2common.util.http import parse_content_type_header
 
@@ -227,6 +228,7 @@ class Router(object):
         LOG.debug("Parsed path_vars: %s", path_vars)
 
         context = copy.copy(getattr(self, 'mock_context', {}))
+        cookie_token = None
 
         # Handle security
         if 'security' in endpoint:
@@ -236,7 +238,6 @@ class Router(object):
 
         if self.auth and security:
             try:
-                auth_resp = None
                 security_definitions = self.spec.get('securityDefinitions', {})
                 for statement in security:
                     declaration, options = statement.copy().popitem()
@@ -247,18 +248,25 @@ class Router(object):
                             token = req.headers.get(definition['name'])
                         elif definition['in'] == 'query':
                             token = req.GET.get(definition['name'])
+                        elif definition['in'] == 'cookie':
+                            token = req.cookies.get(definition['name'])
                         else:
                             token = None
 
                         if token:
-                            if auth_resp:
-                                raise auth_exc.MultipleAuthSourcesError(
-                                    'Only one of Token or API key expected.')
-
                             auth_func = op_resolver(definition['x-operationId'])
                             auth_resp = auth_func(token)
 
                             context['user'] = User.get_by_name(auth_resp.user)
+
+                            if 'x-set-cookie' in definition:
+                                max_age = auth_resp.expiry - date_utils.get_datetime_utc_now()
+                                cookie_token = cookies.make_cookie(definition['x-set-cookie'],
+                                                                   token,
+                                                                   max_age=max_age,
+                                                                   httponly=True)
+
+                            break
 
                 if 'user' not in context:
                     raise auth_exc.NoAuthSourceProvidedError('One of Token or API key required.')
@@ -461,6 +469,9 @@ class Router(object):
                 resp.headers.add('Warning', '199 OpenAPI "Response validation failed"')
         else:
             LOG.debug('No response spec found for endpoint "%s"' % (endpoint['operationId']))
+
+        if cookie_token:
+            resp.headerlist.append(('Set-Cookie', cookie_token))
 
         return resp
 

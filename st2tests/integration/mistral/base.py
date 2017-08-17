@@ -45,6 +45,17 @@ class TestWorkflowExecution(unittest2.TestCase):
         return execution
 
     @retrying.retry(wait_fixed=3000, stop_max_delay=900000)
+    def _wait_for_task(self, execution, task, state=None):
+        execution = self.st2client.liveactions.get_by_id(execution.id)
+        self.assertGreater(len(execution.result['tasks']), 0)
+
+        matches = [t for t in execution.result['tasks'] if t['name'] == task]
+        self.assertGreater(len(matches), 0)
+        self.assertEqual(matches[0]['state'], state)
+
+        return execution
+
+    @retrying.retry(wait_fixed=3000, stop_max_delay=900000)
     def _wait_for_completion(self, execution, expect_tasks=True, expect_tasks_completed=True):
         execution = self._wait_for_state(execution, ['succeeded', 'failed', 'canceled'])
         self.assertTrue(hasattr(execution, 'result'))

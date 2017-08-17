@@ -20,6 +20,10 @@ from st2common.router import Response
 from st2common.util.jsonify import json_encode
 from st2stream.listener import get_listener
 
+__all__ = [
+    'StreamController'
+]
+
 LOG = logging.getLogger(__name__)
 
 
@@ -37,10 +41,16 @@ def format(gen):
 
 
 class StreamController(object):
-    def get_all(self):
+    def get_all(self, events=None, action_refs=None, execution_ids=None, requester_user=None):
+        events = events.split(',') if events else None
+        action_refs = action_refs.split(',') if action_refs else None
+        execution_ids = execution_ids.split(',') if execution_ids else None
+
         def make_response():
-            res = Response(content_type='text/event-stream',
-                           app_iter=format(get_listener().generator()))
+            listener = get_listener()
+            app_iter = format(listener.generator(events=events, action_refs=action_refs,
+                                                 execution_ids=execution_ids))
+            res = Response(content_type='text/event-stream', app_iter=app_iter)
             return res
 
         stream = make_response()
