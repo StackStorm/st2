@@ -38,6 +38,11 @@ Changed
   official instructions at https://docs.mongodb.com/v3.4/release-notes/3.4-upgrade-standalone/.
   (improvement)
 
+Removed
+~~~~~~~
+
+* The feature to use local config.yaml in packs is removed.
+
 Fixed
 ~~~~~
 
