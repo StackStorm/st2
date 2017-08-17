@@ -10,6 +10,8 @@ Added
 * Add sample passive sensor at `contrib/examples/sensors/echo_flask_app`. (improvement) #3667
 * Add pack config into action context. This is made available under the ``config_context`` key.
   #3183
+* Add limit/"-n" flag and pagination note(stderr) in the CLI for ``st2 key list``.
+  Default limit is 50. #3641
 * Implement pause and resume for Mistral workflow. Pause and resume will cascade down to
   subworkflows. Pause from a subworkflow will cascade to the parent workflow.
 * Add pack index endpoint. It will made a request for every index defined in st2.conf and return
