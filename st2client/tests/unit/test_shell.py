@@ -184,6 +184,7 @@ class TestShell(base.BaseCLITestCase):
     def test_key(self):
         args_list = [
             ['key', 'list'],
+            ['key', 'list', '-n', '2'],
             ['key', 'get', 'abc'],
             ['key', 'set', 'abc', '123'],
             ['key', 'delete', 'abc'],

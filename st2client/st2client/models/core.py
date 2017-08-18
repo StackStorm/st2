@@ -254,7 +254,7 @@ class ResourceManager(object):
 
         for k, v in six.iteritems(kwargs):
             # Note: That's a special case to support api_key and token kwargs
-            if k not in ['token', 'api_key']:
+            if k not in ['token', 'api_key', 'params']:
                 params[k] = v
 
         url = '/%s/?%s' % (self.resource.get_url_path_name(),
