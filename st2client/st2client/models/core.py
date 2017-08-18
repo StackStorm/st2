@@ -524,4 +524,10 @@ class StreamManager(object):
         url = url + query_string
 
         for message in SSEClient(url):
+
+            # If the execution on the API server takes too long, the message
+            # can be empty. In this case, rerun the query.
+            if not message.data:
+                continue
+
             yield json.loads(message.data)
