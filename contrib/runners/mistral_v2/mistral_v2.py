@@ -387,7 +387,7 @@ class MistralRunner(AsyncActionRunner):
 
         # If workflow is executed under another parent workflow, pause the corresponding
         # action execution for the task in the parent workflow.
-        if 'parent' in getattr(self, 'context', {}):
+        if 'parent' in getattr(self, 'context', {}) and mistral_ctx.get('action_execution_id'):
             mistral_action_ex_id = mistral_ctx.get('action_execution_id')
             self._client.action_executions.update(mistral_action_ex_id, 'PAUSED')
 
@@ -420,7 +420,7 @@ class MistralRunner(AsyncActionRunner):
 
         # If workflow is executed under another parent workflow, resume the corresponding
         # action execution for the task in the parent workflow.
-        if 'parent' in getattr(self, 'context', {}):
+        if 'parent' in getattr(self, 'context', {}) and mistral_ctx.get('action_execution_id'):
             mistral_action_ex_id = mistral_ctx.get('action_execution_id')
             self._client.action_executions.update(mistral_action_ex_id, 'RUNNING')
 

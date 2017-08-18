@@ -12,8 +12,9 @@ Added
   #3183
 * Add limit/"-n" flag and pagination note(stderr) in the CLI for ``st2 key list``.
   Default limit is 50. #3641
-* Implement pause and resume for Mistral workflow. Pause and resume will cascade down to
-  subworkflows. Pause from a subworkflow will cascade to the parent workflow.
+* Implement pause and resume for Mistral workflow and Action Chain. Pause and resume will cascade
+  down to subworkflows and/or subchains. Pause from a subworkflow or subchain will cascade up to
+  the parent workflow. (new feature)
 * Add pack index endpoint. It will made a request for every index defined in st2.conf and return
   the combined list of available packs.
 * Added a new field ``timestamp_f`` to the GELF logging formatter that represents
