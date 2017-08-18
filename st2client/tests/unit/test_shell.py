@@ -218,6 +218,21 @@ class TestShell(base.BaseCLITestCase):
         ]
         self._validate_parser(args_list)
 
+    def test_pack(self):
+        args_list = [
+            ['pack', 'list'],
+            ['pack', 'get', 'abc'],
+            ['pack', 'search', 'abc'],
+            ['pack', 'show', 'abc'],
+            ['pack', 'remove', 'abc'],
+            ['pack', 'remove', 'abc', '--detail'],
+            ['pack', 'install', 'abc'],
+            ['pack', 'install', 'abc', '--force'],
+            ['pack', 'install', 'abc', '--detail'],
+            ['pack', 'config', 'abc']
+        ]
+        self._validate_parser(args_list)
+
     @mock.patch('st2client.base.ST2_CONFIG_PATH', '/home/does/not/exist')
     def test_print_config_default_config_no_config(self):
         os.environ['ST2_CONFIG_FILE'] = '/home/does/not/exist'
