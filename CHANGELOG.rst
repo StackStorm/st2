@@ -61,6 +61,7 @@ Fixed
   parameters and by passing --sort=asc|desc parameter to the st2 trace list CLI command.
   Descending order by default.(bug fix) #3237 #3665
 * Fix pack index health endpoint. It now points to the right controller. #3672
+* Fix 'pack register content' failures appearing on some slower systems by lifting action timeout #3685
 
 2.3.2 - July 28, 2017
 ---------------------
