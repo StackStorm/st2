@@ -31,6 +31,10 @@ Added
 * Show count of pack content (actions, sensors, triggers, rules and aliases) to be registered
   before the ``st2 pack install`` so that the delay in install is not mistaken as no response
   or hanging command. (improvement) #3586 #3675
+* Allow user to specify value for "array of objects" parameter type using a simple notation
+  when using ``st2 run`` CLI command. (improvement) #3646 #3670
+
+  Contributed by Hiroyasu OHYAMA.
 
 Changed
 ~~~~~~~
