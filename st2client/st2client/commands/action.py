@@ -580,6 +580,8 @@ class ActionRunCommandMixin(object):
             if param:
                 return param['type']
 
+            return None
+
         def normalize(name, value):
             """ The desired type is contained in the action meta-data, so we can look that up
                 and call the desired "caster" function listed in the "transformer" dict
