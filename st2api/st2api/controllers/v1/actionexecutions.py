@@ -309,8 +309,13 @@ class BaseActionExecutionOutputStreamController(ActionExecutionsControllerMixin,
     listener_name = abc.abstractproperty
 
     def get_one(self, id, requester_user):
-        execution_db = self._get_one_by_id(id=id, requester_user=requester_user,
-                                           permission_type=PermissionType.EXECUTION_VIEW)
+        # Special case for id == "last"
+        if id == 'last':
+            execution_db = ActionExecution.query().order_by('-id').limit(1).first()
+        else:
+            execution_db = self._get_one_by_id(id=id, requester_user=requester_user,
+                                               permission_type=PermissionType.EXECUTION_VIEW)
+
         execution_id = str(execution_db.id)
 
         def existing_output_iter():
