@@ -10,8 +10,11 @@ Added
 * Add sample passive sensor at `contrib/examples/sensors/echo_flask_app`. (improvement) #3667
 * Add pack config into action context. This is made available under the ``config_context`` key.
   #3183
-* Implement pause and resume for Mistral workflow. Pause and resume will cascade down to
-  subworkflows. Pause from a subworkflow will cascade to the parent workflow.
+* Add limit/"-n" flag and pagination note(stderr) in the CLI for ``st2 key list``.
+  Default limit is 50. #3641
+* Implement pause and resume for Mistral workflow and Action Chain. Pause and resume will cascade
+  down to subworkflows and/or subchains. Pause from a subworkflow or subchain will cascade up to
+  the parent workflow. (new feature)
 * Add pack index endpoint. It will made a request for every index defined in st2.conf and return
   the combined list of available packs.
 * Added a new field ``timestamp_f`` to the GELF logging formatter that represents
@@ -25,6 +28,13 @@ Added
   API endpoint. Those query parameters allow user to filter out which events to receive based
   on the event type, action ref and execution id. By default, when no filters are provided, all
   events are returned. (new feature) #3677
+* Show count of pack content (actions, sensors, triggers, rules and aliases) to be registered
+  before the ``st2 pack install`` so that the delay in install is not mistaken as no response
+  or hanging command. (improvement) #3586 #3675
+* Allow user to specify value for "array of objects" parameter type using a simple notation
+  when using ``st2 run`` CLI command. (improvement) #3646 #3670
+
+  Contributed by Hiroyasu OHYAMA.
 * Add new feature which allows Python runner action output (stdout and stderr) to be streamed
   and consumed in real-time by using one of the following approaches:
 
@@ -51,6 +61,11 @@ Changed
 * Update garbage collector service to delete corresponding stdout and stderr objects which belong
   to executions which are to be deleted. #2175 #3657
 
+Removed
+~~~~~~~
+
+* The feature to use local config.yaml in packs is removed.
+
 Fixed
 ~~~~~
 
@@ -68,6 +83,7 @@ Fixed
   parameters and by passing --sort=asc|desc parameter to the st2 trace list CLI command.
   Descending order by default.(bug fix) #3237 #3665
 * Fix pack index health endpoint. It now points to the right controller. #3672
+* Fix 'pack register content' failures appearing on some slower systems by lifting action timeout #3685
 
 2.3.2 - July 28, 2017
 ---------------------

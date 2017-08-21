@@ -1,5 +1,4 @@
 import random
-import time
 import uuid
 
 from mistralclient.api import base as mistralclient_base
@@ -84,11 +83,6 @@ class MistralResultsQuerier(Querier):
         :type last_query_time: ``float``
         :rtype: (``str``, ``object``)
         """
-        dt_last_query_time = (
-            time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(last_query_time))
-            if last_query_time else None
-        )
-
         # Retrieve liveaction_db to append new result to existing result.
         liveaction_db = action_utils.get_liveaction_by_id(execution_id)
 
@@ -97,12 +91,17 @@ class MistralResultsQuerier(Querier):
             raise Exception('[%s] Missing mistral workflow execution ID in query context. %s',
                             execution_id, query_context)
 
+        LOG.info('[%s] Querying mistral execution %s...', execution_id, mistral_exec_id)
+
         try:
-            wf_result = self._get_workflow_result(mistral_exec_id)
+            wf_result = self._get_workflow_result(execution_id, mistral_exec_id)
+
+            stream = getattr(liveaction_db, 'result', {})
 
             wf_tasks_result = self._get_workflow_tasks(
+                execution_id,
                 mistral_exec_id,
-                last_query_time=dt_last_query_time
+                recorded_tasks=stream.get('tasks', [])
             )
 
             result = self._format_query_result(
@@ -128,23 +127,25 @@ class MistralResultsQuerier(Querier):
             result['tasks']
         )
 
-        LOG.debug('[%s] mistral workflow execution status: %s' % (execution_id, status))
-        LOG.debug('[%s] mistral workflow execution result: %s' % (execution_id, result))
+        LOG.info('[%s] Determined execution status: %s', execution_id, status)
+        LOG.debug('[%s] Combined execution result: %s', execution_id, result)
 
         return (status, result)
 
-    def _get_workflow_result(self, exec_id):
+    def _get_workflow_result(self, st2_exec_id, mistral_exec_id):
         """
         Returns the workflow status and output. Mistral workflow status will be converted
         to st2 action status.
-        :param exec_id: Mistral execution ID
-        :type exec_id: ``str``
+        :param st2_exec_id: st2 execution ID
+        :type st2_exec_id: ``str``
+        :param mistral_exec_id: Mistral execution ID
+        :type mistral_exec_id: ``str``
         :rtype: (``str``, ``dict``)
         """
         try:
             jitter = random.uniform(0, self._jitter)
             eventlet.sleep(jitter)
-            execution = self._client.executions.get(exec_id)
+            execution = self._client.executions.get(mistral_exec_id)
         except mistralclient_base.APIException as mistral_exc:
             if 'not found' in mistral_exc.message:
                 raise exceptions.ReferenceNotFoundError(mistral_exc.message)
@@ -157,30 +158,53 @@ class MistralResultsQuerier(Querier):
             'state_info': execution.state_info
         }
 
+        LOG.info(
+            '[%s] Query returned status "%s" for mistral execution %s.',
+            st2_exec_id,
+            execution.state,
+            mistral_exec_id
+        )
+
         return result
 
-    def _get_workflow_tasks(self, exec_id, last_query_time=None):
+    def _get_workflow_tasks(self, st2_exec_id, mistral_exec_id, recorded_tasks=None):
         """
         Returns the list of tasks for a workflow execution.
-        :param exec_id: Mistral execution ID
-        :type exec_id: ``str``
-        :param last_query_time: Timestamp to filter tasks
-        :type last_query_time: ``str``
+        :param st2_exec_id: st2 execution ID
+        :type st2_exec_id: ``str``
+        :param mistral_exec_id: Mistral execution ID
+        :type mistral_exec_id: ``str``
+        :param recorded_tasks: The list of tasks recorded in the liveaction result.
         :rtype: ``list``
         """
         result = []
+        queries = []
+
+        if recorded_tasks is None:
+            recorded_tasks = []
 
         try:
-            wf_tasks = self._client.tasks.list(workflow_execution_id=exec_id)
-
-            if last_query_time:
-                wf_tasks = [
-                    t for t in wf_tasks
-                    if ((t.created_at is not None and t.created_at >= last_query_time) or
-                        (t.updated_at is not None and t.updated_at >= last_query_time))
-                ]
+            wf_tasks = self._client.tasks.list(workflow_execution_id=mistral_exec_id)
 
             for wf_task in wf_tasks:
+                recorded = list(filter(lambda x: x['id'] == wf_task.id, recorded_tasks))
+
+                if (not recorded or
+                        recorded[0].get('state') != wf_task.state or
+                        str(recorded[0].get('created_at')) != wf_task.created_at or
+                        str(recorded[0].get('updated_at')) != wf_task.updated_at):
+                    queries.append(wf_task)
+
+            target_task_names = [wf_task.name for wf_task in queries]
+
+            LOG.info(
+                '[%s] Querying the following tasks for mistral execution %s: %s',
+                st2_exec_id,
+                mistral_exec_id,
+                ', '.join(target_task_names) if target_task_names else 'None'
+            )
+
+            for wf_task in queries:
                 result.append(self._client.tasks.get(wf_task.id))
 
                 # Lets not blast requests but just space it out for better CPU profile

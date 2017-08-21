@@ -197,6 +197,12 @@ def is_action_canceled_or_canceling(liveaction_id):
                                     action_constants.LIVEACTION_STATUS_CANCELING]
 
 
+def is_action_paused_or_pausing(liveaction_id):
+    liveaction_db = action_utils.get_liveaction_by_id(liveaction_id)
+    return liveaction_db.status in [action_constants.LIVEACTION_STATUS_PAUSED,
+                                    action_constants.LIVEACTION_STATUS_PAUSING]
+
+
 def request_cancellation(liveaction, requester):
     """
     Request cancellation of an action execution.
@@ -223,7 +229,7 @@ def request_cancellation(liveaction, requester):
               if liveaction.status == action_constants.LIVEACTION_STATUS_RUNNING
               else action_constants.LIVEACTION_STATUS_CANCELED)
 
-    update_status(liveaction, status, result=result)
+    liveaction = update_status(liveaction, status, result=result)
 
     execution = ActionExecution.get(liveaction__id=str(liveaction.id))
 
@@ -263,7 +269,7 @@ def request_pause(liveaction, requester):
             % liveaction.id
         )
 
-    update_status(liveaction, action_constants.LIVEACTION_STATUS_PAUSING)
+    liveaction = update_status(liveaction, action_constants.LIVEACTION_STATUS_PAUSING)
 
     execution = ActionExecution.get(liveaction__id=str(liveaction.id))
 
@@ -302,7 +308,7 @@ def request_resume(liveaction, requester):
             % liveaction.id
         )
 
-    update_status(liveaction, action_constants.LIVEACTION_STATUS_RESUMING)
+    liveaction = update_status(liveaction, action_constants.LIVEACTION_STATUS_RESUMING)
 
     execution = ActionExecution.get(liveaction__id=str(liveaction.id))
 

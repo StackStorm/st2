@@ -134,6 +134,76 @@ MOCK_LIVEACTION_RESULT = {
     ]
 }
 
+MOCK_WF_EX_INCOMPLETE_TASKS_DATA = [
+    {
+        'id': uuid.uuid4().hex,
+        'name': 'task1',
+        'workflow_execution_id': MOCK_WF_EX_DATA['id'],
+        'workflow_name': MOCK_WF_EX_DATA['name'],
+        'created_at': str(datetime.datetime.utcnow() - datetime.timedelta(seconds=180)),
+        'updated_at': str(datetime.datetime.utcnow()),
+        'state': 'RUNNING',
+        'state_info': None,
+        'input': '{"a": "b"}',
+        'result': '{"c": "d"}',
+        'published': '{"c": "d"}'
+    },
+    {
+        'id': uuid.uuid4().hex,
+        'name': 'task2',
+        'workflow_execution_id': MOCK_WF_EX_DATA['id'],
+        'workflow_name': MOCK_WF_EX_DATA['name'],
+        'created_at': str(datetime.datetime.utcnow() - datetime.timedelta(seconds=180)),
+        'updated_at': str(datetime.datetime.utcnow()),
+        'state': 'RUNNING',
+        'state_info': None,
+        'input': '{"e": "f", "g": "h"}',
+        'result': '{"i": "j", "k": "l"}',
+        'published': '{"k": "l"}'
+    }
+]
+
+MOCK_WF_EX_INCOMPLETE_TASKS = [
+    tasks.Task(None, MOCK_WF_EX_INCOMPLETE_TASKS_DATA[0]),
+    tasks.Task(None, MOCK_WF_EX_INCOMPLETE_TASKS_DATA[1])
+]
+
+MOCK_LIVEACTION_OUTDATED_INCOMPLETE_TASKS_RESULT = {
+    'tasks': [
+        {
+            'id': MOCK_WF_EX_INCOMPLETE_TASKS_DATA[0]['id'],
+            'name': MOCK_WF_EX_INCOMPLETE_TASKS_DATA[0]['name'],
+            'workflow_execution_id': MOCK_WF_EX_INCOMPLETE_TASKS_DATA[0]['workflow_execution_id'],
+            'workflow_name': MOCK_WF_EX_INCOMPLETE_TASKS_DATA[0]['workflow_name'],
+            'created_at': MOCK_WF_EX_INCOMPLETE_TASKS_DATA[0]['created_at'],
+            'updated_at': str(datetime.datetime.utcnow() - datetime.timedelta(seconds=120)),
+            'state': MOCK_WF_EX_INCOMPLETE_TASKS_DATA[0]['state'],
+            'state_info': MOCK_WF_EX_INCOMPLETE_TASKS_DATA[0]['state_info'],
+            'input': json.loads(MOCK_WF_EX_INCOMPLETE_TASKS_DATA[0]['input']),
+            'result': json.loads(MOCK_WF_EX_INCOMPLETE_TASKS_DATA[0]['result']),
+            'published': json.loads(MOCK_WF_EX_INCOMPLETE_TASKS_DATA[0]['published'])
+        }
+    ]
+}
+
+MOCK_LIVEACTION_UP_TO_DATE_INCOMPLETE_TASKS_RESULT = {
+    'tasks': [
+        {
+            'id': MOCK_WF_EX_INCOMPLETE_TASKS_DATA[0]['id'],
+            'name': MOCK_WF_EX_INCOMPLETE_TASKS_DATA[0]['name'],
+            'workflow_execution_id': MOCK_WF_EX_INCOMPLETE_TASKS_DATA[0]['workflow_execution_id'],
+            'workflow_name': MOCK_WF_EX_INCOMPLETE_TASKS_DATA[0]['workflow_name'],
+            'created_at': MOCK_WF_EX_INCOMPLETE_TASKS_DATA[0]['created_at'],
+            'updated_at': MOCK_WF_EX_INCOMPLETE_TASKS_DATA[0]['updated_at'],
+            'state': MOCK_WF_EX_INCOMPLETE_TASKS_DATA[0]['state'],
+            'state_info': MOCK_WF_EX_INCOMPLETE_TASKS_DATA[0]['state_info'],
+            'input': json.loads(MOCK_WF_EX_INCOMPLETE_TASKS_DATA[0]['input']),
+            'result': json.loads(MOCK_WF_EX_INCOMPLETE_TASKS_DATA[0]['result']),
+            'published': json.loads(MOCK_WF_EX_INCOMPLETE_TASKS_DATA[0]['published'])
+        }
+    ]
+}
+
 MOCK_CHILD_ACTIONEXECUTION_RUNNING = ActionExecutionDB(
     action={'ref': 'mock.task'},
     runner={'name': 'local_runner'},
@@ -183,6 +253,18 @@ MOCK_LIVEACTION_RUNNING_WITH_STREAMING_RESULT = LiveActionDB(
     action='mock.workflow',
     status=action_constants.LIVEACTION_STATUS_RUNNING,
     result=MOCK_LIVEACTION_RESULT
+)
+
+MOCK_LIVEACTION_RUNNING_WITH_OUTDATED_INCOMPLETE_TASKS_STREAMING_RESULT = LiveActionDB(
+    action='mock.workflow',
+    status=action_constants.LIVEACTION_STATUS_RUNNING,
+    result=MOCK_LIVEACTION_OUTDATED_INCOMPLETE_TASKS_RESULT
+)
+
+MOCK_LIVEACTION_RUNNING_WITH_UP_TO_DATE_INCOMPLETE_TASKS_STREAMING_RESULT = LiveActionDB(
+    action='mock.workflow',
+    status=action_constants.LIVEACTION_STATUS_RUNNING,
+    result=MOCK_LIVEACTION_UP_TO_DATE_INCOMPLETE_TASKS_RESULT
 )
 
 MOCK_LIVEACTION_CANCELING = LiveActionDB(
@@ -666,7 +748,7 @@ class MistralQuerierTest(DbTestCase):
         executions.ExecutionManager, 'get',
         mock.MagicMock(return_value=MOCK_WF_EX))
     def test_get_workflow_result(self):
-        result = self.querier._get_workflow_result(uuid.uuid4().hex)
+        result = self.querier._get_workflow_result(uuid.uuid4().hex, uuid.uuid4().hex)
 
         expected = {
             'k1': 'v1',
@@ -687,7 +769,7 @@ class MistralQuerierTest(DbTestCase):
             MOCK_WF_EX_TASKS[0],
             MOCK_WF_EX_TASKS[1]]))
     def test_get_workflow_tasks(self):
-        tasks = self.querier._get_workflow_tasks(uuid.uuid4().hex)
+        tasks = self.querier._get_workflow_tasks(uuid.uuid4().hex, uuid.uuid4().hex)
 
         expected = copy.deepcopy(MOCK_WF_EX_TASKS_DATA)
         for task in expected:
@@ -1032,3 +1114,91 @@ class MistralQuerierTest(DbTestCase):
 
     def test_query_missing_mistral_execution_id(self):
         self.assertRaises(Exception, self.querier.query, uuid.uuid4().hex, {'mistral': {}})
+
+    @mock.patch.object(
+        action_utils, 'get_liveaction_by_id',
+        mock.MagicMock(
+            return_value=MOCK_LIVEACTION_RUNNING_WITH_OUTDATED_INCOMPLETE_TASKS_STREAMING_RESULT))
+    @mock.patch.object(
+        executions.ExecutionManager, 'get',
+        mock.MagicMock(return_value=MOCK_WF_EX))
+    @mock.patch.object(
+        tasks.TaskManager, 'list',
+        mock.MagicMock(return_value=MOCK_WF_EX_INCOMPLETE_TASKS))
+    @mock.patch.object(
+        tasks.TaskManager, 'get',
+        mock.MagicMock(side_effect=MOCK_WF_EX_INCOMPLETE_TASKS))
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_RUNNING_CHILD_SUCCEEDED,
+            MOCK_CHILD_ACTIONEXECUTION_SUCCEEDED]))
+    def test_query_with_outdated_tasks_in_liveaction_result(self):
+        last_query_time = time.time() + 3
+
+        (status, result) = self.querier.query(
+            uuid.uuid4().hex,
+            MOCK_QRY_CONTEXT,
+            last_query_time=last_query_time
+        )
+
+        expected = {
+            'k1': 'v1',
+            'tasks': copy.deepcopy(MOCK_WF_EX_INCOMPLETE_TASKS_DATA),
+            'extra': {
+                'state': MOCK_WF_EX.state,
+                'state_info': MOCK_WF_EX.state_info
+            }
+        }
+
+        for task in expected['tasks']:
+            task['input'] = json.loads(task['input'])
+            task['result'] = json.loads(task['result'])
+            task['published'] = json.loads(task['published'])
+
+        self.assertEqual(action_constants.LIVEACTION_STATUS_RUNNING, status)
+        self.assertDictEqual(expected, result)
+
+    @mock.patch.object(
+        action_utils, 'get_liveaction_by_id',
+        mock.MagicMock(
+            return_value=MOCK_LIVEACTION_RUNNING_WITH_UP_TO_DATE_INCOMPLETE_TASKS_STREAMING_RESULT))
+    @mock.patch.object(
+        executions.ExecutionManager, 'get',
+        mock.MagicMock(return_value=MOCK_WF_EX))
+    @mock.patch.object(
+        tasks.TaskManager, 'list',
+        mock.MagicMock(return_value=MOCK_WF_EX_INCOMPLETE_TASKS))
+    @mock.patch.object(
+        tasks.TaskManager, 'get',
+        mock.MagicMock(return_value=MOCK_WF_EX_INCOMPLETE_TASKS[1]))
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_RUNNING_CHILD_SUCCEEDED,
+            MOCK_CHILD_ACTIONEXECUTION_SUCCEEDED]))
+    def test_query_with_up_to_date_tasks_in_liveaction_result(self):
+        last_query_time = time.time() + 3
+
+        (status, result) = self.querier.query(
+            uuid.uuid4().hex,
+            MOCK_QRY_CONTEXT,
+            last_query_time=last_query_time
+        )
+
+        expected = {
+            'k1': 'v1',
+            'tasks': copy.deepcopy(MOCK_WF_EX_INCOMPLETE_TASKS_DATA),
+            'extra': {
+                'state': MOCK_WF_EX.state,
+                'state_info': MOCK_WF_EX.state_info
+            }
+        }
+
+        for task in expected['tasks']:
+            task['input'] = json.loads(task['input'])
+            task['result'] = json.loads(task['result'])
+            task['published'] = json.loads(task['published'])
+
+        self.assertEqual(action_constants.LIVEACTION_STATUS_RUNNING, status)
+        self.assertDictEqual(expected, result)

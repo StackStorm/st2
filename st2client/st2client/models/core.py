@@ -254,7 +254,7 @@ class ResourceManager(object):
 
         for k, v in six.iteritems(kwargs):
             # Note: That's a special case to support api_key and token kwargs
-            if k not in ['token', 'api_key']:
+            if k not in ['token', 'api_key', 'params']:
                 params[k] = v
 
         url = '/%s/?%s' % (self.resource.get_url_path_name(),
@@ -524,4 +524,10 @@ class StreamManager(object):
         url = url + query_string
 
         for message in SSEClient(url):
+
+            # If the execution on the API server takes too long, the message
+            # can be empty. In this case, rerun the query.
+            if not message.data:
+                continue
+
             yield json.loads(message.data)
