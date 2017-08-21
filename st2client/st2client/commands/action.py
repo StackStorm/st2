@@ -550,6 +550,15 @@ class ActionRunCommandMixin(object):
                 result = json.loads(value)
             except ValueError:
                 result = [v.strip() for v in value.split(',')]
+
+            # When each values in this array represent dict type, this converts
+            # the 'result' to the dict type value.
+            if all([isinstance(x, str) and ':' in x for x in result]):
+                result_dict = {}
+                for (k, v) in [x.split(':') for x in result]:
+                    result_dict[k] = v
+                return [result_dict]
+
             return result
 
         transformer = {
@@ -561,6 +570,16 @@ class ActionRunCommandMixin(object):
             'string': str
         }
 
+        def get_param_type(key):
+            param = None
+            if key in runner.runner_parameters:
+                param = runner.runner_parameters[key]
+            elif key in action.parameters:
+                param = action.parameters[key]
+
+            if param:
+                return param['type']
+
         def normalize(name, value):
             """ The desired type is contained in the action meta-data, so we can look that up
                 and call the desired "caster" function listed in the "transformer" dict
@@ -569,16 +588,10 @@ class ActionRunCommandMixin(object):
             # Users can also specify type for each array parameter inside an action metadata
             # (items: type: int for example) and this information is available here so we could
             # also leverage that to cast each array item to the correct type.
+            param_type = get_param_type(name)
+            if param_type:
+                return transformer[param_type](value)
 
-            if name in runner.runner_parameters:
-                param = runner.runner_parameters[name]
-                if 'type' in param and param['type'] in transformer:
-                    return transformer[param['type']](value)
-
-            if name in action.parameters:
-                param = action.parameters[name]
-                if 'type' in param and param['type'] in transformer:
-                    return transformer[param['type']](value)
             return value
 
         result = {}
@@ -613,7 +626,12 @@ class ActionRunCommandMixin(object):
                         else:
                             result[k] = content
                     else:
-                        result[k] = normalize(k, v)
+                        # This permits multiple declarations of argument only in the array type.
+                        if get_param_type(k) == 'array' and k in result:
+                            result[k] += normalize(k, v)
+                        else:
+                            result[k] = normalize(k, v)
+
                 except Exception as e:
                     # TODO: Move transformers in a separate module and handle
                     # exceptions there
