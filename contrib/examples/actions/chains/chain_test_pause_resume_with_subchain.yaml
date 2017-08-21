@@ -1,0 +1,13 @@
+chain:
+    -
+        name: task1
+        ref: examples.chain-test-pause-resume
+        params:
+            tempfile: "{{tempfile}}"
+            message: "{{message}}"
+        on-success: task2
+    -
+        name: task2
+        ref: core.local
+        params:
+            cmd: echo foobar

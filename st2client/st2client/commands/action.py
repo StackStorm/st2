@@ -49,7 +49,9 @@ LIVEACTION_STATUS_TIMED_OUT = 'timeout'
 LIVEACTION_STATUS_ABANDONED = 'abandoned'
 LIVEACTION_STATUS_CANCELING = 'canceling'
 LIVEACTION_STATUS_CANCELED = 'canceled'
-
+LIVEACTION_STATUS_PAUSING = 'pausing'
+LIVEACTION_STATUS_PAUSED = 'paused'
+LIVEACTION_STATUS_RESUMING = 'resuming'
 
 LIVEACTION_COMPLETED_STATES = [
     LIVEACTION_STATUS_SUCCEEDED,
@@ -358,7 +360,7 @@ class ActionRunCommandMixin(object):
 
         status_index = options['attributes'].index('status')
 
-        if isinstance(instance.result, dict):
+        if hasattr(instance, 'result') and isinstance(instance.result, dict):
             tasks = instance.result.get('tasks', [])
         else:
             tasks = []
@@ -952,10 +954,14 @@ class ActionExecutionBranch(resource.ResourceBranch):
                       'get': ActionExecutionGetCommand})
 
         # Register extended commands
-        self.commands['re-run'] = ActionExecutionReRunCommand(self.resource, self.app,
-                                                              self.subparsers, add_help=False)
-        self.commands['cancel'] = ActionExecutionCancelCommand(self.resource, self.app,
-                                                               self.subparsers, add_help=False)
+        self.commands['re-run'] = ActionExecutionReRunCommand(
+            self.resource, self.app, self.subparsers, add_help=False)
+        self.commands['cancel'] = ActionExecutionCancelCommand(
+            self.resource, self.app, self.subparsers, add_help=False)
+        self.commands['pause'] = ActionExecutionPauseCommand(
+            self.resource, self.app, self.subparsers, add_help=False)
+        self.commands['resume'] = ActionExecutionResumeCommand(
+            self.resource, self.app, self.subparsers, add_help=False)
 
 
 POSSIBLE_ACTION_STATUS_VALUES = ('succeeded', 'running', 'scheduled', 'failed', 'canceled')
@@ -1255,3 +1261,71 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
                                                args=args, **kwargs)
 
         return execution
+
+
+class ActionExecutionPauseCommand(ActionRunCommandMixin, ActionExecutionReadCommand):
+    display_attributes = ['id', 'action.ref', 'context.user', 'parameters', 'status',
+                          'start_timestamp', 'end_timestamp', 'result', 'liveaction']
+
+    def __init__(self, resource, *args, **kwargs):
+        super(ActionExecutionPauseCommand, self).__init__(
+            resource, 'pause', 'Pause %s (workflow executions only).' %
+            resource.get_plural_display_name().lower(),
+            *args, **kwargs)
+
+        self.parser.add_argument('id', nargs='?',
+                                 metavar='id',
+                                 help='ID of action execution to pause.')
+
+        self._add_common_options()
+
+    @add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        return self.manager.pause(args.id)
+
+    @add_auth_token_to_kwargs_from_cli
+    def run_and_print(self, args, **kwargs):
+        try:
+            execution = self.run(args, **kwargs)
+
+            if not args.json and not args.yaml:
+                # Include elapsed time for running executions
+                execution = format_execution_status(execution)
+        except resource.ResourceNotFoundError:
+            self.print_not_found(args.id)
+            raise OperationFailureException('Execution %s not found.' % (args.id))
+        return self._print_execution_details(execution=execution, args=args, **kwargs)
+
+
+class ActionExecutionResumeCommand(ActionRunCommandMixin, ActionExecutionReadCommand):
+    display_attributes = ['id', 'action.ref', 'context.user', 'parameters', 'status',
+                          'start_timestamp', 'end_timestamp', 'result', 'liveaction']
+
+    def __init__(self, resource, *args, **kwargs):
+        super(ActionExecutionResumeCommand, self).__init__(
+            resource, 'resume', 'Resume %s (workflow executions only).' %
+            resource.get_plural_display_name().lower(),
+            *args, **kwargs)
+
+        self.parser.add_argument('id', nargs='?',
+                                 metavar='id',
+                                 help='ID of action execution to resume.')
+
+        self._add_common_options()
+
+    @add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        return self.manager.resume(args.id)
+
+    @add_auth_token_to_kwargs_from_cli
+    def run_and_print(self, args, **kwargs):
+        try:
+            execution = self.run(args, **kwargs)
+
+            if not args.json and not args.yaml:
+                # Include elapsed time for running executions
+                execution = format_execution_status(execution)
+        except resource.ResourceNotFoundError:
+            self.print_not_found(args.id)
+            raise OperationFailureException('Execution %s not found.' % (args.id))
+        return self._print_execution_details(execution=execution, args=args, **kwargs)

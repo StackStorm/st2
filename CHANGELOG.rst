@@ -7,16 +7,45 @@ in development
 Added
 ~~~~~
 
+* Add sample passive sensor at `contrib/examples/sensors/echo_flask_app`. (improvement) #3667
 * Add pack config into action context. This is made available under the ``config_context`` key.
   #3183
+* Add limit/"-n" flag and pagination note(stderr) in the CLI for ``st2 key list``.
+  Default limit is 50. #3641
+* Implement pause and resume for Mistral workflow and Action Chain. Pause and resume will cascade
+  down to subworkflows and/or subchains. Pause from a subworkflow or subchain will cascade up to
+  the parent workflow. (new feature)
+* Add pack index endpoint. It will made a request for every index defined in st2.conf and return
+  the combined list of available packs.
+* Added a new field ``timestamp_f`` to the GELF logging formatter that represents
+  the time of the logging even in fractional time (resolution is dependent on your
+  system). This allows adjacent logging events to be distinguished more accurately
+  by the time they occurred.
+  Contributed by Nick Maludy (Encore Technologies) #3362
+* Require new ``STREAM_VIEW`` RBAC permission type to be able to view ``/v1/stream`` stream API
+  endpoint. (improvement) #3676
+* Add new ``?events``, ``?action_refs`` and ``?execution_ids`` query params to ``/v1/stream/``
+  API endpoint. Those query parameters allow user to filter out which events to receive based
+  on the event type, action ref and execution id. By default, when no filters are provided, all
+  events are returned. (new feature) #3677
+* Show count of pack content (actions, sensors, triggers, rules and aliases) to be registered
+  before the ``st2 pack install`` so that the delay in install is not mistaken as no response
+  or hanging command. (improvement) #3586 #3675
 
 Changed
 ~~~~~~~
 
+* Rename ST2 action runner cancel queue from ``st2.actionrunner.canel``
+  to ``st2.actionrunner.cancel``. (improvement) #3247
 * Install scripts and documentation has been updated to install MongoDB 3.4 by default (previously
   3.2 was installed by default). If you want to upgrade an existing installation, please follow
   official instructions at https://docs.mongodb.com/v3.4/release-notes/3.4-upgrade-standalone/.
   (improvement)
+
+Removed
+~~~~~~~
+
+* The feature to use local config.yaml in packs is removed.
 
 Fixed
 ~~~~~
@@ -31,6 +60,11 @@ Fixed
 
   This also fixes an issue with Redis kombu backend not working. (bug fix) #3635 #3639 #3648
 * Fix logrotate configuration to delete stale compressed st2actionrunner logs #3647
+* Fix trace list API endpoint sorting by `start_timestamp`, using ?sort_desc=True|False query
+  parameters and by passing --sort=asc|desc parameter to the st2 trace list CLI command.
+  Descending order by default.(bug fix) #3237 #3665
+* Fix pack index health endpoint. It now points to the right controller. #3672
+* Fix 'pack register content' failures appearing on some slower systems by lifting action timeout #3685
 
 2.3.2 - July 28, 2017
 ---------------------
@@ -90,7 +124,7 @@ Fixed
 * Fix logrotate script so that it no longer prints the `st2ctl` PID status to stdout
   for each file that it rotates. Also, it will no longer print an error if
   /var/log/st2/st2web.log is missing.
-  
+
   Contributed by Nick Maludy. #3633
 
 2.3.1 - July 07, 2017
