@@ -312,7 +312,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(len(stderr_dbs), 0)
 
         # False is a default behavior so end result should be the same
-        cfg.CONF.set_override(name='store_output', group='actionrunner', override=False)
+        cfg.CONF.set_override(name='stream_output', group='actionrunner', override=False)
 
         mock_process = mock.Mock()
         mock_process.returncode = 0
@@ -343,7 +343,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     @mock.patch('st2common.util.green.shell.eventlet.spawn')
     def test_action_stdout_and_stderr_is_stored_in_the_db(self, mock_spawn, mock_popen):
         # Feature is enabled
-        cfg.CONF.set_override(name='store_output', group='actionrunner', override=True)
+        cfg.CONF.set_override(name='stream_output', group='actionrunner', override=True)
 
         values = {'delimiter': ACTION_OUTPUT_RESULT_DELIMITER}
 
