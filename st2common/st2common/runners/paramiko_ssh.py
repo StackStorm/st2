@@ -83,8 +83,8 @@ class ParamikoSSHClient(object):
     CONNECT_TIMEOUT = 60
 
     def __init__(self, hostname, port=DEFAULT_SSH_PORT, username=None, password=None,
-                 bastion_host=None,
-                 key_files=None, key_material=None, timeout=None, passphrase=None):
+                 bastion_host=None, key_files=None, key_material=None, timeout=None,
+                 passphrase=None, handle_stdout_line_func=None, handle_stderr_line_func=None):
         """
         Authentication is always attempted in the following order:
 
@@ -105,6 +105,9 @@ class ParamikoSSHClient(object):
         self.key_material = key_material
         self.bastion_host = bastion_host
         self.passphrase = passphrase
+        self._handle_stdout_line_func = handle_stdout_line_func
+        self._handle_stderr_line_func = handle_stderr_line_func
+
         self.ssh_config_file = os.path.expanduser(
             cfg.CONF.ssh_runner.ssh_config_file_path or
             '~/.ssh/config'
@@ -448,6 +451,7 @@ class ParamikoSSHClient(object):
 
         out = bytearray()
         stdout = StringIO()
+
         if chan.recv_ready():
             data = chan.recv(self.CHUNK_SIZE)
             out += data
@@ -462,6 +466,18 @@ class ParamikoSSHClient(object):
                 out += data
 
         stdout.write(self._get_decoded_data(out))
+
+        if self._handle_stdout_line_func:
+            lines = strip_shell_chars(stdout.getvalue()).split('\n')
+
+            for line in lines:
+                # Note: If this function performs network operating no sleep is
+                # needed, otherwise if a long blocking operating is performed,
+                # sleep is recommended to yield and prevent from busy looping
+                self._handle_stdout_line_func(line=line)
+
+            stdout.seek(0)
+
         return stdout
 
     def _consume_stderr(self, chan):
@@ -471,6 +487,7 @@ class ParamikoSSHClient(object):
 
         out = bytearray()
         stderr = StringIO()
+
         if chan.recv_stderr_ready():
             data = chan.recv_stderr(self.CHUNK_SIZE)
             out += data
@@ -483,6 +500,17 @@ class ParamikoSSHClient(object):
 
                 data = chan.recv_stderr(self.CHUNK_SIZE)
                 out += data
+
+        if self._handle_stderr_line_func:
+            lines = strip_shell_chars(stderr.getvalue()).split('\n')
+
+            for line in lines:
+                # Note: If this function performs network operating no sleep is
+                # needed, otherwise if a long blocking operating is performed,
+                # sleep is recommended to yield and prevent from busy looping
+                self._handle_stdout_line_func(line=line)
+
+            stderr.seek(0)
 
         stderr.write(self._get_decoded_data(out))
         return stderr

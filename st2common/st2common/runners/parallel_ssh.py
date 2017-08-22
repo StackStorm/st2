@@ -38,7 +38,18 @@ class ParallelSSHClient(object):
 
     def __init__(self, hosts, user=None, password=None, pkey_file=None, pkey_material=None, port=22,
                  bastion_host=None, concurrency=10, raise_on_any_error=False, connect=True,
-                 passphrase=None):
+                 passphrase=None, handle_stdout_line_func=None, handle_stderr_line_func=None):
+        """
+        :param handle_stdout_line_func: Callback function which is called dynamically each time a
+                                        new stdout line is received.
+        :type handle_stdout_line_func: ``func``
+
+        :param handle_stderr_line_func: Callback function which is called dynamically each time a
+                                        new stderr line is received.
+        :type handle_stderr_line_func: ``func``
+        """
+        self._ssh_user = user
+
         self._ssh_user = user
         self._ssh_key_file = pkey_file
         self._ssh_key_material = pkey_material
@@ -48,6 +59,8 @@ class ParallelSSHClient(object):
         self._ssh_port = port
         self._bastion_host = bastion_host
         self._passphrase = passphrase
+        self._handle_stdout_line_func = handle_stdout_line_func
+        self._handle_stderr_line_func = handle_stderr_line_func
 
         if not hosts:
             raise Exception('Need an non-empty list of hosts to talk to.')
@@ -232,13 +245,15 @@ class ParallelSSHClient(object):
 
         LOG.debug('Connecting to host.', extra=extra)
 
-        client = ParamikoSSHClient(hostname, username=self._ssh_user,
+        client = ParamikoSSHClient(hostname=hostname, port=port,
+                                   username=self._ssh_user,
                                    password=self._ssh_password,
                                    bastion_host=self._bastion_host,
                                    key_files=self._ssh_key_file,
                                    key_material=self._ssh_key_material,
                                    passphrase=self._passphrase,
-                                   port=port)
+                                   handle_stdout_line_func=handle_stdout_line_func,
+                                   handle_stderr_line_func=handle_stderr_line_func)
         try:
             client.connect()
         except SSHException as ex:
