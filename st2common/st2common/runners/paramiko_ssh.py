@@ -490,6 +490,7 @@ class ParamikoSSHClient(object):
         if self._handle_stdout_line_func and call_line_handler_func:
             data = strip_shell_chars(stdout.getvalue())
             lines = data.split('\n')
+            lines = [line for line in lines if line]
 
             for line in lines:
                 # Note: If this function performs network operating no sleep is
@@ -525,6 +526,7 @@ class ParamikoSSHClient(object):
         if self._handle_stderr_line_func and call_line_handler_func:
             data = strip_shell_chars(stderr.getvalue())
             lines = data.split('\n')
+            lines = [line for line in lines if line]
 
             for line in lines:
                 # Note: If this function performs network operating no sleep is
