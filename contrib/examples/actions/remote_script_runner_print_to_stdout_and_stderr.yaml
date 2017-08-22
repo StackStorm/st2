@@ -1,10 +1,12 @@
 ---
-name: local_runner_print_to_stdout_and_stderr
-runner_type: local-shell-script
+name: remote_script_runner_print_to_stdout_and_stderr
+runner_type: remote-shell-script
 description: Action which periodically prints to stdout and stderr. Useful for testing action output streaming.
 enabled: true
 entry_point: print_to_stdout_and_stderr.sh
 parameters:
+  hosts:
+    default: "localhost"
   count:
     type: integer
     description: "Number of repetitions."
