@@ -1393,8 +1393,8 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
             events.append('st2.execution.stderr__create')
 
         for event in stream_mgr.listen(events, **kwargs):
-            status = getattr(event, 'status', None)
-            is_execution_event = 'status' in event
+            status = event.get('status', None)
+            is_execution_event = status is not None
 
             if is_execution_event:
                 # Execution has completed
