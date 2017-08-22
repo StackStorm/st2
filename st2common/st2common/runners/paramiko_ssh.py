@@ -523,6 +523,8 @@ class ParamikoSSHClient(object):
                 data = chan.recv_stderr(self.CHUNK_SIZE)
                 out += data
 
+        stderr.write(self._get_decoded_data(out))
+
         if self._handle_stderr_line_func and call_line_handler_func:
             data = strip_shell_chars(stderr.getvalue())
             lines = data.split('\n')
@@ -532,11 +534,10 @@ class ParamikoSSHClient(object):
                 # Note: If this function performs network operating no sleep is
                 # needed, otherwise if a long blocking operating is performed,
                 # sleep is recommended to yield and prevent from busy looping
-                self._handle_stdout_line_func(line=line + '\n')
+                self._handle_stderr_line_func(line=line + '\n')
 
             stderr.seek(0)
 
-        stderr.write(self._get_decoded_data(out))
         return stderr
 
     def _get_decoded_data(self, data):
