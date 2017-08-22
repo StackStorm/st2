@@ -173,7 +173,6 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
                                                            read_stdout_buffer=stdout,
                                                            read_stderr_buffer=stderr)
 
-
         error = None
 
         if timed_out:
