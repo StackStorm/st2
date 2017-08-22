@@ -35,7 +35,7 @@ Added
   when using ``st2 run`` CLI command. (improvement) #3646 #3670
 
   Contributed by Hiroyasu OHYAMA.
-* Add new feature which allows Python runner action output (stdout and stderr) to be streamed
+* Add new feature which allows runner action output (stdout and stderr) to be streamed
   and consumed in real-time by using one of the following approaches:
 
   - ``/v1/executions/<execution id>/stdout`` and ``/v1/executions/<execution id>/stderr`` API
@@ -44,8 +44,16 @@ Added
     ``st2.execution.stdout__create`` events.
   - ``st2 execution tail <execution id>`` CLI command (underneath it uses stream API endpoint).
 
-  Note: This feature is still experimental and it's only available for Python runner actions and
-  off by default. To enable it, set ``actionrunner.store_output`` config option to ``True``.
+  Right now this functionality is available for the following runners:
+
+  - local command runner
+  - local script runner
+  - remote command runner
+  - remote script runner
+  - python runner
+
+  Note: This feature is still experimental and it's disabled by default (opt-in). To enable it,
+  set ``actionrunner.store_output`` config option to ``True``.
 
   (new feature) #2175 #3657
 
