@@ -331,14 +331,18 @@ class ParamikoSSHClient(object):
         self.logger.debug('Deleting dir', extra=extra)
         return self.sftp.rmdir(path)
 
-    def run(self, cmd, timeout=None, quote=False):
+    def run(self, cmd, timeout=None, quote=False, call_line_handler_func=False):
         """
         Note: This function is based on paramiko's exec_command()
         method.
 
-        :param timeout: How long to wait (in seconds) for the command to
-                        finish (optional).
+        :param timeout: How long to wait (in seconds) for the command to finish (optional).
         :type timeout: ``float``
+
+        :param call_line_handler_func: True to call handle_stdout_line_func function for each line
+                                       of received stdout and handle_stderr_line_func for each
+                                       line of stderr.
+        :type call_line_handler_func: ``bool``
         """
 
         if quote:
@@ -379,8 +383,16 @@ class ParamikoSSHClient(object):
         exit_status_ready = chan.exit_status_ready()
 
         if exit_status_ready:
-            stdout.write(self._consume_stdout(chan).getvalue())
-            stderr.write(self._consume_stderr(chan).getvalue())
+            stdout_data = self._consume_stdout(chan=chan,
+                                               call_line_handler_func=call_line_handler_func)
+            stdout_data = stdout_data.getvalue()
+
+            stderr_data = self._consume_stderr(chan=chan,
+                                               call_line_handler_func=call_line_handler_func)
+            stderr_data = stderr_data.getvalue()
+
+            stdout.write(stdout_data)
+            stderr.write(stderr_data)
 
         while not exit_status_ready:
             current_time = time.time()
@@ -395,8 +407,16 @@ class ParamikoSSHClient(object):
                 raise SSHCommandTimeoutError(cmd=cmd, timeout=timeout, stdout=stdout,
                                              stderr=stderr)
 
-            stdout.write(self._consume_stdout(chan).getvalue())
-            stderr.write(self._consume_stderr(chan).getvalue())
+            stdout_data = self._consume_stdout(chan=chan,
+                                               call_line_handler_func=call_line_handler_func)
+            stdout_data = stdout_data.getvalue()
+
+            stderr_data = self._consume_stderr(chan=chan,
+                                               call_line_handler_func=call_line_handler_func)
+            stderr_data = stderr_data.getvalue()
+
+            stdout.write(stdout_data)
+            stderr.write(stderr_data)
 
             # We need to check the exit status here, because the command could
             # print some output and exit during this sleep below.
@@ -444,7 +464,7 @@ class ParamikoSSHClient(object):
 
         return self.sftp_client
 
-    def _consume_stdout(self, chan):
+    def _consume_stdout(self, chan, call_line_handler_func=False):
         """
         Try to consume stdout data from chan if it's receive ready.
         """
@@ -467,7 +487,7 @@ class ParamikoSSHClient(object):
 
         stdout.write(self._get_decoded_data(out))
 
-        if self._handle_stdout_line_func:
+        if self._handle_stdout_line_func and call_line_handler_func:
             data = strip_shell_chars(stdout.getvalue())
             lines = data.split('\n')
 
@@ -481,7 +501,7 @@ class ParamikoSSHClient(object):
 
         return stdout
 
-    def _consume_stderr(self, chan):
+    def _consume_stderr(self, chan, call_line_handler_func=False):
         """
         Try to consume stderr data from chan if it's receive ready.
         """
@@ -502,7 +522,7 @@ class ParamikoSSHClient(object):
                 data = chan.recv_stderr(self.CHUNK_SIZE)
                 out += data
 
-        if self._handle_stderr_line_func:
+        if self._handle_stderr_line_func and call_line_handler_func:
             data = strip_shell_chars(stderr.getvalue())
             lines = data.split('\n')
 

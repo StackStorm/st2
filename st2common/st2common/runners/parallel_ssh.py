@@ -280,7 +280,8 @@ class ParallelSSHClient(object):
         try:
             LOG.debug('Running command: %s on host: %s.', cmd, host)
             client = self._hosts_client[host]
-            (stdout, stderr, exit_code) = client.run(cmd, timeout=timeout)
+            (stdout, stderr, exit_code) = client.run(cmd, timeout=timeout,
+                                                     call_line_handler_func=True)
             is_succeeded = (exit_code == 0)
             result_dict = {'stdout': stdout, 'stderr': stderr, 'return_code': exit_code,
                            'succeeded': is_succeeded, 'failed': not is_succeeded}
