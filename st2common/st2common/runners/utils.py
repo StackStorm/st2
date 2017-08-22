@@ -143,7 +143,7 @@ def make_read_and_store_stream_func(execution_db, action_db, store_line_func):
                 if ACTION_OUTPUT_RESULT_DELIMITER in line:
                     continue
 
-                if cfg.CONF.actionrunner.store_output:
+                if cfg.CONF.actionrunner.stream_output:
                     store_line_func(execution_db=execution_db, action_db=action_db, line=line)
         except RuntimeError:
             # process was terminated abruptly

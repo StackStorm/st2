@@ -53,7 +53,7 @@ Added
   - python runner
 
   Note: This feature is still experimental and it's disabled by default (opt-in). To enable it,
-  set ``actionrunner.store_output`` config option to ``True``.
+  set ``actionrunner.stream_output`` config option to ``True``.
 
   (new feature) #2175 #3657
 

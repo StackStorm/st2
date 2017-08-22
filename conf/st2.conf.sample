@@ -15,7 +15,7 @@ workflows_pool_size = 40
 # Virtualenv binary which should be used to create pack virtualenvs.
 virtualenv_binary = /data/stanley/virtualenv/bin/virtualenv
 # True to store and stream action output (stdout and stderr) in real-time.
-store_output = False
+stream_output = False
 # location of the logging.conf file
 logging = conf/logging.conf
 # Python binary which will be used by Python actions.

@@ -127,7 +127,7 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
 
         def make_store_stdout_line_func(execution_db, action_db):
             def store_stdout_line(line):
-                if cfg.CONF.actionrunner.store_output:
+                if cfg.CONF.actionrunner.stream_output:
                     store_execution_stdout_line(execution_db=execution_db, action_db=action_db,
                                                 line=line)
 
@@ -135,7 +135,7 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
 
         def make_store_stderr_line_func(execution_db, action_db):
             def store_stderr_line(line):
-                if cfg.CONF.actionrunner.store_output:
+                if cfg.CONF.actionrunner.stream_output:
                     store_execution_stderr_line(execution_db=execution_db, action_db=action_db,
                                                 line=line)
 
