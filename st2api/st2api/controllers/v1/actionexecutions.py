@@ -326,7 +326,7 @@ class BaseActionExecutionOutputStreamController(ActionExecutionsControllerMixin,
             # Note: We return all at once intestead of yield line by line to avoid multiple socket
             # writes and to achieve better performance
             lines = ''.join([output_db.line for output_db in output_dbs])
-            yield six.binary_type(lines)
+            yield six.binary_type(lines.encode('utf-8'))
 
         def new_output_iter():
             def noop_gen():
@@ -353,10 +353,10 @@ class BaseActionExecutionOutputStreamController(ActionExecutionsControllerMixin,
                         # Note: gunicorn wsgi handler expect bytes, not unicode
                         # pylint: disable=no-member
                         if isinstance(model_api, self.api_model_class):
-                            yield six.binary_type(model_api.line)
+                            yield six.binary_type(model_api.line.encode('utf-8'))
                         elif isinstance(model_api, ActionExecutionAPI):
                             if model_api.status in action_constants.LIVEACTION_COMPLETED_STATES:
-                                yield ''
+                                yield six.binary_type('')
                                 break
                         else:
                             LOG.debug('Unrecognized message type: %s' % (model_api))
