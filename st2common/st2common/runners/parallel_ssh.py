@@ -252,8 +252,8 @@ class ParallelSSHClient(object):
                                    key_files=self._ssh_key_file,
                                    key_material=self._ssh_key_material,
                                    passphrase=self._passphrase,
-                                   handle_stdout_line_func=handle_stdout_line_func,
-                                   handle_stderr_line_func=handle_stderr_line_func)
+                                   handle_stdout_line_func=self._handle_stdout_line_func,
+                                   handle_stderr_line_func=self._handle_stderr_line_func)
         try:
             client.connect()
         except SSHException as ex:

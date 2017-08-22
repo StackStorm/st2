@@ -468,13 +468,14 @@ class ParamikoSSHClient(object):
         stdout.write(self._get_decoded_data(out))
 
         if self._handle_stdout_line_func:
-            lines = strip_shell_chars(stdout.getvalue()).split('\n')
+            data = strip_shell_chars(stdout.getvalue())
+            lines = data.split('\n')
 
             for line in lines:
                 # Note: If this function performs network operating no sleep is
                 # needed, otherwise if a long blocking operating is performed,
                 # sleep is recommended to yield and prevent from busy looping
-                self._handle_stdout_line_func(line=line)
+                self._handle_stdout_line_func(line=line + '\n')
 
             stdout.seek(0)
 
@@ -502,13 +503,14 @@ class ParamikoSSHClient(object):
                 out += data
 
         if self._handle_stderr_line_func:
-            lines = strip_shell_chars(stderr.getvalue()).split('\n')
+            data = strip_shell_chars(stderr.getvalue())
+            lines = data.split('\n')
 
             for line in lines:
                 # Note: If this function performs network operating no sleep is
                 # needed, otherwise if a long blocking operating is performed,
                 # sleep is recommended to yield and prevent from busy looping
-                self._handle_stdout_line_func(line=line)
+                self._handle_stdout_line_func(line=line + '\n')
 
             stderr.seek(0)
 
