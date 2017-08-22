@@ -19,13 +19,14 @@ SLEEP_DELAY=${2:-"0.5"}
 i="0"
 while [ $i -lt ${COUNT} ];
 do
-    i=$[$i+1]
-
-    if [ $(( $RANDOM % 2)) -eq 0 ]; then
-        echo "stderr line ${i}" >&2
+    j=$[$i+1]
+    if [ $(( $i % 2)) -eq 0 ]; then
+        echo "stderr line ${j}" >&2
     else
-        echo "stdout line ${i}"
+        echo "stdout line ${j}"
     fi
+
+    i=$[$i+1]
 
     sleep ${SLEEP_DELAY}
 done
