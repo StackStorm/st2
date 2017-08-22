@@ -1,5 +1,5 @@
 ---
-name: print_to_stdout_and_stderr
+name: python_runner_print_to_stdout_and_stderr
 runner_type: run-python
 description: Action which periodically prints to stdout and stderr. Useful for testing action output streaming.
 enabled: true
