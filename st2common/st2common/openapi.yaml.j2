@@ -1444,6 +1444,11 @@ paths:
           description: Packs to be installed
           schema:
             $ref: '#/definitions/PacksInstall'
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '202':
           description: Pack installation request has been accepted
@@ -1469,6 +1474,11 @@ paths:
           description: Packs to be uninstalled
           schema:
             $ref: '#/definitions/PacksUninstall'
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '202':
           description: Pack uninstallation request has been accepted
