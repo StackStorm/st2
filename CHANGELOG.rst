@@ -85,7 +85,8 @@ Fixed
 * Fix 'pack register content' failures appearing on some slower systems by lifting action timeout.
   #3685
 * Fix a bug with ``/v1/packs/install`` and ``/v1/packs/uninstall`` API endpoints incorrectly using
-  system user for executed actions instead of the user which performed the API operation. #3693
+  system user for scheduled pack install and pack uninstall executions instead of the user which
+  performed the API operation.(bug fix) #3693 #3696
 
   Reported by theuiz.
 
