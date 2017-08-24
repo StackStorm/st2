@@ -1485,6 +1485,8 @@ paths:
   /api/v1/packs/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.packs:packs_controller.get_one
+      x-requirements:
+        ref_or_id: (?!index)(?!views).*
       description: Get information about an installed pack.
       parameters:
         - name: ref_or_id
@@ -1521,6 +1523,11 @@ paths:
           description: Packs to be installed
           schema:
             $ref: '#/definitions/PacksInstall'
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '202':
           description: Pack installation request has been accepted
@@ -1546,6 +1553,11 @@ paths:
           description: Packs to be uninstalled
           schema:
             $ref: '#/definitions/PacksUninstall'
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '202':
           description: Pack uninstallation request has been accepted
@@ -1584,6 +1596,23 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /api/v1/packs/index:
+    get:
+      operationId: st2api.controllers.v1.packs:packs_controller.index.get_all
+      x-permissions: {{ PERMISSION_TYPE.PACK_SEARCH }}
+      description: To list all the packs of all indexes used by your StackStorm instance.
+      responses:
+        '200':
+          description: Pack index.
+          schema:
+            $ref: '#/definitions/PackIndex'
+          examples:
+            application/json:
+              ref: 'core.local'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   /api/v1/packs/index/search:
     post:
       operationId: st2api.controllers.v1.packs:packs_controller.index.search.post
@@ -1618,7 +1647,7 @@ paths:
   # TODO: No unit test for /packs/index/health
   /api/v1/packs/index/health:
     get:
-      operationId: st2api.controllers.v1.packs:packs_controller.index.get
+      operationId: st2api.controllers.v1.packs:packs_controller.index.health.get
       x-permissions: {{ PERMISSION_TYPE.PACK_VIEWS_INDEX_HEALTH }}
       description: To get the state of all indexes used by your StackStorm instance.
       responses:
@@ -3810,8 +3839,14 @@ paths:
   /stream/v1/stream:
     get:
       operationId: st2stream.controllers.v1.stream:stream_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.STREAM_VIEW }}
       description: |
         Event stream endpoint.
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: EventSource compatible stream of events
@@ -4533,33 +4568,42 @@ definitions:
       - faultstring
 
 securityDefinitions:
-  X-Auth-Token:
+  auth-token-header:
     description: Header representing user's short-lived access token.
     type: apiKey
     name: X-Auth-Token
     in: header
     x-operationId: st2common.util.auth:validate_token
-  St2-Api-Key:
+    x-set-cookie: auth-token
+  api-key-header:
     description: Header representing service's long-lived API key.
     type: apiKey
     name: St2-Api-Key
     in: header
     x-operationId: st2common.util.auth:validate_api_key
-  x-auth-token:
+  auth-token-query:
     description: Query parameter representing user's short-lived access token. Used as a backup authentication strategy for environments where it is impossible to provide a header.
     type: apiKey
     name: x-auth-token
     in: query
     x-operationId: st2common.util.auth:validate_token
-  st2-api-key:
+    x-set-cookie: auth-token
+  api-key-query:
     description: Query parameter representing service's long-lived API key. Used as a backup authentication strategy for environments where it is impossible to provide a header.
     type: apiKey
     name: st2-api-key
     in: query
     x-operationId: st2common.util.auth:validate_api_key
+  auth-token-cookie:
+    description: Cookie representing user's short-lived access token.
+    type: apiKey
+    name: auth-token
+    in: cookie
+    x-operationId: st2common.util.auth:validate_token
 
 security:
-  - X-Auth-Token: []
-  - St2-Api-Key: []
-  - x-auth-token: []
-  - st2-api-key: []
+  - auth-token-header: []
+  - api-key-header: []
+  - auth-token-query: []
+  - api-key-query: []
+  - auth-token-cookie: []

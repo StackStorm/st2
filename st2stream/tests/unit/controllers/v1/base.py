@@ -13,21 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from webtest import TestApp
-
-from st2tests import DbTestCase
 from st2stream import app
-import st2tests.config as tests_config
+from st2tests.api import BaseFunctionalTest
+from st2tests.api import BaseAPIControllerWithRBACTestCase
+
+__all__ = [
+    'FunctionalTest',
+    'APIControllerWithRBACTestCase'
+]
 
 
-class FunctionalTest(DbTestCase):
+class FunctionalTest(BaseFunctionalTest):
+    app_module = app
+    register_runners = False
 
-    @classmethod
-    def setUpClass(cls):
-        super(FunctionalTest, cls).setUpClass()
-        tests_config.parse_args()
-        cls.app = TestApp(app.setup_app())
 
-    @classmethod
-    def tearDownClass(cls):
-        super(FunctionalTest, cls).tearDownClass()
+class APIControllerWithRBACTestCase(BaseAPIControllerWithRBACTestCase):
+    app_module = app

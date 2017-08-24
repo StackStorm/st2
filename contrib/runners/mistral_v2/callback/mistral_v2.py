@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import ast
+import copy
 import json
 import re
 import retrying
@@ -39,10 +40,16 @@ STATUS_MAP = {
     action_constants.LIVEACTION_STATUS_FAILED: 'ERROR',
     action_constants.LIVEACTION_STATUS_TIMED_OUT: 'ERROR',
     action_constants.LIVEACTION_STATUS_ABANDONED: 'ERROR',
-    action_constants.LIVEACTION_STATUS_CANCELING: 'RUNNING',
+    action_constants.LIVEACTION_STATUS_PENDING: 'PENDING',
+    action_constants.LIVEACTION_STATUS_CANCELING: 'CANCELLED',
     action_constants.LIVEACTION_STATUS_CANCELED: 'CANCELLED',
-    action_constants.LIVEACTION_STATUS_PENDING: 'PENDING'
+    action_constants.LIVEACTION_STATUS_PAUSING: 'PAUSED',
+    action_constants.LIVEACTION_STATUS_PAUSED: 'PAUSED',
+    action_constants.LIVEACTION_STATUS_RESUMING: 'RUNNING'
 }
+
+MISTRAL_ACCEPTED_STATES = copy.deepcopy(action_constants.LIVEACTION_COMPLETED_STATES)
+MISTRAL_ACCEPTED_STATES += [action_constants.LIVEACTION_STATUS_PAUSED]
 
 
 def get_instance():
@@ -84,7 +91,8 @@ class MistralCallbackHandler(callback.AsyncActionExecutionCallbackHandler):
 
     @classmethod
     def callback(cls, url, context, status, result):
-        if status not in action_constants.LIVEACTION_COMPLETED_STATES:
+        if status not in MISTRAL_ACCEPTED_STATES:
+            LOG.warning('Unable to callback %s because status "%s" is not supported.', url, status)
             return
 
         try:
