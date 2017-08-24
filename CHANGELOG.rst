@@ -4,6 +4,14 @@ Changelog
 in development
 --------------
 
+Fixed
+~~~~~
+
+* Fix a bug with ``/v1/packs/install`` and ``/v1/packs/uninstall`` API endpoints incorrectly using
+  system user for scheduled pack install and pack uninstall executions instead of the user which
+  performed the API operation.(bug fix) #3693 #3696
+
+  Reported by theuiz.
 
 2.4.0 - August 23, 2017
 -----------------------
@@ -74,11 +82,6 @@ Fixed
 * Fix pack index health endpoint. It now points to the right controller. #3672
 * Fix 'pack register content' failures appearing on some slower systems by lifting action timeout.
   #3685
-* Fix a bug with ``/v1/packs/install`` and ``/v1/packs/uninstall`` API endpoints incorrectly using
-  system user for scheduled pack install and pack uninstall executions instead of the user which
-  performed the API operation.(bug fix) #3693 #3696
-
-  Reported by theuiz.
 
 2.3.2 - July 28, 2017
 ---------------------
