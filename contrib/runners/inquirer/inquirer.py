@@ -19,6 +19,8 @@ from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_PENDING
 from st2common.constants.triggers import INQUIRY_TRIGGER
 from st2common.models.system.common import ResourceReference
+from st2common.persistence.execution import ActionExecution
+from st2common.persistence.liveaction import LiveAction
 from st2common.runners.base import ActionRunner
 from st2common.services import action as action_service
 from st2common.transport.reactor import TriggerDispatcher
@@ -86,6 +88,10 @@ class Inquirer(ActionRunner):
         # Request pause if parent execution exists (workflow)
         parent = liveaction_db.context.get("parent")
         if parent:
-            action_service.request_pause(parent, self.context.get('user', None))
+            parent_execution = ActionExecution.get(id=parent['execution_id'])
+            action_service.request_pause(
+                LiveAction.get(id=parent_execution.liveaction['id']),
+                self.context.get('user', None)
+            )
 
         return (LIVEACTION_STATUS_PENDING, {"response": response_data}, None)
