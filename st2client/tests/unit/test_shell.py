@@ -170,7 +170,10 @@ class TestShell(base.BaseCLITestCase):
             ['execution', 're-run', '123'],
             ['execution', 're-run', '123', '--tasks', 'x', 'y', 'z'],
             ['execution', 're-run', '123', '--tasks', 'x', 'y', 'z', '--no-reset', 'x'],
-            ['execution', 're-run', '123', 'a=1', 'b=x', 'c=True']
+            ['execution', 're-run', '123', 'a=1', 'b=x', 'c=True'],
+            ['execution', 'cancel', '123'],
+            ['execution', 'pause', '123'],
+            ['execution', 'resume', '123']
         ]
         self._validate_parser(args_list)
 
@@ -181,6 +184,7 @@ class TestShell(base.BaseCLITestCase):
     def test_key(self):
         args_list = [
             ['key', 'list'],
+            ['key', 'list', '-n', '2'],
             ['key', 'get', 'abc'],
             ['key', 'set', 'abc', '123'],
             ['key', 'delete', 'abc'],
@@ -212,6 +216,21 @@ class TestShell(base.BaseCLITestCase):
             ['policy-type', 'list', '-r', 'action'],
             ['policy-type', 'list', '--resource-type', 'action'],
             ['policy-type', 'get', 'abc']
+        ]
+        self._validate_parser(args_list)
+
+    def test_pack(self):
+        args_list = [
+            ['pack', 'list'],
+            ['pack', 'get', 'abc'],
+            ['pack', 'search', 'abc'],
+            ['pack', 'show', 'abc'],
+            ['pack', 'remove', 'abc'],
+            ['pack', 'remove', 'abc', '--detail'],
+            ['pack', 'install', 'abc'],
+            ['pack', 'install', 'abc', '--force'],
+            ['pack', 'install', 'abc', '--detail'],
+            ['pack', 'config', 'abc']
         ]
         self._validate_parser(args_list)
 

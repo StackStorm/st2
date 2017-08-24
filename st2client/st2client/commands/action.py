@@ -49,7 +49,9 @@ LIVEACTION_STATUS_TIMED_OUT = 'timeout'
 LIVEACTION_STATUS_ABANDONED = 'abandoned'
 LIVEACTION_STATUS_CANCELING = 'canceling'
 LIVEACTION_STATUS_CANCELED = 'canceled'
-
+LIVEACTION_STATUS_PAUSING = 'pausing'
+LIVEACTION_STATUS_PAUSED = 'paused'
+LIVEACTION_STATUS_RESUMING = 'resuming'
 
 LIVEACTION_COMPLETED_STATES = [
     LIVEACTION_STATUS_SUCCEEDED,
@@ -358,7 +360,7 @@ class ActionRunCommandMixin(object):
 
         status_index = options['attributes'].index('status')
 
-        if isinstance(instance.result, dict):
+        if hasattr(instance, 'result') and isinstance(instance.result, dict):
             tasks = instance.result.get('tasks', [])
         else:
             tasks = []
@@ -548,6 +550,15 @@ class ActionRunCommandMixin(object):
                 result = json.loads(value)
             except ValueError:
                 result = [v.strip() for v in value.split(',')]
+
+            # When each values in this array represent dict type, this converts
+            # the 'result' to the dict type value.
+            if all([isinstance(x, str) and ':' in x for x in result]):
+                result_dict = {}
+                for (k, v) in [x.split(':') for x in result]:
+                    result_dict[k] = v
+                return [result_dict]
+
             return result
 
         transformer = {
@@ -559,6 +570,18 @@ class ActionRunCommandMixin(object):
             'string': str
         }
 
+        def get_param_type(key):
+            param = None
+            if key in runner.runner_parameters:
+                param = runner.runner_parameters[key]
+            elif key in action.parameters:
+                param = action.parameters[key]
+
+            if param:
+                return param['type']
+
+            return None
+
         def normalize(name, value):
             """ The desired type is contained in the action meta-data, so we can look that up
                 and call the desired "caster" function listed in the "transformer" dict
@@ -567,16 +590,10 @@ class ActionRunCommandMixin(object):
             # Users can also specify type for each array parameter inside an action metadata
             # (items: type: int for example) and this information is available here so we could
             # also leverage that to cast each array item to the correct type.
+            param_type = get_param_type(name)
+            if param_type:
+                return transformer[param_type](value)
 
-            if name in runner.runner_parameters:
-                param = runner.runner_parameters[name]
-                if 'type' in param and param['type'] in transformer:
-                    return transformer[param['type']](value)
-
-            if name in action.parameters:
-                param = action.parameters[name]
-                if 'type' in param and param['type'] in transformer:
-                    return transformer[param['type']](value)
             return value
 
         result = {}
@@ -611,7 +628,12 @@ class ActionRunCommandMixin(object):
                         else:
                             result[k] = content
                     else:
-                        result[k] = normalize(k, v)
+                        # This permits multiple declarations of argument only in the array type.
+                        if get_param_type(k) == 'array' and k in result:
+                            result[k] += normalize(k, v)
+                        else:
+                            result[k] = normalize(k, v)
+
                 except Exception as e:
                     # TODO: Move transformers in a separate module and handle
                     # exceptions there
@@ -934,10 +956,14 @@ class ActionExecutionBranch(resource.ResourceBranch):
                       'get': ActionExecutionGetCommand})
 
         # Register extended commands
-        self.commands['re-run'] = ActionExecutionReRunCommand(self.resource, self.app,
-                                                              self.subparsers, add_help=False)
-        self.commands['cancel'] = ActionExecutionCancelCommand(self.resource, self.app,
-                                                               self.subparsers, add_help=False)
+        self.commands['re-run'] = ActionExecutionReRunCommand(
+            self.resource, self.app, self.subparsers, add_help=False)
+        self.commands['cancel'] = ActionExecutionCancelCommand(
+            self.resource, self.app, self.subparsers, add_help=False)
+        self.commands['pause'] = ActionExecutionPauseCommand(
+            self.resource, self.app, self.subparsers, add_help=False)
+        self.commands['resume'] = ActionExecutionResumeCommand(
+            self.resource, self.app, self.subparsers, add_help=False)
 
 
 POSSIBLE_ACTION_STATUS_VALUES = ('succeeded', 'running', 'scheduled', 'failed', 'canceled')
@@ -1237,3 +1263,71 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
                                                args=args, **kwargs)
 
         return execution
+
+
+class ActionExecutionPauseCommand(ActionRunCommandMixin, ActionExecutionReadCommand):
+    display_attributes = ['id', 'action.ref', 'context.user', 'parameters', 'status',
+                          'start_timestamp', 'end_timestamp', 'result', 'liveaction']
+
+    def __init__(self, resource, *args, **kwargs):
+        super(ActionExecutionPauseCommand, self).__init__(
+            resource, 'pause', 'Pause %s (workflow executions only).' %
+            resource.get_plural_display_name().lower(),
+            *args, **kwargs)
+
+        self.parser.add_argument('id', nargs='?',
+                                 metavar='id',
+                                 help='ID of action execution to pause.')
+
+        self._add_common_options()
+
+    @add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        return self.manager.pause(args.id)
+
+    @add_auth_token_to_kwargs_from_cli
+    def run_and_print(self, args, **kwargs):
+        try:
+            execution = self.run(args, **kwargs)
+
+            if not args.json and not args.yaml:
+                # Include elapsed time for running executions
+                execution = format_execution_status(execution)
+        except resource.ResourceNotFoundError:
+            self.print_not_found(args.id)
+            raise OperationFailureException('Execution %s not found.' % (args.id))
+        return self._print_execution_details(execution=execution, args=args, **kwargs)
+
+
+class ActionExecutionResumeCommand(ActionRunCommandMixin, ActionExecutionReadCommand):
+    display_attributes = ['id', 'action.ref', 'context.user', 'parameters', 'status',
+                          'start_timestamp', 'end_timestamp', 'result', 'liveaction']
+
+    def __init__(self, resource, *args, **kwargs):
+        super(ActionExecutionResumeCommand, self).__init__(
+            resource, 'resume', 'Resume %s (workflow executions only).' %
+            resource.get_plural_display_name().lower(),
+            *args, **kwargs)
+
+        self.parser.add_argument('id', nargs='?',
+                                 metavar='id',
+                                 help='ID of action execution to resume.')
+
+        self._add_common_options()
+
+    @add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        return self.manager.resume(args.id)
+
+    @add_auth_token_to_kwargs_from_cli
+    def run_and_print(self, args, **kwargs):
+        try:
+            execution = self.run(args, **kwargs)
+
+            if not args.json and not args.yaml:
+                # Include elapsed time for running executions
+                execution = format_execution_status(execution)
+        except resource.ResourceNotFoundError:
+            self.print_not_found(args.id)
+            raise OperationFailureException('Execution %s not found.' % (args.id))
+        return self._print_execution_details(execution=execution, args=args, **kwargs)

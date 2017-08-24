@@ -16,5 +16,5 @@
         type: "string"
     timeout:
       type: "integer"
-      default: 180
+      default: 300
       description: "Make sure that all pack content is loaded within specified timeout"
