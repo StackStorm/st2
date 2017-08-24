@@ -11,4 +11,19 @@ examples.mistral-ask-basic:
             input:
               tag: developers
               users:
-                - st2admin
+                - testu
+              schema:
+                required:
+                  - continue
+                type: object
+                properties:
+                  continue:
+                    type: boolean
+                    description: This is a schema bassed in via action params
+            on-complete:
+              - task2
+
+        task2:
+            action: core.local
+            input:
+              cmd: date
