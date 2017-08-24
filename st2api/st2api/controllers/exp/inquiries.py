@@ -15,6 +15,7 @@
 
 from oslo_config import cfg
 
+import jsonschema
 import json
 
 from six.moves import http_client
@@ -85,6 +86,11 @@ class InquiriesController(ResourceController):
         requests that make it look like Inquiry is its own data model.
         """
 
+        # The "put" command will have an actual ActionExecutionAPI object, so
+        # if that's what's being passed in, let's convert it to a dict first.
+        if isinstance(raw_inquiry, ActionExecutionAPI):
+            raw_inquiry = raw_inquiry.__json__()
+
         # The status filter returns all executions that either HAVE that status, or
         # have subexecutions with that status, so we want to make sure we're ONLY
         # returning Inquiries that represent subexecutions, not workflows
@@ -95,13 +101,13 @@ class InquiriesController(ResourceController):
         # If not, assume default from runner.
         schema = raw_inquiry["parameters"].get(
             "schema",
-            # TODO(mierdin): Gross.
-            raw_inquiry["runner"]["runner_parameters"]["schema"]["default"]
+            raw_inquiry["runner"]["runner_parameters"]["schema"]["default"]  # TODO(mierdin): Gross.
         )
 
         return {
             "id": raw_inquiry.get("id"),
             "parent": raw_inquiry.get("parent"),
+            "result": raw_inquiry.get("result"),
             "tag": raw_inquiry["parameters"].get("tag", ""),
             "users": raw_inquiry["parameters"].get("users", []),
             "roles": raw_inquiry["parameters"].get("roles", []),
@@ -122,6 +128,7 @@ class InquiriesController(ResourceController):
         TODO(mierdin): The header param (iid) and the body field (rdata.id) are redundant, but
         other API endpoints do the same. Should figure out if this should/can be pruned - you'll
         only actually use one of them
+        (see KeyValuePairRequest in openapi def for an example of this)
         """
 
         LOG.debug("Inquiry %s received response payload: %s" % (iid, rdata.response))
@@ -129,12 +136,13 @@ class InquiriesController(ResourceController):
         #
         # Retrieve details of the inquiry via ID (i.e. params like schema)
         #
-        existing_inquiry = self._get_one_by_id(
+        # TODO(mierdin): Maybe run this through the conversion function to keep things consistent?
+        inquiry_execution = self._get_one_by_id(
             id=iid,
             requester_user=requester_user,
             permission_type=PermissionType.EXECUTION_VIEW
         )
-        LOG.info("Got existing inquiry ID: %s" % existing_inquiry.id)
+        existing_inquiry = self._transform_inquiry(inquiry_execution)
 
         if not requester_user:
             requester_user = UserDB(cfg.CONF.system_user.user)
@@ -142,37 +150,37 @@ class InquiriesController(ResourceController):
         #
         # Determine permission of this user to respond to this Inquiry
         #
-        if not requester_user:
-
-            # TODO(mierdin): do we need to update openapi def with possible error responses?
-            abort(
-                http_client.FORBIDDEN,
-                'Requesting user must be provided to respond to an Inquiry'
-            )
-        roles = existing_inquiry.parameters.get('roles')
-        users = existing_inquiry.parameters.get('users')
-        # LOG.info(users)
+        roles = existing_inquiry.get('roles')
         if roles:
             for role in roles:
-                LOG.info("Checking user %s is in role %s" % (requester_user, role))
-                LOG.info(rbac_utils.user_has_role(requester_user, role))
+                LOG.debug("Checking user %s is in role %s" % (requester_user, role))
+                LOG.debug(rbac_utils.user_has_role(requester_user, role))
                 # TODO(mierdin): Note that this will always return True if Rbac is not enabled
                 # Need to test with rbac enabled and configured
                 if rbac_utils.user_has_role(requester_user, role):
                     break
             else:
-                # TODO(mierdin) figure out how to return this in an HTTP code
-                # (and modify the openapi def accordingly)
                 abort(http_client.FORBIDDEN, 'Insufficient permission to respond to this Inquiry.')
+        users = existing_inquiry.get('users')
         if users:
             if requester_user.name not in users:
-                # TODO(mierdin) figure out how to return this in an HTTP code
-                # (and modify the openapi def accordingly)
                 abort(http_client.FORBIDDEN, 'Insufficient permission to respond to this Inquiry.')
+
+        # Add response to existing result
+        response = getattr(rdata, 'response')
+        result = existing_inquiry.get('result')
+        result['response'] = response
+
+        schema = existing_inquiry.get('schema')
 
         #
         # Validate the body of the response against the schema parameter for this inquiry,
         #
+        LOG.debug("Validating inquiry response: %s against schema: %s" % (response, schema))
+        try:
+            jsonschema.validate(response, schema)
+        except jsonschema.exceptions.ValidationError:
+            abort(http_client.BAD_REQUEST, 'Response did not pass schema validation.')
 
         #
         # Update inquiry's execution result with a successful status and the validated response
@@ -180,17 +188,14 @@ class InquiriesController(ResourceController):
         # stamp liveaction with process_info
         runner_info = system_info.get_process_info()
 
-        # TODO(mierdin): rename response_data to response in inquirer runner
-        response = getattr(rdata, 'response')
-        result = existing_inquiry.result
-        result['response'] = response
-
         liveaction_db = action_utils.update_liveaction_status(
             status=action_constants.LIVEACTION_STATUS_SUCCEEDED,
             runner_info=runner_info,
             result=result,
-            liveaction_id=existing_inquiry.liveaction.get('id'))
+            liveaction_id=inquiry_execution.liveaction.get('id'))
         executions.update_execution(liveaction_db)
+
+        # TODO(mierdin): Call request_resume here
 
         return {
             "id": iid,
