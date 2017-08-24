@@ -44,14 +44,6 @@ def _get_immutable_params(parameters):
         return []
     return [k for k, v in six.iteritems(parameters) if v.get('immutable', False)]
 
-# TEMPORARY - for testing
-def request_pause(*args, **kwargs):
-    return True
-
-# TEMPORARY - for testing
-def request_resume(*args, **kwargs):
-    return True
-
 
 def create_request(liveaction):
     """
