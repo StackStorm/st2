@@ -27,6 +27,7 @@ __all__ = [
     'ACTION_SENSOR_TRIGGER',
     'NOTIFY_TRIGGER',
     'ACTION_FILE_WRITTEN_TRIGGER',
+    'INQUIRY_TRIGGER',
 
     'TIMER_TRIGGER_TYPES',
     'WEBHOOK_TRIGGER_TYPES',
@@ -96,6 +97,47 @@ NOTIFY_TRIGGER = {
             'route': {},
             'message': {},
             'data': {}
+        }
+    }
+}
+
+INQUIRY_TRIGGER = {
+    'name': 'st2.generic.inquiry',
+    'pack': SYSTEM_PACK_NAME,
+    'description': 'Trigger indicating a new "inquiry" has entered "pending" status',
+    'payload_schema': {
+        'type': 'object',
+        'properties': {
+            'id': {
+                'type': 'string',
+                'description': 'ID of this inquiry'
+            },
+            'response': {
+                'type': 'object',
+                'description': 'Response data'
+            },
+            'schema': {
+                'type': 'object',
+                'description': 'JSON schema used to validate repsonse(s)'
+            },
+            'roles': {
+                'type': 'array',
+                'description': 'List of RBAC roles permitted to respond to this inquiry',
+                'items': {
+                    'type': 'string'
+                }
+            },
+            'users': {
+                'type': 'array',
+                'description': 'List of users permitted to respond to this inquiry',
+                'items': {
+                    'type': 'string'
+                }
+            },
+            'tag': {
+                'type': 'string',
+                'description': 'User-defined, arbitrary field for tracking intent for inquiry'
+            }
         }
     }
 }
@@ -180,7 +222,8 @@ INTERNAL_TRIGGER_TYPES = {
     'action': [
         ACTION_SENSOR_TRIGGER,
         NOTIFY_TRIGGER,
-        ACTION_FILE_WRITTEN_TRIGGER
+        ACTION_FILE_WRITTEN_TRIGGER,
+        INQUIRY_TRIGGER
     ],
     'sensor': [
         SENSOR_SPAWN_TRIGGER,

@@ -1,0 +1,29 @@
+- description: A runner for handling actions that use the pending status
+  enabled: true
+  name: inquirer
+  runner_module: inquirer
+  runner_parameters:
+    schema:
+      default:
+        title: response_data
+        type: object
+        properties:
+          continue:
+           type: boolean
+           description: Would you like to continue the workflow?
+        required: ["continue"]
+      required: false
+      description: A JSON schema that will be used to validate the response data
+      type: object
+    tag:
+      required: false
+      description: An arbitrary value for tracking the purpose of the action (useful in rules)
+      type: string
+    roles:
+      required: false
+      description: A list of roles that are permitted to respond to the action (if nothing provided, all are permitted) - REQUIRES ENTERPRISE FEATURES 
+      type: array
+    users:
+      required: false
+      description: A list of usernames that are permitted to respond to the action (if nothing provided, all are permitted)
+      type: array
