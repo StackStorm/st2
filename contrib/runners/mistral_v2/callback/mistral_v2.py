@@ -40,7 +40,7 @@ STATUS_MAP = {
     action_constants.LIVEACTION_STATUS_FAILED: 'ERROR',
     action_constants.LIVEACTION_STATUS_TIMED_OUT: 'ERROR',
     action_constants.LIVEACTION_STATUS_ABANDONED: 'ERROR',
-    action_constants.LIVEACTION_STATUS_PENDING: 'PENDING',
+    action_constants.LIVEACTION_STATUS_PENDING: 'PAUSED',
     action_constants.LIVEACTION_STATUS_CANCELING: 'CANCELLED',
     action_constants.LIVEACTION_STATUS_CANCELED: 'CANCELLED',
     action_constants.LIVEACTION_STATUS_PAUSING: 'PAUSED',

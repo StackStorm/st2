@@ -31,6 +31,11 @@ from st2common.rbac import utils as rbac_utils
 from st2common.router import abort
 from st2common.models.api.execution import ActionExecutionAPI
 from st2common.persistence.execution import ActionExecution
+from st2common.persistence.liveaction import LiveAction
+from st2common.services import action as action_service
+from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
+
+from st2actions.container.base import get_runner_container
 
 __all__ = [
     'InquiriesController'
@@ -40,9 +45,9 @@ LOG = logging.getLogger(__name__)
 
 
 class InquiriesController(ResourceController):
-    """Everything in this controller is just a PoC at this point. Just getting my feet wet and
-       using dummy data before diving into the actual back-end queries.
+    """API controller for Inquiries
     """
+
     supported_filters = {}
 
     # No data model currently exists for Inquiries, so we're "borrowing" ActionExecutions
@@ -133,10 +138,7 @@ class InquiriesController(ResourceController):
 
         LOG.debug("Inquiry %s received response payload: %s" % (iid, rdata.response))
 
-        #
         # Retrieve details of the inquiry via ID (i.e. params like schema)
-        #
-        # TODO(mierdin): Maybe run this through the conversion function to keep things consistent?
         inquiry_execution = self._get_one_by_id(
             id=iid,
             requester_user=requester_user,
@@ -147,9 +149,7 @@ class InquiriesController(ResourceController):
         if not requester_user:
             requester_user = UserDB(cfg.CONF.system_user.user)
 
-        #
         # Determine permission of this user to respond to this Inquiry
-        #
         roles = existing_inquiry.get('roles')
         if roles:
             for role in roles:
@@ -173,21 +173,18 @@ class InquiriesController(ResourceController):
 
         schema = existing_inquiry.get('schema')
 
-        #
         # Validate the body of the response against the schema parameter for this inquiry,
-        #
         LOG.debug("Validating inquiry response: %s against schema: %s" % (response, schema))
         try:
             jsonschema.validate(response, schema)
         except jsonschema.exceptions.ValidationError:
             abort(http_client.BAD_REQUEST, 'Response did not pass schema validation.')
 
-        #
-        # Update inquiry's execution result with a successful status and the validated response
-        #
         # stamp liveaction with process_info
         runner_info = system_info.get_process_info()
 
+        # Update inquiry's execution result with a successful status and the validated response
+        # TODO(mierdin): You may not need this if you're calling post_run
         liveaction_db = action_utils.update_liveaction_status(
             status=action_constants.LIVEACTION_STATUS_SUCCEEDED,
             runner_info=runner_info,
@@ -195,7 +192,29 @@ class InquiriesController(ResourceController):
             liveaction_id=inquiry_execution.liveaction.get('id'))
         executions.update_execution(liveaction_db)
 
-        # TODO(mierdin): Call request_resume here
+        runner_container = get_runner_container()
+        action_db = get_action_by_ref(liveaction_db.action)
+        if not action_db:
+            raise Exception('Action %s not found in DB.' % (liveaction_db.action))
+        liveaction_db.context['pack'] = action_db.pack
+        runnertype_db = get_runnertype_by_name(action_db.runner_type['name'])
+
+        # Get runner instance.
+        runner = runner_container._get_runner(runnertype_db, action_db, liveaction_db)
+        runner.post_run(status=action_constants.LIVEACTION_STATUS_SUCCEEDED, result=result)
+
+        # Request the parent workflow to resume
+        # TODO(mierdin): Get true parent
+        parent = liveaction_db.context.get("parent")
+        if parent:
+            parent_execution = ActionExecution.get(id=parent['execution_id'])
+            LOG.info("Requesting resume for %s" % str(parent_execution.liveaction['id']))
+            action_service.request_resume(
+                LiveAction.get(id=parent_execution.liveaction['id']),
+                requester_user
+            )
+        else:
+            pass # TODO throw error
 
         return {
             "id": iid,
