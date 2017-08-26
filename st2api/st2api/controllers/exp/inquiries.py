@@ -171,37 +171,19 @@ class InquiriesController(ResourceController):
         result = existing_inquiry.get('result')
         result['response'] = response
 
+        # Validate the body of the response against the schema parameter for this inquiry
         schema = existing_inquiry.get('schema')
-
-        # Validate the body of the response against the schema parameter for this inquiry,
         LOG.debug("Validating inquiry response: %s against schema: %s" % (response, schema))
         try:
             jsonschema.validate(response, schema)
         except jsonschema.exceptions.ValidationError:
             abort(http_client.BAD_REQUEST, 'Response did not pass schema validation.')
 
-        # stamp liveaction with process_info
-        runner_info = system_info.get_process_info()
-
-        # Update inquiry's execution result with a successful status and the validated response
-        # TODO(mierdin): You may not need this if you're calling post_run
-        liveaction_db = action_utils.update_liveaction_status(
-            status=action_constants.LIVEACTION_STATUS_SUCCEEDED,
-            runner_info=runner_info,
-            result=result,
-            liveaction_id=inquiry_execution.liveaction.get('id'))
-        executions.update_execution(liveaction_db)
-
-        runner_container = get_runner_container()
-        action_db = get_action_by_ref(liveaction_db.action)
-        if not action_db:
-            raise Exception('Action %s not found in DB.' % (liveaction_db.action))
-        liveaction_db.context['pack'] = action_db.pack
-        runnertype_db = get_runnertype_by_name(action_db.runner_type['name'])
-
-        # Get runner instance.
-        runner = runner_container._get_runner(runnertype_db, action_db, liveaction_db)
-        runner.post_run(status=action_constants.LIVEACTION_STATUS_SUCCEEDED, result=result)
+        # Update execution and upstream workflow
+        liveaction_db = self._mark_inquiry_complete(
+            inquiry_execution.liveaction.get('id'),
+            result
+        )
 
         # Request the parent workflow to resume
         # TODO(mierdin): Get true parent
@@ -220,6 +202,25 @@ class InquiriesController(ResourceController):
             "id": iid,
             "response": response
         }
+
+    def _mark_inquiry_complete(self, inquiry_id, result):
+
+        # Update inquiry's execution result with a successful status and the validated response
+        liveaction_db = action_utils.update_liveaction_status(
+            status=action_constants.LIVEACTION_STATUS_SUCCEEDED,
+            runner_info=system_info.get_process_info(),
+            result=result,
+            liveaction_id=inquiry_id)
+        executions.update_execution(liveaction_db)
+
+        # Call Inquiry runner's post_run to trigger callback to workflow
+        runner_container = get_runner_container()
+        action_db = get_action_by_ref(liveaction_db.action)
+        runnertype_db = get_runnertype_by_name(action_db.runner_type['name'])
+        runner = runner_container._get_runner(runnertype_db, action_db, liveaction_db)
+        runner.post_run(status=action_constants.LIVEACTION_STATUS_SUCCEEDED, result=result)
+
+        return liveaction_db
 
 
 inquiries_controller = InquiriesController()
