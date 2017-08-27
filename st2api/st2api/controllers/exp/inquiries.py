@@ -65,6 +65,13 @@ class InquiriesController(ResourceController):
 
         inquiries = []
         for raw_inquiry in json.loads(raw_inquiries.body):
+
+            # _get_all includes workflows that also contain executions
+            # with 'pending' status, so we want to prune all workflows
+            # (The action won't have a 'children' key)
+            if raw_inquiry.get('children'):
+                continue
+
             new_inquiry = self._transform_inquiry(raw_inquiry)
             if new_inquiry:
                 inquiries.append(new_inquiry)
@@ -74,6 +81,8 @@ class InquiriesController(ResourceController):
     def get_one(self, iid, requester_user=None):
         """Retrieve a single Inquiry
         """
+
+        # TODO(mierdin): Add logic to ensure that what's received is actually an Inquiry
 
         raw_inquiry = self._get_one_by_id(
             id=iid,
@@ -104,9 +113,10 @@ class InquiriesController(ResourceController):
 
         # Retrieve response schema from parameters if exists.
         # If not, assume default from runner.
+        # TODO(mierdin) Will parameters always be here? Fix this and the heinous thing below
         schema = raw_inquiry["parameters"].get(
             "schema",
-            raw_inquiry["runner"]["runner_parameters"]["schema"]["default"]  # TODO(mierdin): Gross.
+            raw_inquiry["runner"]["runner_parameters"]["schema"]["default"]
         )
 
         return {
