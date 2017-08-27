@@ -179,24 +179,18 @@ class InquiriesController(ResourceController):
         except jsonschema.exceptions.ValidationError:
             abort(http_client.BAD_REQUEST, 'Response did not pass schema validation.')
 
-        # Update execution and upstream workflow
+        # Update inquiry for completion
         liveaction_db = self._mark_inquiry_complete(
             inquiry_execution.liveaction.get('id'),
             result
         )
 
-        # Request the parent workflow to resume
-        # TODO(mierdin): Get true parent
-        parent = liveaction_db.context.get("parent")
-        if parent:
-            parent_execution = ActionExecution.get(id=parent['execution_id'])
-            LOG.info("Requesting resume for %s" % str(parent_execution.liveaction['id']))
-            action_service.request_resume(
-                LiveAction.get(id=parent_execution.liveaction['id']),
-                requester_user
-            )
-        else:
-            pass # TODO throw error
+        # Request that root workflow resumes
+        root_liveaction = action_service.get_root_liveaction(liveaction_db)
+        action_service.request_resume(
+            root_liveaction,
+            requester_user
+        )
 
         return {
             "id": iid,

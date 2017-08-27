@@ -85,13 +85,11 @@ class Inquirer(ActionRunner):
         }
         self.trigger_dispatcher.dispatch(trigger_ref, trigger_payload)
 
-        # Request pause if parent execution exists (workflow)
-        parent = liveaction_db.context.get("parent")
-        if parent:
-            parent_execution = ActionExecution.get(id=parent['execution_id'])
-            action_service.request_pause(
-                LiveAction.get(id=parent_execution.liveaction['id']),
-                self.context.get('user', None)
-            )
+        # Get the root liveaction and request that it pauses
+        root_liveaction = action_service.get_root_liveaction(liveaction_db)
+        action_service.request_pause(
+            root_liveaction,
+            self.context.get('user', None)
+        )
 
         return (LIVEACTION_STATUS_PENDING, {"response": response_data}, None)

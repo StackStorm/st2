@@ -1,0 +1,10 @@
+version: '2.0'
+
+examples.mistral-ask-parent:
+    description: A basic workflow that runs an arbitrary linux command.
+    type: direct
+    output:
+        result: <% task(task1).result.response %>
+    tasks:
+        task1:
+            action: examples.mistral-ask-basic
