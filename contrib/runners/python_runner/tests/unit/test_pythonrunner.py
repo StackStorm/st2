@@ -34,6 +34,7 @@ from st2common.persistence.execution import ActionExecutionStderrOutput
 from st2tests.base import RunnerTestCase
 from st2tests.base import CleanDbTestCase
 from st2tests.base import blocking_eventlet_spawn
+from st2tests.base import make_mock_stream_readline
 import st2tests.base as tests_base
 
 
@@ -615,19 +616,3 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         action.pack = SYSTEM_PACK_NAME
         action.entry_point = 'foo.py'
         return action
-
-
-# Utility function for mocking read_and_store_{stdout,stderr} functions
-def make_mock_stream_readline(mock_stream, mock_data, stop_counter=1):
-    mock_stream.counter = 0
-
-    def mock_stream_readline():
-        if mock_stream.counter >= stop_counter:
-            mock_stream.closed = True
-            return
-
-        line = mock_data[mock_stream.counter]
-        mock_stream.counter += 1
-        return line
-
-    return mock_stream_readline

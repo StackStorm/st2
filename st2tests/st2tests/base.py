@@ -78,7 +78,8 @@ __all__ = [
     'get_fixtures_path',
     'get_resources_path',
 
-    'blocking_eventlet_spawn'
+    'blocking_eventlet_spawn',
+    'make_mock_stream_readline'
 ]
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -497,3 +498,19 @@ def get_resources_path():
 def blocking_eventlet_spawn(func, *args, **kwargs):
     func(*args, **kwargs)
     return mock.Mock()
+
+
+# Utility function for mocking read_and_store_{stdout,stderr} functions
+def make_mock_stream_readline(mock_stream, mock_data, stop_counter=1):
+    mock_stream.counter = 0
+
+    def mock_stream_readline():
+        if mock_stream.counter >= stop_counter:
+            mock_stream.closed = True
+            return
+
+        line = mock_data[mock_stream.counter]
+        mock_stream.counter += 1
+        return line
+
+    return mock_stream_readline
