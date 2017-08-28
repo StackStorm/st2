@@ -119,6 +119,7 @@ class PythonRunner(ActionRunner):
         LOG.debug('Setting args.')
         args = [
             python_path,
+            '-u',
             WRAPPER_SCRIPT_PATH,
             '--pack=%s' % (pack),
             '--file-path=%s' % (self.entry_point),
