@@ -66,7 +66,7 @@ class ResourceBranch(commands.Branch):
 
         # Registers subcommands for managing the resource type.
         self.subparsers = self.parser.add_subparsers(
-            help=('List of commands for managing %s.' %
+            metavar=('List of commands for managing %s.' %
                   self.resource.get_plural_display_name().lower()))
 
         # Resolves if commands need to be overridden.
