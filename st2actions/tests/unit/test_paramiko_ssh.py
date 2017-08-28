@@ -630,7 +630,6 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         client.connect()
 
         mock_get_transport = mock.Mock()
-        mock_open_session = mock.Mock()
         mock_chan = mock.Mock()
 
         client.client.get_transport = mock.Mock()
