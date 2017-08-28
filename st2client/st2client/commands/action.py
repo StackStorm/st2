@@ -523,7 +523,7 @@ class ActionRunCommandMixin(object):
                     result[key] = value
             return result
 
-        def transform_array(value, action_params = {}):
+        def transform_array(value, action_params={}):
             # Sometimes an array parameter only has a single element:
             #
             #     i.e. "st2 run foopack.fooaction arrayparam=51"
