@@ -47,6 +47,16 @@ Added
   when using the ``st2 run`` CLI command. (improvement) #3646 #3670
 
   Contributed by Hiroyasu OHYAMA.
+* Copy nearly all existing Jinja filters and make them available in both Jinja and YAQL within
+  Mistral workflows (https://github.com/StackStorm/st2mistral/pull/30). Modify st2kv default
+  behavior (BREAKING CHANGE) to not decrypt ciphertext in datastore by default (now explicitly
+  enabled via optional parameter).
+
+  Contributed by mierdin. #3565
+* Add ``regex_substring`` Jinja filter for searching for a pattern in a provided string and
+  returning the result. (improvement)
+
+  Contributed by mierdin. #3482
 
 Changed
 ~~~~~~~
@@ -91,10 +101,6 @@ Fixed
 Added
 ~~~~~
 
-* Add ``regex_substring`` Jinja filter for searching for a pattern in a provided string and
-  returning the result. (improvement)
-
-  Contributed by mierdin. #3482
 * Add test coverage and test timing capabilities to ``st2-run-pack-tests``.
   The ``-c`` option enables test coverage and the ``-t`` option enables test timings.
   These capabilities have also been enabled in the ci pipeline for packs in the exchange.
@@ -105,12 +111,6 @@ Added
   #3594
 
   Contributed by Hiroyasu OHYAMA.
-* Copy nearly all existing Jinja filters and make them available in both Jinja and YAQL within
-  Mistral workflows (https://github.com/StackStorm/st2mistral/pull/30). Modify st2kv default
-  behavior (BREAKING CHANGE) to not decrypt ciphertext in datastore by default (now explicitly
-  enabled via optional parameter).
-
-  Contributed by mierdin. #3565
 
 Changed
 ~~~~~~~
