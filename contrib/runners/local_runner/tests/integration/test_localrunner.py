@@ -251,6 +251,46 @@ class LocalShellScriptRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertTrue('PARAM_INTEGER=\n' in result['stdout'])
         self.assertTrue('PARAM_FLOAT=\n' in result['stdout'])
 
+        # End result should be the same when streaming is enabled
+        cfg.CONF.set_override(name='stream_output', group='actionrunner', override=True)
+
+        # Verify initial state
+        stdout_dbs = ActionExecutionStdoutOutput.get_all()
+        self.assertEqual(len(stdout_dbs), 0)
+
+        stderr_dbs = ActionExecutionStderrOutput.get_all()
+        self.assertEqual(len(stderr_dbs), 0)
+
+        action_parameters = {
+            'param_string': 'test string',
+            'param_integer': 1,
+            'param_float': 2.55,
+            'param_boolean': True,
+            'param_list': ['a', 'b', 'c'],
+            'param_object': {'foo': 'bar'}
+        }
+
+        runner = self._get_runner(action_db=action_db, entry_point=entry_point)
+        runner.pre_run()
+        status, result, _ = runner.run(action_parameters=action_parameters)
+        runner.post_run(status, result)
+
+        self.assertEqual(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertTrue('PARAM_STRING=test string' in result['stdout'])
+        self.assertTrue('PARAM_INTEGER=1' in result['stdout'])
+        self.assertTrue('PARAM_FLOAT=2.55' in result['stdout'])
+        self.assertTrue('PARAM_BOOLEAN=1' in result['stdout'])
+        self.assertTrue('PARAM_LIST=a,b,c' in result['stdout'])
+        self.assertTrue('PARAM_OBJECT={"foo": "bar"}' in result['stdout'])
+
+        stdout_dbs = ActionExecutionStdoutOutput.get_all()
+        self.assertEqual(len(stdout_dbs), 6)
+        self.assertEqual(stdout_dbs[0].line, 'PARAM_STRING=test string\n')
+        self.assertEqual(stdout_dbs[5].line, 'PARAM_OBJECT={"foo": "bar"}\n')
+
+        stderr_dbs = ActionExecutionStderrOutput.get_all()
+        self.assertEqual(len(stderr_dbs), 0)
+
     @mock.patch('st2common.util.green.shell.subprocess.Popen')
     @mock.patch('st2common.util.green.shell.eventlet.spawn')
     def test_action_stdout_and_stderr_is_stored_in_the_db(self, mock_spawn, mock_popen):
@@ -310,7 +350,6 @@ class LocalShellScriptRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(result['return_code'], 0)
 
         # Verify stdout and stderr lines have been correctly stored in the db
-        # Note - result delimiter should not be stored in the db
         stdout_dbs = ActionExecutionStdoutOutput.get_all()
         self.assertEqual(len(stdout_dbs), 4)
         self.assertEqual(stdout_dbs[0].line, mock_stdout[0])
