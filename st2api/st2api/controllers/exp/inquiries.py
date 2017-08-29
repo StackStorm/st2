@@ -92,6 +92,11 @@ class InquiriesController(ResourceController):
             requester_user=requester_user,
             permission_type=PermissionType.EXECUTION_VIEW
         )
+
+        if raw_inquiry.runner.get('runner_module') != "inquirer":
+            abort(http_client.BAD_REQUEST, '%s is not an Inquiry.' % inquiry_id)
+            return
+
         return self._transform_inquiry(raw_inquiry.__dict__)
 
     def put(self, inquiry_id, response_data, requester_user):
