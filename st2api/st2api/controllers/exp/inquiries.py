@@ -78,6 +78,8 @@ class InquiriesController(ResourceController):
 
         return inquiries
 
+        # Update st2client to show the TRUE parent in "list"
+
     def get_one(self, iid, requester_user=None):
         """Retrieve a single Inquiry
         """
@@ -160,21 +162,9 @@ class InquiriesController(ResourceController):
             requester_user = UserDB(cfg.CONF.system_user.user)
 
         # Determine permission of this user to respond to this Inquiry
-        roles = existing_inquiry.get('roles')
-        if roles:
-            for role in roles:
-                LOG.debug("Checking user %s is in role %s" % (requester_user, role))
-                LOG.debug(rbac_utils.user_has_role(requester_user, role))
-                # TODO(mierdin): Note that this will always return True if Rbac is not enabled
-                # Need to test with rbac enabled and configured
-                if rbac_utils.user_has_role(requester_user, role):
-                    break
-            else:
-                abort(http_client.FORBIDDEN, 'Insufficient permission to respond to this Inquiry.')
-        users = existing_inquiry.get('users')
-        if users:
-            if requester_user.name not in users:
-                abort(http_client.FORBIDDEN, 'Insufficient permission to respond to this Inquiry.')
+        if not self._can_respond(existing_inquiry, requester_user):
+            # TODO(mierdin): Does the abort also need to have a return after it?
+            abort(http_client.FORBIDDEN, 'Insufficient permission to respond to this Inquiry.')
 
         # Add response to existing result
         response = getattr(rdata, 'response')
@@ -225,6 +215,49 @@ class InquiriesController(ResourceController):
         runner.post_run(status=action_constants.LIVEACTION_STATUS_SUCCEEDED, result=result)
 
         return liveaction_db
+
+    def _can_respond(self, inquiry, requester_user):
+        """Determine, based on Inquiry parameters, if requester_user is permitted to respond
+
+        This is NOT RBAC, as it is on a per-inquiry basis. You should still use RBAC to lock
+        down the API endpoint in general
+
+        :param inquiry: The Inquiry for which the response is given
+        :param requester_user: The user providing the response
+
+        :rtype: bool
+        """
+
+        # Deny by default
+        roles_passed = False
+        users_passed = False
+
+        # Determine role-level permissions
+        roles = inquiry.get('roles')
+        if roles:
+            for role in roles:
+                LOG.debug("Checking user %s is in role %s" % (requester_user, role))
+                LOG.debug(rbac_utils.user_has_role(requester_user, role))
+                # TODO(mierdin): Note that this will always return True if Rbac is not enabled
+                # Need to test with rbac enabled and configured
+                if rbac_utils.user_has_role(requester_user, role):
+                    roles_passed = True
+                    break
+        else:
+            # No roles definition so we treat it as a pass
+            roles_passed = True
+
+        # Determine user-level permissions
+        users = inquiry.get('users')
+        if users:
+            if requester_user.name in users:
+                users_passed = True
+        else:
+            # No users definition so we treat it as a pass
+            users_passed = True
+
+        # Both must pass
+        return roles_passed and users_passed
 
 
 inquiries_controller = InquiriesController()
