@@ -575,7 +575,10 @@ class ActionRunCommandMixin(object):
             'string': str
         }
 
-        def get_param_type(key, action_params=action.parameters):
+        def get_param_type(key, action_params=None):
+            if not action_params:
+                action_params = action.parameters
+
             param = None
             if key in runner.runner_parameters:
                 param = runner.runner_parameters[key]
@@ -587,10 +590,19 @@ class ActionRunCommandMixin(object):
 
             return None
 
-        def normalize(name, value, action_params=action.parameters):
+        def normalize(name, value, action_params=None):
             """ The desired type is contained in the action meta-data, so we can look that up
                 and call the desired "caster" function listed in the "transformer" dict
             """
+
+            # By default, this method uses a parameter which is defined in the action metadata.
+            # This method assume to be called recursively for parsing values in an array of objects
+            # type value according to the nested action metadata definition.
+            #
+            # This is a best practice to pass a list value as default argument to prevent
+            # unforeseen consequence by being created a persistent object.
+            if not action_params:
+                action_params = action.parameters
 
             # Users can also specify type for each array parameter inside an action metadata
             # (items: type: int for example) and this information is available here so we could
