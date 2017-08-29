@@ -501,10 +501,13 @@ def blocking_eventlet_spawn(func, *args, **kwargs):
 
 
 # Utility function for mocking read_and_store_{stdout,stderr} functions
-def make_mock_stream_readline(mock_stream, mock_data, stop_counter=1):
+def make_mock_stream_readline(mock_stream, mock_data, stop_counter=1, sleep_delay=0):
     mock_stream.counter = 0
 
     def mock_stream_readline():
+        if sleep_delay:
+            eventlet.sleep(sleep_delay)
+
         if mock_stream.counter >= stop_counter:
             mock_stream.closed = True
             return

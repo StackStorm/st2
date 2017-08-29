@@ -240,6 +240,87 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(stderr_dbs[1].line, mock_stderr[1])
         self.assertEqual(stderr_dbs[2].line, mock_stderr[2])
 
+    @mock.patch('st2common.util.green.shell.subprocess.Popen')
+    @mock.patch('st2common.util.green.shell.eventlet.spawn')
+    def test_action_stdout_and_stderr_is_stored_in_the_db_short_running_action(self, mock_spawn,
+                                                                               mock_popen):
+        # Verify that we correctly retrieve all the output and wait for stdout and stderr reading
+        # threads for short running actions.
+        models = self.fixtures_loader.load_models(
+            fixtures_pack='generic', fixtures_dict={'actions': ['local.yaml']})
+        action_db = models['actions']['local.yaml']
+
+        # Feature is enabled
+        cfg.CONF.set_override(name='stream_output', group='actionrunner', override=True)
+
+        # Note: We need to mock spawn function so we can test everything in single event loop
+        # iteration
+        mock_spawn.side_effect = blocking_eventlet_spawn
+
+        # No output to stdout and no result (implicit None)
+        mock_stdout = [
+            'stdout line 1\n',
+            'stdout line 2\n'
+        ]
+        mock_stderr = [
+            'stderr line 1\n',
+            'stderr line 2\n'
+        ]
+
+        # We add a sleep to simulate action process exiting before we finish reading data from
+        mock_process = mock.Mock()
+        mock_process.returncode = 0
+        mock_popen.return_value = mock_process
+        mock_process.stdout.closed = False
+        mock_process.stderr.closed = False
+        mock_process.stdout.readline = make_mock_stream_readline(mock_process.stdout, mock_stdout,
+                                                                 stop_counter=2,
+                                                                 sleep_delay=1)
+        mock_process.stderr.readline = make_mock_stream_readline(mock_process.stderr, mock_stderr,
+                                                                 stop_counter=2)
+
+        for index in range(1, 4):
+            mock_process.stdout.closed = False
+            mock_process.stderr.closed = False
+
+            mock_process.stdout.counter = 0
+            mock_process.stderr.counter = 0
+
+            runner = self._get_runner(action_db, cmd='echo "foobar"')
+            runner.pre_run()
+            status, result, _ = runner.run({})
+
+            self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+
+            self.assertEqual(result['stdout'], 'stdout line 1\nstdout line 2')
+            self.assertEqual(result['stderr'], 'stderr line 1\nstderr line 2')
+            self.assertEqual(result['return_code'], 0)
+
+            # Verify stdout and stderr lines have been correctly stored in the db
+            stdout_dbs = ActionExecutionStdoutOutput.get_all()
+
+            if index == 1:
+                db_index_1 = 0
+                db_index_2 = 1
+            elif index == 2:
+                db_index_1 = 2
+                db_index_2 = 3
+            elif index == 3:
+                db_index_1 = 4
+                db_index_2 = 5
+            elif index == 4:
+                db_index_1 = 6
+                db_index_2 = 7
+
+            self.assertEqual(len(stdout_dbs), (index * 2))
+            self.assertEqual(stdout_dbs[db_index_1].line, mock_stdout[0])
+            self.assertEqual(stdout_dbs[db_index_2].line, mock_stdout[1])
+
+            stderr_dbs = ActionExecutionStderrOutput.get_all()
+            self.assertEqual(len(stderr_dbs), (index * 2))
+            self.assertEqual(stderr_dbs[db_index_1].line, mock_stderr[0])
+            self.assertEqual(stderr_dbs[db_index_2].line, mock_stderr[1])
+
     @staticmethod
     def _get_runner(action_db,
                     entry_point=None,
