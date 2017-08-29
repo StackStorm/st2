@@ -55,9 +55,11 @@ class InquiriesController(ResourceController):
     access = ActionExecution
 
     def get_all(self, requester_user=None):
+        """Retrieve multiple Inquiries
 
-        # TODO(mierdin): Evaluate which options need to be carried over from execution list
-        # And update client with those options (such as "limit")
+            Handles requests:
+                GET /keys/
+        """
 
         raw_inquiries = super(InquiriesController, self)._get_all(
             raw_filters={'status': 'pending'}
@@ -78,13 +80,12 @@ class InquiriesController(ResourceController):
 
         return inquiries
 
-        # Update st2client to show the TRUE parent in "list"
-
     def get_one(self, iid, requester_user=None):
         """Retrieve a single Inquiry
-        """
 
-        # TODO(mierdin): Add logic to ensure that what's received is actually an Inquiry
+            Handles requests:
+                GET /keys/<inquiry id>
+        """
 
         raw_inquiry = self._get_one_by_id(
             id=iid,
@@ -93,13 +94,76 @@ class InquiriesController(ResourceController):
         )
         return self._transform_inquiry(raw_inquiry.__dict__)
 
+    def put(self, inquiry_id, response_data, requester_user):
+        """Provide response data to an Inquiry
+
+            In general, provided the response data validates against the provided
+            schema, and the user has the appropriate permissions to respond,
+            this will set the Inquiry execution to a successful status, and resume
+            the parent workflow.
+
+            Handles requests:
+                GET /keys/<inquiry id>
+        """
+
+        LOG.debug("Inquiry %s received response payload: %s" % (inquiry_id, response_data.response))
+
+        # Retrieve details of the inquiry via ID (i.e. params like schema)
+        inquiry_execution = self._get_one_by_id(
+            id=inquiry_id,
+            requester_user=requester_user,
+            permission_type=PermissionType.EXECUTION_VIEW
+        )
+        existing_inquiry = self._transform_inquiry(inquiry_execution)
+
+        if not requester_user:
+            requester_user = UserDB(cfg.CONF.system_user.user)
+
+        # Determine permission of this user to respond to this Inquiry
+        if not self._can_respond(existing_inquiry, requester_user):
+            abort(http_client.FORBIDDEN, 'Insufficient permission to respond to this Inquiry.')
+            return
+
+        # Add response to existing result
+        response = getattr(response_data, 'response')
+        result = existing_inquiry.get('result')
+        result['response'] = response
+
+        # Validate the body of the response against the schema parameter for this inquiry
+        schema = existing_inquiry.get('schema')
+        LOG.debug("Validating inquiry response: %s against schema: %s" % (response, schema))
+        try:
+            jsonschema.validate(response, schema)
+        except jsonschema.exceptions.ValidationError:
+            abort(http_client.BAD_REQUEST, 'Response did not pass schema validation.')
+            return
+
+        # Update inquiry for completion
+        liveaction_db = self._mark_inquiry_complete(
+            inquiry_execution.liveaction.get('id'),
+            result
+        )
+
+        # Request that root workflow resumes
+        root_liveaction = action_service.get_root_liveaction(liveaction_db)
+        action_service.request_resume(
+            root_liveaction,
+            requester_user
+        )
+
+        return {
+            "id": inquiry_id,
+            "response": response
+        }
+
     def _transform_inquiry(self, raw_inquiry):
         """Transform ActionExecutionAPI model into something specific to Inquiries
 
-        We're borrowing the ActionExecution data model for the time being, so we
-        need to pick and choose fields from this to form a new franken-model for Inquiries
-        so we don't return a bunch of extra crap. The idea is to provide data in response to
-        requests that make it look like Inquiry is its own data model.
+            We're borrowing the ActionExecution data model for the time being, so we
+            need to pick and choose fields from this to form a new franken-model for
+            Inquiries so we don't return a bunch of extra crap. The idea is to
+            provide data in response to requests that make it look like Inquiry
+            is its own data model.
         """
 
         # The "put" command will have an actual ActionExecutionAPI object, so
@@ -131,73 +195,18 @@ class InquiriesController(ResourceController):
             "schema": schema
         }
 
-    def put(self, iid, rdata, requester_user):
-        """
-        This function in particular will:
-
-        1. Retrieve details of the inquiry via ID (i.e. params like schema)
-        2. Determine permission of this user to respond to this Inquiry
-        3. Validate the body of the response against the schema parameter for this inquiry,
-           (reject if invalid)
-        4. Update inquiry's execution result with a successful status and the validated response
-        5. Retrieve parent execution for the inquiry, and pass this to action_service.request_resume
-
-        TODO(mierdin): The header param (iid) and the body field (rdata.id) are redundant, but
-        other API endpoints do the same. Should figure out if this should/can be pruned - you'll
-        only actually use one of them
-        (see KeyValuePairRequest in openapi def for an example of this)
-        """
-
-        LOG.debug("Inquiry %s received response payload: %s" % (iid, rdata.response))
-
-        # Retrieve details of the inquiry via ID (i.e. params like schema)
-        inquiry_execution = self._get_one_by_id(
-            id=iid,
-            requester_user=requester_user,
-            permission_type=PermissionType.EXECUTION_VIEW
-        )
-        existing_inquiry = self._transform_inquiry(inquiry_execution)
-
-        if not requester_user:
-            requester_user = UserDB(cfg.CONF.system_user.user)
-
-        # Determine permission of this user to respond to this Inquiry
-        if not self._can_respond(existing_inquiry, requester_user):
-            # TODO(mierdin): Does the abort also need to have a return after it?
-            abort(http_client.FORBIDDEN, 'Insufficient permission to respond to this Inquiry.')
-
-        # Add response to existing result
-        response = getattr(rdata, 'response')
-        result = existing_inquiry.get('result')
-        result['response'] = response
-
-        # Validate the body of the response against the schema parameter for this inquiry
-        schema = existing_inquiry.get('schema')
-        LOG.debug("Validating inquiry response: %s against schema: %s" % (response, schema))
-        try:
-            jsonschema.validate(response, schema)
-        except jsonschema.exceptions.ValidationError:
-            abort(http_client.BAD_REQUEST, 'Response did not pass schema validation.')
-
-        # Update inquiry for completion
-        liveaction_db = self._mark_inquiry_complete(
-            inquiry_execution.liveaction.get('id'),
-            result
-        )
-
-        # Request that root workflow resumes
-        root_liveaction = action_service.get_root_liveaction(liveaction_db)
-        action_service.request_resume(
-            root_liveaction,
-            requester_user
-        )
-
-        return {
-            "id": iid,
-            "response": response
-        }
-
     def _mark_inquiry_complete(self, inquiry_id, result):
+        """Mark Inquiry as completed
+
+        This function updates the local LiveAction and Execution with a successful
+        status as well as call the "post_run" function for the Inquirer runner so that
+        the appropriate callback function is executed
+
+        :param inquiry: The Inquiry for which the response is given
+        :param requester_user: The user providing the response
+
+        :rtype: bool - True if requester_user is able to respond. False if not.
+        """
 
         # Update inquiry's execution result with a successful status and the validated response
         liveaction_db = action_utils.update_liveaction_status(
@@ -219,13 +228,13 @@ class InquiriesController(ResourceController):
     def _can_respond(self, inquiry, requester_user):
         """Determine, based on Inquiry parameters, if requester_user is permitted to respond
 
-        This is NOT RBAC, as it is on a per-inquiry basis. You should still use RBAC to lock
-        down the API endpoint in general
+        This is NOT RBAC, as it is on a per-inquiry basis. RBAC should still be used
+        for locking down the API endpoint.
 
         :param inquiry: The Inquiry for which the response is given
         :param requester_user: The user providing the response
 
-        :rtype: bool
+        :rtype: bool - True if requester_user is able to respond. False if not.
         """
 
         # Deny by default
