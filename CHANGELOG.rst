@@ -4,6 +4,14 @@ Changelog
 in development
 --------------
 
+Added
+~~~~~
+
+* Add new "Inquiry" runner, which adds ability to "ask a question", usually in a workflow. Also
+  added new API endpoints and client commands for interacting with these.
+
+  Contributed by mierdin. #3653
+
 Fixed
 ~~~~~
 
