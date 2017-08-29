@@ -80,7 +80,7 @@ class InquiriesController(ResourceController):
 
         return inquiries
 
-    def get_one(self, iid, requester_user=None):
+    def get_one(self, inquiry_id, requester_user=None):
         """Retrieve a single Inquiry
 
             Handles requests:
@@ -88,7 +88,7 @@ class InquiriesController(ResourceController):
         """
 
         raw_inquiry = self._get_one_by_id(
-            id=iid,
+            id=inquiry_id,
             requester_user=requester_user,
             permission_type=PermissionType.EXECUTION_VIEW
         )
