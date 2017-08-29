@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import eventlet
+
 import logging as stdlib_logging
 
 from oslo_config import cfg
@@ -147,6 +149,9 @@ def make_read_and_store_stream_func(execution_db, action_db, store_line_func):
                     store_line_func(execution_db=execution_db, action_db=action_db, line=line)
         except RuntimeError:
             # process was terminated abruptly
+            pass
+        except eventlet.support.greenlets.GreenletExit:
+            # Green thread exited / was killed
             pass
 
     return read_and_store_stream

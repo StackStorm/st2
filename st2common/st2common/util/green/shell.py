@@ -106,11 +106,11 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
 
     if read_stdout_func:
         LOG.debug('Spawning read_stdout_func function')
-        eventlet.spawn(read_stdout_func, process.stdout, read_stdout_buffer)
+        read_stdout_thread = eventlet.spawn(read_stdout_func, process.stdout, read_stdout_buffer)
 
     if read_stderr_func:
         LOG.debug('Spawning read_stderr_func function')
-        eventlet.spawn(read_stderr_func, process.stderr, read_stderr_buffer)
+        read_stderr_thread = eventlet.spawn(read_stderr_func, process.stderr, read_stderr_buffer)
 
     def on_timeout_expired(timeout):
         global timed_out
@@ -131,11 +131,15 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 LOG.debug('Kill process.')
                 process.kill()
 
+            if read_stdout_func and read_stderr_func:
+                read_stdout_thread.kill()
+                read_stderr_thread.kill()
+
     LOG.debug('Setting up process and callback.')
     timeout_thread = eventlet.spawn(on_timeout_expired, timeout)
     LOG.debug('Attaching to process.')
 
-    if read_stderr_func or read_stderr_func:
+    if read_stderr_func and read_stderr_func:
         LOG.debug('Using live stdout and stderr read mode, calling process.wait()')
         process.wait()
     else:
@@ -145,7 +149,11 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     timeout_thread.cancel()
     exit_code = process.returncode
 
-    if read_stderr_func or read_stderr_func:
+    if read_stderr_func and read_stderr_func:
+        # Wait on those green threads to finish reading from stdout and stderr before continuing
+        read_stdout_thread.wait()
+        read_stderr_thread.wait()
+
         stdout = read_stdout_buffer.getvalue()
         stderr = read_stderr_buffer.getvalue()
 
