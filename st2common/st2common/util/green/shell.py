@@ -132,6 +132,7 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 process.kill()
 
             if read_stdout_func and read_stderr_func:
+                LOG.debug('Killing read_stdout_thread and read_stderr_thread')
                 read_stdout_thread.kill()
                 read_stderr_thread.kill()
 
@@ -140,7 +141,7 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     LOG.debug('Attaching to process.')
 
     if read_stderr_func and read_stderr_func:
-        LOG.debug('Using live stdout and stderr read mode, calling process.wait()')
+        LOG.debug('Using real-time stdout and stderr read mode, calling process.wait()')
         process.wait()
     else:
         LOG.debug('Using delayed stdout and stderr read mode, calling process.communicate()')
