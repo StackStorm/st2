@@ -140,7 +140,7 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     timeout_thread = eventlet.spawn(on_timeout_expired, timeout)
     LOG.debug('Attaching to process.')
 
-    if read_stderr_func and read_stderr_func:
+    if read_stdout_func and read_stderr_func:
         LOG.debug('Using real-time stdout and stderr read mode, calling process.wait()')
         process.wait()
     else:
@@ -150,7 +150,7 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     timeout_thread.cancel()
     exit_code = process.returncode
 
-    if read_stderr_func and read_stderr_func:
+    if read_stdout_func and read_stderr_func:
         # Wait on those green threads to finish reading from stdout and stderr before continuing
         read_stdout_thread.wait()
         read_stderr_thread.wait()
