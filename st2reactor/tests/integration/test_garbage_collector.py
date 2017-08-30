@@ -29,6 +29,7 @@ from st2common.persistence.execution import ActionExecutionStdoutOutput
 from st2common.persistence.execution import ActionExecutionStderrOutput
 from st2tests.base import IntegrationTestCase
 from st2tests.base import CleanDbTestCase
+from st2tests.base import DbTestCase
 
 __all__ = [
     'GarbageCollectorServiceTestCase'
@@ -43,7 +44,7 @@ BINARY = os.path.abspath(BINARY)
 CMD = [BINARY, '--config-file', ST2_CONFIG_PATH]
 
 
-class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
+class GarbageCollectorServiceTestCase(IntegrationTestCase, DbTestCase):
     @classmethod
     def setUpClass(cls):
         super(GarbageCollectorServiceTestCase, cls).setUpClass()
@@ -58,7 +59,7 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
         # Insert come mock ActionExecutionDB objects with start_timestamp < TTL defined in the
         # config
         old_executions_count = 15
-        ttl_days = 30
+        ttl_days = 30  # > 20
         timestamp = (now - datetime.timedelta(days=ttl_days))
         for index in range(0, old_executions_count):
             action_execution_db = ActionExecutionDB(start_timestamp=timestamp,
@@ -71,18 +72,20 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
 
             stdout_db = ActionExecutionStdoutOutputDB(execution_id=str(action_execution_db.id),
                                                       action_ref='core.local',
+                                                      timestamp=timestamp,
                                                       line='stdout')
             ActionExecutionStdoutOutput.add_or_update(stdout_db)
 
             stderr_db = ActionExecutionStderrOutputDB(execution_id=str(action_execution_db.id),
                                                       action_ref='core.local',
+                                                      timestamp=timestamp,
                                                       line='stderr')
             ActionExecutionStderrOutput.add_or_update(stderr_db)
 
         # Insert come mock ActionExecutionDB objects with start_timestamp > TTL defined in the
         # config
         new_executions_count = 5
-        ttl_days = 2
+        ttl_days = 2  # < 20
         timestamp = (now - datetime.timedelta(days=ttl_days))
         for index in range(0, new_executions_count):
             action_execution_db = ActionExecutionDB(start_timestamp=timestamp,
@@ -95,21 +98,52 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
 
             stdout_db = ActionExecutionStdoutOutputDB(execution_id=str(action_execution_db.id),
                                                       action_ref='core.local',
+                                                      timestamp=timestamp,
                                                       line='stdout')
             ActionExecutionStdoutOutput.add_or_update(stdout_db)
 
             stderr_db = ActionExecutionStderrOutputDB(execution_id=str(action_execution_db.id),
                                                       action_ref='core.local',
+                                                      timestamp=timestamp,
+                                                      line='stderr')
+            ActionExecutionStderrOutput.add_or_update(stderr_db)
+
+        # Insert some mock output objects where start_timestamp > action_executions_output_ttl
+        new_output_count = 5
+        ttl_days = 15 # > 10 and < 20
+        timestamp = (now - datetime.timedelta(days=ttl_days))
+        for index in range(0, new_output_count):
+            action_execution_db = ActionExecutionDB(start_timestamp=timestamp,
+                                                    end_timestamp=timestamp,
+                                                    status=status,
+                                                    action={'ref': 'core.local'},
+                                                    runner={'name': 'run-local'},
+                                                    liveaction={'ref': 'foo'})
+            ActionExecution.add_or_update(action_execution_db)
+
+            stdout_db = ActionExecutionStdoutOutputDB(execution_id=str(action_execution_db.id),
+                                                      action_ref='core.local',
+                                                      timestamp=timestamp,
+                                                      line='stdout')
+            ActionExecutionStdoutOutput.add_or_update(stdout_db)
+
+            stderr_db = ActionExecutionStderrOutputDB(execution_id=str(action_execution_db.id),
+                                                      action_ref='core.local',
+                                                      timestamp=timestamp,
                                                       line='stderr')
             ActionExecutionStderrOutput.add_or_update(stderr_db)
 
         execs = ActionExecution.get_all()
-        self.assertEqual(len(execs), (old_executions_count + new_executions_count))
+        self.assertEqual(len(execs),
+                         (old_executions_count + new_executions_count + new_output_count))
 
         stdout_dbs = ActionExecutionStdoutOutput.get_all()
-        self.assertEqual(len(stdout_dbs), (old_executions_count + new_executions_count))
+        self.assertEqual(len(stdout_dbs),
+                         (old_executions_count + new_executions_count + new_output_count))
+
         stderr_dbs = ActionExecutionStderrOutput.get_all()
-        self.assertEqual(len(stderr_dbs), (old_executions_count + new_executions_count))
+        self.assertEqual(len(stderr_dbs),
+                         (old_executions_count + new_executions_count + new_output_count))
 
         # Start garbage collector
         process = self._start_garbage_collector()
@@ -121,10 +155,13 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
 
         # Old executions and corresponding objects should have been garbage collected
         execs = ActionExecution.get_all()
-        self.assertEqual(len(execs), (new_executions_count))
+        self.assertEqual(len(execs), (new_executions_count + new_output_count))
 
+        # Collection for output objects older than 10 days is also enabled, so those objects
+        # should be deleted as well
         stdout_dbs = ActionExecutionStdoutOutput.get_all()
         self.assertEqual(len(stdout_dbs), (new_executions_count))
+
         stderr_dbs = ActionExecutionStderrOutput.get_all()
         self.assertEqual(len(stderr_dbs), (new_executions_count))
 
