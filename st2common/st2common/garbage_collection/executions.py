@@ -29,7 +29,8 @@ from st2common.persistence.execution import ActionExecutionStdoutOutput
 from st2common.persistence.execution import ActionExecutionStderrOutput
 
 __all__ = [
-    'purge_executions'
+    'purge_executions',
+    'purge_execution_output_objects'
 ]
 
 DONE_STATES = [action_constants.LIVEACTION_STATUS_SUCCEEDED,
@@ -142,3 +143,50 @@ def purge_executions(logger, timestamp, action_ref=None, purge_incomplete=False)
 
     # Print stats
     logger.info('All execution models older than timestamp %s were deleted.', timestamp)
+
+
+def purge_execution_output_objects(logger, timestamp, action_ref=None):
+    """
+    Purge action executions stdout and stderr objects.
+
+    :param timestamp: Objects older than this timestamp will be deleted.
+    :type timestamp: ``datetime.datetime
+
+    :param action_ref: Only delete objects for the provided actions.
+    :type action_ref: ``str``
+    """
+    if not timestamp:
+        raise ValueError('Specify a valid timestamp to purge.')
+
+    logger.info('Purging action execution output objects older than timestamp: %s' %
+                timestamp.strftime('%Y-%m-%dT%H:%M:%S.%fZ'))
+
+    filters = {}
+    filters['timestamp__lt'] = timestamp
+
+    if action_ref:
+        filters['action_ref'] = action_ref
+
+    try:
+        deleted_count = ActionExecutionStdoutOutput.delete_by_query(**filters)
+    except InvalidQueryError as e:
+        msg = ('Bad query (%s) used to delete execution stdout instances: %s'
+               'Please contact support.' % (filters, str(e)))
+        raise InvalidQueryError(msg)
+    except:
+        logger.exception('Deletion of execution stdout models failed for query with filters: %s.',
+                         filters)
+    else:
+        logger.info('Deleted %s execution stdout objects' % (deleted_count))
+
+    try:
+        deleted_count = ActionExecutionStderrOutput.delete_by_query(**filters)
+    except InvalidQueryError as e:
+        msg = ('Bad query (%s) used to delete execution stderr instances: %s'
+               'Please contact support.' % (filters, str(e)))
+        raise InvalidQueryError(msg)
+    except:
+        logger.exception('Deletion of execution stderr models failed for query with filters: %s.',
+                         filters)
+    else:
+        logger.info('Deleted %s execution stderr objects' % (deleted_count))

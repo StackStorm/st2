@@ -30,9 +30,11 @@ from st2common.constants.exit_codes import SUCCESS_EXIT_CODE
 from st2common.constants.exit_codes import FAILURE_EXIT_CODE
 from st2common.constants.garbage_collection import DEFAULT_COLLECTION_INTERVAL
 from st2common.constants.garbage_collection import MINIMUM_TTL_DAYS
+from st2common.constants.garbage_collection import MINIMUM_TTL_DAYS_EXECUTION_OUTPUT
 from st2common.util import isotime
 from st2common.util.date import get_datetime_utc_now
 from st2common.garbage_collection.executions import purge_executions
+from st2common.garbage_collection.executions import purge_execution_output_objects
 from st2common.garbage_collection.trigger_instances import purge_trigger_instances
 
 __all__ = [
@@ -43,17 +45,25 @@ LOG = logging.getLogger(__name__)
 
 
 class GarbageCollectorService(object):
-    def __init__(self, collection_interval=DEFAULT_COLLECTION_INTERVAL):
+    def __init__(self, collection_interval=DEFAULT_COLLECTION_INTERVAL, sleep_delay=2):
         """
         :param collection_interval: How often to check database for old data and perform garbage
                collection.
         :type collection_interval: ``int``
+
+        :param sleep_delay: How long to sleep (in seconds) between collection of different object
+                            types.
+        :type sleep_delay: ``int``
         """
         self._collection_interval = collection_interval
 
         self._action_executions_ttl = cfg.CONF.garbagecollector.action_executions_ttl
+        self._action_executions_output_ttl = cfg.CONF.garbagecollector.action_executions_output_ttl
         self._trigger_instances_ttl = cfg.CONF.garbagecollector.trigger_instances_ttl
+
         self._validate_ttl_values()
+
+        self._sleep_delay = sleep_delay
 
     def run(self):
         self._running = True
@@ -107,20 +117,33 @@ class GarbageCollectorService(object):
             raise ValueError('Minimum possible TTL for trigger_instances_ttl in days is %s' %
                              (MINIMUM_TTL_DAYS))
 
+        if self._action_executions_output_ttl and \
+                self._action_executions_output_ttl < MINIMUM_TTL_DAYS_EXECUTION_OUTPUT:
+            raise ValueError(('Minimum possible TTL for action_executions_output_ttl in days '
+                              'is %s') % (MINIMUM_TTL_DAYS_EXECUTION_OUTPUT))
+
     def _perform_garbage_collection(self):
         LOG.info('Performing garbage collection...')
 
-        # todo sleep between queries to avoid busy waiting
         if self._action_executions_ttl >= MINIMUM_TTL_DAYS:
             self._purge_action_executions()
+            eventlet.sleep(self._sleep_delay)
         else:
             LOG.debug('Skipping garbage collection for action executions since it\'s not '
                       'configured')
 
-        # Note: We sleep for a bit between garbage collection of each object
-        # type to prevent busy waiting
+        if self._action_executions_output_ttl >= MINIMUM_TTL_DAYS_EXECUTION_OUTPUT:
+            self._purge_action_executions_output()
+            eventlet.sleep(self._sleep_delay)
+        else:
+            LOG.debug('Skipping garbage collection for action executions output since it\'s not '
+                      'configured')
+
+        # Note: We sleep for a bit between garbage collection of each object type to prevent 
+        # busy waiting
         if self._trigger_instances_ttl >= MINIMUM_TTL_DAYS:
             self._purge_trigger_instances()
+            eventlet.sleep(self._sleep_delay)
         else:
             LOG.debug('Skipping garbage collection for trigger instances since it\'s not '
                       'configured')
@@ -148,6 +171,28 @@ class GarbageCollectorService(object):
             purge_executions(logger=LOG, timestamp=timestamp)
         except Exception as e:
             LOG.exception('Failed to delete executions: %s' % (str(e)))
+
+        return True
+
+    def _purge_action_executions_output(self):
+        LOG.info('Performing garbage collection for action executions output objects')
+
+        utc_now = get_datetime_utc_now()
+        timestamp = (utc_now - datetime.timedelta(days=self._action_executions_output_ttl))
+
+        # Another sanity check to make sure we don't delete new objects
+        if timestamp > (utc_now - datetime.timedelta(days=MINIMUM_TTL_DAYS_EXECUTION_OUTPUT)):
+            raise ValueError('Calculated timestamp would violate the minimum TTL constraint')
+
+        timestamp_str = isotime.format(dt=timestamp)
+        LOG.info('Deleting action executions output objects older than: %s' % (timestamp_str))
+
+        assert timestamp < utc_now
+
+        try:
+            purge_execution_output_objects(logger=LOG, timestamp=timestamp)
+        except Exception as e:
+            LOG.exception('Failed to delete execution output objects: %s' % (str(e)))
 
         return True
 

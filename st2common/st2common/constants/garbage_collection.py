@@ -15,7 +15,8 @@
 
 __all__ = [
     'DEFAULT_COLLECTION_INTERVAL',
-    'MINIMUM_TTL_DAYS'
+    'MINIMUM_TTL_DAYS',
+    'MINIMUM_TTL_DAYS_EXECUTION_OUTPUT'
 ]
 
 
@@ -24,3 +25,6 @@ DEFAULT_COLLECTION_INTERVAL = 600
 
 # Minimum value for the TTL. If user supplies value lower than this, we will throw.
 MINIMUM_TTL_DAYS = 7
+
+# Minimum TTL in days for action execution output objects.
+MINIMUM_TTL_DAYS_EXECUTION_OUTPUT = 1
