@@ -29,7 +29,6 @@ from st2common.persistence.execution import ActionExecutionStdoutOutput
 from st2common.persistence.execution import ActionExecutionStderrOutput
 from st2tests.base import IntegrationTestCase
 from st2tests.base import CleanDbTestCase
-from st2tests.base import DbTestCase
 
 __all__ = [
     'GarbageCollectorServiceTestCase'
@@ -44,7 +43,7 @@ BINARY = os.path.abspath(BINARY)
 CMD = [BINARY, '--config-file', ST2_CONFIG_PATH]
 
 
-class GarbageCollectorServiceTestCase(IntegrationTestCase, DbTestCase):
+class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
     @classmethod
     def setUpClass(cls):
         super(GarbageCollectorServiceTestCase, cls).setUpClass()
@@ -110,7 +109,7 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, DbTestCase):
 
         # Insert some mock output objects where start_timestamp > action_executions_output_ttl
         new_output_count = 5
-        ttl_days = 15 # > 10 and < 20
+        ttl_days = 15  # > 10 and < 20
         timestamp = (now - datetime.timedelta(days=ttl_days))
         for index in range(0, new_output_count):
             action_execution_db = ActionExecutionDB(start_timestamp=timestamp,
