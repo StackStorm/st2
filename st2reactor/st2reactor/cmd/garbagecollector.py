@@ -52,7 +52,9 @@ def main():
         _setup()
 
         collection_interval = cfg.CONF.garbagecollector.collection_interval
-        garbage_collector = GarbageCollectorService(collection_interval=collection_interval)
+        sleep_delay = cfg.CONF.garbagecollector.sleep_delay
+        garbage_collector = GarbageCollectorService(collection_interval=collection_interval,
+                                                    sleep_delay=sleep_delay)
         exit_code = garbage_collector.run()
     except SystemExit as exit_code:
         return exit_code

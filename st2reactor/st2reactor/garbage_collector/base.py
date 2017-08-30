@@ -29,6 +29,7 @@ from st2common import log as logging
 from st2common.constants.exit_codes import SUCCESS_EXIT_CODE
 from st2common.constants.exit_codes import FAILURE_EXIT_CODE
 from st2common.constants.garbage_collection import DEFAULT_COLLECTION_INTERVAL
+from st2common.constants.garbage_collection import DEFAULT_SLEEP_DELAY
 from st2common.constants.garbage_collection import MINIMUM_TTL_DAYS
 from st2common.constants.garbage_collection import MINIMUM_TTL_DAYS_EXECUTION_OUTPUT
 from st2common.util import isotime
@@ -45,7 +46,8 @@ LOG = logging.getLogger(__name__)
 
 
 class GarbageCollectorService(object):
-    def __init__(self, collection_interval=DEFAULT_COLLECTION_INTERVAL, sleep_delay=2):
+    def __init__(self, collection_interval=DEFAULT_COLLECTION_INTERVAL,
+                 sleep_delay=DEFAULT_SLEEP_DELAY):
         """
         :param collection_interval: How often to check database for old data and perform garbage
                collection.

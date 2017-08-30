@@ -18,6 +18,7 @@ from oslo_config import cfg
 import st2common.config as common_config
 from st2common.constants.system import VERSION_STRING
 from st2common.constants.garbage_collection import DEFAULT_COLLECTION_INTERVAL
+from st2common.constants.garbage_collection import DEFAULT_SLEEP_DELAY
 common_config.register_opts()
 
 CONF = cfg.CONF
@@ -49,7 +50,10 @@ def _register_garbage_collector_opts():
 
     common_opts = [
         cfg.IntOpt('collection_interval', default=DEFAULT_COLLECTION_INTERVAL,
-                   help='How often to check database for old data and perform garbage collection.')
+                   help='How often to check database for old data and perform garbage collection.'),
+        cfg.FloatOpt('sleep_delay', default=DEFAULT_SLEEP_DELAY,
+                     help=('How long to wait / sleep (in seconds) between collection of different '
+                           'object types.'))
     ]
     CONF.register_opts(common_opts, group='garbagecollector')
 
