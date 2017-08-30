@@ -56,4 +56,6 @@ class ResourceType(Enum):
     # Special resource type for stream related stuff
     STREAM = 'stream'
 
+    INQUIRY = 'inquiry'
+
     UNKNOWN = 'unknown'

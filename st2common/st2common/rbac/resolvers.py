@@ -1047,6 +1047,68 @@ class StreamPermissionsResolver(PermissionsResolver):
         return self._user_has_global_permission(user_db=user_db, permission_type=permission_type)
 
 
+class InquiryPermissionsResolver(PermissionsResolver):
+    resource_type = ResourceType.INQUIRY
+    view_grant_permission_types = [
+        PermissionType.INQUIRY_LIST,
+        PermissionType.INQUIRY_VIEW,
+        PermissionType.INQUIRY_RESPOND,
+        PermissionType.INQUIRY_ALL
+    ]
+
+    def user_has_permission(self, user_db, permission_type):
+        assert permission_type in [PermissionType.INQUIRY_LIST, PermissionType.INQUIRY_ALL]
+        return self._user_has_list_permission(user_db=user_db, permission_type=permission_type)
+
+    def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
+        """
+        Method for checking user permissions on an existing resource (e.g. get one, edit, delete
+        operations).
+        """
+
+        assert permission_type in [
+            PermissionType.INQUIRY_RESPOND,
+            PermissionType.INQUIRY_VIEW,
+            PermissionType.INQUIRY_ALL
+        ]
+
+        log_context = {
+            'user_db': user_db,
+            'resource_db': resource_db,
+            'permission_type': permission_type,
+            'resolver': self.__class__.__name__
+        }
+        self._log('Checking user resource permissions', extra=log_context)
+
+        # First check the system role permissions
+        has_system_role_permission = self._user_has_system_role_permission(
+            user_db=user_db, permission_type=permission_type)
+
+        if has_system_role_permission:
+            self._log('Found a matching grant via system role', extra=log_context)
+            return True
+
+        inquiry_uid = resource_db.get_uid()
+
+        resource_types = [ResourceType.INQUIRY]
+        permission_types = [
+            PermissionType.INQUIRY_VIEW,
+            PermissionType.INQUIRY_RESPOND,
+            PermissionType.INQUIRY_ALL
+        ]
+        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
+                                                               resource_uid=inquiry_uid,
+                                                               resource_types=resource_types,
+                                                               permission_types=permission_types)
+
+        if len(permission_grants) >= 1:
+            self._log('Found a grant on the inquiry', extra=log_context)
+            return True
+
+        self._log('No matching grants found', extra=log_context)
+        return False
+
+
 def get_resolver_for_resource_type(resource_type):
     """
     Return resolver instance for the provided resource type.
@@ -1087,6 +1149,8 @@ def get_resolver_for_resource_type(resource_type):
         resolver_cls = PolicyPermissionsResolver
     elif resource_type == ResourceType.STREAM:
         resolver_cls = StreamPermissionsResolver
+    elif resource_type == ResourceType.INQUIRY:
+        resolver_cls = InquiryPermissionsResolver
     else:
         raise ValueError('Unsupported resource: %s' % (resource_type))
 
