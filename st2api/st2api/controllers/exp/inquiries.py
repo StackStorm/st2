@@ -54,7 +54,7 @@ class InquiriesController(ResourceController):
     model = ActionExecutionAPI
     access = ActionExecution
 
-    def get_all(self, requester_user=None):
+    def get_all(self, requester_user=None, limit=None, **raw_filters):
         """Retrieve multiple Inquiries
 
             Handles requests:
@@ -62,6 +62,7 @@ class InquiriesController(ResourceController):
         """
 
         raw_inquiries = super(InquiriesController, self)._get_all(
+            limit=limit,
             raw_filters={'status': 'pending'}
         )
 

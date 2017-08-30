@@ -1194,6 +1194,12 @@ paths:
     get:
       operationId: st2api.controllers.exp.inquiries:inquiries_controller.get_all
       description: Returns a list of all inquiries
+      parameters:
+        - name: limit
+          in: query
+          description: Number of executions to get
+          type: integer
+          default: 20
       x-parameters:
         - name: user
           in: context

@@ -13,17 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# import os
 import json
 import logging
-# from os.path import join as pjoin
 
 from st2client.commands import resource
-# from st2client.commands.noop import NoopCommand
-# from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
 from st2client.formatters import table
 from st2client.models.inquiry import Inquiry
-# from st2client.utils.date import format_isodate_for_user_timezone
 
 LOG = logging.getLogger(__name__)
 
@@ -51,9 +46,9 @@ class InquiryBranch(resource.ResourceBranch):
         del self.commands['update']
 
 
-class InquiryListCommand(resource.ResourceListCommand):
+class InquiryListCommand(resource.ResourceCommand):
 
-    # Omitting "schema" and "response", as it doesn't really show up in a table well
+    # Omitting "schema" and "response", as it doesn't really show up in a table well.
     # The user can drill into a specific Inquiry to get this
     display_attributes = [
         'id',
@@ -63,11 +58,37 @@ class InquiryListCommand(resource.ResourceListCommand):
         'tag'
     ]
 
-    def __init__(self, *args, **kwargs):
-        super(InquiryListCommand, self).__init__(*args, **kwargs)
+    def __init__(self, resource, *args, **kwargs):
+
+        self.default_limit = 20
+
+        super(InquiryListCommand, self).__init__(
+            resource, 'list', 'Get the list of the %s most recent %s.' %
+            (self.default_limit, resource.get_plural_display_name().lower()),
+            *args, **kwargs)
+
+        self.resource_name = resource.get_plural_display_name().lower()
+        self.parser.add_argument('-n', '--last', type=int, dest='last',
+                                 default=self.default_limit,
+                                 help=('List N most recent %s.' % self.resource_name))
+
+        # Display options
+        self.parser.add_argument('-a', '--attr', nargs='+',
+                                 default=self.display_attributes,
+                                 help=('List of attributes to include in the '
+                                       'output. "all" will return all '
+                                       'attributes.'))
+        self.parser.add_argument('-w', '--width', nargs='+', type=int,
+                                 default=None,
+                                 help=('Set the width of columns in output.'))
+
+    @resource.add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        return self.manager.query_with_count(limit=args.last, **kwargs)
 
     def run_and_print(self, args, **kwargs):
-        instances = self.run(args, **kwargs)
+        instances, count = self.run(args, **kwargs)
+
         self.print_output(reversed(instances), table.MultiColumnTable,
                           attributes=args.attr, widths=args.width,
                           json=args.json,
@@ -103,29 +124,12 @@ class InquiryRespondCommand(resource.ResourceCommand):
         self.parser.add_argument('response',
                                  metavar='response',
                                  help='response body (json)')
-        # self.parser.add_argument('value', help='Value paired with the key.')
-        # self.parser.add_argument('-l', '--ttl', dest='ttl', type=int, default=None,
-        #                          help='TTL (in seconds) for this value.')
-        # self.parser.add_argument('-e', '--encrypt', dest='secret',
-        #                          action='store_true',
-        #                          help='Encrypt value before saving the value.')
-        # self.parser.add_argument('-s', '--scope', dest='scope', default=DEFAULT_SCOPE,
-        #                          help='Specify the scope under which you want ' +
-        #                               'to place the item.')
-        # self.parser.add_argument('-u', '--user', dest='user', default=None,
-        #                          help='User for user scoped items (admin only).')
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         instance = Inquiry()
         instance.id = args.id
         instance.response = json.loads(args.response)
-
-        # if args.secret:
-        #     instance.secret = args.secret
-
-        # if args.ttl:
-        #     instance.ttl = args.ttl
 
         return self.manager.update(instance, **kwargs)
 
@@ -134,117 +138,3 @@ class InquiryRespondCommand(resource.ResourceCommand):
         self.print_output(instance, table.PropertyValueTable,
                           attributes=self.display_attributes, json=args.json,
                           yaml=args.yaml)
-
-
-# class KeyValuePairDeleteCommand(resource.ResourceDeleteCommand):
-#     pk_argument_name = 'name'
-
-#     def __init__(self, resource, *args, **kwargs):
-#         super(KeyValuePairDeleteCommand, self).__init__(resource, *args, **kwargs)
-
-#         self.parser.add_argument('-s', '--scope', dest='scope', default=DEFAULT_SCOPE,
-#                                  help='Specify the scope under which you want ' +
-#                                       'to place the item.')
-#         self.parser.add_argument('-u', '--user', dest='user', default=None,
-#                                  help='User for user scoped items (admin only).')
-
-#     @add_auth_token_to_kwargs_from_cli
-#     def run(self, args, **kwargs):
-#         resource_id = getattr(args, self.pk_argument_name, None)
-#         scope = getattr(args, 'scope', DEFAULT_SCOPE)
-#         kwargs['params'] = {}
-#         kwargs['params']['scope'] = scope
-#         kwargs['params']['user'] = args.user
-#         instance = self.get_resource(resource_id, **kwargs)
-
-#         if not instance:
-#             raise resource.ResourceNotFoundError('KeyValuePair with id "%s" not found', resource_id)
-
-#         instance.id = resource_id  # TODO: refactor and get rid of id
-#         self.manager.delete(instance, **kwargs)
-
-
-# class KeyValuePairDeleteByPrefixCommand(resource.ResourceCommand):
-#     """
-#     Commands which delete all the key value pairs which match the provided
-#     prefix.
-#     """
-#     def __init__(self, resource, *args, **kwargs):
-#         super(KeyValuePairDeleteByPrefixCommand, self).__init__(resource, 'delete_by_prefix',
-#             'Delete KeyValue pairs which match the provided prefix', *args, **kwargs)
-
-#         self.parser.add_argument('-p', '--prefix', required=True,
-#                                  help='Name prefix (e.g. twitter.TwitterSensor:)')
-
-#     @add_auth_token_to_kwargs_from_cli
-#     def run(self, args, **kwargs):
-#         prefix = args.prefix
-#         key_pairs = self.manager.get_all(prefix=prefix)
-
-#         to_delete = []
-#         for key_pair in key_pairs:
-#             key_pair.id = key_pair.name
-#             to_delete.append(key_pair)
-
-#         deleted = []
-#         for key_pair in to_delete:
-#             self.manager.delete(instance=key_pair, **kwargs)
-#             deleted.append(key_pair)
-
-#         return deleted
-
-#     def run_and_print(self, args, **kwargs):
-#         # TODO: Need to use args, instead of kwargs (args=) because of bad API
-#         # FIX ME
-#         deleted = self.run(args, **kwargs)
-#         key_ids = [key_pair.id for key_pair in deleted]
-
-#         print('Deleted %s keys' % (len(deleted)))
-#         print('Deleted key ids: %s' % (', '.join(key_ids)))
-
-
-# class KeyValuePairLoadCommand(resource.ResourceCommand):
-#     pk_argument_name = 'name'
-#     display_attributes = ['name', 'value']
-
-#     def __init__(self, resource, *args, **kwargs):
-#         help_text = ('Load a list of %s from file.' %
-#                      resource.get_plural_display_name().lower())
-#         super(KeyValuePairLoadCommand, self).__init__(resource, 'load',
-#             help_text, *args, **kwargs)
-
-#         self.parser.add_argument(
-#             'file', help=('JSON file containing the %s to create.'
-#                           % resource.get_plural_display_name().lower()))
-
-#     @add_auth_token_to_kwargs_from_cli
-#     def run(self, args, **kwargs):
-#         file_path = os.path.normpath(pjoin(os.getcwd(), args.file))
-
-#         if not os.path.exists(args.file):
-#             raise ValueError('File "%s" doesn\'t exist' % (file_path))
-
-#         if not os.path.isfile(args.file):
-#             raise ValueError('"%s" is not a file' % (file_path))
-
-#         with open(file_path, 'r') as f:
-#             kvps = json.loads(f.read())
-
-#         instances = []
-#         for item in kvps:
-#             name = item['name']
-#             value = item['value']
-
-#             instance = KeyValuePair()
-#             instance.id = name  # TODO: refactor and get rid of id
-#             instance.name = name
-#             instance.value = value
-
-#             self.manager.update(instance, **kwargs)
-#             instances.append(instance)
-#         return instances
-
-#     def run_and_print(self, args, **kwargs):
-#         instances = self.run(args, **kwargs)
-#         self.print_output(instances, table.MultiColumnTable,
-#                           attributes=['id', 'name', 'value'], json=args.json, yaml=args.yaml)
