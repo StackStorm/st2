@@ -19,8 +19,6 @@ from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_PENDING
 from st2common.constants.triggers import INQUIRY_TRIGGER
 from st2common.models.system.common import ResourceReference
-from st2common.persistence.execution import ActionExecution
-from st2common.persistence.liveaction import LiveAction
 from st2common.runners.base import ActionRunner
 from st2common.services import action as action_service
 from st2common.transport.reactor import TriggerDispatcher
@@ -38,6 +36,7 @@ RUNNER_SCHEMA = 'schema'
 RUNNER_ROLES = 'roles'
 RUNNER_USERS = 'users'
 RUNNER_TAG = 'tag'
+RUNNER_TTL = 'ttl'
 
 
 def get_runner():
@@ -62,6 +61,7 @@ class Inquirer(ActionRunner):
         self.roles_param = self.runner_parameters.get(RUNNER_ROLES, None)
         self.users_param = self.runner_parameters.get(RUNNER_USERS, None)
         self.tag = self.runner_parameters.get(RUNNER_TAG, None)
+        self.ttl = self.runner_parameters.get(RUNNER_TTL, None)
 
     def run(self, action_parameters):
 
@@ -81,7 +81,8 @@ class Inquirer(ActionRunner):
             "schema": self.schema,
             "roles": self.roles_param,
             "users": self.users_param,
-            "tag": self.tag
+            "tag": self.tag,
+            "ttl": self.ttl
         }
         self.trigger_dispatcher.dispatch(trigger_ref, trigger_payload)
 

@@ -55,7 +55,8 @@ class InquiryListCommand(resource.ResourceCommand):
         'parent',
         'roles',
         'users',
-        'tag'
+        'tag',
+        'ttl'
     ]
 
     def __init__(self, resource, *args, **kwargs):
@@ -97,7 +98,7 @@ class InquiryListCommand(resource.ResourceCommand):
 
 class InquiryGetCommand(resource.ResourceGetCommand):
     pk_argument_name = 'id'
-    display_attributes = ['id', 'parent', 'roles', 'users', 'tag', 'schema']
+    display_attributes = ['id', 'parent', 'roles', 'users', 'tag', 'ttl', 'schema']
 
     def __init__(self, kv_resource, *args, **kwargs):
         super(InquiryGetCommand, self).__init__(kv_resource, *args, **kwargs)

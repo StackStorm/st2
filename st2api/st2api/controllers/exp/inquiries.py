@@ -196,6 +196,7 @@ class InquiriesController(ResourceController):
             "parent": raw_inquiry.get("parent"),
             "result": raw_inquiry.get("result"),
             "tag": raw_inquiry["parameters"].get("tag", ""),
+            "ttl": raw_inquiry["parameters"].get("ttl"),
             "users": raw_inquiry["parameters"].get("users", []),
             "roles": raw_inquiry["parameters"].get("roles", []),
             "schema": schema

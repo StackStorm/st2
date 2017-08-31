@@ -137,6 +137,10 @@ INQUIRY_TRIGGER = {
             'tag': {
                 'type': 'string',
                 'description': 'User-defined, arbitrary field for tracking intent for inquiry'
+            },
+            'ttl': {
+                'type': 'integer',
+                'description': 'Time (in minutes) that an unacknowledged Inquiry is cleaned up'
             }
         }
     }
