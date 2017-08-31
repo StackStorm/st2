@@ -1,7 +1,7 @@
 version: '2.0'
 
 examples.mistral-ask-basic:
-    description: A basic workflow that runs an arbitrary linux command.
+    description: A basic workflow for testing core.ask
     type: direct
     output:
         result: <% task(task1).result.response %>
@@ -19,7 +19,7 @@ examples.mistral-ask-basic:
                 properties:
                   continue:
                     type: boolean
-                    description: This is a schema bassed in via action params
+                    description: Should we continue?
             on-complete:
               - task2
 
