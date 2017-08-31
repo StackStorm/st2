@@ -1,0 +1,14 @@
+chain:
+    -
+        name: task1
+        ref: core.ask
+        params:
+
+            tag: developers
+            users:
+              - testu
+    -
+        name: task2
+        ref: core.local
+        params:
+            cmd: echo "Reached task 2!"

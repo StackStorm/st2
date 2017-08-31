@@ -183,23 +183,33 @@ class InquiriesController(ResourceController):
         if not raw_inquiry.get("parent"):
             return None
 
-        # Retrieve response schema from parameters if exists.
-        # If not, assume default from runner.
-        # TODO(mierdin) Will parameters always be here? Fix this and the heinous thing below
-        schema = raw_inquiry["parameters"].get(
-            "schema",
-            raw_inquiry["runner"]["runner_parameters"]["schema"]["default"]
-        )
+        # The "parameters" field of executions don't include parameters that weren't
+        # explicitly provided. However, they're useful for Inquiries, so we have to
+        # check if a default value was used, and go digging for it
+        fields_from_params = ["schema", "tag", "ttl", "users", "roles"]
+        new_fields = {}
+        for param in fields_from_params:
+
+            # Prefer to get from parameters first, but fall back to runner
+            # default if not provided.
+            #
+            # This is a bit ugly because of the fragile key lookups, but
+            # those keys **should** always be there, (the default value is
+            # provided for each runner parameter)
+            new_fields[param] = raw_inquiry["parameters"].get(
+                param,
+                raw_inquiry["runner"]["runner_parameters"][param]["default"]
+            )
 
         return {
             "id": raw_inquiry.get("id"),
             "parent": raw_inquiry.get("parent"),
             "result": raw_inquiry.get("result"),
-            "tag": raw_inquiry["parameters"].get("tag", ""),
-            "ttl": raw_inquiry["parameters"].get("ttl"),
-            "users": raw_inquiry["parameters"].get("users", []),
-            "roles": raw_inquiry["parameters"].get("roles", []),
-            "schema": schema
+            "tag": new_fields["tag"],
+            "ttl": new_fields["ttl"],
+            "users": new_fields["users"],
+            "roles": new_fields["roles"],
+            "schema": new_fields["schema"]
         }
 
     def _mark_inquiry_complete(self, inquiry_id, result):
