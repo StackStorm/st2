@@ -4131,6 +4131,7 @@ definitions:
       - roles
       - users
       - tag
+      - ttl
     properties:
       id:
         description: ID of this inquiry
@@ -4154,6 +4155,9 @@ definitions:
       tag:
         description: User-defined, arbitrary field for tracking intent for inquiry
         type: string
+      ttl:
+        description: Time (in minutes) that an unacknowledged Inquiry is cleaned up
+        type: integer
   InquiryResponse:
     type: object
     required:
