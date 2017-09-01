@@ -32,7 +32,7 @@ from st2common.models.system.action import ShellScriptAction
 from st2common.util.misc import strip_shell_chars
 from st2common.util.green import shell
 from st2common.util.shell import kill_process
-from st2common.util import jsonify as jsonify
+from st2common.util import jsonify
 from st2common.services.action import store_execution_stdout_line
 from st2common.services.action import store_execution_stderr_line
 from st2common.runners.utils import make_read_and_store_stream_func
