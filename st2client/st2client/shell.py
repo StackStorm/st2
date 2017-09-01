@@ -188,6 +188,9 @@ class Shell(BaseCLIApp):
         self.subparsers = self.parser.add_subparsers()
         self.commands = {}
 
+        self.commands['run'] = action.ActionRunCommand(
+            models.Action, self, self.subparsers, name='run', add_help=False)
+
         self.commands['action'] = action.ActionBranch(
             'An activity that happens as a response to the external event.',
             self, self.subparsers)
@@ -198,6 +201,12 @@ class Shell(BaseCLIApp):
 
         self.commands['auth'] = auth.TokenCreateCommand(
             models.Token, self, self.subparsers, name='auth')
+
+        self.commands['login'] = auth.LoginCommand(
+            models.Token, self, self.subparsers, name='login')
+
+        self.commands['whoami'] = auth.WhoamiCommand(
+            models.Token, self, self.subparsers, name='whoami')
 
         self.commands['api-key'] = auth.ApiKeyBranch(
             'API Keys.',
@@ -211,9 +220,6 @@ class Shell(BaseCLIApp):
             'Key value pair is used to store commonly used configuration '
             'for reuse in sensors, actions, and rules.',
             self, self.subparsers)
-
-        self.commands['login'] = auth.LoginCommand(
-            models.Token, self, self.subparsers, name='login')
 
         self.commands['pack'] = pack.PackBranch(
             'A group of related integration resources: '
@@ -233,8 +239,13 @@ class Shell(BaseCLIApp):
             'based on some criteria.',
             self, self.subparsers)
 
-        self.commands['run'] = action.ActionRunCommand(
-            models.Action, self, self.subparsers, name='run', add_help=False)
+        self.commands['webhook'] = webhook.WebhookBranch(
+            'Webhooks.',
+            self, self.subparsers)
+
+        self.commands['timer'] = timer.TimerBranch(
+            'Timers.',
+            self, self.subparsers)
 
         self.commands['runner'] = resource.ResourceBranch(
             models.RunnerType,
@@ -256,17 +267,6 @@ class Shell(BaseCLIApp):
 
         self.commands['trigger-instance'] = triggerinstance.TriggerInstanceBranch(
             'Actual instances of triggers received by st2.',
-            self, self.subparsers)
-
-        self.commands['webhook'] = webhook.WebhookBranch(
-            'Webhooks.',
-            self, self.subparsers)
-
-        self.commands['whoami'] = auth.WhoamiCommand(
-            models.Token, self, self.subparsers, name='whoami')
-
-        self.commands['timer'] = timer.TimerBranch(
-            'Timers.',
             self, self.subparsers)
 
         self.commands['rule-enforcement'] = rule_enforcement.RuleEnforcementBranch(
