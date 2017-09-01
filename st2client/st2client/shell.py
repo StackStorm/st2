@@ -88,7 +88,7 @@ class Shell(BaseCLIApp):
         self.client = None
 
         # Set up the main parser.
-        self.parser = argparse.ArgumentParser(description=CLI_DESCRIPTION, usage=USAGE_STRING)
+        self.parser = argparse.ArgumentParser(description=CLI_DESCRIPTION)
 
         # Set up general program options.
         self.parser.add_argument(
@@ -288,6 +288,10 @@ class Shell(BaseCLIApp):
 
         if len(argv) == 0:
             # Print a more user-friendly help string if no arguments are provided
+            # Note: We only set usage variable for the main parser. If we passed "usage" argument
+            # to the main ArgumentParser class above, this would also set a custom usage string for
+            # sub-parsers which we don't want.
+            parser.usage = USAGE_STRING
             print(parser.format_help())
             return 0
 
