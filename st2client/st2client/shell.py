@@ -63,6 +63,15 @@ __all__ = [
 LOGGER = logging.getLogger(__name__)
 
 CLI_DESCRIPTION = 'CLI for StackStorm event-driven automation platform. https://stackstorm.com'
+USAGE_STRING = """
+Usage: %(prog)s [options] <command> <sub command> [options]
+
+For example:
+
+    %(prog)s action list --pack=st2
+    %(prog)s run core.local cmd=date
+    %(prog)s --debug run core.local cmd=date
+""".strip()
 
 
 class Shell(BaseCLIApp):
@@ -79,7 +88,7 @@ class Shell(BaseCLIApp):
         self.client = None
 
         # Set up the main parser.
-        self.parser = argparse.ArgumentParser(description=CLI_DESCRIPTION)
+        self.parser = argparse.ArgumentParser(description=CLI_DESCRIPTION, usage=USAGE_STRING)
 
         # Set up general program options.
         self.parser.add_argument(
@@ -177,7 +186,7 @@ class Shell(BaseCLIApp):
 
         # Set up list of commands and subcommands.
         self.subparsers = self.parser.add_subparsers()
-        self.commands = dict()
+        self.commands = {}
 
         self.commands['action'] = action.ActionBranch(
             'An activity that happens as a response to the external event.',
@@ -274,6 +283,13 @@ class Shell(BaseCLIApp):
 
     def run(self, argv):
         debug = False
+
+        parser = self.parser
+
+        if len(argv) == 0:
+            # Print a more user-friendly help string if no arguments are provided
+            print(parser.format_help())
+            return 0
 
         # Provide autocomplete for shell
         argcomplete.autocomplete(self.parser)
