@@ -204,7 +204,7 @@ class InquiriesController(ResourceController):
         return {
             "id": raw_inquiry.get("id"),
             "parent": raw_inquiry.get("parent"),
-            "result": raw_inquiry.get("result"),
+            "response": raw_inquiry["result"].get("response", {}),
             "tag": new_fields["tag"],
             "ttl": new_fields["ttl"],
             "users": new_fields["users"],
