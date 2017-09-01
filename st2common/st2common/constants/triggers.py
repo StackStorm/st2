@@ -110,37 +110,44 @@ INQUIRY_TRIGGER = {
         'properties': {
             'id': {
                 'type': 'string',
-                'description': 'ID of this inquiry'
+                'description': 'ID of this inquiry',
+                'required': True
             },
             'response': {
                 'type': 'object',
-                'description': 'Response data'
+                'description': 'Response data',
+                'required': True
             },
             'schema': {
                 'type': 'object',
-                'description': 'JSON schema used to validate repsonse(s)'
+                'description': 'JSON schema used to validate repsonse(s)',
+                'required': True
             },
             'roles': {
                 'type': 'array',
                 'description': 'List of RBAC roles permitted to respond to this inquiry',
                 'items': {
                     'type': 'string'
-                }
+                },
+                'required': True
             },
             'users': {
                 'type': 'array',
                 'description': 'List of users permitted to respond to this inquiry',
                 'items': {
                     'type': 'string'
-                }
+                },
+                'required': True
             },
             'tag': {
                 'type': 'string',
-                'description': 'User-defined, arbitrary field for tracking intent for inquiry'
+                'description': 'User-defined, arbitrary field for tracking intent for inquiry',
+                'required': True
             },
             'ttl': {
                 'type': 'integer',
-                'description': 'Time (in minutes) that an unacknowledged Inquiry is cleaned up'
+                'description': 'Time (in minutes) that an unacknowledged Inquiry is cleaned up',
+                'required': True
             }
         }
     }
