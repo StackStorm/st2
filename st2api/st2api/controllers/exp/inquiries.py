@@ -31,7 +31,6 @@ from st2common.rbac import utils as rbac_utils
 from st2common.router import abort
 from st2common.models.api.execution import ActionExecutionAPI
 from st2common.persistence.execution import ActionExecution
-from st2common.persistence.liveaction import LiveAction
 from st2common.services import action as action_service
 from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
 
@@ -75,7 +74,7 @@ class InquiriesController(ResourceController):
             if raw_inquiry.get('children'):
                 continue
 
-            new_inquiry = self._transform_inquiry(raw_inquiry)
+            new_inquiry, _ = self._transform_inquiry(raw_inquiry)
             if new_inquiry:
                 inquiries.append(new_inquiry)
 
@@ -98,7 +97,9 @@ class InquiriesController(ResourceController):
             abort(http_client.BAD_REQUEST, '%s is not an Inquiry.' % inquiry_id)
             return
 
-        return self._transform_inquiry(raw_inquiry.__dict__)
+        new_inquiry, _ = self._transform_inquiry(raw_inquiry.__dict__)
+
+        return new_inquiry
 
     def put(self, inquiry_id, response_data, requester_user):
         """Provide response data to an Inquiry
@@ -120,7 +121,7 @@ class InquiriesController(ResourceController):
             requester_user=requester_user,
             permission_type=PermissionType.EXECUTION_VIEW
         )
-        existing_inquiry = self._transform_inquiry(inquiry_execution)
+        existing_inquiry, result = self._transform_inquiry(inquiry_execution)
 
         if not requester_user:
             requester_user = UserDB(cfg.CONF.system_user.user)
@@ -132,7 +133,6 @@ class InquiriesController(ResourceController):
 
         # Add response to existing result
         response = getattr(response_data, 'response')
-        result = existing_inquiry.get('result')
         result['response'] = response
 
         # Validate the body of the response against the schema parameter for this inquiry
@@ -201,7 +201,7 @@ class InquiriesController(ResourceController):
                 raw_inquiry["runner"]["runner_parameters"][param]["default"]
             )
 
-        return {
+        inquiry = {
             "id": raw_inquiry.get("id"),
             "parent": raw_inquiry.get("parent"),
             "response": raw_inquiry["result"].get("response", {}),
@@ -211,6 +211,8 @@ class InquiriesController(ResourceController):
             "roles": new_fields["roles"],
             "schema": new_fields["schema"]
         }
+
+        return inquiry, raw_inquiry["result"]
 
     def _mark_inquiry_complete(self, inquiry_id, result):
         """Mark Inquiry as completed
