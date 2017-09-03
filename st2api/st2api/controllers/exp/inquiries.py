@@ -15,12 +15,14 @@
 
 from oslo_config import cfg
 
+import copy
 import jsonschema
 import json
 
 from six.moves import http_client
 from st2common.models.db.auth import UserDB
 from st2api.controllers.resource import ResourceController
+from st2api.controllers.v1.executionviews import SUPPORTED_FILTERS
 from st2common import log as logging
 from st2common.util import action_db as action_utils
 from st2common.util import system_info
@@ -47,7 +49,7 @@ class InquiriesController(ResourceController):
     """API controller for Inquiries
     """
 
-    supported_filters = {}
+    supported_filters = copy.deepcopy(SUPPORTED_FILTERS)
 
     # No data model currently exists for Inquiries, so we're "borrowing" ActionExecutions
     model = ActionExecutionAPI
@@ -62,7 +64,7 @@ class InquiriesController(ResourceController):
 
         raw_inquiries = super(InquiriesController, self)._get_all(
             limit=limit,
-            raw_filters={'status': 'pending'}
+            raw_filters={'status': 'pending', 'runer': 'inquirer'}
         )
 
         inquiries = []
@@ -97,6 +99,10 @@ class InquiriesController(ResourceController):
             abort(http_client.BAD_REQUEST, '%s is not an Inquiry.' % inquiry_id)
             return
 
+        if raw_inquiry.status != "pending":
+            abort(http_client.BAD_REQUEST, 'Inquiry %s has already been responded to' % inquiry_id)
+            return
+
         new_inquiry, _ = self._transform_inquiry(raw_inquiry.__dict__)
 
         return new_inquiry
@@ -121,6 +127,15 @@ class InquiriesController(ResourceController):
             requester_user=requester_user,
             permission_type=PermissionType.EXECUTION_VIEW
         )
+
+        if inquiry_execution.status != "pending":
+            abort(http_client.BAD_REQUEST, 'Inquiry %s has already been responded to' % inquiry_id)
+            return
+
+        if inquiry_execution.runner.get('runner_module') != "inquirer":
+            abort(http_client.BAD_REQUEST, '%s is not an Inquiry.' % inquiry_id)
+            return
+
         existing_inquiry, result = self._transform_inquiry(inquiry_execution)
 
         if not requester_user:
@@ -177,12 +192,6 @@ class InquiriesController(ResourceController):
         if isinstance(raw_inquiry, ActionExecutionAPI):
             raw_inquiry = raw_inquiry.__json__()
 
-        # The status filter returns all executions that either HAVE that status, or
-        # have subexecutions with that status, so we want to make sure we're ONLY
-        # returning Inquiries that represent subexecutions, not workflows
-        if not raw_inquiry.get("parent"):
-            return None
-
         # The "parameters" field of executions don't include parameters that weren't
         # explicitly provided. However, they're useful for Inquiries, so we have to
         # check if a default value was used, and go digging for it
@@ -212,7 +221,7 @@ class InquiriesController(ResourceController):
             "schema": new_fields["schema"]
         }
 
-        return inquiry, raw_inquiry["result"]
+        return (inquiry, raw_inquiry["result"])
 
     def _mark_inquiry_complete(self, inquiry_id, result):
         """Mark Inquiry as completed
