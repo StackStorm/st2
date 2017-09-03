@@ -292,8 +292,8 @@ class Shell(BaseCLIApp):
             # to the main ArgumentParser class above, this would also set a custom usage string for
             # sub-parsers which we don't want.
             parser.usage = USAGE_STRING
-            print(parser.format_help())
-            return 0
+            sys.stderr.write(parser.format_help())
+            return 2
 
         # Provide autocomplete for shell
         argcomplete.autocomplete(self.parser)

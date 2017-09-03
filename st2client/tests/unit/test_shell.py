@@ -51,14 +51,14 @@ class TestShell(base.BaseCLITestCase):
 
     def test_commands_usage_and_help_strings(self):
         # No command, should print out user friendly usage / help string
-        self.assertEqual(self.shell.run([]), 0)
+        self.assertEqual(self.shell.run([]), 2)
 
-        self.stdout.seek(0)
-        stdout = self.stdout.read()
-        self.assertTrue('Usage: ' in stdout)
-        self.assertTrue('For example:' in stdout)
-        self.assertTrue('CLI for StackStorm' in stdout)
-        self.assertTrue('positional arguments:' in stdout)
+        self.stderr.seek(0)
+        stderr = self.stderr.read()
+        self.assertTrue('Usage: ' in stderr)
+        self.assertTrue('For example:' in stderr)
+        self.assertTrue('CLI for StackStorm' in stderr)
+        self.assertTrue('positional arguments:' in stderr)
 
         self.stdout.truncate()
         self.stderr.truncate()
