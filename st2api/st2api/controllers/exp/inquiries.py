@@ -128,12 +128,12 @@ class InquiriesController(ResourceController):
             permission_type=PermissionType.EXECUTION_VIEW
         )
 
-        if inquiry_execution.status != "pending":
-            abort(http_client.BAD_REQUEST, 'Inquiry %s has already been responded to' % inquiry_id)
-            return
-
         if inquiry_execution.runner.get('runner_module') != "inquirer":
             abort(http_client.BAD_REQUEST, '%s is not an Inquiry.' % inquiry_id)
+            return
+
+        if inquiry_execution.status != "pending":
+            abort(http_client.BAD_REQUEST, 'Inquiry %s has already been responded to' % inquiry_id)
             return
 
         existing_inquiry, result = self._transform_inquiry(inquiry_execution)
