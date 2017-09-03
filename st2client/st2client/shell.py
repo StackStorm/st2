@@ -62,7 +62,7 @@ __all__ = [
 
 LOGGER = logging.getLogger(__name__)
 
-CLI_DESCRIPTION = 'CLI for StackStorm event-driven automation platform - https://stackstorm.com'
+CLI_DESCRIPTION = 'CLI for StackStorm event-driven automation platform. https://stackstorm.com'
 USAGE_STRING = """
 Usage: %(prog)s [options] <command> <sub command> [options]
 
