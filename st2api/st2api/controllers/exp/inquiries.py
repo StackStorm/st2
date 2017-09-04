@@ -36,6 +36,7 @@ from st2common.persistence.execution import ActionExecution
 from st2common.services import action as action_service
 from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
 
+
 from st2actions.container.base import get_runner_container
 
 __all__ = [
@@ -57,6 +58,11 @@ class InquiriesController(ResourceController):
 
     def get_all(self, requester_user=None, limit=None, **raw_filters):
         """Retrieve multiple Inquiries
+
+           TODO(mierdin): This function doesn't currently make RBAC assertions for two reasons:
+           - The equivalent for executions (Resouce._get_all) doesn't seem to do this either
+           - I am not sure the best approach, since I would have to make an assertion
+             inside the below loop?
 
             Handles requests:
                 GET /inquiries/
@@ -87,10 +93,14 @@ class InquiriesController(ResourceController):
                 GET /inquiries/<inquiry id>
         """
 
+        # Retrieve the desired inquiry
+        #
+        # (Passing permission_type here leverages _get_one_by_id's built-in
+        # RBAC assertions)
         raw_inquiry = self._get_one_by_id(
             id=inquiry_id,
             requester_user=requester_user,
-            permission_type=PermissionType.EXECUTION_VIEW
+            permission_type=PermissionType.INQUIRY_VIEW
         )
 
         if raw_inquiry.runner.get('runner_module') != "inquirer":
@@ -235,16 +245,24 @@ class InquiriesController(ResourceController):
         return liveaction_db
 
     def _can_respond(self, inquiry, requester_user):
-        """Determine, based on Inquiry parameters, if requester_user is permitted to respond
+        """Determine if requester_user is permitted to respond
 
-        This is NOT RBAC, as it is on a per-inquiry basis. RBAC should still be used
-        for locking down the API endpoint.
+        First, general RBAC permissions are checked. If the appropriate permissions
+        are in place (or if RBAC is disabled), then per-inquiry checks based on
+        parameters (users, roles) is checked.
 
         :param inquiry: The Inquiry for which the response is given
         :param requester_user: The user providing the response
 
         :rtype: bool - True if requester_user is able to respond. False if not.
         """
+
+        # First, check general RBAC permissions
+        rbac_utils.assert_user_has_resource_db_permission(
+            user_db=requester_user,
+            resource_db=inquiry,
+            permission_type=PermissionType.INQUIRY_RESPOND
+        )
 
         # Deny by default
         roles_passed = False
