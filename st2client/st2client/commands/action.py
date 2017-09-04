@@ -523,7 +523,7 @@ class ActionRunCommandMixin(object):
                     result[key] = value
             return result
 
-        def transform_array(value, action_params={}):
+        def transform_array(value, action_params=None):
             # Sometimes an array parameter only has a single element:
             #
             #     i.e. "st2 run foopack.fooaction arrayparam=51"
@@ -554,6 +554,9 @@ class ActionRunCommandMixin(object):
             # When each values in this array represent dict type, this converts
             # the 'result' to the dict type value.
             if all([isinstance(x, str) and ':' in x for x in result]):
+                if not action_params:
+                    action_params = {}
+
                 result_dict = {}
                 for (k, v) in [x.split(':') for x in result]:
                     # To parse values using the 'transformer' according to the type which is
