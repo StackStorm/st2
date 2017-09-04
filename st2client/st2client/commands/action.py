@@ -523,7 +523,7 @@ class ActionRunCommandMixin(object):
                     result[key] = value
             return result
 
-        def transform_array(value):
+        def transform_array(value, action_params=None):
             # Sometimes an array parameter only has a single element:
             #
             #     i.e. "st2 run foopack.fooaction arrayparam=51"
@@ -554,9 +554,17 @@ class ActionRunCommandMixin(object):
             # When each values in this array represent dict type, this converts
             # the 'result' to the dict type value.
             if all([isinstance(x, str) and ':' in x for x in result]):
+                if not action_params:
+                    action_params = {}
+
                 result_dict = {}
                 for (k, v) in [x.split(':') for x in result]:
-                    result_dict[k] = v
+                    # To parse values using the 'transformer' according to the type which is
+                    # specified in the action metadata, calling 'normalize' method recursively.
+                    if 'properties' in action_params and k in action_params['properties']:
+                        result_dict[k] = normalize(k, v, action_params['properties'])
+                    else:
+                        result_dict[k] = v
                 return [result_dict]
 
             return result
@@ -570,28 +578,42 @@ class ActionRunCommandMixin(object):
             'string': str
         }
 
-        def get_param_type(key):
+        def get_param_type(key, action_params=None):
+            if not action_params:
+                action_params = action.parameters
+
             param = None
             if key in runner.runner_parameters:
                 param = runner.runner_parameters[key]
-            elif key in action.parameters:
-                param = action.parameters[key]
+            elif key in action_params:
+                param = action_params[key]
 
             if param:
                 return param['type']
 
             return None
 
-        def normalize(name, value):
+        def normalize(name, value, action_params=None):
             """ The desired type is contained in the action meta-data, so we can look that up
                 and call the desired "caster" function listed in the "transformer" dict
             """
 
+            # By default, this method uses a parameter which is defined in the action metadata.
+            # This method assume to be called recursively for parsing values in an array of objects
+            # type value according to the nested action metadata definition.
+            #
+            # This is a best practice to pass a list value as default argument to prevent
+            # unforeseen consequence by being created a persistent object.
+            if not action_params:
+                action_params = action.parameters
+
             # Users can also specify type for each array parameter inside an action metadata
             # (items: type: int for example) and this information is available here so we could
             # also leverage that to cast each array item to the correct type.
-            param_type = get_param_type(name)
-            if param_type:
+            param_type = get_param_type(name, action_params)
+            if param_type == 'array' and name in action_params:
+                return transformer[param_type](value, action_params[name])
+            elif param_type:
                 return transformer[param_type](value)
 
             return value
