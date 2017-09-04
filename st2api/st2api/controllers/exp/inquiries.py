@@ -163,12 +163,15 @@ class InquiriesController(ResourceController):
             {"response": response_data.response}
         )
 
-        # Request that root workflow resumes
-        root_liveaction = action_service.get_root_liveaction(liveaction_db)
-        action_service.request_resume(
-            root_liveaction,
-            requester_user
-        )
+        # We only want to request a workflow resume if this has a parent
+        if liveaction_db.context.get("parent"):
+
+            # Request that root workflow resumes
+            root_liveaction = action_service.get_root_liveaction(liveaction_db)
+            action_service.request_resume(
+                root_liveaction,
+                requester_user
+            )
 
         return {
             "id": inquiry_id,

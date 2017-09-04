@@ -85,9 +85,7 @@ class Inquirer(ActionRunner):
         }
         self.trigger_dispatcher.dispatch(trigger_ref, trigger_payload)
 
-        # We only want to request a pause if this has a parent.
-        # I can't think of a reason to run an inquiry outside of
-        # a workflow, but hey, go for it.
+        # We only want to request a pause if this has a parent
         if liveaction_db.context.get("parent"):
 
             # Get the root liveaction and request that it pauses
