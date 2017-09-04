@@ -1,6 +1,6 @@
 ---
 name: chain-test-inquiry
-description: Simple action chain to test Inquiry functionality
+description: A basic ActionChain workflow illustrating the use of Inquiries
 runner_type: action-chain
 entry_point: chains/chain_test_inquiry.yaml
 enabled: true
