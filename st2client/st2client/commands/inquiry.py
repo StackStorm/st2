@@ -52,7 +52,6 @@ class InquiryListCommand(resource.ResourceCommand):
     # The user can drill into a specific Inquiry to get this
     display_attributes = [
         'id',
-        'parent',
         'roles',
         'users',
         'tag',
@@ -98,7 +97,7 @@ class InquiryListCommand(resource.ResourceCommand):
 
 class InquiryGetCommand(resource.ResourceGetCommand):
     pk_argument_name = 'id'
-    display_attributes = ['id', 'parent', 'roles', 'users', 'tag', 'ttl', 'schema']
+    display_attributes = ['id', 'roles', 'users', 'tag', 'ttl', 'schema']
 
     def __init__(self, kv_resource, *args, **kwargs):
         super(InquiryGetCommand, self).__init__(kv_resource, *args, **kwargs)

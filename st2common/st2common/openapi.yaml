@@ -4126,7 +4126,6 @@ definitions:
     type: object
     required:
       - id
-      - response
       - schema
       - roles
       - users
@@ -4136,9 +4135,6 @@ definitions:
       id:
         description: ID of this inquiry
         type: string
-      response:
-        description: Response data
-        type: object
       schema:
         description: JSON schema used to validate repsonse(s)
         type: object

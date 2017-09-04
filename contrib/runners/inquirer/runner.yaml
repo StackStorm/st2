@@ -1,4 +1,4 @@
-- description: A runner for handling actions that use the pending status
+- description: A runner for Inquiries
   enabled: true
   name: inquirer
   runner_module: inquirer

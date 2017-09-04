@@ -28,12 +28,15 @@ mock_liveaction_db.result = {"response": {}}
 mock_action_utils = mock.Mock()
 mock_action_utils.get_liveaction_by_id.return_value = mock_liveaction_db
 
+test_parent_id = '1234567890'
+test_parent = mock.Mock()
+
 mock_action_service = mock.Mock()
+mock_action_service.get_root_liveaction.return_value = test_parent
 
 mock_trigger_dispatcher = mock.Mock()
 
 test_user = 'st2admin'
-test_parent_id = '1234567890'
 
 runner_params = {
     "users": [],
@@ -67,8 +70,16 @@ class InquiryTestCase(RunnerTestCase):
         }
         (status, output, _) = runner.run({})
         self.assertEqual(status, LIVEACTION_STATUS_PENDING)
-        self.assertTrue(output is not None)
-        self.assertEqual(output, {"response": {}})
+        self.assertEqual(
+            output,
+            {
+                'users': [],
+                'roles': [],
+                'tag': "developers",
+                'schema': {},
+                'ttl': 1440
+            }
+        )
         mock_trigger_dispatcher.return_value.dispatch.assert_called_once_with(
             'core.st2.generic.inquiry',
             {
@@ -76,12 +87,12 @@ class InquiryTestCase(RunnerTestCase):
                 'roles': [],
                 'id': None,
                 'tag': "developers",
-                'response': {},
+                'ttl': 1440,
                 'schema': {}
             }
         )
         mock_action_service.request_pause.assert_called_once_with(
-            test_parent_id,
+            test_parent,
             test_user
         )
         mock_trigger_dispatcher.reset_mock()
@@ -108,8 +119,16 @@ class InquiryTestCase(RunnerTestCase):
         }
         (status, output, _) = runner.run({})
         self.assertEqual(status, LIVEACTION_STATUS_PENDING)
-        self.assertTrue(output is not None)
-        self.assertEqual(output, {"response": {}})
+        self.assertEqual(
+            output,
+            {
+                'users': [],
+                'roles': [],
+                'tag': "developers",
+                'schema': {},
+                'ttl': 1440
+            }
+        )
         mock_trigger_dispatcher.return_value.dispatch.assert_called_once_with(
             'core.st2.generic.inquiry',
             {
@@ -117,8 +136,8 @@ class InquiryTestCase(RunnerTestCase):
                 'roles': [],
                 'id': None,
                 'tag': "developers",
-                'response': {},
-                'schema': {}
+                'schema': {},
+                'ttl': 1440
             }
         )
         mock_action_service.request_pause.assert_not_called()

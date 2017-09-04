@@ -59,12 +59,12 @@ class InquiriesController(ResourceController):
         """Retrieve multiple Inquiries
 
             Handles requests:
-                GET /keys/
+                GET /inquiries/
         """
 
         raw_inquiries = super(InquiriesController, self)._get_all(
             limit=limit,
-            raw_filters={'status': 'pending', 'runer': 'inquirer'}
+            raw_filters={'status': 'pending', 'runner': 'inquirer'}
         )
 
         inquiries = []
@@ -76,9 +76,7 @@ class InquiriesController(ResourceController):
             if raw_inquiry.get('children'):
                 continue
 
-            new_inquiry, _ = self._transform_inquiry(raw_inquiry)
-            if new_inquiry:
-                inquiries.append(new_inquiry)
+            inquiries.append(self._transform_inquiry(raw_inquiry))
 
         return inquiries
 
@@ -86,7 +84,7 @@ class InquiriesController(ResourceController):
         """Retrieve a single Inquiry
 
             Handles requests:
-                GET /keys/<inquiry id>
+                GET /inquiries/<inquiry id>
         """
 
         raw_inquiry = self._get_one_by_id(
@@ -103,7 +101,7 @@ class InquiriesController(ResourceController):
             abort(http_client.BAD_REQUEST, 'Inquiry %s has already been responded to' % inquiry_id)
             return
 
-        new_inquiry, _ = self._transform_inquiry(raw_inquiry.__dict__)
+        new_inquiry = self._transform_inquiry(raw_inquiry)
 
         return new_inquiry
 
@@ -116,7 +114,7 @@ class InquiriesController(ResourceController):
             the parent workflow.
 
             Handles requests:
-                GET /keys/<inquiry id>
+                PUT /inquiries/<inquiry id>
         """
 
         LOG.debug("Inquiry %s received response payload: %s" % (inquiry_id, response_data.response))
@@ -136,7 +134,10 @@ class InquiriesController(ResourceController):
             abort(http_client.BAD_REQUEST, 'Inquiry %s has already been responded to' % inquiry_id)
             return
 
-        existing_inquiry, result = self._transform_inquiry(inquiry_execution)
+        # For this command, the inquiry will be an actual ActionExecutionAPI object, so
+        # let's convert it to a dict first.
+        # existing_inquiry = inquiry_execution.__json__()
+        existing_inquiry = self._transform_inquiry(inquiry_execution)
 
         if not requester_user:
             requester_user = UserDB(cfg.CONF.system_user.user)
@@ -146,15 +147,12 @@ class InquiriesController(ResourceController):
             abort(http_client.FORBIDDEN, 'Insufficient permission to respond to this Inquiry.')
             return
 
-        # Add response to existing result
-        response = getattr(response_data, 'response')
-        result['response'] = response
-
         # Validate the body of the response against the schema parameter for this inquiry
         schema = existing_inquiry.get('schema')
-        LOG.debug("Validating inquiry response: %s against schema: %s" % (response, schema))
+        LOG.debug("Validating inquiry response: %s against schema: %s" %
+                  (response_data.response, schema))
         try:
-            jsonschema.validate(response, schema)
+            jsonschema.validate(response_data.response, schema)
         except jsonschema.exceptions.ValidationError:
             abort(http_client.BAD_REQUEST, 'Response did not pass schema validation.')
             return
@@ -162,7 +160,7 @@ class InquiriesController(ResourceController):
         # Update inquiry for completion
         liveaction_db = self._mark_inquiry_complete(
             inquiry_execution.liveaction.get('id'),
-            result
+            {"response": response_data.response}
         )
 
         # Request that root workflow resumes
@@ -174,7 +172,7 @@ class InquiriesController(ResourceController):
 
         return {
             "id": inquiry_id,
-            "response": response
+            "response": response_data.response
         }
 
     def _transform_inquiry(self, raw_inquiry):
@@ -187,41 +185,21 @@ class InquiriesController(ResourceController):
             is its own data model.
         """
 
-        # The "put" command will have an actual ActionExecutionAPI object, so
+        # The "put" and "get" commands will have an actual ActionExecutionAPI object, so
         # if that's what's being passed in, let's convert it to a dict first.
+        # ("get_all" provides a dict natively)
         if isinstance(raw_inquiry, ActionExecutionAPI):
             raw_inquiry = raw_inquiry.__json__()
 
-        # The "parameters" field of executions don't include parameters that weren't
-        # explicitly provided. However, they're useful for Inquiries, so we have to
-        # check if a default value was used, and go digging for it
-        fields_from_params = ["schema", "tag", "ttl", "users", "roles"]
-        new_fields = {}
-        for param in fields_from_params:
-
-            # Prefer to get from parameters first, but fall back to runner
-            # default if not provided.
-            #
-            # This is a bit ugly because of the fragile key lookups, but
-            # those keys **should** always be there, (the default value is
-            # provided for each runner parameter)
-            new_fields[param] = raw_inquiry["parameters"].get(
-                param,
-                raw_inquiry["runner"]["runner_parameters"][param]["default"]
-            )
+        desired_fields = ["tag", "ttl", "users", "roles", "schema"]
 
         inquiry = {
-            "id": raw_inquiry.get("id"),
-            "parent": raw_inquiry.get("parent"),
-            "response": raw_inquiry["result"].get("response", {}),
-            "tag": new_fields["tag"],
-            "ttl": new_fields["ttl"],
-            "users": new_fields["users"],
-            "roles": new_fields["roles"],
-            "schema": new_fields["schema"]
+            "id": raw_inquiry["id"]
         }
+        for field in desired_fields:
+            inquiry[field] = raw_inquiry["result"][field]
 
-        return (inquiry, raw_inquiry["result"])
+        return inquiry
 
     def _mark_inquiry_complete(self, inquiry_id, result):
         """Mark Inquiry as completed

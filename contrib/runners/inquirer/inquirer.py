@@ -57,18 +57,18 @@ class Inquirer(ActionRunner):
         # TODO :This is awful, but the way "runner_parameters" and other variables get
         # assigned on the runner instance is even worse. Those arguments should
         # be passed to the constructor.
-        self.schema = self.runner_parameters.get(RUNNER_SCHEMA, None)
-        self.roles_param = self.runner_parameters.get(RUNNER_ROLES, None)
-        self.users_param = self.runner_parameters.get(RUNNER_USERS, None)
-        self.tag = self.runner_parameters.get(RUNNER_TAG, None)
-        self.ttl = self.runner_parameters.get(RUNNER_TTL, None)
+        # TODO (mierdin): in my testing, I haven't seen a way to get the defaults
+        # in the runner YAML to be passed in automatically, so I have to replicate
+        # them here. Perhaps this is what the previous comment is talking about
+        self.schema = self.runner_parameters.get(RUNNER_SCHEMA, {})
+        self.roles_param = self.runner_parameters.get(RUNNER_ROLES, [])
+        self.users_param = self.runner_parameters.get(RUNNER_USERS, [])
+        self.tag = self.runner_parameters.get(RUNNER_TAG, "")
+        self.ttl = self.runner_parameters.get(RUNNER_TTL, 1440)
 
     def run(self, action_parameters):
 
         liveaction_db = action_utils.get_liveaction_by_id(self.liveaction_id)
-
-        # Retrieve existing response data
-        response_data = liveaction_db.result.get("response", {})
 
         # Assemble and dispatch trigger
         trigger_ref = ResourceReference.to_string_reference(
@@ -77,7 +77,6 @@ class Inquirer(ActionRunner):
         )
         trigger_payload = {
             "id": self.liveaction_id,
-            "response": response_data,
             "schema": self.schema,
             "roles": self.roles_param,
             "users": self.users_param,
@@ -86,11 +85,23 @@ class Inquirer(ActionRunner):
         }
         self.trigger_dispatcher.dispatch(trigger_ref, trigger_payload)
 
-        # Get the root liveaction and request that it pauses
-        root_liveaction = action_service.get_root_liveaction(liveaction_db)
-        action_service.request_pause(
-            root_liveaction,
-            self.context.get('user', None)
-        )
+        # We only want to request a pause if this has a parent.
+        # I can't think of a reason to run an inquiry outside of
+        # a workflow, but hey, go for it.
+        if liveaction_db.context.get("parent"):
 
-        return (LIVEACTION_STATUS_PENDING, {"response": response_data}, None)
+            # Get the root liveaction and request that it pauses
+            root_liveaction = action_service.get_root_liveaction(liveaction_db)
+            action_service.request_pause(
+                root_liveaction,
+                self.context.get('user', None)
+            )
+
+        result = {
+            "schema": self.schema,
+            "roles": self.roles_param,
+            "users": self.users_param,
+            "tag": self.tag,
+            "ttl": self.ttl
+        }
+        return (LIVEACTION_STATUS_PENDING, result, None)

@@ -28,7 +28,6 @@ class Inquiry(core.Resource):
     _url_path = 'inquiries'
     _repr_attributes = [
         'id',
-        'response',
         'schema',
         'roles',
         'users',

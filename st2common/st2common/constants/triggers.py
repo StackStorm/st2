@@ -113,11 +113,6 @@ INQUIRY_TRIGGER = {
                 'description': 'ID of this inquiry',
                 'required': True
             },
-            'response': {
-                'type': 'object',
-                'description': 'Response data',
-                'required': True
-            },
             'schema': {
                 'type': 'object',
                 'description': 'JSON schema used to validate repsonse(s)',
