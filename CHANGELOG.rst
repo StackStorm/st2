@@ -17,7 +17,7 @@ Changed
 ~~~~~~~
 
 * Update ``st2`` CLI command to print a more user-friendly usage / help string if no arguments are
-    passed to the CLI. (improvement) #3710
+  passed to the CLI. (improvement) #3710
 
 2.4.0 - August 23, 2017
 -----------------------
