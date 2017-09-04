@@ -524,6 +524,8 @@ class ActionRunCommandMixin(object):
             return result
 
         def transform_array(value, action_params=None):
+            action_params = action_params or {}
+
             # Sometimes an array parameter only has a single element:
             #
             #     i.e. "st2 run foopack.fooaction arrayparam=51"
@@ -554,9 +556,6 @@ class ActionRunCommandMixin(object):
             # When each values in this array represent dict type, this converts
             # the 'result' to the dict type value.
             if all([isinstance(x, str) and ':' in x for x in result]):
-                if not action_params:
-                    action_params = {}
-
                 result_dict = {}
                 for (k, v) in [x.split(':') for x in result]:
                     # To parse values using the 'transformer' according to the type which is
@@ -579,8 +578,7 @@ class ActionRunCommandMixin(object):
         }
 
         def get_param_type(key, action_params=None):
-            if not action_params:
-                action_params = action.parameters
+            action_params = action_params or {}
 
             param = None
             if key in runner.runner_parameters:
@@ -597,6 +595,7 @@ class ActionRunCommandMixin(object):
             """ The desired type is contained in the action meta-data, so we can look that up
                 and call the desired "caster" function listed in the "transformer" dict
             """
+            action_params = action_params or {}
 
             # By default, this method uses a parameter which is defined in the action metadata.
             # This method assume to be called recursively for parsing values in an array of objects
@@ -604,8 +603,6 @@ class ActionRunCommandMixin(object):
             #
             # This is a best practice to pass a list value as default argument to prevent
             # unforeseen consequence by being created a persistent object.
-            if not action_params:
-                action_params = action.parameters
 
             # Users can also specify type for each array parameter inside an action metadata
             # (items: type: int for example) and this information is available here so we could
