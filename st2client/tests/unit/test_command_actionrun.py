@@ -70,7 +70,13 @@ class ActionRunCommandTest(unittest2.TestCase):
             'param_object': {'type': 'object'},
             'param_boolean': {'type': 'boolean'},
             'param_array': {'type': 'array'},
-            'param_array_of_dicts': {'type': 'array'},
+            'param_array_of_dicts': {'type': 'array', 'properties': {
+                'foo': {'type': 'string'},
+                'bar': {'type': 'integer'},
+                'baz': {'type': 'number'},
+                'qux': {'type': 'object'},
+                'quux': {'type': 'boolean'}}
+            },
         }
 
         subparser = mock.Mock()
@@ -85,7 +91,8 @@ class ActionRunCommandTest(unittest2.TestCase):
             'param_object=hoge=1,fuga=2',
             'param_boolean=False',
             'param_array=foo,bar,baz',
-            'param_array_of_dicts=foo:1,bar:2'
+            'param_array_of_dicts=foo:HOGE,bar:1,baz:1.23,qux:foo=bar,quux:True',
+            'param_array_of_dicts=foo:FUGA,bar:2,baz:2.34,qux:bar=baz,quux:False'
         ]
 
         param = command._get_action_parameters_from_args(action=action, runner=runner, args=mockarg)
@@ -97,7 +104,17 @@ class ActionRunCommandTest(unittest2.TestCase):
         self.assertEqual(param['param_object'], {'hoge': '1', 'fuga': '2'})
         self.assertFalse(param['param_boolean'])
         self.assertEqual(param['param_array'], ['foo', 'bar', 'baz'])
-        self.assertEqual(param['param_array_of_dicts'], [{'foo': '1', 'bar': '2'}])
+
+        # checking the result of parsing for array of objects
+        self.assertTrue(isinstance(param['param_array_of_dicts'], list))
+        self.assertEqual(len(param['param_array_of_dicts']), 2)
+        for param in param['param_array_of_dicts']:
+            self.assertTrue(isinstance(param, dict))
+            self.assertTrue(isinstance(param['foo'], str))
+            self.assertTrue(isinstance(param['bar'], int))
+            self.assertTrue(isinstance(param['baz'], float))
+            self.assertTrue(isinstance(param['qux'], dict))
+            self.assertTrue(isinstance(param['quux'], bool))
 
     def test_get_params_from_args_with_multiple_declarations(self):
         runner = RunnerType()
