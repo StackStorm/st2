@@ -578,7 +578,7 @@ class ActionRunCommandMixin(object):
         }
 
         def get_param_type(key, action_params=None):
-            action_params = action_params or {}
+            action_params = action_params or action.parameters
 
             param = None
             if key in runner.runner_parameters:
@@ -595,7 +595,7 @@ class ActionRunCommandMixin(object):
             """ The desired type is contained in the action meta-data, so we can look that up
                 and call the desired "caster" function listed in the "transformer" dict
             """
-            action_params = action_params or {}
+            action_params = action_params or action.parameters
 
             # By default, this method uses a parameter which is defined in the action metadata.
             # This method assume to be called recursively for parsing values in an array of objects
