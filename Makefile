@@ -467,13 +467,12 @@ ci-checks: compile .generated-files-check .pylint .flake8 .bandit .st2client-dep
 	# 1. Sample config - conf/st2.conf.sample
 	cp conf/st2.conf.sample /tmp/st2.conf.sample.upstream
 	make .configgen
-	diff conf/st2.conf.sample /tmp/st2.conf.sample.upstream || echo "conf/st2.conf.sample hasn't been re-generated and committed. Please run \"make configgen\" and include and commit the generated file."
-
+	diff conf/st2.conf.sample /tmp/st2.conf.sample.upstream || (echo "conf/st2.conf.sample hasn't been re-generated and committed. Please run \"make configgen\" and include and commit the generated file." && exit 1)
 	# 2. OpenAPI definition file - st2common/st2common/openapi.yaml (generated from
 	# st2common/st2common/openapi.yaml.j2)
 	cp st2common/st2common/openapi.yaml /tmp/openapi.yaml.upstream
 	make .generate-api-spec
-	diff st2common/st2common/openapi.yaml  /tmp/openapi.yaml.upstream || echo "st2common/st2common/openapi.yaml hasn't been re-generated and committed. Please run \"make generate-api-spec\" and include and commit the generated file."
+	diff st2common/st2common/openapi.yaml  /tmp/openapi.yaml.upstream || (echo "st2common/st2common/openapi.yaml hasn't been re-generated and committed. Please run \"make generate-api-spec\" and include and commit the generated file." && exit 1)
 
 	@echo "All automatically generated files are up to date."
 
