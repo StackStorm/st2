@@ -35,10 +35,6 @@ __all__ = [
     'InquiryPermissionsResolverTestCase'
 ]
 
-# class FakeInquiryDB(ActionExecutionDB):
-
-
-
 
 class InquiryPermissionsResolverTestCase(BasePermissionsResolverTestCase):
     def setUp(self):
