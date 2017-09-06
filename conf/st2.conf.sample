@@ -69,7 +69,7 @@ key = /etc/apache2/ssl/mycert.key
 use_ssl = False
 # Port on which the service should listen on.
 port = 9100
-# Authentication backend to use in a standalone mode. Available backends: flat_file, ldap.
+# Authentication backend to use in a standalone mode. Available backends: flat_file.
 backend = flat_file
 
 [cloudslang]

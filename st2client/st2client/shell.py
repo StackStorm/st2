@@ -64,6 +64,15 @@ __all__ = [
 LOGGER = logging.getLogger(__name__)
 
 CLI_DESCRIPTION = 'CLI for StackStorm event-driven automation platform. https://stackstorm.com'
+USAGE_STRING = """
+Usage: %(prog)s [options] <command> <sub command> [options]
+
+For example:
+
+    %(prog)s action list --pack=st2
+    %(prog)s run core.local cmd=date
+    %(prog)s --debug run core.local cmd=date
+""".strip()
 
 
 class Shell(BaseCLIApp):
@@ -178,7 +187,10 @@ class Shell(BaseCLIApp):
 
         # Set up list of commands and subcommands.
         self.subparsers = self.parser.add_subparsers()
-        self.commands = dict()
+        self.commands = {}
+
+        self.commands['run'] = action.ActionRunCommand(
+            models.Action, self, self.subparsers, name='run', add_help=False)
 
         self.commands['action'] = action.ActionBranch(
             'An activity that happens as a response to the external event.',
@@ -190,6 +202,12 @@ class Shell(BaseCLIApp):
 
         self.commands['auth'] = auth.TokenCreateCommand(
             models.Token, self, self.subparsers, name='auth')
+
+        self.commands['login'] = auth.LoginCommand(
+            models.Token, self, self.subparsers, name='login')
+
+        self.commands['whoami'] = auth.WhoamiCommand(
+            models.Token, self, self.subparsers, name='whoami')
 
         self.commands['api-key'] = auth.ApiKeyBranch(
             'API Keys.',
@@ -209,9 +227,6 @@ class Shell(BaseCLIApp):
             'for reuse in sensors, actions, and rules.',
             self, self.subparsers)
 
-        self.commands['login'] = auth.LoginCommand(
-            models.Token, self, self.subparsers, name='login')
-
         self.commands['pack'] = pack.PackBranch(
             'A group of related integration resources: '
             'actions, rules, and sensors.',
@@ -230,8 +245,13 @@ class Shell(BaseCLIApp):
             'based on some criteria.',
             self, self.subparsers)
 
-        self.commands['run'] = action.ActionRunCommand(
-            models.Action, self, self.subparsers, name='run', add_help=False)
+        self.commands['webhook'] = webhook.WebhookBranch(
+            'Webhooks.',
+            self, self.subparsers)
+
+        self.commands['timer'] = timer.TimerBranch(
+            'Timers.',
+            self, self.subparsers)
 
         self.commands['runner'] = resource.ResourceBranch(
             models.RunnerType,
@@ -255,17 +275,6 @@ class Shell(BaseCLIApp):
             'Actual instances of triggers received by st2.',
             self, self.subparsers)
 
-        self.commands['webhook'] = webhook.WebhookBranch(
-            'Webhooks.',
-            self, self.subparsers)
-
-        self.commands['whoami'] = auth.WhoamiCommand(
-            models.Token, self, self.subparsers, name='whoami')
-
-        self.commands['timer'] = timer.TimerBranch(
-            'Timers.',
-            self, self.subparsers)
-
         self.commands['rule-enforcement'] = rule_enforcement.RuleEnforcementBranch(
             'Models that represent enforcement of rules.',
             self, self.subparsers)
@@ -280,6 +289,17 @@ class Shell(BaseCLIApp):
 
     def run(self, argv):
         debug = False
+
+        parser = self.parser
+
+        if len(argv) == 0:
+            # Print a more user-friendly help string if no arguments are provided
+            # Note: We only set usage variable for the main parser. If we passed "usage" argument
+            # to the main ArgumentParser class above, this would also set a custom usage string for
+            # sub-parsers which we don't want.
+            parser.usage = USAGE_STRING
+            sys.stderr.write(parser.format_help())
+            return 2
 
         # Provide autocomplete for shell
         argcomplete.autocomplete(self.parser)

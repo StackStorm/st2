@@ -21,6 +21,16 @@ Fixed
 
   Reported by theuiz.
 
+Changed
+~~~~~~~
+
+* Update ``st2`` CLI command to print a more user-friendly usage / help string if no arguments are
+  passed to the CLI. (improvement) #3710
+* Allow user to specify multiple values for a parameter of type array of dicts when using
+  ``st2 run`` CLI command. #3670
+
+  Contributed by Hiroyasu OHYAMA.
+
 2.4.0 - August 23, 2017
 -----------------------
 

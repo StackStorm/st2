@@ -59,6 +59,18 @@ AUTH_OPTIONS = {
     ]
 }
 
+# Some of the config values change depenending on the environment where this script is ran so we
+# set them to static values to ensure consistent and stable output
+STATIC_OPTION_VALUES = {
+    'actionrunner': {
+        'virtualenv_binary': '/data/stanley/virtualenv/bin/virtualenv',
+        'python_binary': '/data/stanley/virtualenv/bin/python'
+    },
+    'webui': {
+        'webui_base_url': 'https://localhost'
+    }
+}
+
 COMMON_AUTH_OPTIONS_COMMENT = """
 # Common option - options below apply in both scenarios - when auth service is running as a WSGI
 # service (e.g. under Apache or Nginx) and when it's running in the standalone mode.
@@ -99,21 +111,21 @@ def _read_group(opt_group):
         print('')
         common_options = [option for option in all_options if option['opt'].name in
                           AUTH_OPTIONS['common']]
-        _print_options(options=common_options)
+        _print_options(opt_group=opt_group, options=common_options)
 
         print('')
         print(STANDALONE_AUTH_OPTIONS_COMMENT)
         print('')
         standalone_options = [option for option in all_options if option['opt'].name in
                               AUTH_OPTIONS['standalone']]
-        _print_options(options=standalone_options)
+        _print_options(opt_group=opt_group, options=standalone_options)
 
         if len(common_options) + len(standalone_options) != len(all_options):
             msg = ('Not all options are declared in AUTH_OPTIONS dict, please update it')
             raise Exception(msg)
     else:
         options = all_options
-        _print_options(options=options)
+        _print_options(opt_group=opt_group, options=options)
 
 
 def _read_groups(opt_groups):
@@ -124,9 +136,14 @@ def _read_groups(opt_groups):
         print('')
 
 
-def _print_options(options):
+def _print_options(opt_group, options):
     for opt in options:
         opt = opt['opt']
+
+        # Special case for options which could change during this script run
+        static_option_value = STATIC_OPTION_VALUES.get(opt_group.name, {}).get(opt.name, None)
+        if static_option_value:
+            opt.default = static_option_value
 
         # Special handling for list options
         if isinstance(opt, cfg.ListOpt):
