@@ -60,7 +60,7 @@ class InquiriesController(ResourceController):
         """Retrieve multiple Inquiries
 
            TODO(mierdin): This function doesn't currently make RBAC assertions for two reasons:
-           - The equivalent for executions (Resouce._get_all) doesn't seem to do this either
+           - The equivalent for executions (Resource._get_all) doesn't seem to do this either.
            - I am not sure the best approach, since I would have to make an assertion
              inside the below loop?
 
