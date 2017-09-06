@@ -133,7 +133,7 @@ class InquiriesController(ResourceController):
         inquiry_execution = self._get_one_by_id(
             id=inquiry_id,
             requester_user=requester_user,
-            permission_type=PermissionType.EXECUTION_VIEW
+            permission_type=PermissionType.INQUIRY_RESPOND
         )
 
         if inquiry_execution.runner.get('runner_module') != "inquirer":
@@ -154,7 +154,10 @@ class InquiriesController(ResourceController):
 
         # Determine permission of this user to respond to this Inquiry
         if not self._can_respond(existing_inquiry, requester_user):
-            abort(http_client.FORBIDDEN, 'Insufficient permission to respond to this Inquiry.')
+            abort(
+                http_client.FORBIDDEN,
+                'Insufficient permission to respond based on Inquiry parameters.'
+            )
             return
 
         # Validate the body of the response against the schema parameter for this inquiry
@@ -245,24 +248,17 @@ class InquiriesController(ResourceController):
         return liveaction_db
 
     def _can_respond(self, inquiry, requester_user):
-        """Determine if requester_user is permitted to respond
+        """Determine if requester_user is permitted to respond based on parameters
 
-        First, general RBAC permissions are checked. If the appropriate permissions
-        are in place (or if RBAC is disabled), then per-inquiry checks based on
-        parameters (users, roles) is checked.
+        This determines if the requesting user has permission to respond to THIS inquiry.
+        Note this is NOT RBAC, and you should still protect the API endpoint with RBAC
+        where appropriate.
 
         :param inquiry: The Inquiry for which the response is given
         :param requester_user: The user providing the response
 
         :rtype: bool - True if requester_user is able to respond. False if not.
         """
-
-        # First, check general RBAC permissions
-        rbac_utils.assert_user_has_resource_db_permission(
-            user_db=requester_user,
-            resource_db=inquiry,
-            permission_type=PermissionType.INQUIRY_RESPOND
-        )
 
         # Deny by default
         roles_passed = False

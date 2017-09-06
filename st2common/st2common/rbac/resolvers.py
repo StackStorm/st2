@@ -1064,6 +1064,15 @@ class InquiryPermissionsResolver(PermissionsResolver):
         """
         Method for checking user permissions on an existing resource (e.g. get one, edit, delete
         operations).
+
+        NOTE:
+        Because we're borrowing the ActionExecutionDB model, the resource_db parameter is
+        effectively ignored. All other filters are passed to get_all_permission_grants_for_user,
+        then a custom filtering method is performed on the result to enforce the required
+        "inquiry:ask" resource UID passed by the user in the role. This isn't ideal, as the whole
+        premise of a resource_db permission is that it is enforced on an actual DB resource,
+        but it works for now, and it sets the tone for how this will be done when/if Inquiries
+        get their own data model.
         """
 
         assert permission_type in [
@@ -1088,8 +1097,6 @@ class InquiryPermissionsResolver(PermissionsResolver):
             self._log('Found a matching grant via system role', extra=log_context)
             return True
 
-        inquiry_uid = resource_db.get_uid()
-
         resource_types = [ResourceType.INQUIRY]
         permission_types = [
             PermissionType.INQUIRY_VIEW,
@@ -1097,11 +1104,12 @@ class InquiryPermissionsResolver(PermissionsResolver):
             PermissionType.INQUIRY_ALL
         ]
         permission_grants = get_all_permission_grants_for_user(user_db=user_db,
-                                                               resource_uid=inquiry_uid,
                                                                resource_types=resource_types,
                                                                permission_types=permission_types)
 
-        if len(permission_grants) >= 1:
+        # We're doing a bit of our own custom filtering since Inquiries aren't EXACTLY
+        # their own resource (that's why we omitted resource_uid in the query)
+        if len([g for g in permission_grants if g.resource_uid == "inquiry:ask"]) >= 1:
             self._log('Found a grant on the inquiry', extra=log_context)
             return True
 

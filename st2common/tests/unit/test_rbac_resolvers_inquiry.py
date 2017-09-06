@@ -35,6 +35,10 @@ __all__ = [
     'InquiryPermissionsResolverTestCase'
 ]
 
+# class FakeInquiryDB(ActionExecutionDB):
+
+
+
 
 class InquiryPermissionsResolverTestCase(BasePermissionsResolverTestCase):
     def setUp(self):
@@ -58,7 +62,7 @@ class InquiryPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         self.users['custom_role_inquiry_all_grant'] = user_4_db
 
         # Create a mock Inquiry on which permissions can be granted
-        action_1_db = ActionDB(pack='test_pack_2', name='core.ask', entry_point='',
+        action_1_db = ActionDB(pack='core', name='ask', entry_point='',
                                runner_type={'name': 'inquirer'})
         action_1_db = Action.add_or_update(action_1_db)
         self.resources['action_1'] = action_1_db
@@ -71,6 +75,13 @@ class InquiryPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         action = {'uid': action_1_db.get_uid(), 'pack': 'core'}
         inquiry_1_db = ActionExecutionDB(action=action, runner=runner, liveaction=liveaction,
                                          status=status)
+
+        # A bit gross, but it's what we have to do since Inquiries
+        # don't yet have their own data model
+        def get_uid():
+            return "inquiry:ask"
+        inquiry_1_db.get_uid = get_uid
+
         inquiry_1_db = ActionExecution.add_or_update(inquiry_1_db)
         self.resources['inquiry_1'] = inquiry_1_db
 
