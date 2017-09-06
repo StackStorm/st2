@@ -7,8 +7,9 @@ in development
 Added
 ~~~~~
 
-* Add new "Inquiry" runner, which adds ability to "ask a question", usually in a workflow. Also
-  added new API endpoints and client commands for interacting with these.
+* Add new "Inquiry" capability, which adds ability to "ask a question", usually in a workflow.
+  Create a new runner type: "inquirer" to support this, as well as new API endpoints and
+  client commands for interacting with Inquiries
 
   Contributed by mierdin. #3653
 
