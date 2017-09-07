@@ -147,10 +147,9 @@ class Querier(object):
                 LOG.debug('Removed state object %s.', query_context)
             return
 
-        if status in action_constants.LIVEACTION_COMPLETED_STATES:
-            if status != action_constants.LIVEACTION_STATUS_CANCELED:
-                runners_utils.invoke_post_run(liveaction_db)
-
+        if (status in action_constants.LIVEACTION_COMPLETED_STATES or
+                status == action_constants.LIVEACTION_STATUS_PAUSED):
+            runners_utils.invoke_post_run(liveaction_db)
             self._delete_state_object(query_context)
 
             return

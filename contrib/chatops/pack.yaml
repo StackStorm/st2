@@ -1,8 +1,8 @@
 ---
 name: chatops
 description: ChatOps integration pack
-version: 0.3.0
-author: Kirill Enykeev
+version: 1.0.0
+author: Stackstorm Inc
 contributors:
   - Anthony Shaw <anthonyshaw@apache.org>
-email: enykeev@stackstorm.com
+email: info@stackstorm.com

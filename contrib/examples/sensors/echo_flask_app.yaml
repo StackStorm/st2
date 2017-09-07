@@ -1,0 +1,13 @@
+---
+  class_name: "EchoFlaskSensor"
+  entry_point: "echo_flask_app.py"
+  description: "Simple echo flask app sensor that echoes its input."
+  trigger_types:
+    -
+      name: "echoflasksensor"
+      description: "Echo flask sensor."
+      payload_schema:
+        type: "object"
+        properties:
+          payload:
+            type: "object"

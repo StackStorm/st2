@@ -21,7 +21,7 @@ from oslo_config import cfg
 from st2common.constants import action as action_constants
 from st2common.runners.base import get_runner
 import local_runner
-from st2common.exceptions.actionrunner import ActionRunnerCreateError
+from st2common.exceptions.actionrunner import ActionRunnerCreateError, ActionRunnerDispatchError
 from st2common.models.system.common import ResourceReference
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.runner import RunnerTypeDB
@@ -204,6 +204,23 @@ class RunnerContainerTest(DbTestCase):
         }
 
         self.assertDictEqual(liveaction_db.context, context)
+
+    def test_dispatch_unsupported_status(self):
+        runner_container = get_runner_container()
+        params = {'actionstr': 'bar'}
+        liveaction_db = self._get_liveaction_model(RunnerContainerTest.action_db, params)
+        liveaction_db = LiveAction.add_or_update(liveaction_db)
+        executions.create_execution_object(liveaction_db)
+
+        # Manually set the liveaction_db to some unsupported status.
+        liveaction_db.status = action_constants.LIVEACTION_STATUS_CANCELED
+
+        # Assert exception is raised on dispatch.
+        self.assertRaises(
+            ActionRunnerDispatchError,
+            runner_container.dispatch,
+            liveaction_db
+        )
 
     @mock.patch.object(local_runner.LocalShellRunner, 'run', mock.MagicMock(
         return_value=(action_constants.LIVEACTION_STATUS_SUCCEEDED, NON_UTF8_RESULT, None)))

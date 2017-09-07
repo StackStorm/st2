@@ -79,14 +79,44 @@ class Listener(ConsumerMixin):
         for queue in self.queues:
             queue.put(pack)
 
-    def generator(self):
+    def generator(self, events=None, action_refs=None, execution_ids=None):
         queue = eventlet.Queue()
         queue.put('')
         self.queues.append(queue)
+
         try:
             while not self._stopped:
                 try:
-                    yield queue.get(timeout=cfg.CONF.stream.heartbeat)
+                    # TODO: Move to common option
+                    message = queue.get(timeout=cfg.CONF.stream.heartbeat)
+
+                    if not message:
+                        yield message
+                        continue
+
+                    event_name, body = message
+                    # TODO: We now do late filtering, but this could also be performed on the
+                    # message bus level if we modified our exchange layout and utilize routing keys
+                    # Filter on event name
+                    if events and event_name not in events:
+                        LOG.debug('Skipping event "%s"' % (event_name))
+                        continue
+
+                    # Filter on action ref
+                    action_ref = self._get_action_ref_for_body(body=body)
+                    if action_refs and action_ref not in action_refs:
+                        LOG.debug('Skipping event "%s" with action_ref "%s"' % (event_name,
+                                                                                action_ref))
+                        continue
+
+                    # Filter on execution id
+                    execution_id = self._get_execution_id_for_body(body=body)
+                    if execution_ids and execution_id not in execution_ids:
+                        LOG.debug('Skipping event "%s" with execution_id "%s"' % (event_name,
+                                                                                  execution_id))
+                        continue
+
+                    yield message
                 except eventlet.queue.Empty:
                     yield
         finally:
@@ -94,6 +124,35 @@ class Listener(ConsumerMixin):
 
     def shutdown(self):
         self._stopped = True
+
+    def _get_action_ref_for_body(self, body):
+        """
+        Retrieve action_ref for the provided message body.
+        """
+        if not body:
+            return None
+
+        action_ref = None
+
+        if isinstance(body, ActionExecutionAPI):
+            action_ref = body.action.get('ref', None) if body.action else None
+        elif isinstance(body, LiveActionAPI):
+            action_ref = body.action
+
+        return action_ref
+
+    def _get_execution_id_for_body(self, body):
+        if not body:
+            return None
+
+        execution_id = None
+
+        if isinstance(body, ActionExecutionAPI):
+            execution_id = str(body.id)
+        elif isinstance(body, LiveActionAPI):
+            execution_id = None
+
+        return execution_id
 
 
 def listen(listener):
