@@ -88,9 +88,6 @@ def _db_connect(db_name, db_host, db_port, username=None, password=None,
                                                 port=db_port, tz_aware=True,
                                                 username=username, password=password,
                                                 **ssl_kwargs)
-
-    LOG.info('Successfully connected to database "%s" @ "%s:%s" as user "%s".',
-             db_name, db_host, db_port, str(username))
     return connection
 
 
