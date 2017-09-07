@@ -110,6 +110,12 @@ class MistralRunnerCallbackTest(DbTestCase):
                                      action_constants.LIVEACTION_STATUS_SUCCEEDED,
                                      '<html></html>')
 
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output='<html></html>'
+        )
+
     @mock.patch.object(
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
@@ -117,14 +123,33 @@ class MistralRunnerCallbackTest(DbTestCase):
         self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
                                      action_constants.LIVEACTION_STATUS_SUCCEEDED, {'a': 1})
 
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output='{"a": 1}'
+        )
+
     @mock.patch.object(
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
     def test_callback_handler_with_result_as_json_str(self):
         self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
                                      action_constants.LIVEACTION_STATUS_SUCCEEDED, '{"a": 1}')
+
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output='{"a": 1}'
+        )
+
         self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
                                      action_constants.LIVEACTION_STATUS_SUCCEEDED, "{'a': 1}")
+
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output='{"a": 1}'
+        )
 
     @mock.patch.object(
         action_executions.ActionExecutionManager, 'update',
@@ -134,6 +159,12 @@ class MistralRunnerCallbackTest(DbTestCase):
                                      action_constants.LIVEACTION_STATUS_SUCCEEDED,
                                      ["a", "b", "c"])
 
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output='["a", "b", "c"]'
+        )
+
     @mock.patch.object(
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
@@ -141,6 +172,94 @@ class MistralRunnerCallbackTest(DbTestCase):
         self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
                                      action_constants.LIVEACTION_STATUS_SUCCEEDED,
                                      '["a", "b", "c"]')
+
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output='["a", "b", "c"]'
+        )
+
+    @mock.patch.object(
+        action_executions.ActionExecutionManager, 'update',
+        mock.MagicMock(return_value=None))
+    def test_callback_handler_with_result_unicode_str(self):
+        self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
+                                     action_constants.LIVEACTION_STATUS_SUCCEEDED, '\u4ec0\u9ebc')
+
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output='\\\\u4ec0\\\\u9ebc'
+        )
+
+    @mock.patch.object(
+        action_executions.ActionExecutionManager, 'update',
+        mock.MagicMock(return_value=None))
+    def test_callback_handler_with_result_unicode_type(self):
+        self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
+                                     action_constants.LIVEACTION_STATUS_SUCCEEDED, u'\u4ec0\u9ebc')
+
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output='\\u4ec0\\u9ebc'
+        )
+
+    @mock.patch.object(
+        action_executions.ActionExecutionManager, 'update',
+        mock.MagicMock(return_value=None))
+    def test_callback_handler_with_result_as_list_with_unicode_str(self):
+        self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
+                                     action_constants.LIVEACTION_STATUS_SUCCEEDED,
+                                     ['\u4ec0\u9ebc'])
+
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output='["\\\\u4ec0\\\\u9ebc"]'
+        )
+
+    @mock.patch.object(
+        action_executions.ActionExecutionManager, 'update',
+        mock.MagicMock(return_value=None))
+    def test_callback_handler_with_result_as_list_with_unicode_type(self):
+        self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
+                                     action_constants.LIVEACTION_STATUS_SUCCEEDED,
+                                     [u'\u4ec0\u9ebc'])
+
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output='["\\\\u4ec0\\\\u9ebc"]'
+        )
+
+    @mock.patch.object(
+        action_executions.ActionExecutionManager, 'update',
+        mock.MagicMock(return_value=None))
+    def test_callback_handler_with_result_as_dict_with_unicode_str(self):
+        self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
+                                     action_constants.LIVEACTION_STATUS_SUCCEEDED,
+                                     {'a': '\u4ec0\u9ebc'})
+
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output='{"a": "\\\\u4ec0\\\\u9ebc"}'
+        )
+
+    @mock.patch.object(
+        action_executions.ActionExecutionManager, 'update',
+        mock.MagicMock(return_value=None))
+    def test_callback_handler_with_result_as_dict_with_unicode_type(self):
+        self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
+                                     action_constants.LIVEACTION_STATUS_SUCCEEDED,
+                                     {'a': u'\u4ec0\u9ebc'})
+
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output='{"a": "\\\\u4ec0\\\\u9ebc"}'
+        )
 
     @mock.patch.object(
         action_executions.ActionExecutionManager, 'update',
