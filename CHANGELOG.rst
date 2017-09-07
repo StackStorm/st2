@@ -12,7 +12,8 @@ Fixed
   performed the API operation.(bug fix) #3693 #3696
 
   Reported by theuiz.
-* Fix ``st2ctl clean`` not using database connection information from config. (bug fix) #3659
+* Fix ``st2ctl clean`` not using database connection information from config.
+  This now uses the new ``st2-cleanup-db`` command. (bug fix) #3659
 
   Contributed by Nick Maludy (Encore Technologies).
 
@@ -25,6 +26,9 @@ Changed
   ``st2 run`` CLI command. #3670
 
   Contributed by Hiroyasu OHYAMA.
+* Added new command ``st2-cleanup-db`` that drops the current StackStorm MongoDB database. #3659
+  
+  Contributed by Nick Maludy (Encore Technologies).
 
 2.4.0 - August 23, 2017
 -----------------------
