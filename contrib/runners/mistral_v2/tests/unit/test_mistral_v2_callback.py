@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -151,6 +152,24 @@ class MistralRunnerCallbackTest(DbTestCase):
             output='{"a": 1}'
         )
 
+        self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
+                                     action_constants.LIVEACTION_STATUS_SUCCEEDED, u"{'a': 1}")
+
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output='{"a": 1}'
+        )
+
+        self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
+                                     action_constants.LIVEACTION_STATUS_SUCCEEDED, "{u'a': u'xyz'}")
+
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output='{"a": "xyz"}'
+        )
+
     @mock.patch.object(
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
@@ -179,10 +198,43 @@ class MistralRunnerCallbackTest(DbTestCase):
             output='["a", "b", "c"]'
         )
 
+        self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
+                                     action_constants.LIVEACTION_STATUS_SUCCEEDED,
+                                     u'["a", "b", "c"]')
+
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output='["a", "b", "c"]'
+        )
+
+        self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
+                                     action_constants.LIVEACTION_STATUS_SUCCEEDED,
+                                     '[u"a", "b", "c"]')
+
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output='["a", "b", "c"]'
+        )
+
     @mock.patch.object(
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
     def test_callback_handler_with_result_unicode_str(self):
+        self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
+                                     action_constants.LIVEACTION_STATUS_SUCCEEDED, '什麼')
+
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output='\\u4ec0\\u9ebc'
+        )
+
+    @mock.patch.object(
+        action_executions.ActionExecutionManager, 'update',
+        mock.MagicMock(return_value=None))
+    def test_callback_handler_with_result_unicode_encoded_as_ascii_str(self):
         self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
                                      action_constants.LIVEACTION_STATUS_SUCCEEDED, '\u4ec0\u9ebc')
 
@@ -195,7 +247,7 @@ class MistralRunnerCallbackTest(DbTestCase):
     @mock.patch.object(
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
-    def test_callback_handler_with_result_unicode_type(self):
+    def test_callback_handler_with_result_unicode_encoded_as_type(self):
         self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
                                      action_constants.LIVEACTION_STATUS_SUCCEEDED, u'\u4ec0\u9ebc')
 
