@@ -12,6 +12,7 @@ Fixed
   performed the API operation.(bug fix) #3693 #3696
 
   Reported by theuiz.
+* Fix mistral callback failure when result contains unicode. (bug fix)
 
 Changed
 ~~~~~~~
