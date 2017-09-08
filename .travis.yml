@@ -40,6 +40,7 @@ cache:
     - virtualenv/
 
 install:
+  - env
   - make requirements
   - if [ ${TASK} = 'ci-unit' ] || [ ${TASK} = 'ci-integration' ]; then pip install codecov; sudo .circle/add-itest-user.sh; fi
 
