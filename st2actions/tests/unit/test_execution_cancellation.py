@@ -24,9 +24,11 @@ import st2tests.config as tests_config
 tests_config.parse_args()
 
 from st2common.constants import action as action_constants
-from st2common.models.api.action import ActionAPI, RunnerTypeAPI
+from st2common.models.api.action import ActionAPI
+from st2common.models.api.action import RunnerTypeAPI
 from st2common.models.db.liveaction import LiveActionDB
-from st2common.persistence.action import Action, LiveAction
+from st2common.persistence.action import Action
+from st2common.persistence.action import LiveAction
 from st2common.persistence.runner import RunnerType
 from st2common.runners import base as runners
 from st2common.services import action as action_service
