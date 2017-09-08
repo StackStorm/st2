@@ -13,6 +13,7 @@ Fixed
 
   Reported by theuiz.
 * Fix mistral callback failure when result contains unicode. (bug fix)
+* Fix cancellation of delayed action execution for tasks in workflow. (bug fix)
 
 Changed
 ~~~~~~~
