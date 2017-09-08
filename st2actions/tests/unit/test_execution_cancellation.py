@@ -15,6 +15,7 @@
 
 import mock
 import six
+import uuid
 
 from oslo_config import cfg
 
@@ -29,6 +30,7 @@ from st2common.persistence.action import Action, LiveAction
 from st2common.persistence.runner import RunnerType
 from st2common.runners import base as runners
 from st2common.services import action as action_service
+from st2common.services import trace as trace_service
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 from st2common.util import loader
@@ -160,3 +162,65 @@ class ExecutionCancellationTest(DbTestCase):
         self.assertFalse(runners.ActionRunner.cancel.called)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELED)
+
+    @mock.patch.object(
+        CUDPublisher, 'publish_create',
+        mock.MagicMock(return_value=None))
+    @mock.patch.object(
+        LiveActionPublisher, 'publish_state',
+        mock.MagicMock(return_value=None))
+    @mock.patch.object(
+        runners.ActionRunner, 'cancel',
+        mock.MagicMock(return_value=None))
+    def test_cancel_delayed_execution(self):
+        liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
+        liveaction, _ = action_service.request(liveaction)
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_REQUESTED)
+
+        # Manually update the liveaction from requested to delayed to mock concurrency policy.
+        action_service.update_status(liveaction, action_constants.LIVEACTION_STATUS_DELAYED)
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_DELAYED)
+
+        # Cancel execution.
+        action_service.request_cancellation(liveaction, cfg.CONF.system_user.user)
+
+        # Cancel is only called when liveaction is still in running state.
+        # Otherwise, the cancellation is only a state change.
+        self.assertFalse(runners.ActionRunner.cancel.called)
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELED)
+
+    @mock.patch.object(
+        CUDPublisher, 'publish_create',
+        mock.MagicMock(return_value=None))
+    @mock.patch.object(
+        LiveActionPublisher, 'publish_state',
+        mock.MagicMock(return_value=None))
+    @mock.patch.object(
+        trace_service, 'get_trace_db_by_live_action',
+        mock.MagicMock(return_value=(None, None)))
+    def test_cancel_delayed_execution_with_parent(self):
+        liveaction = LiveActionDB(
+            action='wolfpack.action-1',
+            parameters={'actionstr': 'foo'},
+            context={'parent': {'execution_id': uuid.uuid4().hex}}
+        )
+
+        liveaction, _ = action_service.request(liveaction)
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_REQUESTED)
+
+        # Manually update the liveaction from requested to delayed to mock concurrency policy.
+        action_service.update_status(liveaction, action_constants.LIVEACTION_STATUS_DELAYED)
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_DELAYED)
+
+        # Cancel execution.
+        action_service.request_cancellation(liveaction, cfg.CONF.system_user.user)
+
+        # Cancel is only called when liveaction is still in running state.
+        # Otherwise, the cancellation is only a state change.
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELING)

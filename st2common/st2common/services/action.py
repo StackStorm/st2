@@ -214,10 +214,13 @@ def request_cancellation(liveaction, requester):
         'user': requester
     }
 
-    # There is real work only when liveaction is still running.
-    status = (action_constants.LIVEACTION_STATUS_CANCELING
-              if liveaction.status == action_constants.LIVEACTION_STATUS_RUNNING
-              else action_constants.LIVEACTION_STATUS_CANCELED)
+    # Run cancelation sequence for liveaction that is in running state or
+    # if the liveaction is operating under a workflow.
+    if ('parent' in liveaction.context or
+            liveaction.status in action_constants.LIVEACTION_STATUS_RUNNING):
+        status = action_constants.LIVEACTION_STATUS_CANCELING
+    else:
+        status = action_constants.LIVEACTION_STATUS_CANCELED
 
     liveaction = update_status(liveaction, status, result=result)
 
