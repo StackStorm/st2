@@ -20,6 +20,7 @@ from collections import defaultdict
 from collections import OrderedDict
 
 import six
+from oslo_config import cfg
 
 import st2common
 from st2common import log as logging
@@ -34,6 +35,7 @@ from st2common.bootstrap.rulesregistrar import RulesRegistrar
 import st2common.bootstrap.ruletypesregistrar as rule_types_registrar
 from st2common.bootstrap.configsregistrar import ConfigsRegistrar
 import st2common.content.utils as content_utils
+from st2common.models.db.auth import UserDB
 from st2common.models.api.action import LiveActionCreateAPI
 from st2common.models.api.pack import PackAPI
 from st2common.models.api.pack import PackAsyncAPI
@@ -93,7 +95,7 @@ def _get_proxy_config():
 
 class PackInstallController(ActionExecutionsControllerMixin):
 
-    def post(self, pack_install_request):
+    def post(self, pack_install_request, requester_user=None):
         parameters = {
             'packs': pack_install_request.packs,
         }
@@ -101,12 +103,15 @@ class PackInstallController(ActionExecutionsControllerMixin):
         if pack_install_request.force:
             parameters['force'] = True
 
+        if not requester_user:
+            requester_user = UserDB(cfg.CONF.system_user.user)
+
         new_liveaction_api = LiveActionCreateAPI(action='packs.install',
                                                  parameters=parameters,
-                                                 user=None)
+                                                 user=requester_user.name)
 
         execution_resp = self._handle_schedule_execution(liveaction_api=new_liveaction_api,
-                                                         requester_user=None)
+                                                         requester_user=requester_user)
 
         exec_id = PackAsyncAPI(execution_id=execution_resp.json['id'])
 
@@ -115,7 +120,7 @@ class PackInstallController(ActionExecutionsControllerMixin):
 
 class PackUninstallController(ActionExecutionsControllerMixin):
 
-    def post(self, pack_uninstall_request, ref_or_id=None):
+    def post(self, pack_uninstall_request, ref_or_id=None, requester_user=None):
         if ref_or_id:
             parameters = {
                 'packs': [ref_or_id]
@@ -125,12 +130,15 @@ class PackUninstallController(ActionExecutionsControllerMixin):
                 'packs': pack_uninstall_request.packs
             }
 
+        if not requester_user:
+            requester_user = UserDB(cfg.CONF.system_user.user)
+
         new_liveaction_api = LiveActionCreateAPI(action='packs.uninstall',
                                                  parameters=parameters,
-                                                 user=None)
+                                                 user=requester_user.name)
 
         execution_resp = self._handle_schedule_execution(liveaction_api=new_liveaction_api,
-                                                         requester_user=None)
+                                                         requester_user=requester_user)
 
         exec_id = PackAsyncAPI(execution_id=execution_resp.json['id'])
 
