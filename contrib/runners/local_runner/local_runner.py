@@ -16,6 +16,7 @@
 import os
 import pwd
 import uuid
+import functools
 from StringIO import StringIO
 
 from oslo_config import cfg
@@ -33,8 +34,7 @@ from st2common.util.misc import strip_shell_chars
 from st2common.util.green import shell
 from st2common.util.shell import kill_process
 from st2common.util import jsonify
-from st2common.services.action import store_execution_stdout_line
-from st2common.services.action import store_execution_stderr_line
+from st2common.services.action import store_execution_output_data
 from st2common.runners.utils import make_read_and_store_stream_func
 
 __all__ = [
@@ -144,6 +144,9 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
 
         stdout = StringIO()
         stderr = StringIO()
+
+        store_execution_stdout_line = functools.partial(store_execution_output_data, type='stdout')
+        store_execution_stderr_line = functools.partial(store_execution_output_data, type='stderr')
 
         read_and_store_stdout = make_read_and_store_stream_func(execution_db=self.execution,
             action_db=self.action, store_line_func=store_execution_stdout_line)

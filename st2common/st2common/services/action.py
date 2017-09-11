@@ -22,10 +22,8 @@ from st2common.exceptions import db as db_exc
 from st2common.exceptions import trace as trace_exc
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
-from st2common.persistence.execution import ActionExecutionStdoutOutput
-from st2common.persistence.execution import ActionExecutionStderrOutput
-from st2common.models.db.execution import ActionExecutionStdoutOutputDB
-from st2common.models.db.execution import ActionExecutionStderrOutputDB
+from st2common.persistence.execution import ActionExecutionOutput
+from st2common.models.db.execution import ActionExecutionOutputDB
 from st2common.services import executions
 from st2common.services import trace as trace_service
 from st2common.util import date as date_utils
@@ -42,8 +40,7 @@ __all__ = [
     'request_pause',
     'request_resume',
 
-    'store_execution_stdout_line',
-    'store_execution_stderr_line'
+    'store_execution_output_data',
 ]
 
 LOG = logging.getLogger(__name__)
@@ -318,40 +315,25 @@ def request_resume(liveaction, requester):
     return (liveaction, execution)
 
 
-def store_execution_stdout_line(execution_db, action_db, line, timestamp=None):
+def store_execution_output_data(execution_db, action_db, data, type='output', timestamp=None):
     """
-    Store a line from stdout from a particular execution in the database.
-    """
-    execution_id = str(execution_db.id)
-    action_ref = action_db.ref
-    timestamp = timestamp or date_utils.get_datetime_utc_now()
-
-    model_db = ActionExecutionStdoutOutputDB(execution_id=execution_id,
-                                             action_ref=action_ref,
-                                             timestamp=timestamp,
-                                             line=line)
-    model_db = ActionExecutionStdoutOutput.add_or_update(model_db, publish=True,
-                                                         dispatch_trigger=False)
-
-    return model_db
-
-
-def store_execution_stderr_line(execution_db, action_db, line, timestamp=None):
-    """
-    Store a line from stderr from a particular execution in the database.
+    Store output from an execution as a new document in the collection.
     """
     execution_id = str(execution_db.id)
     action_ref = action_db.ref
+    runner_ref = action_db.runner_type['name']
     timestamp = timestamp or date_utils.get_datetime_utc_now()
 
-    model_db = ActionExecutionStderrOutputDB(execution_id=execution_id,
-                                             action_ref=action_ref,
-                                             timestamp=timestamp,
-                                             line=line)
-    model_db = ActionExecutionStderrOutput.add_or_update(model_db, publish=True,
-                                                         dispatch_trigger=False)
+    output_db = ActionExecutionOutputDB(execution_id=execution_id,
+                                        action_ref=action_ref,
+                                        runner_ref=runner_ref,
+                                        timestamp=timestamp,
+                                        type=type,
+                                        data=data)
+    output_db = ActionExecutionOutput.add_or_update(output_db, publish=True,
+                                                    dispatch_trigger=False)
 
-    return model_db
+    return output_db
 
 
 def _cleanup_liveaction(liveaction):
