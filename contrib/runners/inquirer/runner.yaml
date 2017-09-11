@@ -11,7 +11,7 @@
           continue:
            type: boolean
            description: Would you like to continue the workflow?
-        required: ["continue"]
+           required: True
       required: true
       description: A JSON schema that will be used to validate the response data
       type: object

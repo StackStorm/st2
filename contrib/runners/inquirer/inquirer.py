@@ -38,6 +38,18 @@ RUNNER_USERS = 'users'
 RUNNER_TAG = 'tag'
 RUNNER_TTL = 'ttl'
 
+DEFAULT_SCHEMA = {
+    "title": "response_data",
+    "type": "object",
+    "properties": {
+        "continue": {
+            "type": "boolean",
+            "description": "Would you like to continue the workflow?",
+            "required": True
+        }
+    }
+}
+
 
 def get_runner():
     return Inquirer(str(uuid.uuid4()))
@@ -60,7 +72,7 @@ class Inquirer(ActionRunner):
         # TODO (mierdin): in my testing, I haven't seen a way to get the defaults
         # in the runner YAML to be passed in automatically, so I have to replicate
         # them here. Perhaps this is what the previous comment is talking about
-        self.schema = self.runner_parameters.get(RUNNER_SCHEMA, {})
+        self.schema = self.runner_parameters.get(RUNNER_SCHEMA, DEFAULT_SCHEMA)
         self.roles_param = self.runner_parameters.get(RUNNER_ROLES, [])
         self.users_param = self.runner_parameters.get(RUNNER_USERS, [])
         self.tag = self.runner_parameters.get(RUNNER_TAG, "")
