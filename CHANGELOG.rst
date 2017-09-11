@@ -12,6 +12,8 @@ Fixed
   performed the API operation.(bug fix) #3693 #3696
 
   Reported by theuiz.
+* Fix mistral callback failure when result contains unicode. (bug fix)
+* Fix cancellation of delayed action execution for tasks in workflow. (bug fix)
 * Fix ``st2ctl clean`` not using database connection information from config.
   This now uses the new ``st2-cleanup-db`` command. (bug fix) #3659
 
