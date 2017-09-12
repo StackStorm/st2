@@ -554,6 +554,12 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         from_model_kwargs = {
             'mask_secrets': self._get_mask_secrets(requester_user, show_secrets=show_secrets)
         }
+
+        # Special case for id == "last"
+        if id == 'last':
+            execution_db = ActionExecution.query().order_by('-id').limit(1).only('id').first()
+            id = str(execution_db.id)
+
         return self._get_one_by_id(id=id, exclude_fields=exclude_fields,
                                    requester_user=requester_user,
                                    from_model_kwargs=from_model_kwargs,
