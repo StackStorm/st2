@@ -322,7 +322,7 @@ def store_execution_output_data(execution_db, action_db, data, output_type='outp
     """
     execution_id = str(execution_db.id)
     action_ref = action_db.ref
-    runner_ref = action_db.runner_type['name']
+    runner_ref = getattr(action_db, 'runner_type', {}).get('name', 'unknown')
     timestamp = timestamp or date_utils.get_datetime_utc_now()
 
     output_db = ActionExecutionOutputDB(execution_id=execution_id,
