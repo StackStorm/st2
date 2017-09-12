@@ -149,8 +149,10 @@ class PythonRunner(ActionRunner):
         stdout = StringIO()
         stderr = StringIO()
 
-        store_execution_stdout_line = functools.partial(store_execution_output_data, type='stdout')
-        store_execution_stderr_line = functools.partial(store_execution_output_data, type='stderr')
+        store_execution_stdout_line = functools.partial(store_execution_output_data,
+                                                        output_type='stdout')
+        store_execution_stderr_line = functools.partial(store_execution_output_data,
+                                                        output_type='stderr')
 
         read_and_store_stdout = make_read_and_store_stream_func(execution_db=self.execution,
             action_db=self.action, store_line_func=store_execution_stdout_line)

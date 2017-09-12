@@ -315,7 +315,8 @@ def request_resume(liveaction, requester):
     return (liveaction, execution)
 
 
-def store_execution_output_data(execution_db, action_db, data, type='output', timestamp=None):
+def store_execution_output_data(execution_db, action_db, data, output_type='output',
+                                timestamp=None):
     """
     Store output from an execution as a new document in the collection.
     """
@@ -328,7 +329,7 @@ def store_execution_output_data(execution_db, action_db, data, type='output', ti
                                         action_ref=action_ref,
                                         runner_ref=runner_ref,
                                         timestamp=timestamp,
-                                        type=type,
+                                        output=output_type,
                                         data=data)
     output_db = ActionExecutionOutput.add_or_update(output_db, publish=True,
                                                     dispatch_trigger=False)

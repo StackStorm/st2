@@ -134,7 +134,7 @@ class ActionExecutionOutputDB(stormbase.StormFoundationDB):
         action_ref: Parent action reference.
         runner_ref: Parent action runner reference.
         timestamp: Timestamp when this output has been produced / received.
-        type: Type of the output (e.g. stdout, stderr, output)
+        output_type: Type of the output (e.g. stdout, stderr, output)
         data: Actual output data. This could either be line, chunk or similar, depending on the
               runner.
     """
@@ -142,7 +142,7 @@ class ActionExecutionOutputDB(stormbase.StormFoundationDB):
     action_ref = me.StringField(required=True)
     runner_ref = me.StringField(required=True)
     timestamp = ComplexDateTimeField(required=True, default=date_utils.get_datetime_utc_now)
-    type = me.StringField(required=True, default='output')
+    output_type = me.StringField(required=True, default='output')
 
     data = me.StringField()
 
@@ -152,7 +152,7 @@ class ActionExecutionOutputDB(stormbase.StormFoundationDB):
             {'fields': ['action_ref']},
             {'fields': ['runner_ref']},
             {'fields': ['timestamp']},
-            {'fields': ['type']}
+            {'fields': ['output_type']}
         ]
     }
 
