@@ -10,11 +10,11 @@ Added
 * Add new feature which allows runner action output (stdout and stderr) to be streamed
   and consumed in real-time by using one of the following approaches:
 
-  - ``/v1/executions/<execution id>/stdout`` and ``/v1/executions/<execution id>/stderr`` API
-     endpoint.
+  - ``/v1/executions/<execution id>/output[?type=stdout/stderr]`` API endpoint.
   - ``/v1/stream/`` stream endpoint and listening for ``st2.execution.stdout__create`` and
-    ``st2.execution.stdout__create`` events.
-  - ``st2 execution tail <execution id>`` CLI command (underneath it uses stream API endpoint).
+    ``st2.execution.output__create`` ``/v1/stream`` stream API endpoint events.
+  - ``st2 execution tail <execution id> [--type=stdout/stderr]`` CLI command (underneath it uses
+    stream API endpoint).
 
   Right now this functionality is available for the following runners:
 
@@ -27,7 +27,7 @@ Added
   Note: This feature is still experimental and it's disabled by default (opt-in). To enable it,
   set ``actionrunner.stream_output`` config option to ``True``.
 
-  (new feature) #2175 #3657
+  (new feature) #2175 #3657 #3729
 
 Fixed
 ~~~~~
