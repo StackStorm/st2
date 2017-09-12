@@ -214,6 +214,10 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         if 'end_timestamp' in get_resp:
             self.assertTrue('elapsed_seconds' in get_resp)
 
+        get_resp = self._do_get_one('last')
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(self._get_actionexecution_id(get_resp), actionexecution_id)
+
     def test_get_all_id_query_param_filtering_success(self):
         post_resp = self._do_post(LIVE_ACTION_1)
         actionexecution_id = self._get_actionexecution_id(post_resp)
@@ -1153,3 +1157,9 @@ class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestC
             self.assertEqual(len(lines), 10)
             self.assertEqual(lines[0], 'stdout 1')
             self.assertEqual(lines[9], 'stderr 14')
+
+            # Verify "last" short-hand id works
+            resp = self.app.get('/v1/executions/last/output', expect_errors=False)
+            self.assertEqual(resp.status_int, 200)
+            lines = resp.text.strip().split('\n')
+            self.assertEqual(len(lines), 10)
