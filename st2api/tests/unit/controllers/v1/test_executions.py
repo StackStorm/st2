@@ -24,6 +24,10 @@ except ImportError:
 from six.moves import filter
 
 from st2common.constants import action as action_constants
+from st2common.models.db.execution import ActionExecutionDB
+from st2common.models.db.execution import ActionExecutionOutputDB
+from st2common.persistence.execution import ActionExecution
+from st2common.persistence.execution import ActionExecutionOutput
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.trace import Trace
 from st2common.services import action as action_service
@@ -31,11 +35,17 @@ from st2common.services import trace as trace_service
 from st2common.transport.publishers import PoolPublisher
 from st2common.util import action_db as action_db_util
 from st2common.util import isotime
+from st2common.util import date as date_utils
 import st2common.validators.api.action as action_validator
 from tests.base import BaseActionExecutionControllerTestCase
 from st2tests.api import SUPER_SECRET_PARAMETER
 from st2tests.api import ANOTHER_SUPER_SECRET_PARAMETER
 from tests import FunctionalTest
+
+__all__ = [
+    'ActionExecutionControllerTestCase',
+    'ActionExecutionOutputControllerTestCase'
+]
 
 
 ACTION_1 = {
@@ -1034,3 +1044,48 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
             self.assertIn('result is not applicable', put_resp.json['faultstring'])
         finally:
             action_constants.WORKFLOW_RUNNER_TYPES.remove(ACTION_1['runner_type'])
+
+
+class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestCase,
+                                              FunctionalTest):
+
+    def test_get_output_finished_execution(self):
+        # Test the execution output API endpoint for execution which has finished
+
+        for status in action_constants.LIVEACTION_COMPLETED_STATES:
+            # Insert mock execution and output objects
+            status = action_constants.LIVEACTION_STATUS_SUCCEEDED
+            timestamp = date_utils.get_datetime_utc_now()
+            action_execution_db = ActionExecutionDB(start_timestamp=timestamp,
+                                                    end_timestamp=timestamp,
+                                                    status=status,
+                                                    action={'ref': 'core.local'},
+                                                    runner={'name': 'run-local'},
+                                                    liveaction={'ref': 'foo'})
+            action_execution_db = ActionExecution.add_or_update(action_execution_db)
+
+            for i in range(1, 6):
+                stdout_db = ActionExecutionOutputDB(execution_id=str(action_execution_db.id),
+                                                    action_ref='core.local',
+                                                    runner_ref='dummy',
+                                                    timestamp=timestamp,
+                                                    output_type='stdout',
+                                                    data='stdout %s\n' % (i))
+                ActionExecutionOutput.add_or_update(stdout_db)
+
+            for i in range(10, 15):
+                stderr_db = ActionExecutionOutputDB(execution_id=str(action_execution_db.id),
+                                                    action_ref='core.local',
+                                                    runner_ref='dummy',
+                                                    timestamp=timestamp,
+                                                    output_type='stderr',
+                                                    data='stderr %s\n' % (i))
+                ActionExecutionOutput.add_or_update(stderr_db)
+
+            resp = self.app.get('/v1/executions/%s/output' % (str(action_execution_db.id)),
+                                expect_errors=False)
+            self.assertEqual(resp.status_int, 200)
+            lines = resp.text.strip().split('\n')
+            self.assertEqual(len(lines), 10)
+            self.assertEqual(lines[0], 'stdout 1')
+            self.assertEqual(lines[9], 'stderr 14')
