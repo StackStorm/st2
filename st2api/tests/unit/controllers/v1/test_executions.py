@@ -16,6 +16,8 @@
 import copy
 import mock
 
+import eventlet
+
 try:
     import simplejson as json
 except ImportError:
@@ -1048,10 +1050,72 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
 
 class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestCase,
                                               FunctionalTest):
+    def test_get_output_running_execution(self):
+        # Test the execution output API endpoint for execution which is running (blocking)
+        status = action_constants.LIVEACTION_STATUS_RUNNING
+        timestamp = date_utils.get_datetime_utc_now()
+        action_execution_db = ActionExecutionDB(start_timestamp=timestamp,
+                                                end_timestamp=timestamp,
+                                                status=status,
+                                                action={'ref': 'core.local'},
+                                                runner={'name': 'run-local'},
+                                                liveaction={'ref': 'foo'})
+        action_execution_db = ActionExecution.add_or_update(action_execution_db)
+
+        output_params = dict(execution_id=str(action_execution_db.id),
+                             action_ref='core.local',
+                             runner_ref='dummy',
+                             timestamp=timestamp,
+                             output_type='stdout',
+                             data='stdout before start\n')
+
+        # Insert mock output object
+        output_db = ActionExecutionOutputDB(**output_params)
+        ActionExecutionOutput.add_or_update(output_db)
+
+        def insert_mock_data():
+            output_params['data'] = 'stdout mid 1\n'
+            output_db = ActionExecutionOutputDB(**output_params)
+            ActionExecutionOutput.add_or_update(output_db)
+            pass
+
+        # Since the API endpoint is blocking (connection is kept open until action finishes), we
+        # spawn an eventlet which eventually finishes the action.
+        def publish_action_finished(action_execution_db):
+            # Insert mock output object
+            output_params['data'] = 'stdout pre finish 1\n'
+            output_db = ActionExecutionOutputDB(**output_params)
+            ActionExecutionOutput.add_or_update(output_db)
+
+            # Transition execution to completed state so the connection closes
+            action_execution_db.status = action_constants.LIVEACTION_STATUS_SUCCEEDED
+            action_execution_db = ActionExecution.add_or_update(action_execution_db)
+
+        eventlet.spawn_after(0.2, insert_mock_data)
+        eventlet.spawn_after(1, publish_action_finished, action_execution_db)
+        resp = self.app.get('/v1/executions/%s/output' % (str(action_execution_db.id)),
+                            expect_errors=False)
+
+        self.assertEqual(resp.status_int, 200)
+        lines = resp.text.strip().split('\n')
+        self.assertEqual(len(lines), 3)
+        self.assertEqual(lines[0], 'stdout before start')
+        self.assertEqual(lines[1], 'stdout mid 1')
+        self.assertEqual(lines[2], 'stdout pre finish 1')
+
+        # Once the execution is in completed state, existing output should be returned immediately
+        resp = self.app.get('/v1/executions/%s/output' % (str(action_execution_db.id)),
+                            expect_errors=False)
+
+        self.assertEqual(resp.status_int, 200)
+        lines = resp.text.strip().split('\n')
+        self.assertEqual(len(lines), 3)
+        self.assertEqual(lines[0], 'stdout before start')
+        self.assertEqual(lines[1], 'stdout mid 1')
+        self.assertEqual(lines[2], 'stdout pre finish 1')
 
     def test_get_output_finished_execution(self):
         # Test the execution output API endpoint for execution which has finished
-
         for status in action_constants.LIVEACTION_COMPLETED_STATES:
             # Insert mock execution and output objects
             status = action_constants.LIVEACTION_STATUS_SUCCEEDED
