@@ -69,7 +69,7 @@ def setup_app(config={}):
     app = router.as_wsgi
 
     # Order is important. Check middleware for detailed explanation.
-    app = StreamingMiddleware(app, path_whitelist=['/v1/executions/*/stdout*',
+    app = StreamingMiddleware(app, path_whitelist=['/v1/executions/*/output*',
                                                   '/v1/executions/*/stderr*'])
     app = ErrorHandlingMiddleware(app)
     app = CorsMiddleware(app)

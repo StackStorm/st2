@@ -230,8 +230,7 @@ def listen(listener):
 
 def get_listener(name):
     global _stream_listener
-    global _execution_stdout_listener
-    global _execution_stderr_listener
+    global _execution_output_listener
 
     if name == 'stream':
         if not _stream_listener:
@@ -242,7 +241,7 @@ def get_listener(name):
     elif name == 'execution_output':
         if not _execution_output_listener:
             with Connection(transport_utils.get_messaging_urls()) as conn:
-                _execution_stdout_listener = ExecutionOutputListener(conn)
+                _execution_output_listener = ExecutionOutputListener(conn)
                 eventlet.spawn_n(listen, _execution_output_listener)
         return _execution_output_listener
     else:

@@ -307,10 +307,14 @@ class ActionExecutionOutputController(ActionExecutionsControllerMixin, ResourceC
 
         execution_id = str(execution_db.id)
 
+        query_filters = {}
+        if output_type:
+            query_filters['output_type'] = output_type
+
         def existing_output_iter():
             # Consume and return all of the existing lines
             # pylint: disable=no-member
-            output_dbs = ActionExecutionOutput.query(execution_id=execution_id)
+            output_dbs = ActionExecutionOutput.query(execution_id=execution_id, **query_filters)
 
             # Note: We return all at once instead of yield line by line to avoid multiple socket
             # writes and to achieve better performance
@@ -342,6 +346,9 @@ class ActionExecutionOutputController(ActionExecutionsControllerMixin, ResourceC
                         # Note: gunicorn wsgi handler expect bytes, not unicode
                         # pylint: disable=no-member
                         if isinstance(model_api, ActionExecutionOutputAPI):
+                            if output_type and model_api.output_type != output_type:
+                                continue
+
                             yield six.binary_type(model_api.data.encode('utf-8'))
                         elif isinstance(model_api, ActionExecutionAPI):
                             if model_api.status in action_constants.LIVEACTION_COMPLETED_STATES:
