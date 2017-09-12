@@ -141,7 +141,7 @@ class ActionExecutionOutputDB(stormbase.StormFoundationDB):
     execution_id = me.StringField(required=True)
     action_ref = me.StringField(required=True)
     runner_ref = me.StringField(required=True)
-    timestamp = me.DateTimeField(required=True, default=date_utils.get_datetime_utc_now)
+    timestamp = ComplexDateTimeField(required=True, default=date_utils.get_datetime_utc_now)
     type = me.StringField(required=True, default='output')
 
     data = me.StringField()
