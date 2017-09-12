@@ -46,6 +46,12 @@ install:
 script:
   - make ${TASK}
 
+# Don't store cache for target PR branch (typically `master`), because it will be re-used for opened PRs
+# See: https://docs.travis-ci.com/user/caching/#Pull-request-builds-and-caches
+# Alternative: use strict pip pinning, including git-based pip packages
+before_cache:
+  - if [ ${TRAVIS_PULL_REQUEST} = 'false' ]; then rm -rf virtualenv/; fi
+
 after_success:
   - if [ ${TASK} = 'ci-unit' ] || [ ${TASK} = 'ci-integration' ]; then codecov; fi
 

@@ -29,8 +29,7 @@ from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
 from st2common.constants.pack import SYSTEM_PACK_NAME
-from st2common.persistence.execution import ActionExecutionStdoutOutput
-from st2common.persistence.execution import ActionExecutionStderrOutput
+from st2common.persistence.execution import ActionExecutionOutput
 from st2tests.base import RunnerTestCase
 from st2tests.base import CleanDbTestCase
 from st2tests.base import blocking_eventlet_spawn
@@ -306,11 +305,8 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(output['result'], 'True')
         self.assertEqual(output['exit_code'], 0)
 
-        stdout_dbs = ActionExecutionStdoutOutput.get_all()
-        self.assertEqual(len(stdout_dbs), 0)
-
-        stderr_dbs = ActionExecutionStderrOutput.get_all()
-        self.assertEqual(len(stderr_dbs), 0)
+        output_dbs = ActionExecutionOutput.get_all()
+        self.assertEqual(len(output_dbs), 0)
 
         # False is a default behavior so end result should be the same
         cfg.CONF.set_override(name='stream_output', group='actionrunner', override=False)
@@ -334,11 +330,8 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(output['result'], 'True')
         self.assertEqual(output['exit_code'], 0)
 
-        stdout_dbs = ActionExecutionStdoutOutput.get_all()
-        self.assertEqual(len(stdout_dbs), 0)
-
-        stderr_dbs = ActionExecutionStderrOutput.get_all()
-        self.assertEqual(len(stderr_dbs), 0)
+        output_dbs = ActionExecutionOutput.get_all()
+        self.assertEqual(len(output_dbs), 0)
 
     @mock.patch('st2common.util.green.shell.subprocess.Popen')
     @mock.patch('st2common.util.green.shell.eventlet.spawn')
@@ -389,17 +382,19 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
         # Verify stdout and stderr lines have been correctly stored in the db
         # Note - result delimiter should not be stored in the db
-        stdout_dbs = ActionExecutionStdoutOutput.get_all()
-        self.assertEqual(len(stdout_dbs), 3)
-        self.assertEqual(stdout_dbs[0].line, mock_stdout[0])
-        self.assertEqual(stdout_dbs[1].line, mock_stdout[1])
-        self.assertEqual(stdout_dbs[2].line, mock_stdout[3])
+        output_dbs = ActionExecutionOutput.query(output_type='stdout')
+        self.assertEqual(len(output_dbs), 3)
+        self.assertEqual(output_dbs[0].runner_ref, 'python-script')
+        self.assertEqual(output_dbs[0].data, mock_stdout[0])
+        self.assertEqual(output_dbs[1].data, mock_stdout[1])
+        self.assertEqual(output_dbs[2].data, mock_stdout[3])
 
-        stderr_dbs = ActionExecutionStderrOutput.get_all()
-        self.assertEqual(len(stderr_dbs), 3)
-        self.assertEqual(stderr_dbs[0].line, mock_stderr[0])
-        self.assertEqual(stderr_dbs[1].line, mock_stderr[1])
-        self.assertEqual(stderr_dbs[2].line, mock_stderr[2])
+        output_dbs = ActionExecutionOutput.query(output_type='stderr')
+        self.assertEqual(len(output_dbs), 3)
+        self.assertEqual(output_dbs[0].runner_ref, 'python-script')
+        self.assertEqual(output_dbs[0].data, mock_stderr[0])
+        self.assertEqual(output_dbs[1].data, mock_stderr[1])
+        self.assertEqual(output_dbs[2].data, mock_stderr[2])
 
     @mock.patch('st2common.util.green.shell.subprocess.Popen')
     def test_stdout_interception_and_parsing(self, mock_popen):
@@ -615,4 +610,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         action.ref = 'dummy.action'
         action.pack = SYSTEM_PACK_NAME
         action.entry_point = 'foo.py'
+        action.runner_type = {
+            'name': 'python-script'
+        }
         return action

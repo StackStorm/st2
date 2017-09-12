@@ -24,8 +24,7 @@ tests_config.parse_args()
 
 from st2actions.container.service import RunnerContainerService
 from st2common.constants import action as action_constants
-from st2common.persistence.execution import ActionExecutionStdoutOutput
-from st2common.persistence.execution import ActionExecutionStderrOutput
+from st2common.persistence.execution import ActionExecutionOutput
 from st2tests.fixturesloader import FixturesLoader
 from st2tests.fixturesloader import get_fixtures_base_path
 from st2common.util.api import get_full_public_api_url
@@ -72,11 +71,8 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         cfg.CONF.set_override(name='stream_output', group='actionrunner', override=True)
 
         # Verify initial state
-        stdout_dbs = ActionExecutionStdoutOutput.get_all()
-        self.assertEqual(len(stdout_dbs), 0)
-
-        stderr_dbs = ActionExecutionStderrOutput.get_all()
-        self.assertEqual(len(stderr_dbs), 0)
+        output_dbs = ActionExecutionOutput.get_all()
+        self.assertEqual(len(output_dbs), 0)
 
         runner = self._get_runner(action_db, cmd='echo 10')
         runner.pre_run()
@@ -86,12 +82,10 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         self.assertEquals(result['stdout'], 10)
 
-        stdout_dbs = ActionExecutionStdoutOutput.get_all()
-        self.assertEqual(len(stdout_dbs), 1)
-        self.assertEqual(stdout_dbs[0].line, '10\n')
-
-        stderr_dbs = ActionExecutionStderrOutput.get_all()
-        self.assertEqual(len(stderr_dbs), 0)
+        output_dbs = ActionExecutionOutput.get_all()
+        self.assertEqual(len(output_dbs), 1)
+        self.assertEqual(output_dbs[0].output_type, 'stdout')
+        self.assertEqual(output_dbs[0].data, '10\n')
 
     def test_shell_script_action(self):
         models = self.fixtures_loader.load_models(
@@ -229,16 +223,16 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(result['return_code'], 0)
 
         # Verify stdout and stderr lines have been correctly stored in the db
-        stdout_dbs = ActionExecutionStdoutOutput.get_all()
-        self.assertEqual(len(stdout_dbs), 2)
-        self.assertEqual(stdout_dbs[0].line, mock_stdout[0])
-        self.assertEqual(stdout_dbs[1].line, mock_stdout[1])
+        output_dbs = ActionExecutionOutput.query(output_type='stdout')
+        self.assertEqual(len(output_dbs), 2)
+        self.assertEqual(output_dbs[0].data, mock_stdout[0])
+        self.assertEqual(output_dbs[1].data, mock_stdout[1])
 
-        stderr_dbs = ActionExecutionStderrOutput.get_all()
-        self.assertEqual(len(stderr_dbs), 3)
-        self.assertEqual(stderr_dbs[0].line, mock_stderr[0])
-        self.assertEqual(stderr_dbs[1].line, mock_stderr[1])
-        self.assertEqual(stderr_dbs[2].line, mock_stderr[2])
+        output_dbs = ActionExecutionOutput.query(output_type='stderr')
+        self.assertEqual(len(output_dbs), 3)
+        self.assertEqual(output_dbs[0].data, mock_stderr[0])
+        self.assertEqual(output_dbs[1].data, mock_stderr[1])
+        self.assertEqual(output_dbs[2].data, mock_stderr[2])
 
     @mock.patch('st2common.util.green.shell.subprocess.Popen')
     @mock.patch('st2common.util.green.shell.eventlet.spawn')
@@ -297,7 +291,7 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
             self.assertEqual(result['return_code'], 0)
 
             # Verify stdout and stderr lines have been correctly stored in the db
-            stdout_dbs = ActionExecutionStdoutOutput.get_all()
+            output_dbs = ActionExecutionOutput.query(output_type='stdout')
 
             if index == 1:
                 db_index_1 = 0
@@ -312,14 +306,14 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
                 db_index_1 = 6
                 db_index_2 = 7
 
-            self.assertEqual(len(stdout_dbs), (index * 2))
-            self.assertEqual(stdout_dbs[db_index_1].line, mock_stdout[0])
-            self.assertEqual(stdout_dbs[db_index_2].line, mock_stdout[1])
+            self.assertEqual(len(output_dbs), (index * 2))
+            self.assertEqual(output_dbs[db_index_1].data, mock_stdout[0])
+            self.assertEqual(output_dbs[db_index_2].data, mock_stdout[1])
 
-            stderr_dbs = ActionExecutionStderrOutput.get_all()
-            self.assertEqual(len(stderr_dbs), (index * 2))
-            self.assertEqual(stderr_dbs[db_index_1].line, mock_stderr[0])
-            self.assertEqual(stderr_dbs[db_index_2].line, mock_stderr[1])
+            output_dbs = ActionExecutionOutput.query(output_type='stderr')
+            self.assertEqual(len(output_dbs), (index * 2))
+            self.assertEqual(output_dbs[db_index_1].data, mock_stderr[0])
+            self.assertEqual(output_dbs[db_index_2].data, mock_stderr[1])
 
     @staticmethod
     def _get_runner(action_db,
@@ -427,11 +421,8 @@ class LocalShellScriptRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         cfg.CONF.set_override(name='stream_output', group='actionrunner', override=True)
 
         # Verify initial state
-        stdout_dbs = ActionExecutionStdoutOutput.get_all()
-        self.assertEqual(len(stdout_dbs), 0)
-
-        stderr_dbs = ActionExecutionStderrOutput.get_all()
-        self.assertEqual(len(stderr_dbs), 0)
+        output_dbs = ActionExecutionOutput.get_all()
+        self.assertEqual(len(output_dbs), 0)
 
         action_parameters = {
             'param_string': 'test string',
@@ -455,13 +446,13 @@ class LocalShellScriptRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertTrue('PARAM_LIST=a,b,c' in result['stdout'])
         self.assertTrue('PARAM_OBJECT={"foo": "bar"}' in result['stdout'])
 
-        stdout_dbs = ActionExecutionStdoutOutput.get_all()
-        self.assertEqual(len(stdout_dbs), 6)
-        self.assertEqual(stdout_dbs[0].line, 'PARAM_STRING=test string\n')
-        self.assertEqual(stdout_dbs[5].line, 'PARAM_OBJECT={"foo": "bar"}\n')
+        output_dbs = ActionExecutionOutput.query(output_type='stdout')
+        self.assertEqual(len(output_dbs), 6)
+        self.assertEqual(output_dbs[0].data, 'PARAM_STRING=test string\n')
+        self.assertEqual(output_dbs[5].data, 'PARAM_OBJECT={"foo": "bar"}\n')
 
-        stderr_dbs = ActionExecutionStderrOutput.get_all()
-        self.assertEqual(len(stderr_dbs), 0)
+        output_dbs = ActionExecutionOutput.query(output_type='stderr')
+        self.assertEqual(len(output_dbs), 0)
 
     @mock.patch('st2common.util.green.shell.subprocess.Popen')
     @mock.patch('st2common.util.green.shell.eventlet.spawn')
@@ -522,18 +513,18 @@ class LocalShellScriptRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(result['return_code'], 0)
 
         # Verify stdout and stderr lines have been correctly stored in the db
-        stdout_dbs = ActionExecutionStdoutOutput.get_all()
-        self.assertEqual(len(stdout_dbs), 4)
-        self.assertEqual(stdout_dbs[0].line, mock_stdout[0])
-        self.assertEqual(stdout_dbs[1].line, mock_stdout[1])
-        self.assertEqual(stdout_dbs[2].line, mock_stdout[2])
-        self.assertEqual(stdout_dbs[3].line, mock_stdout[3])
+        output_dbs = ActionExecutionOutput.query(output_type='stdout')
+        self.assertEqual(len(output_dbs), 4)
+        self.assertEqual(output_dbs[0].data, mock_stdout[0])
+        self.assertEqual(output_dbs[1].data, mock_stdout[1])
+        self.assertEqual(output_dbs[2].data, mock_stdout[2])
+        self.assertEqual(output_dbs[3].data, mock_stdout[3])
 
-        stderr_dbs = ActionExecutionStderrOutput.get_all()
-        self.assertEqual(len(stderr_dbs), 3)
-        self.assertEqual(stderr_dbs[0].line, mock_stderr[0])
-        self.assertEqual(stderr_dbs[1].line, mock_stderr[1])
-        self.assertEqual(stderr_dbs[2].line, mock_stderr[2])
+        output_dbs = ActionExecutionOutput.query(output_type='stderr')
+        self.assertEqual(len(output_dbs), 3)
+        self.assertEqual(output_dbs[0].data, mock_stderr[0])
+        self.assertEqual(output_dbs[1].data, mock_stderr[1])
+        self.assertEqual(output_dbs[2].data, mock_stderr[2])
 
     def _get_runner(self, action_db, entry_point):
         runner = local_runner.LocalShellRunner(uuid.uuid4().hex)

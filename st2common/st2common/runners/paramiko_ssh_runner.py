@@ -26,8 +26,7 @@ from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.runners import REMOTE_RUNNER_DEFAULT_ACTION_TIMEOUT
 from st2common.exceptions.actionrunner import ActionRunnerPreRunError
-from st2common.services.action import store_execution_stdout_line
-from st2common.services.action import store_execution_stderr_line
+from st2common.services.action import store_execution_output_data
 
 __all__ = [
     'BaseParallelSSHRunner'
@@ -128,16 +127,16 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
         def make_store_stdout_line_func(execution_db, action_db):
             def store_stdout_line(line):
                 if cfg.CONF.actionrunner.stream_output:
-                    store_execution_stdout_line(execution_db=execution_db, action_db=action_db,
-                                                line=line)
+                    store_execution_output_data(execution_db=execution_db, action_db=action_db,
+                                                data=line, output_type='stdout')
 
             return store_stdout_line
 
         def make_store_stderr_line_func(execution_db, action_db):
             def store_stderr_line(line):
                 if cfg.CONF.actionrunner.stream_output:
-                    store_execution_stderr_line(execution_db=execution_db, action_db=action_db,
-                                                line=line)
+                    store_execution_output_data(execution_db=execution_db, action_db=action_db,
+                                                data=line, output_type='stderr')
 
             return store_stderr_line
 

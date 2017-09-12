@@ -326,11 +326,7 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
                 'method': 'GET'
             },
             {
-                'path': '/v1/executions/%s/stdout' % (execution_model.id),
-                'method': 'GET'
-            },
-            {
-                'path': '/v1/executions/%s/stderr' % (execution_model.id),
+                'path': '/v1/executions/%s/output' % (execution_model.id),
                 'method': 'GET'
             },
             {

@@ -1027,19 +1027,25 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /api/v1/executions/{id}/stdout:
+  /api/v1/executions/{id}/output:
     get:
-      operationId: st2api.controllers.v1.actionexecutions:action_execution_stdout_controller.get_one
+      operationId: st2api.controllers.v1.actionexecutions:action_execution_output_controller.get_one
       x-log-result: false
       x-is-stream-endpoint: true
       description: |
-        Retrieve execution stdout.
+        Retrieve execution output.
       parameters:
         - name: id
           in: path
           description: Execution id
           type: string
           required: true
+        - name: output_type
+          in: query
+          description: Type of output to retrieve. If not provided, all output type is returned.
+          type: array
+          items:
+            type: string
       x-parameters:
         - name: user
           in: context
@@ -1047,37 +1053,11 @@ paths:
           description: User performing the operation.
       responses:
         '200':
-          description: Execution stdout.
+          description: Execution output.
         default:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /api/v1/executions/{id}/stderr:
-    get:
-      operationId: st2api.controllers.v1.actionexecutions:action_execution_stderr_controller.get_one
-      x-log-result: false
-      x-is-stream-endpoint: true
-      description: |
-        Retrieve execution stderr.
-      parameters:
-        - name: id
-          in: path
-          description: Execution id
-          type: string
-          required: true
-      x-parameters:
-        - name: user
-          in: context
-          x-as: requester_user
-          description: User performing the operation.
-      responses:
-        '200':
-          description: Execution stderr.
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
-
   /api/v1/executions/{id}/re_run:
     post:
       operationId: st2api.controllers.v1.actionexecutions:action_execution_rerun_controller.post

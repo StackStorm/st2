@@ -126,7 +126,7 @@ def invoke_post_run(liveaction_db, action_db=None):
     runner.post_run(liveaction_db.status, liveaction_db.result)
 
 
-def make_read_and_store_stream_func(execution_db, action_db, store_line_func):
+def make_read_and_store_stream_func(execution_db, action_db, store_data_func):
     """
     Factory function which returns a function for reading from a stream (stdout / stderr).
 
@@ -146,7 +146,7 @@ def make_read_and_store_stream_func(execution_db, action_db, store_line_func):
                     continue
 
                 if cfg.CONF.actionrunner.stream_output:
-                    store_line_func(execution_db=execution_db, action_db=action_db, line=line)
+                    store_data_func(execution_db=execution_db, action_db=action_db, data=line)
         except RuntimeError:
             # process was terminated abruptly
             pass

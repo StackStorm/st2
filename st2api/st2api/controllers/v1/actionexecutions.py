@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import abc
 import copy
 import re
 import httplib
@@ -40,13 +39,11 @@ from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.action import LiveActionCreateAPI
 from st2common.models.api.base import cast_argument_value
 from st2common.models.api.execution import ActionExecutionAPI
-from st2common.models.api.execution import ActionExecutionStdoutAPI
-from st2common.models.api.execution import ActionExecutionStderrAPI
+from st2common.models.api.execution import ActionExecutionOutputAPI
 from st2common.models.db.auth import UserDB
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
-from st2common.persistence.execution import ActionExecutionStdoutOutput
-from st2common.persistence.execution import ActionExecutionStderrOutput
+from st2common.persistence.execution import ActionExecutionOutput
 from st2common.router import abort
 from st2common.router import Response
 from st2common.services import action as action_service
@@ -294,21 +291,13 @@ class ActionExecutionAttributeController(BaseActionExecutionNestedController):
         return result
 
 
-@six.add_metaclass(abc.ABCMeta)
-class BaseActionExecutionOutputStreamController(ActionExecutionsControllerMixin,
-                                                ResourceController):
-    """
-    Base class for execution stdout and stderr stream controllers.
-    """
-
-    supported_filters = {}
+class ActionExecutionOutputController(ActionExecutionsControllerMixin, ResourceController):
+    supported_filters = {
+        'output_type': 'output_type'
+    }
     exclude_fields = []
 
-    persistance_class = abc.abstractproperty
-    api_model_class = abc.abstractproperty
-    listener_name = abc.abstractproperty
-
-    def get_one(self, id, requester_user):
+    def get_one(self, id, output_type=None, requester_user=None):
         # Special case for id == "last"
         if id == 'last':
             execution_db = ActionExecution.query().order_by('-id').limit(1).first()
@@ -318,15 +307,19 @@ class BaseActionExecutionOutputStreamController(ActionExecutionsControllerMixin,
 
         execution_id = str(execution_db.id)
 
+        query_filters = {}
+        if output_type:
+            query_filters['output_type'] = output_type
+
         def existing_output_iter():
             # Consume and return all of the existing lines
             # pylint: disable=no-member
-            output_dbs = self.persistance_class.query(execution_id=execution_id)
+            output_dbs = ActionExecutionOutput.query(execution_id=execution_id, **query_filters)
 
-            # Note: We return all at once intestead of yield line by line to avoid multiple socket
+            # Note: We return all at once instead of yield line by line to avoid multiple socket
             # writes and to achieve better performance
-            lines = ''.join([output_db.line for output_db in output_dbs])
-            yield six.binary_type(lines.encode('utf-8'))
+            output = ''.join([output_db.data for output_db in output_dbs])
+            yield six.binary_type(output.encode('utf-8'))
 
         def new_output_iter():
             def noop_gen():
@@ -340,7 +333,7 @@ class BaseActionExecutionOutputStreamController(ActionExecutionsControllerMixin,
 
             # Wait for and return any new line which may come in
             execution_ids = [execution_id]
-            listener = get_listener(name=self.listener_name)  # pylint: disable=no-member
+            listener = get_listener(name='execution_output')  # pylint: disable=no-member
             gen = listener.generator(execution_ids=execution_ids)
 
             def format(gen):
@@ -352,8 +345,11 @@ class BaseActionExecutionOutputStreamController(ActionExecutionsControllerMixin,
 
                         # Note: gunicorn wsgi handler expect bytes, not unicode
                         # pylint: disable=no-member
-                        if isinstance(model_api, self.api_model_class):
-                            yield six.binary_type(model_api.line.encode('utf-8'))
+                        if isinstance(model_api, ActionExecutionOutputAPI):
+                            if output_type and model_api.output_type != output_type:
+                                continue
+
+                            yield six.binary_type(model_api.data.encode('utf-8'))
                         elif isinstance(model_api, ActionExecutionAPI):
                             if model_api.status in action_constants.LIVEACTION_COMPLETED_STATES:
                                 yield six.binary_type('')
@@ -371,24 +367,6 @@ class BaseActionExecutionOutputStreamController(ActionExecutionsControllerMixin,
 
         res = make_response()
         return res
-
-
-class ActionExecutionStdoutController(BaseActionExecutionOutputStreamController):
-    supported_filters = {}
-    exclude_fields = []
-
-    persistance_class = ActionExecutionStdoutOutput
-    api_model_class = ActionExecutionStdoutAPI
-    listener_name = 'execution_stdout'
-
-
-class ActionExecutionStderrController(BaseActionExecutionOutputStreamController):
-    supported_filters = {}
-    exclude_fields = []
-
-    persistance_class = ActionExecutionStderrOutput
-    api_model_class = ActionExecutionStderrAPI
-    listener_name = 'execution_stderr'
 
 
 class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceController):
@@ -740,8 +718,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
 
 
 action_executions_controller = ActionExecutionsController()
-action_execution_stdout_controller = ActionExecutionStdoutController()
-action_execution_stderr_controller = ActionExecutionStderrController()
+action_execution_output_controller = ActionExecutionOutputController()
 action_execution_rerun_controller = ActionExecutionReRunController()
 action_execution_attribute_controller = ActionExecutionAttributeController()
 action_execution_children_controller = ActionExecutionChildrenController()

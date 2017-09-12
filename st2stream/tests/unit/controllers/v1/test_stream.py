@@ -21,12 +21,10 @@ from st2common.models.api.action import ActionAPI
 from st2common.models.api.action import RunnerTypeAPI
 from st2common.models.api.execution import ActionExecutionAPI
 from st2common.models.api.execution import LiveActionAPI
-from st2common.models.api.execution import ActionExecutionStdoutAPI
-from st2common.models.api.execution import ActionExecutionStderrAPI
+from st2common.models.api.execution import ActionExecutionOutputAPI
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.execution import ActionExecutionDB
-from st2common.models.db.execution import ActionExecutionStdoutOutputDB
-from st2common.models.db.execution import ActionExecutionStderrOutputDB
+from st2common.models.db.execution import ActionExecutionOutputDB
 from st2common.persistence.action import Action, RunnerType
 import st2common.stream.listener
 from st2stream.controllers.v1 import stream
@@ -93,7 +91,14 @@ EXECUTION_1 = {
 
 STDOUT_1 = {
     'execution_id': '598dbf0c0640fd54bffc688b',
-    'action_ref': 'dummy.action1'
+    'action_ref': 'dummy.action1',
+    'output_type': 'stdout'
+}
+
+STDERR_1 = {
+    'execution_id': '598dbf0c0640fd54bffc688b',
+    'action_ref': 'dummy.action1',
+    'output_type': 'stderr'
 }
 
 
@@ -148,13 +153,12 @@ class TestStreamController(FunctionalTest):
         listener = st2common.stream.listener.get_listener(name='stream')
         process_execution = listener.processor(ActionExecutionAPI)
         process_liveaction = listener.processor(LiveActionAPI)
-        process_stdout = listener.processor(ActionExecutionStdoutAPI)
-        process_stderr = listener.processor(ActionExecutionStderrAPI)
+        process_output = listener.processor(ActionExecutionOutputAPI)
 
         execution_api = ActionExecutionDB(**EXECUTION_1)
         liveaction_api = LiveActionDB(**LIVE_ACTION_1)
-        stdout_api = ActionExecutionStdoutOutputDB(**STDOUT_1)
-        stderr_api = ActionExecutionStderrOutputDB(**STDOUT_1)
+        output_api_stdout = ActionExecutionOutputDB(**STDOUT_1)
+        output_api_stderr = ActionExecutionOutputDB(**STDERR_1)
 
         def dispatch_and_handle_mock_data(resp):
             received_messages_data = ''
@@ -182,11 +186,11 @@ class TestStreamController(FunctionalTest):
                     meta = META('st2.liveaction', 'delete')
                     process_liveaction(liveaction_api, meta)
                 elif index == 6:
-                    meta = META('st2.execution.stdout', 'create')
-                    process_stdout(stdout_api, meta)
+                    meta = META('st2.execution.output', 'create')
+                    process_output(output_api_stdout, meta)
                 elif index == 7:
-                    meta = META('st2.execution.stderr', 'create')
-                    process_stderr(stderr_api, meta)
+                    meta = META('st2.execution.output', 'create')
+                    process_output(output_api_stderr, meta)
                 else:
                     break
 
@@ -200,6 +204,8 @@ class TestStreamController(FunctionalTest):
 
         received_messages = dispatch_and_handle_mock_data(resp)
         self.assertEqual(len(received_messages), 6)
+        self.assertTrue('st2.execution__create' in received_messages[0])
+        self.assertTrue('st2.liveaction__delete' in received_messages[5])
 
         # 1. ?events= filter
         # No filter provided - all messages should be received
@@ -208,6 +214,8 @@ class TestStreamController(FunctionalTest):
 
         received_messages = dispatch_and_handle_mock_data(resp)
         self.assertEqual(len(received_messages), 8)
+        self.assertTrue('st2.execution__create' in received_messages[0])
+        self.assertTrue('st2.execution.output__create' in received_messages[7])
 
         # Filter provided, only two messages should be received
         events = ['st2.execution__create', 'st2.liveaction__delete']
@@ -216,6 +224,18 @@ class TestStreamController(FunctionalTest):
 
         received_messages = dispatch_and_handle_mock_data(resp)
         self.assertEqual(len(received_messages), 2)
+        self.assertTrue('st2.execution__create' in received_messages[0])
+        self.assertTrue('st2.liveaction__delete' in received_messages[1])
+
+        # Filter provided
+        events = ['st2.execution.output__create']
+        events = ','.join(events)
+        resp = stream.StreamController().get_all(events=events)
+
+        received_messages = dispatch_and_handle_mock_data(resp)
+        self.assertEqual(len(received_messages), 2)
+        self.assertTrue('st2.execution.output__create' in received_messages[0])
+        self.assertTrue('st2.execution.output__create' in received_messages[1])
 
         # Filter provided, invalid , no message should be received
         events = ['invalid1', 'invalid2']

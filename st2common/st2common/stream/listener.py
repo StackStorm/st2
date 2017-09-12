@@ -21,21 +21,18 @@ from oslo_config import cfg
 
 from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.execution import ActionExecutionAPI
-from st2common.models.api.execution import ActionExecutionStdoutAPI
-from st2common.models.api.execution import ActionExecutionStderrAPI
+from st2common.models.api.execution import ActionExecutionOutputAPI
 from st2common.transport import utils as transport_utils
 from st2common.transport.queues import STREAM_ANNOUNCEMENT_WORK_QUEUE
 from st2common.transport.queues import STREAM_EXECUTION_ALL_WORK_QUEUE
 from st2common.transport.queues import STREAM_EXECUTION_UPDATE_WORK_QUEUE
 from st2common.transport.queues import STREAM_LIVEACTION_WORK_QUEUE
-from st2common.transport.queues import STREAM_EXECUTION_STDOUT_QUEUE
-from st2common.transport.queues import STREAM_EXECUTION_STDERR_QUEUE
+from st2common.transport.queues import STREAM_EXECUTION_OUTPUT_QUEUE
 from st2common import log as logging
 
 __all__ = [
     'StreamListener',
-    'ExecutionStdoutListener',
-    'ExecutionStderrListener',
+    'ExecutionOutputListener',
 
     'get_listener',
     'get_listener_if_set'
@@ -46,8 +43,7 @@ LOG = logging.getLogger(__name__)
 
 # Stores references to instantiated listeners
 _stream_listener = None
-_execution_stdout_listener = None
-_execution_stderr_listener = None
+_execution_output_listener = None
 
 
 class BaseListener(ConsumerMixin):
@@ -139,7 +135,7 @@ class BaseListener(ConsumerMixin):
             action_ref = body.action.get('ref', None) if body.action else None
         elif isinstance(body, LiveActionAPI):
             action_ref = body.action
-        elif isinstance(body, (ActionExecutionStdoutAPI, ActionExecutionStderrAPI)):
+        elif isinstance(body, (ActionExecutionOutputAPI)):
             action_ref = body.action_ref
 
         return action_ref
@@ -154,7 +150,7 @@ class BaseListener(ConsumerMixin):
             execution_id = str(body.id)
         elif isinstance(body, LiveActionAPI):
             execution_id = None
-        elif isinstance(body, (ActionExecutionStdoutAPI, ActionExecutionStderrAPI)):
+        elif isinstance(body, (ActionExecutionOutputAPI)):
             execution_id = body.execution_id
 
         return execution_id
@@ -181,20 +177,17 @@ class StreamListener(BaseListener):
                      accept=['pickle'],
                      callbacks=[self.processor(LiveActionAPI)]),
 
-            consumer(queues=[STREAM_EXECUTION_STDOUT_QUEUE],
+            consumer(queues=[STREAM_EXECUTION_OUTPUT_QUEUE],
                      accept=['pickle'],
-                     callbacks=[self.processor(ActionExecutionStdoutAPI)]),
-            consumer(queues=[STREAM_EXECUTION_STDERR_QUEUE],
-                     accept=['pickle'],
-                     callbacks=[self.processor(ActionExecutionStderrAPI)])
+                     callbacks=[self.processor(ActionExecutionOutputAPI)])
         ]
 
 
-class ExecutionStdoutListener(BaseListener):
+class ExecutionOutputListener(BaseListener):
     """
-    Listener used inside action execution /stdout endpoint.
+    Listener emitting action execution output event.
 
-    Only listens to action execution work and stdout queue.
+    Only listens to action execution work and output queue.
     """
 
     def get_consumers(self, consumer, channel):
@@ -203,28 +196,9 @@ class ExecutionStdoutListener(BaseListener):
                      accept=['pickle'],
                      callbacks=[self.processor(ActionExecutionAPI)]),
 
-            consumer(queues=[STREAM_EXECUTION_STDOUT_QUEUE],
+            consumer(queues=[STREAM_EXECUTION_OUTPUT_QUEUE],
                      accept=['pickle'],
-                     callbacks=[self.processor(ActionExecutionStdoutAPI)])
-        ]
-
-
-class ExecutionStderrListener(BaseListener):
-    """
-    Listener used inside action execution /stdout endpoint.
-
-    Only listens to action execution work and stdout queue.
-    """
-
-    def get_consumers(self, consumer, channel):
-        return [
-            consumer(queues=[STREAM_EXECUTION_UPDATE_WORK_QUEUE],
-                     accept=['pickle'],
-                     callbacks=[self.processor(ActionExecutionAPI)]),
-
-            consumer(queues=[STREAM_EXECUTION_STDERR_QUEUE],
-                     accept=['pickle'],
-                     callbacks=[self.processor(ActionExecutionStderrAPI)])
+                     callbacks=[self.processor(ActionExecutionOutputAPI)])
         ]
 
 
@@ -237,8 +211,7 @@ def listen(listener):
 
 def get_listener(name):
     global _stream_listener
-    global _execution_stdout_listener
-    global _execution_stderr_listener
+    global _execution_output_listener
 
     if name == 'stream':
         if not _stream_listener:
@@ -246,33 +219,23 @@ def get_listener(name):
                 _stream_listener = StreamListener(conn)
                 eventlet.spawn_n(listen, _stream_listener)
         return _stream_listener
-    elif name == 'execution_stdout':
-        if not _execution_stdout_listener:
+    elif name == 'execution_output':
+        if not _execution_output_listener:
             with Connection(transport_utils.get_messaging_urls()) as conn:
-                _execution_stdout_listener = ExecutionStdoutListener(conn)
-                eventlet.spawn_n(listen, _execution_stdout_listener)
-        return _execution_stdout_listener
-    elif name == 'execution_stderr':
-        if not _execution_stderr_listener:
-            with Connection(transport_utils.get_messaging_urls()) as conn:
-                _execution_stderr_listener = ExecutionStderrListener(conn)
-                eventlet.spawn_n(listen, _execution_stderr_listener)
-        return _execution_stderr_listener
-
+                _execution_output_listener = ExecutionOutputListener(conn)
+                eventlet.spawn_n(listen, _execution_output_listener)
+        return _execution_output_listener
     else:
         raise ValueError('Invalid listener name: %s' % (name))
 
 
 def get_listener_if_set(name):
     global _stream_listener
-    global _execution_stdout_listener
-    global _execution_stderr_listener
+    global _execution_output_listener
 
     if name == 'stream':
         return _stream_listener
-    elif name == 'execution_stdout':
-        return _execution_stdout_listener
-    elif name == 'execution_stderr':
-        return _execution_stderr_listener
+    elif name == 'execution_output':
+        return _execution_output_listener
     else:
         raise ValueError('Invalid listener name: %s' % (name))

@@ -94,7 +94,5 @@ STREAM_LIVEACTION_WORK_QUEUE = Queue(None, liveaction.LIVEACTION_XCHG,
 
 # TODO: Perhaps we should use pack.action name as routing key so we can do more efficient filtering
 # later, if needed
-STREAM_EXECUTION_STDOUT_QUEUE = execution.get_stdout_queue(name=None,
-                                                           routing_key=publishers.CREATE_RK)
-STREAM_EXECUTION_STDERR_QUEUE = execution.get_stderr_queue(name=None,
+STREAM_EXECUTION_OUTPUT_QUEUE = execution.get_output_queue(name=None,
                                                            routing_key=publishers.CREATE_RK)
