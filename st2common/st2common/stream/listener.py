@@ -202,25 +202,6 @@ class ExecutionOutputListener(BaseListener):
         ]
 
 
-class ExecutionStderrListener(BaseListener):
-    """
-    Listener used inside action execution /stdout endpoint.
-
-    Only listens to action execution work and stdout queue.
-    """
-
-    def get_consumers(self, consumer, channel):
-        return [
-            consumer(queues=[STREAM_EXECUTION_UPDATE_WORK_QUEUE],
-                     accept=['pickle'],
-                     callbacks=[self.processor(ActionExecutionAPI)]),
-
-            consumer(queues=[STREAM_EXECUTION_STDERR_QUEUE],
-                     accept=['pickle'],
-                     callbacks=[self.processor(ActionExecutionStderrAPI)])
-        ]
-
-
 def listen(listener):
     try:
         listener.run()
@@ -250,8 +231,7 @@ def get_listener(name):
 
 def get_listener_if_set(name):
     global _stream_listener
-    global _execution_stdout_listener
-    global _execution_stderr_listener
+    global _execution_output_listener
 
     if name == 'stream':
         return _stream_listener
