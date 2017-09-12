@@ -329,7 +329,7 @@ def store_execution_output_data(execution_db, action_db, data, output_type='outp
                                         action_ref=action_ref,
                                         runner_ref=runner_ref,
                                         timestamp=timestamp,
-                                        output=output_type,
+                                        output_type=output_type,
                                         data=data)
     output_db = ActionExecutionOutput.add_or_update(output_db, publish=True,
                                                     dispatch_trigger=False)

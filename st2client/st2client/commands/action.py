@@ -1358,17 +1358,16 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
     def __init__(self, resource, *args, **kwargs):
         super(ActionExecutionTailCommand, self).__init__(
             resource, kwargs.pop('name', 'tail'),
-            'A command to tail stdout and stderr of a particular execution.',
+            'A command to tail output of a particular execution.',
             *args, **kwargs)
 
         self.parser.add_argument('id', nargs='?',
                                  metavar='id',
                                  default='last',
                                  help='ID of action execution to tail.')
-        self.parser.add_argument('--stdout', dest='tail_stdout', action='store_true',
-                                 help='Tail stdout.')
-        self.parser.add_argument('--stderr', dest='tail_stderr', action='store_true',
-                                 help='Tail stderr.')
+        self.parser.add_argument('--type', dest='output_type', action='store',
+                                 help=('Type of output to tail for. If not provided, '
+                                      'defaults to all.'))
         self.parser.add_argument('-h', '--help',
                                  action='store_true', dest='help',
                                  help='Print usage for the given command.')
@@ -1379,8 +1378,7 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
     @add_auth_token_to_kwargs_from_cli
     def run_and_print(self, args, **kwargs):
         execution_id = args.id
-        tail_stdout = getattr(args, 'tail_stdout', None)
-        tail_stderr = getattr(args, 'tail_stderr', None)
+        output_type = getattr(args, 'output_type', None)
 
         # Special case for id "last"
         if execution_id == 'last':
@@ -1398,26 +1396,25 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
             print('Execution %s has completed.' % (execution_id))
             return
 
-        # If none is provided, we default to tailing both
-        if not tail_stdout and not tail_stderr:
-            tail_stdout, tail_stderr = True, True
-
         stream_mgr = self.app.client.managers['Stream']
-        events = ['st2.execution__update']
-
-        if tail_stdout:
-            events.append('st2.execution.stdout__create')
-
-        if tail_stderr:
-            events.append('st2.execution.stderr__create')
+        events = ['st2.execution__update', 'st2.execution.output__create']
 
         for event in stream_mgr.listen(events, **kwargs):
             status = event.get('status', None)
             is_execution_event = status is not None
 
             if is_execution_event:
-                # Execution has completed
                 if status in LIVEACTION_COMPLETED_STATES:
+                    # Execution has completed
                     break
-            else:
-                sys.stdout.write('[%s][%s] %s' % (event['timestamp'], event['type'], event['line']))
+                else:
+                    # We don't care about other execution events
+                    continue
+
+            # Filter on output_type if provided
+            event_output_type = event.get('output_type', None)
+            if output_type and event_output_type != output_type:
+                continue
+
+            sys.stdout.write('[%s][%s] %s' % (event['timestamp'], event['output_type'],
+                                              event['data']))

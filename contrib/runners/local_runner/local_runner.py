@@ -151,9 +151,9 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
                                                         output_type='stderr')
 
         read_and_store_stdout = make_read_and_store_stream_func(execution_db=self.execution,
-            action_db=self.action, store_line_func=store_execution_stdout_line)
+            action_db=self.action, store_data_func=store_execution_stdout_line)
         read_and_store_stderr = make_read_and_store_stream_func(execution_db=self.execution,
-            action_db=self.action, store_line_func=store_execution_stderr_line)
+            action_db=self.action, store_data_func=store_execution_stderr_line)
 
         # Make sure os.setsid is called on each spawned process so that all processes
         # are in the same group.

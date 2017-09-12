@@ -21,8 +21,7 @@ from st2common.constants.action import LIVEACTION_STATUSES
 from st2common.util import isotime
 from st2common.models.api.base import BaseAPI
 from st2common.models.db.execution import ActionExecutionDB
-from st2common.models.db.execution import ActionExecutionStdoutOutputDB
-from st2common.models.db.execution import ActionExecutionStderrOutputDB
+from st2common.models.db.execution import ActionExecutionOutputDB
 from st2common.models.api.trigger import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.api.rule import RuleAPI
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI, LiveActionAPI
@@ -30,8 +29,7 @@ from st2common import log as logging
 
 __all__ = [
     'ActionExecutionAPI',
-    'ActionExecutionStdoutAPI',
-    'ActionExecutionStderrAPI'
+    'ActionExecutionOutputAPI'
 ]
 
 
@@ -191,30 +189,32 @@ class ActionExecutionAPI(BaseAPI):
         return model
 
 
-class ActionExecutionStdoutAPI(BaseAPI):
-    model = ActionExecutionStdoutOutputDB
+class ActionExecutionOutputAPI(BaseAPI):
+    model = ActionExecutionOutputDB
     schema = {
         'type': 'object',
         'properties': {
             'id': {
                 'type': 'string'
             },
-            'exection_id': {
+            'execution_id': {
+                'type': 'string'
+            },
+            'action_ref': {
+                'type': 'string'
+            },
+            'runner_ref': {
                 'type': 'string'
             },
             'timestamp': {
                 'type': 'string',
                 'pattern': isotime.ISO8601_UTC_REGEX
             },
-            'action_ref': {
+            'output_type': {
                 'type': 'string'
             },
-            'line': {
+            'data': {
                 'type': 'string'
-            },
-            'type': {
-                'type': 'string',
-                'default': 'stdout'
             }
         },
         'additionalProperties': False
@@ -224,46 +224,6 @@ class ActionExecutionStdoutAPI(BaseAPI):
     def from_model(cls, model, mask_secrets=True):
         doc = cls._from_model(model, mask_secrets=mask_secrets)
         doc['timestamp'] = isotime.format(model.timestamp, offset=False)
-        doc['type'] = 'stdout'
-
-        attrs = {attr: value for attr, value in six.iteritems(doc) if value is not None}
-        return cls(**attrs)
-
-
-class ActionExecutionStderrAPI(BaseAPI):
-    model = ActionExecutionStderrOutputDB
-    schema = {
-        'type': 'object',
-        'properties': {
-            'id': {
-                'type': 'string'
-            },
-            'exection_id': {
-                'type': 'string'
-            },
-            'timestamp': {
-                'type': 'string',
-                'pattern': isotime.ISO8601_UTC_REGEX
-            },
-            'action_ref': {
-                'type': 'string'
-            },
-            'line': {
-                'type': 'string'
-            },
-            'type': {
-                'type': 'string',
-                'default': 'stderr'
-            }
-        },
-        'additionalProperties': False
-    }
-
-    @classmethod
-    def from_model(cls, model, mask_secrets=True):
-        doc = cls._from_model(model, mask_secrets=mask_secrets)
-        doc['timestamp'] = isotime.format(model.timestamp, offset=False)
-        doc['type'] = 'stderr'
 
         attrs = {attr: value for attr, value in six.iteritems(doc) if value is not None}
         return cls(**attrs)
