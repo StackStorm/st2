@@ -76,8 +76,8 @@ class ParamikoSSHClient(object):
     # Maximum number of bytes to read at once from a socket
     CHUNK_SIZE = 1024
 
-    # How long to sleep while waiting for command to finish
-    SLEEP_DELAY = 1.5
+    # How long to sleep while waiting for command to finish to prevent busy waiting
+    SLEEP_DELAY = 0.2
 
     # Connect socket timeout
     CONNECT_TIMEOUT = 60
