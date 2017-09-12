@@ -39,6 +39,8 @@ Fixed
   Reported by theuiz.
 * Fix mistral callback failure when result contains unicode. (bug fix)
 * Fix cancellation of delayed action execution for tasks in workflow. (bug fix)
+* Fix timeout of mistral shutdown in systemd service. The fix is done upstream.
+  https://review.openstack.org/#/c/499853/ (bug fix)
 
 Changed
 ~~~~~~~
