@@ -204,6 +204,8 @@ class TestStreamController(FunctionalTest):
 
         received_messages = dispatch_and_handle_mock_data(resp)
         self.assertEqual(len(received_messages), 6)
+        self.assertTrue('st2.execution__create' in received_messages[0])
+        self.assertTrue('st2.liveaction__delete' in received_messages[5])
 
         # 1. ?events= filter
         # No filter provided - all messages should be received
@@ -212,6 +214,8 @@ class TestStreamController(FunctionalTest):
 
         received_messages = dispatch_and_handle_mock_data(resp)
         self.assertEqual(len(received_messages), 8)
+        self.assertTrue('st2.execution__create' in received_messages[0])
+        self.assertTrue('st2.execution.output__create' in received_messages[7])
 
         # Filter provided, only two messages should be received
         events = ['st2.execution__create', 'st2.liveaction__delete']
@@ -220,6 +224,18 @@ class TestStreamController(FunctionalTest):
 
         received_messages = dispatch_and_handle_mock_data(resp)
         self.assertEqual(len(received_messages), 2)
+        self.assertTrue('st2.execution__create' in received_messages[0])
+        self.assertTrue('st2.liveaction__delete' in received_messages[1])
+
+        # Filter provided
+        events = ['st2.execution.output__create']
+        events = ','.join(events)
+        resp = stream.StreamController().get_all(events=events)
+
+        received_messages = dispatch_and_handle_mock_data(resp)
+        self.assertEqual(len(received_messages), 2)
+        self.assertTrue('st2.execution.output__create' in received_messages[0])
+        self.assertTrue('st2.execution.output__create' in received_messages[1])
 
         # Filter provided, invalid , no message should be received
         events = ['invalid1', 'invalid2']
