@@ -22,11 +22,9 @@ from eventlet.green import subprocess
 from st2common.constants import action as action_constants
 from st2common.util import date as date_utils
 from st2common.models.db.execution import ActionExecutionDB
-from st2common.models.db.execution import ActionExecutionStdoutOutputDB
-from st2common.models.db.execution import ActionExecutionStderrOutputDB
+from st2common.models.db.execution import ActionExecutionOutputDB
 from st2common.persistence.execution import ActionExecution
-from st2common.persistence.execution import ActionExecutionStdoutOutput
-from st2common.persistence.execution import ActionExecutionStderrOutput
+from st2common.persistence.execution import ActionExecutionOutput
 from st2tests.base import IntegrationTestCase
 from st2tests.base import CleanDbTestCase
 
@@ -69,17 +67,21 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
                                                     liveaction={'ref': 'foo'})
             ActionExecution.add_or_update(action_execution_db)
 
-            stdout_db = ActionExecutionStdoutOutputDB(execution_id=str(action_execution_db.id),
-                                                      action_ref='core.local',
-                                                      timestamp=timestamp,
-                                                      line='stdout')
-            ActionExecutionStdoutOutput.add_or_update(stdout_db)
+            stdout_db = ActionExecutionOutputDB(execution_id=str(action_execution_db.id),
+                                                action_ref='core.local',
+                                                runner_ref='dummy',
+                                                timestamp=timestamp,
+                                                output_type='stdout',
+                                                data='stdout')
+            ActionExecutionOutput.add_or_update(stdout_db)
 
-            stderr_db = ActionExecutionStderrOutputDB(execution_id=str(action_execution_db.id),
-                                                      action_ref='core.local',
-                                                      timestamp=timestamp,
-                                                      line='stderr')
-            ActionExecutionStderrOutput.add_or_update(stderr_db)
+            stderr_db = ActionExecutionOutputDB(execution_id=str(action_execution_db.id),
+                                                action_ref='core.local',
+                                                runner_ref='dummy',
+                                                timestamp=timestamp,
+                                                output_type='stderr',
+                                                data='stderr')
+            ActionExecutionOutput.add_or_update(stderr_db)
 
         # Insert come mock ActionExecutionDB objects with start_timestamp > TTL defined in the
         # config
@@ -95,17 +97,21 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
                                                     liveaction={'ref': 'foo'})
             ActionExecution.add_or_update(action_execution_db)
 
-            stdout_db = ActionExecutionStdoutOutputDB(execution_id=str(action_execution_db.id),
-                                                      action_ref='core.local',
-                                                      timestamp=timestamp,
-                                                      line='stdout')
-            ActionExecutionStdoutOutput.add_or_update(stdout_db)
+            stdout_db = ActionExecutionOutputDB(execution_id=str(action_execution_db.id),
+                                                action_ref='core.local',
+                                                runner_ref='dummy',
+                                                timestamp=timestamp,
+                                                output_type='stdout',
+                                                data='stdout')
+            ActionExecutionOutput.add_or_update(stdout_db)
 
-            stderr_db = ActionExecutionStderrOutputDB(execution_id=str(action_execution_db.id),
-                                                      action_ref='core.local',
-                                                      timestamp=timestamp,
-                                                      line='stderr')
-            ActionExecutionStderrOutput.add_or_update(stderr_db)
+            stderr_db = ActionExecutionOutputDB(execution_id=str(action_execution_db.id),
+                                                action_ref='core.local',
+                                                runner_ref='dummy',
+                                                timestamp=timestamp,
+                                                output_type='stderr',
+                                                data='stderr')
+            ActionExecutionOutput.add_or_update(stderr_db)
 
         # Insert some mock output objects where start_timestamp > action_executions_output_ttl
         new_output_count = 5
@@ -120,27 +126,31 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
                                                     liveaction={'ref': 'foo'})
             ActionExecution.add_or_update(action_execution_db)
 
-            stdout_db = ActionExecutionStdoutOutputDB(execution_id=str(action_execution_db.id),
-                                                      action_ref='core.local',
-                                                      timestamp=timestamp,
-                                                      line='stdout')
-            ActionExecutionStdoutOutput.add_or_update(stdout_db)
+            stdout_db = ActionExecutionOutputDB(execution_id=str(action_execution_db.id),
+                                                action_ref='core.local',
+                                                runner_ref='dummy',
+                                                timestamp=timestamp,
+                                                output_type='stdout',
+                                                data='stdout')
+            ActionExecutionOutput.add_or_update(stdout_db)
 
-            stderr_db = ActionExecutionStderrOutputDB(execution_id=str(action_execution_db.id),
-                                                      action_ref='core.local',
-                                                      timestamp=timestamp,
-                                                      line='stderr')
-            ActionExecutionStderrOutput.add_or_update(stderr_db)
+            stderr_db = ActionExecutionOutputDB(execution_id=str(action_execution_db.id),
+                                                action_ref='core.local',
+                                                runner_ref='dummy',
+                                                timestamp=timestamp,
+                                                output_type='stderr',
+                                                data='stderr')
+            ActionExecutionOutput.add_or_update(stderr_db)
 
         execs = ActionExecution.get_all()
         self.assertEqual(len(execs),
                          (old_executions_count + new_executions_count + new_output_count))
 
-        stdout_dbs = ActionExecutionStdoutOutput.get_all()
+        stdout_dbs = ActionExecutionOutput.query(output_type='stdout')
         self.assertEqual(len(stdout_dbs),
                          (old_executions_count + new_executions_count + new_output_count))
 
-        stderr_dbs = ActionExecutionStderrOutput.get_all()
+        stderr_dbs = ActionExecutionOutput.query(output_type='stderr')
         self.assertEqual(len(stderr_dbs),
                          (old_executions_count + new_executions_count + new_output_count))
 
@@ -158,10 +168,10 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
 
         # Collection for output objects older than 10 days is also enabled, so those objects
         # should be deleted as well
-        stdout_dbs = ActionExecutionStdoutOutput.get_all()
+        stdout_dbs = ActionExecutionOutput.query(output_type='stdout')
         self.assertEqual(len(stdout_dbs), (new_executions_count))
 
-        stderr_dbs = ActionExecutionStderrOutput.get_all()
+        stderr_dbs = ActionExecutionOutput.query(output_type='stderr')
         self.assertEqual(len(stderr_dbs), (new_executions_count))
 
     def _start_garbage_collector(self):

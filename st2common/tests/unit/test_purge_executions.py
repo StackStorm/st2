@@ -22,10 +22,8 @@ from st2common import log as logging
 from st2common.garbage_collection.executions import purge_executions
 from st2common.constants import action as action_constants
 from st2common.persistence.execution import ActionExecution
-from st2common.persistence.execution import ActionExecutionStdoutOutput
-from st2common.persistence.execution import ActionExecutionStderrOutput
-from st2common.models.db.execution import ActionExecutionStdoutOutputDB
-from st2common.models.db.execution import ActionExecutionStderrOutputDB
+from st2common.persistence.execution import ActionExecutionOutput
+from st2common.models.db.execution import ActionExecutionOutputDB
 from st2common.persistence.liveaction import LiveAction
 from st2common.util import date as date_utils
 from st2tests.base import CleanDbTestCase
@@ -70,9 +68,9 @@ class TestPurgeExecutions(CleanDbTestCase):
 
         execs = ActionExecution.get_all()
         self.assertEqual(len(execs), 1)
-        stdout_dbs = ActionExecutionStdoutOutput.get_all()
+        stdout_dbs = ActionExecutionOutput.query(output_type='stdout')
         self.assertEqual(len(stdout_dbs), 3)
-        stderr_dbs = ActionExecutionStderrOutput.get_all()
+        stderr_dbs = ActionExecutionOutput.query(output_type='stderr')
         self.assertEqual(len(stderr_dbs), 3)
 
         expected_msg = 'Specify a valid timestamp'
@@ -80,9 +78,9 @@ class TestPurgeExecutions(CleanDbTestCase):
                                 logger=LOG, timestamp=None)
         execs = ActionExecution.get_all()
         self.assertEqual(len(execs), 1)
-        stdout_dbs = ActionExecutionStdoutOutput.get_all()
+        stdout_dbs = ActionExecutionOutput.query(output_type='stdout')
         self.assertEqual(len(stdout_dbs), 3)
-        stderr_dbs = ActionExecutionStderrOutput.get_all()
+        stderr_dbs = ActionExecutionOutput.query(output_type='stderr')
         self.assertEqual(len(stderr_dbs), 3)
 
     def test_purge_executions_with_action_ref(self):
@@ -99,9 +97,9 @@ class TestPurgeExecutions(CleanDbTestCase):
 
         execs = ActionExecution.get_all()
         self.assertEqual(len(execs), 1)
-        stdout_dbs = ActionExecutionStdoutOutput.get_all()
+        stdout_dbs = ActionExecutionOutput.query(output_type='stdout')
         self.assertEqual(len(stdout_dbs), 3)
-        stderr_dbs = ActionExecutionStderrOutput.get_all()
+        stderr_dbs = ActionExecutionOutput.query(output_type='stderr')
         self.assertEqual(len(stderr_dbs), 3)
 
         # Invalid action reference, nothing should be deleted
@@ -109,18 +107,18 @@ class TestPurgeExecutions(CleanDbTestCase):
 
         execs = ActionExecution.get_all()
         self.assertEqual(len(execs), 1)
-        stdout_dbs = ActionExecutionStdoutOutput.get_all()
+        stdout_dbs = ActionExecutionOutput.query(output_type='stdout')
         self.assertEqual(len(stdout_dbs), 3)
-        stderr_dbs = ActionExecutionStderrOutput.get_all()
+        stderr_dbs = ActionExecutionOutput.query(output_type='stderr')
         self.assertEqual(len(stderr_dbs), 3)
 
         purge_executions(logger=LOG, action_ref='core.local', timestamp=now - timedelta(days=10))
 
         execs = ActionExecution.get_all()
         self.assertEqual(len(execs), 0)
-        stdout_dbs = ActionExecutionStdoutOutput.get_all()
+        stdout_dbs = ActionExecutionOutput.query(output_type='stdout')
         self.assertEqual(len(stdout_dbs), 0)
-        stderr_dbs = ActionExecutionStderrOutput.get_all()
+        stderr_dbs = ActionExecutionOutput.query(output_type='stderr')
         self.assertEqual(len(stderr_dbs), 0)
 
     def test_purge_executions_with_timestamp(self):
@@ -150,17 +148,17 @@ class TestPurgeExecutions(CleanDbTestCase):
 
         execs = ActionExecution.get_all()
         self.assertEqual(len(execs), 2)
-        stdout_dbs = ActionExecutionStdoutOutput.get_all()
+        stdout_dbs = ActionExecutionOutput.query(output_type='stdout')
         self.assertEqual(len(stdout_dbs), 6)
-        stderr_dbs = ActionExecutionStderrOutput.get_all()
+        stderr_dbs = ActionExecutionOutput.query(output_type='stderr')
         self.assertEqual(len(stderr_dbs), 6)
 
         purge_executions(logger=LOG, timestamp=now - timedelta(days=20))
         execs = ActionExecution.get_all()
         self.assertEqual(len(execs), 1)
-        stdout_dbs = ActionExecutionStdoutOutput.get_all()
+        stdout_dbs = ActionExecutionOutput.query(output_type='stdout')
         self.assertEqual(len(stdout_dbs), 3)
-        stderr_dbs = ActionExecutionStderrOutput.get_all()
+        stderr_dbs = ActionExecutionOutput.query(output_type='stderr')
         self.assertEqual(len(stderr_dbs), 3)
 
     def test_liveaction_gets_deleted(self):
@@ -246,24 +244,24 @@ class TestPurgeExecutions(CleanDbTestCase):
         self._insert_mock_stdout_and_stderr_objects_for_execution(exec_model['id'], count=1)
 
         self.assertEqual(len(ActionExecution.get_all()), 5)
-        stdout_dbs = ActionExecutionStdoutOutput.get_all()
+        stdout_dbs = ActionExecutionOutput.query(output_type='stdout')
         self.assertEqual(len(stdout_dbs), 5)
-        stderr_dbs = ActionExecutionStderrOutput.get_all()
+        stderr_dbs = ActionExecutionOutput.query(output_type='stderr')
         self.assertEqual(len(stderr_dbs), 5)
 
         # Incompleted executions shouldnt be purged
         purge_executions(logger=LOG, timestamp=now - timedelta(days=10), purge_incomplete=False)
         self.assertEqual(len(ActionExecution.get_all()), 5)
-        stdout_dbs = ActionExecutionStdoutOutput.get_all()
+        stdout_dbs = ActionExecutionOutput.query(output_type='stdout')
         self.assertEqual(len(stdout_dbs), 5)
-        stderr_dbs = ActionExecutionStderrOutput.get_all()
+        stderr_dbs = ActionExecutionOutput.query(output_type='stderr')
         self.assertEqual(len(stderr_dbs), 5)
 
         purge_executions(logger=LOG, timestamp=now - timedelta(days=10), purge_incomplete=True)
         self.assertEqual(len(ActionExecution.get_all()), 0)
-        stdout_dbs = ActionExecutionStdoutOutput.get_all()
+        stdout_dbs = ActionExecutionOutput.query(output_type='stdout')
         self.assertEqual(len(stdout_dbs), 0)
-        stderr_dbs = ActionExecutionStderrOutput.get_all()
+        stderr_dbs = ActionExecutionOutput.query(output_type='stderr')
         self.assertEqual(len(stderr_dbs), 0)
 
     def _insert_mock_stdout_and_stderr_objects_for_execution(self, execution_id, count=5):
@@ -271,14 +269,18 @@ class TestPurgeExecutions(CleanDbTestCase):
 
         stdout_dbs, stderr_dbs = [], []
         for i in range(0, count):
-            stdout_db = ActionExecutionStdoutOutputDB(execution_id=execution_id,
-                                                      action_ref='dummy.pack',
-                                                      line='stdout %s' % (i))
-            ActionExecutionStdoutOutput.add_or_update(stdout_db)
+            stdout_db = ActionExecutionOutputDB(execution_id=execution_id,
+                                                action_ref='dummy.pack',
+                                                runner_ref='dummy',
+                                                output_type='stdout',
+                                                data='stdout %s' % (i))
+            ActionExecutionOutput.add_or_update(stdout_db)
 
-            stderr_db = ActionExecutionStderrOutputDB(execution_id=execution_id,
-                                                      action_ref='dummy.pack',
-                                                      line='stderr%s' % (i))
-            ActionExecutionStderrOutput.add_or_update(stderr_db)
+            stderr_db = ActionExecutionOutputDB(execution_id=execution_id,
+                                                action_ref='dummy.pack',
+                                                runner_ref='dummy',
+                                                output_type='stderr',
+                                                data='stderr%s' % (i))
+            ActionExecutionOutput.add_or_update(stderr_db)
 
         return stdout_dbs, stderr_dbs
