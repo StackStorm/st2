@@ -1,22 +1,105 @@
 Changelog
 =========
 
-in development
+In development
 --------------
 
-Added
+Fixed
 ~~~~~
 
-* Add pack config into action context. This is made available under the ``config_context`` key.
-  #3183
+* Fix a bug where sensor watch queues were not deleted after sensor container process was shut
+  down. This resulted in spurious queues left behind. This should not have caused performance
+  impact but just messes with rabbitmqadmin output and maybe tedious for operators. (bug fix) #3628
+
+  Reported by Igor.
+
+2.4.1 - September 12, 2017
+--------------------------
+
+Fixed
+~~~~~
+
+* Fix a bug with ``/v1/packs/install`` and ``/v1/packs/uninstall`` API endpoints incorrectly using
+  system user for scheduled pack install and pack uninstall executions instead of the user which
+  performed the API operation.(bug fix) #3693 #3696
+
+  Reported by theuiz.
+* Fix mistral callback failure when result contains unicode. (bug fix)
+* Fix cancellation of delayed action execution for tasks in workflow. (bug fix)
+* Fix timeout of mistral shutdown in systemd service. The fix is done upstream.
+  https://review.openstack.org/#/c/499853/ (bug fix)
 
 Changed
 ~~~~~~~
 
-* Install scripts and documentation has been updated to install MongoDB 3.4 by default (previously
+* Update ``st2`` CLI command to print a more user-friendly usage / help string if no arguments are
+  passed to the CLI. (improvement) #3710
+* Allow user to specify multiple values for a parameter of type array of dicts when using
+  ``st2 run`` CLI command. #3670
+
+  Contributed by Hiroyasu OHYAMA.
+
+2.4.0 - August 23, 2017
+-----------------------
+
+Added
+~~~~~
+
+* Add sample passive sensor at ``contrib/examples/sensors/echo_flask_app``. (improvement) #3667
+* Add pack config into action context. This is made available under the ``config_context`` key.
+  #3183
+* Add limit/``-n`` flag and pagination note(stderr) in the CLI for ``st2 key list``.
+  Default limit is 50. #3641
+* Implement pause and resume for Mistral workflow and Action Chain. Pause and resume will cascade
+  down to subworkflows and/or subchains. Pause from a subworkflow or subchain will cascade up to
+  the parent workflow. (new feature)
+* Add pack index endpoint. It will make a request for every index defined in st2.conf and return
+  the combined list of available packs.
+* Added a new field ``timestamp_f`` to the GELF logging formatter that represents
+  the time of the logging even in fractional time (resolution is dependent on your
+  system). This allows adjacent logging events to be distinguished more accurately
+  by the time they occurred.
+  Contributed by Nick Maludy (Encore Technologies) #3362
+* Require new ``STREAM_VIEW`` RBAC permission type to be able to view ``/v1/stream`` stream API
+  endpoint. (improvement) #3676
+* Add new ``?events``, ``?action_refs`` and ``?execution_ids`` query params to ``/v1/stream/``
+  API endpoint. These query parameters allow users to filter out which events to receive based
+  on the event type, action ref and execution id. By default, when no filters are provided, all
+  events are returned. (new feature) #3677
+* Show count of pack content (actions, sensors, triggers, rules and aliases) to be registered
+  before the ``st2 pack install`` so that the delay in install is not mistaken as no response
+  or hanging command. (improvement) #3586 #3675
+* Allow users to specify value for "array of objects" parameter type using a simple notation
+  when using the ``st2 run`` CLI command. (improvement) #3646 #3670
+
+  Contributed by Hiroyasu OHYAMA.
+* Copy nearly all existing Jinja filters and make them available in both Jinja and YAQL within
+  Mistral workflows (https://github.com/StackStorm/st2mistral/pull/30). Modify st2kv default
+  behavior (BREAKING CHANGE) to not decrypt ciphertext in datastore by default (now explicitly
+  enabled via optional parameter).
+
+  Contributed by mierdin. #3565
+* Add ``regex_substring`` Jinja filter for searching for a pattern in a provided string and
+  returning the result. (improvement)
+
+  Contributed by mierdin. #3482
+
+Changed
+~~~~~~~
+
+* Rename ST2 action runner cancel queue from ``st2.actionrunner.canel``
+  to ``st2.actionrunner.cancel``. (improvement) #3247
+* Install scripts and documentation have been updated to install MongoDB 3.4 by default (previously
   3.2 was installed by default). If you want to upgrade an existing installation, please follow
-  official instructions at https://docs.mongodb.com/v3.4/release-notes/3.4-upgrade-standalone/.
+  the official instructions at https://docs.mongodb.com/v3.4/release-notes/3.4-upgrade-standalone/.
   (improvement)
+
+Removed
+~~~~~~~
+
+* Support for pack ``config.yaml`` has been removed. Pack configuration should use the new
+  style, at ``/opt/stackstorm/configs/<pack>.yaml``. Packs containing ``config.yaml`` will generate
+  a fatal ERROR on pack registration.
 
 Fixed
 ~~~~~
@@ -31,12 +114,12 @@ Fixed
 
   This also fixes an issue with Redis kombu backend not working. (bug fix) #3635 #3639 #3648
 * Fix logrotate configuration to delete stale compressed st2actionrunner logs #3647
-
-* Fix a bug where sensor watch queues were not deleted after sensor container process was shut
-  down. This resulted in spurious queues left behind. This should not have caused performance
-  impact but just messes with rabbitmqadmin output and maybe tedious for operators. (bug fix) #3628
-
-  Reported by Igor.
+* Fix trace list API endpoint sorting by `start_timestamp`, using ``?sort_desc=True|False`` query
+  parameters and by passing ``--sort=asc|desc`` parameter to the ``st2 trace list`` CLI command.
+  Descending order by default.(bug fix) #3237 #3665
+* Fix pack index health endpoint. It now points to the right controller. #3672
+* Fix 'pack register content' failures appearing on some slower systems by lifting action timeout.
+  #3685
 
 2.3.2 - July 28, 2017
 ---------------------
@@ -44,28 +127,22 @@ Fixed
 Added
 ~~~~~
 
-* Add ``regex_substring`` Jinja filter for searching for a pattern in a provided string and
-  returning the result. (improvement)
-
-  Contributed by mierdin. #3482
 * Add test coverage and test timing capabilities to ``st2-run-pack-tests``.
   The ``-c`` option enables test coverage and the ``-t`` option enables test timings.
   These capabilities have also been enabled in the ci pipeline for packs in the exchange.
 
   Contributed by Nick Maludy. #3508
-* Update ``st2`` CLI so it also displays "there are more results" note when ``-n`` flag is
-  used and there are more items available. (improvement) #3552
 * Add ability to explicitly set ``stream_url`` in st2client. (improvement) #3432
 * Add support for handling arrays of dictionaries to ``st2 config`` CLI command. (improvement)
   #3594
 
   Contributed by Hiroyasu OHYAMA.
-* Copy nearly all existing Jinja filters and make them available in both Jinja and YAQL within
-  Mistral workflows (https://github.com/StackStorm/st2mistral/pull/30). Modify st2kv default
-  behavior (BREAKING CHANGE) to not decrypt ciphertext in datastore by default (now explicitly
-  enabled via optional parameter).
 
-  Contributed by mierdin. #3565
+Changed
+~~~~~~~
+
+* Update ``st2`` CLI so it also displays "there are more results" note when ``-n`` flag is
+  used and there are more items available. (improvement) #3552
 
 Fixed
 ~~~~~
@@ -90,12 +167,12 @@ Fixed
 * Add a check to make sure action exists in the POST of the action execution API. (bug fix)
 * Fix api key generation, to use system user, when auth is disabled. (bug fix) #3578 #3593
 * Fix invocation of Mistral workflow from Action Chain with jinja in params. (bug fix) #3440
-* Fix st2client API bug, a backward incompatible change in `query()` method, introduced in note
-  implementation (#3514) in 2.3.1. The `query()` method is now backward compatible (pre 2.3) and
-  `query_with_count()` method is used for results pagination and note. #3616
-* Fix logrotate script so that it no longer prints the `st2ctl` PID status to stdout
+* Fix st2client API bug, a backward incompatible change in ``query()`` method, introduced in note
+  implementation (#3514) in 2.3.1. The ``query()`` method is now backward compatible (pre 2.3) and
+  ``query_with_count()`` method is used for results pagination and note. #3616
+* Fix logrotate script so that it no longer prints the ``st2ctl`` PID status to stdout
   for each file that it rotates. Also, it will no longer print an error if
-  /var/log/st2/st2web.log is missing.
+  ``/var/log/st2/st2web.log`` is missing.
 
   Contributed by Nick Maludy. #3633
 
@@ -147,6 +224,13 @@ Changed
   sequential or not unique, action registration will now fail. (bug-fix)
   (improvement) #3317 #3474
 
+Deprecated
+~~~~~~~~~~
+
+* Deprecate ``results_tracker`` config group and move configuration variables to ``resultstracker``
+  group instead. If you have ``results_tracker`` config group in the config, it is recommended
+  to switch to ``resultstracker`` instead. (bug-fix) #3500
+
 Fixed
 ~~~~~
 
@@ -158,9 +242,6 @@ Fixed
   resolved. (bug-fix) #3487 #3496
 
   Reported by Chris Katzmann, Nick Maludy.
-* Deprecate ``results_tracker`` config group and move configuration variables to ``resultstracker``
-  group instead. If you have ``results_tracker`` config group in the config, it is recommended
-  to switch to ``resultstracker`` instead. (bug-fix) #3500
 * Update config loader so it correctly handles config schema default values which are falsey
   (``False``, ``None``, ``0``, etc.) (bug-fix) #3504 #3531
 

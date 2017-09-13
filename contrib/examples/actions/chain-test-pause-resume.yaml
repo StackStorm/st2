@@ -1,0 +1,13 @@
+---
+name: chain-test-pause-resume
+description: Simple action chain to test pause and resume.
+runner_type: action-chain
+entry_point: chains/chain_test_pause_resume.yaml
+enabled: true
+parameters:
+    tempfile:
+        type: string
+        required: true
+    message:
+        type: string
+        required: true

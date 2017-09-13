@@ -181,12 +181,12 @@ class MistralRunnerTest(DbTestCase):
             {'execution_id': str(uuid.uuid4())}
         )
 
-        with mock.patch.object(patched_mistral_runner, 'resume',
+        with mock.patch.object(patched_mistral_runner, 'resume_workflow',
                                mock.MagicMock(return_value=mock_resume_result)):
 
             liveaction1 = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
             liveaction1, execution1 = action_service.request(liveaction1)
-            self.assertFalse(patched_mistral_runner.resume.called)
+            self.assertFalse(patched_mistral_runner.resume_workflow.called)
 
             # Rerun the execution.
             context = {
@@ -207,7 +207,7 @@ class MistralRunnerTest(DbTestCase):
                 }
             }
 
-            patched_mistral_runner.resume.assert_called_with(
+            patched_mistral_runner.resume_workflow.assert_called_with(
                 ex_ref=execution1,
                 task_specs=task_specs
             )
@@ -233,12 +233,12 @@ class MistralRunnerTest(DbTestCase):
             {'execution_id': str(uuid.uuid4())}
         )
 
-        with mock.patch.object(patched_mistral_runner, 'resume',
+        with mock.patch.object(patched_mistral_runner, 'resume_workflow',
                                mock.MagicMock(return_value=mock_resume_result)):
 
             liveaction1 = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
             liveaction1, execution1 = action_service.request(liveaction1)
-            self.assertFalse(patched_mistral_runner.resume.called)
+            self.assertFalse(patched_mistral_runner.resume_workflow.called)
 
             # Rerun the execution.
             context = {
@@ -263,7 +263,7 @@ class MistralRunnerTest(DbTestCase):
                 }
             }
 
-            patched_mistral_runner.resume.assert_called_with(
+            patched_mistral_runner.resume_workflow.assert_called_with(
                 ex_ref=execution1,
                 task_specs=task_specs
             )
