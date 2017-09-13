@@ -297,6 +297,11 @@ class ActionExecutionOutputController(ActionExecutionsControllerMixin, ResourceC
     }
     exclude_fields = []
 
+    CLOSE_STREAM_LIVEACTION_STATES = action_constants.LIVEACTION_COMPLETED_STATES + [
+        action_constants.LIVEACTION_STATUS_PAUSING,
+        action_constants.LIVEACTION_STATUS_RESUMING
+    ]
+
     def get_one(self, id, output_type=None, requester_user=None):
         # Special case for id == "last"
         if id == 'last':
@@ -325,10 +330,8 @@ class ActionExecutionOutputController(ActionExecutionsControllerMixin, ResourceC
             def noop_gen():
                 yield ''
 
-            # Bail out if execution has already completed
-            # TODO: Should we also bail out in PAUSE? Perhaps not a bad idea to avoid potentially
-            # very long opened connection
-            if execution_db.status in action_constants.LIVEACTION_COMPLETED_STATES:
+            # Bail out if execution has already completed / been paused
+            if execution_db.status in self.CLOSE_STREAM_LIVEACTION_STATES:
                 return noop_gen()
 
             # Wait for and return any new line which may come in
@@ -351,7 +354,7 @@ class ActionExecutionOutputController(ActionExecutionsControllerMixin, ResourceC
 
                             yield six.binary_type(model_api.data.encode('utf-8'))
                         elif isinstance(model_api, ActionExecutionAPI):
-                            if model_api.status in action_constants.LIVEACTION_COMPLETED_STATES:
+                            if model_api.status in self.CLOSE_STREAM_LIVEACTION_STATES:
                                 yield six.binary_type('')
                                 break
                         else:
