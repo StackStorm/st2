@@ -1408,6 +1408,7 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
             if is_execution_event:
                 if status in LIVEACTION_COMPLETED_STATES:
                     # Execution has completed
+                    print('Execution %s has completed.' % (execution_id))
                     break
                 else:
                     # We don't care about other execution events
