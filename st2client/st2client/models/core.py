@@ -390,6 +390,19 @@ class LiveActionResourceManager(ResourceManager):
         return instance
 
     @add_auth_token_to_kwargs_from_env
+    def get_output(self, execution_id, output_type=None, **kwargs):
+        url = '/%s/%s/output' % (self.resource.get_url_path_name(), execution_id)
+
+        if output_type:
+            url += '?' + urllib.parse.urlencode({'output_type': output_type})
+
+        response = self.client.get(url, **kwargs)
+        if response.status_code != 200:
+            self.handle_error(response)
+
+        return response.text
+
+    @add_auth_token_to_kwargs_from_env
     def pause(self, execution_id, **kwargs):
         url = '/%s/%s' % (self.resource.get_url_path_name(), execution_id)
         data = {'status': 'pausing'}

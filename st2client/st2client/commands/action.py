@@ -1393,6 +1393,8 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
 
         # Execution has already finished
         if execution.status in LIVEACTION_COMPLETED_STATES:
+            output = self.manager.get_output(execution_id=execution_id, output_type=output_type)
+            print(output)
             print('Execution %s has completed.' % (execution_id))
             return
 
