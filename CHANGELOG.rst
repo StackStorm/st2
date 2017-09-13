@@ -1,7 +1,7 @@
 Changelog
 =========
 
-in development
+In development
 --------------
 
 Added
@@ -28,6 +28,9 @@ Added
   set ``actionrunner.stream_output`` config option to ``True``.
 
   (new feature) #2175 #3657 #3729
+
+2.4.1 - September 12, 2017
+--------------------------
 
 Fixed
 ~~~~~
