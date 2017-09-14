@@ -230,7 +230,9 @@ def register_opts(ignore_errors=False):
                    help='Virtualenv binary which should be used to create pack virtualenvs.'),
         cfg.ListOpt('virtualenv_opts', default=['--system-site-packages'],
                     help='List of virtualenv options to be passsed to "virtualenv" command that ' +
-                         'creates pack virtualenv.')
+                         'creates pack virtualenv.'),
+        cfg.BoolOpt('stream_output', default=False, help='True to store and stream action output '
+                                                         '(stdout and stderr) in real-time.')
     ]
     do_register_opts(action_runner_opts, group='actionrunner')
 
@@ -289,6 +291,13 @@ def register_opts(ignore_errors=False):
                           'to external workflow system.')
     ]
     do_register_opts(query_opts, group='results_tracker', ignore_errors=ignore_errors)
+
+    # Common stream options
+    stream_opts = [
+        cfg.IntOpt('heartbeat', default=25,
+                   help='Send empty message every N seconds to keep connection open')
+    ]
+    do_register_opts(stream_opts, group='stream', ignore_errors=ignore_errors)
 
     # Common CLI options
     debug = cfg.BoolOpt('debug', default=False,

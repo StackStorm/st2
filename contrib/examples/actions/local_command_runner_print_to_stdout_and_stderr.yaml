@@ -1,0 +1,34 @@
+---
+name: local_command_runner_print_to_stdout_and_stderr
+runner_type: local-shell-cmd
+description: Action which periodically prints to stdout and stderr. Useful for testing action output streaming.
+enabled: true
+parameters:
+  cmd:
+    default: >
+      i=0;
+      while [ $i -lt {{ count }} ];
+      do
+      j=$[$i+1];
+      if [ $(( $i % 2)) -eq 0 ]; then
+      echo "stderr line ${j}" >&2;
+      else
+      echo "stdout line ${j}";
+      fi;
+
+      i=$[$i+1];
+
+      sleep {{ sleep_delay }};
+      done
+  count:
+    type: integer
+    description: "Number of repetitions."
+    required: true
+    default: 100
+    position: 1
+  sleep_delay:
+    type: number
+    description: "Sleep delay between each repetition."
+    required: true
+    default: 0.5
+    position: 2

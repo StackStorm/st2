@@ -1,7 +1,7 @@
 ---
 name: "match"
 pack: chatops
-runner_type: "run-python"
+runner_type: "python-script"
 description: "Match a string to an action alias"
 enabled: true
 entry_point: "match.py"

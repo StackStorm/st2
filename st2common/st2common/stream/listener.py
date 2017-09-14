@@ -21,23 +21,32 @@ from oslo_config import cfg
 
 from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.execution import ActionExecutionAPI
+from st2common.models.api.execution import ActionExecutionOutputAPI
 from st2common.transport import utils as transport_utils
 from st2common.transport.queues import STREAM_ANNOUNCEMENT_WORK_QUEUE
-from st2common.transport.queues import STREAM_EXECUTION_WORK_QUEUE
+from st2common.transport.queues import STREAM_EXECUTION_ALL_WORK_QUEUE
+from st2common.transport.queues import STREAM_EXECUTION_UPDATE_WORK_QUEUE
 from st2common.transport.queues import STREAM_LIVEACTION_WORK_QUEUE
+from st2common.transport.queues import STREAM_EXECUTION_OUTPUT_QUEUE
 from st2common import log as logging
 
 __all__ = [
+    'StreamListener',
+    'ExecutionOutputListener',
+
     'get_listener',
     'get_listener_if_set'
 ]
 
 LOG = logging.getLogger(__name__)
 
-_listener = None
+
+# Stores references to instantiated listeners
+_stream_listener = None
+_execution_output_listener = None
 
 
-class Listener(ConsumerMixin):
+class BaseListener(ConsumerMixin):
 
     def __init__(self, connection):
         self.connection = connection
@@ -45,19 +54,7 @@ class Listener(ConsumerMixin):
         self._stopped = False
 
     def get_consumers(self, consumer, channel):
-        return [
-            consumer(queues=[STREAM_ANNOUNCEMENT_WORK_QUEUE],
-                     accept=['pickle'],
-                     callbacks=[self.processor()]),
-
-            consumer(queues=[STREAM_EXECUTION_WORK_QUEUE],
-                     accept=['pickle'],
-                     callbacks=[self.processor(ActionExecutionAPI)]),
-
-            consumer(queues=[STREAM_LIVEACTION_WORK_QUEUE],
-                     accept=['pickle'],
-                     callbacks=[self.processor(LiveActionAPI)])
-        ]
+        raise NotImplementedError('get_consumers() is not implemented')
 
     def processor(self, model=None):
         def process(body, message):
@@ -138,6 +135,8 @@ class Listener(ConsumerMixin):
             action_ref = body.action.get('ref', None) if body.action else None
         elif isinstance(body, LiveActionAPI):
             action_ref = body.action
+        elif isinstance(body, (ActionExecutionOutputAPI)):
+            action_ref = body.action_ref
 
         return action_ref
 
@@ -151,8 +150,56 @@ class Listener(ConsumerMixin):
             execution_id = str(body.id)
         elif isinstance(body, LiveActionAPI):
             execution_id = None
+        elif isinstance(body, (ActionExecutionOutputAPI)):
+            execution_id = body.execution_id
 
         return execution_id
+
+
+class StreamListener(BaseListener):
+    """
+    Listener used inside stream service.
+
+    It listenes to all the events.
+    """
+
+    def get_consumers(self, consumer, channel):
+        return [
+            consumer(queues=[STREAM_ANNOUNCEMENT_WORK_QUEUE],
+                     accept=['pickle'],
+                     callbacks=[self.processor()]),
+
+            consumer(queues=[STREAM_EXECUTION_ALL_WORK_QUEUE],
+                     accept=['pickle'],
+                     callbacks=[self.processor(ActionExecutionAPI)]),
+
+            consumer(queues=[STREAM_LIVEACTION_WORK_QUEUE],
+                     accept=['pickle'],
+                     callbacks=[self.processor(LiveActionAPI)]),
+
+            consumer(queues=[STREAM_EXECUTION_OUTPUT_QUEUE],
+                     accept=['pickle'],
+                     callbacks=[self.processor(ActionExecutionOutputAPI)])
+        ]
+
+
+class ExecutionOutputListener(BaseListener):
+    """
+    Listener emitting action execution output event.
+
+    Only listens to action execution work and output queue.
+    """
+
+    def get_consumers(self, consumer, channel):
+        return [
+            consumer(queues=[STREAM_EXECUTION_UPDATE_WORK_QUEUE],
+                     accept=['pickle'],
+                     callbacks=[self.processor(ActionExecutionAPI)]),
+
+            consumer(queues=[STREAM_EXECUTION_OUTPUT_QUEUE],
+                     accept=['pickle'],
+                     callbacks=[self.processor(ActionExecutionOutputAPI)])
+        ]
 
 
 def listen(listener):
@@ -162,15 +209,33 @@ def listen(listener):
         listener.shutdown()
 
 
-def get_listener():
-    global _listener
-    if not _listener:
-        with Connection(transport_utils.get_messaging_urls()) as conn:
-            _listener = Listener(conn)
-            eventlet.spawn_n(listen, _listener)
-    return _listener
+def get_listener(name):
+    global _stream_listener
+    global _execution_output_listener
+
+    if name == 'stream':
+        if not _stream_listener:
+            with Connection(transport_utils.get_messaging_urls()) as conn:
+                _stream_listener = StreamListener(conn)
+                eventlet.spawn_n(listen, _stream_listener)
+        return _stream_listener
+    elif name == 'execution_output':
+        if not _execution_output_listener:
+            with Connection(transport_utils.get_messaging_urls()) as conn:
+                _execution_output_listener = ExecutionOutputListener(conn)
+                eventlet.spawn_n(listen, _execution_output_listener)
+        return _execution_output_listener
+    else:
+        raise ValueError('Invalid listener name: %s' % (name))
 
 
-def get_listener_if_set():
-    global _listener
-    return _listener
+def get_listener_if_set(name):
+    global _stream_listener
+    global _execution_output_listener
+
+    if name == 'stream':
+        return _stream_listener
+    elif name == 'execution_output':
+        return _execution_output_listener
+    else:
+        raise ValueError('Invalid listener name: %s' % (name))

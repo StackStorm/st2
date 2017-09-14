@@ -17,34 +17,75 @@ import os
 import uuid
 
 import mock
+from oslo_config import cfg
 
 import st2tests.config as tests_config
 tests_config.parse_args()
 
-from unittest2 import TestCase
 from st2actions.container.service import RunnerContainerService
 from st2common.constants import action as action_constants
+from st2common.persistence.execution import ActionExecutionOutput
 from st2tests.fixturesloader import FixturesLoader
 from st2tests.fixturesloader import get_fixtures_base_path
 from st2common.util.api import get_full_public_api_url
 from st2common.util.green import shell
 from st2common.constants.runners import LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT
+from st2tests.base import RunnerTestCase
+from st2tests.base import CleanDbTestCase
+from st2tests.base import blocking_eventlet_spawn
+from st2tests.base import make_mock_stream_readline
 import local_runner
 
+__all__ = [
+    'LocalShellCommandRunnerTestCase',
+    'LocalShellScriptRunnerTestCase'
+]
 
-class LocalShellCommandRunnerTestCase(TestCase):
+MOCK_EXECUTION = mock.Mock()
+MOCK_EXECUTION.id = '598dbf0c0640fd54bffc688b'
+
+
+class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     fixtures_loader = FixturesLoader()
+
+    def setUp(self):
+        super(LocalShellCommandRunnerTestCase, self).setUp()
+
+        # False is a default behavior so end result should be the same
+        cfg.CONF.set_override(name='stream_output', group='actionrunner', override=False)
 
     def test_shell_command_action_basic(self):
         models = self.fixtures_loader.load_models(
             fixtures_pack='generic', fixtures_dict={'actions': ['local.yaml']})
         action_db = models['actions']['local.yaml']
+
         runner = self._get_runner(action_db, cmd='echo 10')
         runner.pre_run()
         status, result, _ = runner.run({})
         runner.post_run(status, result)
+
         self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         self.assertEquals(result['stdout'], 10)
+
+        # End result should be the same when streaming is enabled
+        cfg.CONF.set_override(name='stream_output', group='actionrunner', override=True)
+
+        # Verify initial state
+        output_dbs = ActionExecutionOutput.get_all()
+        self.assertEqual(len(output_dbs), 0)
+
+        runner = self._get_runner(action_db, cmd='echo 10')
+        runner.pre_run()
+        status, result, _ = runner.run({})
+        runner.post_run(status, result)
+
+        self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEquals(result['stdout'], 10)
+
+        output_dbs = ActionExecutionOutput.get_all()
+        self.assertEqual(len(output_dbs), 1)
+        self.assertEqual(output_dbs[0].output_type, 'stdout')
+        self.assertEqual(output_dbs[0].data, '10\n')
 
     def test_shell_script_action(self):
         models = self.fixtures_loader.load_models(
@@ -135,6 +176,145 @@ class LocalShellCommandRunnerTestCase(TestCase):
         self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         self.assertEqual(result['stdout'].strip(), 'root\nponiesponies')
 
+    @mock.patch('st2common.util.green.shell.subprocess.Popen')
+    @mock.patch('st2common.util.green.shell.eventlet.spawn')
+    def test_action_stdout_and_stderr_is_stored_in_the_db(self, mock_spawn, mock_popen):
+        # Feature is enabled
+        cfg.CONF.set_override(name='stream_output', group='actionrunner', override=True)
+
+        # Note: We need to mock spawn function so we can test everything in single event loop
+        # iteration
+        mock_spawn.side_effect = blocking_eventlet_spawn
+
+        # No output to stdout and no result (implicit None)
+        mock_stdout = [
+            'stdout line 1\n',
+            'stdout line 2\n',
+        ]
+        mock_stderr = [
+            'stderr line 1\n',
+            'stderr line 2\n',
+            'stderr line 3\n'
+        ]
+
+        mock_process = mock.Mock()
+        mock_process.returncode = 0
+        mock_popen.return_value = mock_process
+        mock_process.stdout.closed = False
+        mock_process.stderr.closed = False
+        mock_process.stdout.readline = make_mock_stream_readline(mock_process.stdout, mock_stdout,
+                                                                 stop_counter=2)
+        mock_process.stderr.readline = make_mock_stream_readline(mock_process.stderr, mock_stderr,
+                                                                 stop_counter=3)
+
+        models = self.fixtures_loader.load_models(
+            fixtures_pack='generic', fixtures_dict={'actions': ['local.yaml']})
+        action_db = models['actions']['local.yaml']
+
+        runner = self._get_runner(action_db, cmd='echo $ST2_ACTION_API_URL')
+        runner.pre_run()
+        status, result, _ = runner.run({})
+        runner.post_run(status, result)
+
+        self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+
+        self.assertEqual(result['stdout'], 'stdout line 1\nstdout line 2')
+        self.assertEqual(result['stderr'], 'stderr line 1\nstderr line 2\nstderr line 3')
+        self.assertEqual(result['return_code'], 0)
+
+        # Verify stdout and stderr lines have been correctly stored in the db
+        output_dbs = ActionExecutionOutput.query(output_type='stdout')
+        self.assertEqual(len(output_dbs), 2)
+        self.assertEqual(output_dbs[0].data, mock_stdout[0])
+        self.assertEqual(output_dbs[1].data, mock_stdout[1])
+
+        output_dbs = ActionExecutionOutput.query(output_type='stderr')
+        self.assertEqual(len(output_dbs), 3)
+        self.assertEqual(output_dbs[0].data, mock_stderr[0])
+        self.assertEqual(output_dbs[1].data, mock_stderr[1])
+        self.assertEqual(output_dbs[2].data, mock_stderr[2])
+
+    @mock.patch('st2common.util.green.shell.subprocess.Popen')
+    @mock.patch('st2common.util.green.shell.eventlet.spawn')
+    def test_action_stdout_and_stderr_is_stored_in_the_db_short_running_action(self, mock_spawn,
+                                                                               mock_popen):
+        # Verify that we correctly retrieve all the output and wait for stdout and stderr reading
+        # threads for short running actions.
+        models = self.fixtures_loader.load_models(
+            fixtures_pack='generic', fixtures_dict={'actions': ['local.yaml']})
+        action_db = models['actions']['local.yaml']
+
+        # Feature is enabled
+        cfg.CONF.set_override(name='stream_output', group='actionrunner', override=True)
+
+        # Note: We need to mock spawn function so we can test everything in single event loop
+        # iteration
+        mock_spawn.side_effect = blocking_eventlet_spawn
+
+        # No output to stdout and no result (implicit None)
+        mock_stdout = [
+            'stdout line 1\n',
+            'stdout line 2\n'
+        ]
+        mock_stderr = [
+            'stderr line 1\n',
+            'stderr line 2\n'
+        ]
+
+        # We add a sleep to simulate action process exiting before we finish reading data from
+        mock_process = mock.Mock()
+        mock_process.returncode = 0
+        mock_popen.return_value = mock_process
+        mock_process.stdout.closed = False
+        mock_process.stderr.closed = False
+        mock_process.stdout.readline = make_mock_stream_readline(mock_process.stdout, mock_stdout,
+                                                                 stop_counter=2,
+                                                                 sleep_delay=1)
+        mock_process.stderr.readline = make_mock_stream_readline(mock_process.stderr, mock_stderr,
+                                                                 stop_counter=2)
+
+        for index in range(1, 4):
+            mock_process.stdout.closed = False
+            mock_process.stderr.closed = False
+
+            mock_process.stdout.counter = 0
+            mock_process.stderr.counter = 0
+
+            runner = self._get_runner(action_db, cmd='echo "foobar"')
+            runner.pre_run()
+            status, result, _ = runner.run({})
+
+            self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+
+            self.assertEqual(result['stdout'], 'stdout line 1\nstdout line 2')
+            self.assertEqual(result['stderr'], 'stderr line 1\nstderr line 2')
+            self.assertEqual(result['return_code'], 0)
+
+            # Verify stdout and stderr lines have been correctly stored in the db
+            output_dbs = ActionExecutionOutput.query(output_type='stdout')
+
+            if index == 1:
+                db_index_1 = 0
+                db_index_2 = 1
+            elif index == 2:
+                db_index_1 = 2
+                db_index_2 = 3
+            elif index == 3:
+                db_index_1 = 4
+                db_index_2 = 5
+            elif index == 4:
+                db_index_1 = 6
+                db_index_2 = 7
+
+            self.assertEqual(len(output_dbs), (index * 2))
+            self.assertEqual(output_dbs[db_index_1].data, mock_stdout[0])
+            self.assertEqual(output_dbs[db_index_2].data, mock_stdout[1])
+
+            output_dbs = ActionExecutionOutput.query(output_type='stderr')
+            self.assertEqual(len(output_dbs), (index * 2))
+            self.assertEqual(output_dbs[db_index_1].data, mock_stderr[0])
+            self.assertEqual(output_dbs[db_index_2].data, mock_stderr[1])
+
     @staticmethod
     def _get_runner(action_db,
                     entry_point=None,
@@ -147,6 +327,7 @@ class LocalShellCommandRunnerTestCase(TestCase):
                     env=None):
         runner = local_runner.LocalShellRunner(uuid.uuid4().hex)
         runner.container_service = RunnerContainerService()
+        runner.execution = MOCK_EXECUTION
         runner.action = action_db
         runner.action_name = action_db.name
         runner.liveaction_id = uuid.uuid4().hex
@@ -165,8 +346,14 @@ class LocalShellCommandRunnerTestCase(TestCase):
         return runner
 
 
-class LocalShellScriptRunner(TestCase):
+class LocalShellScriptRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     fixtures_loader = FixturesLoader()
+
+    def setUp(self):
+        super(LocalShellScriptRunnerTestCase, self).setUp()
+
+        # False is a default behavior so end result should be the same
+        cfg.CONF.set_override(name='stream_output', group='actionrunner', override=False)
 
     def test_script_with_paramters_parameter_serialization(self):
         models = self.fixtures_loader.load_models(
@@ -230,9 +417,119 @@ class LocalShellScriptRunner(TestCase):
         self.assertTrue('PARAM_INTEGER=\n' in result['stdout'])
         self.assertTrue('PARAM_FLOAT=\n' in result['stdout'])
 
+        # End result should be the same when streaming is enabled
+        cfg.CONF.set_override(name='stream_output', group='actionrunner', override=True)
+
+        # Verify initial state
+        output_dbs = ActionExecutionOutput.get_all()
+        self.assertEqual(len(output_dbs), 0)
+
+        action_parameters = {
+            'param_string': 'test string',
+            'param_integer': 1,
+            'param_float': 2.55,
+            'param_boolean': True,
+            'param_list': ['a', 'b', 'c'],
+            'param_object': {'foo': 'bar'}
+        }
+
+        runner = self._get_runner(action_db=action_db, entry_point=entry_point)
+        runner.pre_run()
+        status, result, _ = runner.run(action_parameters=action_parameters)
+        runner.post_run(status, result)
+
+        self.assertEqual(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertTrue('PARAM_STRING=test string' in result['stdout'])
+        self.assertTrue('PARAM_INTEGER=1' in result['stdout'])
+        self.assertTrue('PARAM_FLOAT=2.55' in result['stdout'])
+        self.assertTrue('PARAM_BOOLEAN=1' in result['stdout'])
+        self.assertTrue('PARAM_LIST=a,b,c' in result['stdout'])
+        self.assertTrue('PARAM_OBJECT={"foo": "bar"}' in result['stdout'])
+
+        output_dbs = ActionExecutionOutput.query(output_type='stdout')
+        self.assertEqual(len(output_dbs), 6)
+        self.assertEqual(output_dbs[0].data, 'PARAM_STRING=test string\n')
+        self.assertEqual(output_dbs[5].data, 'PARAM_OBJECT={"foo": "bar"}\n')
+
+        output_dbs = ActionExecutionOutput.query(output_type='stderr')
+        self.assertEqual(len(output_dbs), 0)
+
+    @mock.patch('st2common.util.green.shell.subprocess.Popen')
+    @mock.patch('st2common.util.green.shell.eventlet.spawn')
+    def test_action_stdout_and_stderr_is_stored_in_the_db(self, mock_spawn, mock_popen):
+        # Feature is enabled
+        cfg.CONF.set_override(name='stream_output', group='actionrunner', override=True)
+
+        # Note: We need to mock spawn function so we can test everything in single event loop
+        # iteration
+        mock_spawn.side_effect = blocking_eventlet_spawn
+
+        # No output to stdout and no result (implicit None)
+        mock_stdout = [
+            'stdout line 1\n',
+            'stdout line 2\n',
+            'stdout line 3\n',
+            'stdout line 4\n'
+        ]
+        mock_stderr = [
+            'stderr line 1\n',
+            'stderr line 2\n',
+            'stderr line 3\n'
+        ]
+
+        mock_process = mock.Mock()
+        mock_process.returncode = 0
+        mock_popen.return_value = mock_process
+        mock_process.stdout.closed = False
+        mock_process.stderr.closed = False
+        mock_process.stdout.readline = make_mock_stream_readline(mock_process.stdout, mock_stdout,
+                                                                 stop_counter=4)
+        mock_process.stderr.readline = make_mock_stream_readline(mock_process.stderr, mock_stderr,
+                                                                 stop_counter=3)
+
+        models = self.fixtures_loader.load_models(
+            fixtures_pack='generic', fixtures_dict={'actions': ['local_script_with_params.yaml']})
+        action_db = models['actions']['local_script_with_params.yaml']
+        entry_point = os.path.join(get_fixtures_base_path(),
+                                   'generic/actions/local_script_with_params.sh')
+
+        action_parameters = {
+            'param_string': 'test string',
+            'param_integer': 1,
+            'param_float': 2.55,
+            'param_boolean': True,
+            'param_list': ['a', 'b', 'c'],
+            'param_object': {'foo': 'bar'}
+        }
+
+        runner = self._get_runner(action_db=action_db, entry_point=entry_point)
+        runner.pre_run()
+        status, result, _ = runner.run(action_parameters=action_parameters)
+        runner.post_run(status, result)
+
+        self.assertEqual(result['stdout'],
+                         'stdout line 1\nstdout line 2\nstdout line 3\nstdout line 4')
+        self.assertEqual(result['stderr'], 'stderr line 1\nstderr line 2\nstderr line 3')
+        self.assertEqual(result['return_code'], 0)
+
+        # Verify stdout and stderr lines have been correctly stored in the db
+        output_dbs = ActionExecutionOutput.query(output_type='stdout')
+        self.assertEqual(len(output_dbs), 4)
+        self.assertEqual(output_dbs[0].data, mock_stdout[0])
+        self.assertEqual(output_dbs[1].data, mock_stdout[1])
+        self.assertEqual(output_dbs[2].data, mock_stdout[2])
+        self.assertEqual(output_dbs[3].data, mock_stdout[3])
+
+        output_dbs = ActionExecutionOutput.query(output_type='stderr')
+        self.assertEqual(len(output_dbs), 3)
+        self.assertEqual(output_dbs[0].data, mock_stderr[0])
+        self.assertEqual(output_dbs[1].data, mock_stderr[1])
+        self.assertEqual(output_dbs[2].data, mock_stderr[2])
+
     def _get_runner(self, action_db, entry_point):
         runner = local_runner.LocalShellRunner(uuid.uuid4().hex)
         runner.container_service = RunnerContainerService()
+        runner.execution = MOCK_EXECUTION
         runner.action = action_db
         runner.action_name = action_db.name
         runner.liveaction_id = uuid.uuid4().hex

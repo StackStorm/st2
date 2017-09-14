@@ -1,5 +1,5 @@
 name: list_repos
-runner_type: run-python
+runner_type: python-script
 description: List repositories.
 enabled: true
 entry_point: list_repos_doesnt_exist.py
