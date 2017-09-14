@@ -25,9 +25,11 @@ from mongoengine.errors import InvalidQueryError
 from st2common.constants import action as action_constants
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
+from st2common.persistence.execution import ActionExecutionOutput
 
 __all__ = [
-    'purge_executions'
+    'purge_executions',
+    'purge_execution_output_objects'
 ]
 
 DONE_STATES = [action_constants.LIVEACTION_STATUS_SUCCEEDED,
@@ -38,6 +40,8 @@ DONE_STATES = [action_constants.LIVEACTION_STATUS_SUCCEEDED,
 
 def purge_executions(logger, timestamp, action_ref=None, purge_incomplete=False):
     """
+    Purge action executions and corresponding live action, execution output objects.
+
     :param timestamp: Exections older than this timestamp will be deleted.
     :type timestamp: ``datetime.datetime
 
@@ -70,7 +74,12 @@ def purge_executions(logger, timestamp, action_ref=None, purge_incomplete=False)
     if action_ref:
         liveaction_filters['action'] = action_ref
 
+    to_delete_execution_dbs = []
+
+    # 1. Delete ActionExecutionDB objects
     try:
+        # Note: We call list() on the query set object because it's lazyily evaluated otherwise
+        to_delete_execution_dbs = list(ActionExecution.query(**exec_filters))
         deleted_count = ActionExecution.delete_by_query(**exec_filters)
     except InvalidQueryError as e:
         msg = ('Bad query (%s) used to delete execution instances: %s'
@@ -82,6 +91,7 @@ def purge_executions(logger, timestamp, action_ref=None, purge_incomplete=False)
     else:
         logger.info('Deleted %s action execution objects' % (deleted_count))
 
+    # 2. Delete LiveActionDB objects
     try:
         deleted_count = LiveAction.delete_by_query(**liveaction_filters)
     except InvalidQueryError as e:
@@ -94,6 +104,23 @@ def purge_executions(logger, timestamp, action_ref=None, purge_incomplete=False)
     else:
         logger.info('Deleted %s liveaction objects' % (deleted_count))
 
+    # 3. Delete ActionExecutionOutputDB objects
+    to_delete_exection_ids = [str(execution_db.id) for execution_db in to_delete_execution_dbs]
+    output_dbs_filters = {}
+    output_dbs_filters['execution_id'] = {'$in': to_delete_exection_ids}
+
+    try:
+        deleted_count = ActionExecutionOutput.delete_by_query(**output_dbs_filters)
+    except InvalidQueryError as e:
+        msg = ('Bad query (%s) used to delete execution output instances: %s'
+               'Please contact support.' % (output_dbs_filters, str(e)))
+        raise InvalidQueryError(msg)
+    except:
+        logger.exception('Deletion of execution output models failed for query with filters: %s.',
+                         output_dbs_filters)
+    else:
+        logger.info('Deleted %s execution output objects' % (deleted_count))
+
     zombie_execution_instances = len(ActionExecution.query(**exec_filters))
     zombie_liveaction_instances = len(LiveAction.query(**liveaction_filters))
 
@@ -103,3 +130,38 @@ def purge_executions(logger, timestamp, action_ref=None, purge_incomplete=False)
 
     # Print stats
     logger.info('All execution models older than timestamp %s were deleted.', timestamp)
+
+
+def purge_execution_output_objects(logger, timestamp, action_ref=None):
+    """
+    Purge action executions output objects.
+
+    :param timestamp: Objects older than this timestamp will be deleted.
+    :type timestamp: ``datetime.datetime
+
+    :param action_ref: Only delete objects for the provided actions.
+    :type action_ref: ``str``
+    """
+    if not timestamp:
+        raise ValueError('Specify a valid timestamp to purge.')
+
+    logger.info('Purging action execution output objects older than timestamp: %s' %
+                timestamp.strftime('%Y-%m-%dT%H:%M:%S.%fZ'))
+
+    filters = {}
+    filters['timestamp__lt'] = timestamp
+
+    if action_ref:
+        filters['action_ref'] = action_ref
+
+    try:
+        deleted_count = ActionExecutionOutput.delete_by_query(**filters)
+    except InvalidQueryError as e:
+        msg = ('Bad query (%s) used to delete execution output instances: %s'
+               'Please contact support.' % (filters, str(e)))
+        raise InvalidQueryError(msg)
+    except:
+        logger.exception('Deletion of execution output models failed for query with filters: %s.',
+                         filters)
+    else:
+        logger.info('Deleted %s execution output objects' % (deleted_count))
