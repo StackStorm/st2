@@ -146,7 +146,9 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
                                                               action_db=self.action)
 
         if len(self._hosts) == 1:
-            # We only support streaming output when running action on one host
+            # We only support streaming output when running action on one host. That is because
+            # the action output is tied to a particulat execution. User can still achieve output
+            # streaming for multiple hosts by running one execution per host.
             client_kwargs['handle_stdout_line_func'] = handle_stdout_line_func
             client_kwargs['handle_stderr_line_func'] = handle_stderr_line_func
 
