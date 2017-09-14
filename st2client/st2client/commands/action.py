@@ -1368,6 +1368,11 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
         self.parser.add_argument('--type', dest='output_type', action='store',
                                  help=('Type of output to tail for. If not provided, '
                                       'defaults to all.'))
+        self.parser.add_argument('--include-metadata', dest='include_metadata',
+                                 action='store_true',
+                                 default=False,
+                                 help=('Include metadata (timestamp, output type) with the '
+                                       'output.'))
         self.parser.add_argument('-h', '--help',
                                  action='store_true', dest='help',
                                  help='Print usage for the given command.')
@@ -1379,6 +1384,7 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
     def run_and_print(self, args, **kwargs):
         execution_id = args.id
         output_type = getattr(args, 'output_type', None)
+        include_metadata = args.include_metadata
 
         # Special case for id "last"
         if execution_id == 'last':
@@ -1408,6 +1414,7 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
             if is_execution_event:
                 if status in LIVEACTION_COMPLETED_STATES:
                     # Execution has completed
+                    print('')
                     print('Execution %s has completed.' % (execution_id))
                     break
                 else:
@@ -1419,5 +1426,8 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
             if output_type and event_output_type != output_type:
                 continue
 
-            sys.stdout.write('[%s][%s] %s' % (event['timestamp'], event['output_type'],
-                                              event['data']))
+            if include_metadata:
+                sys.stdout.write('[%s][%s] %s' % (event['timestamp'], event['output_type'],
+                                                  event['data']))
+            else:
+                sys.stdout.write(event['data'])
