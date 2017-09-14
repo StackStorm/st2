@@ -4,6 +4,30 @@ Changelog
 In development
 --------------
 
+Added
+~~~~~
+
+* Add new feature which allows runner action output (stdout and stderr) to be streamed
+  and consumed in real-time by using one of the following approaches:
+
+  - ``/v1/executions/<execution id>/output[?type=stdout/stderr]`` API endpoint.
+  - ``/v1/stream/`` stream endpoint and listening for ``st2.execution.stdout__create`` and
+    ``st2.execution.output__create`` ``/v1/stream`` stream API endpoint events.
+  - ``st2 execution tail <execution id> [--type=stdout/stderr]`` CLI command (underneath it uses
+    stream API endpoint).
+
+  Right now this functionality is available for the following runners:
+
+  - local command runner
+  - local script runner
+  - remote command runner
+  - remote script runner
+  - python runner
+
+  Note: This feature is still experimental and it's disabled by default (opt-in). To enable it,
+  set ``actionrunner.stream_output`` config option to ``True``.
+
+  (new feature) #2175 #3657 #3729
 
 2.4.1 - September 12, 2017
 --------------------------
@@ -85,6 +109,8 @@ Changed
   3.2 was installed by default). If you want to upgrade an existing installation, please follow
   the official instructions at https://docs.mongodb.com/v3.4/release-notes/3.4-upgrade-standalone/.
   (improvement)
+* Update garbage collector service to delete corresponding stdout and stderr objects which belong
+  to executions which are to be deleted. #2175 #3657
 
 Removed
 ~~~~~~~

@@ -28,8 +28,8 @@ from os.path import join as pjoin
 
 from st2client import models
 from st2client.commands import resource
+from st2client.commands.resource import ResourceNotFoundError
 from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
-from st2client.exceptions.operations import OperationFailureException
 from st2client.formatters import table
 from st2client.formatters import execution as execution_formatter
 from st2client.utils import jsutil
@@ -983,6 +983,8 @@ class ActionExecutionBranch(resource.ResourceBranch):
             self.resource, self.app, self.subparsers, add_help=False)
         self.commands['resume'] = ActionExecutionResumeCommand(
             self.resource, self.app, self.subparsers, add_help=False)
+        self.commands['tail'] = ActionExecutionTailCommand(self.resource, self.app,
+                                                           self.subparsers, add_help=False)
 
 
 POSSIBLE_ACTION_STATUS_VALUES = ('succeeded', 'running', 'scheduled', 'failed', 'canceled')
@@ -1170,7 +1172,7 @@ class ActionExecutionGetCommand(ActionRunCommandMixin, ActionExecutionReadComman
                 execution = format_execution_status(execution)
         except resource.ResourceNotFoundError:
             self.print_not_found(args.id)
-            raise OperationFailureException('Execution %s not found.' % (args.id))
+            raise ResourceNotFoundError('Execution with id %s not found.' % (args.id))
         return self._print_execution_details(execution=execution, args=args, **kwargs)
 
 
@@ -1314,7 +1316,7 @@ class ActionExecutionPauseCommand(ActionRunCommandMixin, ActionExecutionReadComm
                 execution = format_execution_status(execution)
         except resource.ResourceNotFoundError:
             self.print_not_found(args.id)
-            raise OperationFailureException('Execution %s not found.' % (args.id))
+            raise ResourceNotFoundError('Execution  with id %s not found.' % (args.id))
         return self._print_execution_details(execution=execution, args=args, **kwargs)
 
 
@@ -1348,5 +1350,74 @@ class ActionExecutionResumeCommand(ActionRunCommandMixin, ActionExecutionReadCom
                 execution = format_execution_status(execution)
         except resource.ResourceNotFoundError:
             self.print_not_found(args.id)
-            raise OperationFailureException('Execution %s not found.' % (args.id))
+            raise ResourceNotFoundError('Execution %s not found.' % (args.id))
         return self._print_execution_details(execution=execution, args=args, **kwargs)
+
+
+class ActionExecutionTailCommand(resource.ResourceCommand):
+    def __init__(self, resource, *args, **kwargs):
+        super(ActionExecutionTailCommand, self).__init__(
+            resource, kwargs.pop('name', 'tail'),
+            'A command to tail output of a particular execution.',
+            *args, **kwargs)
+
+        self.parser.add_argument('id', nargs='?',
+                                 metavar='id',
+                                 default='last',
+                                 help='ID of action execution to tail.')
+        self.parser.add_argument('--type', dest='output_type', action='store',
+                                 help=('Type of output to tail for. If not provided, '
+                                      'defaults to all.'))
+        self.parser.add_argument('-h', '--help',
+                                 action='store_true', dest='help',
+                                 help='Print usage for the given command.')
+
+    def run(self, args, **kwargs):
+        pass
+
+    @add_auth_token_to_kwargs_from_cli
+    def run_and_print(self, args, **kwargs):
+        execution_id = args.id
+        output_type = getattr(args, 'output_type', None)
+
+        # Special case for id "last"
+        if execution_id == 'last':
+            executions = self.manager.query(limit=1)
+            execution = executions[0] if executions else None
+            execution_id = execution.id
+        else:
+            execution = self.manager.get_by_id(execution_id, **kwargs)
+
+        if not execution:
+            raise ResourceNotFoundError('Execution  with id %s not found.' % (args.id))
+
+        # Execution has already finished
+        if execution.status in LIVEACTION_COMPLETED_STATES:
+            output = self.manager.get_output(execution_id=execution_id, output_type=output_type)
+            print(output)
+            print('Execution %s has completed.' % (execution_id))
+            return
+
+        stream_mgr = self.app.client.managers['Stream']
+        events = ['st2.execution__update', 'st2.execution.output__create']
+
+        for event in stream_mgr.listen(events, **kwargs):
+            status = event.get('status', None)
+            is_execution_event = status is not None
+
+            if is_execution_event:
+                if status in LIVEACTION_COMPLETED_STATES:
+                    # Execution has completed
+                    print('Execution %s has completed.' % (execution_id))
+                    break
+                else:
+                    # We don't care about other execution events
+                    continue
+
+            # Filter on output_type if provided
+            event_output_type = event.get('output_type', None)
+            if output_type and event_output_type != output_type:
+                continue
+
+            sys.stdout.write('[%s][%s] %s' % (event['timestamp'], event['output_type'],
+                                              event['data']))

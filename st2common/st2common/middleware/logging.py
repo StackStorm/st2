@@ -15,6 +15,7 @@
 
 import time
 import types
+import itertools
 
 from st2common.constants.api import REQUEST_ID_HEADER
 from st2common import log as logging
@@ -75,7 +76,7 @@ class LoggingMiddleware(object):
 
         log_result = endpoint.get('x-log-result', True)
 
-        if isinstance(retval, types.GeneratorType):
+        if isinstance(retval, (types.GeneratorType, itertools.chain)):
             # Note: We don't log the result when return value is a generator, because this would
             # result in calling str() on the generator and as such, exhausting it
             content_length = [float('inf')]

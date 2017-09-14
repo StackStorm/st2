@@ -126,7 +126,8 @@ class ParallelSSHTests(unittest2.TestCase):
                                    connect=True)
         client.run('pwd', timeout=60)
         expected_kwargs = {
-            'timeout': 60
+            'timeout': 60,
+            'call_line_handler_func': True
         }
         for host in hosts:
             hostname, _ = client._get_host_port_info(host)

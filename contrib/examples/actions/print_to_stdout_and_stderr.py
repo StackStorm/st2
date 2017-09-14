@@ -13,22 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__all__ = [
-    'DEFAULT_COLLECTION_INTERVAL',
-    'DEFAULT_SLEEP_DELAY',
-    'MINIMUM_TTL_DAYS',
-    'MINIMUM_TTL_DAYS_EXECUTION_OUTPUT'
-]
+import sys
+import time
+
+from st2common.runners.base_action import Action
 
 
-# Default garbage collection interval (in seconds)
-DEFAULT_COLLECTION_INTERVAL = 600
+class PrintToStdoutAndStderrAction(Action):
+    def run(self, count=100, sleep_delay=0.5):
+        for i in range(0, count):
+            if i % 2 == 0:
+                text = 'stderr'
+                stream = sys.stderr
+            else:
+                text = 'stdout'
+                stream = sys.stdout
 
-# How to long to wait / sleep between collection of different object types (in seconds)
-DEFAULT_SLEEP_DELAY = 2
-
-# Minimum value for the TTL. If user supplies value lower than this, we will throw.
-MINIMUM_TTL_DAYS = 7
-
-# Minimum TTL in days for action execution output objects.
-MINIMUM_TTL_DAYS_EXECUTION_OUTPUT = 1
+            stream.write('%s -> Line: %s\n' % (text, (i + 1)))
+            stream.flush()
+            time.sleep(sleep_delay)
