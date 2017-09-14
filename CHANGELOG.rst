@@ -29,6 +29,15 @@ Added
 
   (new feature) #2175 #3657 #3729
 
+Fixed
+~~~~~
+
+* Fix a bug where sensor watch queues were not deleted after sensor container process was shut
+  down. This resulted in spurious queues left behind. This should not have caused performance
+  impact but just messes with rabbitmqadmin output and maybe tedious for operators. (bug fix) #3628
+
+  Reported by Igor.
+
 2.4.1 - September 12, 2017
 --------------------------
 
