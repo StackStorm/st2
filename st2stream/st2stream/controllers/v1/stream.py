@@ -24,10 +24,6 @@ __all__ = [
     'StreamController'
 ]
 
-__all__ = [
-    'StreamController'
-]
-
 LOG = logging.getLogger(__name__)
 
 DEFAULT_EVENTS_WHITELIST = [
