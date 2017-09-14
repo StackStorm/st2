@@ -154,6 +154,7 @@ class TestStreamController(FunctionalTest):
         process_execution = listener.processor(ActionExecutionAPI)
         process_liveaction = listener.processor(LiveActionAPI)
         process_output = listener.processor(ActionExecutionOutputAPI)
+        process_no_api_model = listener.processor()
 
         execution_api = ActionExecutionDB(**EXECUTION_1)
         liveaction_api = LiveActionDB(**LIVE_ACTION_1)
@@ -186,9 +187,15 @@ class TestStreamController(FunctionalTest):
                     meta = META('st2.liveaction', 'delete')
                     process_liveaction(liveaction_api, meta)
                 elif index == 6:
+                    meta = META('st2.liveaction', 'delete')
+                    process_liveaction(liveaction_api, meta)
+                elif index == 7:
+                    meta = META('st2.announcement', 'chatops')
+                    process_no_api_model({}, meta)
+                elif index == 8:
                     meta = META('st2.execution.output', 'create')
                     process_output(output_api_stdout, meta)
-                elif index == 7:
+                elif index == 9:
                     meta = META('st2.execution.output', 'create')
                     process_output(output_api_stderr, meta)
                 else:
@@ -203,9 +210,10 @@ class TestStreamController(FunctionalTest):
         resp = stream.StreamController().get_all()
 
         received_messages = dispatch_and_handle_mock_data(resp)
-        self.assertEqual(len(received_messages), 6)
+        self.assertEqual(len(received_messages), 8)
         self.assertTrue('st2.execution__create' in received_messages[0])
         self.assertTrue('st2.liveaction__delete' in received_messages[5])
+        self.assertTrue('st2.announcement__chatops' in received_messages[7])
 
         # 1. ?events= filter
         # No filter provided - all messages should be received
@@ -213,19 +221,34 @@ class TestStreamController(FunctionalTest):
         resp = stream.StreamController().get_all()
 
         received_messages = dispatch_and_handle_mock_data(resp)
-        self.assertEqual(len(received_messages), 8)
+        self.assertEqual(len(received_messages), 10)
         self.assertTrue('st2.execution__create' in received_messages[0])
-        self.assertTrue('st2.execution.output__create' in received_messages[7])
+        self.assertTrue('st2.announcement__chatops' in received_messages[7])
+        self.assertTrue('st2.execution.output__create' in received_messages[8])
+        self.assertTrue('st2.execution.output__create' in received_messages[9])
 
-        # Filter provided, only two messages should be received
+        # Filter provided, only three messages should be received
         events = ['st2.execution__create', 'st2.liveaction__delete']
         events = ','.join(events)
         resp = stream.StreamController().get_all(events=events)
 
         received_messages = dispatch_and_handle_mock_data(resp)
-        self.assertEqual(len(received_messages), 2)
+        self.assertEqual(len(received_messages), 3)
         self.assertTrue('st2.execution__create' in received_messages[0])
         self.assertTrue('st2.liveaction__delete' in received_messages[1])
+        self.assertTrue('st2.liveaction__delete' in received_messages[2])
+
+        # Filter provided, only three messages should be received
+        events = ['st2.liveaction__create', 'st2.liveaction__delete']
+        events = ','.join(events)
+        resp = stream.StreamController().get_all(events=events)
+
+        received_messages = dispatch_and_handle_mock_data(resp)
+        self.assertEqual(len(received_messages), 4)
+        self.assertTrue('st2.liveaction__create' in received_messages[0])
+        self.assertTrue('st2.liveaction__create' in received_messages[1])
+        self.assertTrue('st2.liveaction__delete' in received_messages[2])
+        self.assertTrue('st2.liveaction__delete' in received_messages[3])
 
         # Filter provided
         events = ['st2.execution.output__create']
