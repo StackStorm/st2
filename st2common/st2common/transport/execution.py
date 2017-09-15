@@ -40,9 +40,11 @@ class ActionExecutionOutputPublisher(publishers.CUDPublisher):
         super(ActionExecutionOutputPublisher, self).__init__(urls, EXECUTION_OUTPUT_XCHG)
 
 
-def get_queue(name=None, routing_key=None, exclusive=False):
-    return Queue(name, EXECUTION_XCHG, routing_key=routing_key, exclusive=exclusive)
+def get_queue(name=None, routing_key=None, exclusive=False, auto_delete=False):
+    return Queue(name, EXECUTION_XCHG, routing_key=routing_key, exclusive=exclusive,
+                 auto_delete=auto_delete)
 
 
-def get_output_queue(name=None, routing_key=None, exclusive=False):
-    return Queue(name, EXECUTION_OUTPUT_XCHG, routing_key=routing_key, exclusive=exclusive)
+def get_output_queue(name=None, routing_key=None, exclusive=False, auto_delete=False):
+    return Queue(name, EXECUTION_OUTPUT_XCHG, routing_key=routing_key, exclusive=exclusive,
+                 auto_delete=auto_delete)
