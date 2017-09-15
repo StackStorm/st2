@@ -84,17 +84,21 @@ RULESENGINE_WORK_QUEUE = reactor.get_trigger_instances_queue(
 
 # Used by the stream service
 STREAM_ANNOUNCEMENT_WORK_QUEUE = announcement.get_queue(routing_key=publishers.ANY_RK,
-                                                        exclusive=True)
+                                                        exclusive=True,
+                                                        auto_delete=True)
 STREAM_EXECUTION_ALL_WORK_QUEUE = execution.get_queue(routing_key=publishers.ANY_RK,
-                                                      exclusive=True)
+                                                      exclusive=True,
+                                                      auto_delete=True)
 STREAM_EXECUTION_UPDATE_WORK_QUEUE = execution.get_queue(routing_key=publishers.UPDATE_RK,
-                                                         exclusive=True)
+                                                         exclusive=True,
+                                                         auto_delete=True)
 STREAM_LIVEACTION_WORK_QUEUE = Queue(None, liveaction.LIVEACTION_XCHG,
-                                     routing_key=publishers.ANY_RK, exclusive=True)
+                                     routing_key=publishers.ANY_RK,
+                                     exclusive=True, auto_delete=True)
 
 # TODO: Perhaps we should use pack.action name as routing key so we can do more efficient filtering
 # later, if needed
 STREAM_EXECUTION_OUTPUT_QUEUE = execution.get_output_queue(name=None,
-                                                           routing_key=publishers.CREATE_RKm
-                                                           exclusive=True
+                                                           routing_key=publishers.CREATE_RK,
+                                                           exclusive=True,
                                                            auto_delete=True)
