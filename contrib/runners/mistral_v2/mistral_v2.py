@@ -171,10 +171,12 @@ class MistralRunner(AsyncActionRunner):
         # the expression. If there is a local context reference, the evaluation will fail
         # because the local context reference is out of scope.
         chain_ctx = parent_context.get('chain') or {}
-        chain_params_ctx = chain_ctx.get('params') or {}
 
-        for k, v in six.iteritems(chain_params_ctx):
-            parent_context['chain']['params'][k] = jinja.convert_jinja_to_raw_block(v)
+        for attr in ['params', 'parameters']:
+            chain_params_ctx = chain_ctx.get(attr) or {}
+
+            for k, v in six.iteritems(chain_params_ctx):
+                parent_context['chain'][attr][k] = jinja.convert_jinja_to_raw_block(v)
 
         st2_execution_context = {
             'api_url': api_url,
