@@ -1480,7 +1480,7 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
             result['task_name'] = context.get('task_name', 'unknown')
         else:
             # Action chain workflow
-            result['parent_execution_id'] = event.get('parent', None)
+            result['parent_execution_id'] = context.get('parent', None)
             result['execution_id'] = event['id']
             result['task_name'] = context.get('chain', {}).get('name', 'unknown')
 
