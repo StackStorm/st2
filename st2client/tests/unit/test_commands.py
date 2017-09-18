@@ -283,6 +283,16 @@ class CommandsHelpStringTestCase(BaseCLITestCase):
     capture_output = True
 
     COMMANDS = [
+        # action
+        ['action', 'list'],
+        ['action', 'get'],
+        ['action', 'create'],
+        ['action', 'update'],
+        ['action', 'delete'],
+        ['action', 'enable'],
+        ['action', 'disable'],
+        ['action', 'execute'],
+
         # execution
         ['execution', 'cancel'],
         ['execution', 'pause'],
@@ -297,17 +307,17 @@ class CommandsHelpStringTestCase(BaseCLITestCase):
             argv = command + ['--help']
 
             try:
-                shell.run(argv)
+                result = shell.run(argv)
             except SystemExit as e:
                 self.assertEqual(e.code, 0)
             else:
-                self.fail('Command didn\'t exit with 0')
+                self.assertEqual(result, 0)
 
             stdout = self.stdout.getvalue()
 
             self.assertTrue('usage:' in stdout)
             self.assertTrue(' '.join(command) in stdout)
-            self.assertTrue('positional arguments:' in stdout)
+            # self.assertTrue('positional arguments:' in stdout)
             self.assertTrue('optional arguments:' in stdout)
 
             # Reset stdout and stderr after each iteration
@@ -325,18 +335,23 @@ class CommandsHelpStringTestCase(BaseCLITestCase):
             argv = command + ['-h']
 
             try:
-                shell.run(argv)
+                result = shell.run(argv)
             except SystemExit as e:
                 self.assertEqual(e.code, 0)
             else:
-                self.fail('Command didn\'t exit with 0')
+                self.assertEqual(result, 0)
 
             stdout = self.stdout.getvalue()
 
             self.assertTrue('usage:' in stdout)
             self.assertTrue(' '.join(command) in stdout)
-            self.assertTrue('positional arguments:' in stdout)
+            # self.assertTrue('positional arguments:' in stdout)
             self.assertTrue('optional arguments:' in stdout)
+
+            # Verify that the actual help usage string was triggered and not the invalid
+            # "too few arguments" which would indicate command doesn't actually correctly handle
+            # --help flag
+            self.assertTrue('too few arguments' not in stdout)
 
             # Reset stdout and stderr after each iteration
             self.stdout.seek(0)
