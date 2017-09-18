@@ -1,0 +1,41 @@
+---
+  chain:
+    -
+      name: "task1"
+      ref: "core.local"
+      parameters:
+          cmd: "echo 'Task 1'"
+      on-success: "task2"
+    -
+      name: "task2"
+      ref: "examples.local_command_runner_print_to_stdout_and_stderr"
+      parameters:
+          count: 5
+          sleep_delay: 0.5
+      on-success: "task3"
+    -
+      name: "task3"
+      ref: "core.local"
+      parameters:
+          cmd: "echo 'Task 3'"
+      on-success: "task4"
+    -
+      name: "task4"
+      ref: "examples.python_runner_print_to_stdout_and_stderr"
+      parameters:
+          count: 5
+          sleep_delay: 0.5
+      on-success: "task5"
+    -
+      name: "task5"
+      ref: "core.local"
+      parameters:
+          cmd: "echo 'Task 5'"
+      on-success: "task6"
+    -
+      name: "task6"
+      ref: "examplesexamples..remote_command_runner_print_to_stdout_and_stderr"
+      parameters:
+          count: 5
+          sleep_delay: 0.5
+  default: "task1"
