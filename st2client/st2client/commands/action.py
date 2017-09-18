@@ -978,13 +978,14 @@ class ActionExecutionBranch(resource.ResourceBranch):
         self.commands['re-run'] = ActionExecutionReRunCommand(
             self.resource, self.app, self.subparsers, add_help=False)
         self.commands['cancel'] = ActionExecutionCancelCommand(
-            self.resource, self.app, self.subparsers, add_help=False)
+            self.resource, self.app, self.subparsers, add_help=True)
         self.commands['pause'] = ActionExecutionPauseCommand(
-            self.resource, self.app, self.subparsers, add_help=False)
+            self.resource, self.app, self.subparsers, add_help=True)
         self.commands['resume'] = ActionExecutionResumeCommand(
-            self.resource, self.app, self.subparsers, add_help=False)
+            self.resource, self.app, self.subparsers, add_help=True)
         self.commands['tail'] = ActionExecutionTailCommand(self.resource, self.app,
-                                                           self.subparsers, add_help=False)
+                                                           self.subparsers,
+                                                           add_help=True)
 
 
 POSSIBLE_ACTION_STATUS_VALUES = ('succeeded', 'running', 'scheduled', 'failed', 'canceled')
@@ -1373,9 +1374,6 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
                                  default=False,
                                  help=('Include metadata (timestamp, output type) with the '
                                        'output.'))
-        self.parser.add_argument('-h', '--help',
-                                 action='store_true', dest='help',
-                                 help='Print usage for the given command.')
 
     def run(self, args, **kwargs):
         pass
