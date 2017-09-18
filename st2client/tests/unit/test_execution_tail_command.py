@@ -143,7 +143,6 @@ MOCK_OUTPUT_2 = {
 
 class ActionExecutionTailCommandTestCase(BaseCLITestCase):
     capture_output = True
-    #capture_output = False
 
     def __init__(self, *args, **kwargs):
         super(ActionExecutionTailCommandTestCase, self).__init__(*args, **kwargs)
@@ -175,7 +174,8 @@ class ActionExecutionTailCommandTestCase(BaseCLITestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(MOCK_LIVEACTION_3_RUNNING), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(MOCK_LIVEACTION_3_RUNNING),
+                                                      200, 'OK')))
     @mock.patch('st2client.client.StreamManager', autospec=True)
     def test_tail_simple_execution_running_no_data_produced(self, mock_stream_manager):
         argv = ['execution', 'tail', 'idfoo1']
@@ -205,7 +205,8 @@ Execution idfoo1 has completed (status=succeeded).
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(MOCK_LIVEACTION_3_RUNNING), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(MOCK_LIVEACTION_3_RUNNING),
+                                                      200, 'OK')))
     @mock.patch('st2client.client.StreamManager', autospec=True)
     def test_tail_simple_execution_running_with_data(self, mock_stream_manager):
         argv = ['execution', 'tail', 'idfoo1']
@@ -241,7 +242,8 @@ Execution idfoo1 has completed (status=succeeded).
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(MOCK_LIVEACTION_3_RUNNING), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(MOCK_LIVEACTION_3_RUNNING),
+                                                      200, 'OK')))
     @mock.patch('st2client.client.StreamManager', autospec=True)
     def test_tail_action_chain_workflow_execution(self, mock_stream_manager):
         argv = ['execution', 'tail', 'idfoo3']
