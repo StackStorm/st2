@@ -23,7 +23,9 @@ import unittest2
 from collections import namedtuple
 
 from tests import base
+from tests.base import BaseCLITestCase
 
+from st2client.shell import Shell
 from st2client import models
 from st2client.utils import httpclient
 from st2client.commands import resource
@@ -271,3 +273,77 @@ class ActionExecutionReadCommandTestCase(unittest2.TestCase):
         args = cls(attr=['result.stdout', 'trigger_instance.id'])
         result = ActionExecutionReadCommand._get_exclude_attributes(args=args)
         self.assertEqual(result, [])
+
+
+class CommandsHelpStringTestCase(BaseCLITestCase):
+    """
+    Test case which verifies that all the commands support -h / --help flag.
+    """
+
+    capture_output = True
+
+    COMMANDS = [
+        # execution
+        ['execution', 'cancel'],
+        ['execution', 'pause'],
+        ['execution', 'resume'],
+        ['execution', 'tail']
+    ]
+
+    def test_help_command_line_arg_works_for_supported_commands(self):
+        shell = Shell()
+
+        for command in self.COMMANDS:
+            argv = command + ['--help']
+
+            try:
+                shell.run(argv)
+            except SystemExit as e:
+                self.assertEqual(e.code, 0)
+            else:
+                self.fail('Command didn\'t exit with 0')
+
+            stdout = self.stdout.getvalue()
+
+            self.assertTrue('usage:' in stdout)
+            self.assertTrue(' '.join(command) in stdout)
+            self.assertTrue('positional arguments:' in stdout)
+            self.assertTrue('optional arguments:' in stdout)
+
+            # Reset stdout and stderr after each iteration
+            self.stdout.seek(0)
+            self.stdout.truncate()
+            self.stderr.seek(0)
+            self.stderr.truncate()
+
+            # Verify it has been reset correctly
+            self.assertEqual(self.stdout.getvalue(), '')
+            self.assertEqual(self.stderr.getvalue(), '')
+
+        # Then shorthand notation
+        for command in self.COMMANDS:
+            argv = command + ['-h']
+
+            try:
+                shell.run(argv)
+            except SystemExit as e:
+                self.assertEqual(e.code, 0)
+            else:
+                self.fail('Command didn\'t exit with 0')
+
+            stdout = self.stdout.getvalue()
+
+            self.assertTrue('usage:' in stdout)
+            self.assertTrue(' '.join(command) in stdout)
+            self.assertTrue('positional arguments:' in stdout)
+            self.assertTrue('optional arguments:' in stdout)
+
+            # Reset stdout and stderr after each iteration
+            self.stdout.seek(0)
+            self.stdout.truncate()
+            self.stderr.seek(0)
+            self.stderr.truncate()
+
+            # Verify it has been reset correctly
+            self.assertEqual(self.stdout.getvalue(), '')
+            self.assertEqual(self.stderr.getvalue(), '')
