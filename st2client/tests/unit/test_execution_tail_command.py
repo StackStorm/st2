@@ -30,12 +30,12 @@ __all__ = [
 ]
 
 # Mock objects
-MOCK_LIVEACTION_1 = {
+MOCK_LIVEACTION_1_SUCCEEDED = {
     'id': 'idfoo1',
     'status': LIVEACTION_STATUS_SUCCEEDED
 }
 
-MOCK_LIVEACTION_2 = {
+MOCK_LIVEACTION_2_FAILED = {
     'id': 'idfoo2',
     'status': LIVEACTION_STATUS_FAILED
 }
@@ -150,7 +150,8 @@ class ActionExecutionTailCommandTestCase(BaseCLITestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(MOCK_LIVEACTION_1), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(MOCK_LIVEACTION_1_SUCCEEDED),
+                                                      200, 'OK')))
     def test_tail_simple_execution_already_finished_succeeded(self):
         argv = ['execution', 'tail', 'idfoo1']
 
@@ -162,7 +163,8 @@ class ActionExecutionTailCommandTestCase(BaseCLITestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(MOCK_LIVEACTION_2), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(MOCK_LIVEACTION_2_FAILED),
+                                                      200, 'OK')))
     def test_tail_simple_execution_already_finished_failed(self):
         argv = ['execution', 'tail', 'idfoo2']
 
@@ -181,7 +183,7 @@ class ActionExecutionTailCommandTestCase(BaseCLITestCase):
         argv = ['execution', 'tail', 'idfoo1']
 
         MOCK_EVENTS = [
-            MOCK_LIVEACTION_1
+            MOCK_LIVEACTION_1_SUCCEEDED
         ]
 
         mock_cls = mock.Mock()
@@ -209,13 +211,13 @@ Execution idfoo1 has completed (status=succeeded).
                                                       200, 'OK')))
     @mock.patch('st2client.client.StreamManager', autospec=True)
     def test_tail_simple_execution_running_with_data(self, mock_stream_manager):
-        argv = ['execution', 'tail', 'idfoo1']
+        argv = ['execution', 'tail', 'idfoo3']
 
         MOCK_EVENTS = [
             MOCK_LIVEACTION_3_RUNNING,
             MOCK_OUTPUT_1,
             MOCK_OUTPUT_2,
-            MOCK_LIVEACTION_1
+            MOCK_LIVEACTION_3_SUCCEDED
         ]
 
         mock_cls = mock.Mock()
@@ -235,7 +237,7 @@ Execution idfoo1 has completed (status=succeeded).
 line 1
 line 2
 
-Execution idfoo1 has completed (status=succeeded).
+Execution idfoo3 has completed (status=succeeded).
 """.lstrip()
         self.assertEqual(stdout, expected_result)
         self.assertEqual(stderr, '')
