@@ -1416,6 +1416,7 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
             status = event.get('status', None)
             is_execution_event = status is not None
 
+            # TODO: Support arbitrarily nested workflows
             if is_execution_event:
                 context = self._get_normalized_context_execution_task_event(event=event)
                 task_execution_id = context['execution_id']
