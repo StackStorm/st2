@@ -21,7 +21,7 @@
       on-success: "task4"
     -
       name: "task4"
-      ref: "examples.python_runner_print_to_stdout_and_stderr"
+      ref: "examples.local_script_runner_print_to_stdout_and_stderr"
       parameters:
           count: 5
           sleep_delay: 0.5
@@ -34,8 +34,36 @@
       on-success: "task6"
     -
       name: "task6"
-      ref: "examplesexamples..remote_command_runner_print_to_stdout_and_stderr"
+      ref: "examples.python_runner_print_to_stdout_and_stderr"
       parameters:
+          count: 5
+          sleep_delay: 0.5
+      on-success: "task7"
+    -
+      name: "task7"
+      ref: "core.local"
+      parameters:
+          cmd: "echo 'Task 7'"
+      on-success: "task8"
+    -
+      name: "task8"
+      ref: "examples.remote_command_runner_print_to_stdout_and_stderr"
+      parameters:
+          hosts: localhost
+          count: 5
+          sleep_delay: 0.5
+      on-success: "task9"
+    -
+      name: "task9"
+      ref: "core.local"
+      parameters:
+          cmd: "echo 'Task 9'"
+      on-success: "task10"
+    -
+      name: "task10"
+      ref: "examples.remote_script_runner_print_to_stdout_and_stderr"
+      parameters:
+          hosts: localhost
           count: 5
           sleep_delay: 0.5
   default: "task1"

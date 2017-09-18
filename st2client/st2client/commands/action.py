@@ -1401,7 +1401,7 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
         if execution.status in LIVEACTION_COMPLETED_STATES:
             output = self.manager.get_output(execution_id=execution_id, output_type=output_type)
             print(output)
-            print('Execution %s has completed.' % (execution_id))
+            print('Execution %s has completed (status=%s).' % (execution_id, execution.status))
             return
 
         stream_mgr = self.app.client.managers['Stream']
@@ -1415,7 +1415,7 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
                 if status in LIVEACTION_COMPLETED_STATES:
                     # Execution has completed
                     print('')
-                    print('Execution %s has completed.' % (execution_id))
+                    print('Execution %s has completed (status=%s).' % (execution_id, status))
                     break
                 else:
                     # We don't care about other execution events
