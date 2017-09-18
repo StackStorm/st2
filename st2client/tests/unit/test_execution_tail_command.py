@@ -49,7 +49,9 @@ MOCK_LIVEACTION_3_RUNNING = {
 MOCK_LIVEACTION_3_CHILD_1_RUNNING = {
     'id': 'idchild1',
     'context': {
-        'parent': 'idfoo3',
+        'parent': {
+            'execution_id': 'idfoo3'
+        },
         'chain': {
             'name': 'task_1'
         }
@@ -60,7 +62,9 @@ MOCK_LIVEACTION_3_CHILD_1_RUNNING = {
 MOCK_LIVEACTION_3_CHILD_1_SUCCEEDED = {
     'id': 'idchild1',
     'context': {
-        'parent': 'idfoo3',
+        'parent': {
+            'execution_id': 'idfoo3'
+        },
         'chain': {
             'name': 'task_1'
         }
@@ -85,7 +89,9 @@ MOCK_LIVEACTION_3_CHILD_1_OUTPUT_2 = {
 MOCK_LIVEACTION_3_CHILD_2_RUNNING = {
     'id': 'idchild2',
     'context': {
-        'parent': 'idfoo3',
+        'parent': {
+            'execution_id': 'idfoo3'
+        },
         'chain': {
             'name': 'task_2'
         }
@@ -96,7 +102,9 @@ MOCK_LIVEACTION_3_CHILD_2_RUNNING = {
 MOCK_LIVEACTION_3_CHILD_2_FAILED = {
     'id': 'idchild2',
     'context': {
-        'parent': 'idfoo3',
+        'parent': {
+            'execution_id': 'idfoo3'
+        },
         'chain': {
             'name': 'task_2'
         }
