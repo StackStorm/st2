@@ -1397,6 +1397,11 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
         if not execution:
             raise ResourceNotFoundError('Execution  with id %s not found.' % (args.id))
 
+        # Note: For non-workflow actions child_execution_id always matches parent_execution_id so
+        # we don't need to do any other checks to determine if executions represents a workflow
+        # action
+        parent_execution_id = execution_id
+
         # Execution has already finished
         if execution.status in LIVEACTION_COMPLETED_STATES:
             output = self.manager.get_output(execution_id=execution_id, output_type=output_type)
@@ -1412,14 +1417,33 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
             is_execution_event = status is not None
 
             if is_execution_event:
-                if status in LIVEACTION_COMPLETED_STATES:
-                    # Execution has completed
-                    print('')
-                    print('Execution %s has completed (status=%s).' % (execution_id, status))
-                    break
+                task_name = event.get('context', {}).get('chain', {}).get('name', 'unknown')
+                task_parent_execution_id = event.get('parent', None)
+                is_child_execution = (task_parent_execution_id == parent_execution_id)
+
+                if is_child_execution:
+                    if status == LIVEACTION_STATUS_RUNNING:
+                        print('Child execution (task=%s) %s has started.' % (task_name,
+                                                                             event['id']))
+                        print('')
+                        continue
+                    elif status in LIVEACTION_COMPLETED_STATES:
+                        print('')
+                        print('Child execution (task=%s) %s has finished (status=%s).' %
+                              (task_name, event['id'], status))
+                        continue
+                    else:
+                        # We don't care about other child events so we simply skip then
+                        continue
                 else:
-                    # We don't care about other execution events
-                    continue
+                    if status in LIVEACTION_COMPLETED_STATES:
+                        # Bail out once parent execution has finished
+                        print('')
+                        print('Execution %s has completed (status=%s).' % (execution_id, status))
+                        break
+                    else:
+                        # We don't care about other execution events
+                        continue
 
             # Filter on output_type if provided
             event_output_type = event.get('output_type', None)
