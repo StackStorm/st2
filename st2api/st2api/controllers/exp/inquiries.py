@@ -31,7 +31,7 @@ from st2common.constants import action as action_constants
 from st2common.rbac.types import PermissionType
 from st2common.rbac import utils as rbac_utils
 from st2common.router import abort
-from st2common.models.api.execution import ActionExecutionAPI
+from st2common.models.api.inquiry import InquiryAPI, InquiryResponseAPI
 from st2common.persistence.execution import ActionExecution
 from st2common.services import action as action_service
 from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
@@ -53,7 +53,8 @@ class InquiriesController(ResourceController):
     supported_filters = copy.deepcopy(SUPPORTED_FILTERS)
 
     # No data model currently exists for Inquiries, so we're "borrowing" ActionExecutions
-    model = ActionExecutionAPI
+    # for the DB layer
+    model = InquiryAPI
     access = ActionExecution
 
     def get_all(self, requester_user=None, limit=None, **raw_filters):
@@ -68,7 +69,7 @@ class InquiriesController(ResourceController):
                 GET /inquiries/
         """
 
-        raw_inquiries = super(InquiriesController, self)._get_all(
+        raw_inquiries = self._get_all(
             limit=limit,
             raw_filters={'status': 'pending', 'runner': 'inquirer'}
         )
@@ -76,13 +77,14 @@ class InquiriesController(ResourceController):
         inquiries = []
         for raw_inquiry in json.loads(raw_inquiries.body):
 
+            inquiry = InquiryAPI(**raw_inquiry)
+
             # _get_all includes workflows that also contain executions
-            # with 'pending' status, so we want to prune all workflows
-            # (The action won't have a 'children' key)
-            if raw_inquiry.get('children'):
+            # with 'pending' status, so we want to exclude all workflows
+            if inquiry.children:
                 continue
 
-            inquiries.append(self._transform_inquiry(raw_inquiry))
+            inquiries.append(InquiryResponseAPI.from_inquiry_api(inquiry))
 
         return inquiries
 
@@ -97,23 +99,21 @@ class InquiriesController(ResourceController):
         #
         # (Passing permission_type here leverages _get_one_by_id's built-in
         # RBAC assertions)
-        raw_inquiry = self._get_one_by_id(
+        inquiry = self._get_one_by_id(
             id=inquiry_id,
             requester_user=requester_user,
             permission_type=PermissionType.INQUIRY_VIEW
         )
 
-        if raw_inquiry.runner.get('runner_module') != "inquirer":
+        if inquiry.runner.get('runner_module') != "inquirer":
             abort(http_client.BAD_REQUEST, '%s is not an Inquiry.' % inquiry_id)
             return
 
-        if raw_inquiry.status != "pending":
+        if inquiry.status != "pending":
             abort(http_client.BAD_REQUEST, 'Inquiry %s has already been responded to' % inquiry_id)
             return
 
-        new_inquiry = self._transform_inquiry(raw_inquiry)
-
-        return new_inquiry
+        return InquiryResponseAPI.from_inquiry_api(inquiry)
 
     def put(self, inquiry_id, response_data, requester_user):
         """Provide response data to an Inquiry
@@ -130,30 +130,25 @@ class InquiriesController(ResourceController):
         LOG.debug("Inquiry %s received response payload: %s" % (inquiry_id, response_data.response))
 
         # Retrieve details of the inquiry via ID (i.e. params like schema)
-        inquiry_execution = self._get_one_by_id(
+        inquiry = self._get_one_by_id(
             id=inquiry_id,
             requester_user=requester_user,
             permission_type=PermissionType.INQUIRY_RESPOND
         )
 
-        if inquiry_execution.runner.get('runner_module') != "inquirer":
+        if inquiry.runner.get('runner_module') != "inquirer":
             abort(http_client.BAD_REQUEST, '%s is not an Inquiry.' % inquiry_id)
             return
 
-        if inquiry_execution.status != "pending":
+        if inquiry.status != "pending":
             abort(http_client.BAD_REQUEST, 'Inquiry %s has already been responded to' % inquiry_id)
             return
-
-        # For this command, the inquiry will be an actual ActionExecutionAPI object, so
-        # let's convert it to a dict first.
-        # existing_inquiry = inquiry_execution.__json__()
-        existing_inquiry = self._transform_inquiry(inquiry_execution)
 
         if not requester_user:
             requester_user = UserDB(cfg.CONF.system_user.user)
 
         # Determine permission of this user to respond to this Inquiry
-        if not self._can_respond(existing_inquiry, requester_user):
+        if not self._can_respond(inquiry, requester_user):
             abort(
                 http_client.FORBIDDEN,
                 'Insufficient permission to respond based on Inquiry parameters.'
@@ -161,7 +156,7 @@ class InquiriesController(ResourceController):
             return
 
         # Validate the body of the response against the schema parameter for this inquiry
-        schema = existing_inquiry.get('schema')
+        schema = inquiry.schema
         LOG.debug("Validating inquiry response: %s against schema: %s" %
                   (response_data.response, schema))
         try:
@@ -172,7 +167,7 @@ class InquiriesController(ResourceController):
 
         # Update inquiry for completion
         liveaction_db = self._mark_inquiry_complete(
-            inquiry_execution.liveaction.get('id'),
+            inquiry.liveaction.get('id'),
             {"response": response_data.response}
         )
 
@@ -190,32 +185,6 @@ class InquiriesController(ResourceController):
             "id": inquiry_id,
             "response": response_data.response
         }
-
-    def _transform_inquiry(self, raw_inquiry):
-        """Transform ActionExecutionAPI model into something specific to Inquiries
-
-            We're borrowing the ActionExecution data model for the time being, so we
-            need to pick and choose fields from this to form a new franken-model for
-            Inquiries so we don't return a bunch of extra crap. The idea is to
-            provide data in response to requests that make it look like Inquiry
-            is its own data model.
-        """
-
-        # The "put" and "get" commands will have an actual ActionExecutionAPI object, so
-        # if that's what's being passed in, let's convert it to a dict first.
-        # ("get_all" provides a dict natively)
-        if isinstance(raw_inquiry, ActionExecutionAPI):
-            raw_inquiry = raw_inquiry.__json__()
-
-        desired_fields = ["tag", "ttl", "users", "roles", "schema"]
-
-        inquiry = {
-            "id": raw_inquiry["id"]
-        }
-        for field in desired_fields:
-            inquiry[field] = raw_inquiry["result"][field]
-
-        return inquiry
 
     def _mark_inquiry_complete(self, inquiry_id, result):
         """Mark Inquiry as completed
@@ -265,7 +234,7 @@ class InquiriesController(ResourceController):
         users_passed = False
 
         # Determine role-level permissions
-        roles = inquiry.get('roles')
+        roles = inquiry.roles
         if roles:
             for role in roles:
                 LOG.debug("Checking user %s is in role %s" % (requester_user, role))
@@ -280,7 +249,7 @@ class InquiriesController(ResourceController):
             roles_passed = True
 
         # Determine user-level permissions
-        users = inquiry.get('users')
+        users = inquiry.users
         if users:
             if requester_user.name in users:
                 users_passed = True
