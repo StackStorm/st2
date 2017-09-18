@@ -282,6 +282,7 @@ class CommandsHelpStringTestCase(BaseCLITestCase):
 
     capture_output = True
 
+    # TODO: Automatically iterate all the available commands
     COMMANDS = [
         # action
         ['action', 'list'],
