@@ -305,6 +305,7 @@ class CommandsHelpStringTestCase(BaseCLITestCase):
         shell = Shell()
 
         for command in self.COMMANDS:
+            # First test longhang notation
             argv = command + ['--help']
 
             try:
@@ -322,17 +323,9 @@ class CommandsHelpStringTestCase(BaseCLITestCase):
             self.assertTrue('optional arguments:' in stdout)
 
             # Reset stdout and stderr after each iteration
-            self.stdout.seek(0)
-            self.stdout.truncate()
-            self.stderr.seek(0)
-            self.stderr.truncate()
+            self._reset_output_streams()
 
-            # Verify it has been reset correctly
-            self.assertEqual(self.stdout.getvalue(), '')
-            self.assertEqual(self.stderr.getvalue(), '')
-
-        # Then shorthand notation
-        for command in self.COMMANDS:
+            # Then shorthand notation
             argv = command + ['-h']
 
             try:
@@ -354,12 +347,4 @@ class CommandsHelpStringTestCase(BaseCLITestCase):
             # --help flag
             self.assertTrue('too few arguments' not in stdout)
 
-            # Reset stdout and stderr after each iteration
-            self.stdout.seek(0)
-            self.stdout.truncate()
-            self.stderr.seek(0)
-            self.stderr.truncate()
-
-            # Verify it has been reset correctly
-            self.assertEqual(self.stdout.getvalue(), '')
-            self.assertEqual(self.stderr.getvalue(), '')
+            self._reset_output_streams()
