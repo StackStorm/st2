@@ -37,6 +37,9 @@ Fixed
   impact but just messes with rabbitmqadmin output and maybe tedious for operators. (bug fix) #3628
 
   Reported by Igor.
+* Add missing ``-h`` / ``--help`` CLI flag to the following execution CLI commands: cancel, pause,
+  resume. (bug fix) #3750
+* Fix execution cancel and pause CLI commands and make id a required argument. (bug fix) #3750
 
 2.4.1 - September 12, 2017
 --------------------------
