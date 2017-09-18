@@ -1417,20 +1417,22 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
             is_execution_event = status is not None
 
             if is_execution_event:
-                task_name = event.get('context', {}).get('chain', {}).get('name', 'unknown')
-                task_parent_execution_id = event.get('parent', None)
+                context = self._get_normalized_context_execution_task_event(event=event)
+                task_execution_id = context['execution_id']
+                task_name = context['task_name']
+                task_parent_execution_id = context['parent_execution_id']
                 is_child_execution = (task_parent_execution_id == parent_execution_id)
 
                 if is_child_execution:
                     if status == LIVEACTION_STATUS_RUNNING:
                         print('Child execution (task=%s) %s has started.' % (task_name,
-                                                                             event['id']))
+                                                                             task_execution_id))
                         print('')
                         continue
                     elif status in LIVEACTION_COMPLETED_STATES:
                         print('')
-                        print('Child execution (task=%s) %s has finished (status=%s).' %
-                              (task_name, event['id'], status))
+                        print('Child execution (task=%s) %s has finished (status=%s).' % (task_name,
+                              task_execution_id, status))
                         continue
                     else:
                         # We don't care about other child events so we simply skip then
@@ -1455,3 +1457,30 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
                                                   event['data']))
             else:
                 sys.stdout.write(event['data'])
+
+    def _get_normalized_context_execution_task_event(self, event):
+        """
+        Return a dictionary with normalized context attributes for Action-Chain and Mistral
+        workflows.
+        """
+        context = event.get('context', {})
+
+        result = {
+            'parent_execution_id': None,
+            'execution_id': None,
+            'task_name': None
+        }
+
+        if 'mistral' in context:
+            # Mistral workflow
+            context = context.get('mistral', {})
+            result['parent_execution_id'] = context.get('parent', {}).get('execution_id', None)
+            result['execution_id'] = event['id']
+            result['task_name'] = context.get('task_name', 'unknown')
+        else:
+            # Action chain workflow
+            result['parent_execution_id'] = event.get('parent', None)
+            result['execution_id'] = event['id']
+            result['task_name'] = context.get('chain', {}).get('name', 'unknown')
+
+        return result
