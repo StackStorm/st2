@@ -1,0 +1,6 @@
+---
+name: "mistral-streaming-demo"
+description: "Action output streaming functionality demo for Mistral workflows."
+runner_type: "mistral-v2"
+entry_point: "workflows/mistral-streaming-demo.yaml"
+enabled: true
