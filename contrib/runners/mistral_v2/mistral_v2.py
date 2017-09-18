@@ -461,10 +461,16 @@ class MistralRunner(AsyncActionRunner):
         # running will be allowed to complete gracefully.
         self._client.executions.update(mistral_ctx.get('execution_id'), 'CANCELLED')
 
+        # If workflow is executed under another parent workflow, cancel the corresponding
+        # action execution for the task in the parent workflow.
+        if 'parent' in getattr(self, 'context', {}) and mistral_ctx.get('action_execution_id'):
+            mistral_action_ex_id = mistral_ctx.get('action_execution_id')
+            self._client.action_executions.update(mistral_action_ex_id, 'CANCELLED')
+
         # Identify the list of action executions that are workflows and still running.
         for child_exec_id in self.execution.children:
             child_exec = ActionExecution.get(id=child_exec_id)
-            if (child_exec.runner['name'] == self.runner_type_db.name and
+            if (child_exec.runner['name'] in action_constants.WORKFLOW_RUNNER_TYPES and
                     child_exec.status in action_constants.LIVEACTION_CANCELABLE_STATES):
                 action_service.request_cancellation(
                     LiveAction.get(id=child_exec.liveaction['id']),

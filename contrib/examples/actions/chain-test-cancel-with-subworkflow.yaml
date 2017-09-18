@@ -1,0 +1,13 @@
+---
+name: chain-test-cancel-with-subworkflow
+description: Simple action chain with a Mistral subworkflow to test cancellation.
+runner_type: action-chain
+entry_point: chains/chain_test_cancel_with_subworkflow.yaml
+enabled: true
+parameters:
+    tempfile:
+        type: string
+        required: true
+    message:
+        type: string
+        required: true
