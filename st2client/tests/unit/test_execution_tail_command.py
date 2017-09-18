@@ -40,10 +40,83 @@ MOCK_LIVEACTION_2 = {
     'status': LIVEACTION_STATUS_FAILED
 }
 
-MOCK_LIVEACTION_3 = {
+MOCK_LIVEACTION_3_RUNNING = {
     'id': 'idfoo3',
     'status': LIVEACTION_STATUS_RUNNING
 }
+
+# Mock liveaction objects for ActionChain workflow
+MOCK_LIVEACTION_3_CHILD_1_RUNNING = {
+    'id': 'idchild1',
+    'context': {
+        'parent': 'idfoo3',
+        'chain': {
+            'name': 'task_1'
+        }
+    },
+    'status': LIVEACTION_STATUS_RUNNING
+}
+
+MOCK_LIVEACTION_3_CHILD_1_SUCCEEDED = {
+    'id': 'idchild1',
+    'context': {
+        'parent': 'idfoo3',
+        'chain': {
+            'name': 'task_1'
+        }
+    },
+    'status': LIVEACTION_STATUS_SUCCEEDED
+}
+
+MOCK_LIVEACTION_3_CHILD_1_OUTPUT_1 = {
+    'execution_id': 'idchild1',
+    'timestamp': '1505732598',
+    'output_type': 'stdout',
+    'data': 'line 4\n'
+}
+
+MOCK_LIVEACTION_3_CHILD_1_OUTPUT_2 = {
+    'execution_id': 'idchild1',
+    'timestamp': '1505732598',
+    'output_type': 'stderr',
+    'data': 'line 5\n'
+}
+
+MOCK_LIVEACTION_3_CHILD_2_RUNNING = {
+    'id': 'idchild2',
+    'context': {
+        'parent': 'idfoo3',
+        'chain': {
+            'name': 'task_2'
+        }
+    },
+    'status': LIVEACTION_STATUS_RUNNING
+}
+
+MOCK_LIVEACTION_3_CHILD_2_FAILED = {
+    'id': 'idchild2',
+    'context': {
+        'parent': 'idfoo3',
+        'chain': {
+            'name': 'task_2'
+        }
+    },
+    'status': LIVEACTION_STATUS_FAILED
+}
+
+MOCK_LIVEACTION_3_CHILD_2_OUTPUT_1 = {
+    'execution_id': 'idchild2',
+    'timestamp': '1505732598',
+    'output_type': 'stdout',
+    'data': 'line 100\n'
+}
+
+MOCK_LIVEACTION_3_SUCCEDED = {
+    'id': 'idfoo3',
+    'status': LIVEACTION_STATUS_SUCCEEDED
+}
+
+# Mock objects for simple actions
 
 MOCK_OUTPUT_1 = {
     'execution_id': 'idfoo3',
@@ -94,7 +167,7 @@ class ActionExecutionTailCommandTestCase(BaseCLITestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(MOCK_LIVEACTION_3), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(MOCK_LIVEACTION_3_RUNNING), 200, 'OK')))
     @mock.patch('st2client.client.StreamManager', autospec=True)
     def test_tail_simple_execution_running_no_data_produced(self, mock_stream_manager):
         argv = ['execution', 'tail', 'idfoo1']
@@ -124,13 +197,13 @@ Execution idfoo1 has completed (status=succeeded).
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(MOCK_LIVEACTION_3), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(MOCK_LIVEACTION_3_RUNNING), 200, 'OK')))
     @mock.patch('st2client.client.StreamManager', autospec=True)
     def test_tail_simple_execution_running_with_data(self, mock_stream_manager):
         argv = ['execution', 'tail', 'idfoo1']
 
         MOCK_EVENTS = [
-            MOCK_LIVEACTION_3,
+            MOCK_LIVEACTION_3_RUNNING,
             MOCK_OUTPUT_1,
             MOCK_OUTPUT_2,
             MOCK_LIVEACTION_1
@@ -158,8 +231,70 @@ Execution idfoo1 has completed (status=succeeded).
         self.assertEqual(stdout, expected_result)
         self.assertEqual(stderr, '')
 
-    def test_tail_action_chain_workflow_execution(self):
-        return
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(MOCK_LIVEACTION_3_RUNNING), 200, 'OK')))
+    @mock.patch('st2client.client.StreamManager', autospec=True)
+    def test_tail_action_chain_workflow_execution(self, mock_stream_manager):
+        argv = ['execution', 'tail', 'idfoo3']
+
+        MOCK_EVENTS = [
+            # Workflow started running
+            MOCK_LIVEACTION_3_RUNNING,
+
+            # Child task 1 started running
+            MOCK_LIVEACTION_3_CHILD_1_RUNNING,
+
+            # Output produced by the child task
+            MOCK_LIVEACTION_3_CHILD_1_OUTPUT_1,
+            MOCK_LIVEACTION_3_CHILD_1_OUTPUT_2,
+
+            # Child task 1 finished
+            MOCK_LIVEACTION_3_CHILD_1_SUCCEEDED,
+
+            # Child task 2 started running
+            MOCK_LIVEACTION_3_CHILD_2_RUNNING,
+
+            # Output produced by child task
+            MOCK_LIVEACTION_3_CHILD_2_OUTPUT_1,
+
+            # Child task 2 finished
+            MOCK_LIVEACTION_3_CHILD_2_FAILED,
+
+            # Parent workflow task finished
+            MOCK_LIVEACTION_3_SUCCEDED
+        ]
+
+        mock_cls = mock.Mock()
+        mock_cls.listen = mock.Mock()
+        mock_listen_generator = mock.Mock()
+        mock_listen_generator.return_value = MOCK_EVENTS
+        mock_cls.listen.side_effect = mock_listen_generator
+        mock_stream_manager.return_value = mock_cls
+
+        self.assertEqual(self.shell.run(argv), 0)
+        self.assertEqual(mock_listen_generator.call_count, 1)
+
+        stdout = self.stdout.getvalue()
+        stderr = self.stderr.getvalue()
+
+        expected_result = """
+Child execution (task=task_1) idchild1 has started.
+
+line 4
+line 5
+
+Child execution (task=task_1) idchild1 has finished (status=succeeded).
+Child execution (task=task_2) idchild2 has started.
+
+line 100
+
+Child execution (task=task_2) idchild2 has finished (status=failed).
+
+Execution idfoo3 has completed (status=succeeded).
+""".lstrip()
+        self.assertEqual(stdout, expected_result)
+        self.assertEqual(stderr, '')
 
     def test_tail_mistral_workflow_execution(self):
         return
