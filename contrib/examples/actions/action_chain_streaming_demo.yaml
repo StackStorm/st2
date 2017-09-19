@@ -4,3 +4,12 @@ description: "Action output streaming functionality demo for action chain workfl
 runner_type: "action-chain"
 entry_point: "chains/action_chain_streaming_demo.yaml"
 enabled: true
+parameters:
+  count:
+    type: "integer"
+    required: true
+    default: 5
+  sleep_delay:
+    type: "number"
+    required: true
+    default: 0.2

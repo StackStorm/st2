@@ -10,8 +10,8 @@
       name: "task2"
       ref: "examples.local_command_runner_print_to_stdout_and_stderr"
       parameters:
-          count: 5
-          sleep_delay: 0.2
+          count: "{{ count }}"
+          sleep_delay: "{{ sleep_delay }}"
       on-success: "task3"
     -
       name: "task3"
@@ -23,8 +23,8 @@
       name: "task4"
       ref: "examples.local_script_runner_print_to_stdout_and_stderr"
       parameters:
-          count: 5
-          sleep_delay: 0.2
+          count: "{{ count }}"
+          sleep_delay: "{{ sleep_delay }}"
       on-success: "task5"
     -
       name: "task5"
@@ -36,8 +36,8 @@
       name: "task6"
       ref: "examples.python_runner_print_to_stdout_and_stderr"
       parameters:
-          count: 5
-          sleep_delay: 0.2
+          count: "{{ count }}"
+          sleep_delay: "{{ sleep_delay }}"
       on-success: "task7"
     -
       name: "task7"
@@ -50,8 +50,8 @@
       ref: "examples.remote_command_runner_print_to_stdout_and_stderr"
       parameters:
           hosts: localhost
-          count: 5
-          sleep_delay: 0.2
+          count: "{{ count }}"
+          sleep_delay: "{{ sleep_delay }}"
       on-success: "task9"
     -
       name: "task9"
@@ -64,6 +64,6 @@
       ref: "examples.remote_script_runner_print_to_stdout_and_stderr"
       parameters:
           hosts: localhost
-          count: 5
-          sleep_delay: 0.2
+          count: "{{ count }}"
+          sleep_delay: "{{ sleep_delay }}"
   default: "task1"

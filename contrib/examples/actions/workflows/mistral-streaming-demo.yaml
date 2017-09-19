@@ -3,6 +3,9 @@ version: '2.0'
 examples.mistral-streaming-demo:
   description: A workflow which demonstrates action output streaming functionality.
   type: direct
+  input:
+    - count
+    - sleep_delay
   output:
     stdout: <% $.stdout %>
   tasks:
@@ -14,8 +17,8 @@ examples.mistral-streaming-demo:
     task2:
       action: examples.local_command_runner_print_to_stdout_and_stderr
       input:
-        count: 5
-        sleep_delay: 0.2
+        count: "{{ count }}"
+        sleep_delay: "{{ sleep_delay }}"
       on-success: "task3"
     task3:
       action: core.local
@@ -25,8 +28,8 @@ examples.mistral-streaming-demo:
     task4:
       action: examples.local_script_runner_print_to_stdout_and_stderr
       input:
-        count: 5
-        sleep_delay: 0.2
+        count: "{{ count }}"
+        sleep_delay: "{{ sleep_delay }}"
       on-success: "task5"
     task5:
       action: core.local
@@ -36,8 +39,8 @@ examples.mistral-streaming-demo:
     task6:
       action: examples.python_runner_print_to_stdout_and_stderr
       input:
-        count: 5
-        sleep_delay: 0.2
+        count: "{{ count }}"
+        sleep_delay: "{{ sleep_delay }}"
       on-success: "task7"
     task7:
       action: core.local
@@ -47,8 +50,8 @@ examples.mistral-streaming-demo:
     task8:
       action: examples.remote_command_runner_print_to_stdout_and_stderr
       input:
-        count: 5
-        sleep_delay: 0.2
+        count: "{{ count }}"
+        sleep_delay: "{{ sleep_delay }}"
       on-success: "task9"
     task9:
       action: core.local
@@ -58,5 +61,5 @@ examples.mistral-streaming-demo:
     task10:
       action: examples.remote_script_runner_print_to_stdout_and_stderr
       input:
-        count: 5
-        sleep_delay: 0.2
+        count: "{{ count }}"
+        sleep_delay: "{{ sleep_delay }}"
