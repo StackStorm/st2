@@ -37,6 +37,11 @@ Fixed
   impact but just messes with rabbitmqadmin output and maybe tedious for operators. (bug fix) #3628
 
   Reported by Igor.
+* Make sure all the temporary RabbitMQ queues used by the stream service are deleted once the
+  connection to RabbitMQ is closed. Those queues are temporary and unique in nature and new ones
+  are created on each service start-up so we need to make sure to correctly clean up old queues.
+
+  #3746
 * Add missing ``-h`` / ``--help`` CLI flag to the following execution CLI commands: cancel, pause,
   resume. (bug fix) #3750
 * Fix execution cancel and pause CLI commands and make id a required argument. (bug fix) #3750
