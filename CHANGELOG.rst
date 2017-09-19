@@ -38,6 +38,10 @@ Fixed
 
   Reported by Igor.
 
+* Fix missing type for the parameters with enum in the core st2 packs.(bug fix) #3737
+
+  Reported by Nick Maludy.
+
 2.4.1 - September 12, 2017
 --------------------------
 
