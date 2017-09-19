@@ -11,7 +11,7 @@
       ref: "examples.local_command_runner_print_to_stdout_and_stderr"
       parameters:
           count: 5
-          sleep_delay: 0.5
+          sleep_delay: 0.2
       on-success: "task3"
     -
       name: "task3"
@@ -24,7 +24,7 @@
       ref: "examples.local_script_runner_print_to_stdout_and_stderr"
       parameters:
           count: 5
-          sleep_delay: 0.5
+          sleep_delay: 0.2
       on-success: "task5"
     -
       name: "task5"
@@ -37,7 +37,7 @@
       ref: "examples.python_runner_print_to_stdout_and_stderr"
       parameters:
           count: 5
-          sleep_delay: 0.5
+          sleep_delay: 0.2
       on-success: "task7"
     -
       name: "task7"
@@ -51,7 +51,7 @@
       parameters:
           hosts: localhost
           count: 5
-          sleep_delay: 0.5
+          sleep_delay: 0.2
       on-success: "task9"
     -
       name: "task9"
@@ -65,5 +65,5 @@
       parameters:
           hosts: localhost
           count: 5
-          sleep_delay: 0.5
+          sleep_delay: 0.2
   default: "task1"
