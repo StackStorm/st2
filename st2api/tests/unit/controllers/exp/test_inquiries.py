@@ -115,6 +115,7 @@ class InquiryControllerTestCase(BaseInquiryControllerTestCase):
             self._do_create_inquiry(INQUIRY_1, RESULT_DEFAULT)
         get_all_resp = self._do_get_all()
         inquiries = get_all_resp.json
+        self.assertEqual(get_all_resp.headers['X-Total-Count'], str(len(inquiries)))
         self.assertTrue(isinstance(inquiries, list))
         self.assertEqual(len(inquiries), inquiry_count)
 
@@ -162,6 +163,7 @@ class InquiryControllerTestCase(BaseInquiryControllerTestCase):
         get_all_resp = self._do_get_all(limit=limit)
         inquiries = get_all_resp.json
         self.assertTrue(isinstance(inquiries, list))
+        self.assertEqual(inquiry_count, int(get_all_resp.headers['X-Total-Count']))
         self.assertEqual(len(inquiries), limit)
 
     def test_get_one(self):

@@ -13,11 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 from oslo_config import cfg
 
 import copy
 import jsonschema
-import json
 
 from six.moves import http_client
 from st2common.models.db.auth import UserDB
@@ -31,6 +31,7 @@ from st2common.constants import action as action_constants
 from st2common.rbac.types import PermissionType
 from st2common.rbac import utils as rbac_utils
 from st2common.router import abort
+from st2common.router import Response
 from st2common.models.api.inquiry import InquiryAPI, InquiryResponseAPI
 from st2common.persistence.execution import ActionExecution
 from st2common.services import action as action_service
@@ -63,30 +64,27 @@ class InquiriesController(ResourceController):
            TODO(mierdin): This function doesn't currently make RBAC assertions for two reasons:
            - The equivalent for executions (Resource._get_all) doesn't seem to do this either.
            - I am not sure the best approach, since I would have to make an assertion
-             inside the below loop?
+             inside the below loop/comprehension?
 
             Handles requests:
                 GET /inquiries/
         """
 
-        raw_inquiries = self._get_all(
+        raw_inquiries = super(InquiriesController, self)._get_all(
             limit=limit,
             raw_filters={'status': 'pending', 'runner': 'inquirer'}
         )
 
-        inquiries = []
-        for raw_inquiry in json.loads(raw_inquiries.body):
+        # Transform to InquiryResponseAPI model
+        inquiries = [InquiryResponseAPI.from_inquiry_api(InquiryAPI.from_dict(raw_inquiry))
+                     for raw_inquiry in json.loads(raw_inquiries.body)]
 
-            inquiry = InquiryAPI(**raw_inquiry)
-
-            # _get_all includes workflows that also contain executions
-            # with 'pending' status, so we want to exclude all workflows
-            if inquiry.children:
-                continue
-
-            inquiries.append(InquiryResponseAPI.from_inquiry_api(inquiry))
-
-        return inquiries
+        # Repackage into Response with correct headers
+        resp = Response(json=inquiries)
+        resp.headers['X-Total-Count'] = raw_inquiries.headers['X-Total-Count']
+        if limit:
+            resp.headers['X-Limit'] = str(limit)
+        return resp
 
     def get_one(self, inquiry_id, requester_user=None):
         """Retrieve a single Inquiry
@@ -166,9 +164,11 @@ class InquiriesController(ResourceController):
             return
 
         # Update inquiry for completion
+        new_result = copy.deepcopy(inquiry.result)
+        new_result["response"] = response_data.response
         liveaction_db = self._mark_inquiry_complete(
             inquiry.liveaction.get('id'),
-            {"response": response_data.response}
+            new_result
         )
 
         # We only want to request a workflow resume if this has a parent

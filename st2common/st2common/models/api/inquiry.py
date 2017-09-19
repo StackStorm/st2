@@ -100,10 +100,13 @@ class InquiryAPI(BaseAPI):
                 "enum": LIVEACTION_STATUSES
             },
             "parent": {"type": "string"},
-            "children": {
-                "type": "array",
-                "items": {"type": "string"},
-                "uniqueItems": True
+            "result": {
+                "anyOf": [{"type": "array"},
+                          {"type": "boolean"},
+                          {"type": "integer"},
+                          {"type": "number"},
+                          {"type": "object"},
+                          {"type": "string"}]
             }
         },
         "additionalProperties": False
@@ -118,9 +121,32 @@ class InquiryAPI(BaseAPI):
             "runner": doc["runner"],
             "status": doc["status"],
             "liveaction": doc["liveaction"],
-            "parent": doc["parent"],
-            "children": doc["children"]
+            "parent": doc.get("parent"),
+            "result": doc['result']
         }
+
+        for field in ["tag", "ttl", "users", "roles", "schema"]:
+            newdoc[field] = doc["result"][field]
+
+        return cls(**newdoc)
+
+    @classmethod
+    def from_dict(cls, doc):
+        """Translates InquiryAPI in its dict format into a class instance
+
+        This is similar to from_model but without executing the _from_model function,
+        as this takes a dict as a parameter.
+        """
+
+        newdoc = {
+            "id": doc["id"],
+            "runner": doc["runner"],
+            "status": doc["status"],
+            "liveaction": doc["liveaction"],
+            "parent": doc.get("parent"),
+            "result": doc['result']
+        }
+
         for field in ["tag", "ttl", "users", "roles", "schema"]:
             newdoc[field] = doc["result"][field]
 
@@ -179,6 +205,18 @@ class InquiryResponseAPI(BaseAPI):
         },
         "additionalProperties": False
     }
+
+    @classmethod
+    def from_model(cls, model, mask_secrets=False):
+        doc = cls._from_model(model, mask_secrets=mask_secrets)
+
+        newdoc = {
+            "id": doc["id"]
+        }
+        for field in ["tag", "ttl", "users", "roles", "schema"]:
+            newdoc[field] = doc["result"][field]
+
+        return cls(**newdoc)
 
     @classmethod
     def from_inquiry_api(cls, inquiry_api, mask_secrets=False):
