@@ -1253,7 +1253,7 @@ paths:
           required: true
           description: Inquiry response
           schema:
-            $ref: '#/definitions/InquiryResponse'
+            $ref: '#/definitions/InquiryResponseResult'
       x-parameters:
         - name: user
           in: context
@@ -1263,7 +1263,7 @@ paths:
         '200':
           description: Response received
           schema:
-            $ref: '#/definitions/InquiryResponse'
+            $ref: '#/definitions/InquiryResponseResult'
           examples:
             application/json:
               ref: 'core.local'
@@ -4151,7 +4151,7 @@ definitions:
       ttl:
         description: Time (in minutes) that an unacknowledged Inquiry is cleaned up
         type: integer
-  InquiryResponse:
+  InquiryResponseResult:
     type: object
     required:
       - id
