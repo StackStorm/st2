@@ -1472,10 +1472,9 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
 
         if 'mistral' in context:
             # Mistral workflow
-            context = context.get('mistral', {})
             result['parent_execution_id'] = context.get('parent', {}).get('execution_id', None)
             result['execution_id'] = event['id']
-            result['task_name'] = context.get('task_name', 'unknown')
+            result['task_name'] = context.get('mistral', {}).get('task_name', 'unknown')
         else:
             # Action chain workflow
             result['parent_execution_id'] = context.get('parent', {}).get('execution_id', None)

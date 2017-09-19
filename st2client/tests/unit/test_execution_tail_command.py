@@ -135,10 +135,10 @@ MOCK_LIVEACTION_4_CHILD_1_RUNNING = {
     'id': 'idmistralchild1',
     'context': {
         'mistral': {
-            'parent': {
-                'execution_id': 'idfoo4'
-            },
             'task_name': 'task_1'
+        },
+        'parent': {
+            'execution_id': 'idfoo4'
         }
     },
     'status': LIVEACTION_STATUS_RUNNING
@@ -148,10 +148,10 @@ MOCK_LIVEACTION_4_CHILD_1_SUCCEEDED = {
     'id': 'idmistralchild1',
     'context': {
         'mistral': {
-            'parent': {
-                'execution_id': 'idfoo4'
-            },
-            'task_name': 'task_1'
+            'task_name': 'task_1',
+        },
+        'parent': {
+            'execution_id': 'idfoo4'
         }
     },
     'status': LIVEACTION_STATUS_SUCCEEDED
@@ -175,10 +175,10 @@ MOCK_LIVEACTION_4_CHILD_2_RUNNING = {
     'id': 'idmistralchild2',
     'context': {
         'mistral': {
-            'parent': {
-                'execution_id': 'idfoo4'
-            },
-            'task_name': 'task_2'
+            'task_name': 'task_2',
+        },
+        'parent': {
+            'execution_id': 'idfoo4'
         }
     },
     'status': LIVEACTION_STATUS_RUNNING
@@ -188,10 +188,10 @@ MOCK_LIVEACTION_4_CHILD_2_TIMED_OUT = {
     'id': 'idmistralchild2',
     'context': {
         'mistral': {
-            'parent': {
-                'execution_id': 'idfoo4'
-            },
-            'task_name': 'task_2'
+            'task_name': 'task_2',
+        },
+        'parent': {
+            'execution_id': 'idfoo4'
         }
     },
     'status': LIVEACTION_STATUS_TIMED_OUT
