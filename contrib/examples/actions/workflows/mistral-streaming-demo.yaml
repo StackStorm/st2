@@ -6,8 +6,6 @@ examples.mistral-streaming-demo:
   input:
     - count
     - sleep_delay
-  output:
-    stdout: <% $.stdout %>
   tasks:
     task1:
       action: core.local
