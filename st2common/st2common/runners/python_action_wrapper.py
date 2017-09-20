@@ -36,7 +36,7 @@ from oslo_config import cfg
 
 from st2common import log as logging
 from st2actions import config
-from st2common.runners.base_action import Action
+from st2common.runners import base_action as legacy
 from st2common.runners.utils import get_logger_for_python_runner_action
 from st2common.runners.utils import get_action_class_instance
 from st2common.util import loader as action_loader
@@ -45,6 +45,7 @@ from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.constants.runners import PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE
 from st2common.database_setup import db_setup
+from st2forge.packs import actions as forge
 
 __all__ = [
     'PythonActionWrapper',
@@ -197,7 +198,7 @@ class PythonActionWrapper(object):
 
     def _get_action_instance(self):
         try:
-            actions_cls = action_loader.register_plugin(Action, self._file_path)
+            actions_cls = action_loader.register_plugin(legacy.Action, self._file_path)
         except Exception as e:
             tb_msg = traceback.format_exc()
             msg = ('Failed to load action class from file "%s" (action file most likely doesn\'t '
@@ -224,9 +225,26 @@ class PythonActionWrapper(object):
             config = None
 
         action_service = ActionService(action_wrapper=self)
-        action_instance = get_action_class_instance(action_cls=action_cls,
-                                                    config=config,
-                                                    action_service=action_service)
+
+        # The base python action class st2common.runners.base_action.Action
+        # will be deprecated in future releases. Python action based on this
+        # class is supported here for backward compatibility.
+        if issubclass(action_cls, legacy.Action):
+            action_instance = get_action_class_instance(
+                action_cls=action_cls,
+                config=config,
+                action_service=action_service
+            )
+        elif issubclass(action_cls, forge.Action):
+            action_instance = get_action_class_instance(
+                action_cls=action_cls,
+                config=config,
+                action_service=action_service,
+                logger=get_logger_for_python_runner_action(action_name=action_cls.__name__)
+            )
+        else:
+            raise TypeError('Python action is not a subclass of supported types.')
+
         return action_instance
 
 

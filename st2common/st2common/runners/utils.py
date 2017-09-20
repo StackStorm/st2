@@ -54,7 +54,7 @@ def get_logger_for_python_runner_action(action_name):
     return logger
 
 
-def get_action_class_instance(action_cls, config=None, action_service=None):
+def get_action_class_instance(action_cls, config=None, action_service=None, logger=None):
     """
     Instantiate and return Action class instance.
 
@@ -66,10 +66,16 @@ def get_action_class_instance(action_cls, config=None, action_service=None):
 
     :param action_service: ActionService instance to pass to the class.
     :type action_service: :class:`ActionService`
+
+    :param logger: Logger object to pass into the Action class.
+    :type logger: :class:`Logger`
     """
     kwargs = {}
     kwargs['config'] = config
     kwargs['action_service'] = action_service
+
+    if logger:
+        kwargs['logger'] = logger
 
     # Note: This is done for backward compatibility reasons. We first try to pass
     # "action_service" argument to the action class constructor, but if that doesn't work (e.g. old
