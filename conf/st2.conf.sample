@@ -180,7 +180,7 @@ api_url = None
 # Multiplier for the exponential backoff.
 retry_exp_msec = 1000
 # Jitter interval to smooth out HTTP requests to mistral tasks and executions API.
-jitter_interval = 0
+jitter_interval = 0.1
 # Allow insecure communication with Mistral.
 insecure = False
 # Username for authentication.
