@@ -1193,6 +1193,7 @@ paths:
   /api/exp/inquiries:
     get:
       operationId: st2api.controllers.exp.inquiries:inquiries_controller.get_all
+      x-permissions: inquiry_list
       description: Returns a list of all inquiries
       parameters:
         - name: limit
