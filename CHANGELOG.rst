@@ -42,6 +42,9 @@ Fixed
   are created on each service start-up so we need to make sure to correctly clean up old queues.
 
   #3746
+* Fix cancellation of subworkflow and subchain. Cancel of Mistral workflow or Action Chain is
+  cascaded down to subworkflows appropriately. Cancel from tasks in the workflow or chain is
+  cascaded up to the parent. (bug fix) 
 
 * Fix missing type for the parameters with enum in the core st2 packs.(bug fix) #3737
 
