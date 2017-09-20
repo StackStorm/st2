@@ -33,5 +33,5 @@
     ttl:
       default: 1440
       required: true
-      description: Time (in minutes) that an unacknowledged Inquiry is cleaned up
+      description: Time (in minutes) to wait before timing out the inquiry if no response is received
       type: integer
