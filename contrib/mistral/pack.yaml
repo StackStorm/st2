@@ -1,0 +1,6 @@
+---
+name: mistral
+description: Pack which contains sensors, triggers, actions and rules for managing mistral.
+version: 0.1.0
+author : st2-dev
+email : info@stackstorm.com

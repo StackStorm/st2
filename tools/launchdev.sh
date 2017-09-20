@@ -277,10 +277,10 @@ function st2start(){
         --config-file $ST2_CONF
 
     # Run the results tracker
-    echo 'Starting screen session st2-resultstracker...'
-    screen -d -m -S st2-resultstracker ./virtualenv/bin/python \
-        ./st2actions/bin/st2resultstracker \
-        --config-file $ST2_CONF
+    # echo 'Starting screen session st2-resultstracker...'
+    # screen -d -m -S st2-resultstracker ./virtualenv/bin/python \
+    #     ./st2actions/bin/st2resultstracker \
+    #     --config-file $ST2_CONF
 
     # Run the actions notifier
     echo 'Starting screen session st2-notifier...'
