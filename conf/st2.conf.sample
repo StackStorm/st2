@@ -180,7 +180,7 @@ api_url = None
 # Multiplier for the exponential backoff.
 retry_exp_msec = 1000
 # Jitter interval to smooth out HTTP requests to mistral tasks and executions API.
-jitter_interval = 1
+jitter_interval = 0.1
 # Allow insecure communication with Mistral.
 insecure = False
 # Username for authentication.
@@ -205,10 +205,14 @@ retry_exp_max_msec = 300000
 logging = conf/logging.notifier.conf
 
 [resultstracker]
-# Time interval between subsequent queries for a context to external workflow system.
-query_interval = 20
+# Time interval between queries to external workflow system.
+query_interval = 1
+# Sleep delay in between queries when query queue is empty.
+empty_q_sleep_time = 1
 # Location of the logging configuration file.
 logging = conf/logging.resultstracker.conf
+# Sleep delay for query when there is no more worker in pool.
+no_workers_sleep_time = 1
 # Number of threads to use to query external workflow systems.
 thread_pool_size = 10
 

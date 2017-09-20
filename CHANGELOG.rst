@@ -45,7 +45,10 @@ Fixed
 * Fix cancellation of subworkflow and subchain. Cancel of Mistral workflow or Action Chain is
   cascaded down to subworkflows appropriately. Cancel from tasks in the workflow or chain is
   cascaded up to the parent. (bug fix) 
-
+* Fix delays in st2resultstracker on querying workflow status from Mistral. Make sleep time for
+  empty queue and no workers configurable. Reduce the default sleep times to 1 second. StackStorm
+  instances that handle more workflows should consider increasing the query interval for better
+  CPU utilization.
 * Fix missing type for the parameters with enum in the core st2 packs.(bug fix) #3737
 
   Reported by Nick Maludy.
