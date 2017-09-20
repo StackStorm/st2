@@ -45,6 +45,8 @@ __all__ = [
 ]
 
 LOG = logging.getLogger(__name__)
+INQUIRY_STATUS = 'pending'
+INQUIRY_RUNNER = 'inquirer'
 
 
 class InquiriesController(ResourceController):
@@ -67,7 +69,7 @@ class InquiriesController(ResourceController):
 
         raw_inquiries = super(InquiriesController, self)._get_all(
             limit=limit,
-            raw_filters={'status': 'pending', 'runner': 'inquirer'}
+            raw_filters={'status': INQUIRY_STATUS, 'runner': INQUIRY_RUNNER}
         )
 
         # Transform to InquiryResponseAPI model
@@ -98,12 +100,7 @@ class InquiriesController(ResourceController):
             permission_type=PermissionType.INQUIRY_VIEW
         )
 
-        if inquiry.runner.get('runner_module') != "inquirer":
-            abort(http_client.BAD_REQUEST, '%s is not an Inquiry.' % inquiry_id)
-            return
-
-        if inquiry.status != "pending":
-            abort(http_client.BAD_REQUEST, 'Inquiry %s has already been responded to' % inquiry_id)
+        if not self._inquiry_sanity_check(inquiry):
             return
 
         return InquiryResponseAPI.from_inquiry_api(inquiry)
@@ -129,12 +126,7 @@ class InquiriesController(ResourceController):
             permission_type=PermissionType.INQUIRY_RESPOND
         )
 
-        if inquiry.runner.get('runner_module') != "inquirer":
-            abort(http_client.BAD_REQUEST, '%s is not an Inquiry.' % inquiry_id)
-            return
-
-        if inquiry.status != "pending":
-            abort(http_client.BAD_REQUEST, 'Inquiry %s has already been responded to' % inquiry_id)
+        if not self._inquiry_sanity_check(inquiry):
             return
 
         if not requester_user:
@@ -180,6 +172,27 @@ class InquiriesController(ResourceController):
             "id": inquiry_id,
             "response": response_data.response
         }
+
+    def _inquiry_sanity_check(self, inquiry_candidate):
+        """Sanity checks for ensuring that a retrieved execution is indeed an Inquiry
+
+        It must use the "inquirer" runner, and it must currently be in a "pending" status
+
+        :param inquiry_candidate: The inquiry to check
+
+        :rtype: bool - True if a valid Inquiry. False if not.
+        """
+
+        if inquiry_candidate.runner.get('runner_module') != "inquirer":
+            abort(http_client.BAD_REQUEST, '%s is not an Inquiry.' % inquiry_candidate.id)
+            return False
+
+        if inquiry_candidate.status != "pending":
+            abort(http_client.BAD_REQUEST,
+                  'Inquiry %s has already been responded to' % inquiry_candidate.id)
+            return False
+
+        return True
 
     def _mark_inquiry_complete(self, inquiry_id, result):
         """Mark Inquiry as completed

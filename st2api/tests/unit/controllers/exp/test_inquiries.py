@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import copy
+import json
 import mock
 
 from oslo_config import cfg
@@ -27,6 +28,21 @@ from tests.base import BaseInquiryControllerTestCase
 
 LOG = logging.getLogger(__name__)
 
+
+ACTION_1 = {
+    'name': 'st2.dummy.action1',
+    'description': 'test description',
+    'enabled': True,
+    'pack': 'testpack',
+    'runner_type': 'run-local',
+}
+
+LIVE_ACTION_1 = {
+    'action': 'testpack.st2.dummy.action1',
+    'parameters': {
+        'cmd': 'uname -a'
+    }
+}
 
 INQUIRY_ACTION = {
     'name': 'st2.dummy.ask',
@@ -102,9 +118,13 @@ class InquiryControllerTestCase(BaseInquiryControllerTestCase):
         cls.inquiry1 = copy.deepcopy(INQUIRY_ACTION)
         post_resp = cls.app.post_json('/v1/actions', cls.inquiry1)
         cls.inquiry1['id'] = post_resp.json['id']
+        cls.action1 = copy.deepcopy(ACTION_1)
+        post_resp = cls.app.post_json('/v1/actions', cls.action1)
+        cls.action1['id'] = post_resp.json['id']
 
     def tearDown(cls):
         cls.app.delete('/v1/actions/%s' % cls.inquiry1['id'])
+        cls.app.delete('/v1/actions/%s' % cls.action1['id'])
         super(BaseInquiryControllerTestCase, cls).tearDownClass()
 
     def test_get_all(self):
@@ -183,6 +203,14 @@ class InquiryControllerTestCase(BaseInquiryControllerTestCase):
         self.assertEqual(get_resp.status_int, http_client.NOT_FOUND)
         self.assertIn('Unable to identify resource with id', get_resp.json['faultstring'])
 
+    def test_get_one_not_an_inquiry(self):
+        """Test that an attempt to retrieve a valid execution that isn't an Inquiry fails
+        """
+        test_exec = json.loads(self.app.post_json('/v1/executions', LIVE_ACTION_1).body)
+        get_resp = self._do_get_one(test_exec.get('id'), expect_errors=True)
+        self.assertEqual(get_resp.status_int, http_client.BAD_REQUEST)
+        self.assertIn('is not an Inquiry', get_resp.json['faultstring'])
+
     def test_get_one_nondefault_params(self):
         """Ensure an Inquiry with custom parameters contains those in result
         """
@@ -229,6 +257,15 @@ class InquiryControllerTestCase(BaseInquiryControllerTestCase):
         put_resp = self._do_respond(inquiry_id, response, expect_errors=True)
         self.assertEqual(put_resp.status_int, http_client.BAD_REQUEST)
         self.assertIn('Response did not pass schema validation.', put_resp.json['faultstring'])
+
+    def test_respond_not_an_inquiry(self):
+        """Test that attempts to respond to an execution ID that isn't an Inquiry fails
+        """
+        test_exec = json.loads(self.app.post_json('/v1/executions', LIVE_ACTION_1).body)
+        response = {"continue": 123}
+        put_resp = self._do_respond(test_exec.get('id'), response, expect_errors=True)
+        self.assertEqual(put_resp.status_int, http_client.BAD_REQUEST)
+        self.assertIn('is not an Inquiry', put_resp.json['faultstring'])
 
     @mock.patch('st2api.controllers.exp.inquiries.action_service')
     def test_respond_no_parent(self, mock_as):
