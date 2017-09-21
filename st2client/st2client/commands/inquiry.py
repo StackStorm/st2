@@ -15,6 +15,7 @@
 
 import json
 import logging
+import six
 
 from st2client.commands import resource
 from st2client.formatters import table
@@ -118,20 +119,35 @@ class InquiryRespondCommand(resource.ResourceCommand):
         self.parser.add_argument('id',
                                  metavar='id',
                                  help='Inquiry ID')
-        self.parser.add_argument('response',
-                                 metavar='response',
-                                 help='response body (json)')
+        self.parser.add_argument('-r', '--response', type=str, dest='response',
+                                 default=None,
+                                 help=('Entire response payload as JSON string '
+                                       '(bypass interactive mode)'))
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         instance = Inquiry()
         instance.id = args.id
-        instance.response = json.loads(args.response)
+        if args.response:
+            instance.response = json.loads(args.response)
+        else:
+
+            response = {}
+
+            inquiry = self.get_resource_by_id(id=args.id, **kwargs)
+
+            for prop_name, prop_details in six.iteritems(inquiry.schema.get('properties')):
+
+                value = input("%s (%s): " % (prop_details['description'], prop_details['type']))
+                response[prop_name] = value
+
+            instance.response = response
 
         return self.manager.update(instance, **kwargs)
 
     def run_and_print(self, args, **kwargs):
         instance = self.run(args, **kwargs)
+        print("\n Response accepted. Successful response data to follow...")
         self.print_output(instance, table.PropertyValueTable,
                           attributes=self.display_attributes, json=args.json,
                           yaml=args.yaml)
