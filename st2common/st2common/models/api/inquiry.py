@@ -126,7 +126,7 @@ class InquiryAPI(BaseAPI):
         }
 
         for field in ["tag", "ttl", "users", "roles", "schema"]:
-            newdoc[field] = doc["result"][field]
+            newdoc[field] = doc["result"].get(field)
 
         return cls(**newdoc)
 
@@ -148,7 +148,7 @@ class InquiryAPI(BaseAPI):
         }
 
         for field in ["tag", "ttl", "users", "roles", "schema"]:
-            newdoc[field] = doc["result"][field]
+            newdoc[field] = doc["result"].get(field)
 
         return cls(**newdoc)
 
@@ -214,7 +214,7 @@ class InquiryResponseAPI(BaseAPI):
             "id": doc["id"]
         }
         for field in ["tag", "ttl", "users", "roles", "schema"]:
-            newdoc[field] = doc["result"][field]
+            newdoc[field] = doc["result"].get(field)
 
         return cls(**newdoc)
 
