@@ -242,27 +242,25 @@ class InquiriesController(ResourceController):
         users_passed = False
 
         # Determine role-level permissions
-        roles = inquiry.roles
-        if roles:
-            for role in roles:
-                LOG.debug("Checking user %s is in role %s" % (requester_user, role))
-                LOG.debug(rbac_utils.user_has_role(requester_user, role))
-                # TODO(mierdin): Note that this will always return True if Rbac is not enabled
-                # Need to test with rbac enabled and configured
-                if rbac_utils.user_has_role(requester_user, role):
-                    roles_passed = True
-                    break
-        else:
+        roles = getattr(inquiry, 'roles', [])
+
+        if not roles:
             # No roles definition so we treat it as a pass
             roles_passed = True
 
+        for role in roles:
+            LOG.debug("Checking user %s is in role %s - %s" % (
+                requester_user, role, rbac_utils.user_has_role(requester_user, role))
+            )
+            # TODO(mierdin): Note that this will always return True if Rbac is not enabled
+            # Need to test with rbac enabled and configured
+            if rbac_utils.user_has_role(requester_user, role):
+                roles_passed = True
+                break
+
         # Determine user-level permissions
-        users = inquiry.users
-        if users:
-            if requester_user.name in users:
-                users_passed = True
-        else:
-            # No users definition so we treat it as a pass
+        users = getattr(inquiry, 'users', [])
+        if not users or requester_user.name in users:
             users_passed = True
 
         # Both must pass
