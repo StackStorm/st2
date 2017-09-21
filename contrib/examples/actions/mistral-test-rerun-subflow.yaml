@@ -3,7 +3,7 @@ name: mistral-test-rerun-subflow
 description: A sample workflow used to test the rerun feature.
 pack: examples
 runner_type: mistral-v2
-entry_point: workflows/mistral-test-rerun-subflow.yaml
+entry_point: workflows/tests/mistral-test-rerun-subflow.yaml
 enabled: true
 parameters:
     tempfile:
