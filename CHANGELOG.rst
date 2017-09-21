@@ -42,6 +42,16 @@ Fixed
   are created on each service start-up so we need to make sure to correctly clean up old queues.
 
   #3746
+* Fix cancellation of subworkflow and subchain. Cancel of Mistral workflow or Action Chain is
+  cascaded down to subworkflows appropriately. Cancel from tasks in the workflow or chain is
+  cascaded up to the parent. (bug fix) 
+* Fix delays in st2resultstracker on querying workflow status from Mistral. Make sleep time for
+  empty queue and no workers configurable. Reduce the default sleep times to 1 second. StackStorm
+  instances that handle more workflows should consider increasing the query interval for better
+  CPU utilization.
+* Fix missing type for the parameters with enum in the core st2 packs.(bug fix) #3737
+
+  Reported by Nick Maludy.
 * Add missing ``-h`` / ``--help`` CLI flag to the following execution CLI commands: cancel, pause,
   resume. (bug fix) #3750
 * Fix execution cancel and pause CLI commands and make id a required argument. (bug fix) #3750

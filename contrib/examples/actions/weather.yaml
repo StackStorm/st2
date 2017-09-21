@@ -12,6 +12,7 @@ parameters:
     type: object
   method:
     default: GET
+    type: string
     enum:
     - GET
     - POST
