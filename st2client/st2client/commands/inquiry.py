@@ -131,13 +131,10 @@ class InquiryRespondCommand(resource.ResourceCommand):
         if args.response:
             instance.response = json.loads(args.response)
         else:
-
-            response = {}
-
             inquiry = self.get_resource_by_id(id=args.id, **kwargs)
 
+            response = {}
             for prop_name, prop_details in six.iteritems(inquiry.schema.get('properties')):
-
                 value = input("%s (%s): " % (prop_details['description'], prop_details['type']))
                 response[prop_name] = value
 
