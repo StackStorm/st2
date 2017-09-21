@@ -28,22 +28,16 @@ DEFAULT_SCOPE = 'system'
 class InquiryBranch(resource.ResourceBranch):
 
     def __init__(self, description, app, subparsers, parent_parser=None):
+
         super(InquiryBranch, self).__init__(
             Inquiry, description, app, subparsers,
-            parent_parser=parent_parser,
-            commands={
-                'list': InquiryListCommand,
-                'get': InquiryGetCommand
-            })
+            parent_parser=parent_parser, read_only=True,
+            commands={'list': InquiryListCommand,
+                      'get': InquiryGetCommand})
 
-        # Registers extended commands
-        self.commands['respond'] = InquiryRespondCommand(self.resource, self.app,
-                                                         self.subparsers)
-
-        # Remove unsupported commands
-        # TODO: Refactor parent class and make it nicer
-        del self.commands['create']
-        del self.commands['update']
+        # Register extended commands
+        self.commands['respond'] = InquiryRespondCommand(
+            self.resource, self.app, self.subparsers)
 
 
 class InquiryListCommand(resource.ResourceCommand):
