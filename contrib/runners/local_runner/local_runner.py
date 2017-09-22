@@ -16,6 +16,8 @@
 import os
 import pwd
 import uuid
+import functools
+from StringIO import StringIO
 
 from oslo_config import cfg
 from eventlet.green import subprocess
@@ -31,7 +33,9 @@ from st2common.models.system.action import ShellScriptAction
 from st2common.util.misc import strip_shell_chars
 from st2common.util.green import shell
 from st2common.util.shell import kill_process
-import st2common.util.jsonify as jsonify
+from st2common.util import jsonify
+from st2common.services.action import store_execution_output_data
+from st2common.runners.utils import make_read_and_store_stream_func
 
 __all__ = [
     'get_runner'
@@ -138,6 +142,19 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         LOG.info('[Action info] name: %s, Id: %s, command: %s, user: %s, sudo: %s' %
                  (action.name, action.action_exec_id, args, action.user, action.sudo))
 
+        stdout = StringIO()
+        stderr = StringIO()
+
+        store_execution_stdout_line = functools.partial(store_execution_output_data,
+                                                        output_type='stdout')
+        store_execution_stderr_line = functools.partial(store_execution_output_data,
+                                                        output_type='stderr')
+
+        read_and_store_stdout = make_read_and_store_stream_func(execution_db=self.execution,
+            action_db=self.action, store_data_func=store_execution_stdout_line)
+        read_and_store_stderr = make_read_and_store_stream_func(execution_db=self.execution,
+            action_db=self.action, store_data_func=store_execution_stderr_line)
+
         # Make sure os.setsid is called on each spawned process so that all processes
         # are in the same group.
 
@@ -155,7 +172,11 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
                                                                  env=env,
                                                                  timeout=self._timeout,
                                                                  preexec_func=os.setsid,
-                                                                 kill_func=kill_process)
+                                                                 kill_func=kill_process,
+                                                           read_stdout_func=read_and_store_stdout,
+                                                           read_stderr_func=read_and_store_stderr,
+                                                           read_stdout_buffer=stdout,
+                                                           read_stderr_buffer=stderr)
 
         error = None
 

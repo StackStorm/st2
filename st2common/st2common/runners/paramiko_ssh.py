@@ -76,15 +76,15 @@ class ParamikoSSHClient(object):
     # Maximum number of bytes to read at once from a socket
     CHUNK_SIZE = 1024
 
-    # How long to sleep while waiting for command to finish
-    SLEEP_DELAY = 1.5
+    # How long to sleep while waiting for command to finish to prevent busy waiting
+    SLEEP_DELAY = 0.2
 
     # Connect socket timeout
     CONNECT_TIMEOUT = 60
 
     def __init__(self, hostname, port=DEFAULT_SSH_PORT, username=None, password=None,
-                 bastion_host=None,
-                 key_files=None, key_material=None, timeout=None, passphrase=None):
+                 bastion_host=None, key_files=None, key_material=None, timeout=None,
+                 passphrase=None, handle_stdout_line_func=None, handle_stderr_line_func=None):
         """
         Authentication is always attempted in the following order:
 
@@ -105,6 +105,9 @@ class ParamikoSSHClient(object):
         self.key_material = key_material
         self.bastion_host = bastion_host
         self.passphrase = passphrase
+        self._handle_stdout_line_func = handle_stdout_line_func
+        self._handle_stderr_line_func = handle_stderr_line_func
+
         self.ssh_config_file = os.path.expanduser(
             cfg.CONF.ssh_runner.ssh_config_file_path or
             '~/.ssh/config'
@@ -328,14 +331,18 @@ class ParamikoSSHClient(object):
         self.logger.debug('Deleting dir', extra=extra)
         return self.sftp.rmdir(path)
 
-    def run(self, cmd, timeout=None, quote=False):
+    def run(self, cmd, timeout=None, quote=False, call_line_handler_func=False):
         """
         Note: This function is based on paramiko's exec_command()
         method.
 
-        :param timeout: How long to wait (in seconds) for the command to
-                        finish (optional).
+        :param timeout: How long to wait (in seconds) for the command to finish (optional).
         :type timeout: ``float``
+
+        :param call_line_handler_func: True to call handle_stdout_line_func function for each line
+                                       of received stdout and handle_stderr_line_func for each
+                                       line of stderr.
+        :type call_line_handler_func: ``bool``
         """
 
         if quote:
@@ -376,8 +383,16 @@ class ParamikoSSHClient(object):
         exit_status_ready = chan.exit_status_ready()
 
         if exit_status_ready:
-            stdout.write(self._consume_stdout(chan).getvalue())
-            stderr.write(self._consume_stderr(chan).getvalue())
+            stdout_data = self._consume_stdout(chan=chan,
+                                               call_line_handler_func=call_line_handler_func)
+            stdout_data = stdout_data.getvalue()
+
+            stderr_data = self._consume_stderr(chan=chan,
+                                               call_line_handler_func=call_line_handler_func)
+            stderr_data = stderr_data.getvalue()
+
+            stdout.write(stdout_data)
+            stderr.write(stderr_data)
 
         while not exit_status_ready:
             current_time = time.time()
@@ -392,8 +407,16 @@ class ParamikoSSHClient(object):
                 raise SSHCommandTimeoutError(cmd=cmd, timeout=timeout, stdout=stdout,
                                              stderr=stderr)
 
-            stdout.write(self._consume_stdout(chan).getvalue())
-            stderr.write(self._consume_stderr(chan).getvalue())
+            stdout_data = self._consume_stdout(chan=chan,
+                                               call_line_handler_func=call_line_handler_func)
+            stdout_data = stdout_data.getvalue()
+
+            stderr_data = self._consume_stderr(chan=chan,
+                                               call_line_handler_func=call_line_handler_func)
+            stderr_data = stderr_data.getvalue()
+
+            stdout.write(stdout_data)
+            stderr.write(stderr_data)
 
             # We need to check the exit status here, because the command could
             # print some output and exit during this sleep below.
@@ -441,13 +464,14 @@ class ParamikoSSHClient(object):
 
         return self.sftp_client
 
-    def _consume_stdout(self, chan):
+    def _consume_stdout(self, chan, call_line_handler_func=False):
         """
         Try to consume stdout data from chan if it's receive ready.
         """
 
         out = bytearray()
         stdout = StringIO()
+
         if chan.recv_ready():
             data = chan.recv(self.CHUNK_SIZE)
             out += data
@@ -462,15 +486,30 @@ class ParamikoSSHClient(object):
                 out += data
 
         stdout.write(self._get_decoded_data(out))
+
+        if self._handle_stdout_line_func and call_line_handler_func:
+            data = strip_shell_chars(stdout.getvalue())
+            lines = data.split('\n')
+            lines = [line for line in lines if line]
+
+            for line in lines:
+                # Note: If this function performs network operating no sleep is
+                # needed, otherwise if a long blocking operating is performed,
+                # sleep is recommended to yield and prevent from busy looping
+                self._handle_stdout_line_func(line=line + '\n')
+
+            stdout.seek(0)
+
         return stdout
 
-    def _consume_stderr(self, chan):
+    def _consume_stderr(self, chan, call_line_handler_func=False):
         """
         Try to consume stderr data from chan if it's receive ready.
         """
 
         out = bytearray()
         stderr = StringIO()
+
         if chan.recv_stderr_ready():
             data = chan.recv_stderr(self.CHUNK_SIZE)
             out += data
@@ -485,6 +524,20 @@ class ParamikoSSHClient(object):
                 out += data
 
         stderr.write(self._get_decoded_data(out))
+
+        if self._handle_stderr_line_func and call_line_handler_func:
+            data = strip_shell_chars(stderr.getvalue())
+            lines = data.split('\n')
+            lines = [line for line in lines if line]
+
+            for line in lines:
+                # Note: If this function performs network operating no sleep is
+                # needed, otherwise if a long blocking operating is performed,
+                # sleep is recommended to yield and prevent from busy looping
+                self._handle_stderr_line_func(line=line + '\n')
+
+            stderr.seek(0)
+
         return stderr
 
     def _get_decoded_data(self, data):

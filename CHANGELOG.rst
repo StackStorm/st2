@@ -1,12 +1,33 @@
 Changelog
 =========
 
-in development
+In development
 --------------
 
 Added
 ~~~~~
 
+* Add new feature which allows runner action output (stdout and stderr) to be streamed
+  and consumed in real-time by using one of the following approaches:
+
+  - ``/v1/executions/<execution id>/output[?type=stdout/stderr]`` API endpoint.
+  - ``/v1/stream/`` stream endpoint and listening for ``st2.execution.stdout__create`` and
+    ``st2.execution.output__create`` ``/v1/stream`` stream API endpoint events.
+  - ``st2 execution tail <execution id> [--type=stdout/stderr]`` CLI command (underneath it uses
+    stream API endpoint).
+
+  Right now this functionality is available for the following runners:
+
+  - local command runner
+  - local script runner
+  - remote command runner
+  - remote script runner
+  - python runner
+
+  Note: This feature is still experimental and it's disabled by default (opt-in). To enable it,
+  set ``actionrunner.stream_output`` config option to ``True``.
+
+  (new feature) #2175 #3657 #3729
 * Add new "Inquiry" capability, which adds ability to "ask a question", usually in a workflow.
   Create a new runner type: "inquirer" to support this, as well as new API endpoints and
   client commands for interacting with Inquiries
@@ -16,11 +37,45 @@ Added
 Fixed
 ~~~~~
 
+* Fix a bug where sensor watch queues were not deleted after sensor container process was shut
+  down. This resulted in spurious queues left behind. This should not have caused performance
+  impact but just messes with rabbitmqadmin output and maybe tedious for operators. (bug fix) #3628
+
+  Reported by Igor.
+* Make sure all the temporary RabbitMQ queues used by the stream service are deleted once the
+  connection to RabbitMQ is closed. Those queues are temporary and unique in nature and new ones
+  are created on each service start-up so we need to make sure to correctly clean up old queues.
+
+  #3746
+* Fix cancellation of subworkflow and subchain. Cancel of Mistral workflow or Action Chain is
+  cascaded down to subworkflows appropriately. Cancel from tasks in the workflow or chain is
+  cascaded up to the parent. (bug fix) 
+* Fix delays in st2resultstracker on querying workflow status from Mistral. Make sleep time for
+  empty queue and no workers configurable. Reduce the default sleep times to 1 second. StackStorm
+  instances that handle more workflows should consider increasing the query interval for better
+  CPU utilization.
+* Fix missing type for the parameters with enum in the core st2 packs.(bug fix) #3737
+
+  Reported by Nick Maludy.
+* Add missing ``-h`` / ``--help`` CLI flag to the following execution CLI commands: cancel, pause,
+  resume. (bug fix) #3750
+* Fix execution cancel and pause CLI commands and make id a required argument. (bug fix) #3750
+
+2.4.1 - September 12, 2017
+--------------------------
+
+Fixed
+~~~~~
+
 * Fix a bug with ``/v1/packs/install`` and ``/v1/packs/uninstall`` API endpoints incorrectly using
   system user for scheduled pack install and pack uninstall executions instead of the user which
   performed the API operation.(bug fix) #3693 #3696
 
   Reported by theuiz.
+* Fix mistral callback failure when result contains unicode. (bug fix)
+* Fix cancellation of delayed action execution for tasks in workflow. (bug fix)
+* Fix timeout of mistral shutdown in systemd service. The fix is done upstream.
+  https://review.openstack.org/#/c/499853/ (bug fix)
 
 Changed
 ~~~~~~~
@@ -86,6 +141,8 @@ Changed
   3.2 was installed by default). If you want to upgrade an existing installation, please follow
   the official instructions at https://docs.mongodb.com/v3.4/release-notes/3.4-upgrade-standalone/.
   (improvement)
+* Update garbage collector service to delete corresponding stdout and stderr objects which belong
+  to executions which are to be deleted. #2175 #3657
 
 Removed
 ~~~~~~~

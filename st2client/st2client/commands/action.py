@@ -28,8 +28,8 @@ from os.path import join as pjoin
 
 from st2client import models
 from st2client.commands import resource
+from st2client.commands.resource import ResourceNotFoundError
 from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
-from st2client.exceptions.operations import OperationFailureException
 from st2client.formatters import table
 from st2client.formatters import execution as execution_formatter
 from st2client.utils import jsutil
@@ -978,11 +978,14 @@ class ActionExecutionBranch(resource.ResourceBranch):
         self.commands['re-run'] = ActionExecutionReRunCommand(
             self.resource, self.app, self.subparsers, add_help=False)
         self.commands['cancel'] = ActionExecutionCancelCommand(
-            self.resource, self.app, self.subparsers, add_help=False)
+            self.resource, self.app, self.subparsers, add_help=True)
         self.commands['pause'] = ActionExecutionPauseCommand(
-            self.resource, self.app, self.subparsers, add_help=False)
+            self.resource, self.app, self.subparsers, add_help=True)
         self.commands['resume'] = ActionExecutionResumeCommand(
-            self.resource, self.app, self.subparsers, add_help=False)
+            self.resource, self.app, self.subparsers, add_help=True)
+        self.commands['tail'] = ActionExecutionTailCommand(self.resource, self.app,
+                                                           self.subparsers,
+                                                           add_help=True)
 
 
 POSSIBLE_ACTION_STATUS_VALUES = ('succeeded', 'running', 'scheduled', 'failed', 'canceled')
@@ -1170,7 +1173,7 @@ class ActionExecutionGetCommand(ActionRunCommandMixin, ActionExecutionReadComman
                 execution = format_execution_status(execution)
         except resource.ResourceNotFoundError:
             self.print_not_found(args.id)
-            raise OperationFailureException('Execution %s not found.' % (args.id))
+            raise ResourceNotFoundError('Execution with id %s not found.' % (args.id))
         return self._print_execution_details(execution=execution, args=args, **kwargs)
 
 
@@ -1294,7 +1297,7 @@ class ActionExecutionPauseCommand(ActionRunCommandMixin, ActionExecutionReadComm
             resource.get_plural_display_name().lower(),
             *args, **kwargs)
 
-        self.parser.add_argument('id', nargs='?',
+        self.parser.add_argument('id', nargs='+',
                                  metavar='id',
                                  help='ID of action execution to pause.')
 
@@ -1314,7 +1317,7 @@ class ActionExecutionPauseCommand(ActionRunCommandMixin, ActionExecutionReadComm
                 execution = format_execution_status(execution)
         except resource.ResourceNotFoundError:
             self.print_not_found(args.id)
-            raise OperationFailureException('Execution %s not found.' % (args.id))
+            raise ResourceNotFoundError('Execution  with id %s not found.' % (args.id))
         return self._print_execution_details(execution=execution, args=args, **kwargs)
 
 
@@ -1328,7 +1331,7 @@ class ActionExecutionResumeCommand(ActionRunCommandMixin, ActionExecutionReadCom
             resource.get_plural_display_name().lower(),
             *args, **kwargs)
 
-        self.parser.add_argument('id', nargs='?',
+        self.parser.add_argument('id', nargs='+',
                                  metavar='id',
                                  help='ID of action execution to resume.')
 
@@ -1348,5 +1351,134 @@ class ActionExecutionResumeCommand(ActionRunCommandMixin, ActionExecutionReadCom
                 execution = format_execution_status(execution)
         except resource.ResourceNotFoundError:
             self.print_not_found(args.id)
-            raise OperationFailureException('Execution %s not found.' % (args.id))
+            raise ResourceNotFoundError('Execution %s not found.' % (args.id))
         return self._print_execution_details(execution=execution, args=args, **kwargs)
+
+
+class ActionExecutionTailCommand(resource.ResourceCommand):
+    def __init__(self, resource, *args, **kwargs):
+        super(ActionExecutionTailCommand, self).__init__(
+            resource, kwargs.pop('name', 'tail'),
+            'A command to tail output of a particular execution.',
+            *args, **kwargs)
+
+        self.parser.add_argument('id', nargs='?',
+                                 metavar='id',
+                                 default='last',
+                                 help='ID of action execution to tail.')
+        self.parser.add_argument('--type', dest='output_type', action='store',
+                                 help=('Type of output to tail for. If not provided, '
+                                      'defaults to all.'))
+        self.parser.add_argument('--include-metadata', dest='include_metadata',
+                                 action='store_true',
+                                 default=False,
+                                 help=('Include metadata (timestamp, output type) with the '
+                                       'output.'))
+
+    def run(self, args, **kwargs):
+        pass
+
+    @add_auth_token_to_kwargs_from_cli
+    def run_and_print(self, args, **kwargs):
+        execution_id = args.id
+        output_type = getattr(args, 'output_type', None)
+        include_metadata = args.include_metadata
+
+        # Special case for id "last"
+        if execution_id == 'last':
+            executions = self.manager.query(limit=1)
+            execution = executions[0] if executions else None
+            execution_id = execution.id
+        else:
+            execution = self.manager.get_by_id(execution_id, **kwargs)
+
+        if not execution:
+            raise ResourceNotFoundError('Execution  with id %s not found.' % (args.id))
+
+        # Note: For non-workflow actions child_execution_id always matches parent_execution_id so
+        # we don't need to do any other checks to determine if executions represents a workflow
+        # action
+        parent_execution_id = execution_id
+
+        # Execution has already finished
+        if execution.status in LIVEACTION_COMPLETED_STATES:
+            output = self.manager.get_output(execution_id=execution_id, output_type=output_type)
+            print(output)
+            print('Execution %s has completed (status=%s).' % (execution_id, execution.status))
+            return
+
+        stream_mgr = self.app.client.managers['Stream']
+        events = ['st2.execution__update', 'st2.execution.output__create']
+
+        for event in stream_mgr.listen(events, **kwargs):
+            status = event.get('status', None)
+            is_execution_event = status is not None
+
+            # NOTE: Right now only a single level deep / nested workflows are supported
+            if is_execution_event:
+                context = self._get_normalized_context_execution_task_event(event=event)
+                task_execution_id = context['execution_id']
+                task_name = context['task_name']
+                task_parent_execution_id = context['parent_execution_id']
+                is_child_execution = (task_parent_execution_id == parent_execution_id)
+
+                if is_child_execution:
+                    if status == LIVEACTION_STATUS_RUNNING:
+                        print('Child execution (task=%s) %s has started.' % (task_name,
+                                                                             task_execution_id))
+                        print('')
+                        continue
+                    elif status in LIVEACTION_COMPLETED_STATES:
+                        print('')
+                        print('Child execution (task=%s) %s has finished (status=%s).' % (task_name,
+                              task_execution_id, status))
+                        continue
+                    else:
+                        # We don't care about other child events so we simply skip then
+                        continue
+                else:
+                    if status in LIVEACTION_COMPLETED_STATES:
+                        # Bail out once parent execution has finished
+                        print('')
+                        print('Execution %s has completed (status=%s).' % (execution_id, status))
+                        break
+                    else:
+                        # We don't care about other execution events
+                        continue
+
+            # Filter on output_type if provided
+            event_output_type = event.get('output_type', None)
+            if output_type and event_output_type != output_type:
+                continue
+
+            if include_metadata:
+                sys.stdout.write('[%s][%s] %s' % (event['timestamp'], event['output_type'],
+                                                  event['data']))
+            else:
+                sys.stdout.write(event['data'])
+
+    def _get_normalized_context_execution_task_event(self, event):
+        """
+        Return a dictionary with normalized context attributes for Action-Chain and Mistral
+        workflows.
+        """
+        context = event.get('context', {})
+
+        result = {
+            'parent_execution_id': None,
+            'execution_id': None,
+            'task_name': None
+        }
+
+        if 'mistral' in context:
+            # Mistral workflow
+            result['parent_execution_id'] = context.get('parent', {}).get('execution_id', None)
+            result['execution_id'] = event['id']
+            result['task_name'] = context.get('mistral', {}).get('task_name', 'unknown')
+        else:
+            # Action chain workflow
+            result['parent_execution_id'] = context.get('parent', {}).get('execution_id', None)
+            result['execution_id'] = event['id']
+            result['task_name'] = context.get('chain', {}).get('name', 'unknown')
+
+        return result

@@ -1,7 +1,7 @@
 ---
 name: "format_execution_result"
 pack: chatops
-runner_type: "run-python"
+runner_type: "python-script"
 description: "Format an execution result for chatops"
 enabled: true
 entry_point: "format_execution_result.py"

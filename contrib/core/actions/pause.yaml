@@ -1,6 +1,6 @@
 ---
   name: "pause"
-  runner_type: "run-python"
+  runner_type: "python-script"
   description: "Action to pause current thread of workflow/sub-workflow."
   enabled: true
   entry_point: "pause.py"

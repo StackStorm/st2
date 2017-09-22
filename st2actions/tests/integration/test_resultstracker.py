@@ -1,6 +1,8 @@
 import eventlet
 import mock
 
+from oslo_config import cfg
+
 import st2actions.resultstracker.resultstracker as results_tracker
 from st2common.constants import action as action_constants
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
@@ -30,6 +32,18 @@ class ResultsTrackerTests(EventletTestCase, DbTestCase):
     states = None
     models = None
     liveactions = None
+
+    @classmethod
+    def setUpClass(cls):
+        super(ResultsTrackerTests, cls).setUpClass()
+        cfg.CONF.set_default('empty_q_sleep_time', 0.2, group='resultstracker')
+        cfg.CONF.set_default('no_workers_sleep_time', 0.1, group='resultstracker')
+
+    @classmethod
+    def tearDownClass(cls):
+        cfg.CONF.set_default('empty_q_sleep_time', 1, group='resultstracker')
+        cfg.CONF.set_default('no_workers_sleep_time', 1, group='resultstracker')
+        super(ResultsTrackerTests, cls).tearDownClass()
 
     def setUp(self):
         super(ResultsTrackerTests, self).setUp()
@@ -258,7 +272,7 @@ class ResultsTrackerTests(EventletTestCase, DbTestCase):
                 querier.__class__, 'query',
                 mock.MagicMock(return_value=(action_constants.LIVEACTION_STATUS_CANCELED, {}))):
             tracker._bootstrap()
-            eventlet.sleep(1)
+            eventlet.sleep(2)
 
             exec_id = str(ResultsTrackerTests.states['state1.yaml'].execution_id)
             exec_db = LiveAction.get_by_id(exec_id)
