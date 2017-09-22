@@ -15,11 +15,11 @@
 
 import json
 import logging
-import six
 
 from st2client.commands import resource
 from st2client.formatters import table
 from st2client.models.inquiry import Inquiry
+from st2client.utils.interactive import InteractiveForm
 
 LOG = logging.getLogger(__name__)
 
@@ -88,7 +88,6 @@ class InquiryListCommand(resource.ResourceCommand):
                           attributes=args.attr, widths=args.width,
                           json=args.json,
                           yaml=args.yaml)
-
         if args.last >= self.default_limit and count and int(count) > args.last:
             table.SingleRowTable.note_box(self.resource_name, args.last)
 
@@ -132,12 +131,8 @@ class InquiryRespondCommand(resource.ResourceCommand):
             instance.response = json.loads(args.response)
         else:
             inquiry = self.get_resource_by_id(id=args.id, **kwargs)
-
-            response = {}
-            for prop_name, prop_details in six.iteritems(inquiry.schema.get('properties')):
-                value = input("%s (%s): " % (prop_details['description'], prop_details['type']))
-                response[prop_name] = value
-
+            response = InteractiveForm(
+                inquiry.schema.get('properties')).initiate_dialog()
             instance.response = response
 
         return self.manager.update(instance, **kwargs)
