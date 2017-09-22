@@ -88,6 +88,27 @@ SCHEMA_DEFAULT = {
     "required": ["continue"]
 }
 
+SCHEMA_MULTIPLE = {
+    "title": "response_data",
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string",
+            "description": "What is your name?"
+        },
+        "pin": {
+            "type": "integer",
+            "description": "What is your PIN?"
+        },
+        "paradox": {
+            "type": "boolean",
+            "description": "This statement is False."
+        }
+    },
+    # TODO(mierdin): Fix
+    "required": ["name", "pin", "paradox"]
+}
+
 # This is what the result will look like if all parameters are left to their defaults
 # since each parameter's used value (meaning, when runtime parameters are taken into
 # account) are passed through to result
@@ -105,6 +126,20 @@ RESULT_2 = {
     "users": ["foo", "bar"],
     "tag": "superlative",
     "ttl": 1440
+}
+
+RESULT_MULTIPLE = {
+    "schema": SCHEMA_MULTIPLE,
+    "roles": [],
+    "users": [],
+    "tag": "",
+    "ttl": 1440
+}
+
+RESPONSE_MULTIPLE = {
+    "name": "matt",
+    "pin": 1234,
+    "paradox": True
 }
 
 
@@ -237,6 +272,29 @@ class InquiryControllerTestCase(BaseInquiryControllerTestCase):
         response = {"continue": True}
         put_resp = self._do_respond(inquiry_id, response)
         self.assertEqual(response, put_resp.json.get("response"))
+
+        # The inquiry no longer exists, since the status should not be "pending"
+        # Get the execution and confirm this.
+        inquiry_execution = self._do_get_execution(inquiry_id)
+        self.assertEqual(inquiry_execution.json.get('status'), 'succeeded')
+
+        # This Inquiry is in a workflow, so has a parent. Assert that the resume
+        # was requested for this parent.
+        mock_as.request_resume.assert_called_once()
+
+    @mock.patch('st2api.controllers.exp.inquiries.action_service')
+    def test_respond_multiple(self, mock_as):
+        """Test that a more complicated response is successful
+        """
+
+        # Set up parent
+        parent_id = '2934857foo'
+        mock_as.get_root_liveaction.return_value = parent_id
+
+        post_resp = self._do_create_inquiry(INQUIRY_1, RESULT_MULTIPLE)
+        inquiry_id = self._get_inquiry_id(post_resp)
+        put_resp = self._do_respond(inquiry_id, RESPONSE_MULTIPLE)
+        self.assertEqual(RESPONSE_MULTIPLE, put_resp.json.get("response"))
 
         # The inquiry no longer exists, since the status should not be "pending"
         # Get the execution and confirm this.
