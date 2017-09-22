@@ -211,6 +211,15 @@ class ResourceController(object):
 
         instance = self._get_by_id(resource_id=id, exclude_fields=exclude_fields)
 
+        # A bit gross, but it seems necessary at the moment in order to
+        # make RBAC happy, since Inquiries don't currently have their own
+        # DB model
+        # TODO remove this atrocity once InquiryDB is a thing
+        if getattr(instance, 'runner', None) and instance.runner.get('runner_module') == 'inquirer':
+            def get_uid():
+                return "inquiry:ask"
+            instance.get_uid = get_uid
+
         if permission_type:
             rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                               resource_db=instance,

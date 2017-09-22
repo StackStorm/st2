@@ -252,8 +252,7 @@ class InquiriesController(ResourceController):
             LOG.debug("Checking user %s is in role %s - %s" % (
                 requester_user, role, rbac_utils.user_has_role(requester_user, role))
             )
-            # TODO(mierdin): Note that this will always return True if Rbac is not enabled
-            # Need to test with rbac enabled and configured
+
             if rbac_utils.user_has_role(requester_user, role):
                 roles_passed = True
                 break

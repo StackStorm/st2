@@ -49,6 +49,7 @@ __all__ = [
     'TracePermissionsResolver',
     'TriggerPermissionsResolver',
     'StreamPermissionsResolver',
+    'InquiryPermissionsResolver',
 
     'get_resolver_for_resource_type',
     'get_resolver_for_permission_type'
