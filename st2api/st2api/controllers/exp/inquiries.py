@@ -37,7 +37,6 @@ from st2common.persistence.execution import ActionExecution
 from st2common.services import action as action_service
 from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
 
-
 from st2actions.container.base import get_runner_container
 
 __all__ = [
@@ -45,7 +44,6 @@ __all__ = [
 ]
 
 LOG = logging.getLogger(__name__)
-INQUIRY_STATUS = 'pending'
 INQUIRY_RUNNER = 'inquirer'
 
 
@@ -69,7 +67,10 @@ class InquiriesController(ResourceController):
 
         raw_inquiries = super(InquiriesController, self)._get_all(
             limit=limit,
-            raw_filters={'status': INQUIRY_STATUS, 'runner': INQUIRY_RUNNER}
+            raw_filters={
+                'status': action_constants.LIVEACTION_STATUS_PENDING,
+                'runner': INQUIRY_RUNNER
+            }
         )
 
         # Transform to InquiryResponseAPI model
