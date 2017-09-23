@@ -159,10 +159,19 @@ class ResourceController(object):
         if offset >= 2**31:
             raise ValueError('Offset "%s" specified is more than 32-bit int' % (offset))
 
-        if limit and int(limit) > self.max_limit:
-            # TODO: We should throw here, I don't like this.
-            msg = 'Limit "%s" specified, maximum value is "%s"' % (limit, self.max_limit)
-            raise ValueError(msg)
+        if limit:
+            # Display all the results
+            if int(limit) == -1:
+                limit = 0
+
+            if int(limit) <= -2:
+                msg = 'Limit, "%s" specified, must be a positive number.' % (limit)
+                raise ValueError(msg)
+
+            if int(limit) > self.max_limit:
+                # TODO: We should throw here, I don't like this.
+                msg = 'Limit "%s" specified, maximum value is "%s"' % (limit, self.max_limit)
+                raise ValueError(msg)
 
         eop = offset + int(limit) if limit else None
 
@@ -197,6 +206,7 @@ class ResourceController(object):
 
         resp = Response(json=result)
         resp.headers['X-Total-Count'] = str(instances.count())
+
         if limit:
             resp.headers['X-Limit'] = str(limit)
 

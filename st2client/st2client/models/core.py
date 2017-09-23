@@ -174,8 +174,7 @@ class ResourceManager(object):
         user = kwargs.pop('user', None)
 
         params = kwargs.pop('params', {})
-        if limit and limit <= 0:
-            limit = None
+
         if limit:
             params['limit'] = limit
 
@@ -245,8 +244,6 @@ class ResourceManager(object):
     def _query_details(self, **kwargs):
         if not kwargs:
             raise Exception('Query parameter is not provided.')
-        if 'limit' in kwargs and kwargs.get('limit') <= 0:
-            kwargs.pop('limit')
 
         token = kwargs.get('token', None)
         api_key = kwargs.get('api_key', None)

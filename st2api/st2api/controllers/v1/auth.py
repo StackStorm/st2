@@ -102,9 +102,18 @@ class ApiKeyController(BaseRestControllerMixin):
         mask_secrets = self._get_mask_secrets(show_secrets=show_secrets,
                                               requester_user=requester_user)
 
-        if limit and int(limit) > self.max_limit:
-            msg = 'Limit "%s" specified, maximum value is "%s"' % (limit, self.max_limit)
-            raise ValueError(msg)
+        if limit:
+            # Display all the results
+            if int(limit) == -1:
+                limit = 0
+
+            if int(limit) <= -2:
+                msg = 'Limit, "%s" specified, must be a positive number.' % (limit)
+                raise ValueError(msg)
+
+            if int(limit) > self.max_limit:
+                msg = 'Limit "%s" specified, maximum value is "%s"' % (limit, self.max_limit)
+                raise ValueError(msg)
 
         api_key_dbs = ApiKey.get_all(limit=limit, offset=offset)
 
