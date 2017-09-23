@@ -36,6 +36,7 @@ from st2common.util import isotime
 from st2common.util.date import get_datetime_utc_now
 from st2common.garbage_collection.executions import purge_executions
 from st2common.garbage_collection.executions import purge_execution_output_objects
+from st2common.garbage_collection.inquiries import purge_inquiries
 from st2common.garbage_collection.trigger_instances import purge_trigger_instances
 
 __all__ = [
@@ -62,6 +63,7 @@ class GarbageCollectorService(object):
         self._action_executions_ttl = cfg.CONF.garbagecollector.action_executions_ttl
         self._action_executions_output_ttl = cfg.CONF.garbagecollector.action_executions_output_ttl
         self._trigger_instances_ttl = cfg.CONF.garbagecollector.trigger_instances_ttl
+        self._purge_inquiries = cfg.CONF.garbagecollector.purge_inquiries
 
         self._validate_ttl_values()
 
@@ -150,6 +152,13 @@ class GarbageCollectorService(object):
             LOG.debug('Skipping garbage collection for trigger instances since it\'s not '
                       'configured')
 
+        if self._purge_inquiries:
+            self._fail_inquiries()
+            eventlet.sleep(self._sleep_delay)
+        else:
+            LOG.debug('Skipping garbage collection for Inquiries since it\'s not '
+                      'configured')
+
     def _purge_action_executions(self):
         """
         Purge action executions and corresponding live action, stdout and stderr object which match
@@ -220,5 +229,17 @@ class GarbageCollectorService(object):
             purge_trigger_instances(logger=LOG, timestamp=timestamp)
         except Exception as e:
             LOG.exception('Failed to trigger instances: %s' % (str(e)))
+
+        return True
+
+    def _fail_inquiries(self):
+        """Mark Inquiries as "failed" that have exceeded their TTL
+        """
+        LOG.info('Performing garbage collection for Inquiries')
+
+        try:
+            purge_inquiries(logger=LOG)
+        except Exception as e:
+            LOG.exception('Failed to delete inquiries: %s' % (str(e)))
 
         return True
