@@ -48,6 +48,13 @@ class TestTriggerController(FunctionalTest):
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertEqual(len(resp.json), limit, 'Get all failure. Length doesn\'t match limit.')
 
+    def test_get_all_limit_negative_number(self):
+        limit = -22
+        resp = self.app.get('/v1/triggerinstances?limit=%d' % limit, expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertEqual(resp.json['faultstring'],
+                         u'Limit, "-22" specified, must be a positive number.')
+
     def test_get_all_filter_by_trigger(self):
         trigger = 'dummy_pack_1.st2.test.trigger0'
         resp = self.app.get('/v1/triggerinstances?trigger=%s' % trigger)

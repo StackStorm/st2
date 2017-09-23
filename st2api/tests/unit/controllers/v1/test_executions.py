@@ -295,6 +295,15 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         self.assertEqual(resp.status_int, 200)
         self.assertTrue(len(resp.json) > 1)
 
+        resp = self.app.get('/v1/executions?limit=-1')
+        self.assertEqual(resp.status_int, 200)
+        self.assertTrue(len(resp.json) > 1)
+
+        resp = self.app.get('/v1/executions?limit=-22', expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertEqual(resp.json['faultstring'],
+                         u'Limit, "-22" specified, must be a positive number.')
+
         resp = self.app.get('/v1/executions?action=%s' % LIVE_ACTION_1['action'])
         self.assertEqual(resp.status_int, 200)
         self.assertTrue(len(resp.json) > 1)

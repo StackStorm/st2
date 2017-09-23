@@ -106,6 +106,16 @@ class KeyValuesControllerRBACTestCase(APIControllerWithRBACTestCase):
         self.assertTrue(resp.json[1]['secret'])
         self.assertTrue(len(resp.json[1]['value']) > 50)
 
+        resp = self.app.get('/v1/keys/?limit=-1')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), self.system_scoped_items_count)
+        for item in resp.json:
+            self.assertEqual(item['scope'], FULL_SYSTEM_SCOPE)
+
+        # Verify second item is encrypted
+        self.assertTrue(resp.json[1]['secret'])
+        self.assertTrue(len(resp.json[1]['value']) > 50)
+
     def test_get_all_user_scope_success(self):
         # Regular user should be able to view all the items scoped to themselves
         self.use_user(self.users['user_1'])
@@ -121,11 +131,31 @@ class KeyValuesControllerRBACTestCase(APIControllerWithRBACTestCase):
         self.assertTrue(resp.json[1]['secret'])
         self.assertTrue(len(resp.json[1]['value']) > 50)
 
+        resp = self.app.get('/v1/keys?scope=st2kv.user&limit=-1')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), self.user_scoped_items_per_user_count['user1'])
+        for item in resp.json:
+            self.assertEqual(item['scope'], FULL_USER_SCOPE)
+            self.assertEqual(item['user'], 'user1')
+
+        # Verify second item is encrypted
+        self.assertTrue(resp.json[1]['secret'])
+        self.assertTrue(len(resp.json[1]['value']) > 50)
+
     def test_get_all_scope_system_decrypt_admin_success(self):
         # Admin should be able to view all system scoped decrypted values
         self.use_user(self.users['admin'])
 
         resp = self.app.get('/v1/keys?decrypt=True')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), self.system_scoped_items_count)
+        for item in resp.json:
+            self.assertEqual(item['scope'], FULL_SYSTEM_SCOPE)
+
+        # Verify second item is decrypted
+        self.assertTrue(resp.json[1]['secret'])
+        self.assertEqual(resp.json[1]['value'], 'value_secret')
+        resp = self.app.get('/v1/keys?decrypt=True&limit=-1')
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), self.system_scoped_items_count)
         for item in resp.json:
@@ -158,6 +188,11 @@ class KeyValuesControllerRBACTestCase(APIControllerWithRBACTestCase):
 
         self.assertEqual(resp.json[4]['scope'], FULL_USER_SCOPE)
         self.assertEqual(resp.json[4]['user'], 'user2')
+
+        resp = self.app.get('/v1/keys?scope=all&decrypt=True&limit=-1')
+        self.assertEqual(resp.status_int, 200)
+        expected_count = (self.system_scoped_items_count + self.user_scoped_items_count)
+        self.assertEqual(len(resp.json), expected_count)
 
     def test_get_all_non_admin_decrypt_failure(self):
         # Non admin shouldn't be able to view decrypted items
