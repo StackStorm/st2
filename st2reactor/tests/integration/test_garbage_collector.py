@@ -23,11 +23,17 @@ from eventlet.green import subprocess
 from st2common.constants import action as action_constants
 from st2common.util import date as date_utils
 from st2common.models.db.execution import ActionExecutionDB
+from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.execution import ActionExecutionOutputDB
+from st2common.models.system.common import ResourceReference
+from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
 from st2common.persistence.execution import ActionExecutionOutput
+from st2common.services import executions
 from st2tests.base import IntegrationTestCase
 from st2tests.base import CleanDbTestCase
+
+from st2tests.fixturesloader import FixturesLoader
 
 __all__ = [
     'GarbageCollectorServiceTestCase'
@@ -41,6 +47,13 @@ BINARY = os.path.join(BASE_DIR, '../../../st2reactor/bin/st2garbagecollector')
 BINARY = os.path.abspath(BINARY)
 CMD = [BINARY, '--config-file', ST2_CONFIG_PATH]
 
+TEST_FIXTURES = {
+    'runners': ['inquirer.yaml'],
+    'actions': ['ask.yaml']
+}
+
+FIXTURES_PACK = 'generic'
+
 
 class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
     @classmethod
@@ -49,6 +62,9 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
 
     def setUp(self):
         super(GarbageCollectorServiceTestCase, self).setUp()
+
+        self.models = FixturesLoader().save_fixtures_to_db(
+            fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_FIXTURES)
 
     def test_garbage_collection(self):
         now = date_utils.get_datetime_utc_now()
@@ -174,6 +190,50 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
 
         stderr_dbs = ActionExecutionOutput.query(output_type='stderr')
         self.assertEqual(len(stderr_dbs), (new_executions_count))
+
+    def test_inquiry_garbage_collection(self):
+        now = date_utils.get_datetime_utc_now()
+
+        # Insert some mock Inquiries with start_timestamp > TTL
+        old_inquiry_count = 15
+        timestamp = (now - datetime.timedelta(minutes=3))
+        for index in range(0, old_inquiry_count):
+            self._create_inquiry(ttl=2, timestamp=timestamp)
+
+        # Insert some mock Inquiries with start_timestamp < TTL
+        new_inquiry_count = 5
+        timestamp = (now - datetime.timedelta(minutes=3))
+        for index in range(0, new_inquiry_count):
+            self._create_inquiry(ttl=15, timestamp=timestamp)
+
+        filters = {
+            'status': action_constants.LIVEACTION_STATUS_PENDING
+        }
+        inquiries = list(ActionExecution.query(**filters))
+        self.assertEqual(len(inquiries),
+                         (old_inquiry_count + new_inquiry_count))
+
+        # Start garbage collector
+        process = self._start_garbage_collector()
+
+        # Give it some time to perform garbage collection and kill it
+        eventlet.sleep(10)
+        process.send_signal(signal.SIGKILL)
+        self.remove_process(process=process)
+
+        # Expired Inquiries should have been garbage collected
+        inquiries = list(ActionExecution.query(**filters))
+        self.assertEqual(len(inquiries), new_inquiry_count)
+
+    def _create_inquiry(self, ttl, timestamp):
+        action_db = self.models['actions']['ask.yaml']
+        liveaction_db = LiveActionDB()
+        liveaction_db.status = action_constants.LIVEACTION_STATUS_PENDING
+        liveaction_db.start_timestamp = timestamp
+        liveaction_db.action = ResourceReference(name=action_db.name, pack=action_db.pack).ref
+        liveaction_db.result = {'ttl': ttl}
+        liveaction_db = LiveAction.add_or_update(liveaction_db)
+        executions.create_execution_object(liveaction_db)
 
     def _start_garbage_collector(self):
         process = subprocess.Popen(CMD, stdout=subprocess.PIPE, stderr=subprocess.PIPE,

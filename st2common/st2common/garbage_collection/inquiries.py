@@ -43,11 +43,10 @@ def purge_inquiries(logger):
     """
 
     # Get all existing Inquiries
-    filters = {
-        'runner__name': 'inquirer',
-        'status': action_constants.LIVEACTION_STATUS_PENDING
-    }
+    filters = {'runner__name': 'inquirer', 'status': action_constants.LIVEACTION_STATUS_PENDING}
     inquiries = list(ActionExecution.query(**filters))
+
+    gc_count = 0
 
     # Inspect each Inquiry, and determine if TTL is expired
     for inquiry in inquiries:
@@ -62,9 +61,9 @@ def purge_inquiries(logger):
 
         if min_since_creation > ttl:
 
+            gc_count += 1
             logger.info("TTL expired for Inquiry %s. Marking as failed." % inquiry.id)
 
-            # TODO(mierdin): Add a helpful message that says why this failed somewhere?
             liveaction_db = action_utils.update_liveaction_status(
                 status=action_constants.LIVEACTION_STATUS_FAILED,
                 result=inquiry.result,
@@ -86,3 +85,5 @@ def purge_inquiries(logger):
                     root_liveaction,
                     UserDB(cfg.CONF.system_user.user)
                 )
+
+    logger.info('Marked %s ttl-expired Inquiries as "failed"' % (gc_count))
