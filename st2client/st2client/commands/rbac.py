@@ -104,7 +104,7 @@ class RoleAssignmentBranch(resource.ResourceBranch):
 
 
 class RoleAssignmentListCommand(resource.ResourceCommand):
-    display_attributes = ['id', 'role', 'user', 'is_remote', 'description']
+    display_attributes = ['id', 'role', 'user', 'is_remote', 'description', 'metadata.source']
     attribute_display_order = ROLE_ASSIGNMENT_ATTRIBUTE_DISPLAY_ORDER
 
     def __init__(self, resource, *args, **kwargs):
