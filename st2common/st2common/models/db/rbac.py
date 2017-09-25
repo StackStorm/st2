@@ -62,24 +62,26 @@ class UserRoleAssignmentDB(stormbase.StormFoundationDB):
     Attribute:
         user: A reference to the user name to which the role is assigned.
         role: A reference to the role name which is assigned to the user.
+        source: Path to the metadata for this user role assignment.
         description: Optional assigment description.
-        metata: Optional metadata for this assignment.
     """
     user = me.StringField(required=True)
-    role = me.StringField(required=True, unique_with='user')
+    role = me.StringField(required=True, unique_with=['user', 'source'])
+    source = me.StringField(required=True, unique_with=['user', 'role'])
     description = me.StringField()
     # True if this is assigned created on authentication based on the remote groups provided by
     # the auth backends.
     # Remote assignments are special in a way that they are not manipulated with when running
     # st2-apply-rbac-auth-definitions tool.
     is_remote = me.BooleanField(default=False)
-    metadata = me.DictField(default={})
 
     meta = {
         'indexes': [
             {'fields': ['user']},
             {'fields': ['role']},
+            {'fields': ['source']},
             {'fields': ['is_remote']},
+            {'fields': ['user', 'role']},
         ]
     }
 
@@ -112,15 +114,16 @@ class GroupToRoleMappingDB(stormbase.StormFoundationDB):
     Attribute:
         group: Name of the remote auth backend group.
         roles: A reference to the local RBAC role names.
+        source: Path to the metadata for this group to role mapping.
         description: Optional description for this mapping.
         metata: Optional metadata for this mapping.
     """
     group = me.StringField(required=True, unique=True)
     roles = me.ListField(field=me.StringField())
+    source = me.StringField()
     description = me.StringField()
     enabled = me.BooleanField(required=True, default=True,
                               help_text='A flag indicating whether the mapping is enabled.')
-    metadata = me.DictField(default={})
 
 
 # Specialized access objects

@@ -111,8 +111,8 @@ class UserRoleAssignmentAPI(BaseAPI):
             'is_remote': {
                 'type': 'boolean'
             },
-            'metadata': {
-                'type': 'object'
+            'source': {
+                'type': 'string'
             }
         },
         'additionalProperties': False

@@ -205,15 +205,11 @@ def assign_role_to_user(role_db, user_db, description=None, is_remote=False, sou
                    it's a local assignment or mapping or "API".
     :type source: ``str``
     """
-    metadata = {
-        'source': source
-    }
+    role_assignment_db = UserRoleAssignmentDB(user=user_db.name, role=role_db.name, source=source,
+                                              description=description, is_remote=is_remote)
 
-    role_assignment_db = UserRoleAssignmentDB(user=user_db.name, role=role_db.name,
-                                              description=description,
-                                              is_remote=is_remote,
-                                              metadata=metadata)
     role_assignment_db = UserRoleAssignment.add_or_update(role_assignment_db)
+
     return role_assignment_db
 
 
@@ -337,17 +333,14 @@ def get_all_group_to_role_maps():
 
 
 def create_group_to_role_map(group, roles, description=None, enabled=True, source=None):
-    metadata = {
-        'source': source
-    }
-
     group_to_role_map_db = GroupToRoleMappingDB(group=group,
                                                 roles=roles,
+                                                source=source,
                                                 description=description,
-                                                enabled=enabled,
-                                                metadata=metadata)
+                                                enabled=enabled)
 
     group_to_role_map_db = GroupToRoleMapping.add_or_update(group_to_role_map_db)
+
     return group_to_role_map_db
 
 
