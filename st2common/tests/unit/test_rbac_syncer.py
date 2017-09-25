@@ -195,11 +195,15 @@ class RBACDefinitionsDBSyncerTestCase(BaseRBACDefinitionsDBSyncerTestCase):
 
         # Do the sync with a single role defined
         api = UserRoleAssignmentFileFormatAPI(username='user_1',
-                                              roles=['role_1'])
+                                              roles=['role_1'],
+                                              file_path='assignments/user1.yaml')
         syncer.sync_users_role_assignments(role_assignment_apis=[api])
 
         role_dbs = get_roles_for_user(user_db=self.users['user_1'])
         self.assertItemsEqual(role_dbs, [self.roles['role_1']])
+        role_assignment_dbs = get_role_assignments_for_user(user_db=self.users['user_1'])
+        self.assertEqual(len(role_assignment_dbs), 1)
+        self.assertEqual(role_assignment_dbs[0].metadata['source'], 'assignments/user1.yaml')
 
     def test_sync_user_assignments_assignments_without_is_remote_are_deleted(self):
         # Test case which verifies roles without "is_remote" field (pre v2.3) are removed from the
@@ -230,13 +234,18 @@ class RBACDefinitionsDBSyncerTestCase(BaseRBACDefinitionsDBSyncerTestCase):
 
         # Do the sync with two roles defined
         api = UserRoleAssignmentFileFormatAPI(username='user_2',
-                                              roles=['role_1', 'role_2'])
+                                              roles=['role_1', 'role_2'],
+                                              file_path='assignments/user2.yaml')
         syncer.sync_users_role_assignments(role_assignment_apis=[api])
 
         role_dbs = get_roles_for_user(user_db=self.users['user_2'])
         self.assertEqual(len(role_dbs), 2)
         self.assertEqual(role_dbs[0], self.roles['role_1'])
         self.assertEqual(role_dbs[1], self.roles['role_2'])
+        role_assignment_dbs = get_role_assignments_for_user(user_db=self.users['user_2'])
+        self.assertEqual(len(role_assignment_dbs), 2)
+        self.assertEqual(role_assignment_dbs[0].metadata['source'], 'assignments/user2.yaml')
+        self.assertEqual(role_assignment_dbs[1].metadata['source'], 'assignments/user2.yaml')
 
     def test_sync_user_assignments_locally_removed_assignments_are_removed_from_db(self):
         syncer = RBACDefinitionsDBSyncer()
@@ -339,6 +348,9 @@ class RBACDefinitionsDBSyncerTestCase(BaseRBACDefinitionsDBSyncerTestCase):
         self.assertEqual(role_dbs[0], self.roles['role_1'])
         self.assertEqual(role_dbs[1], self.roles['role_2'])
         self.assertEqual(role_dbs[2], self.roles['role_3'])
+        role_assignment_dbs = get_role_assignments_for_user(user_db=user_db)
+        self.assertEqual(len(role_assignment_dbs), 3)
+        self.assertEqual(role_assignment_dbs[0].metadata['source'], None)
 
         # Sync with one role on disk - two roles should be removed
         api = UserRoleAssignmentFileFormatAPI(username=user_db.name,
@@ -503,12 +515,14 @@ class RBACRemoteGroupToRoleSyncerTestCase(BaseRBACDefinitionsDBSyncerTestCase):
         # Create mock mapping which maps CN=stormers,OU=groups,DC=stackstorm,DC=net
         # to "mock_remote_role_3" and "mock_remote_role_4"
         create_group_to_role_map(group='CN=stormers,OU=groups,DC=stackstorm,DC=net',
-                                 roles=['mock_remote_role_3', 'mock_remote_role_4'])
+                                 roles=['mock_remote_role_3', 'mock_remote_role_4'],
+                                 source='mappings/stormers.yaml')
 
         # Verify initial state
         role_dbs = get_roles_for_user(user_db=user_db, include_remote=True)
         self.assertEqual(len(role_dbs), 2)
         self.assertEqual(role_dbs[0], self.roles['mock_local_role_1'])
+        role_assignment_dbs = get_role_assignments_for_user(user_db=self.users['user_1'])
 
         groups = [
             'CN=stormers,OU=groups,DC=stackstorm,DC=net',
@@ -531,6 +545,10 @@ class RBACRemoteGroupToRoleSyncerTestCase(BaseRBACDefinitionsDBSyncerTestCase):
         self.assertEqual(role_dbs[1], self.roles['mock_local_role_2'])
         self.assertEqual(role_dbs[2], self.roles['mock_remote_role_3'])
         self.assertEqual(role_dbs[3], self.roles['mock_remote_role_4'])
+
+        self.assertEqual(len(role_assignment_dbs), 4)
+        self.assertEqual(role_assignment_dbs[2].metadata['source'], 'mappings/stormers.yaml')
+        self.assertEqual(role_assignment_dbs[2].metadata['source'], 'mappings/stormers.yaml')
 
     def test_sync_success_one_existing_remote_assignment(self):
         syncer = RBACRemoteGroupToRoleSyncer()
