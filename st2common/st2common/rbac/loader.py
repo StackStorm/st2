@@ -44,11 +44,11 @@ class RBACDefinitionsLoader(object):
 
     def __init__(self):
         base_path = cfg.CONF.system.base_path
-        rbac_definitions_path = os.path.join(base_path, 'rbac/')
 
-        self._role_definitions_path = os.path.join(rbac_definitions_path, 'roles/')
-        self._role_assignments_path = os.path.join(rbac_definitions_path, 'assignments/')
-        self._role_maps_path = os.path.join(rbac_definitions_path, 'mappings/')
+        self._rbac_definitions_path = os.path.join(base_path, 'rbac/')
+        self._role_definitions_path = os.path.join(self._rbac_definitions_path, 'roles/')
+        self._role_assignments_path = os.path.join(self._rbac_definitions_path, 'assignments/')
+        self._role_maps_path = os.path.join(self._rbac_definitions_path, 'mappings/')
         self._meta_loader = MetaLoader()
 
     def load(self):
@@ -113,6 +113,7 @@ class RBACDefinitionsLoader(object):
                 LOG.debug('Skipping disabled role assignment for user "%s"' % (username))
                 continue
 
+            role_assignment_api.file_path = file_path.replace(self._rbac_definitions_path, '')
             result[username] = role_assignment_api
 
         return result
@@ -133,6 +134,7 @@ class RBACDefinitionsLoader(object):
                 file_path=file_path)
 
             group_name = group_to_role_map_api.group
+            group_to_role_map_api.file_path = file_path.replace(self._rbac_definitions_path, '')
             result[group_name] = group_to_role_map_api
 
         return result
@@ -187,6 +189,7 @@ class RBACDefinitionsLoader(object):
             raise ValueError(msg)
 
         group_to_role_map_api = AuthGroupToRoleMapAssignmentFileFormatAPI(**content)
+        group_to_role_map_api.file_path = file_path.replace(self._rbac_definitions_path, '')
         group_to_role_map_api = group_to_role_map_api.validate()
 
         return group_to_role_map_api

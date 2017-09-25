@@ -185,7 +185,7 @@ def delete_role(name):
     return result
 
 
-def assign_role_to_user(role_db, user_db, description=None, is_remote=False):
+def assign_role_to_user(role_db, user_db, description=None, is_remote=False, source=None):
     """
     Assign role to a user.
 
@@ -200,10 +200,19 @@ def assign_role_to_user(role_db, user_db, description=None, is_remote=False):
 
     :param include_remote: True if this a remote assignment.
     :type include_remote: ``bool``
+
+    :param source: Source from where this assignment comes from. For example, path of a file if
+                   it's a local assignment or mapping or "API".
+    :type source: ``str``
     """
+    metadata = {
+        'source': source
+    }
+
     role_assignment_db = UserRoleAssignmentDB(user=user_db.name, role=role_db.name,
                                               description=description,
-                                              is_remote=is_remote)
+                                              is_remote=is_remote,
+                                              metadata=metadata)
     role_assignment_db = UserRoleAssignment.add_or_update(role_assignment_db)
     return role_assignment_db
 
@@ -327,11 +336,16 @@ def get_all_group_to_role_maps():
     return result
 
 
-def create_group_to_role_map(group, roles, description=None, enabled=True):
+def create_group_to_role_map(group, roles, description=None, enabled=True, source=None):
+    metadata = {
+        'source': source
+    }
+
     group_to_role_map_db = GroupToRoleMappingDB(group=group,
                                                 roles=roles,
                                                 description=description,
-                                                enabled=enabled)
+                                                enabled=enabled,
+                                                metadata=metadata)
 
     group_to_role_map_db = GroupToRoleMapping.add_or_update(group_to_role_map_db)
     return group_to_role_map_db
