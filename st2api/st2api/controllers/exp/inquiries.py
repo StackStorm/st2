@@ -17,7 +17,6 @@ import json
 from oslo_config import cfg
 
 import copy
-import jsonschema
 
 from six.moves import http_client
 from st2common.models.db.auth import UserDB
@@ -25,6 +24,7 @@ from st2api.controllers.resource import ResourceController
 from st2api.controllers.v1.executionviews import SUPPORTED_FILTERS
 from st2common import log as logging
 from st2common.util import action_db as action_utils
+from st2common.util import schema as util_schema
 from st2common.util import system_info
 from st2common.services import executions
 from st2common.constants import action as action_constants
@@ -146,8 +146,11 @@ class InquiriesController(ResourceController):
         LOG.debug("Validating inquiry response: %s against schema: %s" %
                   (response_data.response, schema))
         try:
-            jsonschema.validate(response_data.response, schema)
-        except jsonschema.exceptions.ValidationError:
+            util_schema.validate(instance=response_data.response, schema=schema,
+                                 cls=util_schema.CustomValidator, use_default=True,
+                                 allow_default_none=True)
+        except Exception as e:
+            LOG.debug("Failed to validate response data against provided schema: %s" % e.message)
             abort(http_client.BAD_REQUEST, 'Response did not pass schema validation.')
             return
 

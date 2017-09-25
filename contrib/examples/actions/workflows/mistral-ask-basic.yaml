@@ -13,14 +13,13 @@ examples.mistral-ask-basic:
               users:
                 - testu
               schema:
-                required:
-                  - continue
                 type: object
                 properties:
                   continue:
                     type: boolean
                     description: Should we continue?
-            on-complete:
+                    required: True
+            on-success:
               - task2
 
         task2:
