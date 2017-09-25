@@ -1,0 +1,69 @@
+---
+  chain:
+    -
+      name: "task1"
+      ref: "core.local"
+      parameters:
+          cmd: "echo 'Task 1'"
+      on-success: "task2"
+    -
+      name: "task2"
+      ref: "examples.local_command_runner_print_to_stdout_and_stderr"
+      parameters:
+          count: "{{ count }}"
+          sleep_delay: "{{ sleep_delay }}"
+      on-success: "task3"
+    -
+      name: "task3"
+      ref: "core.local"
+      parameters:
+          cmd: "echo 'Task 3'"
+      on-success: "task4"
+    -
+      name: "task4"
+      ref: "examples.local_script_runner_print_to_stdout_and_stderr"
+      parameters:
+          count: "{{ count }}"
+          sleep_delay: "{{ sleep_delay }}"
+      on-success: "task5"
+    -
+      name: "task5"
+      ref: "core.local"
+      parameters:
+          cmd: "echo 'Task 5'"
+      on-success: "task6"
+    -
+      name: "task6"
+      ref: "examples.python_runner_print_to_stdout_and_stderr"
+      parameters:
+          count: "{{ count }}"
+          sleep_delay: "{{ sleep_delay }}"
+      on-success: "task7"
+    -
+      name: "task7"
+      ref: "core.local"
+      parameters:
+          cmd: "echo 'Task 7'"
+      on-success: "task8"
+    -
+      name: "task8"
+      ref: "examples.remote_command_runner_print_to_stdout_and_stderr"
+      parameters:
+          hosts: localhost
+          count: "{{ count }}"
+          sleep_delay: "{{ sleep_delay }}"
+      on-success: "task9"
+    -
+      name: "task9"
+      ref: "core.local"
+      parameters:
+          cmd: "echo 'Task 9'"
+      on-success: "task10"
+    -
+      name: "task10"
+      ref: "examples.remote_script_runner_print_to_stdout_and_stderr"
+      parameters:
+          hosts: localhost
+          count: "{{ count }}"
+          sleep_delay: "{{ sleep_delay }}"
+  default: "task1"

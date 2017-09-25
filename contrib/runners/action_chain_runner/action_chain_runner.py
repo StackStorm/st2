@@ -284,6 +284,23 @@ class ActionChainRunner(ActionRunner):
         # Run the action chain.
         return self._run_chain(action_parameters)
 
+    def cancel(self):
+        # Identify the list of action executions that are workflows and cascade pause.
+        for child_exec_id in self.execution.children:
+            child_exec = ActionExecution.get(id=child_exec_id, raise_exception=True)
+            if (child_exec.runner['name'] in action_constants.WORKFLOW_RUNNER_TYPES and
+                    child_exec.status in action_constants.LIVEACTION_CANCELABLE_STATES):
+                action_service.request_cancellation(
+                    LiveAction.get(id=child_exec.liveaction['id']),
+                    self.context.get('user', None)
+                )
+
+        return (
+            action_constants.LIVEACTION_STATUS_CANCELING,
+            self.liveaction.result,
+            self.liveaction.context
+        )
+
     def pause(self):
         # Identify the list of action executions that are workflows and cascade pause.
         for child_exec_id in self.execution.children:

@@ -40,8 +40,7 @@ class ParamikoSSHRunnerTestCase(unittest2.TestCase):
     @mock.patch('st2common.runners.paramiko_ssh_runner.ParallelSSHClient')
     def test_pre_run(self, mock_client):
         # Test case which verifies that ParamikoSSHClient is instantiated with the correct arguments
-        private_key_path = os.path.join(get_resources_base_path(),
-                                       'ssh', 'dummy_rsa')
+        private_key_path = os.path.join(get_resources_base_path(), 'ssh', 'dummy_rsa')
 
         with open(private_key_path, 'r') as fp:
             private_key = fp.read()
@@ -65,7 +64,9 @@ class ParamikoSSHRunnerTestCase(unittest2.TestCase):
             'concurrency': 1,
             'bastion_host': None,
             'raise_on_any_error': False,
-            'connect': True
+            'connect': True,
+            'handle_stdout_line_func': mock.ANY,
+            'handle_stderr_line_func': mock.ANY
         }
         mock_client.assert_called_with(**expected_kwargs)
 
@@ -89,7 +90,9 @@ class ParamikoSSHRunnerTestCase(unittest2.TestCase):
             'concurrency': 1,
             'bastion_host': None,
             'raise_on_any_error': False,
-            'connect': True
+            'connect': True,
+            'handle_stdout_line_func': mock.ANY,
+            'handle_stderr_line_func': mock.ANY
         }
         mock_client.assert_called_with(**expected_kwargs)
 
@@ -115,7 +118,9 @@ class ParamikoSSHRunnerTestCase(unittest2.TestCase):
             'concurrency': 1,
             'bastion_host': None,
             'raise_on_any_error': False,
-            'connect': True
+            'connect': True,
+            'handle_stdout_line_func': mock.ANY,
+            'handle_stderr_line_func': mock.ANY
         }
         mock_client.assert_called_with(**expected_kwargs)
 
@@ -139,7 +144,9 @@ class ParamikoSSHRunnerTestCase(unittest2.TestCase):
             'concurrency': 1,
             'bastion_host': None,
             'raise_on_any_error': False,
-            'connect': True
+            'connect': True,
+            'handle_stdout_line_func': mock.ANY,
+            'handle_stderr_line_func': mock.ANY
         }
         mock_client.assert_called_with(**expected_kwargs)
 
@@ -165,7 +172,9 @@ class ParamikoSSHRunnerTestCase(unittest2.TestCase):
             'concurrency': 1,
             'bastion_host': None,
             'raise_on_any_error': False,
-            'connect': True
+            'connect': True,
+            'handle_stdout_line_func': mock.ANY,
+            'handle_stderr_line_func': mock.ANY
         }
         mock_client.assert_called_with(**expected_kwargs)
 
@@ -187,7 +196,9 @@ class ParamikoSSHRunnerTestCase(unittest2.TestCase):
             'concurrency': 1,
             'bastion_host': None,
             'raise_on_any_error': False,
-            'connect': True
+            'connect': True,
+            'handle_stdout_line_func': mock.ANY,
+            'handle_stderr_line_func': mock.ANY
         }
         mock_client.assert_called_with(**expected_kwargs)
 
@@ -212,7 +223,9 @@ class ParamikoSSHRunnerTestCase(unittest2.TestCase):
             'concurrency': 1,
             'bastion_host': None,
             'raise_on_any_error': False,
-            'connect': True
+            'connect': True,
+            'handle_stdout_line_func': mock.ANY,
+            'handle_stderr_line_func': mock.ANY
         }
         mock_client.assert_called_with(**expected_kwargs)
         self.assertEqual(runner._parallel_ssh_client.close.call_count, 0)

@@ -26,7 +26,8 @@ from st2common.util.secrets import mask_secret_parameters
 from st2common.constants.types import ResourceType
 
 __all__ = [
-    'ActionExecutionDB'
+    'ActionExecutionDB',
+    'ActionExecutionOutputDB'
 ]
 
 
@@ -121,4 +122,39 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
         return serializable_dict['parameters']
 
 
-MODELS = [ActionExecutionDB]
+class ActionExecutionOutputDB(stormbase.StormFoundationDB):
+    """
+    Stores output of a particular execution.
+
+    New document is inserted dynamically when a new chunk / line is received which means you can
+    simulate tail behavior by periodically reading from this collection.
+
+    Attribute:
+        execution_id: ID of the execution to which this output belongs.
+        action_ref: Parent action reference.
+        runner_ref: Parent action runner reference.
+        timestamp: Timestamp when this output has been produced / received.
+        output_type: Type of the output (e.g. stdout, stderr, output)
+        data: Actual output data. This could either be line, chunk or similar, depending on the
+              runner.
+    """
+    execution_id = me.StringField(required=True)
+    action_ref = me.StringField(required=True)
+    runner_ref = me.StringField(required=True)
+    timestamp = ComplexDateTimeField(required=True, default=date_utils.get_datetime_utc_now)
+    output_type = me.StringField(required=True, default='output')
+
+    data = me.StringField()
+
+    meta = {
+        'indexes': [
+            {'fields': ['execution_id']},
+            {'fields': ['action_ref']},
+            {'fields': ['runner_ref']},
+            {'fields': ['timestamp']},
+            {'fields': ['output_type']}
+        ]
+    }
+
+
+MODELS = [ActionExecutionDB, ActionExecutionOutputDB]
