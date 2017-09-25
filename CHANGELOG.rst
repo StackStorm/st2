@@ -28,6 +28,9 @@ Added
   set ``actionrunner.stream_output`` config option to ``True``.
 
   (new feature) #2175 #3657 #3729
+* Update ``st2 role-assignment list`` RBAC CLI command to include information about where a
+  particular assignment comes from (from which local assignment or mapping file). (improvement)
+  #3763
 
 Fixed
 ~~~~~
