@@ -54,30 +54,30 @@ class TestRuleEnforcementController(FunctionalTest):
         self.assertEqual(resp.status_int, http_client.NOT_FOUND)
 
     def test_filter_by_rule_ref(self):
-        resp = self.app.get('/v1/ruleenforcements/?rule_ref=wolfpack.golden_rule')
+        resp = self.app.get('/v1/ruleenforcements?rule_ref=wolfpack.golden_rule')
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertEqual(len(resp.json), 1)
 
     def test_filter_by_rule_id(self):
-        resp = self.app.get('/v1/ruleenforcements/?rule_id=565e15c032ed35086c54f331')
+        resp = self.app.get('/v1/ruleenforcements?rule_id=565e15c032ed35086c54f331')
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertEqual(len(resp.json), 2)
 
     def test_filter_by_execution_id(self):
-        resp = self.app.get('/v1/ruleenforcements/?execution=565e15cd32ed350857dfa620')
+        resp = self.app.get('/v1/ruleenforcements?execution=565e15cd32ed350857dfa620')
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertEqual(len(resp.json), 1)
 
     def test_filter_by_trigger_instance_id(self):
-        resp = self.app.get('/v1/ruleenforcements/?trigger_instance=565e15ce32ed350857dfa623')
+        resp = self.app.get('/v1/ruleenforcements?trigger_instance=565e15ce32ed350857dfa623')
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertEqual(len(resp.json), 1)
 
     def test_filter_by_enforced_at(self):
-        resp = self.app.get('/v1/ruleenforcements/?enforced_at_gt=2015-12-01T21:49:01.000000Z')
+        resp = self.app.get('/v1/ruleenforcements?enforced_at_gt=2015-12-01T21:49:01.000000Z')
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertEqual(len(resp.json), 2)
 
-        resp = self.app.get('/v1/ruleenforcements/?enforced_at_lt=2015-12-01T21:49:01.000000Z')
+        resp = self.app.get('/v1/ruleenforcements?enforced_at_lt=2015-12-01T21:49:01.000000Z')
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertEqual(len(resp.json), 1)

@@ -22,10 +22,12 @@ import logging
 import tempfile
 import unittest2
 
+from io import BytesIO
 from tests import base
 from tests.fixtures import loader
 
 from st2client import shell
+from st2client.formatters import table
 from st2client.utils import jsutil
 from st2client.utils import httpclient
 from st2client.utils import color
@@ -55,6 +57,7 @@ class TestExecutionResultFormatter(unittest2.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestExecutionResultFormatter, self).__init__(*args, **kwargs)
         self.shell = shell.Shell()
+        self.table = table.SingleRowTable()
         color.DISABLED = True
 
     def setUp(self):
@@ -127,7 +130,8 @@ class TestExecutionResultFormatter(unittest2.TestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(HAS_CARRIAGE_RETURN), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(HAS_CARRIAGE_RETURN), 200, 'OK',
+                                                      {})))
     def test_execution_get_detail_with_carriage_return(self):
         argv = ['execution', 'get', HAS_CARRIAGE_RETURN['id'], '-d']
         self.assertEqual(self.shell.run(argv), 0)
@@ -139,7 +143,7 @@ class TestExecutionResultFormatter(unittest2.TestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps([EXECUTION]), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps([EXECUTION]), 200, 'OK', {})))
     def test_execution_list_attribute_provided(self):
         # Client shouldn't throw if "-a" flag is provided when listing executions
         argv = ['execution', 'list', '-a', 'start_timestamp']
@@ -153,7 +157,7 @@ class TestExecutionResultFormatter(unittest2.TestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps([]), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps([]), 200, 'OK', {})))
     def test_execution_list_attribute_provided_empty_response(self):
         # Client shouldn't throw if "-a" flag is provided, but there are no executions
         argv = ['execution', 'list', '-a', 'start_timestamp']
@@ -167,7 +171,7 @@ class TestExecutionResultFormatter(unittest2.TestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(EXECUTION), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(EXECUTION), 200, 'OK', {})))
     def _get_execution(self, argv):
         self.assertEqual(self.shell.run(argv), 0)
         self._undo_console_redirect()
@@ -175,3 +179,32 @@ class TestExecutionResultFormatter(unittest2.TestCase):
             content = fd.read()
 
         return content
+
+    def test_SinlgeRowTable_notebox_one(self):
+        with mock.patch('sys.stderr', new=BytesIO()) as fackety_fake:
+            expected = "Note: Only one action execution is displayed. Use -n/--last flag for " \
+                "more results."
+            print self.table.note_box("action executions", 1)
+            content = (fackety_fake.getvalue().split("|")[1].strip())
+            self.assertEquals(content, expected)
+
+    def test_SinlgeRowTable_notebox_zero(self):
+        with mock.patch('sys.stderr', new=BytesIO()) as fackety_fake:
+            print self.table.note_box("action executions", 0)
+            contents = (fackety_fake.getvalue())
+            print "sdf", contents
+            self.assertEquals(contents, "")
+
+    def test_SinlgeRowTable_notebox_default(self):
+        with mock.patch('sys.stderr', new=BytesIO()) as fackety_fake:
+            expected = "Note: Only first 50 action executions are displayed. Use -n/--last flag " \
+                "for more results."
+            print(self.table.note_box("action executions", 50))
+            content = (fackety_fake.getvalue().split("|")[1].strip())
+            self.assertEquals(content, expected)
+        with mock.patch('sys.stderr', new=BytesIO()) as fackety_fake:
+            expected = "Note: Only first 15 action executions are displayed. Use -n/--last flag " \
+                "for more results."
+            print(self.table.note_box("action executions", 15))
+            content = (fackety_fake.getvalue().split("|")[1].strip())
+            self.assertEquals(content, expected)

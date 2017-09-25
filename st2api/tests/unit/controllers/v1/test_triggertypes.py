@@ -65,6 +65,17 @@ class TestTriggerTypeController(FunctionalTest):
         resp = self.app.get('/v1/triggertypes')
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertEqual(len(resp.json), 2, 'Get all failure.')
+
+        # ?pack query filter
+        resp = self.app.get('/v1/triggertypes?pack=doesnt-exist-invalid')
+        self.assertEqual(resp.status_int, http_client.OK)
+        self.assertEqual(len(resp.json), 0)
+
+        resp = self.app.get('/v1/triggertypes?pack=%s' % (TRIGGER_0['pack']))
+        self.assertEqual(resp.status_int, http_client.OK)
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['pack'], TRIGGER_0['pack'])
+
         self.__do_delete(trigger_id_0)
         self.__do_delete(trigger_id_1)
 

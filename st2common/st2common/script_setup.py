@@ -29,6 +29,7 @@ from oslo_config import cfg
 from st2common import log as logging
 from st2common.database_setup import db_setup
 from st2common.database_setup import db_teardown
+from st2common import triggers
 from st2common.logging.filters import LogLevelFilter
 from st2common.transport.bootstrap_utils import register_exchanges_with_retry
 
@@ -50,7 +51,8 @@ def register_common_cli_options():
     cfg.CONF.register_cli_opt(cfg.BoolOpt('verbose', short='v', default=False))
 
 
-def setup(config, setup_db=True, register_mq_exchanges=True):
+def setup(config, setup_db=True, register_mq_exchanges=True,
+          register_internal_trigger_types=False):
     """
     Common setup function.
 
@@ -60,6 +62,7 @@ def setup(config, setup_db=True, register_mq_exchanges=True):
     2. Establishes DB connection
     3. Suppress DEBUG log level if --verbose flag is not used
     4. Registers RabbitMQ exchanges
+    5. Registers internal trigger types (optional, disabled by default)
 
     :param config: Config object to use to parse args.
     """
@@ -68,6 +71,9 @@ def setup(config, setup_db=True, register_mq_exchanges=True):
 
     # Parse args to setup config
     config.parse_args()
+
+    if cfg.CONF.debug:
+        cfg.CONF.verbose = True
 
     # Set up logging
     log_level = stdlib_logging.DEBUG
@@ -87,6 +93,9 @@ def setup(config, setup_db=True, register_mq_exchanges=True):
 
     if register_mq_exchanges:
         register_exchanges_with_retry()
+
+    if register_internal_trigger_types:
+        triggers.register_internal_trigger_types()
 
 
 def teardown():

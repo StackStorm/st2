@@ -13,23 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pecan
 import six
-from pecan import Response
-from pecan.rest import RestController
 
 from st2common import log as logging
-from st2common.models.api.base import jsexpose
+from st2common.router import Response
 from st2common.util.jsonify import json_encode
 from st2stream.listener import get_listener
+
+__all__ = [
+    'StreamController'
+]
 
 LOG = logging.getLogger(__name__)
 
 
 def format(gen):
-    # Yield initial state so client would receive the headers the moment it connects to the stream
-    yield '\n'
-
     message = '''event: %s\ndata: %s\n\n'''
 
     for pack in gen:
@@ -42,17 +40,22 @@ def format(gen):
             yield six.binary_type(message % (event, json_encode(body, indent=None)))
 
 
-class StreamController(RestController):
-    @jsexpose(content_type='text/event-stream')
-    def get_all(self):
-        def make_response():
-            res = Response(content_type='text/event-stream',
-                           app_iter=format(get_listener().generator()))
-            return res
+class StreamController(object):
+    def get_all(self, events=None, action_refs=None, execution_ids=None, requester_user=None):
+        events = events.split(',') if events else None
+        action_refs = action_refs.split(',') if action_refs else None
+        execution_ids = execution_ids.split(',') if execution_ids else None
 
-        # Prohibit buffering response by eventlet
-        pecan.request.environ['eventlet.minimum_write_chunk_size'] = 0
+        def make_response():
+            listener = get_listener()
+            app_iter = format(listener.generator(events=events, action_refs=action_refs,
+                                                 execution_ids=execution_ids))
+            res = Response(content_type='text/event-stream', app_iter=app_iter)
+            return res
 
         stream = make_response()
 
         return stream
+
+
+stream_controller = StreamController()

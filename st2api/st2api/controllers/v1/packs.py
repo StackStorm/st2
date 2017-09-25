@@ -13,13 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import re
 
 from collections import defaultdict
 from collections import OrderedDict
 
-import pecan
-from pecan.rest import RestController
 import six
 
 import st2common
@@ -35,21 +34,19 @@ from st2common.bootstrap.rulesregistrar import RulesRegistrar
 import st2common.bootstrap.ruletypesregistrar as rule_types_registrar
 from st2common.bootstrap.configsregistrar import ConfigsRegistrar
 import st2common.content.utils as content_utils
-from st2common.models.api.base import jsexpose
-from st2api.controllers.resource import ResourceController
-from st2api.controllers.v1.actionexecutions import ActionExecutionsControllerMixin
 from st2common.models.api.action import LiveActionCreateAPI
 from st2common.models.api.pack import PackAPI
-from st2common.models.api.pack import PackInstallRequestAPI
-from st2common.models.api.pack import PackRegisterRequestAPI
-from st2common.models.api.pack import PackSearchRequestAPI
 from st2common.models.api.pack import PackAsyncAPI
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.persistence.pack import Pack
 from st2common.rbac.types import PermissionType
-from st2common.rbac.decorators import request_user_has_permission
-from st2common.rbac.decorators import request_user_has_resource_db_permission
+from st2common.rbac import utils as rbac_utils
 from st2common.services import packs as packs_service
+from st2common.router import abort
+from st2common.router import Response
+
+from st2api.controllers.resource import ResourceController
+from st2api.controllers.v1.actionexecutions import ActionExecutionsControllerMixin
 
 http_client = six.moves.http_client
 
@@ -61,8 +58,8 @@ __all__ = [
 
 LOG = logging.getLogger(__name__)
 
-# Note: The order those are defined it's important so they are registered in the same order as
-# they are in st2-register-content.
+# Note: The order those are defined it's important so they are registered in
+# the same order as they are in st2-register-content.
 # We also need to use list of tuples to preserve the order.
 ENTITIES = OrderedDict([
     ('trigger', (TriggersRegistrar, 'triggers')),
@@ -75,10 +72,27 @@ ENTITIES = OrderedDict([
 ])
 
 
-class PackInstallController(ActionExecutionsControllerMixin, RestController):
+def _get_proxy_config():
+    LOG.debug('Loading proxy configuration from env variables %s.', os.environ)
+    http_proxy = os.environ.get('http_proxy', None)
+    https_proxy = os.environ.get('https_proxy', None)
+    no_proxy = os.environ.get('no_proxy', None)
+    proxy_ca_bundle_path = os.environ.get('proxy_ca_bundle_path', None)
 
-    @request_user_has_permission(permission_type=PermissionType.PACK_INSTALL)
-    @jsexpose(body_cls=PackInstallRequestAPI, status_code=http_client.ACCEPTED)
+    proxy_config = {
+        'http_proxy': http_proxy,
+        'https_proxy': https_proxy,
+        'proxy_ca_bundle_path': proxy_ca_bundle_path,
+        'no_proxy': no_proxy
+    }
+
+    LOG.debug('Proxy configuration: %s', proxy_config)
+
+    return proxy_config
+
+
+class PackInstallController(ActionExecutionsControllerMixin):
+
     def post(self, pack_install_request):
         parameters = {
             'packs': pack_install_request.packs,
@@ -91,15 +105,16 @@ class PackInstallController(ActionExecutionsControllerMixin, RestController):
                                                  parameters=parameters,
                                                  user=None)
 
-        execution = self._handle_schedule_execution(liveaction_api=new_liveaction_api)
+        execution_resp = self._handle_schedule_execution(liveaction_api=new_liveaction_api,
+                                                         requester_user=None)
 
-        return PackAsyncAPI(execution_id=execution.id)
+        exec_id = PackAsyncAPI(execution_id=execution_resp.json['id'])
+
+        return Response(json=exec_id, status=http_client.ACCEPTED)
 
 
-class PackUninstallController(ActionExecutionsControllerMixin, RestController):
+class PackUninstallController(ActionExecutionsControllerMixin):
 
-    @request_user_has_permission(permission_type=PermissionType.PACK_UNINSTALL)
-    @jsexpose(body_cls=PackInstallRequestAPI, arg_types=[str], status_code=http_client.ACCEPTED)
     def post(self, pack_uninstall_request, ref_or_id=None):
         if ref_or_id:
             parameters = {
@@ -114,21 +129,25 @@ class PackUninstallController(ActionExecutionsControllerMixin, RestController):
                                                  parameters=parameters,
                                                  user=None)
 
-        execution = self._handle_schedule_execution(liveaction_api=new_liveaction_api)
+        execution_resp = self._handle_schedule_execution(liveaction_api=new_liveaction_api,
+                                                         requester_user=None)
 
-        return PackAsyncAPI(execution_id=execution.id)
+        exec_id = PackAsyncAPI(execution_id=execution_resp.json['id'])
+
+        return Response(json=exec_id, status=http_client.ACCEPTED)
 
 
-class PackRegisterController(RestController):
+class PackRegisterController(object):
+    CONTENT_TYPES = ['runner', 'action', 'trigger', 'sensor', 'rule',
+                     'rule_type', 'alias', 'policy_type', 'policy', 'config']
 
-    @request_user_has_permission(permission_type=PermissionType.PACK_REGISTER)
-    @jsexpose(body_cls=PackRegisterRequestAPI)
     def post(self, pack_register_request):
         if pack_register_request and hasattr(pack_register_request, 'types'):
             types = pack_register_request.types
+            if 'all' in types:
+                types = PackRegisterController.CONTENT_TYPES
         else:
-            types = ['runner', 'action', 'trigger', 'sensor', 'rule', 'rule_type', 'alias',
-                     'policy_type', 'policy', 'config']
+            types = PackRegisterController.CONTENT_TYPES
 
         if pack_register_request and hasattr(pack_register_request, 'packs'):
             packs = list(set(pack_register_request.packs))
@@ -176,30 +195,33 @@ class PackRegisterController(RestController):
         return result
 
 
-class PackSearchController(RestController):
+class PackSearchController(object):
 
-    @request_user_has_permission(permission_type=PermissionType.PACK_SEARCH)
-    @jsexpose(body_cls=PackSearchRequestAPI)
     def post(self, pack_search_request):
+
+        proxy_config = _get_proxy_config()
+
         if hasattr(pack_search_request, 'query'):
             packs = packs_service.search_pack_index(pack_search_request.query,
-                                                    case_sensitive=False)
+                                                    case_sensitive=False,
+                                                    proxy_config=proxy_config)
             return [PackAPI(**pack) for pack in packs]
         else:
-            pack = packs_service.get_pack_from_index(pack_search_request.pack)
-            return PackAPI(**pack) if pack else None
+            pack = packs_service.get_pack_from_index(pack_search_request.pack,
+                                                     proxy_config=proxy_config)
+            return PackAPI(**pack) if pack else []
 
 
-class IndexHealthController(RestController):
+class IndexHealthController(object):
 
-    @request_user_has_permission(permission_type=PermissionType.PACK_VIEW_INDEX_HEALTH)
-    @jsexpose()
     def get(self):
         """
         Check if all listed indexes are healthy: they should be reachable,
         return valid JSON objects, and yield more than one result.
         """
-        _, status = packs_service.fetch_pack_index(allow_empty=True)
+        proxy_config = _get_proxy_config()
+
+        _, status = packs_service.fetch_pack_index(allow_empty=True, proxy_config=proxy_config)
 
         health = {
             "indexes": {
@@ -230,20 +252,19 @@ class BasePacksController(ResourceController):
     model = PackAPI
     access = Pack
 
-    def _get_one_by_ref_or_id(self, ref_or_id, exclude_fields=None):
-        LOG.info('GET %s with ref_or_id=%s', pecan.request.path, ref_or_id)
-
+    def _get_one_by_ref_or_id(self, ref_or_id, requester_user, exclude_fields=None):
         instance = self._get_by_ref_or_id(ref_or_id=ref_or_id, exclude_fields=exclude_fields)
+
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=instance,
+                                                          permission_type=PermissionType.PACK_VIEW)
 
         if not instance:
             msg = 'Unable to identify resource with ref_or_id "%s".' % (ref_or_id)
-            pecan.abort(http_client.NOT_FOUND, msg)
+            abort(http_client.NOT_FOUND, msg)
             return
 
-        from_model_kwargs = self._get_from_model_kwargs_for_request(request=pecan.request)
-        result = self.model.from_model(instance, **from_model_kwargs)
-        LOG.debug('GET %s with ref_or_id=%s, client_result=%s', pecan.request.path, ref_or_id,
-                  result)
+        result = self.model.from_model(instance, **self.from_model_kwargs)
 
         return result
 
@@ -268,9 +289,19 @@ class BasePacksController(ResourceController):
         return resource_db
 
 
-class PacksIndexController(RestController):
+class PacksIndexController():
     search = PackSearchController()
     health = IndexHealthController()
+
+    def get_all(self):
+        proxy_config = _get_proxy_config()
+
+        index, status = packs_service.fetch_pack_index(proxy_config=proxy_config)
+
+        return {
+            'status': status,
+            'index': index
+        }
 
 
 class PacksController(BasePacksController):
@@ -298,12 +329,14 @@ class PacksController(BasePacksController):
         super(PacksController, self).__init__()
         self.get_one_db_method = self._get_by_ref_or_id
 
-    @request_user_has_permission(permission_type=PermissionType.PACK_LIST)
-    @jsexpose()
-    def get_all(self, **kwargs):
-        return super(PacksController, self)._get_all(**kwargs)
+    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
+        return super(PacksController, self)._get_all(sort=sort,
+                                                     offset=offset,
+                                                     limit=limit,
+                                                     raw_filters=raw_filters)
 
-    @request_user_has_resource_db_permission(permission_type=PermissionType.PACK_VIEW)
-    @jsexpose(arg_types=[str])
-    def get_one(self, ref_or_id):
-        return self._get_one_by_ref_or_id(ref_or_id=ref_or_id)
+    def get_one(self, ref_or_id, requester_user):
+        return self._get_one_by_ref_or_id(ref_or_id=ref_or_id, requester_user=requester_user)
+
+
+packs_controller = PacksController()

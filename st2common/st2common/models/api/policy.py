@@ -15,6 +15,7 @@
 
 from st2common.persistence.policy import PolicyType
 from st2common.models.api.base import BaseAPI
+from st2common.models.api.base import APIUIDMixin
 from st2common.models.db.policy import PolicyTypeDB, PolicyDB
 from st2common import log as logging
 from st2common.util import schema as util_schema
@@ -25,7 +26,7 @@ __all__ = ['PolicyTypeAPI']
 LOG = logging.getLogger(__name__)
 
 
-class PolicyTypeAPI(BaseAPI):
+class PolicyTypeAPI(BaseAPI, APIUIDMixin):
     model = PolicyTypeDB
     schema = {
         "title": "Policy Type",
@@ -34,6 +35,9 @@ class PolicyTypeAPI(BaseAPI):
             "id": {
                 "type": "string",
                 "default": None
+            },
+            'uid': {
+                'type': 'string'
             },
             "name": {
                 "type": "string",
@@ -79,7 +83,7 @@ class PolicyTypeAPI(BaseAPI):
                          parameters=getattr(instance, 'parameters', dict()))
 
 
-class PolicyAPI(BaseAPI):
+class PolicyAPI(BaseAPI, APIUIDMixin):
     model = PolicyDB
     schema = {
         "title": "Policy",
@@ -88,6 +92,9 @@ class PolicyAPI(BaseAPI):
             "id": {
                 "type": "string",
                 "default": None
+            },
+            'uid': {
+                'type': 'string'
             },
             "name": {
                 "type": "string",

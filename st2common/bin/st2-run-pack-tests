@@ -30,11 +30,24 @@ function join { local IFS="$1"; shift; echo "$*"; }
 ###########
 
 # A list of dependencies which are installed and available to every pack tests
-PACK_TEST_PYTHON_DEPENDENCIES=(
-    'mock>=1.3.0,<2.0'
-    'unittest2>=1.1.0,<2.0'
-    'nose>=1.3.7'
+# Note: Those only need to be installed when running this script standalone outside of StackStorm
+# package installation. When using StackStorm package installation, those dependencies are already
+# available (they are installed by st2tests package).
+PACK_TEST_PYTHON_DEPENDENCIES_NAMES=(
+    'mock'
+    'unittest2'
+    'nose'
+    'nose-timer'
+    'coverage'
 )
+PACK_TEST_PYTHON_DEPENDENCIES_VERSIONS=(
+    '>=2.0,<2.1'
+    '>=1.1.0,<2.0'
+    '>=1.3.7'
+    '>=0.7.0'
+    '>=4.4.1'
+)
+
 VIRTUALENVS_DIR="/tmp/st2-pack-tests-virtualenvs"
 
 ###########
@@ -45,19 +58,29 @@ ST2_PIP_OPTIONS=${ST2_PIP_OPTIONS:-"-q"}
 CREATE_VIRTUALENV=true
 JUST_TESTS=false
 VERBOSE=false
+ENABLE_COVERAGE=false
+ENABLE_TIMING=false
+
+VIRTUALENV_ACTIVATED=false
+
+STACKSTORM_VIRTUALENV_BIN="/opt/stackstorm/st2/bin"
+STACKSTORM_VIRTUALENV_PYTHON_BINARY="${STACKSTORM_VIRTUALENV_BIN}/python"
 
 ####################
 # Script beings here
 ####################
 
 function usage() {
-    echo "Usage: $0 [-x -s] -p <path to pack>" >&2
-    echo "  -x : Do not create virtualenv, e.g. when running in existing one." >&2
-    echo "  -j : Just run tests (use previously installed dependencies" >&2
-    echo "       and virtualenv if any. For subsequent test runs." >&2
+    echo "Usage: $0  [-c] [-j] [-t] [-v] [-x] -p <path to pack>" >&2
+    echo "  -c : Run tests with code coverage reporting enabled" >&2
+    echo "  -j : Just run tests. Use previously installed dependencies" >&2
+    echo "       and virtualenv, if any, for subsequent test runs." >&2
+    echo "  -t : Run tests with timing enabled" >&2
+    echo "  -v : Verbose mode (log debug messages to stdout)." >&2
+    echo "  -x : Do not create virtualenv for test for tests, e.g. when running in existing one." >&2
 }
 
-while getopts ":p:xjv" o; do
+while getopts ":p:xjvct" o; do
     case "${o}" in
         p)
             PACK_PATH=${OPTARG}
@@ -71,6 +94,12 @@ while getopts ":p:xjv" o; do
         v)
             VERBOSE=true
             ;;
+        c)
+            ENABLE_COVERAGE=true
+            ;;
+        t)
+            ENABLE_TIMING=true
+            ;;
         \?)
             echo "Invalid option: -$OPTARG" >&2
             usage
@@ -83,6 +112,21 @@ while getopts ":p:xjv" o; do
             ;;
     esac
 done
+
+function verbose_log() {
+    if [ ${VERBOSE} = true ]; then
+        echo $@
+    fi
+}
+
+function activate_virtualenv() {
+    # Activate virtualenv for running pack tests
+    if [ "${VIRTUALENV_ACTIVATED}" = false ]; then
+        echo "Activating virtualenv in ${VIRTUALENV_DIR}..."
+        source ${VIRTUALENV_DIR}/bin/activate
+        VIRTUALENV_ACTIVATED=true
+    fi
+}
 
 if [ ! ${PACK_PATH} ]; then
     # Missing required argument
@@ -130,35 +174,37 @@ PACK_TESTS_REQUIREMENTS_FILE="${PACK_PATH}/requirements-tests.txt"
 
 echo "Running tests for pack: ${PACK_NAME}"
 
-# Create virtualenv
+# Make sure /opt/stackstorm/bin is in PATH (for package installations)
+if [ -d "${STACKSTORM_VIRTUALENV_BIN}" ]; then
+    verbose_log "Adding ${STACKSTORM_VIRTUALENV_BIN} to \$PATH"
+    export PATH="${STACKSTORM_VIRTUALENV_BIN}:${PATH}"
+fi
+
+# Create virtualenv (if requested, otherwise just activate it)
 VIRTUALENV_DIR="${VIRTUALENVS_DIR}/${PACK_NAME}"
 
-if [ "${CREATE_VIRTUALENV}" = false ]; then
-    if [ -d "${VIRTUALENV_DIR}" ]; then
-        echo "Activating virtualenv in ${VIRTUALENV_DIR}..."
-        source ${VIRTUALENV_DIR}/bin/activate
-    else
-        echo "Not activating virtualenv since it doesn't exist"
-    fi
-else
+if [ "${CREATE_VIRTUALENV}" = true ]; then
     if [ "${JUST_TESTS}" = false ]; then
         echo "Creating virtualenv in ${VIRTUALENV_DIR}..."
         mkdir -p ${VIRTUALENVS_DIR}
         virtualenv --system-site-packages ${VIRTUALENV_DIR}
 
+        # Activate the virtualenv
+        activate_virtualenv
+
         # Make sure virtualenv is using latest pip version
         ${VIRTUALENV_DIR}/bin/pip install --upgrade pip
     fi
 
-    # Activate created virtualenv
     if [ ! -d "${VIRTUALENV_DIR}" ]; then
         echo "Virtual environment ${VIRTUALENV_DIR} doesn't exist"
         echo "Run this script without the -j flag to create it or run it with -x flag to not use" \
-             " a pack specific virtual environment."
+             "a pack specific virtual environment."
         exit 2
     fi
 
-    source ${VIRTUALENV_DIR}/bin/activate
+    # Make sure the virtualenv is activated
+    activate_virtualenv
 fi
 
 # Note: If we are running outside of st2, we need to add all the st2 components
@@ -182,9 +228,14 @@ if [ "${JUST_TESTS}" = false ]; then
     fi
 
     # Install global test dependencies
+    INSTALLED_PIP_PACKAGES=$(pip list)
+
     echo "Installing global pack test dependencies..."
-    for dependency in ${PACK_TEST_PYTHON_DEPENDENCIES[@]}; do
-        pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} "${dependency}"
+    for((i = 0; i < ${#PACK_TEST_PYTHON_DEPENDENCIES_NAMES[@]}; i++)); do
+        DEPENDENCY_NAME="${PACK_TEST_PYTHON_DEPENDENCIES_NAMES[$i]}"
+        DEPENDENCY_VERSION="${PACK_TEST_PYTHON_DEPENDENCIES_VERSIONS[$i]}"
+
+        echo ${INSTALLED_PIP_PACKAGES} | grep "${DEPENDENCY_NAME}"  > /dev/null || pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} "${DEPENDENCY_NAME}${DEPENDENCY_VERSION}"
     done
 
     # Install pack dependencies
@@ -198,27 +249,93 @@ if [ "${JUST_TESTS}" = false ]; then
         echo "Installing pack-specific test dependencies..."
         pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} -r ${PACK_TESTS_REQUIREMENTS_FILE}
     fi
-
 fi
-# Set PYTHONPATH, make sure it contains st2 components in PATH
-export PYTHONPATH="${PYTHONPATH}:${PACK_PYTHONPATH}"
+
+# Set PYTHONPATH, make sure it contains st2 components in PYTHONPATH
+TESTS_PYTHON_PATH=()
+
+# 1. Add PYTHONPATH from StackStorm packages virtualenv (only applies when running on server when
+# StackStorm is installed using packages)
+if [ -f "${STACKSTORM_VIRTUALENV_PYTHON_BINARY}" ]; then
+    ST2_PYTHONPATH=$(${STACKSTORM_VIRTUALENV_PYTHON_BINARY} -c "import sys;print ':'.join([x for x in sys.path if x.strip()])")
+    verbose_log "Adding entries from StackStorm virtualenv to PYTHONPATH: ${ST2_PYTHONPATH}"
+
+    TESTS_PYTHON_PATH+=("${ST2_PYTHONPATH}")
+fi
+
+# 2. Add pack actions, sensors and tests directories to PYTHONPATH
+TESTS_PYTHON_PATH+=("${PACK_PYTHONPATH}")
+
+# 3. Add any exist PYTHONPATH at the end
+if [ ! -z "${PYTHONPATH}" ]; then
+    TESTS_PYTHON_PATH+=("${PYTHONPATH}")
+fi
+
+TESTS_PYTHON_PATH="$(join ":" ${TESTS_PYTHON_PATH[@]})"
+
+export PYTHONPATH="${TESTS_PYTHON_PATH}"
+
+verbose_log "PYTHONPATH=${PYTHONPATH}"
+verbose_log "PATH=${PATH}"
+verbose_log "Virtualenv activated=${VIRTUALENV_ACTIVATED}"
+verbose_log "Installed Python dependencies:"
 
 if [ ${VERBOSE} = true ]; then
-    echo "PYTHONPATH=${PYTHONPATH}"
-    echo "Installed Python dependencies:"
     pip list
 fi
 
 echo "Running tests..."
-nosetests -s -v ${PACK_TESTS_PATH}
+# Note: We run nosetests with "--exe" option so it also runs test files which are executable
+# (pack install command automatically makes all the files, including test files executable)
+NOSE_OPTS=(-s -v --exe --rednose --immediate)
+
+# Is test coverage reporting enabled?
+if [ "${ENABLE_COVERAGE}" = true ]; then
+  verbose_log "Enabling nosetests coverage"
+
+  # Base options to enable test coverage reporting
+  # --with-coverage : enables coverage reporting
+  # --cover-erase : removes old coverage reports before starting 
+  NOSE_OPTS+=(--with-coverage --cover-erase)
+
+  # Now, by default nosetests reports test coverage for every module found
+  # in the $PYTHONPATH... as you can imagine this is not ideal and may contain
+  # a LOT of files.
+  # We can restrict nosetest to only report on python files from certain
+  # directories by specifying those directories (absolute or relative) using
+  # the options: --cover-package=/absolte/path OR --cover-package=./relative/path
+
+  # For each of the sub-directory in the pack, excluding the "tests" directory
+  PACK_SUB_DIRS=$(find $PACK_PATH -mindepth 1 -maxdepth 1 -type d -and -not -name "tests")
+  for pack_sub_dir in $PACK_SUB_DIRS; do
+    verbose_log "Enabling nosetests coverage for directory: $pack_sub_dir"
+    NOSE_OPTS+=(--cover-package=$pack_sub_dir)
+  done # end for each $PACK_PYTHON_DIR
+fi # end enable test coverage
+
+# Should we pass in arguments to enable test timing
+if [ "${ENABLE_TIMING}" = true ]; then
+  verbose_log "Enabling nosetests timings"
+  NOSE_OPTS+=(--with-timer)
+fi
+
+# Change to the pack's directory (required for test coverage reporting)
+pushd ${PACK_PATH} > /dev/null
+
+# Execute the tests
+nosetests ${NOSE_OPTS[@]} ${PACK_TESTS_PATH}
 TESTS_EXIT_CODE=$?
 
+popd  > /dev/null # ${PACK_PATH}
+
 # Clean up and unset the variables
-if [ "${CREATE_VIRTUALENV}" = true ]; then
+if [ ${VIRTUALENV_ACTIVATED} = true ]; then
+    verbose_log "Deactivating virtualenv ${VIRTUALENVS_DIR}"
     deactivate
 fi
 
 unset PYTHONPATH
+unset PATH
 
 # Exit
 exit ${TESTS_EXIT_CODE}

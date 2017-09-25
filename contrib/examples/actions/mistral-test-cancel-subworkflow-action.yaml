@@ -1,0 +1,12 @@
+---
+description: A sample workflow used to test the cascading cancel of subworkflow action.
+enabled: true
+entry_point: workflows/mistral-test-cancel-subworkflow-action.yaml
+name: mistral-test-cancel-subworkflow-action
+pack: examples
+parameters:
+  sleep:
+    type: integer
+    required: true
+    default: 180
+runner_type: mistral-v2

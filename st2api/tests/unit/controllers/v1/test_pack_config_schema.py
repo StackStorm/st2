@@ -51,7 +51,10 @@ class PackConfigSchemasControllerTestCase(FunctionalTest):
         self.assertTrue('Unable to identify resource with pack_ref ' in resp.json['faultstring'])
 
         # Pack doesn't exist
-        resp = self.app.get('/v1/config_schemas/pack_doesnt_exist',
+        ref_or_id = 'pack_doesnt_exist'
+        resp = self.app.get('/v1/config_schemas/%s' % ref_or_id,
                             expect_errors=True)
         self.assertEqual(resp.status_int, 404)
-        self.assertTrue('Unable to find the PackDB instance' in resp.json['faultstring'])
+        # Changed from: 'Unable to find the PackDB instance'
+        self.assertTrue('Resource with a ref or id "%s" not found' % ref_or_id in
+                        resp.json['faultstring'])

@@ -7,10 +7,14 @@
   parameters:
     register:
       type: "string"
-      default: "actions,aliases,sensors,triggers"
-      description: "Possible options are all, sensors, actions, rules, aliases, triggers, configs."
+      default: "all"
+      description: "Possible options are all, sensors, actions, rules, aliases, runners, triggers, rule_types, policiy_types, policies, configs."
     packs:
       type: "array"
       description: "A list of packs to register / load resources from."
       items:
         type: "string"
+    timeout:
+      type: "integer"
+      default: 300
+      description: "Make sure that all pack content is loaded within specified timeout"

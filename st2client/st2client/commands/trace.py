@@ -104,7 +104,7 @@ class SingleTraceDisplayMixin(object):
 
 
 class TraceListCommand(resource.ResourceCommand, SingleTraceDisplayMixin):
-    display_attributes = ['id', 'trace_tag', 'start_timestamp']
+    display_attributes = ['id', 'uid', 'trace_tag', 'start_timestamp']
 
     attribute_transform_functions = {
         'start_timestamp': format_isodate_for_user_timezone
@@ -118,17 +118,17 @@ class TraceListCommand(resource.ResourceCommand, SingleTraceDisplayMixin):
             resource.get_plural_display_name().lower(),
             *args, **kwargs)
 
+        self.default_limit = 50
+        self.resource_name = resource.get_plural_display_name().lower()
         self.group = self.parser.add_mutually_exclusive_group()
         self.parser.add_argument('-n', '--last', type=int, dest='last',
-                                 default=50,
-                                 help=('List N most recent %s.' %
-                                       resource.get_plural_display_name().lower()))
+                                 default=self.default_limit,
+                                 help=('List N most recent %s.' % self.resource_name))
         self.parser.add_argument('-s', '--sort', type=str, dest='sort_order',
                                  default='descending',
                                  help=('Sort %s by start timestamp, '
                                        'asc|ascending (earliest first) '
-                                       'or desc|descending (latest first)' %
-                                       resource.get_plural_display_name().lower()))
+                                       'or desc|descending (latest first)' % self.resource_name))
 
         # Filter options
         self.group.add_argument('-c', '--trace-tag', help='Trace-tag to filter the list.')
@@ -163,22 +163,34 @@ class TraceListCommand(resource.ResourceCommand, SingleTraceDisplayMixin):
                 kwargs['sort_asc'] = True
             elif args.sort_order in ['desc', 'descending']:
                 kwargs['sort_desc'] = True
-
-        return self.manager.query(limit=args.last, **kwargs)
+        return self.manager.query_with_count(limit=args.last, **kwargs)
 
     def run_and_print(self, args, **kwargs):
-        instances = self.run(args, **kwargs)
+        instances, count = self.run(args, **kwargs)
+
         if instances and len(instances) == 1:
             # For a single Trace we must include the components unless
             # user has overriden the attributes to display
             if args.attr == self.display_attributes:
                 args.attr = ['all']
             self.print_trace_details(trace=instances[0], args=args)
+
+            if not args.json and not args.yaml:
+                if args.last and count and count > args.last:
+                        table.SingleRowTable.note_box(self.resource_name, 1)
         else:
-            self.print_output(reversed(instances), table.MultiColumnTable,
-                              attributes=args.attr, widths=args.width,
-                              json=args.json, yaml=args.yaml,
-                              attribute_transform_functions=self.attribute_transform_functions)
+            if args.json or args.yaml:
+                self.print_output(instances, table.MultiColumnTable,
+                                  attributes=args.attr, widths=args.width,
+                                  json=args.json, yaml=args.yaml,
+                                  attribute_transform_functions=self.attribute_transform_functions)
+            else:
+                self.print_output(instances, table.MultiColumnTable,
+                                  attributes=args.attr, widths=args.width,
+                                  attribute_transform_functions=self.attribute_transform_functions)
+
+                if args.last and count and count > args.last:
+                    table.SingleRowTable.note_box(self.resource_name, args.last)
 
 
 class TraceGetCommand(resource.ResourceGetCommand, SingleTraceDisplayMixin):
@@ -206,13 +218,13 @@ class TraceGetCommand(resource.ResourceGetCommand, SingleTraceDisplayMixin):
         self.display_filter_group = self.parser.add_argument_group()
 
         self.display_filter_group.add_argument('--show-executions', action='store_true',
-                                              help='Only show executions.')
+                                               help='Only show executions.')
         self.display_filter_group.add_argument('--show-rules', action='store_true',
-                                              help='Only show rules.')
+                                               help='Only show rules.')
         self.display_filter_group.add_argument('--show-trigger-instances', action='store_true',
-                                              help='Only show trigger instances.')
+                                               help='Only show trigger instances.')
         self.display_filter_group.add_argument('-n', '--hide-noop-triggers', action='store_true',
-                                              help='Hide noop trigger instances.')
+                                               help='Hide noop trigger instances.')
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):

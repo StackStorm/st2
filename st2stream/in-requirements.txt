@@ -8,5 +8,4 @@ oslo.config
 oslo.utils
 pymongo
 six
-git+https://github.com/StackStorm/pecan.git@st2-patched#egg=pecan
 gunicorn

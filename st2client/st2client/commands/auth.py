@@ -147,6 +147,8 @@ class LoginCommand(resource.ResourceCommand):
             if self.app.client.debug:
                 raise
 
+            return
+
         print('Logged in as %s' % (args.username))
 
         if not args.write_password:

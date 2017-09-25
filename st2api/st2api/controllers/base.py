@@ -14,23 +14,18 @@
 # limitations under the License.
 
 import six
-from pecan.rest import RestController
 from oslo_config import cfg
 from six.moves.urllib import parse as urlparse  # pylint: disable=import-error
 
 from st2api.controllers.controller_transforms import transform_to_bool
-from st2common.rbac.utils import request_user_is_admin
+from st2common.rbac import utils as rbac_utils
 
 __all__ = [
-    'BaseRestControllerMixin',
-    'SHOW_SECRETS_QUERY_PARAM'
+    'BaseRestControllerMixin'
 ]
 
 
-SHOW_SECRETS_QUERY_PARAM = 'show_secrets'
-
-
-class BaseRestControllerMixin(RestController):
+class BaseRestControllerMixin(object):
     """
     Base REST controller class which contains various utility functions.
     """
@@ -71,24 +66,18 @@ class BaseRestControllerMixin(RestController):
 
         return value
 
-    def _get_mask_secrets(self, request):
+    def _get_mask_secrets(self, requester_user, show_secrets=None):
         """
         Return a value for mask_secrets which can be used in masking secret properties
         to be retruned by any API. The default value is as per the config however admin
         users have the ability to override by passing in a special query parameter
         ?show_secrets=True.
 
-        :param request: Request object.
-
         :rtype: ``bool``
         """
         mask_secrets = cfg.CONF.api.mask_secrets
-        show_secrets = self._get_query_param_value(request=request,
-                                                   param_name=SHOW_SECRETS_QUERY_PARAM,
-                                                   param_type='bool',
-                                                   default_value=False)
 
-        if show_secrets and request_user_is_admin(request=request):
+        if show_secrets and rbac_utils.user_is_admin(user_db=requester_user):
             mask_secrets = False
 
         return mask_secrets

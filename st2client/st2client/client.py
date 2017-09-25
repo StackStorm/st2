@@ -66,11 +66,16 @@ class Client(object):
                 'ST2_AUTH_URL', '%s:%s' % (self.endpoints['base'], DEFAULT_AUTH_PORT))
 
         if stream_url:
-            self.endpoints['stream'] = auth_url
+            self.endpoints['stream'] = stream_url
         else:
             self.endpoints['stream'] = os.environ.get(
-                'ST2_STREAM_URL', '%s:%s/%s' %
-                                  (self.endpoints['base'], DEFAULT_STREAM_PORT, api_version))
+                'ST2_STREAM_URL',
+                '%s:%s/%s' % (
+                    self.endpoints['base'],
+                    DEFAULT_STREAM_PORT,
+                    api_version
+                )
+            )
 
         if cacert is not None:
             self.cacert = cacert
@@ -144,6 +149,12 @@ class Client(object):
             models.RuleEnforcement, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Stream'] = StreamManager(
             self.endpoints['stream'], cacert=self.cacert, debug=self.debug)
+
+        # RBAC
+        self.managers['Role'] = ResourceManager(
+            models.Role, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        self.managers['UserRoleAssignment'] = ResourceManager(
+            models.UserRoleAssignment, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
 
     @property
     def actions(self):

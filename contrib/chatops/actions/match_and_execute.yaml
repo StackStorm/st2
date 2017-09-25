@@ -1,0 +1,20 @@
+---
+name: "match_and_execute"
+pack: chatops
+runner_type: "run-python"
+description: "Execute a chatops string to an action alias"
+enabled: true
+entry_point: "match_and_execute.py"
+parameters:
+  text:
+    type: "string"
+    description: "The text to match"
+    required: true
+  source_channel:
+    type: "string"
+    description: "The source channel to set on the execution"
+    required: false
+  user:
+    type: "string"
+    description: "User ID calling the command"
+    required: false

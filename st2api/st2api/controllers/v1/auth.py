@@ -13,24 +13,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pecan
 import six
 
 from oslo_config import cfg
-from pecan import abort
 from mongoengine import ValidationError
 
-from st2api.controllers.base import BaseRestControllerMixin, SHOW_SECRETS_QUERY_PARAM
+from st2api.controllers.base import BaseRestControllerMixin
 from st2common import log as logging
 from st2common.models.api.auth import ApiKeyAPI, ApiKeyCreateResponseAPI
-from st2common.models.api.base import jsexpose
+from st2common.models.db.auth import UserDB
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 from st2common.exceptions.auth import ApiKeyNotFoundError
-from st2common.persistence.auth import ApiKey
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.persistence.auth import ApiKey, User
 from st2common.rbac.types import PermissionType
-from st2common.rbac.decorators import request_user_has_permission
-from st2common.rbac.decorators import request_user_has_resource_api_permission
-from st2common.rbac.decorators import request_user_has_resource_db_permission
+from st2common.rbac import utils as rbac_utils
+from st2common.router import abort
+from st2common.router import Response
 from st2common.util import auth as auth_util
 
 http_client = six.moves.http_client
@@ -42,6 +41,8 @@ __all__ = [
 ]
 
 
+# See st2common.rbac.resolvers.ApiKeyPermissionResolver#user_has_resource_db_permission for resaon
+# why RBAC is disabled for the controller
 class ApiKeyController(BaseRestControllerMixin):
     """
     Implements the REST endpoint for managing the key value store.
@@ -59,9 +60,7 @@ class ApiKeyController(BaseRestControllerMixin):
         super(ApiKeyController, self).__init__()
         self.get_one_db_method = ApiKey.get_by_key_or_id
 
-    @request_user_has_resource_db_permission(permission_type=PermissionType.API_KEY_VIEW)
-    @jsexpose(arg_types=[str])
-    def get_one(self, api_key_id_or_key):
+    def get_one(self, api_key_id_or_key, requester_user, show_secrets=None):
         """
             List api keys.
 
@@ -72,44 +71,86 @@ class ApiKeyController(BaseRestControllerMixin):
         try:
             api_key_db = ApiKey.get_by_key_or_id(api_key_id_or_key)
         except ApiKeyNotFoundError:
-            msg = 'ApiKey matching %s for reference and id not found.', api_key_id_or_key
+            msg = ('ApiKey matching %s for reference and id not found.' % (api_key_id_or_key))
             LOG.exception(msg)
             abort(http_client.NOT_FOUND, msg)
 
+        permission_type = PermissionType.API_KEY_VIEW
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=api_key_db,
+                                                          permission_type=permission_type)
+
         try:
-            mask_secrets = self._get_mask_secrets(pecan.request)
+            mask_secrets = self._get_mask_secrets(show_secrets=show_secrets,
+                                                  requester_user=requester_user)
             return ApiKeyAPI.from_model(api_key_db, mask_secrets=mask_secrets)
         except (ValidationError, ValueError) as e:
             LOG.exception('Failed to serialize API key.')
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
 
-    @request_user_has_permission(permission_type=PermissionType.API_KEY_LIST)
-    @jsexpose(arg_types=[str])
-    def get_all(self, **kw):
+    @property
+    def max_limit(self):
+        return cfg.CONF.api.max_page_size
+
+    def get_all(self, requester_user, show_secrets=None, limit=None, offset=0):
         """
             List all keys.
 
             Handles requests:
-                GET /keys/
+                GET /apikeys/
         """
-        mask_secrets, kw = self._get_mask_secrets_ex(**kw)
-        api_key_dbs = ApiKey.get_all(**kw)
-        api_keys = [ApiKeyAPI.from_model(api_key_db, mask_secrets=mask_secrets)
-                    for api_key_db in api_key_dbs]
+        mask_secrets = self._get_mask_secrets(show_secrets=show_secrets,
+                                              requester_user=requester_user)
 
-        return api_keys
+        if limit and int(limit) > self.max_limit:
+            msg = 'Limit "%s" specified, maximum value is "%s"' % (limit, self.max_limit)
+            raise ValueError(msg)
 
-    @jsexpose(body_cls=ApiKeyAPI, status_code=http_client.CREATED)
-    @request_user_has_resource_api_permission(permission_type=PermissionType.API_KEY_CREATE)
-    def post(self, api_key_api):
+        api_key_dbs = ApiKey.get_all(limit=limit, offset=offset)
+
+        try:
+            api_keys = [ApiKeyAPI.from_model(api_key_db, mask_secrets=mask_secrets)
+                        for api_key_db in api_key_dbs]
+        except OverflowError:
+            msg = 'Offset "%s" specified is more than 32 bit int' % (offset)
+            raise ValueError(msg)
+
+        resp = Response(json=api_keys)
+        resp.headers['X-Total-Count'] = str(api_key_dbs.count())
+
+        if limit:
+            resp.headers['X-Limit'] = str(limit)
+
+        return resp
+
+    def post(self, api_key_api, requester_user):
         """
         Create a new entry.
         """
+
+        permission_type = PermissionType.API_KEY_CREATE
+        rbac_utils.assert_user_has_resource_api_permission(user_db=requester_user,
+                                                           resource_api=api_key_api,
+                                                           permission_type=permission_type)
+
         api_key_db = None
         api_key = None
         try:
             if not getattr(api_key_api, 'user', None):
-                api_key_api.user = self._get_user()
+                if requester_user:
+                    api_key_api.user = requester_user.name
+                else:
+                    api_key_api.user = cfg.CONF.system_user.user
+
+            try:
+                User.get_by_name(api_key_api.user)
+            except StackStormDBObjectNotFoundError:
+                user_db = UserDB(name=api_key_api.user)
+                User.add_or_update(user_db)
+
+                extra = {'username': api_key_api.user, 'user': user_db}
+                LOG.audit('Registered new user "%s".' % (api_key_api.user), extra=extra)
+
             # If key_hash is provided use that and do not create a new key. The assumption
             # is user already has the original api-key
             if not getattr(api_key_api, 'key_hash', None):
@@ -129,18 +170,28 @@ class ApiKeyController(BaseRestControllerMixin):
         # only the real value only returned at create time. Also, no masking of key here since
         # the user needs to see this value atleast once.
         api_key_create_response_api.key = api_key
-        return api_key_create_response_api
 
-    @request_user_has_resource_db_permission(permission_type=PermissionType.API_KEY_MODIFY)
-    @jsexpose(arg_types=[str], body_cls=ApiKeyAPI)
-    def put(self, api_key_api, api_key_id_or_key):
+        return Response(json=api_key_create_response_api, status=http_client.CREATED)
+
+    def put(self, api_key_api, api_key_id_or_key, requester_user):
         api_key_db = ApiKey.get_by_key_or_id(api_key_id_or_key)
 
-        LOG.debug('PUT /apikeys/ lookup with api_key_id_or_key=%s found object: %s',
-                  api_key_id_or_key, api_key_db)
+        permission_type = PermissionType.API_KEY_MODIFY
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=api_key_db,
+                                                          permission_type=permission_type)
 
         old_api_key_db = api_key_db
         api_key_db = ApiKeyAPI.to_model(api_key_api)
+
+        try:
+            User.get_by_name(api_key_api.user)
+        except StackStormDBObjectNotFoundError:
+            user_db = UserDB(name=api_key_api.user)
+            User.add_or_update(user_db)
+
+            extra = {'username': api_key_api.user, 'user': user_db}
+            LOG.audit('Registered new user "%s".' % (api_key_api.user), extra=extra)
 
         # Passing in key_hash as MASKED_ATTRIBUTE_VALUE is expected since we do not
         # leak it out therefore it is expected we get the same value back. Interpret
@@ -162,9 +213,7 @@ class ApiKeyController(BaseRestControllerMixin):
 
         return api_key_api
 
-    @request_user_has_resource_db_permission(permission_type=PermissionType.API_KEY_DELETE)
-    @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
-    def delete(self, api_key_id_or_key):
+    def delete(self, api_key_id_or_key, requester_user):
         """
             Delete the key value pair.
 
@@ -173,32 +222,17 @@ class ApiKeyController(BaseRestControllerMixin):
         """
         api_key_db = ApiKey.get_by_key_or_id(api_key_id_or_key)
 
-        LOG.debug('DELETE /apikeys/ lookup with api_key_id_or_key=%s found object: %s',
-                  api_key_id_or_key, api_key_db)
+        permission_type = PermissionType.API_KEY_DELETE
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=api_key_db,
+                                                          permission_type=permission_type)
 
         ApiKey.delete(api_key_db)
 
         extra = {'api_key_db': api_key_db}
         LOG.audit('ApiKey deleted. ApiKey.id=%s' % (api_key_db.id), extra=extra)
 
-    def _get_user(self):
-        """
-        Looks up user from the auth context in the request or will return system_user.
-        """
-        # lookup user from request context. AuthHook places context in the pecan request.
-        auth_context = pecan.request.context.get('auth', None)
+        return Response(status=http_client.NO_CONTENT)
 
-        if not auth_context:
-            return cfg.CONF.system_user.user
 
-        user_db = auth_context.get('user', None)
-        return user_db.name if user_db else cfg.CONF.system_user.user
-
-    def _get_mask_secrets_ex(self, **kw):
-        """
-        Allowing SHOW_SECRETS_QUERY_PARAM to remain in the parameters causes downstream
-        lookup failures there removing. This is a pretty hackinsh way to manage query params.
-        """
-        mask_secrets = self._get_mask_secrets(pecan.request)
-        kw.pop(SHOW_SECRETS_QUERY_PARAM, None)
-        return mask_secrets, kw
+api_key_controller = ApiKeyController()

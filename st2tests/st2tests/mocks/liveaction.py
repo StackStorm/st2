@@ -13,11 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import eventlet
 import traceback
 
 from st2actions import worker
 from st2actions import scheduler
-from st2actions.notifier import notifier
 from st2common.constants import action as action_constants
 from st2common.models.db.liveaction import LiveActionDB
 
@@ -49,11 +49,40 @@ class MockLiveActionPublisher(object):
             traceback.print_exc()
             print(payload)
 
+
+class MockLiveActionPublisherNonBlocking(object):
+    threads = []
+
     @classmethod
-    def publish_update(cls, payload):
+    def publish_create(cls, payload):
         try:
             if isinstance(payload, LiveActionDB):
-                notifier.get_notifier().process(payload)
+                thread = eventlet.spawn(scheduler.get_scheduler().process, payload)
+                cls.threads.append(thread)
         except Exception:
             traceback.print_exc()
             print(payload)
+
+    @classmethod
+    def publish_state(cls, payload, state):
+        try:
+            if isinstance(payload, LiveActionDB):
+                if state == action_constants.LIVEACTION_STATUS_REQUESTED:
+                    thread = eventlet.spawn(scheduler.get_scheduler().process, payload)
+                    cls.threads.append(thread)
+                else:
+                    thread = eventlet.spawn(worker.get_worker().process, payload)
+                    cls.threads.append(thread)
+        except Exception:
+            traceback.print_exc()
+            print(payload)
+
+    @classmethod
+    def wait_all(cls):
+        for thread in cls.threads:
+            try:
+                thread.wait()
+            except Exception as e:
+                print str(e)
+            finally:
+                cls.threads.remove(thread)

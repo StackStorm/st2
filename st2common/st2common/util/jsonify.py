@@ -15,11 +15,12 @@
 
 try:
     import simplejson as json
+    from simplejson import JSONEncoder
 except ImportError:
     import json
+    from json import JSONEncoder
 
 import six
-from pecan.jsonify import GenericJSON
 
 
 __all__ = [
@@ -27,6 +28,14 @@ __all__ = [
     'json_loads',
     'try_loads'
 ]
+
+
+class GenericJSON(JSONEncoder):
+    def default(self, obj):  # pylint: disable=method-hidden
+        if hasattr(obj, '__json__') and six.callable(obj.__json__):
+            return obj.__json__()
+        else:
+            return JSONEncoder.default(self, obj)
 
 
 def json_encode(obj, indent=4):

@@ -50,7 +50,7 @@ class RBACDefinitionsLoaderTestCase(unittest2.TestCase):
         self.assertTrue('rule_view' in role_definition_api.permission_grants[1]['permission_types'])
         self.assertEqual(role_definition_api.permission_grants[2]['permission_types'],
                          ['action_execute'])
-        self.assertTrue('resource_uid' not in role_definition_api.permission_grants[3])
+        self.assertEqual(role_definition_api.permission_grants[3]['resource_uid'], None)
         self.assertEqual(role_definition_api.permission_grants[3]['permission_types'],
                          ['action_list', 'rule_list'])
 
@@ -71,10 +71,18 @@ class RBACDefinitionsLoaderTestCase(unittest2.TestCase):
 
         # Only list permissions can be used without a resource_uid
         file_path = os.path.join(get_fixtures_base_path(), 'rbac_invalid/roles/role_four.yaml')
-        expected_msg = ('Invalid permission type "action_create". Only "list" permission types '
-                        'can be used without a resource id')
+        expected_msg = ('Invalid permission type "action_create". Valid global '
+                        'permission types which can be used without a resource id are:')
         self.assertRaisesRegexp(ValueError, expected_msg,
                                 loader.load_role_definition_from_file, file_path=file_path)
+
+    def test_load_role_definition_with_all_global_permission_types(self):
+        loader = RBACDefinitionsLoader()
+
+        file_path = os.path.join(get_fixtures_base_path(), 'rbac/roles/role_seven.yaml')
+        role_definition_api = loader.load_role_definition_from_file(file_path=file_path)
+
+        self.assertEqual(role_definition_api.name, 'role_seven')
 
     def test_load_user_role_assignments_success(self):
         loader = RBACDefinitionsLoader()
@@ -190,3 +198,53 @@ class RBACDefinitionsLoaderTestCase(unittest2.TestCase):
         assignment_api = loader.load_user_role_assignments_from_file(file_path=file_path)
         self.assertEqual(assignment_api.username, 'stackstorm_user')
         self.assertFalse(assignment_api.enabled)
+
+    def test_load_group_to_role_mappings_empty_file(self):
+        loader = RBACDefinitionsLoader()
+
+        file_path = os.path.join(get_fixtures_base_path(), 'rbac_invalid/mappings/empty.yaml')
+        file_paths = [file_path]
+
+        loader._get_group_to_role_maps_file_paths = mock.Mock()
+        loader._get_group_to_role_maps_file_paths.return_value = file_paths
+
+        expected_msg = 'Group to role map assignment file .+? is empty and invalid'
+        self.assertRaisesRegexp(ValueError, expected_msg, loader.load_group_to_role_maps)
+
+    def test_load_group_to_role_mappings_missing_mandatory_attribute(self):
+        loader = RBACDefinitionsLoader()
+
+        file_path = os.path.join(get_fixtures_base_path(),
+                                 'rbac_invalid/mappings/mapping_one_missing_roles.yaml')
+
+        expected_msg = '\'roles\' is a required property'
+        self.assertRaisesRegexp(jsonschema.ValidationError, expected_msg,
+                                loader.load_group_to_role_map_assignment_from_file,
+                                file_path=file_path)
+
+        file_path = os.path.join(get_fixtures_base_path(),
+                                 'rbac_invalid/mappings/mapping_two_missing_group.yaml')
+
+        expected_msg = '\'group\' is a required property'
+        self.assertRaisesRegexp(jsonschema.ValidationError, expected_msg,
+                                loader.load_group_to_role_map_assignment_from_file,
+                                file_path=file_path)
+
+    def test_load_group_to_role_mappings_success(self):
+        loader = RBACDefinitionsLoader()
+
+        file_path = os.path.join(get_fixtures_base_path(), 'rbac/mappings/mapping_one.yaml')
+        role_mapping_api = loader.load_group_to_role_map_assignment_from_file(file_path=file_path)
+
+        self.assertEqual(role_mapping_api.group, 'some ldap group')
+        self.assertEqual(role_mapping_api.roles, ['pack_admin'])
+        self.assertEqual(role_mapping_api.description, None)
+        self.assertTrue(role_mapping_api.enabled)
+
+        file_path = os.path.join(get_fixtures_base_path(), 'rbac/mappings/mapping_two.yaml')
+        role_mapping_api = loader.load_group_to_role_map_assignment_from_file(file_path=file_path)
+
+        self.assertEqual(role_mapping_api.group, 'CN=stormers,OU=groups,DC=stackstorm,DC=net')
+        self.assertEqual(role_mapping_api.roles, ['role_one', 'role_two', 'role_three'])
+        self.assertEqual(role_mapping_api.description, 'Grant 3 roles to stormers group members')
+        self.assertFalse(role_mapping_api.enabled)

@@ -1,0 +1,6 @@
+# Remeber to list implicit packages here, otherwise version won't be fixated!
+mock
+unittest2
+nose
+rednose
+psutil

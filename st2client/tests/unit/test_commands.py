@@ -146,7 +146,8 @@ class TestResourceCommand(unittest2.TestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK',
+                                                      {})))
     @mock.patch.object(
         httpclient.HTTPClient, 'put',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps(base.RESOURCES[0]), 200, 'OK')))
@@ -209,7 +210,8 @@ class TestResourceCommand(unittest2.TestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK',
+                                                      {})))
     @mock.patch.object(
         httpclient.HTTPClient, 'delete',
         mock.MagicMock(return_value=base.FakeResponse('', 204, 'NO CONTENT')))

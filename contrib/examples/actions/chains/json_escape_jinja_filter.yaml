@@ -1,0 +1,13 @@
+---
+vars:
+  status: FAILED
+  description: |
+    Random text from another action2 output """ which will break JSON and needs escaping
+
+chain:
+  - name: post_alert
+    ref: slack.chat.postMessage
+    parameters:
+      text: " "
+      channel: "#stackstorm"
+      attachments: '[{"title": "{{ status }} - {{ description|json_escape }}", "color": "#808080"}]'

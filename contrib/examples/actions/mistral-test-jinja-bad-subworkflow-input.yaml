@@ -1,0 +1,12 @@
+---
+name: mistral-test-jinja-bad-subworkflow-input
+pack: examples
+description: A sample workflow for testing bad input passed to subworkflow.
+enabled: true
+entry_point: workflows/mistral-test-jinja-bad-subworkflow-input.yaml
+runner_type: mistral-v2
+parameters:
+  workflow:
+    default: examples.mistral-test-jinja-bad-subworkflow-input.wf1
+    immutable: true
+    type: string

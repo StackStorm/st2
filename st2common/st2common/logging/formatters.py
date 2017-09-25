@@ -17,7 +17,6 @@ from __future__ import absolute_import
 
 import logging
 import socket
-import time
 import json
 import copy
 import traceback
@@ -41,6 +40,7 @@ HOSTNAME = socket.gethostname()
 GELF_SPEC_VERSION = '1.1'
 
 COMMON_ATTRIBUTE_NAMES = [
+    'name',
     'process',
     'processName',
     'module',
@@ -77,9 +77,11 @@ def process_attribute_value(key, value):
     if not cfg.CONF.log.mask_secrets:
         return value
 
+    blacklisted_attribute_names = MASKED_ATTRIBUTES_BLACKLIST + cfg.CONF.log.mask_secrets_blacklist
+
     # NOTE: This can be expensive when processing large dicts or objects
     if isinstance(value, SIMPLE_TYPES):
-        if key in MASKED_ATTRIBUTES_BLACKLIST:
+        if key in blacklisted_attribute_names:
             value = MASKED_ATTRIBUTE_VALUE
     elif isinstance(value, dict):
         # Note: We don't want to modify the original value
@@ -241,7 +243,8 @@ class GelfLogFormatter(BaseExtraLogFormatter):
 
         msg = record.msg
         exc_info = record.exc_info
-        now = int(time.time())
+        time_now_float = record.created
+        time_now_sec = int(time_now_float)
         level = self.PYTHON_TO_GELF_LEVEL_MAP.get(record.levelno, self.DEFAULT_LOG_LEVEL)
 
         common_attributes = self._get_common_extra_attributes(record=record)
@@ -252,7 +255,8 @@ class GelfLogFormatter(BaseExtraLogFormatter):
             'host': HOSTNAME,
             'short_message': msg,
             'full_message': full_msg,
-            'timestamp': now,
+            'timestamp': time_now_sec,
+            'timestamp_f': time_now_float,
             'level': level
         }
 

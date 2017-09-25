@@ -15,5 +15,21 @@
 
 
 def unescape(s):
-    return (s.replace('\\r\\n', '\\n').decode('unicode_escape').encode('utf-8')
-            if isinstance(s, basestring) else s)
+    """
+    Action execution escapes escaped chars in result (i.e. \n is stored as \\n).
+    This function unescapes those chars.
+    """
+    if isinstance(s, basestring):
+        s = s.replace('\\n', '\n')
+        s = s.replace('\\r', '\r')
+        s = s.replace('\\"', '\"')
+
+    return s
+
+
+def strip_carriage_returns(s):
+    if isinstance(s, basestring):
+        s = s.replace('\\r', '')
+        s = s.replace('\r', '')
+
+    return s

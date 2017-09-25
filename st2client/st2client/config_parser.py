@@ -96,6 +96,12 @@ CONFIG_FILE_OPTIONS = {
             'type': 'string',
             'default': None
         }
+    },
+    'stream': {
+        'url': {
+            'type': 'string',
+            'default': None
+        }
     }
 }
 

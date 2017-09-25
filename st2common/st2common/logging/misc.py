@@ -18,6 +18,8 @@ from __future__ import absolute_import
 import os.path
 import logging
 
+from st2common.logging.filters import LoggerFunctionNameExclusionFilter
+
 __all__ = [
     'reopen_log_files',
     'set_log_level_for_all_handlers',
@@ -25,6 +27,18 @@ __all__ = [
 ]
 
 LOG = logging.getLogger(__name__)
+
+# Because some loggers are just waste of attention span
+SPECIAL_LOGGERS = {
+    'swagger_spec_validator.ref_validators': logging.INFO
+}
+
+# Log messages for function names which are very spammy and we want to filter out when DEBUG log
+# level is enabled
+IGNORED_FUNCTION_NAMES = [
+    # Used by pyamqp, logs every heartbit tick every 2 ms by default
+    'heartbeat_tick'
+]
 
 
 def reopen_log_files(handlers):
@@ -85,7 +99,13 @@ def set_log_level_for_all_loggers(level=logging.DEBUG):
         if not isinstance(logger, logging.Logger):
             continue
 
-        set_log_level_for_all_handlers(logger=logger)
+        if hasattr(logger, 'addFilter'):
+            logger.addFilter(LoggerFunctionNameExclusionFilter(exclusions=IGNORED_FUNCTION_NAMES))
+
+        if logger.name in SPECIAL_LOGGERS:
+            set_log_level_for_all_handlers(logger=logger, level=SPECIAL_LOGGERS.get(logger.name))
+        else:
+            set_log_level_for_all_handlers(logger=logger, level=level)
 
 
 def get_logger_name_for_module(module):

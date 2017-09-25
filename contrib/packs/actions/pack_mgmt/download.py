@@ -48,11 +48,44 @@ class DownloadGitRepoAction(Action):
     def __init__(self, config=None, action_service=None):
         super(DownloadGitRepoAction, self).__init__(config=config, action_service=action_service)
 
+        self.https_proxy = os.environ.get('https_proxy', self.config.get('https_proxy', None))
+        self.http_proxy = os.environ.get('http_proxy', self.config.get('http_proxy', None))
+        self.proxy_ca_bundle_path = os.environ.get(
+            'proxy_ca_bundle_path',
+            self.config.get('proxy_ca_bundle_path', None)
+        )
+        self.no_proxy = os.environ.get('no_proxy', self.config.get('no_proxy', None))
+
+        self.proxy_config = None
+
+        if self.http_proxy or self.https_proxy:
+            self.logger.debug('Using proxy %s',
+                              self.http_proxy if self.http_proxy else self.https_proxy)
+            self.proxy_config = {
+                'https_proxy': self.https_proxy,
+                'http_proxy': self.http_proxy,
+                'proxy_ca_bundle_path': self.proxy_ca_bundle_path,
+                'no_proxy': self.no_proxy
+            }
+
+        # This is needed for git binary to work with a proxy
+        if self.https_proxy and not os.environ.get('https_proxy', None):
+            os.environ['https_proxy'] = self.https_proxy
+
+        if self.http_proxy and not os.environ.get('http_proxy', None):
+            os.environ['http_proxy'] = self.http_proxy
+
+        if self.no_proxy and not os.environ.get('no_proxy', None):
+            os.environ['no_proxy'] = self.no_proxy
+
+        if self.proxy_ca_bundle_path and not os.environ.get('proxy_ca_bundle_path', None):
+            os.environ['no_proxy'] = self.no_proxy
+
     def run(self, packs, abs_repo_base, verifyssl=True, force=False):
         result = {}
 
         for pack in packs:
-            pack_url, pack_version = self._get_repo_url(pack)
+            pack_url, pack_version = self._get_repo_url(pack, proxy_config=self.proxy_config)
 
             temp_dir_name = hashlib.md5(pack_url).hexdigest()
             lock_file = LockFile('/tmp/%s' % (temp_dir_name))
@@ -268,13 +301,13 @@ class DownloadGitRepoAction(Action):
         return sanitized_result
 
     @staticmethod
-    def _get_repo_url(pack):
+    def _get_repo_url(pack, proxy_config=None):
         pack_and_version = pack.split(PACK_VERSION_SEPARATOR)
         name_or_url = pack_and_version[0]
         version = pack_and_version[1] if len(pack_and_version) > 1 else None
 
         if len(name_or_url.split('/')) == 1:
-            pack = get_pack_from_index(name_or_url)
+            pack = get_pack_from_index(name_or_url, proxy_config=proxy_config)
             if not pack:
                 raise Exception('No record of the "%s" pack in the index.' % name_or_url)
             return (pack['repo_url'], version)
@@ -293,7 +326,7 @@ class DownloadGitRepoAction(Action):
                 url = 'https://github.com/{}'.format(repo_url)
             else:
                 url = repo_url
-            return url if url.endswith('.git') else '{}.git'.format(url)
+            return url
 
     @staticmethod
     def _get_pack_metadata(pack_dir):

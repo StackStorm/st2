@@ -24,10 +24,12 @@ from st2common import log as logging
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
 from st2common.util.monkey_patch import monkey_patch
-from st2common.constants.auth import VALID_MODES
 from st2auth import config
 config.register_opts()
+
 from st2auth import app
+from st2auth.validation import validate_auth_backend_is_correctly_configured
+
 
 __all__ = [
     'main'
@@ -43,8 +45,8 @@ def _setup():
                  register_signal_handlers=True, register_internal_trigger_types=False,
                  run_migrations=False)
 
-    if cfg.CONF.auth.mode not in VALID_MODES:
-        raise ValueError('Valid modes are: %s' % (','.join(VALID_MODES)))
+    # Additional pre-run time checks
+    validate_auth_backend_is_correctly_configured()
 
 
 def _run_server():
@@ -73,7 +75,7 @@ def _run_server():
     LOG.info('(PID=%s) ST2 Auth API is serving on %s://%s:%s.', os.getpid(),
              'https' if use_ssl else 'http', host, port)
 
-    wsgi.server(socket, app.setup_app())
+    wsgi.server(socket, app.setup_app(), log=LOG, log_output=False)
     return 0
 
 

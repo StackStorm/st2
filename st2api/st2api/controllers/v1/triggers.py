@@ -16,16 +16,15 @@
 import copy
 
 from mongoengine import ValidationError
-from pecan import abort
-from pecan.rest import RestController
 import six
 
 from st2api.controllers import resource
 from st2common import log as logging
 from st2common.models.api.trigger import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
-from st2common.models.api.base import jsexpose
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.trigger import TriggerType, Trigger, TriggerInstance
+from st2common.router import abort
+from st2common.router import Response
 from st2common.services import triggers as TriggerService
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.exceptions.db import StackStormDBObjectConflictError
@@ -56,7 +55,15 @@ class TriggerTypeController(resource.ContentPackResourceController):
 
     include_reference = True
 
-    @jsexpose(body_cls=TriggerTypeAPI, status_code=http_client.CREATED)
+    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
+        return self._get_all(sort=sort,
+                             offset=offset,
+                             limit=limit,
+                             raw_filters=raw_filters)
+
+    def get_one(self, triggertype_ref_or_id):
+        return self._get_one(triggertype_ref_or_id, permission_type=None, requester_user=None)
+
     def post(self, triggertype):
         """
             Create a new triggertype.
@@ -80,9 +87,8 @@ class TriggerTypeController(resource.ContentPackResourceController):
 
         triggertype_api = TriggerTypeAPI.from_model(triggertype_db)
 
-        return triggertype_api
+        return Response(json=triggertype_api, status=http_client.CREATED)
 
-    @jsexpose(arg_types=[str], body_cls=TriggerTypeAPI)
     def put(self, triggertype, triggertype_ref_or_id):
         triggertype_db = self._get_by_ref_or_id(ref_or_id=triggertype_ref_or_id)
         triggertype_id = triggertype_db.id
@@ -112,7 +118,6 @@ class TriggerTypeController(resource.ContentPackResourceController):
         triggertype_api = TriggerTypeAPI.from_model(triggertype_db)
         return triggertype_api
 
-    @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
     def delete(self, triggertype_ref_or_id):
         """
             Delete a triggertype.
@@ -144,6 +149,8 @@ class TriggerTypeController(resource.ContentPackResourceController):
             LOG.audit('TriggerType deleted. TriggerType.id=%s' % (triggertype_db.id), extra=extra)
             if not triggertype_db.parameters_schema:
                 TriggerTypeController._delete_shadow_trigger(triggertype_db)
+
+        return Response(status=http_client.NO_CONTENT)
 
     @staticmethod
     def _create_shadow_trigger(triggertype_db):
@@ -186,12 +193,11 @@ class TriggerTypeController(resource.ContentPackResourceController):
         LOG.audit('Trigger deleted. Trigger.id=%s' % (trigger_db.id), extra=extra)
 
 
-class TriggerController(RestController):
+class TriggerController(object):
     """
         Implements the RESTful web endpoint that handles
         the lifecycle of Triggers in the system.
     """
-    @jsexpose(arg_types=[str])
     def get_one(self, trigger_id):
 
         """
@@ -204,19 +210,17 @@ class TriggerController(RestController):
         trigger_api = TriggerAPI.from_model(trigger_db)
         return trigger_api
 
-    @jsexpose(arg_types=[str])
-    def get_all(self, **kw):
+    def get_all(self):
         """
             List all triggers.
 
             Handles requests:
                 GET /triggers/
         """
-        trigger_dbs = Trigger.get_all(**kw)
+        trigger_dbs = Trigger.get_all()
         trigger_apis = [TriggerAPI.from_model(trigger_db) for trigger_db in trigger_dbs]
         return trigger_apis
 
-    @jsexpose(body_cls=TriggerAPI, status_code=http_client.CREATED)
     def post(self, trigger):
         """
             Create a new trigger.
@@ -235,9 +239,8 @@ class TriggerController(RestController):
         LOG.audit('Trigger created. Trigger.id=%s' % (trigger_db.id), extra=extra)
         trigger_api = TriggerAPI.from_model(trigger_db)
 
-        return trigger_api
+        return Response(json=trigger_api, status=http_client.CREATED)
 
-    @jsexpose(arg_types=[str], body_cls=TriggerAPI)
     def put(self, trigger, trigger_id):
         trigger_db = TriggerController.__get_by_id(trigger_id)
         try:
@@ -258,7 +261,6 @@ class TriggerController(RestController):
 
         return trigger_api
 
-    @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
     def delete(self, trigger_id):
         """
             Delete a trigger.
@@ -279,6 +281,8 @@ class TriggerController(RestController):
         extra = {'trigger_db': trigger_db}
         LOG.audit('Trigger deleted. Trigger.id=%s' % (trigger_db.id), extra=extra)
 
+        return Response(status=http_client.NO_CONTENT)
+
     @staticmethod
     def __get_by_id(trigger_id):
         try:
@@ -296,7 +300,7 @@ class TriggerController(RestController):
             return []
 
 
-class TriggerInstanceControllerMixin(RestController):
+class TriggerInstanceControllerMixin(object):
     model = TriggerInstanceAPI
     access = TriggerInstance
 
@@ -318,7 +322,6 @@ class TriggerInstanceResendController(TriggerInstanceControllerMixin, resource.R
 
             return True
 
-    @jsexpose(status_code=http_client.OK)
     def post(self, trigger_instance_id):
         """
         Re-send the provided trigger instance optionally specifying override parameters.
@@ -329,7 +332,9 @@ class TriggerInstanceResendController(TriggerInstanceControllerMixin, resource.R
             POST /triggerinstance/<id>/re_send
         """
         # Note: We only really need parameters here
-        existing_trigger_instance = self._get_one(id=trigger_instance_id)
+        existing_trigger_instance = self._get_one_by_id(id=trigger_instance_id,
+                                                        permission_type=None,
+                                                        requester_user=None)
 
         new_payload = copy.deepcopy(existing_trigger_instance.payload)
         new_payload['__context'] = {
@@ -352,8 +357,6 @@ class TriggerInstanceController(TriggerInstanceControllerMixin, resource.Resourc
         Implements the RESTful web endpoint that handles
         the lifecycle of TriggerInstances in the system.
     """
-    re_emit = TriggerInstanceResendController()
-
     supported_filters = {
         'trigger': 'trigger',
         'timestamp_gt': 'occurrence_time.gt',
@@ -373,7 +376,6 @@ class TriggerInstanceController(TriggerInstanceControllerMixin, resource.Resourc
     def __init__(self):
         super(TriggerInstanceController, self).__init__()
 
-    @jsexpose(arg_types=[str])
     def get_one(self, instance_id):
         """
             List triggerinstance by instance_id.
@@ -381,21 +383,35 @@ class TriggerInstanceController(TriggerInstanceControllerMixin, resource.Resourc
             Handle:
                 GET /triggerinstances/1
         """
-        return self._get_one(instance_id)
+        return self._get_one_by_id(instance_id, permission_type=None, requester_user=None)
 
-    @jsexpose()
-    def get_all(self, **kw):
+    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
         """
             List all triggerinstances.
 
             Handles requests:
                 GET /triggerinstances/
         """
-        trigger_instances = self._get_trigger_instances(**kw)
+        trigger_instances = self._get_trigger_instances(sort=sort,
+                                                        offset=offset,
+                                                        limit=limit,
+                                                        raw_filters=raw_filters)
         return trigger_instances
 
-    def _get_trigger_instances(self, **kw):
-        kw['limit'] = int(kw.get('limit', self.default_limit))
+    def _get_trigger_instances(self, sort=None, offset=0, limit=None, raw_filters=None):
+        if limit is None:
+            limit = self.default_limit
 
-        LOG.debug('Retrieving all trigger instances with filters=%s', kw)
-        return super(TriggerInstanceController, self)._get_all(**kw)
+        limit = int(limit)
+
+        LOG.debug('Retrieving all trigger instances with filters=%s', raw_filters)
+        return super(TriggerInstanceController, self)._get_all(sort=sort,
+                                                               offset=offset,
+                                                               limit=limit,
+                                                               raw_filters=raw_filters)
+
+
+triggertype_controller = TriggerTypeController()
+trigger_controller = TriggerController()
+triggerinstance_controller = TriggerInstanceController()
+triggerinstance_resend_controller = TriggerInstanceResendController()

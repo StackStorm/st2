@@ -13,13 +13,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
+import mock
+
 from st2tests.base import BaseActionAliasTestCase
+from st2tests.fixturesloader import get_fixtures_base_path
 from st2common.exceptions.content import ParseException
 from st2common.models.db.actionalias import ActionAliasDB
+
+__all__ = [
+    'PackActionAliasUnitTestUtils'
+]
+
+PACK_PATH_1 = os.path.join(get_fixtures_base_path(), 'packs/pack_dir_name_doesnt_match_ref')
 
 
 class PackActionAliasUnitTestUtils(BaseActionAliasTestCase):
     action_alias_name = 'mock'
+    mock_get_action_alias_db_by_name = True
 
     def test_assertExtractedParametersMatch_success(self):
         format_string = self.action_alias_db.formats[0]
@@ -93,8 +105,22 @@ class PackActionAliasUnitTestUtils(BaseActionAliasTestCase):
                                 format_strings=format_strings,
                                 command=command)
 
+    @mock.patch.object(BaseActionAliasTestCase, '_get_base_pack_path',
+                       mock.Mock(return_value=PACK_PATH_1))
+    def test_base_class_works_when_pack_directory_name_doesnt_match_pack_name(self):
+        # Verify that the alias can still be succesfuly loaded from disk even if the pack directory
+        # name doesn't match "pack" resource attribute (aka pack ref)
+        self.mock_get_action_alias_db_by_name = False
+
+        action_alias_db = self._get_action_alias_db_by_name(name='alias1')
+        self.assertEqual(action_alias_db.name, 'alias1')
+        self.assertEqual(action_alias_db.pack, 'pack_name_not_the_same_as_dir_name')
+
     # Note: We mock the original method to make testing of all the edge cases easier
     def _get_action_alias_db_by_name(self, name):
+        if not self.mock_get_action_alias_db_by_name:
+            return super(PackActionAliasUnitTestUtils, self)._get_action_alias_db_by_name(name)
+
         values = {
             'name': self.action_alias_name,
             'pack': 'mock',

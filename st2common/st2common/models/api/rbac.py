@@ -14,21 +14,27 @@
 # limitations under the License.
 
 from st2common.models.api.base import BaseAPI
-from st2common.models.db.pack import PackDB
-from st2common.services.rbac import get_all_roles
+from st2common.models.db.rbac import RoleDB
+from st2common.models.db.rbac import UserRoleAssignmentDB
+from st2common.models.db.rbac import PermissionGrantDB
+from st2common.services.rbac import validate_roles_exists
 from st2common.rbac.types import PermissionType
+from st2common.rbac.types import GLOBAL_PERMISSION_TYPES
 from st2common.util.uid import parse_uid
 
 __all__ = [
     'RoleAPI',
+    'UserRoleAssignmentAPI',
 
     'RoleDefinitionFileFormatAPI',
-    'UserRoleAssignmentFileFormatAPI'
+    'UserRoleAssignmentFileFormatAPI',
+
+    'AuthGroupToRoleMapAssignmentFileFormatAPI'
 ]
 
 
 class RoleAPI(BaseAPI):
-    model = PackDB
+    model = RoleDB
     schema = {
         'type': 'object',
         'properties': {
@@ -43,10 +49,16 @@ class RoleAPI(BaseAPI):
             'description': {
                 'type': 'string'
             },
-            'permission_grants': {
+            'permission_grant_ids': {
                 'type': 'array',
                 'items': {
                     'type': 'string'
+                }
+            },
+            'permission_grant_objects': {
+                'type': 'array',
+                'items': {
+                    'type': 'object'
                 }
             }
         },
@@ -54,14 +66,79 @@ class RoleAPI(BaseAPI):
     }
 
     @classmethod
-    def from_model(cls, model, mask_secrets=False):
+    def from_model(cls, model, mask_secrets=False, retrieve_permission_grant_objects=True):
         role = cls._from_model(model, mask_secrets=mask_secrets)
 
         # Convert ObjectIDs to strings
-        role['permission_grants'] = [str(permission_grant) for permission_grant in
-                                     model.permission_grants]
+        role['permission_grant_ids'] = [str(permission_grant) for permission_grant in
+                                        model.permission_grants]
+
+        # Retrieve and include corresponding permission grant objects
+        if retrieve_permission_grant_objects:
+            from st2common.persistence.rbac import PermissionGrant
+            permission_grant_dbs = PermissionGrant.query(id__in=role['permission_grants'])
+
+            permission_grant_apis = []
+            for permission_grant_db in permission_grant_dbs:
+                permission_grant_api = PermissionGrantAPI.from_model(permission_grant_db)
+                permission_grant_apis.append(permission_grant_api)
+
+            role['permission_grant_objects'] = permission_grant_apis
 
         return cls(**role)
+
+
+class UserRoleAssignmentAPI(BaseAPI):
+    model = UserRoleAssignmentDB
+    schema = {
+        'type': 'object',
+        'properties': {
+            'id': {
+                'type': 'string',
+                'default': None
+            },
+            'user': {
+                'type': 'string',
+                'required': True
+            },
+            'role': {
+                'type': 'string',
+                'required': True
+            },
+            'description': {
+                'type': 'string'
+            },
+            'is_remote': {
+                'type': 'boolean'
+            }
+        },
+        'additionalProperties': False
+    }
+
+
+class PermissionGrantAPI(BaseAPI):
+    model = PermissionGrantDB
+    schema = {
+        'type': 'object',
+        'properties': {
+            'id': {
+                'type': 'string',
+                'default': None
+            },
+            'resource_uid': {
+                'type': 'string',
+                'required': True
+            },
+            'resource_type': {
+                'type': 'string',
+                'required': True
+            },
+            'permission_types': {
+                'type': 'array'
+            }
+        },
+        'additionalProperties': False
+    }
 
 
 class RoleDefinitionFileFormatAPI(BaseAPI):
@@ -146,12 +223,32 @@ class RoleDefinitionFileFormatAPI(BaseAPI):
                 # Right now we only support single permission type (list) which is global and
                 # doesn't apply to a resource
                 for permission_type in permission_types:
-                    if not permission_type.endswith('_list'):
-                        message = ('Invalid permission type "%s". Only "list" permission types '
-                                   'can be used without a resource id' % (permission_type))
+                    if permission_type not in GLOBAL_PERMISSION_TYPES:
+                        valid_global_permission_types = ', '.join(GLOBAL_PERMISSION_TYPES)
+                        message = ('Invalid permission type "%s". Valid global permission types '
+                                   'which can be used without a resource id are: %s' %
+                                   (permission_type, valid_global_permission_types))
                         raise ValueError(message)
 
-            return cleaned
+        return cleaned
+
+
+class BaseRoleAssigmentAPI(BaseAPI):
+    """
+    Base class for various derived role assignment classes which includes commmon functionality
+    such as validation.
+    """
+
+    def validate(self, validate_role_exists=False):
+        # Parent JSON schema validation
+        cleaned = super(BaseRoleAssigmentAPI, self).validate()
+
+        # Custom validation
+        if validate_role_exists:
+            # Validate that the referenced roles exist in the db
+            validate_roles_exists(role_names=self.roles)  # pylint: disable=no-member
+
+        return cleaned
 
 
 class UserRoleAssignmentFileFormatAPI(BaseAPI):
@@ -191,18 +288,47 @@ class UserRoleAssignmentFileFormatAPI(BaseAPI):
     }
 
     def validate(self, validate_role_exists=False):
-        # Parent JSON schema validation
         cleaned = super(UserRoleAssignmentFileFormatAPI, self).validate()
+        return cleaned
 
-        # Custom validation
-        if validate_role_exists:
-            # Validate that the referenced roles exist in the db
-            role_dbs = get_all_roles()
-            role_names = [role_db.name for role_db in role_dbs]
-            roles = self.roles
 
-            for role in roles:
-                if role not in role_names:
-                    raise ValueError('Role "%s" doesn\'t exist in the database' % (role))
+class AuthGroupToRoleMapAssignmentFileFormatAPI(BaseAPI):
+    schema = {
+        'type': 'object',
+        'properties': {
+            'group': {
+                'type': 'string',
+                'description': 'Name of the group as returned by auth backend.',
+                'required': True
+            },
+            'description': {
+                'type': 'string',
+                'description': 'Mapping description',
+                'required': False,
+                'default': None
+            },
+            'enabled': {
+                'type': 'boolean',
+                'description': ('Flag indicating if this mapping is enabled. Note: Disabled '
+                                'assignments are simply ignored when loading definitions from '
+                                ' disk.'),
+                'default': True
+            },
+            'roles': {
+                'type': 'array',
+                'description': ('StackStorm roles which are assigned to each user which belongs '
+                                'to that group.'),
+                'uniqueItems': True,
+                'items': {
+                    'type': 'string'
+                },
+                'required': True
+            },
 
+        },
+        'additionalProperties': False
+    }
+
+    def validate(self, validate_role_exists=False):
+        cleaned = super(AuthGroupToRoleMapAssignmentFileFormatAPI, self).validate()
         return cleaned

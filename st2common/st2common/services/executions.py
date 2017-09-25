@@ -44,6 +44,8 @@ from st2common.models.api.action import RunnerTypeAPI, ActionAPI, LiveActionAPI
 from st2common.models.api.rule import RuleAPI
 from st2common.models.api.trigger import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.db.execution import ActionExecutionDB
+from st2common.runners import utils as runners_utils
+
 
 __all__ = [
     'create_execution_object',
@@ -189,17 +191,26 @@ def abandon_execution_if_incomplete(liveaction_id, publish=True):
     is certain it can no longer determine status of an execution.
     """
     liveaction_db = action_utils.get_liveaction_by_id(liveaction_id)
+
     # No need to abandon and already complete action
     if liveaction_db.status in action_constants.LIVEACTION_COMPLETED_STATES:
         raise ValueError('LiveAction %s already in a completed state %s.' %
                          (liveaction_id, liveaction_db.status))
+
+    # Update status to reflect execution being abandoned.
     liveaction_db = action_utils.update_liveaction_status(
         status=action_constants.LIVEACTION_STATUS_ABANDONED,
         liveaction_db=liveaction_db,
         result={})
+
     execution_db = update_execution(liveaction_db, publish=publish)
+
     LOG.info('Marked execution %s as %s.', execution_db.id,
              action_constants.LIVEACTION_STATUS_ABANDONED)
+
+    # Invoke post run on the action to execute post run operations such as callback.
+    runners_utils.invoke_post_run(liveaction_db)
+
     return execution_db
 
 

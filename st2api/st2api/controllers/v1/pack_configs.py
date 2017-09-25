@@ -21,17 +21,17 @@ from oslo_config import cfg
 import yaml
 
 from st2common import log as logging
-from st2common.models.api.base import jsexpose
+from st2api.controllers.base import BaseRestControllerMixin
 from st2api.controllers.resource import ResourceController
 from st2common.bootstrap.configsregistrar import ConfigsRegistrar
 from st2common.exceptions.apivalidation import ValueValidationException
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.rbac.types import PermissionType
+from st2common.rbac import utils as rbac_utils
+from st2common.router import abort
 from st2common.services import packs as packs_service
 from st2common.models.api.pack import ConfigAPI
-from st2common.models.api.pack import ConfigUpdateRequestAPI
 from st2common.persistence.pack import Config
-from st2common.rbac.types import PermissionType
-from st2common.rbac.decorators import request_user_has_permission
-from st2common.rbac.decorators import request_user_has_resource_db_permission
 
 http_client = six.moves.http_client
 
@@ -42,7 +42,7 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 
-class PackConfigsController(ResourceController):
+class PackConfigsController(ResourceController, BaseRestControllerMixin):
     model = ConfigAPI
     access = Config
     supported_filters = {}
@@ -54,36 +54,48 @@ class PackConfigsController(ResourceController):
         # this case, RBAC is checked on the parent PackDB object
         self.get_one_db_method = packs_service.get_pack_by_ref
 
-    @request_user_has_permission(permission_type=PermissionType.PACK_LIST)
-    @jsexpose()
-    def get_all(self, **kwargs):
+    def get_all(self, requester_user, sort=None, offset=0, limit=None, show_secrets=False,
+                **raw_filters):
         """
         Retrieve configs for all the packs.
 
         Handles requests:
             GET /configs/
         """
-        # TODO: Make sure secret values are masked
+        from_model_kwargs = {
+            'mask_secrets': self._get_mask_secrets(requester_user, show_secrets=show_secrets)
+        }
+        return super(PackConfigsController, self)._get_all(sort=sort,
+                                                           offset=offset,
+                                                           limit=limit,
+                                                           from_model_kwargs=from_model_kwargs,
+                                                           raw_filters=raw_filters)
 
-        return super(PackConfigsController, self)._get_all(**kwargs)
-
-    @request_user_has_resource_db_permission(permission_type=PermissionType.PACK_VIEW)
-    @jsexpose(arg_types=[str])
-    def get_one(self, pack_ref):
+    def get_one(self, pack_ref, requester_user, show_secrets=False):
         """
         Retrieve config for a particular pack.
 
         Handles requests:
             GET /configs/<pack_ref>
         """
-        # TODO: Make sure secret values are masked
-        return self._get_one_by_pack_ref(pack_ref=pack_ref)
+        from_model_kwargs = {
+            'mask_secrets': self._get_mask_secrets(requester_user, show_secrets=show_secrets)
+        }
+        try:
+            instance = packs_service.get_pack_by_ref(pack_ref=pack_ref)
+        except StackStormDBObjectNotFoundError:
+            msg = 'Unable to identify resource with pack_ref "%s".' % (pack_ref)
+            abort(http_client.NOT_FOUND, msg)
 
-    @request_user_has_permission(permission_type=PermissionType.PACK_CREATE)
-    @jsexpose(body_cls=ConfigUpdateRequestAPI, arg_types=[str])
-    def put(self, pack_uninstall_request, pack_ref):
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=instance,
+                                                          permission_type=PermissionType.PACK_VIEW)
+
+        return self._get_one_by_pack_ref(pack_ref=pack_ref, from_model_kwargs=from_model_kwargs)
+
+    def put(self, pack_uninstall_request, pack_ref, requester_user, show_secrets=False):
         """
-            Create a new config for the action.
+            Create a new config for a pack.
 
             Handles requests:
                 POST /configs/<pack_ref>
@@ -95,6 +107,14 @@ class PackConfigsController(ResourceController):
         except jsonschema.ValidationError as e:
             raise ValueValidationException(str(e))
 
+        self._dump_config_to_disk(config_api)
+
+        config_db = ConfigsRegistrar.save_model(config_api)
+
+        mask_secrets = self._get_mask_secrets(requester_user, show_secrets=show_secrets)
+        return ConfigAPI.from_model(config_db, mask_secrets=mask_secrets)
+
+    def _dump_config_to_disk(self, config_api):
         config_content = yaml.safe_dump(config_api.values, default_flow_style=False)
 
         configs_path = os.path.join(cfg.CONF.system.base_path, 'configs/')
@@ -102,6 +122,5 @@ class PackConfigsController(ResourceController):
         with open(config_path, 'w') as f:
             f.write(config_content)
 
-        ConfigsRegistrar.save_model(config_api)
 
-        return config_api
+pack_configs_controller = PackConfigsController()

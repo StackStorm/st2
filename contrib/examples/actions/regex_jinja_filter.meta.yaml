@@ -1,0 +1,7 @@
+---
+name: "regex_jinja_filter"
+description: "Simple Action Chain workflow showing how to use jinja regex filters in st2."
+runner_type: "action-chain"
+entry_point: "chains/regex_jinja_filter.yaml"
+enabled: true
+parameters: {}

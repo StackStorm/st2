@@ -46,10 +46,12 @@ class FakeResource(models.Resource):
 
 class FakeResponse(object):
 
-    def __init__(self, text, status_code, reason):
+    def __init__(self, text, status_code, reason, *args):
         self.text = text
         self.status_code = status_code
         self.reason = reason
+        if args:
+            self.headers = args[0]
 
     def json(self):
         return json.loads(self.text)
@@ -83,7 +85,7 @@ class BaseCLITestCase(unittest2.TestCase):
         super(BaseCLITestCase, self).setUp()
 
         # Setup environment
-        for var in ['ST2_BASE_URL', 'ST2_AUTH_URL', 'ST2_API_URL',
+        for var in ['ST2_BASE_URL', 'ST2_AUTH_URL', 'ST2_API_URL', 'ST2_STREAM_URL',
                     'ST2_AUTH_TOKEN', 'ST2_CONFIG_FILE', 'ST2_API_KEY']:
             if var in os.environ:
                 del os.environ[var]

@@ -31,18 +31,30 @@ __all__ = [
 
 
 class UserDB(stormbase.StormFoundationDB):
+    """
+    An entity representing system user.
+
+    Attribute:
+        name: Username. Also used as a primary key and foreign key when referencing users in other
+              models.
+        is_service: True if this is a service account.
+        nicknames: Nickname + origin pairs for ChatOps auth.
+    """
     name = me.StringField(required=True, unique=True)
     is_service = me.BooleanField(required=True, default=False)
     nicknames = me.DictField(required=False,
                              help_text='"Nickname + origin" pairs for ChatOps auth')
 
-    def get_roles(self):
+    def get_roles(self, include_remote=True):
         """
         Retrieve roles assigned to that user.
 
+        :param include_remote: True to also include remote role assignments.
+        :type include_remote: ``bool``
+
         :rtype: ``list`` of :class:`RoleDB`
         """
-        result = get_roles_for_user(user_db=self)
+        result = get_roles_for_user(user_db=self, include_remote=include_remote)
         return result
 
     def get_permission_assignments(self):
@@ -51,16 +63,30 @@ class UserDB(stormbase.StormFoundationDB):
 
 
 class TokenDB(stormbase.StormFoundationDB):
+    """
+    An entity representing an access token.
+
+    Attribute:
+        user: Reference to the user this token belongs to (username).
+        token: Random access token.
+        expiry: Date when this token expires.
+        service: True if this is a service (system) token.
+    """
     user = me.StringField(required=True)
     token = me.StringField(required=True, unique=True)
     expiry = me.DateTimeField(required=True)
     metadata = me.DictField(required=False,
                             help_text='Arbitrary metadata associated with this token')
+    service = me.BooleanField(required=True, default=False)
 
 
 class ApiKeyDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
     """
+    An entity representing an API key object.
+
+    Each API key object is scoped to the user and inherits permissions from that user.
     """
+
     RESOURCE_TYPE = ResourceType.API_KEY
     UID_FIELDS = ['key_hash']
 

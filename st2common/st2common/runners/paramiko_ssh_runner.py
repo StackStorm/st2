@@ -144,6 +144,13 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
 
         self._parallel_ssh_client = ParallelSSHClient(**client_kwargs)
 
+    def post_run(self, status, result):
+        super(BaseParallelSSHRunner, self).post_run(status=status, result=result)
+
+        # Ensure we close the connection when the action execution finishes
+        if self._parallel_ssh_client:
+            self._parallel_ssh_client.close()
+
     def _is_private_key_material(self, private_key):
         return private_key and REMOTE_RUNNER_PRIVATE_KEY_HEADER in private_key.lower()
 

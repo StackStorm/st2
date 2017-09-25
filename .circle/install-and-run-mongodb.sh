@@ -19,8 +19,12 @@ wget -q ${DOWNLOAD_URL} -O /tmp/mongodb.tgz
 tar -xvf /tmp/mongodb.tgz -C ${MONGODB_DIR} --strip=1
 
 echo "Starting MongoDB v${MONGODB_VERSION}"
-${MONGODB_DIR}/bin/mongod --nojournal --journalCommitInterval 500 \
-    --syncdelay 0 --dbpath ${DATA_DIR} --bind_ip 127.0.0.1 &> /tmp/mongodb.log &
+# Note: We use --notablescan option to detected missing indexes early. When this
+# option is enabled, queries which result in table scan (which usually means a
+# missing index or a bad query) are not allowed and result in a failed test.
+${MONGODB_DIR}/bin/mongod --nojournal --journalCommitInterval 500 --syncdelay 0 \
+    --wiredTigerStatisticsLogDelaySecs 0 --noIndexBuildRetry --noscripting --notablescan \
+    --dbpath ${DATA_DIR} --bind_ip 127.0.0.1 &> /tmp/mongodb.log &
 MONGODB_PID=$!
 
 # Give process some time to start up

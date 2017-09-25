@@ -31,7 +31,7 @@ class WiringTest(base.TestWorkflowExecution):
 
         # Create temporary directory used by the tests
         _, self.temp_dir_path = tempfile.mkstemp()
-        os.chmod(self.temp_dir_path, 0666)   # nosec
+        os.chmod(self.temp_dir_path, 0755)   # nosec
 
     def tearDown(self):
         if self.temp_dir_path and os.path.exists(self.temp_dir_path):
@@ -102,8 +102,44 @@ class WiringTest(base.TestWorkflowExecution):
         execution = self._execute_workflow('examples.mistral-test-cancel', {'sleep': 10})
         execution = self._wait_for_state(execution, ['running'])
         self.st2client.liveactions.delete(execution)
-        execution = self._wait_for_completion(execution, expect_tasks_completed=False)
+
+        execution = self._wait_for_completion(
+            execution,
+            expect_tasks=False,
+            expect_tasks_completed=False
+        )
+
         self._assert_canceled(execution, are_tasks_completed=False)
+
+    def test_cancellation_cascade_subworkflow_action(self):
+        execution = self._execute_workflow(
+            'examples.mistral-test-cancel-subworkflow-action',
+            {'sleep': 30}
+        )
+
+        execution = self._wait_for_state(execution, ['running'])
+        self.st2client.liveactions.delete(execution)
+
+        execution = self._wait_for_completion(
+            execution,
+            expect_tasks=False,
+            expect_tasks_completed=False
+        )
+
+        self.assertEqual(execution.status, 'canceled')
+
+        task_executions = [e for e in self.st2client.liveactions.get_all()
+                           if e.context.get('parent', {}).get('execution_id') == execution.id]
+
+        subworkflow_execution = self.st2client.liveactions.get_by_id(task_executions[0].id)
+
+        subworkflow_execution = self._wait_for_completion(
+            subworkflow_execution,
+            expect_tasks=False,
+            expect_tasks_completed=False
+        )
+
+        self.assertEqual(execution.status, 'canceled')
 
     def test_task_cancellation(self):
         execution = self._execute_workflow('examples.mistral-test-cancel', {'sleep': 30})
@@ -116,12 +152,11 @@ class WiringTest(base.TestWorkflowExecution):
 
         self.st2client.liveactions.delete(task_executions[0])
         execution = self._wait_for_completion(execution, expect_tasks_completed=True)
-        self._assert_failure(execution)
+        self._assert_canceled(execution, are_tasks_completed=True)
 
         task_results = execution.result.get('tasks', [])
         self.assertGreater(len(task_results), 0)
-        expected_state_info = '{error: Execution canceled by user.}'
-        self.assertEqual(task_results[0]['state_info'], expected_state_info)
+        self.assertEqual(task_results[0]['state'], 'CANCELLED')
 
     def test_basic_rerun(self):
         path = self.temp_dir_path
@@ -312,3 +347,254 @@ class WiringTest(base.TestWorkflowExecution):
 
         children = self.st2client.liveactions.get_property(execution.id, 'children')
         self.assertEqual(len(children), 2)
+
+    def test_invoke_from_action_chain(self):
+        execution = self._execute_workflow('examples.invoke-mistral-with-jinja', {'cmd': 'date'})
+        execution = self._wait_for_state(execution, ['succeeded'])
+
+    def test_pause_resume(self):
+        # A temp file is created during test setup. Ensure the temp file exists.
+        path = self.temp_dir_path
+        self.assertTrue(os.path.exists(path))
+
+        # Launch the workflow. The workflow will wait for the temp file to be deleted.
+        params = {'tempfile': path, 'message': 'foobar'}
+        execution = self._execute_workflow('examples.mistral-test-pause-resume', params)
+        execution = self._wait_for_task(execution, 'task1', 'RUNNING')
+
+        # Pause the workflow before the temp file is created. The workflow will be paused
+        # but task1 will still be running to allow for graceful exit.
+        execution = self.st2client.liveactions.pause(execution.id)
+
+        # Expecting the execution to be pausing, waiting for task1 to be completed.
+        execution = self._wait_for_state(execution, ['pausing'])
+
+        # Delete the temporary file.
+        os.remove(path)
+        self.assertFalse(os.path.exists(path))
+
+        # Wait for the execution to be paused.
+        execution = self._wait_for_state(execution, ['paused'])
+
+        # Resume the execution.
+        execution = self.st2client.liveactions.resume(execution.id)
+
+        # Wait for completion.
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=2)
+
+    def test_resume_auto_pause(self):
+        # Launch the workflow. The workflow will pause automatically after the first task.
+        params = {'message': 'foobar'}
+        execution = self._execute_workflow('examples.mistral-test-pause-before-task', params)
+        execution = self._wait_for_task(execution, 'task1', 'SUCCESS')
+        execution = self._wait_for_state(execution, ['paused'])
+
+        # Resume the execution.
+        execution = self.st2client.liveactions.resume(execution.id)
+
+        # Wait for completion.
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=2)
+
+    def test_resume_auto_pause_cascade_subworkflow_action(self):
+        # Launch the workflow. The workflow will pause automatically after the first task.
+        workflow = 'examples.mistral-test-pause-before-task-subworkflow-action'
+        params = {'message': 'foobar'}
+        execution = self._execute_workflow(workflow, params)
+        execution = self._wait_for_task(execution, 'task1', 'PAUSED')
+        execution = self._wait_for_state(execution, ['paused'])
+
+        # Resume the execution.
+        execution = self.st2client.liveactions.resume(execution.id)
+
+        # Wait for completion.
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=2)
+
+    def test_resume_auto_pause_cascade_workbook_subworkflow(self):
+        # Launch the workflow. The workflow will pause automatically after the first task.
+        workflow = 'examples.mistral-test-pause-before-task-subworkflow-workbook'
+        params = {'message': 'foobar'}
+        execution = self._execute_workflow(workflow, params)
+        execution = self._wait_for_task(execution, 'task1', 'PAUSED')
+        execution = self._wait_for_state(execution, ['paused'])
+
+        # Resume the execution.
+        execution = self.st2client.liveactions.resume(execution.id)
+
+        # Wait for completion.
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=2)
+
+    def test_pause_resume_cascade_subworkflow_action(self):
+        # A temp file is created during test setup. Ensure the temp file exists.
+        path = self.temp_dir_path
+        self.assertTrue(os.path.exists(path))
+
+        # Launch the workflow. The workflow will wait for the temp file to be deleted.
+        params = {'tempfile': path, 'message': 'foobar'}
+        action_ref = 'examples.mistral-test-pause-resume-subworkflow-action'
+        execution = self._execute_workflow(action_ref, params)
+        execution = self._wait_for_task(execution, 'task1', 'RUNNING')
+
+        # Pause the workflow before the temp file is created. The workflow will be paused
+        # but task1 will still be running to allow for graceful exit.
+        execution = self.st2client.liveactions.pause(execution.id)
+
+        # Expecting the execution to be pausing, waiting for task1 to be completed.
+        execution = self._wait_for_state(execution, ['pausing'])
+
+        # Get the subworkflow execution.
+        task_executions = [e for e in self.st2client.liveactions.get_all()
+                           if e.context.get('parent', {}).get('execution_id') == execution.id]
+
+        subworkflow_execution = self.st2client.liveactions.get_by_id(task_executions[0].id)
+        subworkflow_execution = self._wait_for_state(subworkflow_execution, ['pausing'])
+
+        # Delete the temporary file.
+        os.remove(path)
+        self.assertFalse(os.path.exists(path))
+
+        # Wait for the executions to be paused.
+        subworkflow_execution = self._wait_for_state(subworkflow_execution, ['paused'])
+        execution = self._wait_for_state(execution, ['paused'])
+
+        # Resume the parent execution.
+        execution = self.st2client.liveactions.resume(execution.id)
+
+        # Wait for completion.
+        subworkflow_execution = self._wait_for_completion(subworkflow_execution)
+        self._assert_success(subworkflow_execution, num_tasks=2)
+
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=2)
+
+    def test_pause_resume_cascade_workbook_subworkflow(self):
+        # A temp file is created during test setup. Ensure the temp file exists.
+        path = self.temp_dir_path
+        self.assertTrue(os.path.exists(path))
+
+        # Launch the workflow. The workflow will wait for the temp file to be deleted.
+        params = {'tempfile': path, 'message': 'foobar'}
+        action_ref = 'examples.mistral-test-pause-resume-subworkflow-workbook'
+        execution = self._execute_workflow(action_ref, params)
+        execution = self._wait_for_task(execution, 'task1', 'RUNNING')
+
+        # Pause the main workflow before the temp file is created.
+        # The subworkflow will also pause.
+        execution = self.st2client.liveactions.pause(execution.id)
+
+        # Expecting the execution to be pausing, waiting for task1 to be completed.
+        execution = self._wait_for_state(execution, ['pausing'])
+        execution = self._wait_for_task(execution, 'task1', 'PAUSED')
+
+        # Get the task execution (since subworkflow is in a workbook, st2 has no visibility).
+        task_executions = [e for e in self.st2client.liveactions.get_all()
+                           if e.context.get('parent', {}).get('execution_id') == execution.id]
+
+        task1_execution = self.st2client.liveactions.get_by_id(task_executions[0].id)
+        task1_execution = self._wait_for_state(task1_execution, ['running'])
+
+        # Delete the temporary file.
+        os.remove(path)
+        self.assertFalse(os.path.exists(path))
+
+        # Wait for the main workflow to be paused.
+        task1_execution = self._wait_for_state(task1_execution, ['succeeded'])
+        execution = self._wait_for_state(execution, ['paused'])
+
+        # Resume the parent execution.
+        execution = self.st2client.liveactions.resume(execution.id)
+
+        # Wait for completion.
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=2)
+
+    def test_pause_resume_cascade_to_subchain(self):
+        # A temp file is created during test setup. Ensure the temp file exists.
+        path = self.temp_dir_path
+        self.assertTrue(os.path.exists(path))
+
+        # Launch the workflow. The workflow will wait for the temp file to be deleted.
+        params = {'tempfile': path, 'message': 'foobar'}
+        action_ref = 'examples.mistral-test-pause-resume-subworkflow-chain'
+        execution = self._execute_workflow(action_ref, params)
+        execution = self._wait_for_task(execution, 'task1', 'RUNNING')
+
+        # Pause the workflow before the temp file is created. The workflow will be paused
+        # but task1 will still be running to allow for graceful exit.
+        execution = self.st2client.liveactions.pause(execution.id)
+
+        # Expecting the execution to be pausing, waiting for task1 to be completed.
+        execution = self._wait_for_state(execution, ['pausing'])
+
+        # Get the subworkflow execution.
+        task_executions = [e for e in self.st2client.liveactions.get_all()
+                           if e.context.get('parent', {}).get('execution_id') == execution.id]
+
+        subworkflow_execution = self.st2client.liveactions.get_by_id(task_executions[0].id)
+        subworkflow_execution = self._wait_for_state(subworkflow_execution, ['pausing'])
+
+        # Delete the temporary file.
+        os.remove(path)
+        self.assertFalse(os.path.exists(path))
+
+        # Wait for the executions to be paused.
+        subworkflow_execution = self._wait_for_state(subworkflow_execution, ['paused'])
+        execution = self._wait_for_state(execution, ['paused'])
+
+        # Resume the parent execution.
+        execution = self.st2client.liveactions.resume(execution.id)
+
+        # Wait for completion.
+        subworkflow_execution = self._wait_for_completion(subworkflow_execution)
+        self._assert_success(subworkflow_execution, num_tasks=2)
+
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=2)
+
+    def test_pause_resume_cascade_subworkflow_from_chain(self):
+        # A temp file is created during test setup. Ensure the temp file exists.
+        path = self.temp_dir_path
+        self.assertTrue(os.path.exists(path))
+
+        # Launch the workflow. The workflow will wait for the temp file to be deleted.
+        params = {'tempfile': path, 'message': 'foobar'}
+        action_ref = 'examples.chain-test-pause-resume-with-subworkflow'
+        execution = self._execute_workflow(action_ref, params)
+
+        # Expecting the execution to be running.
+        execution = self._wait_for_state(execution, ['running'])
+
+        # Pause the workflow before the temp file is created. The workflow will be paused
+        # but task1 will still be running to allow for graceful exit.
+        execution = self.st2client.liveactions.pause(execution.id)
+
+        # Expecting the execution to be pausing, waiting for task1 to be completed.
+        execution = self._wait_for_state(execution, ['pausing'])
+
+        # Get the subworkflow execution.
+        task_executions = [e for e in self.st2client.liveactions.get_all()
+                           if e.context.get('parent', {}).get('execution_id') == execution.id]
+
+        subworkflow_execution = self.st2client.liveactions.get_by_id(task_executions[0].id)
+        subworkflow_execution = self._wait_for_state(subworkflow_execution, ['pausing'])
+
+        # Delete the temporary file.
+        os.remove(path)
+        self.assertFalse(os.path.exists(path))
+
+        # Wait for the executions to be paused.
+        subworkflow_execution = self._wait_for_state(subworkflow_execution, ['paused'])
+        execution = self._wait_for_state(execution, ['paused'])
+
+        # Resume the parent execution.
+        execution = self.st2client.liveactions.resume(execution.id)
+
+        # Wait for completion.
+        subworkflow_execution = self._wait_for_completion(subworkflow_execution)
+        self._assert_success(subworkflow_execution, num_tasks=2)
+
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=2)

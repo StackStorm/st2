@@ -13,37 +13,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pecan
 from oslo_config import cfg
 
-from st2auth import config as st2auth_config
-from st2common import hooks
 from st2common import log as logging
+from st2common.middleware.error_handling import ErrorHandlingMiddleware
+from st2common.middleware.cors import CorsMiddleware
+from st2common.middleware.request_id import RequestIDMiddleware
+from st2common.middleware.logging import LoggingMiddleware
+from st2common.router import Router
 from st2common.util.monkey_patch import monkey_patch
 from st2common.constants.system import VERSION_STRING
 from st2common.service_setup import setup as common_setup
+from st2common.util import spec_loader
+from st2auth import config as st2auth_config
+from st2auth.validation import validate_auth_backend_is_correctly_configured
 
 LOG = logging.getLogger(__name__)
 
 
-def _get_pecan_config():
+def setup_app(config={}):
+    LOG.info('Creating st2auth: %s as OpenAPI app.', VERSION_STRING)
 
-    config = {
-        'app': {
-            'root': 'st2auth.controllers.root.RootController',
-            'modules': ['st2auth'],
-            'debug': cfg.CONF.auth.debug,
-            'errors': {'__force_dict__': True}
-        }
-    }
-
-    return pecan.configuration.conf_from_dict(config)
-
-
-def setup_app(config=None):
-    LOG.info('Creating st2auth: %s as Pecan app.', VERSION_STRING)
-
-    is_gunicorn = getattr(config, 'is_gunicorn', False)
+    is_gunicorn = config.get('is_gunicorn', False)
     if is_gunicorn:
         # Note: We need to perform monkey patching in the worker. If we do it in
         # the master process (gunicorn_config.py), it breaks tons of things
@@ -59,24 +50,25 @@ def setup_app(config=None):
                      register_signal_handlers=True,
                      register_internal_trigger_types=False,
                      run_migrations=False,
-                     config_args=config.config_args)
+                     config_args=config.get('config_args', None))
 
-    if not config:
-        # standalone HTTP server case
-        config = _get_pecan_config()
-    else:
-        # gunicorn case
-        if is_gunicorn:
-            config.app = _get_pecan_config().app
+    # Additional pre-run time checks
+    validate_auth_backend_is_correctly_configured()
 
-    app_conf = dict(config.app)
+    router = Router(debug=cfg.CONF.auth.debug)
 
-    app = pecan.make_app(
-        app_conf.pop('root'),
-        logging=getattr(config, 'logging', {}),
-        hooks=[hooks.JSONErrorResponseHook(), hooks.CorsHook(), hooks.AuthHook()],
-        **app_conf
-    )
-    LOG.info('%s app created.' % __name__)
+    spec = spec_loader.load_spec('st2common', 'openapi.yaml.j2')
+    transforms = {
+        '^/auth/v1/': ['/', '/v1/']
+    }
+    router.add_spec(spec, transforms=transforms)
+
+    app = router.as_wsgi
+
+    # Order is important. Check middleware for detailed explanation.
+    app = ErrorHandlingMiddleware(app)
+    app = CorsMiddleware(app)
+    app = LoggingMiddleware(app, router)
+    app = RequestIDMiddleware(app)
 
     return app

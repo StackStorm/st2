@@ -15,14 +15,16 @@
 
 import eventlet
 
-from kombu import Connection, Queue
+from kombu import Connection
 from kombu.mixins import ConsumerMixin
 from oslo_config import cfg
 
 from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.execution import ActionExecutionAPI
-from st2common.transport import announcement, liveaction, execution, publishers
 from st2common.transport import utils as transport_utils
+from st2common.transport.queues import STREAM_ANNOUNCEMENT_WORK_QUEUE
+from st2common.transport.queues import STREAM_EXECUTION_WORK_QUEUE
+from st2common.transport.queues import STREAM_LIVEACTION_WORK_QUEUE
 from st2common import log as logging
 
 __all__ = [
@@ -44,33 +46,27 @@ class Listener(ConsumerMixin):
 
     def get_consumers(self, consumer, channel):
         return [
-            consumer(queues=[announcement.get_queue(routing_key=publishers.ANY_RK,
-                                                    exclusive=True)],
+            consumer(queues=[STREAM_ANNOUNCEMENT_WORK_QUEUE],
                      accept=['pickle'],
                      callbacks=[self.processor()]),
 
-            consumer(queues=[execution.get_queue(routing_key=publishers.ANY_RK,
-                                                 exclusive=True)],
+            consumer(queues=[STREAM_EXECUTION_WORK_QUEUE],
                      accept=['pickle'],
                      callbacks=[self.processor(ActionExecutionAPI)]),
 
-            consumer(queues=[Queue(None,
-                                   liveaction.LIVEACTION_XCHG,
-                                   routing_key=publishers.ANY_RK,
-                                   exclusive=True)],
+            consumer(queues=[STREAM_LIVEACTION_WORK_QUEUE],
                      accept=['pickle'],
                      callbacks=[self.processor(LiveActionAPI)])
         ]
 
     def processor(self, model=None):
         def process(body, message):
-            from_model_kwargs = {'mask_secrets': cfg.CONF.api.mask_secrets}
             meta = message.delivery_info
             event_name = '%s__%s' % (meta.get('exchange'), meta.get('routing_key'))
 
             try:
                 if model:
-                    body = model.from_model(body, **from_model_kwargs)
+                    body = model.from_model(body, mask_secrets=cfg.CONF.api.mask_secrets)
 
                 self.emit(event_name, body)
             finally:
@@ -83,13 +79,44 @@ class Listener(ConsumerMixin):
         for queue in self.queues:
             queue.put(pack)
 
-    def generator(self):
+    def generator(self, events=None, action_refs=None, execution_ids=None):
         queue = eventlet.Queue()
+        queue.put('')
         self.queues.append(queue)
+
         try:
             while not self._stopped:
                 try:
-                    yield queue.get(timeout=cfg.CONF.stream.heartbeat)
+                    # TODO: Move to common option
+                    message = queue.get(timeout=cfg.CONF.stream.heartbeat)
+
+                    if not message:
+                        yield message
+                        continue
+
+                    event_name, body = message
+                    # TODO: We now do late filtering, but this could also be performed on the
+                    # message bus level if we modified our exchange layout and utilize routing keys
+                    # Filter on event name
+                    if events and event_name not in events:
+                        LOG.debug('Skipping event "%s"' % (event_name))
+                        continue
+
+                    # Filter on action ref
+                    action_ref = self._get_action_ref_for_body(body=body)
+                    if action_refs and action_ref not in action_refs:
+                        LOG.debug('Skipping event "%s" with action_ref "%s"' % (event_name,
+                                                                                action_ref))
+                        continue
+
+                    # Filter on execution id
+                    execution_id = self._get_execution_id_for_body(body=body)
+                    if execution_ids and execution_id not in execution_ids:
+                        LOG.debug('Skipping event "%s" with execution_id "%s"' % (event_name,
+                                                                                  execution_id))
+                        continue
+
+                    yield message
                 except eventlet.queue.Empty:
                     yield
         finally:
@@ -97,6 +124,35 @@ class Listener(ConsumerMixin):
 
     def shutdown(self):
         self._stopped = True
+
+    def _get_action_ref_for_body(self, body):
+        """
+        Retrieve action_ref for the provided message body.
+        """
+        if not body:
+            return None
+
+        action_ref = None
+
+        if isinstance(body, ActionExecutionAPI):
+            action_ref = body.action.get('ref', None) if body.action else None
+        elif isinstance(body, LiveActionAPI):
+            action_ref = body.action
+
+        return action_ref
+
+    def _get_execution_id_for_body(self, body):
+        if not body:
+            return None
+
+        execution_id = None
+
+        if isinstance(body, ActionExecutionAPI):
+            execution_id = str(body.id)
+        elif isinstance(body, LiveActionAPI):
+            execution_id = None
+
+        return execution_id
 
 
 def listen(listener):

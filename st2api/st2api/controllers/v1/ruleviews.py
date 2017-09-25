@@ -20,14 +20,11 @@ from mongoengine.queryset import Q
 from st2common import log as logging
 from st2api.controllers import resource
 from st2common.models.api.rule import RuleViewAPI
-from st2common.models.api.base import jsexpose
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.action import Action
 from st2common.persistence.rule import Rule
 from st2common.persistence.trigger import TriggerType, Trigger
 from st2common.rbac.types import PermissionType
-from st2common.rbac.decorators import request_user_has_permission
-from st2common.rbac.decorators import request_user_has_resource_db_permission
 
 http_client = six.moves.http_client
 
@@ -87,32 +84,40 @@ class RuleViewController(resource.ContentPackResourceController):
 
     include_reference = True
 
-    @request_user_has_permission(permission_type=PermissionType.RULE_LIST)
-    @jsexpose()
-    def get_all(self, **kwargs):
-        rules = self._get_all(**kwargs)
-        return self._append_view_properties(rules)
+    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
+        rules = self._get_all(sort=sort,
+                              offset=offset,
+                              limit=limit,
+                              raw_filters=raw_filters)
+        result = self._append_view_properties(rules.json)
+        rules.json = result
+        return rules
 
-    @request_user_has_resource_db_permission(permission_type=PermissionType.RULE_VIEW)
-    @jsexpose(arg_types=[str])
-    def get_one(self, ref_or_id):
-        rule = self._get_one(ref_or_id)
-        return self._append_view_properties([rule])[0]
+    def get_one(self, ref_or_id, requester_user):
+        rule = self._get_one(ref_or_id, permission_type=PermissionType.RULE_VIEW,
+                             requester_user=requester_user)
+        result = self._append_view_properties([rule.json])[0]
+        rule.json = result
+        return rule
 
     def _append_view_properties(self, rules):
         action_by_refs, trigger_by_refs, trigger_type_by_refs = self._get_referenced_models(rules)
 
         for rule in rules:
-            action_db = action_by_refs.get(rule.action['ref'], None)
-            rule.action['description'] = action_db.description if action_db else ''
+            action_db = action_by_refs.get(rule['action']['ref'], None)
+            rule['action']['description'] = action_db.description if action_db else ''
 
-            trigger_db = trigger_by_refs.get(rule.trigger['ref'], None)
-            rule.trigger['description'] = trigger_db.description if trigger_db else ''
+            rule['trigger']['description'] = ''
+
+            trigger_db = trigger_by_refs.get(rule['trigger']['ref'], None)
+            if trigger_db:
+                rule['trigger']['description'] = trigger_db.description
 
             # If description is not found in trigger get description from triggertype
-            if not rule.trigger['description']:
-                trigger_type_db = trigger_type_by_refs.get(rule.trigger['type'], None)
-                rule.trigger['description'] = trigger_type_db.description if trigger_type_db else ''
+            if not rule['trigger']['description']:
+                trigger_type_db = trigger_type_by_refs.get(rule['trigger']['type'], None)
+                if trigger_type_db:
+                    rule['trigger']['description'] = trigger_type_db.description
 
         return rules
 
@@ -126,9 +131,9 @@ class RuleViewController(resource.ContentPackResourceController):
         trigger_type_refs = set()
 
         for rule in rules:
-            action_refs.add(rule.action['ref'])
-            trigger_refs.add(rule.trigger['ref'])
-            trigger_type_refs.add(rule.trigger['type'])
+            action_refs.add(rule['action']['ref'])
+            trigger_refs.add(rule['trigger']['ref'])
+            trigger_type_refs.add(rule['trigger']['type'])
 
         action_by_refs = {}
         trigger_by_refs = {}
@@ -179,3 +184,6 @@ class RuleViewController(resource.ContentPackResourceController):
         if q:
             return model_persistence._get_impl().model.objects(q)
         return []
+
+
+rule_view_controller = RuleViewController()

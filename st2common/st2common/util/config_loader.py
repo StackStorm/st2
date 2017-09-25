@@ -20,6 +20,7 @@ import six
 from oslo_config import cfg
 
 from st2common import log as logging
+from st2common.models.db.pack import ConfigDB
 from st2common.persistence.pack import ConfigSchema
 from st2common.persistence.pack import Config
 from st2common.content import utils as content_utils
@@ -59,21 +60,16 @@ class ContentPackConfigLoader(object):
     def get_config(self):
         result = {}
 
-        # 1. Retrieve values from pack local config.yaml file
-        config = self._config_parser.get_config()
-
-        if config:
-            config = config.config or {}
-            result.update(config)
-
         # Retrieve corresponding ConfigDB and ConfigSchemaDB object
         # Note: ConfigSchemaDB is optional right now. If it doesn't exist, we assume every value
         # is of a type string
         try:
             config_db = Config.get_by_pack(value=self.pack_name)
         except StackStormDBObjectNotFoundError:
-            # Corresponding pack config doesn't exist, return early
-            return result
+            # Corresponding pack config doesn't exist. We set config_db to an empty config so
+            # that the default values from config schema are still correctly applied even if
+            # pack doesn't contain a config.
+            config_db = ConfigDB(pack=self.pack_name, values={})
 
         try:
             config_schema_db = ConfigSchema.get_by_pack(value=self.pack_name)
@@ -150,12 +146,15 @@ class ContentPackConfigLoader(object):
         :rtype: ``dict``
         """
         for schema_item_key, schema_item in six.iteritems(schema):
+            has_default_value = 'default' in schema_item
+            has_config_value = schema_item_key in config
+
             default_value = schema_item.get('default', None)
-            is_required = schema_item.get('required', False)
             is_object = schema_item.get('type', None) == 'object'
             has_properties = schema_item.get('properties', None)
 
-            if is_required and default_value and not config.get(schema_item_key, None):
+            if has_default_value and not has_config_value:
+                # Config value is not provided, but default value is, use a default value
                 config[schema_item_key] = default_value
 
             # Inspect nested object properties
@@ -198,3 +197,24 @@ class ContentPackConfigLoader(object):
             value = None
 
         return value
+
+
+def get_config(pack, user):
+    """Returns config for given pack and user.
+    """
+    LOG.debug('Attempting to get config')
+    if pack and user:
+        LOG.debug('Pack and user found. Loading config.')
+        config_loader = ContentPackConfigLoader(
+            pack_name=pack,
+            user=user
+        )
+
+        config = config_loader.get_config()
+
+    else:
+        config = {}
+
+    LOG.debug('Config: %s', config)
+
+    return config

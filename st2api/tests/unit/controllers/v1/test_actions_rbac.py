@@ -105,7 +105,6 @@ class ActionControllerRBACTestCase(APIControllerWithRBACTestCase):
                         'on resource "action:wolfpack:action-1"')
         self.assertEqual(resp.status_code, httplib.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
-        self.use_user({})
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))

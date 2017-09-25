@@ -18,8 +18,10 @@
 #   st2 rules_engine
 #
 
+import sys
+
 from st2reactor.cmd import rulesengine
 
 
 if __name__ == '__main__':
-    rulesengine.main()
+    sys.exit(rulesengine.main())

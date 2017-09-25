@@ -88,6 +88,7 @@ class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
 
     meta = {
         'indexes': [
+            {'fields': ['enabled']},
             {'fields': ['action.ref']},
             {'fields': ['trigger']}
         ] + stormbase.TagsMixin.get_indices() + stormbase.UIDFieldMixin.get_indexes()

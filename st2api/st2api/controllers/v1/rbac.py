@@ -13,20 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import copy
 
-from pecan import rest
-
-from st2api.controllers.controller_transforms import transform_to_bool
 from st2api.controllers.resource import ResourceController
-from st2common.models.api.base import jsexpose
 from st2common.models.api.rbac import RoleAPI
+from st2common.models.api.rbac import UserRoleAssignmentAPI
 from st2common.persistence.rbac import Role
-from st2common.rbac.types import RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP
-from st2common.rbac.decorators import request_user_is_admin
+from st2common.rbac.types import get_resource_permission_types_with_descriptions
+from st2common.persistence.rbac import UserRoleAssignment
+from st2common.rbac import utils as rbac_utils
+from st2common.router import exc
 
 __all__ = [
     'RolesController',
+    'RoleAssignmentsController',
     'PermissionTypesController'
 ]
 
@@ -39,53 +38,94 @@ class RolesController(ResourceController):
         'system': 'system'
     }
 
-    filter_transform_functions = {
-        'system': transform_to_bool
-    }
-
     query_options = {
         'sort': ['name']
     }
 
-    @request_user_is_admin()
-    @jsexpose(arg_types=[str])
-    def get_one(self, name_or_id):
-        return self._get_one_by_name_or_id(name_or_id=name_or_id)
+    def get_one(self, name_or_id, requester_user):
+        rbac_utils.assert_user_is_admin(user_db=requester_user)
+
+        return self._get_one_by_name_or_id(name_or_id=name_or_id,
+                                           permission_type=None,
+                                           requester_user=requester_user)
+
+    def get_all(self, requester_user, sort=None, offset=0, limit=None, **raw_filters):
+        rbac_utils.assert_user_is_admin(user_db=requester_user)
+        return self._get_all(sort=sort,
+                             offset=offset,
+                             limit=limit,
+                             raw_filters=raw_filters)
 
 
-class PermissionTypesController(rest.RestController):
+class RoleAssignmentsController(ResourceController):
+    """
+    Meta controller for listing role assignments.
+    """
+    model = UserRoleAssignmentAPI
+    access = UserRoleAssignment
+    supported_filters = {
+        'user': 'user',
+        'role': 'role',
+        'remote': 'is_remote'
+    }
+
+    def get_all(self, requester_user, sort=None, offset=0, limit=None, **raw_filters):
+        user = raw_filters.get('user', None)
+        rbac_utils.assert_user_is_admin_or_operating_on_own_resource(user_db=requester_user,
+                                                                     user=user)
+
+        return self._get_all(sort=sort,
+                             offset=offset,
+                             limit=limit,
+                             raw_filters=raw_filters)
+
+    def get_one(self, id, requester_user):
+        result = self._get_one_by_id(id,
+                                   requester_user=requester_user,
+                                   permission_type=None)
+        user = getattr(result, 'user', None)
+
+        rbac_utils.assert_user_is_admin_or_operating_on_own_resource(user_db=requester_user,
+                                                                     user=user)
+
+        return result
+
+
+class PermissionTypesController(object):
     """
     Meta controller for listing all the available permission types.
     """
 
-    @request_user_is_admin()
-    @jsexpose()
-    def get_all(self):
+    def get_all(self, requester_user):
         """
             List all the available permission types.
 
             Handles requests:
                 GET /rbac/permission_types
         """
-        result = copy.deepcopy(RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP)
+        rbac_utils.assert_user_is_admin(user_db=requester_user)
+
+        result = get_resource_permission_types_with_descriptions()
         return result
 
-    @request_user_is_admin()
-    @jsexpose(arg_types=[str])
-    def get_one(self, resource_type):
+    def get_one(self, resource_type, requester_user):
         """
             List all the available permission types for a particular resource type.
 
             Handles requests:
-                GET /rbac/permission_types
+                GET /rbac/permission_types/<resource type>
         """
-        permission_types = RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP.get(resource_type, None)
+        rbac_utils.assert_user_is_admin(user_db=requester_user)
+
+        all_permission_types = get_resource_permission_types_with_descriptions()
+        permission_types = all_permission_types.get(resource_type, None)
+
         if permission_types is None:
-            raise ValueError('Invalid resource type: %s' % (resource_type))
+            raise exc.HTTPNotFound('Invalid resource type: %s' % (resource_type))
 
         return permission_types
 
 
-class RBACController(rest.RestController):
-    roles = RolesController()
-    permission_types = PermissionTypesController()
+roles_controller = RolesController()
+role_assignments_controller = RoleAssignmentsController()
+permission_types_controller = PermissionTypesController()

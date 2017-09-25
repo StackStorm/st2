@@ -14,19 +14,17 @@
 # limitations under the License.
 
 import six
-from pecan import abort
 from mongoengine import ValidationError
 
 from st2common import log as logging
-from st2common.models.api.base import jsexpose
 from st2common.persistence.sensor import SensorType
 from st2common.models.api.sensor import SensorTypeAPI
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.validators.api.misc import validate_not_part_of_system_pack
 from st2api.controllers import resource
 from st2common.rbac.types import PermissionType
-from st2common.rbac.decorators import request_user_has_permission
-from st2common.rbac.decorators import request_user_has_resource_db_permission
+from st2common.rbac import utils as rbac_utils
+from st2common.router import abort
 
 http_client = six.moves.http_client
 
@@ -47,29 +45,30 @@ class SensorTypeController(resource.ContentPackResourceController):
 
     include_reference = True
 
-    @request_user_has_permission(permission_type=PermissionType.SENSOR_LIST)
-    @jsexpose()
-    def get_all(self, **kwargs):
-        return super(SensorTypeController, self)._get_all(**kwargs)
+    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
+        return super(SensorTypeController, self)._get_all(sort=sort,
+                                                          offset=offset,
+                                                          limit=limit,
+                                                          raw_filters=raw_filters)
 
-    @request_user_has_resource_db_permission(permission_type=PermissionType.SENSOR_VIEW)
-    @jsexpose(arg_types=[str])
-    def get_one(self, ref_or_id):
-        return super(SensorTypeController, self)._get_one(ref_or_id)
+    def get_one(self, ref_or_id, requester_user):
+        permission_type = PermissionType.SENSOR_VIEW
+        return super(SensorTypeController, self)._get_one(ref_or_id,
+                                                          requester_user=requester_user,
+                                                          permission_type=permission_type)
 
-    @request_user_has_resource_db_permission(permission_type=PermissionType.SENSOR_MODIFY)
-    @jsexpose(arg_types=[str], body_cls=SensorTypeAPI)
-    def put(self, sensor_type, ref_or_id):
+    def put(self, sensor_type, ref_or_id, requester_user):
         # Note: Right now this function only supports updating of "enabled"
         # attribute on the SensorType model.
         # The reason for that is that SensorTypeAPI.to_model right now only
         # knows how to work with sensor type definitions from YAML files.
-        try:
-            sensor_type_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
-        except Exception as e:
-            LOG.exception(e.message)
-            abort(http_client.NOT_FOUND, e.message)
-            return
+
+        sensor_type_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
+
+        permission_type = PermissionType.SENSOR_MODIFY
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=sensor_type_db,
+                                                          permission_type=permission_type)
 
         sensor_type_id = sensor_type_db.id
 
@@ -99,3 +98,6 @@ class SensorTypeController(resource.ContentPackResourceController):
         sensor_type_api = SensorTypeAPI.from_model(sensor_type_db)
 
         return sensor_type_api
+
+
+sensor_type_controller = SensorTypeController()

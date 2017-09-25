@@ -34,7 +34,7 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 
-def create_token(username, ttl=None, metadata=None, add_missing_user=True):
+def create_token(username, ttl=None, metadata=None, add_missing_user=True, service=False):
     """
     :param username: Username of the user to create the token for. If the account for this user
                      doesn't exist yet it will be created.
@@ -48,13 +48,16 @@ def create_token(username, ttl=None, metadata=None, add_missing_user=True):
 
     :param add_missing_user: Add the user given by `username` if they don't exist
     :type  add_missing_user: ``bool``
+
+    :param service: True if this is a service (non-user) token.
+    :type service: ``bool``
     """
 
     if ttl:
-        if ttl > cfg.CONF.auth.token_ttl:
-            msg = 'TTL specified %s is greater than max allowed %s.' % (
-                ttl, cfg.CONF.auth.token_ttl
-            )
+        # Note: We allow arbitrary large TTLs for service tokens.
+        if not service and ttl > cfg.CONF.auth.token_ttl:
+            msg = ('TTL specified %s is greater than max allowed %s.' % (ttl,
+                                                                         cfg.CONF.auth.token_ttl))
             raise TTLTooLargeException(msg)
     else:
         ttl = cfg.CONF.auth.token_ttl
@@ -74,7 +77,7 @@ def create_token(username, ttl=None, metadata=None, add_missing_user=True):
 
     token = uuid.uuid4().hex
     expiry = date_utils.get_datetime_utc_now() + datetime.timedelta(seconds=ttl)
-    token = TokenDB(user=username, token=token, expiry=expiry, metadata=metadata)
+    token = TokenDB(user=username, token=token, expiry=expiry, metadata=metadata, service=service)
     Token.add_or_update(token)
 
     username_string = username if username else 'an anonymous user'

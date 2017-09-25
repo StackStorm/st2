@@ -1,0 +1,15 @@
+---
+name: "forloop_get_github_page"
+runner_type: "python-script"
+description: "Action to get the contents of a github page with support to choose the page"
+enabled: true
+entry_point: "pythonactions/forloop_get_github_page.py"
+parameters:
+  url:
+    type: "string"
+    description: "Url of the page to be requested"
+    required: true
+  page:
+    type: "string"
+    description: "Page number to request"
+    required: false

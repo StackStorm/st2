@@ -60,12 +60,27 @@ def _build_index_list(index_url):
     return index_urls
 
 
-def _fetch_and_compile_index(index_urls, logger=None):
+def _fetch_and_compile_index(index_urls, logger=None, proxy_config=None):
     """
     Go through the index list and compile results into a single object.
     """
     status = []
     index = {}
+
+    proxies_dict = {}
+    verify = True
+
+    if proxy_config:
+        https_proxy = proxy_config.get('https_proxy', None)
+        http_proxy = proxy_config.get('http_proxy', None)
+        ca_bundle_path = proxy_config.get('proxy_ca_bundle_path', None)
+
+        if https_proxy:
+            proxies_dict['https'] = https_proxy
+            verify = ca_bundle_path or True
+
+        if http_proxy:
+            proxies_dict['http'] = http_proxy
 
     for index_url in index_urls:
         index_status = {
@@ -77,7 +92,7 @@ def _fetch_and_compile_index(index_urls, logger=None):
         index_json = None
 
         try:
-            request = requests.get(index_url)
+            request = requests.get(index_url, proxies=proxies_dict, verify=verify)
             request.raise_for_status()
             index_json = request.json()
         except ValueError as e:
@@ -85,6 +100,9 @@ def _fetch_and_compile_index(index_urls, logger=None):
             index_status['message'] = repr(e)
         except requests.exceptions.RequestException as e:
             index_status['error'] = 'unresponsive'
+            index_status['message'] = repr(e)
+        except Exception as e:
+            index_status['error'] = 'other errors'
             index_status['message'] = repr(e)
 
         if index_json == {}:
@@ -119,7 +137,7 @@ def get_pack_by_ref(pack_ref):
     return pack_db
 
 
-def fetch_pack_index(index_url=None, logger=None, allow_empty=False):
+def fetch_pack_index(index_url=None, logger=None, allow_empty=False, proxy_config=None):
     """
     Fetch the pack indexes (either from the config or provided as an argument)
     and return the object.
@@ -127,7 +145,8 @@ def fetch_pack_index(index_url=None, logger=None, allow_empty=False):
     logger = logger or LOG
 
     index_urls = _build_index_list(index_url)
-    index, status = _fetch_and_compile_index(index_urls, logger)
+    index, status = _fetch_and_compile_index(index_urls=index_urls, logger=logger,
+                                             proxy_config=proxy_config)
 
     # If one of the indexes on the list is unresponsive, we do not throw
     # immediately. The only case where an exception is raised is when no
@@ -143,7 +162,7 @@ def fetch_pack_index(index_url=None, logger=None, allow_empty=False):
     return (index, status)
 
 
-def get_pack_from_index(pack):
+def get_pack_from_index(pack, proxy_config=None):
     """
     Search index by pack name.
     Returns a pack.
@@ -151,12 +170,12 @@ def get_pack_from_index(pack):
     if not pack:
         raise ValueError("Pack name must be specified.")
 
-    index, _ = fetch_pack_index()
+    index, _ = fetch_pack_index(proxy_config=proxy_config)
 
     return index.get(pack)
 
 
-def search_pack_index(query, exclude=None, priority=None, case_sensitive=True):
+def search_pack_index(query, exclude=None, priority=None, case_sensitive=True, proxy_config=None):
     """
     Search the pack index by query.
     Returns a list of matches for a query.
@@ -172,7 +191,7 @@ def search_pack_index(query, exclude=None, priority=None, case_sensitive=True):
     if not case_sensitive:
         query = str(query).lower()
 
-    index, _ = fetch_pack_index()
+    index, _ = fetch_pack_index(proxy_config=proxy_config)
 
     matches = [[] for i in range(len(priority) + 1)]
     for pack in six.itervalues(index):

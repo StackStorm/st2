@@ -1,0 +1,30 @@
+---
+chain:
+  -
+    name: "match_and_execute"
+    ref: "chatops.match_and_execute"
+    parameters:
+      user: "{{user}}"
+      source_channel: "{{channel}}"
+      text: "{{text}}"
+    publish:
+      execution_id: "{{match_and_execute.result}}"
+    on-success: "format_execution_result"
+  -
+    name: "format_execution_result"
+    ref: "chatops.format_execution_result"
+    parameters:
+      execution_id: "{{execution_id}}"
+    publish:
+      message: "{{format_execution_result.result.message}}"
+      extra: "{% if 'extra' in format_execution_result.result %}{{format_execution_result.result.extra}}{% else %}{}{% endif %}"
+    on-success: "post_message"
+  -
+    name: "post_message"
+    ref: "chatops.post_message"
+    parameters:
+      user: "{{user}}"
+      channel: "{{channel}}"
+      whisper: "{{whisper}}"
+      message: "{{message}}"
+      extra: "{{extra}}"

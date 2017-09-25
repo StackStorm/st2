@@ -97,7 +97,8 @@ class MistralValidationControllerTest(FunctionalTest):
         return yaml.safe_load(def_yaml)
 
     def __do_post(self, definition, expect_errors=False):
-        return self.app.post('/exp/validation/mistral', definition, expect_errors=expect_errors)
+        return self.app.post('/exp/validation/mistral', definition, expect_errors=expect_errors,
+                             content_type='text/plain')
 
     @mock.patch.object(
         workbooks.WorkbookManager, 'validate',
@@ -114,7 +115,7 @@ class MistralValidationControllerTest(FunctionalTest):
         expected = [
             {
                 'type': 'schema',
-                'path': None,
+                'path': '',
                 'message': '\'version\' is a required property'
             }
         ]
@@ -137,7 +138,7 @@ class MistralValidationControllerTest(FunctionalTest):
         expected = [
             {
                 'type': 'schema',
-                'path': None,
+                'path': '',
                 'message': 'Unsupported DSL version'
             }
         ]
@@ -155,7 +156,7 @@ class MistralValidationControllerTest(FunctionalTest):
         expected = [
             {
                 'type': 'action',
-                'path': None,
+                'path': '',
                 'message': 'Missing required parameters in "task1" '
                            'for action "wolfpack.action-1": "actionstr"'
             }
@@ -174,7 +175,7 @@ class MistralValidationControllerTest(FunctionalTest):
         expected = [
             {
                 'type': 'action',
-                'path': None,
+                'path': '',
                 'message': 'Unexpected parameters in "task1" '
                            'for action "wolfpack.action-1": "foo"'
             }
@@ -195,7 +196,7 @@ class MistralValidationControllerTest(FunctionalTest):
         expected = [
             {
                 'type': 'action',
-                'path': None,
+                'path': '',
                 'message': 'st2.callback is deprecated.'
             }
         ]
@@ -246,7 +247,7 @@ class MistralValidationControllerTest(FunctionalTest):
         expected = [
             {
                 'type': 'yaql',
-                'path': None,
+                'path': '',
                 'message': 'unexpected end of statement.'
             }
         ]
@@ -297,7 +298,7 @@ class MistralValidationControllerTest(FunctionalTest):
         expected = [
             {
                 'type': 'yaql',
-                'path': None,
+                'path': '',
                 'message': 'unexpected end of statement.'
             }
         ]

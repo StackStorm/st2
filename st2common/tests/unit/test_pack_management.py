@@ -31,7 +31,7 @@ class InstallPackTestCase(unittest2.TestCase):
 
     def test_eval_repo(self):
         result = DownloadGitRepoAction._eval_repo_url('stackstorm/st2contrib')
-        self.assertEqual(result, 'https://github.com/stackstorm/st2contrib.git')
+        self.assertEqual(result, 'https://github.com/stackstorm/st2contrib')
 
         result = DownloadGitRepoAction._eval_repo_url('git@github.com:StackStorm/st2contrib.git')
         self.assertEqual(result, 'git@github.com:StackStorm/st2contrib.git')

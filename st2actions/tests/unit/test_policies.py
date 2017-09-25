@@ -28,6 +28,7 @@ from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
+from st2tests.mocks.execution import MockExecutionPublisher
 from st2tests.mocks.liveaction import MockLiveActionPublisher
 from st2tests.policies.concurrency import FakeConcurrencyApplicator
 from st2tests.policies.mock_exception import RaiseExceptionApplicator
@@ -57,7 +58,7 @@ FIXTURES = LOADER.load_fixtures(fixtures_pack=PACK, fixtures_dict=TEST_FIXTURES)
 
 @mock.patch.object(
     CUDPublisher, 'publish_update',
-    mock.MagicMock(side_effect=MockLiveActionPublisher.publish_update))
+    mock.MagicMock(side_effect=MockExecutionPublisher.publish_update))
 @mock.patch.object(
     CUDPublisher, 'publish_create',
     mock.MagicMock(return_value=None))

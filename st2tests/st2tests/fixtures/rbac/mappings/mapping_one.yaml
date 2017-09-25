@@ -1,0 +1,4 @@
+---
+  group: "some ldap group"
+  roles:
+    - "pack_admin"

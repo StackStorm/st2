@@ -16,6 +16,9 @@
 import os
 
 from st2common.content.loader import ContentPackLoader
+from st2common.content.loader import MetaLoader
+from st2common.constants.pack import MANIFEST_FILE_NAME
+from st2common.util.pack import get_pack_ref_from_metadata
 from st2common.exceptions.content import ParseException
 from st2common.bootstrap.aliasesregistrar import AliasesRegistrar
 from st2common.models.utils.action_alias_utils import extract_parameters_for_action_alias_db
@@ -95,7 +98,17 @@ class BaseActionAliasTestCase(BasePackResourceTestCase):
         Retrieve ActionAlias DB object for the provided alias name.
         """
         base_pack_path = self._get_base_pack_path()
-        _, pack = os.path.split(base_pack_path)
+        pack_yaml_path = os.path.join(base_pack_path, MANIFEST_FILE_NAME)
+
+        if os.path.isfile(pack_yaml_path):
+            # 1. 1st try to infer pack name from pack metadata file
+            meta_loader = MetaLoader()
+            pack_metadata = meta_loader.load(pack_yaml_path)
+            pack = get_pack_ref_from_metadata(metadata=pack_metadata)
+        else:
+            # 2. If pack.yaml is not available, fail back to directory name
+            # Note: For this to work, directory name needs to match pack name
+            _, pack = os.path.split(base_pack_path)
 
         pack_loader = ContentPackLoader()
         registrar = AliasesRegistrar(use_pack_cache=False)

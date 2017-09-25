@@ -25,7 +25,7 @@ from functools import wraps
 
 import six
 
-from st2common.logging.filters import ExclusionFilter
+from st2common.logging.filters import LoggerNameExclusionFilter
 
 # Those are here for backward compatibility reasons
 from st2common.logging.handlers import FormatNamedFileHandler
@@ -168,7 +168,7 @@ logging.Logger.audit = _audit
 def _add_exclusion_filters(handlers, excludes=None):
     if excludes:
         for h in handlers:
-            h.addFilter(ExclusionFilter(excludes))
+            h.addFilter(LoggerNameExclusionFilter(excludes))
 
 
 def _redirect_stderr():
@@ -189,8 +189,16 @@ def setup(config_file, redirect_stderr=True, excludes=None, disable_existing_log
         if redirect_stderr:
             _redirect_stderr()
     except Exception as exc:
+        exc_cls = type(exc)
+        tb_msg = traceback.format_exc()
+
+        msg = str(exc)
+        msg += '\n\n' + tb_msg
+
         # revert stderr redirection since there is no logger in place.
         sys.stderr = sys.__stderr__
+
         # No logger yet therefore write to stderr
-        sys.stderr.write('ERROR: %s' % traceback.format_exc())
-        raise Exception(six.text_type(exc))
+        sys.stderr.write('ERROR: %s' % (msg))
+
+        raise exc_cls(six.text_type(msg))

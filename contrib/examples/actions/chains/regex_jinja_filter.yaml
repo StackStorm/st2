@@ -1,0 +1,47 @@
+---
+  vars:
+    sample_str: 'Your address is 567 Elsewhere Dr. My address is 123 Somewhere Ave.'
+  chain:
+    -
+      name: "is_match"
+      ref: "core.local"
+      parameters:
+
+        # Just returns True if match is found at beginning, False if not (uses re.match)
+        # Since the address is not at the beginning of the string, this will return False
+        cmd: 'echo {{sample_str | regex_match("([0-9]{3} \w+ (?:Ave|St|Dr))")}}'
+      on-success: "replace_string"
+    -
+      name: "replace_string"
+      ref: "core.local"
+      parameters:
+
+        # Searches for pattern (first param) and replaces all matches with the provided
+        # string (second param) and returns the final result
+        cmd: 'echo {{sample_str | regex_replace("([0-9]{3} \w+ (?:Ave|St|Dr))", "<redacted>")}}'
+      on-success: "search_for_str"
+    -
+      name: "search_for_str"
+      ref: "core.local"
+      parameters:
+
+        # Returns True if pattern is found anywhere in string, False if not.
+        cmd: 'echo {{sample_str | regex_search("([0-9]{3} \w+ (?:Ave|St|Dr))")}}'
+      on-success: "show_address"
+    -
+      name: "show_address"
+      ref: "core.local"
+      parameters:
+
+        # Will return only the first substring that matched (567 Elsewhere Dr)
+        cmd: 'echo {{sample_str |  regex_substring("([0-9]{3} \w+ (?:Ave|St|Dr))") }}'
+      on-success: "show_second_address"
+    -
+      name: "show_second_address"
+      ref: "core.local"
+      parameters:
+
+        # Note the second parameter to the filter, which causes the filter to
+        # return second address in the variable
+        # (Will raise indexerror if doesn't exist)
+        cmd: 'echo {{sample_str | regex_substring("([0-9]{3} \w+ (?:Ave|St|Dr))", 1) }}'

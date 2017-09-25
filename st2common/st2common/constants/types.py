@@ -39,10 +39,21 @@ class ResourceType(Enum):
     RULE = 'rule'
     RULE_ENFORCEMENT = 'rule_enforcement'
 
+    # Note: Policy type is a global resource and policy belong to a pack
+    POLICY_TYPE = 'policy_type'
+    POLICY = 'policy'
+
     # Other resources
     EXECUTION = 'execution'
     KEY_VALUE_PAIR = 'key_value_pair'
 
     WEBHOOK = 'webhook'
+    TIMER = 'timer'
     API_KEY = 'api_key'
+    TRACE = 'trace'
+    TIMER = 'timer'
+
+    # Special resource type for stream related stuff
+    STREAM = 'stream'
+
     UNKNOWN = 'unknown'

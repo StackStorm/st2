@@ -17,8 +17,6 @@
 A script which applies RBAC definitions and role assignments stored on disk.
 """
 
-from oslo_config import cfg
-
 from st2common import config
 from st2common.script_setup import setup as common_setup
 from st2common.script_setup import teardown as common_teardown
@@ -28,8 +26,6 @@ from st2common.rbac.syncer import RBACDefinitionsDBSyncer
 __all__ = [
     'main'
 ]
-
-cfg.CONF.register_cli_opt(cfg.BoolOpt('verbose', short='v', default=False))
 
 
 def setup(argv):
@@ -46,10 +42,12 @@ def apply_definitions():
 
     role_definition_apis = result['roles'].values()
     role_assignment_apis = result['role_assignments'].values()
+    group_to_role_map_apis = result['group_to_role_maps'].values()
 
     syncer = RBACDefinitionsDBSyncer()
     result = syncer.sync(role_definition_apis=role_definition_apis,
-                         role_assignment_apis=role_assignment_apis)
+                         role_assignment_apis=role_assignment_apis,
+                         group_to_role_map_apis=group_to_role_map_apis)
 
     return result
 

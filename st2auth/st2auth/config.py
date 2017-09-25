@@ -43,7 +43,7 @@ def _register_common_opts():
 def _register_app_opts():
     available_backends = get_available_backends()
     auth_opts = [
-        cfg.StrOpt('host', default='0.0.0.0', help='Host on which the service should listen on.'),
+        cfg.StrOpt('host', default='127.0.0.1', help='Host on which the service should listen on.'),
         cfg.IntOpt('port', default=9100, help='Port on which the service should listen on.'),
         cfg.BoolOpt('use_ssl', default=False, help='Specify to enable SSL / TLS mode'),
         cfg.StrOpt('cert', default='/etc/apache2/ssl/mycert.crt',

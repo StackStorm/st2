@@ -82,6 +82,12 @@ class KeyValueLookup(object):
     def __str__(self):
         return self._value_cache[self._key_prefix]
 
+    def __int__(self):
+        return int(float(self))
+
+    def __float__(self):
+        return float(str(self))
+
     def __getitem__(self, key):
         return self._get(key)
 
@@ -175,7 +181,7 @@ def get_key_reference(scope, name, user=None):
     to address the key value pair in the context of that user.
 
     :param user: User to whom key belongs.
-    :type name: ``str``
+    :type user: ``str``
 
     :param name: Original name of the key.
     :type name: ``str``

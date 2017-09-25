@@ -17,7 +17,8 @@
 import six
 
 __all__ = [
-    'to_unicode'
+    'to_unicode',
+    'to_ascii'
 ]
 
 
@@ -37,3 +38,11 @@ def to_unicode(value):
         value = six.u(value)
 
     return value
+
+
+def to_ascii(value):
+    """
+    Function which encodes the provided bytes / string to ASCII encoding ignoring any errors
+    which could come up when trying to encode a non-ascii value.
+    """
+    return value.decode('ascii', errors='ignore')

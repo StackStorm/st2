@@ -16,6 +16,7 @@
 import logging
 import mock
 from StringIO import StringIO
+import re
 import unittest2
 
 import prompt_toolkit
@@ -340,3 +341,47 @@ class TestInteractive(unittest2.TestCase):
         self.assertPromptMessage(prompt_mock, message)
         self.assertPromptDescription(prompt_mock, 'some description')
         self.assertPromptValidate(prompt_mock, '0,2,4,')
+
+    @mock.patch.object(interactive, 'prompt')
+    def test_arrayobjectreader(self, prompt_mock):
+        spec = {
+            'items': {
+                'type': 'object',
+                'properties': {
+                    'foo': {
+                        'type': 'string',
+                        'description': 'some description',
+                    },
+                    'bar': {
+                        'type': 'string',
+                        'description': 'some description',
+                    }
+                }
+            },
+            'description': 'some description',
+        }
+        Reader = interactive.ArrayObjectReader('some', spec)
+
+        # To emulate continuing setting, this flag variable is needed
+        self.is_continued = False
+
+        def side_effect(msg, **kwargs):
+            if re.match(r'^~~~ Would you like to add another item to.*', msg):
+                # prompt requires the input to judge continuing setting, or not
+                if not self.is_continued:
+                    # continuing the configuration only once
+                    self.is_continued = True
+                    return ''
+                else:
+                    # finishing to configuration
+                    return 'n'
+            else:
+                # prompt requires the input of property value in the object
+                return 'value'
+
+        prompt_mock.side_effect = side_effect
+        results = Reader.read()
+
+        self.assertEqual(len(results), 2)
+        self.assertTrue(all([len(x.keys()) == 2 for x in results]))
+        self.assertTrue(all(['foo' in x and 'bar' in x for x in results]))

@@ -27,6 +27,7 @@ from st2common.constants import action as action_constants
 from st2tests.fixturesloader import FixturesLoader
 from st2tests.fixturesloader import get_fixtures_base_path
 from st2common.util.api import get_full_public_api_url
+from st2common.util.green import shell
 from st2common.constants.runners import LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT
 import local_runner
 
@@ -68,6 +69,18 @@ class LocalShellCommandRunnerTestCase(TestCase):
         status, result, _ = runner.run({})
         runner.post_run(status, result)
         self.assertEquals(status, action_constants.LIVEACTION_STATUS_TIMED_OUT)
+
+    @mock.patch.object(
+        shell, 'run_command',
+        mock.MagicMock(return_value=(-15, '', '', False)))
+    def test_shutdown(self):
+        models = self.fixtures_loader.load_models(
+            fixtures_pack='generic', fixtures_dict={'actions': ['local.yaml']})
+        action_db = models['actions']['local.yaml']
+        runner = self._get_runner(action_db, cmd='sleep 0.1')
+        runner.pre_run()
+        status, result, _ = runner.run({})
+        self.assertEquals(status, action_constants.LIVEACTION_STATUS_ABANDONED)
 
     def test_large_stdout(self):
         models = self.fixtures_loader.load_models(

@@ -6,10 +6,10 @@ class TestQuerier(Querier):
     def __init__(self, *args, **kwargs):
         super(TestQuerier, self).__init__(*args, **kwargs)
 
-    def query(self, execution_id, query_context):
+    def query(self, execution_id, query_context, last_query_time=None):
         return (LIVEACTION_STATUS_SUCCEEDED, {'called_with': {execution_id: query_context}})
 
 
 def get_instance():
-    return TestQuerier(query_interval=0.1, empty_q_sleep_time=0.2,
+    return TestQuerier(empty_q_sleep_time=0.2,
                        no_workers_sleep_time=0.1)

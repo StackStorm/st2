@@ -35,32 +35,31 @@ class GunicornWSGIEntryPointTestCase(IntegrationTestCase):
     @unittest2.skipIf(profiling.is_enabled(), 'Profiling is enabled')
     def test_st2api_wsgi_entry_point(self):
         port = random.randint(10000, 30000)
-        config_path = os.path.join(BASE_DIR, '../../../st2api/st2api/gunicorn_config.py')
-        cmd = ('gunicorn_pecan %s -k eventlet -w 1 -b 127.0.0.1:%s' % (config_path, port))
+        cmd = ('gunicorn st2api.wsgi:application -k eventlet -b "127.0.0.1:%s" --workers 1' % port)
         env = os.environ.copy()
         env['ST2_CONFIG_PATH'] = ST2_CONFIG_PATH
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env,
-                                   shell=True, preexec_fn=os.setsid)
-        self.add_process(process=process)
-        eventlet.sleep(5)
-        self.assertProcessIsRunning(process=process)
-        response = requests.get('http://127.0.0.1:%s/v1/actions' % (port))
-        self.assertEqual(response.status_code, httplib.OK)
-        kill_process(process)
+        process = subprocess.Popen(cmd, env=env, shell=True, preexec_fn=os.setsid)
+        try:
+            self.add_process(process=process)
+            eventlet.sleep(10)
+            self.assertProcessIsRunning(process=process)
+            response = requests.get('http://127.0.0.1:%s/v1/actions' % (port))
+            self.assertEqual(response.status_code, httplib.OK)
+        finally:
+            kill_process(process)
 
     @unittest2.skipIf(profiling.is_enabled(), 'Profiling is enabled')
     def test_st2auth(self):
         port = random.randint(10000, 30000)
-        config_path = os.path.join(BASE_DIR, '../../../st2auth/st2auth/gunicorn_config.py')
-        cmd = ('gunicorn_pecan %s -k eventlet -w 1 -b 127.0.0.1:%s' % (config_path, port))
+        cmd = ('gunicorn st2auth.wsgi:application -k eventlet -b "127.0.0.1:%s" --workers 1' % port)
         env = os.environ.copy()
         env['ST2_CONFIG_PATH'] = ST2_CONFIG_PATH
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env,
-                                   shell=True, preexec_fn=os.setsid)
-
-        self.add_process(process=process)
-        eventlet.sleep(5)
-        self.assertProcessIsRunning(process=process)
-        response = requests.post('http://127.0.0.1:%s/tokens' % (port))
-        self.assertEqual(response.status_code, httplib.UNAUTHORIZED)
-        kill_process(process)
+        process = subprocess.Popen(cmd, env=env, shell=True, preexec_fn=os.setsid)
+        try:
+            self.add_process(process=process)
+            eventlet.sleep(10)
+            self.assertProcessIsRunning(process=process)
+            response = requests.post('http://127.0.0.1:%s/tokens' % (port))
+            self.assertEqual(response.status_code, httplib.UNAUTHORIZED)
+        finally:
+            kill_process(process)

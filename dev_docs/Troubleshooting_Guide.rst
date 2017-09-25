@@ -29,10 +29,10 @@ As we can see from above output port ``9101`` is not even up. To verify this let
 
   $ ps auxww | grep st2 | grep 910
   vagrant  32420  0.2  1.5  79228 31364 pts/10   Ss+  18:27   0:00 /home/vagrant/git/st2/virtualenv/bin/python
-  ./virtualenv/bin/gunicorn_pecan ./st2auth/st2auth/gunicorn_config.py -k eventlet -b 0.0.0.0:9100 --workers 1
+  ./virtualenv/bin/gunicorn st2auth.wsgi:application -k eventlet -b 0.0.0.0:9100 --workers 1
   vagrant@ether git/st2 (master %) » ps auxww | grep st2 | grep 32403  
   vagrant  32403  0.2  1.5  79228 31364 pts/3    Ss+  18:27   0:00 /home/vagrant/git/st2/virtualenv/bin/python
-  ./virtualenv/bin/gunicorn_pecan ./st2stream/st2stream/gunicorn_config.py -k eventlet -b 0.0.0.0:9102 --workers 1
+  ./virtualenv/bin/gunicorn st2stream.wsgi:application -k eventlet -b 0.0.0.0:9102 --workers 1
   
 - This suggests that the API process crashed, we can verify that by running ``screen -ls``.::
 
@@ -93,7 +93,7 @@ As we can see from above output port ``9101`` is not even up. To verify this let
 
 .. code:: bash
 
-   (virtualenv) $ ST2_CONFIG_PATH=conf/st2.dev.conf ./virtualenv/bin/gunicorn_pecan ./st2api/st2api/gunicorn_config.py -k eventlet -b 0.0.0.0:9101 --workers 1
+   (virtualenv) $ ST2_CONFIG_PATH=conf/st2.dev.conf ./virtualenv/bin/gunicorn st2api.wsgi:application -k eventlet -b 0.0.0.0:9101 --workers 1
 
 The above mentioned command will give out logs, we may find some error in the end of logs like this:
 

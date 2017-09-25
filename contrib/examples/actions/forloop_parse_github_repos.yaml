@@ -1,0 +1,11 @@
+---
+name: "forloop_parse_github_repos"
+runner_type: "python-script"
+description: "Action to parse the data and make it readable"
+enabled: true
+entry_point: "pythonactions/forloop_parse_github_repos.py"
+parameters:
+  content:
+    type: "string"
+    description: "Complete html page of the github request"
+    required: true

@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pecan
 import six
 
 from mongoengine import ValidationError
@@ -22,15 +21,12 @@ from st2common import log as logging
 from st2common.exceptions.actionalias import ActionAliasAmbiguityException
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.models.api.action import ActionAliasAPI
-from st2common.models.api.action import ActionAliasMatchAPI
-from st2common.models.api.action import ActionAliasHelpAPI
 from st2common.persistence.actionalias import ActionAlias
-from st2common.models.api.base import jsexpose
 from st2common.rbac.types import PermissionType
-from st2common.rbac.decorators import request_user_has_permission
-from st2common.rbac.decorators import request_user_has_resource_api_permission
-from st2common.rbac.decorators import request_user_has_resource_db_permission
+from st2common.rbac import utils as rbac_utils
 
+from st2common.router import abort
+from st2common.router import Response
 from st2common.util.actionalias_matching import match_command_to_alias
 from st2common.util.actionalias_helpstring import generate_helpstring_result
 
@@ -67,19 +63,19 @@ class ActionAliasController(resource.ContentPackResourceController):
             'representation': match[2]
         }
 
-    @request_user_has_permission(permission_type=PermissionType.ACTION_ALIAS_LIST)
-    @jsexpose()
-    def get_all(self, **kwargs):
-        return super(ActionAliasController, self)._get_all(**kwargs)
+    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
+        return super(ActionAliasController, self)._get_all(sort=sort,
+                                                           offset=offset,
+                                                           limit=limit,
+                                                           raw_filters=raw_filters)
 
-    @request_user_has_resource_db_permission(permission_type=PermissionType.ACTION_ALIAS_VIEW)
-    @jsexpose(arg_types=[str])
-    def get_one(self, ref_or_id):
-        return super(ActionAliasController, self)._get_one(ref_or_id)
+    def get_one(self, ref_or_id, requester_user):
+        permission_type = PermissionType.ACTION_ALIAS_VIEW
+        return super(ActionAliasController, self)._get_one(ref_or_id,
+                                                           requester_user=requester_user,
+                                                           permission_type=permission_type)
 
-    @request_user_has_permission(permission_type=PermissionType.ACTION_ALIAS_MATCH)
-    @jsexpose(arg_types=[str], body_cls=ActionAliasMatchAPI, status_code=http_client.ACCEPTED)
-    def match(self, action_alias_match_api, **kwargs):
+    def match(self, action_alias_match_api):
         """
             Run a chatops command
 
@@ -87,10 +83,10 @@ class ActionAliasController(resource.ContentPackResourceController):
                 POST /actionalias/match
         """
         command = action_alias_match_api.command
-
         try:
             # 1. Get aliases
-            aliases = super(ActionAliasController, self)._get_all(**kwargs)
+            aliases_resp = super(ActionAliasController, self)._get_all()
+            aliases = [ActionAliasAPI(**alias) for alias in aliases_resp.json]
             # 2. Match alias(es) to command
             matches = match_command_to_alias(command, aliases)
             if len(matches) > 1:
@@ -104,42 +100,38 @@ class ActionAliasController(resource.ContentPackResourceController):
                                                     matches=[],
                                                     command=command)
             return [self._match_tuple_to_dict(match) for match in matches]
-        except (ActionAliasAmbiguityException) as e:
+        except ActionAliasAmbiguityException as e:
             LOG.exception('Command "%s" matched (%s) patterns.', e.command, len(e.matches))
-            pecan.abort(http_client.BAD_REQUEST, str(e))
-            return [self._match_tuple_to_dict(match) for match in e.matches]
+            return abort(http_client.BAD_REQUEST, str(e))
 
-    @request_user_has_permission(permission_type=PermissionType.ACTION_ALIAS_HELP)
-    @jsexpose(arg_types=[str, str, int], body_cls=ActionAliasHelpAPI,
-    status_code=http_client.ACCEPTED)
-    def help(self, action_alias_help_api, **kwargs):
+    def help(self, filter, pack, limit, offset, **kwargs):
         """
             Get available help strings for action aliases.
 
             Handles requests:
-                POST /actionalias/help
+                GET /actionalias/help
         """
-        filter_ = action_alias_help_api.filter
-        pack = action_alias_help_api.pack
-        limit = action_alias_help_api.limit
-        offset = action_alias_help_api.offset
-
         try:
-            aliases = super(ActionAliasController, self)._get_all(**kwargs)
-            return generate_helpstring_result(aliases, filter_, pack, limit, offset)
+            aliases_resp = super(ActionAliasController, self)._get_all(**kwargs)
+            aliases = [ActionAliasAPI(**alias) for alias in aliases_resp.json]
+            return generate_helpstring_result(aliases, filter, pack, int(limit), int(offset))
         except (TypeError) as e:
             LOG.exception('Helpstring request contains an invalid data type: %s.', str(e))
-            pecan.abort(http_client.BAD_REQUEST, str(e))
+            return abort(http_client.BAD_REQUEST, str(e))
 
-    @jsexpose(body_cls=ActionAliasAPI, status_code=http_client.CREATED)
-    @request_user_has_resource_api_permission(permission_type=PermissionType.ACTION_ALIAS_CREATE)
-    def post(self, action_alias):
+    def post(self, action_alias, requester_user):
         """
             Create a new ActionAlias.
 
             Handles requests:
                 POST /actionalias/
         """
+
+        permission_type = PermissionType.ACTION_ALIAS_CREATE
+        rbac_utils.assert_user_has_resource_api_permission(user_db=requester_user,
+                                                           resource_api=action_alias,
+                                                           permission_type=permission_type)
+
         try:
             action_alias_db = ActionAliasAPI.to_model(action_alias)
             LOG.debug('/actionalias/ POST verified ActionAliasAPI and formulated ActionAliasDB=%s',
@@ -147,37 +139,46 @@ class ActionAliasController(resource.ContentPackResourceController):
             action_alias_db = ActionAlias.add_or_update(action_alias_db)
         except (ValidationError, ValueError, ValueValidationException) as e:
             LOG.exception('Validation failed for action alias data=%s.', action_alias)
-            pecan.abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, str(e))
             return
 
         extra = {'action_alias_db': action_alias_db}
         LOG.audit('Action alias created. ActionAlias.id=%s' % (action_alias_db.id), extra=extra)
         action_alias_api = ActionAliasAPI.from_model(action_alias_db)
 
-        return action_alias_api
+        return Response(json=action_alias_api, status=http_client.CREATED)
 
-    @request_user_has_resource_db_permission(permission_type=PermissionType.ACTION_ALIAS_MODIFY)
-    @jsexpose(arg_types=[str], body_cls=ActionAliasAPI)
-    def put(self, action_alias, action_alias_ref_or_id):
-        action_alias_db = self._get_by_ref_or_id(ref_or_id=action_alias_ref_or_id)
-        LOG.debug('PUT /actionalias/ lookup with id=%s found object: %s', action_alias_ref_or_id,
+    def put(self, action_alias, ref_or_id, requester_user):
+        """
+            Update an action alias.
+
+            Handles requests:
+                PUT /actionalias/1
+        """
+        action_alias_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
+        LOG.debug('PUT /actionalias/ lookup with id=%s found object: %s', ref_or_id,
                   action_alias_db)
+
+        permission_type = PermissionType.ACTION_ALIAS_MODIFY
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=action_alias_db,
+                                                          permission_type=permission_type)
 
         if not hasattr(action_alias, 'id'):
             action_alias.id = None
 
         try:
             if action_alias.id is not None and action_alias.id is not '' and \
-               action_alias.id != action_alias_ref_or_id:
+               action_alias.id != ref_or_id:
                 LOG.warning('Discarding mismatched id=%s found in payload and using uri_id=%s.',
-                            action_alias.id, action_alias_ref_or_id)
+                            action_alias.id, ref_or_id)
             old_action_alias_db = action_alias_db
             action_alias_db = ActionAliasAPI.to_model(action_alias)
-            action_alias_db.id = action_alias_ref_or_id
+            action_alias_db.id = ref_or_id
             action_alias_db = ActionAlias.add_or_update(action_alias_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for action alias data=%s', action_alias)
-            pecan.abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, str(e))
             return
 
         extra = {'old_action_alias_db': old_action_alias_db, 'new_action_alias_db': action_alias_db}
@@ -186,25 +187,34 @@ class ActionAliasController(resource.ContentPackResourceController):
 
         return action_alias_api
 
-    @request_user_has_resource_db_permission(permission_type=PermissionType.ACTION_ALIAS_DELETE)
-    @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
-    def delete(self, action_alias_ref_or_id):
+    def delete(self, ref_or_id, requester_user):
         """
             Delete an action alias.
 
             Handles requests:
                 DELETE /actionalias/1
         """
-        action_alias_db = self._get_by_ref_or_id(ref_or_id=action_alias_ref_or_id)
-        LOG.debug('DELETE /actionalias/ lookup with id=%s found object: %s', action_alias_ref_or_id,
+        action_alias_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
+        LOG.debug('DELETE /actionalias/ lookup with id=%s found object: %s', ref_or_id,
                   action_alias_db)
+
+        permission_type = PermissionType.ACTION_ALIAS_DELETE
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=action_alias_db,
+                                                          permission_type=permission_type)
+
         try:
             ActionAlias.delete(action_alias_db)
         except Exception as e:
             LOG.exception('Database delete encountered exception during delete of id="%s".',
-                          action_alias_ref_or_id)
-            pecan.abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+                          ref_or_id)
+            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
             return
 
         extra = {'action_alias_db': action_alias_db}
         LOG.audit('Action alias deleted. ActionAlias.id=%s.' % (action_alias_db.id), extra=extra)
+
+        return Response(status=http_client.NO_CONTENT)
+
+
+action_alias_controller = ActionAliasController()

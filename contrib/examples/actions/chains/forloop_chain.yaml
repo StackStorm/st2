@@ -1,0 +1,43 @@
+---
+  chain:
+    -
+      name: "get_github_page"
+      ref: "examples.forloop_get_github_page"
+      parameters:
+        url: "{{github_organization_url}}"
+        page: "{% if increase_index_and_check_condition is defined %}{{increase_index_and_check_condition.result}}{% endif %}"
+      on-success: "parse_github_repos"
+      on-failure: "failed"
+    -
+      name: "parse_github_repos"
+      ref: "examples.forloop_parse_github_repos"
+      parameters:
+        content: "{{get_github_page.result}}"
+      on-success: "push_github_repos"
+      on-failure: "failed"
+    -
+      name: "push_github_repos"
+      ref: "examples.forloop_push_github_repos"
+      parameters:
+        data_to_push: "{{parse_github_repos.result}}"
+      on-success: "increase_index_and_check_condition"
+      on-failure: "failed"
+    -
+      name: "increase_index_and_check_condition"
+      ref: "examples.forloop_increase_index_and_check_condition"
+      parameters:
+        index: "{% if increase_index_and_check_condition is defined %}{{increase_index_and_check_condition.result}}{% endif %}"
+        pagesize: "30"
+        input: "{{parse_github_repos.result}}"
+      on-success: "get_github_page"
+      on-failure: "finished"
+    -
+      name: "finished"
+      ref: "core.local"
+      parameters:
+        cmd: "exit 0"
+    -
+      name: "failed"
+      ref: "core.local"
+      parameters:
+        cmd: "exit 1"

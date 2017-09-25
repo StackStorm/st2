@@ -17,3 +17,5 @@ TRIGGER_PAYLOAD_PREFIX = 'trigger'
 
 RULE_TYPE_STANDARD = 'standard'
 RULE_TYPE_BACKSTOP = 'backstop'
+
+MATCH_CRITERIA = r'({{)\s*(.*)\s*(}})'

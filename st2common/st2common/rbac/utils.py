@@ -21,6 +21,8 @@ import six
 
 from oslo_config import cfg
 
+from st2common.models.db.action import ActionDB
+from st2common.models.system.common import ResourceReference
 from st2common.exceptions.rbac import AccessDeniedError
 from st2common.exceptions.rbac import ResourceTypeAccessDeniedError
 from st2common.exceptions.rbac import ResourceAccessDeniedError
@@ -30,27 +32,20 @@ from st2common.rbac.types import SystemRole
 from st2common.rbac import resolvers
 from st2common.services import rbac as rbac_services
 from st2common.util import action_db as action_utils
-from st2common.util.api import get_requester
 
 __all__ = [
-    'request_user_is_admin',
-    'request_user_is_system_admin',
-    'request_user_has_role',
-    'request_user_has_permission',
-    'request_user_has_resource_api_permission',
-    'request_user_has_resource_db_permission',
+    'user_has_rule_trigger_permission',
+    'user_has_rule_action_permission',
 
-    'request_user_has_rule_trigger_permission',
-    'request_user_has_rule_action_permission',
+    'assert_user_is_admin',
+    'assert_user_is_system_admin',
+    'assert_user_is_admin_or_operating_on_own_resource',
+    'assert_user_has_permission',
+    'assert_user_has_resource_db_permission',
 
-    'assert_request_user_is_admin',
-    'assert_request_user_is_system_admin',
-    'assert_request_user_has_permission',
-    'assert_request_user_has_resource_db_permission',
+    'assert_user_is_admin_if_user_query_param_is_provided',
 
-    'assert_request_user_is_admin_if_user_query_param_is_provided',
-
-    'assert_request_user_has_rule_trigger_and_action_permission',
+    'assert_user_has_rule_trigger_and_action_permission',
 
     'user_is_admin',
     'user_is_system_admin',
@@ -63,150 +58,91 @@ __all__ = [
 ]
 
 
-def request_user_is_admin(request):
-    """
-    Check if the logged-in request user has admin (either system admin or admin) role.
-
-    :rtype: ``bool``
-    """
-    user_db = get_user_db_from_request(request=request)
-    return user_is_admin(user_db=user_db)
-
-
-def request_user_is_system_admin(request):
-    """
-    Check if the logged-in request user has system admin role.
-
-    :rtype: ``bool``
-    """
-    user_db = get_user_db_from_request(request=request)
-    return user_is_system_admin(user_db=user_db)
-
-
-def request_user_has_role(request, role):
-    """
-    Check if the logged-in request user has the provided role.
-
-    :param role: Name of the role to check for.
-    :type role: ``str``
-
-    :rtype: ``bool``
-    """
-    # TODO: Once RBAC is implemented, we should not support running production (non-dev)
-    # deployments with auth disabled.
-    if not cfg.CONF.auth.enable:
-        return True
-
-    user_db = get_user_db_from_request(request=request)
-    return user_has_role(user_db=user_db, role=role)
-
-
-def request_user_has_permission(request, permission_type):
-    """
-    Check that currently logged-in user has specified permission.
-
-    :rtype: ``bool``
-    """
-    user_db = get_user_db_from_request(request=request)
-    return user_has_permission(user_db=user_db, permission_type=permission_type)
-
-
-def request_user_has_resource_api_permission(request, resource_api, permission_type):
-    """
-    Check that currently logged-in user has specified permission for the resource which is to be
-    created.
-    """
-    user_db = get_user_db_from_request(request=request)
-    return user_has_resource_api_permission(user_db=user_db, resource_api=resource_api,
-                                            permission_type=permission_type)
-
-
-def request_user_has_resource_db_permission(request, resource_db, permission_type):
-    """
-    Check that currently logged-in user has specified permission on the provied resource.
-
-    :rtype: ``bool``
-    """
-    user_db = get_user_db_from_request(request=request)
-    return user_has_resource_db_permission(user_db=user_db, resource_db=resource_db,
-                                           permission_type=permission_type)
-
-
-def assert_request_user_is_admin(request):
+def assert_user_is_admin(user_db):
     """
     Assert that the currently logged in user is an administrator.
 
     If the user is not an administrator, an exception is thrown.
     """
-    is_admin = request_user_is_admin(request=request)
+    is_admin = user_is_admin(user_db=user_db)
 
     if not is_admin:
-        user_db = get_user_db_from_request(request=request)
         raise AccessDeniedError(message='Administrator access required',
                                 user_db=user_db)
 
 
-def assert_request_user_is_system_admin(request):
+def assert_user_is_system_admin(user_db):
     """
     Assert that the currently logged in user is a system administrator.
 
     If the user is not a system administrator, an exception is thrown.
     """
-    is_system_admin = request_user_is_system_admin(request=request)
+    is_system_admin = user_is_system_admin(user_db=user_db)
 
     if not is_system_admin:
-        user_db = get_user_db_from_request(request=request)
         raise AccessDeniedError(message='System Administrator access required',
                                 user_db=user_db)
 
 
-def assert_request_user_has_permission(request, permission_type):
+def assert_user_is_admin_or_operating_on_own_resource(user_db, user=None):
+    """
+    Assert that the currently logged in user is an administrator or operating on a resource which
+    belongs to that user.
+    """
+    if not cfg.CONF.rbac.enable:
+        return True
+
+    is_admin = user_is_admin(user_db=user_db)
+    is_self = user is not None and (user_db.name == user)
+
+    if not is_admin and not is_self:
+        raise AccessDeniedError(message='Administrator or self access required',
+                                user_db=user_db)
+
+
+def assert_user_has_permission(user_db, permission_type):
     """
     Check that currently logged-in user has specified permission.
 
     If user doesn't have a required permission, AccessDeniedError s thrown.
     """
-    has_permission = request_user_has_permission(request=request,
-                                                 permission_type=permission_type)
+    has_permission = user_has_permission(user_db=user_db, permission_type=permission_type)
 
     if not has_permission:
-        user_db = get_user_db_from_request(request=request)
         raise ResourceTypeAccessDeniedError(user_db=user_db, permission_type=permission_type)
 
 
-def assert_request_user_has_resource_api_permission(request, resource_api, permission_type):
+def assert_user_has_resource_api_permission(user_db, resource_api, permission_type):
     """
     Check that currently logged-in user has specified permission for the resource which is to be
     created.
     """
-    has_permission = request_user_has_resource_api_permission(request=request,
-                                                              resource_api=resource_api,
-                                                              permission_type=permission_type)
+    has_permission = user_has_resource_api_permission(user_db=user_db,
+                                                      resource_api=resource_api,
+                                                      permission_type=permission_type)
 
     if not has_permission:
-        user_db = get_user_db_from_request(request=request)
         # TODO: Refactor exception
         raise ResourceAccessDeniedError(user_db=user_db, resource_db=resource_api,
                                         permission_type=permission_type)
 
 
-def assert_request_user_has_resource_db_permission(request, resource_db, permission_type):
+def assert_user_has_resource_db_permission(user_db, resource_db, permission_type):
     """
     Check that currently logged-in user has specified permission on the provied resource.
 
     If user doesn't have a required permission, AccessDeniedError is thrown.
     """
-    has_permission = request_user_has_resource_db_permission(request=request,
-                                                             resource_db=resource_db,
-                                                             permission_type=permission_type)
+    has_permission = user_has_resource_db_permission(user_db=user_db,
+                                                     resource_db=resource_db,
+                                                     permission_type=permission_type)
 
     if not has_permission:
-        user_db = get_user_db_from_request(request=request)
         raise ResourceAccessDeniedError(user_db=user_db, resource_db=resource_db,
                                         permission_type=permission_type)
 
 
-def request_user_has_rule_trigger_permission(request, trigger):
+def user_has_rule_trigger_permission(user_db, trigger):
     """
     Check that the currently logged-in has necessary permissions on the trigger used / referenced
     inside the rule.
@@ -214,7 +150,6 @@ def request_user_has_rule_trigger_permission(request, trigger):
     if not cfg.CONF.rbac.enable:
         return True
 
-    user_db = get_user_db_from_request(request=request)
     rules_resolver = resolvers.get_resolver_for_resource_type(ResourceType.RULE)
     has_trigger_permission = rules_resolver.user_has_trigger_permission(user_db=user_db,
                                                                         trigger=trigger)
@@ -225,16 +160,24 @@ def request_user_has_rule_trigger_permission(request, trigger):
     return False
 
 
-def request_user_has_rule_action_permission(request, action_ref):
+def user_has_rule_action_permission(user_db, action_ref):
     """
     Check that the currently logged-in has necessary permissions on the action used / referenced
     inside the rule.
+
+    Note: Rules can reference actions which don't yet exist in the system.
     """
     if not cfg.CONF.rbac.enable:
         return True
 
-    user_db = get_user_db_from_request(request=request)
     action_db = action_utils.get_action_by_ref(ref=action_ref)
+
+    if not action_db:
+        # We allow rules to be created for actions which don't yet exist in the
+        # system
+        ref = ResourceReference.from_string_reference(ref=action_ref)
+        action_db = ActionDB(pack=ref.pack, name=ref.name, ref=action_ref)
+
     action_resolver = resolvers.get_resolver_for_resource_type(ResourceType.ACTION)
     has_action_permission = action_resolver.user_has_resource_db_permission(
         user_db=user_db, resource_db=action_db, permission_type=PermissionType.ACTION_EXECUTE)
@@ -245,7 +188,7 @@ def request_user_has_rule_action_permission(request, action_ref):
     return False
 
 
-def assert_request_user_has_rule_trigger_and_action_permission(request, rule_api):
+def assert_user_has_rule_trigger_and_action_permission(user_db, rule_api):
     """
     Check that the currently logged-in has necessary permissions on trhe trigger and action
     used / referenced inside the rule.
@@ -259,12 +202,10 @@ def assert_request_user_has_rule_trigger_and_action_permission(request, rule_api
     trigger_type = trigger['type']
     action_ref = action['ref']
 
-    user_db = get_user_db_from_request(request=request)
-
     # Check that user has access to the specified trigger - right now we only check for
     # webhook permissions
-    has_trigger_permission = request_user_has_rule_trigger_permission(request=request,
-                                                                      trigger=trigger)
+    has_trigger_permission = user_has_rule_trigger_permission(user_db=user_db,
+                                                              trigger=trigger)
 
     if not has_trigger_permission:
         msg = ('User "%s" doesn\'t have required permission (%s) to use trigger %s' %
@@ -272,8 +213,8 @@ def assert_request_user_has_rule_trigger_and_action_permission(request, rule_api
         raise AccessDeniedError(message=msg, user_db=user_db)
 
     # Check that user has access to the specified action
-    has_action_permission = request_user_has_rule_action_permission(request=request,
-                                                                    action_ref=action_ref)
+    has_action_permission = user_has_rule_action_permission(user_db=user_db,
+                                                            action_ref=action_ref)
 
     if not has_action_permission:
         msg = ('User "%s" doesn\'t have required (%s) permission to use action %s' %
@@ -283,17 +224,16 @@ def assert_request_user_has_rule_trigger_and_action_permission(request, rule_api
     return True
 
 
-def assert_request_user_is_admin_if_user_query_param_is_provided(request, user):
+def assert_user_is_admin_if_user_query_param_is_provided(user_db, user):
     """
     Function which asserts that the request user is administator if "user" query parameter is
     provided and doesn't match the current user.
     """
-    requester_user = get_requester()
-    is_admin = request_user_is_admin(request=request)
+    is_admin = user_is_admin(user_db=user_db)
 
-    if user != requester_user and not is_admin:
+    if user != user_db.name and not is_admin:
         msg = '"user" attribute can only be provided by admins'
-        raise AccessDeniedError(message=msg, user_db=requester_user)
+        raise AccessDeniedError(message=msg, user_db=user_db)
 
 
 def user_is_admin(user_db):

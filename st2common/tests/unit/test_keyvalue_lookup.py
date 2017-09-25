@@ -145,3 +145,11 @@ class TestKeyValueLookup(CleanDbTestCase):
 
         user_lookup = UserKeyValueLookup(scope=FULL_USER_SCOPE, user='stanley')
         self.assertEquals(str(user_lookup.k3), k3.value)
+
+    def test_lookup_cast(self):
+        KeyValuePair.add_or_update(KeyValuePairDB(name='count', value='5.5'))
+
+        lookup = KeyValueLookup(scope=FULL_SYSTEM_SCOPE)
+        self.assertEqual(str(lookup.count), '5.5')
+        self.assertEqual(float(lookup.count), 5.5)
+        self.assertEqual(int(lookup.count), 5)

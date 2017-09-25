@@ -1,6 +1,6 @@
 - aliases:
   - http-runner
-  description: A HTTP client for running HTTP actions.
+  description: HTTP client for running HTTP actions.
   enabled: true
   name: http-request
   runner_module: http_runner
@@ -16,10 +16,10 @@
       description: HTTP headers for the request.
       type: object
     http_proxy:
-      description: A URL of a HTTP proxy to use (e.g. http://10.10.1.10:3128).
+      description: URL of HTTP proxy to use (e.g. http://10.10.1.10:3128).
       type: string
     https_proxy:
-      description: A URL of a HTTPs proxy to use (e.g. http://10.10.1.10:3128).
+      description: URL of HTTPS proxy to use (e.g. http://10.10.1.10:3128).
       type: string
     password:
       description: Password required by basic authentication.

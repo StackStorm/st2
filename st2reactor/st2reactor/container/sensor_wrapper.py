@@ -87,6 +87,7 @@ class SensorService(object):
         """
         # empty strings
         trace_context = TraceContext(trace_tag=trace_tag) if trace_tag else None
+        self._logger.debug('Added trace_context %s to trigger %s.', trace_context, trigger)
         self.dispatch_with_context(trigger, payload=payload, trace_context=trace_context)
 
     def dispatch_with_context(self, trigger, payload=None, trace_context=None):
@@ -118,6 +119,7 @@ class SensorService(object):
                               'dispatching a trigger "%s" (%s)' % (trigger, str(payload)))
             return None
 
+        self._logger.debug('Dispatching trigger %s with payload %s.', trigger, payload)
         self._dispatcher.dispatch(trigger, payload=payload, trace_context=trace_context)
 
     ##################################

@@ -82,6 +82,7 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
             {'fields': ['runner.name']},
             {'fields': ['trigger.name']},
             {'fields': ['trigger_type.name']},
+            {'fields': ['trigger_instance.id']},
             {'fields': ['context.user']},
             {'fields': ['-start_timestamp', 'action.ref', 'status']}
         ]
@@ -95,15 +96,19 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
     def mask_secrets(self, value):
         result = copy.deepcopy(value)
 
-        execution_parameters = value['parameters']
+        liveaction = result['liveaction']
         parameters = {}
         # pylint: disable=no-member
         parameters.update(value.get('action', {}).get('parameters', {}))
         parameters.update(value.get('runner', {}).get('runner_parameters', {}))
 
         secret_parameters = get_secret_parameters(parameters=parameters)
-        result['parameters'] = mask_secret_parameters(parameters=execution_parameters,
+        result['parameters'] = mask_secret_parameters(parameters=result['parameters'],
                                                       secret_parameters=secret_parameters)
+
+        if 'parameters' in liveaction:
+            liveaction['parameters'] = mask_secret_parameters(parameters=liveaction['parameters'],
+                                                              secret_parameters=secret_parameters)
         return result
 
     def get_masked_parameters(self):

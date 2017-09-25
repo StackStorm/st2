@@ -6,7 +6,7 @@
   runner_parameters:
     experimental:
       default: false
-      description: Flag to indicate acknowledment of using experimental runner
+      description: Flag to indicate acknowledgment of using experimental runner
       required: true
       type: boolean
     route:

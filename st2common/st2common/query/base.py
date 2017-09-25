@@ -19,14 +19,15 @@ import Queue
 import six
 import time
 
+from oslo_config import cfg
+
 from st2actions.container.service import RunnerContainerService
-from st2common.runners.base import get_runner
 from st2common import log as logging
 from st2common.constants import action as action_constants
 from st2common.persistence.executionstate import ActionExecutionState
 from st2common.persistence.liveaction import LiveAction
+from st2common.runners import utils as runners_utils
 from st2common.services import executions
-from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
 from st2common.util import date as date_utils
 
 LOG = logging.getLogger(__name__)
@@ -41,14 +42,35 @@ __all__ = [
 class Querier(object):
     delete_state_object_on_error = True
 
-    def __init__(self, threads_pool_size=10, query_interval=1, empty_q_sleep_time=5,
+    def __init__(self, empty_q_sleep_time=5,
                  no_workers_sleep_time=1, container_service=None):
-        self._query_threads_pool_size = threads_pool_size
+
+        # Let's check to see if deprecated config group ``results_tracker`` is being used.
+        try:
+            query_interval = cfg.CONF.results_tracker.query_interval
+            LOG.warning('You are using deprecated config group ``results_tracker``.' +
+                        '\nPlease use ``resultstracker`` group instead.')
+        except:
+            pass
+
+        try:
+            thread_pool_size = cfg.CONF.results_tracker.thread_pool_size
+            LOG.warning('You are using deprecated config group ``results_tracker``.' +
+                        '\nPlease use ``resultstracker`` group instead.')
+        except:
+            pass
+
+        if not query_interval:
+            query_interval = cfg.CONF.resultstracker.query_interval
+        if not thread_pool_size:
+            thread_pool_size = cfg.CONF.resultstracker.thread_pool_size
+
+        self._query_thread_pool_size = thread_pool_size
+        self._query_interval = query_interval
         self._query_contexts = Queue.Queue()
-        self._thread_pool = eventlet.GreenPool(self._query_threads_pool_size)
+        self._thread_pool = eventlet.GreenPool(self._query_thread_pool_size)
         self._empty_q_sleep_time = empty_q_sleep_time
         self._no_workers_sleep_time = no_workers_sleep_time
-        self._query_interval = query_interval
         if not container_service:
             container_service = RunnerContainerService()
         self.container_service = container_service
@@ -62,6 +84,7 @@ class Querier(object):
             while self._thread_pool.free() <= 0:
                 eventlet.greenthread.sleep(self._no_workers_sleep_time)
             self._fire_queries()
+            eventlet.sleep(self._query_interval)
 
     def add_queries(self, query_contexts=None):
         if query_contexts is None:
@@ -76,21 +99,37 @@ class Querier(object):
     def _fire_queries(self):
         if self._thread_pool.free() <= 0:
             return
+
+        now = time.time()
+        reschedule_queries = []
+
         while not self._query_contexts.empty() and self._thread_pool.free() > 0:
             (last_query_time, query_context) = self._query_contexts.get_nowait()
-            if time.time() - last_query_time < self._query_interval:
-                self._query_contexts.put((last_query_time, query_context))
+            if now - last_query_time < self._query_interval:
+                reschedule_queries.append((last_query_time, query_context))
                 continue
             else:
-                self._thread_pool.spawn(self._query_and_save_results, query_context)
+                self._thread_pool.spawn(
+                    self._query_and_save_results,
+                    query_context,
+                    last_query_time
+                )
 
-    def _query_and_save_results(self, query_context):
+        for query in reschedule_queries:
+            self._query_contexts.put((query[0], query[1]))
+
+    def _query_and_save_results(self, query_context, last_query_time=None):
+        this_query_time = time.time()
         execution_id = query_context.execution_id
         actual_query_context = query_context.query_context
 
         LOG.debug('Querying external service for results. Context: %s' % actual_query_context)
         try:
-            (status, results) = self.query(execution_id, actual_query_context)
+            (status, results) = self.query(
+                execution_id,
+                actual_query_context,
+                last_query_time=last_query_time
+            )
         except:
             LOG.exception('Failed querying results for liveaction_id %s.', execution_id)
             if self.delete_state_object_on_error:
@@ -108,21 +147,14 @@ class Querier(object):
                 LOG.debug('Removed state object %s.', query_context)
             return
 
-        if status in action_constants.LIVEACTION_COMPLETED_STATES:
-            action_db = get_action_by_ref(liveaction_db.action)
-
-            if action_db:
-                if status != action_constants.LIVEACTION_STATUS_CANCELED:
-                    self._invoke_post_run(liveaction_db, action_db)
-            else:
-                LOG.exception('Unable to invoke post run. Action %s '
-                              'no longer exists.' % liveaction_db.action)
-
+        if (status in action_constants.LIVEACTION_COMPLETED_STATES or
+                status == action_constants.LIVEACTION_STATUS_PAUSED):
+            runners_utils.invoke_post_run(liveaction_db)
             self._delete_state_object(query_context)
 
             return
 
-        self._query_contexts.put((time.time(), query_context))
+        self._query_contexts.put((this_query_time, query_context))
 
     def _update_action_results(self, execution_id, status, results):
         liveaction_db = LiveAction.get_by_id(execution_id)
@@ -146,29 +178,6 @@ class Querier(object):
 
         return updated_liveaction
 
-    def _invoke_post_run(self, actionexec_db, action_db):
-        LOG.info('Invoking post run for action execution %s. Action=%s; Runner=%s',
-                 actionexec_db.id, action_db.name, action_db.runner_type['name'])
-
-        # Get an instance of the action runner.
-        runnertype_db = get_runnertype_by_name(action_db.runner_type['name'])
-        runner = get_runner(runnertype_db.runner_module)
-
-        # Configure the action runner.
-        runner.container_service = RunnerContainerService()
-        runner.action = action_db
-        runner.action_name = action_db.name
-        runner.action_execution_id = str(actionexec_db.id)
-        runner.entry_point = RunnerContainerService.get_entry_point_abs_path(
-            pack=action_db.pack, entry_point=action_db.entry_point)
-        runner.context = getattr(actionexec_db, 'context', dict())
-        runner.callback = getattr(actionexec_db, 'callback', dict())
-        runner.libs_dir_path = RunnerContainerService.get_action_libs_abs_path(
-            pack=action_db.pack, entry_point=action_db.entry_point)
-
-        # Invoke the post_run method.
-        runner.post_run(actionexec_db.status, actionexec_db.result)
-
     def _delete_state_object(self, query_context):
         state_db = ActionExecutionState.get_by_id(query_context.id)
         if state_db is not None:
@@ -178,7 +187,7 @@ class Querier(object):
             except:
                 LOG.exception('Failed clearing state object: %s', state_db)
 
-    def query(self, execution_id, query_context):
+    def query(self, execution_id, query_context, last_query_time=None):
         """
         This is the method individual queriers must implement.
         This method should return a tuple of (status, results).

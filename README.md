@@ -2,7 +2,17 @@
 
 **StackStorm** is a platform for integration and automation across services and tools, taking actions in response to events. Learn more at [www.stackstorm.com](http://www.stackstorm.com/product).
 
-[![Build Status](https://circleci.com/gh/StackStorm/st2/tree/master.svg?style=shield)](https://circleci.com/gh/StackStorm/st2) [![Codecov](https://codecov.io/github/StackStorm/st2/badge.svg?branch=master&service=github)](https://codecov.io/github/StackStorm/st2?branch=master) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/StackStorm/st2/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/StackStorm/st2/?branch=master) ![Python 2.7](https://img.shields.io/badge/python-2.7-blue.svg) [![Join our community Slack](https://stackstorm-community.herokuapp.com/badge.svg)](https://stackstorm.typeform.com/to/K76GRP) [![IRC](https://img.shields.io/irc/%23stackstorm.png)](http://webchat.freenode.net/?channels=stackstorm)
+[![Tests Build Status](https://travis-ci.org/StackStorm/st2.svg?branch=master)](https://travis-ci.org/StackStorm/st2) [![Packages Build Status](https://circleci.com/gh/StackStorm/st2/tree/master.svg?style=shield)](https://circleci.com/gh/StackStorm/st2) [![Codecov](https://codecov.io/github/StackStorm/st2/badge.svg?branch=master&service=github)](https://codecov.io/github/StackStorm/st2?branch=master) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/StackStorm/st2/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/StackStorm/st2/?branch=master) ![Python 2.7](https://img.shields.io/badge/python-2.7-blue.svg) [![Join our community Slack](https://stackstorm-community.herokuapp.com/badge.svg)](https://stackstorm.com/community-signup) [![IRC](https://img.shields.io/irc/%23stackstorm.png)](http://webchat.freenode.net/?channels=stackstorm)
+=======
+
+## TL;DR
+* Install Get yourself a clean 64-bit Linux box that fits the [system requirements](https://docs.stackstorm.com/install/system_requirements.html). Run the installer script:
+
+   ```
+   curl -sSL https://stackstorm.com/packages/install.sh | bash -s -- --user=st2admin --password=Ch@ngeMe
+   ```
+* Read the docs: [https://docs.stackstorm.com/index.html](https://docs.stackstorm.com/install/index.html)
+* Join `stackstorm-community` Slack to talk to the core team and like-minded automators: https://stackstorm.com/community-signup
 
 ## StackStorm Overview
 

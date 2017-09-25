@@ -14,11 +14,20 @@
 # limitations under the License.
 
 import httplib
+from collections import OrderedDict
 
 import six
+import mock
+
+from st2common.services import triggers as trigger_service
+with mock.patch.object(trigger_service, 'create_trigger_type_db', mock.MagicMock()):
+    from st2api.controllers.v1.webhooks import HooksHolder
+from st2common.persistence.rbac import UserRoleAssignment
+from st2common.models.db.rbac import UserRoleAssignmentDB
 
 from st2tests.fixturesloader import FixturesLoader
 from tests.base import APIControllerWithRBACTestCase
+from tests.unit.controllers.v1.test_webhooks import DUMMY_TRIGGER
 
 http_client = six.moves.http_client
 
@@ -27,18 +36,20 @@ __all__ = [
 ]
 
 FIXTURES_PACK = 'generic'
-TEST_FIXTURES = {
-    'runners': ['testrunner1.yaml'],
-    'sensors': ['sensor1.yaml'],
-    'actions': ['action1.yaml', 'local.yaml'],
-    'aliases': ['alias1.yaml'],
-    'rules': ['rule1.yaml'],
-    'triggers': ['trigger1.yaml'],
-    'triggertypes': ['triggertype1.yaml'],
-    'executions': ['execution1.yaml'],
-    'liveactions': ['liveaction1.yaml', 'parentliveaction.yaml', 'childliveaction.yaml'],
-    'enforcements': ['enforcement1.yaml']
-}
+TEST_FIXTURES = OrderedDict([
+    ('runners', ['testrunner1.yaml']),
+    ('sensors', ['sensor1.yaml']),
+    ('actions', ['action1.yaml', 'local.yaml']),
+    ('aliases', ['alias1.yaml']),
+    ('triggers', ['trigger1.yaml', 'cron1.yaml']),
+    ('rules', ['rule1.yaml']),
+    ('triggertypes', ['triggertype1.yaml']),
+    ('executions', ['execution1.yaml']),
+    ('liveactions', ['liveaction1.yaml', 'parentliveaction.yaml', 'childliveaction.yaml']),
+    ('enforcements', ['enforcement1.yaml']),
+    ('apikeys', ['apikey1.yaml']),
+    ('traces', ['trace_for_test_enforce.yaml'])
+])
 
 MOCK_RUNNER_1 = {
     'name': 'test-runner-1',
@@ -111,12 +122,19 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
         self.models = self.fixtures_loader.save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
                                                                fixtures_dict=TEST_FIXTURES)
 
+        self.role_assignment_db_model = UserRoleAssignmentDB(user='user', role='role')
+        UserRoleAssignment.add_or_update(self.role_assignment_db_model)
+
+    @mock.patch.object(HooksHolder, 'get_triggers_for_hook', mock.MagicMock(
+        return_value=[vars(DUMMY_TRIGGER)]))
     def test_api_endpoints_behind_rbac_wall(self):
         #  alias_model = self.models['aliases']['alias1.yaml']
         sensor_model = self.models['sensors']['sensor1.yaml']
         rule_model = self.models['rules']['rule1.yaml']
         enforcement_model = self.models['enforcements']['enforcement1.yaml']
         execution_model = self.models['executions']['execution1.yaml']
+        trace_model = self.models['traces']['trace_for_test_enforce.yaml']
+        timer_model = self.models['triggers']['cron1.yaml']
 
         supported_endpoints = [
             # Runners
@@ -184,6 +202,22 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             {
                 'path': '/v1/packs/views/file/dummy_pack_1/pack.yaml',
                 'method': 'GET'
+            },
+            # Pack configs
+            {
+                'path': '/v1/configs/',
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/configs/dummy_pack_1',
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/configs/dummy_pack_1',
+                'method': 'PUT',
+                'payload': {
+                    'foo': 'bar'
+                }
             },
             # Sensors
             {
@@ -267,7 +301,7 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             {
                 'path': '/v1/rules/%s' % (rule_model.ref),
                 'method': 'PUT',
-                'payload': {'enabled': False}
+                'payload': MOCK_RULE_1
             },
             {
                 'path': '/v1/rules/%s' % (rule_model.ref),
@@ -321,6 +355,71 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
                 'payload': {'name': 'alias1', 'format': 'foo bar ponies',
                             'command': 'foo bar ponies',
                             'user': 'channel', 'source_channel': 'bar'}
+            },
+            # Webhook
+            {
+                'path': '/v1/webhooks/st2',
+                'method': 'POST',
+                'payload': {
+                    'trigger': 'some',
+                    'payload': {
+                        'some': 'thing'
+                    }
+                }
+            },
+            # Traces
+            {
+                'path': '/v1/traces',
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/traces/%s' % (trace_model.id),
+                'method': 'GET'
+            },
+            # Timers
+            {
+                'path': '/v1/timers',
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/timers/%s' % (timer_model.id),
+                'method': 'GET'
+            },
+            # Webhooks
+            {
+                'path': '/v1/webhooks',
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/webhooks/git',
+                'method': 'GET'
+            },
+            # RBAC - roles
+            {
+                'path': '/v1/rbac/roles',
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/rbac/roles/admin',
+                'method': 'GET'
+            },
+            # RBAC - user role assignments
+            {
+                'path': '/v1/rbac/role_assignments',
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/rbac/role_assignments/%s' % (self.role_assignment_db_model['id']),
+                'method': 'GET'
+            },
+            # RBAC - permission types
+            {
+                'path': '/v1/rbac/permission_types',
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/rbac/permission_types/action',
+                'method': 'GET'
             }
         ]
 
@@ -336,14 +435,6 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
         self.use_user(self.users['no_permissions'])
 
         # Test that access to icon.png file doesn't require any permissions
-        # Note: We need to mock content-type since pecan and webest don't like if content-type is
-        # set dynamically in the request handler aka  "pecan.core: ERROR: Controller 'get_one'
-        # defined does not support content_type 'image/png'. Supported type(s): ['text/html']" is
-        # returned
-        from st2api.controllers.v1.packviews import FileController
-        FileController.get_one._pecan['content_types'] = {'image/png': None}
-        FileController.get_one._pecan['explicit_content_type'] = True
-
         response = self.app.get('/v1/packs/views/file/dummy_pack_2/icon.png')
         self.assertEqual(response.status_code, httplib.OK)
 

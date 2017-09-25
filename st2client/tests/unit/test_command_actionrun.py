@@ -16,6 +16,7 @@
 import copy
 
 import unittest2
+import mock
 
 from st2client.commands.action import ActionRunCommand
 from st2client.models.action import (Action, RunnerType)
@@ -55,3 +56,81 @@ class ActionRunCommandTest(unittest2.TestCase):
         self.assertTrue('stuff' not in imm, '"stuff" param should be in immutable set.')
         self.assertEqual(runner.runner_parameters, orig_runner_params, 'Runner params modified.')
         self.assertEqual(action.parameters, orig_action_params, 'Action params modified.')
+
+    def test_get_params_from_args(self):
+        runner = RunnerType()
+        runner.runner_parameters = {}
+
+        action = Action()
+        action.ref = 'test.action'
+        action.parameters = {
+            'param_string': {'type': 'string'},
+            'param_integer': {'type': 'integer'},
+            'param_number': {'type': 'number'},
+            'param_object': {'type': 'object'},
+            'param_boolean': {'type': 'boolean'},
+            'param_array': {'type': 'array'},
+            'param_array_of_dicts': {'type': 'array'},
+        }
+
+        subparser = mock.Mock()
+        command = ActionRunCommand(action, self, subparser, name='test')
+
+        mockarg = mock.Mock()
+        mockarg.inherit_env = False
+        mockarg.parameters = [
+            'param_string=hoge',
+            'param_integer=123',
+            'param_number=1.23',
+            'param_object=hoge=1,fuga=2',
+            'param_boolean=False',
+            'param_array=foo,bar,baz',
+            'param_array_of_dicts=foo:1,bar:2'
+        ]
+
+        param = command._get_action_parameters_from_args(action=action, runner=runner, args=mockarg)
+
+        self.assertTrue(isinstance(param, dict))
+        self.assertEqual(param['param_string'], 'hoge')
+        self.assertEqual(param['param_integer'], 123)
+        self.assertEqual(param['param_number'], 1.23)
+        self.assertEqual(param['param_object'], {'hoge': '1', 'fuga': '2'})
+        self.assertFalse(param['param_boolean'])
+        self.assertEqual(param['param_array'], ['foo', 'bar', 'baz'])
+        self.assertEqual(param['param_array_of_dicts'], [{'foo': '1', 'bar': '2'}])
+
+    def test_get_params_from_args_with_multiple_declarations(self):
+        runner = RunnerType()
+        runner.runner_parameters = {}
+
+        action = Action()
+        action.ref = 'test.action'
+        action.parameters = {
+            'param_string': {'type': 'string'},
+            'param_array': {'type': 'array'},
+            'param_array_of_dicts': {'type': 'array'},
+        }
+
+        subparser = mock.Mock()
+        command = ActionRunCommand(action, self, subparser, name='test')
+
+        mockarg = mock.Mock()
+        mockarg.inherit_env = False
+        mockarg.parameters = [
+            'param_string=hoge',  # This value will be overwritten with the next declaration.
+            'param_string=fuga',
+            'param_array=foo',
+            'param_array=bar',
+            'param_array_of_dicts=foo:1,bar:2',
+            'param_array_of_dicts=hoge:A,fuga:B'
+        ]
+
+        param = command._get_action_parameters_from_args(action=action, runner=runner, args=mockarg)
+
+        # checks to accept multiple declaration only if the array type
+        self.assertEqual(param['param_string'], 'fuga')
+        self.assertEqual(param['param_array'], ['foo', 'bar'])
+        self.assertEqual(param['param_array_of_dicts'], [
+            {'foo': '1', 'bar': '2'},
+            {'hoge': 'A', 'fuga': 'B'}
+        ])

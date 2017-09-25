@@ -12,3 +12,6 @@
             type: "string"
         param3:
             type: "array"
+        param4:
+            type: "string"
+            secret: true

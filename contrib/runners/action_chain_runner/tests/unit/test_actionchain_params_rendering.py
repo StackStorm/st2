@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -14,6 +15,8 @@
 # limitations under the License.
 
 import unittest2
+
+import mock
 
 import action_chain_runner as acr
 from st2common.exceptions.action import ParameterRenderingFailedException
@@ -62,3 +65,55 @@ class ActionChainRunnerResolveParamsTests(unittest2.TestCase):
             self.fail('Should have thrown an instance of %s' % ParameterRenderingFailedException)
         except ParameterRenderingFailedException:
             pass
+
+    def test_render_params_with_config(self):
+        with mock.patch('st2common.util.config_loader.ContentPackConfigLoader') as config_loader:
+            config_loader().get_config.return_value = {
+                'amazing_config_value_fo_lyfe': 'no'
+            }
+
+            runner = acr.get_runner()
+            chain_context = {
+                'parent': {
+                    'execution_id': 'some_awesome_exec_id',
+                    'user': 'dad',
+                    'pack': 'mom'
+                },
+                'user': 'son',
+            }
+            task_params = {
+                'config_val': '{{config_context.amazing_config_value_fo_lyfe}}'
+            }
+            action_node = Node(
+                name='test_action_context_params',
+                ref='core.local',
+                params=task_params
+            )
+            rendered_params = runner._resolve_params(action_node, {}, {}, {}, chain_context)
+            self.assertEqual(rendered_params['config_val'], 'no')
+
+    def test_init_params_vars_with_unicode_value(self):
+        chain_spec = {
+            'vars': {
+                'unicode_var': u'٩(̾●̮̮̃̾•̃̾)۶ ٩(̾●̮̮̃̾•̃̾)۶ ćšž',
+                'unicode_var_param': u'{{ param }}'
+            },
+            'chain': [
+                {
+                    'name': 'c1',
+                    'ref': 'core.local',
+                    'parameters': {
+                        'cmd': 'echo {{ unicode_var }}'
+                    }
+                }
+            ]
+        }
+
+        chain_holder = acr.ChainHolder(chainspec=chain_spec, chainname='foo')
+        chain_holder.init_vars(action_parameters={'param': u'٩(̾●̮̮̃̾•̃̾)۶'})
+
+        expected = {
+            'unicode_var': u'٩(̾●̮̮̃̾•̃̾)۶ ٩(̾●̮̮̃̾•̃̾)۶ ćšž',
+            'unicode_var_param': u'٩(̾●̮̮̃̾•̃̾)۶'
+        }
+        self.assertEqual(chain_holder.vars, expected)

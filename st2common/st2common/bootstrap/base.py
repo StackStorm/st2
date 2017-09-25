@@ -139,6 +139,18 @@ class ResourceRegistrar(object):
         # 1. Register pack
         pack_db = self._register_pack_db(pack_name=pack_name, pack_dir=pack_dir)
 
+        # Display a warning if pack contains deprecated config.yaml file. Support for those files
+        # will be fully removed in v2.4.0.
+        config_path = os.path.join(pack_dir, 'config.yaml')
+        if os.path.isfile(config_path):
+            LOG.error('Pack "%s" contains a deprecated config.yaml file (%s). '
+                      'Support for "config.yaml" files has been deprecated in StackStorm v1.6.0 '
+                      'in favor of config.schema.yaml config schema files and config files in '
+                      '/opt/stackstorm/configs/ directory. Support for config.yaml files has '
+                      'been removed in the release (v2.4.0) so please migrate. For more '
+                      'information please refer to %s ' % (pack_db.name, config_path,
+                      'https://docs.stackstorm.com/reference/pack_configs.html'))
+
         # 2. Register corresponding pack config schema
         config_schema_db = self._register_pack_config_schema_db(pack_name=pack_name,
                                                                 pack_dir=pack_dir)
@@ -181,12 +193,17 @@ class ResourceRegistrar(object):
             # Note: Config schema is optional
             return None
 
-        content = {}
         values = self._meta_loader.load(config_schema_path)
+
+        if not values:
+            raise ValueError('Config schema "%s" is empty and invalid.' % (config_schema_path))
+
+        content = {}
         content['pack'] = pack_name
         content['attributes'] = values
 
         config_schema_api = ConfigSchemaAPI(**content)
+        config_schema_api = config_schema_api.validate()
         config_schema_db = ConfigSchemaAPI.to_model(config_schema_api)
 
         try:

@@ -64,6 +64,7 @@ def _register_app_opts():
     CONF.register_opts(pecan_opts, group='api_pecan')
 
     logging_opts = [
+        cfg.BoolOpt('debug', default=False),
         cfg.StrOpt('logging', default='conf/logging.conf',
                    help='location of the logging.conf file'),
         cfg.IntOpt('max_page_size', default=100,

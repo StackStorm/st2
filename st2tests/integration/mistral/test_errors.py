@@ -42,12 +42,6 @@ class ExceptionHandlingTest(base.TestWorkflowExecution):
         self._assert_failure(execution, expect_tasks_failure=False)
         self.assertIn('Invalid input', execution.result['extra']['state_info'])
 
-    def test_bad_wf_input_yaql(self):
-        execution = self._execute_workflow('examples.mistral-error-bad-wf-input-yaql', {})
-        execution = self._wait_for_completion(execution)
-        self._assert_failure(execution, expect_tasks_failure=False)
-        self.assertIn('Can not evaluate YAQL expression', execution.result['extra']['state_info'])
-
     def test_bad_task_transition(self):
         execution = self._execute_workflow('examples.mistral-error-bad-task-transition', {})
 
@@ -60,20 +54,72 @@ class ExceptionHandlingTest(base.TestWorkflowExecution):
         self._assert_failure(execution, expect_tasks_failure=False)
         self.assertIn("Task 'task3' not found", execution.result['error'])
 
-    def test_bad_task_transition_yaql(self):
-        execution = self._execute_workflow('examples.mistral-error-bad-task-transition-yaql', {})
-        execution = self._wait_for_completion(execution)
-        self._assert_failure(execution, expect_tasks_failure=False)
-        self.assertIn('Can not evaluate YAQL expression', execution.result['extra']['state_info'])
-
     def test_bad_with_items(self):
         execution = self._execute_workflow('examples.mistral-error-bad-with-items', {})
-        execution = self._wait_for_completion(execution)
+        execution = self._wait_for_completion(execution, expect_tasks=False)
         self._assert_failure(execution, expect_tasks_failure=False)
         self.assertIn('Wrong input format', execution.result['extra']['state_info'])
 
-    def test_bad_with_items_yaql(self):
-        execution = self._execute_workflow('examples.mistral-error-bad-with-items-yaql', {})
+    def test_bad_expr_yaql(self):
+        execution = self._execute_workflow('examples.mistral-test-yaql-bad-expr', {})
         execution = self._wait_for_completion(execution)
         self._assert_failure(execution, expect_tasks_failure=False)
         self.assertIn('Can not evaluate YAQL expression', execution.result['extra']['state_info'])
+
+    def test_bad_publish_yaql(self):
+        execution = self._execute_workflow('examples.mistral-test-yaql-bad-publish', {})
+        execution = self._wait_for_completion(execution)
+        self._assert_failure(execution, expect_tasks_failure=False)
+        self.assertIn('Can not evaluate YAQL expression', execution.result['extra']['state_info'])
+
+    def test_bad_subworkflow_input_yaql(self):
+        execution = self._execute_workflow('examples.mistral-test-yaql-bad-subworkflow-input', {})
+        execution = self._wait_for_completion(execution)
+        self._assert_failure(execution, expect_tasks_failure=False)
+        self.assertIn('Can not evaluate YAQL expression', execution.result['extra']['state_info'])
+
+    def test_bad_task_transition_yaql(self):
+        execution = self._execute_workflow('examples.mistral-test-yaql-bad-task-transition', {})
+        execution = self._wait_for_completion(execution)
+        self._assert_failure(execution, expect_tasks_failure=False)
+        self.assertIn('Can not evaluate YAQL expression', execution.result['extra']['state_info'])
+
+    def test_bad_with_items_yaql(self):
+        execution = self._execute_workflow('examples.mistral-test-yaql-bad-with-items', {})
+        execution = self._wait_for_completion(execution, expect_tasks=False)
+        self._assert_failure(execution, expect_tasks_failure=False)
+        self.assertIn('Can not evaluate YAQL expression', execution.result['extra']['state_info'])
+
+    def test_bad_expr_jinja(self):
+        execution = self._execute_workflow('examples.mistral-test-jinja-bad-expr', {})
+        execution = self._wait_for_completion(execution, expect_tasks=False)
+        self._assert_failure(execution, expect_tasks_failure=False)
+
+        # TODO: Currently, Mistral returns "UndefinedError ContextView object has no attribute".
+        # Need to fix Mistral to return "Cannot evaulate Jinja expression."
+        # self.assertIn('Can not evaluate Jinja expression',
+        # execution.result['extra']['state_info'])
+
+    def test_bad_publish_jinja(self):
+        execution = self._execute_workflow('examples.mistral-test-jinja-bad-publish', {})
+        execution = self._wait_for_completion(execution)
+        self._assert_failure(execution, expect_tasks_failure=False)
+        self.assertIn('Can not evaluate Jinja expression', execution.result['extra']['state_info'])
+
+    def test_bad_subworkflow_input_jinja(self):
+        execution = self._execute_workflow('examples.mistral-test-jinja-bad-subworkflow-input', {})
+        execution = self._wait_for_completion(execution)
+        self._assert_failure(execution, expect_tasks_failure=False)
+        self.assertIn('Can not evaluate Jinja expression', execution.result['extra']['state_info'])
+
+    def test_bad_task_transition_jinja(self):
+        execution = self._execute_workflow('examples.mistral-test-jinja-bad-task-transition', {})
+        execution = self._wait_for_completion(execution)
+        self._assert_failure(execution, expect_tasks_failure=False)
+        self.assertIn('Can not evaluate Jinja expression', execution.result['extra']['state_info'])
+
+    def test_bad_with_items_jinja(self):
+        execution = self._execute_workflow('examples.mistral-test-jinja-bad-with-items', {})
+        execution = self._wait_for_completion(execution, expect_tasks=False)
+        self._assert_failure(execution, expect_tasks_failure=False)
+        self.assertIn('Can not evaluate Jinja expression', execution.result['extra']['state_info'])

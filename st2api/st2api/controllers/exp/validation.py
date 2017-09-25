@@ -13,28 +13,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pecan
-
 from st2common import log as logging
-from st2common.util import jsonify
+from st2common.router import Response
 from st2common.validators.workflow.mistral import v2 as mistral_validation_utils
 
 
 LOG = logging.getLogger(__name__)
 
 
-class MistralValidationController(pecan.rest.RestController):
+class MistralValidationController(object):
 
     def __init__(self):
         super(MistralValidationController, self).__init__()
         self.validator = mistral_validation_utils.get_validator()
 
-    @pecan.expose(content_type='application/json')
-    def post(self):
-        def_yaml = pecan.request.text
+    def post(self, def_yaml):
         result = self.validator.validate(def_yaml)
-        return jsonify.json_encode(result)
+
+        for error in result:
+            if not error.get('path', None):
+                error['path'] = ''
+
+        return Response(json=result)
 
 
-class ValidationController(pecan.rest.RestController):
-    mistral = MistralValidationController()
+mistral_validation_controller = MistralValidationController()

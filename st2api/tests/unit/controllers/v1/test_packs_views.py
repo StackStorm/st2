@@ -125,4 +125,4 @@ class PacksViewsControllerTestCase(FunctionalTest):
 
         resp = self.app.get('/v1/packs/views/file/dummy_pack_16/pack.yaml')
         self.assertEqual(resp.status_int, httplib.OK)
-        self.assertTrue('ref: dummy_pack_16' in resp.text)
+        self.assertTrue('ref: dummy_pack_16' in resp.body)

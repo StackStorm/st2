@@ -47,6 +47,10 @@ def do_register_cli_opts(opt, ignore_errors=False):
 def register_opts(ignore_errors=False):
     rbac_opts = [
         cfg.BoolOpt('enable', default=False, help='Enable RBAC.'),
+        cfg.BoolOpt('sync_remote_groups', default=False,
+                    help=('True to synchronize remote groups returned by the auth backed for each '
+                          'StackStorm user with local StackStorm roles based on the group to role '
+                          'mapping definition files.'))
     ]
     do_register_opts(rbac_opts, 'rbac', ignore_errors)
 
@@ -71,13 +75,13 @@ def register_opts(ignore_errors=False):
         cfg.BoolOpt('debug', help='Enable debug mode.', default=False),
         cfg.StrOpt('base_path', default='/opt/stackstorm',
                    help='Base path to all st2 artifacts.'),
-        cfg.StrOpt('validate_trigger_parameters', default=False,
-                   help=('True to validate parameters for non-system trigger types when creating'
-                         'a rule. By default, only parameters for system triggers are validated')),
-        cfg.StrOpt('validate_trigger_payload', default=False,
-                   help=('True to validate payload for non-system trigger types when dispatching'
-                         'a trigger inside the sensor. By default, only payload for system '
-                         'triggers is validated.'))
+        cfg.BoolOpt('validate_trigger_parameters', default=False,
+                    help=('True to validate parameters for non-system trigger types when creating'
+                          'a rule. By default, only parameters for system triggers are validated')),
+        cfg.BoolOpt('validate_trigger_payload', default=False,
+                    help=('True to validate payload for non-system trigger types when dispatching'
+                          'a trigger inside the sensor. By default, only payload for system '
+                          'triggers is validated.'))
     ]
     do_register_opts(system_opts, 'system', ignore_errors)
 
@@ -110,7 +114,7 @@ def register_opts(ignore_errors=False):
     do_register_opts(webui_opts, 'webui', ignore_errors)
 
     db_opts = [
-        cfg.StrOpt('host', default='0.0.0.0', help='host of db server'),
+        cfg.StrOpt('host', default='127.0.0.1', help='host of db server'),
         cfg.IntOpt('port', default=27017, help='port of db server'),
         cfg.StrOpt('db_name', default='st2', help='name of database'),
         cfg.StrOpt('username', help='username for db login'),
@@ -173,13 +177,15 @@ def register_opts(ignore_errors=False):
         cfg.BoolOpt('redirect_stderr', default=False,
                     help='Controls if stderr should be redirected to the logs.'),
         cfg.BoolOpt('mask_secrets', default=True,
-                    help='True to mask secrets in the log files.')
+                    help='True to mask secrets in the log files.'),
+        cfg.ListOpt('mask_secrets_blacklist', default=[],
+                    help='Blacklist of additional attribute names to mask in the log messages.')
     ]
     do_register_opts(log_opts, 'log', ignore_errors)
 
     # Common API options
     api_opts = [
-        cfg.StrOpt('host', default='0.0.0.0', help='StackStorm API server host'),
+        cfg.StrOpt('host', default='127.0.0.1', help='StackStorm API server host'),
         cfg.IntOpt('port', default=9101, help='StackStorm API server port'),
         cfg.ListOpt('allow_origin', default=['http://127.0.0.1:3000'],
                     help='List of origins allowed for api, auth and stream'),
@@ -204,7 +210,10 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt('api_url', default=None,
                    help='Base URL to the API endpoint excluding the version'),
         cfg.BoolOpt('enable', default=True, help='Enable authentication middleware.'),
-        cfg.IntOpt('token_ttl', default=86400, help='Access token ttl in seconds.')
+        cfg.IntOpt('token_ttl', default=(24 * 60 * 60), help='Access token ttl in seconds.'),
+        # This TTL is used for tokens which belong to StackStorm services
+        cfg.IntOpt('service_token_ttl', default=(24 * 60 * 60),
+                   help='Service token ttl in seconds.')
     ]
     do_register_opts(auth_opts, 'auth', ignore_errors)
 
@@ -251,12 +260,35 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt('keystone_auth_url', default=None, help='Auth endpoint for Keystone.'),
         cfg.StrOpt('cacert', default=None, help='Optional certificate to validate endpoint.'),
         cfg.BoolOpt('insecure', default=False, help='Allow insecure communication with Mistral.'),
+        cfg.FloatOpt('jitter_interval', default=1,
+                   help='Jitter interval to smooth out HTTP requests ' +
+                        'to mistral tasks and executions API.'),
 
         cfg.StrOpt('api_url', default=None, help=('URL Mistral uses to talk back to the API.'
             'If not provided it defaults to public API URL. Note: This needs to be a base '
             'URL without API version (e.g. http://127.0.0.1:9101)'))
     ]
     do_register_opts(mistral_opts, group='mistral', ignore_errors=ignore_errors)
+
+    # Results Tracker query module options
+    # Note that these are currently used only by mistral query module.
+    query_opts = [
+        cfg.IntOpt('thread_pool_size', default=10,
+                   help='Number of threads to use to query external workflow systems.'),
+        cfg.FloatOpt('query_interval', default=20,
+                     help='Time interval between subsequent queries for a context ' +
+                          'to external workflow system.')
+    ]
+    do_register_opts(query_opts, group='resultstracker', ignore_errors=ignore_errors)
+    # XXX: This is required for us to support deprecated config group results_tracker
+    query_opts = [
+        cfg.IntOpt('thread_pool_size',
+                   help='Number of threads to use to query external workflow systems.'),
+        cfg.FloatOpt('query_interval',
+                     help='Time interval between subsequent queries for a context ' +
+                          'to external workflow system.')
+    ]
+    do_register_opts(query_opts, group='results_tracker', ignore_errors=ignore_errors)
 
     # Common CLI options
     debug = cfg.BoolOpt('debug', default=False,

@@ -25,6 +25,7 @@ from st2common.persistence.keyvalue import KeyValuePair
 from st2common.transport.publishers import PoolPublisher
 from st2common.util import date as date_utils
 from st2common.util import param as param_utils
+from st2common.util.config_loader import get_config
 from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
 
@@ -558,13 +559,63 @@ class ParamsUtilsTest(DbTestCase):
         self.assertRaisesRegexp(ValueError, expected_msg, action_param_utils.cast_params,
                                 action_ref='foo.doesntexist', params={})
 
-    def _get_liveaction_model(self, params):
+    def test_get_finalized_params_with_config(self):
+        with mock.patch('st2common.util.config_loader.ContentPackConfigLoader') as config_loader:
+            config_loader().get_config.return_value = {
+                'generic_config_param': 'So generic'
+            }
+
+            params = {
+                'config_param': '{{config_context.generic_config_param}}',
+            }
+            liveaction_db = self._get_liveaction_model(params, True)
+
+            _, action_params = param_utils.get_finalized_params(
+                ParamsUtilsTest.runnertype_db.runner_parameters,
+                ParamsUtilsTest.action_db.parameters,
+                liveaction_db.parameters,
+                liveaction_db.context)
+            self.assertEqual(
+                action_params.get('config_param'),
+                'So generic'
+            )
+
+    def test_get_config(self):
+        with mock.patch('st2common.util.config_loader.ContentPackConfigLoader') as config_loader:
+            mock_config_return = {
+                'generic_config_param': 'So generic'
+            }
+
+            config_loader().get_config.return_value = mock_config_return
+
+            self.assertEqual(get_config(None, None), {})
+            self.assertEqual(get_config('pack', None), {})
+            self.assertEqual(get_config(None, 'user'), {})
+            self.assertEqual(
+                get_config('pack', 'user'), mock_config_return
+            )
+
+            config_loader.assert_called_with(pack_name='pack', user='user')
+            config_loader().get_config.assert_called_once()
+
+    def _get_liveaction_model(self, params, with_config_context=False):
         status = 'initializing'
         start_timestamp = date_utils.get_datetime_utc_now()
         action_ref = ResourceReference(name=ParamsUtilsTest.action_db.name,
                                        pack=ParamsUtilsTest.action_db.pack).ref
         liveaction_db = LiveActionDB(status=status, start_timestamp=start_timestamp,
                                      action=action_ref, parameters=params)
-        liveaction_db.context = {'source_channel': 'awesome', 'api_user': 'noob'}
+        liveaction_db.context = {
+            'api_user': 'noob',
+            'source_channel': 'reddit',
+        }
+
+        if with_config_context:
+            liveaction_db.context.update(
+                {
+                    'pack': 'generic',
+                    'user': 'st2admin'
+                }
+            )
 
         return liveaction_db

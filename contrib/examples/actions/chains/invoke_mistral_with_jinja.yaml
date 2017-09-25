@@ -1,0 +1,6 @@
+chain:
+    -
+        name: task1
+        ref: examples.mistral-basic
+        params:
+            cmd: "{{cmd}}"

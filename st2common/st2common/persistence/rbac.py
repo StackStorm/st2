@@ -17,11 +17,13 @@ from st2common.persistence import base
 from st2common.models.db.rbac import role_access
 from st2common.models.db.rbac import user_role_assignment_access
 from st2common.models.db.rbac import permission_grant_access
+from st2common.models.db.rbac import group_to_role_mapping_access
 
 __all__ = [
     'Role',
     'UserRoleAssignment',
-    'PermissionGrant'
+    'PermissionGrant',
+    'GroupToRoleMapping'
 ]
 
 
@@ -43,6 +45,14 @@ class UserRoleAssignment(base.Access):
 
 class PermissionGrant(base.Access):
     impl = permission_grant_access
+
+    @classmethod
+    def _get_impl(cls):
+        return cls.impl
+
+
+class GroupToRoleMapping(base.Access):
+    impl = group_to_role_mapping_access
 
     @classmethod
     def _get_impl(cls):

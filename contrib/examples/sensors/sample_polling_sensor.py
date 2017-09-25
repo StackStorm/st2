@@ -35,7 +35,7 @@ class SamplePollingSensor(PollingSensor):
         #   # or just simply by reference as string.
         #   # i.e. dispatch(${trigger_pack}.${trigger_name}, payload)
         #   # E.g.: dispatch('examples.foo_sensor', {'k1': 'stuff', 'k2': 'foo'})
-        #   # trace_tag is a tag you would like to associate with the dispacthed TriggerInstance
+        #   # trace_tag is a tag you would like to associate with the dispatched TriggerInstance
         #   # Typically the trace_tag is unique and a reference to an external event.
         pass
 

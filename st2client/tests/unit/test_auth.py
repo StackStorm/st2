@@ -262,6 +262,7 @@ class TestLoginUncaughtException(TestLoginBase):
         retcode = self.shell.run(args)
 
         self.assertTrue('Failed to log in as %s' % expected_username in self.stdout.getvalue())
+        self.assertTrue('Logged in as' not in self.stdout.getvalue())
         self.assertEqual(retcode, 0)
 
 

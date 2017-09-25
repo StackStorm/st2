@@ -14,23 +14,17 @@
 # limitations under the License.
 
 import abc
-import functools
-import inspect
 
 import six
-from six.moves import http_client
-import traceback
 
 from oslo_config import cfg
 
 from st2common.util import mongoescape as util_mongodb
-from st2common.util.debugging import is_enabled as is_debugging_enabled
 from st2common import log as logging
 
 __all__ = [
     'BaseAPI',
-    'APIUIDMixin',
-    'jsexpose'
+    'APIUIDMixin'
 ]
 
 
@@ -148,154 +142,3 @@ def cast_argument_value(value_type, value):
 
     result = cast_func(value)
     return result
-
-
-def get_controller_args_for_types(func, arg_types, args, kwargs):
-    """
-    Build a list of arguments and dictionary of keyword arguments which are passed to the
-    controller method based on the arg_types specification.
-
-    Note: args argument is mutated in place.
-    """
-    result_args = []
-    result_kwargs = {}
-
-    argspec = inspect.getargspec(func)
-    names = argspec.args[1:]  # Note: we skip "self"
-
-    for index, name in enumerate(names):
-        # 1. Try kwargs first
-        if name in kwargs:
-            try:
-                value = kwargs[name]
-                value_type = arg_types[index]
-                value = cast_argument_value(value_type=value_type, value=value)
-                result_kwargs[name] = value
-            except IndexError:
-                LOG.warning("Type definition for '%s' argument of '%s' is missing.",
-                            name, func.__name__)
-
-            continue
-
-        # 2. Try positional args
-        try:
-            value = args.pop(0)
-            value_type = arg_types[index]
-            value = cast_argument_value(value_type=value_type, value=value)
-            result_args.append(value)
-        except IndexError:
-            LOG.warning("Type definition for '%s' argument of '%s' is missing.",
-                        name, func.__name__)
-
-    return result_args, result_kwargs
-
-
-def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='application/json',
-             method=None):
-    """
-    :param arg_types: A list of types for the function arguments (e.g. [str, str, int, bool]).
-    :type arg_types: ``list``
-
-    :param body_cls: Request body class. If provided, this class will be used to create an instance
-                     out of the request body.
-    :type body_cls: :class:`object`
-
-    :param status_code: Response status code.
-    :type status_code: ``int``
-
-    :param content_type: Response content type.
-    :type content_type: ``str``
-    """
-    # Late import to avoid very expensive in-direct import (~1 second) when this function
-    # is not called / used
-    import jsonschema
-    import pecan
-
-    from webob import exc
-
-    from st2common.util.jsonify import json_encode
-    from st2common.util.api import get_exception_for_type_error
-    from st2common.util.api import get_exception_for_uncaught_api_error
-
-    pecan_json_decorate = pecan.expose(
-        content_type=content_type,
-        generic=False)
-
-    def decorate(f):
-        @functools.wraps(f)
-        def callfunction(*args, **kwargs):
-            args = list(args)
-            more = [args.pop(0)]
-
-            def cast_value(value_type, value):
-                if value_type == bool:
-                    def cast_func(value):
-                        return value.lower() in ['1', 'true']
-                else:
-                    cast_func = value_type
-
-                result = cast_func(value)
-                return result
-
-            if body_cls:
-                if pecan.request.body:
-                    data = pecan.request.json
-
-                    obj = body_cls(**data)
-                    try:
-                        obj = obj.validate()
-                    except (jsonschema.ValidationError, ValueError) as e:
-                        raise exc.HTTPBadRequest(detail=e.message,
-                                                 comment=traceback.format_exc())
-                    except Exception as e:
-                        raise exc.HTTPInternalServerError(detail=e.message,
-                                                          comment=traceback.format_exc())
-                else:
-                    obj = None
-
-                more.append(obj)
-
-            if arg_types:
-                # Cast and transform arguments based on the provided arg_types specification
-                result_args, result_kwargs = get_controller_args_for_types(func=f,
-                                                                           arg_types=arg_types,
-                                                                           args=args,
-                                                                           kwargs=kwargs)
-                more = more + result_args
-                kwargs.update(result_kwargs)
-
-            args = tuple(more) + tuple(args)
-
-            noop_codes = [http_client.NOT_IMPLEMENTED,
-                          http_client.METHOD_NOT_ALLOWED,
-                          http_client.FORBIDDEN]
-
-            if status_code and status_code in noop_codes:
-                pecan.response.status = status_code
-                return json_encode(None)
-
-            try:
-                result = f(*args, **kwargs)
-            except TypeError as e:
-                e = get_exception_for_type_error(func=f, exc=e)
-                raise e
-            except Exception as e:
-                e = get_exception_for_uncaught_api_error(func=f, exc=e)
-                raise e
-
-            if status_code:
-                pecan.response.status = status_code
-            if content_type == 'application/json':
-                if is_debugging_enabled():
-                    indent = 4
-                else:
-                    indent = None
-                return json_encode(result, indent=indent)
-            else:
-                return result
-
-        pecan_json_decorate(callfunction)
-
-        return callfunction
-
-    return decorate

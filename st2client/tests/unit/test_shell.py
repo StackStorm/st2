@@ -53,28 +53,33 @@ class TestShell(base.BaseCLITestCase):
         base_url = 'http://127.0.0.1'
         auth_url = 'http://127.0.0.1:9100'
         api_url = 'http://127.0.0.1:9101/v1'
+        stream_url = 'http://127.0.0.1:9102/v1'
         args = ['trigger', 'list']
         parsed_args = self.shell.parser.parse_args(args)
         client = self.shell.get_client(parsed_args)
         self.assertEqual(client.endpoints['base'], base_url)
         self.assertEqual(client.endpoints['auth'], auth_url)
         self.assertEqual(client.endpoints['api'], api_url)
+        self.assertEqual(client.endpoints['stream'], stream_url)
 
     def test_endpoints_base_url_from_cli(self):
         base_url = 'http://www.st2.com'
         auth_url = 'http://www.st2.com:9100'
         api_url = 'http://www.st2.com:9101/v1'
+        stream_url = 'http://www.st2.com:9102/v1'
         args = ['--url', base_url, 'trigger', 'list']
         parsed_args = self.shell.parser.parse_args(args)
         client = self.shell.get_client(parsed_args)
         self.assertEqual(client.endpoints['base'], base_url)
         self.assertEqual(client.endpoints['auth'], auth_url)
         self.assertEqual(client.endpoints['api'], api_url)
+        self.assertEqual(client.endpoints['stream'], stream_url)
 
     def test_endpoints_base_url_from_env(self):
         base_url = 'http://www.st2.com'
         auth_url = 'http://www.st2.com:9100'
         api_url = 'http://www.st2.com:9101/v1'
+        stream_url = 'http://www.st2.com:9102/v1'
         os.environ['ST2_BASE_URL'] = base_url
         args = ['trigger', 'list']
         parsed_args = self.shell.parser.parse_args(args)
@@ -82,34 +87,41 @@ class TestShell(base.BaseCLITestCase):
         self.assertEqual(client.endpoints['base'], base_url)
         self.assertEqual(client.endpoints['auth'], auth_url)
         self.assertEqual(client.endpoints['api'], api_url)
+        self.assertEqual(client.endpoints['stream'], stream_url)
 
     def test_endpoints_override_from_cli(self):
         base_url = 'http://www.st2.com'
         auth_url = 'http://www.st2.com:8888'
         api_url = 'http://www.stackstorm1.com:9101/v1'
+        stream_url = 'http://www.stackstorm1.com:9102/v1'
         args = ['--url', base_url,
                 '--auth-url', auth_url,
                 '--api-url', api_url,
+                '--stream-url', stream_url,
                 'trigger', 'list']
         parsed_args = self.shell.parser.parse_args(args)
         client = self.shell.get_client(parsed_args)
         self.assertEqual(client.endpoints['base'], base_url)
         self.assertEqual(client.endpoints['auth'], auth_url)
         self.assertEqual(client.endpoints['api'], api_url)
+        self.assertEqual(client.endpoints['stream'], stream_url)
 
     def test_endpoints_override_from_env(self):
         base_url = 'http://www.st2.com'
         auth_url = 'http://www.st2.com:8888'
         api_url = 'http://www.stackstorm1.com:9101/v1'
+        stream_url = 'http://www.stackstorm1.com:9102/v1'
         os.environ['ST2_BASE_URL'] = base_url
         os.environ['ST2_AUTH_URL'] = auth_url
         os.environ['ST2_API_URL'] = api_url
+        os.environ['ST2_STREAM_URL'] = stream_url
         args = ['trigger', 'list']
         parsed_args = self.shell.parser.parse_args(args)
         client = self.shell.get_client(parsed_args)
         self.assertEqual(client.endpoints['base'], base_url)
         self.assertEqual(client.endpoints['auth'], auth_url)
         self.assertEqual(client.endpoints['api'], api_url)
+        self.assertEqual(client.endpoints['stream'], stream_url)
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
@@ -158,7 +170,10 @@ class TestShell(base.BaseCLITestCase):
             ['execution', 're-run', '123'],
             ['execution', 're-run', '123', '--tasks', 'x', 'y', 'z'],
             ['execution', 're-run', '123', '--tasks', 'x', 'y', 'z', '--no-reset', 'x'],
-            ['execution', 're-run', '123', 'a=1', 'b=x', 'c=True']
+            ['execution', 're-run', '123', 'a=1', 'b=x', 'c=True'],
+            ['execution', 'cancel', '123'],
+            ['execution', 'pause', '123'],
+            ['execution', 'resume', '123']
         ]
         self._validate_parser(args_list)
 
@@ -169,6 +184,7 @@ class TestShell(base.BaseCLITestCase):
     def test_key(self):
         args_list = [
             ['key', 'list'],
+            ['key', 'list', '-n', '2'],
             ['key', 'get', 'abc'],
             ['key', 'set', 'abc', '123'],
             ['key', 'delete', 'abc'],
@@ -200,6 +216,21 @@ class TestShell(base.BaseCLITestCase):
             ['policy-type', 'list', '-r', 'action'],
             ['policy-type', 'list', '--resource-type', 'action'],
             ['policy-type', 'get', 'abc']
+        ]
+        self._validate_parser(args_list)
+
+    def test_pack(self):
+        args_list = [
+            ['pack', 'list'],
+            ['pack', 'get', 'abc'],
+            ['pack', 'search', 'abc'],
+            ['pack', 'show', 'abc'],
+            ['pack', 'remove', 'abc'],
+            ['pack', 'remove', 'abc', '--detail'],
+            ['pack', 'install', 'abc'],
+            ['pack', 'install', 'abc', '--force'],
+            ['pack', 'install', 'abc', '--detail'],
+            ['pack', 'config', 'abc']
         ]
         self._validate_parser(args_list)
 
@@ -255,6 +286,7 @@ class TestShell(base.BaseCLITestCase):
     def test_rule(self):
         args_list = [
             ['rule', 'list'],
+            ['rule', 'list', '-n', '1'],
             ['rule', 'get', 'abc'],
             ['rule', 'create', '/tmp/rule.json'],
             ['rule', 'update', '123', '/tmp/rule.json'],
@@ -289,6 +321,16 @@ class CLITokenCachingTestCase(unittest2.TestCase):
         super(CLITokenCachingTestCase, self).tearDown()
         self._p1.stop()
         self._p2.stop()
+
+        for var in [
+            'ST2_BASE_URL',
+            'ST2_API_URL',
+            'ST2_STREAM_URL',
+            'ST2_DATASTORE_URL',
+            'ST2_AUTH_TOKEN'
+        ]:
+            if var in os.environ:
+                del os.environ[var]
 
     def _write_mock_config(self):
         with open(self._mock_config_path, 'w') as fp:

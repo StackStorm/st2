@@ -7,7 +7,9 @@ from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.persistence.action import Action
 from st2common.persistence.executionstate import ActionExecutionState
 from st2common.persistence.liveaction import LiveAction
+from st2common.runners import utils as runners_utils
 from st2common.services import executions
+from st2common.util import action_db as action_db_utils
 from st2tests.base import (DbTestCase, EventletTestCase)
 from st2tests.fixturesloader import FixturesLoader
 
@@ -59,8 +61,7 @@ class ResultsTrackerTests(EventletTestCase, DbTestCase):
         Action, 'get_by_ref', mock.MagicMock(return_value='foobar'))
     def test_query_process(self):
         tracker = results_tracker.get_tracker()
-        querier = tracker.get_querier('test_querymodule')
-        querier._invoke_post_run = mock.Mock(return_value=None)
+        runners_utils.invoke_post_run = mock.Mock(return_value=None)
 
         # Ensure state objects are present.
         state1 = ActionExecutionState.get_by_id(ResultsTrackerTests.states['state1.yaml'].id)
@@ -98,7 +99,7 @@ class ResultsTrackerTests(EventletTestCase, DbTestCase):
         )
 
         # Ensure invoke_post_run is called.
-        self.assertEqual(2, querier._invoke_post_run.call_count)
+        self.assertEqual(2, runners_utils.invoke_post_run.call_count)
 
     def test_start_shutdown(self):
         tracker = results_tracker.get_tracker()
@@ -245,7 +246,7 @@ class ResultsTrackerTests(EventletTestCase, DbTestCase):
         tracker = results_tracker.get_tracker()
         querier = tracker.get_querier('test_querymodule')
         querier._delete_state_object = mock.Mock(return_value=None)
-        querier._invoke_post_run = mock.Mock(return_value=None)
+        runners_utils.invoke_post_run = mock.Mock(return_value=None)
 
         # Ensure state objects are present.
         state1 = ActionExecutionState.get_by_id(ResultsTrackerTests.states['state1.yaml'].id)
@@ -272,15 +273,14 @@ class ResultsTrackerTests(EventletTestCase, DbTestCase):
         # Ensure deletes are called.
         self.assertEqual(2, querier._delete_state_object.call_count)
 
-        # Ensure invoke_post_run is not called.
-        querier._invoke_post_run.assert_not_called()
+        # Ensure invoke_post_run is called.
+        self.assertEqual(2, runners_utils.invoke_post_run.call_count)
 
     @mock.patch.object(
         Action, 'get_by_ref', mock.MagicMock(return_value=None))
     def test_action_deleted(self):
         tracker = results_tracker.get_tracker()
-        querier = tracker.get_querier('test_querymodule')
-        querier._invoke_post_run = mock.Mock(return_value=None)
+        action_db_utils.get_runnertype_by_name = mock.Mock(return_value=None)
 
         # Ensure state objects are present.
         state1 = ActionExecutionState.get_by_id(ResultsTrackerTests.states['state1.yaml'].id)
@@ -317,5 +317,5 @@ class ResultsTrackerTests(EventletTestCase, DbTestCase):
             ResultsTrackerTests.states['state2.yaml'].id
         )
 
-        # Ensure invoke_post_run is not called.
-        querier._invoke_post_run.assert_not_called()
+        # Ensure get_runnertype_by_name in invoke_post_run is not called.
+        action_db_utils.get_runnertype_by_name.assert_not_called()

@@ -1,0 +1,12 @@
+---
+name: "forloop_chain"
+description: "Action Chain to loop over an organization github page and get all the repositories list"
+runner_type: "action-chain"
+entry_point: "chains/forloop_chain.yaml"
+enabled: true
+parameters:
+    github_organization_url:
+      type: "string" 
+      description: "Organization url to parse data from"
+      default: "https://github.com/StackStorm-Exchange"
+      required: false

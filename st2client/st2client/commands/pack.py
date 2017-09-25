@@ -22,6 +22,7 @@ from st2client.models import Config
 from st2client.models import Pack
 from st2client.models import LiveAction
 from st2client.commands import resource
+from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
 from st2client.commands.action import ActionRunCommandMixin
 from st2client.formatters import table
 from st2client.exceptions.operations import OperationFailureException
@@ -100,7 +101,7 @@ class PackAsyncCommand(ActionRunCommandMixin, resource.ResourceCommand):
         detail_arg_grp.add_argument('-d', '--detail', action='store_true',
                                     help='Display full detail of the execution in table format.')
 
-    @resource.add_auth_token_to_kwargs_from_cli
+    @add_auth_token_to_kwargs_from_cli
     def run_and_print(self, args, **kwargs):
         instance = self.run(args, **kwargs)
         if not instance:
@@ -141,7 +142,7 @@ class PackAsyncCommand(ActionRunCommandMixin, resource.ResourceCommand):
             self._print_execution_details(execution=execution, args=args, **kwargs)
             sys.exit(1)
 
-        return self.app.client.managers['LiveAction'].get_by_id(parent_id)
+        return self.app.client.managers['LiveAction'].get_by_id(parent_id, **kwargs)
 
 
 class PackListCommand(resource.ResourceListCommand):
@@ -167,16 +168,16 @@ class PackShowCommand(PackResourceCommand):
                                  help='Name of the %s to show.' %
                                  resource.get_display_name().lower())
 
-    @resource.add_auth_token_to_kwargs_from_cli
+    @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         return self.manager.search(args, **kwargs)
 
 
 class PackInstallCommand(PackAsyncCommand):
     def __init__(self, resource, *args, **kwargs):
-        super(PackInstallCommand, self).__init__(resource, 'install',
-            'Install new %s.' % resource.get_plural_display_name().lower(),
-            *args, **kwargs)
+        super(PackInstallCommand, self).__init__(resource, 'install', 'Install new %s.'
+                                                 % resource.get_plural_display_name().lower(),
+                                                 *args, **kwargs)
 
         self.parser.add_argument('packs',
                                  nargs='+',
@@ -188,23 +189,63 @@ class PackInstallCommand(PackAsyncCommand):
                                  default=False,
                                  help='Force pack installation.')
 
-    @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
+        self._get_content_counts_for_pack(args, **kwargs)
         return self.manager.install(args.packs, force=args.force, **kwargs)
 
+    def _get_content_counts_for_pack(self, args, **kwargs):
+        # Global content list, excluding "tests"
+        pack_content = {'actions': 0, 'rules': 0, 'sensors': 0, 'aliases': 0, 'triggers': 0}
+
+        if len(args.packs) == 1:
+            args.pack = args.packs[0]
+            pack_info = self.manager.search(args, **kwargs)
+            content = getattr(pack_info, 'content', {})
+
+            if content:
+                for entity in content.keys():
+                    if entity in pack_content:
+                        pack_content[entity] += content[entity]['count']
+                self._print_pack_content(args.packs, pack_content)
+
+        else:
+            pack_content = pack_content.fromkeys(pack_content, 0)
+            # TODO: Better solution is to update endpoint query param for one API call
+            #       example: ?packs=pack1,pack2,pack3
+            for pack in args.packs:
+                # args.pack required for search
+                args.pack = pack
+                pack_info = self.manager.search(args, **kwargs)
+                content = getattr(pack_info, 'content', {})
+
+                if content:
+                    for entity in content.keys():
+                        if entity in pack_content:
+                            pack_content[entity] += content[entity]['count']
+            if content:
+                self._print_pack_content(args.packs, pack_content)
+
+    @staticmethod
+    def _print_pack_content(pack_name, pack_content):
+        print('\nFor "%s" %s following content will be registered:\n'
+              % (', '.join(pack_name), 'pack' if len(pack_name) == 1 else 'packs'))
+        for item, count in pack_content.items():
+            print('%-10s|  %s' % (item, count))
+        print('\nInstallation may take a while based on number of items.')
+
+    @add_auth_token_to_kwargs_from_cli
     def run_and_print(self, args, **kwargs):
         instance = super(PackInstallCommand, self).run_and_print(args, **kwargs)
-
         # Hack to get a list of resolved references of installed packs
         packs = instance.result['tasks'][1]['result']['result']
 
         if len(packs) == 1:
-            pack_instance = self.app.client.managers['Pack'].get_by_ref_or_id(packs[0])
+            pack_instance = self.app.client.managers['Pack'].get_by_ref_or_id(packs[0], **kwargs)
             self.print_output(pack_instance, table.PropertyValueTable,
                               attributes=args.attr, json=args.json, yaml=args.yaml,
                               attribute_display_order=self.attribute_display_order)
         else:
-            all_pack_instances = self.app.client.managers['Pack'].get_all()
+            all_pack_instances = self.app.client.managers['Pack'].get_all(**kwargs)
             pack_instances = []
 
             for pack in all_pack_instances:
@@ -218,9 +259,9 @@ class PackInstallCommand(PackAsyncCommand):
 
 class PackRemoveCommand(PackAsyncCommand):
     def __init__(self, resource, *args, **kwargs):
-        super(PackRemoveCommand, self).__init__(resource, 'remove',
-            'Remove %s.' % resource.get_plural_display_name().lower(),
-            *args, **kwargs)
+        super(PackRemoveCommand, self).__init__(resource, 'remove', 'Remove %s.'
+                                                % resource.get_plural_display_name().lower(),
+                                                *args, **kwargs)
 
         self.parser.add_argument('packs',
                                  nargs='+',
@@ -228,19 +269,19 @@ class PackRemoveCommand(PackAsyncCommand):
                                  help='Name of the %s to remove.' %
                                  resource.get_plural_display_name().lower())
 
-    @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         return self.manager.remove(args.packs, **kwargs)
 
+    @add_auth_token_to_kwargs_from_cli
     def run_and_print(self, args, **kwargs):
-        all_pack_instances = self.app.client.managers['Pack'].get_all()
+        all_pack_instances = self.app.client.managers['Pack'].get_all(**kwargs)
 
         super(PackRemoveCommand, self).run_and_print(args, **kwargs)
 
         packs = args.packs
 
         if len(packs) == 1:
-            pack_instance = self.app.client.managers['Pack'].get_by_ref_or_id(packs[0])
+            pack_instance = self.app.client.managers['Pack'].get_by_ref_or_id(packs[0], **kwargs)
 
             if pack_instance:
                 raise OperationFailureException('Pack %s has not been removed properly', packs[0])
@@ -252,7 +293,7 @@ class PackRemoveCommand(PackAsyncCommand):
                               attributes=args.attr, json=args.json, yaml=args.yaml,
                               attribute_display_order=self.attribute_display_order)
         else:
-            remaining_pack_instances = self.app.client.managers['Pack'].get_all()
+            remaining_pack_instances = self.app.client.managers['Pack'].get_all(**kwargs)
             pack_instances = []
 
             for pack in all_pack_instances:
@@ -270,8 +311,9 @@ class PackRemoveCommand(PackAsyncCommand):
 class PackRegisterCommand(PackResourceCommand):
     def __init__(self, resource, *args, **kwargs):
         super(PackRegisterCommand, self).__init__(resource, 'register',
-              'Register a %s: sync all file changes with DB.' % resource.get_display_name().lower(),
-              *args, **kwargs)
+                                                  'Register %s(s): sync all file changes with DB.'
+                                                  % resource.get_display_name().lower(),
+                                                  *args, **kwargs)
 
         self.parser.add_argument('packs',
                                  nargs='*',
@@ -283,7 +325,7 @@ class PackRegisterCommand(PackResourceCommand):
                                  nargs='+',
                                  help='Types of content to register.')
 
-    @resource.add_auth_token_to_kwargs_from_cli
+    @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         return self.manager.register(args.packs, args.types, **kwargs)
 
@@ -294,15 +336,15 @@ class PackSearchCommand(resource.ResourceTableCommand):
 
     def __init__(self, resource, *args, **kwargs):
         super(PackSearchCommand, self).__init__(resource, 'search',
-            'Search the index for a %s with any attribute matching the query.'
-            % resource.get_display_name().lower(),
-            *args, **kwargs
-        )
+                                                'Search the index for a %s with any attribute \
+                                                matching the query.'
+                                                % resource.get_display_name().lower(),
+                                                *args, **kwargs)
 
         self.parser.add_argument('query',
                                  help='Search query.')
 
-    @resource.add_auth_token_to_kwargs_from_cli
+    @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         return self.manager.search(args, **kwargs)
 
@@ -310,14 +352,15 @@ class PackSearchCommand(resource.ResourceTableCommand):
 class PackConfigCommand(resource.ResourceCommand):
     def __init__(self, resource, *args, **kwargs):
         super(PackConfigCommand, self).__init__(resource, 'config',
-              'Configure a %s based on config schema.' % resource.get_display_name().lower(),
-              *args, **kwargs)
+                                                'Configure a %s based on config schema.'
+                                                % resource.get_display_name().lower(),
+                                                *args, **kwargs)
 
         self.parser.add_argument('name',
                                  help='Name of the %s(s) to configure.' %
                                       resource.get_display_name().lower())
 
-    @resource.add_auth_token_to_kwargs_from_cli
+    @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         schema = self.app.client.managers['ConfigSchema'].get_by_ref_or_id(args.name, **kwargs)
 
@@ -330,7 +373,8 @@ class PackConfigCommand(resource.ResourceCommand):
 
         message = '---\nDo you want to preview the config in an editor before saving?'
         description = 'Secrets would be shown in plain text.'
-        preview_dialog = interactive.Question(message, {'default': 'y', 'description': description})
+        preview_dialog = interactive.Question(message, {'default': 'y',
+                                                        'description': description})
         if preview_dialog.read() == 'y':
             try:
                 contents = yaml.safe_dump(config, indent=4, default_flow_style=False)
@@ -344,7 +388,8 @@ class PackConfigCommand(resource.ResourceCommand):
         if save_dialog.read() == 'n':
             raise OperationFailureException('Interrupted')
 
-        result = self.app.client.managers['Config'].update(Config(pack=args.name, values=config))
+        config_item = Config(pack=args.name, values=config)
+        result = self.app.client.managers['Config'].update(config_item, **kwargs)
 
         return result
 
