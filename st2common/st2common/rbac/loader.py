@@ -113,7 +113,6 @@ class RBACDefinitionsLoader(object):
                 LOG.debug('Skipping disabled role assignment for user "%s"' % (username))
                 continue
 
-            role_assignment_api.file_path = file_path.replace(self._rbac_definitions_path, '')
             result[username] = role_assignment_api
 
         return result
@@ -134,7 +133,6 @@ class RBACDefinitionsLoader(object):
                 file_path=file_path)
 
             group_name = group_to_role_map_api.group
-            group_to_role_map_api.file_path = file_path.replace(self._rbac_definitions_path, '')
             result[group_name] = group_to_role_map_api
 
         return result
@@ -177,6 +175,7 @@ class RBACDefinitionsLoader(object):
             raise ValueError(msg)
 
         user_role_assignment_api = UserRoleAssignmentFileFormatAPI(**content)
+        user_role_assignment_api.file_path = file_path.replace(self._rbac_definitions_path, '')
         user_role_assignment_api = user_role_assignment_api.validate()
 
         return user_role_assignment_api
