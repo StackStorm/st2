@@ -175,7 +175,7 @@ class RBACDefinitionsLoader(object):
             raise ValueError(msg)
 
         user_role_assignment_api = UserRoleAssignmentFileFormatAPI(**content)
-        user_role_assignment_api.file_path = file_path.replace(self._rbac_definitions_path, '')
+        user_role_assignment_api.file_path = file_path[file_path.rfind('assignments/'):]
         user_role_assignment_api = user_role_assignment_api.validate()
 
         return user_role_assignment_api
@@ -188,7 +188,7 @@ class RBACDefinitionsLoader(object):
             raise ValueError(msg)
 
         group_to_role_map_api = AuthGroupToRoleMapAssignmentFileFormatAPI(**content)
-        group_to_role_map_api.file_path = file_path.replace(self._rbac_definitions_path, '')
+        group_to_role_map_api.file_path = file_path[file_path.rfind('mappings/'):]
         group_to_role_map_api = group_to_role_map_api.validate()
 
         return group_to_role_map_api
