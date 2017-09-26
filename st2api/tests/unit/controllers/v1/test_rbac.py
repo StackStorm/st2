@@ -58,12 +58,14 @@ class RBACControllerTestCase(APIControllerWithRBACTestCase):
             # Role assignments
             role_assignment_db = UserRoleAssignmentDB(
                 user=user_db.name,
-                role=role_db.name)
+                role=role_db.name,
+                source='assignments/%s.yaml' % user_db.name)
             UserRoleAssignment.add_or_update(role_assignment_db)
 
         role_assignment_db = UserRoleAssignmentDB(
             user='user_two',
             role='role_two',
+            source='assignments/user_two.yaml',
             is_remote=True)
         UserRoleAssignment.add_or_update(role_assignment_db)
 

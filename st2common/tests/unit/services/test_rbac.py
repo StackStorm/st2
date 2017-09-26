@@ -72,8 +72,9 @@ class RBACServicesTestCase(CleanDbTestCase):
         rbac_services.create_role(name='role_4')
 
         # Create some mock role assignments
-        role_assignment_1 = UserRoleAssignmentDB(user=self.users['1_custom_role'].name,
-                                                 role=self.roles['custom_role_1'].name)
+        role_assignment_1 = UserRoleAssignmentDB(
+            user=self.users['1_custom_role'].name, role=self.roles['custom_role_1'].name,
+            source='assignments/%s.yaml' % self.users['1_custom_role'].name)
         role_assignment_1 = UserRoleAssignment.add_or_update(role_assignment_1)
 
         # Note: User use pymongo to insert mock data because we want to insert a
@@ -185,8 +186,9 @@ class RBACServicesTestCase(CleanDbTestCase):
         self.assertItemsEqual(role_dbs, [])
 
         # Assign a role, should have one role assigned
-        rbac_services.assign_role_to_user(role_db=self.roles['custom_role_1'],
-                                          user_db=user_db)
+        rbac_services.assign_role_to_user(
+            role_db=self.roles['custom_role_1'], user_db=user_db,
+            source='assignments/%s.yaml' % user_db.name)
 
         role_dbs = rbac_services.get_roles_for_user(user_db=user_db)
         self.assertItemsEqual(role_dbs, [self.roles['custom_role_1']])
@@ -215,7 +217,9 @@ class RBACServicesTestCase(CleanDbTestCase):
         self.assertItemsEqual(role_dbs, [])
 
         # Assign a role, should have one role assigned
-        rbac_services.assign_role_to_user(role_db=self.roles['custom_role_1'], user_db=user_db)
+        rbac_services.assign_role_to_user(
+            role_db=self.roles['custom_role_1'], user_db=user_db,
+            source='assignments/%s_1.yaml' % user_db.name)
 
         role_dbs = rbac_services.get_roles_for_user(user_db=user_db)
         self.assertItemsEqual(role_dbs, [self.roles['custom_role_1']])
@@ -224,7 +228,9 @@ class RBACServicesTestCase(CleanDbTestCase):
         self.assertItemsEqual(role_dbs, [self.roles['custom_role_1']])
 
         # Assign the same role again.
-        rbac_services.assign_role_to_user(role_db=self.roles['custom_role_1'], user_db=user_db)
+        rbac_services.assign_role_to_user(
+            role_db=self.roles['custom_role_1'], user_db=user_db,
+            source='assignments/%s_2.yaml' % user_db.name)
 
         role_dbs_2 = rbac_services.get_roles_for_user(user_db=user_db)
         self.assertItemsEqual(role_dbs_2, [self.roles['custom_role_1']])

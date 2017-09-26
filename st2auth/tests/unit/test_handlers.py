@@ -82,16 +82,18 @@ class HandlerTestCase(CleanDbTestCase):
         # Insert mock local role assignments
         role_db = create_role(name='mock_local_role_1')
         user_db = self.users['user_1']
-        role_assignment_db_1 = assign_role_to_user(role_db=role_db, user_db=user_db,
-                                                   is_remote=False)
+        source = 'assignments/%s.yaml' % user_db.name
+        role_assignment_db_1 = assign_role_to_user(
+            role_db=role_db, user_db=user_db, source=source, is_remote=False)
 
         self.roles['mock_local_role_1'] = role_db
         self.role_assignments['assignment_1'] = role_assignment_db_1
 
         role_db = create_role(name='mock_local_role_2')
         user_db = self.users['user_1']
-        role_assignment_db_2 = assign_role_to_user(role_db=role_db, user_db=user_db,
-                                                   is_remote=False)
+        source = 'assignments/%s.yaml' % user_db.name
+        role_assignment_db_2 = assign_role_to_user(
+            role_db=role_db, user_db=user_db, source=source, is_remote=False)
 
         self.roles['mock_local_role_2'] = role_db
         self.role_assignments['assignment_2'] = role_assignment_db_2
@@ -313,7 +315,8 @@ class HandlerTestCase(CleanDbTestCase):
 
         # Single mapping, new remote assignment should be created
         create_group_to_role_map(group='CN=stormers,OU=groups,DC=stackstorm,DC=net',
-                                 roles=['mock_role_3', 'mock_role_4'])
+                                 roles=['mock_role_3', 'mock_role_4'],
+                                 source='mappings/stormers.yaml')
 
         # Verify initial state
         role_dbs = get_roles_for_user(user_db=user_db, include_remote=True)
@@ -331,6 +334,7 @@ class HandlerTestCase(CleanDbTestCase):
 
         # Verify a new role assignments based on the group mapping has been created
         role_dbs = get_roles_for_user(user_db=user_db, include_remote=True)
+
         self.assertEqual(len(role_dbs), 4)
         self.assertEqual(role_dbs[0], self.roles['mock_local_role_1'])
         self.assertEqual(role_dbs[1], self.roles['mock_local_role_2'])

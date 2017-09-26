@@ -115,17 +115,20 @@ class ApiKeyControllerRBACTestCase(APIControllerWithRBACTestCase):
         # Role assignments
         role_assignment_db = UserRoleAssignmentDB(
             user=self.users['api_key_list'].name,
-            role=self.roles['api_key_list'].name)
+            role=self.roles['api_key_list'].name,
+            source='assignments/%s.yaml' % self.users['api_key_list'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         role_assignment_db = UserRoleAssignmentDB(
             user=self.users['api_key_view'].name,
-            role=self.roles['api_key_view'].name)
+            role=self.roles['api_key_view'].name,
+            source='assignments/%s.yaml' % self.users['api_key_view'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         role_assignment_db = UserRoleAssignmentDB(
             user=self.users['api_key_create'].name,
-            role=self.roles['api_key_create'].name)
+            role=self.roles['api_key_create'].name,
+            source='assignments/%s.yaml' % self.users['api_key_create'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
     def test_get_all_no_permissions(self):

@@ -39,7 +39,8 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
     def setUp(self):
         super(APIControllersRBACTestCase, self).setUp()
 
-        self.role_assignment_db_model = UserRoleAssignmentDB(user='user', role='role')
+        self.role_assignment_db_model = UserRoleAssignmentDB(
+            user='user', role='role', source='assignments/user.yaml')
         UserRoleAssignment.add_or_update(self.role_assignment_db_model)
 
     def test_api_endpoints_behind_rbac_wall(self):

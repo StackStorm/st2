@@ -223,9 +223,10 @@ def revoke_role_from_user(role_db, user_db):
     :param user_db: User to revoke the role from.
     :type user_db: :class:`UserDB`
     """
-    role_assignment_db = UserRoleAssignment.get(user=user_db.name, role=role_db.name)
-    result = UserRoleAssignment.delete(role_assignment_db)
-    return result
+    role_assignment_dbs = UserRoleAssignment.query(user=user_db.name, role=role_db.name)
+
+    for role_assignment_db in role_assignment_dbs:
+        UserRoleAssignment.delete(role_assignment_db)
 
 
 def get_all_permission_grants_for_user(user_db, resource_uid=None, resource_types=None,

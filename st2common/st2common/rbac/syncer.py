@@ -16,6 +16,7 @@
 """
 Module for syncing RBAC definitions in the database with the ones from the filesystem.
 """
+import itertools
 
 from collections import defaultdict
 
@@ -198,9 +199,12 @@ class RBACDefinitionsDBSyncer(object):
         user_dbs = User.get_all()
 
         username_to_user_db_map = dict([(user_db.name, user_db) for user_db in user_dbs])
-        username_to_role_assignment_api_map = dict([(role_assignment_api.username,
-            role_assignment_api) for role_assignment_api in role_assignment_apis])
+        username_to_role_assignment_apis_map = defaultdict(list)
         username_to_role_assignment_dbs_map = defaultdict(list)
+
+        for role_assignment_api in role_assignment_apis:
+            username = role_assignment_api.username
+            username_to_role_assignment_apis_map[username].append(role_assignment_api)
 
         for role_assignment_db in role_assignment_dbs:
             username = role_assignment_db.user
@@ -211,13 +215,12 @@ class RBACDefinitionsDBSyncer(object):
         # deleted from the database for users which existing in the database, but have no
         # assignment file on disk and for assignments for users which don't exist in the database.
         all_usernames = (username_to_user_db_map.keys() +
-                         username_to_role_assignment_api_map.keys() +
+                         username_to_role_assignment_apis_map.keys() +
                          username_to_role_assignment_dbs_map.keys())
         all_usernames = list(set(all_usernames))
 
         results = {}
         for username in all_usernames:
-            role_assignment_api = username_to_role_assignment_api_map.get(username, None)
             user_db = username_to_user_db_map.get(username, None)
 
             if not user_db:
@@ -228,6 +231,7 @@ class RBACDefinitionsDBSyncer(object):
                 LOG.debug(('User "%s" doesn\'t exist in the DB, creating assignment anyway' %
                           (username)))
 
+            role_assignment_apis = username_to_role_assignment_apis_map.get(username, [])
             role_assignment_dbs = username_to_role_assignment_dbs_map.get(username, [])
 
             # Additional safety assert to ensure we don't accidentally manipulate remote
@@ -235,9 +239,9 @@ class RBACDefinitionsDBSyncer(object):
             for role_assignment_db in role_assignment_dbs:
                 assert role_assignment_db.is_remote is False
 
-            result = self._sync_user_role_assignments(user_db=user_db,
-                                                      role_assignment_dbs=role_assignment_dbs,
-                                                      role_assignment_api=role_assignment_api)
+            result = self._sync_user_role_assignments(
+                user_db=user_db, role_assignment_dbs=role_assignment_dbs,
+                role_assignment_apis=role_assignment_apis)
 
             results[username] = result
 
@@ -268,7 +272,7 @@ class RBACDefinitionsDBSyncer(object):
 
         LOG.info('Group to role map definitions synchronized.')
 
-    def _sync_user_role_assignments(self, user_db, role_assignment_dbs, role_assignment_api):
+    def _sync_user_role_assignments(self, user_db, role_assignment_dbs, role_assignment_apis):
         """
         Synchronize role assignments for a particular user.
 
@@ -278,61 +282,71 @@ class RBACDefinitionsDBSyncer(object):
         :param role_assignment_dbs: Existing user role assignments.
         :type role_assignment_dbs: ``list`` of :class:`UserRoleAssignmentDB`
 
-        :param role_assignment_api: Role assignment API for a particular user.
-        :param role_assignment_api: :class:`UserRoleAssignmentFileFormatAPI`
+        :param role_assignment_apis: List of user role assignments to apply.
+        :param role_assignment_apis: ``list`` of :class:`UserRoleAssignmentFileFormatAPI`
 
         :rtype: ``tuple``
         """
-        db_role_names = [role_assignment_db.role for role_assignment_db in role_assignment_dbs]
-        db_role_names = set(db_role_names)
-        api_role_names = role_assignment_api.roles if role_assignment_api else []
-        api_role_names = set(api_role_names)
+        db_roles = set([(entry.role, entry.source) for entry in role_assignment_dbs])
+
+        api_roles = [
+            list(itertools.izip_longest(entry.roles, [], fillvalue=entry.file_path))
+            for entry in role_assignment_apis
+        ]
+
+        api_roles = set(list(itertools.chain.from_iterable(api_roles)))
 
         # A list of new assignments which should be added to the database
-        new_role_names = api_role_names.difference(db_role_names)
+        new_roles = api_roles.difference(db_roles)
 
         # A list of assignments which need to be updated in the database
-        updated_role_names = db_role_names.intersection(api_role_names)
+        updated_roles = db_roles.intersection(api_roles)
 
         # A list of assignments which should be removed from the database
-        removed_role_names = (db_role_names - api_role_names)
+        removed_roles = (db_roles - api_roles)
 
-        LOG.debug('New assignments for user "%s": %r' % (user_db.name, new_role_names))
-        LOG.debug('Updated assignments for user "%s": %r' % (user_db.name, updated_role_names))
-        LOG.debug('Removed assignments for user "%s": %r' % (user_db.name, removed_role_names))
+        LOG.debug('New assignments for user "%s": %r' % (user_db.name, new_roles))
+        LOG.debug('Updated assignments for user "%s": %r' % (user_db.name, updated_roles))
+        LOG.debug('Removed assignments for user "%s": %r' % (user_db.name, removed_roles))
 
         # Build a list of role assignments to delete
-        role_names_to_delete = updated_role_names.union(removed_role_names)
-        role_assignment_dbs_to_delete = [role_assignment_db for role_assignment_db
-                                         in role_assignment_dbs
-                                         if role_assignment_db.role in role_names_to_delete]
+        roles_to_delete = updated_roles.union(removed_roles)
 
-        queryset_filter = (Q(user=user_db.name) & Q(role__in=role_names_to_delete) &
-                           (Q(is_remote=False) | Q(is_remote__exists=False)))
-        UserRoleAssignmentDB.objects(queryset_filter).delete()
-        LOG.debug('Removed %s assignments for user "%s"' %
-                (len(role_assignment_dbs_to_delete), user_db.name))
+        role_assignment_dbs_to_delete = [
+            role_assignment_db for role_assignment_db in role_assignment_dbs
+            if (role_assignment_db.role, role_assignment_db.source) in roles_to_delete
+        ]
+
+        for role_to_delete in roles_to_delete:
+            queryset_filter = (
+                Q(user=user_db.name) &
+                Q(role=role_to_delete[0]) &
+                Q(source=role_to_delete[1]) &
+                (Q(is_remote=False) | Q(is_remote__exists=False))
+            )
+
+            UserRoleAssignmentDB.objects(queryset_filter).delete()
+
+            LOG.debug('Removed role "%s" from "%s" for user "%s".' %
+                (role_to_delete[0], role_to_delete[1], user_db.name))
 
         # Build a list of roles assignments to create
-        role_names_to_create = new_role_names.union(updated_role_names)
-        role_dbs_to_assign = Role.query(name__in=role_names_to_create)
-
+        roles_to_create = new_roles.union(updated_roles)
         created_role_assignment_dbs = []
-        for role_db in role_dbs_to_assign:
-            if role_db.name in role_assignment_api.roles:
-                description = getattr(role_assignment_api, 'description', None)
-                source = getattr(role_assignment_api, 'file_path', None)
-            else:
-                description = None
-                source = None
 
-            assignment_db = rbac_services.assign_role_to_user(role_db=role_db, user_db=user_db,
-                                                              description=description,
-                                                              source=source)
+        for role in roles_to_create:
+            role_db = list(Role.query(name=role[0]))[0]
+            role_assignment_api = [r for r in role_assignment_apis if r.file_path == role[1]][0]
+            description = getattr(role_assignment_api, 'description', None)
+            source = role[1]
+
+            assignment_db = rbac_services.assign_role_to_user(
+                role_db=role_db, user_db=user_db, source=source, description=description)
+
             created_role_assignment_dbs.append(assignment_db)
 
-        LOG.debug('Created %s new assignments for user "%s"' % (len(role_dbs_to_assign),
-                                                                user_db.name))
+            LOG.debug('Assigned role "%s" from "%s" for user "%s".' %
+                (role[0], role[1], user_db.name))
 
         return (created_role_assignment_dbs, role_assignment_dbs_to_delete)
 

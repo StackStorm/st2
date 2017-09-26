@@ -271,8 +271,10 @@ class RBACDefinitionsDBSyncerTestCase(BaseRBACDefinitionsDBSyncerTestCase):
 
         role_assignment_dbs = get_role_assignments_for_user(user_db=self.users['user_2'])
         self.assertEqual(len(role_assignment_dbs), 2)
-        self.assertEqual(role_assignment_dbs[0].source, 'assignments/user2a.yaml')
-        self.assertEqual(role_assignment_dbs[1].source, 'assignments/user2b.yaml')
+
+        sources = [r.source for r in role_assignment_dbs]
+        self.assertIn('assignments/user2a.yaml', sources)
+        self.assertIn('assignments/user2b.yaml', sources)
 
     def test_sync_user_assignments_locally_removed_assignments_are_removed_from_db(self):
         syncer = RBACDefinitionsDBSyncer()
@@ -360,6 +362,7 @@ class RBACDefinitionsDBSyncerTestCase(BaseRBACDefinitionsDBSyncerTestCase):
         syncer.sync_users_role_assignments(role_assignment_apis=[])
 
         role_dbs = get_roles_for_user(user_db=user_db)
+
         self.assertEqual(len(role_dbs), 0)
 
         username = 'doesntexistwhaha_2'
