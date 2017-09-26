@@ -11,5 +11,4 @@ class TestQuerier(Querier):
 
 
 def get_instance():
-    return TestQuerier(empty_q_sleep_time=0.2,
-                       no_workers_sleep_time=0.1)
+    return TestQuerier()

@@ -29,6 +29,7 @@ parameters:
     type: object
   method:
     description: HTTP method to use.
+    type: string
     enum:
     - HEAD
     - GET

@@ -10,6 +10,7 @@
         - "state"
         - "name"
         - "pid"
+      type: "string"
       description: "Which field to search: state, name, or PID"
       default: "name"
       position: 0

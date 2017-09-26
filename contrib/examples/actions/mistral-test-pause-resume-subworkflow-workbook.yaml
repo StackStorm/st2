@@ -3,7 +3,7 @@ name: mistral-test-pause-resume-subworkflow-workbook
 description: A sample workbook used to test the cascading pause and resume of subworkflow.
 pack: examples
 runner_type: mistral-v2
-entry_point: workflows/mistral-test-pause-resume-subworkflow-workbook.yaml
+entry_point: workflows/tests/mistral-test-pause-resume-subworkflow-workbook.yaml
 enabled: true
 parameters:
     tempfile:

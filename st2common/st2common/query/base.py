@@ -42,39 +42,33 @@ __all__ = [
 class Querier(object):
     delete_state_object_on_error = True
 
-    def __init__(self, empty_q_sleep_time=5,
-                 no_workers_sleep_time=1, container_service=None):
+    def _get_config_value(self, config_option):
+        config_value = None
 
-        # Let's check to see if deprecated config group ``results_tracker`` is being used.
-        try:
-            query_interval = cfg.CONF.results_tracker.query_interval
-            LOG.warning('You are using deprecated config group ``results_tracker``.' +
-                        '\nPlease use ``resultstracker`` group instead.')
-        except:
-            pass
+        if 'results_tracker' in cfg.CONF and config_option in cfg.CONF.results_tracker:
+            config_value = getattr(cfg.CONF.results_tracker, config_option)
+            LOG.warning('You are using deprecated config group "results_tracker" for "%s". '
+                        'Please use "resultstracker" group instead.', config_option)
 
-        try:
-            thread_pool_size = cfg.CONF.results_tracker.thread_pool_size
-            LOG.warning('You are using deprecated config group ``results_tracker``.' +
-                        '\nPlease use ``resultstracker`` group instead.')
-        except:
-            pass
+        if not config_value and config_option in cfg.CONF.resultstracker:
+            config_value = getattr(cfg.CONF.resultstracker, config_option)
 
-        if not query_interval:
-            query_interval = cfg.CONF.resultstracker.query_interval
-        if not thread_pool_size:
-            thread_pool_size = cfg.CONF.resultstracker.thread_pool_size
+        return config_value
 
-        self._query_thread_pool_size = thread_pool_size
-        self._query_interval = query_interval
+    def __init__(self, container_service=None):
+        self._empty_q_sleep_time = self._get_config_value('empty_q_sleep_time')
+        self._no_workers_sleep_time = self._get_config_value('no_workers_sleep_time')
+        self._query_interval = self._get_config_value('query_interval')
+        self._query_thread_pool_size = self._get_config_value('thread_pool_size')
         self._query_contexts = Queue.Queue()
         self._thread_pool = eventlet.GreenPool(self._query_thread_pool_size)
-        self._empty_q_sleep_time = empty_q_sleep_time
-        self._no_workers_sleep_time = no_workers_sleep_time
-        if not container_service:
-            container_service = RunnerContainerService()
-        self.container_service = container_service
         self._started = False
+
+        self.container_service = (
+            RunnerContainerService()
+            if not container_service
+            else container_service
+        )
 
     def start(self):
         self._started = True

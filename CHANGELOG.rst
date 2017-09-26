@@ -29,6 +29,33 @@ Added
 
   (new feature) #2175 #3657 #3729
 
+Fixed
+~~~~~
+
+* Fix a bug where sensor watch queues were not deleted after sensor container process was shut
+  down. This resulted in spurious queues left behind. This should not have caused performance
+  impact but just messes with rabbitmqadmin output and maybe tedious for operators. (bug fix) #3628
+
+  Reported by Igor.
+* Make sure all the temporary RabbitMQ queues used by the stream service are deleted once the
+  connection to RabbitMQ is closed. Those queues are temporary and unique in nature and new ones
+  are created on each service start-up so we need to make sure to correctly clean up old queues.
+
+  #3746
+* Fix cancellation of subworkflow and subchain. Cancel of Mistral workflow or Action Chain is
+  cascaded down to subworkflows appropriately. Cancel from tasks in the workflow or chain is
+  cascaded up to the parent. (bug fix) 
+* Fix delays in st2resultstracker on querying workflow status from Mistral. Make sleep time for
+  empty queue and no workers configurable. Reduce the default sleep times to 1 second. StackStorm
+  instances that handle more workflows should consider increasing the query interval for better
+  CPU utilization.
+* Fix missing type for the parameters with enum in the core st2 packs.(bug fix) #3737
+
+  Reported by Nick Maludy.
+* Add missing ``-h`` / ``--help`` CLI flag to the following execution CLI commands: cancel, pause,
+  resume. (bug fix) #3750
+* Fix execution cancel and pause CLI commands and make id a required argument. (bug fix) #3750
+
 2.4.1 - September 12, 2017
 --------------------------
 

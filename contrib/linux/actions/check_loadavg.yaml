@@ -11,6 +11,7 @@
         - "5"
         - "15"
         - "all"
+      type: "string"
       description: "Time period for load avg: 1,5,15 minutes, or 'all'"
       default: "all"
       position: 0
