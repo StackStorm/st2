@@ -6,6 +6,7 @@ chain:
         tag: developers
         users:
           - testu
+      on-success: "task2"
 
     - name: task2
       ref: core.local
