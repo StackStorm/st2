@@ -31,6 +31,10 @@ Added
 * Update ``st2 role-assignment list`` RBAC CLI command to include information about where a
   particular assignment comes from (from which local assignment or mapping file). (improvement)
   #3763
+* Add support for overlapping RBAC role assignments for assignments via remote LDAP group to
+  StackStorm role mappings. This means that the same role can now be granted via multiple RBAC
+  mapping files.
+  #3763
 
 Fixed
 ~~~~~
