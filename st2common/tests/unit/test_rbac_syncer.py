@@ -247,6 +247,24 @@ class RBACDefinitionsDBSyncerTestCase(BaseRBACDefinitionsDBSyncerTestCase):
         self.assertEqual(role_assignment_dbs[0].source, 'assignments/user2.yaml')
         self.assertEqual(role_assignment_dbs[1].source, 'assignments/user2.yaml')
 
+    def test_sync_user_assignments_role_doesnt_exist_in_db(self):
+        syncer = RBACDefinitionsDBSyncer()
+
+        self._insert_mock_roles()
+
+        # Initial state, no roles
+        role_dbs = get_roles_for_user(user_db=self.users['user_2'])
+        self.assertItemsEqual(role_dbs, [])
+
+        # Do the sync with role defined in separate files
+        assignment1 = UserRoleAssignmentFileFormatAPI(
+            username='user_2', roles=['doesnt_exist'], file_path='assignments/user2.yaml')
+
+        expected_msg = ('Role "doesnt_exist" referenced in assignment file '
+                        '"assignments/user2.yaml" doesn\'t exist')
+        self.assertRaisesRegexp(ValueError, expected_msg, syncer.sync_users_role_assignments,
+                                role_assignment_apis=[assignment1])
+
     def test_sync_user_assignments_multiple_sources_same_role_assignment(self):
         syncer = RBACDefinitionsDBSyncer()
 
