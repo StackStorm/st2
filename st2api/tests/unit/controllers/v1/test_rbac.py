@@ -118,7 +118,7 @@ class RBACControllerTestCase(APIControllerWithRBACTestCase):
         self.assertEqual(resp.json[0]['user'], 'system_admin')
         self.assertEqual(resp.json[0]['is_remote'], False)
 
-    def test_role_assignments_get_all_with_user_role_and_remote_filter(self):
+    def test_role_assignments_get_all_with_user_rold_remote_and_source_filter(self):
         # ?user filter
         self.use_user(self.users['admin'])
 
@@ -150,6 +150,16 @@ class RBACControllerTestCase(APIControllerWithRBACTestCase):
 
         for role in resp.json:
             self.assertTrue(role['is_remote'])
+
+        # ?source filter
+        resp = self.app.get('/v1/rbac/role_assignments?source=doesnt_exist')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 0)
+
+        resp = self.app.get('/v1/rbac/role_assignments?source=assignments/user_two.yaml')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['source'], 'assignments/user_two.yaml')
 
     def test_role_assignment_get_one(self):
         self.use_user(self.users['admin'])
