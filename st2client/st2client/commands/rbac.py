@@ -113,12 +113,10 @@ class RoleAssignmentListCommand(resource.ResourceCommand):
             resource.get_plural_display_name().lower(),
             *args, **kwargs)
 
-        self.group = self.parser.add_mutually_exclusive_group()
-
         # Filter options
-        self.group.add_argument('-r', '--role', help='Role to filter on.')
-        self.group.add_argument('-u', '--user', help='User to filter on.')
-        self.group.add_argument('--remote', action='store_true',
+        self.parser.add_argument('-r', '--role', help='Role to filter on.')
+        self.parser.add_argument('-u', '--user', help='User to filter on.')
+        self.parser.add_argument('--remote', action='store_true',
                                 help='Only display remote role assignments.')
 
         # Display options

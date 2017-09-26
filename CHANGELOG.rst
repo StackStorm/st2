@@ -62,6 +62,9 @@ Fixed
 * Add missing ``-h`` / ``--help`` CLI flag to the following execution CLI commands: cancel, pause,
   resume. (bug fix) #3750
 * Fix execution cancel and pause CLI commands and make id a required argument. (bug fix) #3750
+* Fix ``st2 role-assignment list`` CLI command and allow ``--user``, ``--remote`` and ``--role``
+  arguments to be used together. Previously they were mutually exclusive so it wasn't possible to
+  use them together. (bug fix) #3763
 
 2.4.1 - September 12, 2017
 --------------------------
