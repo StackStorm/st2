@@ -317,36 +317,40 @@ class RBACDefinitionsDBSyncer(object):
             if (role_assignment_db.role, role_assignment_db.source) in roles_to_delete
         ]
 
-        for role_to_delete in roles_to_delete:
+        for role_name, assignment_source in roles_to_delete:
             queryset_filter = (
                 Q(user=user_db.name) &
-                Q(role=role_to_delete[0]) &
-                Q(source=role_to_delete[1]) &
+                Q(role=role_name) &
+                Q(source=assignment_source) &
                 (Q(is_remote=False) | Q(is_remote__exists=False))
             )
 
             UserRoleAssignmentDB.objects(queryset_filter).delete()
 
-            LOG.debug('Removed role "%s" from "%s" for user "%s".' %
-                (role_to_delete[0], role_to_delete[1], user_db.name))
+            LOG.debug('Removed role "%s" from "%s" for user "%s".' % (role_name, assignment_source,
+                                                                      user_db.name))
 
         # Build a list of roles assignments to create
         roles_to_create = new_roles.union(updated_roles)
         created_role_assignment_dbs = []
 
-        for role in roles_to_create:
-            role_db = list(Role.query(name=role[0]))[0]
-            role_assignment_api = [r for r in role_assignment_apis if r.file_path == role[1]][0]
+        for role_name, assignment_source in roles_to_create:
+            role_db = Role.get(name=role_name)
+            if not role_db:
+                msg = 'Role "%s" referenced in assignment file "%s" doesn\'t exist'
+                raise ValueError(msg % (role_name, assignment_source))
+
+            role_assignment_api = [r for r in role_assignment_apis if
+                                   r.file_path == assignment_source][0]
             description = getattr(role_assignment_api, 'description', None)
-            source = role[1]
 
             assignment_db = rbac_services.assign_role_to_user(
-                role_db=role_db, user_db=user_db, source=source, description=description)
+                role_db=role_db, user_db=user_db, source=assignment_source, description=description)
 
             created_role_assignment_dbs.append(assignment_db)
 
             LOG.debug('Assigned role "%s" from "%s" for user "%s".' %
-                (role[0], role[1], user_db.name))
+                (role_name, assignment_source, user_db.name))
 
         return (created_role_assignment_dbs, role_assignment_dbs_to_delete)
 
