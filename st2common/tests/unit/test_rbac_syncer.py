@@ -630,6 +630,7 @@ class RBACRemoteGroupToRoleSyncerTestCase(BaseRBACDefinitionsDBSyncerTestCase):
         self.assertEqual(role_dbs[2], self.roles['mock_remote_role_3'])
         self.assertEqual(role_dbs[3], self.roles['mock_remote_role_4'])
 
+        role_assignment_dbs = get_role_assignments_for_user(user_db=self.users['user_1'])
         self.assertEqual(len(role_assignment_dbs), 4)
         self.assertEqual(role_assignment_dbs[2].source, 'mappings/stormers.yaml')
         self.assertEqual(role_assignment_dbs[3].source, 'mappings/stormers.yaml')
