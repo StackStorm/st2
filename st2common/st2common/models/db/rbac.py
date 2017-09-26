@@ -62,7 +62,8 @@ class UserRoleAssignmentDB(stormbase.StormFoundationDB):
     Attribute:
         user: A reference to the user name to which the role is assigned.
         role: A reference to the role name which is assigned to the user.
-        source: Path to the metadata for this user role assignment.
+        source: Source where this assignment comes from. Path to a file for local assignments
+                and "API" for API assignments.
         description: Optional assigment description.
     """
     user = me.StringField(required=True)
@@ -114,7 +115,8 @@ class GroupToRoleMappingDB(stormbase.StormFoundationDB):
     Attribute:
         group: Name of the remote auth backend group.
         roles: A reference to the local RBAC role names.
-        source: Path to the metadata for this group to role mapping.
+        source: Source where this assignment comes from. Path to a file for local assignments
+                and "API" for API assignments.
         description: Optional description for this mapping.
         metata: Optional metadata for this mapping.
     """
