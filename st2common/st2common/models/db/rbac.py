@@ -118,7 +118,6 @@ class GroupToRoleMappingDB(stormbase.StormFoundationDB):
         source: Source where this assignment comes from. Path to a file for local assignments
                 and "API" for API assignments.
         description: Optional description for this mapping.
-        metata: Optional metadata for this mapping.
     """
     group = me.StringField(required=True, unique=True)
     roles = me.ListField(field=me.StringField())
