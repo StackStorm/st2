@@ -64,6 +64,10 @@ class BaseRBACDefinitionsDBSyncerTestCase(CleanDbTestCase):
         user_5_db = User.add_or_update(user_5_db)
         self.users['user_5'] = user_5_db
 
+        user_6_db = UserDB(name='user_6')
+        user_6_db = User.add_or_update(user_6_db)
+        self.users['user_6'] = user_6_db
+
     def _insert_mock_roles(self):
         # Create some mock roles
         role_1_db = create_role(name='role_1')
@@ -629,6 +633,67 @@ class RBACRemoteGroupToRoleSyncerTestCase(BaseRBACDefinitionsDBSyncerTestCase):
         self.assertEqual(len(role_assignment_dbs), 4)
         self.assertEqual(role_assignment_dbs[2].source, 'mappings/stormers.yaml')
         self.assertEqual(role_assignment_dbs[3].source, 'mappings/stormers.yaml')
+
+    def test_sync_user_same_role_granted_locally_and_remote_via_mapping(self):
+        syncer = RBACRemoteGroupToRoleSyncer()
+        user_db = self.users['user_6']
+
+        # Insert 2 local assignments for mock_role_7
+        role_db = create_role(name='mock_role_7')
+
+        source = 'assignments/user_6_one.yaml'
+        assign_role_to_user(role_db=role_db, user_db=user_db, source=source, is_remote=False)
+
+        source = 'assignments/user_6_two.yaml'
+        assign_role_to_user(role_db=role_db, user_db=user_db, source=source, is_remote=False)
+
+        # Create mock mapping which maps CN=stormers,OU=groups,DC=stackstorm,DC=net
+        # to "mock_role_7"
+        create_group_to_role_map(group='CN=stormers,OU=groups,DC=stackstorm,DC=net',
+                                 roles=['mock_role_7'],
+                                 source='mappings/stormers.yaml')
+
+        # Create mock mapping which maps CN=testers,OU=groups,DC=stackstorm,DC=net
+        # to "mock_role_7"
+        create_group_to_role_map(group='CN=testers,OU=groups,DC=stackstorm,DC=net',
+                                 roles=['mock_role_7'],
+                                 source='mappings/testers.yaml')
+
+        groups = [
+            'CN=stormers,OU=groups,DC=stackstorm,DC=net',
+            'CN=testers,OU=groups,DC=stackstorm,DC=net'
+        ]
+        result = syncer.sync(user_db=self.users['user_6'], groups=groups)
+        created_role_assignment_dbs = result[0]
+        removed_role_assignment_dbs = result[1]
+        self.assertEqual(len(created_role_assignment_dbs), 2)
+        self.assertEqual(created_role_assignment_dbs[0].role, 'mock_role_7')
+        self.assertEqual(created_role_assignment_dbs[1].role, 'mock_role_7')
+        self.assertEqual(removed_role_assignment_dbs, [])
+
+        # There should be one role and 4 assignments for the same role
+        role_dbs = get_roles_for_user(user_db=user_db, include_remote=True)
+        self.assertEqual(len(role_dbs), 1)
+        self.assertEqual(role_dbs[0].name, 'mock_role_7')
+
+        role_assignment_dbs = get_role_assignments_for_user(user_db=self.users['user_6'])
+        self.assertEqual(len(role_assignment_dbs), 4)
+        self.assertEqual(role_assignment_dbs[0].source, 'assignments/user_6_one.yaml')
+        self.assertEqual(role_assignment_dbs[1].source, 'assignments/user_6_two.yaml')
+        self.assertEqual(role_assignment_dbs[2].source, 'mappings/stormers.yaml')
+        self.assertEqual(role_assignment_dbs[3].source, 'mappings/testers.yaml')
+
+        # Remove one remote group - should be 3 left
+        groups = [
+            'CN=stormers,OU=groups,DC=stackstorm,DC=net'
+        ]
+        result = syncer.sync(user_db=self.users['user_6'], groups=groups)
+        role_dbs = get_roles_for_user(user_db=user_db, include_remote=True)
+        self.assertEqual(len(role_dbs), 1)
+        self.assertEqual(role_dbs[0].name, 'mock_role_7')
+
+        role_assignment_dbs = get_role_assignments_for_user(user_db=self.users['user_6'])
+        self.assertEqual(len(role_assignment_dbs), 3)
 
     def test_sync_user_same_role_from_multiple_mappings(self):
         syncer = RBACRemoteGroupToRoleSyncer()
