@@ -28,6 +28,13 @@ Added
   set ``actionrunner.stream_output`` config option to ``True``.
 
   (new feature) #2175 #3657 #3729
+* Update ``st2 role-assignment list`` RBAC CLI command to include information about where a
+  particular assignment comes from (from which local assignment or mapping file). (improvement)
+  #3763
+* Add support for overlapping RBAC role assignments for assignments via remote LDAP group to
+  StackStorm role mappings. This means that the same role can now be granted via multiple RBAC
+  mapping files.
+  #3763
 
 Fixed
 ~~~~~
@@ -55,6 +62,9 @@ Fixed
 * Add missing ``-h`` / ``--help`` CLI flag to the following execution CLI commands: cancel, pause,
   resume. (bug fix) #3750
 * Fix execution cancel and pause CLI commands and make id a required argument. (bug fix) #3750
+* Fix ``st2 role-assignment list`` CLI command and allow ``--user``, ``--remote`` and ``--role``
+  arguments to be used together. Previously they were mutually exclusive so it wasn't possible to
+  use them together. (bug fix) #3763
 
 2.4.1 - September 12, 2017
 --------------------------

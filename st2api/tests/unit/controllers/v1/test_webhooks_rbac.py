@@ -89,12 +89,14 @@ class WebhookControllerRBACTestCase(APIControllerWithRBACTestCase):
         # Role assignments
         role_assignment_db = UserRoleAssignmentDB(
             user=self.users['webhook_list'].name,
-            role=self.roles['webhook_list'].name)
+            role=self.roles['webhook_list'].name,
+            source='assignments/%s.yaml' % self.users['webhook_list'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         role_assignment_db = UserRoleAssignmentDB(
             user=self.users['webhook_view'].name,
-            role=self.roles['webhook_view'].name)
+            role=self.roles['webhook_view'].name,
+            source='assignments/%s.yaml' % self.users['webhook_view'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
     def test_get_all_no_permissions(self):

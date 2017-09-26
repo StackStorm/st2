@@ -86,7 +86,8 @@ class ActionViewsControllerRBACTestCase(APIControllerWithRBACTestCase):
         # Role assignments
         role_assignment_db = UserRoleAssignmentDB(
             user=self.users['action_view_a1'].name,
-            role=self.roles['action_view_a1'].name)
+            role=self.roles['action_view_a1'].name,
+            source='assignments/%s.yaml' % self.users['action_view_a1'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
     def test_get_entry_point_view_no_permission(self):

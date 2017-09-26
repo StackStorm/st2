@@ -110,6 +110,9 @@ class UserRoleAssignmentAPI(BaseAPI):
             },
             'is_remote': {
                 'type': 'boolean'
+            },
+            'source': {
+                'type': 'string'
             }
         },
         'additionalProperties': False
@@ -282,7 +285,14 @@ class UserRoleAssignmentFileFormatAPI(BaseAPI):
                     'type': 'string'
                 },
                 'required': True
+            },
+            'file_path': {
+                'type': 'string',
+                'description': 'Path of the file of where this assignment comes from.',
+                'default': None,
+                'required': False
             }
+
         },
         'additionalProperties': False
     }
@@ -324,7 +334,12 @@ class AuthGroupToRoleMapAssignmentFileFormatAPI(BaseAPI):
                 },
                 'required': True
             },
-
+            'file_path': {
+                'type': 'string',
+                'description': 'Path of the file of where this assignment comes from.',
+                'default': None,
+                'required': False
+            }
         },
         'additionalProperties': False
     }
