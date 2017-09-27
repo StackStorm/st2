@@ -29,7 +29,8 @@ class JinjaUtilsDataFilterTestCase(unittest2.TestCase):
 
         template = '{{k1 | from_json_string}}'
 
-        obj = env.from_string(template).render({'k1': obj})
+        obj_str = env.from_string(template).render({'k1': obj_json_str})
+        obj = eval(obj_str)
         self.assertDictEqual(obj, expected_obj)
 
     def test_filter_from_yaml_string(self):
@@ -43,7 +44,8 @@ class JinjaUtilsDataFilterTestCase(unittest2.TestCase):
                         "  g: true\n")
 
         template = '{{k1 | from_yaml_string}}'
-        obj = env.from_string(template).render({'k1': obj})
+        obj_str = env.from_string(template).render({'k1': obj_yaml_str})
+        obj = eval(obj_str)
         self.assertDictEqual(obj, expected_obj)
 
     def test_filter_to_json_string(self):

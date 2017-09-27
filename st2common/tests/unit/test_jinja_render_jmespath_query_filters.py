@@ -14,6 +14,7 @@
 # limitations under the License.
 
 
+import json
 import unittest2
 
 from st2common.util import jinja as jinja_utils
@@ -30,7 +31,8 @@ class JinjaUtilsJmespathQueryTestCase(unittest2.TestCase):
                'foo': {'bar': 'baz'}}
 
         template = '{{ obj | jmespath_query("people[*].first") }}'
-        actual = env.from_string(template).render({'obj': obj})
+        actual_str = env.from_string(template).render({'obj': obj})
+        actual = eval(actual_str)
         expected = ['James', 'Jacob', 'Jayden']
         self.assertEqual(actual, expected)
 
@@ -45,8 +47,9 @@ class JinjaUtilsJmespathQueryTestCase(unittest2.TestCase):
         query = "people[*].last"
 
         template = '{{ obj | jmespath_query(query) }}'
-        actual = env.from_string(template).render({'obj': obj,
-                                                   'query': query})
+        actual_str = env.from_string(template).render({'obj': obj,
+                                                       'query': query})
+        actual = eval(actual_str)
         expected = ['d', 'e', 'f']
         self.assertEqual(actual, expected)
 
@@ -61,6 +64,7 @@ class JinjaUtilsJmespathQueryTestCase(unittest2.TestCase):
         obj_json_str = json.dumps(obj)
 
         template = '{{ obj_str | jmespath_query_str("people[*].first") }}'
-        actual = env.from_string(template).render({'obj_str': obj})
+        actual_str = env.from_string(template).render({'obj_str': obj_json_str})
+        actual = eval(actual_str)
         expected = ['James', 'Jacob', 'Jayden']
         self.assertEqual(actual, expected)
