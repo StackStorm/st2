@@ -62,10 +62,10 @@ def purge_inquiries(logger):
         if min_since_creation > ttl:
 
             gc_count += 1
-            logger.info("TTL expired for Inquiry %s. Marking as failed." % inquiry.id)
+            logger.info("TTL expired for Inquiry %s. Marking as timed out." % inquiry.id)
 
             liveaction_db = action_utils.update_liveaction_status(
-                status=action_constants.LIVEACTION_STATUS_FAILED,
+                status=action_constants.LIVEACTION_STATUS_TIMED_OUT,
                 result=inquiry.result,
                 liveaction_id=inquiry.liveaction.get('id'))
             executions.update_execution(liveaction_db)
@@ -75,7 +75,8 @@ def purge_inquiries(logger):
             action_db = get_action_by_ref(liveaction_db.action)
             runnertype_db = get_runnertype_by_name(action_db.runner_type['name'])
             runner = runner_container._get_runner(runnertype_db, action_db, liveaction_db)
-            runner.post_run(status=action_constants.LIVEACTION_STATUS_FAILED, result=inquiry.result)
+            runner.post_run(status=action_constants.LIVEACTION_STATUS_TIMED_OUT,
+                            result=inquiry.result)
 
             if liveaction_db.context.get("parent"):
 
@@ -86,4 +87,4 @@ def purge_inquiries(logger):
                     UserDB(cfg.CONF.system_user.user)
                 )
 
-    logger.info('Marked %s ttl-expired Inquiries as "failed"' % (gc_count))
+    logger.info('Marked %s ttl-expired Inquiries as "timed out".' % (gc_count))
