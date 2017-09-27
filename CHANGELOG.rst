@@ -37,7 +37,6 @@ Added
   #3763
 * Add new Jinja filters ``from_json_string``, ``from_yaml_string``, and ``jmespath_query``.
   #3763
-
   
 Fixed
 ~~~~~
