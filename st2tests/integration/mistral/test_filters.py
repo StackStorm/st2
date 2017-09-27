@@ -47,7 +47,7 @@ class FromJsonStringFiltersTest(base.TestWorkflowExecution):
 
 class FromYamlStringFiltersTest(base.TestWorkflowExecution):
 
-    def test_to_yaml_string(self):
+    def test_from_yaml_string(self):
 
         execution = self._execute_workflow(
             'examples.mistral-test-func-from-yaml-string',
