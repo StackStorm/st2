@@ -25,6 +25,72 @@ REGEX_SEARCH_STRINGS = [
 ]
 
 
+class FromJsonStringFiltersTest(base.TestWorkflowExecution):
+
+    def test_from_json_string(self):
+
+        execution = self._execute_workflow(
+            'examples.mistral-test-func-from-json-string',
+            parameters={
+                "input_str": '{"a": "b"}'
+            }
+        )
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=1)
+        jinja_dict = execution.result['result_jinja']
+        yaql_dict = execution.result['result_yaql']
+        self.assertTrue(isinstance(jinja_dict, dict))
+        self.assertEqual(jinja_dict["a"], "b")
+        self.assertTrue(isinstance(yaql_dict, dict))
+        self.assertEqual(yaql_dict["a"], "b")
+
+
+class FromYamlStringFiltersTest(base.TestWorkflowExecution):
+
+    def test_to_yaml_string(self):
+
+        execution = self._execute_workflow(
+            'examples.mistral-test-func-from-yaml-string',
+            parameters={
+                "input_str": 'a: b'
+            }
+        )
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=1)
+        jinja_dict = execution.result['result_jinja']
+        yaql_dict = execution.result['result_yaql']
+        self.assertTrue(isinstance(jinja_dict, dict))
+        self.assertEqual(jinja_dict["a"], "b")
+        self.assertTrue(isinstance(yaql_dict, dict))
+        self.assertEqual(yaql_dict["a"], "b")
+
+
+class JmespathQueryFiltersTest(base.TestWorkflowExecution):
+
+    def test_jmespath_query(self):
+
+        execution = self._execute_workflow(
+            'examples.mistral-test-func-jmespath-query',
+            parameters={
+                "input_obj": {'people': [{'first': 'James', 'last': 'Smith'},
+                                         {'first': 'Jacob', 'last': 'Alberts'},
+                                         {'first': 'Jayden', 'last': 'Davis'},
+                                         {'missing': 'different'}]}
+                "input_query": "people[*].last"
+            }
+        )
+        expected_result = ['Smith', 'Alberts', 'Davis']
+
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=1)
+        jinja_result = execution.result['result_jinja']
+        yaql_result = execution.result['result_yaql']
+        self.assertTrue(isinstance(jinja_result, list))
+        self.assertEqual(jinja_result, expected_result)
+        self.assertTrue(isinstance(yaql_result, list))
+        self.assertEqual(yaql_result, expected_result)
+
+
 class JsonEscapeFiltersTest(base.TestWorkflowExecution):
 
     def test_json_escape(self):
