@@ -280,5 +280,41 @@ class InquiriesController(ResourceController):
         # Both must pass
         return roles_passed and users_passed
 
+    def _get_one_by_id(self, id, requester_user, permission_type, exclude_fields=None,
+                       from_model_kwargs=None):
+        """Override ResourceController._get_one_by_id to contain scope of Inquiries UID hack
+
+        :param exclude_fields: A list of object fields to exclude.
+        :type exclude_fields: ``list``
+        """
+
+        instance = self._get_by_id(resource_id=id, exclude_fields=exclude_fields)
+
+        # _get_by_id pulls the resource by ID directly off of the database. Since
+        # Inquiries don't have their own DB model yet, this comes in the format
+        # "execution:<id>". So, to allow RBAC to get a handle on inquiries specifically,
+        # we're overriding the "get_uid" function to return one specific to Inquiries.
+        #
+        # TODO (mierdin): All of this should be removed once Inquiries get their own DB model
+        if getattr(instance, 'runner', None) and instance.runner.get('runner_module') == 'inquirer':
+            def get_uid():
+                return "inquiry:ask"
+            instance.get_uid = get_uid
+
+        if permission_type:
+            rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                              resource_db=instance,
+                                                              permission_type=permission_type)
+
+        if not instance:
+            msg = 'Unable to identify resource with id "%s".' % id
+            abort(http_client.NOT_FOUND, msg)
+
+        from_model_kwargs = from_model_kwargs or {}
+        from_model_kwargs.update(self.from_model_kwargs)
+        result = self.model.from_model(instance, **from_model_kwargs)
+
+        return result
+
 
 inquiries_controller = InquiriesController()
