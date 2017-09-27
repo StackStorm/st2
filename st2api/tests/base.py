@@ -99,8 +99,8 @@ class BaseInquiryControllerTestCase(BaseFunctionalTest, CleanDbTestCase):
         }
         return self.app.put_json('/exp/inquiries/%s' % inquiry_id, payload, *args, **kwargs)
 
-    def _do_create_inquiry(self, liveaction, result, *args, **kwargs):
+    def _do_create_inquiry(self, liveaction, result, status='pending', *args, **kwargs):
         post_resp = self.app.post_json('/v1/executions', liveaction, *args, **kwargs)
         inquiry_id = self._get_inquiry_id(post_resp)
-        updates = {'status': 'pending', 'result': result}
+        updates = {'status': status, 'result': result}
         return self.app.put_json('/v1/executions/%s' % inquiry_id, updates, *args, **kwargs)

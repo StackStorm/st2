@@ -104,7 +104,9 @@ class InquiriesController(ResourceController):
             permission_type=PermissionType.INQUIRY_VIEW
         )
 
-        if not self._inquiry_sanity_check(inquiry):
+        sanity_result, msg = self._inquiry_sanity_check(inquiry)
+        if not sanity_result:
+            abort(http_client.BAD_REQUEST, msg)
             return
 
         return InquiryResponseAPI.from_inquiry_api(inquiry)
@@ -130,7 +132,9 @@ class InquiriesController(ResourceController):
             permission_type=PermissionType.INQUIRY_RESPOND
         )
 
-        if not self._inquiry_sanity_check(inquiry):
+        sanity_result, msg = self._inquiry_sanity_check(inquiry)
+        if not sanity_result:
+            abort(http_client.BAD_REQUEST, msg)
             return
 
         if not requester_user:
@@ -188,18 +192,22 @@ class InquiriesController(ResourceController):
         :param inquiry_candidate: The inquiry to check
 
         :rtype: bool - True if a valid Inquiry. False if not.
+        :rtype: str - Error message, if any
         """
 
         if inquiry_candidate.runner.get('runner_module') != "inquirer":
-            abort(http_client.BAD_REQUEST, '%s is not an Inquiry.' % inquiry_candidate.id)
-            return False
+            return (False, '%s is not an Inquiry.' % inquiry_candidate.id)
 
-        if inquiry_candidate.status != "pending":
-            abort(http_client.BAD_REQUEST,
-                  'Inquiry %s has already been responded to' % inquiry_candidate.id)
-            return False
+        if inquiry_candidate.status == action_constants.LIVEACTION_STATUS_TIMED_OUT:
+            return (
+                False,
+                'Inquiry %s timed out and can no longer be responded to' % inquiry_candidate.id
+            )
 
-        return True
+        if inquiry_candidate.status != action_constants.LIVEACTION_STATUS_PENDING:
+            return (False, 'Inquiry %s has already been responded to' % inquiry_candidate.id)
+
+        return (True, "")
 
     def _mark_inquiry_complete(self, inquiry_id, result):
         """Mark Inquiry as completed

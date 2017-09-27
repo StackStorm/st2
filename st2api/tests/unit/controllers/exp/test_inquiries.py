@@ -75,6 +75,15 @@ INQUIRY_2 = {
     }
 }
 
+INQUIRY_TIMEOUT = {
+    'action': 'testpack.st2.dummy.ask',
+    'status': 'timeout',
+    'parameters': {
+        'tag': 'superlative',
+        'users': ['foo', 'bar']
+    }
+}
+
 SCHEMA_DEFAULT = {
     "title": "response_data",
     "type": "object",
@@ -357,6 +366,17 @@ class InquiryControllerTestCase(BaseInquiryControllerTestCase):
         put_resp = self._do_respond(inquiry_id, response, expect_errors=True)
         self.assertEqual(put_resp.status_int, http_client.BAD_REQUEST)
         self.assertIn('has already been responded to', put_resp.json['faultstring'])
+
+    def test_respond_timeout_rejected(self):
+        """Test that responding to a timed-out Inquiry fails
+        """
+
+        post_resp = self._do_create_inquiry(INQUIRY_TIMEOUT, RESULT_DEFAULT, status='timeout')
+        inquiry_id = self._get_inquiry_id(post_resp)
+        response = {"continue": True}
+        put_resp = self._do_respond(inquiry_id, response, expect_errors=True)
+        self.assertEqual(put_resp.status_int, http_client.BAD_REQUEST)
+        self.assertIn('timed out and can no longer be responded to', put_resp.json['faultstring'])
 
     def test_respond_restrict_users(self):
         """Test that Inquiries can reject responses from users not in a list
