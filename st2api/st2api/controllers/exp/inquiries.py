@@ -73,8 +73,11 @@ class InquiriesController(ResourceController):
             }
         )
 
-        # Transform to InquiryResponseAPI model
-        inquiries = [InquiryResponseAPI.from_inquiry_api(InquiryAPI.from_dict(raw_inquiry))
+        # Since "model" is set to InquiryAPI (for good reasons), _get_all returns a list of
+        # InquiryAPI instances, already converted to JSON. So in order to convert these to
+        # InquiryResponseAPI instances, we first have to convert raw_inquiries.body back to
+        # a list of dicts, and then individually convert these to InquiryResponseAPI instances
+        inquiries = [InquiryResponseAPI.from_model(raw_inquiry, skip_db=True)
                      for raw_inquiry in json.loads(raw_inquiries.body)]
 
         # Repackage into Response with correct headers

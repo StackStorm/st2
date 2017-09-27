@@ -130,28 +130,6 @@ class InquiryAPI(BaseAPI):
 
         return cls(**newdoc)
 
-    @classmethod
-    def from_dict(cls, doc):
-        """Translates InquiryAPI in its dict format into a class instance
-
-        This is similar to from_model but without executing the _from_model function,
-        as this takes a dict as a parameter.
-        """
-
-        newdoc = {
-            "id": doc["id"],
-            "runner": doc["runner"],
-            "status": doc["status"],
-            "liveaction": doc["liveaction"],
-            "parent": doc.get("parent"),
-            "result": doc['result']
-        }
-
-        for field in ["tag", "ttl", "users", "roles", "schema"]:
-            newdoc[field] = doc["result"].get(field)
-
-        return cls(**newdoc)
-
 
 class InquiryResponseAPI(BaseAPI):
     """A more pruned Inquiry model, containing only the fields needed for an API response
@@ -207,8 +185,20 @@ class InquiryResponseAPI(BaseAPI):
     }
 
     @classmethod
-    def from_model(cls, model, mask_secrets=False):
-        doc = cls._from_model(model, mask_secrets=mask_secrets)
+    def from_model(cls, model, mask_secrets=False, skip_db=False):
+        """Create InquiryResponseAPI instance from model
+
+        Allows skipping the BaseAPI._from_model function if you already
+        have a properly formed dict and just need to prune it
+
+        :param skip_db: Skip the parent class' _from_model function call
+        :rtype: InquiryResponseAPI
+        """
+
+        if not skip_db:
+            doc = cls._from_model(model, mask_secrets=mask_secrets)
+        else:
+            doc = model
 
         newdoc = {
             "id": doc["id"]
