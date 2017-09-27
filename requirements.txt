@@ -12,6 +12,7 @@ gitpython==2.1.5
 gunicorn==19.7.1
 ipaddr
 jinja2
+jmespath<1.0.0,>=0.9.3
 jsonpath-rw==1.4.0
 jsonschema==2.6.0
 kombu==4.0.2

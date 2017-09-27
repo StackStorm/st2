@@ -22,6 +22,30 @@ from st2common.util import jinja as jinja_utils
 
 class JinjaUtilsDataFilterTestCase(unittest2.TestCase):
 
+    def test_filter_from_json_string(self):
+        env = jinja_utils.get_jinja_environment()
+        expected_obj = {'a': 'b', 'c': {'d': 'e', 'f': 1, 'g': True}}
+        obj_json_str = '{"a": "b", "c": {"d": "e", "f": 1, "g": true}}'
+
+        template = '{{k1 | from_json_string}}'
+
+        obj = env.from_string(template).render({'k1': obj})
+        self.assertDictEqual(obj, expected_obj)
+
+    def test_filter_from_yaml_string(self):
+        env = jinja_utils.get_jinja_environment()
+        expected_obj = {'a': 'b', 'c': {'d': 'e', 'f': 1, 'g': True}}
+        obj_yaml_str = ("---\n"
+                        "a: b\n"
+                        "c:\n"
+                        "  d: e\n"
+                        "  f: 1\n"
+                        "  g: true\n")
+
+        template = '{{k1 | from_yaml_string}}'
+        obj = env.from_string(template).render({'k1': obj})
+        self.assertDictEqual(obj, expected_obj)
+
     def test_filter_to_json_string(self):
         env = jinja_utils.get_jinja_environment()
         obj = {'a': 'b', 'c': {'d': 'e', 'f': 1, 'g': True}}

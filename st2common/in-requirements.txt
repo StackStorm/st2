@@ -3,6 +3,7 @@ apscheduler
 python-dateutil
 eventlet
 jinja2
+jmespath
 jsonschema
 kombu
 mongoengine
