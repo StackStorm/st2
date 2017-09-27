@@ -369,7 +369,7 @@ class InquiryControllerTestCase(BaseInquiryControllerTestCase):
         response = {"continue": True}
         put_resp = self._do_respond(inquiry_id, response, expect_errors=True)
         self.assertEqual(put_resp.status_int, http_client.FORBIDDEN)
-        self.assertIn('Insufficient permission to respond based on Inquiry parameters.',
+        self.assertIn('Requesting user does not have permission to respond to inquiry',
                       put_resp.json['faultstring'])
 
         # Responding as a use in the list should be accepted

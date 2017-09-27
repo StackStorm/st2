@@ -140,7 +140,7 @@ class InquiriesController(ResourceController):
         if not self._can_respond(inquiry, requester_user):
             abort(
                 http_client.FORBIDDEN,
-                'Insufficient permission to respond based on Inquiry parameters.'
+                'Requesting user does not have permission to respond to inquiry %s.' % inquiry_id
             )
             return
 
