@@ -75,7 +75,7 @@ class JmespathQueryFiltersTest(base.TestWorkflowExecution):
                 "input_obj": {'people': [{'first': 'James', 'last': 'Smith'},
                                          {'first': 'Jacob', 'last': 'Alberts'},
                                          {'first': 'Jayden', 'last': 'Davis'},
-                                         {'missing': 'different'}]}
+                                         {'missing': 'different'}]},
                 "input_query": "people[*].last"
             }
         )

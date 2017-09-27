@@ -17,7 +17,6 @@ import jmespath
 
 __all__ = [
     'jmespath_query',
-    'jmespath_query_str',
 ]
 
 

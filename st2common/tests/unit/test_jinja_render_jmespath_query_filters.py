@@ -14,7 +14,6 @@
 # limitations under the License.
 
 
-import json
 import unittest2
 
 from st2common.util import jinja as jinja_utils
@@ -35,7 +34,6 @@ class JinjaUtilsJmespathQueryTestCase(unittest2.TestCase):
         actual = eval(actual_str)
         expected = ['James', 'Jacob', 'Jayden']
         self.assertEqual(actual, expected)
-
 
     def test_jmespath_query_dynamic(self):
         env = jinja_utils.get_jinja_environment()

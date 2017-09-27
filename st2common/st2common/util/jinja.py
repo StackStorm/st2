@@ -93,8 +93,7 @@ def get_filters():
         'use_none': use_none,
 
         'json_escape': json_escape.json_escape,
-        'jmespath_query': jmespath_query.jmespath_query,
-        'jmespath_query_str': jmespath_query.jmespath_query_str
+        'jmespath_query': jmespath_query.jmespath_query
     }
 
 
