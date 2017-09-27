@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
 import jmespath
 
 __all__ = [
@@ -31,14 +30,3 @@ def jmespath_query(value, query):
     :rtype: dict, array, int, string, bool
     """
     return jmespath.search(query, value)
-
-def jmespath_query_str(value, query):
-    """Extracts data from a JSON string `value` using a jmespath `query`.
-    :link: http://jmespath.org
-    :param value: a json string to query
-    :param query: a jmsepath query expression (string)
-    :returns: the result of the query executed on the value
-    :rtype: dict, array, int, string, bool
-    """
-    obj = json.loads(value)
-    return jmespath.search(query, obj)

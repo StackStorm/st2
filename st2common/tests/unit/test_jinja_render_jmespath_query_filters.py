@@ -52,19 +52,3 @@ class JinjaUtilsJmespathQueryTestCase(unittest2.TestCase):
         actual = eval(actual_str)
         expected = ['d', 'e', 'f']
         self.assertEqual(actual, expected)
-
-
-    def test_jmespath_query_str(self):
-        env = jinja_utils.get_jinja_environment()
-        obj = {'people': [{'first': 'James', 'last': 'd'},
-                          {'first': 'Jacob', 'last': 'e'},
-                          {'first': 'Jayden', 'last': 'f'},
-                          {'missing': 'different'}],
-               'foo': {'bar': 'baz'}}
-        obj_json_str = json.dumps(obj)
-
-        template = '{{ obj_str | jmespath_query_str("people[*].first") }}'
-        actual_str = env.from_string(template).render({'obj_str': obj_json_str})
-        actual = eval(actual_str)
-        expected = ['James', 'Jacob', 'Jayden']
-        self.assertEqual(actual, expected)

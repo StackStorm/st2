@@ -90,31 +90,6 @@ class JmespathQueryFiltersTest(base.TestWorkflowExecution):
         self.assertTrue(isinstance(yaql_result, list))
         self.assertEqual(yaql_result, expected_result)
 
-    def test_jmespath_query_str(self):
-
-        input_obj = {'people': [{'first': 'James', 'last': 'Smith'},
-                                {'first': 'Jacob', 'last': 'Alberts'},
-                                {'first': 'Jayden', 'last': 'Davis'},
-                                {'missing': 'different'}]}
-        input_str = json.dumps(input_obj)
-        execution = self._execute_workflow(
-            'examples.mistral-test-func-jmespath-query-str',
-            parameters={
-                "input_str": input_str,
-                "input_query": "people[*].last"
-            }
-        )
-        expected_result = ['Smith', 'Alberts', 'Davis']
-
-        execution = self._wait_for_completion(execution)
-        self._assert_success(execution, num_tasks=1)
-        jinja_result = execution.result['result_jinja']
-        yaql_result = execution.result['result_yaql']
-        self.assertTrue(isinstance(jinja_result, list))
-        self.assertEqual(jinja_result, expected_result)
-        self.assertTrue(isinstance(yaql_result, list))
-        self.assertEqual(yaql_result, expected_result)
-
 
 class JsonEscapeFiltersTest(base.TestWorkflowExecution):
 
