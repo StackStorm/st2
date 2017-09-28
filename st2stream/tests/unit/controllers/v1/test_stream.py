@@ -214,10 +214,11 @@ class TestStreamController(FunctionalTest):
         resp = stream.StreamController().get_all()
 
         received_messages = dispatch_and_handle_mock_data(resp)
-        self.assertEqual(len(received_messages), 8)
+        self.assertEqual(len(received_messages), 9)
         self.assertTrue('st2.execution__create' in received_messages[0])
         self.assertTrue('st2.liveaction__delete' in received_messages[5])
         self.assertTrue('st2.announcement__chatops' in received_messages[7])
+        self.assertTrue('st2.announcement__errbot' in received_messages[8])
 
         # 1. ?events= filter
         # No filter provided - all messages should be received
