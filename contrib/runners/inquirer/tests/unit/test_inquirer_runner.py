@@ -49,7 +49,7 @@ test_user = 'st2admin'
 runner_params = {
     "users": [],
     "roles": [],
-    "tag": "developers",
+    "route": "developers",
     "schema": {}
 }
 
@@ -107,7 +107,7 @@ class InquiryTestCase(RunnerTestCase):
             {
                 'users': [],
                 'roles': [],
-                'tag': "developers",
+                'route': "developers",
                 'schema': {},
                 'ttl': 1440
             }
@@ -145,7 +145,7 @@ class InquiryTestCase(RunnerTestCase):
             {
                 'users': [],
                 'roles': [],
-                'tag': "developers",
+                'route': "developers",
                 'schema': {},
                 'ttl': 1440
             }

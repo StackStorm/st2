@@ -127,7 +127,7 @@ class InquiryRBACControllerTestCase(APIControllerWithRBACTestCase,
             "schema": SCHEMA_DEFAULT,
             "roles": ['role_respond'],
             "users": [],
-            "tag": "",
+            "route": "",
             "ttl": 1440
         }
 

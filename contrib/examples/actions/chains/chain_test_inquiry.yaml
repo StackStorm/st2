@@ -3,7 +3,7 @@ chain:
     - name: task1
       ref: core.ask
       params:
-        tag: developers
+        route: developers
         users:
           - testu
       on-success: "task2"

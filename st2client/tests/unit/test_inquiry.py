@@ -111,7 +111,7 @@ INQUIRY_1 = {
     "schema": SCHEMA_DEFAULT,
     "roles": [],
     "users": [],
-    "tag": "",
+    "route": "",
     "ttl": 1440
 }
 
@@ -120,7 +120,7 @@ INQUIRY_MULTIPLE = {
     "schema": SCHEMA_MULTIPLE,
     "roles": [],
     "users": [],
-    "tag": "",
+    "route": "",
     "ttl": 1440
 }
 

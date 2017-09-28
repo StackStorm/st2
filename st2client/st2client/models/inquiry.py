@@ -31,6 +31,6 @@ class Inquiry(core.Resource):
         'schema',
         'roles',
         'users',
-        'tag',
+        'route',
         'ttl'
     ]

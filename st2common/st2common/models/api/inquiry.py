@@ -57,7 +57,7 @@ class InquiryAPI(BaseAPI):
                 "type": "string",
                 "required": True
             },
-            "tag": {
+            "route": {
                 "type": "string",
                 "default": "",
                 "required": True
@@ -125,7 +125,7 @@ class InquiryAPI(BaseAPI):
             "result": doc['result']
         }
 
-        for field in ["tag", "ttl", "users", "roles", "schema"]:
+        for field in ["route", "ttl", "users", "roles", "schema"]:
             newdoc[field] = doc["result"].get(field)
 
         return cls(**newdoc)
@@ -145,7 +145,7 @@ class InquiryResponseAPI(BaseAPI):
                 "type": "string",
                 "required": True
             },
-            "tag": {
+            "route": {
                 "type": "string",
                 "default": "",
                 "required": True
@@ -203,7 +203,7 @@ class InquiryResponseAPI(BaseAPI):
         newdoc = {
             "id": doc["id"]
         }
-        for field in ["tag", "ttl", "users", "roles", "schema"]:
+        for field in ["route", "ttl", "users", "roles", "schema"]:
             newdoc[field] = doc["result"].get(field)
 
         return cls(**newdoc)
@@ -217,7 +217,7 @@ class InquiryResponseAPI(BaseAPI):
 
         return cls(
             id=getattr(inquiry_api, 'id', None),
-            tag=getattr(inquiry_api, 'tag', None),
+            route=getattr(inquiry_api, 'route', None),
             ttl=getattr(inquiry_api, 'ttl', None),
             users=getattr(inquiry_api, 'users', None),
             roles=getattr(inquiry_api, 'roles', None),

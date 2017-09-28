@@ -36,7 +36,7 @@ __all__ = [
 RUNNER_SCHEMA = 'schema'
 RUNNER_ROLES = 'roles'
 RUNNER_USERS = 'users'
-RUNNER_TAG = 'tag'
+RUNNER_ROUTE = 'route'
 RUNNER_TTL = 'ttl'
 
 DEFAULT_SCHEMA = {
@@ -73,7 +73,7 @@ class Inquirer(ActionRunner):
         self.schema = self.runner_parameters.get(RUNNER_SCHEMA, DEFAULT_SCHEMA)
         self.roles_param = self.runner_parameters.get(RUNNER_ROLES, [])
         self.users_param = self.runner_parameters.get(RUNNER_USERS, [])
-        self.tag = self.runner_parameters.get(RUNNER_TAG, "")
+        self.route = self.runner_parameters.get(RUNNER_ROUTE, "")
         self.ttl = self.runner_parameters.get(RUNNER_TTL, 1440)
 
     def run(self, action_parameters):
@@ -105,7 +105,7 @@ class Inquirer(ActionRunner):
             "schema": self.schema,
             "roles": self.roles_param,
             "users": self.users_param,
-            "tag": self.tag,
+            "route": self.route,
             "ttl": self.ttl
         }
         return (LIVEACTION_STATUS_PENDING, result, None)
