@@ -51,7 +51,7 @@ Fixed
   #3746
 * Fix cancellation of subworkflow and subchain. Cancel of Mistral workflow or Action Chain is
   cascaded down to subworkflows appropriately. Cancel from tasks in the workflow or chain is
-  cascaded up to the parent. (bug fix) 
+  cascaded up to the parent. (bug fix)
 * Fix delays in st2resultstracker on querying workflow status from Mistral. Make sleep time for
   empty queue and no workers configurable. Reduce the default sleep times to 1 second. StackStorm
   instances that handle more workflows should consider increasing the query interval for better
@@ -69,6 +69,8 @@ Fixed
   ``st2.announcement__errbot`` and other event names starting with ``st2.announcement__*`` prefix
   are not filtered out. #3769 (bug fix)
 
+  Reported by Carlos.
+* Fix action-alias execute response to show execution id and matching action-alias #3231 (bug fix)
   Reported by Carlos.
 
 2.4.1 - September 12, 2017
