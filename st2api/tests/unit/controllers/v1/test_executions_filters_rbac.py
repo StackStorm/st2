@@ -63,7 +63,8 @@ class ExecutionViewsFiltersControllerRBACTestCase(APIControllerWithRBACTestCase)
         # Role assignments
         role_assignment_db = UserRoleAssignmentDB(
             user=self.users['execution_views_filters_list'].name,
-            role=self.roles['execution_views_filters_list'].name)
+            role=self.roles['execution_views_filters_list'].name,
+            source='assignments/%s.yaml' % self.users['execution_views_filters_list'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
     def test_get_view_filters_no_permissions(self):

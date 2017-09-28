@@ -122,7 +122,8 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
         self.models = self.fixtures_loader.save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
                                                                fixtures_dict=TEST_FIXTURES)
 
-        self.role_assignment_db_model = UserRoleAssignmentDB(user='user', role='role')
+        self.role_assignment_db_model = UserRoleAssignmentDB(
+            user='user', role='role', source='assignments/user.yaml')
         UserRoleAssignment.add_or_update(self.role_assignment_db_model)
 
     @mock.patch.object(HooksHolder, 'get_triggers_for_hook', mock.MagicMock(
