@@ -89,7 +89,7 @@ class InquiryRBACControllerTestCase(APIControllerWithRBACTestCase,
 
             grant_db = PermissionGrantDB(
                 permission_types=assignment_details["permissions"],
-                resource_uid='inquiry:ask',
+                resource_uid='inquiry',
                 resource_type=ResourceType.INQUIRY
             )
             grant_db = PermissionGrant.add_or_update(grant_db)

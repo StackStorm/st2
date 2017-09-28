@@ -298,7 +298,7 @@ class InquiriesController(ResourceController):
         # TODO (mierdin): All of this should be removed once Inquiries get their own DB model
         if getattr(instance, 'runner', None) and instance.runner.get('runner_module') == 'inquirer':
             def get_uid():
-                return "inquiry:ask"
+                return "inquiry"
             instance.get_uid = get_uid
 
         if permission_type:

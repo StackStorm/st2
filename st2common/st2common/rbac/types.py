@@ -447,7 +447,13 @@ GLOBAL_PERMISSION_TYPES = [
     PermissionType.EXECUTION_VIEWS_FILTERS_LIST,
 
     # Stream
-    PermissionType.STREAM_VIEW
+    PermissionType.STREAM_VIEW,
+
+    # Inquiry
+    PermissionType.INQUIRY_LIST,
+    PermissionType.INQUIRY_RESPOND,
+    PermissionType.INQUIRY_VIEW
+
 ] + LIST_PERMISSION_TYPES
 
 GLOBAL_PACK_PERMISSION_TYPES = [permission_type for permission_type in GLOBAL_PERMISSION_TYPES if

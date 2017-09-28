@@ -75,7 +75,7 @@ class InquiryPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         # A bit gross, but it's what we have to do since Inquiries
         # don't yet have their own data model
         def get_uid():
-            return "inquiry:ask"
+            return "inquiry"
         inquiry_1_db.get_uid = get_uid
 
         inquiry_1_db = ActionExecution.add_or_update(inquiry_1_db)
