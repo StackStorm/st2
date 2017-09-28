@@ -19,6 +19,7 @@ from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_PENDING
 from st2common.constants.triggers import INQUIRY_TRIGGER
 from st2common.models.system.common import ResourceReference
+from st2common.persistence.execution import ActionExecution
 from st2common.runners.base import ActionRunner
 from st2common.services import action as action_service
 from st2common.transport.reactor import TriggerDispatcher
@@ -78,6 +79,7 @@ class Inquirer(ActionRunner):
     def run(self, action_parameters):
 
         liveaction_db = action_utils.get_liveaction_by_id(self.liveaction_id)
+        exc = ActionExecution.get(liveaction__id=str(liveaction_db.id))
 
         # Assemble and dispatch trigger
         trigger_ref = ResourceReference.to_string_reference(
@@ -85,12 +87,7 @@ class Inquirer(ActionRunner):
             name=INQUIRY_TRIGGER['name']
         )
         trigger_payload = {
-            "id": self.liveaction_id,
-            "schema": self.schema,
-            "roles": self.roles_param,
-            "users": self.users_param,
-            "tag": self.tag,
-            "ttl": self.ttl
+            "id": str(exc.id)
         }
         self.trigger_dispatcher.dispatch(trigger_ref, trigger_payload)
 

@@ -1,0 +1,22 @@
+---
+name: "notify_inquiry_developers"
+pack: "examples"
+description: Notify developers of an Inquiry action that is tagged "developers"
+enabled: false
+
+trigger:
+  type: core.st2.generic.inquiry
+
+criteria:
+  trigger.tag:
+      type: equals
+      pattern: developers
+
+action:
+  # ref: slack.post_message
+  # parameters:
+  #   channel: "#jarvis-testing"
+  #   message: 'Inquiry {{trigger.id}} is awaiting an approval action'
+  ref: core.local
+  parameters:
+    cmd: date

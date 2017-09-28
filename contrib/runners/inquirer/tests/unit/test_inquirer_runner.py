@@ -19,11 +19,15 @@ import inquirer
 from st2actions.container import service
 from st2common.constants.action import LIVEACTION_STATUS_PENDING
 from st2common.constants.pack import SYSTEM_PACK_NAME
+from st2common.persistence.execution import ActionExecution
 from st2common.services import action as action_service
 from st2common.transport import reactor
 from st2common.util import action_db as action_utils
 from st2tests.base import RunnerTestCase
 
+
+mock_exc_get = mock.Mock()
+mock_exc_get.id = 'abcdef'
 
 mock_inquiry_liveaction_db = mock.Mock()
 mock_inquiry_liveaction_db.result = {"response": {}}
@@ -67,6 +71,10 @@ runner_params = {
     action_service,
     'get_root_liveaction',
     mock_get_root)
+@mock.patch.object(
+    ActionExecution,
+    'get',
+    mock.MagicMock(return_value=mock_exc_get))
 class InquiryTestCase(RunnerTestCase):
 
     def tearDown(self):
@@ -107,12 +115,7 @@ class InquiryTestCase(RunnerTestCase):
         mock_trigger_dispatcher.return_value.dispatch.assert_called_once_with(
             'core.st2.generic.inquiry',
             {
-                'users': [],
-                'roles': [],
-                'id': None,
-                'tag': "developers",
-                'ttl': 1440,
-                'schema': {}
+                'id': mock_exc_get.id
             }
         )
         mock_request_pause.assert_called_once_with(
@@ -150,12 +153,7 @@ class InquiryTestCase(RunnerTestCase):
         mock_trigger_dispatcher.return_value.dispatch.assert_called_once_with(
             'core.st2.generic.inquiry',
             {
-                'users': [],
-                'roles': [],
-                'id': None,
-                'tag': "developers",
-                'schema': {},
-                'ttl': 1440
+                'id': mock_exc_get.id
             }
         )
         mock_request_pause.assert_not_called()
