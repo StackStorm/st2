@@ -180,7 +180,7 @@ class StandaloneAuthHandler(AuthHandlerBase):
                           extra=extra)
                 try:
                     user_groups = self._auth_backend.get_user_groups(username=username)
-                except NotImplementedError:
+                except (NotImplementedError, AttributeError):
                     LOG.debug('Configured auth backend doesn\'t expose user group membership '
                               'information, skipping sync...')
                     return token
@@ -205,7 +205,7 @@ class StandaloneAuthHandler(AuthHandlerBase):
                     LOG.exception('Failed to synchronize remote groups for user "%s"' % (username),
                                   extra=extra)
                 else:
-                    LOG.debug('Successfuly synchronized groups for user "%s"' % (username),
+                    LOG.debug('Successfully synchronized groups for user "%s"' % (username),
                               extra=extra)
 
                 return token
