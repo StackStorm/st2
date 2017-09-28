@@ -64,11 +64,10 @@ SCHEMA_DEFAULT = {
     "properties": {
         "continue": {
             "type": "boolean",
-            "description": "Would you like to continue the workflow?"
+            "description": "Would you like to continue the workflow?",
+            "required": True
         }
     },
-    # TODO(mierdin): Fix
-    "required": ["continue"]
 }
 
 RESPONSE_DEFAULT = {
@@ -81,19 +80,20 @@ SCHEMA_MULTIPLE = {
     "properties": {
         "name": {
             "type": "string",
-            "description": "What is your name?"
+            "description": "What is your name?",
+            "required": True
         },
         "pin": {
             "type": "integer",
-            "description": "What is your PIN?"
+            "description": "What is your PIN?",
+            "required": True
         },
         "paradox": {
             "type": "boolean",
-            "description": "This statement is False."
+            "description": "This statement is False.",
+            "required": True
         }
     },
-    # TODO(mierdin): Fix
-    "required": ["name", "pin", "paradox"]
 }
 
 RESPONSE_MULTIPLE = {

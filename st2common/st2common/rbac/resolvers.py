@@ -1068,12 +1068,9 @@ class InquiryPermissionsResolver(PermissionsResolver):
 
         NOTE:
         Because we're borrowing the ActionExecutionDB model, the resource_db parameter is
-        effectively ignored. All other filters are passed to get_all_permission_grants_for_user,
-        then a custom filtering method is performed on the result to enforce the required
-        "inquiry:ask" resource UID passed by the user in the role. This isn't ideal, as the whole
-        premise of a resource_db permission is that it is enforced on an actual DB resource,
-        but it works for now, and it sets the tone for how this will be done when/if Inquiries
-        get their own data model.
+        effectively ignored. All other filters are passed to get_all_permission_grants_for_user.
+        Since all Inquiry permission types are global, this will still correctly return a list of
+        grants.
         """
 
         assert permission_type in [
@@ -1108,9 +1105,7 @@ class InquiryPermissionsResolver(PermissionsResolver):
                                                                resource_types=resource_types,
                                                                permission_types=permission_types)
 
-        # We're doing a bit of our own custom filtering since Inquiries aren't EXACTLY
-        # their own resource (that's why we omitted resource_uid in the query)
-        if len([g for g in permission_grants if g.resource_uid == "inquiry:ask"]) >= 1:
+        if len(permission_grants) >= 1:
             self._log('Found a grant on the inquiry', extra=log_context)
             return True
 

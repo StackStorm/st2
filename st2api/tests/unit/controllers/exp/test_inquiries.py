@@ -75,17 +75,25 @@ INQUIRY_2 = {
     }
 }
 
+INQUIRY_TIMEOUT = {
+    'action': 'testpack.st2.dummy.ask',
+    'status': 'timeout',
+    'parameters': {
+        'tag': 'superlative',
+        'users': ['foo', 'bar']
+    }
+}
+
 SCHEMA_DEFAULT = {
     "title": "response_data",
     "type": "object",
     "properties": {
         "continue": {
             "type": "boolean",
-            "description": "Would you like to continue the workflow?"
+            "description": "Would you like to continue the workflow?",
+            "required": True
         }
     },
-    # TODO(mierdin): Fix
-    "required": ["continue"]
 }
 
 SCHEMA_MULTIPLE = {
@@ -94,19 +102,20 @@ SCHEMA_MULTIPLE = {
     "properties": {
         "name": {
             "type": "string",
-            "description": "What is your name?"
+            "description": "What is your name?",
+            "required": True
         },
         "pin": {
             "type": "integer",
-            "description": "What is your PIN?"
+            "description": "What is your PIN?",
+            "required": True
         },
         "paradox": {
             "type": "boolean",
-            "description": "This statement is False."
+            "description": "This statement is False.",
+            "required": True
         }
     },
-    # TODO(mierdin): Fix
-    "required": ["name", "pin", "paradox"]
 }
 
 # This is what the result will look like if all parameters are left to their defaults
@@ -358,6 +367,17 @@ class InquiryControllerTestCase(BaseInquiryControllerTestCase):
         self.assertEqual(put_resp.status_int, http_client.BAD_REQUEST)
         self.assertIn('has already been responded to', put_resp.json['faultstring'])
 
+    def test_respond_timeout_rejected(self):
+        """Test that responding to a timed-out Inquiry fails
+        """
+
+        post_resp = self._do_create_inquiry(INQUIRY_TIMEOUT, RESULT_DEFAULT, status='timeout')
+        inquiry_id = self._get_inquiry_id(post_resp)
+        response = {"continue": True}
+        put_resp = self._do_respond(inquiry_id, response, expect_errors=True)
+        self.assertEqual(put_resp.status_int, http_client.BAD_REQUEST)
+        self.assertIn('timed out and can no longer be responded to', put_resp.json['faultstring'])
+
     def test_respond_restrict_users(self):
         """Test that Inquiries can reject responses from users not in a list
         """
@@ -369,7 +389,7 @@ class InquiryControllerTestCase(BaseInquiryControllerTestCase):
         response = {"continue": True}
         put_resp = self._do_respond(inquiry_id, response, expect_errors=True)
         self.assertEqual(put_resp.status_int, http_client.FORBIDDEN)
-        self.assertIn('Insufficient permission to respond based on Inquiry parameters.',
+        self.assertIn('Requesting user does not have permission to respond to inquiry',
                       put_resp.json['faultstring'])
 
         # Responding as a use in the list should be accepted

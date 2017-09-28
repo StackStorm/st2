@@ -17,7 +17,6 @@ import json
 from oslo_config import cfg
 
 import copy
-import jsonschema
 
 from six.moves import http_client
 from st2common.models.db.auth import UserDB
@@ -25,6 +24,7 @@ from st2api.controllers.resource import ResourceController
 from st2api.controllers.v1.executionviews import SUPPORTED_FILTERS
 from st2common import log as logging
 from st2common.util import action_db as action_utils
+from st2common.util import schema as util_schema
 from st2common.util import system_info
 from st2common.services import executions
 from st2common.constants import action as action_constants
@@ -73,8 +73,11 @@ class InquiriesController(ResourceController):
             }
         )
 
-        # Transform to InquiryResponseAPI model
-        inquiries = [InquiryResponseAPI.from_inquiry_api(InquiryAPI.from_dict(raw_inquiry))
+        # Since "model" is set to InquiryAPI (for good reasons), _get_all returns a list of
+        # InquiryAPI instances, already converted to JSON. So in order to convert these to
+        # InquiryResponseAPI instances, we first have to convert raw_inquiries.body back to
+        # a list of dicts, and then individually convert these to InquiryResponseAPI instances
+        inquiries = [InquiryResponseAPI.from_model(raw_inquiry, skip_db=True)
                      for raw_inquiry in json.loads(raw_inquiries.body)]
 
         # Repackage into Response with correct headers
@@ -101,7 +104,9 @@ class InquiriesController(ResourceController):
             permission_type=PermissionType.INQUIRY_VIEW
         )
 
-        if not self._inquiry_sanity_check(inquiry):
+        sanity_result, msg = self._inquiry_sanity_check(inquiry)
+        if not sanity_result:
+            abort(http_client.BAD_REQUEST, msg)
             return
 
         return InquiryResponseAPI.from_inquiry_api(inquiry)
@@ -127,7 +132,9 @@ class InquiriesController(ResourceController):
             permission_type=PermissionType.INQUIRY_RESPOND
         )
 
-        if not self._inquiry_sanity_check(inquiry):
+        sanity_result, msg = self._inquiry_sanity_check(inquiry)
+        if not sanity_result:
+            abort(http_client.BAD_REQUEST, msg)
             return
 
         if not requester_user:
@@ -137,7 +144,7 @@ class InquiriesController(ResourceController):
         if not self._can_respond(inquiry, requester_user):
             abort(
                 http_client.FORBIDDEN,
-                'Insufficient permission to respond based on Inquiry parameters.'
+                'Requesting user does not have permission to respond to inquiry %s.' % inquiry_id
             )
             return
 
@@ -146,8 +153,11 @@ class InquiriesController(ResourceController):
         LOG.debug("Validating inquiry response: %s against schema: %s" %
                   (response_data.response, schema))
         try:
-            jsonschema.validate(response_data.response, schema)
-        except jsonschema.exceptions.ValidationError:
+            util_schema.validate(instance=response_data.response, schema=schema,
+                                 cls=util_schema.CustomValidator, use_default=True,
+                                 allow_default_none=True)
+        except Exception as e:
+            LOG.debug("Failed to validate response data against provided schema: %s" % e.message)
             abort(http_client.BAD_REQUEST, 'Response did not pass schema validation.')
             return
 
@@ -182,18 +192,22 @@ class InquiriesController(ResourceController):
         :param inquiry_candidate: The inquiry to check
 
         :rtype: bool - True if a valid Inquiry. False if not.
+        :rtype: str - Error message, if any
         """
 
         if inquiry_candidate.runner.get('runner_module') != "inquirer":
-            abort(http_client.BAD_REQUEST, '%s is not an Inquiry.' % inquiry_candidate.id)
-            return False
+            return (False, '%s is not an Inquiry.' % inquiry_candidate.id)
 
-        if inquiry_candidate.status != "pending":
-            abort(http_client.BAD_REQUEST,
-                  'Inquiry %s has already been responded to' % inquiry_candidate.id)
-            return False
+        if inquiry_candidate.status == action_constants.LIVEACTION_STATUS_TIMED_OUT:
+            return (
+                False,
+                'Inquiry %s timed out and can no longer be responded to' % inquiry_candidate.id
+            )
 
-        return True
+        if inquiry_candidate.status != action_constants.LIVEACTION_STATUS_PENDING:
+            return (False, 'Inquiry %s has already been responded to' % inquiry_candidate.id)
+
+        return (True, "")
 
     def _mark_inquiry_complete(self, inquiry_id, result):
         """Mark Inquiry as completed
@@ -265,6 +279,42 @@ class InquiriesController(ResourceController):
 
         # Both must pass
         return roles_passed and users_passed
+
+    def _get_one_by_id(self, id, requester_user, permission_type, exclude_fields=None,
+                       from_model_kwargs=None):
+        """Override ResourceController._get_one_by_id to contain scope of Inquiries UID hack
+
+        :param exclude_fields: A list of object fields to exclude.
+        :type exclude_fields: ``list``
+        """
+
+        instance = self._get_by_id(resource_id=id, exclude_fields=exclude_fields)
+
+        # _get_by_id pulls the resource by ID directly off of the database. Since
+        # Inquiries don't have their own DB model yet, this comes in the format
+        # "execution:<id>". So, to allow RBAC to get a handle on inquiries specifically,
+        # we're overriding the "get_uid" function to return one specific to Inquiries.
+        #
+        # TODO (mierdin): All of this should be removed once Inquiries get their own DB model
+        if getattr(instance, 'runner', None) and instance.runner.get('runner_module') == 'inquirer':
+            def get_uid():
+                return "inquiry"
+            instance.get_uid = get_uid
+
+        if permission_type:
+            rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                              resource_db=instance,
+                                                              permission_type=permission_type)
+
+        if not instance:
+            msg = 'Unable to identify resource with id "%s".' % id
+            abort(http_client.NOT_FOUND, msg)
+
+        from_model_kwargs = from_model_kwargs or {}
+        from_model_kwargs.update(self.from_model_kwargs)
+        result = self.model.from_model(instance, **from_model_kwargs)
+
+        return result
 
 
 inquiries_controller = InquiriesController()

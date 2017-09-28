@@ -19,22 +19,26 @@ import inquirer
 from st2actions.container import service
 from st2common.constants.action import LIVEACTION_STATUS_PENDING
 from st2common.constants.pack import SYSTEM_PACK_NAME
+from st2common.services import action as action_service
+from st2common.transport import reactor
+from st2common.util import action_db as action_utils
 from st2tests.base import RunnerTestCase
 
 
-mock_liveaction_db = mock.Mock()
-mock_liveaction_db.result = {"response": {}}
+mock_inquiry_liveaction_db = mock.Mock()
+mock_inquiry_liveaction_db.result = {"response": {}}
 
 mock_action_utils = mock.Mock()
-mock_action_utils.get_liveaction_by_id.return_value = mock_liveaction_db
+mock_action_utils.return_value = mock_inquiry_liveaction_db
 
-test_parent_id = '1234567890'
 test_parent = mock.Mock()
+test_parent.id = '1234567890'
 
-mock_action_service = mock.Mock()
-mock_action_service.get_root_liveaction.return_value = test_parent
+mock_get_root = mock.Mock()
+mock_get_root.return_value = test_parent
 
 mock_trigger_dispatcher = mock.Mock()
+mock_request_pause = mock.Mock()
 
 test_user = 'st2admin'
 
@@ -46,16 +50,36 @@ runner_params = {
 }
 
 
+@mock.patch('inquirer.TriggerDispatcher', mock_trigger_dispatcher)
+@mock.patch.object(
+    reactor,
+    'TriggerDispatcher',
+    mock_action_utils)
+@mock.patch.object(
+    action_utils,
+    'get_liveaction_by_id',
+    mock_action_utils)
+@mock.patch.object(
+    action_service,
+    'request_pause',
+    mock_request_pause)
+@mock.patch.object(
+    action_service,
+    'get_root_liveaction',
+    mock_get_root)
 class InquiryTestCase(RunnerTestCase):
+
+    def tearDown(self):
+        mock_trigger_dispatcher.reset_mock()
+        mock_action_utils.reset_mock()
+        mock_get_root.reset_mock()
+        mock_request_pause.reset_mock()
 
     def test_runner_creation(self):
         runner = inquirer.get_runner()
         self.assertTrue(runner is not None, 'Creation failed. No instance.')
         self.assertEqual(type(runner), inquirer.Inquirer, 'Creation failed. No instance.')
 
-    @mock.patch('inquirer.TriggerDispatcher', mock_trigger_dispatcher)
-    @mock.patch('inquirer.action_utils', mock_action_utils)
-    @mock.patch('inquirer.action_service', mock_action_service)
     def test_simple_inquiry(self):
         runner = inquirer.get_runner()
         runner.context = {
@@ -65,8 +89,8 @@ class InquiryTestCase(RunnerTestCase):
         runner.runner_parameters = runner_params
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
-        mock_liveaction_db.context = {
-            "parent": test_parent_id
+        mock_inquiry_liveaction_db.context = {
+            "parent": test_parent.id
         }
         (status, output, _) = runner.run({})
         self.assertEqual(status, LIVEACTION_STATUS_PENDING)
@@ -91,17 +115,11 @@ class InquiryTestCase(RunnerTestCase):
                 'schema': {}
             }
         )
-        mock_action_service.request_pause.assert_called_once_with(
+        mock_request_pause.assert_called_once_with(
             test_parent,
             test_user
         )
-        mock_trigger_dispatcher.reset_mock()
-        mock_action_utils.reset_mock()
-        mock_action_service.reset_mock()
 
-    @mock.patch('inquirer.TriggerDispatcher', mock_trigger_dispatcher)
-    @mock.patch('inquirer.action_utils', mock_action_utils)
-    @mock.patch('inquirer.action_service', mock_action_service)
     def test_inquiry_no_parent(self):
         """Should behave like a regular execution, but without requesting a pause
         """
@@ -114,7 +132,7 @@ class InquiryTestCase(RunnerTestCase):
         runner.runner_parameters = runner_params
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
-        mock_liveaction_db.context = {
+        mock_inquiry_liveaction_db.context = {
             "parent": None
         }
         (status, output, _) = runner.run({})
@@ -140,10 +158,7 @@ class InquiryTestCase(RunnerTestCase):
                 'ttl': 1440
             }
         )
-        mock_action_service.request_pause.assert_not_called()
-        mock_trigger_dispatcher.reset_mock()
-        mock_action_utils.reset_mock()
-        mock_action_service.reset_mock()
+        mock_request_pause.assert_not_called()
 
     def _get_mock_action_obj(self):
         action = mock.Mock()
