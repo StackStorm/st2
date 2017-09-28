@@ -27,7 +27,7 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 DEFAULT_EVENTS_WHITELIST = [
-    'st2.announcement__chatops',
+    'st2.announcement__*',
 
     'st2.execution__create',
     'st2.execution__update',
