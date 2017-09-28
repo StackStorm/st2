@@ -13,19 +13,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import jmespath
+import jsonpath-rw
 
 __all__ = [
-    'jmespath_query',
+    'jsonpath_query',
 ]
 
 
-def jmespath_query(value, query):
-    """Extracts data from an object `value` using a jmespath `query`.
-    :link: http://jmespath.org
+def jsonpath_query(value, query):
+    """Extracts data from an object `value` using a JSONPath `query`.
+    :link: https://github.com/kennknowles/python-jsonpath-rw
     :param value: a object (dict, array, etc) to query
-    :param query: a jmsepath query expression (string)
+    :param query: a JSONPath query expression (string)
     :returns: the result of the query executed on the value
     :rtype: dict, array, int, string, bool
     """
-    return jmespath.search(query, value)
+    expr = jsonpath_rw.parse(query)
+    matches = [match.value for match in expr.find(obj)]
+    if not matches:
+        return None
+    return matches

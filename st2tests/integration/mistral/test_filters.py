@@ -65,12 +65,12 @@ class FromYamlStringFiltersTest(base.TestWorkflowExecution):
         self.assertEqual(yaql_dict["a"], "b")
 
 
-class JmespathQueryFiltersTest(base.TestWorkflowExecution):
+class JsonpathQueryFiltersTest(base.TestWorkflowExecution):
 
-    def test_jmespath_query(self):
+    def test_jsonpath_query(self):
 
         execution = self._execute_workflow(
-            'examples.mistral-test-func-jmespath-query',
+            'examples.mistral-test-func-jsonpath-query',
             parameters={
                 "input_obj": {'people': [{'first': 'James', 'last': 'Smith'},
                                          {'first': 'Jacob', 'last': 'Alberts'},
