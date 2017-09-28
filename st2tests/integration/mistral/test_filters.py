@@ -65,6 +65,25 @@ class FromYamlStringFiltersTest(base.TestWorkflowExecution):
         self.assertEqual(yaql_dict["a"], "b")
 
 
+class JsonEscapeFiltersTest(base.TestWorkflowExecution):
+
+    def test_json_escape(self):
+
+        breaking_str = 'This text """ breaks JSON'
+        inputs = {'input_str': breaking_str}
+        execution = self._execute_workflow(
+            'examples.mistral-test-func-json-escape', parameters=inputs
+        )
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=1)
+        jinja_dict = json.loads(execution.result['result_jinja'])[0]
+        yaql_dict = json.loads(execution.result['result_yaql'])[0]
+        self.assertTrue(isinstance(jinja_dict, dict))
+        self.assertEqual(jinja_dict["title"], breaking_str)
+        self.assertTrue(isinstance(yaql_dict, dict))
+        self.assertEqual(yaql_dict["title"], breaking_str)
+
+
 class JsonpathQueryFiltersTest(base.TestWorkflowExecution):
 
     def test_jsonpath_query(self):
@@ -89,25 +108,6 @@ class JsonpathQueryFiltersTest(base.TestWorkflowExecution):
         self.assertEqual(jinja_result, expected_result)
         self.assertTrue(isinstance(yaql_result, list))
         self.assertEqual(yaql_result, expected_result)
-
-
-class JsonEscapeFiltersTest(base.TestWorkflowExecution):
-
-    def test_json_escape(self):
-
-        breaking_str = 'This text """ breaks JSON'
-        inputs = {'input_str': breaking_str}
-        execution = self._execute_workflow(
-            'examples.mistral-test-func-json-escape', parameters=inputs
-        )
-        execution = self._wait_for_completion(execution)
-        self._assert_success(execution, num_tasks=1)
-        jinja_dict = json.loads(execution.result['result_jinja'])[0]
-        yaql_dict = json.loads(execution.result['result_yaql'])[0]
-        self.assertTrue(isinstance(jinja_dict, dict))
-        self.assertEqual(jinja_dict["title"], breaking_str)
-        self.assertTrue(isinstance(yaql_dict, dict))
-        self.assertEqual(yaql_dict["title"], breaking_str)
 
 
 class RegexMatchFiltersTest(base.TestWorkflowExecution):

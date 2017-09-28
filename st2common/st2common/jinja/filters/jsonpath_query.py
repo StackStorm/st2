@@ -29,7 +29,7 @@ def jsonpath_query(value, query):
     :rtype: dict, array, int, string, bool
     """
     expr = jsonpath_rw.parse(query)
-    matches = [match.value for match in expr.find(obj)]
+    matches = [match.value for match in expr.find(value)]
     if not matches:
         return None
     return matches
