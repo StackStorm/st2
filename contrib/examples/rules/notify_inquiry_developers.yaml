@@ -1,19 +1,14 @@
 ---
 name: "notify_inquiry_developers"
 pack: "examples"
-description: Notify developers of an Inquiry action with route "developers"
+description: Notify developers of an Inquiry action
 enabled: false
 
 trigger:
   type: core.st2.generic.inquiry
 
-criteria:
-  trigger.route:
-      type: equals
-      pattern: developers
-
 action:
   ref: slack.post_message
   parameters:
-    channel: "#jarvis-testing"
+    channel: "#{{ trigger.route }}"
     message: 'Inquiry {{trigger.id}} is awaiting an approval action'

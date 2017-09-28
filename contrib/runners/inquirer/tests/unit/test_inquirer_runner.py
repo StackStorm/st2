@@ -115,7 +115,8 @@ class InquiryTestCase(RunnerTestCase):
         mock_trigger_dispatcher.return_value.dispatch.assert_called_once_with(
             'core.st2.generic.inquiry',
             {
-                'id': mock_exc_get.id
+                'id': mock_exc_get.id,
+                'route': "developers"
             }
         )
         mock_request_pause.assert_called_once_with(
@@ -153,7 +154,8 @@ class InquiryTestCase(RunnerTestCase):
         mock_trigger_dispatcher.return_value.dispatch.assert_called_once_with(
             'core.st2.generic.inquiry',
             {
-                'id': mock_exc_get.id
+                'id': mock_exc_get.id,
+                'route': "developers"
             }
         )
         mock_request_pause.assert_not_called()

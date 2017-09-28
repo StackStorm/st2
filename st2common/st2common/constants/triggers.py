@@ -112,6 +112,12 @@ INQUIRY_TRIGGER = {
                 'type': 'string',
                 'description': 'ID of the new inquiry.',
                 'required': True
+            },
+            'route': {
+                'type': 'string',
+                'description': 'An arbitrary value for allowing rules '
+                               'to route to proper notification channel.',
+                'required': True
             }
         },
         "additionalProperties": False

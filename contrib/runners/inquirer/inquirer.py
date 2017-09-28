@@ -87,7 +87,8 @@ class Inquirer(ActionRunner):
             name=INQUIRY_TRIGGER['name']
         )
         trigger_payload = {
-            "id": str(exc.id)
+            "id": str(exc.id),
+            "route": self.route
         }
         self.trigger_dispatcher.dispatch(trigger_ref, trigger_payload)
 
