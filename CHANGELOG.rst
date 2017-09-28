@@ -65,6 +65,11 @@ Fixed
 * Fix ``st2 role-assignment list`` CLI command and allow ``--user``, ``--remote`` and ``--role``
   arguments to be used together. Previously they were mutually exclusive so it wasn't possible to
   use them together. (bug fix) #3763
+* Update default event name whitelist for ``/v1/stream`` API endpoint and make sure
+  ``st2.announcement__errbot`` and other event names starting with ``st2.announcement__*`` prefix
+  are not filtered out. #3769 (bug fix)
+
+  Reported by Carlos.
 
 2.4.1 - September 12, 2017
 --------------------------
