@@ -70,7 +70,7 @@ INQUIRY_2 = {
     'action': 'testpack.st2.dummy.ask',
     'status': 'pending',
     'parameters': {
-        'tag': 'superlative',
+        'route': 'superlative',
         'users': ['foo', 'bar']
     }
 }
@@ -79,7 +79,7 @@ INQUIRY_TIMEOUT = {
     'action': 'testpack.st2.dummy.ask',
     'status': 'timeout',
     'parameters': {
-        'tag': 'superlative',
+        'route': 'superlative',
         'users': ['foo', 'bar']
     }
 }
@@ -125,7 +125,7 @@ RESULT_DEFAULT = {
     "schema": SCHEMA_DEFAULT,
     "roles": [],
     "users": [],
-    "tag": "",
+    "route": "",
     "ttl": 1440
 }
 
@@ -133,7 +133,7 @@ RESULT_2 = {
     "schema": SCHEMA_DEFAULT,
     "roles": [],
     "users": ["foo", "bar"],
-    "tag": "superlative",
+    "route": "superlative",
     "ttl": 1440
 }
 
@@ -141,7 +141,7 @@ RESULT_MULTIPLE = {
     "schema": SCHEMA_MULTIPLE,
     "roles": [],
     "users": [],
-    "tag": "",
+    "route": "",
     "ttl": 1440
 }
 
@@ -264,7 +264,7 @@ class InquiryControllerTestCase(BaseInquiryControllerTestCase):
         self.assertEqual(get_resp.status_int, 200)
         self.assertEqual(self._get_inquiry_id(get_resp), inquiry_id)
 
-        for param in ["tag", "ttl", "users", "roles", "schema"]:
+        for param in ["route", "ttl", "users", "roles", "schema"]:
             self.assertEqual(get_resp.json.get(param), RESULT_2.get(param))
 
     @mock.patch('st2api.controllers.exp.inquiries.action_service')

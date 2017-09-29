@@ -9,7 +9,7 @@ examples.mistral-ask-basic:
         task1:
             action: core.ask
             input:
-              tag: developers
+              route: developers
               users:
                 - testu
               schema:

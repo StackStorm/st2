@@ -4180,7 +4180,7 @@ definitions:
       - schema
       - roles
       - users
-      - tag
+      - route
       - ttl
     properties:
       id:
@@ -4199,8 +4199,8 @@ definitions:
         type: array
         items:
           type: string
-      tag:
-        description: User-defined, arbitrary field for tracking intent for inquiry
+      route:
+        description: An arbitrary value for allowing rules to route to proper notification channel
         type: string
       ttl:
         description: Time (in minutes) that an unacknowledged Inquiry is cleaned up

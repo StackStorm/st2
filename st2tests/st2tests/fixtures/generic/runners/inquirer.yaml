@@ -16,10 +16,10 @@ runner_parameters:
     required: true
     description: A JSON schema that will be used to validate the response data
     type: object
-  tag:
+  route:
     default: ""
     required: false
-    description: An arbitrary value for tracking the purpose of the action (useful in rules)
+    description: An arbitrary value for allowing rules to route to proper notification channel
     type: string
   roles:
     default: []

@@ -110,41 +110,17 @@ INQUIRY_TRIGGER = {
         'properties': {
             'id': {
                 'type': 'string',
-                'description': 'ID of this inquiry',
+                'description': 'ID of the new inquiry.',
                 'required': True
             },
-            'schema': {
-                'type': 'object',
-                'description': 'JSON schema used to validate repsonse(s)',
-                'required': True
-            },
-            'roles': {
-                'type': 'array',
-                'description': 'List of RBAC roles permitted to respond to this inquiry',
-                'items': {
-                    'type': 'string'
-                },
-                'required': True
-            },
-            'users': {
-                'type': 'array',
-                'description': 'List of users permitted to respond to this inquiry',
-                'items': {
-                    'type': 'string'
-                },
-                'required': True
-            },
-            'tag': {
+            'route': {
                 'type': 'string',
-                'description': 'User-defined, arbitrary field for tracking intent for inquiry',
-                'required': True
-            },
-            'ttl': {
-                'type': 'integer',
-                'description': 'Time (in minutes) that an unacknowledged Inquiry is cleaned up',
+                'description': 'An arbitrary value for allowing rules '
+                               'to route to proper notification channel.',
                 'required': True
             }
-        }
+        },
+        "additionalProperties": False
     }
 }
 
