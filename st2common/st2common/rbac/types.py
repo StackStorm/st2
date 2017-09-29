@@ -591,8 +591,8 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.INQUIRY_VIEW: 'Ability to view an existing Inquiry. Also implies '
                                  '"inquiry_respond" permission.',
     PermissionType.INQUIRY_RESPOND: 'Ability to respond to an existing Inquiry (in general - user '
-                                    'still needs access per specific inquiry parameters). Also implies '
-                                    '"inquiry_view" permission.',
+                                    'still needs access per specific inquiry parameters). Also '
+                                    'implies "inquiry_view" permission.',
     PermissionType.INQUIRY_ALL: ('Ability to perform all supported operations on a particular '
                                  'Inquiry.')
 }
