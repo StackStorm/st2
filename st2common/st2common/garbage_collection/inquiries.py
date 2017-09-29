@@ -51,10 +51,14 @@ def purge_inquiries(logger):
     # Inspect each Inquiry, and determine if TTL is expired
     for inquiry in inquiries:
 
-        ttl = inquiry.result.get('ttl')
+        ttl = int(inquiry.result.get('ttl'))
         min_since_creation = int(
             (get_datetime_utc_now() - inquiry.start_timestamp).total_seconds() / 60
         )
+
+        if ttl <= 0:
+            logger.debug("Inquiry %s has a TTL of %s. Skipping." % (inquiry.id, ttl))
+            continue
 
         logger.debug("Inquiry %s has a TTL of %s and was started %s minute(s) ago" % (
                      inquiry.id, ttl, min_since_creation))
