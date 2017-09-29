@@ -32,6 +32,7 @@ from st2common.persistence.execution import ActionExecutionOutput
 from st2common.services import executions
 from st2tests.base import IntegrationTestCase
 from st2tests.base import CleanDbTestCase
+from st2tests.api import BaseFunctionalTest
 
 from st2tests.fixturesloader import FixturesLoader
 
@@ -43,9 +44,12 @@ __all__ = [
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ST2_CONFIG_PATH = os.path.join(BASE_DIR, '../../../conf/st2.tests.conf')
 ST2_CONFIG_PATH = os.path.abspath(ST2_CONFIG_PATH)
+INQUIRY_CONFIG_PATH = os.path.join(BASE_DIR, '../../../conf/st2.tests2.conf')
+INQUIRY_CONFIG_PATH = os.path.abspath(INQUIRY_CONFIG_PATH)
 BINARY = os.path.join(BASE_DIR, '../../../st2reactor/bin/st2garbagecollector')
 BINARY = os.path.abspath(BINARY)
 CMD = [BINARY, '--config-file', ST2_CONFIG_PATH]
+CMD_INQUIRY = [BINARY, '--config-file', INQUIRY_CONFIG_PATH]
 
 TEST_FIXTURES = {
     'runners': ['inquirer.yaml'],
@@ -200,6 +204,12 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
         for index in range(0, old_inquiry_count):
             self._create_inquiry(ttl=2, timestamp=timestamp)
 
+        # Insert some mock Inquiries with TTL set to a "disabled" value
+        disabled_inquiry_count = 3
+        timestamp = (now - datetime.timedelta(minutes=3))
+        for index in range(0, disabled_inquiry_count):
+            self._create_inquiry(ttl=0, timestamp=timestamp)
+
         # Insert some mock Inquiries with start_timestamp < TTL
         new_inquiry_count = 5
         timestamp = (now - datetime.timedelta(minutes=3))
@@ -211,7 +221,7 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
         }
         inquiries = list(ActionExecution.query(**filters))
         self.assertEqual(len(inquiries),
-                         (old_inquiry_count + new_inquiry_count))
+                         (old_inquiry_count + new_inquiry_count + disabled_inquiry_count))
 
         # Start garbage collector
         process = self._start_garbage_collector()
@@ -223,7 +233,7 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
 
         # Expired Inquiries should have been garbage collected
         inquiries = list(ActionExecution.query(**filters))
-        self.assertEqual(len(inquiries), new_inquiry_count)
+        self.assertEqual(len(inquiries), new_inquiry_count + disabled_inquiry_count)
 
     def _create_inquiry(self, ttl, timestamp):
         action_db = self.models['actions']['ask.yaml']
@@ -236,7 +246,7 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
         executions.create_execution_object(liveaction_db)
 
     def _start_garbage_collector(self):
-        process = subprocess.Popen(CMD, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        process = subprocess.Popen(CMD_INQUIRY, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                    shell=False, preexec_fn=os.setsid)
         self.add_process(process=process)
         return process
