@@ -66,6 +66,7 @@ class RoleAssignmentsController(ResourceController):
     supported_filters = {
         'user': 'user',
         'role': 'role',
+        'source': 'source',
         'remote': 'is_remote'
     }
 
