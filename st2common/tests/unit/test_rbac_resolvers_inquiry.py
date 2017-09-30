@@ -175,31 +175,36 @@ class InquiryPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         user_db = self.users['custom_role_inquiry_list_grant']
         role_assignment_db = UserRoleAssignmentDB(
             user=user_db.name,
-            role=self.roles['custom_role_inquiry_list_grant'].name)
+            role=self.roles['custom_role_inquiry_list_grant'].name,
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         user_db = self.users['custom_role_inquiry_view_grant']
         role_assignment_db = UserRoleAssignmentDB(
             user=user_db.name,
-            role=self.roles['custom_role_inquiry_view_grant'].name)
+            role=self.roles['custom_role_inquiry_view_grant'].name,
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         user_db = self.users['custom_role_inquiry_respond_grant']
         role_assignment_db = UserRoleAssignmentDB(
             user=user_db.name,
-            role=self.roles['custom_role_inquiry_respond_grant'].name)
+            role=self.roles['custom_role_inquiry_respond_grant'].name,
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         user_db = self.users['custom_role_inquiry_all_grant']
         role_assignment_db = UserRoleAssignmentDB(
             user=user_db.name,
-            role=self.roles['custom_role_inquiry_all_grant'].name)
+            role=self.roles['custom_role_inquiry_all_grant'].name,
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         user_db = self.users['custom_role_inquiry_inherit']
         role_assignment_db = UserRoleAssignmentDB(
             user=user_db.name,
-            role=self.roles['custom_role_inquiry_inherit'].name)
+            role=self.roles['custom_role_inquiry_inherit'].name,
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
     def test_user_has_permission(self):

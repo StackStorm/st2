@@ -120,7 +120,8 @@ class InquiryRBACControllerTestCase(APIControllerWithRBACTestCase,
             for role in assignment_details['roles']:
                 role_assignment_db = UserRoleAssignmentDB(
                     user=user_db.name,
-                    role=role)
+                    role=role,
+                    source='assignments/%s.yaml' % user_db.name)
                 UserRoleAssignment.add_or_update(role_assignment_db)
 
         # Create Inquiry
