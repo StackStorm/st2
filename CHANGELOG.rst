@@ -35,7 +35,9 @@ Added
   StackStorm role mappings. This means that the same role can now be granted via multiple RBAC
   mapping files.
   #3763
-
+* Add new Jinja filters ``from_json_string``, ``from_yaml_string``, and ``jsonpath_query``.
+  #3763
+  
 Fixed
 ~~~~~
 
