@@ -365,6 +365,18 @@ class ActionAliasResourceManager(ResourceManager):
             return matches
 
 
+class ActionAliasExecutionManager(ResourceManager):
+    @add_auth_token_to_kwargs_from_env
+    def match_and_execute(self, instance, **kwargs):
+        url = '/%s/match_and_execute' % self.resource.get_url_path_name()
+        response = self.client.post(url, instance.serialize(), **kwargs)
+
+        if response.status_code != 200:
+            self.handle_error(response)
+        instance = self.resource.deserialize(response.json())
+        return instance
+
+
 class LiveActionResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
     def re_run(self, execution_id, parameters=None, tasks=None, no_reset=None, **kwargs):
