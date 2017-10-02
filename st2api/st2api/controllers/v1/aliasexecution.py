@@ -20,8 +20,11 @@ import six
 
 from st2api.controllers.base import BaseRestControllerMixin
 from st2common import log as logging
+from st2common.exceptions.actionalias import ActionAliasAmbiguityException
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.api.action import ActionAliasAPI
+from st2common.models.api.action import AliasExecutionAPI
+from st2common.models.api.action import AliasMatchAndExecuteInputAPI
 from st2common.models.api.auth import get_system_username
 from st2common.models.api.execution import ActionExecutionAPI
 from st2common.models.db.auth import UserDB
@@ -33,6 +36,7 @@ from st2common.persistence.actionalias import ActionAlias
 from st2common.services import action as action_service
 from st2common.util import action_db as action_utils
 from st2common.util import reference
+from st2common.util.actionalias_matching import get_matching_alias
 from st2common.util.jinja import render_values as render
 from st2common.rbac.types import PermissionType
 from st2common.rbac.utils import assert_user_has_resource_db_permission
@@ -49,6 +53,45 @@ CAST_OVERRIDES = {
 
 
 class ActionAliasExecutionController(BaseRestControllerMixin):
+    def match_and_execute(self, input_api, requester_user, show_secrets=False):
+        """
+            Try to find a matching alias and if one is found, schedule a new
+            execution by parsing parameters from the provided command against
+            the matched alias.
+
+            Handles requests:
+                POST //match
+        """
+        command = input_api.command
+
+        try:
+            match = get_matching_alias(command=command)
+        except ActionAliasAmbiguityException as e:
+            LOG.exception('Command "%s" matched (%s) patterns.', e.command, len(e.matches))
+            return abort(http_client.BAD_REQUEST, str(e))
+
+        action_alias_db = match[0]
+        representation = match[2]
+
+        params = {
+            'name': action_alias_db.name,
+            'format': representation,
+            'command': command,
+            'user': input_api.user,
+            'source_channel': input_api.source_channel
+        }
+
+        # Add in any additional parameters provided by the user
+        if input_api.notification_channel:
+            params['notification_channel'] = input_api.notification_channel
+
+        if input_api.notification_route:
+            params['notification_route'] = input_api.notification_route
+
+        alias_execution_api = AliasMatchAndExecuteInputAPI(**params)
+        result = self.post(payload=alias_execution_api, requester_user=requester_user,
+                           show_secrets=show_secrets)
+        return result
 
     def post(self, payload, requester_user, show_secrets=False):
         action_alias_name = payload.name if payload else None
