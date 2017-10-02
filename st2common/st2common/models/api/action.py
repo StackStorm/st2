@@ -667,16 +667,6 @@ class AliasMatchAndExecuteInputAPI(BaseAPI):
         "description": "Input for alias execution match and execute API.",
         "type": "object",
         "properties": {
-            "name": {
-                "type": "string",
-                "description": "Name of the action alias which matched.",
-                "required": True
-            },
-            "format": {
-                "type": "string",
-                "description": "Format string which matched.",
-                "required": True
-            },
             "command": {
                 "type": "string",
                 "description": "Command used in chat.",
@@ -695,12 +685,14 @@ class AliasMatchAndExecuteInputAPI(BaseAPI):
             "notification_channel": {
                 "type": "string",
                 "description": "StackStorm notification channel to use to respond.",
-                "required": False
+                "required": False,
+                "default": None
             },
             "notification_route": {
                 "type": "string",
                 "description": "StackStorm notification route to use to respond.",
-                "required": False
+                "required": False,
+                "default": None
             }
         },
         "additionalProperties": False
