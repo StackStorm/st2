@@ -1,0 +1,10 @@
+chain:
+
+    - name: task1
+      ref: examples.chain-test-inquiry
+      on-success: "task2"
+
+    - name: task2
+      ref: core.local
+      params:
+        cmd: echo "parent task2"

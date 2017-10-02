@@ -62,10 +62,13 @@ class UserRoleAssignmentDB(stormbase.StormFoundationDB):
     Attribute:
         user: A reference to the user name to which the role is assigned.
         role: A reference to the role name which is assigned to the user.
+        source: Source where this assignment comes from. Path to a file for local assignments
+                and "API" for API assignments.
         description: Optional assigment description.
     """
     user = me.StringField(required=True)
-    role = me.StringField(required=True, unique_with='user')
+    role = me.StringField(required=True, unique_with=['user', 'source'])
+    source = me.StringField(required=True, unique_with=['user', 'role'])
     description = me.StringField()
     # True if this is assigned created on authentication based on the remote groups provided by
     # the auth backends.
@@ -77,7 +80,9 @@ class UserRoleAssignmentDB(stormbase.StormFoundationDB):
         'indexes': [
             {'fields': ['user']},
             {'fields': ['role']},
+            {'fields': ['source']},
             {'fields': ['is_remote']},
+            {'fields': ['user', 'role']},
         ]
     }
 
@@ -110,10 +115,13 @@ class GroupToRoleMappingDB(stormbase.StormFoundationDB):
     Attribute:
         group: Name of the remote auth backend group.
         roles: A reference to the local RBAC role names.
+        source: Source where this assignment comes from. Path to a file for local assignments
+                and "API" for API assignments.
         description: Optional description for this mapping.
     """
     group = me.StringField(required=True, unique=True)
     roles = me.ListField(field=me.StringField())
+    source = me.StringField()
     description = me.StringField()
     enabled = me.BooleanField(required=True, default=True,
                               help_text='A flag indicating whether the mapping is enabled.')

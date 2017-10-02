@@ -52,6 +52,7 @@ class UserRoleAssignmentDBModelCRUDTestCase(BaseDBModelCRUDTestCase, DbTestCase)
     model_class_kwargs = {
         'user': 'user_one',
         'role': 'role_one',
+        'source': 'source_one',
         'is_remote': True
     }
     update_attribute_name = 'role'

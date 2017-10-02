@@ -147,8 +147,8 @@ class BaseAPIControllerWithRBACTestCase(BaseFunctionalTest, CleanDbTestCase):
             self.users[role_name] = user_db
 
             role_assignment_db = UserRoleAssignmentDB(
-                user=user_db.name,
-                role=role_name)
+                user=user_db.name, role=role_name,
+                source='assignments/%s.yaml' % user_db.name)
             UserRoleAssignment.add_or_update(role_assignment_db)
 
         # Insert a user with no permissions and role assignments

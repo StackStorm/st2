@@ -103,12 +103,14 @@ class TimerControllerRBACTestCase(APIControllerWithRBACTestCase):
         # Role assignments
         role_assignment_db = UserRoleAssignmentDB(
             user=self.users['timer_list'].name,
-            role=self.roles['timer_list'].name)
+            role=self.roles['timer_list'].name,
+            source='assignments/%s.yaml' % self.users['timer_list'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         role_assignment_db = UserRoleAssignmentDB(
             user=self.users['timer_view'].name,
-            role=self.roles['timer_view'].name)
+            role=self.roles['timer_view'].name,
+            source='assignments/%s.yaml' % self.users['timer_view'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
     def test_get_all_no_permissions(self):

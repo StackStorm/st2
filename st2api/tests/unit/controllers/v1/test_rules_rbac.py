@@ -134,19 +134,22 @@ class RuleControllerRBACTestCase(APIControllerWithRBACTestCase):
         user_db = self.users['rule_create']
         role_assignment_db = UserRoleAssignmentDB(
             user=user_db.name,
-            role=self.roles['rule_create'].name)
+            role=self.roles['rule_create'].name,
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         user_db = self.users['rule_create_webhook_create']
         role_assignment_db = UserRoleAssignmentDB(
             user=user_db.name,
-            role=self.roles['rule_create_webhook_create'].name)
+            role=self.roles['rule_create_webhook_create'].name,
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         user_db = self.users['rule_create_webhook_create_core_local_execute']
         role_assignment_db = UserRoleAssignmentDB(
             user=user_db.name,
-            role=self.roles['rule_create_webhook_create_core_local_execute'].name)
+            role=self.roles['rule_create_webhook_create_core_local_execute'].name,
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
     def test_post_webhook_trigger_no_trigger_and_action_permission(self):

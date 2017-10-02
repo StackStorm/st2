@@ -38,8 +38,8 @@ from tests.unit.controllers.exp.test_inquiries import SCHEMA_DEFAULT
 
 FIXTURES_PACK = 'generic'
 TEST_FIXTURES = {
-    'runners': ['inquirer.yaml'],
-    'actions': ['ask.yaml']
+    'runners': ['inquirer.yaml', 'actionchain.yaml'],
+    'actions': ['ask.yaml', 'inquiry_workflow.yaml'],
 }
 
 
@@ -61,19 +61,33 @@ class InquiryRBACControllerTestCase(APIControllerWithRBACTestCase,
         assignments = {
             "user_get_db": {
                 "roles": ["role_get"],
-                "permissions": [PermissionType.INQUIRY_VIEW]
+                "permissions": [PermissionType.INQUIRY_VIEW],
+                "resource_type": ResourceType.INQUIRY,
+                "resource_uid": 'inquiry'
             },
             "user_list_db": {
                 "roles": ["role_list"],
-                "permissions": [PermissionType.INQUIRY_LIST]
+                "permissions": [PermissionType.INQUIRY_LIST],
+                "resource_type": ResourceType.INQUIRY,
+                "resource_uid": 'inquiry'
             },
             "user_respond_db": {
                 "roles": ["role_respond"],
-                "permissions": [PermissionType.INQUIRY_RESPOND]
+                "permissions": [PermissionType.INQUIRY_RESPOND],
+                "resource_type": ResourceType.INQUIRY,
+                "resource_uid": 'inquiry'
             },
             "user_respond_paramtest": {
                 "roles": ["role_respond_2"],
-                "permissions": [PermissionType.INQUIRY_RESPOND]
+                "permissions": [PermissionType.INQUIRY_RESPOND],
+                "resource_type": ResourceType.INQUIRY,
+                "resource_uid": 'inquiry'
+            },
+            "user_respond_inherit": {
+                "roles": ["role_inherit"],
+                "permissions": [PermissionType.ACTION_EXECUTE],
+                "resource_type": ResourceType.ACTION,
+                "resource_uid": 'action:wolfpack:inquiry-workflow'
             }
 
         }
@@ -89,8 +103,8 @@ class InquiryRBACControllerTestCase(APIControllerWithRBACTestCase,
 
             grant_db = PermissionGrantDB(
                 permission_types=assignment_details["permissions"],
-                resource_uid='inquiry',
-                resource_type=ResourceType.INQUIRY
+                resource_uid=assignment_details["resource_uid"],
+                resource_type=assignment_details["resource_type"]
             )
             grant_db = PermissionGrant.add_or_update(grant_db)
             permission_grants = [str(grant_db.id)]
@@ -106,7 +120,8 @@ class InquiryRBACControllerTestCase(APIControllerWithRBACTestCase,
             for role in assignment_details['roles']:
                 role_assignment_db = UserRoleAssignmentDB(
                     user=user_db.name,
-                    role=role)
+                    role=role,
+                    source='assignments/%s.yaml' % user_db.name)
                 UserRoleAssignment.add_or_update(role_assignment_db)
 
         # Create Inquiry
@@ -119,10 +134,6 @@ class InquiryRBACControllerTestCase(APIControllerWithRBACTestCase,
             }
         }
 
-        # Use admin user for creating the Inquiry
-        user_db = self.users['admin']
-        self.use_user(user_db)
-
         result = {
             "schema": SCHEMA_DEFAULT,
             "roles": ['role_respond'],
@@ -131,15 +142,59 @@ class InquiryRBACControllerTestCase(APIControllerWithRBACTestCase,
             "ttl": 1440
         }
 
+        result_default = {
+            "schema": SCHEMA_DEFAULT,
+            "roles": [],
+            "users": [],
+            "route": "",
+            "ttl": 1440
+        }
+
+        # Use admin user for creating test objects
+        user_db = self.users['admin']
+        self.use_user(user_db)
+
+        # Create workflow
+        wf_data = {
+            'action': 'wolfpack.inquiry-workflow'
+        }
+        post_resp = self.app.post_json('/v1/executions', wf_data)
+        wf_id = str(post_resp.json.get('id'))
+
+        inquiry_with_parent = {
+            'action': 'wolfpack.ask',
+            # 'parameters': {},
+            'context': {
+                "parent": {
+                    'execution_id': wf_id
+                }
+            }
+        }
+
         resp = self._do_create_inquiry(data, result)
-
         self.assertEqual(resp.status_int, http_client.OK)
-
         self.inquiry_id = resp.json.get('id')
-
         # Validated expected context for inquiries under RBAC
         expected_context = {
             'pack': 'wolfpack',
+            'user': 'admin',
+            'rbac': {
+                'user': 'admin',
+                'roles': ['admin']
+            }
+        }
+        self.assertEqual(resp.json['context'], expected_context)
+
+        # Create inquiry in workflow
+        resp = self._do_create_inquiry(inquiry_with_parent, result_default)
+        self.assertEqual(resp.status_int, http_client.OK)
+        self.inquiry_inherit_id = resp.json.get('id')
+        # Validated expected context for inquiries under RBAC
+        expected_context = {
+            'pack': 'wolfpack',
+            'parent': {
+                'execution_id': wf_id
+            },
             'user': 'admin',
             'rbac': {
                 'user': 'admin',
@@ -213,4 +268,19 @@ class InquiryRBACControllerTestCase(APIControllerWithRBACTestCase,
         # User with respond permissions should succeed
         self.use_user(self.users['user_respond_db'])
         resp = self._do_respond(self.inquiry_id, response)
+        self.assertEqual(resp.status_int, http_client.OK)
+
+    @mock.patch('st2api.controllers.exp.inquiries.action_service')
+    def test_inquiry_roles_inherit(self, mock_action_service):
+        """Tests action_execute -> inquiry_respond permission inheritance
+
+        Mocked out action_service because, since this inquiry has a parent,
+        a pause will be attempted, and we don't care to test for that here.
+        """
+
+        # user_respond_inherit user doesn't have any inquiry permissions at all.
+        # yet, since they are permitted to execute a workflow that contains an inquiry,
+        # the user is still allowed to respond to that inquiry.
+        self.use_user(self.users['user_respond_inherit'])
+        resp = self._do_respond(self.inquiry_inherit_id, {"continue": True})
         self.assertEqual(resp.status_int, http_client.OK)

@@ -57,7 +57,27 @@ class InquiryPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         user_4_db = User.add_or_update(user_4_db)
         self.users['custom_role_inquiry_all_grant'] = user_4_db
 
-        # Create a mock Inquiry on which permissions can be granted
+        user_5_db = UserDB(name='custom_role_inquiry_inherit')
+        user_5_db = User.add_or_update(user_5_db)
+        self.users['custom_role_inquiry_inherit'] = user_5_db
+
+        # Create a workflow for testing inheritance of action_execute permission
+        # to inquiry_respond permission
+        wf_db = ActionDB(pack='examples', name='mistral-ask-basic', entry_point='',
+                         runner_type={'name': 'mistral-v2'})
+        wf_db = Action.add_or_update(wf_db)
+        self.resources['wf'] = wf_db
+        runner = {'name': 'mistral-v2'}
+        liveaction = {'action': 'examples.mistral-ask-basic'}
+        status = action_constants.LIVEACTION_STATUS_PAUSED
+
+        # Spawn workflow
+        action = {'uid': wf_db.get_uid(), 'pack': 'examples'}
+        wf_exc_db = ActionExecutionDB(action=action, runner=runner, liveaction=liveaction,
+                                      status=status)
+        wf_exc_db = ActionExecution.add_or_update(wf_exc_db)
+
+        # Create an Inquiry on which permissions can be granted
         action_1_db = ActionDB(pack='core', name='ask', entry_point='',
                                runner_type={'name': 'inquirer'})
         action_1_db = Action.add_or_update(action_1_db)
@@ -72,14 +92,22 @@ class InquiryPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         inquiry_1_db = ActionExecutionDB(action=action, runner=runner, liveaction=liveaction,
                                          status=status)
 
+        # A separate inquiry that has a parent (so we can test workflow permission inheritance)
+        inquiry_2_db = ActionExecutionDB(action=action, runner=runner, liveaction=liveaction,
+                                         status=status, parent=str(wf_exc_db.id))
+
         # A bit gross, but it's what we have to do since Inquiries
         # don't yet have their own data model
         def get_uid():
             return "inquiry"
+
         inquiry_1_db.get_uid = get_uid
+        inquiry_2_db.get_uid = get_uid
 
         inquiry_1_db = ActionExecution.add_or_update(inquiry_1_db)
+        inquiry_2_db = ActionExecution.add_or_update(inquiry_2_db)
         self.resources['inquiry_1'] = inquiry_1_db
+        self.resources['inquiry_2'] = inquiry_2_db
 
         ############################################################
         # Create some mock roles with associated permission grants #
@@ -129,6 +157,17 @@ class InquiryPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         role_db = Role.add_or_update(role_db)
         self.roles['custom_role_inquiry_all_grant'] = role_db
 
+        # Custom role - inheritance grant
+        grant_db = PermissionGrantDB(resource_uid=self.resources['wf'].get_uid(),
+                                     resource_type=ResourceType.ACTION,
+                                     permission_types=[PermissionType.ACTION_EXECUTE])
+        grant_db = PermissionGrant.add_or_update(grant_db)
+        permission_grants = [str(grant_db.id)]
+        role_db = RoleDB(name='custom_role_inquiry_inherit',
+                         permission_grants=permission_grants)
+        role_db = Role.add_or_update(role_db)
+        self.roles['custom_role_inquiry_inherit'] = role_db
+
         #####################################
         # Create some mock role assignments #
         #####################################
@@ -136,25 +175,36 @@ class InquiryPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         user_db = self.users['custom_role_inquiry_list_grant']
         role_assignment_db = UserRoleAssignmentDB(
             user=user_db.name,
-            role=self.roles['custom_role_inquiry_list_grant'].name)
+            role=self.roles['custom_role_inquiry_list_grant'].name,
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         user_db = self.users['custom_role_inquiry_view_grant']
         role_assignment_db = UserRoleAssignmentDB(
             user=user_db.name,
-            role=self.roles['custom_role_inquiry_view_grant'].name)
+            role=self.roles['custom_role_inquiry_view_grant'].name,
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         user_db = self.users['custom_role_inquiry_respond_grant']
         role_assignment_db = UserRoleAssignmentDB(
             user=user_db.name,
-            role=self.roles['custom_role_inquiry_respond_grant'].name)
+            role=self.roles['custom_role_inquiry_respond_grant'].name,
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         user_db = self.users['custom_role_inquiry_all_grant']
         role_assignment_db = UserRoleAssignmentDB(
             user=user_db.name,
-            role=self.roles['custom_role_inquiry_all_grant'].name)
+            role=self.roles['custom_role_inquiry_all_grant'].name,
+            source='assignments/%s.yaml' % user_db.name)
+        UserRoleAssignment.add_or_update(role_assignment_db)
+
+        user_db = self.users['custom_role_inquiry_inherit']
+        role_assignment_db = UserRoleAssignmentDB(
+            user=user_db.name,
+            role=self.roles['custom_role_inquiry_inherit'].name,
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
     def test_user_has_permission(self):
@@ -204,12 +254,11 @@ class InquiryPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         all_permission_types.remove(PermissionType.INQUIRY_LIST)
 
         # Admin user, should always return true
-        resource_db = self.resources['inquiry_1']
         user_db = self.users['admin']
         self.assertUserHasResourceDbPermissions(
             resolver=resolver,
             user_db=user_db,
-            resource_db=resource_db,
+            resource_db=self.resources['inquiry_1'],
             permission_types=all_permission_types)
 
         # Observer, should always return true for VIEW permission
@@ -236,7 +285,7 @@ class InquiryPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         self.assertUserDoesntHaveResourceDbPermissions(
             resolver=resolver,
             user_db=user_db,
-            resource_db=resource_db,
+            resource_db=self.resources['inquiry_1'],
             permission_types=all_permission_types)
 
         # Custom role with no permission grants, should return false for everything
@@ -244,7 +293,7 @@ class InquiryPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         self.assertUserDoesntHaveResourceDbPermissions(
             resolver=resolver,
             user_db=user_db,
-            resource_db=resource_db,
+            resource_db=self.resources['inquiry_1'],
             permission_types=all_permission_types)
 
         # View user should be able to view
@@ -252,7 +301,7 @@ class InquiryPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         self.assertUserHasResourceDbPermission(
             resolver=resolver,
             user_db=user_db,
-            resource_db=resource_db,
+            resource_db=self.resources['inquiry_1'],
             permission_type=PermissionType.INQUIRY_VIEW)
 
         # Respond user should be able to respond
@@ -260,7 +309,7 @@ class InquiryPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         self.assertUserHasResourceDbPermission(
             resolver=resolver,
             user_db=user_db,
-            resource_db=resource_db,
+            resource_db=self.resources['inquiry_1'],
             permission_type=PermissionType.INQUIRY_RESPOND)
 
         # ALL user should have all db perms
@@ -268,5 +317,16 @@ class InquiryPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         self.assertUserHasResourceDbPermission(
             resolver=resolver,
             user_db=user_db,
-            resource_db=resource_db,
+            resource_db=self.resources['inquiry_1'],
             permission_type=PermissionType.INQUIRY_ALL)
+
+        # Now to test inheritance from action_execution for parent workflow.
+        # We still have to pass in INQUIRY_RESPOND to permission_type here to keep the resolver
+        # enum assert happy, but we haven't granted INQUIRY_RESPOND to this role, proving
+        # that the effective permission is inherited.
+        user_db = self.users['custom_role_inquiry_inherit']
+        self.assertUserHasResourceDbPermission(
+            resolver=resolver,
+            user_db=user_db,
+            resource_db=self.resources['inquiry_2'],
+            permission_type=PermissionType.INQUIRY_RESPOND)

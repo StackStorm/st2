@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import fnmatch
+
 import eventlet
 
 from kombu import Connection
@@ -95,7 +97,9 @@ class BaseListener(ConsumerMixin):
                     # TODO: We now do late filtering, but this could also be performed on the
                     # message bus level if we modified our exchange layout and utilize routing keys
                     # Filter on event name
-                    if events and event_name not in events:
+                    include_event = self._should_include_event(event_names_whitelist=events,
+                                                               event_name=event_name)
+                    if not include_event:
                         LOG.debug('Skipping event "%s"' % (event_name))
                         continue
 
@@ -121,6 +125,19 @@ class BaseListener(ConsumerMixin):
 
     def shutdown(self):
         self._stopped = True
+
+    def _should_include_event(self, event_names_whitelist, event_name):
+        """
+        Return True if particular event should be included based on the event names filter.
+        """
+        if not event_names_whitelist:
+            return True
+
+        for event_name_filter_glob in event_names_whitelist:
+            if fnmatch.fnmatch(event_name, event_name_filter_glob):
+                return True
+
+        return False
 
     def _get_action_ref_for_body(self, body):
         """
