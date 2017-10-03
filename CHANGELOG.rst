@@ -42,6 +42,12 @@ Added
   client commands for interacting with Inquiries
 
   Contributed by mierdin. #3653
+* Add new ``POST /v1/aliasexecution/match_and_execute`` API endpoint which allows user to
+  schedule an execution based on a command string if a matching alias is found in the database.
+
+  This API endpoint is meant to be used with chat bot plugins. It allows them to be simple thin
+  wrappers around this API endpoint which send each chat line to this API endpoint and handle the
+  response. #3773
 
 Fixed
 ~~~~~
@@ -79,6 +85,12 @@ Fixed
   Reported by Carlos.
 * Fix action-alias execute response to show execution id and matching action-alias #3231 (bug fix)
   Reported by Carlos.
+* Fix ``POST /v1/actionalias/match`` API endpoint to correctly return a dictionary instead of an
+  array. We had a correct OpenAPI definition for the response, but the code incorrectly returned
+  an array instead of a dictionary.
+
+  Note: This is a breaking change so if your code utilizes this API endpoint you need to update
+  to treat response as a dictionary and not as an array with a single item. #3773
 
 2.4.1 - September 12, 2017
 --------------------------
