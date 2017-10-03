@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
+
 import mock
 
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
@@ -146,6 +148,43 @@ class AliasExecutionTestCase(FunctionalTest):
         self.assertEqual(post_resp.status_int, 201)
         self.assertEqual(post_resp.json['execution']['parameters']['param4'],
                          SUPER_SECRET_PARAMETER)
+
+    @mock.patch.object(action_service, 'request',
+                       return_value=(None, EXECUTION))
+    def test_match_and_execute(self, mock_request):
+        base_data = {
+            'source_channel': 'chat',
+            'notification_route': 'hubot',
+            'user': 'chat-user'
+        }
+
+        # Command doesnt match any patterns
+        data = copy.deepcopy(base_data)
+        data['command'] = 'hello donny'
+        resp = self.app.post_json('/v1/aliasexecution/match_and_execute', data, expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertEqual(str(resp.json['faultstring']),
+                         "Command 'hello donny' matched no patterns")
+
+        # Command matches more than one pattern
+        data = copy.deepcopy(base_data)
+        data['command'] = 'Lorem ipsum banana dolor sit pineapple amet.'
+        resp = self.app.post_json('/v1/aliasexecution/match_and_execute', data, expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertEqual(str(resp.json['faultstring']),
+                         "Command 'Lorem ipsum banana dolor sit pineapple amet.' "
+                         "matched more than 1 pattern")
+
+        # Command matches - should result in action execution
+        data = copy.deepcopy(base_data)
+        data['command'] = 'run date on localhost'
+        resp = self.app.post_json('/v1/aliasexecution/match_and_execute', data)
+        self.assertEqual(resp.status_int, 201)
+        self.assertEqual(resp.json['execution']['id'], str(EXECUTION['id']))
+        self.assertEqual(resp.json['execution']['status'], EXECUTION['status'])
+
+        expected_parameters = {'cmd': 'date', 'hosts': 'localhost'}
+        self.assertEquals(mock_request.call_args[0][0].parameters, expected_parameters)
 
     def _do_post(self, alias_execution, command, format_str=None, expect_errors=False,
                  show_secrets=False):
