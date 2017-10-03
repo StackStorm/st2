@@ -32,7 +32,6 @@ from st2common.persistence.execution import ActionExecutionOutput
 from st2common.services import executions
 from st2tests.base import IntegrationTestCase
 from st2tests.base import CleanDbTestCase
-from st2tests.api import BaseFunctionalTest
 
 from st2tests.fixturesloader import FixturesLoader
 
