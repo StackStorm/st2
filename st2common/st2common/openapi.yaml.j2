@@ -683,14 +683,10 @@ paths:
           schema:
             $ref: '#/definitions/ActionAliasMatchRequest'
       responses:
-        '201':
+        '200':
           description: Action alias match pattern
           schema:
             $ref: '#/definitions/ActionAliasMatch'
-          examples:
-            application/json:
-              ref: 'core.local'
-              # and stuff
         default:
           description: Unexpected error
           schema:
