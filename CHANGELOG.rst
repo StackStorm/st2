@@ -37,7 +37,12 @@ Added
   #3763
 * Add new Jinja filters ``from_json_string``, ``from_yaml_string``, and ``jsonpath_query``.
   #3763
-  
+* Add new "Inquiry" capability, which adds ability to "ask a question", usually in a workflow.
+  Create a new runner type: "inquirer" to support this, as well as new API endpoints and
+  client commands for interacting with Inquiries
+
+  Contributed by mierdin. #3653
+
 Fixed
 ~~~~~
 

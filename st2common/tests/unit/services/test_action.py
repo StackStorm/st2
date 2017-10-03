@@ -25,8 +25,10 @@ from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.action import Action
+from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.runner import RunnerType
 from st2common.services import action as action_service
+from st2common.services import executions
 from st2common.transport.publishers import PoolPublisher
 from st2common.util import isotime
 from st2common.util import action_db
@@ -227,6 +229,48 @@ class TestActionExecutionService(DbTestCase):
         execution, _ = action_service.request_resume(execution, USERNAME)
         execution = action_db.get_liveaction_by_id(execution.id)
         return execution
+
+    def _create_nested_executions(self, depth=2):
+        """Utility function for easily creating nested LiveAction and ActionExecutions for testing
+
+        returns (childmost_liveaction_db, parentmost_liveaction_db)
+        """
+
+        if depth <= 0:
+            raise Exception("Please provide a depth > 0")
+
+        root_liveaction_db = LiveActionDB()
+        root_liveaction_db.status = action_constants.LIVEACTION_STATUS_PAUSED
+        root_liveaction_db.action = ACTION_WORKFLOW_REF
+        root_liveaction_db = LiveAction.add_or_update(root_liveaction_db)
+        root_ex = executions.create_execution_object(root_liveaction_db)
+
+        last_id = root_ex['id']
+
+        # Create children to the specified depth
+        for i in range(depth):
+
+            # Childmost liveaction should use ACTION_REF, everything else
+            # should use ACTION_WORKFLOW_REF
+            if i == depth:
+                action = ACTION_REF
+            else:
+                action = ACTION_WORKFLOW_REF
+
+            child_liveaction_db = LiveActionDB()
+            child_liveaction_db.status = action_constants.LIVEACTION_STATUS_PAUSED
+            child_liveaction_db.action = action
+            child_liveaction_db.context = {
+                "parent": {
+                    "execution_id": last_id
+                }
+            }
+            child_liveaction_db = LiveAction.add_or_update(child_liveaction_db)
+            parent_ex = executions.create_execution_object(child_liveaction_db)
+            last_id = parent_ex.id
+
+        # Return the last-created child as well as the root
+        return (child_liveaction_db, root_liveaction_db)
 
     def test_req_non_workflow_action(self):
         actiondb = self.actiondbs[ACTION['name']]
@@ -557,3 +601,14 @@ class TestActionExecutionService(DbTestCase):
                 mocked.assert_not_called()
         finally:
             action_constants.WORKFLOW_RUNNER_TYPES.remove(ACTION['runner_type'])
+
+    def test_root_liveaction(self):
+        """Test that get_root_liveaction correctly retrieves the root liveaction
+        """
+
+        # Test a variety of depths
+        for i in range(1, 7):
+
+            child, expected_root = self._create_nested_executions(depth=i)
+            actual_root = action_service.get_root_liveaction(child)
+            self.assertEqual(expected_root['id'], actual_root['id'])

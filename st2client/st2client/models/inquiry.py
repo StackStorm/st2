@@ -13,18 +13,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2client.models.core import *         # noqa
-from st2client.models.auth import *       # noqa
-from st2client.models.action import *       # noqa
-from st2client.models.action_alias import *  # noqa
-from st2client.models.aliasexecution import *  # noqa
-from st2client.models.config import *  # noqa
-from st2client.models.inquiry import *  # noqa
-from st2client.models.keyvalue import *    # noqa
-from st2client.models.pack import *          # noqa
-from st2client.models.policy import *       # noqa
-from st2client.models.reactor import *      # noqa
-from st2client.models.trace import *      # noqa
-from st2client.models.webhook import *      # noqa
-from st2client.models.timer import *      # noqa
-from st2client.models.rbac import *      # noqa
+import logging
+
+from st2client.models import core
+
+
+LOG = logging.getLogger(__name__)
+
+
+class Inquiry(core.Resource):
+    _display_name = 'Inquiry'
+    _plural = 'Inquiries'
+    _plural_display_name = 'Inquiries'
+    _url_path = 'inquiries'
+    _repr_attributes = [
+        'id',
+        'schema',
+        'roles',
+        'users',
+        'route',
+        'ttl'
+    ]

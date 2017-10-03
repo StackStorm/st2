@@ -36,6 +36,7 @@ from st2client.commands import auth
 from st2client.commands import action
 from st2client.commands import action_alias
 from st2client.commands import keyvalue
+from st2client.commands import inquiry
 from st2client.commands import pack
 from st2client.commands import policy
 from st2client.commands import resource
@@ -214,6 +215,11 @@ class Shell(BaseCLIApp):
 
         self.commands['execution'] = action.ActionExecutionBranch(
             'An invocation of an action.',
+            self, self.subparsers)
+
+        self.commands['inquiry'] = inquiry.InquiryBranch(
+            'Inquiries provide an opportunity to ask a question '
+            'and wait for a response in a workflow.',
             self, self.subparsers)
 
         self.commands['key'] = keyvalue.KeyValuePairBranch(

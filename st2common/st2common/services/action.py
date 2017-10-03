@@ -315,6 +315,28 @@ def request_resume(liveaction, requester):
     return (liveaction, execution)
 
 
+def get_root_liveaction(liveaction_db):
+    """Recursively ascends until the root liveaction is found
+
+    Useful for finding an original parent workflow. Pass in
+    any LiveActionDB instance, and this function will eventually
+    return the top-most liveaction, even if the two are one and
+    the same
+
+    :param liveaction_db: The LiveActionDB instance for which to find
+                          the root parent
+    :rtype: LiveActionDB
+    """
+
+    parent = liveaction_db.context.get("parent")
+    if parent:
+        parent_execution = ActionExecution.get(id=parent['execution_id'])
+        parent_liveaction = LiveAction.get(id=parent_execution.liveaction['id'])
+        return get_root_liveaction(parent_liveaction)
+    else:
+        return liveaction_db
+
+
 def store_execution_output_data(execution_db, action_db, data, output_type='output',
                                 timestamp=None):
     """
