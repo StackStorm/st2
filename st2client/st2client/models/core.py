@@ -355,14 +355,10 @@ class ActionAliasResourceManager(ResourceManager):
     def match(self, instance, **kwargs):
         url = '/%s/match' % self.resource.get_url_path_name()
         response = self.client.post(url, instance.serialize(), **kwargs)
-        if response.status_code != 201:
+        if response.status_code != 200:
             self.handle_error(response)
-        matches = response.json()
-        if len(matches) > 0:
-            return (self.resource.deserialize(matches[0]['actionalias']),
-                    matches[0]['representation'])
-        else:
-            return matches
+        match = response.json()
+        return (self.resource.deserialize(match['actionalias']), match['representation'])
 
 
 class ActionAliasExecutionManager(ResourceManager):
