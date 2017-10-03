@@ -87,10 +87,7 @@ class ActionAliasController(resource.ContentPackResourceController):
         action_alias_api = ActionAliasAPI.from_model(match[0])
         match = [action_alias_api, match[1], match[2]]
         result = self._match_tuple_to_dict(match=match)
-
-        # For backward compatibility return an array even if this should just return a dict
-        # since it will never contain more than one item
-        return [result]
+        return result
 
     def help(self, filter, pack, limit, offset, **kwargs):
         """
