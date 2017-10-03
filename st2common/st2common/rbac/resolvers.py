@@ -26,6 +26,7 @@ from st2common.models.db.pack import PackDB
 from st2common.models.db.webhook import WebhookDB
 from st2common.models.system.common import ResourceReference
 from st2common.constants.triggers import WEBHOOK_TRIGGER_TYPE
+from st2common.persistence.execution import ActionExecution
 from st2common.rbac.types import PermissionType
 from st2common.rbac.types import ResourceType
 from st2common.rbac.types import SystemRole
@@ -49,6 +50,7 @@ __all__ = [
     'TracePermissionsResolver',
     'TriggerPermissionsResolver',
     'StreamPermissionsResolver',
+    'InquiryPermissionsResolver',
 
     'get_resolver_for_resource_type',
     'get_resolver_for_permission_type'
@@ -1047,6 +1049,115 @@ class StreamPermissionsResolver(PermissionsResolver):
         return self._user_has_global_permission(user_db=user_db, permission_type=permission_type)
 
 
+class InquiryPermissionsResolver(PermissionsResolver):
+    resource_type = ResourceType.INQUIRY
+    view_grant_permission_types = [
+        PermissionType.INQUIRY_LIST,
+        PermissionType.INQUIRY_VIEW,
+        PermissionType.INQUIRY_RESPOND,
+        PermissionType.INQUIRY_ALL
+    ]
+
+    def user_has_permission(self, user_db, permission_type):
+        assert permission_type in [PermissionType.INQUIRY_LIST, PermissionType.INQUIRY_ALL]
+        return self._user_has_list_permission(user_db=user_db, permission_type=permission_type)
+
+    def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
+        """
+        Method for checking user permissions on an existing resource (e.g. get one, edit, delete
+        operations).
+
+        NOTE:
+        Because we're borrowing the ActionExecutionDB model, the resource_db parameter is
+        effectively ignored. All other filters are passed to get_all_permission_grants_for_user.
+        Since all Inquiry permission types are global, this will still correctly return a list of
+        grants.
+        """
+
+        permission_types = [
+            PermissionType.INQUIRY_VIEW,
+            PermissionType.INQUIRY_RESPOND,
+            PermissionType.INQUIRY_ALL
+        ]
+
+        assert permission_type in permission_types
+
+        log_context = {
+            'user_db': user_db,
+            'resource_db': resource_db,
+            'permission_type': permission_type,
+            'resolver': self.__class__.__name__
+        }
+        self._log('Checking user resource permissions', extra=log_context)
+
+        # First check the system role permissions
+        has_system_role_permission = self._user_has_system_role_permission(
+            user_db=user_db, permission_type=permission_type)
+
+        if has_system_role_permission:
+            self._log('Found a matching grant via system role', extra=log_context)
+            return True
+
+        # Check for explicit Inquiry grants first
+        resource_types = [ResourceType.INQUIRY]
+        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
+                                                               resource_types=resource_types,
+                                                               permission_types=permission_types)
+
+        if len(permission_grants) >= 1:
+            self._log('Found a grant on the inquiry', extra=log_context)
+            return True
+
+        # If the inquiry has a parent (is in a workflow) we want to
+        # check permissions of the parent action and pack, and inherit
+        # if applicable
+        if resource_db.parent:
+
+            # Retrieve objects for parent workflow action and pack
+            wf_exc = ActionExecution.get(id=resource_db.parent)
+            wf_action = wf_exc['action']
+            # TODO: Add utility methods for constructing uids from parts
+            wf_pack_db = PackDB(ref=wf_action['pack'])
+            wf_action_uid = wf_action['uid']
+            wf_action_pack_uid = wf_pack_db.get_uid()
+
+            # Check grants on the pack of the workflow that the Inquiry was generated from
+            resource_types = [ResourceType.PACK]
+            permission_types = [PermissionType.ACTION_ALL, PermissionType.ACTION_EXECUTE]
+            permission_grants = get_all_permission_grants_for_user(
+                user_db=user_db,
+                resource_uid=wf_action_pack_uid,
+                resource_types=resource_types,
+                permission_types=permission_types
+            )
+
+            if len(permission_grants) >= 1:
+                log_context['wf_action_pack_uid'] = wf_action_pack_uid
+                self._log(
+                    'Found a grant on the parent pack for an inquiry workflow',
+                    extra=log_context
+                )
+                return True
+
+            # Check grants on the workflow that the Inquiry was generated from
+            resource_types = [ResourceType.ACTION]
+            permission_types = [PermissionType.ACTION_ALL, PermissionType.ACTION_EXECUTE]
+            permission_grants = get_all_permission_grants_for_user(
+                user_db=user_db,
+                resource_uid=wf_action_uid,
+                resource_types=resource_types,
+                permission_types=permission_types
+            )
+
+            if len(permission_grants) >= 1:
+                log_context['wf_action_uid'] = wf_action_uid
+                self._log('Found a grant on the inquiry workflow', extra=log_context)
+                return True
+
+        self._log('No matching grants found', extra=log_context)
+        return False
+
+
 def get_resolver_for_resource_type(resource_type):
     """
     Return resolver instance for the provided resource type.
@@ -1087,6 +1198,8 @@ def get_resolver_for_resource_type(resource_type):
         resolver_cls = PolicyPermissionsResolver
     elif resource_type == ResourceType.STREAM:
         resolver_cls = StreamPermissionsResolver
+    elif resource_type == ResourceType.INQUIRY:
+        resolver_cls = InquiryPermissionsResolver
     else:
         raise ValueError('Unsupported resource: %s' % (resource_type))
 

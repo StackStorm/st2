@@ -423,6 +423,11 @@ class ActionChainRunner(ActionRunner):
                 del result['tasks'][-1]
                 result['tasks'].append(updated_task_result)
 
+                # Also need to update context_result so the updated result
+                # is available to Jinja expressions
+                updated_task_name = updated_task_result['name']
+                context_result[updated_task_name]['result'] = updated_task_result['result']
+
             # If the last task was canceled, then canceled the chain altogether.
             if liveaction.status == action_constants.LIVEACTION_STATUS_CANCELED:
                 chain_status = action_constants.LIVEACTION_STATUS_CANCELED

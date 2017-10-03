@@ -20,6 +20,7 @@ except ImportError:
 
 from st2api import app
 from st2tests.api import BaseFunctionalTest
+from st2tests.base import CleanDbTestCase
 from st2tests.api import BaseAPIControllerWithRBACTestCase
 
 
@@ -67,3 +68,39 @@ class BaseActionExecutionControllerTestCase(object):
 
     def _do_put(self, actionexecution_id, updates, *args, **kwargs):
         return self.app.put_json('/v1/executions/%s' % actionexecution_id, updates, *args, **kwargs)
+
+
+class BaseInquiryControllerTestCase(BaseFunctionalTest, CleanDbTestCase):
+    """Base class for non-RBAC tests for Inquiry API
+
+    Inherits from CleanDbTestCase to preserve atomicity between tests
+    """
+
+    enable_auth = False
+    app_module = app
+
+    @staticmethod
+    def _get_inquiry_id(resp):
+        return resp.json['id']
+
+    def _do_get_execution(self, actionexecution_id, *args, **kwargs):
+        return self.app.get('/v1/executions/%s' % actionexecution_id, *args, **kwargs)
+
+    def _do_get_one(self, inquiry_id, *args, **kwargs):
+        return self.app.get('/exp/inquiries/%s' % inquiry_id, *args, **kwargs)
+
+    def _do_get_all(self, limit=50, *args, **kwargs):
+        return self.app.get('/exp/inquiries/?limit=%s' % limit, *args, **kwargs)
+
+    def _do_respond(self, inquiry_id, response, *args, **kwargs):
+        payload = {
+            "id": inquiry_id,
+            "response": response
+        }
+        return self.app.put_json('/exp/inquiries/%s' % inquiry_id, payload, *args, **kwargs)
+
+    def _do_create_inquiry(self, liveaction, result, status='pending', *args, **kwargs):
+        post_resp = self.app.post_json('/v1/executions', liveaction, *args, **kwargs)
+        inquiry_id = self._get_inquiry_id(post_resp)
+        updates = {'status': status, 'result': result}
+        return self.app.put_json('/v1/executions/%s' % inquiry_id, updates, *args, **kwargs)

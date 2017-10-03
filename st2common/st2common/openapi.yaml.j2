@@ -1218,6 +1218,92 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /api/exp/inquiries:
+    get:
+      operationId: st2api.controllers.exp.inquiries:inquiries_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.INQUIRY_LIST }}
+      description: Returns a list of all inquiries
+      parameters:
+        - name: limit
+          in: query
+          description: Number of executions to get
+          type: integer
+          default: 20
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: List of inquries
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Inquiry'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/exp/inquiries/{inquiry_id}:
+    get:
+      operationId: st2api.controllers.exp.inquiries:inquiries_controller.get_one
+      description: |
+        Get a specific Inquiry based on ID.
+      parameters:
+        - name: inquiry_id
+          in: path
+          description: Inquiry ID
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Inquiry requested.
+          schema:
+            $ref: '#/definitions/Inquiry'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      operationId: st2api.controllers.exp.inquiries:inquiries_controller.put
+      description: |
+        Respond to an Inquiry.
+      parameters:
+        - name: inquiry_id
+          in: path
+          description: Inquiry ID
+          type: string
+          required: true
+        - name: response_data
+          in: body
+          required: true
+          description: Inquiry response
+          schema:
+            $ref: '#/definitions/InquiryResponseResult'
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Response received
+          schema:
+            $ref: '#/definitions/InquiryResponseResult'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   /api/v1/keys:
     get:
       operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.get_all
@@ -4091,6 +4177,50 @@ definitions:
     additionalProperties: False
   ExecutionFilters:
     type: object
+  Inquiry:
+    type: object
+    required:
+      - id
+      - schema
+      - roles
+      - users
+      - route
+      - ttl
+    properties:
+      id:
+        description: ID of this inquiry
+        type: string
+      schema:
+        description: JSON schema used to validate repsonse(s)
+        type: object
+      roles:
+        description: List of RBAC roles permitted to respond to this inquiry
+        type: array
+        items:
+          type: string
+      users:
+        description: List of users permitted to respond to this inquiry
+        type: array
+        items:
+          type: string
+      route:
+        description: An arbitrary value for allowing rules to route to proper notification channel
+        type: string
+      ttl:
+        description: Time (in minutes) that an unacknowledged Inquiry is cleaned up
+        type: integer
+  InquiryResponseResult:
+    type: object
+    required:
+      - id
+      - response
+    properties:
+      id:
+        description: Inquiry ID
+        type: string
+      response:
+        description: response data
+        type: object
   KeyValuePair:
     type: object
   KeyValuePairRequest:
