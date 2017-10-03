@@ -17,6 +17,7 @@ import six
 
 
 from st2common.exceptions.content import ParseException
+from st2common.exceptions.actionalias import ActionAliasAmbiguityException
 from st2common.persistence.actionalias import ActionAlias
 from st2common.models.utils.action_alias_utils import extract_parameters
 
