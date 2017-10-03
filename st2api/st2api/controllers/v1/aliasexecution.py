@@ -23,7 +23,6 @@ from st2common import log as logging
 from st2common.exceptions.actionalias import ActionAliasAmbiguityException
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.api.action import ActionAliasAPI
-from st2common.models.api.action import AliasExecutionAPI
 from st2common.models.api.action import AliasMatchAndExecuteInputAPI
 from st2common.models.api.auth import get_system_username
 from st2common.models.api.execution import ActionExecutionAPI
@@ -60,7 +59,7 @@ class ActionAliasExecutionController(BaseRestControllerMixin):
             the matched alias.
 
             Handles requests:
-                POST //match
+                POST /aliasexecution/match_and_execute
         """
         command = input_api.command
 
