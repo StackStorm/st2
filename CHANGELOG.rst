@@ -28,6 +28,15 @@ Added
   set ``actionrunner.stream_output`` config option to ``True``.
 
   (new feature) #2175 #3657 #3729
+* Update ``st2 role-assignment list`` RBAC CLI command to include information about where a
+  particular assignment comes from (from which local assignment or mapping file). (improvement)
+  #3763
+* Add support for overlapping RBAC role assignments for assignments via remote LDAP group to
+  StackStorm role mappings. This means that the same role can now be granted via multiple RBAC
+  mapping files.
+  #3763
+* Add new Jinja filters ``from_json_string``, ``from_yaml_string``, and ``jsonpath_query``.
+  #3763
 * Add new "Inquiry" capability, which adds ability to "ask a question", usually in a workflow.
   Create a new runner type: "inquirer" to support this, as well as new API endpoints and
   client commands for interacting with Inquiries
@@ -49,7 +58,7 @@ Fixed
   #3746
 * Fix cancellation of subworkflow and subchain. Cancel of Mistral workflow or Action Chain is
   cascaded down to subworkflows appropriately. Cancel from tasks in the workflow or chain is
-  cascaded up to the parent. (bug fix) 
+  cascaded up to the parent. (bug fix)
 * Fix delays in st2resultstracker on querying workflow status from Mistral. Make sleep time for
   empty queue and no workers configurable. Reduce the default sleep times to 1 second. StackStorm
   instances that handle more workflows should consider increasing the query interval for better
@@ -60,6 +69,16 @@ Fixed
 * Add missing ``-h`` / ``--help`` CLI flag to the following execution CLI commands: cancel, pause,
   resume. (bug fix) #3750
 * Fix execution cancel and pause CLI commands and make id a required argument. (bug fix) #3750
+* Fix ``st2 role-assignment list`` CLI command and allow ``--user``, ``--remote`` and ``--role``
+  arguments to be used together. Previously they were mutually exclusive so it wasn't possible to
+  use them together. (bug fix) #3763
+* Update default event name whitelist for ``/v1/stream`` API endpoint and make sure
+  ``st2.announcement__errbot`` and other event names starting with ``st2.announcement__*`` prefix
+  are not filtered out. #3769 (bug fix)
+
+  Reported by Carlos.
+* Fix action-alias execute response to show execution id and matching action-alias #3231 (bug fix)
+  Reported by Carlos.
 
 2.4.1 - September 12, 2017
 --------------------------

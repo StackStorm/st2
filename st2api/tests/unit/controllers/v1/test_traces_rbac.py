@@ -102,12 +102,14 @@ class TraceControllerRBACTestCase(APIControllerWithRBACTestCase):
         # Role assignments
         role_assignment_db = UserRoleAssignmentDB(
             user=self.users['trace_list'].name,
-            role=self.roles['trace_list'].name)
+            role=self.roles['trace_list'].name,
+            source='assignments/%s.yaml' % self.users['trace_list'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         role_assignment_db = UserRoleAssignmentDB(
             user=self.users['trace_view'].name,
-            role=self.roles['trace_view'].name)
+            role=self.roles['trace_view'].name,
+            source='assignments/%s.yaml' % self.users['trace_view'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
     def test_get_all_no_permissions(self):

@@ -10,14 +10,12 @@ examples.mistral-ask-basic:
             action: core.ask
             input:
               route: developers
-              users:
-                - testu
               schema:
                 type: object
                 properties:
-                  continue:
-                    type: boolean
-                    description: Should we continue?
+                  secondfactor:
+                    type: string
+                    description: Please enter second factor for authenticating to "foo" service
                     required: True
             on-success:
               - task2
@@ -25,4 +23,4 @@ examples.mistral-ask-basic:
         task2:
             action: core.local
             input:
-              cmd: date
+              cmd: echo "We can now authenticate to 'foo' service with <% task(task1).result.response.secondfactor %>"
