@@ -52,13 +52,13 @@ def purge_inquiries(logger):
     for inquiry in inquiries:
 
         ttl = int(inquiry.result.get('ttl'))
-        min_since_creation = int(
-            (get_datetime_utc_now() - inquiry.start_timestamp).total_seconds() / 60
-        )
-
         if ttl <= 0:
             logger.debug("Inquiry %s has a TTL of %s. Skipping." % (inquiry.id, ttl))
             continue
+
+        min_since_creation = int(
+            (get_datetime_utc_now() - inquiry.start_timestamp).total_seconds() / 60
+        )
 
         logger.debug("Inquiry %s has a TTL of %s and was started %s minute(s) ago" % (
                      inquiry.id, ttl, min_since_creation))
