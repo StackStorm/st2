@@ -153,7 +153,7 @@ class GarbageCollectorService(object):
                       'configured')
 
         if self._purge_inquiries:
-            self._fail_inquiries()
+            self._timeout_inquiries()
             eventlet.sleep(self._sleep_delay)
         else:
             LOG.debug('Skipping garbage collection for Inquiries since it\'s not '
@@ -232,7 +232,7 @@ class GarbageCollectorService(object):
 
         return True
 
-    def _fail_inquiries(self):
+    def _timeout_inquiries(self):
         """Mark Inquiries as "timeout" that have exceeded their TTL
         """
         LOG.info('Performing garbage collection for Inquiries')
