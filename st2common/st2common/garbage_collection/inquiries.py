@@ -35,11 +35,11 @@ def purge_inquiries(logger):
 
     At the moment, Inquiries do not have their own database model, so this function effectively
     is another, more specialized GC for executions. It will look for executions with a 'pending'
-    status that use the 'inquirer' runner, which is the current definition for an Inquiry. Then
-    it will force-fail those that:
+    status that use the 'inquirer' runner, which is the current definition for an Inquiry.
 
-    - Have a nonzero TTL
-    - Have existed longer than their TTL
+    Then it will mark those that have a nonzero TTL have existed longer than their TTL as
+    "timed out". It will then request that the parent workflow(s) resume, where the failure
+    can be handled as the user desires.
     """
 
     # Get all existing Inquiries

@@ -233,13 +233,13 @@ class GarbageCollectorService(object):
         return True
 
     def _fail_inquiries(self):
-        """Mark Inquiries as "failed" that have exceeded their TTL
+        """Mark Inquiries as "timeout" that have exceeded their TTL
         """
         LOG.info('Performing garbage collection for Inquiries')
 
         try:
             purge_inquiries(logger=LOG)
         except Exception as e:
-            LOG.exception('Failed to delete inquiries: %s' % (str(e)))
+            LOG.exception('Failed to purge inquiries: %s' % (str(e)))
 
         return True
