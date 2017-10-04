@@ -206,7 +206,7 @@ logging = conf/logging.notifier.conf
 
 [resultstracker]
 # Time interval between queries to external workflow system.
-query_interval = 3
+query_interval = 5
 # Sleep delay in between queries when query queue is empty.
 empty_q_sleep_time = 1
 # Location of the logging configuration file.

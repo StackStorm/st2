@@ -282,7 +282,7 @@ def register_opts(ignore_errors=False):
             'thread_pool_size', default=10,
             help='Number of threads to use to query external workflow systems.'),
         cfg.FloatOpt(
-            'query_interval', default=3,
+            'query_interval', default=5,
             help='Time interval between queries to external workflow system.'),
         cfg.FloatOpt(
             'empty_q_sleep_time', default=1,
