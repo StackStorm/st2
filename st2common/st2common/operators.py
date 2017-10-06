@@ -186,6 +186,14 @@ def nexists(value, criteria_pattern):
     return value is None
 
 
+def inside(value, criteria_pattern):
+    return value in criteria_pattern
+
+
+def ninside(value, criteria_pattern):
+    return value not in criteria_pattern
+
+
 # operator match strings
 MATCH_WILDCARD = 'matchwildcard'
 MATCH_REGEX = 'matchregex'
@@ -215,6 +223,10 @@ TIMEDIFF_GT_SHORT = 'td_gt'
 TIMEDIFF_GT_LONG = 'timediff_gt'
 KEY_EXISTS = 'exists'
 KEY_NOT_EXISTS = 'nexists'
+INSIDE_LONG = 'inside'
+INSIDE_SHORT = 'in'
+NINSIDE_LONG = 'ninside'
+NINSIDE_SHORT = 'nin'
 
 # operator lookups
 operators = {
@@ -245,5 +257,9 @@ operators = {
     TIMEDIFF_GT_SHORT: timediff_gt,
     TIMEDIFF_GT_LONG: timediff_gt,
     KEY_EXISTS: exists,
-    KEY_NOT_EXISTS: nexists
+    KEY_NOT_EXISTS: nexists,
+    INSIDE_LONG: inside,
+    INSIDE_SHORT: inside,
+    NINSIDE_LONG: ninside,
+    NINSIDE_SHORT: ninside
 }
