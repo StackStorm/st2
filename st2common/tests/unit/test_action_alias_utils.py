@@ -13,9 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from sre_parse import (parse, AT, AT_BEGINNING, AT_BEGINNING_STRING, AT_END, AT_END_STRING)
 from unittest2 import TestCase
 from st2common.exceptions.content import ParseException
-from st2common.models.utils.action_alias_utils import ActionAliasFormatParser
+from st2common.models.utils.action_alias_utils import (
+    ActionAliasFormatParser, search_regex_tokens,
+)
 
 
 class TestActionAliasParser(TestCase):
@@ -230,3 +233,28 @@ class TestActionAliasParser(TestCase):
         parser = ActionAliasFormatParser(alias_format, param_stream)
         extracted_values = parser.get_extracted_param_value()
         self.assertEqual(extracted_values, {'pony1': 'foo', 'pony2': 'bar'})
+
+
+class TestSearchRegexTokens(TestCase):
+    beginning_tokens = ((AT, AT_BEGINNING), (AT, AT_BEGINNING_STRING))
+    end_tokens = ((AT, AT_END), (AT, AT_END_STRING))
+
+    def test_beginning_tokens(self):
+        tokens = parse("^asdf")
+        self.assertTrue(search_regex_tokens(self.beginning_tokens, tokens))
+
+    def test_no_ending_tokens(self):
+        tokens = parse("^asdf")
+        self.assertFalse(search_regex_tokens(self.end_tokens, tokens))
+
+    def test_backwards(self):
+        tokens = parse("^asdf$")
+        self.assertTrue(search_regex_tokens(self.end_tokens, tokens, backwards=True))
+
+    def test_branches(self):
+        tokens = parse("^asdf|fdsa$")
+        self.assertTrue(search_regex_tokens(self.end_tokens, tokens))
+
+    def test_subpatterns(self):
+        tokens = parse("^(?:asdf|fdsa$)")
+        self.assertTrue(search_regex_tokens(self.end_tokens, tokens))

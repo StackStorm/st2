@@ -14,15 +14,31 @@
 # limitations under the License.
 
 import re
+import sys
+from sre_parse import (
+    parse, AT, AT_BEGINNING, AT_BEGINNING_STRING, AT_END, AT_END_STRING,
+    BRANCH, SUBPATTERN,
+)
 
 from st2common.exceptions.content import ParseException
+from st2common import log
 
 __all__ = [
     'ActionAliasFormatParser',
 
     'extract_parameters_for_action_alias_db',
     'extract_parameters',
+    'search_regex_tokens',
 ]
+
+
+LOG = log.getLogger(__name__)
+
+# Python 3 compatibility
+if sys.version_info > (3,):
+    SUBPATTERN_INDEX = 3
+else:
+    SUBPATTERN_INDEX = 1
 
 
 class ActionAliasFormatParser(object):
@@ -90,7 +106,16 @@ class ActionAliasFormatParser(object):
         param_match = r'\1["\']?(?P<\2>(?:(?<=\').+?(?=\')|(?<=").+?(?=")|{.+?}|.+?))["\']?'
         reg = re.sub(r'(\s*)' + snippets['optional'], r'(?:' + param_match + r')?', self._format)
         reg = re.sub(r'(\s*)' + snippets['required'], param_match, reg)
-        reg = r'^\s*' + reg + r'\s*$'
+
+        reg_tokens = parse(reg, flags=re.DOTALL)
+
+        # Add a beginning anchor if none exists
+        if not search_regex_tokens(((AT, AT_BEGINNING), (AT, AT_BEGINNING_STRING)), reg_tokens):
+            reg = r'^\s*' + reg
+
+        # Add an ending anchor if none exists
+        if not search_regex_tokens(((AT, AT_END), (AT, AT_END_STRING)), reg_tokens, backwards=True):
+            reg = reg + r'\s*$'
 
         # 3. Matching the command against our regex to get the param values
         matched_stream = re.match(reg, param_stream, re.DOTALL)
@@ -142,3 +167,64 @@ def extract_parameters_for_action_alias_db(action_alias_db, format_str, param_st
 def extract_parameters(format_str, param_stream):
     parser = ActionAliasFormatParser(alias_format=format_str, param_stream=param_stream)
     return parser.get_extracted_param_value()
+
+
+def search_regex_tokens(needle_tokens, haystack_tokens, backwards=False):
+    """
+    Search a tokenized regex for any tokens in needle_tokens. Returns True if
+    any token tuple in needle_tokens is found, and False otherwise.
+
+    >>> search_regex_tokens(((AT, AT_END), (AT, AT_END)), parse(r'^asdf'))
+    False
+
+    :param needle_tokens: an iterable of token tuples
+
+    >>> needle_tokens = ((AT, AT_END), (AT, AT_END))
+    >>> search_regex_tokens(needle_tokens, parse(r'^asdf$'))
+    True
+
+    :param haystack_tokens: an iterable of token tuples from sre_parse.parse
+
+    >>> regex_tokens = parse(r'^(?:more regex)$')
+    >>> list(regex_tokens)  # doctest: +NORMALIZE_WHITESPACE
+    [(AT, AT_BEGINNING),
+     (SUBPATTERN, (None, 0, 0,
+     [(LITERAL, 109), (LITERAL, 111), (LITERAL, 114), (LITERAL, 101),
+      (LITERAL, 32), (LITERAL, 114), (LITERAL, 101), (LITERAL, 103),
+      (LITERAL, 101), (LITERAL, 120)])), (AT, AT_END)]
+
+    >>> search_regex_tokens(((AT, AT_END), (AT, AT_END)), regex_tokens)
+    True
+
+    :param backwards: Controls direction of search, defaults to False.
+    :type backwards: bool or None
+
+    .. note:: Set backwards to True if needle_tokens are more likely to be
+    found at the end of the haystack_tokens iterable, eg: ending anchors.
+
+    >>> search_regex_tokens(((AT, AT_END), (AT, AT_END)), parse(r'^asdf$'))
+    True
+    >>> search_regex_tokens(((AT, AT_END), (AT, AT_END)), parse(r'^asdf$'), backwards=True)
+    True
+
+    :rtype: ``bool``
+    """
+    if backwards:
+        haystack_tokens = reversed(haystack_tokens)
+
+    for rtoken_type, rtoken in haystack_tokens:
+        LOG.debug("Matching: ({}, {})".format(rtoken_type, rtoken))
+        if rtoken_type == SUBPATTERN:
+            LOG.debug("SUBPATTERN: {}".format(rtoken))
+            if search_regex_tokens(needle_tokens, rtoken[SUBPATTERN_INDEX]):
+                return True
+        elif rtoken_type == BRANCH:
+            LOG.debug("BRANCH: {}".format(rtoken))
+            if search_regex_tokens(needle_tokens, rtoken[1][1]):
+                return True
+        elif (rtoken_type, rtoken) in needle_tokens:
+            LOG.debug("Found: {}".format((rtoken_type, rtoken)))
+            return True
+    else:
+        LOG.debug("Not found: {}".format(needle_tokens))
+        return False
