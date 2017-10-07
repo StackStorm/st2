@@ -49,14 +49,14 @@ class TokenCreateCommand(resource.ResourceCommand):
 
         self.parser.add_argument('-p', '--password', dest='password',
                                  help='Password for the user. If password is not provided, '
-                                      'it will be prompted.')
+                                      'it will be prompted for.')
         self.parser.add_argument('-l', '--ttl', type=int, dest='ttl', default=None,
                                  help='The life span of the token in seconds. '
                                       'Max TTL configured by the admin supersedes this.')
         self.parser.add_argument('-t', '--only-token', action='store_true', dest='only_token',
                                  default=False,
-                                 help='Only print token to the console on successful '
-                                      'authentication.')
+                                 help='On successful authentication, print only token to the '
+                                      'console.')
 
     def run(self, args, **kwargs):
         if not args.password:
@@ -91,7 +91,7 @@ class LoginCommand(resource.ResourceCommand):
 
         self.parser.add_argument('-p', '--password', dest='password',
                                  help='Password for the user. If password is not provided, '
-                                      'it will be prompted.')
+                                      'it will be prompted for.')
         self.parser.add_argument('-l', '--ttl', type=int, dest='ttl', default=None,
                                  help='The life span of the token in seconds. '
                                       'Max TTL configured by the admin supersedes this.')
@@ -280,7 +280,7 @@ class ApiKeyCreateCommand(resource.ResourceCommand):
                                  help='User for which to create API Keys.',
                                  default='')
         self.parser.add_argument('-m', '--metadata', type=json.loads,
-                                 help='User for which to create API Keys.',
+                                 help='Optional metadata to associate with the API Keys.',
                                  default={})
         self.parser.add_argument('-k', '--only-key', action='store_true', dest='only_key',
                                  default=False,

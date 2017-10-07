@@ -271,7 +271,7 @@ class ActionRunCommandMixin(object):
         # Display options
         task_list_arg_grp = root_arg_grp.add_argument_group()
         task_list_arg_grp.add_argument('--raw', action='store_true',
-                                       help='Raw output, don\'t shot sub-tasks for workflows.')
+                                       help='Raw output, don\'t show sub-tasks for workflows.')
         task_list_arg_grp.add_argument('--show-tasks', action='store_true',
                                        help='Whether to show sub-tasks of an execution.')
         task_list_arg_grp.add_argument('--depth', type=int, default=-1,
@@ -725,7 +725,7 @@ class ActionRunCommandMixin(object):
                             for name in optional]
                 except resource.ResourceNotFoundError:
                     print(('Action "%s" is not found. ' % args.ref_or_id) +
-                          'Do "st2 action list" to see list of available actions.')
+                          'Use "st2 action list" to see the list of available actions.')
                 except Exception as e:
                     print('ERROR: Unable to print help for action "%s". %s' %
                           (args.ref_or_id, e))
@@ -884,7 +884,7 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
 
         super(ActionRunCommand, self).__init__(
             resource, kwargs.pop('name', 'execute'),
-            'A command to invoke an action manually.',
+            'Invoke an action manually.',
             *args, **kwargs)
 
         self.parser.add_argument('ref_or_id', nargs='?',
@@ -988,8 +988,8 @@ class ActionExecutionBranch(resource.ResourceBranch):
                                                            add_help=True)
 
 
-POSSIBLE_ACTION_STATUS_VALUES = ('succeeded', 'running', 'scheduled', 'failed', 'canceled')
-
+POSSIBLE_ACTION_STATUS_VALUES = ('succeeded', 'running', 'scheduled', 'failed', 'canceling',
+                                 'canceled')
 
 class ActionExecutionReadCommand(resource.ResourceCommand):
     """
@@ -1055,7 +1055,7 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
         self.group.add_argument('--action', help='Action reference to filter the list.')
         self.group.add_argument('--status', help=('Only return executions with the provided status.'
                                                   ' Possible values are \'%s\', \'%s\', \'%s\','
-                                                  '\'%s\' or \'%s\''
+                                                  '\'%s\', \'%s\' or \'%s\''
                                                   '.' % POSSIBLE_ACTION_STATUS_VALUES))
         self.group.add_argument('--trigger_instance',
                                 help='Trigger instance id to filter the list.')
@@ -1224,7 +1224,7 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
 
         super(ActionExecutionReRunCommand, self).__init__(
             resource, kwargs.pop('name', 're-run'),
-            'A command to re-run a particular action.',
+            'Re-run a particular action.',
             *args, **kwargs)
 
         self.parser.add_argument('id', nargs='?',
@@ -1359,7 +1359,7 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
     def __init__(self, resource, *args, **kwargs):
         super(ActionExecutionTailCommand, self).__init__(
             resource, kwargs.pop('name', 'tail'),
-            'A command to tail output of a particular execution.',
+            'Tail output of a particular execution.',
             *args, **kwargs)
 
         self.parser.add_argument('id', nargs='?',
