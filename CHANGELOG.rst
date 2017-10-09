@@ -80,6 +80,11 @@ Fixed
 * Fix action-alias execute response to show execution id and matching action-alias #3231 (bug fix)
   Reported by Carlos.
 
+Changed
+~~~~~~~
+
+* Minor language and style tidy up of help strings and error messages #3782 
+
 2.4.1 - September 12, 2017
 --------------------------
 
