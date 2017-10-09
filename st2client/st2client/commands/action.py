@@ -991,6 +991,7 @@ class ActionExecutionBranch(resource.ResourceBranch):
 POSSIBLE_ACTION_STATUS_VALUES = ('succeeded', 'running', 'scheduled', 'failed', 'canceling',
                                  'canceled')
 
+
 class ActionExecutionReadCommand(resource.ResourceCommand):
     """
     Base class for read / view commands (list and get).
