@@ -280,10 +280,12 @@ class OperatorTest(unittest2.TestCase):
 
     def test_inside(self):
         op = operators.get_operator('inside')
+        self.assertFalse(op('a', None), 'Shouls return False')
         self.assertFalse(op('a', 'bcd'), 'Should return False')
         self.assertTrue(op('a', 'abc'), 'Should return True')
 
     def test_ninside(self):
         op = operators.get_operator('ninside')
+        self.assertFalse(op('a', None), 'Should return False')
         self.assertFalse(op('a', 'abc'), 'Should return False')
         self.assertTrue(op('a', 'bcd'), 'Should return True')

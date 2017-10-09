@@ -42,7 +42,7 @@ Added
   client commands for interacting with Inquiries
 
   Contributed by mierdin. #3653
-* Added two new rule operators, `inside` and `ninside` which allow for the reverse action of
+* Added two new rule operators, `inside` and `ninside` which allow for the reverse intent of
   the `contains` and `ncontains` operators.
 
   Contributed by lampwins.

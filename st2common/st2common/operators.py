@@ -187,10 +187,14 @@ def nexists(value, criteria_pattern):
 
 
 def inside(value, criteria_pattern):
+    if criteria_pattern is None:
+        return False
     return value in criteria_pattern
 
 
 def ninside(value, criteria_pattern):
+    if criteria_pattern is None:
+        return False
     return value not in criteria_pattern
 
 
