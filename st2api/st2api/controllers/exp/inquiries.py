@@ -107,7 +107,6 @@ class InquiriesController(ResourceController):
         sanity_result, msg = self._inquiry_sanity_check(inquiry)
         if not sanity_result:
             abort(http_client.BAD_REQUEST, msg)
-            return
 
         return InquiryResponseAPI.from_inquiry_api(inquiry)
 
@@ -135,7 +134,6 @@ class InquiriesController(ResourceController):
         sanity_result, msg = self._inquiry_sanity_check(inquiry)
         if not sanity_result:
             abort(http_client.BAD_REQUEST, msg)
-            return
 
         if not requester_user:
             requester_user = UserDB(cfg.CONF.system_user.user)
@@ -146,7 +144,6 @@ class InquiriesController(ResourceController):
                 http_client.FORBIDDEN,
                 'Requesting user does not have permission to respond to inquiry %s.' % inquiry_id
             )
-            return
 
         # Validate the body of the response against the schema parameter for this inquiry
         schema = inquiry.schema
@@ -159,7 +156,6 @@ class InquiriesController(ResourceController):
         except Exception as e:
             LOG.debug("Failed to validate response data against provided schema: %s" % e.message)
             abort(http_client.BAD_REQUEST, 'Response did not pass schema validation.')
-            return
 
         # Update inquiry for completion
         new_result = copy.deepcopy(inquiry.result)

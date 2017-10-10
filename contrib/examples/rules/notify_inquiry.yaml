@@ -1,7 +1,7 @@
 ---
-name: "notify_inquiry_developers"
+name: "notify_inquiry"
 pack: "examples"
-description: Notify developers of an Inquiry action
+description: Notify relevant users of an Inquiry action
 enabled: false
 
 trigger:

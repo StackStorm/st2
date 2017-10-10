@@ -70,5 +70,12 @@ def _register_garbage_collector_opts():
     ]
     CONF.register_opts(ttl_opts, group='garbagecollector')
 
+    inquiry_opts = [
+        cfg.BoolOpt('purge_inquiries', default=False,
+                    help=('Set to True to perform garbage collection on Inquiries (based on '
+                          'the TTL value per Inquiry)'))
+    ]
+    CONF.register_opts(inquiry_opts, group='garbagecollector')
+
 
 register_opts()
