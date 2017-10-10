@@ -19,6 +19,7 @@ from st2client.models.action import *       # noqa
 from st2client.models.action_alias import *  # noqa
 from st2client.models.aliasexecution import *  # noqa
 from st2client.models.config import *  # noqa
+from st2client.models.inquiry import *  # noqa
 from st2client.models.keyvalue import *    # noqa
 from st2client.models.pack import *          # noqa
 from st2client.models.policy import *       # noqa
