@@ -90,7 +90,7 @@ class ActionAliasFormatParser(object):
         param_match = r'\1["\']?(?P<\2>(?:(?<=\').+?(?=\')|(?<=").+?(?=")|{.+?}|.+?))["\']?'
         reg = re.sub(r'(\s*)' + snippets['optional'], r'(?:' + param_match + r')?', self._format)
         reg = re.sub(r'(\s*)' + snippets['required'], param_match, reg)
-        reg = '^\s*' + reg + r'\s*$'
+        reg = r'^\s*' + reg + r'\s*$'
 
         # 3. Matching the command against our regex to get the param values
         matched_stream = re.match(reg, param_stream, re.DOTALL)
