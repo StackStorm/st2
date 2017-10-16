@@ -17,7 +17,9 @@ import getpass
 import json
 import logging
 
+import requests
 from six.moves.configparser import ConfigParser
+from six.moves import http_client
 
 from st2client.base import BaseCLIApp
 from st2client import config_parser
@@ -339,14 +341,29 @@ class ApiKeyLoadCommand(resource.ResourceCommand):
         instances = []
         for res in resources:
             # pick only the meaningful properties.
-            instance = {
+            data = {
                 'user': res['user'],  # required
                 'key_hash': res['key_hash'],  # required
                 'metadata': res.get('metadata', {}),
                 'enabled': res.get('enabled', False)
             }
-            instance = self.resource.deserialize(instance)
-            instances.append(self.manager.create(instance, **kwargs))
+
+            if 'id' in res:
+                data['id'] = res['id']
+
+            instance = self.resource.deserialize(data)
+
+            try:
+                result = self.manager.update(instance, **kwargs)
+            except requests.exceptions.HTTPError as e:
+                if e.response.status_code == http_client.NOT_FOUND:
+                    instance = self.resource.deserialize(data)
+                    # Key doesn't exist yet, create it instead
+                    result = self.manager.create(instance, **kwargs)
+                else:
+                    raise e
+
+            instances.append(result)
         return instances
 
     def run_and_print(self, args, **kwargs):
