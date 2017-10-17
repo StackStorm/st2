@@ -62,7 +62,7 @@ class TriggerTypeSubTriggerCommand(resource.ResourceCommand):
 
         super(TriggerTypeSubTriggerCommand, self).__init__(
             resource, kwargs.pop('name', 'getspecs'),
-            'A command to return Trigger Specifications of a Trigger.',
+            'Return Trigger Specifications of a Trigger.',
             *args, **kwargs)
 
         self.parser.add_argument('ref', nargs='?',
