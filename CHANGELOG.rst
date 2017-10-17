@@ -79,6 +79,12 @@ Fixed
   Reported by Carlos.
 * Fix action-alias execute response to show execution id and matching action-alias #3231 (bug fix)
   Reported by Carlos.
+* Fix ``st2 apikey load`` command to update an existing entry if items in input file contain ``id``
+  attribute and item already exists on the server. This way the behavior is consistent with
+  ``st2 key load`` command and the command is idempotent if each item contains ``id`` attribute.
+  #3748 #3786
+
+  Reported by Christopher Baklid.
 
 Changed
 ~~~~~~~
