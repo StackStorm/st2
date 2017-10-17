@@ -50,8 +50,8 @@ class ContentUtils(unittest2.TestCase):
         orig_path = cfg.CONF.content.system_packs_base_path
         cfg.CONF.content.system_packs_base_path = '/tests/packs'
         acutal_path = content_utils.get_entry_point_abs_path(
-                pack='foo',
-                entry_point='/tests/packs/foo/bar.py')
+            pack='foo',
+            entry_point='/tests/packs/foo/bar.py')
         self.assertEqual(acutal_path, '/tests/packs/foo/bar.py', 'Entry point path doesn\'t match.')
         cfg.CONF.content.system_packs_base_path = orig_path
 
@@ -85,8 +85,8 @@ class ContentUtils(unittest2.TestCase):
 
         # entry point absolute.
         acutal_path = content_utils.get_action_libs_abs_path(
-                pack='foo',
-                entry_point='/tests/packs/foo/tmp/foo.py')
+            pack='foo',
+            entry_point='/tests/packs/foo/tmp/foo.py')
         expected_path = os.path.join('/tests/packs/foo/tmp', ACTION_LIBS_DIR)
         self.assertEqual(acutal_path, expected_path, 'Action libs path doesn\'t match.')
         cfg.CONF.content.system_packs_base_path = orig_path
