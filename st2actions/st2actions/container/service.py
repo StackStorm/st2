@@ -17,8 +17,6 @@ from st2common.content import utils
 from st2common import log as logging
 
 LOG = logging.getLogger(__name__)
-STDOUT = 'stdout'
-STDERR = 'stderr'
 
 
 class RunnerContainerService(object):
