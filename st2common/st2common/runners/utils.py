@@ -23,7 +23,7 @@ from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common import log as logging
 from st2common.runners import base as runners
 from st2common.util import action_db as action_db_utils
-from st2actions.container.service import RunnerContainerService
+from st2common.content import utils as content_utils
 
 
 __all__ = [
@@ -111,16 +111,15 @@ def invoke_post_run(liveaction_db, action_db=None):
     runner = runners.get_runner(runnertype_db.runner_module)
 
     # Configure the action runner.
-    runner.container_service = RunnerContainerService()
     runner.action = action_db
     runner.action_name = action_db.name
     runner.action_execution_id = str(liveaction_db.id)
-    runner.entry_point = RunnerContainerService.get_entry_point_abs_path(
-        pack=action_db.pack, entry_point=action_db.entry_point)
+    runner.entry_point = content_utils.get_entry_point_abs_path(pack=action_db.pack,
+                                                                entry_point=action_db.entry_point)
     runner.context = getattr(liveaction_db, 'context', dict())
     runner.callback = getattr(liveaction_db, 'callback', dict())
-    runner.libs_dir_path = RunnerContainerService.get_action_libs_abs_path(
-        pack=action_db.pack, entry_point=action_db.entry_point)
+    runner.libs_dir_path = content_utils.get_action_libs_abs_path(pack=action_db.pack,
+        entry_point=action_db.entry_point)
 
     # Invoke the post_run method.
     runner.post_run(liveaction_db.status, liveaction_db.result)

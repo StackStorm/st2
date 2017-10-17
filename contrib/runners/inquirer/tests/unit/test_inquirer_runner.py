@@ -16,7 +16,6 @@
 import mock
 
 import inquirer
-from st2actions.container import service
 from st2common.constants.action import LIVEACTION_STATUS_PENDING
 from st2common.constants.pack import SYSTEM_PACK_NAME
 from st2common.persistence.execution import ActionExecution
@@ -95,7 +94,6 @@ class InquiryTestCase(RunnerTestCase):
         }
         runner.action = self._get_mock_action_obj()
         runner.runner_parameters = runner_params
-        runner.container_service = service.RunnerContainerService()
         runner.pre_run()
         mock_inquiry_liveaction_db.context = {
             "parent": test_parent.id
@@ -134,7 +132,6 @@ class InquiryTestCase(RunnerTestCase):
         }
         runner.action = self._get_mock_action_obj()
         runner.runner_parameters = runner_params
-        runner.container_service = service.RunnerContainerService()
         runner.pre_run()
         mock_inquiry_liveaction_db.context = {
             "parent": None
