@@ -30,7 +30,9 @@ __all__ = [
     'get_logger_for_python_runner_action',
     'get_action_class_instance',
 
-    'make_read_and_store_stream_func'
+    'make_read_and_store_stream_func',
+
+    'invoke_post_run',
 ]
 
 LOG = logging.getLogger(__name__)
@@ -91,6 +93,37 @@ def get_action_class_instance(action_cls, config=None, action_service=None):
     return action_instance
 
 
+def make_read_and_store_stream_func(execution_db, action_db, store_data_func):
+    """
+    Factory function which returns a function for reading from a stream (stdout / stderr).
+
+    This function writes read data into a buffer and stores it in a database.
+    """
+    def read_and_store_stream(stream, buff):
+        try:
+            while not stream.closed:
+                line = stream.readline()
+                if not line:
+                    break
+
+                buff.write(line)
+
+                # Filter out result delimiter lines
+                if ACTION_OUTPUT_RESULT_DELIMITER in line:
+                    continue
+
+                if cfg.CONF.actionrunner.stream_output:
+                    store_data_func(execution_db=execution_db, action_db=action_db, data=line)
+        except RuntimeError:
+            # process was terminated abruptly
+            pass
+        except eventlet.support.greenlets.GreenletExit:
+            # Green thread exited / was killed
+            pass
+
+    return read_and_store_stream
+
+
 def invoke_post_run(liveaction_db, action_db=None):
     LOG.info('Invoking post run for action execution %s.', liveaction_db.id)
 
@@ -123,34 +156,3 @@ def invoke_post_run(liveaction_db, action_db=None):
 
     # Invoke the post_run method.
     runner.post_run(liveaction_db.status, liveaction_db.result)
-
-
-def make_read_and_store_stream_func(execution_db, action_db, store_data_func):
-    """
-    Factory function which returns a function for reading from a stream (stdout / stderr).
-
-    This function writes read data into a buffer and stores it in a database.
-    """
-    def read_and_store_stream(stream, buff):
-        try:
-            while not stream.closed:
-                line = stream.readline()
-                if not line:
-                    break
-
-                buff.write(line)
-
-                # Filter out result delimiter lines
-                if ACTION_OUTPUT_RESULT_DELIMITER in line:
-                    continue
-
-                if cfg.CONF.actionrunner.stream_output:
-                    store_data_func(execution_db=execution_db, action_db=action_db, data=line)
-        except RuntimeError:
-            # process was terminated abruptly
-            pass
-        except eventlet.support.greenlets.GreenletExit:
-            # Green thread exited / was killed
-            pass
-
-    return read_and_store_stream
