@@ -86,6 +86,11 @@ Fixed
 
   Reported by Christopher Baklid.
 
+Changed
+~~~~~~~
+
+* Minor language and style tidy up of help strings and error messages #3782 
+
 2.4.1 - September 12, 2017
 --------------------------
 
