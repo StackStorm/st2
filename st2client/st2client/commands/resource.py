@@ -124,10 +124,10 @@ class ResourceCommand(commands.Command):
         # Formatter flags
         self.parser.add_argument('-j', '--json',
                                  action='store_true', dest='json',
-                                 help='Prints output in JSON format.')
+                                 help='Print output in JSON format.')
         self.parser.add_argument('-y', '--yaml',
                                  action='store_true', dest='yaml',
-                                 help='Prints output in YAML format.')
+                                 help='Print output in YAML format.')
 
     @property
     def manager(self):
