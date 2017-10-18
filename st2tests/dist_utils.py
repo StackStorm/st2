@@ -15,12 +15,14 @@
 # limitations under the License.
 
 import os
+import re
 
 from pip.req import parse_requirements
 
 __all__ = [
     'fetch_requirements',
-    'apply_vagrant_workaround'
+    'apply_vagrant_workaround',
+    'get_version_string',
 ]
 
 
@@ -46,3 +48,18 @@ def apply_vagrant_workaround():
     """
     if os.environ.get('USER', None) == 'vagrant':
         del os.link
+
+
+def get_version_string(init_file):
+    """
+    Read __version__ string for an init file.
+    """
+
+    with open(init_file, 'r') as fp:
+        content = fp.read()
+        version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
+                                  content, re.M)
+        if version_match:
+            return version_match.group(1)
+
+        raise RuntimeError('Unable to find version string.')
