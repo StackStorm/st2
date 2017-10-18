@@ -15,14 +15,14 @@
 
 from oslo_config import cfg
 
-from st2actions.container.base import get_runner_container
 from st2common.constants import action as action_constants
 from st2common.models.db.auth import UserDB
 from st2common.persistence.execution import ActionExecution
 from st2common.services import action as action_service
 from st2common.services import executions
+from st2common.runners.utils import invoke_post_run
 from st2common.util import action_db as action_utils
-from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
+from st2common.util.action_db import get_action_by_ref
 from st2common.util.date import get_datetime_utc_now
 
 __all__ = [
@@ -64,7 +64,6 @@ def purge_inquiries(logger):
                      inquiry.id, ttl, min_since_creation))
 
         if min_since_creation > ttl:
-
             gc_count += 1
             logger.info("TTL expired for Inquiry %s. Marking as timed out." % inquiry.id)
 
@@ -75,15 +74,10 @@ def purge_inquiries(logger):
             executions.update_execution(liveaction_db)
 
             # Call Inquiry runner's post_run to trigger callback to workflow
-            runner_container = get_runner_container()
             action_db = get_action_by_ref(liveaction_db.action)
-            runnertype_db = get_runnertype_by_name(action_db.runner_type['name'])
-            runner = runner_container._get_runner(runnertype_db, action_db, liveaction_db)
-            runner.post_run(status=action_constants.LIVEACTION_STATUS_TIMED_OUT,
-                            result=inquiry.result)
+            invoke_post_run(liveaction_db=liveaction_db, action_db=action_db)
 
             if liveaction_db.context.get("parent"):
-
                 # Request that root workflow resumes
                 root_liveaction = action_service.get_root_liveaction(liveaction_db)
                 action_service.request_resume(

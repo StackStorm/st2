@@ -23,14 +23,16 @@ from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common import log as logging
 from st2common.runners import base as runners
 from st2common.util import action_db as action_db_utils
-from st2actions.container.service import RunnerContainerService
+from st2common.content import utils as content_utils
 
 
 __all__ = [
     'get_logger_for_python_runner_action',
     'get_action_class_instance',
 
-    'make_read_and_store_stream_func'
+    'make_read_and_store_stream_func',
+
+    'invoke_post_run',
 ]
 
 LOG = logging.getLogger(__name__)
@@ -91,41 +93,6 @@ def get_action_class_instance(action_cls, config=None, action_service=None):
     return action_instance
 
 
-def invoke_post_run(liveaction_db, action_db=None):
-    LOG.info('Invoking post run for action execution %s.', liveaction_db.id)
-
-    # Identify action and runner.
-    if not action_db:
-        action_db = action_db_utils.get_action_by_ref(liveaction_db.action)
-
-    if not action_db:
-        LOG.exception('Unable to invoke post run. Action %s no longer exists.',
-                      liveaction_db.action)
-        return
-
-    LOG.info('Action execution %s runs %s of runner type %s.',
-             liveaction_db.id, action_db.name, action_db.runner_type['name'])
-
-    # Get an instance of the action runner.
-    runnertype_db = action_db_utils.get_runnertype_by_name(action_db.runner_type['name'])
-    runner = runners.get_runner(runnertype_db.runner_module)
-
-    # Configure the action runner.
-    runner.container_service = RunnerContainerService()
-    runner.action = action_db
-    runner.action_name = action_db.name
-    runner.action_execution_id = str(liveaction_db.id)
-    runner.entry_point = RunnerContainerService.get_entry_point_abs_path(
-        pack=action_db.pack, entry_point=action_db.entry_point)
-    runner.context = getattr(liveaction_db, 'context', dict())
-    runner.callback = getattr(liveaction_db, 'callback', dict())
-    runner.libs_dir_path = RunnerContainerService.get_action_libs_abs_path(
-        pack=action_db.pack, entry_point=action_db.entry_point)
-
-    # Invoke the post_run method.
-    runner.post_run(liveaction_db.status, liveaction_db.result)
-
-
 def make_read_and_store_stream_func(execution_db, action_db, store_data_func):
     """
     Factory function which returns a function for reading from a stream (stdout / stderr).
@@ -155,3 +122,37 @@ def make_read_and_store_stream_func(execution_db, action_db, store_data_func):
             pass
 
     return read_and_store_stream
+
+
+def invoke_post_run(liveaction_db, action_db=None):
+    LOG.info('Invoking post run for action execution %s.', liveaction_db.id)
+
+    # Identify action and runner.
+    if not action_db:
+        action_db = action_db_utils.get_action_by_ref(liveaction_db.action)
+
+    if not action_db:
+        LOG.exception('Unable to invoke post run. Action %s no longer exists.',
+                      liveaction_db.action)
+        return
+
+    LOG.info('Action execution %s runs %s of runner type %s.',
+             liveaction_db.id, action_db.name, action_db.runner_type['name'])
+
+    # Get an instance of the action runner.
+    runnertype_db = action_db_utils.get_runnertype_by_name(action_db.runner_type['name'])
+    runner = runners.get_runner(runnertype_db.runner_module)
+
+    # Configure the action runner.
+    runner.action = action_db
+    runner.action_name = action_db.name
+    runner.action_execution_id = str(liveaction_db.id)
+    runner.entry_point = content_utils.get_entry_point_abs_path(pack=action_db.pack,
+                                                                entry_point=action_db.entry_point)
+    runner.context = getattr(liveaction_db, 'context', dict())
+    runner.callback = getattr(liveaction_db, 'callback', dict())
+    runner.libs_dir_path = content_utils.get_action_libs_abs_path(pack=action_db.pack,
+        entry_point=action_db.entry_point)
+
+    # Invoke the post_run method.
+    runner.post_run(liveaction_db.status, liveaction_db.result)
