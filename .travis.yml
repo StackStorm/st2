@@ -5,6 +5,7 @@ dist: precise
 language: python
 python:
   - 2.7
+  - pypy
 
 branches:
   only:
@@ -19,6 +20,12 @@ env:
     - TASK=ci-unit NODE_INDEX=1 NODE_TOTAL=2
     - TASK=ci-integration
     - TASK="ci-checks ci-packs-tests"
+
+matrix:
+  fast_finish: true
+    allow_failures:
+      - env:
+        python: pypy
 
 addons:
   apt:
