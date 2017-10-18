@@ -236,6 +236,40 @@ def register_opts(ignore_errors=False):
     ]
     do_register_opts(action_runner_opts, group='actionrunner')
 
+    dispatcher_pool_opts = [
+        cfg.IntOpt('workflows_pool_size', default=40,
+                   help='Internal pool size for dispatcher used by workflow actions.'),
+        cfg.IntOpt('actions_pool_size', default=60,
+                   help='Internal pool size for dispatcher used by regular actions.')
+    ]
+    do_register_opts(dispatcher_pool_opts, group='actionrunner')
+
+    ssh_runner_opts = [
+        cfg.StrOpt('remote_dir',
+                   default='/tmp',
+                   help='Location of the script on the remote filesystem.'),
+        cfg.BoolOpt('allow_partial_failure',
+                    default=False,
+                    help='How partial success of actions run on multiple nodes ' +
+                         'should be treated.'),
+        cfg.IntOpt('max_parallel_actions', default=50,
+                   help='Max number of parallel remote SSH actions that should be run.  ' +
+                        'Works only with Paramiko SSH runner.'),
+        cfg.BoolOpt('use_ssh_config', default=False,
+                    help='Use the .ssh/config file. Useful to override ports etc.'),
+        cfg.StrOpt('ssh_config_file_path',
+                   default='~/.ssh/config',
+                   help='Path to the ssh config file.')
+
+    ]
+    do_register_opts(ssh_runner_opts, group='ssh_runner')
+
+    cloudslang_opts = [
+        cfg.StrOpt('home_dir', default='/opt/cslang',
+                   help='CloudSlang home directory.'),
+    ]
+    do_register_opts(cloudslang_opts, group='cloudslang')
+
     # Common options (used by action runner and sensor container)
     action_sensor_opts = [
         cfg.BoolOpt('enable', default=True,
