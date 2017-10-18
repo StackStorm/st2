@@ -433,7 +433,7 @@ debs:
 .PHONY: .sdist-requirements
 .sdist-requirements:
 	# Copy over shared dist utils module which is needed by setup.py
-	@for component in $(COMPONENTS_TEST); do\
+	@for component in $(COMPONENTS); do\
 		cp -f ./scripts/dist_utils.py $$component/dist_utils.py;\
 	done
 
