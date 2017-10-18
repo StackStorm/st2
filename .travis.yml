@@ -23,9 +23,9 @@ env:
 
 matrix:
   fast_finish: true
-    allow_failures:
-      - env:
-        python: pypy
+  allow_failures:
+    - env:
+      python: pypy
 
 addons:
   apt:
