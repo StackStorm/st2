@@ -62,4 +62,4 @@ def get_version_string(init_file):
         if version_match:
             return version_match.group(1)
 
-        raise RuntimeError('Unable to find version string.')
+        raise RuntimeError('Unable to find version string in %s.' % (init_file))
