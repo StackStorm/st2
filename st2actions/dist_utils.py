@@ -86,5 +86,6 @@ def get_version_string(init_file):
 
         raise RuntimeError('Unable to find version string in %s.' % (init_file))
 
+
 # alias for get_version_string
 parse_version_string = get_version_string
