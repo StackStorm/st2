@@ -34,6 +34,7 @@ __all__ = [
     'fetch_requirements',
     'apply_vagrant_workaround',
     'get_version_string',
+    'parse_version_string'
 ]
 
 
@@ -84,3 +85,6 @@ def get_version_string(init_file):
             return version_match.group(1)
 
         raise RuntimeError('Unable to find version string in %s.' % (init_file))
+
+# alias for get_version_string
+parse_version_string = get_version_string
