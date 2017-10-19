@@ -24,7 +24,7 @@ class TriggerInstanceResendCommand(resource.ResourceCommand):
 
         super(TriggerInstanceResendCommand, self).__init__(
             resource, kwargs.pop('name', 're-emit'),
-            'A command to re-emit a particular trigger instance.',
+            'Re-emit a particular trigger instance.',
             *args, **kwargs)
 
         self.parser.add_argument('id', nargs='?',

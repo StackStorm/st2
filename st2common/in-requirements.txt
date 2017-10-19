@@ -27,3 +27,4 @@ routes
 flex
 webob
 prance
+jsonpath-rw

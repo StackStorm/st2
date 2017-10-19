@@ -17,7 +17,9 @@ import getpass
 import json
 import logging
 
+import requests
 from six.moves.configparser import ConfigParser
+from six.moves import http_client
 
 from st2client.base import BaseCLIApp
 from st2client import config_parser
@@ -49,14 +51,14 @@ class TokenCreateCommand(resource.ResourceCommand):
 
         self.parser.add_argument('-p', '--password', dest='password',
                                  help='Password for the user. If password is not provided, '
-                                      'it will be prompted.')
+                                      'it will be prompted for.')
         self.parser.add_argument('-l', '--ttl', type=int, dest='ttl', default=None,
                                  help='The life span of the token in seconds. '
                                       'Max TTL configured by the admin supersedes this.')
         self.parser.add_argument('-t', '--only-token', action='store_true', dest='only_token',
                                  default=False,
-                                 help='Only print token to the console on successful '
-                                      'authentication.')
+                                 help='On successful authentication, print only token to the '
+                                      'console.')
 
     def run(self, args, **kwargs):
         if not args.password:
@@ -91,7 +93,7 @@ class LoginCommand(resource.ResourceCommand):
 
         self.parser.add_argument('-p', '--password', dest='password',
                                  help='Password for the user. If password is not provided, '
-                                      'it will be prompted.')
+                                      'it will be prompted for.')
         self.parser.add_argument('-l', '--ttl', type=int, dest='ttl', default=None,
                                  help='The life span of the token in seconds. '
                                       'Max TTL configured by the admin supersedes this.')
@@ -280,7 +282,7 @@ class ApiKeyCreateCommand(resource.ResourceCommand):
                                  help='User for which to create API Keys.',
                                  default='')
         self.parser.add_argument('-m', '--metadata', type=json.loads,
-                                 help='User for which to create API Keys.',
+                                 help='Optional metadata to associate with the API Keys.',
                                  default={})
         self.parser.add_argument('-k', '--only-key', action='store_true', dest='only_key',
                                  default=False,
@@ -339,14 +341,29 @@ class ApiKeyLoadCommand(resource.ResourceCommand):
         instances = []
         for res in resources:
             # pick only the meaningful properties.
-            instance = {
+            data = {
                 'user': res['user'],  # required
                 'key_hash': res['key_hash'],  # required
                 'metadata': res.get('metadata', {}),
                 'enabled': res.get('enabled', False)
             }
-            instance = self.resource.deserialize(instance)
-            instances.append(self.manager.create(instance, **kwargs))
+
+            if 'id' in res:
+                data['id'] = res['id']
+
+            instance = self.resource.deserialize(data)
+
+            try:
+                result = self.manager.update(instance, **kwargs)
+            except requests.exceptions.HTTPError as e:
+                if e.response.status_code == http_client.NOT_FOUND:
+                    instance = self.resource.deserialize(data)
+                    # Key doesn't exist yet, create it instead
+                    result = self.manager.create(instance, **kwargs)
+                else:
+                    raise e
+
+            instances.append(result)
         return instances
 
     def run_and_print(self, args, **kwargs):

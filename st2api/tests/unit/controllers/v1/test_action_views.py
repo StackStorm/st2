@@ -15,7 +15,7 @@
 
 import mock
 
-from st2actions.container.service import RunnerContainerService
+from st2common.content import utils as content_utils
 import st2common.validators.api.action as action_validator
 from tests import FunctionalTest
 
@@ -140,7 +140,7 @@ class TestParametersView(FunctionalTest):
 class TestEntryPointView(FunctionalTest):
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
-    @mock.patch.object(RunnerContainerService, 'get_entry_point_abs_path', mock.MagicMock(
+    @mock.patch.object(content_utils, 'get_entry_point_abs_path', mock.MagicMock(
         return_value='/path/to/file'))
     @mock.patch('__builtin__.open', mock.mock_open(read_data='file content'), create=True)
     def test_get_one(self):
@@ -154,7 +154,7 @@ class TestEntryPointView(FunctionalTest):
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
-    @mock.patch.object(RunnerContainerService, 'get_entry_point_abs_path', mock.MagicMock(
+    @mock.patch.object(content_utils, 'get_entry_point_abs_path', mock.MagicMock(
         return_value='/path/to/file'))
     @mock.patch('__builtin__.open', mock.mock_open(read_data='file content'), create=True)
     def test_get_one_ref(self):

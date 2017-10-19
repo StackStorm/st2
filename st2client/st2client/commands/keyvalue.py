@@ -72,10 +72,10 @@ class KeyValuePairListCommand(resource.ResourceTableCommand):
         self.default_limit = 50
         self.resource_name = resource.get_plural_display_name().lower()
         # Filter options
-        self.parser.add_argument('--prefix', help=('Only return values which name starts with the '
-                                                   ' provided prefix.'))
+        self.parser.add_argument('--prefix', help=('Only return values with names starting with '
+                                                   'the provided prefix.'))
         self.parser.add_argument('--decrypt', action='store_true',
-                                 help='Decrypt secrets and display plain text.')
+                                 help='Decrypt secrets and displays plain text.')
         self.parser.add_argument('-s', '--scope', default='system', dest='scope',
                                  help='Scope item is under. Example: "user".')
         self.parser.add_argument('-u', '--user', dest='user', default=None,
@@ -157,7 +157,7 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
                                  help='TTL (in seconds) for this value.')
         self.parser.add_argument('-e', '--encrypt', dest='secret',
                                  action='store_true',
-                                 help='Encrypt value before saving the value.')
+                                 help='Encrypt value before saving.')
         self.parser.add_argument('-s', '--scope', dest='scope', default=DEFAULT_SCOPE,
                                  help='Specify the scope under which you want ' +
                                       'to place the item.')
