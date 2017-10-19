@@ -28,5 +28,4 @@ git+https://github.com/Kami/entrypoints.git@dont_use_backports#egg=entrypoints
 routes
 flex
 webob
-prance
 jsonpath-rw
