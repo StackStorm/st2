@@ -22,6 +22,7 @@ from oslo_config import cfg
 from st2common import log as logging
 from st2common.util import date as date_utils
 from st2common.constants import action as action_constants
+from st2common.content import utils as content_utils
 from st2common.exceptions import actionrunner
 from st2common.exceptions.param import ParamException
 from st2common.models.db.executionstate import ActionExecutionStateDB
@@ -33,7 +34,6 @@ from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
 from st2common.util.action_db import (update_liveaction_status, get_liveaction_by_id)
 from st2common.util import param as param_utils
 
-from st2actions.container.service import RunnerContainerService
 from st2common.runners.base import get_runner
 from st2common.runners.base import AsyncActionRunner
 
@@ -148,7 +148,6 @@ class RunnerContainer(object):
 
         LOG.debug('Performing post_run for runner: %s', runner.runner_id)
         runner.post_run(status=status, result=result)
-        runner.container_service = None
 
         LOG.debug('Runner do_run result', extra={'result': liveaction_db.result})
         LOG.audit('Liveaction completed', extra={'liveaction_db': liveaction_db})
@@ -178,7 +177,6 @@ class RunnerContainer(object):
         LOG.debug('Performing post_run for runner: %s', runner.runner_id)
         result = {'error': 'Execution canceled by user.'}
         runner.post_run(status=liveaction_db.status, result=result)
-        runner.container_service = None
 
         return liveaction_db
 
@@ -200,8 +198,6 @@ class RunnerContainer(object):
 
             # Always clean-up the auth_token
             self._clean_up_auth_token(runner=runner, status=liveaction_db.status)
-
-        runner.container_service = None
 
         return liveaction_db
 
@@ -238,7 +234,6 @@ class RunnerContainer(object):
 
         LOG.debug('Performing post_run for runner: %s', runner.runner_id)
         runner.post_run(status=status, result=result)
-        runner.container_service = None
 
         LOG.debug('Runner do_run result', extra={'result': liveaction_db.result})
         LOG.audit('Liveaction completed', extra={'liveaction_db': liveaction_db})
@@ -317,12 +312,10 @@ class RunnerContainer(object):
         return liveaction_db
 
     def _get_entry_point_abs_path(self, pack, entry_point):
-        return RunnerContainerService.get_entry_point_abs_path(pack=pack,
-                                                               entry_point=entry_point)
+        return content_utils.get_entry_point_abs_path(pack=pack, entry_point=entry_point)
 
     def _get_action_libs_abs_path(self, pack, entry_point):
-        return RunnerContainerService.get_action_libs_abs_path(pack=pack,
-                                                               entry_point=entry_point)
+        return content_utils.get_action_libs_abs_path(pack=pack, entry_point=entry_point)
 
     def _get_rerun_reference(self, context):
         execution_id = context.get('re-run', {}).get('ref')
@@ -335,7 +328,6 @@ class RunnerContainer(object):
                                                               action_db.entry_point)
 
         runner.runner_type_db = runnertype_db
-        runner.container_service = RunnerContainerService()
         runner.action = action_db
         runner.action_name = action_db.name
         runner.liveaction = liveaction_db

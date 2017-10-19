@@ -15,7 +15,6 @@
 
 import mock
 
-from st2actions.container.service import RunnerContainerService
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.system.common import ResourceReference
@@ -73,7 +72,6 @@ class TestActionChainNotifications(DbTestCase):
         chain_runner.action = ACTION_1
         action_ref = ResourceReference.to_string_reference(name=ACTION_1.name, pack=ACTION_1.pack)
         chain_runner.liveaction = LiveActionDB(action=action_ref)
-        chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({})
         self.assertNotEqual(chain_runner.chain_holder.actionchain, None)

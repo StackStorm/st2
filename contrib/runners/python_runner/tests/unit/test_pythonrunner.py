@@ -22,7 +22,6 @@ from oslo_config import cfg
 import python_runner
 from st2common.runners.python_action_wrapper import PythonActionWrapper
 from st2common.runners.base_action import Action
-from st2actions.container import service
 from st2common.runners.utils import get_action_class_instance
 from st2common.services import config as config_service
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
@@ -74,7 +73,6 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         # representation of the result
         runner = self._get_mock_runner_obj()
         runner.entry_point = NON_SIMPLE_TYPE_ACTION
-        runner.container_service = service.RunnerContainerService()
         runner.pre_run()
         (status, output, _) = runner.run({})
 
@@ -89,7 +87,6 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     def test_simple_action_with_result_no_status(self):
         runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
-        runner.container_service = service.RunnerContainerService()
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 5})
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
@@ -99,7 +96,6 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     def test_simple_action_with_result_as_None_no_status(self):
         runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
-        runner.container_service = service.RunnerContainerService()
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 'b'})
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
@@ -112,7 +108,6 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner = self._get_mock_runner_obj()
         runner.runner_parameters = {python_runner.RUNNER_TIMEOUT: timeout}
         runner.entry_point = PASCAL_ROW_ACTION_PATH
-        runner.container_service = service.RunnerContainerService()
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 4})
         self.assertEqual(status, LIVEACTION_STATUS_TIMED_OUT)
@@ -124,7 +119,6 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     def test_simple_action_with_status_succeeded(self):
         runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
-        runner.container_service = service.RunnerContainerService()
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 4})
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
@@ -134,7 +128,6 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     def test_simple_action_with_status_failed(self):
         runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
-        runner.container_service = service.RunnerContainerService()
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 'a'})
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
@@ -146,7 +139,6 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         # behavior
         runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
-        runner.container_service = service.RunnerContainerService()
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 'complex_type'})
 
@@ -157,7 +149,6 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     def test_simple_action_with_status_failed_result_none(self):
         runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
-        runner.container_service = service.RunnerContainerService()
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 'c'})
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
@@ -167,7 +158,6 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     def test_exception_in_simple_action_with_invalid_status(self):
         runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
-        runner.container_service = service.RunnerContainerService()
         runner.pre_run()
         self.assertRaises(ValueError,
                           runner.run, action_parameters={'row_index': 'd'})
@@ -175,7 +165,6 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     def test_simple_action_no_status_backward_compatibility(self):
         runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
-        runner.container_service = service.RunnerContainerService()
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 'e'})
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
@@ -214,7 +203,6 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     def test_simple_action_fail(self):
         runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
-        runner.container_service = service.RunnerContainerService()
         runner.pre_run()
         (status, result, _) = runner.run({'row_index': '4'})
         self.assertTrue(result is not None)
@@ -223,7 +211,6 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     def test_simple_action_no_file(self):
         runner = self._get_mock_runner_obj()
         runner.entry_point = 'foo.py'
-        runner.container_service = service.RunnerContainerService()
         runner.pre_run()
         (status, result, _) = runner.run({})
         self.assertTrue(result is not None)
@@ -232,7 +219,6 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     def test_simple_action_no_entry_point(self):
         runner = self._get_mock_runner_obj()
         runner.entry_point = ''
-        runner.container_service = service.RunnerContainerService()
 
         expected_msg = 'Action .*? is missing entry_point attribute'
         self.assertRaisesRegexp(Exception, expected_msg, runner.run, {})
@@ -248,7 +234,6 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner = self._get_mock_runner_obj()
         runner.runner_parameters = {'env': env_vars}
         runner.entry_point = PASCAL_ROW_ACTION_PATH
-        runner.container_service = service.RunnerContainerService()
         runner.pre_run()
         (_, _, _) = runner.run({'row_index': 4})
 
@@ -296,7 +281,6 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
         runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
-        runner.container_service = service.RunnerContainerService()
         runner.pre_run()
         (_, output, _) = runner.run({'row_index': 4})
 
@@ -321,7 +305,6 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         mock_process.stderr.readline = make_mock_stream_readline(mock_process.stderr, mock_stderr,
                                                                  stop_counter=3)
 
-        runner.container_service = service.RunnerContainerService()
         runner.pre_run()
         (_, output, _) = runner.run({'row_index': 4})
 
@@ -370,7 +353,6 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
         runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
-        runner.container_service = service.RunnerContainerService()
         runner.pre_run()
         (_, output, _) = runner.run({'row_index': 4})
 
@@ -414,7 +396,6 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
         runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
-        runner.container_service = service.RunnerContainerService()
         runner.pre_run()
         (_, output, _) = runner.run({'row_index': 4})
 
@@ -437,7 +418,6 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
         runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
-        runner.container_service = service.RunnerContainerService()
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 4})
 
@@ -461,7 +441,6 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
         runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
-        runner.container_service = service.RunnerContainerService()
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 4})
 
@@ -481,7 +460,6 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.auth_token = mock.Mock()
         runner.auth_token.token = 'ponies'
         runner.entry_point = PASCAL_ROW_ACTION_PATH
-        runner.container_service = service.RunnerContainerService()
         runner.pre_run()
         (_, _, _) = runner.run({'row_index': 4})
 
@@ -535,7 +513,6 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     def test_action_with_same_module_name_as_module_in_stdlib(self):
         runner = self._get_mock_runner_obj()
         runner.entry_point = TEST_ACTION_PATH
-        runner.container_service = service.RunnerContainerService()
         runner.pre_run()
         (status, output, _) = runner.run({})
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
@@ -547,7 +524,6 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         # (st2common/runners) doesn't get added to sys.path
         runner = self._get_mock_runner_obj()
         runner.entry_point = PATHS_ACTION_PATH
-        runner.container_service = service.RunnerContainerService()
         runner.pre_run()
         (status, output, _) = runner.run({})
 

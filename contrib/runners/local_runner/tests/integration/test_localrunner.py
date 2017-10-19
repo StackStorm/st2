@@ -22,7 +22,6 @@ from oslo_config import cfg
 import st2tests.config as tests_config
 tests_config.parse_args()
 
-from st2actions.container.service import RunnerContainerService
 from st2common.constants import action as action_constants
 from st2common.persistence.execution import ActionExecutionOutput
 from st2tests.fixturesloader import FixturesLoader
@@ -326,7 +325,6 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
                     sudo=False,
                     env=None):
         runner = local_runner.LocalShellRunner(uuid.uuid4().hex)
-        runner.container_service = RunnerContainerService()
         runner.execution = MOCK_EXECUTION
         runner.action = action_db
         runner.action_name = action_db.name
@@ -528,7 +526,6 @@ class LocalShellScriptRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
     def _get_runner(self, action_db, entry_point):
         runner = local_runner.LocalShellRunner(uuid.uuid4().hex)
-        runner.container_service = RunnerContainerService()
         runner.execution = MOCK_EXECUTION
         runner.action = action_db
         runner.action_name = action_db.name

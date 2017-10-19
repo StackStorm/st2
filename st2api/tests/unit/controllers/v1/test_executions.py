@@ -1096,7 +1096,7 @@ class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestC
             action_execution_db = ActionExecution.add_or_update(action_execution_db)
 
         eventlet.spawn_after(0.2, insert_mock_data)
-        eventlet.spawn_after(1, publish_action_finished, action_execution_db)
+        eventlet.spawn_after(1.5, publish_action_finished, action_execution_db)
         resp = self.app.get('/v1/executions/%s/output' % (str(action_execution_db.id)),
                             expect_errors=False)
 
