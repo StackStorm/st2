@@ -234,6 +234,63 @@ class TestActionAliasParser(TestCase):
         extracted_values = parser.get_extracted_param_value()
         self.assertEqual(extracted_values, {'pony1': 'foo', 'pony2': 'bar'})
 
+    def test_regex_beginning_anchors(self):
+        alias_format = r'^\s*foo (?P<issue_key>[A-Z][A-Z0-9]+-[0-9]+)'
+        param_stream = 'foo ASDF-1234'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+        extracted_values = parser.get_extracted_param_value()
+        self.assertEqual(extracted_values, {'issue_key': 'ASDF-1234'})
+
+    def test_regex_beginning_anchors_dont_match(self):
+        alias_format = r'^\s*foo (?P<issue_key>[A-Z][A-Z0-9]+-[0-9]+)'
+        param_stream = 'bar foo ASDF-1234'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+
+        expected_msg = r'''Command "bar foo ASDF-1234" doesn't match format string '''\
+                       r'''"^\s*foo (?P<issue_key>[A-Z][A-Z0-9]+-[0-9]+)"'''
+        with self.assertRaises(ParseException) as e:
+            parser.get_extracted_param_value()
+
+            self.assertEqual(e.msg, expected_msg)
+
+    def test_regex_ending_anchors(self):
+        alias_format = r'foo (?P<issue_key>[A-Z][A-Z0-9]+-[0-9]+)\s*$'
+        param_stream = 'foo ASDF-1234'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+        extracted_values = parser.get_extracted_param_value()
+        self.assertEqual(extracted_values, {'issue_key': 'ASDF-1234'})
+
+    def test_regex_ending_anchors_dont_match(self):
+        alias_format = r'foo (?P<issue_key>[A-Z][A-Z0-9]+-[0-9]+)\s*$'
+        param_stream = 'foo ASDF-1234 bar'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+
+        expected_msg = r'''Command "foo ASDF-1234 bar" doesn't match format string '''\
+                       r'''"foo (?P<issue_key>[A-Z][A-Z0-9]+-[0-9]+)\s*$"'''
+        with self.assertRaises(ParseException) as e:
+            parser.get_extracted_param_value()
+
+            self.assertEqual(e.msg, expected_msg)
+
+    def test_regex_beginning_and_ending_anchors(self):
+        alias_format = r'^\s*foo (?P<issue_key>[A-Z][A-Z0-9]+-[0-9]+) bar\s*$'
+        param_stream = 'foo ASDF-1234 bar'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+        extracted_values = parser.get_extracted_param_value()
+        self.assertEqual(extracted_values, {'issue_key': 'ASDF-1234'})
+
+    def test_regex_beginning_and_ending_anchors_dont_match(self):
+        alias_format = r'^\s*foo (?P<issue_key>[A-Z][A-Z0-9]+-[0-9]+)\s*$'
+        param_stream = 'bar ASDF-1234'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+
+        expected_msg = r'''Command "bar ASDF-1234" doesn't match format string '''\
+                       r'''"^\s*foo (?P<issue_key>[A-Z][A-Z0-9]+-[0-9]+)\s*$"'''
+        with self.assertRaises(ParseException) as e:
+            parser.get_extracted_param_value()
+
+            self.assertEqual(e.msg, expected_msg)
+
 
 class TestSearchRegexTokens(TestCase):
     beginning_tokens = ((AT, AT_BEGINNING), (AT, AT_BEGINNING_STRING))
@@ -245,6 +302,11 @@ class TestSearchRegexTokens(TestCase):
 
     def test_no_ending_tokens(self):
         tokens = parse("^asdf")
+        self.assertFalse(search_regex_tokens(self.end_tokens, tokens))
+
+    def test_no_beginning_or_ending_tokens(self):
+        tokens = parse("asdf")
+        self.assertFalse(search_regex_tokens(self.beginning_tokens, tokens))
         self.assertFalse(search_regex_tokens(self.end_tokens, tokens))
 
     def test_backwards(self):
