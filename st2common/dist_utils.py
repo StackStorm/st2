@@ -16,14 +16,35 @@
 
 import os
 import re
+import sys
 
-from pip.req import parse_requirements
+from distutils.version import StrictVersion
+
+GET_PIP = 'curl https://bootstrap.pypa.io/get-pip.py | python'
+
+try:
+    import pip
+    from pip.req import parse_requirements
+except ImportError:
+    print('Download pip:\n', GET_PIP)
+    sys.exit(1)
 
 __all__ = [
+    'check_pip_version',
     'fetch_requirements',
     'apply_vagrant_workaround',
     'get_version_string',
 ]
+
+
+def check_pip_version():
+    """
+    Ensure that a minimum supported version of pip is installed.
+    """
+    if StrictVersion(pip.__version__) < StrictVersion('6.0.0'):
+        print("Upgrade pip, your version `{0}' "
+              "is outdated:\n{1}".format(pip.__version__, GET_PIP))
+        sys.exit(1)
 
 
 def fetch_requirements(requirements_file_path):
