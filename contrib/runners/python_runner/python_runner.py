@@ -21,6 +21,7 @@ import uuid
 from subprocess import list2cmdline
 
 from eventlet.green import subprocess
+from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.persistence.pack import Pack
@@ -79,6 +80,7 @@ class PythonRunner(ActionRunner):
         """
         super(PythonRunner, self).__init__(runner_id=runner_id)
         self._timeout = timeout
+        self._enable_common_pack_libs = cfg.CONF.packs.enable_common_libs or False
 
     def pre_run(self):
         super(PythonRunner, self).pre_run()
@@ -136,7 +138,7 @@ class PythonRunner(ActionRunner):
                                                       inherit_parent_virtualenv=True)
         pack_common_libs_path = get_pack_common_libs_path(pack_db=pack_db)
 
-        if pack_common_libs_path:
+        if self._enable_common_pack_libs and pack_common_libs_path:
             env['PYTHONPATH'] = pack_common_libs_path + ':' + sandbox_python_path
         else:
             env['PYTHONPATH'] = sandbox_python_path

@@ -115,6 +115,9 @@ class ProcessSensorContainer(object):
             self._sensor_start_times,
         ]
 
+        self._enable_common_pack_libs = cfg.CONF.packs.enable_common_libs or False
+
+
     def run(self):
         self._run_all_sensors()
 
@@ -297,7 +300,7 @@ class ProcessSensorContainer(object):
 
         env = os.environ.copy()
 
-        if pack_common_libs_path:
+        if self._enable_common_pack_libs and pack_common_libs_path:
             env['PYTHONPATH'] = pack_common_libs_path + ':' + sandbox_python_path
         else:
             env['PYTHONPATH'] = sandbox_python_path

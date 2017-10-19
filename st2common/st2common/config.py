@@ -241,6 +241,14 @@ def register_opts(ignore_errors=False):
     ]
     do_register_opts(action_sensor_opts, group='action_sensor')
 
+    # Common options for content
+
+    pack_lib_opts = [
+        cfg.BoolOpt('enable_common_libs', default=False,
+                    help='Enable/disable common pack libs support.')
+    ]
+    do_register_opts(pack_lib_opts, group='packs')
+
     # Coordination options
     coord_opts = [
         cfg.StrOpt('url', default=None, help='Endpoint for the coordination server.'),
