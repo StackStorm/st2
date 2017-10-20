@@ -79,8 +79,8 @@ def db_setup(db_name, db_host, db_port, username=None, password=None, ensure_ind
              ssl_cert_reqs=None, ssl_ca_certs=None, ssl_match_hostname=True):
 
     if '://' in db_host:
-        # Connecting to replica set, exclude password from the connection uri which is included
-        # in the log message
+        # Hostname is provided as a URI string. Make sure we don't log the password in case one is
+        # included as part of the URI string.
         uri_dict = uri_parser.parse_uri(db_host)
         hostnames = get_host_names_for_uri_dict(uri_dict=uri_dict)
 

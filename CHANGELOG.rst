@@ -89,9 +89,9 @@ Fixed
   #3748 #3786
 
   Reported by Christopher Baklid.
-* Don't log MongoDB database password if user specifies URI for ``database.db_host`` parameter and
-  that URI also includes a password. Default and a common scenario is specifying password as a
-  separate ``database.password`` parameter. #3797
+* Don't log MongoDB database password if user specifies URI for ``database.db_host`` config
+  parameter and that URI also includes a password. Default and a common scenario is specifying
+  password as a separate ``database.password`` config parameter. #3797
 
   Reported by Igor Cherkaev.
 
