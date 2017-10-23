@@ -149,7 +149,7 @@ class PythonActionWrapper(object):
             self._user = cfg.CONF.system_user.user
 
     def run(self):
-        action = self._get_action_instance()
+        action = self._get_action_instance(config=self._config)
         output = action.run(**self._parameters)
 
         if isinstance(output, tuple) and len(output) == 2:
@@ -211,17 +211,6 @@ class PythonActionWrapper(object):
                             (self._file_path))
 
         self._class_name = action_cls.__class__.__name__
-
-        """
-        config_loader = ContentPackConfigLoader(pack_name=self._pack, user=self._user)
-        config = config_loader.get_config()
-
-        if config:
-            LOG.info('Found config for action "%s"' % (self._file_path))
-        else:
-            LOG.info('No config found for action "%s"' % (self._file_path))
-            config = None
-        """
 
         action_service = ActionService(action_wrapper=self)
         action_instance = get_action_class_instance(action_cls=action_cls,

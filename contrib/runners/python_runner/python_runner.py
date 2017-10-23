@@ -67,9 +67,9 @@ WRAPPER_SCRIPT_NAME = 'python_action_wrapper.py'
 WRAPPER_SCRIPT_PATH = os.path.join(BASE_DIR, WRAPPER_SCRIPT_NAME)
 
 
-def get_runner():
+def get_runner(config=None):
     'RunnerTestCase',
-    return PythonRunner(str(uuid.uuid4()))
+    return PythonRunner(runner_id=str(uuid.uuid4()), config=config)
 
 
 class PythonRunner(ActionRunner):
