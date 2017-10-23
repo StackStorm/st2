@@ -108,7 +108,8 @@ class ActionService(object):
 
 
 class PythonActionWrapper(object):
-    def __init__(self, pack, file_path, parameters=None, user=None, parent_args=None):
+    def __init__(self, pack, file_path, parameters=None, user=None, parent_args=None,
+                 standalone_mode=False):
         """
         :param pack: Name of the pack this action belongs to.
         :type pack: ``str``
@@ -124,6 +125,10 @@ class PythonActionWrapper(object):
 
         :param parent_args: Command line arguments passed to the parent process.
         :type parse_args: ``list``
+
+        :param standalone_mode: True if action is running in a standalone mode where it only has
+                                access to st2common, but no acess to db, message bus, etc.
+        :type standalone_mode: ``bool``
         """
 
         self._pack = pack
@@ -143,7 +148,8 @@ class PythonActionWrapper(object):
 
         # We don't need to ensure indexes every subprocess because they should already be created
         # and ensured by other services
-        db_setup(ensure_indexes=False)
+        if not standalone_mode:
+            db_setup(ensure_indexes=False)
 
         # Note: We can only set a default user value if one is not provided after parsing the
         # config
@@ -242,18 +248,22 @@ if __name__ == '__main__':
                         help='User who triggered the action execution')
     parser.add_argument('--parent-args', required=False,
                         help='Command line arguments passed to the parent process')
+    parser.add_argument('--standalone', default=False, action='store_true',
+                        help='True if running in standalone mode')
     args = parser.parse_args()
 
     parameters = args.parameters
     parameters = json.loads(parameters) if parameters else {}
     user = args.user
     parent_args = json.loads(args.parent_args) if args.parent_args else []
+    standalone_mode = args.standalone
 
     assert isinstance(parent_args, list)
     obj = PythonActionWrapper(pack=args.pack,
                               file_path=args.file_path,
                               parameters=parameters,
                               user=user,
-                              parent_args=parent_args)
+                              parent_args=parent_args,
+                              standalone_mode=standalone_mode)
 
     obj.run()

@@ -55,6 +55,7 @@ __all__ = [
 # constants to lookup in runner_parameters.
 RUNNER_ENV = 'env'
 RUNNER_TIMEOUT = 'timeout'
+RUNNER_STANDALONE_MODE = 'standalone_mode'
 
 # Environment variables which can't be specified by the user
 BLACKLISTED_ENV_VARS = [
@@ -90,6 +91,7 @@ class PythonRunner(ActionRunner):
         # be passed to the constructor.
         self._env = self.runner_parameters.get(RUNNER_ENV, {})
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, self._timeout)
+        self._standalone_mode = self.runner_parameters.get(RUNNER_STANDALONE_MODE, False)
 
     def run(self, action_parameters):
         LOG.debug('Running pythonrunner.')
@@ -127,6 +129,9 @@ class PythonRunner(ActionRunner):
             '--user=%s' % (user),
             '--parent-args=%s' % (json.dumps(sys.argv[1:]))
         ]
+
+        if self._standalone_mode:
+            args.append('--standalone')
 
         # We need to ensure all the st2 dependencies are also available to the
         # subprocess
