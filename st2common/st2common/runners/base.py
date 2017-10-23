@@ -73,7 +73,6 @@ class ActionRunner(object):
         self.runner_id = runner_id
 
         self.runner_type_db = None
-        self.container_service = None
         self.runner_parameters = None
         self.action = None
         self.action_name = None

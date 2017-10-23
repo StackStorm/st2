@@ -227,11 +227,11 @@ class PackInstallCommand(PackAsyncCommand):
 
     @staticmethod
     def _print_pack_content(pack_name, pack_content):
-        print('\nFor "%s" %s following content will be registered:\n'
+        print('\nFor the "%s" %s, the following content will be registered:\n'
               % (', '.join(pack_name), 'pack' if len(pack_name) == 1 else 'packs'))
         for item, count in pack_content.items():
             print('%-10s|  %s' % (item, count))
-        print('\nInstallation may take a while based on number of items.')
+        print('\nInstallation may take a while for packs with many items.')
 
     @add_auth_token_to_kwargs_from_cli
     def run_and_print(self, args, **kwargs):
@@ -365,14 +365,14 @@ class PackConfigCommand(resource.ResourceCommand):
         schema = self.app.client.managers['ConfigSchema'].get_by_ref_or_id(args.name, **kwargs)
 
         if not schema:
-            msg = '%s "%s" doesn\'t exist or doesn\'t have config schema defined.'
+            msg = '%s "%s" doesn\'t exist or doesn\'t have a config schema defined.'
             raise resource.ResourceNotFoundError(msg % (self.resource.get_display_name(),
                                                         args.name))
 
         config = interactive.InteractiveForm(schema.attributes).initiate_dialog()
 
         message = '---\nDo you want to preview the config in an editor before saving?'
-        description = 'Secrets would be shown in plain text.'
+        description = 'Secrets will be shown in plain text.'
         preview_dialog = interactive.Question(message, {'default': 'y',
                                                         'description': description})
         if preview_dialog.read() == 'y':

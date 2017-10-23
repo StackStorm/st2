@@ -195,7 +195,7 @@ compile:
 .st2common-circular-dependencies-check:
 	@echo "Checking st2common for circular dependencies"
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2reactor ; test $$? -eq 1
-	find ${ROOT_DIR}/st2common/st2common/ \( -name \*.py ! -name runnersregistrar\.py ! -wholename "*runners/base.py" ! -name python_action_wrapper.py ! -wholename "*/query/base.py" ! -wholename "*/runners/utils.py" ! -wholename "*/garbage_collection/inquiries.py" \) -type f -print0 | xargs -0 cat | grep st2actions ; test $$? -eq 1
+	find ${ROOT_DIR}/st2common/st2common/ \( -name \*.py ! -name runnersregistrar\.py \) -type f -print0 | xargs -0 cat | grep st2actions ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2api ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2auth ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2debug; test $$? -eq 1
@@ -257,6 +257,11 @@ requirements: virtualenv .sdist-requirements
 			echo "Installing $$req..." ; \
 			$(VIRTUALENV_DIR)/bin/pip install $(PIP_OPTIONS) -r $$req ; \
 	done
+
+	# Note: We install prance here and not as part of any component
+	# requirements.txt because it has a conflict with our dependency (requires
+	# new version of requests) which we cant resolve at this moment
+	$(VIRTUALENV_DIR)/bin/pip install "prance==0.6.1"
 
 .PHONY: virtualenv
 virtualenv: $(VIRTUALENV_DIR)/bin/activate
@@ -433,7 +438,7 @@ debs:
 .PHONY: .sdist-requirements
 .sdist-requirements:
 	# Copy over shared dist utils module which is needed by setup.py
-	@for component in $(COMPONENTS_TEST); do\
+	@for component in $(COMPONENTS); do\
 		cp -f ./scripts/dist_utils.py $$component/dist_utils.py;\
 	done
 

@@ -20,6 +20,7 @@ from st2common.constants.triggers import CRON_TIMER_TRIGGER_REF
 from st2common.exceptions.sensors import TriggerTypeRegistrationException
 from st2common.exceptions.triggers import TriggerDoesNotExistException
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.exceptions.db import StackStormDBObjectConflictError
 from st2common.models.api.trigger import (TriggerAPI, TriggerTypeAPI)
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.trigger import (Trigger, TriggerType)
@@ -359,7 +360,14 @@ def create_or_update_trigger_type_db(trigger_type):
     if is_update:
         trigger_type_api.id = existing_trigger_type_db.id
 
-    trigger_type_db = TriggerType.add_or_update(trigger_type_api)
+    try:
+        trigger_type_db = TriggerType.add_or_update(trigger_type_api)
+    except StackStormDBObjectConflictError:
+        # Operation is idempotent and trigger could have already been created by
+        # another process. Ignore object already exists because it simply means
+        # there was a race and object is already in the database.
+        trigger_type_db = get_trigger_type_db(ref)
+        is_update = True
 
     extra = {'trigger_type_db': trigger_type_db}
 

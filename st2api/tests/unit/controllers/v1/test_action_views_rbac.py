@@ -28,7 +28,7 @@ from st2common.models.db.auth import UserDB
 from st2common.models.db.rbac import RoleDB
 from st2common.models.db.rbac import UserRoleAssignmentDB
 from st2common.models.db.rbac import PermissionGrantDB
-from st2actions.container.service import RunnerContainerService
+from st2common.content import utils as content_utils
 from st2tests.fixturesloader import FixturesLoader
 from tests.base import APIControllerWithRBACTestCase
 
@@ -102,7 +102,7 @@ class ActionViewsControllerRBACTestCase(APIControllerWithRBACTestCase):
         self.assertEqual(resp.status_code, httplib.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
-    @mock.patch.object(RunnerContainerService, 'get_entry_point_abs_path', mock.MagicMock(
+    @mock.patch.object(content_utils, 'get_entry_point_abs_path', mock.MagicMock(
         return_value='/path/to/file'))
     @mock.patch('__builtin__.open', mock.mock_open(read_data='file content'), create=True)
     def test_get_entry_point_view_success(self):
