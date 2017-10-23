@@ -149,7 +149,7 @@ class PythonActionWrapper(object):
             self._user = cfg.CONF.system_user.user
 
     def run(self):
-        action = self._get_action_instance(config=self._config)
+        action = self._get_action_instance()
         output = action.run(**self._parameters)
 
         if isinstance(output, tuple) and len(output) == 2:
@@ -193,7 +193,7 @@ class PythonActionWrapper(object):
         sys.stdout.write(ACTION_OUTPUT_RESULT_DELIMITER)
         sys.stdout.flush()
 
-    def _get_action_instance(self, config=None):
+    def _get_action_instance(self):
         try:
             actions_cls = action_loader.register_plugin(Action, self._file_path)
         except Exception as e:
@@ -214,7 +214,7 @@ class PythonActionWrapper(object):
 
         action_service = ActionService(action_wrapper=self)
         action_instance = get_action_class_instance(action_cls=action_cls,
-                                                    config=config,
+                                                    config=self._config,
                                                     action_service=action_service)
         return action_instance
 
