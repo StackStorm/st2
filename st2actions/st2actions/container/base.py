@@ -328,6 +328,7 @@ class RunnerContainer(object):
         context = getattr(liveaction_db, 'context', dict())
         user = context.get('user', cfg.CONF.system_user.user)
 
+        # Note: Right now configs are only supported by the Python runner actions
         if runnertype_db.runner_module == 'python_runner':
             LOG.debug('Loading config for pack')
 

@@ -32,13 +32,14 @@ class DatastoreService(object):
 
     DATASTORE_NAME_SEPARATOR = DATASTORE_KEY_SEPARATOR
 
-    def __init__(self, logger, pack_name, class_name, api_username):
+    def __init__(self, logger, pack_name, class_name, api_username, auth_token=None):
         self._api_username = api_username
         self._pack_name = pack_name
         self._class_name = class_name
         self._logger = logger
 
         self._client = None
+        self._auth_token = auth_token
         self._token_expire = get_datetime_utc_now()
 
     ##################################
@@ -214,11 +215,20 @@ class DatastoreService(object):
 
         if not self._client or token_expire:
             self._logger.audit('Creating new Client object.')
+
             ttl = cfg.CONF.auth.service_token_ttl
-            self._token_expire = get_datetime_utc_now() + timedelta(seconds=ttl)
-            temporary_token = create_token(username=self._api_username, ttl=ttl, service=True)
             api_url = get_full_public_api_url()
-            self._client = Client(api_url=api_url, token=temporary_token.token)
+
+            # TODO: Move create_token outside of this function. Tokens should be
+            # managed and created by RunnerContainer / SensorContainer
+            if self._auth_token:
+                client = Client(api_url=api_url, token=self._auth_token)
+            else:
+                temporary_token = create_token(username=self._api_username, ttl=ttl, service=True)
+                client = Client(api_url=api_url, token=temporary_token.token)
+
+            self._token_expire = get_datetime_utc_now() + timedelta(seconds=ttl)
+            self._client = client
 
         return self._client
 
