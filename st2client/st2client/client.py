@@ -21,6 +21,7 @@ import six
 from st2client import models
 from st2client.models.core import ResourceManager
 from st2client.models.core import ActionAliasResourceManager
+from st2client.models.core import ActionAliasExecutionManager
 from st2client.models.core import LiveActionResourceManager
 from st2client.models.core import InquiryResourceManager
 from st2client.models.core import TriggerInstanceResourceManager
@@ -113,7 +114,7 @@ class Client(object):
             models.Action, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['ActionAlias'] = ActionAliasResourceManager(
             models.ActionAlias, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
-        self.managers['ActionAliasExecution'] = ResourceManager(
+        self.managers['ActionAliasExecution'] = ActionAliasExecutionManager(
             models.ActionAliasExecution, self.endpoints['api'],
             cacert=self.cacert, debug=self.debug)
         self.managers['ApiKey'] = ResourceManager(

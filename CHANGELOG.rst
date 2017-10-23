@@ -52,6 +52,12 @@ Added
   if a format string doesn't already contain them. #3789
 
   Contributed by @ahubl-mz.
+* Add new ``POST /v1/aliasexecution/match_and_execute`` API endpoint which allows user to
+  schedule an execution based on a command string if a matching alias is found in the database.
+
+  This API endpoint is meant to be used with chat bot plugins. It allows them to be simple thin
+  wrappers around this API endpoint which send each chat line to this API endpoint and handle the
+  response. #3773
 
 Fixed
 ~~~~~
@@ -100,6 +106,12 @@ Fixed
   password as a separate ``database.password`` config parameter. #3797
 
   Reported by Igor Cherkaev.
+* Fix ``POST /v1/actionalias/match`` API endpoint to correctly return a dictionary instead of an
+  array. We had a correct OpenAPI definition for the response, but the code incorrectly returned
+  an array instead of a dictionary.
+
+  Note: This is a breaking change so if your code utilizes this API endpoint you need to update
+  to treat response as a dictionary and not as an array with a single item. #377
 
 Changed
 ~~~~~~~
