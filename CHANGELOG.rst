@@ -43,9 +43,15 @@ Added
 
   Contributed by mierdin. #3653
 * Added two new rule operators, `inside` and `ninside` which allow for the reverse intent of
-  the `contains` and `ncontains` operators.
+  the `contains` and `ncontains` operators. #3781
 
-  Contributed by lampwins.
+  Contributed by @lampwins.
+* Allow user to use more expressive regular expressions inside action alias format string by
+  allowing them to specify start (``^``) end end (``$``) anchors. Previously, those anchors were
+  automatically added at the beginning and end of the alias format string. Now they are only added
+  if a format string doesn't already contain them. #3789
+
+  Contributed by @ahubl-mz.
 
 Fixed
 ~~~~~
@@ -89,6 +95,11 @@ Fixed
   #3748 #3786
 
   Reported by Christopher Baklid.
+* Don't log MongoDB database password if user specifies URI for ``database.db_host`` config
+  parameter and that URI also includes a password. Default and a common scenario is specifying
+  password as a separate ``database.password`` config parameter. #3797
+
+  Reported by Igor Cherkaev.
 
 Changed
 ~~~~~~~

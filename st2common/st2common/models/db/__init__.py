@@ -20,6 +20,7 @@ import ssl as ssl_lib
 
 import six
 import mongoengine
+from pymongo import uri_parser
 from pymongo.errors import OperationFailure
 
 from st2common import log as logging
@@ -76,8 +77,29 @@ def get_model_classes():
 def db_setup(db_name, db_host, db_port, username=None, password=None, ensure_indexes=True,
              ssl=False, ssl_keyfile=None, ssl_certfile=None,
              ssl_cert_reqs=None, ssl_ca_certs=None, ssl_match_hostname=True):
-    LOG.info('Connecting to database "%s" @ "%s:%s" as user "%s".',
-             db_name, db_host, db_port, str(username))
+
+    if '://' in db_host:
+        # Hostname is provided as a URI string. Make sure we don't log the password in case one is
+        # included as part of the URI string.
+        uri_dict = uri_parser.parse_uri(db_host)
+        username_string = uri_dict.get('username', username) or username
+
+        if uri_dict.get('username', None) and username:
+            # Username argument has precedence over connection string username
+            username_string = username
+
+        hostnames = get_host_names_for_uri_dict(uri_dict=uri_dict)
+
+        if len(uri_dict['nodelist']) > 1:
+            host_string = '%s (replica set)' % (hostnames)
+        else:
+            host_string = hostnames
+    else:
+        host_string = '%s:%s' % (db_host, db_port)
+        username_string = username
+
+    LOG.info('Connecting to database "%s" @ "%s" as user "%s".' % (db_name, host_string,
+                                                                   str(username_string)))
 
     ssl_kwargs = _get_ssl_kwargs(ssl=ssl, ssl_keyfile=ssl_keyfile, ssl_certfile=ssl_certfile,
                                  ssl_cert_reqs=ssl_cert_reqs, ssl_ca_certs=ssl_ca_certs,
@@ -378,3 +400,13 @@ class MongoDBAccess(object):
                 order_by_list = [sort_key] + order_by_list
 
         return filters, order_by_list
+
+
+def get_host_names_for_uri_dict(uri_dict):
+    hosts = []
+
+    for host, port in uri_dict['nodelist']:
+        hosts.append('%s:%s' % (host, port))
+
+    hosts = ','.join(hosts)
+    return hosts
