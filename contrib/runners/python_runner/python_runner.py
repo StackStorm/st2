@@ -55,7 +55,6 @@ __all__ = [
 # constants to lookup in runner_parameters.
 RUNNER_ENV = 'env'
 RUNNER_TIMEOUT = 'timeout'
-RUNNER_STANDALONE_MODE = 'standalone_mode'
 
 # Environment variables which can't be specified by the user
 BLACKLISTED_ENV_VARS = [
@@ -75,12 +74,13 @@ def get_runner():
 
 class PythonRunner(ActionRunner):
 
-    def __init__(self, runner_id, timeout=PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT):
+    def __init__(self, runner_id, config=None, timeout=PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT):
         """
         :param timeout: Action execution timeout in seconds.
         :type timeout: ``int``
         """
         super(PythonRunner, self).__init__(runner_id=runner_id)
+        self._config = config
         self._timeout = timeout
 
     def pre_run(self):
@@ -91,7 +91,6 @@ class PythonRunner(ActionRunner):
         # be passed to the constructor.
         self._env = self.runner_parameters.get(RUNNER_ENV, {})
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, self._timeout)
-        self._standalone_mode = self.runner_parameters.get(RUNNER_STANDALONE_MODE, False)
 
     def run(self, action_parameters):
         LOG.debug('Running pythonrunner.')
@@ -118,6 +117,9 @@ class PythonRunner(ActionRunner):
             LOG.error('Action "%s" is missing entry_point attribute' % (self.action.name))
             raise Exception('Action "%s" is missing entry_point attribute' % (self.action.name))
 
+        # Note: We pass config as command line args so the actual wrapper process is standalone
+        # and doesn't need acecss to db
+
         LOG.debug('Setting args.')
         args = [
             python_path,
@@ -127,11 +129,11 @@ class PythonRunner(ActionRunner):
             '--file-path=%s' % (self.entry_point),
             '--parameters=%s' % (serialized_parameters),
             '--user=%s' % (user),
-            '--parent-args=%s' % (json.dumps(sys.argv[1:]))
+            '--parent-args=%s' % (json.dumps(sys.argv[1:])),
         ]
 
-        if self._standalone_mode:
-            args.append('--standalone')
+        if self._config:
+            args.append('--config=%s' % (json.dumps(self._config)))
 
         # We need to ensure all the st2 dependencies are also available to the
         # subprocess

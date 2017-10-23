@@ -322,11 +322,21 @@ class RunnerContainer(object):
         return ActionExecution.get_by_id(execution_id) if execution_id else None
 
     def _get_runner(self, runnertype_db, action_db, liveaction_db):
-        runner = get_runner(runnertype_db.runner_module)
-
         resolved_entry_point = self._get_entry_point_abs_path(action_db.pack,
                                                               action_db.entry_point)
 
+        if runnertype_db.module_name == 'python_runner':
+            LOG.debug('Loading config for pack')
+
+            config_loader = ContentPackConfigLoader(pack_name=pack, user=user)
+            config = config_loader.get_config()
+        else:
+            config = None
+
+        runner = get_runner(module_name=runnertype_db.runner_module, config=config)
+
+        # TODO: Pass those arguments to the constructor instead of late
+        # assignment, late assignment is awful
         runner.runner_type_db = runnertype_db
         runner.action = action_db
         runner.action_name = action_db.name

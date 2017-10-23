@@ -35,16 +35,14 @@ import traceback
 from oslo_config import cfg
 
 from st2common import log as logging
-from st2common import config
+from st2common import config as st2common_config
 from st2common.runners.base_action import Action
 from st2common.runners.utils import get_logger_for_python_runner_action
 from st2common.runners.utils import get_action_class_instance
 from st2common.util import loader as action_loader
-from st2common.util.config_loader import ContentPackConfigLoader
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.constants.runners import PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE
-from st2common.database_setup import db_setup
 
 __all__ = [
     'PythonActionWrapper',
@@ -108,14 +106,16 @@ class ActionService(object):
 
 
 class PythonActionWrapper(object):
-    def __init__(self, pack, file_path, parameters=None, user=None, parent_args=None,
-                 standalone_mode=False):
+    def __init__(self, pack, file_path, config=None, parameters=None, user=None, parent_args=None):
         """
         :param pack: Name of the pack this action belongs to.
         :type pack: ``str``
 
         :param file_path: Path to the action module.
         :type file_path: ``str``
+
+        :param config: Pack config.
+        :type config: ``dict``
 
         :param parameters: action parameters.
         :type parameters: ``dict`` or ``None``
@@ -125,14 +125,11 @@ class PythonActionWrapper(object):
 
         :param parent_args: Command line arguments passed to the parent process.
         :type parse_args: ``list``
-
-        :param standalone_mode: True if action is running in a standalone mode where it only has
-                                access to st2common, but no acess to db, message bus, etc.
-        :type standalone_mode: ``bool``
         """
 
         self._pack = pack
         self._file_path = file_path
+        self._config = config or {}
         self._parameters = parameters or {}
         self._user = user
         self._parent_args = parent_args or []
@@ -141,15 +138,10 @@ class PythonActionWrapper(object):
         self._logger = logging.getLogger('PythonActionWrapper')
 
         try:
-            config.parse_args(args=self._parent_args)
+            st2common_config.parse_args(args=self._parent_args)
         except Exception as e:
             LOG.debug('Failed to parse config using parent args (parent_args=%s): %s' %
                       (str(self._parent_args), str(e)))
-
-        # We don't need to ensure indexes every subprocess because they should already be created
-        # and ensured by other services
-        if not standalone_mode:
-            db_setup(ensure_indexes=False)
 
         # Note: We can only set a default user value if one is not provided after parsing the
         # config
@@ -201,7 +193,7 @@ class PythonActionWrapper(object):
         sys.stdout.write(ACTION_OUTPUT_RESULT_DELIMITER)
         sys.stdout.flush()
 
-    def _get_action_instance(self):
+    def _get_action_instance(self, config=None):
         try:
             actions_cls = action_loader.register_plugin(Action, self._file_path)
         except Exception as e:
@@ -220,6 +212,7 @@ class PythonActionWrapper(object):
 
         self._class_name = action_cls.__class__.__name__
 
+        """
         config_loader = ContentPackConfigLoader(pack_name=self._pack, user=self._user)
         config = config_loader.get_config()
 
@@ -228,6 +221,7 @@ class PythonActionWrapper(object):
         else:
             LOG.info('No config found for action "%s"' % (self._file_path))
             config = None
+        """
 
         action_service = ActionService(action_wrapper=self)
         action_instance = get_action_class_instance(action_cls=action_cls,
@@ -242,28 +236,29 @@ if __name__ == '__main__':
                         help='Name of the pack this action belongs to')
     parser.add_argument('--file-path', required=True,
                         help='Path to the action module')
+    parser.add_argument('--config', required=False,
+                        help='Pack config serialized as JSON')
     parser.add_argument('--parameters', required=False,
                         help='Serialized action parameters')
     parser.add_argument('--user', required=False,
                         help='User who triggered the action execution')
     parser.add_argument('--parent-args', required=False,
-                        help='Command line arguments passed to the parent process')
-    parser.add_argument('--standalone', default=False, action='store_true',
-                        help='True if running in standalone mode')
+                        help='Command line arguments passed to the parent process serialized as '
+                             ' JSON')
     args = parser.parse_args()
 
+    config = json.loads(args.config) if args.config else {}
     parameters = args.parameters
     parameters = json.loads(parameters) if parameters else {}
     user = args.user
     parent_args = json.loads(args.parent_args) if args.parent_args else []
-    standalone_mode = args.standalone
 
     assert isinstance(parent_args, list)
     obj = PythonActionWrapper(pack=args.pack,
                               file_path=args.file_path,
+                              config=config,
                               parameters=parameters,
                               user=user,
-                              parent_args=parent_args,
-                              standalone_mode=standalone_mode)
+                              parent_args=parent_args)
 
     obj.run()
