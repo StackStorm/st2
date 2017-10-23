@@ -17,6 +17,8 @@ import copy
 
 import six
 
+from st2common import log as logging
+from st2common.constants import keyvalue as kv_constants
 from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.models.api.base import BaseAPI
 from st2common.models.api.base import APIUIDMixin
@@ -24,9 +26,13 @@ from st2common.models.api.tag import TagsHelper
 from st2common.models.db.rule import RuleDB, RuleTypeDB, RuleTypeSpecDB, ActionExecutionSpecDB
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.trigger import Trigger
+from st2common.services import keyvalues as kv_service
 import st2common.services.triggers as TriggerService
 from st2common.util import reference
+import st2common.util.jinja as jinja_utils
 import st2common.validators.api.reactor as validator
+
+LOG = logging.getLogger(__name__)
 
 
 class RuleTypeSpec(BaseAPI):
@@ -234,8 +240,20 @@ class RuleAPI(BaseAPI, APIUIDMixin):
         trigger_type_ref = trigger.get('type', None)
         parameters = trigger.get('parameters', {})
 
-        validator.validate_trigger_parameters(trigger_type_ref=trigger_type_ref,
-                                              parameters=parameters)
+        if parameters:
+            context = {}
+            context.update({
+                kv_constants.DATASTORE_PARENT_SCOPE: {
+                    kv_constants.SYSTEM_SCOPE: kv_service.KeyValueLookup(
+                        scope=kv_constants.FULL_SYSTEM_SCOPE)
+                }
+            })
+            parameters = jinja_utils.render_values(mapping=parameters, context=context,
+                                                   allow_undefined=True)
+            rule.trigger['parameters'] = parameters
+            LOG.debug('Rendered trigger parameters: %s', parameters)
+            validator.validate_trigger_parameters(trigger_type_ref=trigger_type_ref,
+                                                  parameters=parameters)
 
         # Create a trigger for the provided rule
         trigger_db = TriggerService.create_trigger_db_from_rule(rule)

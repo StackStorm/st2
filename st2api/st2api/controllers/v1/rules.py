@@ -120,6 +120,11 @@ class RuleController(resource.ContentPackResourceController):
             LOG.exception(msg)
             abort(http_client.BAD_REQUEST, msg)
             return
+        except Exception as e:
+            msg = e.message
+            LOG.exception(msg)
+            abort(http_client.BAD_REQUEST, msg)
+            return
 
         extra = {'rule_db': rule_db}
         LOG.audit('Rule created. Rule.id=%s' % (rule_db.id), extra=extra)
