@@ -41,8 +41,7 @@ __all__ = [
 ]
 
 # Maximum limit for the process wrapper script execution time (in seconds)
-# TODO: Revert back to 0.20 once all performance fixes are back in
-WRAPPER_PROCESS_RUN_TIME_UPPER_LIMIT = 0.70
+WRAPPER_PROCESS_RUN_TIME_UPPER_LIMIT = 0.40
 
 ASSERTION_ERROR_MESSAGE = ("""
 Python wrapper process script took more than %s seconds to execute (%s). This most likely means
