@@ -54,7 +54,8 @@ re-organize code if possible.
 """.strip())
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-WRAPPER_SCRIPT_PATH = os.path.join(BASE_DIR, '../../../st2common/st2common/runners/python_action_wrapper.py')
+WRAPPER_SCRIPT_PATH = os.path.join(BASE_DIR,
+                                   '../../../st2common/st2common/runners/python_action_wrapper.py')
 WRAPPER_SCRIPT_PATH = os.path.abspath(WRAPPER_SCRIPT_PATH)
 TIME_BINARY_PATH = find_executable('time')
 TIME_BINARY_AVAILABLE = TIME_BINARY_PATH is not None
