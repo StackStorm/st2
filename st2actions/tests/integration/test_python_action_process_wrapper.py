@@ -62,13 +62,16 @@ TIME_BINARY_AVAILABLE = TIME_BINARY_PATH is not None
 @unittest2.skipIf(not TIME_BINARY_PATH, 'time binary not available')
 class PythonRunnerActionWrapperProcessTestCase(unittest2.TestCase):
     def test_process_wrapper_exits_in_reasonable_timeframe(self):
-        # 1. First run it without time to verify path is valid
+        # 1. Verify wrapper script path is correct and file exists
+        self.assertTrue(os.path.isfile(WRAPPER_SCRIPT_PATH))
+
+        # 2. First run it without time to verify path is valid
         command_string = 'python %s --is-subprocess' % (WRAPPER_SCRIPT_PATH)
         _, _, stderr = run_command(command_string, shell=True)
         self.assertTrue('usage: python_action_wrapper.py' in stderr)
         self.assertTrue('python_action_wrapper.py: error: argument' in stderr)
 
-        # 2. Now time it
+        # 3. Now time it
         command_string = '%s -f "%%e" python %s --is-subprocess' % (TIME_BINARY_PATH,
                                                                     WRAPPER_SCRIPT_PATH)
         _, _, stderr = run_command(command_string, shell=True)
