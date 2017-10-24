@@ -61,7 +61,6 @@ class ExecutionResult(formatters.Formatter):
                                                      indent=2)[len(attr) + 2:-1]
                     value = ('\n' if isinstance(value, dict) else '') + formatted_value
 
-
                 # transform the value of our attribute so things like 'status'
                 # and 'timestamp' are formatted nicely
                 transform_function = attribute_transform_functions.get(attr,
