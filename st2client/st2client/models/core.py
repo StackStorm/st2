@@ -254,7 +254,7 @@ class ResourceManager(object):
 
         for k, v in six.iteritems(kwargs):
             # Note: That's a special case to support api_key and token kwargs
-            if k not in ['token', 'api_key']:
+            if k not in ['token', 'api_key', 'params']:
                 params[k] = v
 
         url = '/%s/?%s' % (self.resource.get_url_path_name(),
@@ -355,14 +355,22 @@ class ActionAliasResourceManager(ResourceManager):
     def match(self, instance, **kwargs):
         url = '/%s/match' % self.resource.get_url_path_name()
         response = self.client.post(url, instance.serialize(), **kwargs)
-        if response.status_code != 201:
+        if response.status_code != 200:
             self.handle_error(response)
-        matches = response.json()
-        if len(matches) > 0:
-            return (self.resource.deserialize(matches[0]['actionalias']),
-                    matches[0]['representation'])
-        else:
-            return matches
+        match = response.json()
+        return (self.resource.deserialize(match['actionalias']), match['representation'])
+
+
+class ActionAliasExecutionManager(ResourceManager):
+    @add_auth_token_to_kwargs_from_env
+    def match_and_execute(self, instance, **kwargs):
+        url = '/%s/match_and_execute' % self.resource.get_url_path_name()
+        response = self.client.post(url, instance.serialize(), **kwargs)
+
+        if response.status_code != 200:
+            self.handle_error(response)
+        instance = self.resource.deserialize(response.json())
+        return instance
 
 
 class LiveActionResourceManager(ResourceManager):
@@ -388,6 +396,47 @@ class LiveActionResourceManager(ResourceManager):
 
         instance = self.resource.deserialize(response.json())
         return instance
+
+    @add_auth_token_to_kwargs_from_env
+    def get_output(self, execution_id, output_type=None, **kwargs):
+        url = '/%s/%s/output' % (self.resource.get_url_path_name(), execution_id)
+
+        if output_type:
+            url += '?' + urllib.parse.urlencode({'output_type': output_type})
+
+        response = self.client.get(url, **kwargs)
+        if response.status_code != 200:
+            self.handle_error(response)
+
+        return response.text
+
+    @add_auth_token_to_kwargs_from_env
+    def pause(self, execution_id, **kwargs):
+        url = '/%s/%s' % (self.resource.get_url_path_name(), execution_id)
+        data = {'status': 'pausing'}
+
+        response = self.client.put(url, data, **kwargs)
+
+        if response.status_code != 200:
+            self.handle_error(response)
+
+        return self.resource.deserialize(response.json())
+
+    @add_auth_token_to_kwargs_from_env
+    def resume(self, execution_id, **kwargs):
+        url = '/%s/%s' % (self.resource.get_url_path_name(), execution_id)
+        data = {'status': 'resuming'}
+
+        response = self.client.put(url, data, **kwargs)
+
+        if response.status_code != 200:
+            self.handle_error(response)
+
+        return self.resource.deserialize(response.json())
+
+
+class InquiryResourceManager(ResourceManager):
+    pass
 
 
 class TriggerInstanceResourceManager(ResourceManager):
@@ -476,22 +525,34 @@ class StreamManager(object):
         self.cacert = cacert
 
     @add_auth_token_to_kwargs_from_env
-    def listen(self, events, **kwargs):
+    def listen(self, events=None, **kwargs):
         # Late import to avoid very expensive in-direct import (~1 second) when this function is
         # not called / used
         from sseclient import SSEClient
 
         url = self._url
+        query_params = {}
 
-        if 'token' in kwargs:
-            url += '?x-auth-token=%s' % kwargs.get('token')
-
-        if 'api_key' in kwargs:
-            url += '?st2-api-key=%s' % kwargs.get('api_key')
-
-        if isinstance(events, six.string_types):
+        if events and isinstance(events, six.string_types):
             events = [events]
 
+        if 'token' in kwargs:
+            query_params['x-auth-token'] = kwargs.get('token')
+
+        if 'api_key' in kwargs:
+            query_params['st2-api-key'] = kwargs.get('api_key')
+
+        if events:
+            query_params['events'] = ','.join(events)
+
+        query_string = '?' + urllib.parse.urlencode(query_params)
+        url = url + query_string
+
         for message in SSEClient(url):
-            if message.event in events:
-                yield json.loads(message.data)
+
+            # If the execution on the API server takes too long, the message
+            # can be empty. In this case, rerun the query.
+            if not message.data:
+                continue
+
+            yield json.loads(message.data)

@@ -49,6 +49,49 @@ class TestShell(base.BaseCLITestCase):
         super(TestShell, self).__init__(*args, **kwargs)
         self.shell = Shell()
 
+    def test_commands_usage_and_help_strings(self):
+        # No command, should print out user friendly usage / help string
+        self.assertEqual(self.shell.run([]), 2)
+
+        self.stderr.seek(0)
+        stderr = self.stderr.read()
+        self.assertTrue('Usage: ' in stderr)
+        self.assertTrue('For example:' in stderr)
+        self.assertTrue('CLI for StackStorm' in stderr)
+        self.assertTrue('positional arguments:' in stderr)
+
+        self.stdout.truncate()
+        self.stderr.truncate()
+
+        # --help should result in the same output
+        try:
+            self.assertEqual(self.shell.run(['--help']), 0)
+        except SystemExit as e:
+            self.assertEqual(e.code, 0)
+
+        self.stdout.seek(0)
+        stdout = self.stdout.read()
+        self.assertTrue('Usage: ' in stdout)
+        self.assertTrue('For example:' in stdout)
+        self.assertTrue('CLI for StackStorm' in stdout)
+        self.assertTrue('positional arguments:' in stdout)
+
+        self.stdout.truncate()
+        self.stderr.truncate()
+
+        # Sub command with no args
+        try:
+            self.assertEqual(self.shell.run(['action']), 2)
+        except SystemExit as e:
+            self.assertEqual(e.code, 2)
+
+        self.stderr.seek(0)
+        stderr = self.stderr.read()
+
+        self.assertTrue('usage' in stderr)
+        self.assertTrue('{list,get,create,update' in stderr)
+        self.assertTrue('error: too few arguments' in stderr)
+
     def test_endpoints_default(self):
         base_url = 'http://127.0.0.1'
         auth_url = 'http://127.0.0.1:9100'
@@ -170,7 +213,10 @@ class TestShell(base.BaseCLITestCase):
             ['execution', 're-run', '123'],
             ['execution', 're-run', '123', '--tasks', 'x', 'y', 'z'],
             ['execution', 're-run', '123', '--tasks', 'x', 'y', 'z', '--no-reset', 'x'],
-            ['execution', 're-run', '123', 'a=1', 'b=x', 'c=True']
+            ['execution', 're-run', '123', 'a=1', 'b=x', 'c=True'],
+            ['execution', 'cancel', '123'],
+            ['execution', 'pause', '123'],
+            ['execution', 'resume', '123']
         ]
         self._validate_parser(args_list)
 
@@ -181,6 +227,7 @@ class TestShell(base.BaseCLITestCase):
     def test_key(self):
         args_list = [
             ['key', 'list'],
+            ['key', 'list', '-n', '2'],
             ['key', 'get', 'abc'],
             ['key', 'set', 'abc', '123'],
             ['key', 'delete', 'abc'],
@@ -212,6 +259,21 @@ class TestShell(base.BaseCLITestCase):
             ['policy-type', 'list', '-r', 'action'],
             ['policy-type', 'list', '--resource-type', 'action'],
             ['policy-type', 'get', 'abc']
+        ]
+        self._validate_parser(args_list)
+
+    def test_pack(self):
+        args_list = [
+            ['pack', 'list'],
+            ['pack', 'get', 'abc'],
+            ['pack', 'search', 'abc'],
+            ['pack', 'show', 'abc'],
+            ['pack', 'remove', 'abc'],
+            ['pack', 'remove', 'abc', '--detail'],
+            ['pack', 'install', 'abc'],
+            ['pack', 'install', 'abc', '--force'],
+            ['pack', 'install', 'abc', '--detail'],
+            ['pack', 'config', 'abc']
         ]
         self._validate_parser(args_list)
 

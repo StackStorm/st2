@@ -21,7 +21,9 @@ import six
 from st2client import models
 from st2client.models.core import ResourceManager
 from st2client.models.core import ActionAliasResourceManager
+from st2client.models.core import ActionAliasExecutionManager
 from st2client.models.core import LiveActionResourceManager
+from st2client.models.core import InquiryResourceManager
 from st2client.models.core import TriggerInstanceResourceManager
 from st2client.models.core import PackResourceManager
 from st2client.models.core import ConfigManager
@@ -52,6 +54,8 @@ class Client(object):
             self.endpoints['base'] = os.environ.get('ST2_BASE_URL', DEFAULT_BASE_URL)
 
         api_version = api_version or os.environ.get('ST2_API_VERSION', DEFAULT_API_VERSION)
+
+        self.endpoints['exp'] = '%s:%s/%s' % (self.endpoints['base'], DEFAULT_API_PORT, 'exp')
 
         if api_url:
             self.endpoints['api'] = api_url
@@ -110,7 +114,7 @@ class Client(object):
             models.Action, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['ActionAlias'] = ActionAliasResourceManager(
             models.ActionAlias, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
-        self.managers['ActionAliasExecution'] = ResourceManager(
+        self.managers['ActionAliasExecution'] = ActionAliasExecutionManager(
             models.ActionAliasExecution, self.endpoints['api'],
             cacert=self.cacert, debug=self.debug)
         self.managers['ApiKey'] = ResourceManager(
@@ -121,6 +125,8 @@ class Client(object):
             models.ConfigSchema, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['LiveAction'] = LiveActionResourceManager(
             models.LiveAction, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        self.managers['Inquiry'] = InquiryResourceManager(
+            models.Inquiry, self.endpoints['exp'], cacert=self.cacert, debug=self.debug)
         self.managers['Pack'] = PackResourceManager(
             models.Pack, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Policy'] = ResourceManager(
@@ -171,6 +177,10 @@ class Client(object):
     @property
     def liveactions(self):
         return self.managers['LiveAction']
+
+    @property
+    def inquiries(self):
+        return self.managers['Inquiry']
 
     @property
     def packs(self):

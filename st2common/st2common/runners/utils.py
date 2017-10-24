@@ -15,15 +15,19 @@
 
 import logging as stdlib_logging
 
-from st2actions.container.service import RunnerContainerService
+from oslo_config import cfg
+
+from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common import log as logging
-from st2common.runners import base as runners
-from st2common.util import action_db as action_db_utils
 
 
 __all__ = [
     'get_logger_for_python_runner_action',
-    'get_action_class_instance'
+    'get_action_class_instance',
+
+    'make_read_and_store_stream_func',
+
+    'invoke_post_run',
 ]
 
 LOG = logging.getLogger(__name__)
@@ -84,7 +88,48 @@ def get_action_class_instance(action_cls, config=None, action_service=None):
     return action_instance
 
 
+def make_read_and_store_stream_func(execution_db, action_db, store_data_func):
+    """
+    Factory function which returns a function for reading from a stream (stdout / stderr).
+
+    This function writes read data into a buffer and stores it in a database.
+    """
+    # NOTE: This import has intentionally been moved here to avoid massive performance overhead
+    # (1+ second) for other functions inside this module which don't need to use those imports.
+    import eventlet
+
+    def read_and_store_stream(stream, buff):
+        try:
+            while not stream.closed:
+                line = stream.readline()
+                if not line:
+                    break
+
+                buff.write(line)
+
+                # Filter out result delimiter lines
+                if ACTION_OUTPUT_RESULT_DELIMITER in line:
+                    continue
+
+                if cfg.CONF.actionrunner.stream_output:
+                    store_data_func(execution_db=execution_db, action_db=action_db, data=line)
+        except RuntimeError:
+            # process was terminated abruptly
+            pass
+        except eventlet.support.greenlets.GreenletExit:
+            # Green thread exited / was killed
+            pass
+
+    return read_and_store_stream
+
+
 def invoke_post_run(liveaction_db, action_db=None):
+    # NOTE: This import has intentionally been moved here to avoid massive performance overhead
+    # (1+ second) for other functions inside this module which don't need to use those imports.
+    from st2common.runners import base as runners
+    from st2common.util import action_db as action_db_utils
+    from st2common.content import utils as content_utils
+
     LOG.info('Invoking post run for action execution %s.', liveaction_db.id)
 
     # Identify action and runner.
@@ -104,16 +149,15 @@ def invoke_post_run(liveaction_db, action_db=None):
     runner = runners.get_runner(runnertype_db.runner_module)
 
     # Configure the action runner.
-    runner.container_service = RunnerContainerService()
     runner.action = action_db
     runner.action_name = action_db.name
     runner.action_execution_id = str(liveaction_db.id)
-    runner.entry_point = RunnerContainerService.get_entry_point_abs_path(
-        pack=action_db.pack, entry_point=action_db.entry_point)
+    runner.entry_point = content_utils.get_entry_point_abs_path(pack=action_db.pack,
+                                                                entry_point=action_db.entry_point)
     runner.context = getattr(liveaction_db, 'context', dict())
     runner.callback = getattr(liveaction_db, 'callback', dict())
-    runner.libs_dir_path = RunnerContainerService.get_action_libs_abs_path(
-        pack=action_db.pack, entry_point=action_db.entry_point)
+    runner.libs_dir_path = content_utils.get_action_libs_abs_path(pack=action_db.pack,
+        entry_point=action_db.entry_point)
 
     # Invoke the post_run method.
     runner.post_run(liveaction_db.status, liveaction_db.result)

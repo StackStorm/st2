@@ -18,7 +18,9 @@ import re
 import httplib
 import sys
 import traceback
+import itertools
 
+import six
 import jsonschema
 from oslo_config import cfg
 from six.moves import http_client
@@ -28,18 +30,20 @@ from st2api.controllers.resource import ResourceController
 from st2api.controllers.v1.executionviews import ExecutionViewsController
 from st2api.controllers.v1.executionviews import SUPPORTED_FILTERS
 from st2common import log as logging
-from st2common.constants.action import LIVEACTION_STATUS_CANCELED, LIVEACTION_STATUS_FAILED
-from st2common.constants.action import LIVEACTION_CANCELABLE_STATES, LIVEACTION_COMPLETED_STATES
-from st2common.exceptions.param import ParamException
-from st2common.exceptions.apivalidation import ValueValidationException
-from st2common.exceptions.trace import TraceNotFoundException
+from st2common.constants import action as action_constants
+from st2common.exceptions import actionrunner as runner_exc
+from st2common.exceptions import apivalidation as validation_exc
+from st2common.exceptions import param as param_exc
+from st2common.exceptions import trace as trace_exc
 from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.action import LiveActionCreateAPI
 from st2common.models.api.base import cast_argument_value
 from st2common.models.api.execution import ActionExecutionAPI
+from st2common.models.api.execution import ActionExecutionOutputAPI
 from st2common.models.db.auth import UserDB
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
+from st2common.persistence.execution import ActionExecutionOutput
 from st2common.router import abort
 from st2common.router import Response
 from st2common.services import action as action_service
@@ -54,6 +58,7 @@ from st2common.rbac.types import PermissionType
 from st2common.rbac import utils as rbac_utils
 from st2common.rbac.utils import assert_user_has_resource_db_permission
 from st2common.rbac.utils import assert_user_is_admin_if_user_query_param_is_provided
+from st2common.stream.listener import get_listener
 
 __all__ = [
     'ActionExecutionsController'
@@ -127,9 +132,9 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         except jsonschema.ValidationError as e:
             LOG.exception('Unable to execute action. Parameter validation failed.')
             abort(http_client.BAD_REQUEST, re.sub("u'([^']*)'", r"'\1'", e.message))
-        except TraceNotFoundException as e:
+        except trace_exc.TraceNotFoundException as e:
             abort(http_client.BAD_REQUEST, str(e))
-        except ValueValidationException as e:
+        except validation_exc.ValueValidationException as e:
             raise e
         except Exception as e:
             LOG.exception('Unable to execute action. Unexpected error encountered.')
@@ -178,16 +183,16 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
             liveaction_db.parameters = param_utils.render_live_params(
                 runnertype_db.runner_parameters, action_db.parameters, liveaction_db.parameters,
                 liveaction_db.context)
-        except ParamException:
+        except param_exc.ParamException:
             # By this point the execution is already in the DB therefore need to mark it failed.
             _, e, tb = sys.exc_info()
             action_service.update_status(
                 liveaction=liveaction_db,
-                new_status=LIVEACTION_STATUS_FAILED,
+                new_status=action_constants.LIVEACTION_STATUS_FAILED,
                 result={'error': str(e), 'traceback': ''.join(traceback.format_tb(tb, 20))})
             # Might be a good idea to return the actual ActionExecution rather than bubble up
             # the execption.
-            raise ValueValidationException(str(e))
+            raise validation_exc.ValueValidationException(str(e))
 
         liveaction_db = LiveAction.add_or_update(liveaction_db, publish=False)
 
@@ -284,6 +289,87 @@ class ActionExecutionAttributeController(BaseActionExecutionNestedController):
 
         result = getattr(action_exec_db, attribute, None)
         return result
+
+
+class ActionExecutionOutputController(ActionExecutionsControllerMixin, ResourceController):
+    supported_filters = {
+        'output_type': 'output_type'
+    }
+    exclude_fields = []
+
+    CLOSE_STREAM_LIVEACTION_STATES = action_constants.LIVEACTION_COMPLETED_STATES + [
+        action_constants.LIVEACTION_STATUS_PAUSING,
+        action_constants.LIVEACTION_STATUS_RESUMING
+    ]
+
+    def get_one(self, id, output_type=None, requester_user=None):
+        # Special case for id == "last"
+        if id == 'last':
+            execution_db = ActionExecution.query().order_by('-id').limit(1).first()
+        else:
+            execution_db = self._get_one_by_id(id=id, requester_user=requester_user,
+                                               permission_type=PermissionType.EXECUTION_VIEW)
+
+        execution_id = str(execution_db.id)
+
+        query_filters = {}
+        if output_type:
+            query_filters['output_type'] = output_type
+
+        def existing_output_iter():
+            # Consume and return all of the existing lines
+            # pylint: disable=no-member
+            output_dbs = ActionExecutionOutput.query(execution_id=execution_id, **query_filters)
+
+            # Note: We return all at once instead of yield line by line to avoid multiple socket
+            # writes and to achieve better performance
+            output = ''.join([output_db.data for output_db in output_dbs])
+            yield six.binary_type(output.encode('utf-8'))
+
+        def new_output_iter():
+            def noop_gen():
+                yield ''
+
+            # Bail out if execution has already completed / been paused
+            if execution_db.status in self.CLOSE_STREAM_LIVEACTION_STATES:
+                return noop_gen()
+
+            # Wait for and return any new line which may come in
+            execution_ids = [execution_id]
+            listener = get_listener(name='execution_output')  # pylint: disable=no-member
+            gen = listener.generator(execution_ids=execution_ids)
+
+            def format(gen):
+                for pack in gen:
+                    if not pack:
+                        continue
+                    else:
+                        (_, model_api) = pack
+
+                        # Note: gunicorn wsgi handler expect bytes, not unicode
+                        # pylint: disable=no-member
+                        if isinstance(model_api, ActionExecutionOutputAPI):
+                            if output_type and model_api.output_type != output_type:
+                                continue
+
+                            yield six.binary_type(model_api.data.encode('utf-8'))
+                        elif isinstance(model_api, ActionExecutionAPI):
+                            if model_api.status in self.CLOSE_STREAM_LIVEACTION_STATES:
+                                yield six.binary_type('')
+                                break
+                        else:
+                            LOG.debug('Unrecognized message type: %s' % (model_api))
+
+            gen = format(gen)
+            return gen
+
+        def make_response():
+            app_iter = itertools.chain(existing_output_iter(), new_output_iter())
+            res = Response(content_type='text/plain', app_iter=app_iter)
+            return res
+
+        res = make_response()
+        return res
 
 
 class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceController):
@@ -471,6 +557,12 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         from_model_kwargs = {
             'mask_secrets': self._get_mask_secrets(requester_user, show_secrets=show_secrets)
         }
+
+        # Special case for id == "last"
+        if id == 'last':
+            execution_db = ActionExecution.query().order_by('-id').limit(1).only('id').first()
+            id = str(execution_db.id)
+
         return self._get_one_by_id(id=id, exclude_fields=exclude_fields,
                                    requester_user=requester_user,
                                    from_model_kwargs=from_model_kwargs,
@@ -515,22 +607,48 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
             abort(http_client.INTERNAL_SERVER_ERROR,
                   'Execution object missing link to liveaction %s.' % liveaction_id)
 
-        if liveaction_db.status in LIVEACTION_COMPLETED_STATES:
+        if liveaction_db.status in action_constants.LIVEACTION_COMPLETED_STATES:
             abort(http_client.BAD_REQUEST, 'Execution is already in completed state.')
 
+        if (getattr(liveaction_api, 'result', None) is not None and
+                liveaction_api.status in [
+                    action_constants.LIVEACTION_STATUS_PAUSING,
+                    action_constants.LIVEACTION_STATUS_PAUSED,
+                    action_constants.LIVEACTION_STATUS_RESUMING]):
+            abort(http_client.BAD_REQUEST,
+                  'The result is not applicable for pausing and resuming execution.')
+
         try:
-            liveaction_db = action_service.update_status(
-                liveaction_db,
-                liveaction_api.status,
-                result=getattr(liveaction_api, 'result', None)
-            )
+            if (liveaction_api.status == action_constants.LIVEACTION_STATUS_PAUSING or
+                    liveaction_api.status == action_constants.LIVEACTION_STATUS_PAUSED):
+                liveaction_db, actionexecution_db = action_service.request_pause(
+                    liveaction_db, requester_user.name or cfg.CONF.system_user.user)
+            elif liveaction_api.status == action_constants.LIVEACTION_STATUS_RESUMING:
+                liveaction_db, actionexecution_db = action_service.request_resume(
+                    liveaction_db, requester_user.name or cfg.CONF.system_user.user)
+            else:
+                liveaction_db = action_service.update_status(
+                    liveaction_db,
+                    liveaction_api.status,
+                    result=getattr(liveaction_api, 'result', None)
+                )
+
+                actionexecution_db = ActionExecution.get(liveaction__id=str(liveaction_db.id))
+        except runner_exc.InvalidActionRunnerOperationError as e:
+            LOG.exception('Failed updating liveaction %s. %s', liveaction_db.id, str(e))
+            abort(http_client.BAD_REQUEST, 'Failed updating execution. %s' % str(e))
+        except runner_exc.UnexpectedActionExecutionStatusError as e:
+            LOG.exception('Failed updating liveaction %s. %s', liveaction_db.id, str(e))
+            abort(http_client.BAD_REQUEST, 'Failed updating execution. %s' % str(e))
         except Exception as e:
             LOG.exception('Failed updating liveaction %s. %s', liveaction_db.id, str(e))
-            abort(http_client.INTERNAL_SERVER_ERROR, 'Failed updating execution.')
+            abort(
+                http_client.INTERNAL_SERVER_ERROR,
+                'Failed updating execution due to unexpected error.'
+            )
 
-        execution_api = self._get_one_by_id(id=id, requester_user=requester_user,
-                                            from_model_kwargs=from_model_kwargs,
-                                            permission_type=PermissionType.EXECUTION_STOP)
+        mask_secrets = self._get_mask_secrets(requester_user, show_secrets=show_secrets)
+        execution_api = ActionExecutionAPI.from_model(actionexecution_db, mask_secrets=mask_secrets)
 
         return execution_api
 
@@ -566,14 +684,14 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
             abort(http_client.INTERNAL_SERVER_ERROR,
                   'Execution object missing link to liveaction %s.' % liveaction_id)
 
-        if liveaction_db.status == LIVEACTION_STATUS_CANCELED:
+        if liveaction_db.status == action_constants.LIVEACTION_STATUS_CANCELED:
             LOG.info(
                 'Action %s already in "canceled" state; \
                 returning execution object.' % liveaction_db.id
             )
             return execution_api
 
-        if liveaction_db.status not in LIVEACTION_CANCELABLE_STATES:
+        if liveaction_db.status not in action_constants.LIVEACTION_CANCELABLE_STATES:
             abort(http_client.OK, 'Action cannot be canceled. State = %s.' % liveaction_db.status)
 
         try:
@@ -609,6 +727,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
 
 
 action_executions_controller = ActionExecutionsController()
+action_execution_output_controller = ActionExecutionOutputController()
 action_execution_rerun_controller = ActionExecutionReRunController()
 action_execution_attribute_controller = ActionExecutionAttributeController()
 action_execution_children_controller = ActionExecutionChildrenController()

@@ -15,12 +15,19 @@
 
 import mock
 
-from st2common.models.api.action import ActionAPI, RunnerTypeAPI
+from oslo_config import cfg
+
+from st2common.models.api.action import ActionAPI
+from st2common.models.api.action import RunnerTypeAPI
+from st2common.models.api.execution import ActionExecutionAPI
 from st2common.models.api.execution import LiveActionAPI
+from st2common.models.api.execution import ActionExecutionOutputAPI
 from st2common.models.db.liveaction import LiveActionDB
+from st2common.models.db.execution import ActionExecutionDB
+from st2common.models.db.execution import ActionExecutionOutputDB
 from st2common.persistence.action import Action, RunnerType
+import st2common.stream.listener
 from st2stream.controllers.v1 import stream
-import st2stream.listener
 from st2tests.api import SUPER_SECRET_PARAMETER
 from base import FunctionalTest
 
@@ -70,12 +77,37 @@ LIVE_ACTION_1 = {
     }
 }
 
+EXECUTION_1 = {
+    'id': '598dbf0c0640fd54bffc688b',
+    'action': {
+        'ref': 'sixpack.st2.dummy.action1'
+    },
+    'parameters': {
+        'hosts': 'localhost',
+        'cmd': 'uname -a',
+        'd': SUPER_SECRET_PARAMETER
+    }
+}
+
+STDOUT_1 = {
+    'execution_id': '598dbf0c0640fd54bffc688b',
+    'action_ref': 'dummy.action1',
+    'output_type': 'stdout'
+}
+
+STDERR_1 = {
+    'execution_id': '598dbf0c0640fd54bffc688b',
+    'action_ref': 'dummy.action1',
+    'output_type': 'stderr'
+}
+
 
 class META(object):
-    delivery_info = {
-        'exchange': 'some',
-        'routing_key': 'thing'
-    }
+    delivery_info = {}
+
+    def __init__(self, exchange='some', routing_key='thing'):
+        self.delivery_info['exchange'] = exchange
+        self.delivery_info['routing_key'] = routing_key
 
     def ack(self):
         pass
@@ -93,13 +125,14 @@ class TestStreamController(FunctionalTest):
         instance = ActionAPI(**ACTION_1)
         Action.add_or_update(ActionAPI.to_model(instance))
 
-    @mock.patch.object(st2stream.listener, 'listen', mock.Mock())
+    @mock.patch.object(st2common.stream.listener, 'listen', mock.Mock())
+    @mock.patch('st2stream.controllers.v1.stream.DEFAULT_EVENTS_WHITELIST', None)
     def test_get_all(self):
         resp = stream.StreamController().get_all()
         self.assertEqual(resp._status, '200 OK')
         self.assertIn(('Content-Type', 'text/event-stream; charset=UTF-8'), resp._headerlist)
 
-        listener = st2stream.listener.get_listener()
+        listener = st2common.stream.listener.get_listener(name='stream')
         process = listener.processor(LiveActionAPI)
 
         message = None
@@ -112,3 +145,171 @@ class TestStreamController(FunctionalTest):
         self.assertIn('event: some__thing', message)
         self.assertIn('data: {"', message)
         self.assertNotIn(SUPER_SECRET_PARAMETER, message)
+
+    @mock.patch.object(st2common.stream.listener, 'listen', mock.Mock())
+    def test_get_all_with_filters(self):
+        cfg.CONF.set_override(name='heartbeat', group='stream', override=0.1)
+
+        listener = st2common.stream.listener.get_listener(name='stream')
+        process_execution = listener.processor(ActionExecutionAPI)
+        process_liveaction = listener.processor(LiveActionAPI)
+        process_output = listener.processor(ActionExecutionOutputAPI)
+        process_no_api_model = listener.processor()
+
+        execution_api = ActionExecutionDB(**EXECUTION_1)
+        liveaction_api = LiveActionDB(**LIVE_ACTION_1)
+        output_api_stdout = ActionExecutionOutputDB(**STDOUT_1)
+        output_api_stderr = ActionExecutionOutputDB(**STDERR_1)
+
+        def dispatch_and_handle_mock_data(resp):
+            received_messages_data = ''
+            for index, message in enumerate(resp._app_iter):
+                if message.strip():
+                    received_messages_data += message
+
+                # Dispatch some mock events
+                if index == 0:
+                    meta = META('st2.execution', 'create')
+                    process_execution(execution_api, meta)
+                elif index == 1:
+                    meta = META('st2.execution', 'update')
+                    process_execution(execution_api, meta)
+                elif index == 2:
+                    meta = META('st2.execution', 'delete')
+                    process_execution(execution_api, meta)
+                elif index == 3:
+                    meta = META('st2.liveaction', 'create')
+                    process_liveaction(liveaction_api, meta)
+                elif index == 4:
+                    meta = META('st2.liveaction', 'create')
+                    process_liveaction(liveaction_api, meta)
+                elif index == 5:
+                    meta = META('st2.liveaction', 'delete')
+                    process_liveaction(liveaction_api, meta)
+                elif index == 6:
+                    meta = META('st2.liveaction', 'delete')
+                    process_liveaction(liveaction_api, meta)
+                elif index == 7:
+                    meta = META('st2.announcement', 'chatops')
+                    process_no_api_model({}, meta)
+                elif index == 8:
+                    meta = META('st2.execution.output', 'create')
+                    process_output(output_api_stdout, meta)
+                elif index == 9:
+                    meta = META('st2.execution.output', 'create')
+                    process_output(output_api_stderr, meta)
+                elif index == 10:
+                    meta = META('st2.announcement', 'errbot')
+                    process_no_api_model({}, meta)
+
+                else:
+                    break
+
+            received_messages = received_messages_data.split('\n\n')
+            received_messages = [message for message in received_messages if message]
+            return received_messages
+
+        # 1. Default filter - stdout and stderr messages should be excluded for backward
+        # compatibility reasons
+        resp = stream.StreamController().get_all()
+
+        received_messages = dispatch_and_handle_mock_data(resp)
+        self.assertEqual(len(received_messages), 9)
+        self.assertTrue('st2.execution__create' in received_messages[0])
+        self.assertTrue('st2.liveaction__delete' in received_messages[5])
+        self.assertTrue('st2.announcement__chatops' in received_messages[7])
+        self.assertTrue('st2.announcement__errbot' in received_messages[8])
+
+        # 1. ?events= filter
+        # No filter provided - all messages should be received
+        stream.DEFAULT_EVENTS_WHITELIST = None
+        resp = stream.StreamController().get_all()
+
+        received_messages = dispatch_and_handle_mock_data(resp)
+        self.assertEqual(len(received_messages), 11)
+        self.assertTrue('st2.execution__create' in received_messages[0])
+        self.assertTrue('st2.announcement__chatops' in received_messages[7])
+        self.assertTrue('st2.execution.output__create' in received_messages[8])
+        self.assertTrue('st2.execution.output__create' in received_messages[9])
+        self.assertTrue('st2.announcement__errbot' in received_messages[10])
+
+        # Filter provided, only three messages should be received
+        events = ['st2.execution__create', 'st2.liveaction__delete']
+        events = ','.join(events)
+        resp = stream.StreamController().get_all(events=events)
+
+        received_messages = dispatch_and_handle_mock_data(resp)
+        self.assertEqual(len(received_messages), 3)
+        self.assertTrue('st2.execution__create' in received_messages[0])
+        self.assertTrue('st2.liveaction__delete' in received_messages[1])
+        self.assertTrue('st2.liveaction__delete' in received_messages[2])
+
+        # Filter provided, only three messages should be received
+        events = ['st2.liveaction__create', 'st2.liveaction__delete']
+        events = ','.join(events)
+        resp = stream.StreamController().get_all(events=events)
+
+        received_messages = dispatch_and_handle_mock_data(resp)
+        self.assertEqual(len(received_messages), 4)
+        self.assertTrue('st2.liveaction__create' in received_messages[0])
+        self.assertTrue('st2.liveaction__create' in received_messages[1])
+        self.assertTrue('st2.liveaction__delete' in received_messages[2])
+        self.assertTrue('st2.liveaction__delete' in received_messages[3])
+
+        # Glob filter
+        events = ['st2.announcement__*']
+        events = ','.join(events)
+        resp = stream.StreamController().get_all(events=events)
+
+        received_messages = dispatch_and_handle_mock_data(resp)
+        self.assertEqual(len(received_messages), 2)
+        self.assertTrue('st2.announcement__chatops' in received_messages[0])
+        self.assertTrue('st2.announcement__errbot' in received_messages[1])
+
+        # Filter provided
+        events = ['st2.execution.output__create']
+        events = ','.join(events)
+        resp = stream.StreamController().get_all(events=events)
+
+        received_messages = dispatch_and_handle_mock_data(resp)
+        self.assertEqual(len(received_messages), 2)
+        self.assertTrue('st2.execution.output__create' in received_messages[0])
+        self.assertTrue('st2.execution.output__create' in received_messages[1])
+
+        # Filter provided, invalid , no message should be received
+        events = ['invalid1', 'invalid2']
+        events = ','.join(events)
+        resp = stream.StreamController().get_all(events=events)
+
+        received_messages = dispatch_and_handle_mock_data(resp)
+        self.assertEqual(len(received_messages), 0)
+
+        # 2. ?action_refs= filter
+        action_refs = ['invalid1', 'invalid2']
+        action_refs = ','.join(action_refs)
+        resp = stream.StreamController().get_all(action_refs=action_refs)
+
+        received_messages = dispatch_and_handle_mock_data(resp)
+        self.assertEqual(len(received_messages), 0)
+
+        action_refs = ['dummy.action1']
+        action_refs = ','.join(action_refs)
+        resp = stream.StreamController().get_all(action_refs=action_refs)
+
+        received_messages = dispatch_and_handle_mock_data(resp)
+        self.assertEqual(len(received_messages), 2)
+
+        # 3. ?execution_ids= filter
+        execution_ids = ['invalid1', 'invalid2']
+        execution_ids = ','.join(execution_ids)
+        resp = stream.StreamController().get_all(execution_ids=execution_ids)
+
+        received_messages = dispatch_and_handle_mock_data(resp)
+        self.assertEqual(len(received_messages), 0)
+
+        execution_ids = [EXECUTION_1['id']]
+        execution_ids = ','.join(execution_ids)
+        resp = stream.StreamController().get_all(execution_ids=execution_ids)
+
+        received_messages = dispatch_and_handle_mock_data(resp)
+        self.assertEqual(len(received_messages), 5)

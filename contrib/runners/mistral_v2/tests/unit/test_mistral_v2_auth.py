@@ -266,7 +266,7 @@ class MistralAuthTest(DbTestCase):
             'cacert': None
         }
 
-        keystone.KeystoneAuthHandler.authenticate.assert_called_with(auth_req)
+        keystone.KeystoneAuthHandler.authenticate.assert_called_with(auth_req, session=None)
 
         executions.ExecutionManager.create.assert_called_with(
             WF1_NAME, workflow_input=workflow_input, env=env)

@@ -60,6 +60,21 @@ class TestTokenBasedAuth(FunctionalTest):
 
     @mock.patch.object(
         Token, 'get',
+        mock.Mock(return_value=TokenDB(id=OBJ_ID, user=USER, token=TOKEN, expiry=FUTURE)))
+    @mock.patch.object(User, 'get_by_name', mock.Mock(return_value=USER_DB))
+    def test_token_validation_token_in_cookies(self):
+        response = self.app.get('/v1/actions', headers={'X-Auth-Token': TOKEN},
+                                expect_errors=False)
+        self.assertTrue('application/json' in response.headers['content-type'])
+        self.assertEqual(response.status_int, 200)
+
+        with mock.patch.object(self.app.cookiejar, 'clear', return_value=None):
+            response = self.app.get('/v1/actions', expect_errors=False)
+        self.assertTrue('application/json' in response.headers['content-type'])
+        self.assertEqual(response.status_int, 200)
+
+    @mock.patch.object(
+        Token, 'get',
         mock.Mock(return_value=TokenDB(id=OBJ_ID, user=USER, token=TOKEN, expiry=PAST)))
     def test_token_expired(self):
         response = self.app.get('/v1/actions', headers={'X-Auth-Token': TOKEN},
@@ -120,6 +135,19 @@ class TestApiKeyBasedAuth(FunctionalTest):
         self.assertTrue('application/json' in response.headers['content-type'])
         self.assertEqual(response.status_int, 200)
 
+    @mock.patch.object(User, 'get_by_name', mock.Mock(return_value=UserDB(name='bill')))
+    def test_apikey_validation_apikey_in_cookies(self):
+        response = self.app.get('/v1/actions', headers={'St2-Api-key': KEY1_KEY},
+                                expect_errors=False)
+        self.assertTrue('application/json' in response.headers['content-type'])
+        self.assertEqual(response.status_int, 200)
+
+        with mock.patch.object(self.app.cookiejar, 'clear', return_value=None):
+            response = self.app.get('/v1/actions', expect_errors=True)
+        self.assertEqual(response.status_int, 401)
+        self.assertEqual(response.json_body['faultstring'],
+                         'Unauthorized - One of Token or API key required.')
+
     def test_apikey_disabled(self):
         response = self.app.get('/v1/actions', headers={'St2-Api-key': DISABLED_KEY},
                                 expect_errors=True)
@@ -147,6 +175,4 @@ class TestApiKeyBasedAuth(FunctionalTest):
                                 headers={'X-Auth-Token': TOKEN, 'St2-Api-key': KEY1_KEY},
                                 expect_errors=True)
         self.assertTrue('application/json' in response.headers['content-type'])
-        self.assertEqual(response.status_int, 401)
-        self.assertEqual(response.json_body['faultstring'],
-                         'Unauthorized - Only one of Token or API key expected.')
+        self.assertEqual(response.status_int, 200)

@@ -1,0 +1,21 @@
+---
+name: remote_script_runner_print_to_stdout_and_stderr
+runner_type: remote-shell-script
+description: Action which periodically prints to stdout and stderr. Useful for testing action output streaming.
+enabled: true
+entry_point: print_to_stdout_and_stderr.sh
+parameters:
+  hosts:
+    default: "localhost"
+  count:
+    type: integer
+    description: "Number of repetitions."
+    required: true
+    default: 100
+    position: 1
+  sleep_delay:
+    type: number
+    description: "Sleep delay between each repetition."
+    required: true
+    default: 0.5
+    position: 2

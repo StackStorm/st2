@@ -17,10 +17,13 @@ import six
 
 from st2common import log as logging
 from st2common.constants import action as action_constants
-from st2common.exceptions.db import StackStormDBObjectNotFoundError
-from st2common.exceptions.trace import TraceNotFoundException
+from st2common.exceptions import actionrunner as runner_exc
+from st2common.exceptions import db as db_exc
+from st2common.exceptions import trace as trace_exc
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
+from st2common.persistence.execution import ActionExecutionOutput
+from st2common.models.db.execution import ActionExecutionOutputDB
 from st2common.services import executions
 from st2common.services import trace as trace_service
 from st2common.util import date as date_utils
@@ -32,7 +35,12 @@ __all__ = [
     'request',
     'create_request',
     'publish_request',
-    'is_action_canceled_or_canceling'
+    'is_action_canceled_or_canceling',
+
+    'request_pause',
+    'request_resume',
+
+    'store_execution_output_data',
 ]
 
 LOG = logging.getLogger(__name__)
@@ -109,9 +117,9 @@ def create_request(liveaction):
     trace_db = None
     try:
         _, trace_db = trace_service.get_trace_db_by_live_action(liveaction)
-    except StackStormDBObjectNotFoundError as e:
+    except db_exc.StackStormDBObjectNotFoundError as e:
         _cleanup_liveaction(liveaction)
-        raise TraceNotFoundException(str(e))
+        raise trace_exc.TraceNotFoundException(str(e))
 
     execution = executions.create_execution_object(liveaction, publish=False)
 
@@ -186,6 +194,12 @@ def is_action_canceled_or_canceling(liveaction_id):
                                     action_constants.LIVEACTION_STATUS_CANCELING]
 
 
+def is_action_paused_or_pausing(liveaction_id):
+    liveaction_db = action_utils.get_liveaction_by_id(liveaction_id)
+    return liveaction_db.status in [action_constants.LIVEACTION_STATUS_PAUSED,
+                                    action_constants.LIVEACTION_STATUS_PAUSING]
+
+
 def request_cancellation(liveaction, requester):
     """
     Request cancellation of an action execution.
@@ -197,23 +211,152 @@ def request_cancellation(liveaction, requester):
         return liveaction
 
     if liveaction.status not in action_constants.LIVEACTION_CANCELABLE_STATES:
-        raise Exception('Unable to cancel execution because it is already in a completed state.')
+        raise Exception(
+            'Unable to cancel liveaction "%s" because it is already in a '
+            'completed state.' % liveaction.id
+        )
 
     result = {
         'message': 'Action canceled by user.',
         'user': requester
     }
 
-    # There is real work only when liveaction is still running.
-    status = (action_constants.LIVEACTION_STATUS_CANCELING
-              if liveaction.status == action_constants.LIVEACTION_STATUS_RUNNING
-              else action_constants.LIVEACTION_STATUS_CANCELED)
+    # Run cancelation sequence for liveaction that is in running state or
+    # if the liveaction is operating under a workflow.
+    if ('parent' in liveaction.context or
+            liveaction.status in action_constants.LIVEACTION_STATUS_RUNNING):
+        status = action_constants.LIVEACTION_STATUS_CANCELING
+    else:
+        status = action_constants.LIVEACTION_STATUS_CANCELED
 
-    update_status(liveaction, status, result=result)
+    liveaction = update_status(liveaction, status, result=result)
 
     execution = ActionExecution.get(liveaction__id=str(liveaction.id))
 
     return (liveaction, execution)
+
+
+def request_pause(liveaction, requester):
+    """
+    Request pause for a running action execution.
+
+    :return: (liveaction, execution)
+    :rtype: tuple
+    """
+    # Validate that the runner type of the action supports pause.
+    action_db = action_utils.get_action_by_ref(liveaction.action)
+
+    if not action_db:
+        raise ValueError(
+            'Unable to pause liveaction "%s" because the action "%s" '
+            'is not found.' % (liveaction.id, liveaction.action)
+        )
+
+    if action_db.runner_type['name'] not in action_constants.WORKFLOW_RUNNER_TYPES:
+        raise runner_exc.InvalidActionRunnerOperationError(
+            'Unable to pause liveaction "%s" because it is not supported by the '
+            '"%s" runner.' % (liveaction.id, action_db.runner_type['name'])
+        )
+
+    if (liveaction.status == action_constants.LIVEACTION_STATUS_PAUSING or
+            liveaction.status == action_constants.LIVEACTION_STATUS_PAUSED):
+        execution = ActionExecution.get(liveaction__id=str(liveaction.id))
+        return (liveaction, execution)
+
+    if liveaction.status != action_constants.LIVEACTION_STATUS_RUNNING:
+        raise runner_exc.UnexpectedActionExecutionStatusError(
+            'Unable to pause liveaction "%s" because it is not in a running state.'
+            % liveaction.id
+        )
+
+    liveaction = update_status(liveaction, action_constants.LIVEACTION_STATUS_PAUSING)
+
+    execution = ActionExecution.get(liveaction__id=str(liveaction.id))
+
+    return (liveaction, execution)
+
+
+def request_resume(liveaction, requester):
+    """
+    Request resume for a paused action execution.
+
+    :return: (liveaction, execution)
+    :rtype: tuple
+    """
+    # Validate that the runner type of the action supports pause.
+    action_db = action_utils.get_action_by_ref(liveaction.action)
+
+    if not action_db:
+        raise ValueError(
+            'Unable to resume liveaction "%s" because the action "%s" '
+            'is not found.' % (liveaction.id, liveaction.action)
+        )
+
+    if action_db.runner_type['name'] not in action_constants.WORKFLOW_RUNNER_TYPES:
+        raise runner_exc.InvalidActionRunnerOperationError(
+            'Unable to resume liveaction "%s" because it is not supported by the '
+            '"%s" runner.' % (liveaction.id, action_db.runner_type['name'])
+        )
+
+    if liveaction.status == action_constants.LIVEACTION_STATUS_RUNNING:
+        execution = ActionExecution.get(liveaction__id=str(liveaction.id))
+        return (liveaction, execution)
+
+    if liveaction.status != action_constants.LIVEACTION_STATUS_PAUSED:
+        raise runner_exc.UnexpectedActionExecutionStatusError(
+            'Unable to resume liveaction "%s" because it is not in a paused state.'
+            % liveaction.id
+        )
+
+    liveaction = update_status(liveaction, action_constants.LIVEACTION_STATUS_RESUMING)
+
+    execution = ActionExecution.get(liveaction__id=str(liveaction.id))
+
+    return (liveaction, execution)
+
+
+def get_root_liveaction(liveaction_db):
+    """Recursively ascends until the root liveaction is found
+
+    Useful for finding an original parent workflow. Pass in
+    any LiveActionDB instance, and this function will eventually
+    return the top-most liveaction, even if the two are one and
+    the same
+
+    :param liveaction_db: The LiveActionDB instance for which to find
+                          the root parent
+    :rtype: LiveActionDB
+    """
+
+    parent = liveaction_db.context.get("parent")
+    if parent:
+        parent_execution = ActionExecution.get(id=parent['execution_id'])
+        parent_liveaction = LiveAction.get(id=parent_execution.liveaction['id'])
+        return get_root_liveaction(parent_liveaction)
+    else:
+        return liveaction_db
+
+
+def store_execution_output_data(execution_db, action_db, data, output_type='output',
+                                timestamp=None):
+    """
+    Store output from an execution as a new document in the collection.
+    """
+    execution_id = str(execution_db.id)
+    action_ref = action_db.ref
+    runner_ref = getattr(action_db, 'runner_type', {}).get('name', 'unknown')
+    timestamp = timestamp or date_utils.get_datetime_utc_now()
+
+    output_db = ActionExecutionOutputDB(execution_id=execution_id,
+                                        action_ref=action_ref,
+                                        runner_ref=runner_ref,
+                                        timestamp=timestamp,
+                                        output_type=output_type,
+                                        data=data)
+    output_db = ActionExecutionOutput.add_or_update(output_db, publish=True,
+                                                    dispatch_trigger=False)
+
+    return output_db
 
 
 def _cleanup_liveaction(liveaction):

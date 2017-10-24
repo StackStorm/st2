@@ -1,0 +1,13 @@
+---
+name: chain-test-cancel
+description: Simple action chain to test cancellation.
+runner_type: action-chain
+entry_point: chains/chain_test_cancel.yaml
+enabled: true
+parameters:
+    tempfile:
+        type: string
+        required: true
+    message:
+        type: string
+        required: true

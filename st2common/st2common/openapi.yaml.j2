@@ -683,14 +683,10 @@ paths:
           schema:
             $ref: '#/definitions/ActionAliasMatchRequest'
       responses:
-        '201':
+        '200':
           description: Action alias match pattern
           schema:
             $ref: '#/definitions/ActionAliasMatch'
-          examples:
-            application/json:
-              ref: 'core.local'
-              # and stuff
         default:
           description: Unexpected error
           schema:
@@ -766,6 +762,40 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /api/v1/aliasexecution/match_and_execute:
+    post:
+      operationId: st2api.controllers.v1.aliasexecution:action_alias_execution_controller.match_and_execute
+      description: |
+        Create an execution based on action alias match (if any).
+      parameters:
+        - name: input_api
+          in: body
+          description: Input data.
+          schema:
+            $ref: '#/definitions/AliasMatchAndExecuteInputAPI'
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '201':
+          description: Action alias execution created
+          schema:
+            $ref: '#/definitions/AliasExecution'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
   /api/v1/executions:
     get:
       operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.get_all
@@ -1027,6 +1057,37 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /api/v1/executions/{id}/output:
+    get:
+      operationId: st2api.controllers.v1.actionexecutions:action_execution_output_controller.get_one
+      x-log-result: false
+      x-is-stream-endpoint: true
+      description: |
+        Retrieve execution output.
+      parameters:
+        - name: id
+          in: path
+          description: Execution id
+          type: string
+          required: true
+        - name: output_type
+          in: query
+          description: Type of output to retrieve. If not provided, all output type is returned.
+          type: array
+          items:
+            type: string
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Execution output.
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   /api/v1/executions/{id}/re_run:
     post:
       operationId: st2api.controllers.v1.actionexecutions:action_execution_rerun_controller.post
@@ -1182,6 +1243,92 @@ paths:
                 type: object
               action:
                 type: object
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/exp/inquiries:
+    get:
+      operationId: st2api.controllers.exp.inquiries:inquiries_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.INQUIRY_LIST }}
+      description: Returns a list of all inquiries
+      parameters:
+        - name: limit
+          in: query
+          description: Number of executions to get
+          type: integer
+          default: 20
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: List of inquries
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Inquiry'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/exp/inquiries/{inquiry_id}:
+    get:
+      operationId: st2api.controllers.exp.inquiries:inquiries_controller.get_one
+      description: |
+        Get a specific Inquiry based on ID.
+      parameters:
+        - name: inquiry_id
+          in: path
+          description: Inquiry ID
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Inquiry requested.
+          schema:
+            $ref: '#/definitions/Inquiry'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      operationId: st2api.controllers.exp.inquiries:inquiries_controller.put
+      description: |
+        Respond to an Inquiry.
+      parameters:
+        - name: inquiry_id
+          in: path
+          description: Inquiry ID
+          type: string
+          required: true
+        - name: response_data
+          in: body
+          required: true
+          description: Inquiry response
+          schema:
+            $ref: '#/definitions/InquiryResponseResult'
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Response received
+          schema:
+            $ref: '#/definitions/InquiryResponseResult'
+          examples:
+            application/json:
+              ref: 'core.local'
               # and stuff
         default:
           description: Unexpected error
@@ -1406,6 +1553,8 @@ paths:
   /api/v1/packs/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.packs:packs_controller.get_one
+      x-requirements:
+        ref_or_id: (?!index)(?!views).*
       description: Get information about an installed pack.
       parameters:
         - name: ref_or_id
@@ -1442,6 +1591,11 @@ paths:
           description: Packs to be installed
           schema:
             $ref: '#/definitions/PacksInstall'
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '202':
           description: Pack installation request has been accepted
@@ -1467,6 +1621,11 @@ paths:
           description: Packs to be uninstalled
           schema:
             $ref: '#/definitions/PacksUninstall'
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '202':
           description: Pack uninstallation request has been accepted
@@ -1505,6 +1664,23 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /api/v1/packs/index:
+    get:
+      operationId: st2api.controllers.v1.packs:packs_controller.index.get_all
+      x-permissions: {{ PERMISSION_TYPE.PACK_SEARCH }}
+      description: To list all the packs of all indexes used by your StackStorm instance.
+      responses:
+        '200':
+          description: Pack index.
+          schema:
+            $ref: '#/definitions/PackIndex'
+          examples:
+            application/json:
+              ref: 'core.local'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   /api/v1/packs/index/search:
     post:
       operationId: st2api.controllers.v1.packs:packs_controller.index.search.post
@@ -1539,7 +1715,7 @@ paths:
   # TODO: No unit test for /packs/index/health
   /api/v1/packs/index/health:
     get:
-      operationId: st2api.controllers.v1.packs:packs_controller.index.get
+      operationId: st2api.controllers.v1.packs:packs_controller.index.health.get
       x-permissions: {{ PERMISSION_TYPE.PACK_VIEWS_INDEX_HEALTH }}
       description: To get the state of all indexes used by your StackStorm instance.
       responses:
@@ -2170,6 +2346,10 @@ paths:
         - name: role
           in: query
           description: Role to filter on.
+          type: string
+        - name: source
+          in: query
+          description: Source to filter on.
           type: string
         - name: remote
           in: query
@@ -3731,8 +3911,36 @@ paths:
   /stream/v1/stream:
     get:
       operationId: st2stream.controllers.v1.stream:stream_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.STREAM_VIEW }}
       description: |
         Event stream endpoint.
+      parameters:
+        - name: events
+          in: query
+          description: List of events to listen for. If not provided, it listens to all events.
+          type: array
+          items:
+            type: string
+          required: false
+        - name: action_refs
+          in: query
+          description: List of action refs to filter on.
+          type: array
+          items:
+            type: string
+          required: false
+        - name: execution_ids
+          in: query
+          description: List of execution ids to filter on.
+          type: array
+          items:
+            type: string
+          required: false
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: EventSource compatible stream of events
@@ -3862,13 +4070,6 @@ definitions:
           type: string
   ActionAliasMatch:
       type: object
-      properties:
-        name:
-          description: Name of the Action alias
-          type: string
-        description:
-          description: Description of the Action Alias
-          type: string
   ActionAliasHelp:
     type: object
     properties:
@@ -3889,6 +4090,10 @@ definitions:
               description: Description of the Action Alias
               type: string
   AliasExecution:
+    x-api-model: st2common.models.api.action:AliasExecutionAPI
+    type: object
+  AliasMatchAndExecuteInputAPI:
+    x-api-model: st2common.models.api.action:AliasMatchAndExecuteInputAPI
     type: object
   Execution:
     title: ActionExecution
@@ -3999,6 +4204,50 @@ definitions:
     additionalProperties: False
   ExecutionFilters:
     type: object
+  Inquiry:
+    type: object
+    required:
+      - id
+      - schema
+      - roles
+      - users
+      - route
+      - ttl
+    properties:
+      id:
+        description: ID of this inquiry
+        type: string
+      schema:
+        description: JSON schema used to validate repsonse(s)
+        type: object
+      roles:
+        description: List of RBAC roles permitted to respond to this inquiry
+        type: array
+        items:
+          type: string
+      users:
+        description: List of users permitted to respond to this inquiry
+        type: array
+        items:
+          type: string
+      route:
+        description: An arbitrary value for allowing rules to route to proper notification channel
+        type: string
+      ttl:
+        description: Time (in minutes) that an unacknowledged Inquiry is cleaned up
+        type: integer
+  InquiryResponseResult:
+    type: object
+    required:
+      - id
+      - response
+    properties:
+      id:
+        description: Inquiry ID
+        type: string
+      response:
+        description: response data
+        type: object
   KeyValuePair:
     type: object
   KeyValuePairRequest:
@@ -4019,6 +4268,9 @@ definitions:
       scope:
         description: "Scope the item is under. Example: 'user'."
         type: string
+      ttl:
+        description: TTL (in seconds) for this value.
+        type: integer
       user:
         description: User for user scoped items (admin only).
         type: string
@@ -4410,33 +4662,42 @@ definitions:
       - faultstring
 
 securityDefinitions:
-  X-Auth-Token:
+  auth-token-header:
     description: Header representing user's short-lived access token.
     type: apiKey
     name: X-Auth-Token
     in: header
     x-operationId: st2common.util.auth:validate_token
-  St2-Api-Key:
+    x-set-cookie: auth-token
+  api-key-header:
     description: Header representing service's long-lived API key.
     type: apiKey
     name: St2-Api-Key
     in: header
     x-operationId: st2common.util.auth:validate_api_key
-  x-auth-token:
+  auth-token-query:
     description: Query parameter representing user's short-lived access token. Used as a backup authentication strategy for environments where it is impossible to provide a header.
     type: apiKey
     name: x-auth-token
     in: query
     x-operationId: st2common.util.auth:validate_token
-  st2-api-key:
+    x-set-cookie: auth-token
+  api-key-query:
     description: Query parameter representing service's long-lived API key. Used as a backup authentication strategy for environments where it is impossible to provide a header.
     type: apiKey
     name: st2-api-key
     in: query
     x-operationId: st2common.util.auth:validate_api_key
+  auth-token-cookie:
+    description: Cookie representing user's short-lived access token.
+    type: apiKey
+    name: auth-token
+    in: cookie
+    x-operationId: st2common.util.auth:validate_token
 
 security:
-  - X-Auth-Token: []
-  - St2-Api-Key: []
-  - x-auth-token: []
-  - st2-api-key: []
+  - auth-token-header: []
+  - api-key-header: []
+  - auth-token-query: []
+  - api-key-query: []
+  - auth-token-cookie: []

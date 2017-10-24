@@ -50,13 +50,15 @@ class RBACUtilsTestCase(DbTestCase):
         cls.regular_user.save()
 
         # Add system admin role assignment
-        role_assignment_1 = UserRoleAssignmentDB(user=cls.system_admin_user.name,
-                                                 role=SystemRole.SYSTEM_ADMIN)
+        role_assignment_1 = UserRoleAssignmentDB(
+            user=cls.system_admin_user.name, role=SystemRole.SYSTEM_ADMIN,
+            source='assignments/%s.yaml' % cls.system_admin_user.name)
         role_assignment_1.save()
 
         # Add admin role assignment
-        role_assignment_2 = UserRoleAssignmentDB(user=cls.admin_user.name,
-                                                 role=SystemRole.ADMIN)
+        role_assignment_2 = UserRoleAssignmentDB(
+            user=cls.admin_user.name, role=SystemRole.ADMIN,
+            source='assignments/%s.yaml' % cls.admin_user.name)
         role_assignment_2.save()
 
     def setUp(self):

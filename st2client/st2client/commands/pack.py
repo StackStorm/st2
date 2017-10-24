@@ -175,9 +175,9 @@ class PackShowCommand(PackResourceCommand):
 
 class PackInstallCommand(PackAsyncCommand):
     def __init__(self, resource, *args, **kwargs):
-        super(PackInstallCommand, self).__init__(resource, 'install',
-            'Install new %s.' % resource.get_plural_display_name().lower(),
-            *args, **kwargs)
+        super(PackInstallCommand, self).__init__(resource, 'install', 'Install new %s.'
+                                                 % resource.get_plural_display_name().lower(),
+                                                 *args, **kwargs)
 
         self.parser.add_argument('packs',
                                  nargs='+',
@@ -190,12 +190,52 @@ class PackInstallCommand(PackAsyncCommand):
                                  help='Force pack installation.')
 
     def run(self, args, **kwargs):
+        self._get_content_counts_for_pack(args, **kwargs)
         return self.manager.install(args.packs, force=args.force, **kwargs)
+
+    def _get_content_counts_for_pack(self, args, **kwargs):
+        # Global content list, excluding "tests"
+        pack_content = {'actions': 0, 'rules': 0, 'sensors': 0, 'aliases': 0, 'triggers': 0}
+
+        if len(args.packs) == 1:
+            args.pack = args.packs[0]
+            pack_info = self.manager.search(args, **kwargs)
+            content = getattr(pack_info, 'content', {})
+
+            if content:
+                for entity in content.keys():
+                    if entity in pack_content:
+                        pack_content[entity] += content[entity]['count']
+                self._print_pack_content(args.packs, pack_content)
+
+        else:
+            pack_content = pack_content.fromkeys(pack_content, 0)
+            # TODO: Better solution is to update endpoint query param for one API call
+            #       example: ?packs=pack1,pack2,pack3
+            for pack in args.packs:
+                # args.pack required for search
+                args.pack = pack
+                pack_info = self.manager.search(args, **kwargs)
+                content = getattr(pack_info, 'content', {})
+
+                if content:
+                    for entity in content.keys():
+                        if entity in pack_content:
+                            pack_content[entity] += content[entity]['count']
+            if content:
+                self._print_pack_content(args.packs, pack_content)
+
+    @staticmethod
+    def _print_pack_content(pack_name, pack_content):
+        print('\nFor the "%s" %s, the following content will be registered:\n'
+              % (', '.join(pack_name), 'pack' if len(pack_name) == 1 else 'packs'))
+        for item, count in pack_content.items():
+            print('%-10s|  %s' % (item, count))
+        print('\nInstallation may take a while for packs with many items.')
 
     @add_auth_token_to_kwargs_from_cli
     def run_and_print(self, args, **kwargs):
         instance = super(PackInstallCommand, self).run_and_print(args, **kwargs)
-
         # Hack to get a list of resolved references of installed packs
         packs = instance.result['tasks'][1]['result']['result']
 
@@ -219,9 +259,9 @@ class PackInstallCommand(PackAsyncCommand):
 
 class PackRemoveCommand(PackAsyncCommand):
     def __init__(self, resource, *args, **kwargs):
-        super(PackRemoveCommand, self).__init__(resource, 'remove',
-            'Remove %s.' % resource.get_plural_display_name().lower(),
-            *args, **kwargs)
+        super(PackRemoveCommand, self).__init__(resource, 'remove', 'Remove %s.'
+                                                % resource.get_plural_display_name().lower(),
+                                                *args, **kwargs)
 
         self.parser.add_argument('packs',
                                  nargs='+',
@@ -271,9 +311,9 @@ class PackRemoveCommand(PackAsyncCommand):
 class PackRegisterCommand(PackResourceCommand):
     def __init__(self, resource, *args, **kwargs):
         super(PackRegisterCommand, self).__init__(resource, 'register',
-              'Register %s(s): sync all file changes with DB.' %
-                                                  resource.get_display_name().lower(),
-              *args, **kwargs)
+                                                  'Register %s(s): sync all file changes with DB.'
+                                                  % resource.get_display_name().lower(),
+                                                  *args, **kwargs)
 
         self.parser.add_argument('packs',
                                  nargs='*',
@@ -296,10 +336,10 @@ class PackSearchCommand(resource.ResourceTableCommand):
 
     def __init__(self, resource, *args, **kwargs):
         super(PackSearchCommand, self).__init__(resource, 'search',
-            'Search the index for a %s with any attribute matching the query.'
-            % resource.get_display_name().lower(),
-            *args, **kwargs
-        )
+                                                'Search the index for a %s with any attribute \
+                                                matching the query.'
+                                                % resource.get_display_name().lower(),
+                                                *args, **kwargs)
 
         self.parser.add_argument('query',
                                  help='Search query.')
@@ -312,8 +352,9 @@ class PackSearchCommand(resource.ResourceTableCommand):
 class PackConfigCommand(resource.ResourceCommand):
     def __init__(self, resource, *args, **kwargs):
         super(PackConfigCommand, self).__init__(resource, 'config',
-              'Configure a %s based on config schema.' % resource.get_display_name().lower(),
-              *args, **kwargs)
+                                                'Configure a %s based on config schema.'
+                                                % resource.get_display_name().lower(),
+                                                *args, **kwargs)
 
         self.parser.add_argument('name',
                                  help='Name of the %s(s) to configure.' %
@@ -324,15 +365,16 @@ class PackConfigCommand(resource.ResourceCommand):
         schema = self.app.client.managers['ConfigSchema'].get_by_ref_or_id(args.name, **kwargs)
 
         if not schema:
-            msg = '%s "%s" doesn\'t exist or doesn\'t have config schema defined.'
+            msg = '%s "%s" doesn\'t exist or doesn\'t have a config schema defined.'
             raise resource.ResourceNotFoundError(msg % (self.resource.get_display_name(),
                                                         args.name))
 
         config = interactive.InteractiveForm(schema.attributes).initiate_dialog()
 
         message = '---\nDo you want to preview the config in an editor before saving?'
-        description = 'Secrets would be shown in plain text.'
-        preview_dialog = interactive.Question(message, {'default': 'y', 'description': description})
+        description = 'Secrets will be shown in plain text.'
+        preview_dialog = interactive.Question(message, {'default': 'y',
+                                                        'description': description})
         if preview_dialog.read() == 'y':
             try:
                 contents = yaml.safe_dump(config, indent=4, default_flow_style=False)

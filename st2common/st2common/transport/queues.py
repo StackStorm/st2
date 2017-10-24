@@ -35,6 +35,8 @@ __all__ = [
 
     'ACTIONRUNNER_WORK_QUEUE',
     'ACTIONRUNNER_CANCEL_QUEUE',
+    'ACTIONRUNNER_PAUSE_QUEUE',
+    'ACTIONRUNNER_RESUME_QUEUE',
 
     'EXPORTER_WORK_QUEUE',
 
@@ -45,7 +47,8 @@ __all__ = [
     'RULESENGINE_WORK_QUEUE',
 
     'STREAM_ANNOUNCEMENT_WORK_QUEUE',
-    'STREAM_EXECUTION_WORK_QUEUE',
+    'STREAM_EXECUTION_ALL_WORK_QUEUE',
+    'STREAM_EXECUTION_UPDATE_WORK_QUEUE',
     'STREAM_LIVEACTION_WORK_QUEUE'
 ]
 
@@ -57,7 +60,11 @@ ACTIONSCHEDULER_REQUEST_QUEUE = liveaction.get_status_management_queue(
 ACTIONRUNNER_WORK_QUEUE = liveaction.get_status_management_queue(
     'st2.actionrunner.work', routing_key=action_constants.LIVEACTION_STATUS_SCHEDULED)
 ACTIONRUNNER_CANCEL_QUEUE = liveaction.get_status_management_queue(
-    'st2.actionrunner.canel', routing_key=action_constants.LIVEACTION_STATUS_CANCELING)
+    'st2.actionrunner.cancel', routing_key=action_constants.LIVEACTION_STATUS_CANCELING)
+ACTIONRUNNER_PAUSE_QUEUE = liveaction.get_status_management_queue(
+    'st2.actionrunner.pause', routing_key=action_constants.LIVEACTION_STATUS_PAUSING)
+ACTIONRUNNER_RESUME_QUEUE = liveaction.get_status_management_queue(
+    'st2.actionrunner.resume', routing_key=action_constants.LIVEACTION_STATUS_RESUMING)
 
 # Used by the exporter service
 EXPORTER_WORK_QUEUE = execution.get_queue(
@@ -77,8 +84,21 @@ RULESENGINE_WORK_QUEUE = reactor.get_trigger_instances_queue(
 
 # Used by the stream service
 STREAM_ANNOUNCEMENT_WORK_QUEUE = announcement.get_queue(routing_key=publishers.ANY_RK,
-                                                        exclusive=True)
-STREAM_EXECUTION_WORK_QUEUE = execution.get_queue(routing_key=publishers.ANY_RK,
-                                                  exclusive=True)
+                                                        exclusive=True,
+                                                        auto_delete=True)
+STREAM_EXECUTION_ALL_WORK_QUEUE = execution.get_queue(routing_key=publishers.ANY_RK,
+                                                      exclusive=True,
+                                                      auto_delete=True)
+STREAM_EXECUTION_UPDATE_WORK_QUEUE = execution.get_queue(routing_key=publishers.UPDATE_RK,
+                                                         exclusive=True,
+                                                         auto_delete=True)
 STREAM_LIVEACTION_WORK_QUEUE = Queue(None, liveaction.LIVEACTION_XCHG,
-                                     routing_key=publishers.ANY_RK, exclusive=True)
+                                     routing_key=publishers.ANY_RK,
+                                     exclusive=True, auto_delete=True)
+
+# TODO: Perhaps we should use pack.action name as routing key so we can do more efficient filtering
+# later, if needed
+STREAM_EXECUTION_OUTPUT_QUEUE = execution.get_output_queue(name=None,
+                                                           routing_key=publishers.CREATE_RK,
+                                                           exclusive=True,
+                                                           auto_delete=True)

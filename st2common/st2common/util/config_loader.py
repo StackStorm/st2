@@ -60,13 +60,6 @@ class ContentPackConfigLoader(object):
     def get_config(self):
         result = {}
 
-        # 1. Retrieve values from pack local config.yaml file
-        config = self._config_parser.get_config()
-
-        if config:
-            config = config.config or {}
-            result.update(config)
-
         # Retrieve corresponding ConfigDB and ConfigSchemaDB object
         # Note: ConfigSchemaDB is optional right now. If it doesn't exist, we assume every value
         # is of a type string

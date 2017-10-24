@@ -53,4 +53,9 @@ class ResourceType(Enum):
     TRACE = 'trace'
     TIMER = 'timer'
 
+    # Special resource type for stream related stuff
+    STREAM = 'stream'
+
+    INQUIRY = 'inquiry'
+
     UNKNOWN = 'unknown'

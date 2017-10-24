@@ -20,7 +20,6 @@ from os.path import join as pjoin
 
 from st2client.commands import resource
 from st2client.commands.noop import NoopCommand
-from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
 from st2client.formatters import table
 from st2client.models.keyvalue import KeyValuePair
 from st2client.utils.date import format_isodate_for_user_timezone
@@ -58,27 +57,37 @@ class KeyValuePairBranch(resource.ResourceBranch):
         del self.commands['update']
 
 
-class KeyValuePairListCommand(resource.ResourceListCommand):
+class KeyValuePairListCommand(resource.ResourceTableCommand):
     display_attributes = ['name', 'value', 'secret', 'encrypted', 'scope', 'user',
                           'expire_timestamp']
     attribute_transform_functions = {
         'expire_timestamp': format_isodate_for_user_timezone,
     }
 
-    def __init__(self, *args, **kwargs):
-        super(KeyValuePairListCommand, self).__init__(*args, **kwargs)
-
+    def __init__(self, resource, *args, **kwargs):
+        super(KeyValuePairListCommand, self).__init__(resource, 'list',
+                                                      'Get the list of the 50 most recent %s.' %
+                                                      resource.get_plural_display_name().lower(),
+                                                      *args, **kwargs)
+        self.default_limit = 50
+        self.resource_name = resource.get_plural_display_name().lower()
         # Filter options
-        self.parser.add_argument('--prefix', help=('Only return values which name starts with the '
-                                                   ' provided prefix.'))
+        self.parser.add_argument('--prefix', help=('Only return values with names starting with '
+                                                   'the provided prefix.'))
         self.parser.add_argument('--decrypt', action='store_true',
-                                 help='Decrypt secrets and display plain text.')
+                                 help='Decrypt secrets and displays plain text.')
         self.parser.add_argument('-s', '--scope', default='system', dest='scope',
                                  help='Scope item is under. Example: "user".')
         self.parser.add_argument('-u', '--user', dest='user', default=None,
                                  help='User for user scoped items (admin only).')
+        self.parser.add_argument('-n', '--last', type=int, dest='last',
+                                 default=self.default_limit,
+                                 help=('List N most recent %s. Default is 50.' %
+                                       self.resource_name))
 
-    def run_and_print(self, args, **kwargs):
+    @resource.add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        # Filtering options
         if args.prefix:
             kwargs['prefix'] = args.prefix
 
@@ -86,14 +95,27 @@ class KeyValuePairListCommand(resource.ResourceListCommand):
         kwargs['params'] = {'decrypt': str(decrypt).lower()}
         scope = getattr(args, 'scope', DEFAULT_SCOPE)
         kwargs['params']['scope'] = scope
-        kwargs['params']['user'] = args.user
+        if args.user:
+            kwargs['params']['user'] = args.user
+        kwargs['params']['limit'] = args.last
 
-        instances = self.run(args, **kwargs)
-        self.print_output(reversed(instances), table.MultiColumnTable,
-                          attributes=args.attr, widths=args.width,
-                          json=args.json,
-                          yaml=args.yaml,
-                          attribute_transform_functions=self.attribute_transform_functions)
+        return self.manager.query_with_count(**kwargs)
+
+    @resource.add_auth_token_to_kwargs_from_cli
+    def run_and_print(self, args, **kwargs):
+        instances, count = self.run(args, **kwargs)
+        if args.json or args.yaml:
+            self.print_output(reversed(instances), table.MultiColumnTable,
+                              attributes=args.attr, widths=args.width,
+                              json=args.json, yaml=args.yaml,
+                              attribute_transform_functions=self.attribute_transform_functions)
+        else:
+            self.print_output(instances, table.MultiColumnTable,
+                              attributes=args.attr, widths=args.width,
+                              attribute_transform_functions=self.attribute_transform_functions)
+
+            if args.last and count and count > args.last:
+                table.SingleRowTable.note_box(self.resource_name, args.last)
 
 
 class KeyValuePairGetCommand(resource.ResourceGetCommand):
@@ -135,14 +157,14 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
                                  help='TTL (in seconds) for this value.')
         self.parser.add_argument('-e', '--encrypt', dest='secret',
                                  action='store_true',
-                                 help='Encrypt value before saving the value.')
+                                 help='Encrypt value before saving.')
         self.parser.add_argument('-s', '--scope', dest='scope', default=DEFAULT_SCOPE,
                                  help='Specify the scope under which you want ' +
                                       'to place the item.')
         self.parser.add_argument('-u', '--user', dest='user', default=None,
                                  help='User for user scoped items (admin only).')
 
-    @add_auth_token_to_kwargs_from_cli
+    @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         instance = KeyValuePair()
         instance.id = args.name  # TODO: refactor and get rid of id
@@ -178,7 +200,7 @@ class KeyValuePairDeleteCommand(resource.ResourceDeleteCommand):
         self.parser.add_argument('-u', '--user', dest='user', default=None,
                                  help='User for user scoped items (admin only).')
 
-    @add_auth_token_to_kwargs_from_cli
+    @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         resource_id = getattr(args, self.pk_argument_name, None)
         scope = getattr(args, 'scope', DEFAULT_SCOPE)
@@ -188,7 +210,8 @@ class KeyValuePairDeleteCommand(resource.ResourceDeleteCommand):
         instance = self.get_resource(resource_id, **kwargs)
 
         if not instance:
-            raise resource.ResourceNotFoundError('KeyValuePair with id "%s" not found', resource_id)
+            raise resource.ResourceNotFoundError('KeyValuePair with id "%s" not found',
+                                                 resource_id)
 
         instance.id = resource_id  # TODO: refactor and get rid of id
         self.manager.delete(instance, **kwargs)
@@ -201,12 +224,14 @@ class KeyValuePairDeleteByPrefixCommand(resource.ResourceCommand):
     """
     def __init__(self, resource, *args, **kwargs):
         super(KeyValuePairDeleteByPrefixCommand, self).__init__(resource, 'delete_by_prefix',
-            'Delete KeyValue pairs which match the provided prefix', *args, **kwargs)
+                                                                'Delete KeyValue pairs which \
+                                                                 match the provided prefix',
+                                                                *args, **kwargs)
 
         self.parser.add_argument('-p', '--prefix', required=True,
                                  help='Name prefix (e.g. twitter.TwitterSensor:)')
 
-    @add_auth_token_to_kwargs_from_cli
+    @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         prefix = args.prefix
         key_pairs = self.manager.get_all(prefix=prefix)
@@ -241,13 +266,13 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
         help_text = ('Load a list of %s from file.' %
                      resource.get_plural_display_name().lower())
         super(KeyValuePairLoadCommand, self).__init__(resource, 'load',
-            help_text, *args, **kwargs)
+                                                      help_text, *args, **kwargs)
 
         self.parser.add_argument(
             'file', help=('JSON file containing the %s to create.'
                           % resource.get_plural_display_name().lower()))
 
-    @add_auth_token_to_kwargs_from_cli
+    @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         file_path = os.path.normpath(pjoin(os.getcwd(), args.file))
 

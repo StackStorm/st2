@@ -150,6 +150,13 @@ class PermissionType(Enum):
     POLICY_DELETE = 'policy_delete'
     POLICY_ALL = 'policy_all'
 
+    STREAM_VIEW = 'stream_view'
+
+    INQUIRY_LIST = 'inquiry_list'
+    INQUIRY_VIEW = 'inquiry_view'
+    INQUIRY_RESPOND = 'inquiry_respond'
+    INQUIRY_ALL = 'inquiry_all'
+
     @classmethod
     def get_valid_permissions_for_resource_type(cls, resource_type):
         """
@@ -250,6 +257,8 @@ class ResourceType(Enum):
     API_KEY = SystemResourceType.API_KEY
     TRACE = SystemResourceType.TRACE
     TRIGGER = SystemResourceType.TRIGGER
+    STREAM = SystemResourceType.STREAM
+    INQUIRY = SystemResourceType.INQUIRY
 
 
 class SystemRole(Enum):
@@ -399,6 +408,12 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.POLICY_MODIFY,
         PermissionType.POLICY_DELETE,
         PermissionType.POLICY_ALL,
+    ],
+    ResourceType.INQUIRY: [
+        PermissionType.INQUIRY_LIST,
+        PermissionType.INQUIRY_VIEW,
+        PermissionType.INQUIRY_RESPOND,
+        PermissionType.INQUIRY_ALL,
     ]
 }
 
@@ -429,7 +444,16 @@ GLOBAL_PERMISSION_TYPES = [
     PermissionType.POLICY_CREATE,
 
     # Execution
-    PermissionType.EXECUTION_VIEWS_FILTERS_LIST
+    PermissionType.EXECUTION_VIEWS_FILTERS_LIST,
+
+    # Stream
+    PermissionType.STREAM_VIEW,
+
+    # Inquiry
+    PermissionType.INQUIRY_LIST,
+    PermissionType.INQUIRY_RESPOND,
+    PermissionType.INQUIRY_VIEW
+
 ] + LIST_PERMISSION_TYPES
 
 GLOBAL_PACK_PERMISSION_TYPES = [permission_type for permission_type in GLOBAL_PERMISSION_TYPES if
@@ -558,7 +582,19 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.POLICY_MODIFY: ('Ability to modify an existing policy.'),
     PermissionType.POLICY_DELETE: ('Ability to delete an existing policy.'),
     PermissionType.POLICY_ALL: ('Ability to perform all the supported operations on a particular '
-                                'policy.')
+                                'policy.'),
+
+    PermissionType.STREAM_VIEW: ('Ability to view / listen to the events on the stream API '
+                                 'endpoint.'),
+
+    PermissionType.INQUIRY_LIST: 'Ability to list existing Inquiries',
+    PermissionType.INQUIRY_VIEW: 'Ability to view an existing Inquiry. Also implies '
+                                 '"inquiry_respond" permission.',
+    PermissionType.INQUIRY_RESPOND: 'Ability to respond to an existing Inquiry (in general - user '
+                                    'still needs access per specific inquiry parameters). Also '
+                                    'implies "inquiry_view" permission.',
+    PermissionType.INQUIRY_ALL: ('Ability to perform all supported operations on a particular '
+                                 'Inquiry.')
 }
 
 

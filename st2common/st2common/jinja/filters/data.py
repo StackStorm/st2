@@ -17,9 +17,19 @@ import json
 import yaml
 
 __all__ = [
+    'from_json_string',
+    'from_yaml_string',
     'to_json_string',
     'to_yaml_string',
 ]
+
+
+def from_json_string(value):
+    return json.loads(value)
+
+
+def from_yaml_string(value):
+    return yaml.safe_load(value)
 
 
 def to_json_string(value, indent=4, sort_keys=False, separators=(',', ':')):

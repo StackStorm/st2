@@ -104,7 +104,7 @@ class RoleAssignmentBranch(resource.ResourceBranch):
 
 
 class RoleAssignmentListCommand(resource.ResourceCommand):
-    display_attributes = ['id', 'role', 'user', 'is_remote', 'description']
+    display_attributes = ['id', 'role', 'user', 'is_remote', 'source', 'description']
     attribute_display_order = ROLE_ASSIGNMENT_ATTRIBUTE_DISPLAY_ORDER
 
     def __init__(self, resource, *args, **kwargs):
@@ -113,12 +113,11 @@ class RoleAssignmentListCommand(resource.ResourceCommand):
             resource.get_plural_display_name().lower(),
             *args, **kwargs)
 
-        self.group = self.parser.add_mutually_exclusive_group()
-
         # Filter options
-        self.group.add_argument('-r', '--role', help='Role to filter on.')
-        self.group.add_argument('-u', '--user', help='User to filter on.')
-        self.group.add_argument('--remote', action='store_true',
+        self.parser.add_argument('-r', '--role', help='Role to filter on.')
+        self.parser.add_argument('-u', '--user', help='User to filter on.')
+        self.parser.add_argument('-s', '--source', help='Source to filter on.')
+        self.parser.add_argument('--remote', action='store_true',
                                 help='Only display remote role assignments.')
 
         # Display options
@@ -138,11 +137,12 @@ class RoleAssignmentListCommand(resource.ResourceCommand):
             kwargs['role'] = args.role
         if args.user:
             kwargs['user'] = args.user
-
+        if args.source:
+            kwargs['source'] = args.source
         if args.remote:
             kwargs['remote'] = args.remote
 
-        if args.role or args.user or args.remote:
+        if args.role or args.user or args.remote or args.source:
             result = self.manager.query(**kwargs)
         else:
             result = self.manager.get_all(**kwargs)
