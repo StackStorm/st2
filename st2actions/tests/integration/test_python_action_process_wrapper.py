@@ -67,13 +67,13 @@ class PythonRunnerActionWrapperProcessTestCase(unittest2.TestCase):
         self.assertTrue(os.path.isfile(WRAPPER_SCRIPT_PATH))
 
         # 2. First run it without time to verify path is valid
-        command_string = 'python %s --is-subprocess' % (WRAPPER_SCRIPT_PATH)
+        command_string = 'python %s' % (WRAPPER_SCRIPT_PATH)
         _, _, stderr = run_command(command_string, shell=True)
         self.assertTrue('usage: python_action_wrapper.py' in stderr)
         self.assertTrue('python_action_wrapper.py: error: argument' in stderr)
 
         # 3. Now time it
-        command_string = '%s -f "%%e" python %s --is-subprocess' % (TIME_BINARY_PATH,
+        command_string = '%s -f "%%e" python %s' % (TIME_BINARY_PATH,
                                                                     WRAPPER_SCRIPT_PATH)
 
         # Do multiple runs and average it
