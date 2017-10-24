@@ -23,8 +23,6 @@ tooz
 # to be installed manually
 zake
 ipaddr
-# Note: our fork of entrypoints contains a fix for backports mess
-git+https://github.com/Kami/entrypoints.git@dont_use_backports#egg=entrypoints
 routes
 flex
 webob
