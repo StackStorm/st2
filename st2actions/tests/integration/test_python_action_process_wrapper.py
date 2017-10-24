@@ -74,8 +74,7 @@ class PythonRunnerActionWrapperProcessTestCase(unittest2.TestCase):
         self.assertTrue('python_action_wrapper.py: error: argument' in stderr)
 
         # 3. Now time it
-        command_string = '%s -f "%%e" python %s' % (TIME_BINARY_PATH,
-                                                                    WRAPPER_SCRIPT_PATH)
+        command_string = '%s -f "%%e" python %s' % (TIME_BINARY_PATH, WRAPPER_SCRIPT_PATH)
 
         # Do multiple runs and average it
         run_times = []
