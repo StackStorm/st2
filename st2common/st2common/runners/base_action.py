@@ -19,6 +19,10 @@ import six
 
 from st2common.runners.utils import get_logger_for_python_runner_action
 
+__all__ = [
+    'Action'
+]
+
 
 @six.add_metaclass(abc.ABCMeta)
 class Action(object):

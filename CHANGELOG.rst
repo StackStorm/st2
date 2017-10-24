@@ -112,6 +112,8 @@ Fixed
 
   Note: This is a breaking change so if your code utilizes this API endpoint you need to update
   to treat response as a dictionary and not as an array with a single item. #377
+* Partially fix performance overhead and regression for short and simple Python runner actions.
+  Full / complete fix will be included in v2.6.0. #3809
 
 Changed
 ~~~~~~~

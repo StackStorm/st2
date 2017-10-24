@@ -23,7 +23,7 @@ import sys
 
 __all__ = [
     'monkey_patch',
-    'monkey_patch_pkg_resources'
+    'is_use_debugger_flag_provided'
 ]
 
 USE_DEBUGGER_FLAG = '--use-debugger'
@@ -42,15 +42,6 @@ def monkey_patch():
 
     patch_thread = not is_use_debugger_flag_provided()
     eventlet.monkey_patch(os=True, select=True, socket=True, thread=patch_thread, time=True)
-
-
-def monkey_patch_pkg_resources():
-    # Note: This is a work-around for a very slow "pkg_resources" import.
-    # pkg_resources is used by cryptography which is used by eventlet and importing pkg_resources
-    # adds ~500-600ms to the import time of any script which uses that code :/
-    # See https://github.com/pypa/setuptools/issues/510 for details
-    import entrypoints
-    sys.modules['pkg_resources'] = entrypoints
 
 
 def is_use_debugger_flag_provided():
