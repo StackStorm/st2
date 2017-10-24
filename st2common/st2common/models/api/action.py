@@ -40,6 +40,7 @@ __all__ = [
     'RunnerTypeAPI',
 
     'AliasExecutionAPI',
+    'AliasMatchAndExecuteInputAPI',
     'ActionAliasAPI',
     'ActionAliasMatchAPI',
     'ActionAliasHelpAPI'
@@ -654,6 +655,48 @@ class AliasExecutionAPI(BaseAPI):
     @classmethod
     def from_model(cls, aliasexecution):
         raise NotImplementedError()
+
+
+class AliasMatchAndExecuteInputAPI(BaseAPI):
+    """
+    API object used for alias execution "match and execute" API endpoint request payload.
+    """
+    model = None
+    schema = {
+        "title": "ActionAliasMatchAndExecuteInputAPI",
+        "description": "Input for alias execution match and execute API.",
+        "type": "object",
+        "properties": {
+            "command": {
+                "type": "string",
+                "description": "Command used in chat.",
+                "required": True
+            },
+            "user": {
+                "type": "string",
+                "description": "User that requested the execution.",
+            },
+            "source_channel": {
+                "type": "string",
+                "description": "Channel from which the execution was requested. This is not the \
+                                channel as defined by the notification system.",
+                "required": True
+            },
+            "notification_channel": {
+                "type": "string",
+                "description": "StackStorm notification channel to use to respond.",
+                "required": False,
+                "default": None
+            },
+            "notification_route": {
+                "type": "string",
+                "description": "StackStorm notification route to use to respond.",
+                "required": False,
+                "default": None
+            }
+        },
+        "additionalProperties": False
+    }
 
 
 class ActionAliasMatchAPI(BaseAPI):

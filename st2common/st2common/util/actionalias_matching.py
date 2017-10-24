@@ -15,7 +15,10 @@
 
 import six
 
+
 from st2common.exceptions.content import ParseException
+from st2common.exceptions.actionalias import ActionAliasAmbiguityException
+from st2common.persistence.actionalias import ActionAlias
 from st2common.models.utils.action_alias_utils import extract_parameters
 
 __all__ = [
@@ -95,3 +98,27 @@ def match_command_to_alias(command, aliases):
 
             results.append((alias, format_string[0], format_string[1]))
     return results
+
+
+def get_matching_alias(command):
+    """
+    Find a matching ActionAliasDB object (if any) for the provided command.
+    """
+    # 1. Get aliases
+    action_alias_dbs = ActionAlias.query(enabled=True)
+
+    # 2. Match alias(es) to command
+    matches = match_command_to_alias(command=command, aliases=action_alias_dbs)
+
+    if len(matches) > 1:
+        raise ActionAliasAmbiguityException("Command '%s' matched more than 1 pattern" %
+                                            command,
+                                            matches=matches,
+                                            command=command)
+    elif len(matches) == 0:
+        raise ActionAliasAmbiguityException("Command '%s' matched no patterns" %
+                                            command,
+                                            matches=[],
+                                            command=command)
+
+    return matches[0]

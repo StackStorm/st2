@@ -686,14 +686,10 @@ paths:
           schema:
             $ref: '#/definitions/ActionAliasMatchRequest'
       responses:
-        '201':
+        '200':
           description: Action alias match pattern
           schema:
             $ref: '#/definitions/ActionAliasMatch'
-          examples:
-            application/json:
-              ref: 'core.local'
-              # and stuff
         default:
           description: Unexpected error
           schema:
@@ -769,6 +765,40 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /api/v1/aliasexecution/match_and_execute:
+    post:
+      operationId: st2api.controllers.v1.aliasexecution:action_alias_execution_controller.match_and_execute
+      description: |
+        Create an execution based on action alias match (if any).
+      parameters:
+        - name: input_api
+          in: body
+          description: Input data.
+          schema:
+            $ref: '#/definitions/AliasMatchAndExecuteInputAPI'
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '201':
+          description: Action alias execution created
+          schema:
+            $ref: '#/definitions/AliasExecution'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
   /api/v1/executions:
     get:
       operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.get_all
@@ -4043,13 +4073,6 @@ definitions:
           type: string
   ActionAliasMatch:
       type: object
-      properties:
-        name:
-          description: Name of the Action alias
-          type: string
-        description:
-          description: Description of the Action Alias
-          type: string
   ActionAliasHelp:
     type: object
     properties:
@@ -4070,6 +4093,10 @@ definitions:
               description: Description of the Action Alias
               type: string
   AliasExecution:
+    x-api-model: st2common.models.api.action:AliasExecutionAPI
+    type: object
+  AliasMatchAndExecuteInputAPI:
+    x-api-model: st2common.models.api.action:AliasMatchAndExecuteInputAPI
     type: object
   Execution:
     title: ActionExecution
