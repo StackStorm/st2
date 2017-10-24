@@ -86,9 +86,8 @@ class PythonRunner(ActionRunner):
     def pre_run(self):
         super(PythonRunner, self).pre_run()
 
-        # TODO :This is awful, but the way "runner_parameters" and other variables get
-        # assigned on the runner instance is even worse. Those arguments should
-        # be passed to the constructor.
+        # TODO: This is awful, but the way "runner_parameters" and other variables get assigned on
+        # the runner instance is even worse. Those arguments should be passed to the constructor.
         self._env = self.runner_parameters.get(RUNNER_ENV, {})
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, self._timeout)
 
@@ -118,12 +117,11 @@ class PythonRunner(ActionRunner):
             raise Exception('Action "%s" is missing entry_point attribute' % (self.action.name))
 
         # Note: We pass config as command line args so the actual wrapper process is standalone
-        # and doesn't need acecss to db
-
+        # and doesn't need access to db
         LOG.debug('Setting args.')
         args = [
             python_path,
-            '-u',
+            '-u',  # unbuffered mode so streaming mode works as expected
             WRAPPER_SCRIPT_PATH,
             '--pack=%s' % (pack),
             '--file-path=%s' % (self.entry_point),
