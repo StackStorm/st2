@@ -293,5 +293,8 @@ local_timezone = America/Los_Angeles
 webui_base_url = https://localhost
 
 [packs]
-# Enable/Disable support for pack common libs
+# Enable/Disable support for pack common libs. Setting this config to ``True`` would allow you to
+# place common library code for sensors and actions in lib/ folder in packs and use them in
+# python sensors and actions. See https://docs.stackstorm.com/reference/sharing_code_sensors_actions.html
+# for details.
 enable_common_libs = False
