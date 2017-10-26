@@ -51,7 +51,7 @@ Added
 
   Contributed by @lampwins.
 * Allow user to use more expressive regular expressions inside action alias format string by
-  allowing them to specify start (``^``) end end (``$``) anchors. Previously, those anchors were
+  allowing them to specify start (``^``) and end (``$``) anchors. Previously, those anchors were
   automatically added at the beginning and end of the alias format string. Now they are only added
   if a format string doesn't already contain them. #3789
 
