@@ -1,8 +1,12 @@
 Changelog
 =========
 
-In development
+in development
 --------------
+
+
+2.5.0 - October 25, 2017
+------------------------
 
 Added
 ~~~~~
