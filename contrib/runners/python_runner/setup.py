@@ -32,7 +32,7 @@ apply_vagrant_workaround()
 setup(
     name='python_runner',
     version=get_version_string(INIT_FILE),
-    description='StackStorm Python action runner',
+    description='Python action runner for StackStorm event-driven automation platform',
     author='StackStorm',
     author_email='info@stackstorm.com',
     license='Apache License (2.0)',

@@ -33,7 +33,7 @@ apply_vagrant_workaround()
 setup(
     name=ST2_COMPONENT,
     version=get_version_string(INIT_FILE),
-    description='{} component'.format(ST2_COMPONENT),
+    description='{} StackStorm event-driven automation platform component'.format(ST2_COMPONENT),
     author='StackStorm',
     author_email='info@stackstorm.com',
     license='Apache License (2.0)',

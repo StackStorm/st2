@@ -32,7 +32,7 @@ apply_vagrant_workaround()
 setup(
     name=ST2_COMPONENT,
     version=__version__,
-    description='Utility for submitting debug information to StackStorm',
+    description='Command line tool for submitting debug information to StackStorm',
     author='StackStorm',
     author_email='info@stackstorm.com',
     license='Apache License (2.0)',
