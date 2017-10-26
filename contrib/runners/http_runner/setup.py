@@ -20,18 +20,16 @@ from setuptools import setup
 
 from dist_utils import fetch_requirements
 from dist_utils import apply_vagrant_workaround
-from dist_utils import get_version_string
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 REQUIREMENTS_FILE = os.path.join(BASE_DIR, 'requirements.txt')
-INIT_FILE = os.path.join(BASE_DIR, '__init__.py')
 
 install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
 
 apply_vagrant_workaround()
 setup(
     name='http_runner',
-    version=get_version_string(INIT_FILE),
+    version='2.5.0',
     description=('HTTP(s) action runner for StackStorm event-driven automation platform'),
     author='StackStorm',
     author_email='info@stackstorm.com',
