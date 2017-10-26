@@ -35,6 +35,8 @@ setup(
     description='StackStorm Python action runner',
     author='StackStorm',
     author_email='info@stackstorm.com',
+    license='Apache License (2.0)',
+    url='https://stackstorm.com/',
     install_requires=install_reqs,
     dependency_links=dep_links,
     test_suite='tests',
