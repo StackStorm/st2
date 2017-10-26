@@ -22,7 +22,6 @@ from dist_utils import fetch_requirements
 from dist_utils import apply_vagrant_workaround
 from dist_utils import get_version_string
 
-ST2_COMPONENT = 'st2common'
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 REQUIREMENTS_FILE = os.path.join(BASE_DIR, 'requirements.txt')
 INIT_FILE = os.path.join(BASE_DIR, '__init__.py')
