@@ -30,7 +30,7 @@ Added
   after it has been scheduled. (new feature) #3867
 * Added flag `--auto-dict` to `st2 run` and `st2 execution re-run` commands. This flag must now
   be specified in order to automatically convert list items to dicts based on presence of colon
-  (`:`) in all of the list items (new feature) #3909 
+  (`:`) in all of the list items (new feature) #3909
 
 Changed
 ~~~~~~~
@@ -281,7 +281,7 @@ Changed
 
   Contributed by Hiroyasu OHYAMA.
 * Added new command ``st2-cleanup-db`` that drops the current StackStorm MongoDB database. #3659
-  
+
   Contributed by Nick Maludy (Encore Technologies).
 
 2.4.0 - August 23, 2017
