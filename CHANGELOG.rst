@@ -1,7 +1,7 @@
 Changelog
 =========
 
-2.5.1 - TBD
+2.5.1 - December 14, 2017
 -----------
 
 Added
@@ -170,7 +170,7 @@ Fixed
 Changed
 ~~~~~~~
 
-* Minor language and style tidy up of help strings and error messages #3782 
+* Minor language and style tidy up of help strings and error messages #3782
 
 2.4.1 - September 12, 2017
 --------------------------
