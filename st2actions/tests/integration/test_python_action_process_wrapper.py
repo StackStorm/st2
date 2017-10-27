@@ -87,8 +87,6 @@ class PythonRunnerActionWrapperProcessTestCase(unittest2.TestCase):
             run_times.append(run_time_seconds)
 
         avg_run_time_seconds = (sum(run_times) / count)
-        print run_times
-        print avg_run_time_seconds
         assertion_msg = ASSERTION_ERROR_MESSAGE % (WRAPPER_PROCESS_RUN_TIME_UPPER_LIMIT,
                                                    avg_run_time_seconds)
         self.assertTrue(avg_run_time_seconds <= WRAPPER_PROCESS_RUN_TIME_UPPER_LIMIT, assertion_msg)
