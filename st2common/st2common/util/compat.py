@@ -14,15 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
-
 import six
 
 
 __all__ = [
     'to_unicode',
     'to_ascii',
-    'add_st2actions_pythonrunner_to_sys_path'
 ]
 
 
@@ -50,21 +47,3 @@ def to_ascii(value):
     which could come up when trying to encode a non-ascii value.
     """
     return value.decode('ascii', errors='ignore')
-
-
-def add_st2actions_pythonrunner_to_sys_path():
-    """
-    Function which adds "st2common.runners.pythonrunner" to sys.path and redirects it to
-    "st2common.runners.base_action".
-
-    First path was deprecated a long time ago, but some modules still rely on on it. This
-    is to be used in places where "st2common" is used as a standalone package without access to
-    st2actions (e.g. serverless).
-    """
-    import st2common.runners.base_action
-
-    sys.modules['st2actions'] = {}
-    sys.modules['st2actions.runners'] = {}
-    sys.modules['st2actions.runners.pythonrunner'] = st2common.runners.base_action
-
-    return sys.modules
