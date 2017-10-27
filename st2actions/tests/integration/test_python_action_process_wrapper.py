@@ -42,7 +42,7 @@ __all__ = [
 ]
 
 # Maximum limit for the process wrapper script execution time (in seconds)
-WRAPPER_PROCESS_RUN_TIME_UPPER_LIMIT = 0.40
+WRAPPER_PROCESS_RUN_TIME_UPPER_LIMIT = 0.30
 
 ASSERTION_ERROR_MESSAGE = ("""
 Python wrapper process script took more than %s seconds to execute (%s). This most likely means
@@ -87,6 +87,8 @@ class PythonRunnerActionWrapperProcessTestCase(unittest2.TestCase):
             run_times.append(run_time_seconds)
 
         avg_run_time_seconds = (sum(run_times) / count)
+        print run_times
+        print avg_run_time_seconds
         assertion_msg = ASSERTION_ERROR_MESSAGE % (WRAPPER_PROCESS_RUN_TIME_UPPER_LIMIT,
                                                    avg_run_time_seconds)
         self.assertTrue(avg_run_time_seconds <= WRAPPER_PROCESS_RUN_TIME_UPPER_LIMIT, assertion_msg)
