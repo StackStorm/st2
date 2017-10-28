@@ -209,7 +209,12 @@ class MistralRunner(AsyncActionRunner):
                         'st2_context': st2_execution_context
                     }
                 }
-            }
+            },
+            'notify': [
+                {
+                    'type': 'st2',
+                }
+            ]
         }
 
         return options
@@ -326,6 +331,13 @@ class MistralRunner(AsyncActionRunner):
 
         return tasks
 
+    def _update_workflow_env(self, wf_ex_id, env):
+        wf_ex = self._client.executions.update(str(wf_ex_id), None, env=env)
+
+        for task_ex in self._client.tasks.list(workflow_execution_id=wf_ex.id):
+            for subwf_ex in self._client.executions.list(task_execution_id=task_ex.id):
+                self._update_workflow_env(subwf_ex.id, env)
+
     def resume_workflow(self, ex_ref, task_specs):
         mistral_ctx = ex_ref.context.get('mistral', dict())
 
@@ -354,6 +366,10 @@ class MistralRunner(AsyncActionRunner):
         # Construct additional options for the workflow execution
         options = self._construct_workflow_execution_options()
 
+        # Update workflow env recursively.
+        self._update_workflow_env(execution.id, options.get('env', None))
+
+        # Re-run task list.
         for task_name, task_obj in six.iteritems(tasks):
             # pylint: disable=unexpected-keyword-arg
             self._client.tasks.rerun(
@@ -408,8 +424,14 @@ class MistralRunner(AsyncActionRunner):
                     self.context.get('user', None)
                 )
 
+        status = (
+            action_constants.LIVEACTION_STATUS_PAUSING
+            if action_service.is_children_active(self.liveaction.id)
+            else action_constants.LIVEACTION_STATUS_PAUSED
+        )
+
         return (
-            action_constants.LIVEACTION_STATUS_PAUSING,
+            status,
             self.liveaction.result,
             self.liveaction.context
         )
@@ -482,8 +504,14 @@ class MistralRunner(AsyncActionRunner):
                     self.context.get('user', None)
                 )
 
+        status = (
+            action_constants.LIVEACTION_STATUS_CANCELING
+            if action_service.is_children_active(self.liveaction.id)
+            else action_constants.LIVEACTION_STATUS_CANCELED
+        )
+
         return (
-            action_constants.LIVEACTION_STATUS_CANCELING,
+            status,
             self.liveaction.result,
             self.liveaction.context
         )

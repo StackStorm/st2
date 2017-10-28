@@ -606,16 +606,29 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         if liveaction_db.status in action_constants.LIVEACTION_COMPLETED_STATES:
             abort(http_client.BAD_REQUEST, 'Execution is already in completed state.')
 
-        if (getattr(liveaction_api, 'result', None) is not None and
-                liveaction_api.status in [
-                    action_constants.LIVEACTION_STATUS_PAUSING,
-                    action_constants.LIVEACTION_STATUS_PAUSED,
-                    action_constants.LIVEACTION_STATUS_RESUMING]):
-            abort(http_client.BAD_REQUEST,
-                  'The result is not applicable for pausing and resuming execution.')
+        def update_status(liveaction_api, liveaction_db):
+            status = liveaction_api.status
+            result = getattr(liveaction_api, 'result', None)
+            liveaction_db = action_service.update_status(liveaction_db, status, result)
+            actionexecution_db = ActionExecution.get(liveaction__id=str(liveaction_db.id))
+            return (liveaction_db, actionexecution_db)
 
         try:
-            if (liveaction_api.status == action_constants.LIVEACTION_STATUS_PAUSING or
+            if (liveaction_db.status == action_constants.LIVEACTION_STATUS_CANCELING and
+                    liveaction_api.status == action_constants.LIVEACTION_STATUS_CANCELED):
+                if action_service.is_children_active(liveaction_id):
+                    liveaction_api.status = action_constants.LIVEACTION_STATUS_CANCELING
+                liveaction_db, actionexecution_db = update_status(liveaction_api, liveaction_db)
+            elif (liveaction_api.status == action_constants.LIVEACTION_STATUS_CANCELING or
+                    liveaction_api.status == action_constants.LIVEACTION_STATUS_CANCELED):
+                liveaction_db, actionexecution_db = action_service.request_cancellation(
+                    liveaction_db, requester_user.name or cfg.CONF.system_user.user)
+            elif (liveaction_db.status == action_constants.LIVEACTION_STATUS_PAUSING and
+                    liveaction_api.status == action_constants.LIVEACTION_STATUS_PAUSED):
+                if action_service.is_children_active(liveaction_id):
+                    liveaction_api.status = action_constants.LIVEACTION_STATUS_PAUSING
+                liveaction_db, actionexecution_db = update_status(liveaction_api, liveaction_db)
+            elif (liveaction_api.status == action_constants.LIVEACTION_STATUS_PAUSING or
                     liveaction_api.status == action_constants.LIVEACTION_STATUS_PAUSED):
                 liveaction_db, actionexecution_db = action_service.request_pause(
                     liveaction_db, requester_user.name or cfg.CONF.system_user.user)
@@ -623,13 +636,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
                 liveaction_db, actionexecution_db = action_service.request_resume(
                     liveaction_db, requester_user.name or cfg.CONF.system_user.user)
             else:
-                liveaction_db = action_service.update_status(
-                    liveaction_db,
-                    liveaction_api.status,
-                    result=getattr(liveaction_api, 'result', None)
-                )
-
-                actionexecution_db = ActionExecution.get(liveaction__id=str(liveaction_db.id))
+                liveaction_db, actionexecution_db = update_status(liveaction_api, liveaction_db)
         except runner_exc.InvalidActionRunnerOperationError as e:
             LOG.exception('Failed updating liveaction %s. %s', liveaction_db.id, str(e))
             abort(http_client.BAD_REQUEST, 'Failed updating execution. %s' % str(e))
@@ -637,6 +644,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
             LOG.exception('Failed updating liveaction %s. %s', liveaction_db.id, str(e))
             abort(http_client.BAD_REQUEST, 'Failed updating execution. %s' % str(e))
         except Exception as e:
+            print str(e)
             LOG.exception('Failed updating liveaction %s. %s', liveaction_db.id, str(e))
             abort(
                 http_client.INTERNAL_SERVER_ERROR,

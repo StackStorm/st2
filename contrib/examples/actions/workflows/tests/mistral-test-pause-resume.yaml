@@ -19,4 +19,4 @@ examples.mistral-test-pause-resume:
         task2:
             action: core.local
             input:
-                cmd: echo "<% $.var1 %>" 
+                cmd: 'sleep 10; echo "<% $.var1 %>"' 
