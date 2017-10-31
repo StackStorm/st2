@@ -103,7 +103,7 @@ class PythonRunner(ActionRunner):
         LOG.debug('Getting virtualenv_path.')
         virtualenv_path = get_sandbox_virtualenv_path(pack=pack)
         LOG.debug('Getting python path.')
-        if self.sandbox:
+        if self._sandbox:
             python_path = get_sandbox_python_binary_path(pack=pack)
         else:
             python_path = sys.executable
