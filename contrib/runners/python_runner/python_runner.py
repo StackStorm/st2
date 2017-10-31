@@ -67,27 +67,27 @@ WRAPPER_SCRIPT_NAME = 'python_action_wrapper.py'
 WRAPPER_SCRIPT_PATH = os.path.join(BASE_DIR, WRAPPER_SCRIPT_NAME)
 
 
-def get_runner():
+def get_runner(config=None):
     'RunnerTestCase',
-    return PythonRunner(str(uuid.uuid4()))
+    return PythonRunner(runner_id=str(uuid.uuid4()), config=config)
 
 
 class PythonRunner(ActionRunner):
 
-    def __init__(self, runner_id, timeout=PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT):
+    def __init__(self, runner_id, config=None, timeout=PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT):
         """
         :param timeout: Action execution timeout in seconds.
         :type timeout: ``int``
         """
         super(PythonRunner, self).__init__(runner_id=runner_id)
+        self._config = config
         self._timeout = timeout
 
     def pre_run(self):
         super(PythonRunner, self).pre_run()
 
-        # TODO :This is awful, but the way "runner_parameters" and other variables get
-        # assigned on the runner instance is even worse. Those arguments should
-        # be passed to the constructor.
+        # TODO: This is awful, but the way "runner_parameters" and other variables get assigned on
+        # the runner instance is even worse. Those arguments should be passed to the constructor.
         self._env = self.runner_parameters.get(RUNNER_ENV, {})
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, self._timeout)
 
@@ -116,17 +116,22 @@ class PythonRunner(ActionRunner):
             LOG.error('Action "%s" is missing entry_point attribute' % (self.action.name))
             raise Exception('Action "%s" is missing entry_point attribute' % (self.action.name))
 
+        # Note: We pass config as command line args so the actual wrapper process is standalone
+        # and doesn't need access to db
         LOG.debug('Setting args.')
         args = [
             python_path,
-            '-u',
+            '-u',  # unbuffered mode so streaming mode works as expected
             WRAPPER_SCRIPT_PATH,
             '--pack=%s' % (pack),
             '--file-path=%s' % (self.entry_point),
             '--parameters=%s' % (serialized_parameters),
             '--user=%s' % (user),
-            '--parent-args=%s' % (json.dumps(sys.argv[1:]))
+            '--parent-args=%s' % (json.dumps(sys.argv[1:])),
         ]
+
+        if self._config:
+            args.append('--config=%s' % (json.dumps(self._config)))
 
         # We need to ensure all the st2 dependencies are also available to the
         # subprocess

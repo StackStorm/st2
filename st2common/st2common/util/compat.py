@@ -16,9 +16,10 @@
 
 import six
 
+
 __all__ = [
     'to_unicode',
-    'to_ascii'
+    'to_ascii',
 ]
 
 

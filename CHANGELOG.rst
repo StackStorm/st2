@@ -4,6 +4,26 @@ Changelog
 in development
 --------------
 
+Changed
+~~~~~~~
+
+* ``st2actions.runners.pythonrunner.Action`` class path for base Python runner actions has been
+  deprecated since StackStorm v1.6.0 and will be fully removed in StackStorm v2.7.0. If you have
+  any actions still using this path you are encouraged to update them to use
+  ``st2common.runners.base_action.Action`` path. #3803
+* Refactor ``st2common`` Python package so it's fully self sustaining and can be used in a
+  standalone manner. (improvement) #3803
+* Refactor Python action runner so it only depends on ``st2common`` Python package (previously it
+  also depended on ``st2actions``) and can be used in a standalone mode. Previously pack config and
+  and some other parameters were retrieved inside the Python process wrapper, but now they are
+  retrieved inside the runner container and passed to the runner. This also makes it easier to add
+  support for pack configs to other runners in the future. (improvement) #3803
+
+Fixed
+~~~~~
+
+* Fully fix performance regressions for short Python runner actions introduced in the past and
+  partially fixed in #3809. (bug fix) #3803
 
 2.5.0 - October 25, 2017
 ------------------------
