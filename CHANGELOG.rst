@@ -82,6 +82,12 @@ Added
   This API endpoint is meant to be used with chat bot plugins. It allows them to be simple thin
   wrappers around this API endpoint which send each chat line to this API endpoint and handle the
   response. #3773
+* Add several improvements to the installation scripts: They support using proxy servers.
+  ``~stanley`` no longer has to be ``/home/stanley``. In addition to the on-screen display, the
+  output from the installation script is now logged to a file beginning with ``st2-install`` under
+  ``/var/log/st2/``. Furthermore, the script handles re-runs better, although it's
+  not fully idempotent yet. More improvements are expected in the near future.
+  st2-packages: #505, #506, #507, #508, #509, #510, #512, #517.
 
 Fixed
 ~~~~~
