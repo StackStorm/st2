@@ -242,6 +242,10 @@ def _cast_params_from(params, context, schemas):
     for schema in schemas:
         for param_name, param_details in schema.items():
 
+            # Skip if the parameter have immutable set to true in schema
+            if param_details.get('immutable'):
+                continue
+
             # Skip if the parameter doesn't have a default, or if the
             # value in the context is identical to the default
             if 'default' not in param_details or \
