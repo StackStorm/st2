@@ -17,8 +17,6 @@ import traceback
 import json
 
 from oslo_config import cfg
-from stevedore.driver import DriverManager
-from stevedore.extension import ExtensionManager
 
 from st2common import log as logging
 
@@ -38,6 +36,8 @@ def get_available_backends():
 
     :rtype: ``list`` of ``str``
     """
+    from stevedore.extension import ExtensionManager
+
     manager = ExtensionManager(namespace=BACKENDS_NAMESPACE, invoke_on_load=False)
     return manager.names()
 
@@ -49,6 +49,7 @@ def get_backend_instance(name):
     :param name: Backend name.
     :type name: ``str``
     """
+    from stevedore.driver import DriverManager
 
     LOG.debug('Retrieving backend instance for backend "%s"' % (name))
 

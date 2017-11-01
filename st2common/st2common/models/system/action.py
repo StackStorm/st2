@@ -21,6 +21,7 @@ import six
 import sys
 import copy
 import traceback
+import collections
 
 from oslo_config import cfg
 
@@ -30,6 +31,7 @@ from st2common.util.shell import quote_unix
 from st2common.constants.action import LIBS_DIR as ACTION_LIBS_DIR
 from st2common.util.secrets import get_secret_parameters
 from st2common.util.secrets import mask_secret_parameters
+from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 
 __all__ = [
     'ShellCommandAction',
@@ -59,7 +61,7 @@ class ShellCommandAction(object):
     EXPORT_CMD = 'export'
 
     def __init__(self, name, action_exec_id, command, user, env_vars=None, sudo=False,
-                 timeout=None, cwd=None):
+                 timeout=None, cwd=None, sudo_password=None):
         self.name = name
         self.action_exec_id = action_exec_id
         self.command = command
@@ -68,6 +70,7 @@ class ShellCommandAction(object):
         self.sudo = sudo
         self.timeout = timeout
         self.cwd = cwd
+        self.sudo_password = sudo_password
 
     def get_full_command_string(self):
         # Note: We pass -E to sudo because we want to preserve user provided environment variables
@@ -82,10 +85,26 @@ class ShellCommandAction(object):
                 sudo_arguments = ' '.join(self._get_user_sudo_arguments(user=user))
                 command = quote_unix(self.command)
                 command = 'sudo %s -- bash -c %s' % (sudo_arguments, command)
+
             else:
                 command = self.command
 
         return command
+
+    def get_sanitized_full_command_string(self):
+        """
+        Get a command string which can be used inside the log messages (if provided, sudo password
+        is masked).
+
+        :rtype: ``password``
+        """
+        command_string = self.get_full_command_string()
+
+        if self.sudo_password:
+            # Mask sudo password
+            command_string = 'echo -e \'%s\n\' | %s' % (MASKED_ATTRIBUTE_VALUE, command_string)
+
+        return command_string
 
     def get_timeout(self):
         return self.timeout
@@ -99,7 +118,15 @@ class ShellCommandAction(object):
 
         :rtype: ``list``
         """
-        flags = copy.copy(SUDO_COMMON_OPTIONS)
+        flags = []
+
+        if self.sudo_password:
+            # Note: We use subprocess.Popen in local runner so we provide password via subprocess
+            # stdin (using echo -e won't work when using subprocess.Popen)
+            flags.append('-S')
+
+        flags = flags + SUDO_COMMON_OPTIONS
+
         return flags
 
     def _get_user_sudo_arguments(self, user):
@@ -110,17 +137,29 @@ class ShellCommandAction(object):
         :rtype: ``list``
         """
         flags = self._get_common_sudo_arguments()
-        flags += copy.copy(SUDO_DIFFERENT_USER_OPTIONS)
+        flags += SUDO_DIFFERENT_USER_OPTIONS
         flags += ['-u', user]
+
         return flags
 
     def _get_env_vars_export_string(self):
         if self.env_vars:
-            # Envrionment variables could contain spaces and open us to shell
+            env_vars = copy.copy(self.env_vars)
+
+            # If sudo_password is provided, explicitly disable bash history to make sure password
+            # is not logged, because password is provided via command line
+            if self.sudo and self.sudo_password:
+                env_vars['HISTFILE'] = '/dev/null'
+                env_vars['HISTSIZE'] = '0'
+
+            # Sort the dict to guarantee consistent order
+            env_vars = collections.OrderedDict(sorted(env_vars.items()))
+
+            # Environment variables could contain spaces and open us to shell
             # injection attacks. Always quote the key and the value.
             exports = ' '.join(
                 '%s=%s' % (quote_unix(k), quote_unix(v))
-                for k, v in self.env_vars.iteritems()
+                for k, v in env_vars.iteritems()
             )
             shell_env_str = '%s %s' % (ShellCommandAction.EXPORT_CMD, exports)
         else:
@@ -168,10 +207,11 @@ class ShellCommandAction(object):
 class ShellScriptAction(ShellCommandAction):
     def __init__(self, name, action_exec_id, script_local_path_abs, named_args=None,
                  positional_args=None, env_vars=None, user=None, sudo=False, timeout=None,
-                 cwd=None):
+                 cwd=None, sudo_password=None):
         super(ShellScriptAction, self).__init__(name=name, action_exec_id=action_exec_id,
                                                 command=None, user=user, env_vars=env_vars,
-                                                sudo=sudo, timeout=timeout, cwd=cwd)
+                                                sudo=sudo, timeout=timeout,
+                                                cwd=cwd, sudo_password=sudo_password)
         self.script_local_path_abs = script_local_path_abs
         self.named_args = named_args
         self.positional_args = positional_args
@@ -250,10 +290,12 @@ class ShellScriptAction(ShellCommandAction):
 
 class SSHCommandAction(ShellCommandAction):
     def __init__(self, name, action_exec_id, command, env_vars, user, password=None, pkey=None,
-                 hosts=None, parallel=True, sudo=False, timeout=None, cwd=None, passphrase=None):
+                 hosts=None, parallel=True, sudo=False, timeout=None, cwd=None, passphrase=None,
+                 sudo_password=None):
         super(SSHCommandAction, self).__init__(name=name, action_exec_id=action_exec_id,
                                                command=command, env_vars=env_vars, user=user,
-                                               sudo=sudo, timeout=timeout, cwd=cwd)
+                                               sudo=sudo, timeout=timeout, cwd=cwd,
+                                               sudo_password=sudo_password)
         self.hosts = hosts
         self.parallel = parallel
         self.pkey = pkey
@@ -299,11 +341,12 @@ class SSHCommandAction(ShellCommandAction):
 class RemoteAction(SSHCommandAction):
     def __init__(self, name, action_exec_id, command, env_vars=None, on_behalf_user=None,
                  user=None, password=None, private_key=None, hosts=None, parallel=True, sudo=False,
-                 timeout=None, cwd=None, passphrase=None):
+                 timeout=None, cwd=None, passphrase=None, sudo_password=None):
         super(RemoteAction, self).__init__(name=name, action_exec_id=action_exec_id,
                                            command=command, env_vars=env_vars, user=user,
                                            hosts=hosts, parallel=parallel, sudo=sudo,
-                                           timeout=timeout, cwd=cwd, passphrase=passphrase)
+                                           timeout=timeout, cwd=cwd, passphrase=passphrase,
+                                           sudo_password=sudo_password)
         self.password = password
         self.private_key = private_key
         self.passphrase = passphrase
@@ -332,13 +375,14 @@ class RemoteScriptAction(ShellScriptAction):
     def __init__(self, name, action_exec_id, script_local_path_abs, script_local_libs_path_abs,
                  named_args=None, positional_args=None, env_vars=None, on_behalf_user=None,
                  user=None, password=None, private_key=None, remote_dir=None, hosts=None,
-                 parallel=True, sudo=False, timeout=None, cwd=None):
+                 parallel=True, sudo=False, timeout=None, cwd=None, sudo_password=None):
         super(RemoteScriptAction, self).__init__(name=name, action_exec_id=action_exec_id,
                                                  script_local_path_abs=script_local_path_abs,
                                                  user=user,
                                                  named_args=named_args,
                                                  positional_args=positional_args, env_vars=env_vars,
-                                                 sudo=sudo, timeout=timeout, cwd=cwd)
+                                                 sudo=sudo, timeout=timeout, cwd=cwd,
+                                                 sudo_password=sudo_password)
         self.script_local_libs_path_abs = script_local_libs_path_abs
         self.script_local_dir, self.script_name = os.path.split(self.script_local_path_abs)
         self.remote_dir = remote_dir if remote_dir is not None else '/tmp'

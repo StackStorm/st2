@@ -1,0 +1,6 @@
+---
+name: chain-test-inquiry-parent
+description: A workflow to test Inquiry pausing nested actionchain workflows
+runner_type: action-chain
+entry_point: chains/chain_test_inquiry_parent.yaml
+enabled: true

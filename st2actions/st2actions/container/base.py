@@ -22,6 +22,7 @@ from oslo_config import cfg
 from st2common import log as logging
 from st2common.util import date as date_utils
 from st2common.constants import action as action_constants
+from st2common.content import utils as content_utils
 from st2common.exceptions import actionrunner
 from st2common.exceptions.param import ParamException
 from st2common.models.db.executionstate import ActionExecutionStateDB
@@ -32,8 +33,8 @@ from st2common.services import access, executions
 from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
 from st2common.util.action_db import (update_liveaction_status, get_liveaction_by_id)
 from st2common.util import param as param_utils
+from st2common.util.config_loader import ContentPackConfigLoader
 
-from st2actions.container.service import RunnerContainerService
 from st2common.runners.base import get_runner
 from st2common.runners.base import AsyncActionRunner
 
@@ -148,7 +149,6 @@ class RunnerContainer(object):
 
         LOG.debug('Performing post_run for runner: %s', runner.runner_id)
         runner.post_run(status=status, result=result)
-        runner.container_service = None
 
         LOG.debug('Runner do_run result', extra={'result': liveaction_db.result})
         LOG.audit('Liveaction completed', extra={'liveaction_db': liveaction_db})
@@ -178,7 +178,6 @@ class RunnerContainer(object):
         LOG.debug('Performing post_run for runner: %s', runner.runner_id)
         result = {'error': 'Execution canceled by user.'}
         runner.post_run(status=liveaction_db.status, result=result)
-        runner.container_service = None
 
         return liveaction_db
 
@@ -200,8 +199,6 @@ class RunnerContainer(object):
 
             # Always clean-up the auth_token
             self._clean_up_auth_token(runner=runner, status=liveaction_db.status)
-
-        runner.container_service = None
 
         return liveaction_db
 
@@ -238,7 +235,6 @@ class RunnerContainer(object):
 
         LOG.debug('Performing post_run for runner: %s', runner.runner_id)
         runner.post_run(status=status, result=result)
-        runner.container_service = None
 
         LOG.debug('Runner do_run result', extra={'result': liveaction_db.result})
         LOG.audit('Liveaction completed', extra={'liveaction_db': liveaction_db})
@@ -317,25 +313,35 @@ class RunnerContainer(object):
         return liveaction_db
 
     def _get_entry_point_abs_path(self, pack, entry_point):
-        return RunnerContainerService.get_entry_point_abs_path(pack=pack,
-                                                               entry_point=entry_point)
+        return content_utils.get_entry_point_abs_path(pack=pack, entry_point=entry_point)
 
     def _get_action_libs_abs_path(self, pack, entry_point):
-        return RunnerContainerService.get_action_libs_abs_path(pack=pack,
-                                                               entry_point=entry_point)
+        return content_utils.get_action_libs_abs_path(pack=pack, entry_point=entry_point)
 
     def _get_rerun_reference(self, context):
         execution_id = context.get('re-run', {}).get('ref')
         return ActionExecution.get_by_id(execution_id) if execution_id else None
 
     def _get_runner(self, runnertype_db, action_db, liveaction_db):
-        runner = get_runner(runnertype_db.runner_module)
-
         resolved_entry_point = self._get_entry_point_abs_path(action_db.pack,
                                                               action_db.entry_point)
+        context = getattr(liveaction_db, 'context', dict())
+        user = context.get('user', cfg.CONF.system_user.user)
 
+        # Note: Right now configs are only supported by the Python runner actions
+        if runnertype_db.runner_module == 'python_runner':
+            LOG.debug('Loading config for pack')
+
+            config_loader = ContentPackConfigLoader(pack_name=action_db.pack, user=user)
+            config = config_loader.get_config()
+        else:
+            config = None
+
+        runner = get_runner(module_name=runnertype_db.runner_module, config=config)
+
+        # TODO: Pass those arguments to the constructor instead of late
+        # assignment, late assignment is awful
         runner.runner_type_db = runnertype_db
-        runner.container_service = RunnerContainerService()
         runner.action = action_db
         runner.action_name = action_db.name
         runner.liveaction = liveaction_db
@@ -343,7 +349,7 @@ class RunnerContainer(object):
         runner.execution = ActionExecution.get(liveaction__id=runner.liveaction_id)
         runner.execution_id = str(runner.execution.id)
         runner.entry_point = resolved_entry_point
-        runner.context = getattr(liveaction_db, 'context', dict())
+        runner.context = context
         runner.callback = getattr(liveaction_db, 'callback', dict())
         runner.libs_dir_path = self._get_action_libs_abs_path(action_db.pack,
                                                               action_db.entry_point)

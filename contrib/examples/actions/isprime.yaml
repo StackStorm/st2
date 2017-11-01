@@ -6,4 +6,5 @@ name: isprime
 parameters:
   value:
     type: integer
+    required: true
 runner_type: "python-script"

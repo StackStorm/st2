@@ -66,13 +66,15 @@ class ActionExecutionRBACControllerTestCase(BaseActionExecutionControllerTestCas
         user_db = self.users['multiple_roles']
         role_assignment_db = UserRoleAssignmentDB(
             user=user_db.name,
-            role='admin')
+            role='admin',
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         for role in roles:
             role_assignment_db = UserRoleAssignmentDB(
                 user=user_db.name,
-                role=role)
+                role=role,
+                source='assignments/%s.yaml' % user_db.name)
             UserRoleAssignment.add_or_update(role_assignment_db)
 
     def test_post_rbac_info_in_context_success(self):

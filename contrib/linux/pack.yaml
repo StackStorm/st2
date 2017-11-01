@@ -1,6 +1,6 @@
 ---
 name : linux
-description : Generic linux actions
+description : Generic Linux actions
 keywords:
   - linux
   - nmap
@@ -16,6 +16,6 @@ keywords:
   - open ports
   - processes
   - ps
-version : 1.0.0
-author : Stackstorm Inc
+version : 1.0.1
+author : StackStorm, Inc.
 email : info@stackstorm.com

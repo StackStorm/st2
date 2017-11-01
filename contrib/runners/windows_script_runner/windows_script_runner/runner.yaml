@@ -1,0 +1,32 @@
+- aliases: []
+  description: A remote execution runner that executes power shell scripts on Windows
+    hosts.
+  enabled: true
+  experimental: false
+  name: windows-script
+  runner_module: windows_script_runner
+  runner_parameters:
+    host:
+      description: Host to execute the command on
+      required: true
+      type: string
+    password:
+      description: Password used to log in.
+      required: true
+      secret: true
+      type: string
+    share:
+      default: C$
+      description: Name of the Windows share where script files are uploaded
+      required: true
+      type: string
+    timeout:
+      default: 60
+      description: Action timeout in seconds. Action will get killed if it doesn't
+        finish in timeout seconds.
+      type: integer
+    username:
+      default: Administrator
+      description: Username used to log-in.
+      required: true
+      type: string

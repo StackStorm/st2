@@ -14,7 +14,9 @@
 # limitations under the License.
 
 import abc
+
 import six
+import yaml
 from oslo_config import cfg
 
 from st2common import log as logging
@@ -24,13 +26,14 @@ from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.util import action_db as action_utils
 from st2common.util.loader import register_runner, register_callback_module
 from st2common.util.api import get_full_public_api_url
-
+from st2common.util.deprecation import deprecated
 
 __all__ = [
     'ActionRunner',
     'AsyncActionRunner',
     'ShellRunnerMixin',
-    'get_runner'
+    'get_runner',
+    'get_metadata'
 ]
 
 
@@ -40,22 +43,49 @@ LOG = logging.getLogger(__name__)
 RUNNER_COMMAND = 'cmd'
 
 
-def get_runner(module_name):
-    """Load the module and return an instance of the runner."""
+def get_runner(module_name, config=None):
+    """
+    Load the module and return an instance of the runner.
+    """
 
     LOG.debug('Runner loading python module: %s', module_name)
+
     try:
         # TODO: Explore modifying this to support register_plugin
         module = register_runner(module_name)
     except Exception as e:
-        LOG.exception('Failed to import module %s.', module_name)
-        raise ActionRunnerCreateError(e)
+        msg = ('Failed to import runner module %s' % module_name)
+        LOG.exception(msg)
+
+        raise ActionRunnerCreateError('%s\n\n%s' % (msg, str(e)))
 
     LOG.debug('Instance of runner module: %s', module)
 
-    runner = module.get_runner()
+    if config:
+        runner_kwargs = {'config': config}
+    else:
+        runner_kwargs = {}
+
+    runner = module.get_runner(**runner_kwargs)
     LOG.debug('Instance of runner: %s', runner)
     return runner
+
+
+def get_metadata(package_name):
+    """
+    Return runner related metadata for the provided runner package name.
+
+    :rtype: ``list`` of ``dict``
+    """
+    import pkg_resources
+
+    file_path = pkg_resources.resource_filename(package_name, 'runner.yaml')
+
+    with open(file_path, 'r') as fp:
+        content = fp.read()
+
+    metadata = yaml.safe_load(content)
+    return metadata
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -73,7 +103,6 @@ class ActionRunner(object):
         self.runner_id = runner_id
 
         self.runner_type_db = None
-        self.container_service = None
         self.runner_parameters = None
         self.action = None
         self.action_name = None
@@ -138,7 +167,11 @@ class ActionRunner(object):
                 result
             )
 
+    @deprecated
     def get_pack_name(self):
+        return self.get_pack_ref()
+
+    def get_pack_ref(self):
         """
         Retrieve pack name for the action which is being currently executed.
 
@@ -170,7 +203,7 @@ class ActionRunner(object):
         :rtype: ``dict``
         """
         result = {}
-        result['ST2_ACTION_PACK_NAME'] = self.get_pack_name()
+        result['ST2_ACTION_PACK_NAME'] = self.get_pack_ref()
         result['ST2_ACTION_EXECUTION_ID'] = str(self.execution_id)
         result['ST2_ACTION_API_URL'] = get_full_public_api_url()
 

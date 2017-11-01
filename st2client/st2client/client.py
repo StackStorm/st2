@@ -19,13 +19,17 @@ import logging
 import six
 
 from st2client import models
+from st2client.utils import httpclient
 from st2client.models.core import ResourceManager
 from st2client.models.core import ActionAliasResourceManager
+from st2client.models.core import ActionAliasExecutionManager
 from st2client.models.core import LiveActionResourceManager
+from st2client.models.core import InquiryResourceManager
 from st2client.models.core import TriggerInstanceResourceManager
 from st2client.models.core import PackResourceManager
 from st2client.models.core import ConfigManager
 from st2client.models.core import StreamManager
+from st2client.models.core import add_auth_token_to_kwargs_from_env
 
 
 LOG = logging.getLogger(__name__)
@@ -52,6 +56,8 @@ class Client(object):
             self.endpoints['base'] = os.environ.get('ST2_BASE_URL', DEFAULT_BASE_URL)
 
         api_version = api_version or os.environ.get('ST2_API_VERSION', DEFAULT_API_VERSION)
+
+        self.endpoints['exp'] = '%s:%s/%s' % (self.endpoints['base'], DEFAULT_API_PORT, 'exp')
 
         if api_url:
             self.endpoints['api'] = api_url
@@ -110,7 +116,7 @@ class Client(object):
             models.Action, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['ActionAlias'] = ActionAliasResourceManager(
             models.ActionAlias, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
-        self.managers['ActionAliasExecution'] = ResourceManager(
+        self.managers['ActionAliasExecution'] = ActionAliasExecutionManager(
             models.ActionAliasExecution, self.endpoints['api'],
             cacert=self.cacert, debug=self.debug)
         self.managers['ApiKey'] = ResourceManager(
@@ -121,6 +127,8 @@ class Client(object):
             models.ConfigSchema, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['LiveAction'] = LiveActionResourceManager(
             models.LiveAction, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        self.managers['Inquiry'] = InquiryResourceManager(
+            models.Inquiry, self.endpoints['exp'], cacert=self.cacert, debug=self.debug)
         self.managers['Pack'] = PackResourceManager(
             models.Pack, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Policy'] = ResourceManager(
@@ -156,6 +164,23 @@ class Client(object):
         self.managers['UserRoleAssignment'] = ResourceManager(
             models.UserRoleAssignment, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
 
+    @add_auth_token_to_kwargs_from_env
+    def get_user_info(self, **kwargs):
+        """
+        Retrieve information about the current user which is authenticated against StackStorm API.
+
+        :rtype: ``dict``
+        """
+        url = '/user'
+        client = httpclient.HTTPClient(root=self.endpoints['api'], cacert=self.cacert,
+                                       debug=self.debug)
+        response = client.get(url=url, **kwargs)
+
+        if response.status_code != 200:
+            ResourceManager.handle_error(response)
+
+        return response.json()
+
     @property
     def actions(self):
         return self.managers['Action']
@@ -171,6 +196,10 @@ class Client(object):
     @property
     def liveactions(self):
         return self.managers['LiveAction']
+
+    @property
+    def inquiries(self):
+        return self.managers['Inquiry']
 
     @property
     def packs(self):

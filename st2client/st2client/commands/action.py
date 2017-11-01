@@ -258,6 +258,8 @@ class ActionRunCommandMixin(object):
         if args.async:
             self.print_output('To get the results, execute:\n st2 execution get %s' %
                               (execution.id), six.text_type)
+            self.print_output('\nTo view output in real-time, execute:\n st2 execution '
+                              'tail %s' % (execution.id), six.text_type)
         else:
             self._print_execution_details(execution=execution, args=args, **kwargs)
 
@@ -271,7 +273,7 @@ class ActionRunCommandMixin(object):
         # Display options
         task_list_arg_grp = root_arg_grp.add_argument_group()
         task_list_arg_grp.add_argument('--raw', action='store_true',
-                                       help='Raw output, don\'t shot sub-tasks for workflows.')
+                                       help='Raw output, don\'t show sub-tasks for workflows.')
         task_list_arg_grp.add_argument('--show-tasks', action='store_true',
                                        help='Whether to show sub-tasks of an execution.')
         task_list_arg_grp.add_argument('--depth', type=int, default=-1,
@@ -296,6 +298,19 @@ class ActionRunCommandMixin(object):
                                     help=('If result is type of JSON, then print specific '
                                           'key-value pair; dot notation for nested JSON is '
                                           'supported.'))
+
+        # Other options
+        detail_arg_grp.add_argument('--tail', action='store_true',
+                                    help='Automatically start tailing new execution.')
+
+        # Flag to opt-in to functionality introduced in PR #3670. More robust parsing
+        # of complex datatypes is planned for 2.6, so this flag will be deprecated soon
+        detail_arg_grp.add_argument('--auto-dict', action='store_true', dest='auto_dict',
+                                    default=False, help='Automatically convert list items to '
+                                    'dictionaries when colons are detected. '
+                                    '(NOTE - this parameter and its functionality will be '
+                                    'deprecated in the next release in favor of a more '
+                                    'robust conversion method)')
 
         return root_arg_grp
 
@@ -421,6 +436,20 @@ class ActionRunCommandMixin(object):
             LIVEACTION_STATUS_CANCELING
         ]
 
+        if args.tail:
+            # Start tailing new execution
+            print('Tailing execution "%s"' % (str(execution.id)))
+            execution_manager = self.manager
+            stream_manager = self.app.client.managers['Stream']
+            ActionExecutionTailCommand.tail_execution(execution=execution,
+                                                      execution_manager=execution_manager,
+                                                      stream_manager=stream_manager,
+                                                      **kwargs)
+
+            execution = action_exec_mgr.get_by_id(execution.id, **kwargs)
+            print('')
+            return execution
+
         if not args.async:
             while execution.status in pending_statuses:
                 time.sleep(self.poll_interval)
@@ -523,7 +552,7 @@ class ActionRunCommandMixin(object):
                     result[key] = value
             return result
 
-        def transform_array(value, action_params=None):
+        def transform_array(value, action_params=None, auto_dict=False):
             action_params = action_params or {}
 
             # Sometimes an array parameter only has a single element:
@@ -555,13 +584,14 @@ class ActionRunCommandMixin(object):
 
             # When each values in this array represent dict type, this converts
             # the 'result' to the dict type value.
-            if all([isinstance(x, str) and ':' in x for x in result]):
+            if all([isinstance(x, str) and ':' in x for x in result]) and auto_dict:
                 result_dict = {}
                 for (k, v) in [x.split(':') for x in result]:
                     # To parse values using the 'transformer' according to the type which is
                     # specified in the action metadata, calling 'normalize' method recursively.
                     if 'properties' in action_params and k in action_params['properties']:
-                        result_dict[k] = normalize(k, v, action_params['properties'])
+                        result_dict[k] = normalize(k, v, action_params['properties'],
+                                                   auto_dict=auto_dict)
                     else:
                         result_dict[k] = v
                 return [result_dict]
@@ -591,7 +621,7 @@ class ActionRunCommandMixin(object):
 
             return None
 
-        def normalize(name, value, action_params=None):
+        def normalize(name, value, action_params=None, auto_dict=False):
             """ The desired type is contained in the action meta-data, so we can look that up
                 and call the desired "caster" function listed in the "transformer" dict
             """
@@ -609,7 +639,7 @@ class ActionRunCommandMixin(object):
             # also leverage that to cast each array item to the correct type.
             param_type = get_param_type(name, action_params)
             if param_type == 'array' and name in action_params:
-                return transformer[param_type](value, action_params[name])
+                return transformer[param_type](value, action_params[name], auto_dict=auto_dict)
             elif param_type:
                 return transformer[param_type](value)
 
@@ -649,9 +679,9 @@ class ActionRunCommandMixin(object):
                     else:
                         # This permits multiple declarations of argument only in the array type.
                         if get_param_type(k) == 'array' and k in result:
-                            result[k] += normalize(k, v)
+                            result[k] += normalize(k, v, auto_dict=args.auto_dict)
                         else:
-                            result[k] = normalize(k, v)
+                            result[k] = normalize(k, v, auto_dict=args.auto_dict)
 
                 except Exception as e:
                     # TODO: Move transformers in a separate module and handle
@@ -725,7 +755,7 @@ class ActionRunCommandMixin(object):
                             for name in optional]
                 except resource.ResourceNotFoundError:
                     print(('Action "%s" is not found. ' % args.ref_or_id) +
-                          'Do "st2 action list" to see list of available actions.')
+                          'Use "st2 action list" to see the list of available actions.')
                 except Exception as e:
                     print('ERROR: Unable to print help for action "%s". %s' %
                           (args.ref_or_id, e))
@@ -884,7 +914,7 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
 
         super(ActionRunCommand, self).__init__(
             resource, kwargs.pop('name', 'execute'),
-            'A command to invoke an action manually.',
+            'Invoke an action manually.',
             *args, **kwargs)
 
         self.parser.add_argument('ref_or_id', nargs='?',
@@ -988,7 +1018,8 @@ class ActionExecutionBranch(resource.ResourceBranch):
                                                            add_help=True)
 
 
-POSSIBLE_ACTION_STATUS_VALUES = ('succeeded', 'running', 'scheduled', 'failed', 'canceled')
+POSSIBLE_ACTION_STATUS_VALUES = ('succeeded', 'running', 'scheduled', 'failed', 'canceling',
+                                 'canceled')
 
 
 class ActionExecutionReadCommand(resource.ResourceCommand):
@@ -1055,7 +1086,7 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
         self.group.add_argument('--action', help='Action reference to filter the list.')
         self.group.add_argument('--status', help=('Only return executions with the provided status.'
                                                   ' Possible values are \'%s\', \'%s\', \'%s\','
-                                                  '\'%s\' or \'%s\''
+                                                  '\'%s\', \'%s\' or \'%s\''
                                                   '.' % POSSIBLE_ACTION_STATUS_VALUES))
         self.group.add_argument('--trigger_instance',
                                 help='Trigger instance id to filter the list.')
@@ -1224,7 +1255,7 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
 
         super(ActionExecutionReRunCommand, self).__init__(
             resource, kwargs.pop('name', 're-run'),
-            'A command to re-run a particular action.',
+            'Re-run a particular action.',
             *args, **kwargs)
 
         self.parser.add_argument('id', nargs='?',
@@ -1359,7 +1390,7 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
     def __init__(self, resource, *args, **kwargs):
         super(ActionExecutionTailCommand, self).__init__(
             resource, kwargs.pop('name', 'tail'),
-            'A command to tail output of a particular execution.',
+            'Tail output of a particular execution.',
             *args, **kwargs)
 
         self.parser.add_argument('id', nargs='?',
@@ -1387,14 +1418,31 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
         # Special case for id "last"
         if execution_id == 'last':
             executions = self.manager.query(limit=1)
-            execution = executions[0] if executions else None
-            execution_id = execution.id
+            if executions:
+                execution = executions[0]
+                execution_id = execution.id
+            else:
+                print('No executions found in db.')
+                return
         else:
             execution = self.manager.get_by_id(execution_id, **kwargs)
 
         if not execution:
             raise ResourceNotFoundError('Execution  with id %s not found.' % (args.id))
 
+        execution_manager = self.manager
+        stream_manager = self.app.client.managers['Stream']
+        ActionExecutionTailCommand.tail_execution(execution=execution,
+                                                  execution_manager=execution_manager,
+                                                  stream_manager=stream_manager,
+                                                  output_type=output_type,
+                                                  include_metadata=include_metadata,
+                                                  **kwargs)
+
+    @classmethod
+    def tail_execution(cls, execution_manager, stream_manager, execution, output_type=None,
+                       include_metadata=False, **kwargs):
+        execution_id = str(execution.id)
         # Note: For non-workflow actions child_execution_id always matches parent_execution_id so
         # we don't need to do any other checks to determine if executions represents a workflow
         # action
@@ -1402,21 +1450,21 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
 
         # Execution has already finished
         if execution.status in LIVEACTION_COMPLETED_STATES:
-            output = self.manager.get_output(execution_id=execution_id, output_type=output_type)
+            output = execution_manager.get_output(execution_id=execution_id,
+                                                  output_type=output_type)
             print(output)
             print('Execution %s has completed (status=%s).' % (execution_id, execution.status))
             return
 
-        stream_mgr = self.app.client.managers['Stream']
         events = ['st2.execution__update', 'st2.execution.output__create']
 
-        for event in stream_mgr.listen(events, **kwargs):
+        for event in stream_manager.listen(events, **kwargs):
             status = event.get('status', None)
             is_execution_event = status is not None
 
             # NOTE: Right now only a single level deep / nested workflows are supported
             if is_execution_event:
-                context = self._get_normalized_context_execution_task_event(event=event)
+                context = cls.get_normalized_context_execution_task_event(event=event)
                 task_execution_id = context['execution_id']
                 task_name = context['task_name']
                 task_parent_execution_id = context['parent_execution_id']
@@ -1448,7 +1496,7 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
 
             # Filter on output_type if provided
             event_output_type = event.get('output_type', None)
-            if output_type and event_output_type != output_type:
+            if output_type != 'all' and output_type and (event_output_type != output_type):
                 continue
 
             if include_metadata:
@@ -1457,7 +1505,8 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
             else:
                 sys.stdout.write(event['data'])
 
-    def _get_normalized_context_execution_task_event(self, event):
+    @classmethod
+    def get_normalized_context_execution_task_event(cls, event):
         """
         Return a dictionary with normalized context attributes for Action-Chain and Mistral
         workflows.

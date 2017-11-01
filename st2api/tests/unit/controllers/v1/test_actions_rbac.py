@@ -93,7 +93,8 @@ class ActionControllerRBACTestCase(APIControllerWithRBACTestCase):
         user_db = self.users['action_create']
         role_assignment_db = UserRoleAssignmentDB(
             user=user_db.name,
-            role=self.roles['action_create'].name)
+            role=self.roles['action_create'].name,
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
     def test_create_action_no_action_create_permission(self):

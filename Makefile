@@ -129,7 +129,8 @@ generate-api-spec: requirements .generate-api-spec
 	@echo
 	echo "# NOTE: This file is auto-generated - DO NOT EDIT MANUALLY" > st2common/st2common/openapi.yaml
 	echo "# Edit st2common/st2common/openapi.yaml.j2 and then run" >> st2common/st2common/openapi.yaml
-	echo "# make .generate-api-spec make target to generate the final spec file" >> st2common/st2common/openapi.yaml
+	echo "# make .generate-api-spec" >> st2common/st2common/openapi.yaml
+	echo "# to generate the final spec file" >> st2common/st2common/openapi.yaml
 	. virtualenv/bin/activate; st2common/bin/st2-generate-api-spec >> st2common/st2common/openapi.yaml
 
 .PHONY: circle-lint-api-spec
@@ -195,7 +196,7 @@ compile:
 .st2common-circular-dependencies-check:
 	@echo "Checking st2common for circular dependencies"
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2reactor ; test $$? -eq 1
-	find ${ROOT_DIR}/st2common/st2common/ \( -name \*.py ! -name runnersregistrar\.py ! -wholename "*runners/base.py" ! -name python_action_wrapper.py ! -wholename "*/query/base.py" ! -wholename "*/runners/utils.py" \) -type f -print0 | xargs -0 cat | grep st2actions ; test $$? -eq 1
+	find ${ROOT_DIR}/st2common/st2common/ \( -name \*.py ! -name runnersregistrar\.py -name \*.py ! -name compat\.py \) -type f -print0 | xargs -0 cat | grep st2actions ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2api ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2auth ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2debug; test $$? -eq 1
@@ -257,6 +258,11 @@ requirements: virtualenv .sdist-requirements
 			echo "Installing $$req..." ; \
 			$(VIRTUALENV_DIR)/bin/pip install $(PIP_OPTIONS) -r $$req ; \
 	done
+
+	# Note: We install prance here and not as part of any component
+	# requirements.txt because it has a conflict with our dependency (requires
+	# new version of requests) which we cant resolve at this moment
+	$(VIRTUALENV_DIR)/bin/pip install "prance==0.6.1"
 
 .PHONY: virtualenv
 virtualenv: $(VIRTUALENV_DIR)/bin/activate
@@ -396,6 +402,25 @@ packs-tests: requirements .packs-tests
 	@echo
 	. $(VIRTUALENV_DIR)/bin/activate; find ${ROOT_DIR}/contrib/* -maxdepth 0 -type d -print0 | xargs -0 -I FILENAME ./st2common/bin/st2-run-pack-tests -c -t -x -p FILENAME
 
+
+.PHONY: runners-tests
+packs-tests: requirements .runners-tests
+
+.PHONY: .runners-tests
+.runners-tests:
+	@echo
+	@echo "==================== runners-tests ===================="
+	@echo
+	@echo "----- Dropping st2-test db -----"
+	@mongo st2-test --eval "db.dropDatabase();"
+	@for component in $(COMPONENTS_RUNNERS); do\
+		echo "==========================================================="; \
+		echo "Running tests in" $$component; \
+		echo "==========================================================="; \
+		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v $$component/tests/unit || exit 1; \
+	done
+
+
 .PHONY: cli
 cli:
 	@echo
@@ -433,7 +458,7 @@ debs:
 .PHONY: .sdist-requirements
 .sdist-requirements:
 	# Copy over shared dist utils module which is needed by setup.py
-	@for component in $(COMPONENTS_TEST); do\
+	@for component in $(COMPONENTS); do\
 		cp -f ./scripts/dist_utils.py $$component/dist_utils.py;\
 	done
 

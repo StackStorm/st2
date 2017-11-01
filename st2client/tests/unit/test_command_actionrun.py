@@ -57,7 +57,47 @@ class ActionRunCommandTest(unittest2.TestCase):
         self.assertEqual(runner.runner_parameters, orig_runner_params, 'Runner params modified.')
         self.assertEqual(action.parameters, orig_action_params, 'Action params modified.')
 
+    def test_opt_in_dict_auto_convert(self):
+        """Test ability for user to opt-in to dict convert functionality
+        """
+
+        runner = RunnerType()
+        runner.runner_parameters = {}
+
+        action = Action()
+        action.ref = 'test.action'
+        action.parameters = {
+            'param_array': {'type': 'array'},
+        }
+
+        subparser = mock.Mock()
+        command = ActionRunCommand(action, self, subparser, name='test')
+
+        mockarg = mock.Mock()
+        mockarg.inherit_env = False
+        mockarg.parameters = [
+            'param_array=foo:bar,foo2:bar2',
+        ]
+
+        mockarg.auto_dict = False
+        param = command._get_action_parameters_from_args(action=action, runner=runner, args=mockarg)
+        self.assertEqual(param['param_array'], ['foo:bar', 'foo2:bar2'])
+
+        mockarg.auto_dict = True
+        param = command._get_action_parameters_from_args(action=action, runner=runner, args=mockarg)
+        self.assertEqual(param['param_array'], [{'foo': 'bar', 'foo2': 'bar2'}])
+
+        # set auto_dict back to default
+        mockarg.auto_dict = False
+
     def test_get_params_from_args(self):
+        """test_get_params_from_args
+
+        This tests the details of the auto-dict conversion, assuming it's enabled. Please
+        see test_opt_in_dict_auto_convert for a test of detecting whether or not this
+        functionality is enabled.
+        """
+
         runner = RunnerType()
         runner.runner_parameters = {}
 
@@ -84,6 +124,7 @@ class ActionRunCommandTest(unittest2.TestCase):
 
         mockarg = mock.Mock()
         mockarg.inherit_env = False
+        mockarg.auto_dict = True
         mockarg.parameters = [
             'param_string=hoge',
             'param_integer=123',
@@ -116,7 +157,17 @@ class ActionRunCommandTest(unittest2.TestCase):
             self.assertTrue(isinstance(param['qux'], dict))
             self.assertTrue(isinstance(param['quux'], bool))
 
+        # set auto_dict back to default
+        mockarg.auto_dict = False
+
     def test_get_params_from_args_with_multiple_declarations(self):
+        """test_get_params_from_args_with_multiple_declarations
+
+        This tests the details of the auto-dict conversion, assuming it's enabled. Please
+        see test_opt_in_dict_auto_convert for a test of detecting whether or not this
+        functionality is enabled.
+        """
+
         runner = RunnerType()
         runner.runner_parameters = {}
 
@@ -133,6 +184,7 @@ class ActionRunCommandTest(unittest2.TestCase):
 
         mockarg = mock.Mock()
         mockarg.inherit_env = False
+        mockarg.auto_dict = True
         mockarg.parameters = [
             'param_string=hoge',  # This value will be overwritten with the next declaration.
             'param_string=fuga',
@@ -151,3 +203,6 @@ class ActionRunCommandTest(unittest2.TestCase):
             {'foo': '1', 'bar': '2'},
             {'hoge': 'A', 'fuga': 'B'}
         ])
+
+        # set auto_dict back to default
+        mockarg.auto_dict = False

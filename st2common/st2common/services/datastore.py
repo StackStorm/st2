@@ -19,27 +19,53 @@ from oslo_config import cfg
 
 from st2client.client import Client
 from st2client.models import KeyValuePair
-from st2common.services.access import create_token
 from st2common.util.api import get_full_public_api_url
 from st2common.util.date import get_datetime_utc_now
 from st2common.constants.keyvalue import DATASTORE_KEY_SEPARATOR, SYSTEM_SCOPE
 
+__all__ = [
+    'BaseDatastoreService',
+    'ActionDatastoreService',
+    'SensorDatastoreService'
+]
 
-class DatastoreService(object):
+
+class BaseDatastoreService(object):
     """
-    Class provides public methods for accessing datastore items.
+    Base DatastoreService class which provides public methods for accessing datastore items.
     """
 
     DATASTORE_NAME_SEPARATOR = DATASTORE_KEY_SEPARATOR
 
-    def __init__(self, logger, pack_name, class_name, api_username):
-        self._api_username = api_username
+    def __init__(self, logger, pack_name, class_name):
+        """
+        :param auth_token: Auth token used to authenticate with StackStorm API.
+        :type auth_token: ``str``
+        """
         self._pack_name = pack_name
         self._class_name = class_name
         self._logger = logger
 
         self._client = None
         self._token_expire = get_datetime_utc_now()
+
+    ##################################
+    # General methods
+    ##################################
+
+    def get_user_info(self):
+        """
+        Retrieve information about the current user which is authenticated against StackStorm and
+        used to perform other datastore operations via the API.
+
+        :rtype: ``dict``
+        """
+        client = self._get_api_client()
+
+        self._logger.debug('Retrieving user information')
+
+        result = client.get_user_info()
+        return result
 
     ##################################
     # Methods for datastore management
@@ -58,7 +84,7 @@ class DatastoreService(object):
         :rtype: ``list`` of :class:`KeyValuePair`
         """
         client = self._get_api_client()
-        self._logger.audit('Retrieving all the value from the datastore')
+        self._logger.debug('Retrieving all the values from the datastore')
 
         key_prefix = self._get_full_key_prefix(local=local, prefix=prefix)
         kvps = client.keys.get_all(prefix=key_prefix)
@@ -91,7 +117,7 @@ class DatastoreService(object):
         name = self._get_full_key_name(name=name, local=local)
 
         client = self._get_api_client()
-        self._logger.audit('Retrieving value from the datastore (name=%s)', name)
+        self._logger.debug('Retrieving value from the datastore (name=%s)', name)
 
         try:
             params = {'decrypt': str(decrypt).lower(), 'scope': scope}
@@ -145,7 +171,7 @@ class DatastoreService(object):
         value = str(value)
         client = self._get_api_client()
 
-        self._logger.audit('Setting value in the datastore (name=%s)', name)
+        self._logger.debug('Setting value in the datastore (name=%s)', name)
 
         instance = KeyValuePair()
         instance.id = name
@@ -191,7 +217,7 @@ class DatastoreService(object):
         instance.id = name
         instance.name = name
 
-        self._logger.audit('Deleting value from the datastore (name=%s)', name)
+        self._logger.debug('Deleting value from the datastore (name=%s)', name)
 
         try:
             params = {'scope': scope}
@@ -210,17 +236,7 @@ class DatastoreService(object):
         """
         Retrieve API client instance.
         """
-        token_expire = self._token_expire <= get_datetime_utc_now()
-
-        if not self._client or token_expire:
-            self._logger.audit('Creating new Client object.')
-            ttl = cfg.CONF.auth.service_token_ttl
-            self._token_expire = get_datetime_utc_now() + timedelta(seconds=ttl)
-            temporary_token = create_token(username=self._api_username, ttl=ttl, service=True)
-            api_url = get_full_public_api_url()
-            self._client = Client(api_url=api_url, token=temporary_token.token)
-
-        return self._client
+        raise NotImplementedError('_get_api_client() not implemented')
 
     def _get_full_key_name(self, name, local):
         """
@@ -267,3 +283,73 @@ class DatastoreService(object):
     def _get_datastore_key_prefix(self):
         prefix = '%s.%s' % (self._pack_name, self._class_name)
         return prefix
+
+
+class ActionDatastoreService(BaseDatastoreService):
+    """
+    DatastoreService class used by actions. This class uses temporary auth token which is generated
+    by the runner container service and available for the duration of the lifetime of an action.
+
+    Note: This class does NOT need database access.
+    """
+
+    def __init__(self, logger, pack_name, class_name, auth_token):
+        """
+        :param auth_token: Auth token used to authenticate with StackStorm API.
+        :type auth_token: ``str``
+        """
+        super(ActionDatastoreService, self).__init__(logger=logger, pack_name=pack_name,
+                                                     class_name=class_name)
+
+        self._auth_token = auth_token
+        self._client = None
+
+    def _get_api_client(self):
+        """
+        Retrieve API client instance.
+        """
+        if not self._client:
+            self._logger.debug('Creating new Client object.')
+
+            api_url = get_full_public_api_url()
+            client = Client(api_url=api_url, token=self._auth_token)
+            self._client = client
+
+        return self._client
+
+
+class SensorDatastoreService(BaseDatastoreService):
+    """
+    DatastoreService class used by sensors. This class is meant to be used in context of long
+    running processes (e.g. sensors) and it uses "create_token" method to generate a new auth
+    token. A new token is also automatically generated once the old one expires.
+
+    Note: This class does need database access (create_token method - to be able to create a new
+    token).
+    """
+
+    def __init__(self, logger, pack_name, class_name, api_username):
+        super(SensorDatastoreService, self).__init__(logger=logger, pack_name=pack_name,
+                                                     class_name=class_name)
+        self._api_username = api_username
+        self._token_expire = get_datetime_utc_now()
+
+    def _get_api_client(self):
+        """
+        Retrieve API client instance.
+        """
+        token_expire = self._token_expire <= get_datetime_utc_now()
+
+        if not self._client or token_expire:
+            # Note: Late import to avoid high import cost (time wise)
+            from st2common.services.access import create_token
+            self._logger.debug('Creating new Client object.')
+
+            ttl = cfg.CONF.auth.service_token_ttl
+            api_url = get_full_public_api_url()
+
+            temporary_token = create_token(username=self._api_username, ttl=ttl, service=True)
+            self._client = Client(api_url=api_url, token=temporary_token.token)
+            self._token_expire = get_datetime_utc_now() + timedelta(seconds=ttl)
+
+        return self._client

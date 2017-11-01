@@ -21,7 +21,6 @@ import time
 
 from oslo_config import cfg
 
-from st2actions.container.service import RunnerContainerService
 from st2common import log as logging
 from st2common.constants import action as action_constants
 from st2common.persistence.executionstate import ActionExecutionState
@@ -55,7 +54,7 @@ class Querier(object):
 
         return config_value
 
-    def __init__(self, container_service=None):
+    def __init__(self):
         self._empty_q_sleep_time = self._get_config_value('empty_q_sleep_time')
         self._no_workers_sleep_time = self._get_config_value('no_workers_sleep_time')
         self._query_interval = self._get_config_value('query_interval')
@@ -63,12 +62,6 @@ class Querier(object):
         self._query_contexts = Queue.Queue()
         self._thread_pool = eventlet.GreenPool(self._query_thread_pool_size)
         self._started = False
-
-        self.container_service = (
-            RunnerContainerService()
-            if not container_service
-            else container_service
-        )
 
     def start(self):
         self._started = True
@@ -145,7 +138,9 @@ class Querier(object):
                 status == action_constants.LIVEACTION_STATUS_PAUSED):
             runners_utils.invoke_post_run(liveaction_db)
             self._delete_state_object(query_context)
-
+            LOG.debug(
+                "Detailed workflow liveaction results - ", extra={'liveaction_db': liveaction_db}
+            )
             return
 
         self._query_contexts.put((this_query_time, query_context))

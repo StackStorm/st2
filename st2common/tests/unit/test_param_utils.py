@@ -473,7 +473,7 @@ class ParamsUtilsTest(DbTestCase):
             param_utils.get_finalized_params(runner_param_info, action_param_info, params, {})
             test_pass = False
         except ParamException as e:
-            test_pass = e.message.find('Dependecy') == 0
+            test_pass = e.message.find('Dependency') == 0
         self.assertTrue(test_pass)
 
         params = {}
@@ -484,7 +484,7 @@ class ParamsUtilsTest(DbTestCase):
             param_utils.get_finalized_params(runner_param_info, action_param_info, params, {})
             test_pass = False
         except ParamException as e:
-            test_pass = e.message.find('Dependecy') == 0
+            test_pass = e.message.find('Dependency') == 0
         self.assertTrue(test_pass)
 
     def test_get_finalized_params_no_double_rendering(self):
@@ -619,3 +619,175 @@ class ParamsUtilsTest(DbTestCase):
             )
 
         return liveaction_db
+
+    def test_get_live_params_with_additional_context(self):
+        runner_param_info = {
+            'r1': {
+                'default': 'some'
+            }
+        }
+        action_param_info = {
+            'r2': {
+                'default': '{{ r1 }}'
+            }
+        }
+        params = {
+            'r3': 'lolcathost',
+            'r1': '{{ additional.stuff }}'
+        }
+        action_context = {}
+        additional_contexts = {
+            'additional': {
+                'stuff': 'generic'
+            }
+        }
+
+        live_params = param_utils.render_live_params(
+            runner_param_info, action_param_info, params, action_context, additional_contexts)
+
+        expected_params = {
+            'r1': 'generic',
+            'r2': 'generic',
+            'r3': 'lolcathost'
+        }
+        self.assertEqual(live_params, expected_params)
+
+    def test_cyclic_dependency_friendly_error_message(self):
+        runner_param_info = {
+            'r1': {
+                'default': 'some',
+                'cyclic': 'cyclic value',
+                'morecyclic': 'cyclic value'
+            }
+        }
+        action_param_info = {
+            'r2': {
+                'default': '{{ r1 }}'
+            }
+        }
+        params = {
+            'r3': 'lolcathost',
+            'cyclic': '{{ cyclic }}',
+            'morecyclic': '{{ morecyclic }}'
+        }
+        action_context = {}
+
+        expected_msg = 'Cyclic dependency found in the following variables: cyclic, morecyclic'
+        self.assertRaisesRegexp(ParamException, expected_msg, param_utils.render_live_params,
+                                runner_param_info, action_param_info, params, action_context)
+
+    def test_unsatisfied_dependency_friendly_error_message(self):
+        runner_param_info = {
+            'r1': {
+                'default': 'some',
+            }
+        }
+        action_param_info = {
+            'r2': {
+                'default': '{{ r1 }}'
+            }
+        }
+        params = {
+            'r3': 'lolcathost',
+            'r4': '{{ variable_not_defined }}',
+        }
+        action_context = {}
+
+        expected_msg = 'Dependency unsatisfied in variable "variable_not_defined"'
+        self.assertRaisesRegexp(ParamException, expected_msg, param_utils.render_live_params,
+                                runner_param_info, action_param_info, params, action_context)
+
+    def test_add_default_templates_to_live_params(self):
+        """Test addition of template values in defaults to live params
+        """
+
+        # Ensure parameter is skipped if the parameter has immutable set to true in schema
+        schemas = [
+            {
+                'templateparam': {
+                    'default': '{{ 3 | int }}',
+                    'type': 'integer',
+                    'immutable': True
+                }
+            }
+        ]
+        context = {
+            'templateparam': '3'
+        }
+        result = param_utils._cast_params_from({}, context, schemas)
+        self.assertEquals(result, {})
+
+        # Test with no live params, and two parameters - one should make it through because
+        # it was a template, and the other shouldn't because its default wasn't a template
+        schemas = [
+            {
+                'templateparam': {
+                    'default': '{{ 3 | int }}',
+                    'type': 'integer'
+                }
+            }
+        ]
+        context = {
+            'templateparam': '3'
+        }
+        result = param_utils._cast_params_from({}, context, schemas)
+        self.assertEquals(result, {'templateparam': 3})
+
+        # Ensure parameter is skipped if the value in context is identical to default
+        schemas = [
+            {
+                'nottemplateparam': {
+                    'default': '4',
+                    'type': 'integer'
+                }
+            }
+        ]
+        context = {
+            'nottemplateparam': '4',
+        }
+        result = param_utils._cast_params_from({}, context, schemas)
+        self.assertEquals(result, {})
+
+        # Ensure parameter is skipped if the parameter doesn't have a default
+        schemas = [
+            {
+                'nottemplateparam': {
+                    'type': 'integer'
+                }
+            }
+        ]
+        context = {
+            'nottemplateparam': '4',
+        }
+        result = param_utils._cast_params_from({}, context, schemas)
+        self.assertEquals(result, {})
+
+        # Skip if the default value isn't a Jinja expression
+        schemas = [
+            {
+                'nottemplateparam': {
+                    'default': '5',
+                    'type': 'integer'
+                }
+            }
+        ]
+        context = {
+            'nottemplateparam': '4',
+        }
+        result = param_utils._cast_params_from({}, context, schemas)
+        self.assertEquals(result, {})
+
+        # Ensure parameter is skipped if the parameter is being overridden
+        schemas = [
+            {
+                'templateparam': {
+                    'default': '{{ 3 | int }}',
+                    'type': 'integer'
+                }
+            }
+        ]
+        context = {
+            'templateparam': '4',
+        }
+        result = param_utils._cast_params_from({'templateparam': '4'}, context, schemas)
+        self.assertEquals(result, {'templateparam': 4})

@@ -60,12 +60,15 @@ def get_filters():
     from st2common.jinja.filters import time
     from st2common.jinja.filters import version
     from st2common.jinja.filters import json_escape
+    from st2common.jinja.filters import jsonpath_query
 
     # IMPORTANT NOTE - these filters were recently duplicated in st2mistral so that
     # they are also available in Mistral workflows. Please ensure any additions you
     # make here are also made there so that feature parity is maintained.
     return {
         'decrypt_kv': crypto.decrypt_kv,
+        'from_json_string': data.from_json_string,
+        'from_yaml_string': data.from_yaml_string,
         'to_json_string': data.to_json_string,
         'to_yaml_string': data.to_yaml_string,
 
@@ -89,7 +92,8 @@ def get_filters():
         'version_strip_patch': version.version_strip_patch,
         'use_none': use_none,
 
-        'json_escape': json_escape.json_escape
+        'json_escape': json_escape.json_escape,
+        'jsonpath_query': jsonpath_query.jsonpath_query
     }
 
 

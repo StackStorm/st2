@@ -380,6 +380,29 @@ class TestRuleController(FunctionalTest):
                          'rule_type should be backstop')
         self.__do_delete(rule_id)
 
+    def test_update_rule_no_data(self):
+        post_resp = self.__do_post(self.RULE_1)
+        rule_1_id = self.__get_rule_id(post_resp)
+
+        put_resp = self.__do_put(rule_1_id, {})
+        expected_msg = "'name' is a required property"
+        self.assertEqual(put_resp.status_code, http_client.BAD_REQUEST)
+        self.assertEqual(put_resp.json['faultstring'], expected_msg)
+
+        self.__do_delete(rule_1_id)
+
+    def test_update_rule_missing_id_in_body(self):
+        post_resp = self.__do_post(self.RULE_1)
+        rule_1_id = self.__get_rule_id(post_resp)
+
+        rule_without_id = copy.deepcopy(self.RULE_1)
+        rule_without_id.pop('id', None)
+        put_resp = self.__do_put(rule_1_id, rule_without_id)
+        self.assertEqual(put_resp.status_int, http_client.OK)
+        self.assertEqual(put_resp.json['id'], rule_1_id)
+
+        self.__do_delete(rule_1_id)
+
     @staticmethod
     def __get_rule_id(resp):
         return resp.json['id']

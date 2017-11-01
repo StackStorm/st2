@@ -198,6 +198,10 @@ class TestStreamController(FunctionalTest):
                 elif index == 9:
                     meta = META('st2.execution.output', 'create')
                     process_output(output_api_stderr, meta)
+                elif index == 10:
+                    meta = META('st2.announcement', 'errbot')
+                    process_no_api_model({}, meta)
+
                 else:
                     break
 
@@ -210,10 +214,11 @@ class TestStreamController(FunctionalTest):
         resp = stream.StreamController().get_all()
 
         received_messages = dispatch_and_handle_mock_data(resp)
-        self.assertEqual(len(received_messages), 8)
+        self.assertEqual(len(received_messages), 9)
         self.assertTrue('st2.execution__create' in received_messages[0])
         self.assertTrue('st2.liveaction__delete' in received_messages[5])
         self.assertTrue('st2.announcement__chatops' in received_messages[7])
+        self.assertTrue('st2.announcement__errbot' in received_messages[8])
 
         # 1. ?events= filter
         # No filter provided - all messages should be received
@@ -221,11 +226,12 @@ class TestStreamController(FunctionalTest):
         resp = stream.StreamController().get_all()
 
         received_messages = dispatch_and_handle_mock_data(resp)
-        self.assertEqual(len(received_messages), 10)
+        self.assertEqual(len(received_messages), 11)
         self.assertTrue('st2.execution__create' in received_messages[0])
         self.assertTrue('st2.announcement__chatops' in received_messages[7])
         self.assertTrue('st2.execution.output__create' in received_messages[8])
         self.assertTrue('st2.execution.output__create' in received_messages[9])
+        self.assertTrue('st2.announcement__errbot' in received_messages[10])
 
         # Filter provided, only three messages should be received
         events = ['st2.execution__create', 'st2.liveaction__delete']
@@ -249,6 +255,16 @@ class TestStreamController(FunctionalTest):
         self.assertTrue('st2.liveaction__create' in received_messages[1])
         self.assertTrue('st2.liveaction__delete' in received_messages[2])
         self.assertTrue('st2.liveaction__delete' in received_messages[3])
+
+        # Glob filter
+        events = ['st2.announcement__*']
+        events = ','.join(events)
+        resp = stream.StreamController().get_all(events=events)
+
+        received_messages = dispatch_and_handle_mock_data(resp)
+        self.assertEqual(len(received_messages), 2)
+        self.assertTrue('st2.announcement__chatops' in received_messages[0])
+        self.assertTrue('st2.announcement__errbot' in received_messages[1])
 
         # Filter provided
         events = ['st2.execution.output__create']

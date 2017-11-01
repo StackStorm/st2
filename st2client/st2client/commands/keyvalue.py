@@ -72,10 +72,10 @@ class KeyValuePairListCommand(resource.ResourceTableCommand):
         self.default_limit = 50
         self.resource_name = resource.get_plural_display_name().lower()
         # Filter options
-        self.parser.add_argument('--prefix', help=('Only return values which name starts with the '
-                                                   ' provided prefix.'))
+        self.parser.add_argument('--prefix', help=('Only return values with names starting with '
+                                                   'the provided prefix.'))
         self.parser.add_argument('--decrypt', action='store_true',
-                                 help='Decrypt secrets and display plain text.')
+                                 help='Decrypt secrets and displays plain text.')
         self.parser.add_argument('-s', '--scope', default='system', dest='scope',
                                  help='Scope item is under. Example: "user".')
         self.parser.add_argument('-u', '--user', dest='user', default=None,
@@ -157,7 +157,7 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
                                  help='TTL (in seconds) for this value.')
         self.parser.add_argument('-e', '--encrypt', dest='secret',
                                  action='store_true',
-                                 help='Encrypt value before saving the value.')
+                                 help='Encrypt value before saving.')
         self.parser.add_argument('-s', '--scope', dest='scope', default=DEFAULT_SCOPE,
                                  help='Specify the scope under which you want ' +
                                       'to place the item.')
@@ -268,38 +268,72 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
         super(KeyValuePairLoadCommand, self).__init__(resource, 'load',
                                                       help_text, *args, **kwargs)
 
+        self.parser.add_argument('-c', '--convert', action='store_true',
+                                 help=('Convert non-string types (hash, array, boolean,'
+                                       ' int, float) to a JSON string before loading it'
+                                       ' into the datastore.'))
         self.parser.add_argument(
-            'file', help=('JSON file containing the %s to create.'
+            'file', help=('JSON/YAML file containing the %s(s) to load'
                           % resource.get_plural_display_name().lower()))
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
+        # normalize the file path to allow for relative files to be specified
         file_path = os.path.normpath(pjoin(os.getcwd(), args.file))
 
-        if not os.path.exists(args.file):
-            raise ValueError('File "%s" doesn\'t exist' % (file_path))
+        # load the data (JSON/YAML) from the file
+        kvps = resource.load_meta_file(file_path)
 
-        if not os.path.isfile(args.file):
-            raise ValueError('"%s" is not a file' % (file_path))
-
-        with open(file_path, 'r') as f:
-            kvps = json.loads(f.read())
+        # if the data is not a list (ie. it's a single entry)
+        # then make it a list so our process loop is generic
+        if not isinstance(kvps, list):
+            kvps = [kvps]
 
         instances = []
         for item in kvps:
+            # parse required KeyValuePair properties
             name = item['name']
             value = item['value']
 
+            # parse optional KeyValuePair properties
+            scope = item.get('scope', DEFAULT_SCOPE)
+            user = item.get('user', None)
+            secret = item.get('secret', False)
+            ttl = item.get('ttl', None)
+
+            # if the value is not a string, convert it to JSON
+            # all keys in the datastore must strings
+            if not isinstance(value, basestring):
+                if args.convert:
+                    value = json.dumps(value)
+                else:
+                    raise ValueError(("Item '%s' has a value that is not a string."
+                                      " Either pass in the -c/--convert option to convert"
+                                      " non-string types to JSON strings automatically, or"
+                                      " convert the data to a string in the file") % name)
+
+            # create the KeyValuePair instance
             instance = KeyValuePair()
             instance.id = name  # TODO: refactor and get rid of id
             instance.name = name
             instance.value = value
+            instance.scope = scope
+            if user:
+                instance.user = user
+            if secret:
+                instance.secret = secret
+            if ttl:
+                instance.ttl = ttl
 
+            # call the API to create/update the KeyValuePair
             self.manager.update(instance, **kwargs)
             instances.append(instance)
+
         return instances
 
     def run_and_print(self, args, **kwargs):
         instances = self.run(args, **kwargs)
         self.print_output(instances, table.MultiColumnTable,
-                          attributes=['id', 'name', 'value'], json=args.json, yaml=args.yaml)
+                          attributes=['name', 'value', 'secret', 'scope', 'user', 'ttl'],
+                          json=args.json,
+                          yaml=args.yaml)
