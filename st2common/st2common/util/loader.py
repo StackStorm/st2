@@ -31,7 +31,10 @@ __all__ = [
 
 
 LOG = logging.getLogger(__name__)
-PYTHON_EXTENSIONS = ('.py')
+
+PYTHON_EXTENSION = '.py'
+ALLOWED_EXTS = ['.json', '.yaml', '.yml']
+PARSER_FUNCS = {'.json': json.load, '.yml': yaml.safe_load, '.yaml': yaml.safe_load}
 
 # Cache for dynamically loaded runner modules
 RUNNER_MODULES_CACHE = {}
@@ -51,7 +54,7 @@ def _register_plugin_path(plugin_dir_abs_path):
 
 def _get_plugin_module(plugin_file_path):
     plugin_module = os.path.basename(plugin_file_path)
-    if plugin_module.endswith(PYTHON_EXTENSIONS):
+    if plugin_module.endswith(PYTHON_EXTENSION):
         plugin_module = plugin_module[:plugin_module.rfind('.py')]
     else:
         plugin_module = None
@@ -210,10 +213,6 @@ def register_callback_module(module_name):
         LOG.info('Reusing callback module "%s" from cache.', module_path)
 
     return CALLBACK_MODULES_CACHE[module_name]
-
-
-ALLOWED_EXTS = ['.json', '.yaml', '.yml']
-PARSER_FUNCS = {'.json': json.load, '.yml': yaml.safe_load, '.yaml': yaml.safe_load}
 
 
 def load_meta_file(file_path):

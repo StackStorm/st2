@@ -15,9 +15,9 @@
 
 import os
 
-from st2actions.runners.pythonrunner import Action
 from st2client.client import Client
 from st2client.models.keyvalue import KeyValuePair  # pylint: disable=no-name-in-module
+from st2common.runners.base_action import Action
 
 __all__ = [
     'St2RegisterAction'

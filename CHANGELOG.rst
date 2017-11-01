@@ -1,8 +1,32 @@
 Changelog
 =========
 
-In development
+in development
 --------------
+
+Changed
+~~~~~~~
+
+* ``st2actions.runners.pythonrunner.Action`` class path for base Python runner actions has been
+  deprecated since StackStorm v1.6.0 and will be fully removed in StackStorm v2.7.0. If you have
+  any actions still using this path you are encouraged to update them to use
+  ``st2common.runners.base_action.Action`` path. #3803
+* Refactor ``st2common`` Python package so it's fully self sustaining and can be used in a
+  standalone manner. (improvement) #3803
+* Refactor Python action runner so it only depends on ``st2common`` Python package (previously it
+  also depended on ``st2actions``) and can be used in a standalone mode. Previously pack config and
+  and some other parameters were retrieved inside the Python process wrapper, but now they are
+  retrieved inside the runner container and passed to the runner. This also makes it easier to add
+  support for pack configs to other runners in the future. (improvement) #3803
+
+Fixed
+~~~~~
+
+* Fully fix performance regressions for short Python runner actions introduced in the past and
+  partially fixed in #3809. (bug fix) #3803
+
+2.5.0 - October 25, 2017
+------------------------
 
 Added
 ~~~~~
@@ -47,7 +71,7 @@ Added
 
   Contributed by @lampwins.
 * Allow user to use more expressive regular expressions inside action alias format string by
-  allowing them to specify start (``^``) end end (``$``) anchors. Previously, those anchors were
+  allowing them to specify start (``^``) and end (``$``) anchors. Previously, those anchors were
   automatically added at the beginning and end of the alias format string. Now they are only added
   if a format string doesn't already contain them. #3789
 
@@ -58,6 +82,12 @@ Added
   This API endpoint is meant to be used with chat bot plugins. It allows them to be simple thin
   wrappers around this API endpoint which send each chat line to this API endpoint and handle the
   response. #3773
+* Add several improvements to the installation scripts: They support using proxy servers.
+  ``~stanley`` no longer has to be ``/home/stanley``. In addition to the on-screen display, the
+  output from the installation script is now logged to a file beginning with ``st2-install`` under
+  ``/var/log/st2/``. Furthermore, the script handles re-runs better, although it's
+  not fully idempotent yet. More improvements are expected in the near future.
+  st2-packages: #505, #506, #507, #508, #509, #510, #512, #517.
 
 Fixed
 ~~~~~
