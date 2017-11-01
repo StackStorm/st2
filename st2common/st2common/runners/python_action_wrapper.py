@@ -15,7 +15,6 @@
 
 import os
 import sys
-import inspect
 
 # Note: This work-around is required to fix the issue with other Python modules which live
 # inside this directory polluting and masking sys.path for Python runner actions.
@@ -217,10 +216,10 @@ class PythonActionWrapper(object):
             raise Exception('File "%s" has no action class or the file doesn\'t exist.' %
                             (self._file_path))
 
-        # Note: We need to use inspect.mro because action_cls.__class__ actually points tothe
-        # parent class (ABCMeta)
-        action_class = inspect.getmro(action_cls)[0]
-        self._class_name = action_class.__name__
+        # Retrieve name of the action class
+        # Note - we need to either use cls.__name_ or inspect.getmro(cls)[0].__name__ to
+        # retrieve a correct name
+        self._class_name = action_cls.__name__
 
         action_service = ActionService(action_wrapper=self)
         action_instance = get_action_class_instance(action_cls=action_cls,
