@@ -76,15 +76,24 @@ def get_runner(config=None):
 class PythonRunner(ActionRunner):
 
     def __init__(self, runner_id, config=None, timeout=PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT,
-                 log_level='debug'):
+                 log_level='debug', sandbox=True):
+
         """
         :param timeout: Action execution timeout in seconds.
         :type timeout: ``int``
+
+        :param log_level: Log level to use for the child actions.
+        :type log_level: ``str``
+
+        :param sandbox: True to use python binary from pack-specific virtual environment for the
+                        child action False to use a default system python binary from PATH.
+        :type sandbox: ``bool``
         """
         super(PythonRunner, self).__init__(runner_id=runner_id)
         self._config = config
         self._timeout = timeout
         self._log_level = log_level
+        self._sandbox = sandbox
 
     def pre_run(self):
         super(PythonRunner, self).pre_run()
@@ -106,7 +115,10 @@ class PythonRunner(ActionRunner):
         LOG.debug('Getting virtualenv_path.')
         virtualenv_path = get_sandbox_virtualenv_path(pack=pack)
         LOG.debug('Getting python path.')
-        python_path = get_sandbox_python_binary_path(pack=pack)
+        if self._sandbox:
+            python_path = get_sandbox_python_binary_path(pack=pack)
+        else:
+            python_path = sys.executable
 
         LOG.debug('Checking virtualenv path.')
         if virtualenv_path and not os.path.isdir(virtualenv_path):
