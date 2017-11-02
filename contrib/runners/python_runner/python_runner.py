@@ -55,6 +55,7 @@ __all__ = [
 # constants to lookup in runner_parameters.
 RUNNER_ENV = 'env'
 RUNNER_TIMEOUT = 'timeout'
+RUNNER_LOG_LEVEL = 'log_level'
 
 # Environment variables which can't be specified by the user
 BLACKLISTED_ENV_VARS = [
@@ -74,7 +75,9 @@ def get_runner(config=None):
 
 class PythonRunner(ActionRunner):
 
-    def __init__(self, runner_id, config=None, timeout=PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT, sandbox=True):
+    def __init__(self, runner_id, config=None, timeout=PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT,
+                 log_level='debug', sandbox=True):
+
         """
         :param timeout: Action execution timeout in seconds.
         :type timeout: ``int``
@@ -82,6 +85,7 @@ class PythonRunner(ActionRunner):
         super(PythonRunner, self).__init__(runner_id=runner_id)
         self._config = config
         self._timeout = timeout
+        self._log_level = log_level
         self._sandbox = sandbox
 
     def pre_run(self):
@@ -91,6 +95,7 @@ class PythonRunner(ActionRunner):
         # the runner instance is even worse. Those arguments should be passed to the constructor.
         self._env = self.runner_parameters.get(RUNNER_ENV, {})
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, self._timeout)
+        self._log_level = self.runner_parameters.get(RUNNER_LOG_LEVEL, self._log_level)
 
     def run(self, action_parameters):
         LOG.debug('Running pythonrunner.')
@@ -136,6 +141,10 @@ class PythonRunner(ActionRunner):
 
         if self._config:
             args.append('--config=%s' % (json.dumps(self._config)))
+
+        if self._log_level != 'debug':
+            # We only pass --log-level parameter if non default log level value is specified
+            args.append('--log-level=%s' % (self._log_level))
 
         # We need to ensure all the st2 dependencies are also available to the
         # subprocess
