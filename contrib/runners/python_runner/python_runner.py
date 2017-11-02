@@ -55,6 +55,7 @@ __all__ = [
 # constants to lookup in runner_parameters.
 RUNNER_ENV = 'env'
 RUNNER_TIMEOUT = 'timeout'
+RUNNER_LOG_LEVEL = 'log_level'
 
 # Environment variables which can't be specified by the user
 BLACKLISTED_ENV_VARS = [
@@ -74,13 +75,14 @@ def get_runner():
 
 class PythonRunner(ActionRunner):
 
-    def __init__(self, runner_id, timeout=PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT):
+    def __init__(self, runner_id, timeout=PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT, log_level='debug'):
         """
         :param timeout: Action execution timeout in seconds.
         :type timeout: ``int``
         """
         super(PythonRunner, self).__init__(runner_id=runner_id)
         self._timeout = timeout
+        self._log_level = log_level
 
     def pre_run(self):
         super(PythonRunner, self).pre_run()
@@ -90,6 +92,7 @@ class PythonRunner(ActionRunner):
         # be passed to the constructor.
         self._env = self.runner_parameters.get(RUNNER_ENV, {})
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, self._timeout)
+        self._log_level = self.runner_parameters.get(RUNNER_LOG_LEVEL, self._log_level)
 
     def run(self, action_parameters):
         LOG.debug('Running pythonrunner.')
@@ -127,6 +130,10 @@ class PythonRunner(ActionRunner):
             '--user=%s' % (user),
             '--parent-args=%s' % (json.dumps(sys.argv[1:]))
         ]
+
+        if self._log_level != 'debug':
+            # We only pass --log-level parameter if non default log level value is specified
+            args.append('--log-level=%s' % (self._log_level))
 
         # We need to ensure all the st2 dependencies are also available to the
         # subprocess

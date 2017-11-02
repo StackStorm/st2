@@ -82,11 +82,16 @@ class ActionService(object):
 
         if not self._datastore_service:
             action_name = self._action_wrapper._class_name
-            logger = get_logger_for_python_runner_action(action_name=action_name)
+            log_level = self._action_wrapper._log_level
+            logger = get_logger_for_python_runner_action(action_name=action_name,
+                                                         log_level=log_level)
+            pack_name = self._action_wrapper._pack
+            class_name = self._action_wrapper._class_name
             self._datastore_service = DatastoreService(logger=logger,
-                                                       pack_name=self._action_wrapper._pack,
-                                                       class_name=self._action_wrapper._class_name,
+                                                       pack_name=pack_name,
+                                                       class_name=class_name,
                                                        api_username='action_service')
+
         return self._datastore_service
 
     ##################################
@@ -108,7 +113,8 @@ class ActionService(object):
 
 
 class PythonActionWrapper(object):
-    def __init__(self, pack, file_path, parameters=None, user=None, parent_args=None):
+    def __init__(self, pack, file_path, parameters=None, user=None, parent_args=None,
+                 log_level='debug'):
         """
         :param pack: Name of the pack this action belongs to.
         :type pack: ``str``
@@ -131,6 +137,7 @@ class PythonActionWrapper(object):
         self._parameters = parameters or {}
         self._user = user
         self._parent_args = parent_args or []
+        self._log_level = log_level
 
         self._class_name = None
         self._logger = logging.getLogger('PythonActionWrapper')
@@ -244,19 +251,24 @@ if __name__ == '__main__':
     parser.add_argument('--user', required=False,
                         help='User who triggered the action execution')
     parser.add_argument('--parent-args', required=False,
-                        help='Command line arguments passed to the parent process')
+                        help='Command line arguments passed to the parent process serialized as '
+                             ' JSON')
+    parser.add_argument('--log-level', required=False, default='debug',
+                        help='Log level for actions')
     args = parser.parse_args()
 
     parameters = args.parameters
     parameters = json.loads(parameters) if parameters else {}
     user = args.user
     parent_args = json.loads(args.parent_args) if args.parent_args else []
+    log_level = args.log_level
 
     assert isinstance(parent_args, list)
     obj = PythonActionWrapper(pack=args.pack,
                               file_path=args.file_path,
                               parameters=parameters,
                               user=user,
-                              parent_args=parent_args)
+                              parent_args=parent_args,
+                              log_level=log_level)
 
     obj.run()
