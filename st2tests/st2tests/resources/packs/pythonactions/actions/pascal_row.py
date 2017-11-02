@@ -6,6 +6,8 @@ from st2common.runners.base_action import Action
 
 class PascalRowAction(Action):
     def run(self, **kwargs):
+        self.logger.info('test info log message')
+        self.logger.debug('test debug log message')
         return PascalRowAction._compute_pascal_row(**kwargs)
 
     @staticmethod
