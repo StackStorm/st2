@@ -13,3 +13,14 @@
       description: Action timeout in seconds. Action will get killed if it doesn't
         finish in timeout seconds.
       type: integer
+    log_level:
+      description: Default log level for Python runner actions.
+      type: string
+      default: DEBUG
+      enum:
+        - AUDIT
+        - CRITICAL
+        - ERROR
+        - WARNING
+        - INFO
+        - DEBUG
