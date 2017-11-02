@@ -28,6 +28,11 @@ Changed
   and some other parameters were retrieved inside the Python process wrapper, but now they are
   retrieved inside the runner container and passed to the runner. This also makes it easier to add
   support for pack configs to other runners in the future. (improvement) #3803
+* Update the output of ``st2 execution {run,get}`` CLI command to colorize the value of the
+  ``status`` attribute (green for ``succeeded``, red for ``failed``, etc. aka the same as for the
+  output of ``st2 execution list`` command). (improvement) #3810
+
+  Contributed by Nick Maludy.
 
 Fixed
 ~~~~~
