@@ -44,7 +44,7 @@ class Action(object):
         self.action_service = action_service
 
         if action_service and getattr(action_service, '_action_wrapper', None):
-            log_level = action_service._action_wrapper._log_level
+            log_level = getattr(action_service._action_wrapper, '_log_level', 'debug')
         else:
             log_level = 'debug'
 
