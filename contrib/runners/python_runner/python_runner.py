@@ -81,6 +81,13 @@ class PythonRunner(ActionRunner):
         """
         :param timeout: Action execution timeout in seconds.
         :type timeout: ``int``
+
+        :param log_level: Log level to use for the child actions.
+        :type log_level: ``str``
+
+        :param sandbox: True to use python binary from pack-specific virtual environment for the
+                        child action False to use a default system python binary from PATH.
+        :type sandbox: ``bool``
         """
         super(PythonRunner, self).__init__(runner_id=runner_id)
         self._config = config
