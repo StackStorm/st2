@@ -33,6 +33,7 @@ class ExecutionResult(formatters.Formatter):
     @classmethod
     def format(cls, entry, *args, **kwargs):
         attrs = kwargs.get('attributes', [])
+        attribute_transform_functions = kwargs.get('attribute_transform_functions', {})
         key = kwargs.get('key', None)
         if key:
             output = jsutil.get_value(entry.result, key)
@@ -59,6 +60,13 @@ class ExecutionResult(formatters.Formatter):
                                                      width=sys.maxint,
                                                      indent=2)[len(attr) + 2:-1]
                     value = ('\n' if isinstance(value, dict) else '') + formatted_value
+
+                # transform the value of our attribute so things like 'status'
+                # and 'timestamp' are formatted nicely
+                transform_function = attribute_transform_functions.get(attr,
+                                                                       lambda value: value)
+                value = transform_function(value=value)
+
                 output += ('\n' if output else '') + '%s: %s' % \
                     (DisplayColors.colorize(attr, DisplayColors.BLUE), value)
         return output
