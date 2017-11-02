@@ -8,6 +8,7 @@ class PascalRowAction(Action):
     def run(self, **kwargs):
         self.logger.info('test info log message')
         self.logger.debug('test debug log message')
+        self.logger.error('test error log message')
         return PascalRowAction._compute_pascal_row(**kwargs)
 
     @staticmethod

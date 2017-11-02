@@ -570,7 +570,11 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
                        'No module named invalid')
         self.assertRaisesRegexp(Exception, expected_msg, wrapper._get_action_instance)
 
-    def test_simple_action_log_messages(self):
+    def test_simple_action_log_messages_and_log_level_runner_param(self):
+        expected_msg_1 = 'st2.actions.python.PascalRowAction: INFO     test info log message'
+        expected_msg_2 = 'st2.actions.python.PascalRowAction: DEBUG    test debug log message'
+        expected_msg_3 = 'st2.actions.python.PascalRowAction: ERROR    test error log message'
+
         runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
         runner.pre_run()
@@ -579,11 +583,41 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertTrue(output is not None)
         self.assertEqual(output['result'], [1, 2])
 
-        expected_msg_1 = 'st2.actions.python.PascalRowAction: INFO     test info log message'
-        expected_msg_2 = 'st2.actions.python.PascalRowAction: DEBUG    test debug log message'
-
         self.assertTrue(expected_msg_1 in output['stderr'])
         self.assertTrue(expected_msg_2 in output['stderr'])
+        self.assertTrue(expected_msg_3 in output['stderr'])
+
+        # Only log messages with level info and above should be displayed
+        runner = self._get_mock_runner_obj()
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.runner_parameters = {
+            'log_level': 'info'
+        }
+        runner.pre_run()
+        (status, output, _) = runner.run({'row_index': 'e'})
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+        self.assertTrue(output is not None)
+        self.assertEqual(output['result'], [1, 2])
+
+        self.assertTrue(expected_msg_1 in output['stderr'])
+        self.assertFalse(expected_msg_2 in output['stderr'])
+        self.assertTrue(expected_msg_3 in output['stderr'])
+
+        # Only log messages with level error and above should be displayed
+        runner = self._get_mock_runner_obj()
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.runner_parameters = {
+            'log_level': 'error'
+        }
+        runner.pre_run()
+        (status, output, _) = runner.run({'row_index': 'e'})
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+        self.assertTrue(output is not None)
+        self.assertEqual(output['result'], [1, 2])
+
+        self.assertFalse(expected_msg_1 in output['stderr'])
+        self.assertFalse(expected_msg_2 in output['stderr'])
+        self.assertTrue(expected_msg_3 in output['stderr'])
 
     def _get_mock_runner_obj(self):
         runner = python_runner.get_runner()
