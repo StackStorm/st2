@@ -33,20 +33,22 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 
-def get_logger_for_python_runner_action(action_name):
+def get_logger_for_python_runner_action(action_name, log_level='debug'):
     """
     Set up a logger which logs all the messages with level DEBUG and above to stderr.
     """
+    level_name = log_level.upper()
+    log_level_constant = getattr(stdlib_logging, level_name, stdlib_logging.DEBUG)
     logger_name = 'actions.python.%s' % (action_name)
     logger = logging.getLogger(logger_name)
 
     console = stdlib_logging.StreamHandler()
-    console.setLevel(stdlib_logging.DEBUG)
+    console.setLevel(log_level_constant)
 
     formatter = stdlib_logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
     console.setFormatter(formatter)
     logger.addHandler(console)
-    logger.setLevel(stdlib_logging.DEBUG)
+    logger.setLevel(log_level_constant)
 
     return logger
 
