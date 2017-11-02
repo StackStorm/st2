@@ -43,7 +43,7 @@ Fixed
   Previously they always incorrectly used "ABCMeta" instead of the actual action class name.
   (bug fix) #3824
 * Fix ``st2 execution tail [last]`` CLI command so it doesn't throw an exception if there are no
-  executions in the database. (bug fix) #3802
+  executions in the database. (bug fix) #3760 #3802
 
 2.5.0 - October 25, 2017
 ------------------------
