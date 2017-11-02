@@ -13,9 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from st2client.models import core
 from st2client.models.action_alias import ActionAlias
 from st2client.models.action_alias import ActionAliasMatch
-from st2client.models.aliasexecution import ActionAliasExecution
 from st2client.commands import resource
 from st2client.formatters import table
 
@@ -115,23 +115,13 @@ class ActionAliasExecuteCommand(resource.ResourceCommand):
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        alias_match = ActionAliasMatch()
-        alias_match.command = args.command_text
+        payload = core.Resource()
+        payload.command = args.command_text
+        payload.user = args.user
+        payload.source_channel = 'cli'
 
-        action_alias, representation = self.manager.match(alias_match, **kwargs)
-
-        execution = ActionAliasExecution()
-        execution.name = action_alias.name
-        execution.format = representation
-        execution.command = args.command_text
-        execution.source_channel = 'cli'  # ?
-        execution.notification_channel = None
-        execution.notification_route = None
-        execution.user = args.user
-
-        action_exec_mgr = self.app.client.managers['ActionAliasExecution']
-
-        execution = action_exec_mgr.create(execution, **kwargs)
+        alias_execution_mgr = self.app.client.managers['ActionAliasExecution']
+        execution = alias_execution_mgr.match_and_execute(payload)
         return execution
 
     def run_and_print(self, args, **kwargs):

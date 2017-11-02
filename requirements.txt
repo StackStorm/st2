@@ -4,7 +4,6 @@ argcomplete
 bcrypt
 eventlet==0.19.0
 flex==6.10.0
-git+https://github.com/Kami/entrypoints.git@dont_use_backports#egg=entrypoints
 git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper
 git+https://github.com/StackStorm/python-mistralclient.git#egg=python-mistralclient
 git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2-auth-backend-flat-file

@@ -18,7 +18,7 @@ Mock classes for use in pack testing.
 """
 
 from st2common.constants.keyvalue import SYSTEM_SCOPE
-from st2common.services.datastore import DatastoreService
+from st2common.services.datastore import BaseDatastoreService
 from st2client.models.keyvalue import KeyValuePair
 
 __all__ = [
@@ -26,11 +26,12 @@ __all__ = [
 ]
 
 
-class MockDatastoreService(DatastoreService):
+class MockDatastoreService(BaseDatastoreService):
     """
     Mock DatastoreService for use in testing.
     """
-    def __init__(self, logger, pack_name, class_name, api_username):
+
+    def __init__(self, logger, pack_name, class_name, api_username=None):
         self._pack_name = pack_name
         self._class_name = class_name
 

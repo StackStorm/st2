@@ -40,8 +40,10 @@ LOG = logging.getLogger(__name__)
 RUNNER_COMMAND = 'cmd'
 
 
-def get_runner(module_name):
-    """Load the module and return an instance of the runner."""
+def get_runner(module_name, config=None):
+    """
+    Load the module and return an instance of the runner.
+    """
 
     LOG.debug('Runner loading python module: %s', module_name)
     try:
@@ -53,7 +55,12 @@ def get_runner(module_name):
 
     LOG.debug('Instance of runner module: %s', module)
 
-    runner = module.get_runner()
+    if config:
+        runner_kwargs = {'config': config}
+    else:
+        runner_kwargs = {}
+
+    runner = module.get_runner(**runner_kwargs)
     LOG.debug('Instance of runner: %s', runner)
     return runner
 
