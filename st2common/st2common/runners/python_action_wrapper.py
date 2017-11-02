@@ -84,7 +84,8 @@ class ActionService(object):
             # duration of the action lifetime
             action_name = self._action_wrapper._class_name
             log_level = self._action_wrapper._log_level
-            logger = get_logger_for_python_runner_action(action_name=action_name, log_level=log_level)
+            logger = get_logger_for_python_runner_action(action_name=action_name,
+                                                         log_level=log_level)
             pack_name = self._action_wrapper._pack
             class_name = self._action_wrapper._class_name
             auth_token = os.environ.get('ST2_ACTION_AUTH_TOKEN', None)
