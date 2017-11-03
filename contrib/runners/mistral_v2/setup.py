@@ -42,5 +42,10 @@ setup(
     zip_safe=False,
     include_package_data=True,
     py_modules=['mistral_v2'],
-    scripts=[]
+    scripts=[],
+    entry_points={
+        'st2common.runners.runner': [
+            'mistral_runner_v2 = mistral_v2',
+        ],
+    }
 )

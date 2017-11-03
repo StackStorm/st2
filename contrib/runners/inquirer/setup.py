@@ -41,5 +41,10 @@ setup(
     zip_safe=False,
     include_package_data=True,
     py_modules=['inquirer_runner'],
-    scripts=[]
+    scripts=[],
+    entry_points={
+        'st2common.runners.runner': [
+            'inquirer_runner = inquirer_runner',
+        ],
+    }
 )

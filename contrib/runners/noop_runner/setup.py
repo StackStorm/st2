@@ -41,5 +41,10 @@ setup(
     zip_safe=False,
     include_package_data=True,
     py_modules=['noop_runner'],
-    scripts=[]
+    scripts=[],
+    entry_points={
+        'st2common.runners.runner': [
+            'noop_runner = noop_runner',
+        ],
+    }
 )

@@ -42,5 +42,10 @@ setup(
     zip_safe=False,
     include_package_data=True,
     py_modules=['remote_command_runner'],
-    scripts=[]
+    scripts=[],
+    entry_points={
+        'st2common.runners.runner': [
+            'remote_command_runner = remote_command_runner',
+        ],
+    }
 )

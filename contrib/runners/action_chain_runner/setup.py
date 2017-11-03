@@ -42,5 +42,10 @@ setup(
     zip_safe=False,
     include_package_data=True,
     py_modules=['action_chain_runner'],
-    scripts=[]
+    scripts=[],
+    entry_points={
+        'st2common.runners.runner': [
+            'action_chain_runner = action_chain_runner',
+        ],
+    },
 )
