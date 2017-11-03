@@ -13,8 +13,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from stevedore.driver import DriverManager
+from stevedore.extension import ExtensionManager
+
 __all__ = [
-    'BACKENDS_NAMESPACE'
+    'BACKENDS_NAMESPACE',
+
+    'get_available_backends',
+    'get_backend_instance'
 ]
 
 BACKENDS_NAMESPACE = 'st2common.runners.runner'
+
+
+def get_available_backends():
+    """
+    Return names of the available / installed action runners.
+
+    :rtype: ``list`` of ``str``
+    """
+    manager = ExtensionManager(namespace=BACKENDS_NAMESPACE, invoke_on_load=False)
+    return manager.names()
+
+
+def get_backend_instance(name):
+    """
+    Return a class instance for the provided runner name.
+    """
+    manager = DriverManager(namespace=BACKENDS_NAMESPACE, name=name, invoke_on_load=False)
+    return manager.driver
