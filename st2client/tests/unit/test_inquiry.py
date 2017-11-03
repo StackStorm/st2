@@ -70,6 +70,29 @@ SCHEMA_DEFAULT = {
     },
 }
 
+SCHEMA_SECRET = {
+    "title": "response_data",
+    "type": "object",
+    "properties": {
+        "secondfactor": {
+            "type": "string",
+            "description": "Please enter secret second factor password",
+            "required": True,
+            "secret": True
+        },
+        "notsecret": {
+            "type": "string",
+            "description": "Please enter not secret obvious thing",
+            "required": True,
+        }
+    },
+}
+
+RESPONSE_SECRET = {
+    "secondfactor": "asdfoije",
+    "notsecret": "notmasked"
+}
+
 RESPONSE_DEFAULT = {
     "continue": True
 }
@@ -118,6 +141,15 @@ INQUIRY_1 = {
 INQUIRY_MULTIPLE = {
     "id": "beef",
     "schema": SCHEMA_MULTIPLE,
+    "roles": [],
+    "users": [],
+    "route": "",
+    "ttl": 1440
+}
+
+INQUIRY_SECRET = {
+    "id": "face",
+    "schema": SCHEMA_SECRET,
     "roles": [],
     "users": [],
     "route": "",
@@ -280,3 +312,26 @@ class TestInquirySubcommands(TestInquiryBase):
         self.assertEqual(retcode, 1)
         self.assertEqual('ERROR: Resource with id "%s" doesn\'t exist.' % inquiry_id,
                          self.stdout.getvalue().strip())
+
+    @mock.patch.object(
+        requests, 'get',
+        mock.MagicMock(return_value=(base.FakeResponse(
+            json.dumps(INQUIRY_SECRET), 200, 'OK'
+        ))))
+    @mock.patch.object(
+        requests, 'put',
+        mock.MagicMock(return_value=(base.FakeResponse(
+            json.dumps({"id": "face", "response": RESPONSE_SECRET}), 200, 'OK'
+        ))))
+    def test_respond_secret_mask(self):
+        """Test masking of values
+        """
+        args = ['inquiry', 'respond', '-r', '"%s"' % RESPONSE_SECRET, 'face']
+        retcode = self.shell.run(args)
+
+        table_out = self.stdout.getvalue().strip()
+        i = table_out.index("secondfactor")
+        y = table_out.index("notsecret")
+        self.assertEqual(table_out[i + 16:i + 22], "******")
+        self.assertEqual(table_out[y + 13:y + 22], "notmasked")
+        self.assertEqual(retcode, 0)
