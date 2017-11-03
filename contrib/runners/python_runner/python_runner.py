@@ -26,6 +26,7 @@ from eventlet.green import subprocess
 
 from st2common import log as logging
 from st2common.runners.base import ActionRunner
+from st2common.runners.base import get_metadata as get_runner_metadata
 from st2common.util.green.shell import run_command
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
@@ -45,12 +46,14 @@ from st2common.runners import python_action_wrapper
 from st2common.services.action import store_execution_output_data
 from st2common.runners.utils import make_read_and_store_stream_func
 
-LOG = logging.getLogger(__name__)
-
 __all__ = [
-    'get_runner',
     'PythonRunner',
+
+    'get_runner',
+    'get_runner_metadata',
 ]
+
+LOG = logging.getLogger(__name__)
 
 # constants to lookup in runner_parameters.
 RUNNER_ENV = 'env'
@@ -66,11 +69,6 @@ BLACKLISTED_ENV_VARS = [
 BASE_DIR = os.path.dirname(os.path.abspath(python_action_wrapper.__file__))
 WRAPPER_SCRIPT_NAME = 'python_action_wrapper.py'
 WRAPPER_SCRIPT_PATH = os.path.join(BASE_DIR, WRAPPER_SCRIPT_NAME)
-
-
-def get_runner(config=None):
-    'RunnerTestCase',
-    return PythonRunner(runner_id=str(uuid.uuid4()), config=config)
 
 
 class PythonRunner(ActionRunner):
@@ -327,3 +325,11 @@ class PythonRunner(ActionRunner):
         env_vars[API_URL_ENV_VARIABLE_NAME] = get_full_public_api_url()
 
         return env_vars
+
+
+def get_runner(config=None):
+    return PythonRunner(runner_id=str(uuid.uuid4()), config=config)
+
+
+def get_metadata():
+    return get_runner_metadata('python_runner')

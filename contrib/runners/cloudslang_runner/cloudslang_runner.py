@@ -26,21 +26,24 @@ from st2common.util.shell import kill_process
 from st2common.util.shell import quote_unix
 from st2common import log as logging
 from st2common.runners.base import ActionRunner
+from st2common.runners.base import get_metadata as get_runner_metadata
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.runners import LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT
 import st2common.util.jsonify as jsonify
 
+__all__ = [
+    'CloudSlangRunner',
+
+    'get_runner',
+    'get_metadata'
+]
 
 LOG = logging.getLogger(__name__)
 
 # constants to lookup in runner_parameters.
 RUNNER_INPUTS = 'inputs'
 RUNNER_TIMEOUT = 'timeout'
-
-
-def get_runner():
-    return CloudSlangRunner(str(uuid.uuid4()))
 
 
 class CloudSlangRunner(ActionRunner):
@@ -149,3 +152,11 @@ class CloudSlangRunner(ActionRunner):
 
         status = LIVEACTION_STATUS_SUCCEEDED if succeeded else LIVEACTION_STATUS_FAILED
         return result, status
+
+
+def get_runner():
+    return CloudSlangRunner(str(uuid.uuid4()))
+
+
+def get_metadata():
+    return get_runner_metadata('cloudslang_runner')

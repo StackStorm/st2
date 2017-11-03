@@ -42,6 +42,9 @@ setup(
     zip_safe=False,
     include_package_data=True,
     py_modules=['mistral_v2'],
+    data_files=[
+        ('metadata', ['runner.yaml'])
+    ],
     scripts=[],
     entry_points={
         'st2common.runners.runner': [

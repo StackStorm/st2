@@ -28,6 +28,7 @@ from st2common.constants import runners as runner_constants
 from st2common import log as logging
 from st2common.runners.base import ActionRunner
 from st2common.runners.base import ShellRunnerMixin
+from st2common.runners.base import get_metadata as get_runner_metadata
 from st2common.models.system.action import ShellCommandAction
 from st2common.models.system.action import ShellScriptAction
 from st2common.util.misc import strip_shell_chars
@@ -38,7 +39,10 @@ from st2common.services.action import store_execution_output_data
 from st2common.runners.utils import make_read_and_store_stream_func
 
 __all__ = [
-    'get_runner'
+    'LocalShellRunner',
+
+    'get_runner',
+    'get_metadata'
 ]
 
 LOG = logging.getLogger(__name__)
@@ -61,10 +65,6 @@ PROC_EXIT_CODE_TO_LIVEACTION_STATUS_MAP = {
     str(-1 * exit_code_constants.SIGKILL_EXIT_CODE): action_constants.LIVEACTION_STATUS_TIMED_OUT,
     str(-1 * exit_code_constants.SIGTERM_EXIT_CODE): action_constants.LIVEACTION_STATUS_ABANDONED
 }
-
-
-def get_runner():
-    return LocalShellRunner(str(uuid.uuid4()))
 
 
 class LocalShellRunner(ActionRunner, ShellRunnerMixin):
@@ -203,3 +203,11 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         )
 
         return (status, jsonify.json_loads(result, LocalShellRunner.KEYS_TO_TRANSFORM), None)
+
+
+def get_runner():
+    return LocalShellRunner(str(uuid.uuid4()))
+
+
+def get_metadata():
+    return get_runner_metadata('local_runner')
