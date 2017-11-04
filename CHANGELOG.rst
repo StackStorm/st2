@@ -33,6 +33,8 @@ Changed
   output of ``st2 execution list`` command). (improvement) #3810
 
   Contributed by Nick Maludy.
+* Mask values in an Inquiry response displayed to the user that were marked as "secret" in the
+  inquiry's response schema #3825
 
 Fixed
 ~~~~~
