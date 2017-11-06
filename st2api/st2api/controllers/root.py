@@ -14,17 +14,19 @@
 # limitations under the License.
 
 __all__ = [
-    'RootController'
+    'RootController',
+    'WhoAmIController'
 ]
 
 from oslo_config import cfg
 
 from st2common import __version__
+from st2common.rbac import utils as rbac_utils
 from st2common.services.rbac import get_roles_for_user
 
 
 class RootController(object):
-    def index(self, requester_user=None):
+    def index(self):
         data = {}
 
         if 'dev' in __version__:
@@ -33,10 +35,21 @@ class RootController(object):
             docs_version = '.'.join(__version__.split('.')[:2])
             docs_url = 'http://docs.stackstorm.com/%s' % docs_version
 
-        if requester_user:
-            authenticated_user = requester_user.name
-        else:
-            authenticated_user = 'None'
+        data['version'] = __version__
+        data['docs_url'] = docs_url
+        return data
+
+
+class WhoAmIController(object):
+    def get(self, requester_user, auth_info):
+        """
+        Meta API endpoint wich returns information about the currently authenticated user.
+
+            Handle:
+                GET /v1/whoami
+        """
+
+        data = {}
 
         if cfg.CONF.rbac.enable and requester_user:
             role_dbs = get_roles_for_user(user_db=requester_user)
@@ -44,17 +57,20 @@ class RootController(object):
         else:
             roles = []
 
-        data['version'] = __version__
-        data['docs_url'] = docs_url
-        data['user'] = {
-            'authenticated': True if requester_user else None,
-            'username': authenticated_user,
+        data = {
+            'username': requester_user.name,
+            'authentication': {
+                'method': auth_info['method'],
+                'location': auth_info['location']
+            },
             'rbac': {
                 'enabled': cfg.CONF.rbac.enable,
-                'roles': roles
+                'roles': roles,
+                'is_admin': rbac_utils.user_is_admin(user_db=requester_user)
             },
         }
         return data
 
 
 root_controller = RootController()
+whoami_controller = WhoAmIController()

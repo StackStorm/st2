@@ -257,7 +257,18 @@ class Router(object):
                             auth_func = op_resolver(definition['x-operationId'])
                             auth_resp = auth_func(token)
 
+                            # Include information on how user authenticated inside the context
+                            if 'auth-token' in definition['name'].lower():
+                                auth_method = 'authentication token'
+                            elif 'api-key' in definition['name'].lower():
+                                auth_method = 'API key'
+
                             context['user'] = User.get_by_name(auth_resp.user)
+                            context['auth_info'] = {
+                                'method': auth_method,
+                                'location': definition['in']
+                            }
+                            context['authenticated_via'] = definition['name']
 
                             if 'x-set-cookie' in definition:
                                 max_age = auth_resp.expiry - date_utils.get_datetime_utc_now()

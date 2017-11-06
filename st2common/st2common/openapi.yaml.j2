@@ -223,6 +223,29 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /api/v1/whoami:
+    get:
+      operationId: st2api.controllers.root:whoami_controller.get
+      description: Metadata information about the authenticated user.
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+        - name: auth_info
+          in: context
+          x-as: auth_info
+          description: Information on how user authenticated.
+      responses:
+        '200':
+          description: Metadata information about the authenticated user.
+          schema:
+            type: object
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
   /api/v1/actions:
     get:
       operationId: st2api.controllers.v1.actions:actions_controller.get_all
