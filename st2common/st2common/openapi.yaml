@@ -223,7 +223,7 @@ paths:
             $ref: '#/definitions/Error'
   /api/v1/whoami:
     get:
-      operationId: st2api.controllers.root:whoami_controller.get
+      operationId: st2api.controllers.v1.whoami:whoami_controller.get
       description: Metadata information about the authenticated user.
       x-parameters:
         - name: user
