@@ -203,6 +203,11 @@ paths:
     get:
       operationId: st2api.controllers.root:root_controller.index
       description: General API info.
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: General API info.
