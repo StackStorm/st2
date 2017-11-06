@@ -811,3 +811,24 @@ class OperatorTest(unittest2.TestCase):
         self.assertFalse(op('a', None), 'Should return False')
         self.assertFalse(op('a', 'abc'), 'Should return False')
         self.assertTrue(op('a', 'bcd'), 'Should return True')
+
+
+class GetOperatorsTest(unittest2.TestCase):
+    def test_get_operator(self):
+        self.assertTrue(bool(operators.get_operator('equals')))
+        self.assertTrue(bool(operators.get_operator('EQUALS')))
+
+    def test_get_operator_returns_same_operator_with_different_cases(self):
+        equals = operators.get_operator('equals')
+        EQUALS = operators.get_operator('EQUALS')
+        Equals = operators.get_operator('Equals')
+        self.assertEqual(equals, EQUALS)
+        self.assertEqual(equals, Equals)
+
+    def test_get_operator_with_nonexistent_operator(self):
+        with self.assertRaises(Exception):
+            operators.get_operator('weird')
+
+    def test_get_allowed_operators(self):
+        # This test will need to change as operators are deprecated
+        self.assertGreater(len(operators.get_allowed_operators()), 0)
