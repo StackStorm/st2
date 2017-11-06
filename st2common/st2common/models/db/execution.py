@@ -22,6 +22,7 @@ from st2common.models.db import stormbase
 from st2common.fields import ComplexDateTimeField
 from st2common.util import date as date_utils
 from st2common.util.secrets import get_secret_parameters
+from st2common.util.secrets import mask_inquiry_response
 from st2common.util.secrets import mask_secret_parameters
 from st2common.constants.types import ResourceType
 
@@ -110,6 +111,14 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
         if 'parameters' in liveaction:
             liveaction['parameters'] = mask_secret_parameters(parameters=liveaction['parameters'],
                                                               secret_parameters=secret_parameters)
+
+        # TODO(mierdin): This logic should be moved to the dedicated Inquiry
+        # data model once it exists.
+        if self.runner.get('name') == "inquirer":
+            response = result['result'].get('response')
+            schema = result['result'].get('schema')
+            if response:
+                result['result']['response'] = mask_inquiry_response(response, schema)
         return result
 
     def get_masked_parameters(self):
