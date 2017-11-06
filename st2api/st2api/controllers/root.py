@@ -13,16 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__all__ = [
-    'RootController',
-    'WhoAmIController'
-]
-
 from oslo_config import cfg
 
 from st2common import __version__
 from st2common.rbac import utils as rbac_utils
 from st2common.services.rbac import get_roles_for_user
+
+__all__ = [
+    'RootController',
+    'WhoAmIController'
+]
 
 
 class RootController(object):
