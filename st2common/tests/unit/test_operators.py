@@ -551,6 +551,8 @@ class OperatorTest(unittest2.TestCase):
         self.assertTrue(op('bar', 'b*r'), 'Failed matchwildcard.')
         self.assertTrue(op('bar', 'b?r'), 'Failed matchwildcard.')
 
+        self.assertFalse(op('1', None), 'Passed matchwildcard with None as criteria_pattern.')
+
     def test_matchregex(self):
         op = operators.get_operator('matchregex')
         self.assertTrue(op('v1', 'v1$'), 'Failed matchregex.')
@@ -577,6 +579,7 @@ class OperatorTest(unittest2.TestCase):
     def test_iregex_fail(self):
         op = operators.get_operator('iregex')
         self.assertFalse(op('V1_foo', 'v1$'), 'Passed iregex.')
+        self.assertFalse(op('1', None), 'Passed iregex with None as criteria_pattern.')
 
     def test_regex(self):
         op = operators.get_operator('regex')
@@ -602,6 +605,8 @@ class OperatorTest(unittest2.TestCase):
         string = 'fooPONIESbarfooooo'
         self.assertFalse(op(string, 'ponies'), 'Passed regex.')
 
+        self.assertFalse(op('1', None), 'Passed regex with None as criteria_pattern.')
+
     def test_matchregex_case_variants(self):
         op = operators.get_operator('MATCHREGEX')
         self.assertTrue(op('v1', 'v1$'), 'Failed matchregex.')
@@ -611,6 +616,7 @@ class OperatorTest(unittest2.TestCase):
     def test_matchregex_fail(self):
         op = operators.get_operator('matchregex')
         self.assertFalse(op('v1_foo', 'v1$'), 'Passed matchregex.')
+        self.assertFalse(op('1', None), 'Passed matchregex with None as criteria_pattern.')
 
     def test_equals_numeric(self):
         op = operators.get_operator('equals')
@@ -624,6 +630,7 @@ class OperatorTest(unittest2.TestCase):
     def test_equals_fail(self):
         op = operators.get_operator('equals')
         self.assertFalse(op('1', '2'), 'Passed equals.')
+        self.assertFalse(op('1', None), 'Passed equals with None as criteria_pattern.')
 
     def test_nequals(self):
         op = operators.get_operator('nequals')
@@ -645,6 +652,7 @@ class OperatorTest(unittest2.TestCase):
     def test_iequals_fail(self):
         op = operators.get_operator('iequals')
         self.assertFalse(op('ABC', 'BCA'), 'Failed iequals.')
+        self.assertFalse(op('1', None), 'Passed iequals with None as criteria_pattern.')
 
     def test_contains(self):
         op = operators.get_operator('contains')
@@ -659,6 +667,7 @@ class OperatorTest(unittest2.TestCase):
         op = operators.get_operator('contains')
         self.assertFalse(op('hasystack needl haystack', 'needle'))
         self.assertFalse(op('needla', 'needle'))
+        self.assertFalse(op('1', None), 'Passed contains with None as criteria_pattern.')
 
     def test_icontains(self):
         op = operators.get_operator('icontains')
@@ -673,6 +682,7 @@ class OperatorTest(unittest2.TestCase):
         op = operators.get_operator('icontains')
         self.assertFalse(op('hasystack needl haystack', 'needle'))
         self.assertFalse(op('needla', 'needle'))
+        self.assertFalse(op('1', None), 'Passed icontains with None as criteria_pattern.')
 
     def test_ncontains(self):
         op = operators.get_operator('ncontains')
@@ -687,6 +697,7 @@ class OperatorTest(unittest2.TestCase):
         op = operators.get_operator('ncontains')
         self.assertFalse(op('hasystack needle haystack', 'needle'))
         self.assertFalse(op('needla', 'needla'))
+        self.assertFalse(op('1', None), 'Passed ncontains with None as criteria_pattern.')
 
     def test_incontains(self):
         op = operators.get_operator('incontains')
@@ -701,6 +712,7 @@ class OperatorTest(unittest2.TestCase):
         op = operators.get_operator('incontains')
         self.assertFalse(op('hasystack needle haystack', 'nEeDle'))
         self.assertFalse(op('needlA', 'needlA'))
+        self.assertFalse(op('1', None), 'Passed incontains with None as criteria_pattern.')
 
     def test_startswith(self):
         op = operators.get_operator('startswith')
@@ -711,6 +723,7 @@ class OperatorTest(unittest2.TestCase):
         op = operators.get_operator('startswith')
         self.assertFalse(op('hasystack needle haystack', 'needle'))
         self.assertFalse(op('a hasystack needle haystack', 'haystack'))
+        self.assertFalse(op('1', None), 'Passed startswith with None as criteria_pattern.')
 
     def test_istartswith(self):
         op = operators.get_operator('istartswith')
@@ -721,6 +734,7 @@ class OperatorTest(unittest2.TestCase):
         op = operators.get_operator('istartswith')
         self.assertFalse(op('hasystack needle haystack', 'NEEDLE'))
         self.assertFalse(op('a hasystack needle haystack', 'haystack'))
+        self.assertFalse(op('1', None), 'Passed istartswith with None as criteria_pattern.')
 
     def test_endswith(self):
         op = operators.get_operator('endswith')
@@ -731,6 +745,7 @@ class OperatorTest(unittest2.TestCase):
         op = operators.get_operator('endswith')
         self.assertFalse(op('hasystack needle haystackend', 'haystack'))
         self.assertFalse(op('a hasystack needle haystack', 'a'))
+        self.assertFalse(op('1', None), 'Passed endswith with None as criteria_pattern.')
 
     def test_iendswith(self):
         op = operators.get_operator('iendswith')
@@ -741,6 +756,7 @@ class OperatorTest(unittest2.TestCase):
         op = operators.get_operator('iendswith')
         self.assertFalse(op('hasystack needle haystack', 'NEEDLE'))
         self.assertFalse(op('a hasystack needle haystack', 'a '))
+        self.assertFalse(op('1', None), 'Passed iendswith with None as criteria_pattern.')
 
     def test_lt(self):
         op = operators.get_operator('lessthan')
@@ -753,6 +769,7 @@ class OperatorTest(unittest2.TestCase):
     def test_lt_fail(self):
         op = operators.get_operator('lessthan')
         self.assertFalse(op(1, 1), 'Passed lessthan.')
+        self.assertFalse(op('1', None), 'Passed lessthan with None as criteria_pattern.')
 
     def test_gt(self):
         op = operators.get_operator('greaterthan')
@@ -765,6 +782,7 @@ class OperatorTest(unittest2.TestCase):
     def test_gt_fail(self):
         op = operators.get_operator('greaterthan')
         self.assertFalse(op(2, 3), 'Passed greaterthan.')
+        self.assertFalse(op('1', None), 'Passed greaterthan with None as criteria_pattern.')
 
     def test_timediff_lt(self):
         op = operators.get_operator('timediff_lt')
@@ -775,6 +793,8 @@ class OperatorTest(unittest2.TestCase):
         op = operators.get_operator('timediff_lt')
         self.assertFalse(op('2014-07-01T00:01:01.000000', 10),
                          'Passed test_timediff_lt.')
+        self.assertFalse(op('2014-07-01T00:01:01.000000', None),
+                         'Passed test_timediff_lt with None as criteria_pattern.')
 
     def test_timediff_gt(self):
         op = operators.get_operator('timediff_gt')
@@ -785,6 +805,8 @@ class OperatorTest(unittest2.TestCase):
         op = operators.get_operator('timediff_gt')
         self.assertFalse(op(date_utils.get_datetime_utc_now().isoformat(), 10),
                          'Passed test_timediff_gt.')
+        self.assertFalse(op('2014-07-01T00:01:01.000000', None),
+                         'Passed test_timediff_gt with None as criteria_pattern.')
 
     def test_exists(self):
         op = operators.get_operator('exists')
