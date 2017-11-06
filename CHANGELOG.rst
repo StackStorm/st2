@@ -33,6 +33,8 @@ Changed
   output of ``st2 execution list`` command). (improvement) #3810
 
   Contributed by Nick Maludy.
+* Update various Python dependencies to the latest stable versions (kombu, amqp, apscheduler,
+  gitpython, pymongo, stevedore, paramiko, prompt-toolkit, flex). #3830
 
 Fixed
 ~~~~~
