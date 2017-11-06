@@ -13,6 +13,10 @@ Added
   This functionality comes handy in situations when an action depends on an external library which
   logs a lot of information under ``debug``, but you only want to see messages with log level
   ``error`` or higher (or similar). (new feature) #3824
+* Add new ``/v1/whoami`` API endpoint. This API endpoint is only available to the authenticated
+  users and returns various metadata on the authenticated user (which method did the user use to
+  authenticate, under which username the user is authenticated, which RBAC roles are assignment to
+  this user in case RBAC is enabled, etc.) (new feature) #3831
 
 Changed
 ~~~~~~~
