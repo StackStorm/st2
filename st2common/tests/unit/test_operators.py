@@ -19,6 +19,528 @@ from st2common import operators
 from st2common.util import date as date_utils
 
 
+def dict_strict_equal(d1, d2):
+    """
+    Compare two dictionaries, ensuring that all keys exist in both and that the
+    values for each key are the same.
+    """
+    if len(d1.keys()) != len(d2.keys()):
+        return False
+    for k1, v1 in d1.items():
+        if k1 not in d2 or d2[k1] != v1:
+            return False
+    return True
+
+
+def list_of_dicts_strict_equal(lofd1, lofd2):
+    """
+    Ensure that two unordered lists contain the same dicts
+    """
+    t2 = list(lofd2)  # mutable copy
+    if len(lofd1) != len(lofd2):
+        return False
+    for i1, el1 in enumerate(lofd1):
+        for i2, el2 in enumerate(t2):
+            if dict_strict_equal(el1, el2):
+                del t2[i2]
+                break
+        else:
+            return False
+    return not t2
+
+
+class DictsStrictEqualTest(unittest2.TestCase):
+    """
+    Tests dict_strict_equal
+
+    We should test our comparison functions, even if they're only used in our
+    other tests.
+    """
+    def test_empty_dicts(self):
+        self.assertTrue(dict_strict_equal({}, {}))
+
+    def test_simple_dicts(self):
+        self.assertTrue(dict_strict_equal(
+            {'a': 1},
+            {'a': 1},
+        ))
+
+        self.assertFalse(dict_strict_equal(
+            {'a': 1},
+            {'b': 1},
+        ))
+
+    def test_dict_with_different_lenths(self):
+        self.assertFalse(dict_strict_equal(
+            {'a': 2},
+            {'a': 1, 'b': 2},
+        ))
+
+    def test_complex_dicts(self):
+        self.assertFalse(dict_strict_equal(
+            {'a': 1, 'b': 1},
+            {'a': 1, 'b': 2},
+        ))
+
+        self.assertTrue(dict_strict_equal(
+            {'a': 1, 'b': 2},
+            {'a': 1, 'b': 2},
+        ))
+
+
+class ListOfDictsStrictEqualTest(unittest2.TestCase):
+    """
+    Tests list_of_dicts_strict_equal
+
+    We should test our comparison functions, even if they're only used in our
+    other tests.
+    """
+    def test_empty_lists(self):
+        self.assertTrue(list_of_dicts_strict_equal([], []))
+
+    def test_empty_dicts(self):
+        self.assertTrue(list_of_dicts_strict_equal([{}], [{}]))
+
+    def test_multiple_empty_dicts(self):
+        self.assertTrue(list_of_dicts_strict_equal([{}, {}], [{}, {}]))
+
+    def test_simple_dicts(self):
+        self.assertTrue(list_of_dicts_strict_equal([
+            {'a': 1},
+        ], [
+            {'a': 1},
+        ]))
+
+        self.assertFalse(list_of_dicts_strict_equal([
+            {'a': 1},
+        ], [
+            {'a': 2},
+        ]))
+
+    def test_lists_of_different_lengths(self):
+        self.assertFalse(list_of_dicts_strict_equal([
+            {'a': 1},
+        ], [
+            {'a': 1},
+            {'b': 2},
+        ]))
+
+        self.assertFalse(list_of_dicts_strict_equal([
+            {'a': 1},
+            {'b': 2},
+        ], [
+            {'a': 1},
+        ]))
+
+    def test_less_simple_dicts(self):
+        self.assertTrue(list_of_dicts_strict_equal([
+            {'a': 1},
+            {'b': 2},
+        ], [
+            {'a': 1},
+            {'b': 2},
+        ]))
+
+        self.assertTrue(list_of_dicts_strict_equal([
+            {'a': 1},
+            {'a': 1},
+        ], [
+            {'a': 1},
+            {'a': 1},
+        ]))
+
+        self.assertFalse(list_of_dicts_strict_equal([
+            {'a': 1},
+            {'a': 1},
+        ], [
+            {'a': 1},
+            {'b': 2},
+        ]))
+
+        self.assertFalse(list_of_dicts_strict_equal([
+            {'a': 1},
+            {'b': 2},
+        ], [
+            {'a': 1},
+            {'a': 1},
+        ]))
+
+
+class SearchOperatorTest(unittest2.TestCase):
+    # The search command extends the rules engine into being a recursive descent
+    # parser. As such, its tests are much more complex than other commands, so we
+    # pull its tests out into their own test case.
+    def test_search_with_weird_condition(self):
+        op = operators.get_operator('search')
+
+        with self.assertRaises(operators.UnrecognizedConditionError):
+            op([], [], 'weird', None)
+
+    def test_search_any_true(self):
+        op = operators.get_operator('search')
+
+        called_function_args = []
+
+        def record_function_args(criterion_k, criterion_v, payload_lookup):
+            called_function_args.append({
+                'criterion_k': criterion_k,
+                'criterion_v': criterion_v,
+                'payload_lookup': {
+                    'field_name': payload_lookup.get_value('item.field_name')[0],
+                    'to_value': payload_lookup.get_value('item.to_value')[0],
+                },
+            })
+            return (len(called_function_args) < 3)
+
+        payload = [
+            {
+                'field_name': "Status",
+                'to_value': "Approved",
+            }, {
+                'field_name': "Assigned to",
+                'to_value': "Stanley",
+            }
+        ]
+
+        criteria_pattern = {
+            'item.field_name': {
+                'type': "equals",
+                'pattern': "Status",
+            },
+            'item.to_value': {
+                'type': "equals",
+                'pattern': "Approved",
+            }
+        }
+
+        result = op(payload, criteria_pattern, 'any', record_function_args)
+
+        self.assertTrue(result)
+        self.assertTrue(list_of_dicts_strict_equal(called_function_args, [
+            # Outer loop: payload -> {'field_name': "Status", 'to_value': "Approved"}
+            {
+                # Inner loop: criterion -> item.field_name: {'type': "equals", 'pattern': "Status"}
+                'criterion_k': 'item.field_name',
+                'criterion_v': {
+                    'type': "equals",
+                    'pattern': "Status",
+                },
+                'payload_lookup': {
+                    'field_name': "Status",
+                    'to_value': "Approved",
+                },
+            }, {
+                # Inner loop: criterion -> item.to_value: {'type': "equals", 'pattern': "Approved"}
+                'criterion_k': 'item.to_value',
+                'criterion_v': {
+                    'type': "equals",
+                    'pattern': "Approved",
+                },
+                'payload_lookup': {
+                    'field_name': "Status",
+                    'to_value': "Approved",
+                },
+            },
+            # Outer loop: payload -> {'field_name': "Assigned to", 'to_value': "Stanley"}
+            {
+                # Inner loop: criterion -> item.field_name: {'type': "equals", 'pattern': "Status"}
+                'criterion_k': 'item.field_name',
+                'criterion_v': {
+                    'type': "equals",
+                    'pattern': "Status",
+                },
+                'payload_lookup': {
+                    'field_name': "Assigned to",
+                    'to_value': "Stanley",
+                },
+            }, {
+                # Inner loop: criterion -> item.to_value: {'type': "equals", 'pattern': "Approved"}
+                'criterion_k': 'item.to_value',
+                'criterion_v': {
+                    'type': "equals",
+                    'pattern': "Approved",
+                },
+                'payload_lookup': {
+                    'field_name': "Assigned to",
+                    'to_value': "Stanley",
+                },
+            }
+        ]))
+
+    def test_search_any_false(self):
+        op = operators.get_operator('search')
+
+        called_function_args = []
+
+        def record_function_args(criterion_k, criterion_v, payload_lookup):
+            called_function_args.append({
+                'criterion_k': criterion_k,
+                'criterion_v': criterion_v,
+                'payload_lookup': {
+                    'field_name': payload_lookup.get_value('item.field_name')[0],
+                    'to_value': payload_lookup.get_value('item.to_value')[0],
+                },
+            })
+            return (len(called_function_args) % 2) == 0
+
+        payload = [
+            {
+                'field_name': "Status",
+                'to_value': "Denied",
+            }, {
+                'field_name': "Assigned to",
+                'to_value': "Stanley",
+            }
+        ]
+
+        criteria_pattern = {
+            'item.field_name': {
+                'type': "equals",
+                'pattern': "Status",
+            },
+            'item.to_value': {
+                'type': "equals",
+                'pattern': "Approved",
+            }
+        }
+
+        result = op(payload, criteria_pattern, 'any', record_function_args)
+
+        self.assertFalse(result)
+        self.assertEqual(called_function_args, [
+            # Outer loop: payload -> {'field_name': "Status", 'to_value': "Denied"}
+            {
+                # Inner loop: criterion -> item.field_name: {'type': "equals", 'pattern': "Status"}
+                'criterion_k': 'item.field_name',
+                'criterion_v': {
+                    'type': "equals",
+                    'pattern': "Status",
+                },
+                'payload_lookup': {
+                    'field_name': "Status",
+                    'to_value': "Denied",
+                },
+            }, {
+                # Inner loop: criterion -> item.to_value: {'type': "equals", 'pattern': "Approved"}
+                'criterion_k': 'item.to_value',
+                'criterion_v': {
+                    'type': "equals",
+                    'pattern': "Approved",
+                },
+                'payload_lookup': {
+                    'field_name': "Status",
+                    'to_value': "Denied",
+                },
+            },
+            # Outer loop: payload -> {'field_name': "Assigned to", 'to_value': "Stanley"}
+            {
+                # Inner loop: criterion -> item.to_value: {'type': "equals", 'pattern': "Approved"}
+                'criterion_k': 'item.field_name',
+                'criterion_v': {
+                    'type': "equals",
+                    'pattern': "Status",
+                },
+                'payload_lookup': {
+                    'field_name': "Assigned to",
+                    'to_value': "Stanley",
+                },
+            }, {
+                # Inner loop: criterion -> item.to_value: {'type': "equals", 'pattern': "Approved"}
+                'criterion_k': 'item.to_value',
+                'criterion_v': {
+                    'type': "equals",
+                    'pattern': "Approved",
+                },
+                'payload_lookup': {
+                    'field_name': "Assigned to",
+                    'to_value': "Stanley",
+                },
+            }
+        ])
+
+    def test_search_all_false(self):
+        op = operators.get_operator('search')
+
+        called_function_args = []
+
+        def record_function_args(criterion_k, criterion_v, payload_lookup):
+            called_function_args.append({
+                'criterion_k': criterion_k,
+                'criterion_v': criterion_v,
+                'payload_lookup': {
+                    'field_name': payload_lookup.get_value('item.field_name')[0],
+                    'to_value': payload_lookup.get_value('item.to_value')[0],
+                },
+            })
+            return (len(called_function_args) % 2) == 0
+
+        payload = [
+            {
+                'field_name': "Status",
+                'to_value': "Approved",
+            }, {
+                'field_name': "Assigned to",
+                'to_value': "Stanley",
+            }
+        ]
+
+        criteria_pattern = {
+            'item.field_name': {
+                'type': "equals",
+                'pattern': "Status",
+            },
+            'item.to_value': {
+                'type': "equals",
+                'pattern': "Approved",
+            }
+        }
+
+        result = op(payload, criteria_pattern, 'all', record_function_args)
+
+        self.assertFalse(result)
+        self.assertEqual(called_function_args, [
+            # Outer loop: payload -> {'field_name': "Status", 'to_value': "Approved"}
+            {
+                # Inner loop: item.field_name -> {'type': "equals", 'pattern': "Status"}
+                'criterion_k': 'item.field_name',
+                'criterion_v': {
+                    'type': "equals",
+                    'pattern': "Status",
+                },
+                'payload_lookup': {
+                    'field_name': "Status",
+                    'to_value': "Approved",
+                },
+            }, {
+                # Inner loop: item.to_value -> {'type': "equals", 'pattern': "Approved"}
+                'criterion_k': 'item.to_value',
+                'criterion_v': {
+                    'type': "equals",
+                    'pattern': "Approved",
+                },
+                'payload_lookup': {
+                    'field_name': "Status",
+                    'to_value': "Approved",
+                },
+            },
+            # Outer loop: payload -> {'field_name': "Assigned to", 'to_value': "Stanley"}
+            {
+                # Inner loop: item.field_name -> {'type': "equals", 'pattern': "Status"}
+                'criterion_k': 'item.field_name',
+                'criterion_v': {
+                    'type': "equals",
+                    'pattern': "Status",
+                },
+                'payload_lookup': {
+                    'field_name': "Assigned to",
+                    'to_value': "Stanley",
+                },
+            }, {
+                # Inner loop: item.to_value -> {'type': "equals", 'pattern': "Approved"}
+                'criterion_k': 'item.to_value',
+                'criterion_v': {
+                    'type': "equals",
+                    'pattern': "Approved",
+                },
+                'payload_lookup': {
+                    'field_name': "Assigned to",
+                    'to_value': "Stanley",
+                },
+            }
+        ])
+
+    def test_search_all_true(self):
+        op = operators.get_operator('search')
+
+        called_function_args = []
+
+        def record_function_args(criterion_k, criterion_v, payload_lookup):
+            called_function_args.append({
+                'criterion_k': criterion_k,
+                'criterion_v': criterion_v,
+                'payload_lookup': {
+                    'field_name': payload_lookup.get_value('item.field_name')[0],
+                    'to_value': payload_lookup.get_value('item.to_value')[0],
+                },
+            })
+            return True
+
+        payload = [
+            {
+                'field_name': "Status",
+                'to_value': "Approved",
+            }, {
+                'field_name': "Signed off by",
+                'to_value': "Approved",
+            }
+        ]
+
+        criteria_pattern = {
+            'item.field_name': {
+                'type': "startswith",
+                'pattern': "S",
+            },
+            'item.to_value': {
+                'type': "equals",
+                'pattern': "Approved",
+            }
+        }
+
+        result = op(payload, criteria_pattern, 'all', record_function_args)
+
+        self.assertTrue(result)
+        self.assertEqual(called_function_args, [
+            # Outer loop: payload -> {'field_name': "Status", 'to_value': "Approved"}
+            {
+                # Inner loop: item.field_name -> {'type': "startswith", 'pattern': "S"}
+                'criterion_k': 'item.field_name',
+                'criterion_v': {
+                    'type': "startswith",
+                    'pattern': "S",
+                },
+                'payload_lookup': {
+                    'field_name': "Status",
+                    'to_value': "Approved",
+                },
+            }, {
+                # Inner loop: item.to_value -> {'type': "equals", 'pattern': "Approved"}
+                'criterion_k': 'item.to_value',
+                'criterion_v': {
+                    'type': "equals",
+                    'pattern': "Approved",
+                },
+                'payload_lookup': {
+                    'field_name': "Status",
+                    'to_value': "Approved",
+                },
+            },
+            # Outer loop: payload -> {'field_name': "Signed off by", 'to_value': "Approved"}
+            {
+                # Inner loop: item.field_name -> {'type': "startswith", 'pattern': "S"}
+                'criterion_k': 'item.field_name',
+                'criterion_v': {
+                    'type': "startswith",
+                    'pattern': "S",
+                },
+                'payload_lookup': {
+                    'field_name': "Signed off by",
+                    'to_value': "Approved",
+                },
+            }, {
+                # Inner loop: item.to_value -> {'type': "equals", 'pattern': "Approved"}
+                'criterion_k': 'item.to_value',
+                'criterion_v': {
+                    'type': "equals",
+                    'pattern': "Approved",
+                },
+                'payload_lookup': {
+                    'field_name': "Signed off by",
+                    'to_value': "Approved",
+                },
+            }
+        ])
+
+
 class OperatorTest(unittest2.TestCase):
     def test_matchwildcard(self):
         op = operators.get_operator('matchwildcard')
