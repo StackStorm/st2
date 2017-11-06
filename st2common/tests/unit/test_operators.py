@@ -546,7 +546,7 @@ class OperatorTest(unittest2.TestCase):
         op = operators.get_operator('matchwildcard')
         self.assertTrue(op('v1', 'v1'), 'Failed matchwildcard.')
 
-        self.assertFalse(op('test foo test', 'foo'), 'Failed matchwildcard.')
+        self.assertFalse(op('test foo test', 'foo'), 'Passed matchwildcard.')
         self.assertTrue(op('test foo test', '*foo*'), 'Failed matchwildcard.')
         self.assertTrue(op('bar', 'b*r'), 'Failed matchwildcard.')
         self.assertTrue(op('bar', 'b?r'), 'Failed matchwildcard.')
@@ -596,7 +596,7 @@ class OperatorTest(unittest2.TestCase):
         self.assertTrue(op(string, '(ponies|unicorns)'), 'Failed regex.')
 
         string = 'apple unicorns oranges'
-        self.assertFalse(op(string, '(pikachu|snorlax|charmander)'), 'Failed regex.')
+        self.assertFalse(op(string, '(pikachu|snorlax|charmander)'), 'Passed regex.')
 
     def test_regex_fail(self):
         op = operators.get_operator('regex')
@@ -651,7 +651,7 @@ class OperatorTest(unittest2.TestCase):
 
     def test_iequals_fail(self):
         op = operators.get_operator('iequals')
-        self.assertFalse(op('ABC', 'BCA'), 'Failed iequals.')
+        self.assertFalse(op('ABC', 'BCA'), 'Passed iequals.')
         self.assertFalse(op('1', None), 'Passed iequals with None as criteria_pattern.')
 
     def test_contains(self):
