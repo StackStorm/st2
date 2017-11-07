@@ -14,20 +14,21 @@
 # limitations under the License.
 
 import uuid
+
 from st2common import log as logging
 from st2common.runners.base import ActionRunner
+from st2common.runners.base import get_metadata as get_runner_metadata
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 import st2common.util.jsonify as jsonify
 
-LOG = logging.getLogger(__name__)
-
 __all__ = [
-    'get_runner'
+    'NoopRunner',
+
+    'get_runner',
+    'get_metadata'
 ]
 
-
-def get_runner():
-    return NoopRunner(str(uuid.uuid4()))
+LOG = logging.getLogger(__name__)
 
 
 class NoopRunner(ActionRunner):
@@ -56,3 +57,11 @@ class NoopRunner(ActionRunner):
 
         status = LIVEACTION_STATUS_SUCCEEDED
         return (status, jsonify.json_loads(result, NoopRunner.KEYS_TO_TRANSFORM), None)
+
+
+def get_runner():
+    return NoopRunner(str(uuid.uuid4()))
+
+
+def get_metadata():
+    return get_runner_metadata('noop_runner')

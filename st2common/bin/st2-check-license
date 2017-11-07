@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #!/usr/bin/env bash
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
@@ -25,9 +26,9 @@ BWC_LICENSE_CHECK_URL="https://${LICENSE}:@packagecloud.io/install/repositories/
 LICENSE_CURL_TEST=`curl --output /dev/null --silent --fail ${BWC_LICENSE_CHECK_URL}`
 
 if [ $? -ne 0 ]; then
-  echo -e "✖ License is not valid"
+  echo -e "[x] License is not valid"
   exit 2
 else
-  echo -e "✓ License is valid"
+  echo -e "[*] License is valid"
   exit 0
 fi

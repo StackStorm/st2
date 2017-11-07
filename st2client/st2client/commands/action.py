@@ -1388,8 +1388,12 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
         # Special case for id "last"
         if execution_id == 'last':
             executions = self.manager.query(limit=1)
-            execution = executions[0] if executions else None
-            execution_id = execution.id
+            if executions:
+                execution = executions[0]
+                execution_id = execution.id
+            else:
+                print('No executions found in db.')
+                return
         else:
             execution = self.manager.get_by_id(execution_id, **kwargs)
 

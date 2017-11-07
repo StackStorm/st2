@@ -29,11 +29,13 @@ from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.runners import WINDOWS_RUNNER_DEFAULT_ACTION_TIMEOUT
 from st2common.runners.windows_runner import BaseWindowsRunner
 from st2common.runners.base import ShellRunnerMixin
+from st2common.runners.base import get_metadata as get_runner_metadata
 
 __all__ = [
-    'get_runner',
+    'WindowsScriptRunner',
 
-    'WindowsScriptRunner'
+    'get_runner',
+    'get_metadata',
 ]
 
 LOG = logging.getLogger(__name__)
@@ -55,10 +57,6 @@ DELETE_FILE_TIMEOUT = 10
 DELETE_DIRECTORY_TIMEOUT = 10
 
 POWERSHELL_COMMAND = 'powershell.exe -InputFormat None'
-
-
-def get_runner():
-    return WindowsScriptRunner(str(uuid.uuid4()))
 
 
 class WindowsScriptRunner(BaseWindowsRunner, ShellRunnerMixin):
@@ -344,3 +342,11 @@ class WindowsScriptRunner(BaseWindowsRunner, ShellRunnerMixin):
                                          timeout=DELETE_DIRECTORY_TIMEOUT)
 
         return exit_code == 0
+
+
+def get_runner():
+    return WindowsScriptRunner(str(uuid.uuid4()))
+
+
+def get_metadata():
+    return get_runner_metadata('windows_script_runner')

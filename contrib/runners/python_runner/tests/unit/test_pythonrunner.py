@@ -20,6 +20,7 @@ import mock
 from oslo_config import cfg
 
 import python_runner
+from st2actions.container.base import RunnerContainer
 from st2common.runners.python_action_wrapper import PythonActionWrapper
 from st2common.runners.base_action import Action
 from st2common.runners.utils import get_action_class_instance
@@ -172,15 +173,16 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(output['result'], [1, 2])
 
     def test_simple_action_config_value_provided_overriden_in_datastore(self):
-        wrapper = PythonActionWrapper(pack='dummy_pack_5', file_path=PASCAL_ROW_ACTION_PATH,
-                                      user='joe')
+        pack = 'dummy_pack_5'
+        user = 'joe'
 
         # No values provided in the datastore
-        instance = wrapper._get_action_instance()
-        self.assertEqual(instance.config['api_key'], 'some_api_key')  # static value
-        self.assertEqual(instance.config['regions'], ['us-west-1'])  # static value
-        self.assertEqual(instance.config['api_secret'], None)
-        self.assertEqual(instance.config['private_key_path'], None)
+        runner = self._get_mock_runner_obj_from_container(pack=pack, user=user)
+
+        self.assertEqual(runner._config['api_key'], 'some_api_key')  # static value
+        self.assertEqual(runner._config['regions'], ['us-west-1'])  # static value
+        self.assertEqual(runner._config['api_secret'], None)
+        self.assertEqual(runner._config['private_key_path'], None)
 
         # api_secret overriden in the datastore (user scoped value)
         config_service.set_datastore_value_for_config_key(pack_name='dummy_pack_5',
@@ -194,11 +196,11 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
                                                           key_name='private_key_path',
                                                           value='foopath')
 
-        instance = wrapper._get_action_instance()
-        self.assertEqual(instance.config['api_key'], 'some_api_key')  # static value
-        self.assertEqual(instance.config['regions'], ['us-west-1'])  # static value
-        self.assertEqual(instance.config['api_secret'], 'foosecret')
-        self.assertEqual(instance.config['private_key_path'], 'foopath')
+        runner = self._get_mock_runner_obj_from_container(pack=pack, user=user)
+        self.assertEqual(runner._config['api_key'], 'some_api_key')  # static value
+        self.assertEqual(runner._config['regions'], ['us-west-1'])  # static value
+        self.assertEqual(runner._config['api_secret'], 'foosecret')
+        self.assertEqual(runner._config['private_key_path'], 'foopath')
 
     def test_simple_action_fail(self):
         runner = self._get_mock_runner_obj()
@@ -568,8 +570,77 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
                        'No module named invalid')
         self.assertRaisesRegexp(Exception, expected_msg, wrapper._get_action_instance)
 
+    def test_simple_action_log_messages_and_log_level_runner_param(self):
+        expected_msg_1 = 'st2.actions.python.PascalRowAction: INFO     test info log message'
+        expected_msg_2 = 'st2.actions.python.PascalRowAction: DEBUG    test debug log message'
+        expected_msg_3 = 'st2.actions.python.PascalRowAction: ERROR    test error log message'
+
+        runner = self._get_mock_runner_obj()
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.pre_run()
+        (status, output, _) = runner.run({'row_index': 'e'})
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+        self.assertTrue(output is not None)
+        self.assertEqual(output['result'], [1, 2])
+
+        self.assertTrue(expected_msg_1 in output['stderr'])
+        self.assertTrue(expected_msg_2 in output['stderr'])
+        self.assertTrue(expected_msg_3 in output['stderr'])
+
+        # Only log messages with level info and above should be displayed
+        runner = self._get_mock_runner_obj()
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.runner_parameters = {
+            'log_level': 'info'
+        }
+        runner.pre_run()
+        (status, output, _) = runner.run({'row_index': 'e'})
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+        self.assertTrue(output is not None)
+        self.assertEqual(output['result'], [1, 2])
+
+        self.assertTrue(expected_msg_1 in output['stderr'])
+        self.assertFalse(expected_msg_2 in output['stderr'])
+        self.assertTrue(expected_msg_3 in output['stderr'])
+
+        # Only log messages with level error and above should be displayed
+        runner = self._get_mock_runner_obj()
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.runner_parameters = {
+            'log_level': 'error'
+        }
+        runner.pre_run()
+        (status, output, _) = runner.run({'row_index': 'e'})
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+        self.assertTrue(output is not None)
+        self.assertEqual(output['result'], [1, 2])
+
+        self.assertFalse(expected_msg_1 in output['stderr'])
+        self.assertFalse(expected_msg_2 in output['stderr'])
+        self.assertTrue(expected_msg_3 in output['stderr'])
+
     def _get_mock_runner_obj(self):
         runner = python_runner.get_runner()
+        runner.execution = MOCK_EXECUTION
+        runner.action = self._get_mock_action_obj()
+        runner.runner_parameters = {}
+
+        return runner
+
+    @mock.patch('st2actions.container.base.ActionExecution.get', mock.Mock())
+    def _get_mock_runner_obj_from_container(self, pack, user):
+        container = RunnerContainer()
+
+        runnertype_db = mock.Mock()
+        runnertype_db.runner_module = 'python_runner'
+        action_db = mock.Mock()
+        action_db.pack = pack
+        action_db.entry_point = 'foo.py'
+        liveaction_db = mock.Mock()
+        liveaction_db.id = '123'
+        liveaction_db.context = {'user': user}
+        runner = container._get_runner(runnertype_db=runnertype_db, action_db=action_db,
+                                       liveaction_db=liveaction_db)
         runner.execution = MOCK_EXECUTION
         runner.action = self._get_mock_action_obj()
         runner.runner_parameters = {}

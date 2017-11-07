@@ -21,16 +21,19 @@ from st2common.constants.triggers import INQUIRY_TRIGGER
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.execution import ActionExecution
 from st2common.runners.base import ActionRunner
+from st2common.runners.base import get_metadata as get_runner_metadata
 from st2common.services import action as action_service
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.util import action_db as action_utils
 
-LOG = logging.getLogger(__name__)
-
 __all__ = [
-    'get_runner',
     'Inquirer',
+
+    'get_runner',
+    'get_metadata'
 ]
+
+LOG = logging.getLogger(__name__)
 
 # constants to lookup in runner_parameters.
 RUNNER_SCHEMA = 'schema'
@@ -50,10 +53,6 @@ DEFAULT_SCHEMA = {
         }
     }
 }
-
-
-def get_runner():
-    return Inquirer(str(uuid.uuid4()))
 
 
 class Inquirer(ActionRunner):
@@ -110,3 +109,11 @@ class Inquirer(ActionRunner):
             "ttl": self.ttl
         }
         return (LIVEACTION_STATUS_PENDING, result, None)
+
+
+def get_runner():
+    return Inquirer(str(uuid.uuid4()))
+
+
+def get_metadata():
+    return get_runner_metadata('inquirer_runner')

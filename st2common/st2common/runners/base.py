@@ -14,7 +14,10 @@
 # limitations under the License.
 
 import abc
+import pkgutil
+
 import six
+import yaml
 from oslo_config import cfg
 
 from st2common import log as logging
@@ -30,7 +33,8 @@ __all__ = [
     'ActionRunner',
     'AsyncActionRunner',
     'ShellRunnerMixin',
-    'get_runner'
+    'get_runner',
+    'get_metadata'
 ]
 
 
@@ -40,8 +44,10 @@ LOG = logging.getLogger(__name__)
 RUNNER_COMMAND = 'cmd'
 
 
-def get_runner(module_name):
-    """Load the module and return an instance of the runner."""
+def get_runner(module_name, config=None):
+    """
+    Load the module and return an instance of the runner.
+    """
 
     LOG.debug('Runner loading python module: %s', module_name)
     try:
@@ -53,9 +59,25 @@ def get_runner(module_name):
 
     LOG.debug('Instance of runner module: %s', module)
 
-    runner = module.get_runner()
+    if config:
+        runner_kwargs = {'config': config}
+    else:
+        runner_kwargs = {}
+
+    runner = module.get_runner(**runner_kwargs)
     LOG.debug('Instance of runner: %s', runner)
     return runner
+
+
+def get_metadata(package_name):
+    """
+    Return runner related metadata for the provided runner package name.
+
+    :rtype: ``list`` of ``dict``
+    """
+    file_path = pkgutil.get_data(package_name, 'metadata/runner.yaml')
+    metadata = yaml.safe_load(file_path)
+    return metadata
 
 
 @six.add_metaclass(abc.ABCMeta)

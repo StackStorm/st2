@@ -30,6 +30,7 @@ command: "profimp "from st2common.runners import python_action_wrapper" --html >
 """
 
 import os
+import json
 
 import unittest2
 from distutils.spawn import find_executable
@@ -41,8 +42,7 @@ __all__ = [
 ]
 
 # Maximum limit for the process wrapper script execution time (in seconds)
-# TODO: Revert back to 0.20 once all performance fixes are back in
-WRAPPER_PROCESS_RUN_TIME_UPPER_LIMIT = 0.70
+WRAPPER_PROCESS_RUN_TIME_UPPER_LIMIT = 0.30
 
 ASSERTION_ERROR_MESSAGE = ("""
 Python wrapper process script took more than %s seconds to execute (%s). This most likely means
@@ -68,14 +68,13 @@ class PythonRunnerActionWrapperProcessTestCase(unittest2.TestCase):
         self.assertTrue(os.path.isfile(WRAPPER_SCRIPT_PATH))
 
         # 2. First run it without time to verify path is valid
-        command_string = 'python %s --is-subprocess' % (WRAPPER_SCRIPT_PATH)
+        command_string = 'python %s' % (WRAPPER_SCRIPT_PATH)
         _, _, stderr = run_command(command_string, shell=True)
         self.assertTrue('usage: python_action_wrapper.py' in stderr)
         self.assertTrue('python_action_wrapper.py: error: argument' in stderr)
 
         # 3. Now time it
-        command_string = '%s -f "%%e" python %s --is-subprocess' % (TIME_BINARY_PATH,
-                                                                    WRAPPER_SCRIPT_PATH)
+        command_string = '%s -f "%%e" python %s' % (TIME_BINARY_PATH, WRAPPER_SCRIPT_PATH)
 
         # Do multiple runs and average it
         run_times = []
@@ -89,5 +88,28 @@ class PythonRunnerActionWrapperProcessTestCase(unittest2.TestCase):
 
         avg_run_time_seconds = (sum(run_times) / count)
         assertion_msg = ASSERTION_ERROR_MESSAGE % (WRAPPER_PROCESS_RUN_TIME_UPPER_LIMIT,
-                        avg_run_time_seconds)
+                                                   avg_run_time_seconds)
         self.assertTrue(avg_run_time_seconds <= WRAPPER_PROCESS_RUN_TIME_UPPER_LIMIT, assertion_msg)
+
+    def test_config_with_a_lot_of_items_and_a_lot_of_parameters_work_fine(self):
+        # Test case which verifies that actions with large configs and a lot of parameters work
+        # fine. Config and parameters are passed to wrapper as command line argument so there is an
+        # upper limit on the size.
+        config = {}
+        for index in range(0, 50):
+            config['key_%s' % (index)] = 'value value foo %s' % (index)
+        config = json.dumps(config)
+
+        parameters = {}
+        for index in range(0, 30):
+            parameters['param_foo_%s' % (index)] = 'some param value %s' % (index)
+        parameters = json.dumps(parameters)
+
+        file_path = os.path.join(BASE_DIR, '../../../contrib/examples/actions/noop.py')
+
+        command_string = ('python %s --pack=dummy --file-path=%s --config=\'%s\' '
+                          '--parameters=\'%s\'' %
+                         (WRAPPER_SCRIPT_PATH, file_path, config, parameters))
+        exit_code, stdout, stderr = run_command(command_string, shell=True)
+        self.assertEqual(exit_code, 0)
+        self.assertTrue('"status"' in stdout)
