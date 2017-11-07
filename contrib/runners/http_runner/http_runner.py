@@ -23,11 +23,19 @@ from requests.auth import HTTPBasicAuth
 from oslo_config import cfg
 
 from st2common.runners.base import ActionRunner
+from st2common.runners.base import get_metadata as get_runner_metadata
 from st2common import __version__ as st2_version
 from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
+
+__all__ = [
+    'HttpRunner',
+
+    'get_runner',
+    'get_runner_metadata'
+]
 
 LOG = logging.getLogger(__name__)
 SUCCESS_STATUS_CODES = [code for code in range(200, 207)]
@@ -57,10 +65,6 @@ FILE_CONTENT_TYPE = 'file_content_type'
 RESPONSE_BODY_PARSE_FUNCTIONS = {
     'application/json': json.loads
 }
-
-
-def get_runner():
-    return HttpRunner(str(uuid.uuid4()))
 
 
 class HttpRunner(ActionRunner):
@@ -288,3 +292,11 @@ class HTTPClient(object):
                 return ast.literal_eval(value)
         else:
             return value
+
+
+def get_runner():
+    return HttpRunner(str(uuid.uuid4()))
+
+
+def get_metadata():
+    return get_runner_metadata('http_runner')

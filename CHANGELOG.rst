@@ -13,6 +13,9 @@ Added
   This functionality comes handy in situations when an action depends on an external library which
   logs a lot of information under ``debug``, but you only want to see messages with log level
   ``error`` or higher (or similar). (new feature) #3824
+* Add stevedore related metadata to Python package setup.py files for runner packages. This way
+  runners can be installed using pip and dynamically enumerated and loaded using stevedore and
+  corresponding helper functions. (new feature)
 
 Changed
 ~~~~~~~

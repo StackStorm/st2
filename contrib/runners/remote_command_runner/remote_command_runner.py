@@ -20,19 +20,17 @@ from oslo_config import cfg
 from st2common import log as logging
 from st2common.runners.paramiko_ssh_runner import RUNNER_COMMAND
 from st2common.runners.paramiko_ssh_runner import BaseParallelSSHRunner
+from st2common.runners.base import get_metadata as get_runner_metadata
 from st2common.models.system.paramiko_command_action import ParamikoRemoteCommandAction
 
 __all__ = [
-    'get_runner',
+    'ParamikoRemoteCommandRunner',
 
-    'ParamikoRemoteCommandRunner'
+    'get_runner',
+    'get_metadata'
 ]
 
 LOG = logging.getLogger(__name__)
-
-
-def get_runner():
-    return ParamikoRemoteCommandRunner(str(uuid.uuid4()))
 
 
 class ParamikoRemoteCommandRunner(BaseParallelSSHRunner):
@@ -74,3 +72,11 @@ class ParamikoRemoteCommandRunner(BaseParallelSSHRunner):
                                            sudo=self._sudo,
                                            timeout=self._timeout,
                                            cwd=self._cwd)
+
+
+def get_runner():
+    return ParamikoRemoteCommandRunner(str(uuid.uuid4()))
+
+
+def get_metadata():
+    return get_runner_metadata('remote_command_runner')

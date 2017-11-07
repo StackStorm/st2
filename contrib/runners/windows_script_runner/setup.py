@@ -42,5 +42,13 @@ setup(
     zip_safe=False,
     include_package_data=True,
     py_modules=['windows_script_runner'],
-    scripts=[]
+    data_files=[
+        ('metadata', ['runner.yaml'])
+    ],
+    scripts=[],
+    entry_points={
+        'st2common.runners.runner': [
+            'windows-script = windows_script_runner',
+        ],
+    }
 )

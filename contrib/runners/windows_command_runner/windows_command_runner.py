@@ -22,6 +22,14 @@ from st2common.util.green.shell import run_command
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 from st2common.constants.runners import WINDOWS_RUNNER_DEFAULT_ACTION_TIMEOUT
 from st2common.runners.windows_runner import BaseWindowsRunner
+from st2common.runners.base import get_metadata as get_runner_metadata
+
+__all__ = [
+    'WindowsCommandRunner',
+
+    'get_runner',
+    'get_metadata'
+]
 
 LOG = logging.getLogger(__name__)
 
@@ -31,10 +39,6 @@ RUNNER_USERNAME = 'username'
 RUNNER_PASSWORD = 'password'
 RUNNER_COMMAND = 'cmd'
 RUNNER_TIMEOUT = 'timeout'
-
-
-def get_runner():
-    return WindowsCommandRunner(str(uuid.uuid4()))
 
 
 class WindowsCommandRunner(BaseWindowsRunner):
@@ -101,3 +105,11 @@ class WindowsCommandRunner(BaseWindowsRunner):
 
         status = LIVEACTION_STATUS_SUCCEEDED if exit_code == 0 else LIVEACTION_STATUS_FAILED
         return (status, output, None)
+
+
+def get_runner():
+    return WindowsCommandRunner(str(uuid.uuid4()))
+
+
+def get_metadata():
+    return get_runner_metadata('windows_command_runner')

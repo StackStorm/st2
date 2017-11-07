@@ -33,8 +33,6 @@ import json
 import argparse
 import traceback
 
-from oslo_config import cfg
-
 from st2common import log as logging
 from st2common import config as st2common_config
 from st2common.runners.base_action import Action
@@ -156,6 +154,7 @@ class PythonActionWrapper(object):
         # Note: We can only set a default user value if one is not provided after parsing the
         # config
         if not self._user:
+            from oslo_config import cfg
             self._user = cfg.CONF.system_user.user
 
     def run(self):
