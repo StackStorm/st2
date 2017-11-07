@@ -1,5 +1,6 @@
 # Don't edit this file. It's generated automatically!
 argcomplete
+gitpython==0.3.2.1
 jsonpath-rw>=1.3.0
 prettytable
 prompt-toolkit==1.0.7

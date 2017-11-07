@@ -1,0 +1,14 @@
+---
+name: {{ name.lower().replace(' ', '-') }}
+description: {{ description }}
+{%- if keywords %}
+keywords:
+{%- for keyword in keywords %}
+  - {{ keyword | trim }}
+{%- endfor -%}
+{%- endif %}
+version: {{ version }}
+author: {{ author }}
+{%- if email %}
+email: {{ email }}
+{%- endif %}

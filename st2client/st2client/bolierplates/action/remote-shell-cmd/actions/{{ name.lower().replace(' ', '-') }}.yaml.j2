@@ -1,0 +1,17 @@
+---
+name: {{ name.lower().replace(' ', '-') }}
+description: {{ description }}
+enabled: true
+entry_point: ''
+parameters:
+    cmd:
+        required: true
+        type: string
+        immutable: true
+        default: {{ cmd }}
+    sudo:
+        immutable: true
+    hosts:
+        default: {{ hosts }}
+        immutable: true
+runner_type: 'remote-shell-cmd'

@@ -1,0 +1,17 @@
+name:
+  type: string
+  description: The action's primary identifier.
+  required: true
+description:
+  type: string
+  description: Brief (1-2 sentences) description.
+cmd:
+  type: string
+  description: Command to execute.
+  default: /bin/true
+  required: true
+hosts:
+  type: string
+  description: Comma-separated list of hosts to execute the command on.
+  default: localhost
+  required: true

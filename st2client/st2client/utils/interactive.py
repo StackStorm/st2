@@ -20,9 +20,12 @@ from jsonschema import Draft3Validator
 from prompt_toolkit import prompt
 from prompt_toolkit import token
 from prompt_toolkit import validation
+import six
 
 from st2client.exceptions.operations import OperationFailureException
+from st2client.utils import jinja
 
+env = jinja.get_jinja_environment()
 
 POSITIVE_BOOLEAN = {'1', 'y', 'yes', 'true'}
 NEGATIVE_BOOLEAN = {'0', 'n', 'no', 'nope', 'nah', 'false'}
@@ -71,10 +74,14 @@ class StringReader(object):
 
     @staticmethod
     def validate(input, spec):
-        try:
-            jsonschema.validate(input, spec, Draft3Validator)
-        except jsonschema.ValidationError as e:
-            raise validation.ValidationError(len(input), str(e))
+        if input:
+            try:
+                jsonschema.validate(input, spec, Draft3Validator)
+            except jsonschema.ValidationError as e:
+                raise validation.ValidationError(len(input), str(e))
+        else:
+            if spec.get('required', None) and not spec.get('default', None):
+                raise validation.ValidationError(len(input), 'Parameter is required')
 
     def read(self):
         message = self.template.format(self.prefix + self.name, **self.spec)
@@ -407,13 +414,15 @@ class InteractiveForm(object):
         self.prefix = prefix
         self.reraise = reraise
 
+        self._context = None
+
     def initiate_dialog(self):
-        result = {}
+        self._context = {}
 
         try:
             for field in self.schema:
                 try:
-                    result[field] = self._read_field(field)
+                    self._context[field] = self._read_field(field)
                 except ReaderNotImplemented as e:
                     print('%s. Skipping...' % str(e))
         except DialogInterrupted:
@@ -421,10 +430,10 @@ class InteractiveForm(object):
                 raise
             print('Dialog interrupted.')
 
-        return result
+        return self._context
 
     def _read_field(self, field):
-        spec = self.schema[field]
+        spec = self._get_schema(field)
 
         reader = None
 
@@ -440,6 +449,25 @@ class InteractiveForm(object):
             return reader.read()
         except KeyboardInterrupt:
             raise DialogInterrupted()
+
+    def _get_schema(self, field):
+        return self.schema[field]
+
+
+class ProgressiveInteractiveForm(InteractiveForm):
+    def _get_schema(self, field):
+        def render_values(mapping):
+            for k, v in six.iteritems(mapping):
+                if isinstance(v, dict):
+                    mapping[k] = render_values(v)
+                elif isinstance(v, six.string_types):
+                    mapping[k] = env.from_string(v).render(self._context)
+
+            return mapping
+
+        schema = super(ProgressiveInteractiveForm, self)._get_schema(field)
+
+        return render_values(schema)
 
 
 class Question(StringReader):

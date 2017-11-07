@@ -1,0 +1,6 @@
+from st2actions.runners.pythonrunner import Action
+
+
+class {{ (name | title).replace(' ', '') }}Action(Action):
+    def run(self, *args, **kwargs):
+        raise NotImplementedError()

@@ -1,0 +1,11 @@
+---
+name: {{ name.lower().replace(' ', '-') }}
+description: {{ description }}
+runner_type: action-chain
+enabled: true
+entry_point: {{ entry_point.lower().replace(' ', '-') }}
+parameters:
+  # List all parameters you want this action to have
+  # action:
+  #   default: build_base_http_request
+  #   type: string

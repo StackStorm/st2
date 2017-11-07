@@ -1,0 +1,17 @@
+name:
+  type: string
+  description: The action's primary identifier.
+  required: true
+description:
+  type: string
+  description: Brief (1-2 sentences) description.
+entry_point:
+  type: string
+  description: Script's file name.
+  default: "{{ name.lower().replace(' ', '-') }}.sh"
+  required: true
+hosts:
+  type: string
+  description: Comma-separated list of hosts to execute the command on.
+  default: localhost
+  required: true

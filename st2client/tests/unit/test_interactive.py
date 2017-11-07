@@ -116,6 +116,7 @@ class TestInteractive(unittest2.TestCase):
     @mock.patch.object(interactive, 'prompt')
     def test_stringreader(self, prompt_mock):
         spec = {
+            'type': 'string',
             'description': 'some description',
             'default': 'hey'
         }

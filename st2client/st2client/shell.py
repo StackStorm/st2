@@ -35,6 +35,7 @@ from st2client.base import BaseCLIApp
 from st2client.commands import auth
 from st2client.commands import action
 from st2client.commands import action_alias
+from st2client.commands import create
 from st2client.commands import keyvalue
 from st2client.commands import inquiry
 from st2client.commands import pack
@@ -211,6 +212,10 @@ class Shell(BaseCLIApp):
 
         self.commands['api-key'] = auth.ApiKeyBranch(
             'API Keys.',
+            self, self.subparsers)
+
+        self.commands['create'] = create.CreateBranch(
+            'Content generators.',
             self, self.subparsers)
 
         self.commands['execution'] = action.ActionExecutionBranch(
