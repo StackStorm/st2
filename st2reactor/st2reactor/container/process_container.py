@@ -117,7 +117,6 @@ class ProcessSensorContainer(object):
 
         self._enable_common_pack_libs = cfg.CONF.packs.enable_common_libs or False
 
-
     def run(self):
         self._run_all_sensors()
 
