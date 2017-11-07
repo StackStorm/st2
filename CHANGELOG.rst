@@ -1,10 +1,6 @@
 Changelog
 =========
 
-in development
---------------
-
-
 2.5.0 - October 25, 2017
 ------------------------
 
@@ -51,7 +47,7 @@ Added
 
   Contributed by @lampwins.
 * Allow user to use more expressive regular expressions inside action alias format string by
-  allowing them to specify start (``^``) end end (``$``) anchors. Previously, those anchors were
+  allowing them to specify start (``^``) and end (``$``) anchors. Previously, those anchors were
   automatically added at the beginning and end of the alias format string. Now they are only added
   if a format string doesn't already contain them. #3789
 
@@ -62,6 +58,12 @@ Added
   This API endpoint is meant to be used with chat bot plugins. It allows them to be simple thin
   wrappers around this API endpoint which send each chat line to this API endpoint and handle the
   response. #3773
+* Add several improvements to the installation scripts: They support using proxy servers.
+  ``~stanley`` no longer has to be ``/home/stanley``. In addition to the on-screen display, the
+  output from the installation script is now logged to a file beginning with ``st2-install`` under
+  ``/var/log/st2/``. Furthermore, the script handles re-runs better, although it's
+  not fully idempotent yet. More improvements are expected in the near future.
+  st2-packages: #505, #506, #507, #508, #509, #510, #512, #517.
 
 Fixed
 ~~~~~
