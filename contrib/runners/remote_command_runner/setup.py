@@ -48,7 +48,7 @@ setup(
     scripts=[],
     entry_points={
         'st2common.runners.runner': [
-            'remote_command_runner = remote_command_runner',
+            'remote-shell-cmd = remote_command_runner',
         ],
     }
 )

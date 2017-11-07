@@ -48,7 +48,7 @@ setup(
     scripts=[],
     entry_points={
         'st2common.runners.runner': [
-            'windows_command_runner = windows_command_runner',
+            'windows-cmd = windows_command_runner',
         ],
     }
 )

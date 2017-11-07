@@ -48,7 +48,7 @@ setup(
     scripts=[],
     entry_points={
         'st2common.runners.runner': [
-            'mistral_runner_v2 = mistral_v2',
+            'mistral-v2 = mistral_v2',
         ],
     }
 )

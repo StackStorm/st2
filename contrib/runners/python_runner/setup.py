@@ -47,7 +47,7 @@ setup(
     scripts=[],
     entry_points={
         'st2common.runners.runner': [
-            'python_runner = python_runner',
+            'python-script = python_runner',
         ],
     }
 )

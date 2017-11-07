@@ -47,7 +47,7 @@ setup(
     scripts=[],
     entry_points={
         'st2common.runners.runner': [
-            'announcement_runner = announcement_runner',
+            'announcement = announcement_runner',
         ],
     }
 )

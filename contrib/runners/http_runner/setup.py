@@ -47,7 +47,7 @@ setup(
     scripts=[],
     entry_points={
         'st2common.runners.runner': [
-            'http_runner = http_runner',
+            'http-request = http_runner',
         ],
     }
 )

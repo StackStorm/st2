@@ -48,7 +48,7 @@ setup(
     scripts=[],
     entry_points={
         'st2common.runners.runner': [
-            'action_chain_runner = action_chain_runner',
+            'action-chain = action_chain_runner',
         ],
     }
 )

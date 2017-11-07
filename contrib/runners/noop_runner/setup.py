@@ -47,7 +47,7 @@ setup(
     scripts=[],
     entry_points={
         'st2common.runners.runner': [
-            'noop_runner = noop_runner',
+            'noop = noop_runner',
         ],
     }
 )

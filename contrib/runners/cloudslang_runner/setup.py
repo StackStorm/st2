@@ -47,7 +47,7 @@ setup(
     scripts=[],
     entry_points={
         'st2common.runners.runner': [
-            'cloudslang_runner = cloudslang_runner',
+            'cloudslang = cloudslang_runner',
         ],
     }
 )
