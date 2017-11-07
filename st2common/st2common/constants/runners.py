@@ -26,6 +26,9 @@ __all__ = [
     'REMOTE_RUNNER_DEFAULT_REMOTE_DIR',
     'REMOTE_RUNNER_PRIVATE_KEY_HEADER',
 
+    'GO_RUNNER_DEFAULT_ACTION_TIMEOUT',
+    'GO_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE',
+
     'PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT',
     'PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE',
 
@@ -57,6 +60,15 @@ except:
     REMOTE_RUNNER_DEFAULT_REMOTE_DIR = '/tmp'
 
 REMOTE_RUNNER_PRIVATE_KEY_HEADER = 'PRIVATE KEY-----'.lower()
+
+# Go runner
+# Default timeout (in seconds) for actions executed by Go runner
+GO_RUNNER_DEFAULT_ACTION_TIMEOUT = 10 * 60
+
+# Exit code with which the Go runner wrapper script exists if the Go
+# action returns invalid status from the run() method
+# TODO(mierdin): This was copied from Python runner, but this may not apply to the Go runner
+GO_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE = 220
 
 # Python runner
 # Default timeout (in seconds) for actions executed by Python runner
