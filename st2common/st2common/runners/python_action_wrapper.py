@@ -83,10 +83,11 @@ class ActionService(object):
         if not self._datastore_service:
             action_name = self._action_wrapper._class_name
             logger = get_logger_for_python_runner_action(action_name=action_name)
+            api_username = self._action_wrapper._user
             self._datastore_service = DatastoreService(logger=logger,
                                                        pack_name=self._action_wrapper._pack,
                                                        class_name=self._action_wrapper._class_name,
-                                                       api_username='action_service')
+                                                       api_username=api_username)
         return self._datastore_service
 
     ##################################
