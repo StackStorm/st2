@@ -630,10 +630,12 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         wrapper = PythonActionWrapper(pack='dummy_pack_5', file_path=PASCAL_ROW_ACTION_PATH,
                                       user='joe2')
         action_instance = wrapper._get_action_instance()
+        self.assertEqual(action_instance.action_service.datastore_service._api_username, 'joe2')
 
         wrapper = PythonActionWrapper(pack='dummy_pack_5', file_path=PASCAL_ROW_ACTION_PATH,
                                       user='joe3')
         action_instance = wrapper._get_action_instance()
+        self.assertEqual(action_instance.action_service.datastore_service._api_username, 'joe3')
 
     def _get_mock_runner_obj(self):
         runner = python_runner.get_runner()
