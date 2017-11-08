@@ -568,6 +568,24 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
                        'No module named invalid')
         self.assertRaisesRegexp(Exception, expected_msg, wrapper._get_action_instance)
 
+    def test_action_service_datastore_service_uses_correct_api_username(self):
+        # Verify the fix for regression described at
+        # https://github.com/StackStorm/st2/issues/3823#issuecomment-342756557
+
+        # Verify correct
+        wrapper = PythonActionWrapper(pack='dummy_pack_5', file_path=PASCAL_ROW_ACTION_PATH,
+                                      user='joe1')
+        action_instance = wrapper._get_action_instance()
+        self.assertEqual(action_instance.action_service.datastore_service._api_username, 'joe1')
+
+        wrapper = PythonActionWrapper(pack='dummy_pack_5', file_path=PASCAL_ROW_ACTION_PATH,
+                                      user='joe2')
+        action_instance = wrapper._get_action_instance()
+
+        wrapper = PythonActionWrapper(pack='dummy_pack_5', file_path=PASCAL_ROW_ACTION_PATH,
+                                      user='joe3')
+        action_instance = wrapper._get_action_instance()
+
     def _get_mock_runner_obj(self):
         runner = python_runner.get_runner()
         runner.execution = MOCK_EXECUTION
