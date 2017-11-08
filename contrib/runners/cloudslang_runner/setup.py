@@ -41,5 +41,13 @@ setup(
     zip_safe=False,
     include_package_data=True,
     py_modules=['cloudslang_runner'],
-    scripts=[]
+    data_files=[
+        ('metadata', ['runner.yaml'])
+    ],
+    scripts=[],
+    entry_points={
+        'st2common.runners.runner': [
+            'cloudslang = cloudslang_runner',
+        ],
+    }
 )

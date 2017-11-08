@@ -23,19 +23,17 @@ from oslo_config import cfg
 from st2common import log as logging
 from st2common.runners.paramiko_ssh_runner import RUNNER_REMOTE_DIR
 from st2common.runners.paramiko_ssh_runner import BaseParallelSSHRunner
+from st2common.runners.base import get_metadata as get_runner_metadata
 from st2common.models.system.paramiko_script_action import ParamikoRemoteScriptAction
 
 __all__ = [
-    'get_runner',
-
     'ParamikoRemoteScriptRunner',
+
+    'get_runner',
+    'get_metadata'
 ]
 
 LOG = logging.getLogger(__name__)
-
-
-def get_runner():
-    return ParamikoRemoteScriptRunner(str(uuid.uuid4()))
 
 
 class ParamikoRemoteScriptRunner(BaseParallelSSHRunner):
@@ -159,3 +157,11 @@ class ParamikoRemoteScriptRunner(BaseParallelSSHRunner):
             'return_code': 255
         }
         return error_dict
+
+
+def get_runner():
+    return ParamikoRemoteScriptRunner(str(uuid.uuid4()))
+
+
+def get_metadata():
+    return get_runner_metadata('remote_script_runner')
