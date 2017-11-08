@@ -87,10 +87,11 @@ class ActionService(object):
                                                          log_level=log_level)
             pack_name = self._action_wrapper._pack
             class_name = self._action_wrapper._class_name
+            api_username = self._action_wrapper._user
             self._datastore_service = DatastoreService(logger=logger,
                                                        pack_name=pack_name,
                                                        class_name=class_name,
-                                                       api_username='action_service')
+                                                       api_username=api_username)
 
         return self._datastore_service
 
