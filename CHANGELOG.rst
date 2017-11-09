@@ -1,8 +1,8 @@
 Changelog
 =========
 
-in development
---------------
+2.5.1 - TBD
+-----------
 
 Added
 ~~~~~
@@ -13,9 +13,19 @@ Added
   This functionality comes handy in situations when an action depends on an external library which
   logs a lot of information under ``debug``, but you only want to see messages with log level
   ``error`` or higher (or similar). (new feature) #3824
+* Add new search rule criteria comparison operator. For the usage, please refer to the
+  documentation. (new feature) #3833
+
+  Contributed by @ahubl-mz.
 
 Changed
 ~~~~~~~
+
+* Update the output of st2 execution {run,get} CLI command to colorize the value of the status
+  attribute (green for succeeded, red for failed, etc. aka the same as for the output of st2
+  execution list command). (improvement) #3810
+
+  Contributed by Nick Maludy.
 
 Fixed
 ~~~~~
