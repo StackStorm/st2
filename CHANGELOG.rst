@@ -26,6 +26,8 @@ Changed
   execution list command). (improvement) #3810
 
   Contributed by Nick Maludy.
+* Update log messages in the datastore service to correctly use ``DEBUG`` log level instead of
+  ``AUDIT``. #3845
 
 Fixed
 ~~~~~
