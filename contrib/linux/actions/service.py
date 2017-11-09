@@ -18,7 +18,7 @@ if re.search(distro, 'Ubuntu'):
     else:
         print("Unknown service")
         sys.exit(2)
-elif re.search(distro, 'Redhat') or re.search(distro, 'Fedora'):
+elif re.search(distro, 'Redhat') or re.search(distro, 'Fedora') or re.search(distro, 'CentOS Linux'):
     cmd = "systemctl %s %s" % (args['act'], args['service'])
 
 subprocess.call(cmd, shell=True)
