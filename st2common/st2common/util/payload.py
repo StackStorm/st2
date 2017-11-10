@@ -13,10 +13,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-TRIGGER_PAYLOAD_PREFIX = 'trigger'
-TRIGGER_ITEM_PAYLOAD_PREFIX = 'item'
+from jsonpath_rw import parse
 
-RULE_TYPE_STANDARD = 'standard'
-RULE_TYPE_BACKSTOP = 'backstop'
+from st2common.constants.keyvalue import SYSTEM_SCOPES
+from st2common.constants.rules import TRIGGER_PAYLOAD_PREFIX
+from st2common.services.keyvalues import KeyValueLookup
 
-MATCH_CRITERIA = r'({{)\s*(.*)\s*(}})'
+
+class PayloadLookup(object):
+
+    def __init__(self, payload, prefix=TRIGGER_PAYLOAD_PREFIX):
+        self.context = {
+            prefix: payload
+        }
+
+        for system_scope in SYSTEM_SCOPES:
+            self.context[system_scope] = KeyValueLookup(scope=system_scope)
+
+    def get_value(self, lookup_key):
+        expr = parse(lookup_key)
+        matches = [match.value for match in expr.find(self.context)]
+        if not matches:
+            return None
+        return matches

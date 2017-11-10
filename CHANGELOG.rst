@@ -16,6 +16,10 @@ Added
 * Add stevedore related metadata to Python package setup.py files for runner packages. This way
   runners can be installed using pip and dynamically enumerated and loaded using stevedore and
   corresponding helper functions. (new feature)
+* Add new ``search`` rule criteria comparison operator. For the usage, please refer to the
+  documentation. (new feature) #3833
+
+  Contributed by @ahubl-mz.
 * Add ability to share common code between python sensors and python actions. You can now place
   common code inside a ``lib`` directory inside a pack (with an ``__init__.py`` inside ``lib``
   directory to declare it a python package). You can then import the common code in sensors and
