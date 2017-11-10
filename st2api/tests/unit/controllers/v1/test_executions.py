@@ -1099,6 +1099,8 @@ class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestC
         eventlet.spawn_after(0.2, insert_mock_data)
         eventlet.spawn_after(1.5, publish_action_finished, action_execution_db)
 
+        # Retrieve data while execution is running - endpoint return new data once it's available
+        # and block until the execution finishes
         resp = self.app.get('/v1/executions/%s/output' % (str(action_execution_db.id)),
                             expect_errors=False)
         self.assertEqual(resp.status_int, 200)
