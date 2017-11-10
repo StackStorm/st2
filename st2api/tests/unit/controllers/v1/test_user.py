@@ -16,14 +16,14 @@
 from tests.base import APIControllerWithRBACTestCase
 
 __all__ = [
-    'WhoAmIControllerTestCase'
+    'UserControllerTestCase'
 ]
 
 
-class WhoAmIControllerTestCase(APIControllerWithRBACTestCase):
+class UserControllerTestCase(APIControllerWithRBACTestCase):
     def test_get(self):
         self.use_user(self.users['observer'])
-        resp = self.app.get('/v1/whoami')
+        resp = self.app.get('/v1/user')
         self.assertEqual(resp.json['username'], 'observer')
         self.assertEqual(resp.json['rbac']['enabled'], True)
         self.assertEqual(resp.json['rbac']['is_admin'], False)
@@ -32,7 +32,7 @@ class WhoAmIControllerTestCase(APIControllerWithRBACTestCase):
         self.assertEqual(resp.json['authentication']['location'], 'header')
         self.use_user(self.users['admin'])
 
-        resp = self.app.get('/v1/whoami')
+        resp = self.app.get('/v1/user')
         self.assertEqual(resp.json['username'], 'admin')
         self.assertEqual(resp.json['rbac']['enabled'], True)
         self.assertEqual(resp.json['rbac']['is_admin'], True)

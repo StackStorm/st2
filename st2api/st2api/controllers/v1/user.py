@@ -19,17 +19,17 @@ from st2common.rbac import utils as rbac_utils
 from st2common.services.rbac import get_roles_for_user
 
 __all__ = [
-    'WhoAmIController'
+    'UserController'
 ]
 
 
-class WhoAmIController(object):
+class UserController(object):
     def get(self, requester_user, auth_info):
         """
         Meta API endpoint wich returns information about the currently authenticated user.
 
             Handle:
-                GET /v1/whoami
+                GET /v1/user
         """
 
         data = {}
@@ -55,4 +55,4 @@ class WhoAmIController(object):
         return data
 
 
-whoami_controller = WhoAmIController()
+user_controller = UserController()

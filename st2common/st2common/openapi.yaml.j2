@@ -218,9 +218,9 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /api/v1/whoami:
+  /api/v1/user:
     get:
-      operationId: st2api.controllers.v1.whoami:whoami_controller.get
+      operationId: st2api.controllers.v1.user:user_controller.get
       description: Metadata information about the authenticated user.
       x-parameters:
         - name: user
