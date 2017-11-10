@@ -23,6 +23,7 @@ import uuid
 
 from tests import base
 from st2client import shell
+from st2client.commands.inquiry import MASKED_ATTRIBUTE_VALUE
 
 LOG = logging.getLogger(__name__)
 
@@ -327,6 +328,6 @@ class TestInquirySubcommands(TestInquiryBase):
         table_out = self.stdout.getvalue().strip()
         i = table_out.index("secondfactor")
         y = table_out.index("notsecret")
-        self.assertEqual(table_out[i + 16:i + 22], "******")
+        self.assertEqual(table_out[i + 16:i + 22], MASKED_ATTRIBUTE_VALUE)
         self.assertEqual(table_out[y + 13:y + 22], "notmasked")
         self.assertEqual(retcode, 0)

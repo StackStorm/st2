@@ -76,6 +76,6 @@ def mask_inquiry_response(response, schema):
     for prop_name, prop_attrs in schema['properties'].items():
         if prop_attrs.get('secret') is True:
             if prop_name in response:
-                result[prop_name] = "******"
+                result[prop_name] = MASKED_ATTRIBUTE_VALUE
 
     return result

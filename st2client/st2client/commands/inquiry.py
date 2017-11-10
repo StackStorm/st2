@@ -24,6 +24,7 @@ from st2client.utils.interactive import InteractiveForm
 LOG = logging.getLogger(__name__)
 
 DEFAULT_SCOPE = 'system'
+MASKED_ATTRIBUTE_VALUE = '******'
 
 
 class InquiryBranch(resource.ResourceBranch):
@@ -151,5 +152,5 @@ class InquiryRespondCommand(resource.ResourceCommand):
         for prop_name, prop_attrs in schema['properties'].items():
             if prop_attrs.get('secret') is True:
                 if prop_name in instance.response:
-                    instance.response[prop_name] = "******"
+                    instance.response[prop_name] = MASKED_ATTRIBUTE_VALUE
         return instance

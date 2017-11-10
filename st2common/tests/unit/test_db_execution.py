@@ -15,10 +15,11 @@
 
 import mock
 
+from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.db.execution import ActionExecutionDB
 from st2common.persistence.execution import ActionExecution
 from st2common.transport.publishers import PoolPublisher
-from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.util import date as date_utils
 
 from st2tests import DbTestCase
@@ -117,7 +118,7 @@ class ActionExecutionModelTest(DbTestCase):
 
         # Test Inquiry response masking is done properly within this model
         masked = self.retrieved.mask_secrets(self.retrieved.to_serializable_dict())
-        self.assertEqual(masked['result']['response']['secondfactor'], "******")
+        self.assertEqual(masked['result']['response']['secondfactor'], MASKED_ATTRIBUTE_VALUE)
         self.assertEqual(self.retrieved.result['response']['secondfactor'], "supersecretvalue")
 
     @staticmethod
