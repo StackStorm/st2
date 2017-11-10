@@ -125,6 +125,13 @@ class SensorService(object):
         self._dispatcher.dispatch(trigger, payload=payload, trace_context=trace_context)
 
     ##################################
+    # General methods
+    ##################################
+
+    def get_user_info(self):
+        return self.datastore_service.get_user_info()
+
+    ##################################
     # Methods for datastore management
     ##################################
 
