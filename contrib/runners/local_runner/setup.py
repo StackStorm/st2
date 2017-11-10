@@ -42,5 +42,14 @@ setup(
     zip_safe=False,
     include_package_data=True,
     py_modules=['local_runner'],
-    scripts=[]
+    data_files=[
+        ('metadata', ['runner.yaml'])
+    ],
+    scripts=[],
+    entry_points={
+        'st2common.runners.runner': [
+            'local-shell-cmd = local_runner',
+            'local-shell-script = local_runner',
+        ],
+    }
 )

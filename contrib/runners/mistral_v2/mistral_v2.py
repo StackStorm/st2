@@ -23,6 +23,7 @@ from mistralclient.api import client as mistral
 from oslo_config import cfg
 
 from st2common.runners.base import AsyncActionRunner
+from st2common.runners.base import get_metadata as get_runner_metadata
 from st2common.constants import action as action_constants
 from st2common import log as logging
 from st2common.models.api.notification import NotificationsHelper
@@ -35,12 +36,15 @@ from st2common.util.url import get_url_without_trailing_slash
 from st2common.util.api import get_full_public_api_url
 from st2common.util.api import get_mistral_api_url
 
+__all__ = [
+    'MistralRunner',
+
+    'get_runner',
+    'get_metadata'
+]
+
 
 LOG = logging.getLogger(__name__)
-
-
-def get_runner():
-    return MistralRunner(str(uuid.uuid4()))
 
 
 class MistralRunner(AsyncActionRunner):
@@ -514,3 +518,11 @@ class MistralRunner(AsyncActionRunner):
                 context['mistral'] = current
 
         return context
+
+
+def get_runner():
+    return MistralRunner(str(uuid.uuid4()))
+
+
+def get_metadata():
+    return get_runner_metadata('mistral_runner_v2')

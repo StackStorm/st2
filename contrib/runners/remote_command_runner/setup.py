@@ -42,5 +42,13 @@ setup(
     zip_safe=False,
     include_package_data=True,
     py_modules=['remote_command_runner'],
-    scripts=[]
+    data_files=[
+        ('metadata', ['runner.yaml'])
+    ],
+    scripts=[],
+    entry_points={
+        'st2common.runners.runner': [
+            'remote-shell-cmd = remote_command_runner',
+        ],
+    }
 )

@@ -93,6 +93,58 @@ class RunnerContainerTest(DbTestCase):
         expected_msg = 'Runner "test-runner-1" has been disabled by the administrator'
         self.assertRaisesRegexp(ValueError, expected_msg, runner.pre_run)
 
+    def test_created_temporary_auth_token_is_correctly_scoped_to_user_who_ran_the_action(self):
+        params = {
+            'actionstr': 'bar',
+            'mock_status': action_constants.LIVEACTION_STATUS_SUCCEEDED
+        }
+
+        global global_runner
+        global_runner = None
+
+        def mock_get_runner(*args, **kwargs):
+            global global_runner
+            runner = original_get_runner(*args, **kwargs)
+            global_runner = runner
+            return runner
+
+        # user joe_1
+
+        runner_container = get_runner_container()
+        original_get_runner = runner_container._get_runner
+
+        liveaction_db = self._get_failingaction_exec_db_model(params)
+        liveaction_db = LiveAction.add_or_update(liveaction_db)
+        liveaction_db.context = {'user': 'user_joe_1'}
+        executions.create_execution_object(liveaction_db)
+
+        runner_container._get_runner = mock_get_runner
+
+        self.assertEqual(getattr(global_runner, 'auth_token', None), None)
+        runner_container.dispatch(liveaction_db)
+        self.assertEqual(global_runner.auth_token.user, 'user_joe_1')
+        self.assertEqual(global_runner.auth_token.metadata['service'], 'actions_container')
+
+        runner_container._get_runner = original_get_runner
+
+        # user mark_1
+        global_runner = None
+        runner_container = get_runner_container()
+        original_get_runner = runner_container._get_runner
+
+        liveaction_db = self._get_failingaction_exec_db_model(params)
+        liveaction_db = LiveAction.add_or_update(liveaction_db)
+        liveaction_db.context = {'user': 'user_mark_2'}
+        executions.create_execution_object(liveaction_db)
+        original_get_runner = runner_container._get_runner
+
+        runner_container._get_runner = mock_get_runner
+
+        self.assertEqual(getattr(global_runner, 'auth_token', None), None)
+        runner_container.dispatch(liveaction_db)
+        self.assertEqual(global_runner.auth_token.user, 'user_mark_2')
+        self.assertEqual(global_runner.auth_token.metadata['service'], 'actions_container')
+
     def test_post_run_is_always_called_after_run(self):
         # 1. post_run should be called on success, failure, etc.
         runner_container = get_runner_container()

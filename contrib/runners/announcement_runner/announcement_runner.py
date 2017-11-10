@@ -16,17 +16,21 @@
 import uuid
 
 from st2common.runners.base import ActionRunner
+from st2common.runners.base import get_metadata as get_runner_metadata
 from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.exceptions import actionrunner as runnerexceptions
 from st2common.models.api.trace import TraceContext
 from st2common.transport.announcement import AnnouncementDispatcher
 
+__all__ = [
+    'AnnouncementRunner',
+
+    'get_runner',
+    'get_metadata'
+]
+
 LOG = logging.getLogger(__name__)
-
-
-def get_runner():
-    return AnnouncementRunner(str(uuid.uuid4()))
 
 
 class AnnouncementRunner(ActionRunner):
@@ -56,3 +60,11 @@ class AnnouncementRunner(ActionRunner):
                                   payload=action_parameters,
                                   trace_context=trace_context)
         return (LIVEACTION_STATUS_SUCCEEDED, action_parameters, None)
+
+
+def get_runner():
+    return AnnouncementRunner(str(uuid.uuid4()))
+
+
+def get_metadata():
+    return get_runner_metadata('announcement_runner')

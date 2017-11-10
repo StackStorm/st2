@@ -14,7 +14,10 @@
 # limitations under the License.
 
 import abc
+import pkgutil
+
 import six
+import yaml
 from oslo_config import cfg
 
 from st2common import log as logging
@@ -30,7 +33,8 @@ __all__ = [
     'ActionRunner',
     'AsyncActionRunner',
     'ShellRunnerMixin',
-    'get_runner'
+    'get_runner',
+    'get_metadata'
 ]
 
 
@@ -63,6 +67,17 @@ def get_runner(module_name, config=None):
     runner = module.get_runner(**runner_kwargs)
     LOG.debug('Instance of runner: %s', runner)
     return runner
+
+
+def get_metadata(package_name):
+    """
+    Return runner related metadata for the provided runner package name.
+
+    :rtype: ``list`` of ``dict``
+    """
+    file_path = pkgutil.get_data(package_name, 'metadata/runner.yaml')
+    metadata = yaml.safe_load(file_path)
+    return metadata
 
 
 @six.add_metaclass(abc.ABCMeta)
