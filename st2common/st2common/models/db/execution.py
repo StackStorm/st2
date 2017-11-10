@@ -114,9 +114,13 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
         # TODO(mierdin): This logic should be moved to the dedicated Inquiry
         # data model once it exists.
         if self.runner.get('name') == "inquirer":
-            response = result['result'].get('response')
-            schema = result['result']['schema']
-            if response:
+
+            schema = result['result'].get('schema', {})
+            response = result['result'].get('response', {})
+
+            # We can only mask response secrets if response and schema exist and are
+            # not empty
+            if response and schema:
                 result['result']['response'] = mask_inquiry_response(response, schema)
         return result
 
