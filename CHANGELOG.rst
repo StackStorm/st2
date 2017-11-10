@@ -24,6 +24,9 @@ Added
   users and returns various metadata on the authenticated user (which method did the user use to
   authenticate, under which username the user is authenticated, which RBAC roles are assignment to
   this user in case RBAC is enabled, etc.) (new feature) #3831
+* Add new ``get_user_info`` method to action and sensor service. With this method, user can
+  retrieve information about the user account which is used to perform datastore operations inside
+  the action and sensor service. (new feature) #3831
 
 Changed
 ~~~~~~~
