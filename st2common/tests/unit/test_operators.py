@@ -19,19 +19,6 @@ from st2common import operators
 from st2common.util import date as date_utils
 
 
-def dict_strict_equal(d1, d2):
-    """
-    Compare two dictionaries, ensuring that all keys exist in both and that the
-    values for each key are the same.
-    """
-    if len(d1.keys()) != len(d2.keys()):
-        return False
-    for k1, v1 in d1.items():
-        if k1 not in d2 or d2[k1] != v1:
-            return False
-    return True
-
-
 def list_of_dicts_strict_equal(lofd1, lofd2):
     """
     Ensure that two unordered lists contain the same dicts
@@ -41,51 +28,12 @@ def list_of_dicts_strict_equal(lofd1, lofd2):
         return False
     for i1, el1 in enumerate(lofd1):
         for i2, el2 in enumerate(t2):
-            if dict_strict_equal(el1, el2):
+            if el1 == el2:
                 del t2[i2]
                 break
         else:
             return False
     return not t2
-
-
-class DictsStrictEqualTest(unittest2.TestCase):
-    """
-    Tests dict_strict_equal
-
-    We should test our comparison functions, even if they're only used in our
-    other tests.
-    """
-    def test_empty_dicts(self):
-        self.assertTrue(dict_strict_equal({}, {}))
-
-    def test_simple_dicts(self):
-        self.assertTrue(dict_strict_equal(
-            {'a': 1},
-            {'a': 1},
-        ))
-
-        self.assertFalse(dict_strict_equal(
-            {'a': 1},
-            {'b': 1},
-        ))
-
-    def test_dict_with_different_lenths(self):
-        self.assertFalse(dict_strict_equal(
-            {'a': 2},
-            {'a': 1, 'b': 2},
-        ))
-
-    def test_complex_dicts(self):
-        self.assertFalse(dict_strict_equal(
-            {'a': 1, 'b': 1},
-            {'a': 1, 'b': 2},
-        ))
-
-        self.assertTrue(dict_strict_equal(
-            {'a': 1, 'b': 2},
-            {'a': 1, 'b': 2},
-        ))
 
 
 class ListOfDictsStrictEqualTest(unittest2.TestCase):
