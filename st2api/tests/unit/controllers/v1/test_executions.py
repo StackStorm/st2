@@ -1097,9 +1097,12 @@ class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestC
 
         eventlet.spawn_after(0.2, insert_mock_data)
         eventlet.spawn_after(1.5, publish_action_finished, action_execution_db)
+
+        # Wait a bit for the events to be processed
+        eventlet.sleep(2.0)
+
         resp = self.app.get('/v1/executions/%s/output' % (str(action_execution_db.id)),
                             expect_errors=False)
-
         self.assertEqual(resp.status_int, 200)
         lines = resp.text.strip().split('\n')
         self.assertEqual(len(lines), 3)
