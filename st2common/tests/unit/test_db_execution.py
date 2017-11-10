@@ -47,10 +47,6 @@ INQUIRY_RESULT = {
 }
 
 INQUIRY_LIVEACTION = {
-    'runner_info': {
-        'hostname': 'st2dev',
-        'pid': 16420
-    },
     'parameters': {
         'route': 'developers',
         'schema': {
@@ -65,13 +61,7 @@ INQUIRY_LIVEACTION = {
             }
         }
     },
-    'action_is_workflow': False,
-    'callback': {
-        'url': 'http://0.0.0.0:8989/v2/action_executions/88f43182-6c91-421c-92a3-b735476f7870',
-        'source': 'mistral_v2'
-    },
-    'action': 'core.ask',
-    'id': '5a02497632ed3540243001aa'
+    'action': 'core.ask'
 }
 
 

@@ -26,6 +26,7 @@ except ImportError:
 from six.moves import filter
 
 from st2common.constants import action as action_constants
+from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 from st2common.models.db.execution import ActionExecutionDB
 from st2common.models.db.execution import ActionExecutionOutputDB
 from st2common.persistence.execution import ActionExecution
@@ -133,6 +134,14 @@ ACTION_4 = {
     }
 }
 
+ACTION_INQUIRY = {
+    'name': 'st2.dummy.ask',
+    'description': 'another test description',
+    'enabled': True,
+    'pack': 'wolfpack',
+    'runner_type': 'inquirer',
+}
+
 LIVE_ACTION_1 = {
     'action': 'sixpack.st2.dummy.action1',
     'parameters': {
@@ -162,6 +171,44 @@ LIVE_ACTION_3 = {
 
 LIVE_ACTION_4 = {
     'action': 'starterpack.st2.dummy.action4',
+}
+
+LIVE_ACTION_INQUIRY = {
+    'parameters': {
+        'route': 'developers',
+        'schema': {
+            'type': 'object',
+            'properties': {
+                'secondfactor': {
+                    'secret': True,
+                    'required': True,
+                    'type': u'string',
+                    'description': 'Please enter second factor for authenticating to "foo" service'
+                }
+            }
+        }
+    },
+    'action': 'wolfpack.st2.dummy.ask',
+    'result': {
+        'users': [],
+        'roles': [],
+        'route': 'developers',
+        'ttl': 1440,
+        'response': {
+            'secondfactor': 'supersecretvalue'
+        },
+        'schema': {
+            'type': 'object',
+            'properties': {
+                'secondfactor': {
+                    'secret': True,
+                    'required': True,
+                    'type': 'string',
+                    'description': 'Please enter second factor for authenticating to "foo" service'
+                }
+            }
+        }
+    }
 }
 
 FIXTURES_PACK = 'generic'
@@ -196,12 +243,17 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         post_resp = cls.app.post_json('/v1/actions', cls.action4)
         cls.action4['id'] = post_resp.json['id']
 
+        cls.action_inquiry = copy.deepcopy(ACTION_INQUIRY)
+        post_resp = cls.app.post_json('/v1/actions', cls.action_inquiry)
+        cls.action_inquiry['id'] = post_resp.json['id']
+
     @classmethod
     def tearDownClass(cls):
         cls.app.delete('/v1/actions/%s' % cls.action1['id'])
         cls.app.delete('/v1/actions/%s' % cls.action2['id'])
         cls.app.delete('/v1/actions/%s' % cls.action3['id'])
         cls.app.delete('/v1/actions/%s' % cls.action4['id'])
+        cls.app.delete('/v1/actions/%s' % cls.action_inquiry['id'])
         super(BaseActionExecutionControllerTestCase, cls).tearDownClass()
 
     def test_get_one(self):
@@ -1050,6 +1102,31 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
             self.assertIn('result is not applicable', put_resp.json['faultstring'])
         finally:
             action_constants.WORKFLOW_RUNNER_TYPES.remove(ACTION_1['runner_type'])
+
+    def test_get_inquiry_mask(self):
+        """Ensure Inquiry responses are masked when retrieved via ActionExecution GET
+
+        The reason this test is included here is so that we can verify that the ActionExecution
+        GET function properly masks fields within an Inquiry response.
+        TODO(mierdin): This test, and the constants it uses, should not be necessary here
+        once Inquiries get their own data model.
+        """
+
+        post_resp = self._do_post(LIVE_ACTION_INQUIRY)
+        actionexecution_id = self._get_actionexecution_id(post_resp)
+        get_resp = self._do_get_one(actionexecution_id)
+        self.assertEqual(get_resp.status_int, 200)
+
+        resp = json.loads(get_resp.body)
+        self.assertEqual(resp['result']['response']['secondfactor'], MASKED_ATTRIBUTE_VALUE)
+
+        post_resp = self._do_post(LIVE_ACTION_INQUIRY)
+        actionexecution_id = self._get_actionexecution_id(post_resp)
+        get_resp = self._do_get_one(actionexecution_id, params={'show_secrets': True})
+        self.assertEqual(get_resp.status_int, 200)
+
+        resp = json.loads(get_resp.body)
+        self.assertEqual(resp['result']['response']['secondfactor'], "supersecretvalue")
 
 
 class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestCase,
