@@ -115,7 +115,7 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
         # data model once it exists.
         if self.runner.get('name') == "inquirer":
             response = result['result'].get('response')
-            schema = result['result'].get('schema')
+            schema = result['result']['schema']
             if response:
                 result['result']['response'] = mask_inquiry_response(response, schema)
         return result
