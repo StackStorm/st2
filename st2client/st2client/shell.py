@@ -81,7 +81,6 @@ class Shell(BaseCLIApp):
     SKIP_AUTH_CLASSES = [
         TokenCreateCommand.__name__,
         LoginCommand.__name__,
-        WhoamiCommand.__name__
     ]
 
     def __init__(self):
