@@ -16,6 +16,7 @@
 import getpass
 import json
 import logging
+import httplib
 
 import requests
 from six.moves.configparser import ConfigParser
@@ -187,7 +188,11 @@ class WhoamiCommand(resource.ResourceCommand):
         try:
             user_info = self.run(args, **kwargs)
         except Exception as e:
-            if getattr(e, 'response', None) is not None and e.response.status_code == 401:
+            response = getattr(e, 'response', None)
+            status_code = getattr(response, 'status_code', None)
+            is_unathorized_error = (status_code == httplib.UNAUTHORIZED)
+
+            if response and is_unathorized_error:
                 print('Not authenticated')
             else:
                 print('Unable to retrieve currently logged-in user')
