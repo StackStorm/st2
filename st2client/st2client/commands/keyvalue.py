@@ -16,6 +16,7 @@
 import os
 import json
 import logging
+import yaml
 from os.path import join as pjoin
 
 from st2client.commands import resource
@@ -269,37 +270,61 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
                                                       help_text, *args, **kwargs)
 
         self.parser.add_argument(
-            'file', help=('JSON file containing the %s to create.'
+            'file', help=('JSON/YAML file containing the %s(s) to load'
                           % resource.get_plural_display_name().lower()))
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
+        # normalize the file path to allow for relative files to be specified
         file_path = os.path.normpath(pjoin(os.getcwd(), args.file))
 
-        if not os.path.exists(args.file):
-            raise ValueError('File "%s" doesn\'t exist' % (file_path))
+        # load the data (JSON/YAML) from the file
+        kvps = resource.load_meta_file(args.file)
 
-        if not os.path.isfile(args.file):
-            raise ValueError('"%s" is not a file' % (file_path))
-
-        with open(file_path, 'r') as f:
-            kvps = json.loads(f.read())
+        # if the data is not a list (ie. it's a single entry)
+        # then make it a list so our process loop is generic
+        if not isinstance(kvps, list):
+            kvps = [kvps]
 
         instances = []
         for item in kvps:
+            # parse required KeyValuePair properties
             name = item['name']
             value = item['value']
 
+            # parse optional KeyValuePair properties
+            scope = item.get('scope', DEFAULT_SCOPE)
+            user = item.get('user', None)
+            secret = item.get('secret', False)
+            ttl = item.get('ttl', None)
+
+            # if the value is not a string, convert it to JSON
+            # all keys in the datastore must strings
+            if not isinstance(value, basestring):
+                value = json.dumps(value)
+
+            # create the KeyValuePair instance
             instance = KeyValuePair()
             instance.id = name  # TODO: refactor and get rid of id
             instance.name = name
             instance.value = value
+            instance.scope = scope
+            if user:
+                instance.user = user
+            if secret:
+                instance.secret = secret
+            if ttl:
+                instance.ttl = ttl
 
+            # call the API to create/update the KeyValuePair
             self.manager.update(instance, **kwargs)
             instances.append(instance)
+
         return instances
 
     def run_and_print(self, args, **kwargs):
         instances = self.run(args, **kwargs)
         self.print_output(instances, table.MultiColumnTable,
-                          attributes=['id', 'name', 'value'], json=args.json, yaml=args.yaml)
+                          attributes=['name', 'value', 'secret', 'scope', 'user', 'ttl'],
+                          json=args.json,
+                          yaml=args.yaml)

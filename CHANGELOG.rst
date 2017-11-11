@@ -20,7 +20,7 @@ Added
   documentation. (new feature) #3833
 
   Contributed by @ahubl-mz.
-
+  
 Changed
 ~~~~~~~
 
@@ -39,12 +39,18 @@ Changed
   ``status`` attribute (green for ``succeeded``, red for ``failed``, etc. aka the same as for the
   output of ``st2 execution list`` command). (improvement) #3810
 
-  Contributed by Nick Maludy.
+  Contributed by Nick Maludy (Encore Technologies).
 * Update various Python dependencies to the latest stable versions (kombu, amqp, apscheduler,
   gitpython, pymongo, stevedore, paramiko, prompt-toolkit, flex). #3830
 * Update log messages in the datastore service to correctly use ``DEBUG`` log level instead of
   ``AUDIT``. #3845
+* Added the ability of ``st2 key load`` to load keys from both JSON and YAML files.
+  Files can now contain a single KeyValuePair, or an array of KeyValuePairs.
+  Updated ``st2 key load`` to load all properties of a key/value pair, now
+  secret values can be loaded. (improvement) #3815
 
+  Contributed by Nick Maludy (Encore Technologies).
+  
 Fixed
 ~~~~~
 
