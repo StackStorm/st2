@@ -34,8 +34,8 @@ def get_value(doc, key):
 
     value = doc
     for k in split_key:
-        if isinstance(value, dict) and key in value:
-            value = value[key]
+        if isinstance(value, dict) and k in value:
+            value = value[k]
         else:
             return None
     return value
