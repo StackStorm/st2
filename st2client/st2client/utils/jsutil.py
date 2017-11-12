@@ -40,6 +40,7 @@ def get_value(doc, key):
             return None
     return value
 
+
 def get_kvps(doc, keys):
     """
     Extracts one or more keys ('keys' can be a string or list of strings)
