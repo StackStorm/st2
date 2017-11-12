@@ -20,7 +20,6 @@ import mock
 import os
 import requests
 import tempfile
-import unittest2
 import yaml
 
 from tests import base

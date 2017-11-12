@@ -16,7 +16,6 @@
 import os
 import json
 import logging
-import yaml
 from os.path import join as pjoin
 
 from st2client.commands import resource
@@ -279,7 +278,7 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
         file_path = os.path.normpath(pjoin(os.getcwd(), args.file))
 
         # load the data (JSON/YAML) from the file
-        kvps = resource.load_meta_file(args.file)
+        kvps = resource.load_meta_file(file_path)
 
         # if the data is not a list (ie. it's a single entry)
         # then make it a list so our process loop is generic
