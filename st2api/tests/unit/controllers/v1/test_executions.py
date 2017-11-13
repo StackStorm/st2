@@ -1158,7 +1158,6 @@ class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestC
             output_params['data'] = 'stdout mid 1\n'
             output_db = ActionExecutionOutputDB(**output_params)
             ActionExecutionOutput.add_or_update(output_db)
-            pass
 
         # Since the API endpoint is blocking (connection is kept open until action finishes), we
         # spawn an eventlet which eventually finishes the action.
@@ -1168,15 +1167,19 @@ class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestC
             output_db = ActionExecutionOutputDB(**output_params)
             ActionExecutionOutput.add_or_update(output_db)
 
+            eventlet.sleep(1.0)
+
             # Transition execution to completed state so the connection closes
             action_execution_db.status = action_constants.LIVEACTION_STATUS_SUCCEEDED
             action_execution_db = ActionExecution.add_or_update(action_execution_db)
 
         eventlet.spawn_after(0.2, insert_mock_data)
         eventlet.spawn_after(1.5, publish_action_finished, action_execution_db)
+
+        # Retrieve data while execution is running - endpoint return new data once it's available
+        # and block until the execution finishes
         resp = self.app.get('/v1/executions/%s/output' % (str(action_execution_db.id)),
                             expect_errors=False)
-
         self.assertEqual(resp.status_int, 200)
         lines = resp.text.strip().split('\n')
         self.assertEqual(len(lines), 3)
