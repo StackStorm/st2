@@ -200,6 +200,8 @@ class WhoamiCommand(resource.ResourceCommand):
             if self.app.client.debug:
                 raise
 
+            return
+
         print('Currently logged in as "%s".' % (user_info['username']))
         print('')
         print('Authentication method: %s' % (user_info['authentication']['method']))
