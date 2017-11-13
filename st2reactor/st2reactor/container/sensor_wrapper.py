@@ -64,6 +64,10 @@ class SensorService(object):
 
         self._client = None
 
+    @property
+    def datastore_service(self):
+        return self._datastore_service
+
     def get_logger(self, name):
         """
         Retrieve an instance of a logger to be used by the sensor class.
@@ -73,6 +77,17 @@ class SensorService(object):
         logger.propagate = True
 
         return logger
+
+    ##################################
+    # General methods
+    ##################################
+
+    def get_user_info(self):
+        return self.datastore_service.get_user_info()
+
+    ##################################
+    # Sensor related methods
+    ##################################
 
     def dispatch(self, trigger, payload=None, trace_tag=None):
         """
