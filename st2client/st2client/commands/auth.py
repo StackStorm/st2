@@ -203,6 +203,11 @@ class WhoamiCommand(resource.ResourceCommand):
         print('Currently logged in as "%s".' % (user_info['username']))
         print('')
         print('Authentication method: %s' % (user_info['authentication']['method']))
+
+        if user_info['authentication']['method'] == 'authentication token':
+            print('Authentication token expire time: %s' %
+                  (user_info['authentication']['token_expire']))
+
         print('')
         print('RBAC:')
         print(' - Enabled: %s' % (user_info['rbac']['enabled']))

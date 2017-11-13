@@ -54,7 +54,7 @@ class UserController(object):
         }
 
         if auth_info.get('token_expire', None):
-            token_expire = auth_info['token_expire'].strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+            token_expire = auth_info['token_expire'].strftime('%Y-%m-%dT%H:%M:%SZ')
             data['authentication']['token_expire'] = token_expire
 
         return data
