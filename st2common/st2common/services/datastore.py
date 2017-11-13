@@ -84,7 +84,7 @@ class BaseDatastoreService(object):
         :rtype: ``list`` of :class:`KeyValuePair`
         """
         client = self._get_api_client()
-        self._logger.audit('Retrieving all the value from the datastore')
+        self._logger.debug('Retrieving all the value from the datastore')
 
         key_prefix = self._get_full_key_prefix(local=local, prefix=prefix)
         kvps = client.keys.get_all(prefix=key_prefix)
@@ -117,7 +117,7 @@ class BaseDatastoreService(object):
         name = self._get_full_key_name(name=name, local=local)
 
         client = self._get_api_client()
-        self._logger.audit('Retrieving value from the datastore (name=%s)', name)
+        self._logger.debug('Retrieving value from the datastore (name=%s)', name)
 
         try:
             params = {'decrypt': str(decrypt).lower(), 'scope': scope}
@@ -171,7 +171,7 @@ class BaseDatastoreService(object):
         value = str(value)
         client = self._get_api_client()
 
-        self._logger.audit('Setting value in the datastore (name=%s)', name)
+        self._logger.debug('Setting value in the datastore (name=%s)', name)
 
         instance = KeyValuePair()
         instance.id = name
@@ -217,7 +217,7 @@ class BaseDatastoreService(object):
         instance.id = name
         instance.name = name
 
-        self._logger.audit('Deleting value from the datastore (name=%s)', name)
+        self._logger.debug('Deleting value from the datastore (name=%s)', name)
 
         try:
             params = {'scope': scope}
