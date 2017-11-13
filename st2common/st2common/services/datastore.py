@@ -58,7 +58,7 @@ class DatastoreService(object):
         :rtype: ``list`` of :class:`KeyValuePair`
         """
         client = self._get_api_client()
-        self._logger.audit('Retrieving all the value from the datastore')
+        self._logger.debug('Retrieving all the value from the datastore')
 
         key_prefix = self._get_full_key_prefix(local=local, prefix=prefix)
         kvps = client.keys.get_all(prefix=key_prefix)
@@ -91,7 +91,7 @@ class DatastoreService(object):
         name = self._get_full_key_name(name=name, local=local)
 
         client = self._get_api_client()
-        self._logger.audit('Retrieving value from the datastore (name=%s)', name)
+        self._logger.debug('Retrieving value from the datastore (name=%s)', name)
 
         try:
             params = {'decrypt': str(decrypt).lower(), 'scope': scope}
@@ -145,7 +145,7 @@ class DatastoreService(object):
         value = str(value)
         client = self._get_api_client()
 
-        self._logger.audit('Setting value in the datastore (name=%s)', name)
+        self._logger.debug('Setting value in the datastore (name=%s)', name)
 
         instance = KeyValuePair()
         instance.id = name
@@ -191,7 +191,7 @@ class DatastoreService(object):
         instance.id = name
         instance.name = name
 
-        self._logger.audit('Deleting value from the datastore (name=%s)', name)
+        self._logger.debug('Deleting value from the datastore (name=%s)', name)
 
         try:
             params = {'scope': scope}
@@ -213,7 +213,8 @@ class DatastoreService(object):
         token_expire = self._token_expire <= get_datetime_utc_now()
 
         if not self._client or token_expire:
-            self._logger.audit('Creating new Client object.')
+            self._logger.debug('Creating new Client object.')
+
             ttl = cfg.CONF.auth.service_token_ttl
             self._token_expire = get_datetime_utc_now() + timedelta(seconds=ttl)
             temporary_token = create_token(username=self._api_username, ttl=ttl, service=True)
