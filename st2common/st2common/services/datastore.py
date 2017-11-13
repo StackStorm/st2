@@ -50,6 +50,24 @@ class BaseDatastoreService(object):
         self._token_expire = get_datetime_utc_now()
 
     ##################################
+    # General methods
+    ##################################
+
+    def get_user_info(self):
+        """
+        Retrieve information about the current user which is authenticated against StackStorm and
+        used to perform other datastore operations via the API.
+
+        :rtype: ``dict``
+        """
+        client = self._get_api_client()
+
+        self._logger.debug('Retrieving user information')
+
+        result = client.get_user_info()
+        return result
+
+    ##################################
     # Methods for datastore management
     ##################################
 
