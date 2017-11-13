@@ -51,3 +51,7 @@ class MockActionService(ActionService):
         self._datastore_service = MockDatastoreService(logger=self._logger,
                                                        pack_name=self._action_wrapper._pack,
                                                        class_name=self._action_wrapper._class_name)
+
+    @property
+    def datastore_service(self):
+        return self._datastore_service
