@@ -268,7 +268,10 @@ class Router(object):
                                 'method': auth_method,
                                 'location': definition['in']
                             }
-                            context['authenticated_via'] = definition['name']
+
+                            # Also include token expiration time when authenticated via auth token
+                            if 'auth-token' in definition['name'].lower():
+                                context['auth_info']['token_expire'] = auth_resp.expiry
 
                             if 'x-set-cookie' in definition:
                                 max_age = auth_resp.expiry - date_utils.get_datetime_utc_now()
