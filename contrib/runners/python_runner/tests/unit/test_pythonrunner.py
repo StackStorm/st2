@@ -485,7 +485,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
         _, call_kwargs = mock_popen.call_args
         actual_env = call_kwargs['env']
-        pack_common_lib_path = '/mnt/src/storm/st2/st2tests/st2tests/fixtures/packs/core/lib'
+        pack_common_lib_path = 'fixtures/packs/core/lib'
         self.assertTrue('PYTHONPATH' in actual_env)
         self.assertTrue(pack_common_lib_path in actual_env['PYTHONPATH'])
 
