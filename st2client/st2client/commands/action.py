@@ -155,9 +155,15 @@ def format_execution_status(instance):
     """
     start_timestamp = getattr(instance, 'start_timestamp', None)
     end_timestamp = getattr(instance, 'end_timestamp', None)
+    running_start_timestamp = getattr(instance, 'running_start_timestamp', None)
 
     if instance.status == LIVEACTION_STATUS_RUNNING and start_timestamp:
         start_timestamp = instance.start_timestamp
+
+        # Override with running start timestamp if available
+        if running_start_timestamp:
+            start_timestamp = running_start_timestamp
+
         start_timestamp = parse_isotime(start_timestamp)
         start_timestamp = calendar.timegm(start_timestamp.timetuple())
         now = int(time.time())

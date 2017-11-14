@@ -53,6 +53,9 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
     start_timestamp = ComplexDateTimeField(
         default=date_utils.get_datetime_utc_now,
         help_text='The timestamp when the liveaction was created.')
+    running_start_timestamp = ComplexDateTimeField(
+        default=date_utils.get_datetime_utc_now,
+        help_text='The timestamp when the liveaction entered "running" state.')
     end_timestamp = ComplexDateTimeField(
         help_text='The timestamp when the liveaction has finished.')
     parameters = stormbase.EscapedDynamicField(

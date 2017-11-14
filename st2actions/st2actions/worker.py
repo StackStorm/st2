@@ -30,6 +30,7 @@ from st2common.transport.consumers import MessageHandler
 from st2common.transport.consumers import ActionsQueueConsumer
 from st2common.transport import utils as transport_utils
 from st2common.util import action_db as action_utils
+from st2common.util import date as date_utils
 from st2common.util import system_info
 from st2common.transport import queues
 
@@ -139,6 +140,7 @@ class ActionExecutionDispatcher(MessageHandler):
         # Update liveaction status to "running"
         liveaction_db = action_utils.update_liveaction_status(
             status=action_constants.LIVEACTION_STATUS_RUNNING,
+            running_start_timestamp=date_utils.get_datetime_utc_now,
             runner_info=runner_info,
             liveaction_id=liveaction_db.id)
 
