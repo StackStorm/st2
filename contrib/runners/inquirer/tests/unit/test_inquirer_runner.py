@@ -15,7 +15,7 @@
 
 import mock
 
-import inquirer
+from inquirer import inquirer
 from st2common.constants.action import LIVEACTION_STATUS_PENDING
 from st2common.constants.pack import SYSTEM_PACK_NAME
 from st2common.persistence.execution import ActionExecution

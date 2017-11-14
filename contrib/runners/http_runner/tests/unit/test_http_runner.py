@@ -16,7 +16,7 @@
 import mock
 import unittest2
 
-from http_runner import HTTPClient
+from http_runner.http_runner import HTTPClient
 import st2tests.config as tests_config
 
 

@@ -19,7 +19,7 @@ from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.models.api.trace import TraceContext
 from st2tests.base import RunnerTestCase
 import st2tests.config as tests_config
-import announcement_runner
+from announcement_runner import announcement_runner
 
 
 mock_dispatcher = mock.Mock()
