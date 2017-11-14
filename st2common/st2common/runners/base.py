@@ -49,6 +49,7 @@ def get_runner(module_name, config=None):
     """
 
     LOG.debug('Runner loading python module: %s', module_name)
+
     try:
         # TODO: Explore modifying this to support register_plugin
         module = register_runner(module_name)

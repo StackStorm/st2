@@ -178,7 +178,16 @@ def register_plugin(plugin_base_class, plugin_abs_file_path):
 
 def register_runner(module_name):
     base_path = cfg.CONF.system.base_path
+
+    # TODO: Switch to stevedore enumeration and loading
+
+    # 1. First try pre StackStorm v2.6.0 path (runners are not Python packages)
     module_path = os.path.join(base_path, 'runners', module_name, module_name + '.py')
+
+    # 2. Second try post StackStorm v2.6.0 path (runners are Python packages)
+    if not os.path.isfile(module_path):
+        module_path = os.path.join(base_path, 'runners', module_name, module_name,
+                                   module_name + '.py')
 
     if module_name not in RUNNER_MODULES_CACHE:
         LOG.info('Loading runner module from "%s".', module_path)
