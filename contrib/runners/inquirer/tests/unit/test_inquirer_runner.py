@@ -53,7 +53,7 @@ runner_params = {
 }
 
 
-@mock.patch('inquirer.TriggerDispatcher', mock_trigger_dispatcher)
+@mock.patch('inquirer.inquirer.TriggerDispatcher', mock_trigger_dispatcher)
 @mock.patch.object(
     reactor,
     'TriggerDispatcher',

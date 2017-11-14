@@ -33,6 +33,8 @@ from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
 __all__ = [
     'HttpRunner',
 
+    'HTTPClient',
+
     'get_runner',
     'get_metadata'
 ]
