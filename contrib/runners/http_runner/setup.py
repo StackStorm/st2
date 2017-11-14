@@ -17,6 +17,7 @@
 import os.path
 
 from setuptools import setup
+from setuptools import find_packages
 
 from dist_utils import fetch_requirements
 from dist_utils import apply_vagrant_workaround
@@ -40,14 +41,11 @@ setup(
     test_suite='tests',
     zip_safe=False,
     include_package_data=True,
-    py_modules=['http_runner'],
-    data_files=[
-        ('metadata', ['runner.yaml'])
-    ],
+    packages=find_packages(exclude=['setuptools', 'tests']),
     scripts=[],
     entry_points={
         'st2common.runners.runner': [
-            'http-request = http_runner',
+            'http-request = http_runner.http_runner',
         ],
     }
 )

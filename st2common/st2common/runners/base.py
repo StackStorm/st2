@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import abc
-import pkgutil
 
 import six
 import yaml
@@ -75,8 +74,14 @@ def get_metadata(package_name):
 
     :rtype: ``list`` of ``dict``
     """
-    file_path = pkgutil.get_data(package_name, 'metadata/runner.yaml')
-    metadata = yaml.safe_load(file_path)
+    import pkg_resources
+
+    file_path = pkg_resources.resource_filename(package_name, 'runner.yaml')
+
+    with open(file_path, 'r') as fp:
+        content = fp.read()
+
+    metadata = yaml.safe_load(content)
     return metadata
 
 
