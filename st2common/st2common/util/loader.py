@@ -26,7 +26,13 @@ from st2common import log as logging
 
 __all__ = [
     'register_plugin',
-    'register_plugin_class'
+    'register_plugin_class',
+
+    'register_runner',
+    'register_query_module',
+    'register_callback_module',
+
+    'load_meta_file'
 ]
 
 
