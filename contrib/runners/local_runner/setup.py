@@ -29,7 +29,7 @@ install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
 
 apply_vagrant_workaround()
 setup(
-    name='local_runner',
+    name='stackstorm-runner-local',
     version='2.5.0',
     description=('Local Shell Command and Script action runner for StackStorm event-driven '
                  'automation platform'),

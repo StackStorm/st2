@@ -29,7 +29,7 @@ install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
 
 apply_vagrant_workaround()
 setup(
-    name='windows_command_runner',
+    name='stackstorm-runner-windows-command',
     version='2.5.0',
     description=('Windows command action runner for StackStorm event-driven '
                  'automation platform'),

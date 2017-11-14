@@ -29,7 +29,7 @@ install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
 
 apply_vagrant_workaround()
 setup(
-    name='python_runner',
+    name='stackstorm-runner-python',
     version='2.5.0',
     description='Python action runner for StackStorm event-driven automation platform',
     author='StackStorm',

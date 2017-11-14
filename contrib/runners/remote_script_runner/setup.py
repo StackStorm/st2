@@ -29,7 +29,7 @@ install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
 
 apply_vagrant_workaround()
 setup(
-    name='remote_script_runner',
+    name='stackstorm-runner-remote-script',
     version='2.5.0',
     description=('Remote SSH shell script action runner for StackStorm event-driven '
                  'automation platform'),

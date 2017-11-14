@@ -29,7 +29,7 @@ install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
 
 apply_vagrant_workaround()
 setup(
-    name='noop_runner',
+    name='stackstorm-runner-noop',
     version='2.5.0',
     description=('No-Op action runner for StackStorm event-driven automation platform'),
     author='StackStorm',

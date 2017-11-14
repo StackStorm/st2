@@ -29,7 +29,7 @@ install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
 
 apply_vagrant_workaround()
 setup(
-    name='cloudslang_runner',
+    name='stackstorm-runner-cloudslang',
     version='2.5.0',
     description=('CloudSlang action runner for StackStorm event-driven automation platform'),
     author='StackStorm',

@@ -29,7 +29,7 @@ install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
 
 apply_vagrant_workaround()
 setup(
-    name='announcement_runner',
+    name='stackstorm-runner-announcement',
     version='2.5.0',
     description=('Announcement action runner for StackStorm event-driven automation platform'),
     author='StackStorm',

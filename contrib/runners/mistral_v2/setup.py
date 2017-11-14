@@ -29,7 +29,7 @@ install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
 
 apply_vagrant_workaround()
 setup(
-    name='mistral_runner_v2',
+    name='stackstorm-runner-mistral-v2',
     version='2.5.0',
     description=('Mistral v2 workflow action runner for StackStorm event-driven '
                  'automation platform'),
