@@ -18,4 +18,4 @@
 # packages, but now they are full blown Python packages.
 # This means you can either do "from runner_name import RunnerClass" (old way, don't do that)
 # or "from runner_name.runner_name import RunnerClass"
-from inquirer import *  # noqa
+from inquirer_runner import *  # noqa

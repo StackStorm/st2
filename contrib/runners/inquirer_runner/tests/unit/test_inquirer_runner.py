@@ -15,7 +15,7 @@
 
 import mock
 
-from inquirer import inquirer
+from inquirer_runner import inquirer_runner
 from st2common.constants.action import LIVEACTION_STATUS_PENDING
 from st2common.constants.pack import SYSTEM_PACK_NAME
 from st2common.persistence.execution import ActionExecution
@@ -53,7 +53,7 @@ runner_params = {
 }
 
 
-@mock.patch('inquirer.inquirer.TriggerDispatcher', mock_trigger_dispatcher)
+@mock.patch('inquirer_runner.inquirer_runner.TriggerDispatcher', mock_trigger_dispatcher)
 @mock.patch.object(
     reactor,
     'TriggerDispatcher',
@@ -83,12 +83,12 @@ class InquiryTestCase(RunnerTestCase):
         mock_request_pause.reset_mock()
 
     def test_runner_creation(self):
-        runner = inquirer.get_runner()
+        runner = inquirer_runner.get_runner()
         self.assertTrue(runner is not None, 'Creation failed. No instance.')
-        self.assertEqual(type(runner), inquirer.Inquirer, 'Creation failed. No instance.')
+        self.assertEqual(type(runner), inquirer_runner.Inquirer, 'Creation failed. No instance.')
 
     def test_simple_inquiry(self):
-        runner = inquirer.get_runner()
+        runner = inquirer_runner.get_runner()
         runner.context = {
             'user': test_user
         }
@@ -126,7 +126,7 @@ class InquiryTestCase(RunnerTestCase):
         """Should behave like a regular execution, but without requesting a pause
         """
 
-        runner = inquirer.get_runner()
+        runner = inquirer_runner.get_runner()
         runner.context = {
             'user': 'st2admin'
         }
