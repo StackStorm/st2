@@ -241,7 +241,7 @@ jobs:
           command: |
             set -x
             sudo apt-get -y install parallel jq
-            gem install package_cloud
+            sudo gem install package_cloud
             sudo wget -O /usr/local/bin/packagecloud.sh https://raw.githubusercontent.com/StackStorm/st2-packages/master/.circle/packagecloud.sh && sudo chmod +x /usr/local/bin/packagecloud.sh
       - run:
           name: Deploy deb/rpm packages to PackageCloud
