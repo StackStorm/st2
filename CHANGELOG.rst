@@ -52,7 +52,7 @@ Changed
 * Update log messages in the datastore service to correctly use ``DEBUG`` log level instead of
   ``AUDIT``. #3845
 * Mask values in an Inquiry response displayed to the user that were marked as "secret" in the
-  inquiry's response schema #3825
+  inquiry's response schema. #3825
 
 Fixed
 ~~~~~
