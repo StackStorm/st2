@@ -20,6 +20,13 @@ Added
   documentation. (new feature) #3833
 
   Contributed by @ahubl-mz.
+* Add new ``/api/v1/user`` API endpoint. This API endpoint is only available to the authenticated
+  users and returns various metadata on the authenticated user (which method did the user use to
+  authenticate, under which username the user is authenticated, which RBAC roles are assignment to
+  this user in case RBAC is enabled, etc.) (new feature) #3831
+* Add new ``get_user_info`` method to action and sensor service. With this method, user can
+  retrieve information about the user account which is used to perform datastore operations inside
+  the action and sensor service. (new feature) #3831
 * Add ability to share common code between python sensors and python actions. You can now place
   common code inside a ``lib`` directory inside a pack (with an ``__init__.py`` inside ``lib``
   directory to declare it a python package). You can then import the common code in sensors and
@@ -46,6 +53,8 @@ Changed
   Contributed by Nick Maludy.
 * Update various Python dependencies to the latest stable versions (kombu, amqp, apscheduler,
   gitpython, pymongo, stevedore, paramiko, prompt-toolkit, flex). #3830
+* Update log messages in the datastore service to correctly use ``DEBUG`` log level instead of
+  ``AUDIT``. #3845
 
 Fixed
 ~~~~~
@@ -57,6 +66,8 @@ Fixed
   (bug fix) #3824
 * Fix ``st2 execution tail [last]`` CLI command so it doesn't throw an exception if there are no
   executions in the database. (bug fix) #3760 #3802
+* Fix 'NameError: name 'cmd' is not defined' error when using ``linux.service`` with CentOS systems.
+  #3843. Contributed by @shkadov
 
 2.5.0 - October 25, 2017
 ------------------------

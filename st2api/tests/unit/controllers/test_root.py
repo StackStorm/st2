@@ -13,26 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common import __version__
+from tests import FunctionalTest
 
 __all__ = [
-    'RootController'
+    'RootControllerTestCase'
 ]
 
 
-class RootController(object):
-    def index(self):
-        data = {}
-
-        if 'dev' in __version__:
-            docs_url = 'http://docs.stackstorm.com/latest'
-        else:
-            docs_version = '.'.join(__version__.split('.')[:2])
-            docs_url = 'http://docs.stackstorm.com/%s' % docs_version
-
-        data['version'] = __version__
-        data['docs_url'] = docs_url
-        return data
-
-
-root_controller = RootController()
+class RootControllerTestCase(FunctionalTest):
+    def test_get_index(self):
+        paths = ['/', '/v1/', '/v1']
+        for path in paths:
+            resp = self.app.get(path)
+            self.assertTrue('version' in resp.json)
+            self.assertTrue('docs_url' in resp.json)
