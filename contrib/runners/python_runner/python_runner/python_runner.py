@@ -50,7 +50,7 @@ __all__ = [
     'PythonRunner',
 
     'get_runner',
-    'get_runner_metadata',
+    'get_metadata',
 ]
 
 LOG = logging.getLogger(__name__)

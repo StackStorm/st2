@@ -28,8 +28,8 @@ from oslo_config import cfg
 import st2tests.config as tests_config
 tests_config.parse_args()
 
-from mistral_v2 import MistralRunner
 import st2common
+from mistral_v2.mistral_v2 import MistralRunner
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import policiesregistrar
 from st2common.bootstrap import runnersregistrar

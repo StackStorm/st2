@@ -14,7 +14,8 @@
 # limitations under the License.
 
 import mock
-import action_chain_runner as acr
+
+from action_chain_runner import action_chain_runner as acr
 from st2common.constants.action import LIVEACTION_STATUS_RUNNING
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_CANCELED
