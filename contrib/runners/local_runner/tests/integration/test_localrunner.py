@@ -33,7 +33,7 @@ from st2tests.base import RunnerTestCase
 from st2tests.base import CleanDbTestCase
 from st2tests.base import blocking_eventlet_spawn
 from st2tests.base import make_mock_stream_readline
-import local_runner
+from local_runner import local_runner
 
 __all__ = [
     'LocalShellCommandRunnerTestCase',

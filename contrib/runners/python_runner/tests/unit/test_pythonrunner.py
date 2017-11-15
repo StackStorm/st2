@@ -19,7 +19,7 @@ import re
 import mock
 from oslo_config import cfg
 
-import python_runner
+from python_runner import python_runner
 from st2actions.container.base import RunnerContainer
 from st2common.runners.python_action_wrapper import PythonActionWrapper
 from st2common.runners.base_action import Action
@@ -59,7 +59,7 @@ MOCK_EXECUTION = mock.Mock()
 MOCK_EXECUTION.id = '598dbf0c0640fd54bffc688b'
 
 
-@mock.patch('python_runner.sys', mock_sys)
+@mock.patch('python_runner.python_runner.sys', mock_sys)
 class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     register_packs = True
     register_pack_configs = True

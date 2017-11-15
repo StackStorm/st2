@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import abc
-import pkgutil
 
 import six
 import yaml
@@ -50,12 +49,15 @@ def get_runner(module_name, config=None):
     """
 
     LOG.debug('Runner loading python module: %s', module_name)
+
     try:
         # TODO: Explore modifying this to support register_plugin
         module = register_runner(module_name)
     except Exception as e:
-        LOG.exception('Failed to import module %s.', module_name)
-        raise ActionRunnerCreateError(e)
+        msg = ('Failed to import runner module %s' % module_name)
+        LOG.exception(msg)
+
+        raise ActionRunnerCreateError('%s\n\n%s' % (msg, str(e)))
 
     LOG.debug('Instance of runner module: %s', module)
 
@@ -75,8 +77,14 @@ def get_metadata(package_name):
 
     :rtype: ``list`` of ``dict``
     """
-    file_path = pkgutil.get_data(package_name, 'metadata/runner.yaml')
-    metadata = yaml.safe_load(file_path)
+    import pkg_resources
+
+    file_path = pkg_resources.resource_filename(package_name, 'runner.yaml')
+
+    with open(file_path, 'r') as fp:
+        content = fp.read()
+
+    metadata = yaml.safe_load(content)
     return metadata
 
 

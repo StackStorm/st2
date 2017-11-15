@@ -15,7 +15,11 @@ Added
   ``error`` or higher (or similar). (new feature) #3824
 * Add stevedore related metadata to Python package setup.py files for runner packages. This way
   runners can be installed using pip and dynamically enumerated and loaded using stevedore and
-  corresponding helper functions. (new feature)
+  corresponding helper functions.
+
+  All runners are now also fully fledged Python packages (previously they were single module
+  Python packages which caused various install and distribution related issues when installing
+  them via pip) (new feature)
 * Add new ``search`` rule criteria comparison operator. For the usage, please refer to the
   documentation. (new feature) #3833
 
@@ -55,6 +59,8 @@ Changed
   gitpython, pymongo, stevedore, paramiko, prompt-toolkit, flex). #3830
 * Update log messages in the datastore service to correctly use ``DEBUG`` log level instead of
   ``AUDIT``. #3845
+* Mask values in an Inquiry response displayed to the user that were marked as "secret" in the
+  inquiry's response schema. #3825
 
 Fixed
 ~~~~~

@@ -58,3 +58,24 @@ def mask_secret_parameters(parameters, secret_parameters):
             result[parameter] = MASKED_ATTRIBUTE_VALUE
 
     return result
+
+
+def mask_inquiry_response(response, schema):
+    """
+    Introspect an Inquiry's response dict and return a new dict with masked secret
+    values.
+
+    :param response: Inquiry response to process.
+    :type response: ``dict``
+
+    :param schema: Inquiry response schema
+    :type schema: ``dict``
+    """
+    result = copy.deepcopy(response)
+
+    for prop_name, prop_attrs in schema['properties'].items():
+        if prop_attrs.get('secret') is True:
+            if prop_name in response:
+                result[prop_name] = MASKED_ATTRIBUTE_VALUE
+
+    return result
