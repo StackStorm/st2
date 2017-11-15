@@ -219,10 +219,14 @@ class UIDFieldMixin(object):
         uid = self.UID_SEPARATOR.join(parts)
         return uid
 
-    def is_valid_uid(self):
+    def get_uid_parts(self):
         parts = self.uid.split(self.UID_SEPARATOR)
         parts = [part for part in parts if part.strip()]
-        return len(parts) > 1
+        return parts
+
+    def has_valid_uid(self):
+        parts = self.get_uid_parts()
+        return len(parts) == len(self.UID_FIELDS) + 1
 
 
 class ContentPackResourceMixin(object):
