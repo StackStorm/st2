@@ -469,6 +469,46 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         actual_env = call_kwargs['env']
         self.assertCommonSt2EnvVarsAvailableInEnv(env=actual_env)
 
+    @mock.patch('st2common.util.green.shell.subprocess.Popen')
+    def test_pythonpath_env_var_contains_common_libs_config_enabled(self, mock_popen):
+        mock_process = mock.Mock()
+        mock_process.communicate.return_value = ('', '')
+        mock_popen.return_value = mock_process
+
+        runner = self._get_mock_runner_obj()
+        runner._enable_common_pack_libs = True
+        runner.auth_token = mock.Mock()
+        runner.auth_token.token = 'ponies'
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.pre_run()
+        (_, _, _) = runner.run({'row_index': 4})
+
+        _, call_kwargs = mock_popen.call_args
+        actual_env = call_kwargs['env']
+        pack_common_lib_path = 'fixtures/packs/core/lib'
+        self.assertTrue('PYTHONPATH' in actual_env)
+        self.assertTrue(pack_common_lib_path in actual_env['PYTHONPATH'])
+
+    @mock.patch('st2common.util.green.shell.subprocess.Popen')
+    def test_pythonpath_env_var_not_contains_common_libs_config_disabled(self, mock_popen):
+        mock_process = mock.Mock()
+        mock_process.communicate.return_value = ('', '')
+        mock_popen.return_value = mock_process
+
+        runner = self._get_mock_runner_obj()
+        runner._enable_common_pack_libs = False
+        runner.auth_token = mock.Mock()
+        runner.auth_token.token = 'ponies'
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.pre_run()
+        (_, _, _) = runner.run({'row_index': 4})
+
+        _, call_kwargs = mock_popen.call_args
+        actual_env = call_kwargs['env']
+        pack_common_lib_path = '/mnt/src/storm/st2/st2tests/st2tests/fixtures/packs/core/lib'
+        self.assertTrue('PYTHONPATH' in actual_env)
+        self.assertTrue(pack_common_lib_path not in actual_env['PYTHONPATH'])
+
     def test_action_class_instantiation_action_service_argument(self):
         class Action1(Action):
             # Constructor not overriden so no issue here

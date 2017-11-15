@@ -26,7 +26,7 @@ from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.util import action_db as action_utils
 from st2common.util.loader import register_runner, register_callback_module
 from st2common.util.api import get_full_public_api_url
-
+from st2common.util.deprecation import deprecated
 
 __all__ = [
     'ActionRunner',
@@ -167,7 +167,11 @@ class ActionRunner(object):
                 result
             )
 
+    @deprecated
     def get_pack_name(self):
+        return self.get_pack_ref()
+
+    def get_pack_ref(self):
         """
         Retrieve pack name for the action which is being currently executed.
 
@@ -199,7 +203,7 @@ class ActionRunner(object):
         :rtype: ``dict``
         """
         result = {}
-        result['ST2_ACTION_PACK_NAME'] = self.get_pack_name()
+        result['ST2_ACTION_PACK_NAME'] = self.get_pack_ref()
         result['ST2_ACTION_EXECUTION_ID'] = str(self.execution_id)
         result['ST2_ACTION_API_URL'] = get_full_public_api_url()
 
