@@ -387,10 +387,7 @@ class Router(object):
 
                     if 'x-api-model' in schema:
                         Model = op_resolver(schema['x-api-model'])
-                        print 'xxx'
-                        print data
                         instance = Model(**data)
-                        print instance
 
                         # Call validate on the API model - note we should eventually move all
                         # those model schema definitions into openapi.yaml
@@ -406,8 +403,6 @@ class Router(object):
                         instance = model(**data)
 
                     kw[argument_name] = instance
-                #else:
-                #    kw[argument_name] = None
 
             # Making sure all required params are present
             required = param.get('required', False)
