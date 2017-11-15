@@ -343,63 +343,71 @@ class Router(object):
             elif source == 'request':
                 kw[argument_name] = getattr(req, name)
             elif source == 'body':
-                if req.body:
-                    content_type = req.headers.get('Content-Type', 'application/json')
-                    content_type = parse_content_type_header(content_type=content_type)[0]
-                    schema = param['schema']
+                # Note: We also want to perform validation if no body is explicitly provided - in a
+                # lot of POST, PUT scenarios, body is mandatory
+                if not req.body:
+                    req.body = '{}'
 
-                    try:
-                        if content_type == 'application/json':
-                            data = req.json
-                        elif content_type == 'text/plain':
-                            data = req.body
-                        elif content_type in ['application/x-www-form-urlencoded',
-                                              'multipart/form-data']:
-                            data = urlparse.parse_qs(req.body)
-                        else:
-                            raise ValueError('Unsupported Content-Type: "%s"' % (content_type))
-                    except Exception as e:
-                        detail = 'Failed to parse request body: %s' % str(e)
-                        raise exc.HTTPBadRequest(detail=detail)
+                content_type = req.headers.get('Content-Type', 'application/json')
+                content_type = parse_content_type_header(content_type=content_type)[0]
+                schema = param['schema']
+                print content_type
 
-                    try:
-                        CustomValidator(schema, resolver=self.spec_resolver).validate(data)
-                    except (jsonschema.ValidationError, ValueError) as e:
-                        raise exc.HTTPBadRequest(detail=e.message,
-                                                 comment=traceback.format_exc())
-
-                    if content_type == 'text/plain':
-                        kw[argument_name] = data
+                try:
+                    if content_type == 'application/json':
+                        data = req.json
+                    elif content_type == 'text/plain':
+                        data = req.body
+                    elif content_type in ['application/x-www-form-urlencoded',
+                                          'multipart/form-data']:
+                        data = urlparse.parse_qs(req.body)
                     else:
-                        class Body(object):
-                            def __init__(self, **entries):
-                                self.__dict__.update(entries)
+                        raise ValueError('Unsupported Content-Type: "%s"' % (content_type))
+                except Exception as e:
+                    detail = 'Failed to parse request body: %s' % str(e)
+                    raise exc.HTTPBadRequest(detail=detail)
 
-                        ref = schema.get('$ref', None)
-                        if ref:
-                            with self.spec_resolver.resolving(ref) as resolved:
-                                schema = resolved
+                try:
+                    CustomValidator(schema, resolver=self.spec_resolver).validate(data)
+                except (jsonschema.ValidationError, ValueError) as e:
+                    raise exc.HTTPBadRequest(detail=e.message,
+                                             comment=traceback.format_exc())
 
-                        if 'x-api-model' in schema:
-                            Model = op_resolver(schema['x-api-model'])
-                            instance = Model(**data)
-
-                            # Call validate on the API model - note we should eventually move all
-                            # those model schema definitions into openapi.yaml
-                            try:
-                                instance = instance.validate()
-                            except (jsonschema.ValidationError, ValueError) as e:
-                                raise exc.HTTPBadRequest(detail=e.message,
-                                                         comment=traceback.format_exc())
-                        else:
-                            LOG.debug('Missing x-api-model definition for %s, using generic Body '
-                                      'model.' % (endpoint['operationId']))
-                            model = Body
-                            instance = model(**data)
-
-                        kw[argument_name] = instance
+                if content_type == 'text/plain':
+                    kw[argument_name] = data
                 else:
-                    kw[argument_name] = None
+                    class Body(object):
+                        def __init__(self, **entries):
+                            self.__dict__.update(entries)
+
+                    ref = schema.get('$ref', None)
+                    if ref:
+                        with self.spec_resolver.resolving(ref) as resolved:
+                            schema = resolved
+
+                    if 'x-api-model' in schema:
+                        Model = op_resolver(schema['x-api-model'])
+                        print 'xxx'
+                        print data
+                        instance = Model(**data)
+                        print instance
+
+                        # Call validate on the API model - note we should eventually move all
+                        # those model schema definitions into openapi.yaml
+                        try:
+                            instance = instance.validate()
+                        except (jsonschema.ValidationError, ValueError) as e:
+                            raise exc.HTTPBadRequest(detail=e.message,
+                                                     comment=traceback.format_exc())
+                    else:
+                        LOG.debug('Missing x-api-model definition for %s, using generic Body '
+                                  'model.' % (endpoint['operationId']))
+                        model = Body
+                        instance = model(**data)
+
+                    kw[argument_name] = instance
+                #else:
+                #    kw[argument_name] = None
 
             # Making sure all required params are present
             required = param.get('required', False)
