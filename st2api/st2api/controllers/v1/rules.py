@@ -138,7 +138,9 @@ class RuleController(resource.ContentPackResourceController):
         LOG.debug('PUT /rules/ lookup with id=%s found object: %s', rule_ref_or_id, rule_db)
 
         try:
-            if rule.id is not None and rule.id is not '' and rule.id != rule_ref_or_id:
+            rule_id = getattr(rule, 'id', None)
+
+            if rule_id is not None and rule_id is not '' and rule_id != rule_ref_or_id:
                 LOG.warning('Discarding mismatched id=%s found in payload and using uri_id=%s.',
                             rule.id, rule_ref_or_id)
             old_rule_db = rule_db
