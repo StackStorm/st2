@@ -53,13 +53,13 @@ class ResourceAccessDeniedError(AccessDeniedError):
     Class representing an error where user doesn't have a required permission on a resource.
     """
 
-    def __init__(self, user_db, resource_db, permission_type):
-        self.resource_db = resource_db
+    def __init__(self, user_db, resource_api_or_db, permission_type):
+        self.resource_api_db = resource_api_or_db
         self.permission_type = permission_type
 
-        resource_uid = resource_db.get_uid() if resource_db else 'unknown'
+        resource_uid = resource_api_or_db.get_uid() if resource_api_or_db else 'unknown'
 
-        if resource_db and permission_type not in GLOBAL_PERMISSION_TYPES:
+        if resource_api_or_db and permission_type not in GLOBAL_PERMISSION_TYPES:
             message = ('User "%s" doesn\'t have required permission "%s" on resource "%s"' %
                        (user_db.name, permission_type, resource_uid))
         else:
