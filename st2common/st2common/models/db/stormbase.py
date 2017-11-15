@@ -213,11 +213,16 @@ class UIDFieldMixin(object):
         parts.append(self.RESOURCE_TYPE)
 
         for field in self.UID_FIELDS:
-            value = getattr(self, field, None)
+            value = getattr(self, field, None) or ''
             parts.append(value)
 
         uid = self.UID_SEPARATOR.join(parts)
         return uid
+
+    def is_valid_uid(self):
+        parts = self.uid.split(self.UID_SEPARATOR)
+        parts = [part for part in parts if part.strip()]
+        return len(parts) > 1
 
 
 class ContentPackResourceMixin(object):
