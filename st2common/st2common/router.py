@@ -337,7 +337,6 @@ class Router(object):
                 content_type = req.headers.get('Content-Type', 'application/json')
                 content_type = parse_content_type_header(content_type=content_type)[0]
                 schema = param['schema']
-                print content_type
 
                 try:
                     if content_type == 'application/json':
