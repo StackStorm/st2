@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from st2common.exceptions import StackStormBaseException
+from st2common.rbac.types import GLOBAL_PERMISSION_TYPES
 
 __all__ = [
     'AccessDeniedError',
@@ -58,7 +59,7 @@ class ResourceAccessDeniedError(AccessDeniedError):
 
         resource_uid = resource_db.get_uid() if resource_db else 'unknown'
 
-        if resource_db:
+        if resource_db and permission_type not in GLOBAL_PERMISSION_TYPES:
             message = ('User "%s" doesn\'t have required permission "%s" on resource "%s"' %
                        (user_db.name, permission_type, resource_uid))
         else:
