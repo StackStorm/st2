@@ -230,7 +230,7 @@ class UIDFieldMixin(object):
 
         :rtype: ``list``
         """
-        parts = self.uid.split(self.UID_SEPARATOR)
+        parts = self.uid.split(self.UID_SEPARATOR)  # pylint: disable=no-member
         parts = [part for part in parts if part.strip()]
         return parts
 
