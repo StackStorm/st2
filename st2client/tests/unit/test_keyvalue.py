@@ -58,6 +58,13 @@ KEYVALUE_TTL = {
     'ttl': 100
 }
 
+KEYVALUE_OBJECT = {
+    'id': 'kv_name',
+    'name': 'kv_name.',
+    'value': {'obj': [1, True, 23.4, 'abc']},
+    'scope': 'system',
+}
+
 KEYVALUE_ALL = {
     'id': 'kv_name',
     'name': 'kv_name.',
@@ -188,6 +195,50 @@ class TestKeyValueLoad(TestKeyValueBase):
             args = ['key', 'load', path]
             retcode = self.shell.run(args)
             self.assertEqual(retcode, 0)
+        finally:
+            os.close(fd)
+            os.unlink(path)
+
+    @mock.patch.object(
+        requests, 'put',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(KEYVALUE_OBJECT), 200, 'OK')))
+    def test_load_keyvalue_object(self):
+        """Test loading of key/value pair where the value is an object
+        """
+        fd, path = tempfile.mkstemp(suffix='.json')
+        try:
+            with open(path, 'a') as f:
+                f.write(json.dumps(KEYVALUE_OBJECT, indent=4))
+
+            # test converting with short option
+            args = ['key', 'load', '-c', path]
+            retcode = self.shell.run(args)
+            self.assertEqual(retcode, 0)
+
+            # test converting with long option
+            args = ['key', 'load', '--convert', path]
+            retcode = self.shell.run(args)
+            self.assertEqual(retcode, 0)
+        finally:
+            os.close(fd)
+            os.unlink(path)
+
+    @mock.patch.object(
+        requests, 'put',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(KEYVALUE_OBJECT), 200, 'OK')))
+    def test_load_keyvalue_object_fail(self):
+        """Test failure to load key/value pair where the value is an object
+           and the -c/--convert option is not passed
+        """
+        fd, path = tempfile.mkstemp(suffix='.json')
+        try:
+            with open(path, 'a') as f:
+                f.write(json.dumps(KEYVALUE_OBJECT, indent=4))
+
+            # test converting with short option
+            args = ['key', 'load',  path]
+            retcode = self.shell.run(args)
+            self.assertNotEqual(retcode, 0)
         finally:
             os.close(fd)
             os.unlink(path)
