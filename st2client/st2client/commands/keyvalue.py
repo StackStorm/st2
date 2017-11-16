@@ -268,6 +268,10 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
         super(KeyValuePairLoadCommand, self).__init__(resource, 'load',
                                                       help_text, *args, **kwargs)
 
+        self.parser.add_argument('-c', '--convert', action='store_true',
+                                 help=('Convert non-string types (hash, array, boolean,'
+                                       ' int, float) to a JSON string before loading it'
+                                       ' into the datastore.'))
         self.parser.add_argument(
             'file', help=('JSON/YAML file containing the %s(s) to load'
                           % resource.get_plural_display_name().lower()))
@@ -300,7 +304,13 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
             # if the value is not a string, convert it to JSON
             # all keys in the datastore must strings
             if not isinstance(value, basestring):
-                value = json.dumps(value)
+                if args.convert:
+                    value = json.dumps(value)
+                else:
+                    raise ValueError(("Item '%s' has a value that is not a string."
+                                      " Either pass in the -c/--convert option to convert"
+                                      " non-string types to JSON strings automatically, or"
+                                      " convert the data to a string in the file") % name)
 
             # create the KeyValuePair instance
             instance = KeyValuePair()
