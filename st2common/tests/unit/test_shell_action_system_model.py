@@ -27,6 +27,11 @@ CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 FIXTURES_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '../fixtures'))
 LOGGED_USER_USERNAME = pwd.getpwuid(os.getuid())[0]
 
+__all__ = [
+    'ShellCommandActionTestCase',
+    'ShellScriptActionTestCase'
+]
+
 
 class ShellCommandActionTestCase(unittest2.TestCase):
     def setUp(self):
@@ -55,6 +60,17 @@ class ShellCommandActionTestCase(unittest2.TestCase):
         command = action.get_full_command_string()
         self.assertEqual(command, 'sudo -E -H -u mauser -- bash -c \'ls -la\'')
 
+        # sudo with password
+        kwargs = copy.deepcopy(self._base_kwargs)
+        kwargs['sudo'] = False
+        kwargs['sudo_password'] = 'sudopass'
+        kwargs['user'] = 'mauser'
+        action = ShellCommandAction(**kwargs)
+        command = action.get_full_command_string()
+
+        expected_command = 'echo -e \'sudopass\n\' | sudo -S -E -H -u mauser -- bash -c \'ls -la\''
+        self.assertEqual(command, expected_command)
+
         # sudo is used, it doesn't matter what user is specified since the
         # command should run as root
         kwargs = copy.deepcopy(self._base_kwargs)
@@ -63,6 +79,17 @@ class ShellCommandActionTestCase(unittest2.TestCase):
         action = ShellCommandAction(**kwargs)
         command = action.get_full_command_string()
         self.assertEqual(command, 'sudo -E -- bash -c \'ls -la\'')
+
+        # sudo with passwd
+        kwargs = copy.deepcopy(self._base_kwargs)
+        kwargs['sudo'] = True
+        kwargs['user'] = 'mauser'
+        kwargs['sudo_password'] = 'sudopass'
+        action = ShellCommandAction(**kwargs)
+        command = action.get_full_command_string()
+
+        expected_command = 'echo -e \'sudopass\n\' | sudo -S -E -- bash -c \'ls -la\''
+        self.assertEqual(command, expected_command)
 
 
 class ShellScriptActionTestCase(unittest2.TestCase):
@@ -102,14 +129,40 @@ class ShellScriptActionTestCase(unittest2.TestCase):
         command = action.get_full_command_string()
         self.assertEqual(command, 'sudo -E -H -u mauser -- bash -c /tmp/foo.sh')
 
+        # sudo with password
+        kwargs = copy.deepcopy(self._base_kwargs)
+        kwargs['sudo'] = False
+        kwargs['user'] = 'mauser'
+        kwargs['sudo_password'] = 'sudopass'
+        action = ShellScriptAction(**kwargs)
+        command = action.get_full_command_string()
+
+        expected_command = 'echo -e \'sudopass\n\' | sudo -S -E -H -u mauser -- bash -c /tmp/foo.sh'
+        self.assertEqual(command, expected_command)
+
+        # complex sudo password which needs escaping
+        kwargs = copy.deepcopy(self._base_kwargs)
+        kwargs['sudo'] = False
+        kwargs['user'] = 'mauser'
+        kwargs['sudo_password'] = '$udo p\'as"sss'
+        action = ShellScriptAction(**kwargs)
+        command = action.get_full_command_string()
+
+        expected_command = ('echo -e \'$udo p\'"\'"\'as"sss\n\' | sudo -S -E -H '
+                            '-u mauser -- bash -c /tmp/foo.sh')
+        self.assertEqual(command, expected_command)
+
         # sudo is used, it doesn't matter what user is specified since the
         # command should run as root
         kwargs = copy.deepcopy(self._base_kwargs)
         kwargs['sudo'] = True
         kwargs['user'] = 'mauser'
+        kwargs['sudo_password'] = 'sudopass'
         action = ShellScriptAction(**kwargs)
         command = action.get_full_command_string()
-        self.assertEqual(command, 'sudo -E -- bash -c /tmp/foo.sh')
+
+        expected_command = 'echo -e \'sudopass\n\' | sudo -S -E -- bash -c /tmp/foo.sh'
+        self.assertEqual(command, expected_command)
 
     def test_command_construction_with_parameters(self):
         # same user, named args, no positional args
@@ -122,6 +175,20 @@ class ShellScriptActionTestCase(unittest2.TestCase):
         command = action.get_full_command_string()
         self.assertEqual(command, '/tmp/foo.sh key2=value2 key1=value1')
 
+        # same user, named args, no positional args, sudo password
+        kwargs = copy.deepcopy(self._base_kwargs)
+        kwargs['sudo'] = True
+        kwargs['sudo_password'] = 'sudopass'
+        kwargs['user'] = LOGGED_USER_USERNAME
+        kwargs['named_args'] = {'key1': 'value1', 'key2': 'value2'}
+        kwargs['positional_args'] = []
+        action = ShellScriptAction(**kwargs)
+        command = action.get_full_command_string()
+
+        expected = ('echo -e \'sudopass\n\' | sudo -S -E -- bash -c '
+                    '\'/tmp/foo.sh key2=value2 key1=value1\'')
+        self.assertEqual(command, expected)
+
         # different user, named args, no positional args
         kwargs = copy.deepcopy(self._base_kwargs)
         kwargs['sudo'] = False
@@ -131,6 +198,20 @@ class ShellScriptActionTestCase(unittest2.TestCase):
         action = ShellScriptAction(**kwargs)
         command = action.get_full_command_string()
         expected = 'sudo -E -H -u mauser -- bash -c \'/tmp/foo.sh key2=value2 key1=value1\''
+        self.assertEqual(command, expected)
+
+        # different user, named args, no positional args, sudo password
+        kwargs = copy.deepcopy(self._base_kwargs)
+        kwargs['sudo'] = False
+        kwargs['sudo_password'] = 'sudopass'
+        kwargs['user'] = 'mauser'
+        kwargs['named_args'] = {'key1': 'value1', 'key2': 'value2'}
+        kwargs['positional_args'] = []
+        action = ShellScriptAction(**kwargs)
+
+        command = action.get_full_command_string()
+        expected = ('echo -e \'sudopass\n\' | sudo -S -E -H -u mauser -- bash -c '
+                    '\'/tmp/foo.sh key2=value2 key1=value1\'')
         self.assertEqual(command, expected)
 
         # same user, positional args, no named args
