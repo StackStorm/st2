@@ -95,6 +95,22 @@ class ShellCommandAction(object):
 
         return command
 
+    def get_sanitized_full_command_string(self):
+        """
+        Get a command string which can be used inside the log messages (if provided, sudo password
+        is masked).
+
+        :rtype: ``password``
+        """
+        command_string = self.get_full_command_string()
+
+        if self.sudo_password:
+            # Mask sudo password
+            split = command_string.split('|', 1)
+            command_string = 'echo -e \'**********\n\' | %s' % (split[1])
+
+        return command_string
+
     def get_timeout(self):
         return self.timeout
 

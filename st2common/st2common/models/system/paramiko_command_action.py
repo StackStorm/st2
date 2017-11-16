@@ -32,8 +32,7 @@ LOGGED_USER_USERNAME = pwd.getpwuid(os.getuid())[0]
 class ParamikoRemoteCommandAction(RemoteAction):
 
     def get_full_command_string(self):
-        # Note: We pass -E to sudo because we want to preserve user provided
-        # environment variables
+        # Note: We pass -E to sudo because we want to preserve user provided environment variables
         env_str = self._get_env_vars_export_string()
         cwd = self.get_cwd()
 

@@ -124,10 +124,12 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
                                        cwd=self._cwd)
 
         args = action.get_full_command_string()
+        sanitized_args = action.get_sanitized_full_command_string()
 
         # For consistency with the old Fabric based runner, make sure the file is executable
         if script_action:
             args = 'chmod +x %s ; %s' % (script_local_path_abs, args)
+            sanitized_args = 'chmod +x %s ; %s' % (script_local_path_abs, sanitized_args)
 
         env = os.environ.copy()
 
@@ -140,7 +142,7 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
 
         LOG.info('Executing action via LocalRunner: %s', self.runner_id)
         LOG.info('[Action info] name: %s, Id: %s, command: %s, user: %s, sudo: %s' %
-                 (action.name, action.action_exec_id, args, action.user, action.sudo))
+                 (action.name, action.action_exec_id, sanitized_args, action.user, action.sudo))
 
         stdout = StringIO()
         stderr = StringIO()
