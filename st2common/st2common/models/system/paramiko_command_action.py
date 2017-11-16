@@ -15,9 +15,11 @@
 
 import os
 import pwd
+import copy
 
 from st2common import log as logging
 from st2common.models.system.action import RemoteAction
+from st2common.models.system.action import SUDO_COMMON_OPTIONS
 from st2common.util.shell import quote_unix
 
 __all__ = [
@@ -42,7 +44,11 @@ class ParamikoRemoteCommandAction(RemoteAction):
             else:
                 command = quote_unix('cd %s && %s' % (cwd, self.command))
 
-            command = 'sudo -E -- bash -c %s' % (command)
+            sudo_arguments = ' '.join(self._get_common_sudo_arguments())
+            command = 'sudo %s -- bash -c %s' % (sudo_arguments, command)
+
+            if self.sudo_password:
+                command = 'echo -e %s | %s' % (quote_unix('%s\n' % (self.sudo_password)), command)
         else:
             if env_str:
                 command = '%s && cd %s && %s' % (env_str, cwd,
@@ -52,3 +58,18 @@ class ParamikoRemoteCommandAction(RemoteAction):
 
         LOG.debug('Command to run on remote host will be: %s', command)
         return command
+
+    def _get_common_sudo_arguments(self):
+        """
+        Retrieve a list of flags which are passed to sudo on every invocation.
+
+        :rtype: ``list``
+        """
+        flags = []
+
+        if self.sudo_password:
+            flags.append('-S')
+
+        flags = flags + copy(SUDO_COMMON_OPTIONS)
+
+        return flags

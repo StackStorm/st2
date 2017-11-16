@@ -41,6 +41,7 @@ RUNNER_PASSWORD = 'password'
 RUNNER_PRIVATE_KEY = 'private_key'
 RUNNER_PARALLEL = 'parallel'
 RUNNER_SUDO = 'sudo'
+RUNNER_SUDO_PASSWORD = 'sudo_password'
 RUNNER_ON_BEHALF_USER = 'user'
 RUNNER_REMOTE_DIR = 'dir'
 RUNNER_COMMAND = 'cmd'
@@ -60,6 +61,7 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
         self._hosts = None
         self._parallel = True
         self._sudo = False
+        self._sudo_password = None
         self._on_behalf_user = None
         self._username = None
         self._password = None
@@ -97,8 +99,11 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
         self._parallel = self.runner_parameters.get(RUNNER_PARALLEL, True)
         self._sudo = self.runner_parameters.get(RUNNER_SUDO, False)
         self._sudo = self._sudo if self._sudo else False
+        self._sudo_password = self.runner_parameters.get(RUNNER_SUDO_PASSWORD, None)
+
         if self.context:
             self._on_behalf_user = self.context.get(RUNNER_ON_BEHALF_USER, self._on_behalf_user)
+
         self._cwd = self.runner_parameters.get(RUNNER_CWD, None)
         self._env = self.runner_parameters.get(RUNNER_ENV, {})
         self._kwarg_op = self.runner_parameters.get(RUNNER_KWARG_OP, '--')

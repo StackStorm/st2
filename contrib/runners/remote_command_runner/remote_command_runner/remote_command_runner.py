@@ -70,6 +70,7 @@ class ParamikoRemoteCommandRunner(BaseParallelSSHRunner):
                                            hosts=self._hosts,
                                            parallel=self._parallel,
                                            sudo=self._sudo,
+                                           sudo_password=self._sudo_password,
                                            timeout=self._timeout,
                                            cwd=self._cwd)
 
