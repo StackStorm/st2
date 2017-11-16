@@ -21,7 +21,7 @@ import unittest2
 
 from st2common.models.system.action import ShellCommandAction
 from st2common.models.system.action import ShellScriptAction
-
+from st2common.logging.formatters import MASKED_ATTRIBUTE_VALUE
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 FIXTURES_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '../fixtures'))
@@ -150,6 +150,11 @@ class ShellScriptActionTestCase(unittest2.TestCase):
 
         expected_command = ('echo -e \'$udo p\'"\'"\'as"sss\n\' | sudo -S -E -H '
                             '-u mauser -- bash -c /tmp/foo.sh')
+        self.assertEqual(command, expected_command)
+
+        command = action.get_sanitized_full_command_string()
+        expected_command = ('echo -e \'%s\n\' | sudo -S -E -H '
+                            '-u mauser -- bash -c /tmp/foo.sh' % (MASKED_ATTRIBUTE_VALUE))
         self.assertEqual(command, expected_command)
 
         # sudo is used, it doesn't matter what user is specified since the

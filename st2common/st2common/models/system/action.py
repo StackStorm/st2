@@ -30,6 +30,7 @@ from st2common.util.shell import quote_unix
 from st2common.constants.action import LIBS_DIR as ACTION_LIBS_DIR
 from st2common.util.secrets import get_secret_parameters
 from st2common.util.secrets import mask_secret_parameters
+from st2common.logging.formatters import MASKED_ATTRIBUTE_VALUE
 
 __all__ = [
     'ShellCommandAction',
@@ -106,8 +107,8 @@ class ShellCommandAction(object):
 
         if self.sudo_password:
             # Mask sudo password
-            split = command_string.split('|', 1)
-            command_string = 'echo -e \'**********\n\' | %s' % (split[1])
+            split = command_string.split(' | ', 1)
+            command_string = 'echo -e \'%s\n\' | %s' % (MASKED_ATTRIBUTE_VALUE, split[1])
 
         return command_string
 
