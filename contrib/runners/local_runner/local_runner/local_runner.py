@@ -52,6 +52,7 @@ LOGGED_USER_USERNAME = pwd.getpwuid(os.getuid())[0]
 
 # constants to lookup in runner_parameters.
 RUNNER_SUDO = 'sudo'
+RUNNER_SUDO_PASSWORD = 'sudo_password'
 RUNNER_ON_BEHALF_USER = 'user'
 RUNNER_COMMAND = 'cmd'
 RUNNER_CWD = 'cwd'
@@ -84,6 +85,7 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         super(LocalShellRunner, self).pre_run()
 
         self._sudo = self.runner_parameters.get(RUNNER_SUDO, False)
+        self._sudo_password = self.runner_parameters.get(RUNNER_SUDO_PASSWORD, None)
         self._on_behalf_user = self.context.get(RUNNER_ON_BEHALF_USER, LOGGED_USER_USERNAME)
         self._user = cfg.CONF.system_user.user
         self._cwd = self.runner_parameters.get(RUNNER_CWD, None)
@@ -105,7 +107,8 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
                                         user=self._user,
                                         env_vars=env_vars,
                                         sudo=self._sudo,
-                                        timeout=self._timeout)
+                                        timeout=self._timeout,
+                                        sudo_password=self._sudo_password)
         else:
             script_action = True
             script_local_path_abs = self.entry_point
@@ -121,7 +124,8 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
                                        env_vars=env_vars,
                                        sudo=self._sudo,
                                        timeout=self._timeout,
-                                       cwd=self._cwd)
+                                       cwd=self._cwd,
+                                       sudo_password=self._sudo_password)
 
         args = action.get_full_command_string()
         sanitized_args = action.get_sanitized_full_command_string()
