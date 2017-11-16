@@ -15,7 +15,11 @@ Added
   ``error`` or higher (or similar). (new feature) #3824
 * Add stevedore related metadata to Python package setup.py files for runner packages. This way
   runners can be installed using pip and dynamically enumerated and loaded using stevedore and
-  corresponding helper functions. (new feature)
+  corresponding helper functions.
+
+  All runners are now also fully fledged Python packages (previously they were single module
+  Python packages which caused various install and distribution related issues when installing
+  them via pip) (new feature)
 * Add new ``search`` rule criteria comparison operator. For the usage, please refer to the
   documentation. (new feature) #3833
 
@@ -27,6 +31,10 @@ Added
 * Add new ``get_user_info`` method to action and sensor service. With this method, user can
   retrieve information about the user account which is used to perform datastore operations inside
   the action and sensor service. (new feature) #3831
+* Add ability to share common code between python sensors and python actions. You can now place
+  common code inside a ``lib`` directory inside a pack (with an ``__init__.py`` inside ``lib``
+  directory to declare it a python package). You can then import the common code in sensors and
+  actions. Please refer to documentation for samples and guidelines. #3490
 
 Changed
 ~~~~~~~
@@ -51,6 +59,8 @@ Changed
   gitpython, pymongo, stevedore, paramiko, prompt-toolkit, flex). #3830
 * Update log messages in the datastore service to correctly use ``DEBUG`` log level instead of
   ``AUDIT``. #3845
+* Mask values in an Inquiry response displayed to the user that were marked as "secret" in the
+  inquiry's response schema. #3825
 
 Fixed
 ~~~~~
@@ -188,7 +198,7 @@ Fixed
 Changed
 ~~~~~~~
 
-* Minor language and style tidy up of help strings and error messages #3782 
+* Minor language and style tidy up of help strings and error messages #3782
 
 2.4.1 - September 12, 2017
 --------------------------

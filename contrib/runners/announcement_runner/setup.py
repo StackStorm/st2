@@ -17,6 +17,7 @@
 import os.path
 
 from setuptools import setup
+from setuptools import find_packages
 
 from dist_utils import fetch_requirements
 from dist_utils import apply_vagrant_workaround
@@ -28,7 +29,7 @@ install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
 
 apply_vagrant_workaround()
 setup(
-    name='announcement_runner',
+    name='stackstorm-runner-announcement',
     version='2.5.0',
     description=('Announcement action runner for StackStorm event-driven automation platform'),
     author='StackStorm',
@@ -40,14 +41,12 @@ setup(
     test_suite='tests',
     zip_safe=False,
     include_package_data=True,
-    py_modules=['announcement_runner'],
-    data_files=[
-        ('metadata', ['runner.yaml'])
-    ],
+    packages=find_packages(exclude=['setuptools', 'tests']),
+    package_data={'announcement_runner': ['runner.yaml']},
     scripts=[],
     entry_points={
         'st2common.runners.runner': [
-            'announcement = announcement_runner',
+            'announcement = announcement_runner.announcement_runner',
         ],
     }
 )

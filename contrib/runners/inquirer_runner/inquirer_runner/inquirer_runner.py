@@ -116,4 +116,4 @@ def get_runner():
 
 
 def get_metadata():
-    return get_runner_metadata('inquirer_runner')
+    return get_runner_metadata('inquirer')

@@ -23,8 +23,10 @@ from StringIO import StringIO
 from subprocess import list2cmdline
 
 from eventlet.green import subprocess
+from oslo_config import cfg
 
 from st2common import log as logging
+from st2common.persistence.pack import Pack
 from st2common.runners.base import ActionRunner
 from st2common.runners.base import get_metadata as get_runner_metadata
 from st2common.util.green.shell import run_command
@@ -38,6 +40,7 @@ from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT
 from st2common.constants.system import API_URL_ENV_VARIABLE_NAME
 from st2common.constants.system import AUTH_TOKEN_ENV_VARIABLE_NAME
 from st2common.util.api import get_full_public_api_url
+from st2common.util.pack import get_pack_common_libs_path
 from st2common.util.sandboxing import get_sandbox_path
 from st2common.util.sandboxing import get_sandbox_python_path
 from st2common.util.sandboxing import get_sandbox_python_binary_path
@@ -50,7 +53,7 @@ __all__ = [
     'PythonRunner',
 
     'get_runner',
-    'get_runner_metadata',
+    'get_metadata',
 ]
 
 LOG = logging.getLogger(__name__)
@@ -90,6 +93,7 @@ class PythonRunner(ActionRunner):
         super(PythonRunner, self).__init__(runner_id=runner_id)
         self._config = config
         self._timeout = timeout
+        self._enable_common_pack_libs = cfg.CONF.packs.enable_common_libs or False
         self._log_level = log_level
         self._sandbox = sandbox
 
@@ -105,7 +109,8 @@ class PythonRunner(ActionRunner):
     def run(self, action_parameters):
         LOG.debug('Running pythonrunner.')
         LOG.debug('Getting pack name.')
-        pack = self.get_pack_name()
+        pack = self.get_pack_ref()
+        pack_db = Pack.get_by_ref(pack)
         LOG.debug('Getting user.')
         user = self.get_user()
         LOG.debug('Serializing parameters.')
@@ -156,8 +161,15 @@ class PythonRunner(ActionRunner):
         LOG.debug('Setting env.')
         env = os.environ.copy()
         env['PATH'] = get_sandbox_path(virtualenv_path=virtualenv_path)
-        env['PYTHONPATH'] = get_sandbox_python_path(inherit_from_parent=True,
-                                                    inherit_parent_virtualenv=True)
+
+        sandbox_python_path = get_sandbox_python_path(inherit_from_parent=True,
+                                                      inherit_parent_virtualenv=True)
+        pack_common_libs_path = get_pack_common_libs_path(pack_db=pack_db)
+
+        if self._enable_common_pack_libs and pack_common_libs_path:
+            env['PYTHONPATH'] = pack_common_libs_path + ':' + sandbox_python_path
+        else:
+            env['PYTHONPATH'] = sandbox_python_path
 
         # Include user provided environment variables (if any)
         user_env_vars = self._get_env_vars()

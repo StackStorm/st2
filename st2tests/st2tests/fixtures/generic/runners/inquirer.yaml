@@ -2,7 +2,7 @@
 description: A runner for Inquiries
 enabled: true
 name: inquirer
-runner_module: inquirer
+runner_module: inquirer_runner
 runner_parameters:
   schema:
     default:

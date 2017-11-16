@@ -445,7 +445,12 @@ class InquiryResourceManager(ResourceManager):
         """
         url = '/%s/%s' % (self.resource.get_url_path_name(), inquiry_id)
 
-        resp = self.client.put(url, inquiry_response, **kwargs)
+        payload = {
+            "id": inquiry_id,
+            "response": inquiry_response
+        }
+
+        resp = self.client.put(url, payload, **kwargs)
 
         if resp.status_code != httplib.OK:
             self.handle_error(resp)
