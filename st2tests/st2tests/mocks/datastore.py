@@ -34,10 +34,43 @@ class MockDatastoreService(BaseDatastoreService):
     def __init__(self, logger, pack_name, class_name, api_username=None):
         self._pack_name = pack_name
         self._class_name = class_name
+        self._username = api_username or 'admin'
 
         # Holds mock KeyValuePair objects
         # Key is a KeyValuePair name and value is the KeyValuePair object
         self._datastore_items = {}
+
+    ##################################
+    # General methods
+    ##################################
+
+    def get_user_info(self):
+        """
+        Retrieve information about the current user which is authenticated against StackStorm and
+        used to perform other datastore operations via the API.
+
+        :rtype: ``dict``
+        """
+        result = {
+            'username': self._username,
+            'rbac': {
+                'is_admin': True,
+                'enabled': True,
+                'roles': [
+                    'admin'
+                ]
+            },
+            'authentication': {
+                'method': 'authentication token',
+                'location': 'header'
+            }
+        }
+
+        return result
+
+    ##################################
+    # Methods for datastore management
+    ##################################
 
     def list_values(self, local=True, prefix=None):
         """

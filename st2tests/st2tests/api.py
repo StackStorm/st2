@@ -171,7 +171,11 @@ class BaseAPIControllerWithRBACTestCase(BaseFunctionalTest, CleanDbTestCase):
             raise ValueError('"user_db" is mandatory')
 
         mock_context = {
-            'user': user_db
+            'user': user_db,
+            'auth_info': {
+                'method': 'authentication token',
+                'location': 'header'
+            }
         }
         self.request_context_mock = mock.PropertyMock(return_value=mock_context)
         Router.mock_context = self.request_context_mock

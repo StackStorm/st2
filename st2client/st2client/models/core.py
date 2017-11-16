@@ -16,10 +16,10 @@
 import os
 import json
 import logging
+import httplib
 from functools import wraps
 
 import six
-
 from six.moves import urllib
 
 from st2client.utils import httpclient
@@ -189,7 +189,7 @@ class ResourceManager(object):
             params['user'] = user
 
         response = self.client.get(url=url, params=params, **kwargs)
-        if response.status_code != 200:
+        if response.status_code != httplib.OK:
             self.handle_error(response)
         return [self.resource.deserialize(item)
                 for item in response.json()]
@@ -198,9 +198,9 @@ class ResourceManager(object):
     def get_by_id(self, id, **kwargs):
         url = '/%s/%s' % (self.resource.get_url_path_name(), id)
         response = self.client.get(url, **kwargs)
-        if response.status_code == 404:
+        if response.status_code == httplib.NOT_FOUND:
             return None
-        if response.status_code != 200:
+        if response.status_code != httplib.OK:
             self.handle_error(response)
         return self.resource.deserialize(response.json())
 
@@ -228,9 +228,9 @@ class ResourceManager(object):
         else:
             response = self.client.get(url)
 
-        if response.status_code == 404:
+        if response.status_code == httplib.NOT_FOUND:
             return None
-        if response.status_code != 200:
+        if response.status_code != httplib.OK:
             self.handle_error(response)
 
         if self_deserialize:
@@ -267,10 +267,10 @@ class ResourceManager(object):
         else:
             response = self.client.get(url)
 
-        if response.status_code == 404:
+        if response.status_code == httplib.NOT_FOUND:
             # for query and query_with_count
             return [], None
-        if response.status_code != 200:
+        if response.status_code != httplib.OK:
             self.handle_error(response)
         items = response.json()
         instances = [self.resource.deserialize(item) for item in items]
@@ -304,7 +304,7 @@ class ResourceManager(object):
     def create(self, instance, **kwargs):
         url = '/%s' % self.resource.get_url_path_name()
         response = self.client.post(url, instance.serialize(), **kwargs)
-        if response.status_code != 200:
+        if response.status_code != httplib.OK:
             self.handle_error(response)
         instance = self.resource.deserialize(response.json())
         return instance
@@ -313,7 +313,7 @@ class ResourceManager(object):
     def update(self, instance, **kwargs):
         url = '/%s/%s' % (self.resource.get_url_path_name(), instance.id)
         response = self.client.put(url, instance.serialize(), **kwargs)
-        if response.status_code != 200:
+        if response.status_code != httplib.OK:
             self.handle_error(response)
         instance = self.resource.deserialize(response.json())
         return instance
@@ -323,7 +323,7 @@ class ResourceManager(object):
         url = '/%s/%s' % (self.resource.get_url_path_name(), instance.id)
         response = self.client.delete(url, **kwargs)
 
-        if response.status_code not in [200, 204, 404]:
+        if response.status_code not in [httplib.OK, httplib.NO_CONTENT, httplib.NOT_FOUND]:
             self.handle_error(response)
             return False
 
@@ -333,7 +333,7 @@ class ResourceManager(object):
     def delete_by_id(self, instance_id, **kwargs):
         url = '/%s/%s' % (self.resource.get_url_path_name(), instance_id)
         response = self.client.delete(url, **kwargs)
-        if response.status_code not in [200, 204, 404]:
+        if response.status_code not in [httplib.OK, httplib.NO_CONTENT, httplib.NOT_FOUND]:
             self.handle_error(response)
             return False
         try:
@@ -355,7 +355,7 @@ class ActionAliasResourceManager(ResourceManager):
     def match(self, instance, **kwargs):
         url = '/%s/match' % self.resource.get_url_path_name()
         response = self.client.post(url, instance.serialize(), **kwargs)
-        if response.status_code != 200:
+        if response.status_code != httplib.OK:
             self.handle_error(response)
         match = response.json()
         return (self.resource.deserialize(match['actionalias']), match['representation'])
@@ -367,7 +367,7 @@ class ActionAliasExecutionManager(ResourceManager):
         url = '/%s/match_and_execute' % self.resource.get_url_path_name()
         response = self.client.post(url, instance.serialize(), **kwargs)
 
-        if response.status_code != 200:
+        if response.status_code != httplib.OK:
             self.handle_error(response)
         instance = self.resource.deserialize(response.json())
         return instance
@@ -391,7 +391,7 @@ class LiveActionResourceManager(ResourceManager):
         }
 
         response = self.client.post(url, data, **kwargs)
-        if response.status_code != 200:
+        if response.status_code != httplib.OK:
             self.handle_error(response)
 
         instance = self.resource.deserialize(response.json())
@@ -405,7 +405,7 @@ class LiveActionResourceManager(ResourceManager):
             url += '?' + urllib.parse.urlencode({'output_type': output_type})
 
         response = self.client.get(url, **kwargs)
-        if response.status_code != 200:
+        if response.status_code != httplib.OK:
             self.handle_error(response)
 
         return response.text
@@ -417,7 +417,7 @@ class LiveActionResourceManager(ResourceManager):
 
         response = self.client.put(url, data, **kwargs)
 
-        if response.status_code != 200:
+        if response.status_code != httplib.OK:
             self.handle_error(response)
 
         return self.resource.deserialize(response.json())
@@ -429,7 +429,7 @@ class LiveActionResourceManager(ResourceManager):
 
         response = self.client.put(url, data, **kwargs)
 
-        if response.status_code != 200:
+        if response.status_code != httplib.OK:
             self.handle_error(response)
 
         return self.resource.deserialize(response.json())
@@ -444,7 +444,7 @@ class TriggerInstanceResourceManager(ResourceManager):
     def re_emit(self, trigger_instance_id, **kwargs):
         url = '/%s/%s/re_emit' % (self.resource.get_url_path_name(), trigger_instance_id)
         response = self.client.post(url, None, **kwargs)
-        if response.status_code != 200:
+        if response.status_code != httplib.OK:
             self.handle_error(response)
         return response.json()
 
@@ -462,7 +462,7 @@ class PackResourceManager(ResourceManager):
             'force': force
         }
         response = self.client.post(url, payload, **kwargs)
-        if response.status_code != 200:
+        if response.status_code != httplib.OK:
             self.handle_error(response)
         instance = AsyncRequest.deserialize(response.json())
         return instance
@@ -471,7 +471,7 @@ class PackResourceManager(ResourceManager):
     def remove(self, packs, **kwargs):
         url = '/%s/uninstall' % (self.resource.get_url_path_name())
         response = self.client.post(url, {'packs': packs}, **kwargs)
-        if response.status_code != 200:
+        if response.status_code != httplib.OK:
             self.handle_error(response)
         instance = AsyncRequest.deserialize(response.json())
         return instance
@@ -484,7 +484,7 @@ class PackResourceManager(ResourceManager):
         else:
             payload = {'pack': args.pack}
         response = self.client.post(url, payload, **kwargs)
-        if response.status_code != 200:
+        if response.status_code != httplib.OK:
             self.handle_error(response)
         data = response.json()
         if isinstance(data, list):
@@ -501,7 +501,7 @@ class PackResourceManager(ResourceManager):
         if packs:
             payload['packs'] = packs
         response = self.client.post(url, payload, **kwargs)
-        if response.status_code != 200:
+        if response.status_code != httplib.OK:
             self.handle_error(response)
         instance = self.resource.deserialize(response.json())
         return instance
@@ -512,7 +512,7 @@ class ConfigManager(ResourceManager):
     def update(self, instance, **kwargs):
         url = '/%s/%s' % (self.resource.get_url_path_name(), instance.pack)
         response = self.client.put(url, instance.values, **kwargs)
-        if response.status_code != 200:
+        if response.status_code != httplib.OK:
             self.handle_error(response)
         instance = self.resource.deserialize(response.json())
         return instance
