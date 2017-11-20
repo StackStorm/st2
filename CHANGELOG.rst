@@ -74,6 +74,9 @@ Fixed
   executions in the database. (bug fix) #3760 #3802
 * Fix 'NameError: name 'cmd' is not defined' error when using ``linux.service`` with CentOS systems.
   #3843. Contributed by @shkadov
+* Fix edge case for workflows stuck in running state. When Mistral receives a connection error from
+  the st2 API on requesting action execution, there's a duplicate action execution stuck in
+  requested state. This leads to the st2resultstracker assuming the workflow is still running.
 
 2.5.0 - October 25, 2017
 ------------------------
