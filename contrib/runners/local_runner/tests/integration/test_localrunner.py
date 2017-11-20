@@ -326,10 +326,25 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
             '$sudo p@ss 2'
         ]
 
+        cmd = ('{ read sudopass; echo $sudopass; }')
+
+        # without sudo
         for sudo_password in sudo_passwords:
-            cmd = ('{ read sudopass; echo $sudopass; }')
             runner = self._get_runner(action_db, cmd=cmd)
             runner.pre_run()
+            runner._sudo_password = sudo_password
+            status, result, _ = runner.run({})
+            runner.post_run(status, result)
+
+            self.assertEquals(status,
+                    action_constants.LIVEACTION_STATUS_SUCCEEDED)
+            self.assertEquals(result['stdout'], sudo_password)
+
+        # with sudo
+        for sudo_password in sudo_passwords:
+            runner = self._get_runner(action_db, cmd=cmd)
+            runner.pre_run()
+            runner._sudo = True
             runner._sudo_password = sudo_password
             status, result, _ = runner.run({})
             runner.post_run(status, result)
