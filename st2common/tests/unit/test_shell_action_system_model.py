@@ -68,7 +68,7 @@ class ShellCommandActionTestCase(unittest2.TestCase):
         action = ShellCommandAction(**kwargs)
         command = action.get_full_command_string()
 
-        expected_command = 'echo -e \'sudopass\n\' | sudo -S -E -H -u mauser -- bash -c \'ls -la\''
+        expected_command = 'sudo -S -E -H -u mauser -- bash -c \'ls -la\''
         self.assertEqual(command, expected_command)
 
         # sudo is used, it doesn't matter what user is specified since the
@@ -88,7 +88,7 @@ class ShellCommandActionTestCase(unittest2.TestCase):
         action = ShellCommandAction(**kwargs)
         command = action.get_full_command_string()
 
-        expected_command = 'echo -e \'sudopass\n\' | sudo -S -E -- bash -c \'ls -la\''
+        expected_command = 'sudo -S -E -- bash -c \'ls -la\''
         self.assertEqual(command, expected_command)
 
 
@@ -137,7 +137,7 @@ class ShellScriptActionTestCase(unittest2.TestCase):
         action = ShellScriptAction(**kwargs)
         command = action.get_full_command_string()
 
-        expected_command = 'echo -e \'sudopass\n\' | sudo -S -E -H -u mauser -- bash -c /tmp/foo.sh'
+        expected_command = 'sudo -S -E -H -u mauser -- bash -c /tmp/foo.sh'
         self.assertEqual(command, expected_command)
 
         # complex sudo password which needs escaping
@@ -148,7 +148,7 @@ class ShellScriptActionTestCase(unittest2.TestCase):
         action = ShellScriptAction(**kwargs)
         command = action.get_full_command_string()
 
-        expected_command = ('echo -e \'$udo p\'"\'"\'as"sss\n\' | sudo -S -E -H '
+        expected_command = ('sudo -S -E -H '
                             '-u mauser -- bash -c /tmp/foo.sh')
         self.assertEqual(command, expected_command)
 
@@ -166,7 +166,7 @@ class ShellScriptActionTestCase(unittest2.TestCase):
         action = ShellScriptAction(**kwargs)
         command = action.get_full_command_string()
 
-        expected_command = 'echo -e \'sudopass\n\' | sudo -S -E -- bash -c /tmp/foo.sh'
+        expected_command = 'sudo -S -E -- bash -c /tmp/foo.sh'
         self.assertEqual(command, expected_command)
 
     def test_command_construction_with_parameters(self):
@@ -190,7 +190,7 @@ class ShellScriptActionTestCase(unittest2.TestCase):
         action = ShellScriptAction(**kwargs)
         command = action.get_full_command_string()
 
-        expected = ('echo -e \'sudopass\n\' | sudo -S -E -- bash -c '
+        expected = ('sudo -S -E -- bash -c '
                     '\'/tmp/foo.sh key2=value2 key1=value1\'')
         self.assertEqual(command, expected)
 
@@ -215,7 +215,7 @@ class ShellScriptActionTestCase(unittest2.TestCase):
         action = ShellScriptAction(**kwargs)
 
         command = action.get_full_command_string()
-        expected = ('echo -e \'sudopass\n\' | sudo -S -E -H -u mauser -- bash -c '
+        expected = ('sudo -S -E -H -u mauser -- bash -c '
                     '\'/tmp/foo.sh key2=value2 key1=value1\'')
         self.assertEqual(command, expected)
 

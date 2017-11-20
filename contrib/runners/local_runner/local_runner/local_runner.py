@@ -170,7 +170,17 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         # Ideally os.killpg should have done the trick but for some reason that failed.
         # Note: pkill will set the returncode to 143 so we don't need to explicitly set
         # it to some non-zero value.
-        exit_code, stdout, stderr, timed_out = shell.run_command(cmd=args, stdin=None,
+
+        if self._sudo_password:
+            LOG.debug('Supplying sudo password via stdin')
+            echo_process = subprocess.Popen(['echo', self._sudo_password + '\n'],
+                                            stdout=subprocess.PIPE)
+            stdin = echo_process.stdout
+        else:
+            stdin = None
+
+        exit_code, stdout, stderr, timed_out = shell.run_command(cmd=args,
+                                                                 stdin=stdin,
                                                                  stdout=subprocess.PIPE,
                                                                  stderr=subprocess.PIPE,
                                                                  shell=True,

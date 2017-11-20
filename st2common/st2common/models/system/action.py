@@ -77,9 +77,6 @@ class ShellCommandAction(object):
             command = quote_unix(self.command)
             sudo_arguments = ' '.join(self._get_common_sudo_arguments())
             command = 'sudo %s -- bash -c %s' % (sudo_arguments, command)
-
-            if self.sudo_password:
-                command = 'echo -e %s | %s' % (quote_unix('%s\n' % (self.sudo_password)), command)
         else:
             if self.user and self.user != LOGGED_USER_USERNAME:
                 # Need to use sudo to run as a different (requested) user
@@ -88,9 +85,6 @@ class ShellCommandAction(object):
                 command = quote_unix(self.command)
                 command = 'sudo %s -- bash -c %s' % (sudo_arguments, command)
 
-                if self.sudo_password:
-                    command = 'echo -e %s | %s' % (quote_unix('%s\n' % (self.sudo_password)),
-                                                   command)
             else:
                 command = self.command
 
@@ -107,8 +101,7 @@ class ShellCommandAction(object):
 
         if self.sudo_password:
             # Mask sudo password
-            split = command_string.split(' | ', 1)
-            command_string = 'echo -e \'%s\n\' | %s' % (MASKED_ATTRIBUTE_VALUE, split[1])
+            command_string = 'echo -e \'%s\n\' | %s' % (MASKED_ATTRIBUTE_VALUE, command_string)
 
         return command_string
 
@@ -127,6 +120,8 @@ class ShellCommandAction(object):
         flags = []
 
         if self.sudo_password:
+            # Note: We use subprocess.Popen in local runner so we provide password via subprocess
+            # stdin (using echo -e won't work when using subprocess.Popen)
             flags.append('-S')
 
         flags = flags + SUDO_COMMON_OPTIONS
@@ -223,9 +218,6 @@ class ShellScriptAction(ShellCommandAction):
 
             sudo_arguments = ' '.join(self._get_common_sudo_arguments())
             command = 'sudo %s -- bash -c %s' % (sudo_arguments, command)
-
-            if self.sudo_password:
-                command = 'echo -e %s | %s' % (quote_unix('%s\n' % (self.sudo_password)), command)
         else:
             if self.user and self.user != LOGGED_USER_USERNAME:
                 # Need to use sudo to run as a different user
@@ -238,10 +230,6 @@ class ShellScriptAction(ShellCommandAction):
 
                 sudo_arguments = ' '.join(self._get_user_sudo_arguments(user=user))
                 command = 'sudo %s -- bash -c %s' % (sudo_arguments, command)
-
-                if self.sudo_password:
-                    command = 'echo -e %s | %s' % (quote_unix('%s\n' % (self.sudo_password)),
-                                                   command)
             else:
                 script_path = quote_unix(self.script_local_path_abs)
 
