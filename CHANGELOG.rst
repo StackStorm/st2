@@ -35,6 +35,8 @@ Added
   common code inside a ``lib`` directory inside a pack (with an ``__init__.py`` inside ``lib``
   directory to declare it a python package). You can then import the common code in sensors and
   actions. Please refer to documentation for samples and guidelines. #3490
+* Add support for password protected sudo to the local and remote runner. Password can be provided
+  via the new ``sudo_password`` runner parameter. (new feature) #3867
 
 Changed
 ~~~~~~~
