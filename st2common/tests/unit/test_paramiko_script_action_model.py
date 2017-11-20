@@ -17,11 +17,15 @@ import unittest2
 
 from st2common.models.system.paramiko_script_action import ParamikoRemoteScriptAction
 
+__all__ = [
+    'ParamikoRemoteScriptActionTestCase'
+]
 
-class ParamikoRemoteScriptActionTests(unittest2.TestCase):
+
+class ParamikoRemoteScriptActionTestCase(unittest2.TestCase):
 
     def test_get_command_string_no_env_vars(self):
-        script_action = ParamikoRemoteScriptActionTests._get_test_script_action()
+        script_action = ParamikoRemoteScriptActionTestCase._get_test_script_action()
         ex = 'cd /tmp && /tmp/remote_script.sh song=\'b s\' \'taylor swift\''
         self.assertEqual(script_action.get_full_command_string(), ex)
 
@@ -32,8 +36,16 @@ class ParamikoRemoteScriptActionTests(unittest2.TestCase):
              '/tmp/remote_script.sh song=\'"\'"\'b s\'"\'"\' \'"\'"\'taylor swift\'"\'"\'\''
         self.assertEqual(script_action.get_full_command_string(), ex)
 
+        # with sudo password
+        script_action.sudo = True
+        script_action.sudo_password = 'sudo pass'
+        ex = 'echo -e \'sudo pass\n\' | sudo -S -E -- bash -c ' + \
+             '\'cd /tmp && ' + \
+             '/tmp/remote_script.sh song=\'"\'"\'b s\'"\'"\' \'"\'"\'taylor swift\'"\'"\'\''
+        self.assertEqual(script_action.get_full_command_string(), ex)
+
     def test_get_command_string_with_env_vars(self):
-        script_action = ParamikoRemoteScriptActionTests._get_test_script_action()
+        script_action = ParamikoRemoteScriptActionTestCase._get_test_script_action()
         script_action.env_vars = {
             'ST2_ACTION_EXECUTION_ID': '55ce39d532ed3543aecbe71d',
             'FOO': 'BAR BAZ BOOZ'
@@ -52,8 +64,19 @@ class ParamikoRemoteScriptActionTests(unittest2.TestCase):
              '/tmp/remote_script.sh song=\'"\'"\'b s\'"\'"\' \'"\'"\'taylor swift\'"\'"\'\''
         self.assertEqual(script_action.get_full_command_string(), ex)
 
+        # with sudo password
+        script_action.sudo = True
+        script_action.sudo_password = 'sudo pass'
+
+        ex = 'echo -e \'sudo pass\n\' | sudo -S -E -- bash -c ' + \
+             '\'export ST2_ACTION_EXECUTION_ID=55ce39d532ed3543aecbe71d ' + \
+             'FOO=\'"\'"\'BAR BAZ BOOZ\'"\'"\' && ' + \
+             'cd /tmp && ' + \
+             '/tmp/remote_script.sh song=\'"\'"\'b s\'"\'"\' \'"\'"\'taylor swift\'"\'"\'\''
+        self.assertEqual(script_action.get_full_command_string(), ex)
+
     def test_get_command_string_no_script_args_no_env_args(self):
-        script_action = ParamikoRemoteScriptActionTests._get_test_script_action()
+        script_action = ParamikoRemoteScriptActionTestCase._get_test_script_action()
         script_action.named_args = {}
         script_action.positional_args = []
         ex = 'cd /tmp && /tmp/remote_script.sh'
@@ -66,7 +89,7 @@ class ParamikoRemoteScriptActionTests(unittest2.TestCase):
         self.assertEqual(script_action.get_full_command_string(), ex)
 
     def test_get_command_string_no_script_args_with_env_args(self):
-        script_action = ParamikoRemoteScriptActionTests._get_test_script_action()
+        script_action = ParamikoRemoteScriptActionTestCase._get_test_script_action()
         script_action.named_args = {}
         script_action.positional_args = []
         script_action.env_vars = {
@@ -88,7 +111,7 @@ class ParamikoRemoteScriptActionTests(unittest2.TestCase):
         self.assertEqual(script_action.get_full_command_string(), ex)
 
     def test_script_path_shell_injection_safe(self):
-        script_action = ParamikoRemoteScriptActionTests._get_test_script_action()
+        script_action = ParamikoRemoteScriptActionTestCase._get_test_script_action()
         test_path = '/tmp/remote script.sh'
         script_action.remote_script = test_path
         script_action.named_args = {}
@@ -102,8 +125,16 @@ class ParamikoRemoteScriptActionTests(unittest2.TestCase):
              '\'cd /tmp && \'"\'"\'/tmp/remote script.sh\'"\'"\'\''
         self.assertEqual(script_action.get_full_command_string(), ex)
 
+        # With sudo_password
+        script_action.sudo = True
+        script_action.sudo_password = 'sudo pass'
+
+        ex = 'echo -e \'sudo pass\n\' | sudo -S -E -- bash -c ' + \
+             '\'cd /tmp && \'"\'"\'/tmp/remote script.sh\'"\'"\'\''
+        self.assertEqual(script_action.get_full_command_string(), ex)
+
     def test_script_path_shell_injection_safe_with_env_vars(self):
-        script_action = ParamikoRemoteScriptActionTests._get_test_script_action()
+        script_action = ParamikoRemoteScriptActionTestCase._get_test_script_action()
         test_path = '/tmp/remote script.sh'
         script_action.remote_script = test_path
         script_action.named_args = {}
@@ -115,6 +146,15 @@ class ParamikoRemoteScriptActionTests(unittest2.TestCase):
         # Test with sudo
         script_action.sudo = True
         ex = 'sudo -E -- bash -c ' + \
+             '\'export FOO=BAR && ' + \
+             'cd /tmp && \'"\'"\'/tmp/remote script.sh\'"\'"\'\''
+        self.assertEqual(script_action.get_full_command_string(), ex)
+
+        # With sudo_password
+        script_action.sudo = True
+        script_action.sudo_password = 'sudo pass'
+
+        ex = 'echo -e \'sudo pass\n\' | sudo -S -E -- bash -c ' + \
              '\'export FOO=BAR && ' + \
              'cd /tmp && \'"\'"\'/tmp/remote script.sh\'"\'"\'\''
         self.assertEqual(script_action.get_full_command_string(), ex)
