@@ -83,6 +83,6 @@ class ParamikoRemoteScriptAction(RemoteScriptAction):
         if self.sudo_password:
             flags.append('-S')
 
-        flags = flags + copy(SUDO_COMMON_OPTIONS)
+        flags = flags + SUDO_COMMON_OPTIONS
 
         return flags

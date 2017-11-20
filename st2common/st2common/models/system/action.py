@@ -129,7 +129,7 @@ class ShellCommandAction(object):
         if self.sudo_password:
             flags.append('-S')
 
-        flags = flags + copy.copy(SUDO_COMMON_OPTIONS)
+        flags = flags + SUDO_COMMON_OPTIONS
 
         return flags
 
@@ -141,7 +141,7 @@ class ShellCommandAction(object):
         :rtype: ``list``
         """
         flags = self._get_common_sudo_arguments()
-        flags += copy.copy(SUDO_DIFFERENT_USER_OPTIONS)
+        flags += SUDO_DIFFERENT_USER_OPTIONS
         flags += ['-u', user]
 
         return flags
