@@ -314,6 +314,30 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
             self.assertEqual(output_dbs[db_index_1].data, mock_stderr[0])
             self.assertEqual(output_dbs[db_index_2].data, mock_stderr[1])
 
+    def test_shell_command_sudo_password_is_passed_to_sudo_binary(self):
+        # Verify that sudo password is correctly passed to sudo binary via stdin
+        models = self.fixtures_loader.load_models(
+            fixtures_pack='generic', fixtures_dict={'actions': ['local.yaml']})
+        action_db = models['actions']['local.yaml']
+
+        sudo_passwords = [
+            'pass 1',
+            'sudopass',
+            '$sudo p@ss 2'
+        ]
+
+        for sudo_password in sudo_passwords:
+            cmd = ('{ read sudopass; echo $sudopass; }')
+            runner = self._get_runner(action_db, cmd=cmd)
+            runner.pre_run()
+            runner._sudo_password = sudo_password
+            status, result, _ = runner.run({})
+            runner.post_run(status, result)
+
+            self.assertEquals(status,
+                    action_constants.LIVEACTION_STATUS_SUCCEEDED)
+            self.assertEquals(result['stdout'], sudo_password)
+
     def test_shell_command_invalid_stdout_password(self):
         # Simulate message printed to stderr by sudo when invalid sudo password is provided
         models = self.fixtures_loader.load_models(
