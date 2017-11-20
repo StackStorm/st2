@@ -162,6 +162,17 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         read_and_store_stderr = make_read_and_store_stream_func(execution_db=self.execution,
             action_db=self.action, store_data_func=store_execution_stderr_line)
 
+        # If sudo password is provided, pass it to the subprocess via stdin>
+        # Note: We don't need to explicitly escape the argument because we pass command as a list
+        # to subprocess.Popen and all the arguments are escaped by the function.
+        if self._sudo_password:
+            LOG.debug('Supplying sudo password via stdin')
+            echo_process = subprocess.Popen(['echo', self._sudo_password + '\n'],
+                                            stdout=subprocess.PIPE)
+            stdin = echo_process.stdout
+        else:
+            stdin = None
+
         # Make sure os.setsid is called on each spawned process so that all processes
         # are in the same group.
 
@@ -171,15 +182,6 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         # Ideally os.killpg should have done the trick but for some reason that failed.
         # Note: pkill will set the returncode to 143 so we don't need to explicitly set
         # it to some non-zero value.
-
-        if self._sudo_password:
-            LOG.debug('Supplying sudo password via stdin')
-            echo_process = subprocess.Popen(['echo', self._sudo_password + '\n'],
-                                            stdout=subprocess.PIPE)
-            stdin = echo_process.stdout
-        else:
-            stdin = None
-
         exit_code, stdout, stderr, timed_out = shell.run_command(cmd=args,
                                                                  stdin=stdin,
                                                                  stdout=subprocess.PIPE,
