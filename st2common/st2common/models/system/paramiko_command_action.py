@@ -15,7 +15,6 @@
 
 import os
 import pwd
-import copy
 
 from st2common import log as logging
 from st2common.models.system.action import RemoteAction
@@ -70,6 +69,6 @@ class ParamikoRemoteCommandAction(RemoteAction):
         if self.sudo_password:
             flags.append('-S')
 
-        flags = flags + copy(SUDO_COMMON_OPTIONS)
+        flags = flags + SUDO_COMMON_OPTIONS
 
         return flags

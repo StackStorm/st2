@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import copy
-
 from st2common import log as logging
 from st2common.models.system.action import RemoteScriptAction
 from st2common.models.system.action import SUDO_COMMON_OPTIONS
