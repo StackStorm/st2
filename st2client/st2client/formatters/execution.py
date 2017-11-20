@@ -60,6 +60,7 @@ class ExecutionResult(formatters.Formatter):
                                                      width=sys.maxint,
                                                      indent=2)[len(attr) + 2:-1]
                     value = ('\n' if isinstance(value, dict) else '') + formatted_value
+                    value = strutil.dedupe_newlines(value)
 
                 # transform the value of our attribute so things like 'status'
                 # and 'timestamp' are formatted nicely
@@ -69,4 +70,4 @@ class ExecutionResult(formatters.Formatter):
 
                 output += ('\n' if output else '') + '%s: %s' % \
                     (DisplayColors.colorize(attr, DisplayColors.BLUE), value)
-        return output
+        return strutil.unescape(output)

@@ -27,6 +27,19 @@ def unescape(s):
     return s
 
 
+def dedupe_newlines(s):
+    """yaml.safe_dump converts single newlines to double.
+
+    Since we're printing this output and not loading it, we should
+    deduplicate them.
+    """
+
+    if isinstance(s, basestring):
+        s = s.replace('\n\n', '\n')
+
+    return s
+
+
 def strip_carriage_returns(s):
     if isinstance(s, basestring):
         s = s.replace('\\r', '')
