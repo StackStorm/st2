@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import os
+import re
 import pwd
 import uuid
 import functools
@@ -199,6 +200,20 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         if timed_out:
             error = 'Action failed to complete in %s seconds' % (self._timeout)
             exit_code = -1 * exit_code_constants.SIGKILL_EXIT_CODE
+
+        # Detect if user provided an invalid sudo password or sudo is not configured for that user
+        if self._sudo_password:
+            if re.search('sudo: \d+ incorrect password attempts', stderr):
+                match = re.search('\[sudo\] password for (.+?)\:', stderr)
+
+                if match:
+                    username = match.groups()[0]
+                else:
+                    username = 'unknown'
+
+                error = ('Invalid sudo password provided or sudo is not configured for this user '
+                        '(%s)' % (username))
+                exit_code = -1
 
         succeeded = (exit_code == exit_code_constants.SUCCESS_EXIT_CODE)
 
