@@ -314,6 +314,27 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
             self.assertEqual(output_dbs[db_index_1].data, mock_stderr[0])
             self.assertEqual(output_dbs[db_index_2].data, mock_stderr[1])
 
+    def test_shell_command_invalid_stdout_password(self):
+        # Simulate message printed to stderr by sudo when invalid sudo password is provided
+        models = self.fixtures_loader.load_models(
+            fixtures_pack='generic', fixtures_dict={'actions': ['local.yaml']})
+        action_db = models['actions']['local.yaml']
+
+        cmd = ('echo  "[sudo] password for bar: Sorry, try again.\n[sudo] password for bar:'
+               ' Sorry, try again.\n[sudo] password for bar: \nsudo: 2 incorrect password '
+               'attempts" 1>&2; exit 1')
+        runner = self._get_runner(action_db, cmd=cmd)
+        runner.pre_run()
+        runner._sudo_password = 'pass'
+        status, result, _ = runner.run({})
+        runner.post_run(status, result)
+
+        expected_error = ('Invalid sudo password provided or sudo is not configured for this '
+                          'user (bar)')
+        self.assertEquals(status, action_constants.LIVEACTION_STATUS_FAILED)
+        self.assertEqual(result['error'], expected_error)
+        self.assertEquals(result['stdout'], '')
+
     @staticmethod
     def _get_runner(action_db,
                     entry_point=None,
