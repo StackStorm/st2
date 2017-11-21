@@ -74,6 +74,8 @@ Fixed
   executions in the database. (bug fix) #3760 #3802
 * Fix 'NameError: name 'cmd' is not defined' error when using ``linux.service`` with CentOS systems.
   #3843. Contributed by @shkadov
+* Fix bugs with newlines in execution formatter (client)
+  (bug fix) #3872
 
 2.5.0 - October 25, 2017
 ------------------------
