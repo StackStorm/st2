@@ -176,6 +176,22 @@ class ActionAliasFormatParser(object):
 
         return self.match_params_in_stream(matched_stream)
 
+    def get_multiple_extracted_param_value(self):
+        """
+        Match command against the format string and extract paramters from the command string.
+
+        :rtype: ``list of dicts``
+        """
+        result = {}
+
+        # 4. Matching the command against our regex to get the param values
+        matched_streams = self._regex.finditer(self._param_stream)
+
+        results = []
+        for matched_stream in matched_streams:
+            results.append(self.match_params_in_stream(matched_stream))
+        return results
+
 
 def extract_parameters_for_action_alias_db(action_alias_db, format_str, param_stream):
     """
