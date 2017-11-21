@@ -236,7 +236,7 @@ class TestKeyValueLoad(TestKeyValueBase):
                 f.write(json.dumps(KEYVALUE_OBJECT, indent=4))
 
             # test converting with short option
-            args = ['key', 'load',  path]
+            args = ['key', 'load', path]
             retcode = self.shell.run(args)
             self.assertNotEqual(retcode, 0)
         finally:
