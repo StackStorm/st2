@@ -88,11 +88,12 @@ class ActionAliasExecutionController(BaseRestControllerMixin):
             params['notification_route'] = input_api.notification_route
 
         alias_execution_api = AliasMatchAndExecuteInputAPI(**params)
-        result = self.post(payload=alias_execution_api, requester_user=requester_user,
-                           show_secrets=show_secrets)
-        return result
+        result = self._post(payload=alias_execution_api, requester_user=requester_user,
+                            show_secrets=show_secrets)
 
-    def post(self, payload, requester_user, show_secrets=False):
+        return Response(json=result, status=http_client.CREATED)
+
+    def _post(self, payload, requester_user, show_secrets=False, match_multiple=False):
         action_alias_name = payload.name if payload else None
 
         if not action_alias_name:
@@ -166,6 +167,10 @@ class ActionAliasExecutionController(BaseRestControllerMixin):
                     'extra': 'Cannot render "extra" in field "ack" for alias. ' + e.message
                 })
 
+        return result
+
+    def post(self, payload, requester_user, show_secrets=False):
+        result = self._post(payload, requester_user, show_secrets)
         return Response(json=result, status=http_client.CREATED)
 
     def _tokenize_alias_execution(self, alias_execution):
