@@ -70,4 +70,5 @@ class ExecutionResult(formatters.Formatter):
 
                 output += ('\n' if output else '') + '%s: %s' % \
                     (DisplayColors.colorize(attr, DisplayColors.BLUE), value)
-        return strutil.unescape(output)
+
+        return strutil.unescape(output).decode('unicode_escape').encode('utf-8')

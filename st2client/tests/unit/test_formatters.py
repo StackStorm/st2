@@ -38,6 +38,7 @@ LOG = logging.getLogger(__name__)
 FIXTURES_MANIFEST = {
     'executions': ['execution.json',
                    'execution_result_has_carriage_return.json',
+                   'execution_unicode.json',
                    'execution_with_stack_trace.json'],
     'results': ['execution_get_default.txt',
                 'execution_get_detail.txt',
@@ -46,11 +47,13 @@ FIXTURES_MANIFEST = {
                 'execution_get_attributes.txt',
                 'execution_list_attr_start_timestamp.txt',
                 'execution_list_empty_response_start_timestamp_attr.txt',
-                'execution_unescape_newline.txt']
+                'execution_unescape_newline.txt',
+                'execution_unicode.txt']
 }
 
 FIXTURES = loader.load_fixtures(fixtures_dict=FIXTURES_MANIFEST)
 EXECUTION = FIXTURES['executions']['execution.json']
+UNICODE = FIXTURES['executions']['execution_unicode.json']
 NEWLINE = FIXTURES['executions']['execution_with_stack_trace.json']
 HAS_CARRIAGE_RETURN = FIXTURES['executions']['execution_result_has_carriage_return.json']
 
@@ -113,6 +116,9 @@ class TestExecutionResultFormatter(unittest2.TestCase):
         httpclient.HTTPClient, 'get',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps(NEWLINE), 200, 'OK', {})))
     def test_execution_unescape_newline(self):
+        """Ensure client renders newline characters
+        """
+
         argv = ['execution', 'get', NEWLINE['id']]
         self.assertEqual(self.shell.run(argv), 0)
         self._undo_console_redirect()
@@ -120,6 +126,21 @@ class TestExecutionResultFormatter(unittest2.TestCase):
             content = fd.read()
 
         self.assertEqual(content, FIXTURES['results']['execution_unescape_newline.txt'])
+
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(UNICODE), 200, 'OK', {})))
+    def test_execution_unicode(self):
+        """Ensure client renders unicode escape sequences
+        """
+
+        argv = ['execution', 'get', UNICODE['id']]
+        self.assertEqual(self.shell.run(argv), 0)
+        self._undo_console_redirect()
+        with open(self.path, 'r') as fd:
+            content = fd.read()
+
+        self.assertEqual(content, FIXTURES['results']['execution_unicode.txt'])
 
     def test_execution_get_detail_in_json(self):
         argv = ['execution', 'get', EXECUTION['id'], '-d', '-j']
