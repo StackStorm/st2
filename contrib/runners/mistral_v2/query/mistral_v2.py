@@ -251,7 +251,7 @@ class MistralResultsQuerier(Querier):
 
         return result
 
-    def _has_active_tasks(self, liveaction_db, mistral_tasks):
+    def _has_active_tasks(self, liveaction_db, mistral_wf_state, mistral_tasks):
         # Identify if there are any active tasks in Mistral.
         active_mistral_tasks = len([t for t in mistral_tasks if t['state'] in ACTIVE_STATES]) > 0
 
@@ -260,6 +260,13 @@ class MistralResultsQuerier(Querier):
 
         for child_exec_id in execution.children:
             child_exec = ActionExecution.get(id=child_exec_id)
+
+            # Catch exception where a child is requested twice due to st2mistral retrying
+            # from a st2 API connection failure. The first child will be stuck in requested
+            # while the mistral workflow is already completed.
+            if (mistral_wf_state in DONE_STATES and
+                    child_exec.status == action_constants.LIVEACTION_STATUS_REQUESTED):
+                continue
 
             if (child_exec.status not in action_constants.LIVEACTION_COMPLETED_STATES and
                     child_exec.status != action_constants.LIVEACTION_STATUS_PAUSED):
@@ -281,7 +288,7 @@ class MistralResultsQuerier(Querier):
         is_action_resuming = liveaction_db.status in RESUMING_STATES
 
         # Identify the list of tasks that are still running or pausing.
-        active_tasks = self._has_active_tasks(liveaction_db, tasks)
+        active_tasks = self._has_active_tasks(liveaction_db, wf_state, tasks)
 
         # Keep the execution in running state if there are active tasks.
         # In certain use cases, Mistral sets the workflow state to
