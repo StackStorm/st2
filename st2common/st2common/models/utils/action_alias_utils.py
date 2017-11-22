@@ -178,7 +178,7 @@ class ActionAliasFormatParser(object):
 
     def get_multiple_extracted_param_value(self):
         """
-        Match command against the format string and extract paramters from the command string.
+        Match command against the format string and extract parameters from the command string.
 
         :rtype: ``list of dicts``
         """
@@ -193,7 +193,7 @@ class ActionAliasFormatParser(object):
         return results
 
 
-def extract_parameters_for_action_alias_db(action_alias_db, format_str, param_stream):
+def extract_parameters_for_action_alias_db(action_alias_db, format_str, param_stream, match_multiple=False):
     """
     Extract parameters from the user input based on the provided format string.
 
@@ -207,13 +207,19 @@ def extract_parameters_for_action_alias_db(action_alias_db, format_str, param_st
         raise ValueError('Format string "%s" is not available on the alias "%s"' %
                          (format_str, action_alias_db.name))
 
-    result = extract_parameters(format_str=format_str, param_stream=param_stream)
+    result = extract_parameters(
+        format_str=format_str,
+        param_stream=param_stream,
+        match_multiple=match_multiple)
     return result
 
 
-def extract_parameters(format_str, param_stream):
+def extract_parameters(format_str, param_stream, match_multiple=False):
     parser = ActionAliasFormatParser(alias_format=format_str, param_stream=param_stream)
-    return parser.get_extracted_param_value()
+    if match_multiple:
+        return parser.get_multiple_extracted_param_value()
+    else:
+        return parser.get_extracted_param_value()
 
 
 def search_regex_tokens(needle_tokens, haystack_tokens, backwards=False):

@@ -162,7 +162,7 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         self.assertEqual(pack_db.stackstorm_version, '>=1.6.0, <2.2.0')
         self.assertEqual(pack_db.system, {'centos': {'foo': '>= 1.0'}})
 
-        # Note: We only store paramters which are defined in the schema, all other custom user
+        # Note: We only store parameters which are defined in the schema, all other custom user
         # defined attributes are ignored
         self.assertTrue(not hasattr(pack_db, 'future'))
         self.assertTrue(not hasattr(pack_db, 'this'))
