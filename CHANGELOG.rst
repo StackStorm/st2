@@ -54,14 +54,23 @@ Changed
   ``status`` attribute (green for ``succeeded``, red for ``failed``, etc. aka the same as for the
   output of ``st2 execution list`` command). (improvement) #3810
 
-  Contributed by Nick Maludy.
+  Contributed by Nick Maludy (Encore Technologies).
 * Update various Python dependencies to the latest stable versions (kombu, amqp, apscheduler,
   gitpython, pymongo, stevedore, paramiko, prompt-toolkit, flex). #3830
 * Update log messages in the datastore service to correctly use ``DEBUG`` log level instead of
   ``AUDIT``. #3845
 * Mask values in an Inquiry response displayed to the user that were marked as "secret" in the
   inquiry's response schema. #3825
+* Added the ability of ``st2 key load`` to load keys from both JSON and YAML files.
+  Files can now contain a single KeyValuePair, or an array of KeyValuePairs.
+  Added the ability of ``st2 key load`` to load non-string values (hashes, arrays,
+  integers, booleans) and convert them to JSON before going into the datastore,
+  this conversion requires the user passing in the ``-c/--convert`` flag.
+  Updated ``st2 key load`` to load all properties of a key/value pair, now
+  secret values can be loaded. (improvement) #3815
 
+  Contributed by Nick Maludy (Encore Technologies).
+  
 Fixed
 ~~~~~
 
@@ -74,6 +83,9 @@ Fixed
   executions in the database. (bug fix) #3760 #3802
 * Fix 'NameError: name 'cmd' is not defined' error when using ``linux.service`` with CentOS systems.
   #3843. Contributed by @shkadov
+* Fix edge case for workflows stuck in running state. When Mistral receives a connection error from
+  the st2 API on requesting action execution, there's a duplicate action execution stuck in
+  requested state. This leads to the st2resultstracker assuming the workflow is still running.
 
 2.5.0 - October 25, 2017
 ------------------------
@@ -198,7 +210,7 @@ Fixed
 Changed
 ~~~~~~~
 
-* Minor language and style tidy up of help strings and error messages #3782
+* Minor language and style tidy up of help strings and error messages #3782 
 
 2.4.1 - September 12, 2017
 --------------------------
