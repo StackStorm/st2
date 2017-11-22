@@ -78,16 +78,18 @@ class ActionAliasController(resource.ContentPackResourceController):
         command = action_alias_match_api.command
 
         try:
-            match = get_matching_alias(command=command)
+            format_ = get_matching_alias(command=command)
         except ActionAliasAmbiguityException as e:
             LOG.exception('Command "%s" matched (%s) patterns.', e.command, len(e.matches))
             return abort(http_client.BAD_REQUEST, str(e))
 
         # Convert ActionAliasDB to API
-        action_alias_api = ActionAliasAPI.from_model(match[0])
-        match = [action_alias_api, match[1], match[2]]
-        result = self._match_tuple_to_dict(match=match)
-        return result
+        action_alias_api = ActionAliasAPI.from_model(format_['alias'])
+        return {
+            'actionalias': action_alias_api,
+            'display': format_['display'],
+            'representation': format_['representation'],
+        }
 
     def help(self, filter, pack, limit, offset, **kwargs):
         """
@@ -200,13 +202,6 @@ class ActionAliasController(resource.ContentPackResourceController):
         LOG.audit('Action alias deleted. ActionAlias.id=%s.' % (action_alias_db.id), extra=extra)
 
         return Response(status=http_client.NO_CONTENT)
-
-    def _match_tuple_to_dict(self, match):
-        return {
-            'actionalias': match[0],
-            'display': match[1],
-            'representation': match[2]
-        }
 
 
 action_alias_controller = ActionAliasController()

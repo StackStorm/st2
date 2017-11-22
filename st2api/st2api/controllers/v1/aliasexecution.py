@@ -64,13 +64,13 @@ class ActionAliasExecutionController(BaseRestControllerMixin):
         command = input_api.command
 
         try:
-            match = get_matching_alias(command=command)
+            format_ = get_matching_alias(command=command)
         except ActionAliasAmbiguityException as e:
             LOG.exception('Command "%s" matched (%s) patterns.', e.command, len(e.matches))
             return abort(http_client.BAD_REQUEST, str(e))
 
-        action_alias_db = match[0]
-        representation = match[2]
+        action_alias_db = format_['alias']
+        representation = format_['representation']
 
         params = {
             'name': action_alias_db.name,

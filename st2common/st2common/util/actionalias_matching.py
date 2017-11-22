@@ -43,9 +43,22 @@ def list_format_strings_from_aliases(aliases):
         for format_ in alias.formats:
             display, representations = normalise_alias_format_string(format_)
             if display and len(representations) == 0:
-                patterns.extend([(display, [])])
+                patterns.append({
+                    'alias': alias,
+                    'format': format_,
+                    'display': display,
+                    'representation': [],
+                })
             else:
-                patterns.extend([(display, representation) for representation in representations])
+                patterns.extend([
+                    {
+                        'alias': alias,
+                        'format': format_,
+                        'display': display,
+                        'representation': representation,
+                    }
+                    for representation in representations
+                ])
     return patterns
 
 
@@ -88,15 +101,15 @@ def match_command_to_alias(command, aliases):
     results = []
 
     for alias in aliases:
-        format_strings = list_format_strings_from_aliases([alias])
-        for format_string in format_strings:
+        formats = list_format_strings_from_aliases([alias])
+        for format_ in formats:
             try:
-                extract_parameters(format_str=format_string[1],
+                extract_parameters(format_str=format_['representation'],
                                    param_stream=command)
             except ParseException:
                 continue
 
-            results.append((alias, format_string[0], format_string[1]))
+            results.append(format_)
     return results
 
 
