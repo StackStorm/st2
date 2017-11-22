@@ -63,6 +63,9 @@ Changed
   inquiry's response schema. #3825
 * Added the ability of ``st2 key load`` to load keys from both JSON and YAML files.
   Files can now contain a single KeyValuePair, or an array of KeyValuePairs.
+  Added the ability of ``st2 key load`` to load non-string values (hashes, arrays,
+  integers, booleans) and convert them to JSON before going into the datastore,
+  this conversion requires the user passing in the ``-c/--convert`` flag.
   Updated ``st2 key load`` to load all properties of a key/value pair, now
   secret values can be loaded. (improvement) #3815
 
