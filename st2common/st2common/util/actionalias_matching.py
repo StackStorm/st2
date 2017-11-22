@@ -47,7 +47,7 @@ def list_format_strings_from_aliases(aliases):
                     'alias': alias,
                     'format': format_,
                     'display': display,
-                    'representation': [],
+                    'representation': '',
                 })
             else:
                 patterns.extend([

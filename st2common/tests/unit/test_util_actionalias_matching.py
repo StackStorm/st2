@@ -75,9 +75,9 @@ class ActionAliasTestCase(unittest2.TestCase):
         result = matching.list_format_strings_from_aliases(ALIASES)
         self.assertEqual(len(result), 2)
         self.assertEqual(result[0]['display'], 'Watch this.')
-        self.assertEqual(result[0]['representation'], [])
+        self.assertEqual(result[0]['representation'], '')
         self.assertEqual(result[1]['display'], "He's just like his {{relation}}.")
-        self.assertEqual(result[1]['representation'], [])
+        self.assertEqual(result[1]['representation'], '')
 
     def test_list_format_strings_from_aliases_with_representation_only(self, mock):
         ALIASES = [
