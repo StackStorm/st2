@@ -258,6 +258,8 @@ class ActionRunCommandMixin(object):
         if args.async:
             self.print_output('To get the results, execute:\n st2 execution get %s' %
                               (execution.id), six.text_type)
+            self.print_output('\nTo view output in real-time, execute:\n st2 execution '
+                              'tail %s' % (execution.id), six.text_type)
         else:
             self._print_execution_details(execution=execution, args=args, **kwargs)
 
