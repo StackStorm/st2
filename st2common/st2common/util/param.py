@@ -216,7 +216,8 @@ def _cast_params_from(params, context, schemas):
     return result
 
 
-def render_live_params(runner_parameters, action_parameters, params, action_context):
+def render_live_params(runner_parameters, action_parameters, params, action_context,
+        additional_contexts=None):
     '''
     Renders list of parameters. Ensures that there's no cyclic or missing dependencies. Returns a
     dict of plain rendered parameters.
@@ -224,6 +225,10 @@ def render_live_params(runner_parameters, action_parameters, params, action_cont
     config = get_config(action_context.get('pack'), action_context.get('user'))
 
     G = _create_graph(action_context, config)
+
+    if additional_contexts:
+        for name, value in six.iteritems(additional_contexts):
+            G.add_node(name, value=value)
 
     [_process(G, name, value) for name, value in six.iteritems(params)]
     _process_defaults(G, [action_parameters, runner_parameters])
