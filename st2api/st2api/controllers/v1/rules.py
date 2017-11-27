@@ -142,7 +142,12 @@ class RuleController(resource.ContentPackResourceController):
                 LOG.warning('Discarding mismatched id=%s found in payload and using uri_id=%s.',
                             rule.id, rule_ref_or_id)
             old_rule_db = rule_db
-            rule_db = RuleAPI.to_model(rule)
+
+            try:
+                rule_db = RuleAPI.to_model(rule)
+            except TriggerDoesNotExistException as e:
+                abort(http_client.BAD_REQUEST, str(e))
+                return
 
             # Check referenced trigger and action permissions
             # Note: This needs to happen after "to_model" call since to_model performs some
