@@ -450,12 +450,12 @@ class InquiryResourceManager(ResourceManager):
             "response": inquiry_response
         }
 
-        resp = self.client.put(url, payload, **kwargs)
+        response = self.client.put(url, payload, **kwargs)
 
-        if resp.status_code != httplib.OK:
-            self.handle_error(resp)
+        if response.status_code != httplib.OK:
+            self.handle_error(response)
 
-        return self.resource.deserialize(resp.json())
+        return self.resource.deserialize(response.json())
 
 
 class TriggerInstanceResourceManager(ResourceManager):
