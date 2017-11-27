@@ -353,6 +353,28 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
                     action_constants.LIVEACTION_STATUS_SUCCEEDED)
             self.assertEquals(result['stdout'], sudo_password)
 
+        # Verify new process which provides password via stdin to the command is created
+        with mock.patch('eventlet.green.subprocess.Popen') as mock_subproc_popen:
+            index = 0
+            for sudo_password in sudo_passwords:
+                runner = self._get_runner(action_db, cmd=cmd)
+                runner.pre_run()
+                runner._sudo = True
+                runner._sudo_password = sudo_password
+                status, result, _ = runner.run({})
+                runner.post_run(status, result)
+
+                if index == 0:
+                    call_args = mock_subproc_popen.call_args_list[index]
+                else:
+                    call_args = mock_subproc_popen.call_args_list[index * 2]
+
+                index += 1
+
+                self.assertEqual(call_args[0][0], ['echo', '%s\n' % (sudo_password)])
+
+        self.assertEqual(index, len(sudo_passwords))
+
     def test_shell_command_invalid_stdout_password(self):
         # Simulate message printed to stderr by sudo when invalid sudo password is provided
         models = self.fixtures_loader.load_models(
