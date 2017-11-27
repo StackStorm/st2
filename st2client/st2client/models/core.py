@@ -436,7 +436,26 @@ class LiveActionResourceManager(ResourceManager):
 
 
 class InquiryResourceManager(ResourceManager):
-    pass
+
+    @add_auth_token_to_kwargs_from_env
+    def respond(self, inquiry_id, inquiry_response, **kwargs):
+        """
+        Update st2.inquiry.respond action
+        Update st2client respond command to use this?
+        """
+        url = '/%s/%s' % (self.resource.get_url_path_name(), inquiry_id)
+
+        payload = {
+            "id": inquiry_id,
+            "response": inquiry_response
+        }
+
+        response = self.client.put(url, payload, **kwargs)
+
+        if response.status_code != httplib.OK:
+            self.handle_error(response)
+
+        return self.resource.deserialize(response.json())
 
 
 class TriggerInstanceResourceManager(ResourceManager):
