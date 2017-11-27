@@ -88,6 +88,9 @@ Fixed
 * Fix edge case for workflows stuck in running state. When Mistral receives a connection error from
   the st2 API on requesting action execution, there's a duplicate action execution stuck in
   requested state. This leads to the st2resultstracker assuming the workflow is still running.
+* Fix a regression and a bug with no API validation being performed and API returning 500 instead
+  of 400 status code if user didn't include any request payload (body) when hitting POST and PUT
+  API endpoints where body is mandatory. (bug fix) #3864
 
 2.5.0 - October 25, 2017
 ------------------------
