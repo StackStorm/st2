@@ -176,6 +176,9 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
             # Default to stanley key file specified in the config
             client_kwargs['pkey_file'] = self._ssh_key_file
 
+        if self._sudo_password:
+            client_kwargs['sudo_password'] = True
+
         self._parallel_ssh_client = ParallelSSHClient(**client_kwargs)
 
     def post_run(self, status, result):
