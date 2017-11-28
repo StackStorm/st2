@@ -111,18 +111,18 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
             liveaction['parameters'] = mask_secret_parameters(parameters=liveaction['parameters'],
                                                               secret_parameters=secret_parameters)
 
-        if 'inquiry.respond' in liveaction['action']:
+            if 'inquiry.respond' in liveaction.get('action', ''):
 
-            # Special case to mask parameters for `st2.inquiry.respond` action
-            # In this case, this execution is just a plain python action, not
-            # an inquiry, so we don't natively have a handle on the response
-            # schema.
-            #
-            # To prevent leakage, we can just mask all response fields.
-            result['parameters']['response'] = mask_secret_parameters(
-                parameters=liveaction['parameters']['response'],
-                secret_parameters=[p for p in liveaction['parameters']['response']]
-            )
+                # Special case to mask parameters for `st2.inquiry.respond` action
+                # In this case, this execution is just a plain python action, not
+                # an inquiry, so we don't natively have a handle on the response
+                # schema.
+                #
+                # To prevent leakage, we can just mask all response fields.
+                result['parameters']['response'] = mask_secret_parameters(
+                    parameters=liveaction['parameters']['response'],
+                    secret_parameters=[p for p in liveaction['parameters']['response']]
+                )
 
         # TODO(mierdin): This logic should be moved to the dedicated Inquiry
         # data model once it exists.
