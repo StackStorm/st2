@@ -131,6 +131,10 @@ class APIUIDMixin(object):
         pack_uid = resource_db.get_pack_uid()
         return pack_uid
 
+    def has_valid_uid(self):
+        resource_db = self.to_model(self)
+        return resource_db.has_valid_uid()
+
 
 def cast_argument_value(value_type, value):
     if value_type == bool:

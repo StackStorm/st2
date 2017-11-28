@@ -427,11 +427,9 @@ class PolicyControllerRBACTestCase(APIControllerWithRBACTestCase):
         user_db = self.users['no_permissions']
         self.use_user(user_db)
 
-        policy_uid = self.models['policies']['policy_1.yaml'].get_uid()
         data = self.POLICY_1
         resp = self.app.post_json('/v1/policies', data, expect_errors=True)
-        expected_msg = ('User "no_permissions" doesn\'t have required permission "policy_create" '
-                        'on resource "%s"' % (policy_uid))
+        expected_msg = ('User "no_permissions" doesn\'t have required permission "policy_create"')
         self.assertEqual(resp.status_code, httplib.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 

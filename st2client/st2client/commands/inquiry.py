@@ -24,7 +24,6 @@ from st2client.utils.interactive import InteractiveForm
 LOG = logging.getLogger(__name__)
 
 DEFAULT_SCOPE = 'system'
-MASKED_ATTRIBUTE_VALUE = '******'
 
 
 class InquiryBranch(resource.ResourceBranch):
@@ -136,21 +135,10 @@ class InquiryRespondCommand(resource.ResourceCommand):
                 inquiry.schema.get('properties')).initiate_dialog()
             instance.response = response
 
-        # Send the response to the API first, then sanitize secrets
-        instance = self.manager.update(instance, **kwargs)
-        instance = self.sanitize_secrets(instance, inquiry.schema)
-        return instance
+        return self.manager.respond(inquiry_id=instance.id,
+                                    inquiry_response=instance.response,
+                                    **kwargs)
 
     def run_and_print(self, args, **kwargs):
         instance = self.run(args, **kwargs)
-        print("\n Response accepted. Successful response data to follow...")
-        self.print_output(instance, table.PropertyValueTable,
-                          attributes=self.display_attributes, json=args.json,
-                          yaml=args.yaml)
-
-    def sanitize_secrets(self, instance, schema):
-        for prop_name, prop_attrs in schema['properties'].items():
-            if prop_attrs.get('secret') is True:
-                if prop_name in instance.response:
-                    instance.response[prop_name] = MASKED_ATTRIBUTE_VALUE
-        return instance
+        print("\nResponse accepted for inquiry %s." % instance.id)
