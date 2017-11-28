@@ -1,6 +1,6 @@
 ---
 name : core
-description : Pack containing basic actions.
+description : Basic core actions.
 version : 1.0.0
-author : Stackstorm Inc
+author : StackStorm, Inc.
 email : info@stackstorm.com
