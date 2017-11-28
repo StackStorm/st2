@@ -273,8 +273,6 @@ class ParallelSSHTests(unittest2.TestCase):
                                    sudo_password=True)
         results = client.run('stuff', timeout=60)
 
-        print results
-
         expected_error = ('Failed executing command "stuff" on host "127.0.0.1" '
                           'Invalid sudo password provided or sudo is not configured for '
                           'this user (bar)')
