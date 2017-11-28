@@ -37,6 +37,9 @@ Added
   actions. Please refer to documentation for samples and guidelines. #3490
 * Add support for password protected sudo to the local and remote runner. Password can be provided
   via the new ``sudo_password`` runner parameter. (new feature) #3867
+* Add new ``--tail`` flag to the ``st2 run`` / ``st2 action execute`` and ``st2 execution re-run``
+  CLI command. When this flag is provided, new execution will automatically be followed and tailed
+  after it has been scheduled. (new feature) #3867
 
 Changed
 ~~~~~~~
