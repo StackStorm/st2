@@ -1,10 +1,10 @@
 ---
 ref: hello_st2
 name: Hello StackStorm
-description: A simple pack containing examples of sensor, rule, and action.
+description: Simple pack containing examples of sensor, rule, and action.
 keywords:
     - example
     - test
 version: 0.1.0
-author: st2-dev
+author: StackStorm, Inc.
 email: info@stackstorm.com
