@@ -89,6 +89,8 @@ Fixed
 * Fix a regression and a bug with no API validation being performed and API returning 500 instead
   of 400 status code if user didn't include any request payload (body) when hitting POST and PUT
   API endpoints where body is mandatory. (bug fix) #3864
+* Fix bugs with newlines in execution formatter (client)
+  (bug fix) #3872
 
 2.5.0 - October 25, 2017
 ------------------------

@@ -1,0 +1,13 @@
+id: 547e19561e2e2417d3dde123
+status: succeeded (1s elapsed)
+parameters: None
+result: 
+  localhost:
+    failed: false
+    return_code: 0
+    stderr: "FOOBAR1
+Traceback (most recent call last):
+ "
+    stdout: 'FOOBAR2
+      '
+    succeeded: true
