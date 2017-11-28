@@ -100,6 +100,16 @@ class ActionAliasTestCase(unittest2.TestCase):
         self.assertEqual([result[0]], result[1])
         self.assertEqual(result[0], "Quite an experience to live in fear, isn't it?")
 
+    def test_normalise_alias_format_string_error(self, mock):
+        alias_list = ["Quite an experience to live in fear, isn't it?"]
+        expected_msg = ("alias_format '%s' is neither a dictionary or string type."
+            % repr(alias_list))
+
+        with self.assertRaises(TypeError) as cm:
+            matching.normalise_alias_format_string(alias_list)
+
+        self.assertEqual(cm.exception.message, expected_msg)
+
     def test_matching(self, mock):
         ALIASES = [
             MemoryActionAliasDB(name="spengler", ref="ghostbusters.1",
