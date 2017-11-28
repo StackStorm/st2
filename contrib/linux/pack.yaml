@@ -1,6 +1,6 @@
 ---
 name : linux
-description : Generic linux actions
+description : Generic Linux actions
 keywords:
   - linux
   - nmap
@@ -17,5 +17,5 @@ keywords:
   - processes
   - ps
 version : 1.0.1
-author : Stackstorm Inc
+author : StackStorm, Inc.
 email : info@stackstorm.com
