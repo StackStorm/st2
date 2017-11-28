@@ -111,8 +111,7 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
             liveaction['parameters'] = mask_secret_parameters(parameters=liveaction['parameters'],
                                                               secret_parameters=secret_parameters)
 
-            if 'inquiry.respond' in liveaction.get('action', ''):
-
+            if liveaction.get('action', '') == 'st2.inquiry.respond':
                 # Special case to mask parameters for `st2.inquiry.respond` action
                 # In this case, this execution is just a plain python action, not
                 # an inquiry, so we don't natively have a handle on the response
