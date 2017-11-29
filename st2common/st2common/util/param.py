@@ -217,7 +217,7 @@ def _cast_params_from(params, context, schemas):
 
 
 def render_live_params(runner_parameters, action_parameters, params, action_context,
-        additional_contexts=None):
+        additional_contexts={}):
     '''
     Renders list of parameters. Ensures that there's no cyclic or missing dependencies. Returns a
     dict of plain rendered parameters.
@@ -226,9 +226,10 @@ def render_live_params(runner_parameters, action_parameters, params, action_cont
 
     G = _create_graph(action_context, config)
 
-    if additional_contexts:
-        for name, value in six.iteritems(additional_contexts):
-            G.add_node(name, value=value)
+    # Additional contexts are applied after all other contexts (see _create_graph), but before any
+    # of the dependencies have been resolved.
+    for name, value in six.iteritems(additional_contexts):
+        G.add_node(name, value=value)
 
     [_process(G, name, value) for name, value in six.iteritems(params)]
     _process_defaults(G, [action_parameters, runner_parameters])
