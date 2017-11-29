@@ -71,7 +71,7 @@ Changed
 * Add the ability of ``st2 key load`` to load non-string values (objects, arrays, integers,
   booleans) and convert them to JSON before going into the datastore, this conversion requires the
   user passing in the ``-c/--convert`` flag. (improvement) #3815
-* Updat ``st2 key load`` to load all properties of a key/value pair, now secret values can be
+* Update ``st2 key load`` to load all properties of a key/value pair, now secret values can be
   loaded. (improvement) #3815
 
   Contributed by Nick Maludy (Encore Technologies).
