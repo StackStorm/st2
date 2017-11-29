@@ -30,7 +30,7 @@ from st2common.util.shell import quote_unix
 from st2common.constants.action import LIBS_DIR as ACTION_LIBS_DIR
 from st2common.util.secrets import get_secret_parameters
 from st2common.util.secrets import mask_secret_parameters
-from st2common.logging.formatters import MASKED_ATTRIBUTE_VALUE
+from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 
 __all__ = [
     'ShellCommandAction',
