@@ -181,7 +181,8 @@ class PermissionType(Enum):
         # * EXECUTION_VIEWS_FILTERS_LIST
         if permission_type == PermissionType.PACK_VIEWS_INDEX_HEALTH:
             return ResourceType.PACK
-        elif permission_type == PermissionType.EXECUTION_VIEWS_FILTERS_LIST or permission_type == PermissionType.MY_EXECUTION_VIEW:
+        elif permission_type == PermissionType.EXECUTION_VIEWS_FILTERS_LIST \
+                or permission_type == PermissionType.MY_EXECUTION_VIEW:
             return ResourceType.EXECUTION
 
         split = permission_type.split('_')
