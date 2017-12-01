@@ -84,7 +84,7 @@ class BaseDatastoreService(object):
         :rtype: ``list`` of :class:`KeyValuePair`
         """
         client = self._get_api_client()
-        self._logger.debug('Retrieving all the value from the datastore')
+        self._logger.debug('Retrieving all the values from the datastore')
 
         key_prefix = self._get_full_key_prefix(local=local, prefix=prefix)
         kvps = client.keys.get_all(prefix=key_prefix)
