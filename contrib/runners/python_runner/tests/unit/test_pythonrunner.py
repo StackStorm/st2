@@ -611,9 +611,12 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertRaisesRegexp(Exception, expected_msg, wrapper._get_action_instance)
 
     def test_simple_action_log_messages_and_log_level_runner_param(self):
-        expected_msg_1 = 'st2.actions.python.PascalRowAction: INFO     test info log message'
-        expected_msg_2 = 'st2.actions.python.PascalRowAction: DEBUG    test debug log message'
-        expected_msg_3 = 'st2.actions.python.PascalRowAction: ERROR    test error log message'
+        expected_msg_1 = 'st2.actions.python.PascalRowAction: DEBUG    Creating new Client object.'
+        expected_msg_2 = 'Retrieving all the values from the datastore'
+
+        expected_msg_3 = 'st2.actions.python.PascalRowAction: INFO     test info log message'
+        expected_msg_4 = 'st2.actions.python.PascalRowAction: DEBUG    test debug log message'
+        expected_msg_5 = 'st2.actions.python.PascalRowAction: ERROR    test error log message'
 
         runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
@@ -626,6 +629,11 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertTrue(expected_msg_1 in output['stderr'])
         self.assertTrue(expected_msg_2 in output['stderr'])
         self.assertTrue(expected_msg_3 in output['stderr'])
+        self.assertTrue(expected_msg_4 in output['stderr'])
+        self.assertTrue(expected_msg_5 in output['stderr'])
+
+        # Verify messages are not duplicated
+        self.assertEqual(len(output['stderr'].split('\n')), 5 + 1)
 
         # Only log messages with level info and above should be displayed
         runner = self._get_mock_runner_obj()
@@ -639,9 +647,9 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertTrue(output is not None)
         self.assertEqual(output['result'], [1, 2])
 
-        self.assertTrue(expected_msg_1 in output['stderr'])
-        self.assertFalse(expected_msg_2 in output['stderr'])
         self.assertTrue(expected_msg_3 in output['stderr'])
+        self.assertFalse(expected_msg_4 in output['stderr'])
+        self.assertTrue(expected_msg_5 in output['stderr'])
 
         # Only log messages with level error and above should be displayed
         runner = self._get_mock_runner_obj()
@@ -655,9 +663,9 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertTrue(output is not None)
         self.assertEqual(output['result'], [1, 2])
 
-        self.assertFalse(expected_msg_1 in output['stderr'])
-        self.assertFalse(expected_msg_2 in output['stderr'])
-        self.assertTrue(expected_msg_3 in output['stderr'])
+        self.assertFalse(expected_msg_3 in output['stderr'])
+        self.assertFalse(expected_msg_4 in output['stderr'])
+        self.assertTrue(expected_msg_5 in output['stderr'])
 
     def _get_mock_runner_obj(self):
         runner = python_runner.get_runner()

@@ -6,6 +6,10 @@ from st2common.runners.base_action import Action
 
 class PascalRowAction(Action):
     def run(self, **kwargs):
+        # We call list values to verify that log messages are not duplicated when
+        # datastore service is used
+        self.action_service.list_values()
+
         self.logger.info('test info log message')
         self.logger.debug('test debug log message')
         self.logger.error('test error log message')
