@@ -35,6 +35,11 @@ Added
   common code inside a ``lib`` directory inside a pack (with an ``__init__.py`` inside ``lib``
   directory to declare it a python package). You can then import the common code in sensors and
   actions. Please refer to documentation for samples and guidelines. #3490
+* Add support for password protected sudo to the local and remote runner. Password can be provided
+  via the new ``sudo_password`` runner parameter. (new feature) #3867
+* Add new ``--tail`` flag to the ``st2 run`` / ``st2 action execute`` and ``st2 execution re-run``
+  CLI command. When this flag is provided, new execution will automatically be followed and tailed
+  after it has been scheduled. (new feature) #3867
 
 Changed
 ~~~~~~~
@@ -61,16 +66,16 @@ Changed
   ``AUDIT``. #3845
 * Mask values in an Inquiry response displayed to the user that were marked as "secret" in the
   inquiry's response schema. #3825
-* Added the ability of ``st2 key load`` to load keys from both JSON and YAML files.
-  Files can now contain a single KeyValuePair, or an array of KeyValuePairs.
-  Added the ability of ``st2 key load`` to load non-string values (hashes, arrays,
-  integers, booleans) and convert them to JSON before going into the datastore,
-  this conversion requires the user passing in the ``-c/--convert`` flag.
-  Updated ``st2 key load`` to load all properties of a key/value pair, now
-  secret values can be loaded. (improvement) #3815
+* Add the ability of ``st2 key load`` to load keys from both JSON and YAML files. Files can now
+  contain a single KeyValuePair, or an array of KeyValuePairs. (improvement) #3815
+* Add the ability of ``st2 key load`` to load non-string values (objects, arrays, integers,
+  booleans) and convert them to JSON before going into the datastore, this conversion requires the
+  user passing in the ``-c/--convert`` flag. (improvement) #3815
+* Update ``st2 key load`` to load all properties of a key/value pair, now secret values can be
+  loaded. (improvement) #3815
 
   Contributed by Nick Maludy (Encore Technologies).
-  
+
 Fixed
 ~~~~~
 
@@ -215,7 +220,7 @@ Fixed
 Changed
 ~~~~~~~
 
-* Minor language and style tidy up of help strings and error messages #3782 
+* Minor language and style tidy up of help strings and error messages. #3782
 
 2.4.1 - September 12, 2017
 --------------------------

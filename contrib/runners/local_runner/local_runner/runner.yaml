@@ -23,6 +23,12 @@
       default: false
       description: The command will be executed with sudo.
       type: boolean
+    sudo_password:
+      default: null
+      description: Sudo password. To be used when paswordless sudo is not allowed.
+      type: string
+      secret: true
+      required: false
     timeout:
       default: 60
       description: Action timeout in seconds. Action will get killed if it doesn't
@@ -50,6 +56,12 @@
       default: false
       description: The command will be executed with sudo.
       type: boolean
+    sudo_password:
+      default: null
+      description: Sudo password. To be used when paswordless sudo is not allowed.
+      type: string
+      required: false
+      secret: true
     timeout:
       default: 60
       description: Action timeout in seconds. Action will get killed if it doesn't

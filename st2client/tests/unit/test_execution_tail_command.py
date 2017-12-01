@@ -31,6 +31,11 @@ __all__ = [
 ]
 
 # Mock objects
+MOCK_LIVEACTION_1_RUNNING = {
+    'id': 'idfoo1',
+    'status': LIVEACTION_STATUS_RUNNING
+}
+
 MOCK_LIVEACTION_1_SUCCEEDED = {
     'id': 'idfoo1',
     'status': LIVEACTION_STATUS_SUCCEEDED
@@ -260,7 +265,7 @@ class ActionExecutionTailCommandTestCase(BaseCLITestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(MOCK_LIVEACTION_3_RUNNING),
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(MOCK_LIVEACTION_1_RUNNING),
                                                       200, 'OK')))
     @mock.patch('st2client.client.StreamManager', autospec=True)
     def test_tail_simple_execution_running_no_data_produced(self, mock_stream_manager):

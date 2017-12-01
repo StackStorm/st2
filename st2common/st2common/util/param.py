@@ -217,11 +217,12 @@ def _cast_params_from(params, context, schemas):
 
 
 def render_live_params(runner_parameters, action_parameters, params, action_context,
-        additional_contexts={}):
+                       additional_contexts=None):
     '''
     Renders list of parameters. Ensures that there's no cyclic or missing dependencies. Returns a
     dict of plain rendered parameters.
     '''
+    additional_contexts = additional_contexts or {}
     config = get_config(action_context.get('pack'), action_context.get('user'))
 
     G = _create_graph(action_context, config)

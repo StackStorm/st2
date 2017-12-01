@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import os
+import re
 import pwd
 import uuid
 import functools
@@ -52,6 +53,7 @@ LOGGED_USER_USERNAME = pwd.getpwuid(os.getuid())[0]
 
 # constants to lookup in runner_parameters.
 RUNNER_SUDO = 'sudo'
+RUNNER_SUDO_PASSWORD = 'sudo_password'
 RUNNER_ON_BEHALF_USER = 'user'
 RUNNER_COMMAND = 'cmd'
 RUNNER_CWD = 'cwd'
@@ -84,6 +86,7 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         super(LocalShellRunner, self).pre_run()
 
         self._sudo = self.runner_parameters.get(RUNNER_SUDO, False)
+        self._sudo_password = self.runner_parameters.get(RUNNER_SUDO_PASSWORD, None)
         self._on_behalf_user = self.context.get(RUNNER_ON_BEHALF_USER, LOGGED_USER_USERNAME)
         self._user = cfg.CONF.system_user.user
         self._cwd = self.runner_parameters.get(RUNNER_CWD, None)
@@ -105,7 +108,8 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
                                         user=self._user,
                                         env_vars=env_vars,
                                         sudo=self._sudo,
-                                        timeout=self._timeout)
+                                        timeout=self._timeout,
+                                        sudo_password=self._sudo_password)
         else:
             script_action = True
             script_local_path_abs = self.entry_point
@@ -121,13 +125,16 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
                                        env_vars=env_vars,
                                        sudo=self._sudo,
                                        timeout=self._timeout,
-                                       cwd=self._cwd)
+                                       cwd=self._cwd,
+                                       sudo_password=self._sudo_password)
 
         args = action.get_full_command_string()
+        sanitized_args = action.get_sanitized_full_command_string()
 
         # For consistency with the old Fabric based runner, make sure the file is executable
         if script_action:
             args = 'chmod +x %s ; %s' % (script_local_path_abs, args)
+            sanitized_args = 'chmod +x %s ; %s' % (script_local_path_abs, sanitized_args)
 
         env = os.environ.copy()
 
@@ -140,7 +147,7 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
 
         LOG.info('Executing action via LocalRunner: %s', self.runner_id)
         LOG.info('[Action info] name: %s, Id: %s, command: %s, user: %s, sudo: %s' %
-                 (action.name, action.action_exec_id, args, action.user, action.sudo))
+                 (action.name, action.action_exec_id, sanitized_args, action.user, action.sudo))
 
         stdout = StringIO()
         stderr = StringIO()
@@ -155,6 +162,17 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         read_and_store_stderr = make_read_and_store_stream_func(execution_db=self.execution,
             action_db=self.action, store_data_func=store_execution_stderr_line)
 
+        # If sudo password is provided, pass it to the subprocess via stdin>
+        # Note: We don't need to explicitly escape the argument because we pass command as a list
+        # to subprocess.Popen and all the arguments are escaped by the function.
+        if self._sudo_password:
+            LOG.debug('Supplying sudo password via stdin')
+            echo_process = subprocess.Popen(['echo', self._sudo_password + '\n'],
+                                            stdout=subprocess.PIPE)
+            stdin = echo_process.stdout
+        else:
+            stdin = None
+
         # Make sure os.setsid is called on each spawned process so that all processes
         # are in the same group.
 
@@ -164,7 +182,8 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         # Ideally os.killpg should have done the trick but for some reason that failed.
         # Note: pkill will set the returncode to 143 so we don't need to explicitly set
         # it to some non-zero value.
-        exit_code, stdout, stderr, timed_out = shell.run_command(cmd=args, stdin=None,
+        exit_code, stdout, stderr, timed_out = shell.run_command(cmd=args,
+                                                                 stdin=stdin,
                                                                  stdout=subprocess.PIPE,
                                                                  stderr=subprocess.PIPE,
                                                                  shell=True,
@@ -183,6 +202,20 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         if timed_out:
             error = 'Action failed to complete in %s seconds' % (self._timeout)
             exit_code = -1 * exit_code_constants.SIGKILL_EXIT_CODE
+
+        # Detect if user provided an invalid sudo password or sudo is not configured for that user
+        if self._sudo_password:
+            if re.search('sudo: \d+ incorrect password attempts', stderr):
+                match = re.search('\[sudo\] password for (.+?)\:', stderr)
+
+                if match:
+                    username = match.groups()[0]
+                else:
+                    username = 'unknown'
+
+                error = ('Invalid sudo password provided or sudo is not configured for this user '
+                        '(%s)' % (username))
+                exit_code = -1
 
         succeeded = (exit_code == exit_code_constants.SUCCESS_EXIT_CODE)
 
