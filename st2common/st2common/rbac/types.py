@@ -96,6 +96,8 @@ class PermissionType(Enum):
     EXECUTION_ALL = 'execution_all'
     EXECUTION_VIEWS_FILTERS_LIST = 'execution_views_filters_list'
 
+    MY_EXECUTION_VIEW = 'my_execution_view'
+
     RULE_LIST = 'rule_list'
     RULE_VIEW = 'rule_view'
     RULE_CREATE = 'rule_create'
@@ -179,7 +181,7 @@ class PermissionType(Enum):
         # * EXECUTION_VIEWS_FILTERS_LIST
         if permission_type == PermissionType.PACK_VIEWS_INDEX_HEALTH:
             return ResourceType.PACK
-        elif permission_type == PermissionType.EXECUTION_VIEWS_FILTERS_LIST:
+        elif permission_type == PermissionType.EXECUTION_VIEWS_FILTERS_LIST or permission_type == PermissionType.MY_EXECUTION_VIEW:
             return ResourceType.EXECUTION
 
         split = permission_type.split('_')
@@ -303,6 +305,8 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.ACTION_EXECUTE,
         PermissionType.ACTION_ALL,
 
+        PermissionType.MY_EXECUTION_VIEW,
+
         PermissionType.ACTION_ALIAS_VIEW,
         PermissionType.ACTION_ALIAS_CREATE,
         PermissionType.ACTION_ALIAS_MODIFY,
@@ -328,7 +332,9 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.ACTION_MODIFY,
         PermissionType.ACTION_DELETE,
         PermissionType.ACTION_EXECUTE,
-        PermissionType.ACTION_ALL
+        PermissionType.ACTION_ALL,
+
+        PermissionType.MY_EXECUTION_VIEW
     ],
     ResourceType.ACTION_ALIAS: [
         PermissionType.ACTION_ALIAS_LIST,
@@ -359,6 +365,8 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.EXECUTION_STOP,
         PermissionType.EXECUTION_ALL,
         PermissionType.EXECUTION_VIEWS_FILTERS_LIST,
+
+        PermissionType.MY_EXECUTION_VIEW,
     ],
     ResourceType.KEY_VALUE_PAIR: [
         PermissionType.KEY_VALUE_VIEW,
@@ -445,6 +453,7 @@ GLOBAL_PERMISSION_TYPES = [
 
     # Execution
     PermissionType.EXECUTION_VIEWS_FILTERS_LIST,
+    PermissionType.MY_EXECUTION_VIEW,
 
     # Stream
     PermissionType.STREAM_VIEW,
@@ -517,6 +526,9 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
                                    'particular execution.'),
     PermissionType.EXECUTION_VIEWS_FILTERS_LIST: ('Ability view all the distinct execution '
                                                   'filters.'),
+
+    PermissionType.MY_EXECUTION_VIEW: ('Ability to view an execution if it was started by the '
+                                       'requesting user.'),
 
     PermissionType.RULE_LIST: 'Ability to list (view all) rules.',
     PermissionType.RULE_VIEW: 'Ability to view a rule.',

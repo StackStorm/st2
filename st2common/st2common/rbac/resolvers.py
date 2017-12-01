@@ -682,22 +682,32 @@ class ExecutionPermissionsResolver(PermissionsResolver):
         action_uid = action['uid']
         action_pack_uid = pack_db.get_uid()
 
+        execution_user = resource_db['context']['user']
+        request_user = user_db['name']
+        my_execution = execution_user == request_user
+
+        if my_execution and permission_type == PermissionType.EXECUTION_VIEW:
+            self._user_has_global_permission(user_db=user_db,
+                                             permission_type=PermissionType.MY_EXECUTION_VIEW)
+
         # Note: "action_execute" also grants / implies "execution_re_run" and "execution_stop"
         if permission_type == PermissionType.EXECUTION_VIEW:
-            action_permission_type = PermissionType.ACTION_VIEW
+            action_permission_types = [PermissionType.ACTION_VIEW]
+            if my_execution:
+                action_permission_types.append(PermissionType.MY_EXECUTION_VIEW)
         elif permission_type in [PermissionType.EXECUTION_RE_RUN,
                                  PermissionType.EXECUTION_STOP]:
-            action_permission_type = PermissionType.ACTION_EXECUTE
+            action_permission_types = [PermissionType.ACTION_EXECUTE]
         elif permission_type == PermissionType.EXECUTION_ALL:
-            action_permission_type = PermissionType.ACTION_ALL
+            action_permission_types = [PermissionType.ACTION_ALL]
         elif permission_type == PermissionType.EXECUTION_VIEWS_FILTERS_LIST:
-            action_permission_type = PermissionType.EXECUTION_VIEWS_FILTERS_LIST
+            action_permission_types = [PermissionType.EXECUTION_VIEWS_FILTERS_LIST]
         else:
             raise ValueError('Invalid permission type: %s' % (permission_type))
 
         # Check grants on the pack of the action to which execution belongs to
         resource_types = [ResourceType.PACK]
-        permission_types = [PermissionType.ACTION_ALL, action_permission_type]
+        permission_types = [PermissionType.ACTION_ALL] + action_permission_types
         permission_grants = get_all_permission_grants_for_user(user_db=user_db,
                                                                resource_uid=action_pack_uid,
                                                                resource_types=resource_types,
@@ -709,7 +719,7 @@ class ExecutionPermissionsResolver(PermissionsResolver):
 
         # Check grants on the action the execution belongs to
         resource_types = [ResourceType.ACTION]
-        permission_types = [PermissionType.ACTION_ALL, action_permission_type]
+        permission_types = [PermissionType.ACTION_ALL] + action_permission_types
         permission_grants = get_all_permission_grants_for_user(user_db=user_db,
                                                                resource_uid=action_uid,
                                                                resource_types=resource_types,
