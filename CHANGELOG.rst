@@ -20,14 +20,19 @@ Added
   All runners are now also fully fledged Python packages (previously they were single module
   Python packages which caused various install and distribution related issues when installing
   them via pip) (new feature)
-* Add new ``search`` rule criteria comparison operator. For the usage, please refer to the
-  documentation. (new feature) #3833
+* Add new ``search`` rule criteria comparison operator. Please refer to the documentation for
+  usage. (new feature) #3833
 
   Contributed by @ahubl-mz.
 * Add new ``/api/v1/user`` API endpoint. This API endpoint is only available to the authenticated
   users and returns various metadata on the authenticated user (which method did the user use to
   authenticate, under which username the user is authenticated, which RBAC roles are assignment to
   this user in case RBAC is enabled, etc.) (new feature) #3831
+* The ``/api/v1/match_and_execute`` API endpoint matches a single alias and executes multiple times
+  if the alias format has a ``match_multiple`` key set to ``true``. Please refer to the
+  documentation for usage. #3884
+
+  Contributed by @ahubl-mz.
 * Add new ``get_user_info`` method to action and sensor service. With this method, user can
   retrieve information about the user account which is used to perform datastore operations inside
   the action and sensor service. (new feature) #3831
