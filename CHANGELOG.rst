@@ -38,6 +38,9 @@ Fixed
 * Fix a bug with datastore service used inside the Python runner actions not correctly scoping the
   auth token to the user who triggered the action. Token was incorrectly scoped to ``api_service``
   user without any permissions. (bug fix) #3823 #3535
+* Fix edge case for workflows stuck in running state. When Mistral receives a connection error from
+  the st2 API on requesting action execution, there's a duplicate action execution stuck in
+  requested state. This leads to the st2resultstracker assuming the workflow is still running.
 
 2.5.0 - October 25, 2017
 ------------------------
