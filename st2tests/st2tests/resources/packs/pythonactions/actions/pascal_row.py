@@ -8,7 +8,10 @@ class PascalRowAction(Action):
     def run(self, **kwargs):
         # We call list values to verify that log messages are not duplicated when
         # datastore service is used
-        self.action_service.list_values()
+        try:
+            self.action_service.list_values()
+        except Exception:
+            pass
 
         self.logger.info('test info log message')
         self.logger.debug('test debug log message')
