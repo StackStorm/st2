@@ -174,8 +174,6 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
 
         # Schedule the action execution.
         liveaction_db = LiveActionAPI.to_model(liveaction)
-        liveaction_db, actionexecution_db = action_service.create_request(liveaction_db)
-
         action_db = action_utils.get_action_by_ref(liveaction_db.action)
         runnertype_db = action_utils.get_runnertype_by_name(action_db.runner_type['name'])
 
@@ -184,6 +182,10 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
                 runnertype_db.runner_parameters, action_db.parameters, liveaction_db.parameters,
                 liveaction_db.context)
         except param_exc.ParamException:
+
+            # We still need to create a request, so liveaction_db is assigned an ID
+            liveaction_db, actionexecution_db = action_service.create_request(liveaction_db)
+
             # By this point the execution is already in the DB therefore need to mark it failed.
             _, e, tb = sys.exc_info()
             action_service.update_status(
@@ -191,9 +193,12 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
                 new_status=action_constants.LIVEACTION_STATUS_FAILED,
                 result={'error': str(e), 'traceback': ''.join(traceback.format_tb(tb, 20))})
             # Might be a good idea to return the actual ActionExecution rather than bubble up
-            # the execption.
+            # the exception.
             raise validation_exc.ValueValidationException(str(e))
 
+        # The request should be created after the above call to render_live_params
+        # so any templates in live parameters have a chance to render.
+        liveaction_db, actionexecution_db = action_service.create_request(liveaction_db)
         liveaction_db = LiveAction.add_or_update(liveaction_db, publish=False)
 
         _, actionexecution_db = action_service.publish_request(liveaction_db, actionexecution_db)
