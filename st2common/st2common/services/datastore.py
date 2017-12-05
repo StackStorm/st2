@@ -84,7 +84,7 @@ class BaseDatastoreService(object):
         :rtype: ``list`` of :class:`KeyValuePair`
         """
         client = self._get_api_client()
-        self._logger.debug('Retrieving all the value from the datastore')
+        self._logger.debug('Retrieving all the values from the datastore')
 
         key_prefix = self._get_full_key_prefix(local=local, prefix=prefix)
         kvps = client.keys.get_all(prefix=key_prefix)
@@ -309,7 +309,7 @@ class ActionDatastoreService(BaseDatastoreService):
         Retrieve API client instance.
         """
         if not self._client:
-            self._logger.audit('Creating new Client object.')
+            self._logger.debug('Creating new Client object.')
 
             api_url = get_full_public_api_url()
             client = Client(api_url=api_url, token=self._auth_token)
@@ -343,7 +343,7 @@ class SensorDatastoreService(BaseDatastoreService):
         if not self._client or token_expire:
             # Note: Late import to avoid high import cost (time wise)
             from st2common.services.access import create_token
-            self._logger.audit('Creating new Client object.')
+            self._logger.debug('Creating new Client object.')
 
             ttl = cfg.CONF.auth.service_token_ttl
             api_url = get_full_public_api_url()
