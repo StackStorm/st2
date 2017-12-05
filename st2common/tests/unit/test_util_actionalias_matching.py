@@ -58,11 +58,12 @@ class ActionAliasTestCase(unittest2.TestCase):
 
         self.assertEqual(len(result), 3)
 
-        self.assertEqual(result[0]['display'],        "Number 5 is {{status}}")
+        self.assertEqual(result[0]['display'], "Number 5 is {{status}}")
         self.assertEqual(result[0]['representation'], "Number 5 is {{status=alive}}")
-        self.assertEqual(result[1]['display'],        "Hey, laser lips, your mama was a snow blower.")
-        self.assertEqual(result[1]['representation'], "Hey, laser lips, your mama was a snow blower.")
-        self.assertEqual(result[2]['display'],        "How do I feel? I feel... {{status}}!")
+        self.assertEqual(result[1]['display'], "Hey, laser lips, your mama was a snow blower.")
+        self.assertEqual(result[1]['representation'],
+                         "Hey, laser lips, your mama was a snow blower.")
+        self.assertEqual(result[2]['display'], "How do I feel? I feel... {{status}}!")
         self.assertEqual(result[2]['representation'], "How do I feel? I feel... {{status}}!")
 
     def test_list_format_strings_from_aliases_with_display_only(self, mock):
@@ -89,7 +90,8 @@ class ActionAliasTestCase(unittest2.TestCase):
         result = matching.list_format_strings_from_aliases(ALIASES)
         self.assertEqual(len(result), 2)
         self.assertEqual(result[0]['display'], None)
-        self.assertEqual(result[0]['representation'], "That's okay daddy. You can't hug a {{object}}.")
+        self.assertEqual(result[0]['representation'],
+                         "That's okay daddy. You can't hug a {{object}}.")
         self.assertEqual(result[1]['display'], None)
         self.assertEqual(result[1]['representation'], 'You are my greatest invention.')
 
