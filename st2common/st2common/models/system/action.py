@@ -21,6 +21,7 @@ import six
 import sys
 import copy
 import traceback
+import collections
 
 from oslo_config import cfg
 
@@ -150,6 +151,9 @@ class ShellCommandAction(object):
             if self.sudo and self.sudo_password:
                 env_vars['HISTFILE'] = '/dev/null'
                 env_vars['HISTSIZE'] = '0'
+
+            # Sort the dict to guarante consistent order
+            env_vars = collections.OrderedDict(sorted(env_vars.items()))
 
             # Envrionment variables could contain spaces and open us to shell
             # injection attacks. Always quote the key and the value.
