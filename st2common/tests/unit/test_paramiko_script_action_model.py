@@ -39,7 +39,7 @@ class ParamikoRemoteScriptActionTestCase(unittest2.TestCase):
         # with sudo password
         script_action.sudo = True
         script_action.sudo_password = 'sudo pass'
-        ex = 'echo -e \'sudo pass\n\' | sudo -S -E -- bash -c ' + \
+        ex = 'set +o history ; echo -e \'sudo pass\n\' | sudo -S -E -- bash -c ' + \
              '\'cd /tmp && ' + \
              '/tmp/remote_script.sh song=\'"\'"\'b s\'"\'"\' \'"\'"\'taylor swift\'"\'"\'\''
         self.assertEqual(script_action.get_full_command_string(), ex)
@@ -50,16 +50,16 @@ class ParamikoRemoteScriptActionTestCase(unittest2.TestCase):
             'ST2_ACTION_EXECUTION_ID': '55ce39d532ed3543aecbe71d',
             'FOO': 'BAR BAZ BOOZ'
         }
-        ex = 'export ST2_ACTION_EXECUTION_ID=55ce39d532ed3543aecbe71d ' + \
-             'FOO=\'BAR BAZ BOOZ\' && ' + \
+        ex = 'export FOO=\'BAR BAZ BOOZ\' ' + \
+             'ST2_ACTION_EXECUTION_ID=55ce39d532ed3543aecbe71d && ' + \
              'cd /tmp && /tmp/remote_script.sh song=\'b s\' \'taylor swift\''
         self.assertEqual(script_action.get_full_command_string(), ex)
 
         # Test with sudo
         script_action.sudo = True
         ex = 'sudo -E -- bash -c ' + \
-             '\'export ST2_ACTION_EXECUTION_ID=55ce39d532ed3543aecbe71d ' + \
-             'FOO=\'"\'"\'BAR BAZ BOOZ\'"\'"\' && ' + \
+             '\'export FOO=\'"\'"\'BAR BAZ BOOZ\'"\'"\' ' + \
+             'ST2_ACTION_EXECUTION_ID=55ce39d532ed3543aecbe71d && ' + \
              'cd /tmp && ' + \
              '/tmp/remote_script.sh song=\'"\'"\'b s\'"\'"\' \'"\'"\'taylor swift\'"\'"\'\''
         self.assertEqual(script_action.get_full_command_string(), ex)
@@ -68,9 +68,9 @@ class ParamikoRemoteScriptActionTestCase(unittest2.TestCase):
         script_action.sudo = True
         script_action.sudo_password = 'sudo pass'
 
-        ex = 'echo -e \'sudo pass\n\' | sudo -S -E -- bash -c ' + \
-             '\'export ST2_ACTION_EXECUTION_ID=55ce39d532ed3543aecbe71d ' + \
-             'FOO=\'"\'"\'BAR BAZ BOOZ\'"\'"\' && ' + \
+        ex = 'set +o history ; echo -e \'sudo pass\n\' | sudo -S -E -- bash -c ' + \
+             '\'export FOO=\'"\'"\'BAR BAZ BOOZ\'"\'"\' HISTFILE=/dev/null HISTSIZE=0 ' + \
+             'ST2_ACTION_EXECUTION_ID=55ce39d532ed3543aecbe71d && ' + \
              'cd /tmp && ' + \
              '/tmp/remote_script.sh song=\'"\'"\'b s\'"\'"\' \'"\'"\'taylor swift\'"\'"\'\''
         self.assertEqual(script_action.get_full_command_string(), ex)
@@ -96,16 +96,16 @@ class ParamikoRemoteScriptActionTestCase(unittest2.TestCase):
             'ST2_ACTION_EXECUTION_ID': '55ce39d532ed3543aecbe71d',
             'FOO': 'BAR BAZ BOOZ'
         }
-        ex = 'export ST2_ACTION_EXECUTION_ID=55ce39d532ed3543aecbe71d ' + \
-             'FOO=\'BAR BAZ BOOZ\' && ' + \
+        ex = 'export FOO=\'BAR BAZ BOOZ\' ' + \
+             'ST2_ACTION_EXECUTION_ID=55ce39d532ed3543aecbe71d && ' + \
              'cd /tmp && /tmp/remote_script.sh'
         self.assertEqual(script_action.get_full_command_string(), ex)
 
         # Test with sudo
         script_action.sudo = True
         ex = 'sudo -E -- bash -c ' + \
-             '\'export ST2_ACTION_EXECUTION_ID=55ce39d532ed3543aecbe71d ' + \
-             'FOO=\'"\'"\'BAR BAZ BOOZ\'"\'"\' && ' + \
+             '\'export FOO=\'"\'"\'BAR BAZ BOOZ\'"\'"\' ' + \
+             'ST2_ACTION_EXECUTION_ID=55ce39d532ed3543aecbe71d && ' + \
              'cd /tmp && ' + \
              '/tmp/remote_script.sh\''
         self.assertEqual(script_action.get_full_command_string(), ex)
@@ -129,7 +129,7 @@ class ParamikoRemoteScriptActionTestCase(unittest2.TestCase):
         script_action.sudo = True
         script_action.sudo_password = 'sudo pass'
 
-        ex = 'echo -e \'sudo pass\n\' | sudo -S -E -- bash -c ' + \
+        ex = 'set +o history ; echo -e \'sudo pass\n\' | sudo -S -E -- bash -c ' + \
              '\'cd /tmp && \'"\'"\'/tmp/remote script.sh\'"\'"\'\''
         self.assertEqual(script_action.get_full_command_string(), ex)
 
@@ -154,8 +154,8 @@ class ParamikoRemoteScriptActionTestCase(unittest2.TestCase):
         script_action.sudo = True
         script_action.sudo_password = 'sudo pass'
 
-        ex = 'echo -e \'sudo pass\n\' | sudo -S -E -- bash -c ' + \
-             '\'export FOO=BAR && ' + \
+        ex = 'set +o history ; echo -e \'sudo pass\n\' | sudo -S -E -- bash -c ' + \
+             '\'export FOO=BAR HISTFILE=/dev/null HISTSIZE=0 && ' + \
              'cd /tmp && \'"\'"\'/tmp/remote script.sh\'"\'"\'\''
         self.assertEqual(script_action.get_full_command_string(), ex)
 
