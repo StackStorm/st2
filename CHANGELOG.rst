@@ -161,6 +161,11 @@ Fixed
   to treat response as a dictionary and not as an array with a single item. #377
 * Partially fix performance overhead and regression for short and simple Python runner actions.
   Full / complete fix will be included in v2.6.0. #3809
+* Fix a bug in Python runner which would cause action log messages to be duplicated in action
+  stderr output when utilizing action service / datastore service inside actions. (bug fix) #3893
+* Fix a regression and a bug with no API validation being performed and API returning 500 instead
+  of 400 status code if user didn't include any request payload (body) when hitting POST and PUT
+  API endpoints where body is mandatory. (bug fix) #3864
 
 Changed
 ~~~~~~~

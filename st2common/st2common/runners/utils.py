@@ -32,23 +32,34 @@ __all__ = [
 
 LOG = logging.getLogger(__name__)
 
+# Maps logger name to the actual logger instance
+# We re-use loggers for the same actions to make sure only a single instance exists for a
+# particular action. This way we avoid duplicate log messages, etc.
+LOGGERS = {}
+
 
 def get_logger_for_python_runner_action(action_name, log_level='debug'):
     """
     Set up a logger which logs all the messages with level DEBUG and above to stderr.
     """
-    level_name = log_level.upper()
-    log_level_constant = getattr(stdlib_logging, level_name, stdlib_logging.DEBUG)
     logger_name = 'actions.python.%s' % (action_name)
-    logger = logging.getLogger(logger_name)
 
-    console = stdlib_logging.StreamHandler()
-    console.setLevel(log_level_constant)
+    if logger_name not in LOGGERS:
+        level_name = log_level.upper()
+        log_level_constant = getattr(stdlib_logging, level_name, stdlib_logging.DEBUG)
+        logger = logging.getLogger(logger_name)
 
-    formatter = stdlib_logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
-    console.setFormatter(formatter)
-    logger.addHandler(console)
-    logger.setLevel(log_level_constant)
+        console = stdlib_logging.StreamHandler()
+        console.setLevel(log_level_constant)
+
+        formatter = stdlib_logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+        console.setFormatter(formatter)
+        logger.addHandler(console)
+        logger.setLevel(log_level_constant)
+
+        LOGGERS[logger_name] = logger
+    else:
+        logger = LOGGERS[logger_name]
 
     return logger
 
