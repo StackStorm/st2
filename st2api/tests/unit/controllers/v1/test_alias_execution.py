@@ -28,8 +28,9 @@ FIXTURES_PACK = 'aliases'
 
 TEST_MODELS = {
     'aliases': ['alias1.yaml', 'alias2.yaml', 'alias_with_undefined_jinja_in_ack_format.yaml',
-                'alias4.yaml'],
-    'actions': ['action1.yaml'],
+                'alias4.yaml', 'alias_fixes1.yaml', 'alias_fixes2.yaml',
+                'alias_match_multiple.yaml'],
+    'actions': ['action1.yaml', 'action2.yaml'],
     'runners': ['runner1.yaml']
 }
 
@@ -93,7 +94,6 @@ class AliasExecutionTestCase(FunctionalTest):
     def test_execution_with_array_type_single_value(self, request):
         command = 'Lorem ipsum value1 dolor sit value2 amet.'
         post_resp = self._do_post(alias_execution=self.alias2, command=command)
-        self.assertEqual(post_resp.status_int, 201)
         expected_parameters = {'param1': 'value1', 'param3': ['value2']}
         self.assertEquals(request.call_args[0][0].parameters, expected_parameters)
 
@@ -151,7 +151,7 @@ class AliasExecutionTestCase(FunctionalTest):
 
     @mock.patch.object(action_service, 'request',
                        return_value=(None, EXECUTION))
-    def test_match_and_execute(self, mock_request):
+    def test_match_and_execute_doesnt_match(self, mock_request):
         base_data = {
             'source_channel': 'chat',
             'notification_route': 'hubot',
@@ -166,6 +166,15 @@ class AliasExecutionTestCase(FunctionalTest):
         self.assertEqual(str(resp.json['faultstring']),
                          "Command 'hello donny' matched no patterns")
 
+    @mock.patch.object(action_service, 'request',
+                       return_value=(None, EXECUTION))
+    def test_match_and_execute_matches_many(self, mock_request):
+        base_data = {
+            'source_channel': 'chat',
+            'notification_route': 'hubot',
+            'user': 'chat-user'
+        }
+
         # Command matches more than one pattern
         data = copy.deepcopy(base_data)
         data['command'] = 'Lorem ipsum banana dolor sit pineapple amet.'
@@ -175,16 +184,75 @@ class AliasExecutionTestCase(FunctionalTest):
                          "Command 'Lorem ipsum banana dolor sit pineapple amet.' "
                          "matched more than 1 pattern")
 
+    @mock.patch.object(action_service, 'request',
+                       return_value=(None, EXECUTION))
+    def test_match_and_execute_matches_one(self, mock_request):
+        base_data = {
+            'source_channel': 'chat',
+            'notification_route': 'hubot',
+            'user': 'chat-user'
+        }
+
         # Command matches - should result in action execution
         data = copy.deepcopy(base_data)
         data['command'] = 'run date on localhost'
         resp = self.app.post_json('/v1/aliasexecution/match_and_execute', data)
         self.assertEqual(resp.status_int, 201)
-        self.assertEqual(resp.json['execution']['id'], str(EXECUTION['id']))
-        self.assertEqual(resp.json['execution']['status'], EXECUTION['status'])
+        self.assertEqual(len(resp.json['results']), 1)
+        self.assertEqual(resp.json['results'][0]['execution']['id'], str(EXECUTION['id']))
+        self.assertEqual(resp.json['results'][0]['execution']['status'], EXECUTION['status'])
 
         expected_parameters = {'cmd': 'date', 'hosts': 'localhost'}
         self.assertEquals(mock_request.call_args[0][0].parameters, expected_parameters)
+
+    @mock.patch.object(action_service, 'request',
+                       return_value=(None, EXECUTION))
+    def test_match_and_execute_matches_one_multiple_match(self, mock_request):
+        base_data = {
+            'source_channel': 'chat',
+            'notification_route': 'hubot',
+            'user': 'chat-user'
+        }
+
+        # Command matches multiple times - should result in multiple action execution
+        data = copy.deepcopy(base_data)
+        data['command'] = 'JKROWLING-4 is a duplicate of JRRTOLKIEN-24 which is a duplicate of DRSEUSS-12'
+        resp = self.app.post_json('/v1/aliasexecution/match_and_execute', data)
+        self.assertEqual(resp.status_int, 201)
+        self.assertEqual(len(resp.json['results']), 2)
+        self.assertEqual(resp.json['results'][0]['execution']['id'], str(EXECUTION['id']))
+        self.assertEqual(resp.json['results'][0]['execution']['status'], EXECUTION['status'])
+        self.assertEqual(resp.json['results'][1]['execution']['id'], str(EXECUTION['id']))
+        self.assertEqual(resp.json['results'][1]['execution']['status'], EXECUTION['status'])
+
+        # The mock object only stores the parameters of the _last_ time it was called, so that's
+        # what we assert on. Luckily re.finditer() processes groups in order, so if this was the
+        # parameters to the mock object, we have _also_ called it with:
+        #
+        # {'issue_key': 'JRRTOLKIEN-24'}
+        #
+        # We've also already checked the results array
+        #
+        expected_parameters = {'issue_key': 'DRSEUSS-12'}
+        self.assertEquals(mock_request.call_args[0][0].parameters, expected_parameters)
+
+    @mock.patch.object(action_service, 'request',
+                       return_value=(None, EXECUTION))
+    def test_match_and_execute_matches_many_multiple_match(self, mock_request):
+        base_data = {
+            'source_channel': 'chat',
+            'notification_route': 'hubot',
+            'user': 'chat-user'
+        }
+
+        # Command matches multiple times - should result in multiple action execution
+        data = copy.deepcopy(base_data)
+        data['command'] = 'JKROWLING-4 fixes JRRTOLKIEN-24 which fixes DRSEUSS-12'
+        resp = self.app.post_json('/v1/aliasexecution/match_and_execute', data, expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertEqual(str(resp.json['faultstring']),
+                         "Command '{command}' "
+                         "matched more than 1 (multi) pattern".format(command=data['command']))
 
     def _do_post(self, alias_execution, command, format_str=None, expect_errors=False,
                  show_secrets=False):

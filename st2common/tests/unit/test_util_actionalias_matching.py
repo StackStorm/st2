@@ -40,8 +40,8 @@ class ActionAliasTestCase(unittest2.TestCase):
 
         self.assertEqual(len(result), 2)
 
-        self.assertEqual(result[0][0], "Come with me if you want to live")
-        self.assertEqual(result[1][0],
+        self.assertEqual(result[0]['display'], "Come with me if you want to live")
+        self.assertEqual(result[1]['display'],
                          "I need your {{item}}, your {{item2}} and"
                          " your {{vehicle}}")
 
@@ -58,12 +58,12 @@ class ActionAliasTestCase(unittest2.TestCase):
 
         self.assertEqual(len(result), 3)
 
-        self.assertEqual(result[0][0], "Number 5 is {{status}}")
-        self.assertEqual(result[0][1], "Number 5 is {{status=alive}}")
-        self.assertEqual(result[1][0], "Hey, laser lips, your mama was a snow blower.")
-        self.assertEqual(result[1][1], "Hey, laser lips, your mama was a snow blower.")
-        self.assertEqual(result[2][0], "How do I feel? I feel... {{status}}!")
-        self.assertEqual(result[2][1], "How do I feel? I feel... {{status}}!")
+        self.assertEqual(result[0]['display'],        "Number 5 is {{status}}")
+        self.assertEqual(result[0]['representation'], "Number 5 is {{status=alive}}")
+        self.assertEqual(result[1]['display'],        "Hey, laser lips, your mama was a snow blower.")
+        self.assertEqual(result[1]['representation'], "Hey, laser lips, your mama was a snow blower.")
+        self.assertEqual(result[2]['display'],        "How do I feel? I feel... {{status}}!")
+        self.assertEqual(result[2]['representation'], "How do I feel? I feel... {{status}}!")
 
     def test_list_format_strings_from_aliases_with_display_only(self, mock):
         ALIASES = [
@@ -74,10 +74,10 @@ class ActionAliasTestCase(unittest2.TestCase):
         ]
         result = matching.list_format_strings_from_aliases(ALIASES)
         self.assertEqual(len(result), 2)
-        self.assertEqual(result[0][0], 'Watch this.')
-        self.assertEqual(result[0][1], [])
-        self.assertEqual(result[1][0], "He's just like his {{relation}}.")
-        self.assertEqual(result[1][1], [])
+        self.assertEqual(result[0]['display'], 'Watch this.')
+        self.assertEqual(result[0]['representation'], '')
+        self.assertEqual(result[1]['display'], "He's just like his {{relation}}.")
+        self.assertEqual(result[1]['representation'], '')
 
     def test_list_format_strings_from_aliases_with_representation_only(self, mock):
         ALIASES = [
@@ -88,10 +88,10 @@ class ActionAliasTestCase(unittest2.TestCase):
         ]
         result = matching.list_format_strings_from_aliases(ALIASES)
         self.assertEqual(len(result), 2)
-        self.assertEqual(result[0][0], None)
-        self.assertEqual(result[0][1], "That's okay daddy. You can't hug a {{object}}.")
-        self.assertEqual(result[1][0], None)
-        self.assertEqual(result[1][1], 'You are my greatest invention.')
+        self.assertEqual(result[0]['display'], None)
+        self.assertEqual(result[0]['representation'], "That's okay daddy. You can't hug a {{object}}.")
+        self.assertEqual(result[1]['display'], None)
+        self.assertEqual(result[1]['representation'], 'You are my greatest invention.')
 
     def test_normalise_alias_format_string(self, mock):
         result = matching.normalise_alias_format_string(
@@ -99,6 +99,16 @@ class ActionAliasTestCase(unittest2.TestCase):
 
         self.assertEqual([result[0]], result[1])
         self.assertEqual(result[0], "Quite an experience to live in fear, isn't it?")
+
+    def test_normalise_alias_format_string_error(self, mock):
+        alias_list = ["Quite an experience to live in fear, isn't it?"]
+        expected_msg = ("alias_format '%s' is neither a dictionary or string type."
+            % repr(alias_list))
+
+        with self.assertRaises(TypeError) as cm:
+            matching.normalise_alias_format_string(alias_list)
+
+        self.assertEqual(cm.exception.message, expected_msg)
 
     def test_matching(self, mock):
         ALIASES = [
@@ -108,7 +118,7 @@ class ActionAliasTestCase(unittest2.TestCase):
         COMMAND = "Don't cross the streams"
         match = matching.match_command_to_alias(COMMAND, ALIASES)
         self.assertEqual(len(match), 1)
-        self.assertEqual(match[0][0].ref, "ghostbusters.1")
-        self.assertEqual(match[0][2], "{{choice}} cross the {{target}}")
+        self.assertEqual(match[0]['alias'].ref, "ghostbusters.1")
+        self.assertEqual(match[0]['representation'], "{{choice}} cross the {{target}}")
 
     # we need some more complex scenarios in here.

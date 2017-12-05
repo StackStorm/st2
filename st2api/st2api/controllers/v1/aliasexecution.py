@@ -64,13 +64,13 @@ class ActionAliasExecutionController(BaseRestControllerMixin):
         command = input_api.command
 
         try:
-            match = get_matching_alias(command=command)
+            format_ = get_matching_alias(command=command)
         except ActionAliasAmbiguityException as e:
             LOG.exception('Command "%s" matched (%s) patterns.', e.command, len(e.matches))
             return abort(http_client.BAD_REQUEST, str(e))
 
-        action_alias_db = match[0]
-        representation = match[2]
+        action_alias_db = format_['alias']
+        representation = format_['representation']
 
         params = {
             'name': action_alias_db.name,
@@ -88,11 +88,14 @@ class ActionAliasExecutionController(BaseRestControllerMixin):
             params['notification_route'] = input_api.notification_route
 
         alias_execution_api = AliasMatchAndExecuteInputAPI(**params)
-        result = self.post(payload=alias_execution_api, requester_user=requester_user,
-                           show_secrets=show_secrets)
-        return result
+        results = self._post(
+            payload=alias_execution_api,
+            requester_user=requester_user,
+            show_secrets=show_secrets,
+            match_multiple=format_['match_multiple'])
+        return Response(json={'results': results}, status=http_client.CREATED)
 
-    def post(self, payload, requester_user, show_secrets=False):
+    def _post(self, payload, requester_user, show_secrets=False, match_multiple=False):
         action_alias_name = payload.name if payload else None
 
         if not action_alias_name:
@@ -120,10 +123,21 @@ class ActionAliasExecutionController(BaseRestControllerMixin):
             abort(http_client.BAD_REQUEST, msg)
             return
 
-        execution_parameters = extract_parameters_for_action_alias_db(
-            action_alias_db=action_alias_db,
-            format_str=format_str,
-            param_stream=command)
+        if match_multiple:
+            multiple_execution_parameters = extract_parameters_for_action_alias_db(
+                action_alias_db=action_alias_db,
+                format_str=format_str,
+                param_stream=command,
+                match_multiple=match_multiple)
+        else:
+            multiple_execution_parameters = [
+                extract_parameters_for_action_alias_db(
+                    action_alias_db=action_alias_db,
+                    format_str=format_str,
+                    param_stream=command,
+                    match_multiple=match_multiple)
+            ]
+
         notify = self._get_notify_field(payload)
 
         context = {
@@ -133,40 +147,48 @@ class ActionAliasExecutionController(BaseRestControllerMixin):
             'source_channel': payload.source_channel
         }
 
-        execution = self._schedule_execution(action_alias_db=action_alias_db,
-                                             params=execution_parameters,
-                                             notify=notify,
-                                             context=context,
-                                             show_secrets=show_secrets,
-                                             requester_user=requester_user)
+        results = []
+        for execution_parameters in multiple_execution_parameters:
+            execution = self._schedule_execution(action_alias_db=action_alias_db,
+                                                 params=execution_parameters,
+                                                 notify=notify,
+                                                 context=context,
+                                                 show_secrets=show_secrets,
+                                                 requester_user=requester_user)
 
-        result = {
-            'execution': execution,
-            'actionalias': ActionAliasAPI.from_model(action_alias_db)
-        }
+            result = {
+                'execution': execution,
+                'actionalias': ActionAliasAPI.from_model(action_alias_db)
+            }
 
-        if action_alias_db.ack:
-            try:
-                if 'format' in action_alias_db.ack:
+            if action_alias_db.ack:
+                try:
+                    if 'format' in action_alias_db.ack:
+                        result.update({
+                            'message': render({'alias': action_alias_db.ack['format']}, result)['alias']
+                        })
+                except UndefinedError as e:
                     result.update({
-                        'message': render({'alias': action_alias_db.ack['format']}, result)['alias']
+                        'message': 'Cannot render "format" in field "ack" for alias. ' + e.message
                     })
-            except UndefinedError as e:
-                result.update({
-                    'message': 'Cannot render "format" in field "ack" for alias. ' + e.message
-                })
 
-            try:
-                if 'extra' in action_alias_db.ack:
+                try:
+                    if 'extra' in action_alias_db.ack:
+                        result.update({
+                            'extra': render(action_alias_db.ack['extra'], result)
+                        })
+                except UndefinedError as e:
                     result.update({
-                        'extra': render(action_alias_db.ack['extra'], result)
+                        'extra': 'Cannot render "extra" in field "ack" for alias. ' + e.message
                     })
-            except UndefinedError as e:
-                result.update({
-                    'extra': 'Cannot render "extra" in field "ack" for alias. ' + e.message
-                })
 
-        return Response(json=result, status=http_client.CREATED)
+            results.append(result)
+
+        return results
+
+    def post(self, payload, requester_user, show_secrets=False):
+        results = self._post(payload, requester_user, show_secrets, match_multiple=False)
+        return Response(json=results[0], status=http_client.CREATED)
 
     def _tokenize_alias_execution(self, alias_execution):
         tokens = alias_execution.strip().split(' ', 1)
