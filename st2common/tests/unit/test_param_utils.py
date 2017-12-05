@@ -647,6 +647,7 @@ class ParamsUtilsTest(DbTestCase):
 
         expected_params = {
             'r1': 'generic',
+            'r2': 'generic',
             'r3': 'lolcathost'
         }
         self.assertEqual(live_params, expected_params)
