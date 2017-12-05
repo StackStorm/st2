@@ -120,7 +120,8 @@ class ActionAliasFormatParser(object):
         # substituting {{ ... }} with regex named groups, so that param_stream
         # matched against this expression yields a dict of params with values.
         param_match = r'\1["\']?(?P<\2>(?:(?<=\').+?(?=\')|(?<=").+?(?=")|{.+?}|.+?))["\']?'
-        reg = re.sub(r'(\s*)' + self._snippets['optional'], r'(?:' + param_match + r')?', self._format)
+        reg = re.sub(r'(\s*)' + self._snippets['optional'], r'(?:' + param_match + r')?',
+                     self._format)
         reg = re.sub(r'(\s*)' + self._snippets['required'], param_match, reg)
 
         reg_tokens = parse(reg, flags=re.DOTALL)
@@ -169,8 +170,6 @@ class ActionAliasFormatParser(object):
 
         :rtype: ``dict``
         """
-        result = {}
-
         # 4. Matching the command against our regex to get the param values
         matched_stream = self._regex.search(self._param_stream)
 
@@ -182,8 +181,6 @@ class ActionAliasFormatParser(object):
 
         :rtype: ``list of dicts``
         """
-        result = {}
-
         # 4. Matching the command against our regex to get the param values
         matched_streams = self._regex.finditer(self._param_stream)
 
@@ -193,7 +190,8 @@ class ActionAliasFormatParser(object):
         return results
 
 
-def extract_parameters_for_action_alias_db(action_alias_db, format_str, param_stream, match_multiple=False):
+def extract_parameters_for_action_alias_db(action_alias_db, format_str, param_stream,
+                                           match_multiple=False):
     """
     Extract parameters from the user input based on the provided format string.
 

@@ -164,8 +164,10 @@ class ActionAliasExecutionController(BaseRestControllerMixin):
             if action_alias_db.ack:
                 try:
                     if 'format' in action_alias_db.ack:
+                        message = render({'alias': action_alias_db.ack['format']}, result)['alias']
+
                         result.update({
-                            'message': render({'alias': action_alias_db.ack['format']}, result)['alias']
+                            'message': message
                         })
                 except UndefinedError as e:
                     result.update({

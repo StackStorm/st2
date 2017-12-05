@@ -93,7 +93,7 @@ class AliasExecutionTestCase(FunctionalTest):
                        return_value=(None, EXECUTION))
     def test_execution_with_array_type_single_value(self, request):
         command = 'Lorem ipsum value1 dolor sit value2 amet.'
-        post_resp = self._do_post(alias_execution=self.alias2, command=command)
+        self._do_post(alias_execution=self.alias2, command=command)
         expected_parameters = {'param1': 'value1', 'param3': ['value2']}
         self.assertEquals(request.call_args[0][0].parameters, expected_parameters)
 
@@ -216,7 +216,8 @@ class AliasExecutionTestCase(FunctionalTest):
 
         # Command matches multiple times - should result in multiple action execution
         data = copy.deepcopy(base_data)
-        data['command'] = 'JKROWLING-4 is a duplicate of JRRTOLKIEN-24 which is a duplicate of DRSEUSS-12'
+        data['command'] = ('JKROWLING-4 is a duplicate of JRRTOLKIEN-24 which '
+                           'is a duplicate of DRSEUSS-12')
         resp = self.app.post_json('/v1/aliasexecution/match_and_execute', data)
         self.assertEqual(resp.status_int, 201)
         self.assertEqual(len(resp.json['results']), 2)
