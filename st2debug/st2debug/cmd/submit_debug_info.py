@@ -164,6 +164,7 @@ class DebugInfoCollector(object):
         self.output_path = output_path
 
         config_file = config_file or {}
+        self.tmp_dir_prefix = config_file.get('st2_debug_tmp_path', None)
         self.st2_config_file_path = config_file.get('st2_config_file_path', ST2_CONFIG_FILE_PATH)
         self.mistral_config_file_path = config_file.get('mistral_config_file_path',
                                                         MISTRAL_CONFIG_FILE_PATH)
@@ -225,7 +226,7 @@ class DebugInfoCollector(object):
         finally:
             # Remove temp files
             for temp_file in temp_files:
-                assert temp_file.startswith('/tmp')
+                assert temp_file.startswith(self.tmp_dir_prefix)
                 remove_file(file_path=temp_file)
 
     def create_archive(self):
@@ -270,7 +271,7 @@ class DebugInfoCollector(object):
 
         finally:
             # Ensure temp files are removed regardless of success or failure
-            assert self._temp_dir_path.startswith('/tmp')
+            assert self._temp_dir_path.startswith(self.tmp_dir_prefix)
             remove_dir(self._temp_dir_path)
 
     def encrypt_archive(self, archive_file_path):
@@ -295,7 +296,7 @@ class DebugInfoCollector(object):
             assert import_result.count == 1
 
             encrypted_archive_output_file_name = os.path.basename(archive_file_path) + '.asc'
-            encrypted_archive_output_file_path = os.path.join('/tmp',
+            encrypted_archive_output_file_path = os.path.join(self.tmp_dir_prefix,
                                                               encrypted_archive_output_file_name)
             with open(archive_file_path, 'rb') as fp:
                 gpg.encrypt_file(file=fp,
@@ -352,13 +353,12 @@ class DebugInfoCollector(object):
         copy_files(file_paths=self.config_file_paths, destination=output_path)
 
         st2_config_path = os.path.join(output_path, self.st2_config_file_name)
-        process_st2_config(config_path=st2_config_path)
+        process_st2_config(config_path=st2_config_path, tmp_prefix=self.tmp_dir_prefix)
 
         mistral_config_path = os.path.join(output_path, self.mistral_config_file_name)
-        process_mistral_config(config_path=mistral_config_path)
+        process_mistral_config(config_path=mistral_config_path, tmp_prefix=self.tmp_dir_prefix)
 
-    @staticmethod
-    def collect_pack_content(output_path):
+    def collect_pack_content(self, output_path):
         """
         Copy pack contents to the output path.
 
@@ -382,7 +382,7 @@ class DebugInfoCollector(object):
             pack_dirs = get_dirs_in_path(file_path=base_pack_dir)
 
             for pack_dir in pack_dirs:
-                process_content_pack_dir(pack_dir=pack_dir)
+                process_content_pack_dir(pack_dir=pack_dir, tmp_prefix=self.tmp_dir_prefix)
 
     def add_system_information(self, output_path):
         """
@@ -436,9 +436,10 @@ class DebugInfoCollector(object):
         Create tarball with the contents of temp_dir_path.
 
         Tarball will be written to self.output_path, if set. Otherwise it will
-        be written to /tmp a name generated according to OUTPUT_FILENAME_TEMPLATE.
+        be written to self.tmp_dir_prefix with a name generated according to
+        OUTPUT_FILENAME_TEMPLATE.
 
-        :param temp_dir_path: Base directory to include in tarbal.
+        :param temp_dir_path: Base directory to include in tarball.
         :type temp_dir_path: ``str``
 
         :return: Path to the created tarball.
@@ -452,15 +453,14 @@ class DebugInfoCollector(object):
             values = {'hostname': socket.gethostname(), 'date': date}
 
             output_file_name = OUTPUT_FILENAME_TEMPLATE % values
-            output_file_path = os.path.join('/tmp', output_file_name)
+            output_file_path = os.path.join(self.tmp_dir_prefix, output_file_name)
 
         with tarfile.open(output_file_path, 'w:gz') as tar:
             tar.add(temp_dir_path, arcname='')
 
         return output_file_path
 
-    @staticmethod
-    def create_temp_directories():
+    def create_temp_directories(self):
         """
         Creates a new temp directory and creates the directory structure as defined
         by DIRECTORY_STRUCTURE.
@@ -468,7 +468,12 @@ class DebugInfoCollector(object):
         :return: Path to temp directory.
         :rtype: ``str``
         """
-        temp_dir_path = tempfile.mkdtemp()
+        temp_dir_path = tempfile.mkdtemp(dir=self.tmp_dir_prefix)
+        if not self.tmp_dir_prefix:
+            # set self.tmp_dir_prefix to the path selected by mkdtemp, it's used elsewhere for
+            # asserts.
+            self.tmp_dir_prefix, tmp_file = os.path.split(temp_dir_path)
+        LOG.info('Using temp dir prefix: %s', temp_dir_path)
 
         for directory_name in DIRECTORY_STRUCTURE:
             full_path = os.path.join(temp_dir_path, directory_name)

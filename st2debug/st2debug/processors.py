@@ -37,14 +37,17 @@ MISTRAL_CONF_OPTIONS_TO_REMOVE = {
 REMOVED_VALUE_NAME = '**removed**'
 
 
-def process_st2_config(config_path):
+
+def process_st2_config(config_path, tmp_prefix):
     """
     Remove sensitive data (credentials) from the StackStorm config.
 
-    :param config_path: Full absolute path to the st2 config inside /tmp.
+    :param config_path: Full absolute path to the st2 config inside TMP_DIR.
     :type config_path: ``str``
+    :param tmp_prefix: Base path where temporary files are placed.
+    :type tmp_prefix: ``str``
     """
-    assert config_path.startswith('/tmp')
+    assert config_path.startswith(tmp_prefix)
 
     if not os.path.isfile(config_path):
         return
@@ -61,14 +64,16 @@ def process_st2_config(config_path):
         config.write(fp)
 
 
-def process_mistral_config(config_path):
+def process_mistral_config(config_path, tmp_prefix):
     """
     Remove sensitive data (credentials) from the Mistral config.
 
-    :param config_path: Full absolute path to the mistral config inside /tmp.
+    :param config_path: Full absolute path to the mistral config inside TMP_DIR.
     :type config_path: ``str``
+    :param tmp_prefix: Base path where temporary files are placed.
+    :type tmp_prefix: ``str``
     """
-    assert config_path.startswith('/tmp')
+    assert config_path.startswith(tmp_prefix)
 
     if not os.path.isfile(config_path):
         return
@@ -85,14 +90,16 @@ def process_mistral_config(config_path):
         config.write(fp)
 
 
-def process_content_pack_dir(pack_dir):
+def process_content_pack_dir(pack_dir, tmp_prefix):
     """
     Remove config.yaml from the pack directory.
 
-    :param pack_dir: Full absolute path to the pack directory inside /tmp.
+    :param pack_dir: Full absolute path to the pack directory inside TMP_DIR.
     :type pack_dir: ``str``
+    :param tmp_prefix: Base path where temporary files are placed.
+    :type tmp_prefix: ``str``
     """
-    assert pack_dir.startswith('/tmp')
+    assert pack_dir.startswith(tmp_prefix)
 
     config_file_path = os.path.join(pack_dir, 'config.yaml')
     if os.path.isfile(config_file_path):
