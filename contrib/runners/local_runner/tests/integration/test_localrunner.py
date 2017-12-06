@@ -435,7 +435,7 @@ class LocalShellScriptRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         # False is a default behavior so end result should be the same
         cfg.CONF.set_override(name='stream_output', group='actionrunner', override=False)
 
-    def test_script_with_paramters_parameter_serialization(self):
+    def test_script_with_parameters_parameter_serialization(self):
         models = self.fixtures_loader.load_models(
             fixtures_pack='generic', fixtures_dict={'actions': ['local_script_with_params.yaml']})
         action_db = models['actions']['local_script_with_params.yaml']
