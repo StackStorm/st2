@@ -16,12 +16,12 @@
 import unittest2
 
 from st2common.models.db.pack import PackDB
-from st2common.util.pack import get_pack_common_libs_path
+from st2common.util.pack import get_pack_common_libs_path_for_pack_db
 
 
 class PackUtilsTestCase(unittest2.TestCase):
 
-    def test_get_pack_common_libs_path(self):
+    def test_get_pack_common_libs_path_for_pack_db(self):
         pack_model_args = {
             'name': 'Yolo CI',
             'ref': 'yolo_ci',
@@ -31,10 +31,10 @@ class PackUtilsTestCase(unittest2.TestCase):
             'path': '/opt/stackstorm/packs/yolo_ci/'
         }
         pack_db = PackDB(**pack_model_args)
-        lib_path = get_pack_common_libs_path(pack_db)
+        lib_path = get_pack_common_libs_path_for_pack_db(pack_db)
         self.assertEqual('/opt/stackstorm/packs/yolo_ci/lib', lib_path)
 
-    def test_get_pack_common_libs_path_no_path_in_pack_db(self):
+    def test_get_pack_common_libs_path_for_pack_db_no_path_in_pack_db(self):
         pack_model_args = {
             'name': 'Yolo CI',
             'ref': 'yolo_ci',
@@ -43,5 +43,5 @@ class PackUtilsTestCase(unittest2.TestCase):
             'author': 'Volkswagen'
         }
         pack_db = PackDB(**pack_model_args)
-        lib_path = get_pack_common_libs_path(pack_db)
+        lib_path = get_pack_common_libs_path_for_pack_db(pack_db)
         self.assertEqual(None, lib_path)
