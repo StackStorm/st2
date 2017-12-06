@@ -26,7 +26,6 @@ from eventlet.green import subprocess
 from oslo_config import cfg
 
 from st2common import log as logging
-from st2common.persistence.pack import Pack
 from st2common.runners.base import ActionRunner
 from st2common.runners.base import get_metadata as get_runner_metadata
 from st2common.util.green.shell import run_command
@@ -40,7 +39,7 @@ from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT
 from st2common.constants.system import API_URL_ENV_VARIABLE_NAME
 from st2common.constants.system import AUTH_TOKEN_ENV_VARIABLE_NAME
 from st2common.util.api import get_full_public_api_url
-from st2common.util.pack import get_pack_common_libs_path
+from st2common.util.pack import get_pack_common_libs_path_for_pack_ref
 from st2common.util.sandboxing import get_sandbox_path
 from st2common.util.sandboxing import get_sandbox_python_path
 from st2common.util.sandboxing import get_sandbox_python_binary_path
@@ -110,7 +109,6 @@ class PythonRunner(ActionRunner):
         LOG.debug('Running pythonrunner.')
         LOG.debug('Getting pack name.')
         pack = self.get_pack_ref()
-        pack_db = Pack.get_by_ref(pack)
         LOG.debug('Getting user.')
         user = self.get_user()
         LOG.debug('Serializing parameters.')
@@ -164,7 +162,19 @@ class PythonRunner(ActionRunner):
 
         sandbox_python_path = get_sandbox_python_path(inherit_from_parent=True,
                                                       inherit_parent_virtualenv=True)
-        pack_common_libs_path = get_pack_common_libs_path(pack_db=pack_db)
+
+        if self._enable_common_pack_libs:
+            try:
+                pack_common_libs_path = get_pack_common_libs_path_for_pack_ref(pack_ref=pack)
+            except Exception:
+                # There is no MongoDB connection available in Lambda and pack common lib
+                # functionality is not also mandatory for Lambda so we simply ignore those errors.
+                # Note: We should eventually refactor this code to make runner standalone and not
+                # depend on a db connection (as it was in the past) - this param should be passed
+                # to the runner by the action runner container
+                pack_common_libs_path = None
+        else:
+            pack_common_libs_path = None
 
         if self._enable_common_pack_libs and pack_common_libs_path:
             env['PYTHONPATH'] = pack_common_libs_path + ':' + sandbox_python_path
