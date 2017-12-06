@@ -21,6 +21,7 @@ import six
 import sys
 import copy
 import traceback
+import collections
 
 from oslo_config import cfg
 
@@ -143,11 +144,22 @@ class ShellCommandAction(object):
 
     def _get_env_vars_export_string(self):
         if self.env_vars:
-            # Envrionment variables could contain spaces and open us to shell
+            env_vars = copy.copy(self.env_vars)
+
+            # If sudo_password is provided, explicitly disable bash history to make sure password
+            # is not logged, because password is provided via command line
+            if self.sudo and self.sudo_password:
+                env_vars['HISTFILE'] = '/dev/null'
+                env_vars['HISTSIZE'] = '0'
+
+            # Sort the dict to guarantee consistent order
+            env_vars = collections.OrderedDict(sorted(env_vars.items()))
+
+            # Environment variables could contain spaces and open us to shell
             # injection attacks. Always quote the key and the value.
             exports = ' '.join(
                 '%s=%s' % (quote_unix(k), quote_unix(v))
-                for k, v in self.env_vars.iteritems()
+                for k, v in env_vars.iteritems()
             )
             shell_env_str = '%s %s' % (ShellCommandAction.EXPORT_CMD, exports)
         else:

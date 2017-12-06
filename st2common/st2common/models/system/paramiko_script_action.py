@@ -54,7 +54,8 @@ class ParamikoRemoteScriptAction(RemoteScriptAction):
             command = 'sudo %s -- bash -c %s' % (sudo_arguments, command)
 
             if self.sudo_password:
-                command = 'echo -e %s | %s' % (quote_unix('%s\n' % (self.sudo_password)), command)
+                command = ('set +o history ; echo -e %s | %s' %
+                          (quote_unix('%s\n' % (self.sudo_password)), command))
         else:
             if script_arguments:
                 if env_str:
