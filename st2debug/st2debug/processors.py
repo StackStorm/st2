@@ -42,7 +42,7 @@ def process_st2_config(config_path, tmp_prefix):
     """
     Remove sensitive data (credentials) from the StackStorm config.
 
-    :param config_path: Full absolute path to the st2 config inside TMP_DIR.
+    :param config_path: Full absolute path to the st2 config inside temporary directory.
     :type config_path: ``str``
     :param tmp_prefix: Base path where temporary files are placed.
     :type tmp_prefix: ``str``
@@ -68,7 +68,7 @@ def process_mistral_config(config_path, tmp_prefix):
     """
     Remove sensitive data (credentials) from the Mistral config.
 
-    :param config_path: Full absolute path to the mistral config inside TMP_DIR.
+    :param config_path: Full absolute path to the mistral config inside temporary directory.
     :type config_path: ``str``
     :param tmp_prefix: Base path where temporary files are placed.
     :type tmp_prefix: ``str``
@@ -94,7 +94,7 @@ def process_content_pack_dir(pack_dir, tmp_prefix):
     """
     Remove config.yaml from the pack directory.
 
-    :param pack_dir: Full absolute path to the pack directory inside TMP_DIR.
+    :param pack_dir: Full absolute path to the pack directory inside temporary directory.
     :type pack_dir: ``str``
     :param tmp_prefix: Base path where temporary files are placed.
     :type tmp_prefix: ``str``
