@@ -22,10 +22,14 @@ from st2common.util import schema as util_schema
 from st2common.constants.pack import MANIFEST_FILE_NAME
 from st2common.constants.pack import PACK_REF_WHITELIST_REGEX
 from st2common.content.loader import MetaLoader
+from st2common.persistence.pack import Pack
 
 __all__ = [
     'get_pack_ref_from_metadata',
     'get_pack_metadata',
+
+    'get_pack_common_libs_path_for_pack_ref',
+    'get_pack_common_libs_path_for_pack_db',
 
     'validate_config_against_schema',
 
@@ -112,7 +116,13 @@ def validate_config_against_schema(config_schema, config_object, config_path,
     return cleaned
 
 
-def get_pack_common_libs_path(pack_db):
+def get_pack_common_libs_path_for_pack_ref(pack_ref):
+    pack_db = Pack.get_by_ref(pack_ref)
+    pack_common_libs_path = get_pack_common_libs_path_for_pack_db(pack_db=pack_db)
+    return pack_common_libs_path
+
+
+def get_pack_common_libs_path_for_pack_db(pack_db):
     """
     Return the pack's common lib path. This is the path where common code for sensors
     and actions are placed.

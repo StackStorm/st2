@@ -47,7 +47,8 @@ class ParamikoRemoteCommandAction(RemoteAction):
             command = 'sudo %s -- bash -c %s' % (sudo_arguments, command)
 
             if self.sudo_password:
-                command = 'echo -e %s | %s' % (quote_unix('%s\n' % (self.sudo_password)), command)
+                command = ('set +o history ; echo -e %s | %s' %
+                          (quote_unix('%s\n' % (self.sudo_password)), command))
         else:
             if env_str:
                 command = '%s && cd %s && %s' % (env_str, cwd,
