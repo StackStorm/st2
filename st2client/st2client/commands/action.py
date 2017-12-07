@@ -23,6 +23,7 @@ import calendar
 import time
 import six
 import sys
+import re
 
 from os.path import join as pjoin
 
@@ -573,11 +574,14 @@ class ActionRunCommandMixin(object):
             except ValueError:
                 result = [v.strip() for v in value.split(',')]
 
+            # Negative lookbehind regex to ensure that the colon isn't escaped
+            escape_exp = re.compile('(?<!\\\):')
+
             # When each values in this array represent dict type, this converts
             # the 'result' to the dict type value.
-            if all([isinstance(x, str) and ':' in x for x in result]):
+            if all([isinstance(x, str) and escape_exp.search(x) for x in result]):
                 result_dict = {}
-                for (k, v) in [x.split(':') for x in result]:
+                for (k, v) in [escape_exp.split(x) for x in result]:
                     # To parse values using the 'transformer' according to the type which is
                     # specified in the action metadata, calling 'normalize' method recursively.
                     if 'properties' in action_params and k in action_params['properties']:
