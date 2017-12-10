@@ -15,6 +15,7 @@
 
 import json
 import logging
+import mock
 import unittest2
 
 from st2client.utils import jsutil
@@ -33,6 +34,17 @@ DOC = {
             'c22': 6
         },
         'c14': [7, 8, 9]
+    }
+}
+
+DOC_IP_ADDRESS = {
+    'ips': {
+        "192.168.1.1": {
+            "hostname": "router.domain.tld"
+        },
+        "192.168.1.10": {
+            "hostname": "server.domain.tld"
+        }
     }
 }
 
@@ -57,6 +69,25 @@ class TestGetValue(unittest2.TestCase):
         self.assertIsNone(jsutil.get_value(DOC, 'c01.c11.c21.c31'))
         self.assertIsNone(jsutil.get_value(DOC, 'c01.c14.c31'))
 
+    def test_ip_address(self):
+        self.assertEqual(jsutil.get_value(DOC_IP_ADDRESS, 'ips."192.168.1.1"'),
+                         {"hostname": "router.domain.tld"})
+
+    @mock.patch("st2client.utils.jsutil._get_value_simple")
+    def test_single_key_calls_simple(self, mock__get_value_simple):
+        jsutil.get_value(DOC, 'a01')
+        mock__get_value_simple.assert_called_with(DOC, 'a01')
+
+    @mock.patch("st2client.utils.jsutil._get_value_simple")
+    def test_dot_notation_calls_simple(self, mock__get_value_simple):
+        jsutil.get_value(DOC, 'c01.c11')
+        mock__get_value_simple.assert_called_with(DOC, 'c01.c11')
+
+    @mock.patch("st2client.utils.jsutil._get_value_complex")
+    def test_ip_address_calls_complex(self, mock__get_value_complex):
+        jsutil.get_value(DOC_IP_ADDRESS, 'ips."192.168.1.1"')
+        mock__get_value_complex.assert_called_with(DOC_IP_ADDRESS, 'ips."192.168.1.1"')
+
 
 class TestGetKeyValuePairs(unittest2.TestCase):
 
@@ -73,6 +104,15 @@ class TestGetKeyValuePairs(unittest2.TestCase):
                          {'c01': {'c14': [7, 8, 9]}})
         self.assertEqual(jsutil.get_kvps(DOC, ['a01', 'c01.c11', 'c01.c13.c21']),
                          {'a01': 1, 'c01': {'c11': 3, 'c13': {'c21': 5}}})
+        self.assertEqual(jsutil.get_kvps(DOC_IP_ADDRESS,
+                                         ['ips."192.168.1.1"',
+                                          'ips."192.168.1.10".hostname']),
+                         {'ips':
+                          {'"192':
+                           {'168':
+                            {'1':
+                             {'1"': {'hostname': 'router.domain.tld'},
+                              '10"': {'hostname': 'server.domain.tld'}}}}}})
 
     def test_select_kvps_with_val_error(self):
         self.assertRaises(ValueError, jsutil.get_kvps, DOC, [None])

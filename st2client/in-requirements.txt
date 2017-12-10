@@ -4,6 +4,7 @@ prettytable
 pytz
 python-dateutil
 pyyaml
+jsonpath-rw
 requests
 six
 sseclient

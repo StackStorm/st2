@@ -53,6 +53,7 @@ setup(
         'Programming Language :: Python :: 2.7'
     ],
     install_requires=[
+        'jsonpath-rw>=1.3.0',
         'prettytable',
         'python-dateutil',
         'pyyaml<4.0,>=3.11',
