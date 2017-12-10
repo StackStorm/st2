@@ -619,3 +619,34 @@ class ParamsUtilsTest(DbTestCase):
             )
 
         return liveaction_db
+
+    def test_get_live_params_with_additional_context(self):
+        runner_param_info = {
+            'r1': {
+                'default': 'some'
+            }
+        }
+        action_param_info = {
+            'r2': {
+                'default': '{{ r1 }}'
+            }
+        }
+        params = {
+            'r3': 'lolcathost',
+            'r1': '{{ additional.stuff }}'
+        }
+        action_context = {}
+        additional_contexts = {
+            'additional': {
+                'stuff': 'generic'
+            }
+        }
+
+        live_params = param_utils.render_live_params(
+            runner_param_info, action_param_info, params, action_context, additional_contexts)
+
+        expected_params = {
+            'r1': 'generic',
+            'r3': 'lolcathost'
+        }
+        self.assertEqual(live_params, expected_params)

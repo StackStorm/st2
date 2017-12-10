@@ -2,7 +2,7 @@
 name: chatops
 description: ChatOps integration pack
 version: 1.0.0
-author: Stackstorm Inc
+author: StackStorm, Inc.
 contributors:
   - Anthony Shaw <anthonyshaw@apache.org>
 email: info@stackstorm.com

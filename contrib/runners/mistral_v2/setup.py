@@ -17,6 +17,7 @@
 import os.path
 
 from setuptools import setup
+from setuptools import find_packages
 
 from dist_utils import fetch_requirements
 from dist_utils import apply_vagrant_workaround
@@ -28,7 +29,7 @@ install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
 
 apply_vagrant_workaround()
 setup(
-    name='mistral_runner_v2',
+    name='stackstorm-runner-mistral-v2',
     version='2.5.0',
     description=('Mistral v2 workflow action runner for StackStorm event-driven '
                  'automation platform'),
@@ -41,14 +42,12 @@ setup(
     test_suite='tests',
     zip_safe=False,
     include_package_data=True,
-    py_modules=['mistral_v2'],
-    data_files=[
-        ('metadata', ['runner.yaml'])
-    ],
+    packages=find_packages(exclude=['setuptools', 'tests']),
+    package_data={'mistral_v2': ['runner.yaml']},
     scripts=[],
     entry_points={
         'st2common.runners.runner': [
-            'mistral-v2 = mistral_v2',
+            'mistral-v2 = mistral_v2.mistral_v2',
         ],
     }
 )

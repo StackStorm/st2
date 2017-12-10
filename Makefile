@@ -129,7 +129,8 @@ generate-api-spec: requirements .generate-api-spec
 	@echo
 	echo "# NOTE: This file is auto-generated - DO NOT EDIT MANUALLY" > st2common/st2common/openapi.yaml
 	echo "# Edit st2common/st2common/openapi.yaml.j2 and then run" >> st2common/st2common/openapi.yaml
-	echo "# make .generate-api-spec make target to generate the final spec file" >> st2common/st2common/openapi.yaml
+	echo "# make .generate-api-spec" >> st2common/st2common/openapi.yaml
+	echo "# to generate the final spec file" >> st2common/st2common/openapi.yaml
 	. virtualenv/bin/activate; st2common/bin/st2-generate-api-spec >> st2common/st2common/openapi.yaml
 
 .PHONY: circle-lint-api-spec
@@ -400,6 +401,25 @@ packs-tests: requirements .packs-tests
 	@echo "==================== packs-tests ===================="
 	@echo
 	. $(VIRTUALENV_DIR)/bin/activate; find ${ROOT_DIR}/contrib/* -maxdepth 0 -type d -print0 | xargs -0 -I FILENAME ./st2common/bin/st2-run-pack-tests -c -t -x -p FILENAME
+
+
+.PHONY: runners-tests
+packs-tests: requirements .runners-tests
+
+.PHONY: .runners-tests
+.runners-tests:
+	@echo
+	@echo "==================== runners-tests ===================="
+	@echo
+	@echo "----- Dropping st2-test db -----"
+	@mongo st2-test --eval "db.dropDatabase();"
+	@for component in $(COMPONENTS_RUNNERS); do\
+		echo "==========================================================="; \
+		echo "Running tests in" $$component; \
+		echo "==========================================================="; \
+		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v $$component/tests/unit || exit 1; \
+	done
+
 
 .PHONY: cli
 cli:

@@ -36,6 +36,7 @@ from st2common.models.system.common import ResourceReference
 from st2common.services.access import create_token
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.util.api import get_full_public_api_url
+from st2common.util.pack import get_pack_common_libs_path_for_pack_ref
 from st2common.util.shell import on_parent_exit
 from st2common.util.sandboxing import get_sandbox_python_path
 from st2common.util.sandboxing import get_sandbox_python_binary_path
@@ -112,6 +113,8 @@ class ProcessSensorContainer(object):
             self._sensors,
             self._sensor_start_times,
         ]
+
+        self._enable_common_pack_libs = cfg.CONF.packs.enable_common_libs or False
 
     def run(self):
         self._run_all_sensors()
@@ -260,8 +263,10 @@ class ProcessSensorContainer(object):
         belonging to the sensor pack.
         """
         sensor_id = self._get_sensor_id(sensor=sensor)
-        virtualenv_path = get_sandbox_virtualenv_path(pack=sensor['pack'])
-        python_path = get_sandbox_python_binary_path(pack=sensor['pack'])
+        pack_ref = sensor['pack']
+
+        virtualenv_path = get_sandbox_virtualenv_path(pack=pack_ref)
+        python_path = get_sandbox_python_binary_path(pack=pack_ref)
 
         if virtualenv_path and not os.path.isdir(virtualenv_path):
             format_values = {'pack': sensor['pack'], 'virtualenv_path': virtualenv_path}
@@ -286,9 +291,20 @@ class ProcessSensorContainer(object):
         if sensor['poll_interval']:
             args.append('--poll-interval=%s' % (sensor['poll_interval']))
 
+        sandbox_python_path = get_sandbox_python_path(inherit_from_parent=True,
+                                                      inherit_parent_virtualenv=True)
+
+        if self._enable_common_pack_libs:
+            pack_common_libs_path = get_pack_common_libs_path_for_pack_ref(pack_ref=pack_ref)
+        else:
+            pack_common_libs_path = None
+
         env = os.environ.copy()
-        env['PYTHONPATH'] = get_sandbox_python_path(inherit_from_parent=True,
-                                                    inherit_parent_virtualenv=True)
+
+        if self._enable_common_pack_libs and pack_common_libs_path:
+            env['PYTHONPATH'] = pack_common_libs_path + ':' + sandbox_python_path
+        else:
+            env['PYTHONPATH'] = sandbox_python_path
 
         # Include full api URL and API token specific to that sensor
         ttl = cfg.CONF.auth.service_token_ttl

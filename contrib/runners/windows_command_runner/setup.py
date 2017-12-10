@@ -17,6 +17,7 @@
 import os.path
 
 from setuptools import setup
+from setuptools import find_packages
 
 from dist_utils import fetch_requirements
 from dist_utils import apply_vagrant_workaround
@@ -28,7 +29,7 @@ install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
 
 apply_vagrant_workaround()
 setup(
-    name='windows_command_runner',
+    name='stackstorm-runner-windows-command',
     version='2.5.0',
     description=('Windows command action runner for StackStorm event-driven '
                  'automation platform'),
@@ -41,14 +42,12 @@ setup(
     test_suite='tests',
     zip_safe=False,
     include_package_data=True,
-    py_modules=['windows_command_runner'],
-    data_files=[
-        ('metadata', ['runner.yaml'])
-    ],
+    packages=find_packages(exclude=['setuptools', 'tests']),
+    package_data={'windows_command_runner': ['runner.yaml']},
     scripts=[],
     entry_points={
         'st2common.runners.runner': [
-            'windows-cmd = windows_command_runner',
+            'windows-cmd = windows_command_runner.windows_command_runner',
         ],
     }
 )

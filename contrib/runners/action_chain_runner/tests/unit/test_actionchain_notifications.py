@@ -22,7 +22,7 @@ from st2common.services import action as action_service
 from st2common.util import action_db as action_db_util
 from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
-import action_chain_runner as acr
+from action_chain_runner import action_chain_runner as acr
 
 
 class DummyActionExecution(object):

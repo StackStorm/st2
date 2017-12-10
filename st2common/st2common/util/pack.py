@@ -22,10 +22,14 @@ from st2common.util import schema as util_schema
 from st2common.constants.pack import MANIFEST_FILE_NAME
 from st2common.constants.pack import PACK_REF_WHITELIST_REGEX
 from st2common.content.loader import MetaLoader
+from st2common.persistence.pack import Pack
 
 __all__ = [
     'get_pack_ref_from_metadata',
     'get_pack_metadata',
+
+    'get_pack_common_libs_path_for_pack_ref',
+    'get_pack_common_libs_path_for_pack_db',
 
     'validate_config_against_schema',
 
@@ -110,6 +114,37 @@ def validate_config_against_schema(config_schema, config_object, config_path,
         raise jsonschema.ValidationError(msg)
 
     return cleaned
+
+
+def get_pack_common_libs_path_for_pack_ref(pack_ref):
+    pack_db = Pack.get_by_ref(pack_ref)
+    pack_common_libs_path = get_pack_common_libs_path_for_pack_db(pack_db=pack_db)
+    return pack_common_libs_path
+
+
+def get_pack_common_libs_path_for_pack_db(pack_db):
+    """
+    Return the pack's common lib path. This is the path where common code for sensors
+    and actions are placed.
+
+    For example, if the pack is at /opt/stackstorm/packs/my_pack, you can place
+    common library code for actions and sensors in /opt/stackstorm/packs/my_pack/lib/.
+    This common library code is only available for python sensors and actions. The lib
+    structure also needs to follow a python convention with a __init__.py file.
+
+    :param pack_db: Pack DB model
+    :type pack_db: :class:`PackDB`
+
+    :rtype: ``str``
+    """
+    pack_dir = getattr(pack_db, 'path', None)
+
+    if not pack_dir:
+        return None
+
+    libs_path = os.path.join(pack_dir, 'lib')
+
+    return libs_path
 
 
 def normalize_pack_version(version):

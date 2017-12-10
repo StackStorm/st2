@@ -1,0 +1,16 @@
+- aliases: []
+  description: A runner to execute CloudSlang flows.
+  enabled: true
+  name: cloudslang
+  runner_module: cloudslang_runner
+  runner_parameters:
+    inputs:
+      default: {}
+      description: Inputs which will be available to CloudSlang flow execution(e.g.
+        input1=val1,input2=val2)
+      type: object
+    timeout:
+      default: 60
+      description: Action timeout in seconds. Action will get killed if it doesn't
+        finish in timeout seconds.
+      type: integer
