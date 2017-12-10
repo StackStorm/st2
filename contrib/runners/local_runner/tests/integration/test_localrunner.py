@@ -33,7 +33,7 @@ from st2tests.base import RunnerTestCase
 from st2tests.base import CleanDbTestCase
 from st2tests.base import blocking_eventlet_spawn
 from st2tests.base import make_mock_stream_readline
-import local_runner
+from local_runner import local_runner
 
 __all__ = [
     'LocalShellCommandRunnerTestCase',
@@ -314,6 +314,88 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
             self.assertEqual(output_dbs[db_index_1].data, mock_stderr[0])
             self.assertEqual(output_dbs[db_index_2].data, mock_stderr[1])
 
+    def test_shell_command_sudo_password_is_passed_to_sudo_binary(self):
+        # Verify that sudo password is correctly passed to sudo binary via stdin
+        models = self.fixtures_loader.load_models(
+            fixtures_pack='generic', fixtures_dict={'actions': ['local.yaml']})
+        action_db = models['actions']['local.yaml']
+
+        sudo_passwords = [
+            'pass 1',
+            'sudopass',
+            '$sudo p@ss 2'
+        ]
+
+        cmd = ('{ read sudopass; echo $sudopass; }')
+
+        # without sudo
+        for sudo_password in sudo_passwords:
+            runner = self._get_runner(action_db, cmd=cmd)
+            runner.pre_run()
+            runner._sudo_password = sudo_password
+            status, result, _ = runner.run({})
+            runner.post_run(status, result)
+
+            self.assertEquals(status,
+                    action_constants.LIVEACTION_STATUS_SUCCEEDED)
+            self.assertEquals(result['stdout'], sudo_password)
+
+        # with sudo
+        for sudo_password in sudo_passwords:
+            runner = self._get_runner(action_db, cmd=cmd)
+            runner.pre_run()
+            runner._sudo = True
+            runner._sudo_password = sudo_password
+            status, result, _ = runner.run({})
+            runner.post_run(status, result)
+
+            self.assertEquals(status,
+                    action_constants.LIVEACTION_STATUS_SUCCEEDED)
+            self.assertEquals(result['stdout'], sudo_password)
+
+        # Verify new process which provides password via stdin to the command is created
+        with mock.patch('eventlet.green.subprocess.Popen') as mock_subproc_popen:
+            index = 0
+            for sudo_password in sudo_passwords:
+                runner = self._get_runner(action_db, cmd=cmd)
+                runner.pre_run()
+                runner._sudo = True
+                runner._sudo_password = sudo_password
+                status, result, _ = runner.run({})
+                runner.post_run(status, result)
+
+                if index == 0:
+                    call_args = mock_subproc_popen.call_args_list[index]
+                else:
+                    call_args = mock_subproc_popen.call_args_list[index * 2]
+
+                index += 1
+
+                self.assertEqual(call_args[0][0], ['echo', '%s\n' % (sudo_password)])
+
+        self.assertEqual(index, len(sudo_passwords))
+
+    def test_shell_command_invalid_stdout_password(self):
+        # Simulate message printed to stderr by sudo when invalid sudo password is provided
+        models = self.fixtures_loader.load_models(
+            fixtures_pack='generic', fixtures_dict={'actions': ['local.yaml']})
+        action_db = models['actions']['local.yaml']
+
+        cmd = ('echo  "[sudo] password for bar: Sorry, try again.\n[sudo] password for bar:'
+               ' Sorry, try again.\n[sudo] password for bar: \nsudo: 2 incorrect password '
+               'attempts" 1>&2; exit 1')
+        runner = self._get_runner(action_db, cmd=cmd)
+        runner.pre_run()
+        runner._sudo_password = 'pass'
+        status, result, _ = runner.run({})
+        runner.post_run(status, result)
+
+        expected_error = ('Invalid sudo password provided or sudo is not configured for this '
+                          'user (bar)')
+        self.assertEquals(status, action_constants.LIVEACTION_STATUS_FAILED)
+        self.assertEqual(result['error'], expected_error)
+        self.assertEquals(result['stdout'], '')
+
     @staticmethod
     def _get_runner(action_db,
                     entry_point=None,
@@ -353,7 +435,7 @@ class LocalShellScriptRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         # False is a default behavior so end result should be the same
         cfg.CONF.set_override(name='stream_output', group='actionrunner', override=False)
 
-    def test_script_with_paramters_parameter_serialization(self):
+    def test_script_with_parameters_parameter_serialization(self):
         models = self.fixtures_loader.load_models(
             fixtures_pack='generic', fixtures_dict={'actions': ['local_script_with_params.yaml']})
         action_db = models['actions']['local_script_with_params.yaml']

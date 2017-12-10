@@ -20,6 +20,8 @@ import ssl as ssl_lib
 
 import six
 import mongoengine
+from mongoengine.queryset import visitor
+from pymongo import uri_parser
 from pymongo.errors import OperationFailure
 
 from st2common import log as logging
@@ -77,8 +79,28 @@ def _db_connect(db_name, db_host, db_port, username=None, password=None,
              ssl=False, ssl_keyfile=None, ssl_certfile=None,
              ssl_cert_reqs=None, ssl_ca_certs=None, ssl_match_hostname=True):
 
-    LOG.info('Connecting to database "%s" @ "%s:%s" as user "%s".',
-             db_name, db_host, db_port, str(username))
+    if '://' in db_host:
+        # Hostname is provided as a URI string. Make sure we don't log the password in case one is
+        # included as part of the URI string.
+        uri_dict = uri_parser.parse_uri(db_host)
+        username_string = uri_dict.get('username', username) or username
+
+        if uri_dict.get('username', None) and username:
+            # Username argument has precedence over connection string username
+            username_string = username
+
+        hostnames = get_host_names_for_uri_dict(uri_dict=uri_dict)
+
+        if len(uri_dict['nodelist']) > 1:
+            host_string = '%s (replica set)' % (hostnames)
+        else:
+            host_string = hostnames
+    else:
+        host_string = '%s:%s' % (db_host, db_port)
+        username_string = username
+
+    LOG.info('Connecting to database "%s" @ "%s" as user "%s".' % (db_name, host_string,
+                                                                   str(username_string)))
 
     ssl_kwargs = _get_ssl_kwargs(ssl=ssl, ssl_keyfile=ssl_keyfile, ssl_certfile=ssl_certfile,
                                  ssl_cert_reqs=ssl_cert_reqs, ssl_ca_certs=ssl_ca_certs,
@@ -279,10 +301,13 @@ class MongoDBAccess(object):
     def get_by_pack(self, value):
         return self.get(pack=value, raise_exception=True)
 
-    def get(self, exclude_fields=None, *args, **kwargs):
+    def get(self, *args, **kwargs):
+        exclude_fields = kwargs.pop('exclude_fields', None)
         raise_exception = kwargs.pop('raise_exception', False)
 
-        instances = self.model.objects(**kwargs)
+        args = self._process_arg_filters(args)
+
+        instances = self.model.objects(*args, **kwargs)
 
         if exclude_fields:
             instances = instances.exclude(*exclude_fields)
@@ -300,23 +325,34 @@ class MongoDBAccess(object):
         return self.query(*args, **kwargs)
 
     def count(self, *args, **kwargs):
-        result = self.model.objects(**kwargs).count()
+        result = self.model.objects(*args, **kwargs).count()
         log_query_and_profile_data_for_queryset(queryset=result)
         return result
 
-    def query(self, offset=0, limit=None, order_by=None, exclude_fields=None,
-              **filters):
+    # TODO: PEP-3102 introduced keyword-only arguments, so once we support Python 3+, we can change
+    #       this definition to have explicit keyword-only arguments:
+    #
+    #           def query(self, *args, offset=0, limit=None, order_by=None, exclude_fields=None,
+    #                     **filters):
+    def query(self, *args, **filters):
+        # Python 2: Pop keyword parameters that aren't actually filters off of the kwargs
+        offset = filters.pop('offset', 0)
+        limit = filters.pop('limit', None)
+        order_by = filters.pop('order_by', None)
+        exclude_fields = filters.pop('exclude_fields', None)
+
         order_by = order_by or []
         exclude_fields = exclude_fields or []
         eop = offset + int(limit) if limit else None
 
+        args = self._process_arg_filters(args)
         # Process the filters
         # Note: Both of those functions manipulate "filters" variable so the order in which they
         # are called matters
         filters, order_by = self._process_datetime_range_filters(filters=filters, order_by=order_by)
         filters = self._process_null_filters(filters=filters)
 
-        result = self.model.objects(**filters)
+        result = self.model.objects(*args, **filters)
 
         if exclude_fields:
             result = result.exclude(*exclude_fields)
@@ -350,11 +386,11 @@ class MongoDBAccess(object):
     def delete(self, instance):
         return instance.delete()
 
-    def delete_by_query(self, **query):
+    def delete_by_query(self, *args, **query):
         """
         Delete objects by query and return number of deleted objects.
         """
-        qs = self.model.objects.filter(**query)
+        qs = self.model.objects.filter(*args, **query)
         count = qs.delete()
         log_query_and_profile_data_for_queryset(queryset=qs)
 
@@ -366,6 +402,35 @@ class MongoDBAccess(object):
                 value = getattr(instance, attr)
                 setattr(instance, attr, field.to_python(value))
         return instance
+
+    def _process_arg_filters(self, args):
+        """
+        Fix filter arguments in nested Q objects
+        """
+        _args = tuple()
+
+        for arg in args:
+            # Unforunately mongoengine doesn't expose any visitors other than Q, so we have to
+            # extract QCombination from the module itself
+            if isinstance(arg, visitor.Q):
+                # Note: Both of those functions manipulate "filters" variable so the order in which
+                # they are called matters
+                filters, _ = self._process_datetime_range_filters(filters=arg.query)
+                filters = self._process_null_filters(filters=filters)
+
+                # Create a new Q object with the same filters as the old one
+                _args += (visitor.Q(**filters),)
+            elif isinstance(arg, visitor.QCombination):
+                # Recurse if we need to
+                children = self._process_arg_filters(arg.children)
+
+                # Create a new QCombination object with the same operation and fixed filters
+                _args += (visitor.QCombination(arg.operation, children),)
+            else:
+                raise TypeError("Unknown argument type '%s' of argument '%s'"
+                    % (type(arg), repr(arg)))
+
+        return _args
 
     def _process_null_filters(self, filters):
         result = copy.deepcopy(filters)
@@ -408,3 +473,13 @@ class MongoDBAccess(object):
                 order_by_list = [sort_key] + order_by_list
 
         return filters, order_by_list
+
+
+def get_host_names_for_uri_dict(uri_dict):
+    hosts = []
+
+    for host, port in uri_dict['nodelist']:
+        hosts.append('%s:%s' % (host, port))
+
+    hosts = ','.join(hosts)
+    return hosts

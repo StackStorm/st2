@@ -81,6 +81,7 @@ Python Client
     >>> from st2client import models
     >>> client = Client(base_url='http://127.0.0.1')
     >>> rules = client.rules.get_all()
+    >>> executions = client.liveactions.get_all()
     >>> key_value_pair = client.keys.update(models.KeyValuePair(name='k1', value='v1'))
 
 The models Trigger, Rule, Action, Execution, and KeyValuePair are
@@ -88,7 +89,8 @@ defined under st2client.models. Please refer to the respective README
 section for these models for their schema.
 
 The resource managers for the models are instantiated under the client
-as **triggers**, **rules**, **actions**, **executions**, and **keys**.
+as **triggers**, **rules**, **actions**, **liveactions** (for executions),
+and **keys**.
 The operations get\_all, get\_by\_name, get\_by\_id, create, update, and
 delete are generally implemented for these resource managers.
 

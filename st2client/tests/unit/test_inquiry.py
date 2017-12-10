@@ -244,11 +244,6 @@ class TestInquirySubcommands(TestInquiryBase):
         self.assertEqual(retcode, 1)
         self.assertEqual('ERROR: 400 Client Error: Bad Request', self.stdout.getvalue().strip())
 
-    @mock.patch.object(
-        requests, 'put',
-        mock.MagicMock(return_value=(base.FakeResponse(
-            json.dumps({}), 404, '404 Client Error: Not Found'
-        ))))
     def test_respond_nonexistent_inquiry(self):
         """Test responding to an inquiry that doesn't exist
         """
@@ -256,7 +251,7 @@ class TestInquirySubcommands(TestInquiryBase):
         args = ['inquiry', 'respond', '-r', '"%s"' % RESPONSE_DEFAULT, inquiry_id]
         retcode = self.shell.run(args)
         self.assertEqual(retcode, 1)
-        self.assertEqual('ERROR: 404 Client Error: Not Found',
+        self.assertEqual('ERROR: Resource with id "%s" doesn\'t exist.' % inquiry_id,
                          self.stdout.getvalue().strip())
 
     @mock.patch.object(

@@ -209,15 +209,39 @@ class UIDFieldMixin(object):
         return indexes
 
     def get_uid(self):
+        """
+        Return an object UID constructed from the object properties / fields.
+
+        :rtype: ``str``
+        """
         parts = []
         parts.append(self.RESOURCE_TYPE)
 
         for field in self.UID_FIELDS:
-            value = getattr(self, field, None)
+            value = getattr(self, field, None) or ''
             parts.append(value)
 
         uid = self.UID_SEPARATOR.join(parts)
         return uid
+
+    def get_uid_parts(self):
+        """
+        Return values for fields which make up the UID.
+
+        :rtype: ``list``
+        """
+        parts = self.uid.split(self.UID_SEPARATOR)  # pylint: disable=no-member
+        parts = [part for part in parts if part.strip()]
+        return parts
+
+    def has_valid_uid(self):
+        """
+        Return True if object contains a valid id (aka all parts contain a valid value).
+
+        :rtype: ``bool``
+        """
+        parts = self.get_uid_parts()
+        return len(parts) == len(self.UID_FIELDS) + 1
 
 
 class ContentPackResourceMixin(object):

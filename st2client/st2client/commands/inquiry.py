@@ -127,19 +127,18 @@ class InquiryRespondCommand(resource.ResourceCommand):
     def run(self, args, **kwargs):
         instance = Inquiry()
         instance.id = args.id
+        inquiry = self.get_resource_by_id(id=args.id, **kwargs)
         if args.response:
             instance.response = json.loads(args.response)
         else:
-            inquiry = self.get_resource_by_id(id=args.id, **kwargs)
             response = InteractiveForm(
                 inquiry.schema.get('properties')).initiate_dialog()
             instance.response = response
 
-        return self.manager.update(instance, **kwargs)
+        return self.manager.respond(inquiry_id=instance.id,
+                                    inquiry_response=instance.response,
+                                    **kwargs)
 
     def run_and_print(self, args, **kwargs):
         instance = self.run(args, **kwargs)
-        print("\n Response accepted. Successful response data to follow...")
-        self.print_output(instance, table.PropertyValueTable,
-                          attributes=self.display_attributes, json=args.json,
-                          yaml=args.yaml)
+        print("\nResponse accepted for inquiry %s." % instance.id)

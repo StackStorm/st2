@@ -13,17 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import eventlet
-
 import logging as stdlib_logging
 
 from oslo_config import cfg
 
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common import log as logging
-from st2common.runners import base as runners
-from st2common.util import action_db as action_db_utils
-from st2common.content import utils as content_utils
 
 
 __all__ = [
@@ -37,21 +32,34 @@ __all__ = [
 
 LOG = logging.getLogger(__name__)
 
+# Maps logger name to the actual logger instance
+# We re-use loggers for the same actions to make sure only a single instance exists for a
+# particular action. This way we avoid duplicate log messages, etc.
+LOGGERS = {}
 
-def get_logger_for_python_runner_action(action_name):
+
+def get_logger_for_python_runner_action(action_name, log_level='debug'):
     """
     Set up a logger which logs all the messages with level DEBUG and above to stderr.
     """
     logger_name = 'actions.python.%s' % (action_name)
-    logger = logging.getLogger(logger_name)
 
-    console = stdlib_logging.StreamHandler()
-    console.setLevel(stdlib_logging.DEBUG)
+    if logger_name not in LOGGERS:
+        level_name = log_level.upper()
+        log_level_constant = getattr(stdlib_logging, level_name, stdlib_logging.DEBUG)
+        logger = logging.getLogger(logger_name)
 
-    formatter = stdlib_logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
-    console.setFormatter(formatter)
-    logger.addHandler(console)
-    logger.setLevel(stdlib_logging.DEBUG)
+        console = stdlib_logging.StreamHandler()
+        console.setLevel(log_level_constant)
+
+        formatter = stdlib_logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+        console.setFormatter(formatter)
+        logger.addHandler(console)
+        logger.setLevel(log_level_constant)
+
+        LOGGERS[logger_name] = logger
+    else:
+        logger = LOGGERS[logger_name]
 
     return logger
 
@@ -99,6 +107,10 @@ def make_read_and_store_stream_func(execution_db, action_db, store_data_func):
 
     This function writes read data into a buffer and stores it in a database.
     """
+    # NOTE: This import has intentionally been moved here to avoid massive performance overhead
+    # (1+ second) for other functions inside this module which don't need to use those imports.
+    import eventlet
+
     def read_and_store_stream(stream, buff):
         try:
             while not stream.closed:
@@ -125,6 +137,12 @@ def make_read_and_store_stream_func(execution_db, action_db, store_data_func):
 
 
 def invoke_post_run(liveaction_db, action_db=None):
+    # NOTE: This import has intentionally been moved here to avoid massive performance overhead
+    # (1+ second) for other functions inside this module which don't need to use those imports.
+    from st2common.runners import base as runners
+    from st2common.util import action_db as action_db_utils
+    from st2common.content import utils as content_utils
+
     LOG.info('Invoking post run for action execution %s.', liveaction_db.id)
 
     # Identify action and runner.

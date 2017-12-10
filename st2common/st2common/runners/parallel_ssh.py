@@ -38,7 +38,8 @@ class ParallelSSHClient(object):
 
     def __init__(self, hosts, user=None, password=None, pkey_file=None, pkey_material=None, port=22,
                  bastion_host=None, concurrency=10, raise_on_any_error=False, connect=True,
-                 passphrase=None, handle_stdout_line_func=None, handle_stderr_line_func=None):
+                 passphrase=None, handle_stdout_line_func=None, handle_stderr_line_func=None,
+                 sudo_password=False):
         """
         :param handle_stdout_line_func: Callback function which is called dynamically each time a
                                         new stdout line is received.
@@ -61,6 +62,7 @@ class ParallelSSHClient(object):
         self._passphrase = passphrase
         self._handle_stdout_line_func = handle_stdout_line_func
         self._handle_stderr_line_func = handle_stderr_line_func
+        self._sudo_password = sudo_password
 
         if not hosts:
             raise Exception('Need an non-empty list of hosts to talk to.')
@@ -282,10 +284,9 @@ class ParallelSSHClient(object):
             client = self._hosts_client[host]
             (stdout, stderr, exit_code) = client.run(cmd, timeout=timeout,
                                                      call_line_handler_func=True)
-            is_succeeded = (exit_code == 0)
-            result_dict = {'stdout': stdout, 'stderr': stderr, 'return_code': exit_code,
-                           'succeeded': is_succeeded, 'failed': not is_succeeded}
-            results[host] = jsonify.json_loads(result_dict, ParallelSSHClient.KEYS_TO_TRANSFORM)
+
+            result = self._handle_command_result(stdout=stdout, stderr=stderr, exit_code=exit_code)
+            results[host] = result
         except Exception as ex:
             cmd = self._sanitize_command_string(cmd=cmd)
             error = 'Failed executing command "%s" on host "%s"' % (cmd, host)
@@ -342,6 +343,27 @@ class ParallelSSHClient(object):
             port = self._ssh_port
 
         return (hostname, port)
+
+    def _handle_command_result(self, stdout, stderr, exit_code):
+        # Detect if user provided an invalid sudo password or sudo is not configured for that user
+        if self._sudo_password:
+            if re.search('sudo: \d+ incorrect password attempts', stderr):
+                match = re.search('\[sudo\] password for (.+?)\:', stderr)
+
+                if match:
+                    username = match.groups()[0]
+                else:
+                    username = 'unknown'
+
+                error = ('Invalid sudo password provided or sudo is not configured for this user '
+                        '(%s)' % (username))
+                raise ValueError(error)
+        is_succeeded = (exit_code == 0)
+        result_dict = {'stdout': stdout, 'stderr': stderr, 'return_code': exit_code,
+                       'succeeded': is_succeeded, 'failed': not is_succeeded}
+
+        result = jsonify.json_loads(result_dict, ParallelSSHClient.KEYS_TO_TRANSFORM)
+        return result
 
     @staticmethod
     def _sanitize_command_string(cmd):

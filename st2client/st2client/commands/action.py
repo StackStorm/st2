@@ -258,6 +258,8 @@ class ActionRunCommandMixin(object):
         if args.async:
             self.print_output('To get the results, execute:\n st2 execution get %s' %
                               (execution.id), six.text_type)
+            self.print_output('\nTo view output in real-time, execute:\n st2 execution '
+                              'tail %s' % (execution.id), six.text_type)
         else:
             self._print_execution_details(execution=execution, args=args, **kwargs)
 
@@ -296,6 +298,10 @@ class ActionRunCommandMixin(object):
                                     help=('If result is type of JSON, then print specific '
                                           'key-value pair; dot notation for nested JSON is '
                                           'supported.'))
+
+        # Other options
+        detail_arg_grp.add_argument('--tail', action='store_true',
+                                    help='Automatically start tailing new execution.')
 
         return root_arg_grp
 
@@ -420,6 +426,20 @@ class ActionRunCommandMixin(object):
             LIVEACTION_STATUS_RUNNING,
             LIVEACTION_STATUS_CANCELING
         ]
+
+        if args.tail:
+            # Start tailing new execution
+            print('Tailing execution "%s"' % (str(execution.id)))
+            execution_manager = self.manager
+            stream_manager = self.app.client.managers['Stream']
+            ActionExecutionTailCommand.tail_execution(execution=execution,
+                                                      execution_manager=execution_manager,
+                                                      stream_manager=stream_manager,
+                                                      **kwargs)
+
+            execution = action_exec_mgr.get_by_id(execution.id, **kwargs)
+            print('')
+            return execution
 
         if not args.async:
             while execution.status in pending_statuses:
@@ -1388,14 +1408,31 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
         # Special case for id "last"
         if execution_id == 'last':
             executions = self.manager.query(limit=1)
-            execution = executions[0] if executions else None
-            execution_id = execution.id
+            if executions:
+                execution = executions[0]
+                execution_id = execution.id
+            else:
+                print('No executions found in db.')
+                return
         else:
             execution = self.manager.get_by_id(execution_id, **kwargs)
 
         if not execution:
             raise ResourceNotFoundError('Execution  with id %s not found.' % (args.id))
 
+        execution_manager = self.manager
+        stream_manager = self.app.client.managers['Stream']
+        ActionExecutionTailCommand.tail_execution(execution=execution,
+                                                  execution_manager=execution_manager,
+                                                  stream_manager=stream_manager,
+                                                  output_type=output_type,
+                                                  include_metadata=include_metadata,
+                                                  **kwargs)
+
+    @classmethod
+    def tail_execution(cls, execution_manager, stream_manager, execution, output_type=None,
+                       include_metadata=False, **kwargs):
+        execution_id = str(execution.id)
         # Note: For non-workflow actions child_execution_id always matches parent_execution_id so
         # we don't need to do any other checks to determine if executions represents a workflow
         # action
@@ -1403,21 +1440,21 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
 
         # Execution has already finished
         if execution.status in LIVEACTION_COMPLETED_STATES:
-            output = self.manager.get_output(execution_id=execution_id, output_type=output_type)
+            output = execution_manager.get_output(execution_id=execution_id,
+                                                  output_type=output_type)
             print(output)
             print('Execution %s has completed (status=%s).' % (execution_id, execution.status))
             return
 
-        stream_mgr = self.app.client.managers['Stream']
         events = ['st2.execution__update', 'st2.execution.output__create']
 
-        for event in stream_mgr.listen(events, **kwargs):
+        for event in stream_manager.listen(events, **kwargs):
             status = event.get('status', None)
             is_execution_event = status is not None
 
             # NOTE: Right now only a single level deep / nested workflows are supported
             if is_execution_event:
-                context = self._get_normalized_context_execution_task_event(event=event)
+                context = cls.get_normalized_context_execution_task_event(event=event)
                 task_execution_id = context['execution_id']
                 task_name = context['task_name']
                 task_parent_execution_id = context['parent_execution_id']
@@ -1449,7 +1486,7 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
 
             # Filter on output_type if provided
             event_output_type = event.get('output_type', None)
-            if output_type and event_output_type != output_type:
+            if output_type != 'all' and output_type and (event_output_type != output_type):
                 continue
 
             if include_metadata:
@@ -1458,7 +1495,8 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
             else:
                 sys.stdout.write(event['data'])
 
-    def _get_normalized_context_execution_task_event(self, event):
+    @classmethod
+    def get_normalized_context_execution_task_event(cls, event):
         """
         Return a dictionary with normalized context attributes for Action-Chain and Mistral
         workflows.

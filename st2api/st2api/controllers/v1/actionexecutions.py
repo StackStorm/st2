@@ -313,7 +313,7 @@ class ActionExecutionOutputController(ActionExecutionsControllerMixin, ResourceC
         execution_id = str(execution_db.id)
 
         query_filters = {}
-        if output_type:
+        if output_type and output_type != 'all':
             query_filters['output_type'] = output_type
 
         def existing_output_iter():

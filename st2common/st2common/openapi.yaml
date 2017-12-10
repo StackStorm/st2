@@ -1,6 +1,7 @@
 # NOTE: This file is auto-generated - DO NOT EDIT MANUALLY
 # Edit st2common/st2common/openapi.yaml.j2 and then run
-# make .generate-api-spec make target to generate the final spec file
+# make .generate-api-spec
+# to generate the final spec file
 swagger: '2.0'
 
 info:
@@ -221,6 +222,29 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /api/v1/user:
+    get:
+      operationId: st2api.controllers.v1.user:user_controller.get
+      description: Metadata information about the authenticated user.
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+        - name: auth_info
+          in: context
+          x-as: auth_info
+          description: Information on how user authenticated.
+      responses:
+        '200':
+          description: Metadata information about the authenticated user.
+          schema:
+            type: object
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
   /api/v1/actions:
     get:
       operationId: st2api.controllers.v1.actions:actions_controller.get_all
@@ -686,14 +710,10 @@ paths:
           schema:
             $ref: '#/definitions/ActionAliasMatchRequest'
       responses:
-        '201':
+        '200':
           description: Action alias match pattern
           schema:
             $ref: '#/definitions/ActionAliasMatch'
-          examples:
-            application/json:
-              ref: 'core.local'
-              # and stuff
         default:
           description: Unexpected error
           schema:
@@ -769,6 +789,47 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /api/v1/aliasexecution/match_and_execute:
+    post:
+      operationId: st2api.controllers.v1.aliasexecution:action_alias_execution_controller.match_and_execute
+      description: |
+        Create executions based on action alias match (if any).
+      parameters:
+        - name: input_api
+          in: body
+          description: Input data.
+          schema:
+            $ref: '#/definitions/AliasMatchAndExecuteInputAPI'
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '201':
+          description: Action alias executions created
+          schema:
+            type: object
+            properties:
+              results:
+                description: List of all matched and executed actions
+                type: array
+                items:
+                  type: object
+                  $ref: '#/definitions/AliasExecution'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
   /api/v1/executions:
     get:
       operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.get_all
@@ -4043,13 +4104,6 @@ definitions:
           type: string
   ActionAliasMatch:
       type: object
-      properties:
-        name:
-          description: Name of the Action alias
-          type: string
-        description:
-          description: Description of the Action Alias
-          type: string
   ActionAliasHelp:
     type: object
     properties:
@@ -4070,7 +4124,116 @@ definitions:
               description: Description of the Action Alias
               type: string
   AliasExecution:
+    x-api-model: st2common.models.api.action:AliasExecutionAPI
     type: object
+    properties:
+      actionalias:
+        type: object
+        description: Alias for an action
+        properties:
+          id:
+            type: string
+            description: Unique identifier for the action alias.
+          ref:
+            type: string
+            description: |
+              System computed user friendly reference for the alias. Provided
+              value will be overridden by computed value.
+          uid:
+            type: string
+          name:
+            type: string
+            description: Name of the action alias.
+          pack:
+            type: string
+            description: The content pack this actionalias belongs to.
+          description:
+            type: string
+            description: Description of the executed alias.
+            default: ""
+          enabled:
+            type: boolean
+            description: Flag indicating if action alias is enabled.
+            default: true
+          action_ref:
+            type: string
+            description: Reference to the aliased action
+          formats:
+            type: array
+            description: Possible parameter format.
+            items:
+              oneOf:
+              - type: string
+              - type: object
+                description: Matched alias formats
+                properties:
+                  representation:
+                    type: array
+                    description: Alias format representations
+                    items:
+                      type: string
+                  match_multiple:
+                    type: boolean
+                    optional: true
+                  display:
+                    type: string
+                    description: Display string of alias format
+          ack:
+            type: object
+            description: Acknowledgement message format.
+            properties:
+              enabled:
+                type: boolean
+              format:
+                type: string
+              extra:
+                type: object
+              append_url:
+                type: boolean
+          result:
+            type: object
+            description: Execution message format.
+            properties:
+              enabled:
+                type: boolean
+              format:
+                type: string
+              extra:
+                type: object
+          extra:
+            type: object
+            description: Extra parameters, usually adapter-specific
+      execution:
+        type: object
+        description: Execution result
+        properties:
+          $ref: '#/definitions/Execution'
+      message:
+        type: string
+  AliasMatchAndExecuteInputAPI:
+    x-api-model: st2common.models.api.action:AliasMatchAndExecuteInputAPI
+    type: object
+    required:
+      - command
+      - source_channel
+    properties:
+      command:
+        type: string
+        description: "Command string to parse (eg: message from chat)"
+      user:
+        type: string
+        description: User that requested the execution (or messaged in chat)
+      source_channel:
+        type: string
+        description: Channel the message is from (different than the notification channel)
+      notification_channel:
+        type: string
+        description: StackStorm notification channel to use to respond
+        default: ""
+      notification_route:
+        type: string
+        description: StackStorm notification route to use to respond
+        default: ""
   Execution:
     title: ActionExecution
     description: Record of the execution of an action.

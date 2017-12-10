@@ -239,7 +239,7 @@ class ContentPackResourcePermissionsResolver(PermissionsResolver):
             permission_types = [permission_type]
 
         # Check direct grants on the specified resource
-        self._log('Checking direct grans on the specified resource', extra=log_context)
+        self._log('Checking direct grants on the specified resource', extra=log_context)
         resource_types = [self.resource_type]
         permission_grants = get_all_permission_grants_for_user(user_db=user_db,
                                                                resource_uid=resource_uid,

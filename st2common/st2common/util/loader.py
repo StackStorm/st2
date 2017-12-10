@@ -26,12 +26,21 @@ from st2common import log as logging
 
 __all__ = [
     'register_plugin',
-    'register_plugin_class'
+    'register_plugin_class',
+
+    'register_runner',
+    'register_query_module',
+    'register_callback_module',
+
+    'load_meta_file'
 ]
 
 
 LOG = logging.getLogger(__name__)
-PYTHON_EXTENSIONS = ('.py')
+
+PYTHON_EXTENSION = '.py'
+ALLOWED_EXTS = ['.json', '.yaml', '.yml']
+PARSER_FUNCS = {'.json': json.load, '.yml': yaml.safe_load, '.yaml': yaml.safe_load}
 
 # Cache for dynamically loaded runner modules
 RUNNER_MODULES_CACHE = {}
@@ -51,7 +60,7 @@ def _register_plugin_path(plugin_dir_abs_path):
 
 def _get_plugin_module(plugin_file_path):
     plugin_module = os.path.basename(plugin_file_path)
-    if plugin_module.endswith(PYTHON_EXTENSIONS):
+    if plugin_module.endswith(PYTHON_EXTENSION):
         plugin_module = plugin_module[:plugin_module.rfind('.py')]
     else:
         plugin_module = None
@@ -175,7 +184,16 @@ def register_plugin(plugin_base_class, plugin_abs_file_path):
 
 def register_runner(module_name):
     base_path = cfg.CONF.system.base_path
+
+    # TODO: Switch to stevedore enumeration and loading
+
+    # 1. First try pre StackStorm v2.6.0 path (runners are not Python packages)
     module_path = os.path.join(base_path, 'runners', module_name, module_name + '.py')
+
+    # 2. Second try post StackStorm v2.6.0 path (runners are Python packages)
+    if not os.path.isfile(module_path):
+        module_path = os.path.join(base_path, 'runners', module_name, module_name,
+                                   module_name + '.py')
 
     if module_name not in RUNNER_MODULES_CACHE:
         LOG.info('Loading runner module from "%s".', module_path)
@@ -210,10 +228,6 @@ def register_callback_module(module_name):
         LOG.info('Reusing callback module "%s" from cache.', module_path)
 
     return CALLBACK_MODULES_CACHE[module_name]
-
-
-ALLOWED_EXTS = ['.json', '.yaml', '.yml']
-PARSER_FUNCS = {'.json': json.load, '.yml': yaml.safe_load, '.yaml': yaml.safe_load}
 
 
 def load_meta_file(file_path):

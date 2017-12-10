@@ -18,8 +18,8 @@ from unittest2 import TestCase
 
 import mock
 
-from windows_command_runner import BaseWindowsRunner
-from windows_script_runner import WindowsScriptRunner
+from windows_command_runner.windows_command_runner import BaseWindowsRunner
+from windows_script_runner.windows_script_runner import WindowsScriptRunner
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FIXTURES_DIR = os.path.abspath(os.path.join(BASE_DIR, '../fixtures/windows'))
@@ -175,7 +175,7 @@ class WindowsRunnerTestCase(TestCase):
         self.assertEqual(result['path'], 'C:\\')
         self.assertEqual(result['users'], None)
 
-    @mock.patch('windows_script_runner.run_command')
+    @mock.patch('windows_script_runner.windows_script_runner.run_command')
     def test_get_share_absolute_path(self, mock_run_command):
         runner = self._get_script_runner()
 

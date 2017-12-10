@@ -23,6 +23,7 @@ from st2common.models.system.common import ResourceReference
 from st2common.transport.publishers import PoolPublisher
 from st2common.util import schema as util_schema
 from st2common.util import reference
+from st2common.models.db import db_setup
 from st2common.util import date as date_utils
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.db.trigger import TriggerTypeDB, TriggerDB, TriggerInstanceDB
@@ -47,6 +48,72 @@ class DbConnectionTest(DbTestCase):
 
         expected_str = "host=['%s:%s']" % (cfg.CONF.database.host, cfg.CONF.database.port)
         self.assertTrue(expected_str in str(client), 'Not connected to desired host.')
+
+    @mock.patch('st2common.models.db.mongoengine', mock.Mock())
+    @mock.patch('st2common.models.db.LOG')
+    def test_db_setup_connecting_info_logging(self, mock_log):
+        # Verify that password is not included in the log message
+        db_name = 'st2'
+        db_port = '27017'
+        username = 'user_st2'
+        password = 'pass_st2'
+
+        # 1. Password provided as separate argument
+        db_host = 'localhost'
+        username = 'user_st2'
+        password = 'pass_st2'
+        db_setup(db_name=db_name, db_host=db_host, db_port=db_port, username=username,
+                 password=password)
+
+        expected_message = 'Connecting to database "st2" @ "localhost:27017" as user "user_st2".'
+        actual_message = mock_log.info.call_args_list[0][0][0]
+        self.assertEqual(expected_message, actual_message)
+
+        # 2. Password provided as part of uri string (single host)
+        db_host = 'mongodb://user_st22:pass_st22@127.0.0.2:5555'
+        username = None
+        password = None
+        db_setup(db_name=db_name, db_host=db_host, db_port=db_port, username=username,
+                 password=password)
+
+        expected_message = 'Connecting to database "st2" @ "127.0.0.2:5555" as user "user_st22".'
+        actual_message = mock_log.info.call_args_list[1][0][0]
+        self.assertEqual(expected_message, actual_message)
+
+        # 3. Password provided as part of uri string (single host) - username
+        # provided as argument has precedence
+        db_host = 'mongodb://user_st210:pass_st23@127.0.0.2:5555'
+        username = 'user_st23'
+        password = None
+        db_setup(db_name=db_name, db_host=db_host, db_port=db_port, username=username,
+                 password=password)
+
+        expected_message = 'Connecting to database "st2" @ "127.0.0.2:5555" as user "user_st23".'
+        actual_message = mock_log.info.call_args_list[2][0][0]
+        self.assertEqual(expected_message, actual_message)
+
+        # 4. Just host provided in the url string
+        db_host = 'mongodb://127.0.0.2:5555'
+        username = 'user_st24'
+        password = 'foobar'
+        db_setup(db_name=db_name, db_host=db_host, db_port=db_port, username=username,
+                 password=password)
+
+        expected_message = 'Connecting to database "st2" @ "127.0.0.2:5555" as user "user_st24".'
+        actual_message = mock_log.info.call_args_list[3][0][0]
+        self.assertEqual(expected_message, actual_message)
+
+        # 5. Multiple hosts specified as part of connection uri
+        db_host = 'mongodb://user6:pass6@host1,host2,host3'
+        username = None
+        password = 'foobar'
+        db_setup(db_name=db_name, db_host=db_host, db_port=db_port, username=username,
+                 password=password)
+
+        expected_message = ('Connecting to database "st2" @ "host1:27017,host2:27017,host3:27017 '
+                            '(replica set)" as user "user6".')
+        actual_message = mock_log.info.call_args_list[4][0][0]
+        self.assertEqual(expected_message, actual_message)
 
 
 class DbCleanupTest(DbTestCase):

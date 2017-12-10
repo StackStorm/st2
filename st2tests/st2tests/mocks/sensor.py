@@ -53,8 +53,11 @@ class MockSensorService(SensorService):
 
         self._datastore_service = MockDatastoreService(logger=self._logger,
                                                        pack_name=self._sensor_wrapper._pack,
-                                                       class_name=self._sensor_wrapper._class_name,
-                                                       api_username='sensor_service')
+                                                       class_name=self._sensor_wrapper._class_name)
+
+    @property
+    def datastore_service(self):
+        return self._datastore_service
 
     def get_logger(self, name):
         """
