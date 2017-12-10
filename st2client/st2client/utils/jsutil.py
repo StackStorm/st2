@@ -59,6 +59,7 @@ def _get_value_simple(doc, key):
             return None
     return value
 
+
 def _get_value_complex(doc, key):
     """
     Extracts a value from a nested set of dictionaries 'doc' based on
@@ -73,6 +74,7 @@ def _get_value_complex(doc, key):
     matches = jsonpath_expr.find(doc)
     value = None if len(matches) < 1 else matches[0].value
     return value
+
 
 def get_value(doc, key):
     if not key:
@@ -91,6 +93,7 @@ def get_value(doc, key):
         return _get_value_simple(doc, key)
     else:
         return _get_value_complex(doc, key)
+
 
 def get_kvps(doc, keys):
     """
