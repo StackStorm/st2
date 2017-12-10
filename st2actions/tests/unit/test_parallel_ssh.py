@@ -25,6 +25,13 @@ from st2common.runners.paramiko_ssh import SSHCommandTimeoutError
 import st2tests.config as tests_config
 tests_config.parse_args()
 
+MOCK_STDERR_SUDO_PASSWORD_ERROR = """
+[sudo] password for bar: Sorry, try again.\n
+[sudo] password for bar:' Sorry, try again.\n
+[sudo] password for bar: \n
+sudo: 2 incorrect password attempts
+"""
+
 
 class ParallelSSHTests(unittest2.TestCase):
 
@@ -250,3 +257,27 @@ class ParallelSSHTests(unittest2.TestCase):
         results = client.run('stuff', timeout=60)
         self.assertTrue('127.0.0.1' in results)
         self.assertDictEqual(results['127.0.0.1']['stdout'], {'foo': 'bar'})
+
+    @patch('paramiko.SSHClient', Mock)
+    @patch.object(ParamikoSSHClient, 'run', MagicMock(
+        return_value=('', MOCK_STDERR_SUDO_PASSWORD_ERROR, 0))
+    )
+    @patch.object(ParamikoSSHClient, '_is_key_file_needs_passphrase',
+                  MagicMock(return_value=False))
+    def test_run_sudo_password_user_friendly_error(self):
+        hosts = ['127.0.0.1']
+        client = ParallelSSHClient(hosts=hosts,
+                                   user='ubuntu',
+                                   pkey_file='~/.ssh/id_rsa',
+                                   connect=True,
+                                   sudo_password=True)
+        results = client.run('stuff', timeout=60)
+
+        expected_error = ('Failed executing command "stuff" on host "127.0.0.1" '
+                          'Invalid sudo password provided or sudo is not configured for '
+                          'this user (bar)')
+
+        self.assertTrue('127.0.0.1' in results)
+        self.assertEqual(results['127.0.0.1']['succeeded'], False)
+        self.assertEqual(results['127.0.0.1']['failed'], True)
+        self.assertTrue(expected_error in results['127.0.0.1']['error'])

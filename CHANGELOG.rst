@@ -15,11 +15,36 @@ Added
   ``error`` or higher (or similar). (new feature) #3824
 * Add stevedore related metadata to Python package setup.py files for runner packages. This way
   runners can be installed using pip and dynamically enumerated and loaded using stevedore and
-  corresponding helper functions. (new feature)
-* Add new ``search`` rule criteria comparison operator. For the usage, please refer to the
-  documentation. (new feature) #3833
+  corresponding helper functions.
+
+  All runners are now also fully fledged Python packages (previously they were single module
+  Python packages which caused various install and distribution related issues when installing
+  them via pip) (new feature)
+* Add new ``search`` rule criteria comparison operator. Please refer to the documentation for
+  usage. (new feature) #3833
 
   Contributed by @ahubl-mz.
+* Add new ``/api/v1/user`` API endpoint. This API endpoint is only available to the authenticated
+  users and returns various metadata on the authenticated user (which method did the user use to
+  authenticate, under which username the user is authenticated, which RBAC roles are assignment to
+  this user in case RBAC is enabled, etc.) (new feature) #3831
+* The ``/api/v1/match_and_execute`` API endpoint matches a single alias and executes multiple times
+  if the alias format has a ``match_multiple`` key set to ``true``. Please refer to the
+  documentation for usage. #3884
+
+  Contributed by @ahubl-mz.
+* Add new ``get_user_info`` method to action and sensor service. With this method, user can
+  retrieve information about the user account which is used to perform datastore operations inside
+  the action and sensor service. (new feature) #3831
+* Add ability to share common code between python sensors and python actions. You can now place
+  common code inside a ``lib`` directory inside a pack (with an ``__init__.py`` inside ``lib``
+  directory to declare it a python package). You can then import the common code in sensors and
+  actions. Please refer to documentation for samples and guidelines. #3490
+* Add support for password protected sudo to the local and remote runner. Password can be provided
+  via the new ``sudo_password`` runner parameter. (new feature) #3867
+* Add new ``--tail`` flag to the ``st2 run`` / ``st2 action execute`` and ``st2 execution re-run``
+  CLI command. When this flag is provided, new execution will automatically be followed and tailed
+  after it has been scheduled. (new feature) #3867
 
 Changed
 ~~~~~~~
@@ -39,11 +64,22 @@ Changed
   ``status`` attribute (green for ``succeeded``, red for ``failed``, etc. aka the same as for the
   output of ``st2 execution list`` command). (improvement) #3810
 
-  Contributed by Nick Maludy.
+  Contributed by Nick Maludy (Encore Technologies).
 * Update various Python dependencies to the latest stable versions (kombu, amqp, apscheduler,
   gitpython, pymongo, stevedore, paramiko, prompt-toolkit, flex). #3830
 * Update log messages in the datastore service to correctly use ``DEBUG`` log level instead of
   ``AUDIT``. #3845
+* Mask values in an Inquiry response displayed to the user that were marked as "secret" in the
+  inquiry's response schema. #3825
+* Add the ability of ``st2 key load`` to load keys from both JSON and YAML files. Files can now
+  contain a single KeyValuePair, or an array of KeyValuePairs. (improvement) #3815
+* Add the ability of ``st2 key load`` to load non-string values (objects, arrays, integers,
+  booleans) and convert them to JSON before going into the datastore, this conversion requires the
+  user passing in the ``-c/--convert`` flag. (improvement) #3815
+* Update ``st2 key load`` to load all properties of a key/value pair, now secret values can be
+  loaded. (improvement) #3815
+
+  Contributed by Nick Maludy (Encore Technologies).
 
 Fixed
 ~~~~~
@@ -55,6 +91,17 @@ Fixed
   (bug fix) #3824
 * Fix ``st2 execution tail [last]`` CLI command so it doesn't throw an exception if there are no
   executions in the database. (bug fix) #3760 #3802
+* Fix 'NameError: name 'cmd' is not defined' error when using ``linux.service`` with CentOS systems.
+  #3843. Contributed by @shkadov
+* Fix edge case for workflows stuck in running state. When Mistral receives a connection error from
+  the st2 API on requesting action execution, there's a duplicate action execution stuck in
+  requested state. This leads to the st2resultstracker assuming the workflow is still running.
+* Fix a regression and a bug with no API validation being performed and API returning 500 instead
+  of 400 status code if user didn't include any request payload (body) when hitting POST and PUT
+  API endpoints where body is mandatory. (bug fix) #3864
+* Fix bugs with newlines in execution formatter (client) (bug fix) #3872
+* Fix a bug in Python runner which would cause action log messages to be duplicated in action
+  stderr output when utilizing action service / datastore service inside actions. (bug fix)
 * Fix performance issue on the CLI when formatting the output as JSON or YAML. (bug fix) #3697
 
   Contributed by Nick Maludy (Encore Technologies).
@@ -182,7 +229,7 @@ Fixed
 Changed
 ~~~~~~~
 
-* Minor language and style tidy up of help strings and error messages #3782 
+* Minor language and style tidy up of help strings and error messages. #3782
 
 2.4.1 - September 12, 2017
 --------------------------

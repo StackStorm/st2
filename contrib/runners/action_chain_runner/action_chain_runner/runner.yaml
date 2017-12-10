@@ -1,0 +1,14 @@
+- aliases: []
+  description: A runner for launching linear action chains.
+  enabled: true
+  name: action-chain
+  runner_module: action_chain_runner
+  runner_parameters:
+    display_published:
+      default: True
+      description: Intermediate published variables will be stored and displayed.
+      type: boolean
+    skip_notify:
+      default: []
+      description: List of tasks to skip notifications for.
+      type: array

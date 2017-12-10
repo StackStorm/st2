@@ -137,6 +137,11 @@ class PackAPI(BaseAPI):
                 'description': 'Specification for the system components and packages '
                                'required for the pack.',
                 'default': {}
+            },
+            'path': {
+                'type': 'string',
+                'description': 'Location of the pack on disk in st2 system.',
+                'required': False
             }
         }
     }
@@ -187,13 +192,14 @@ class PackAPI(BaseAPI):
         email = pack.email
         contributors = getattr(pack, 'contributors', [])
         files = getattr(pack, 'files', [])
+        pack_dir = getattr(pack, 'path', None)
         dependencies = getattr(pack, 'dependencies', [])
         system = getattr(pack, 'system', {})
 
         model = cls.model(ref=ref, name=name, description=description, keywords=keywords,
                           version=version, author=author, email=email, contributors=contributors,
                           files=files, dependencies=dependencies, system=system,
-                          stackstorm_version=stackstorm_version)
+                          stackstorm_version=stackstorm_version, path=pack_dir)
         return model
 
 

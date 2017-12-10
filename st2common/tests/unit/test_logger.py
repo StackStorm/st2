@@ -28,7 +28,7 @@ from oslo_config import cfg
 from st2common import log as logging
 from st2common.logging.formatters import ConsoleLogFormatter
 from st2common.logging.formatters import GelfLogFormatter
-from st2common.logging.formatters import MASKED_ATTRIBUTE_VALUE
+from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 from st2common.models.db.action import ActionDB
 from st2common.models.db.execution import ActionExecutionDB
 import st2tests.config as tests_config
