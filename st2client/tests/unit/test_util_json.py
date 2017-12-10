@@ -73,6 +73,18 @@ class TestGetValue(unittest2.TestCase):
         self.assertEqual(jsutil.get_value(DOC_IP_ADDRESS, 'ips."192.168.1.1"'),
                          {"hostname": "router.domain.tld"})
 
+    def test_chars_nums_dashes_underscores_calls_simple(self):
+        for char in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_':
+            with mock.patch("st2client.utils.jsutil._get_value_simple") as mock_simple:
+                jsutil.get_value(DOC, char)
+                mock_simple.assert_called_with(DOC, char)
+
+    def test_symbols_calls_complex(self):
+        for char in '`~!@#$%^&&*()=+{}[]|\\;:\'"<>,./?':
+            with mock.patch("st2client.utils.jsutil._get_value_complex") as mock_complex:
+                jsutil.get_value(DOC, char)
+                mock_complex.assert_called_with(DOC, char)
+
     @mock.patch("st2client.utils.jsutil._get_value_simple")
     def test_single_key_calls_simple(self, mock__get_value_simple):
         jsutil.get_value(DOC, 'a01')
@@ -87,6 +99,21 @@ class TestGetValue(unittest2.TestCase):
     def test_ip_address_calls_complex(self, mock__get_value_complex):
         jsutil.get_value(DOC_IP_ADDRESS, 'ips."192.168.1.1"')
         mock__get_value_complex.assert_called_with(DOC_IP_ADDRESS, 'ips."192.168.1.1"')
+
+    @mock.patch("st2client.utils.jsutil._get_value_complex")
+    def test_beginning_dot_calls_complex(self, mock__get_value_complex):
+        jsutil.get_value(DOC, '.c01.c11')
+        mock__get_value_complex.assert_called_with(DOC, '.c01.c11')
+
+    @mock.patch("st2client.utils.jsutil._get_value_complex")
+    def test_ending_dot_calls_complex(self, mock__get_value_complex):
+        jsutil.get_value(DOC, 'c01.c11.')
+        mock__get_value_complex.assert_called_with(DOC, 'c01.c11.')
+
+    @mock.patch("st2client.utils.jsutil._get_value_complex")
+    def test_double_dot_calls_complex(self, mock__get_value_complex):
+        jsutil.get_value(DOC, 'c01..c11')
+        mock__get_value_complex.assert_called_with(DOC, 'c01..c11')
 
 
 class TestGetKeyValuePairs(unittest2.TestCase):
