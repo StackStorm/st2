@@ -399,7 +399,10 @@ function st2stop(){
 
 function st2clean(){
     # clean mongo
-    mongo st2 --eval "db.dropDatabase();"
+    ./virtualenv/bin/python \
+        ./st2common/bin/st2-cleanup-db \
+        --config-file $ST2_CONF
+    
     # start with clean logs
     LOGDIR=$(dirname $0)/../logs
     if [ -d ${LOGDIR} ]; then

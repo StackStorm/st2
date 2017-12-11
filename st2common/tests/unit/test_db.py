@@ -28,6 +28,7 @@ from st2common.util import date as date_utils
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.db.trigger import TriggerTypeDB, TriggerDB, TriggerInstanceDB
 from st2common.models.db.rule import RuleDB, ActionExecutionSpecDB
+from st2common.persistence.cleanup import db_cleanup
 from st2common.persistence.rule import Rule
 from st2common.persistence.trigger import TriggerType, Trigger, TriggerInstance
 from st2tests import DbTestCase
@@ -113,6 +114,19 @@ class DbConnectionTest(DbTestCase):
                             '(replica set)" as user "user6".')
         actual_message = mock_log.info.call_args_list[4][0][0]
         self.assertEqual(expected_message, actual_message)
+
+
+class DbCleanupTest(DbTestCase):
+
+    def test_cleanup(self):
+        """
+        Tests dropping the database. Requires the db server to be running.
+        """
+        self.assertIn(cfg.CONF.database.db_name, self.db_connection.database_names())
+
+        connection = db_cleanup()
+
+        self.assertNotIn(cfg.CONF.database.db_name, connection.database_names())
 
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
