@@ -163,7 +163,7 @@ function register_content() {
 
 function clean_db() {
   echo "Dropping st2 Database..."
-  mongo st2 --eval "db.dropDatabase();"
+  /opt/stackstorm/st2/bin/st2-cleanup-db --config-file ${STANCONF}
 }
 
 function clean_logs() {

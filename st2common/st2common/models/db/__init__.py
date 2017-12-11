@@ -75,7 +75,7 @@ def get_model_classes():
     return result
 
 
-def db_setup(db_name, db_host, db_port, username=None, password=None, ensure_indexes=True,
+def _db_connect(db_name, db_host, db_port, username=None, password=None,
              ssl=False, ssl_keyfile=None, ssl_certfile=None,
              ssl_cert_reqs=None, ssl_ca_certs=None, ssl_match_hostname=True):
 
@@ -110,6 +110,18 @@ def db_setup(db_name, db_host, db_port, username=None, password=None, ensure_ind
                                                 port=db_port, tz_aware=True,
                                                 username=username, password=password,
                                                 **ssl_kwargs)
+    return connection
+
+
+def db_setup(db_name, db_host, db_port, username=None, password=None, ensure_indexes=True,
+             ssl=False, ssl_keyfile=None, ssl_certfile=None,
+             ssl_cert_reqs=None, ssl_ca_certs=None, ssl_match_hostname=True):
+
+    connection = _db_connect(db_name, db_host, db_port, username=username,
+                             password=password, ssl=ssl, ssl_keyfile=ssl_keyfile,
+                             ssl_certfile=ssl_certfile,
+                             ssl_cert_reqs=ssl_cert_reqs, ssl_ca_certs=ssl_ca_certs,
+                             ssl_match_hostname=ssl_match_hostname)
 
     # Create all the indexes upfront to prevent race-conditions caused by
     # lazy index creation
@@ -220,6 +232,23 @@ def drop_obsolete_types_indexes(model_class):
 
 def db_teardown():
     mongoengine.connection.disconnect()
+
+
+def db_cleanup(db_name, db_host, db_port, username=None, password=None,
+               ssl=False, ssl_keyfile=None, ssl_certfile=None,
+               ssl_cert_reqs=None, ssl_ca_certs=None, ssl_match_hostname=True):
+
+    connection = _db_connect(db_name, db_host, db_port, username=username,
+                             password=password, ssl=ssl, ssl_keyfile=ssl_keyfile,
+                             ssl_certfile=ssl_certfile,
+                             ssl_cert_reqs=ssl_cert_reqs, ssl_ca_certs=ssl_ca_certs,
+                             ssl_match_hostname=ssl_match_hostname)
+
+    LOG.info('Dropping database "%s" @ "%s:%s" as user "%s".',
+             db_name, db_host, db_port, str(username))
+
+    connection.drop_database(db_name)
+    return connection
 
 
 def _get_ssl_kwargs(ssl=False, ssl_keyfile=None, ssl_certfile=None, ssl_cert_reqs=None,
