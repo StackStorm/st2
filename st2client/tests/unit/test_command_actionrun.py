@@ -151,3 +151,27 @@ class ActionRunCommandTest(unittest2.TestCase):
             {'foo': '1', 'bar': '2'},
             {'hoge': 'A', 'fuga': 'B'}
         ])
+
+    def test_escape_colon(self):
+        runner = RunnerType()
+        runner.runner_parameters = {}
+
+        action = Action()
+        action.ref = 'test.action'
+        action.parameters = {
+            'param_array': {'type': 'array'},
+        }
+
+        subparser = mock.Mock()
+        command = ActionRunCommand(action, self, subparser, name='test')
+
+        mockarg = mock.Mock()
+        mockarg.inherit_env = False
+        mockarg.parameters = [
+            'param_array=foo\:bar,foo2:bar2',
+        ]
+
+        param = command._get_action_parameters_from_args(action=action, runner=runner, args=mockarg)
+
+        self.assertEqual(param['param_array'], ['foo\\:bar', 'foo2:bar2'])
+
