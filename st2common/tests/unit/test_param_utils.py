@@ -473,7 +473,7 @@ class ParamsUtilsTest(DbTestCase):
             param_utils.get_finalized_params(runner_param_info, action_param_info, params, {})
             test_pass = False
         except ParamException as e:
-            test_pass = e.message.find('Dependecy') == 0
+            test_pass = e.message.find('Dependency') == 0
         self.assertTrue(test_pass)
 
         params = {}
@@ -484,7 +484,7 @@ class ParamsUtilsTest(DbTestCase):
             param_utils.get_finalized_params(runner_param_info, action_param_info, params, {})
             test_pass = False
         except ParamException as e:
-            test_pass = e.message.find('Dependecy') == 0
+            test_pass = e.message.find('Dependency') == 0
         self.assertTrue(test_pass)
 
     def test_get_finalized_params_no_double_rendering(self):
@@ -671,7 +671,7 @@ class ParamsUtilsTest(DbTestCase):
         }
         action_context = {}
 
-        expected_msg = 'Cyclic dependecy found in the following variables: cyclic, morecyclic'
+        expected_msg = 'Cyclic dependency found in the following variables: cyclic, morecyclic'
         self.assertRaisesRegexp(ParamException, expected_msg, param_utils.render_live_params,
                                 runner_param_info, action_param_info, params, action_context)
 
@@ -692,6 +692,6 @@ class ParamsUtilsTest(DbTestCase):
         }
         action_context = {}
 
-        expected_msg = 'Dependecy unsatisfied in variable "variable_not_defined"'
+        expected_msg = 'Dependency unsatisfied in variable "variable_not_defined"'
         self.assertRaisesRegexp(ParamException, expected_msg, param_utils.render_live_params,
                                 runner_param_info, action_param_info, params, action_context)
