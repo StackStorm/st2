@@ -650,3 +650,27 @@ class ParamsUtilsTest(DbTestCase):
             'r3': 'lolcathost'
         }
         self.assertEqual(live_params, expected_params)
+
+    def test_cyclic_dependency_friendly_error_message(self):
+        runner_param_info = {
+            'r1': {
+                'default': 'some',
+                'cyclic': 'cyclic value',
+                'morecyclic': 'cyclic value'
+            }
+        }
+        action_param_info = {
+            'r2': {
+                'default': '{{ r1 }}'
+            }
+        }
+        params = {
+            'r3': 'lolcathost',
+            'cyclic': '{{ cyclic }}',
+            'morecyclic': '{{ morecyclic }}'
+        }
+        action_context = {}
+
+        expected_msg = 'Cyclic dependecy found in the following variables: cyclic, morecyclic'
+        self.assertRaisesRegexp(ParamException, expected_msg, param_utils.render_live_params,
+                                runner_param_info, action_param_info, params, action_context)
