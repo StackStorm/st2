@@ -45,6 +45,8 @@ Added
 * Add new ``--tail`` flag to the ``st2 run`` / ``st2 action execute`` and ``st2 execution re-run``
   CLI command. When this flag is provided, new execution will automatically be followed and tailed
   after it has been scheduled. (new feature) #3867
+* Now a more user-friendly error message is thrown if a cycle is found inside the Jinja template
+  string (e.g. when parameter / variable references itself). (improvement) #3908
 
 Changed
 ~~~~~~~
@@ -243,6 +245,10 @@ Fixed
 * Fix cancellation of delayed action execution for tasks in workflow. (bug fix)
 * Fix timeout of mistral shutdown in systemd service. The fix is done upstream.
   https://review.openstack.org/#/c/499853/ (bug fix)
+* Fix ``st2ctl clean`` not using database connection information from config.
+  This now uses the new ``st2-cleanup-db`` command. (bug fix) #3659
+
+  Contributed by Nick Maludy (Encore Technologies).
 
 Changed
 ~~~~~~~
@@ -253,6 +259,9 @@ Changed
   ``st2 run`` CLI command. #3670
 
   Contributed by Hiroyasu OHYAMA.
+* Added new command ``st2-cleanup-db`` that drops the current StackStorm MongoDB database. #3659
+  
+  Contributed by Nick Maludy (Encore Technologies).
 
 2.4.0 - August 23, 2017
 -----------------------
