@@ -45,6 +45,8 @@ Added
 * Add new ``--tail`` flag to the ``st2 run`` / ``st2 action execute`` and ``st2 execution re-run``
   CLI command. When this flag is provided, new execution will automatically be followed and tailed
   after it has been scheduled. (new feature) #3867
+* Now a more user-friendly error message is thrown if a cycle is found inside the Jinja template
+  string (e.g. when parameter / variable references itself). (improvement) #3908
 
 Changed
 ~~~~~~~
