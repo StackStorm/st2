@@ -386,6 +386,60 @@ class ActionCommandTestCase(base.BaseCLITestCase):
     @mock.patch.object(
         httpclient.HTTPClient, 'post',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
+    def test_param_dict_conversion_flag(self):
+        """Ensure that the automatic conversion to dict based on colons only occurs with the flag
+        """
+
+        self.shell.run(
+            [
+                'run',
+                'mockety.mock2',
+                'list=key1:value1,key2:value2',
+                '--auto-dict'
+            ]
+        )
+        expected = {
+            'action': 'mockety.mock2',
+            'user': None,
+            'parameters': {
+                'list': [
+                    {
+                        'key1': 'value1',
+                        'key2': 'value2'
+                    }
+                ]
+            }
+        }
+        httpclient.HTTPClient.post.assert_called_with('/executions', expected)
+
+        self.shell.run(
+            [
+                'run',
+                'mockety.mock2',
+                'list=key1:value1,key2:value2'
+            ]
+        )
+        expected = {
+            'action': 'mockety.mock2',
+            'user': None,
+            'parameters': {
+                'list': [
+                    'key1:value1',
+                    'key2:value2'
+                ]
+            }
+        }
+        httpclient.HTTPClient.post.assert_called_with('/executions', expected)
+
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_ref_or_id',
+        mock.MagicMock(side_effect=get_by_ref))
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_name',
+        mock.MagicMock(side_effect=get_by_name))
+    @mock.patch.object(
+        httpclient.HTTPClient, 'post',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
     def test_param_value_with_equal_sign(self):
         self.shell.run(['run', 'mockety.mock2', 'key=foo=bar&ponies=unicorns'])
         expected = {'action': 'mockety.mock2', 'user': None,
