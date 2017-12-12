@@ -459,7 +459,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         post_resp = self._do_post(execution, expect_errors=True)
         self.assertEqual(post_resp.status_int, 400)
         self.assertEqual(post_resp.json['faultstring'],
-                         'Dependecy unsatisfied in ABSENT')
+                         'Dependecy unsatisfied in variable "ABSENT"')
 
     def test_post_parameter_validation_explicit_none(self):
         execution = copy.deepcopy(LIVE_ACTION_1)

@@ -674,3 +674,24 @@ class ParamsUtilsTest(DbTestCase):
         expected_msg = 'Cyclic dependecy found in the following variables: cyclic, morecyclic'
         self.assertRaisesRegexp(ParamException, expected_msg, param_utils.render_live_params,
                                 runner_param_info, action_param_info, params, action_context)
+
+    def test_unsatisfied_dependency_friendly_error_message(self):
+        runner_param_info = {
+            'r1': {
+                'default': 'some',
+            }
+        }
+        action_param_info = {
+            'r2': {
+                'default': '{{ r1 }}'
+            }
+        }
+        params = {
+            'r3': 'lolcathost',
+            'r4': '{{ variable_not_defined }}',
+        }
+        action_context = {}
+
+        expected_msg = 'Dependecy unsatisfied in variable "variable_not_defined"'
+        self.assertRaisesRegexp(ParamException, expected_msg, param_utils.render_live_params,
+                                runner_param_info, action_param_info, params, action_context)

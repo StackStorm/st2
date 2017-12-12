@@ -141,7 +141,7 @@ def _validate(G):
     '''
     for name in G.nodes():
         if 'value' not in G.node[name] and 'template' not in G.node[name]:
-            msg = 'Dependecy unsatisfied in %s' % name
+            msg = 'Dependecy unsatisfied in variable "%s"' % name
             raise ParamException(msg)
 
     if not nx.is_directed_acyclic_graph(G):
