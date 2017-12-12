@@ -145,7 +145,20 @@ def _validate(G):
             raise ParamException(msg)
 
     if not nx.is_directed_acyclic_graph(G):
-        msg = 'Cyclic dependecy found'
+        graph_cycles = nx.simple_cycles(G)
+
+        variable_names = []
+        for cycle in graph_cycles:
+            try:
+                variable_name = cycle[0]
+            except IndexError:
+                continue
+
+            variable_names.append(variable_name)
+
+        variable_names = ', '.join(variable_names)
+        msg = ('Cyclic dependecy found in the following variables: %s. Likely the variable is '
+               'referencing itself' % (variable_names))
         raise ParamException(msg)
 
 
