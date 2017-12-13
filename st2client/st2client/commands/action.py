@@ -303,6 +303,15 @@ class ActionRunCommandMixin(object):
         detail_arg_grp.add_argument('--tail', action='store_true',
                                     help='Automatically start tailing new execution.')
 
+        # Flag to opt-in to functionality introduced in PR #3670. More robust parsing
+        # of complex datatypes is planned for 2.6, so this flag will be deprecated soon
+        detail_arg_grp.add_argument('--auto-dict', action='store_true', dest='auto_dict',
+                                    default=False, help='Automatically convert list items to '
+                                    'dictionaries when colons are detected. '
+                                    '(NOTE - this parameter and its functionality will be '
+                                    'deprecated in the next release in favor of a more '
+                                    'robust conversion method)')
+
         return root_arg_grp
 
     def _print_execution_details(self, execution, args, **kwargs):
@@ -543,7 +552,7 @@ class ActionRunCommandMixin(object):
                     result[key] = value
             return result
 
-        def transform_array(value, action_params=None):
+        def transform_array(value, action_params=None, auto_dict=False):
             action_params = action_params or {}
 
             # Sometimes an array parameter only has a single element:
@@ -575,13 +584,14 @@ class ActionRunCommandMixin(object):
 
             # When each values in this array represent dict type, this converts
             # the 'result' to the dict type value.
-            if all([isinstance(x, str) and ':' in x for x in result]):
+            if all([isinstance(x, str) and ':' in x for x in result]) and auto_dict:
                 result_dict = {}
                 for (k, v) in [x.split(':') for x in result]:
                     # To parse values using the 'transformer' according to the type which is
                     # specified in the action metadata, calling 'normalize' method recursively.
                     if 'properties' in action_params and k in action_params['properties']:
-                        result_dict[k] = normalize(k, v, action_params['properties'])
+                        result_dict[k] = normalize(k, v, action_params['properties'],
+                                                   auto_dict=auto_dict)
                     else:
                         result_dict[k] = v
                 return [result_dict]
@@ -611,7 +621,7 @@ class ActionRunCommandMixin(object):
 
             return None
 
-        def normalize(name, value, action_params=None):
+        def normalize(name, value, action_params=None, auto_dict=False):
             """ The desired type is contained in the action meta-data, so we can look that up
                 and call the desired "caster" function listed in the "transformer" dict
             """
@@ -629,7 +639,7 @@ class ActionRunCommandMixin(object):
             # also leverage that to cast each array item to the correct type.
             param_type = get_param_type(name, action_params)
             if param_type == 'array' and name in action_params:
-                return transformer[param_type](value, action_params[name])
+                return transformer[param_type](value, action_params[name], auto_dict=auto_dict)
             elif param_type:
                 return transformer[param_type](value)
 
@@ -669,9 +679,9 @@ class ActionRunCommandMixin(object):
                     else:
                         # This permits multiple declarations of argument only in the array type.
                         if get_param_type(k) == 'array' and k in result:
-                            result[k] += normalize(k, v)
+                            result[k] += normalize(k, v, auto_dict=args.auto_dict)
                         else:
-                            result[k] = normalize(k, v)
+                            result[k] = normalize(k, v, auto_dict=args.auto_dict)
 
                 except Exception as e:
                     # TODO: Move transformers in a separate module and handle
