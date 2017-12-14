@@ -47,6 +47,9 @@ Added
   after it has been scheduled. (new feature) #3867
 * Now a more user-friendly error message is thrown if a cycle is found inside the Jinja template
   string (e.g. when parameter / variable references itself). (improvement) #3908
+* Added flag `--auto-dict` to `st2 run` and `st2 execution re-run` commands. This flag must now
+  be specified in order to automatically convert list items to dicts based on presence of colon
+  (`:`) in all of the list items (new feature) #3909 
 
 Changed
 ~~~~~~~
