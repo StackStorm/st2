@@ -142,11 +142,24 @@ def _validate(G):
     '''
     for name in G.nodes():
         if 'value' not in G.node[name] and 'template' not in G.node[name]:
-            msg = 'Dependecy unsatisfied in %s' % name
+            msg = 'Dependency unsatisfied in variable "%s"' % name
             raise ParamException(msg)
 
     if not nx.is_directed_acyclic_graph(G):
-        msg = 'Cyclic dependecy found'
+        graph_cycles = nx.simple_cycles(G)
+
+        variable_names = []
+        for cycle in graph_cycles:
+            try:
+                variable_name = cycle[0]
+            except IndexError:
+                continue
+
+            variable_names.append(variable_name)
+
+        variable_names = ', '.join(variable_names)
+        msg = ('Cyclic dependency found in the following variables: %s. Likely the variable is '
+               'referencing itself' % (variable_names))
         raise ParamException(msg)
 
 
@@ -160,7 +173,7 @@ def _render(node, render_context):
         if isinstance(node['template'], list) or isinstance(node['template'], dict):
             node['template'] = json.dumps(node['template'])
 
-            # Finds occourances of "{{variable}}" and adds `to_complex` filter
+            # Finds occurrences of "{{variable}}" and adds `to_complex` filter
             # so types are honored. If it doesn't follow that syntax then it's
             # rendered as a string.
             node['template'] = re.sub(
