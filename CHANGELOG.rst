@@ -50,6 +50,9 @@ Added
 * Added flag `--auto-dict` to `st2 run` and `st2 execution re-run` commands. This flag must now
   be specified in order to automatically convert list items to dicts based on presence of colon
   (`:`) in all of the list items (new feature) #3909 
+* Jinja templates in default parameter values now render as live parameters, if no "real" live
+  parameter was provided. This allows the template to render pre-schema validation, resulting
+  in the intended value type. (improvement) #3892
 
 Changed
 ~~~~~~~
