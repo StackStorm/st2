@@ -125,6 +125,9 @@ Fixed
   API endpoints where body is mandatory. (bug fix) #3864
 * Fix a bug in Python runner which would cause action log messages to be duplicated in action
   stderr output when utilizing action service / datastore service inside actions. (bug fix)
+* Fix performance issue on the CLI when formatting the output as JSON or YAML. (bug fix) #3697
+
+  Contributed by Nick Maludy (Encore Technologies).
 
 2.5.0 - October 25, 2017
 ------------------------
