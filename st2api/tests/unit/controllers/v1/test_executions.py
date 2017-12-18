@@ -142,6 +142,20 @@ ACTION_INQUIRY = {
     'runner_type': 'inquirer',
 }
 
+ACTION_DEFAULT_TEMPLATE = {
+    'name': 'st2.dummy.default_template',
+    'description': 'An action that uses a jinja template as a default value for a parameter',
+    'enabled': True,
+    'pack': 'starterpack',
+    'runner_type': 'local-shell-cmd',
+    'parameters': {
+        'intparam': {
+            'type': 'integer',
+            'default': '{{ st2kv.system.test_int | int }}'
+        }
+    }
+}
+
 LIVE_ACTION_1 = {
     'action': 'sixpack.st2.dummy.action1',
     'parameters': {
@@ -211,6 +225,12 @@ LIVE_ACTION_INQUIRY = {
     }
 }
 
+# Do not add parameters to this. There are tests that will test first without params,
+# then make a copy with params.
+LIVE_ACTION_DEFAULT_TEMPLATE = {
+    'action': 'starterpack.st2.dummy.default_template',
+}
+
 FIXTURES_PACK = 'generic'
 TEST_FIXTURES = {
     'runners': ['testrunner1.yaml'],
@@ -247,6 +267,10 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         post_resp = cls.app.post_json('/v1/actions', cls.action_inquiry)
         cls.action_inquiry['id'] = post_resp.json['id']
 
+        cls.action_template = copy.deepcopy(ACTION_DEFAULT_TEMPLATE)
+        post_resp = cls.app.post_json('/v1/actions', cls.action_template)
+        cls.action_template['id'] = post_resp.json['id']
+
     @classmethod
     def tearDownClass(cls):
         cls.app.delete('/v1/actions/%s' % cls.action1['id'])
@@ -254,6 +278,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         cls.app.delete('/v1/actions/%s' % cls.action3['id'])
         cls.app.delete('/v1/actions/%s' % cls.action4['id'])
         cls.app.delete('/v1/actions/%s' % cls.action_inquiry['id'])
+        cls.app.delete('/v1/actions/%s' % cls.action_template['id'])
         super(BaseActionExecutionControllerTestCase, cls).tearDownClass()
 
     def test_get_one(self):
@@ -439,7 +464,8 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         execution['parameters'] = {"hosts": "127.0.0.1", "cmd": 1000}
         post_resp = self._do_post(execution, expect_errors=True)
         self.assertEqual(post_resp.status_int, 400)
-        self.assertEqual(post_resp.json['faultstring'], "1000 is not of type 'string', 'null'")
+        self.assertIn('Value "1000" must either be a string or None. Got "int"',
+                      post_resp.json['faultstring'])
 
         # Runner type expects parameters "cmd" to be str.
         execution['parameters'] = {"hosts": "127.0.0.1", "cmd": "1000", "c": 1}
@@ -541,7 +567,31 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id),
                                          data, expect_errors=True)
         self.assertEqual(re_run_resp.status_int, 400)
-        self.assertIn('1000 is not of type \'string\'', re_run_resp.json['faultstring'])
+        self.assertIn('Value "1000" must either be a string or None. Got "int"',
+                      re_run_resp.json['faultstring'])
+
+    def test_template_param(self):
+
+        # Test with default value containing template
+        post_resp = self._do_post(LIVE_ACTION_DEFAULT_TEMPLATE)
+        self.assertEqual(post_resp.status_int, 201)
+
+        # Assert that the template in the parameter default value
+        # was rendered and st2kv was used
+        self.assertEqual(post_resp.json['parameters']['intparam'], 0)
+
+        # Test with live param
+        live_int_param = 3
+        livaction_with_params = copy.deepcopy(LIVE_ACTION_DEFAULT_TEMPLATE)
+        livaction_with_params['parameters'] = {
+            "intparam": live_int_param
+        }
+        post_resp = self._do_post(livaction_with_params)
+        self.assertEqual(post_resp.status_int, 201)
+
+        # Assert that the template in the parameter default value
+        # was not rendered, and the provided parameter was used
+        self.assertEqual(post_resp.json['parameters']['intparam'], live_int_param)
 
     def test_re_run_workflow_success(self):
         # Create a new execution

@@ -21,6 +21,7 @@ import networkx as nx
 from jinja2 import meta
 from st2common import log as logging
 from st2common.util.config_loader import get_config
+from st2common.util.jinja import is_jinja_expression
 from st2common.constants.action import ACTION_CONTEXT_KV_PREFIX
 from st2common.constants.pack import PACK_CONFIG_CONTEXT_KV_PREFIX
 from st2common.constants.keyvalue import DATASTORE_PARENT_SCOPE, SYSTEM_SCOPE, FULL_SYSTEM_SCOPE
@@ -220,12 +221,43 @@ def _cast_params_from(params, context, schemas):
     Pick a list of parameters from context and cast each of them according to the schemas provided
     '''
     result = {}
+
+    # First, cast only explicitly provided live parameters
     for name in params:
         param_schema = {}
         for schema in schemas:
             if name in schema:
                 param_schema = schema[name]
         result[name] = _cast(context[name], param_schema)
+
+    # Now, iterate over all parameters, and add any to the live set that satisfy ALL of the
+    # following criteria:
+    #
+    # - Have a default value that is a Jinja template
+    # - Are using the default value (i.e. not being overwritten by an actual live param)
+    #
+    # We do this because the execution API controller first determines live params before
+    # validating params against the schema. So, we want to make sure that if the default
+    # value is a template, it is rendered and added to the live params before this validation.
+    for schema in schemas:
+        for param_name, param_details in schema.items():
+
+            # Skip if the parameter doesn't have a default, or if the
+            # value in the context is identical to the default
+            if 'default' not in param_details or \
+                    param_details.get('default') == context[param_name]:
+                continue
+
+            # Skip if the default value isn't a Jinja expression
+            if not is_jinja_expression(param_details.get('default')):
+                continue
+
+            # Skip if the parameter is being overridden
+            if param_name in params:
+                continue
+
+            result[param_name] = _cast(context[param_name], param_details)
+
     return result
 
 
