@@ -24,7 +24,7 @@ class EchoFlaskSensor(Sensor):
         @self._app.route(self._path, methods=['POST'])
         def echo():
             payload = request.get_json(force=True)
-            self._sensor_service.dispatch(trigger="examples.echo_flask",
+            self._sensor_service.dispatch(trigger="examples.echoflasksensor",
                                           payload=payload)
             return request.data
 
