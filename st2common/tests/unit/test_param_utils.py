@@ -647,6 +647,7 @@ class ParamsUtilsTest(DbTestCase):
 
         expected_params = {
             'r1': 'generic',
+            'r2': 'generic',
             'r3': 'lolcathost'
         }
         self.assertEqual(live_params, expected_params)
@@ -695,3 +696,82 @@ class ParamsUtilsTest(DbTestCase):
         expected_msg = 'Dependency unsatisfied in variable "variable_not_defined"'
         self.assertRaisesRegexp(ParamException, expected_msg, param_utils.render_live_params,
                                 runner_param_info, action_param_info, params, action_context)
+
+    def test_add_default_templates_to_live_params(self):
+        """Test addition of template values in defaults to live params
+        """
+
+        # Test with no live params, and two parameters - one should make it through because
+        # it was a template, and the other shouldn't because its default wasn't a template
+        schemas = [
+            {
+                'templateparam': {
+                    'default': '{{ 3 | int }}',
+                    'type': 'integer'
+                }
+            }
+        ]
+        context = {
+            'templateparam': '3'
+        }
+        result = param_utils._cast_params_from({}, context, schemas)
+        self.assertEquals(result, {'templateparam': 3})
+
+        # Ensure parameter is skipped if the value in context is identical to default
+        schemas = [
+            {
+                'nottemplateparam': {
+                    'default': '4',
+                    'type': 'integer'
+                }
+            }
+        ]
+        context = {
+            'nottemplateparam': '4',
+        }
+        result = param_utils._cast_params_from({}, context, schemas)
+        self.assertEquals(result, {})
+
+        # Ensure parameter is skipped if the parameter doesn't have a default
+        schemas = [
+            {
+                'nottemplateparam': {
+                    'type': 'integer'
+                }
+            }
+        ]
+        context = {
+            'nottemplateparam': '4',
+        }
+        result = param_utils._cast_params_from({}, context, schemas)
+        self.assertEquals(result, {})
+
+        # Skip if the default value isn't a Jinja expression
+        schemas = [
+            {
+                'nottemplateparam': {
+                    'default': '5',
+                    'type': 'integer'
+                }
+            }
+        ]
+        context = {
+            'nottemplateparam': '4',
+        }
+        result = param_utils._cast_params_from({}, context, schemas)
+        self.assertEquals(result, {})
+
+        # Ensure parameter is skipped if the parameter is being overridden
+        schemas = [
+            {
+                'templateparam': {
+                    'default': '{{ 3 | int }}',
+                    'type': 'integer'
+                }
+            }
+        ]
+        context = {
+            'templateparam': '4',
+        }
+        result = param_utils._cast_params_from({'templateparam': '4'}, context, schemas)
+        self.assertEquals(result, {'templateparam': 4})
