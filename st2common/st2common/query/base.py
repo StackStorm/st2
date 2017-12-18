@@ -138,7 +138,9 @@ class Querier(object):
                 status == action_constants.LIVEACTION_STATUS_PAUSED):
             runners_utils.invoke_post_run(liveaction_db)
             self._delete_state_object(query_context)
-
+            LOG.debug(
+                "Detailed workflow liveaction results - ", extra={'liveaction_db': liveaction_db}
+            )
             return
 
         self._query_contexts.put((this_query_time, query_context))
