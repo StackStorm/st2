@@ -173,10 +173,10 @@ function clean_logs() {
 
 function getpids() {
   echo "##### st2 components status #####"
-  COMPONENTS=${COMPONENTS/mistral/mistral-server mistral-api}
+  COMPONENTS=${COMPONENTS/mistral/mistral-server mistral.api}
 
   for COM in ${COMPONENTS}; do
-    PID=`ps ax | grep -v grep | grep -v st2ctl | grep "${COM}" | awk '{print $1}'`
+    PID=`ps ax | grep -v grep | grep -v st2ctl | grep -E "(${COM}\.wsgi)|(bin/${COM})|(hubot ${COM})" | awk '{print $1}'`
 
     if [[ ! -z ${PID} ]]; then
       for p in ${PID}; do
