@@ -219,7 +219,7 @@ def register_opts(ignore_errors=False):
 
     # Common action runner options
     default_python_bin_path = sys.executable
-    default_python_bin_path = '/usr/bin/python3'
+    default_python3_bin_path = '/usr/bin/python3'
     base_dir = os.path.dirname(os.path.realpath(default_python_bin_path))
     default_virtualenv_bin_path = os.path.join(base_dir, 'virtualenv')
     action_runner_opts = [
