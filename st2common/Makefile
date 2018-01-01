@@ -15,6 +15,7 @@ rpm:
 	mkdir -p rbac/roles && cp -f ../st2tests/st2tests/fixtures/rbac/roles/role_sample.yaml rbac/roles/sample.yaml
 	mkdir -p rbac/assignments && cp -f ../st2tests/st2tests/fixtures/rbac/assignments/user_sample.yaml rbac/assignments/sample.yaml
 	sed -i '/\[actionrunner\]/a python_binary = /usr/bin/python2.7' st2/st2.conf
+	sed -i '/\[actionrunner\]/a python3_binary = /usr/bin/python3' st2/st2.conf
 	tar --transform=s~^~$(COMPONENTS)-$(VER)/~ --exclude=correlation -czf $(RPM_SOURCES_DIR)/$(COMPONENTS).tar.gz bin st2 logrotate.d rbac $(COMPONENTS) ../contrib ../tools/ ../requirements.txt
 	cp packaging/rpm/$(COMPONENTS).spec $(RPM_SPECS_DIR)/
 	cd $(RPM_SPECS_DIR) && rpmbuild --clean --rmsource -ba $(COMPONENTS).spec
@@ -27,6 +28,7 @@ rhel-rpm:
 	mkdir -p rbac/roles && cp -f ../st2tests/st2tests/fixtures/rbac/roles/role_sample.yaml rbac/roles/sample.yaml
 	mkdir -p rbac/assignments && cp -f ../st2tests/st2tests/fixtures/rbac/assignments/user_sample.yaml rbac/assignments/sample.yaml
 	sed -i '/\[actionrunner\]/a python_binary = /usr/bin/python2.7' st2/st2.conf
+	sed -i '/\[actionrunner\]/a python3_binary = /usr/bin/python3' st2/st2.conf
 	tar --transform=s~^~$(COMPONENTS)-$(VER)/~ --exclude=correlation -czf $(RPM_SOURCES_DIR)/$(COMPONENTS).tar.gz bin st2 logrotate.d rbac $(COMPONENTS) ../contrib ../tools/ ../requirements.txt
 	cp packaging/rpm/$(COMPONENTS)-rhel6.spec $(RPM_SPECS_DIR)/
 	cd $(RPM_SPECS_DIR) && rpmbuild --clean --rmsource -ba $(COMPONENTS)-rhel6.spec

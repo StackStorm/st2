@@ -129,9 +129,9 @@ def create_virtualenv(virtualenv_path, logger=None, include_pip=True, include_se
     logger = logger or LOG
 
     if three:
-        python_binary = cfg.CONF.actionrunner.python_binary
-    else:
         python_binary = cfg.CONF.actionrunner.python3_binary
+    else:
+        python_binary = cfg.CONF.actionrunner.python_binary
     virtualenv_binary = cfg.CONF.actionrunner.virtualenv_binary
     virtualenv_opts = cfg.CONF.actionrunner.virtualenv_opts
 
