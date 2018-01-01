@@ -78,14 +78,25 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
         setup_pack_virtualenv(pack_name=pack_name, update=False,
                               include_setuptools=False, include_wheel=False)
 
-        expected_args = {
-            'cmd': [
-                'virtualenv',
-                '--python', 'python2.7'
-            ],
-            'env': {}
-        }
-        virtualenvs.run_command.assert_called_once_with(**expected_args)
+        virtualenvs.run_command.assert_called_once()
+        self.assertTrue('/usr/bin/python3' in virtualenvs.run_command.call_args['cmd'])
+
+    @mock.patch.object(virtualenvs, 'run_command', mock.MagicMock(return_value=(0, '', '')))
+    @mock.patch.object(virtualenvs, 'get_pack_metadata', mock.MagicMock(return_value={}))
+    def test_setup_pack_virtualenv_python2_doesnt_exist_yet(self):
+        # Test a fresh virtualenv creation
+        pack_name = 'dummy_pack_1'
+        pack_virtualenv_dir = os.path.join(self.virtualenvs_path, pack_name)
+
+        # Verify virtualenv directory doesn't exist
+        self.assertFalse(os.path.exists(pack_virtualenv_dir))
+
+        # Create virtualenv
+        setup_pack_virtualenv(pack_name=pack_name, update=False,
+                              include_setuptools=False, include_wheel=False)
+
+        virtualenvs.run_command.assert_called_once()
+        self.assertTrue('/usr/bin/python' in virtualenvs.run_command.call_args['cmd'])
 
     def test_setup_pack_virtualenv_already_exists(self):
         # Test a scenario where virtualenv already exists
