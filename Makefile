@@ -270,7 +270,7 @@ $(VIRTUALENV_DIR)/bin/activate:
 	@echo
 	@echo "==================== virtualenv ===================="
 	@echo
-	test -f $(VIRTUALENV_DIR)/bin/activate || virtualenv --no-site-packages $(VIRTUALENV_DIR)
+	test -f $(VIRTUALENV_DIR)/bin/activate || virtualenv --no-site-packages $(VIRTUALENV_DIR) --python=python2.7
 
 	# Setup PYTHONPATH in bash activate script...
 	echo '' >> $(VIRTUALENV_DIR)/bin/activate
