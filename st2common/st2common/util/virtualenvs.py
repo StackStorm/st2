@@ -55,7 +55,7 @@ def setup_pack_virtualenv(pack_name, update=False, logger=None, include_pip=True
                    level logger.
     """
     logger = logger or LOG
-
+    three = False  # TODO: Either pull Python 3 flag from pack settings or a global env
     if not re.match(PACK_REF_WHITELIST_REGEX, pack_name):
         raise ValueError('Invalid pack name "%s"' % (pack_name))
 
@@ -81,7 +81,8 @@ def setup_pack_virtualenv(pack_name, update=False, logger=None, include_pip=True
         # 1. Create virtual environment
         logger.debug('Creating virtualenv for pack "%s" in "%s"' % (pack_name, virtualenv_path))
         create_virtualenv(virtualenv_path=virtualenv_path, logger=logger, include_pip=include_pip,
-                          include_setuptools=include_setuptools, include_wheel=include_wheel)
+                          include_setuptools=include_setuptools, include_wheel=include_wheel,
+                          three=three)
 
     # 2. Install base requirements which are common to all the packs
     logger.debug('Installing base requirements')
@@ -109,7 +110,7 @@ def setup_pack_virtualenv(pack_name, update=False, logger=None, include_pip=True
 
 
 def create_virtualenv(virtualenv_path, logger=None, include_pip=True, include_setuptools=True,
-                      include_wheel=True):
+                      include_wheel=True, three=False):
     """
     :param include_pip: Include pip binary and package in the newely created virtual environment.
     :type include_pip: ``bool``
@@ -120,11 +121,17 @@ def create_virtualenv(virtualenv_path, logger=None, include_pip=True, include_se
 
     :param include_wheel: Include wheel in the newely created virtual environment.
     :type include_wheel : ``bool``
+
+    :param three: Use Python 3 binary
+    :type  three: ``bool``
     """
 
     logger = logger or LOG
 
-    python_binary = cfg.CONF.actionrunner.python_binary
+    if three:
+        python_binary = cfg.CONF.actionrunner.python_binary
+    else:
+        python_binary = cfg.CONF.actionrunner.python3_binary
     virtualenv_binary = cfg.CONF.actionrunner.virtualenv_binary
     virtualenv_opts = cfg.CONF.actionrunner.virtualenv_opts
 
