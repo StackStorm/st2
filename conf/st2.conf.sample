@@ -20,6 +20,7 @@ stream_output = False
 logging = conf/logging.conf
 # Python binary which will be used by Python actions.
 python_binary = /data/stanley/virtualenv/bin/python
+python3_binary = /data/stanley/virtualenv/bin/python
 
 [api]
 # List of origins allowed for api, auth and stream
