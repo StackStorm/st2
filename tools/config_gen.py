@@ -64,7 +64,8 @@ AUTH_OPTIONS = {
 STATIC_OPTION_VALUES = {
     'actionrunner': {
         'virtualenv_binary': '/data/stanley/virtualenv/bin/virtualenv',
-        'python_binary': '/data/stanley/virtualenv/bin/python'
+        'python_binary': '/data/stanley/virtualenv/bin/python',
+        'python3_binary': '/data/stanley/virtualenv/bin/python3'
     },
     'webui': {
         'webui_base_url': 'https://localhost'
