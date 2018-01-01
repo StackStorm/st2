@@ -28,6 +28,7 @@ from st2common.constants.pack import PACK_REF_WHITELIST_REGEX
 from st2common.constants.pack import BASE_PACK_REQUIREMENTS
 from st2common.util.shell import run_command
 from st2common.util.shell import quote_unix
+from st2common.util.pack import get_pack_metadata
 from st2common.util.compat import to_ascii
 from st2common.content.utils import get_packs_base_paths
 from st2common.content.utils import get_pack_directory
@@ -55,7 +56,7 @@ def setup_pack_virtualenv(pack_name, update=False, logger=None, include_pip=True
                    level logger.
     """
     logger = logger or LOG
-    three = False  # TODO: Either pull Python 3 flag from pack settings or a global env
+    three = False  # TODO: Change default Python version to a global setting
     if not re.match(PACK_REF_WHITELIST_REGEX, pack_name):
         raise ValueError('Invalid pack name "%s"' % (pack_name))
 
@@ -72,6 +73,19 @@ def setup_pack_virtualenv(pack_name, update=False, logger=None, include_pip=True
         search_paths = ', '.join(packs_base_paths)
         msg = 'Pack "%s" is not installed. Looked in: %s' % (pack_name, search_paths)
         raise Exception(msg)
+
+    try:
+        pack_meta = get_pack_metadata(pack_path)
+        has_pack_meta = True
+    except ValueError:
+        # Pack is missing meta file
+        has_pack_meta = False
+
+    if has_pack_meta:
+        logger.debug('Checking pack specific Python version.')
+        if 'python3' in pack_meta.keys():
+            three = bool(pack_meta['python3'])
+            logger.debug('Using Python %s in virtualenv' % (3 if three else 2))
 
     # 1. Create virtualenv if it doesn't exist
     if not update or not os.path.exists(virtualenv_path):
