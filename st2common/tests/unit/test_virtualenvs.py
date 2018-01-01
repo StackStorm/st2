@@ -79,7 +79,8 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
                               include_setuptools=False, include_wheel=False)
 
         virtualenvs.run_command.assert_called_once()
-        self.assertTrue('/usr/bin/python3' in virtualenvs.run_command.call_args['cmd'])
+        _, kwargs = virtualenvs.run_command.call_args
+        self.assertTrue('/usr/bin/python3' in kwargs['cmd'])
 
     @mock.patch.object(virtualenvs, 'run_command', mock.MagicMock(return_value=(0, '', '')))
     @mock.patch.object(virtualenvs, 'get_pack_metadata', mock.MagicMock(return_value={}))
@@ -95,8 +96,8 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
         setup_pack_virtualenv(pack_name=pack_name, update=False,
                               include_setuptools=False, include_wheel=False)
 
-        virtualenvs.run_command.assert_called_once()
-        self.assertTrue('/usr/bin/python' in virtualenvs.run_command.call_args['cmd'])
+        _, kwargs = virtualenvs.run_command.call_args
+        self.assertTrue('/usr/bin/python3' not in kwargs['cmd'])
 
     def test_setup_pack_virtualenv_already_exists(self):
         # Test a scenario where virtualenv already exists
