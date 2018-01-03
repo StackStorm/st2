@@ -8,16 +8,18 @@ enable = True
 [actionrunner]
 # Internal pool size for dispatcher used by regular actions.
 actions_pool_size = 60
-# List of virtualenv options to be passsed to "virtualenv" command that creates pack virtualenv.
-virtualenv_opts = --system-site-packages # comma separated list allowed here.
+# Default log level to use for Python runner actions. Can be overriden on invocation basis using "log_level" runner parameter.
+python_runner_log_level = DEBUG
 # Internal pool size for dispatcher used by workflow actions.
 workflows_pool_size = 40
 # Virtualenv binary which should be used to create pack virtualenvs.
 virtualenv_binary = /data/stanley/virtualenv/bin/virtualenv
-# True to store and stream action output (stdout and stderr) in real-time.
-stream_output = False
 # location of the logging.conf file
 logging = conf/logging.conf
+# True to store and stream action output (stdout and stderr) in real-time.
+stream_output = False
+# List of virtualenv options to be passsed to "virtualenv" command that creates pack virtualenv.
+virtualenv_opts = --system-site-packages # comma separated list allowed here.
 # Python binary which will be used by Python actions.
 python_binary = /data/stanley/virtualenv/bin/python
 
