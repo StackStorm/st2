@@ -32,7 +32,7 @@ Added
   be specified in order to automatically convert list items to dicts based on presence of colon
   (`:`) in all of the list items (new feature) #3909
 * Allow user to set default log level used by all the Python runner actions by setting
-  ``actionrunner.pythonrunner```` option in ``st2.conf`` (new feature)
+  ``actionrunner.pythonrunner```` option in ``st2.conf`` (new feature) #3929
 
 Changed
 ~~~~~~~
