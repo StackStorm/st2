@@ -77,7 +77,7 @@ WRAPPER_SCRIPT_PATH = os.path.join(BASE_DIR, WRAPPER_SCRIPT_NAME)
 class PythonRunner(ActionRunner):
 
     def __init__(self, runner_id, config=None, timeout=PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT,
-                 log_level=PYTHON_RUNNER_DEFAULT_LOG_LEVEL, sandbox=True):
+                 log_level=None, sandbox=True):
 
         """
         :param timeout: Action execution timeout in seconds.
@@ -94,7 +94,7 @@ class PythonRunner(ActionRunner):
         self._config = config
         self._timeout = timeout
         self._enable_common_pack_libs = cfg.CONF.packs.enable_common_libs or False
-        self._log_level = log_level
+        self._log_level = log_level or cfg.CONF.actionrunner.python_runner_log_level
         self._sandbox = sandbox
 
     def pre_run(self):
@@ -105,6 +105,9 @@ class PythonRunner(ActionRunner):
         self._env = self.runner_parameters.get(RUNNER_ENV, {})
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, self._timeout)
         self._log_level = self.runner_parameters.get(RUNNER_LOG_LEVEL, self._log_level)
+
+        if self._log_level == PYTHON_RUNNER_DEFAULT_LOG_LEVEL:
+            self._log_level = cfg.CONF.actionrunner.python_runner_log_level
 
     def run(self, action_parameters):
         LOG.debug('Running pythonrunner.')
