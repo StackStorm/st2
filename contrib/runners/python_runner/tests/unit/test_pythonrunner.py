@@ -667,6 +667,23 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertFalse(expected_msg_4 in output['stderr'])
         self.assertTrue(expected_msg_5 in output['stderr'])
 
+        # Default log level is changed in st2.config
+        cfg.CONF.set_override(name='python_runner_log_level', override='INFO',
+                              group='actionrunner')
+
+        runner = self._get_mock_runner_obj()
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.runner_parameters = {}
+        runner.pre_run()
+        (status, output, _) = runner.run({'row_index': 'e'})
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+        self.assertTrue(output is not None)
+        self.assertEqual(output['result'], [1, 2])
+
+        self.assertTrue(expected_msg_3 in output['stderr'])
+        self.assertFalse(expected_msg_4 in output['stderr'])
+        self.assertTrue(expected_msg_5 in output['stderr'])
+
     def _get_mock_runner_obj(self):
         runner = python_runner.get_runner()
         runner.execution = MOCK_EXECUTION
