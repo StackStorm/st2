@@ -159,8 +159,6 @@ class PythonActionWrapper(object):
             LOG.debug('Failed to parse config using parent args (parent_args=%s): %s' %
                       (str(self._parent_args), str(e)))
 
-        print 'xxxx', self._log_level
-
         # Note: We can only set a default user value if one is not provided after parsing the
         # config
         if not self._user:
