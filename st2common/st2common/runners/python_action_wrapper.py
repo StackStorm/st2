@@ -33,6 +33,8 @@ import json
 import argparse
 import traceback
 
+from oslo_config import cfg
+
 from st2common import log as logging
 from st2common import config as st2common_config
 from st2common.runners.base_action import Action
@@ -159,6 +161,11 @@ class PythonActionWrapper(object):
             LOG.debug('Failed to parse config using parent args (parent_args=%s): %s' %
                       (str(self._parent_args), str(e)))
 
+        if not self._log_level:
+            self._log_level = cfg.CONF.actionrunner.python_runner_log_level
+
+        print 'xxxx', self._log_level
+
         # Note: We can only set a default user value if one is not provided after parsing the
         # config
         if not self._user:
@@ -254,8 +261,7 @@ if __name__ == '__main__':
     parser.add_argument('--parent-args', required=False,
                         help='Command line arguments passed to the parent process serialized as '
                              ' JSON')
-    parser.add_argument('--log-level', required=False,
-                        default=cfg.CONF.actionrunner.python_runner_log_level,
+    parser.add_argument('--log-level', required=False, default=None,
                         help='Log level for actions')
     args = parser.parse_args()
 
