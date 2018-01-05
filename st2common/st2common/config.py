@@ -59,7 +59,7 @@ def register_opts(ignore_errors=False):
                    default='stanley',
                    help='Default system user.'),
         cfg.StrOpt('ssh_key_file',
-                   default='/home/vagrant/.ssh/stanley_rsa',
+                   default='/home/stanley/.ssh/stanley_rsa',
                    help='SSH private key for the system user.')
     ]
     do_register_opts(system_user_opts, 'system_user', ignore_errors)
