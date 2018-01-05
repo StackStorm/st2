@@ -31,6 +31,8 @@ __all__ = [
     'VirtualenvUtilsTestCase'
 ]
 
+PACK_WITH_PY3 = {'system': {'python3': True}}
+
 
 # Note: We set base requirements to an empty list to speed up the tests
 @mock.patch('st2common.util.virtualenvs.BASE_PACK_REQUIREMENTS', [])
@@ -65,7 +67,7 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
         self.assertVirtulenvExists(pack_virtualenv_dir)
 
     @mock.patch.object(virtualenvs, 'run_command', mock.MagicMock(return_value=(0, '', '')))
-    @mock.patch.object(virtualenvs, 'get_pack_metadata', mock.MagicMock(return_value={'python3': True}))
+    @mock.patch.object(virtualenvs, 'get_pack_metadata', mock.MagicMock(return_value=PACK_WITH_PY3))
     def test_setup_pack_virtualenv_python3_doesnt_exist_yet(self):
         # Test a fresh virtualenv creation
         pack_name = 'dummy_pack_1'

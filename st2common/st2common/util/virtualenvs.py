@@ -83,8 +83,8 @@ def setup_pack_virtualenv(pack_name, update=False, logger=None, include_pip=True
 
     if has_pack_meta:
         logger.debug('Checking pack specific Python version.')
-        if 'python3' in pack_meta.keys():
-            three = bool(pack_meta['python3'])
+        if 'system' in pack_meta.keys() and 'python3' in pack_meta['system'].keys():
+            three = bool(pack_meta['system']['python3'])
             logger.debug('Using Python %s in virtualenv' % (3 if three else 2))
 
     # 1. Create virtualenv if it doesn't exist
