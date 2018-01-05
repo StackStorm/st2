@@ -648,7 +648,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(output['result'], [1, 2])
 
         self.assertTrue(expected_msg_3 in output['stderr'])
-        self.assertFalse(expected_msg_4 in output['stderr'])
+        self.assertTrue(expected_msg_4 not in output['stderr'])
         self.assertTrue(expected_msg_5 in output['stderr'])
 
         # Only log messages with level error and above should be displayed
@@ -663,8 +663,8 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertTrue(output is not None)
         self.assertEqual(output['result'], [1, 2])
 
-        self.assertFalse(expected_msg_3 in output['stderr'])
-        self.assertFalse(expected_msg_4 in output['stderr'])
+        self.assertTrue(expected_msg_3 not in output['stderr'])
+        self.assertTrue(expected_msg_4 not in output['stderr'])
         self.assertTrue(expected_msg_5 in output['stderr'])
 
         # Default log level is changed in st2.config
@@ -681,7 +681,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(output['result'], [1, 2])
 
         self.assertTrue(expected_msg_3 in output['stderr'])
-        self.assertFalse(expected_msg_4 in output['stderr'])
+        self.assertTrue(expected_msg_4 not in output['stderr'])
         self.assertTrue(expected_msg_5 in output['stderr'])
 
     def _get_mock_runner_obj(self):
