@@ -55,7 +55,7 @@ class InquiryListCommand(resource.ResourceCommand):
 
     def __init__(self, resource, *args, **kwargs):
 
-        self.default_limit = 20
+        self.default_limit = 50
 
         super(InquiryListCommand, self).__init__(
             resource, 'list', 'Get the list of the %s most recent %s.' %
@@ -65,7 +65,8 @@ class InquiryListCommand(resource.ResourceCommand):
         self.resource_name = resource.get_plural_display_name().lower()
         self.parser.add_argument('-n', '--last', type=int, dest='last',
                                  default=self.default_limit,
-                                 help=('List N most recent %s.' % self.resource_name))
+                                 help=('List N most recent %s. Use -n -1 to fetch the full result \
+                                       set.' % self.resource_name))
 
         # Display options
         self.parser.add_argument('-a', '--attr', nargs='+',

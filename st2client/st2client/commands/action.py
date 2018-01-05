@@ -948,7 +948,7 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
                                           'parameter to the action. Note: Only works '
                                           'with python, local and remote runners.')
             self.parser.add_argument('-u', '--user', type=str, default=None,
-                                           help='User under which to run the action (admins only).')
+                                     help='User under which to run the action (admins only).')
 
         if self.name == 'run':
             self.parser.set_defaults(async=False)
@@ -968,8 +968,8 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
         runner_mgr = self.app.client.managers['RunnerType']
         runner = runner_mgr.get_by_name(action.runner_type, **kwargs)
         if not runner:
-            raise resource.ResourceNotFoundError('Runner type "%s" for action "%s" cannot be found.'
-                                                 % (action.runner_type, action.name))
+            raise resource.ResourceNotFoundError('Runner type "%s" for action "%s" cannot be \
+                                                 found.' % (action.runner_type, action.name))
 
         action_ref = '.'.join([action.pack, action.name])
         action_parameters = self._get_action_parameters_from_args(action=action, runner=runner,
@@ -1065,17 +1065,20 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
     }
 
     def __init__(self, resource, *args, **kwargs):
-        super(ActionExecutionListCommand, self).__init__(
-            resource, 'list', 'Get the list of the 50 most recent %s.' %
-            resource.get_plural_display_name().lower(),
-            *args, **kwargs)
 
         self.default_limit = 50
+
+        super(ActionExecutionListCommand, self).__init__(
+            resource, 'list', 'Get the list of the %s most recent %s.' %
+            (self.default_limit, resource.get_plural_display_name().lower()),
+            *args, **kwargs)
+
         self.resource_name = resource.get_plural_display_name().lower()
         self.group = self.parser.add_argument_group()
         self.parser.add_argument('-n', '--last', type=int, dest='last',
                                  default=self.default_limit,
-                                 help=('List N most recent %s.' % self.resource_name))
+                                 help=('List N most recent %s. Use -n -1 to fetch the full result \
+                                       set.' % self.resource_name))
         self.parser.add_argument('-s', '--sort', type=str, dest='sort_order',
                                  default='descending',
                                  help=('Sort %s by start timestamp, '
@@ -1084,9 +1087,9 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
 
         # Filter options
         self.group.add_argument('--action', help='Action reference to filter the list.')
-        self.group.add_argument('--status', help=('Only return executions with the provided status.'
-                                                  ' Possible values are \'%s\', \'%s\', \'%s\','
-                                                  '\'%s\', \'%s\' or \'%s\''
+        self.group.add_argument('--status', help=('Only return executions with the provided \
+                                                  status. Possible values are \'%s\', \'%s\', \
+                                                  \'%s\', \'%s\', \'%s\' or \'%s\''
                                                   '.' % POSSIBLE_ACTION_STATUS_VALUES))
         self.group.add_argument('--trigger_instance',
                                 help='Trigger instance id to filter the list.')
@@ -1399,7 +1402,7 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
                                  help='ID of action execution to tail.')
         self.parser.add_argument('--type', dest='output_type', action='store',
                                  help=('Type of output to tail for. If not provided, '
-                                      'defaults to all.'))
+                                       'defaults to all.'))
         self.parser.add_argument('--include-metadata', dest='include_metadata',
                                  action='store_true',
                                  default=False,
@@ -1478,8 +1481,8 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
                         continue
                     elif status in LIVEACTION_COMPLETED_STATES:
                         print('')
-                        print('Child execution (task=%s) %s has finished (status=%s).' % (task_name,
-                              task_execution_id, status))
+                        print('Child execution (task=%s) %s has finished (status=%s).' %
+                              (task_name, task_execution_id, status))
                         continue
                     else:
                         # We don't care about other child events so we simply skip then
