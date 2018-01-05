@@ -701,6 +701,22 @@ class ParamsUtilsTest(DbTestCase):
         """Test addition of template values in defaults to live params
         """
 
+        # Ensure parameter is skipped if the parameter has immutable set to true in schema
+        schemas = [
+            {
+                'templateparam': {
+                    'default': '{{ 3 | int }}',
+                    'type': 'integer',
+                    'immutable': True
+                }
+            }
+        ]
+        context = {
+            'templateparam': '3'
+        }
+        result = param_utils._cast_params_from({}, context, schemas)
+        self.assertEquals(result, {})
+
         # Test with no live params, and two parameters - one should make it through because
         # it was a template, and the other shouldn't because its default wasn't a template
         schemas = [
