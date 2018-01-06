@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import ast
 import logging
 import sys
@@ -23,6 +24,7 @@ from st2client import formatters
 from st2client.utils import jsutil
 from st2client.utils import strutil
 from st2client.utils.color import DisplayColors
+import six
 
 
 LOG = logging.getLogger(__name__)
@@ -44,7 +46,7 @@ class ExecutionResult(formatters.Formatter):
             for attr in attrs:
                 value = jsutil.get_value(entry, attr)
                 value = strutil.strip_carriage_returns(strutil.unescape(value))
-                if (isinstance(value, basestring) and len(value) > 0 and
+                if (isinstance(value, six.string_types) and len(value) > 0 and
                         value[0] in ['{', '['] and value[len(value) - 1] in ['}', ']']):
                     new_value = ast.literal_eval(value)
                     if type(new_value) in [dict, list]:

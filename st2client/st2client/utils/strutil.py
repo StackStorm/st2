@@ -14,12 +14,14 @@
 # limitations under the License.
 
 
+from __future__ import absolute_import
+import six
 def unescape(s):
     """
     Action execution escapes escaped chars in result (i.e. \n is stored as \\n).
     This function unescapes those chars.
     """
-    if isinstance(s, basestring):
+    if isinstance(s, six.string_types):
         s = s.replace('\\n', '\n')
         s = s.replace('\\r', '\r')
         s = s.replace('\\"', '\"')
@@ -34,14 +36,14 @@ def dedupe_newlines(s):
     deduplicate them.
     """
 
-    if isinstance(s, basestring):
+    if isinstance(s, six.string_types):
         s = s.replace('\n\n', '\n')
 
     return s
 
 
 def strip_carriage_returns(s):
-    if isinstance(s, basestring):
+    if isinstance(s, six.string_types):
         s = s.replace('\\r', '')
         s = s.replace('\r', '')
 

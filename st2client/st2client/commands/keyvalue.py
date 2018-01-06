@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import os
 import json
 import logging
@@ -23,6 +24,7 @@ from st2client.commands.noop import NoopCommand
 from st2client.formatters import table
 from st2client.models.keyvalue import KeyValuePair
 from st2client.utils.date import format_isodate_for_user_timezone
+import six
 
 LOG = logging.getLogger(__name__)
 
@@ -303,7 +305,7 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
 
             # if the value is not a string, convert it to JSON
             # all keys in the datastore must strings
-            if not isinstance(value, basestring):
+            if not isinstance(value, six.string_types):
                 if args.convert:
                     value = json.dumps(value)
                 else:
