@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import copy
 import json
 import mock
@@ -23,6 +24,7 @@ import uuid
 
 from tests import base
 from st2client import shell
+from six.moves import range
 
 LOG = logging.getLogger(__name__)
 
