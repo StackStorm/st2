@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import logging
 import mock
 from StringIO import StringIO
@@ -23,6 +24,7 @@ import prompt_toolkit
 from prompt_toolkit.document import Document
 
 from st2client.utils import interactive
+import six
 
 
 LOG = logging.getLogger(__name__)
@@ -40,7 +42,7 @@ class TestInteractive(unittest2.TestCase):
     def assertPromptValidate(self, prompt_mock, value):
         validator = prompt_mock.call_args[1]['validator']
 
-        validator.validate(Document(text=unicode(value)))
+        validator.validate(Document(text=six.text_type(value)))
 
     def assertPromptPassword(self, prompt_mock, value, msg=None):
         self.assertEqual(prompt_mock.call_args[1]['is_password'], value, msg)
@@ -383,5 +385,5 @@ class TestInteractive(unittest2.TestCase):
         results = Reader.read()
 
         self.assertEqual(len(results), 2)
-        self.assertTrue(all([len(x.keys()) == 2 for x in results]))
+        self.assertTrue(all([len(list(x.keys())) == 2 for x in results]))
         self.assertTrue(all(['foo' in x and 'bar' in x for x in results]))

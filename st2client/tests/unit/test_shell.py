@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import os
 import time
 import datetime
@@ -409,7 +410,7 @@ class CLITokenCachingTestCase(unittest2.TestCase):
         self.assertRegexpMatches(log_message, expected_msg)
 
         # 2. Read access on the directory, but not on the cached token file
-        os.chmod(self._mock_config_directory_path, 0777)  # nosec
+        os.chmod(self._mock_config_directory_path, 0o777)  # nosec
         os.chmod(cached_token_path, 0000)
 
         shell.LOG = mock.Mock()
@@ -424,8 +425,8 @@ class CLITokenCachingTestCase(unittest2.TestCase):
         self.assertRegexpMatches(log_message, expected_msg)
 
         # 3. Other users also have read access to the file
-        os.chmod(self._mock_config_directory_path, 0777)  # nosec
-        os.chmod(cached_token_path, 0444)
+        os.chmod(self._mock_config_directory_path, 0o777)  # nosec
+        os.chmod(cached_token_path, 0o444)
 
         shell.LOG = mock.Mock()
         result = shell._get_cached_auth_token(client=client, username=username,
@@ -469,7 +470,7 @@ class CLITokenCachingTestCase(unittest2.TestCase):
         self.assertRegexpMatches(log_message, expected_msg)
 
         # 2. Current user has no write access to the cached token file
-        os.chmod(self._mock_config_directory_path, 0777)  # nosec
+        os.chmod(self._mock_config_directory_path, 0o777)  # nosec
         os.chmod(cached_token_path, 0000)
 
         shell.LOG = mock.Mock()

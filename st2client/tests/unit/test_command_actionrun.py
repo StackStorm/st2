@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import copy
 
 import unittest2
@@ -41,7 +42,7 @@ class ActionRunCommandTest(unittest2.TestCase):
         orig_action_params = copy.deepcopy(action.parameters)
 
         params, rqd, opt, imm = ActionRunCommand._get_params_types(runner, action)
-        self.assertEqual(len(params.keys()), 3)
+        self.assertEqual(len(list(params.keys())), 3)
 
         self.assertTrue('foo' in imm, '"foo" param should be in immutable set.')
         self.assertTrue('foo' not in rqd, '"foo" param should not be in required set.')
