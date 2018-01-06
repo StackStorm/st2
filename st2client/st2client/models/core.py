@@ -324,7 +324,9 @@ class ResourceManager(object):
         url = '/%s/%s' % (self.resource.get_url_path_name(), instance.id)
         response = self.client.delete(url, **kwargs)
 
-        if response.status_code not in [six.moves.http_client.OK, six.moves.http_client.NO_CONTENT, six.moves.http_client.NOT_FOUND]:
+        if response.status_code not in [six.moves.http_client.OK,
+                                        six.moves.http_client.NO_CONTENT,
+                                        six.moves.http_client.NOT_FOUND]:
             self.handle_error(response)
             return False
 
@@ -334,7 +336,9 @@ class ResourceManager(object):
     def delete_by_id(self, instance_id, **kwargs):
         url = '/%s/%s' % (self.resource.get_url_path_name(), instance_id)
         response = self.client.delete(url, **kwargs)
-        if response.status_code not in [six.moves.http_client.OK, six.moves.http_client.NO_CONTENT, six.moves.http_client.NOT_FOUND]:
+        if response.status_code not in [six.moves.http_client.OK,
+                                        six.moves.http_client.NO_CONTENT,
+                                        six.moves.http_client.NOT_FOUND]:
             self.handle_error(response)
             return False
         try:
