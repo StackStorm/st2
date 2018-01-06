@@ -89,7 +89,7 @@ class InquiryListCommand(resource.ResourceCommand):
                           attributes=args.attr, widths=args.width,
                           json=args.json,
                           yaml=args.yaml)
-        if args.last >= self.default_limit and count and int(count) > args.last:
+        if args.last and count and count > args.last:
             table.SingleRowTable.note_box(self.resource_name, args.last)
 
 
