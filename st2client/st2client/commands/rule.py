@@ -49,7 +49,7 @@ class RuleListCommand(resource.ResourceTableCommand):
                                               (self.default_limit,
                                                resource.get_plural_display_name().lower()),
                                               *args, **kwargs)
-        self.default_limit = 50
+
         self.resource_name = resource.get_plural_display_name().lower()
         self.group = self.parser.add_argument_group()
         self.parser.add_argument('-n', '--last', type=int, dest='last',
