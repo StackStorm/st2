@@ -172,6 +172,11 @@ class ResourceController(object):
                 # TODO: We should throw here, I don't like this.
                 msg = 'Limit "%s" specified, maximum value is "%s"' % (limit, self.max_limit)
                 raise ValueError(msg)
+        # Disable n = 0
+        elif limit == 0:
+            msg = 'Limit, "%s" specified, must be a positive number or -1 for full result set.'\
+                % (limit)
+            raise ValueError(msg)
 
         eop = offset + int(limit) if limit else None
 
