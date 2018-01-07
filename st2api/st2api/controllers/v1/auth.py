@@ -18,6 +18,7 @@ import six
 from oslo_config import cfg
 from mongoengine import ValidationError
 
+from st2api.controllers import resource
 from st2api.controllers.base import BaseRestControllerMixin
 from st2common import log as logging
 from st2common.models.api.auth import ApiKeyAPI, ApiKeyCreateResponseAPI
@@ -102,18 +103,7 @@ class ApiKeyController(BaseRestControllerMixin):
         mask_secrets = self._get_mask_secrets(show_secrets=show_secrets,
                                               requester_user=requester_user)
 
-        if limit:
-            # Display all the results
-            if int(limit) == -1:
-                limit = 0
-
-            if int(limit) <= -2:
-                msg = 'Limit, "%s" specified, must be a positive number.' % (limit)
-                raise ValueError(msg)
-
-            if int(limit) > self.max_limit:
-                msg = 'Limit "%s" specified, maximum value is "%s"' % (limit, self.max_limit)
-                raise ValueError(msg)
+        limit = resource.limit_query_validation(limit)
 
         api_key_dbs = ApiKey.get_all(limit=limit, offset=offset)
 
