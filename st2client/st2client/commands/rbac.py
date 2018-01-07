@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 from st2client.formatters import table
 from st2client.commands import resource
 from st2client.models.rbac import Role

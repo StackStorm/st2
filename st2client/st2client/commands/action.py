@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 import ast
 import copy
@@ -27,6 +28,8 @@ import sys
 
 from os.path import join as pjoin
 
+from six.moves import range
+
 from st2client import models
 from st2client.commands import resource
 from st2client.commands.resource import ResourceNotFoundError
@@ -37,7 +40,6 @@ from st2client.utils import jsutil
 from st2client.utils.date import format_isodate_for_user_timezone
 from st2client.utils.date import parse as parse_isotime
 from st2client.utils.color import format_status
-from six.moves import range
 
 LOG = logging.getLogger(__name__)
 

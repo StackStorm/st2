@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 from st2client.models import core
 from st2client.models.action_alias import ActionAlias
 from st2client.models.action_alias import ActionAliasMatch

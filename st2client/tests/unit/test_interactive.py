@@ -16,12 +16,12 @@
 from __future__ import absolute_import
 import logging
 import mock
-from StringIO import StringIO
 import re
 import unittest2
 
 import prompt_toolkit
 from prompt_toolkit.document import Document
+from six.moves import StringIO
 
 from st2client.utils import interactive
 import six
