@@ -18,6 +18,7 @@ env:
     - TASK=ci-unit NODE_INDEX=0 NODE_TOTAL=2
     - TASK=ci-unit NODE_INDEX=1 NODE_TOTAL=2
     - TASK=ci-integration
+    - TASK=ci-py3-tests
     - TASK="ci-checks ci-packs-tests"
 
 addons:
@@ -49,7 +50,7 @@ cache:
     - .tox/
 
 install:
-  - make requirements
+  - if [ ${TASK} = 'ci-py3-tests' ]; then pip install tox; else make requirements; fi
   - if [ ${TASK} = 'ci-unit' ] || [ ${TASK} = 'ci-integration' ]; then pip install codecov; sudo .circle/add-itest-user.sh; fi
 
 script:
