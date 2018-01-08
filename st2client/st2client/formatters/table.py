@@ -14,19 +14,20 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import json
 import math
 import logging
 import sys
 
+import six
 from prettytable import PrettyTable
 from six.moves import zip
+from six.moves import range
 
 from st2client import formatters
 from st2client.utils import strutil
 from st2client.utils.terminal import get_terminal_size
-import six
-from six.moves import range
 
 
 LOG = logging.getLogger(__name__)
