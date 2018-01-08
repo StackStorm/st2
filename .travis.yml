@@ -47,6 +47,7 @@ cache:
   pip: true
   directories:
     - virtualenv/
+    - .tox/
 
 install:
   - if [ ${TASK} = 'ci-py3-tests' ]; then pip install tox; else make requirements; fi
