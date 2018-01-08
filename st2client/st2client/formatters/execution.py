@@ -74,4 +74,8 @@ class ExecutionResult(formatters.Formatter):
                 output += ('\n' if output else '') + '%s: %s' % \
                     (DisplayColors.colorize(attr, DisplayColors.BLUE), value)
 
-        return strutil.unescape(output).decode('unicode_escape').encode('utf-8')
+            if six.PY3:
+                return strutil.unescape(output)
+            else:
+                # Assume Python 2
+                return strutil.unescape(output).decode('unicode_escape').encode('utf-8')
