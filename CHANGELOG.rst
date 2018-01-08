@@ -35,7 +35,7 @@ Added
 
   Note: Python 2.7 is only officially supported and tested Python version. Using Python 3 is at
   your own risk - they are likely still many bugs related to Python 3 compatibility. You have been warned.
-  (new feature) #3929
+  (new feature) #3929 #3932
 
   Contributed by Anthony Shaw.
 
