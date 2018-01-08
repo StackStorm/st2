@@ -481,6 +481,13 @@ ci-st2client-py3-tests:
 	@echo
 	@echo "==================== ci-st2client-py3-tests ===================="
 	@echo
+	tox -e py36 -v
+
+.PHONY: st2client-py3-tests
+st2client-py3-tests:
+	@echo
+	@echo "==================== ci-st2client-py3-tests ===================="
+	@echo
 	tox -e py36 -vv
 
 .PHONY: .rst-check
