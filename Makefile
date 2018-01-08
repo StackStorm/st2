@@ -481,7 +481,7 @@ ci-py3-tests:
 	@echo
 	@echo "==================== ci-py3-tests ===================="
 	@echo
-	tox -epy35
+	tox -e py35 -vv
 
 .PHONY: .rst-check
 .rst-check:
