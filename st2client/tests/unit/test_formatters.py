@@ -24,6 +24,8 @@ import tempfile
 import unittest2
 
 from io import BytesIO
+from six.moves import StringIO
+
 from tests import base
 from tests.fixtures import loader
 
@@ -70,6 +72,7 @@ class TestExecutionResultFormatter(unittest2.TestCase):
     def setUp(self):
         self.fd, self.path = tempfile.mkstemp()
         self._redirect_console(self.path)
+        self.maxDiff = None
 
     def tearDown(self):
         self._undo_console_redirect()
@@ -218,7 +221,7 @@ class TestExecutionResultFormatter(unittest2.TestCase):
         return content
 
     def test_SinlgeRowTable_notebox_one(self):
-        with mock.patch('sys.stderr', new=BytesIO()) as fackety_fake:
+        with mock.patch('sys.stderr', new=StringIO()) as fackety_fake:
             expected = "Note: Only one action execution is displayed. Use -n/--last flag for " \
                 "more results."
             print(self.table.note_box("action executions", 1))
@@ -228,16 +231,16 @@ class TestExecutionResultFormatter(unittest2.TestCase):
     def test_SinlgeRowTable_notebox_zero(self):
         with mock.patch('sys.stderr', new=BytesIO()) as fackety_fake:
             contents = (fackety_fake.getvalue())
-            self.assertEquals(contents, "")
+            self.assertEquals(contents, b'')
 
     def test_SinlgeRowTable_notebox_default(self):
-        with mock.patch('sys.stderr', new=BytesIO()) as fackety_fake:
+        with mock.patch('sys.stderr', new=StringIO()) as fackety_fake:
             expected = "Note: Only first 50 action executions are displayed. Use -n/--last flag " \
                 "for more results."
             print(self.table.note_box("action executions", 50))
             content = (fackety_fake.getvalue().split("|")[1].strip())
             self.assertEquals(content, expected)
-        with mock.patch('sys.stderr', new=BytesIO()) as fackety_fake:
+        with mock.patch('sys.stderr', new=StringIO()) as fackety_fake:
             expected = "Note: Only first 15 action executions are displayed. Use -n/--last flag " \
                 "for more results."
             print(self.table.note_box("action executions", 15))
