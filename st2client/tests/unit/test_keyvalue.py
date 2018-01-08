@@ -273,7 +273,6 @@ class TestKeyValueLoad(TestKeyValueBase):
         try:
             array = [KEYVALUE, KEYVALUE_ALL]
             json_str = json.dumps(array, indent=4)
-            print json_str
             LOG.info(json_str)
             with open(path, 'a') as f:
                 f.write(json_str)
