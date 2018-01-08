@@ -17,16 +17,16 @@ env:
     - CACHE_NAME=JOB1
   matrix:
     include:
-        - python: 2.7
-          env: TASK=ci-unit NODE_INDEX=0 NODE_TOTAL=2
-        - python: 2.7
-          env: TASK=ci-unit NODE_INDEX=1 NODE_TOTAL=2
-        - python: 2.7
-          env: TASK=ci-integration
-        - python: 3.6
-          env: TASK=ci-st2client-py3-tests
-        - python: 2.7
-          env: TASK="ci-checks ci-packs-tests"
+        - env: TASK=ci-unit NODE_INDEX=0 NODE_TOTAL=2
+          python: 2.7
+        - env: TASK=ci-unit NODE_INDEX=1 NODE_TOTAL=2
+          python: 2.7
+        - env: TASK=ci-integration
+          python: 2.7
+        - env: TASK="ci-checks ci-packs-tests"
+          python: 2.7
+        - env: TASK=ci-st2client-py3-tests
+          python: 3.6
 addons:
   apt:
     sources:
