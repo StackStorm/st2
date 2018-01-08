@@ -17,7 +17,6 @@ from __future__ import absolute_import
 
 import ast
 import logging
-import sys
 import struct
 
 import yaml
