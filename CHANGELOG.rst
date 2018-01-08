@@ -52,6 +52,10 @@ Changed
   gitpython, pymongo, stevedore, paramiko, prompt-toolkit, flex). #3830
 * Mask values in an Inquiry response displayed to the user that were marked as "secret" in the
   inquiry's response schema. #3825
+* Real-time action output streaming is now enabled by default. For more information on this
+  feature, please refer to the documentation - https://docs.stackstorm.com/latest/reference/action_output_streaming.html.
+  You can disable this functionality by setting ``actionrunner.stream_output`` config option in
+  ``st2.conf`` to ``False`` and restart the services (``sudo st2ctl restart``).
 
 Fixed
 ~~~~~
