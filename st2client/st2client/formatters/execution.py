@@ -18,6 +18,7 @@ from __future__ import absolute_import
 import ast
 import logging
 import sys
+import struct
 
 import yaml
 
@@ -29,6 +30,8 @@ import six
 
 
 LOG = logging.getLogger(__name__)
+
+PLATFORM_MAXINT = 2 ** (struct.Struct('i').size * 8 - 1) - 1
 
 
 class ExecutionResult(formatters.Formatter):
@@ -60,7 +63,7 @@ class ExecutionResult(formatters.Formatter):
                     #    and likely we will see other issues like storage :P.
                     formatted_value = yaml.safe_dump({attr: value},
                                                      default_flow_style=False,
-                                                     width=sys.maxint,
+                                                     width=PLATFORM_MAXINT,
                                                      indent=2)[len(attr) + 2:-1]
                     value = ('\n' if isinstance(value, dict) else '') + formatted_value
                     value = strutil.dedupe_newlines(value)
