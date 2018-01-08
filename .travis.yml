@@ -16,12 +16,17 @@ env:
   global:
     - CACHE_NAME=JOB1
   matrix:
-    - TASK=ci-unit NODE_INDEX=0 NODE_TOTAL=2
-    - TASK=ci-unit NODE_INDEX=1 NODE_TOTAL=2
-    - TASK=ci-integration
-    - TASK=ci-st2client-py3-tests
-    - TASK="ci-checks ci-packs-tests"
-
+    include:
+        - python: 2.7
+          env: TASK=ci-unit NODE_INDEX=0 NODE_TOTAL=2
+        - python: 2.7
+          env: TASK=ci-unit NODE_INDEX=1 NODE_TOTAL=2
+        - python: 2.7
+          env: TASK=ci-integration
+        - python: 3.6
+          env: TASK=ci-st2client-py3-tests
+        - python: 2.7
+          env: TASK="ci-checks ci-packs-tests"
 addons:
   apt:
     sources:
