@@ -31,13 +31,6 @@ Added
 * Added flag `--auto-dict` to `st2 run` and `st2 execution re-run` commands. This flag must now
   be specified in order to automatically convert list items to dicts based on presence of colon
   (`:`) in all of the list items (new feature) #3909
-* Update ``st2client`` package which is also utilized by the CLI so it also works under Python 3.
-
-  Note: Python 2.7 is only officially supported and tested Python version. Using Python 3 is at
-  your own risk - they are likely still many bugs related to Python 3 compatibility. You have been warned.
-  (new feature) #3929
-
-  Contributed by Anthony Shaw.
 
 Changed
 ~~~~~~~
