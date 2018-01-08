@@ -47,11 +47,13 @@ FIXTURES_MANIFEST = {
                 'execution_get_detail.txt',
                 'execution_get_result_by_key.txt',
                 'execution_result_has_carriage_return.txt',
+                'execution_result_has_carriage_return_py3.txt',
                 'execution_get_attributes.txt',
                 'execution_list_attr_start_timestamp.txt',
                 'execution_list_empty_response_start_timestamp_attr.txt',
                 'execution_unescape_newline.txt',
-                'execution_unicode.txt']
+                'execution_unicode.txt',
+                'execution_unicode_py3.txt']
 }
 
 FIXTURES = loader.load_fixtures(fixtures_dict=FIXTURES_MANIFEST)
@@ -144,7 +146,10 @@ class TestExecutionResultFormatter(unittest2.TestCase):
         with open(self.path, 'r') as fd:
             content = fd.read()
 
-        self.assertEqual(content, FIXTURES['results']['execution_unicode.txt'])
+        if six.PY2:
+            self.assertEqual(content, FIXTURES['results']['execution_unicode.txt'])
+        else:
+            self.assertEqual(content, FIXTURES['results']['execution_unicode_py3.txt'])
 
     def test_execution_get_detail_in_json(self):
         argv = ['execution', 'get', EXECUTION['id'], '-d', '-j']
@@ -178,8 +183,14 @@ class TestExecutionResultFormatter(unittest2.TestCase):
         self._undo_console_redirect()
         with open(self.path, 'r') as fd:
             content = fd.read()
-        self.assertEqual(
-            content, FIXTURES['results']['execution_result_has_carriage_return.txt'])
+
+        if six.PY2:
+            self.assertEqual(
+                content, FIXTURES['results']['execution_result_has_carriage_return.txt'])
+        else:
+            self.assertEqual(
+                content,
+                FIXTURES['results']['execution_result_has_carriage_return_py3.txt'])
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
