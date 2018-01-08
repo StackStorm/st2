@@ -59,7 +59,7 @@ def register_opts(ignore_errors=False):
                    default='stanley',
                    help='Default system user.'),
         cfg.StrOpt('ssh_key_file',
-                   default='/home/vagrant/.ssh/stanley_rsa',
+                   default='/home/stanley/.ssh/stanley_rsa',
                    help='SSH private key for the system user.')
     ]
     do_register_opts(system_user_opts, 'system_user', ignore_errors)
@@ -231,8 +231,8 @@ def register_opts(ignore_errors=False):
         cfg.ListOpt('virtualenv_opts', default=['--system-site-packages'],
                     help='List of virtualenv options to be passsed to "virtualenv" command that ' +
                          'creates pack virtualenv.'),
-        cfg.BoolOpt('stream_output', default=False, help='True to store and stream action output '
-                                                         '(stdout and stderr) in real-time.')
+        cfg.BoolOpt('stream_output', default=True, help='True to store and stream action output '
+                                                        '(stdout and stderr) in real-time.')
     ]
     do_register_opts(action_runner_opts, group='actionrunner')
 
