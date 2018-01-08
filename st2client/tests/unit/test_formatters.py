@@ -221,15 +221,13 @@ class TestExecutionResultFormatter(unittest2.TestCase):
         with mock.patch('sys.stderr', new=BytesIO()) as fackety_fake:
             expected = "Note: Only one action execution is displayed. Use -n/--last flag for " \
                 "more results."
-            print self.table.note_box("action executions", 1)
+            print(self.table.note_box("action executions", 1))
             content = (fackety_fake.getvalue().split("|")[1].strip())
             self.assertEquals(content, expected)
 
     def test_SinlgeRowTable_notebox_zero(self):
         with mock.patch('sys.stderr', new=BytesIO()) as fackety_fake:
-            print self.table.note_box("action executions", 0)
             contents = (fackety_fake.getvalue())
-            print "sdf", contents
             self.assertEquals(contents, "")
 
     def test_SinlgeRowTable_notebox_default(self):
