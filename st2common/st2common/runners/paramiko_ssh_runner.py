@@ -156,6 +156,9 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
             # streaming for multiple hosts by running one execution per host.
             client_kwargs['handle_stdout_line_func'] = handle_stdout_line_func
             client_kwargs['handle_stderr_line_func'] = handle_stderr_line_func
+        else:
+            LOG.debug('Real-time action output streaming is disabled, because action is running '
+                      'on more than one host')
 
         if self._password:
             client_kwargs['password'] = self._password
