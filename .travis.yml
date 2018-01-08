@@ -14,7 +14,8 @@ branches:
 env:
   global:
     - CACHE_NAME=JOB1
-  matrix:
+matrix:
+  include:
     - env: TASK=ci-unit NODE_INDEX=0 NODE_TOTAL=2
       python: 2.7
     - env: TASK=ci-unit NODE_INDEX=1 NODE_TOTAL=2
