@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 from st2client.models.core import *         # noqa
 from st2client.models.auth import *       # noqa
 from st2client.models.action import *       # noqa

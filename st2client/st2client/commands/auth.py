@@ -14,10 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import getpass
 import json
 import logging
-import six.moves.http_client
 
 import requests
 from six.moves.configparser import ConfigParser
@@ -191,7 +191,7 @@ class WhoamiCommand(resource.ResourceCommand):
         except Exception as e:
             response = getattr(e, 'response', None)
             status_code = getattr(response, 'status_code', None)
-            is_unathorized_error = (status_code == six.moves.http_client.UNAUTHORIZED)
+            is_unathorized_error = (status_code == http_client.UNAUTHORIZED)
 
             if response and is_unathorized_error:
                 print('Not authenticated')

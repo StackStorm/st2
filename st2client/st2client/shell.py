@@ -184,7 +184,8 @@ class Shell(BaseCLIApp):
         )
 
         # Set up list of commands and subcommands.
-        self.subparsers = self.parser.add_subparsers()
+        self.subparsers = self.parser.add_subparsers(dest='parser')
+        self.subparsers.required = True
         self.commands = {}
 
         self.commands['run'] = action.ActionRunCommand(
@@ -327,8 +328,16 @@ class Shell(BaseCLIApp):
             # Set up client.
             self.client = self.get_client(args=args, debug=debug)
 
+            # TODO: This is not so nice work-around for Python 3 because of a breaking change in
+            # Python 3 - https://bugs.python.org/issue16308
+            try:
+                func = getattr(args, 'func')
+            except AttributeError:
+                parser.print_help()
+                sys.exit(2)
+
             # Execute command.
-            args.func(args)
+            func(args)
 
             return 0
         except OperationFailureException as e:
