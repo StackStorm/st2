@@ -13,16 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+
 import os
 import abc
 import six
 import json
 import logging
-import httplib
-from functools import wraps
 import traceback
 
+from functools import wraps
+
 import yaml
+from six.moves import http_client
 
 from st2client import commands
 from st2client.exceptions.operations import OperationFailureException
@@ -165,7 +168,7 @@ class ResourceCommand(commands.Command):
             # Hack for "Unauthorized" exceptions, we do want to propagate those
             response = getattr(e, 'response', None)
             status_code = getattr(response, 'status_code', None)
-            if status_code and status_code == httplib.UNAUTHORIZED:
+            if status_code and status_code == http_client.UNAUTHORIZED:
                 raise e
 
             instance = None

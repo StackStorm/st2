@@ -13,13 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+
 import json
 import math
 import logging
 import sys
 
+import six
 from prettytable import PrettyTable
 from six.moves import zip
+from six.moves import range
 
 from st2client import formatters
 from st2client.utils import strutil
@@ -105,7 +109,7 @@ class MultiColumnTable(formatters.Formatter):
             entries = list(entries) if entries else []
 
             if len(entries) >= 1:
-                attributes = entries[0].__dict__.keys()
+                attributes = list(entries[0].__dict__.keys())
                 attributes = sorted([attr for attr in attributes if not attr.startswith('_')])
             else:
                 # There are no entries so we can't infer available attributes
@@ -177,7 +181,7 @@ class MultiColumnTable(formatters.Formatter):
         if isinstance(value, (list, tuple)):
             if len(value) == 0:
                 value = ''
-            elif isinstance(value[0], (str, unicode)):
+            elif isinstance(value[0], (str, six.text_type)):
                 # List contains simple string values, format it as comma
                 # separated string
                 value = ', '.join(value)
@@ -288,4 +292,5 @@ class SingleRowTable(object):
             note = PrettyTable([""])
         note.header = False
         note.add_row([message])
-        return sys.stderr.write(str(note) + "\n")
+        sys.stderr.write((str(note) + '\n'))
+        return

@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+
 import os
 import ast
 import copy
@@ -25,6 +27,8 @@ import six
 import sys
 
 from os.path import join as pjoin
+
+from six.moves import range
 
 from st2client import models
 from st2client.commands import resource

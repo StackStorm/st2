@@ -33,6 +33,13 @@ Added
   (`:`) in all of the list items (new feature) #3909
 * Allow user to set default log level used by all the Python runner actions by setting
   ``actionrunner.pythonrunner```` option in ``st2.conf`` (new feature) #3929
+* Update ``st2client`` package which is also utilized by the CLI so it also works under Python 3.
+
+  Note: Python 2.7 is only officially supported and tested Python version. Using Python 3 is at
+  your own risk - they are likely still many bugs related to Python 3 compatibility. You have been warned.
+  (new feature) #3929 #3932
+
+  Contributed by Anthony Shaw.
 
 Changed
 ~~~~~~~

@@ -3,8 +3,6 @@
 sudo: required
 dist: precise
 language: python
-python:
-  - 2.7
 
 branches:
   only:
@@ -14,12 +12,18 @@ branches:
 env:
   global:
     - CACHE_NAME=JOB1
-  matrix:
-    - TASK=ci-unit NODE_INDEX=0 NODE_TOTAL=2
-    - TASK=ci-unit NODE_INDEX=1 NODE_TOTAL=2
-    - TASK=ci-integration
-    - TASK="ci-checks ci-packs-tests"
-
+matrix:
+  include:
+    - env: TASK=ci-unit NODE_INDEX=0 NODE_TOTAL=2
+      python: 2.7
+    - env: TASK=ci-unit NODE_INDEX=1 NODE_TOTAL=2
+      python: 2.7
+    - env: TASK=ci-integration
+      python: 2.7
+    - env: TASK="ci-checks ci-packs-tests"
+      python: 2.7
+    - env: TASK=ci-st2client-py3-tests
+      python: 3.6
 addons:
   apt:
     sources:
@@ -46,9 +50,10 @@ cache:
   pip: true
   directories:
     - virtualenv/
+    - .tox/
 
 install:
-  - make requirements
+  - if [ ${TASK} = 'ci-st2client-py3-tests' ]; then pip install tox; else make requirements; fi
   - if [ ${TASK} = 'ci-unit' ] || [ ${TASK} = 'ci-integration' ]; then pip install codecov; sudo .circle/add-itest-user.sh; fi
 
 script:
