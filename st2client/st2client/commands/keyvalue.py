@@ -14,17 +14,20 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 import json
 import logging
+
 from os.path import join as pjoin
+
+import six
 
 from st2client.commands import resource
 from st2client.commands.noop import NoopCommand
 from st2client.formatters import table
 from st2client.models.keyvalue import KeyValuePair
 from st2client.utils.date import format_isodate_for_user_timezone
-import six
 
 LOG = logging.getLogger(__name__)
 

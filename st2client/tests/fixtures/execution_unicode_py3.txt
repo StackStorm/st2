@@ -1,0 +1,10 @@
+id: 547e19561e2e2417d3dde321
+status: succeeded (1s elapsed)
+parameters: 
+  cmd: "echo '\u2021'"
+result: 
+  failed: false
+  return_code: 0
+  stderr: ''
+  stdout: "\u2021"
+  succeeded: true

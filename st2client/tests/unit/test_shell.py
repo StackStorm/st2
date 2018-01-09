@@ -21,6 +21,7 @@ import json
 import logging
 import tempfile
 
+import six
 import mock
 import unittest2
 
@@ -90,8 +91,10 @@ class TestShell(base.BaseCLITestCase):
         stderr = self.stderr.read()
 
         self.assertTrue('usage' in stderr)
-        self.assertTrue('{list,get,create,update' in stderr)
-        self.assertTrue('error: too few arguments' in stderr)
+
+        if six.PY2:
+            self.assertTrue('{list,get,create,update' in stderr)
+            self.assertTrue('error: too few arguments' in stderr)
 
     def test_endpoints_default(self):
         base_url = 'http://127.0.0.1'
