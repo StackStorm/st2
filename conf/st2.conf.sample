@@ -15,7 +15,7 @@ workflows_pool_size = 40
 # Virtualenv binary which should be used to create pack virtualenvs.
 virtualenv_binary = /data/stanley/virtualenv/bin/virtualenv
 # True to store and stream action output (stdout and stderr) in real-time.
-stream_output = False
+stream_output = True
 # location of the logging.conf file
 logging = conf/logging.conf
 # Python binary which will be used by Python actions.
@@ -294,7 +294,7 @@ base_path = /opt/stackstorm
 
 [system_user]
 # SSH private key for the system user.
-ssh_key_file = /home/vagrant/.ssh/stanley_rsa
+ssh_key_file = /home/stanley/.ssh/stanley_rsa
 # Default system user.
 user = stanley
 

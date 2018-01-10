@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+
 import os
 import pwd
 import json
@@ -111,7 +113,7 @@ class BaseCLIApp(object):
 
         # We skip automatic authentication for some commands such as auth
         try:
-            command_class_name = args.func.im_class.__name__
+            command_class_name = args.func.__self__.__class__.__name__
         except Exception:
             command_class_name = None
 
@@ -248,7 +250,7 @@ class BaseCLIApp(object):
             return None
 
         # Safety check for too permissive permissions
-        file_st_mode = oct(os.stat(cached_token_path).st_mode & 0777)
+        file_st_mode = oct(os.stat(cached_token_path).st_mode & 0o777)
         others_st_mode = int(file_st_mode[-1])
 
         if others_st_mode >= 4:
@@ -324,7 +326,7 @@ class BaseCLIApp(object):
         # open + chmod are two operations which means that during a short time frame (between
         # open and chmod) when file can potentially be read by other users if the default
         # permissions used during create allow that.
-        fd = os.open(cached_token_path, os.O_WRONLY | os.O_CREAT, 0600)
+        fd = os.open(cached_token_path, os.O_WRONLY | os.O_CREAT, 0o600)
         with os.fdopen(fd, 'w') as fp:
             fp.write(data)
 

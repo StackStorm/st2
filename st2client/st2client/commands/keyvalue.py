@@ -13,10 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+
 import os
 import json
 import logging
+
 from os.path import join as pjoin
+
+import six
 
 from st2client.commands import resource
 from st2client.commands.noop import NoopCommand
@@ -303,7 +308,7 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
 
             # if the value is not a string, convert it to JSON
             # all keys in the datastore must strings
-            if not isinstance(value, basestring):
+            if not isinstance(value, six.string_types):
                 if args.convert:
                     value = json.dumps(value)
                 else:
