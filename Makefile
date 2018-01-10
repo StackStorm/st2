@@ -180,7 +180,7 @@ clean: .cleanpycs
 compile:
 	@echo "======================= compile ========================"
 	@echo "------- Compile all .py files (syntax check test) ------"
-	@if python -c 'import compileall,re; compileall.compile_dir(".", rx=re.compile(r"/virtualenv"), quiet=True)' | grep .; then exit 1; else exit 0; fi
+	@if python -c 'import compileall,re; compileall.compile_dir(".", rx=re.compile(r"/virtualenv|.tox"), quiet=True)' | grep .; then exit 1; else exit 0; fi
 
 .PHONY: .cleanpycs
 .cleanpycs:
