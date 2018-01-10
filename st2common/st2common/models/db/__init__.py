@@ -340,6 +340,8 @@ class MongoDBAccess(object):
         limit = filters.pop('limit', None)
         order_by = filters.pop('order_by', None)
         exclude_fields = filters.pop('exclude_fields', None)
+        only_fields = filters.pop('only_fields', None)
+        no_dereference = filters.pop('no_dereference', None)
 
         order_by = order_by or []
         exclude_fields = exclude_fields or []
@@ -356,6 +358,12 @@ class MongoDBAccess(object):
 
         if exclude_fields:
             result = result.exclude(*exclude_fields)
+
+        if only_fields:
+            result = result.only(*only_fields)
+
+        if no_dereference:
+            result = result.no_dereference()
 
         result = result.order_by(*order_by)
         result = result[offset:eop]
