@@ -311,11 +311,18 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
-    def test_get_all(self):
+    def test_get_all_and_with_minus_one(self):
         action_1_ref = '.'.join([ACTION_1['pack'], ACTION_1['name']])
         action_1_id = self.__get_action_id(self.__do_post(ACTION_1))
         action_2_id = self.__get_action_id(self.__do_post(ACTION_2))
         resp = self.app.get('/v1/actions')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 2, '/v1/actions did not return all actions.')
+
+        item = [i for i in resp.json if i['id'] == action_1_id][0]
+        self.assertEqual(item['ref'], action_1_ref)
+
+        resp = self.app.get('/v1/actions?limit=-1')
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 2, '/v1/actions did not return all actions.')
 
@@ -328,7 +335,14 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
     def test_get_all_invalid_limit_too_large(self):
         resp = self.app.get('/v1/actions?limit=1000', expect_errors=True)
         self.assertEqual(resp.status_int, 400)
-        self.assertEqual(resp.json['faultstring'], 'Limit "1000" specified, maximum value is "100"')
+        self.assertEqual(resp.json['faultstring'], 'Limit "1000" specified, maximum value is'
+                         ' "100"')
+
+    def test_get_all_limit_negative_number(self):
+        resp = self.app.get('/v1/actions?limit=-22', expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertEqual(resp.json['faultstring'],
+                         u'Limit, "-22" specified, must be a positive number.')
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))

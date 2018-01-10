@@ -54,7 +54,7 @@ class TestApiKeyController(FunctionalTest):
         cls.apikey4 = models['apikeys']['apikey_disabled.yaml']
         cls.apikey5 = models['apikeys']['apikey_malformed.yaml']
 
-    def test_get_all(self):
+    def test_get_all_and_minus_one(self):
         resp = self.app.get('/v1/apikeys')
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.headers['X-Total-Count'], "5")
@@ -66,6 +66,11 @@ class TestApiKeyController(FunctionalTest):
                          [str(self.apikey1.id), str(self.apikey2.id), str(self.apikey3.id),
                           str(self.apikey4.id), str(self.apikey5.id)],
                          'Incorrect api keys retrieved.')
+
+        resp = self.app.get('/v1/apikeys/?limit=-1')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.headers['X-Total-Count'], "5")
+        self.assertEqual(len(resp.json), 5, '/v1/apikeys did not return all apikeys.')
 
     def test_get_all_with_pagnination_with_offset_and_limit(self):
         resp = self.app.get('/v1/apikeys?offset=2&limit=1')
@@ -102,6 +107,12 @@ class TestApiKeyController(FunctionalTest):
         self.assertEqual(resp.status_int, 400)
         self.assertEqual(resp.json['faultstring'],
                          'Limit "1000" specified, maximum value is "100"')
+
+    def test_get_all_invalid_limit_negative_integer(self):
+        resp = self.app.get('/v1/apikeys?offset=2&limit=-22', expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertEqual(resp.json['faultstring'],
+                         'Limit, "-22" specified, must be a positive number.')
 
     def test_get_all_invalid_offset_too_large(self):
         resp = self.app.get('/v1/apikeys?offset=2147483648&limit=1', expect_errors=True)
