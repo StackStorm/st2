@@ -121,7 +121,7 @@ function reopen_component_log_files() {
     return 1
   fi
 
-  PID=`ps ax | grep -v grep | grep -v st2ctl | grep "${COM}" | awk '{print $1}'`
+  PID=`ps ax | grep -v grep | grep -v st2ctl | grep -E "(${COM}\.wsgi)|(bin/${COM})|(hubot ${COM})" | awk '{print $1}'`
   if [[ ! -z ${PID} ]]; then
     for p in ${PID}; do
       echo "Sending SIGUSR1 to ${COM} PID: ${p}"
