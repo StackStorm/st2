@@ -40,9 +40,13 @@ Added
   (new feature) #3929 #3932
 
   Contributed by Anthony Shaw.
-* Add ``limit=-1`` support for the API to fetch full result set (CLI equivalent flag
+* Add ``?limit=-1`` support for the API to fetch full result set (CLI equivalent flag
   ``--last/-n``). Post error message for ``limit=0`` and fix corner case where negative values for
   limit query param were not handled correctly. #3761 #3708 #3735
+* Only allow RBAC admins to retrieve all the results at once using ``?limit=-1`` query param, upate
+  the code so ``api.max_page_size`` config option only applies to non-admin users, meaning users
+  with admin permission can specify arbitrary value for ``?limit`` query param which can also be
+  larger than ``api.max_page_size``. (improvement) #3939
 
 Changed
 ~~~~~~~
