@@ -28,7 +28,7 @@ Added
 * Add new ``--tail`` flag to the ``st2 run`` / ``st2 action execute`` and ``st2 execution re-run``
   CLI command. When this flag is provided, new execution will automatically be followed and tailed
   after it has been scheduled. (new feature) #3867
-* Added flag `--auto-dict` to `st2 run` and `st2 execution re-run` commands. This flag must now
+* Added flag ``--auto-dict`` to ``st2 run`` and ``st2 execution re-run`` commands. This flag must now
   be specified in order to automatically convert list items to dicts based on presence of colon
   (`:`) in all of the list items (new feature) #3909
 * Update ``st2client`` package which is also utilized by the CLI so it also works under Python 3.
@@ -38,6 +38,9 @@ Added
   (new feature) #3929 #3932
 
   Contributed by Anthony Shaw.
+* Add ``limit=-1`` support for the API to fetch full result set (CLI equivalent flag
+  ``--last/-n``). Post error message for ``limit=0`` and fix corner case where negative values for
+  limit query param were not handled correctly. #3761 #3708 #3735
 
 Changed
 ~~~~~~~

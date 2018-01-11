@@ -70,11 +70,14 @@ class KeyValuePairListCommand(resource.ResourceTableCommand):
     }
 
     def __init__(self, resource, *args, **kwargs):
-        super(KeyValuePairListCommand, self).__init__(resource, 'list',
-                                                      'Get the list of the 50 most recent %s.' %
-                                                      resource.get_plural_display_name().lower(),
-                                                      *args, **kwargs)
+
         self.default_limit = 50
+
+        super(KeyValuePairListCommand, self).__init__(resource, 'list',
+                                                      'Get the list of the %s most recent %s.' %
+                                                      (self.default_limit,
+                                                       resource.get_plural_display_name().lower()),
+                                                      *args, **kwargs)
         self.resource_name = resource.get_plural_display_name().lower()
         # Filter options
         self.parser.add_argument('--prefix', help=('Only return values with names starting with '
@@ -87,8 +90,8 @@ class KeyValuePairListCommand(resource.ResourceTableCommand):
                                  help='User for user scoped items (admin only).')
         self.parser.add_argument('-n', '--last', type=int, dest='last',
                                  default=self.default_limit,
-                                 help=('List N most recent %s. Default is 50.' %
-                                       self.resource_name))
+                                 help=('List N most recent %s. Use -n -1 to fetch the full result \
+                                       set.' % self.resource_name))
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):

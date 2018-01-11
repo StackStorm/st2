@@ -275,14 +275,20 @@ class PropertyValueTable(formatters.Formatter):
 class SingleRowTable(object):
     @staticmethod
     def note_box(entity, limit):
-        if limit == 0:
+        if limit <= 0:
             return None
         elif limit == 1:
+
+            if entity == "inquiries":
+                entity = "inquiry"
+            else:
+                entity = entity[:-1]
+
             message = "Note: Only one %s is displayed. Use -n/--last flag for more results." \
-                % entity[:-1]
+                % entity
         else:
-            message = "Note: Only first %s %s are displayed. Use -n/--last flag for more" \
-                " results." % (limit, entity)
+            message = "Note: Only first %s %s are displayed. Use -n/--last flag for more results."\
+                % (limit, entity)
         # adding default padding
         message_length = len(message) + 3
         m = MultiColumnTable()
