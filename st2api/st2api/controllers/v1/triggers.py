@@ -385,7 +385,7 @@ class TriggerInstanceController(TriggerInstanceControllerMixin, resource.Resourc
         """
         return self._get_one_by_id(instance_id, permission_type=None, requester_user=None)
 
-    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
+    def get_all(self, sort=None, offset=0, limit=None, requester_user=None, **raw_filters):
         """
             List all triggerinstances.
 
@@ -395,7 +395,8 @@ class TriggerInstanceController(TriggerInstanceControllerMixin, resource.Resourc
         trigger_instances = self._get_trigger_instances(sort=sort,
                                                         offset=offset,
                                                         limit=limit,
-                                                        raw_filters=raw_filters)
+                                                        raw_filters=raw_filters,
+                                                        requester_user=requester_user)
         return trigger_instances
 
     def _get_trigger_instances(self, sort=None, offset=0, limit=None, raw_filters=None):
