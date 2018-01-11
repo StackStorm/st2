@@ -449,14 +449,12 @@ def validate_limit_query_param(limit, requester_user=None):
         elif int(limit) <= -2:
             msg = 'Limit, "%s" specified, must be a positive number.' % (limit)
             raise ValueError(msg)
-        elif int(limit) > cfg.CONF.api.max_page_size:
+        elif int(limit) > cfg.CONF.api.max_page_size and not user_is_admin:
             msg = ('Limit "%s" specified, maximum value is "%s"' % (limit,
                                                                     cfg.CONF.api.max_page_size))
 
-            if not user_is_admin:
-                raise AccessDeniedError(message=msg,
-                                        user_db=requester_user)
-
+            raise AccessDeniedError(message=msg,
+                                    user_db=requester_user)
             raise ValueError(msg)
     # Disable n = 0
     elif limit == 0:
