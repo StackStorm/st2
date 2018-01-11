@@ -43,8 +43,18 @@ class TestTraces(FunctionalTest):
         cls.trace2 = cls.models['traces']['trace_one_each.yaml']
         cls.trace3 = cls.models['traces']['trace_multiple_components.yaml']
 
-    def test_get_all(self):
+    def test_get_all_and_minus_one(self):
         resp = self.app.get('/v1/traces')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 3, '/v1/traces did not return all traces.')
+
+        # Note: traces are returned sorted by start_timestamp in descending order by default
+        retrieved_trace_tags = [trace['trace_tag'] for trace in resp.json]
+        self.assertEqual(retrieved_trace_tags,
+                         [self.trace3.trace_tag, self.trace2.trace_tag, self.trace1.trace_tag],
+                         'Incorrect traces retrieved.')
+
+        resp = self.app.get('/v1/traces/?limit=-1')
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 3, '/v1/traces did not return all traces.')
 
@@ -81,6 +91,12 @@ class TestTraces(FunctionalTest):
         retrieved_trace_tags = [trace['trace_tag'] for trace in resp.json]
         self.assertEqual(retrieved_trace_tags,
                          [self.trace3.trace_tag], 'Incorrect traces retrieved.')
+
+    def test_get_all_limit_negative_number(self):
+        resp = self.app.get('/v1/traces?limit=-22', expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertEqual(resp.json['faultstring'],
+                         u'Limit, "-22" specified, must be a positive number.')
 
     def test_get_by_id(self):
         resp = self.app.get('/v1/traces/%s' % self.trace1.id)

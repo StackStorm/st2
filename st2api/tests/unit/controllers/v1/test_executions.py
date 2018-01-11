@@ -368,23 +368,36 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 1)
 
-        resp = self.app.get('/v1/executions?limit=0')
+        resp = self.app.get('/v1/executions?limit=0', expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertTrue(resp.json['faultstring'],
+                        u'Limit, "0" specified, must be a positive number or -1 for full \
+                        result set.')
+
+        resp = self.app.get('/v1/executions?limit=-1')
         self.assertEqual(resp.status_int, 200)
         self.assertTrue(len(resp.json) > 1)
+
+        resp = self.app.get('/v1/executions?limit=-22', expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertEqual(resp.json['faultstring'],
+                         u'Limit, "-22" specified, must be a positive number.')
 
         resp = self.app.get('/v1/executions?action=%s' % LIVE_ACTION_1['action'])
         self.assertEqual(resp.status_int, 200)
         self.assertTrue(len(resp.json) > 1)
 
+        resp = self.app.get('/v1/executions?action=%s&limit=0' %
+                            LIVE_ACTION_1['action'], expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertTrue(resp.json['faultstring'],
+                        u'Limit, "0" specified, must be a positive number or -1 for full \
+                        result set.')
+
         resp = self.app.get('/v1/executions?action=%s&limit=1' %
                             LIVE_ACTION_1['action'])
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 1)
-
-        resp = self.app.get('/v1/executions?action=%s&limit=0' %
-                            LIVE_ACTION_1['action'])
-        self.assertEqual(resp.status_int, 200)
-        self.assertTrue(len(resp.json) > 1)
         total_count = resp.headers['X-Total-Count']
 
         resp = self.app.get('/v1/executions?offset=%s&limit=1' % total_count)

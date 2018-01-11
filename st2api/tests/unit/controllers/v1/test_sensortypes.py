@@ -34,11 +34,22 @@ class SensorTypeControllerTestCase(FunctionalTest):
         # Register local sensor and pack fixtures
         sensors_registrar.register_sensors(use_pack_cache=False)
 
-    def test_get_all(self):
+    def test_get_all_and_minus_one(self):
         resp = self.app.get('/v1/sensortypes')
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertEqual(len(resp.json), 1)
         self.assertEqual(resp.json[0]['name'], 'SampleSensor')
+
+        resp = self.app.get('/v1/sensortypes/?limit=-1')
+        self.assertEqual(resp.status_int, http_client.OK)
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['name'], 'SampleSensor')
+
+    def test_get_all_negative_limit(self):
+        resp = self.app.get('/v1/sensortypes/?limit=-22', expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertEqual(resp.json['faultstring'],
+                         u'Limit, "-22" specified, must be a positive number.')
 
     def test_get_one_success(self):
         resp = self.app.get('/v1/sensortypes/dummy_pack_1.SampleSensor')

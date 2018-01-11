@@ -38,9 +38,9 @@ class TimerListCommand(resource.ResourceListCommand):
         super(TimerListCommand, self).__init__(resource, *args, **kwargs)
 
         self.parser.add_argument('-ty', '--timer-type', type=str, dest='timer_type',
-                                 help=('List N most recent %s.' %
-                                       resource.get_plural_display_name().lower()),
-                                 required=False)
+                                 help=("List %s type, example: 'core.st2.IntervalTimer', \
+                                       'core.st2.DateTimer', 'core.st2.CronTimer'." %
+                                       resource.get_plural_display_name().lower()), required=False)
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):

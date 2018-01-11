@@ -131,13 +131,29 @@ class TestRuleController(FunctionalTest):
             fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_FIXTURES)
         super(TestRuleController, cls).setUpClass()
 
-    def test_get_all(self):
+    def test_get_all_and_minus_one(self):
         post_resp_rule_1 = self.__do_post(TestRuleController.RULE_1)
         post_resp_rule_3 = self.__do_post(TestRuleController.RULE_3)
 
         resp = self.app.get('/v1/rules')
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertEqual(len(resp.json), 2)
+
+        resp = self.app.get('/v1/rules/?limit=-1')
+        self.assertEqual(resp.status_int, http_client.OK)
+        self.assertEqual(len(resp.json), 2)
+
+        self.__do_delete(self.__get_rule_id(post_resp_rule_1))
+        self.__do_delete(self.__get_rule_id(post_resp_rule_3))
+
+    def test_get_all_limit_negative_number(self):
+        post_resp_rule_1 = self.__do_post(TestRuleController.RULE_1)
+        post_resp_rule_3 = self.__do_post(TestRuleController.RULE_3)
+
+        resp = self.app.get('/v1/rules?limit=-22', expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertEqual(resp.json['faultstring'],
+                         u'Limit, "-22" specified, must be a positive number.')
 
         self.__do_delete(self.__get_rule_id(post_resp_rule_1))
         self.__do_delete(self.__get_rule_id(post_resp_rule_3))
