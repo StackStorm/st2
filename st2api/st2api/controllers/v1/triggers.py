@@ -55,11 +55,12 @@ class TriggerTypeController(resource.ContentPackResourceController):
 
     include_reference = True
 
-    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
+    def get_all(self, sort=None, offset=0, limit=None, requester_user=None, **raw_filters):
         return self._get_all(sort=sort,
                              offset=offset,
                              limit=limit,
-                             raw_filters=raw_filters)
+                             raw_filters=raw_filters,
+                             requester_user=requester_user)
 
     def get_one(self, triggertype_ref_or_id):
         return self._get_one(triggertype_ref_or_id, permission_type=None, requester_user=None)
@@ -210,7 +211,7 @@ class TriggerController(object):
         trigger_api = TriggerAPI.from_model(trigger_db)
         return trigger_api
 
-    def get_all(self):
+    def get_all(self, requester_user=None):
         """
             List all triggers.
 
