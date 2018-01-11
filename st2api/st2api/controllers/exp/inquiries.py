@@ -70,7 +70,8 @@ class InquiriesController(ResourceController):
             raw_filters={
                 'status': action_constants.LIVEACTION_STATUS_PENDING,
                 'runner': INQUIRY_RUNNER
-            }
+            },
+            requester_user=requester_user
         )
 
         # Since "model" is set to InquiryAPI (for good reasons), _get_all returns a list of

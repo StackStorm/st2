@@ -197,12 +197,18 @@ info:
     Join our [Slack Community](https://stackstorm.com/community-signup) to get help from the engineering team and fellow users. You can also create issues against the main [StackStorm GitHub repo](https://github.com/StackStorm/st2/issues), or the [st2apidocs repo](https://github.com/StackStorm/st2apidocs) for documentation-specific issues.
 
     We also recommend reviewing the main [StackStorm documentation](https://docs.stackstorm.com/).
+    
 
 paths:
   /api/v1/:
     get:
       operationId: st2api.controllers.root:root_controller.index
       description: General API info.
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: General API info.
@@ -1275,11 +1281,6 @@ paths:
           type: array
           items:
             type: string
-      x-parameters:
-        - name: user
-          in: context
-          x-as: requester_user
-          description: User performing the operation.
       responses:
         '200':
           description: A number of distinct values for the requested filters
@@ -2466,6 +2467,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+
   /api/v1/rules:
     get:
       operationId: st2api.controllers.v1.rules:rule_controller.get_all
@@ -2740,11 +2742,6 @@ paths:
     get:
       operationId: st2api.controllers.v1.ruletypes:rule_types_controller.get_all
       description: Returns a list of all rule types.
-      x-parameters:
-        - name: user
-          in: context
-          x-as: requester_user
-          description: User performing the operation.
       responses:
         '200':
           description: List of rules
@@ -3603,6 +3600,11 @@ paths:
     get:
       operationId: st2api.controllers.v1.triggers:trigger_controller.get_all
       description: Returns a list of all triggers.
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: List of triggers

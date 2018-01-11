@@ -399,7 +399,8 @@ class TriggerInstanceController(TriggerInstanceControllerMixin, resource.Resourc
                                                         requester_user=requester_user)
         return trigger_instances
 
-    def _get_trigger_instances(self, sort=None, offset=0, limit=None, raw_filters=None):
+    def _get_trigger_instances(self, sort=None, offset=0, limit=None, raw_filters=None,
+                               requester_user=None):
         if limit is None:
             limit = self.default_limit
 
@@ -409,7 +410,8 @@ class TriggerInstanceController(TriggerInstanceControllerMixin, resource.Resourc
         return super(TriggerInstanceController, self)._get_all(sort=sort,
                                                                offset=offset,
                                                                limit=limit,
-                                                               raw_filters=raw_filters)
+                                                               raw_filters=raw_filters,
+                                                               requester_user=requester_user)
 
 
 triggertype_controller = TriggerTypeController()
