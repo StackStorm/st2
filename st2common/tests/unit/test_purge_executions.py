@@ -16,6 +16,7 @@
 import copy
 from datetime import timedelta
 
+import mock
 import bson
 
 from st2common import log as logging
@@ -263,6 +264,27 @@ class TestPurgeExecutions(CleanDbTestCase):
         self.assertEqual(len(stdout_dbs), 0)
         stderr_dbs = ActionExecutionOutput.query(output_type='stderr')
         self.assertEqual(len(stderr_dbs), 0)
+
+    @mock.patch('st2common.garbage_collection.executions.LiveAction')
+    @mock.patch('st2common.garbage_collection.executions.ActionExecution')
+    def test_purge_executions_whole_model_is_not_loaded_in_memory(self, mock_ActionExecution,
+                                                                  mock_LiveAction):
+        # Verify that whole execution objects are not loaded in memory and we just retrieve the
+        # id field
+        self.assertEqual(mock_ActionExecution.query.call_count, 0)
+        self.assertEqual(mock_LiveAction.query.call_count, 0)
+        now = date_utils.get_datetime_utc_now()
+        purge_executions(logger=LOG, timestamp=now - timedelta(days=10), purge_incomplete=True)
+
+        self.assertEqual(mock_ActionExecution.query.call_count, 2)
+        self.assertEqual(mock_LiveAction.query.call_count, 1)
+
+        self.assertEqual(mock_ActionExecution.query.call_args_list[0][1]['only_fields'], ['id'])
+        self.assertTrue(mock_ActionExecution.query.call_args_list[0][1]['no_dereference'])
+        self.assertEqual(mock_ActionExecution.query.call_args_list[1][1]['only_fields'], ['id'])
+        self.assertTrue(mock_ActionExecution.query.call_args_list[1][1]['no_dereference'])
+        self.assertEqual(mock_LiveAction.query.call_args_list[0][1]['only_fields'], ['id'])
+        self.assertTrue(mock_LiveAction.query.call_args_list[0][1]['no_dereference'])
 
     def _insert_mock_stdout_and_stderr_objects_for_execution(self, execution_id, count=5):
         execution_id = str(execution_id)
