@@ -76,7 +76,7 @@ class TestActionViews(FunctionalTest):
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
-    def test_get_all(self):
+    def test_get_all_and_limit_minus_one(self):
         action_1_id = self._get_action_id(self._do_post(ACTION_1))
         action_2_id = self._get_action_id(self._do_post(ACTION_2))
         try:
@@ -84,6 +84,24 @@ class TestActionViews(FunctionalTest):
             self.assertEqual(resp.status_int, 200)
             self.assertEqual(len(resp.json), 2,
                              '/v1/actions/views/overview did not return all actions.')
+            resp = self.app.get('/v1/actions/views/overview/?limit=-1')
+            self.assertEqual(resp.status_int, 200)
+            self.assertEqual(len(resp.json), 2,
+                             '/v1/actions/views/overview did not return all actions.')
+        finally:
+            self._do_delete(action_1_id)
+            self._do_delete(action_2_id)
+
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    def test_get_all_negative_limit(self):
+        action_1_id = self._get_action_id(self._do_post(ACTION_1))
+        action_2_id = self._get_action_id(self._do_post(ACTION_2))
+        try:
+            resp = self.app.get('/v1/actions/views/overview/?limit=-22', expect_errors=True)
+            self.assertEqual(resp.status_int, 400)
+            self.assertEqual(resp.json['faultstring'],
+                             u'Limit, "-22" specified, must be a positive number.')
         finally:
             self._do_delete(action_1_id)
             self._do_delete(action_2_id)

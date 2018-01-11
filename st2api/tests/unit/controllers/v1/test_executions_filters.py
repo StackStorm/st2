@@ -149,6 +149,25 @@ class TestActionExecutionFilters(FunctionalTest):
         ids = [item['id'] for item in response.json]
         self.assertListEqual(list(set(ids) - set(refs)), [])
 
+    def test_limit_minus_one(self):
+        limit = -1
+        refs = [k for k, v in six.iteritems(self.refs) if v.action['name'] == 'chain']
+        response = self.app.get('/v1/executions?action=executions.chain&limit=%s' % limit)
+        self.assertEqual(response.status_int, 200)
+        self.assertIsInstance(response.json, list)
+        self.assertEqual(len(response.json), len(refs))
+        self.assertEqual(response.headers['X-Total-Count'], str(len(refs)), response.json)
+        ids = [item['id'] for item in response.json]
+        self.assertListEqual(list(set(ids) - set(refs)), [])
+
+    def test_limit_negative(self):
+        limit = -22
+        response = self.app.get('/v1/executions?action=executions.chain&limit=%s' % limit,
+                                expect_errors=True)
+        self.assertEqual(response.status_int, 400)
+        self.assertEqual(response.json['faultstring'],
+                         u'Limit, "-22" specified, must be a positive number.')
+
     def test_query(self):
         refs = [k for k, v in six.iteritems(self.refs) if v.action['name'] == 'chain']
         response = self.app.get('/v1/executions?action=executions.chain')

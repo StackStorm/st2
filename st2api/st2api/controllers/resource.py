@@ -76,6 +76,30 @@ def parameter_validation(validator, properties, instance, schema):
         yield error
 
 
+def limit_query_validation(limit):
+    if limit:
+        # Display all the results
+        if int(limit) == -1:
+            return 0
+
+        elif int(limit) <= -2:
+            msg = 'Limit, "%s" specified, must be a positive number.' % (limit)
+            raise ValueError(msg)
+
+        elif int(limit) > cfg.CONF.api.max_page_size:
+            msg = 'Limit "%s" specified, maximum value is "%s"' \
+                % (limit, cfg.CONF.api.max_page_size)
+            raise ValueError(msg)
+
+    # Disable n = 0
+    elif limit == 0:
+        msg = 'Limit, "%s" specified, must be a positive number or -1 for full result set.'\
+            % (limit)
+        raise ValueError(msg)
+
+    return limit
+
+
 @six.add_metaclass(abc.ABCMeta)
 class ResourceController(object):
     model = abc.abstractproperty
@@ -159,10 +183,7 @@ class ResourceController(object):
         if offset >= 2**31:
             raise ValueError('Offset "%s" specified is more than 32-bit int' % (offset))
 
-        if limit and int(limit) > self.max_limit:
-            # TODO: We should throw here, I don't like this.
-            msg = 'Limit "%s" specified, maximum value is "%s"' % (limit, self.max_limit)
-            raise ValueError(msg)
+        limit = limit_query_validation(limit)
 
         eop = offset + int(limit) if limit else None
 
@@ -197,6 +218,7 @@ class ResourceController(object):
 
         resp = Response(json=result)
         resp.headers['X-Total-Count'] = str(instances.count())
+
         if limit:
             resp.headers['X-Limit'] = str(limit)
 
