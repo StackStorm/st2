@@ -106,6 +106,14 @@ class KeyValuesControllerRBACTestCase(APIControllerWithRBACTestCase):
         self.assertTrue(resp.json[1]['secret'])
         self.assertTrue(len(resp.json[1]['value']) > 50)
 
+        resp = self.app.get('/v1/keys')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), self.system_scoped_items_count)
+        for item in resp.json:
+            self.assertEqual(item['scope'], FULL_SYSTEM_SCOPE)
+
+        # limit=-1 admin user
+        self.use_user(self.users['admin'])
         resp = self.app.get('/v1/keys/?limit=-1')
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), self.system_scoped_items_count)
@@ -131,7 +139,7 @@ class KeyValuesControllerRBACTestCase(APIControllerWithRBACTestCase):
         self.assertTrue(resp.json[1]['secret'])
         self.assertTrue(len(resp.json[1]['value']) > 50)
 
-        resp = self.app.get('/v1/keys?scope=st2kv.user&limit=-1')
+        resp = self.app.get('/v1/keys?scope=st2kv.user')
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), self.user_scoped_items_per_user_count['user1'])
         for item in resp.json:

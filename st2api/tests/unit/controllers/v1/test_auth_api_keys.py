@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import httplib
+
 import mock
 from oslo_config import cfg
 
@@ -107,7 +109,7 @@ class TestApiKeyController(FunctionalTest):
     def test_get_all_invalid_limit_too_large_none_admin(self):
         # limit > max_page_size, but user is not admin
         resp = self.app.get('/v1/apikeys?offset=2&limit=1000', expect_errors=True)
-        self.assertEqual(resp.status_int, 400)
+        self.assertEqual(resp.status_int, httplib.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'],
                          'Limit "1000" specified, maximum value is "100"')
 
