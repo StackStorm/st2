@@ -27,6 +27,7 @@ from st2common import log as logging
 from st2common.models.system.common import ResourceReference
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.rbac import utils as rbac_utils
+from st2common.exceptions.rbac import AccessDeniedError
 from st2common.util import schema as util_schema
 from st2common.router import abort
 from st2common.router import Response
@@ -439,7 +440,10 @@ def validate_limit_query_param(limit, requester_user=None):
         if int(limit) == -1:
             if not user_is_admin:
                 # Only admins can specify limit -1
-                pass
+                message = ('Administrator access required to be able to specify limit=-1 and '
+                           'retrieve all the records')
+                raise AccessDeniedError(message=message,
+                                        user_db=requester_user)
 
             return 0
         elif int(limit) <= -2:
