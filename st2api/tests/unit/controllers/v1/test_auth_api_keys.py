@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import mock
 from oslo_config import cfg
 
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
@@ -102,7 +103,9 @@ class TestApiKeyController(FunctionalTest):
         retrieved_ids = [apikey['id'] for apikey in resp.json]
         self.assertEqual(retrieved_ids, [str(self.apikey1.id), str(self.apikey2.id)])
 
-    def test_get_all_invalid_limit_too_large(self):
+    @mock.patch('st2common.rbac.utils.user_is_admin', mock.Mock(return_value=False))
+    def test_get_all_invalid_limit_too_large_none_admin(self):
+        # limit > max_page_size, but user is not admin
         resp = self.app.get('/v1/apikeys?offset=2&limit=1000', expect_errors=True)
         self.assertEqual(resp.status_int, 400)
         self.assertEqual(resp.json['faultstring'],
