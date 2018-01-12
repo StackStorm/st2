@@ -455,11 +455,10 @@ def validate_limit_query_param(limit, requester_user=None):
 
             raise AccessDeniedError(message=msg,
                                     user_db=requester_user)
-            raise ValueError(msg)
     # Disable n = 0
     elif limit == 0:
-        msg = 'Limit, "%s" specified, must be a positive number or -1 for full result set.'\
-            % (limit)
+        msg = ('Limit, "%s" specified, must be a positive number or -1 for full result set.' %
+               (limit))
         raise ValueError(msg)
 
     return limit
