@@ -36,6 +36,7 @@ from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
 from st2common.constants.runners import PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE
 from st2common.constants.error_messages import PACK_VIRTUALENV_DOESNT_EXIST
 from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT
+from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_LOG_LEVEL
 from st2common.constants.system import API_URL_ENV_VARIABLE_NAME
 from st2common.constants.system import AUTH_TOKEN_ENV_VARIABLE_NAME
 from st2common.util.api import get_full_public_api_url
@@ -76,7 +77,7 @@ WRAPPER_SCRIPT_PATH = os.path.join(BASE_DIR, WRAPPER_SCRIPT_NAME)
 class PythonRunner(ActionRunner):
 
     def __init__(self, runner_id, config=None, timeout=PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT,
-                 log_level='debug', sandbox=True):
+                 log_level=None, sandbox=True):
 
         """
         :param timeout: Action execution timeout in seconds.
@@ -93,7 +94,7 @@ class PythonRunner(ActionRunner):
         self._config = config
         self._timeout = timeout
         self._enable_common_pack_libs = cfg.CONF.packs.enable_common_libs or False
-        self._log_level = log_level
+        self._log_level = log_level or cfg.CONF.actionrunner.python_runner_log_level
         self._sandbox = sandbox
 
     def pre_run(self):
@@ -104,6 +105,9 @@ class PythonRunner(ActionRunner):
         self._env = self.runner_parameters.get(RUNNER_ENV, {})
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, self._timeout)
         self._log_level = self.runner_parameters.get(RUNNER_LOG_LEVEL, self._log_level)
+
+        if self._log_level == PYTHON_RUNNER_DEFAULT_LOG_LEVEL:
+            self._log_level = cfg.CONF.actionrunner.python_runner_log_level
 
     def run(self, action_parameters):
         LOG.debug('Running pythonrunner.')
@@ -150,7 +154,7 @@ class PythonRunner(ActionRunner):
         if self._config:
             args.append('--config=%s' % (json.dumps(self._config)))
 
-        if self._log_level != 'debug':
+        if self._log_level != PYTHON_RUNNER_DEFAULT_LOG_LEVEL:
             # We only pass --log-level parameter if non default log level value is specified
             args.append('--log-level=%s' % (self._log_level))
 

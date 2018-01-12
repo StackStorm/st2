@@ -103,7 +103,7 @@ class ApiKeyController(BaseRestControllerMixin):
         mask_secrets = self._get_mask_secrets(show_secrets=show_secrets,
                                               requester_user=requester_user)
 
-        limit = resource.limit_query_validation(limit)
+        limit = resource.validate_limit_query_param(limit, requester_user=requester_user)
 
         api_key_dbs = ApiKey.get_all(limit=limit, offset=offset)
 

@@ -20,6 +20,7 @@ import sys
 from oslo_config import cfg
 
 from st2common.constants.system import VERSION_STRING
+from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_LOG_LEVEL
 
 
 def do_register_opts(opts, group=None, ignore_errors=False):
@@ -217,17 +218,24 @@ def register_opts(ignore_errors=False):
     ]
     do_register_opts(auth_opts, 'auth', ignore_errors)
 
-    # Common action runner options
+    # Runner options
     default_python_bin_path = sys.executable
     base_dir = os.path.dirname(os.path.realpath(default_python_bin_path))
     default_virtualenv_bin_path = os.path.join(base_dir, 'virtualenv')
     action_runner_opts = [
+        # Common runner options
         cfg.StrOpt('logging', default='conf/logging.conf',
                    help='location of the logging.conf file'),
+
+        # Python runner options
         cfg.StrOpt('python_binary', default=default_python_bin_path,
                    help='Python binary which will be used by Python actions.'),
         cfg.StrOpt('virtualenv_binary', default=default_virtualenv_bin_path,
                    help='Virtualenv binary which should be used to create pack virtualenvs.'),
+        cfg.StrOpt('python_runner_log_level',
+                   default=PYTHON_RUNNER_DEFAULT_LOG_LEVEL,
+                   help=('Default log level to use for Python runner actions. Can be overriden on '
+                         'invocation basis using "log_level" runner parameter.')),
         cfg.ListOpt('virtualenv_opts', default=['--system-site-packages'],
                     help='List of virtualenv options to be passsed to "virtualenv" command that ' +
                          'creates pack virtualenv.'),

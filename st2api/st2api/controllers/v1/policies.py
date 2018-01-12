@@ -49,11 +49,12 @@ class PolicyTypeController(resource.ResourceController):
     def get_one(self, ref_or_id, requester_user):
         return self._get_one(ref_or_id, requester_user=requester_user)
 
-    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
+    def get_all(self, sort=None, offset=0, limit=None, requester_user=None, **raw_filters):
         return self._get_all(sort=sort,
                              offset=offset,
                              limit=limit,
-                             raw_filters=raw_filters)
+                             raw_filters=raw_filters,
+                             requester_user=requester_user)
 
     def _get_one(self, ref_or_id, requester_user):
         instance = self._get_by_ref_or_id(ref_or_id=ref_or_id)
@@ -73,7 +74,7 @@ class PolicyTypeController(resource.ResourceController):
         return result
 
     def _get_all(self, exclude_fields=None, sort=None, offset=0, limit=None, query_options=None,
-                 from_model_kwargs=None, raw_filters=None):
+                 from_model_kwargs=None, raw_filters=None, requester_user=None):
 
         resp = super(PolicyTypeController, self)._get_all(exclude_fields=exclude_fields,
                                                           sort=sort,
@@ -81,7 +82,8 @@ class PolicyTypeController(resource.ResourceController):
                                                           limit=limit,
                                                           query_options=query_options,
                                                           from_model_kwargs=from_model_kwargs,
-                                                          raw_filters=raw_filters)
+                                                          raw_filters=raw_filters,
+                                                          requester_user=requester_user)
 
         if self.include_reference:
             result = resp.json
@@ -137,11 +139,12 @@ class PolicyController(resource.ContentPackResourceController):
         'sort': ['pack', 'name']
     }
 
-    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
+    def get_all(self, sort=None, offset=0, limit=None, requester_user=None, **raw_filters):
         return self._get_all(sort=sort,
                              offset=offset,
                              limit=limit,
-                             raw_filters=raw_filters)
+                             raw_filters=raw_filters,
+                             requester_user=requester_user)
 
     def get_one(self, ref_or_id, requester_user):
         permission_type = PermissionType.POLICY_VIEW

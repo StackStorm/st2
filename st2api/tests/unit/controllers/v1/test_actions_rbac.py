@@ -116,6 +116,44 @@ class ActionControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.__do_post(ACTION_2)
         self.assertEqual(resp.status_code, httplib.CREATED)
 
+    def test_get_all_limit_minus_one(self):
+        # non-admin user, should return permission error
+        user_db = self.users['observer']
+        self.use_user(user_db)
+
+        resp = self.app.get('/v1/actions?limit=-1', expect_errors=True)
+
+        expected_msg = ('Administrator access required to be able to specify limit=-1 and '
+                        'retrieve all the records')
+        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.json['faultstring'], expected_msg)
+
+        # admin user, should return all the results
+        user_db = self.users['admin']
+        self.use_user(user_db)
+
+        resp = self.app.get('/v1/actions?limit=-1')
+        self.assertEqual(resp.status_code, httplib.OK)
+
+    def test_get_all_limit_larget_than_page_size(self):
+        # non-admin user, should return permission error
+        # admin user, should return all the results
+        user_db = self.users['observer']
+        self.use_user(user_db)
+
+        resp = self.app.get('/v1/actions?limit=20000', expect_errors=True)
+
+        expected_msg = ('Limit "20000" specified, maximum value is "100"')
+        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.json['faultstring'], expected_msg)
+
+        # admin user, should return all the results
+        user_db = self.users['admin']
+        self.use_user(user_db)
+
+        resp = self.app.get('/v1/actions?limit=20000')
+        self.assertEqual(resp.status_code, httplib.OK)
+
     @staticmethod
     def __get_action_id(resp):
         return resp.json['id']
