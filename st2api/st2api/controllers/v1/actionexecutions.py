@@ -711,7 +711,8 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
                                              mask_secrets=from_model_kwargs['mask_secrets'])
 
     def _get_action_executions(self, exclude_fields=None, sort=None, offset=0, limit=None,
-                               query_options=None, raw_filters=None, from_model_kwargs=None):
+                               query_options=None, raw_filters=None, from_model_kwargs=None,
+                               requester_user=None):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
@@ -729,7 +730,8 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
                                                                 offset=offset,
                                                                 limit=limit,
                                                                 query_options=query_options,
-                                                                raw_filters=raw_filters)
+                                                                raw_filters=raw_filters,
+                                                                requester_user=requester_user)
 
 
 action_executions_controller = ActionExecutionsController()

@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import httplib
+
 import mock
 
 import st2common.validators.api.action as action_validator
@@ -121,3 +123,16 @@ class ActionExecutionRBACControllerTestCase(BaseActionExecutionControllerTestCas
         }
 
         self.assertEqual(resp.json['context'], expected_context)
+
+    def test_get_all_limit_minus(self):
+        user_db = self.users['observer']
+        self.use_user(user_db)
+
+        resp = self.app.get('/v1/actionexecutions?limit=-1', expect_errors=True)
+        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+
+        user_db = self.users['admin']
+        self.use_user(user_db)
+
+        resp = self.app.get('/v1/actionexecutions?limit=-1')
+        self.assertEqual(resp.status_code, httplib.OK)
