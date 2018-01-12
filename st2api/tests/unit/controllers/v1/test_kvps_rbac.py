@@ -386,3 +386,16 @@ class KeyValuesControllerRBACTestCase(APIControllerWithRBACTestCase):
         self.assertEqual(resp.status_code, httplib.FORBIDDEN)
         self.assertTrue('"user" attribute can only be provided by admins' in
                         resp.json['faultstring'])
+
+    def test_get_all_limit_minus_one(self):
+        user_db = self.users['observer']
+        self.use_user(user_db)
+
+        resp = self.app.get('/v1/keys?limit=-1', expect_errors=True)
+        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+
+        user_db = self.users['admin']
+        self.use_user(user_db)
+
+        resp = self.app.get('/v1/keys?limit=-1')
+        self.assertEqual(resp.status_code, httplib.OK)

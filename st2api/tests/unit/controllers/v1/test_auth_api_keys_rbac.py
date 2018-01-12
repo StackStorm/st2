@@ -205,3 +205,16 @@ class ApiKeyControllerRBACTestCase(APIControllerWithRBACTestCase):
         # User not provide
         resp = self.app.post_json('/v1/apikeys', {'user': 'joe22'})
         self.assertEqual(resp.status_code, httplib.CREATED)
+
+    def test_get_all_limit_minus_one(self):
+        user_db = self.users['observer']
+        self.use_user(user_db)
+
+        resp = self.app.get('/v1/apikeys?limit=-1', expect_errors=True)
+        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+
+        user_db = self.users['admin']
+        self.use_user(user_db)
+
+        resp = self.app.get('/v1/apikeys?limit=-1')
+        self.assertEqual(resp.status_code, httplib.OK)

@@ -124,7 +124,7 @@ class ActionExecutionRBACControllerTestCase(BaseActionExecutionControllerTestCas
 
         self.assertEqual(resp.json['context'], expected_context)
 
-    def test_get_all_limit_minus(self):
+    def test_get_all_limit_minus_one(self):
         user_db = self.users['observer']
         self.use_user(user_db)
 
