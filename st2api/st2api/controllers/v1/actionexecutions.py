@@ -540,7 +540,8 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
                                            offset=offset,
                                            limit=limit,
                                            query_options=query_options,
-                                           raw_filters=raw_filters)
+                                           raw_filters=raw_filters,
+                                           requester_user=requester_user)
 
     def get_one(self, id, requester_user, exclude_attributes=None, show_secrets=False):
         """
