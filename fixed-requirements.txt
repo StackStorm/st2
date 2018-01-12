@@ -24,7 +24,6 @@ passlib==1.7.1
 lockfile==0.12.2
 python-gnupg==0.4.1
 jsonpath-rw==1.4.0
-pyinotify==0.9.6
 semver==2.7.7
 stevedore==1.27.1
 paramiko==2.3.1
