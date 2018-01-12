@@ -569,6 +569,20 @@ paths:
           in: query
           description: Only return resources belonging to the provided pack
           type: string
+        - name: limit
+          in: query
+          description: Number of keys to get
+          type: integer
+          default: 100
+        - name: offset
+          in: query
+          description: Number of keys to offset
+          type: integer
+          default: 0
+        - name: sort
+          in: query
+          description: Comma-separated list of fields to sort by
+          type: string
       x-parameters:
         - name: user
           in: context
