@@ -84,11 +84,12 @@ class RuleViewController(resource.ContentPackResourceController):
 
     include_reference = True
 
-    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
+    def get_all(self, sort=None, offset=0, limit=None, requester_user=None, **raw_filters):
         rules = self._get_all(sort=sort,
                               offset=offset,
                               limit=limit,
-                              raw_filters=raw_filters)
+                              raw_filters=raw_filters,
+                              requester_user=requester_user)
         result = self._append_view_properties(rules.json)
         rules.json = result
         return rules

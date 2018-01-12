@@ -45,11 +45,12 @@ class RunnerTypesController(ResourceController):
         'sort': ['name']
     }
 
-    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
+    def get_all(self, sort=None, offset=0, limit=None, requester_user=None, **raw_filters):
         return super(RunnerTypesController, self)._get_all(sort=sort,
                                                            offset=offset,
                                                            limit=limit,
-                                                           raw_filters=raw_filters)
+                                                           raw_filters=raw_filters,
+                                                           requester_user=requester_user)
 
     def get_one(self, name_or_id, requester_user):
         return self._get_one_by_name_or_id(name_or_id,
