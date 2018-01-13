@@ -133,7 +133,8 @@ class OverviewController(resource.ContentPackResourceController):
         resp = super(OverviewController, self)._get_all(sort=sort,
                                                         offset=offset,
                                                         limit=limit,
-                                                        raw_filters=raw_filters)
+                                                        raw_filters=raw_filters,
+                                                        requester_user=requester_user)
         result = []
         for item in resp.json:
             action_api = ActionAPI(**item)
