@@ -445,6 +445,12 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
                 'path': '/v1/actions/views/overview',
                 'method': 'GET',
                 'is_getall': True
+            },
+            # Rule views
+            {
+                'path': '/v1/rules/views',
+                'method': 'GET',
+                'is_getall': True
             }
         ]
 
