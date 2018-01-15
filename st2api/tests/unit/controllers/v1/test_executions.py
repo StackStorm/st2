@@ -1230,7 +1230,7 @@ class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestC
             output_db = ActionExecutionOutputDB(**output_params)
             ActionExecutionOutput.add_or_update(output_db)
 
-            eventlet.sleep(1.0)
+            eventlet.sleep(2.5)
 
             # Transition execution to completed state so the connection closes
             action_execution_db.status = action_constants.LIVEACTION_STATUS_SUCCEEDED

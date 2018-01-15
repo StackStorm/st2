@@ -16,6 +16,7 @@
 import os
 import os.path
 import copy
+import httplib
 
 try:
     import simplejson as json
@@ -332,9 +333,11 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
         self.__do_delete(action_1_id)
         self.__do_delete(action_2_id)
 
-    def test_get_all_invalid_limit_too_large(self):
+    @mock.patch('st2common.rbac.utils.user_is_admin', mock.Mock(return_value=False))
+    def test_get_all_invalid_limit_too_large_none_admin(self):
+        # limit > max_page_size, but user is not admin
         resp = self.app.get('/v1/actions?limit=1000', expect_errors=True)
-        self.assertEqual(resp.status_int, 400)
+        self.assertEqual(resp.status_int, httplib.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], 'Limit "1000" specified, maximum value is'
                          ' "100"')
 

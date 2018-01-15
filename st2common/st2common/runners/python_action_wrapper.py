@@ -42,6 +42,7 @@ from st2common.util import loader as action_loader
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.constants.runners import PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE
+from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_LOG_LEVEL
 
 __all__ = [
     'PythonActionWrapper',
@@ -120,7 +121,7 @@ class ActionService(object):
 
 class PythonActionWrapper(object):
     def __init__(self, pack, file_path, config=None, parameters=None, user=None, parent_args=None,
-                 log_level='debug'):
+                 log_level=PYTHON_RUNNER_DEFAULT_LOG_LEVEL):
         """
         :param pack: Name of the pack this action belongs to.
         :type pack: ``str``
@@ -161,6 +162,7 @@ class PythonActionWrapper(object):
         # Note: We can only set a default user value if one is not provided after parsing the
         # config
         if not self._user:
+            # Note: We use late import to avoid performance overhead
             from oslo_config import cfg
             self._user = cfg.CONF.system_user.user
 
@@ -253,7 +255,7 @@ if __name__ == '__main__':
     parser.add_argument('--parent-args', required=False,
                         help='Command line arguments passed to the parent process serialized as '
                              ' JSON')
-    parser.add_argument('--log-level', required=False, default='debug',
+    parser.add_argument('--log-level', required=False, default=PYTHON_RUNNER_DEFAULT_LOG_LEVEL,
                         help='Log level for actions')
     args = parser.parse_args()
 

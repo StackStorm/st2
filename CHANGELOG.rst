@@ -31,6 +31,8 @@ Added
 * Added flag ``--auto-dict`` to ``st2 run`` and ``st2 execution re-run`` commands. This flag must now
   be specified in order to automatically convert list items to dicts based on presence of colon
   (`:`) in all of the list items (new feature) #3909
+* Allow user to set default log level used by all the Python runner actions by setting
+  ``actionrunner.pythonrunner```` option in ``st2.conf`` (new feature) #3929
 * Update ``st2client`` package which is also utilized by the CLI so it also works under Python 3.
 
   Note: Python 2.7 is only officially supported and tested Python version. Using Python 3 is at
@@ -38,9 +40,13 @@ Added
   (new feature) #3929 #3932
 
   Contributed by Anthony Shaw.
-* Add ``limit=-1`` support for the API to fetch full result set (CLI equivalent flag
+* Add ``?limit=-1`` support for the API to fetch full result set (CLI equivalent flag
   ``--last/-n``). Post error message for ``limit=0`` and fix corner case where negative values for
   limit query param were not handled correctly. #3761 #3708 #3735
+* Only allow RBAC admins to retrieve all the results at once using ``?limit=-1`` query param, upate
+  the code so ``api.max_page_size`` config option only applies to non-admin users, meaning users
+  with admin permission can specify arbitrary value for ``?limit`` query param which can also be
+  larger than ``api.max_page_size``. (improvement) #3939
 
 Changed
 ~~~~~~~

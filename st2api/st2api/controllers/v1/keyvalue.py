@@ -159,7 +159,8 @@ class KeyValuePairController(ResourceController):
                                                                 sort=sort,
                                                                 offset=offset,
                                                                 limit=limit,
-                                                                raw_filters=raw_filters)
+                                                                raw_filters=raw_filters,
+                                                                requester_user=requester_user)
         return kvp_apis
 
     def put(self, kvp, name, requester_user, scope=FULL_SYSTEM_SCOPE):
