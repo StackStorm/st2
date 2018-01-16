@@ -37,7 +37,7 @@ __all__ = [
 
 FIXTURES_PACK = 'generic'
 TEST_FIXTURES = OrderedDict([
-    ('runners', ['testrunner1.yaml']),
+    ('runners', ['testrunner1.yaml', 'run-local.yaml']),
     ('sensors', ['sensor1.yaml']),
     ('actions', ['action1.yaml', 'local.yaml']),
     ('aliases', ['alias1.yaml']),
@@ -439,6 +439,18 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             {
                 'path': '/v1/rbac/permission_types/action',
                 'method': 'GET'
+            },
+            # Action views
+            {
+                'path': '/v1/actions/views/overview',
+                'method': 'GET',
+                'is_getall': True
+            },
+            # Rule views
+            {
+                'path': '/v1/rules/views',
+                'method': 'GET',
+                'is_getall': True
             }
         ]
 
