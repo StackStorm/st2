@@ -199,3 +199,61 @@ class TestPersistence(DbTestCase):
         self.assertIsNotNone(obj3)
         self.assertEqual(obj3.id, obj2.id)
         self.assertDictEqual(obj3.context, context)
+
+    def test_query_only_fields(self):
+        count = 5
+        ts = date_utils.add_utc_tz(datetime.datetime(2014, 12, 25, 0, 0, 0))
+        for i in range(count):
+            category = 'type1'
+            obj = FakeModelDB(name='test-%s' % (i), timestamp=ts, category=category)
+            self.access.add_or_update(obj)
+
+        model_dbs = FakeModel.query()
+        self.assertEqual(model_dbs[0].name, 'test-0')
+        self.assertEqual(model_dbs[0].timestamp, ts)
+        self.assertEqual(model_dbs[0].category, 'type1')
+
+        # only id
+        model_dbs = FakeModel.query(only_fields=['id'])
+        self.assertTrue(model_dbs[0].id)
+        self.assertEqual(model_dbs[0].name, None)
+        self.assertEqual(model_dbs[0].timestamp, None)
+        self.assertEqual(model_dbs[0].category, None)
+
+        # only name - note: id is always included
+        model_dbs = FakeModel.query(only_fields=['name'])
+        self.assertTrue(model_dbs[0].id)
+        self.assertEqual(model_dbs[0].name, 'test-0')
+        self.assertEqual(model_dbs[0].timestamp, None)
+        self.assertEqual(model_dbs[0].category, None)
+
+    def test_query_exclude_fields(self):
+        count = 5
+        ts = date_utils.add_utc_tz(datetime.datetime(2014, 12, 25, 0, 0, 0))
+        for i in range(count):
+            category = 'type1'
+            obj = FakeModelDB(name='test-2-%s' % (i), timestamp=ts, category=category)
+            self.access.add_or_update(obj)
+
+        model_dbs = FakeModel.query()
+        self.assertEqual(model_dbs[0].name, 'test-2-0')
+        self.assertEqual(model_dbs[0].timestamp, ts)
+        self.assertEqual(model_dbs[0].category, 'type1')
+
+        model_dbs = FakeModel.query(exclude_fields=['name'])
+        self.assertTrue(model_dbs[0].id)
+        self.assertEqual(model_dbs[0].name, None)
+        self.assertEqual(model_dbs[0].timestamp, ts)
+        self.assertEqual(model_dbs[0].category, 'type1')
+
+        model_dbs = FakeModel.query(exclude_fields=['name', 'timestamp'])
+        self.assertTrue(model_dbs[0].id)
+        self.assertEqual(model_dbs[0].name, None)
+        self.assertEqual(model_dbs[0].timestamp, None)
+        self.assertEqual(model_dbs[0].category, 'type1')
+
+        model_dbs = FakeModel.query(exclude_fields=['name', 'timestamp', 'category'])
+        self.assertTrue(model_dbs[0].id)
+        self.assertEqual(model_dbs[0].name, None)
+        self.assertEqual(model_dbs[0].timestamp, None)
+        self.assertEqual(model_dbs[0].category, None)
