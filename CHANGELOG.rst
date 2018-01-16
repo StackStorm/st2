@@ -79,6 +79,8 @@ Fixed
 * Fix 'NameError: name 'cmd' is not defined' error when using ``linux.service`` with CentOS systems.
   #3843. Contributed by @shkadov
 * Fix bugs with newlines in execution formatter (client) (bug fix) #3872
+* Fixed ``st2ctl status`` to use better match when checking running process status. #3920
+* Removed invalid ``st2ctl`` option to re-open Mistral log files. #3920
 * Update garbage collection service and ``st2-purge-executions`` CLI tool and make deletion more
   efficient. Previously we incorrectly loaded all the execution fields in memory, but there was no
   need for that and now we only retrieve and load id which is the only field we need. #3936
