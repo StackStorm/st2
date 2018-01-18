@@ -17,10 +17,12 @@
 ISO8601 date related utility functions.
 """
 
+from __future__ import absolute_import
 import re
 import datetime
 
 from st2common.util import date as date_utils
+import six
 
 __all__ = [
     'format',
@@ -42,7 +44,7 @@ def format(dt, usec=True, offset=True):
     :type dt: ``datetime.datetime``
     """
     # pylint: disable=no-member
-    if isinstance(dt, basestring):
+    if isinstance(dt, six.string_types):
         dt = parse(dt)
     fmt = ISO8601_FORMAT_MICROSECOND if usec else ISO8601_FORMAT
     if offset:
@@ -56,7 +58,7 @@ def format(dt, usec=True, offset=True):
 
 def validate(value, raise_exception=True):
     if (isinstance(value, datetime.datetime) or
-            (type(value) in [str, unicode] and re.match(ISO8601_UTC_REGEX, value))):
+            (type(value) in [str, six.text_type] and re.match(ISO8601_UTC_REGEX, value))):
         return True
     if raise_exception:
         raise ValueError('Datetime value does not match expected format.')

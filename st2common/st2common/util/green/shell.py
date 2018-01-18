@@ -17,6 +17,7 @@
 Shell utility functions which use non-blocking and eventlet friendly code.
 """
 
+from __future__ import absolute_import
 import os
 
 import six

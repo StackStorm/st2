@@ -17,6 +17,7 @@
 Module with utility functions for purging old trigger instance objects.
 """
 
+from __future__ import absolute_import
 from mongoengine.errors import InvalidQueryError
 
 from st2common.persistence.trigger import TriggerInstance

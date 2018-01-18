@@ -13,12 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import bson
 
 from st2common.models.db.trace import TraceDB, TraceComponentDB
 from st2common.persistence.trace import Trace
 
 from st2tests.base import CleanDbTestCase
+from six.moves import range
 
 
 class TraceDBTest(CleanDbTestCase):

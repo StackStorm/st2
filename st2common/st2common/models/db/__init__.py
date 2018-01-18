@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import copy
 import importlib
 import traceback
@@ -217,7 +218,7 @@ def drop_obsolete_types_indexes(model_class):
     collection.update({}, {'$unset': {'_types': 1}}, multi=True)
 
     info = collection.index_information()
-    indexes_to_drop = [key for key, value in info.iteritems()
+    indexes_to_drop = [key for key, value in six.iteritems(info)
                        if '_types' in dict(value['key']) or 'types' in value]
 
     LOG.debug('Will drop obsolete types indexes for model "%s": %s' % (class_name,
@@ -405,7 +406,7 @@ class MongoDBAccess(object):
         return count
 
     def _undo_dict_field_escape(self, instance):
-        for attr, field in instance._fields.iteritems():
+        for attr, field in six.iteritems(instance._fields):
             if isinstance(field, stormbase.EscapedDictField):
                 value = getattr(instance, attr)
                 setattr(instance, attr, field.to_python(value))
@@ -444,7 +445,7 @@ class MongoDBAccess(object):
         result = copy.deepcopy(filters)
 
         null_filters = {k: v for k, v in six.iteritems(filters)
-                        if v is None or (type(v) in [str, unicode] and str(v.lower()) == 'null')}
+                        if v is None or (type(v) in [str, six.text_type] and str(v.lower()) == 'null')}
 
         for key in null_filters.keys():
             result['%s__exists' % (key)] = False
@@ -453,11 +454,11 @@ class MongoDBAccess(object):
         return result
 
     def _process_datetime_range_filters(self, filters, order_by=None):
-        ranges = {k: v for k, v in filters.iteritems()
-                  if type(v) in [str, unicode] and '..' in v}
+        ranges = {k: v for k, v in six.iteritems(filters)
+                  if type(v) in [str, six.text_type] and '..' in v}
 
         order_by_list = copy.deepcopy(order_by) if order_by else []
-        for k, v in ranges.iteritems():
+        for k, v in six.iteritems(ranges):
             values = v.split('..')
             dt1 = isotime.parse(values[0])
             dt2 = isotime.parse(values[1])

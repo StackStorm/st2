@@ -18,6 +18,7 @@ Module with utility functions for purging old action executions and
 corresponding live action objects.
 """
 
+from __future__ import absolute_import
 import copy
 
 from mongoengine.errors import InvalidQueryError

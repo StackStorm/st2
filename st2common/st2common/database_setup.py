@@ -17,6 +17,7 @@
 Module contain database set up and teardown related functionality.
 """
 
+from __future__ import absolute_import
 from oslo_config import cfg
 
 from st2common.models import db
