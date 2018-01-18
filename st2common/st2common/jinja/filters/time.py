@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import datetime
 
 __all__ = [
@@ -30,7 +31,7 @@ def to_human_time_from_seconds(seconds):
 
     :rtype: ``str``
     """
-    assert (isinstance(seconds, int) or isinstance(seconds, long) or
+    assert (isinstance(seconds, int) or isinstance(seconds, int) or
             isinstance(seconds, float))
 
     return _get_human_time(seconds)
@@ -56,7 +57,7 @@ def _get_human_time(seconds):
         return '%s\u03BCs' % seconds  # Microseconds
 
     if isinstance(seconds, float):
-        seconds = long(round(seconds))  # Let's lose microseconds.
+        seconds = int(round(seconds))  # Let's lose microseconds.
 
     timedelta = datetime.timedelta(seconds=seconds)
     offset_date = datetime.datetime(1, 1, 1) + timedelta

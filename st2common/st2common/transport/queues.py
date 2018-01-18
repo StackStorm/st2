@@ -20,6 +20,7 @@ They are located inside this module so they can be referenced inside multiple pl
 encountering cylic import issues.
 """
 
+from __future__ import absolute_import
 from kombu import Queue
 
 from st2common.constants import action as action_constants

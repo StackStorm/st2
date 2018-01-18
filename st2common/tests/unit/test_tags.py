@@ -13,12 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import random
 import string
 
 from mongoengine import ValidationError
 from st2common.models.db import stormbase
 from st2tests import DbTestCase
+from six.moves import range
 
 
 class TaggedModel(stormbase.StormFoundationDB, stormbase.TagsMixin):

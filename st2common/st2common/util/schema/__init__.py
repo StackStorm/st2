@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import os
 import copy
 
@@ -124,8 +125,8 @@ CustomValidator = create(
 
 def is_property_type_single(property_schema):
     return (isinstance(property_schema, dict) and
-            'anyOf' not in property_schema.keys() and
-            'oneOf' not in property_schema.keys() and
+            'anyOf' not in list(property_schema.keys()) and
+            'oneOf' not in list(property_schema.keys()) and
             not isinstance(property_schema.get('type', 'string'), list))
 
 
@@ -135,11 +136,11 @@ def is_property_type_list(property_schema):
 
 
 def is_property_type_anyof(property_schema):
-    return isinstance(property_schema, dict) and 'anyOf' in property_schema.keys()
+    return isinstance(property_schema, dict) and 'anyOf' in list(property_schema.keys())
 
 
 def is_property_type_oneof(property_schema):
-    return isinstance(property_schema, dict) and 'oneOf' in property_schema.keys()
+    return isinstance(property_schema, dict) and 'oneOf' in list(property_schema.keys())
 
 
 def is_property_nullable(property_type_schema):
@@ -338,7 +339,7 @@ def get_schema_for_action_parameters(action_db):
 
     # Perform validation, make sure user is not providing parameters which can't
     # be overriden
-    runner_parameter_names = runner_type.runner_parameters.keys()
+    runner_parameter_names = list(runner_type.runner_parameters.keys())
 
     for name, schema in six.iteritems(action_db.parameters):
         if name not in runner_parameter_names:

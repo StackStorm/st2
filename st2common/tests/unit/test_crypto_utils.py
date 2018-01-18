@@ -13,11 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 from keyczar.keys import AesKey
 from unittest2 import TestCase
 
 
 import st2common.util.crypto as crypto_utils
+from six.moves import range
 
 
 class CryptoUtilsTestCase(TestCase):
@@ -37,7 +39,7 @@ class CryptoUtilsTestCase(TestCase):
         original = 'Kami is a little boy.'
         cryptos = set()
 
-        for _ in xrange(0, 10000):
+        for _ in range(0, 10000):
             crypto = crypto_utils.symmetric_encrypt(CryptoUtilsTestCase.test_crypto_key,
                                                     original)
             self.assertTrue(crypto not in cryptos)

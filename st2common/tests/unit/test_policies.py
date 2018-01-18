@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 from st2common.persistence.policy import PolicyType, Policy
 from st2common.policies import ResourcePolicyApplicator, get_driver
 from st2tests import DbTestCase

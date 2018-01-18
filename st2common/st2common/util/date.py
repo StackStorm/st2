@@ -17,6 +17,7 @@
 Date related utility functions.
 """
 
+from __future__ import absolute_import
 import datetime
 
 import dateutil.tz
