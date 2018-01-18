@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 from mongoengine import ValidationError
 
 from st2common import log as logging
@@ -375,7 +375,7 @@ def _to_trace_component_db(component):
     :rtype: ``TraceComponentDB``
     """
     if not isinstance(component, (six.string_types, dict)):
-        print type(component)
+        print(type(component))
         raise ValueError('Expected component to be str or dict')
 
     object_id = component if isinstance(component, six.string_types) else component['id']
