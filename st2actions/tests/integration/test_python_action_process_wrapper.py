@@ -29,6 +29,7 @@ If the tests fail, look at the recent changes and analyze the import graph using
 command: "profimp "from st2common.runners import python_action_wrapper" --html > report.html"
 """
 
+from __future__ import absolute_import
 import os
 import json
 
@@ -36,6 +37,7 @@ import unittest2
 from distutils.spawn import find_executable
 
 from st2common.util.shell import run_command
+from six.moves import range
 
 __all__ = [
     'PythonRunnerActionWrapperProcessTestCase'
