@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import six
 import json
 import re
@@ -190,7 +191,7 @@ class RuleFilter(object):
                 )
                 criteria_rendered = json.loads(criteria_rendered)
                 to_complex = True
-            except ValueError, error:
+            except ValueError as error:
                 LOG.debug('Criteria pattern not valid JSON: %s', error)
 
         if not to_complex:
