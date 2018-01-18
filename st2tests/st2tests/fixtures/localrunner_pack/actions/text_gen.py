@@ -1,8 +1,10 @@
 #! /usr/bin/python
 
+from __future__ import absolute_import
 import argparse
 import string
 import random
+from six.moves import range
 
 
 def print_random_chars(chars=1000, selection=string.letters + string.digits):

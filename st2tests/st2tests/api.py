@@ -17,6 +17,7 @@
 Various base classes and test utility functions for API related tests.
 """
 
+from __future__ import absolute_import
 import webtest
 import mock
 from oslo_config import cfg

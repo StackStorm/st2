@@ -1,7 +1,9 @@
+from __future__ import absolute_import
 import math
 
 
 from st2common.runners.base_action import Action
+from six.moves import range
 
 
 class PascalRowAction(Action):
