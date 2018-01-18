@@ -84,6 +84,6 @@ class MockLiveActionPublisherNonBlocking(object):
             try:
                 thread.wait()
             except Exception as e:
-                print str(e)
+                print(str(e))
             finally:
                 cls.threads.remove(thread)
