@@ -29,6 +29,9 @@ To run :
 The command must run on a StackStorm box.
 """
 
+from __future__ import print_function
+
+from __future__ import absolute_import
 import os
 import sets
 
@@ -79,7 +82,7 @@ class LinksAnalyzer(object):
         for rule in rules:
             source_action_ref = self._get_source_action_ref(rule)
             if not source_action_ref:
-                print 'No source_action_ref for rule %s' % rule.ref
+                print('No source_action_ref for rule %s' % rule.ref)
                 continue
             rule_links = self._rules.get(source_action_ref, None)
             if rule_links is None:
@@ -89,7 +92,7 @@ class LinksAnalyzer(object):
                                        dest_action_ref=rule.action.ref))
         analyzed = self._do_analyze(action_ref=root_action_ref)
         for (depth, rule_link) in analyzed:
-            print '%s%s' % ('  ' * depth, rule_link)
+            print('%s%s' % ('  ' * depth, rule_link))
         return analyzed
 
     def _get_source_action_ref(self, rule):
@@ -130,7 +133,7 @@ class Grapher(object):
 
         nodes = sets.Set()
         for _, rule_link in rule_links:
-            print rule_link._source_action_ref
+            print(rule_link._source_action_ref)
             if rule_link._source_action_ref not in nodes:
                 nodes.add(rule_link._source_action_ref)
                 dot.node(rule_link._source_action_ref, rule_link._source_action_ref)

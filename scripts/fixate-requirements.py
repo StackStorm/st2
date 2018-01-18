@@ -27,6 +27,7 @@ which pins production versions for the whole st2 stack. During production use
 where version of packages are fixed according to fixed-requirements.txt.
 """
 
+from __future__ import absolute_import
 import argparse
 import os
 import os.path
