@@ -291,7 +291,7 @@ class RBACDefinitionsDBSyncer(object):
         db_roles = set([(entry.role, entry.source) for entry in role_assignment_dbs])
 
         api_roles = [
-            list(itertools.zip_longest(entry.roles, [], fillvalue=entry.file_path))
+            list(itertools.izip_longest(entry.roles, [], fillvalue=entry.file_path))
             for entry in role_assignment_apis
         ]
 
