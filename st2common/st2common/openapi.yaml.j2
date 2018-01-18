@@ -277,6 +277,11 @@ paths:
           in: query
           description: Action pack name filter
           type: string
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: List of actions
@@ -564,6 +569,25 @@ paths:
           in: query
           description: Only return resources belonging to the provided pack
           type: string
+        - name: limit
+          in: query
+          description: Number of keys to get
+          type: integer
+          default: 100
+        - name: offset
+          in: query
+          description: Number of keys to offset
+          type: integer
+          default: 0
+        - name: sort
+          in: query
+          description: Comma-separated list of fields to sort by
+          type: string
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: List of action aliases.
@@ -1566,6 +1590,11 @@ paths:
           in: query
           description: Entity ref filter
           type: string
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: List of installed packs.
@@ -1986,6 +2015,11 @@ paths:
           type: array
           items:
             type: string
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: Get packs config schema.
@@ -2063,6 +2097,11 @@ paths:
           type: array
           items:
             type: string
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: List of policy types
@@ -2131,6 +2170,11 @@ paths:
           description: Number of policies to offset
           type: integer
           default: 0
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: Policy created successfully.
@@ -2472,6 +2516,11 @@ paths:
           in: query
           description: Enabled filter
           type: string
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: List of rules
@@ -2645,6 +2694,11 @@ paths:
           in: query
           description: Enabled filter
           type: string
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: List of rules
@@ -2770,6 +2824,11 @@ paths:
           type: array
           items:
             type: string
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: List of rules
@@ -2890,6 +2949,11 @@ paths:
           in: query
           description: Enabled filter
           type: string
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: List of rules
@@ -3183,6 +3247,11 @@ paths:
               Only return enforcements with enforced_at lower than the one provided. Use time in the format.
           type: string
           pattern: {{ ISO8601_UTC_REGEX }}
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: List of rule enforcements
@@ -3337,6 +3406,11 @@ paths:
           description: |
               Sort in descending order by start timestamp, desc/descending (latest first)
           type: string
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: List of traces
@@ -3415,6 +3489,11 @@ paths:
           in: query
           description: Pack name filter
           type: string
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: List of trigger types
@@ -3526,6 +3605,11 @@ paths:
     get:
       operationId: st2api.controllers.v1.triggers:trigger_controller.get_all
       description: Returns a list of all triggers.
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: List of triggers
@@ -3678,6 +3762,11 @@ paths:
           description: Start timestamp greater than filter
           type: string
           pattern: {{ ISO8601_UTC_REGEX }}
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: List of trigger instances

@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+
 from st2client.models import Resource, Trace, TriggerInstance, Rule, LiveAction
 from st2client.exceptions.operations import OperationFailureException
 from st2client.formatters import table
@@ -113,17 +115,20 @@ class TraceListCommand(resource.ResourceCommand, SingleTraceDisplayMixin):
     attribute_display_order = TRACE_ATTRIBUTE_DISPLAY_ORDER
 
     def __init__(self, resource, *args, **kwargs):
-        super(TraceListCommand, self).__init__(
-            resource, 'list', 'Get the list of the 50 most recent %s.' %
-            resource.get_plural_display_name().lower(),
-            *args, **kwargs)
 
         self.default_limit = 50
+
+        super(TraceListCommand, self).__init__(
+            resource, 'list', 'Get the list of the %s most recent %s.' %
+            (self.default_limit, resource.get_plural_display_name().lower()),
+            *args, **kwargs)
+
         self.resource_name = resource.get_plural_display_name().lower()
         self.group = self.parser.add_mutually_exclusive_group()
         self.parser.add_argument('-n', '--last', type=int, dest='last',
                                  default=self.default_limit,
-                                 help=('List N most recent %s.' % self.resource_name))
+                                 help=('List N most recent %s. Use -n -1 to fetch the full result \
+                                       set.' % self.resource_name))
         self.parser.add_argument('-s', '--sort', type=str, dest='sort_order',
                                  default='descending',
                                  help=('Sort %s by start timestamp, '

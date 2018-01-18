@@ -69,7 +69,8 @@ class PackConfigsController(ResourceController, BaseRestControllerMixin):
                                                            offset=offset,
                                                            limit=limit,
                                                            from_model_kwargs=from_model_kwargs,
-                                                           raw_filters=raw_filters)
+                                                           raw_filters=raw_filters,
+                                                           requester_user=requester_user)
 
     def get_one(self, pack_ref, requester_user, show_secrets=False):
         """

@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import copy
 import json
 import mock
@@ -23,6 +24,7 @@ import uuid
 
 from tests import base
 from st2client import shell
+from six.moves import range
 
 LOG = logging.getLogger(__name__)
 
@@ -166,16 +168,16 @@ class TestInquirySubcommands(TestInquiryBase):
     @mock.patch.object(
         requests, 'get',
         mock.MagicMock(return_value=(base.FakeResponse(
-            json.dumps(_generate_inquiries(22)), 200, 'OK', {'X-Total-Count': '25'}
+            json.dumps(_generate_inquiries(50)), 200, 'OK', {'X-Total-Count': '55'}
         ))))
     def test_list_inquiries_limit(self):
         """Test retrieval of a list of Inquiries while using the "limit" option
         """
-        args = ['inquiry', 'list', '-n', '22']
+        args = ['inquiry', 'list', '-n', '50']
         retcode = self.shell.run(args)
         self.assertEqual(retcode, 0)
-        self.assertEqual(self.stdout.getvalue().count('1440'), 22)
-        self.assertTrue('Note: Only first 22 inquiries are displayed.' in self.stderr.getvalue())
+        self.assertEqual(self.stdout.getvalue().count('1440'), 50)
+        self.assertTrue('Note: Only first 50 inquiries are displayed.' in self.stderr.getvalue())
 
     @mock.patch.object(
         requests, 'get',

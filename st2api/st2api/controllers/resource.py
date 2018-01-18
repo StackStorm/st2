@@ -27,6 +27,7 @@ from st2common import log as logging
 from st2common.models.system.common import ResourceReference
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.rbac import utils as rbac_utils
+from st2common.exceptions.rbac import AccessDeniedError
 from st2common.util import schema as util_schema
 from st2common.router import abort
 from st2common.router import Response
@@ -119,7 +120,7 @@ class ResourceController(object):
         self.get_one_db_method = self._get_by_name_or_id
 
     def _get_all(self, exclude_fields=None, sort=None, offset=0, limit=None, query_options=None,
-                 from_model_kwargs=None, raw_filters=None):
+                 from_model_kwargs=None, raw_filters=None, requester_user=None):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
@@ -159,11 +160,7 @@ class ResourceController(object):
         if offset >= 2**31:
             raise ValueError('Offset "%s" specified is more than 32-bit int' % (offset))
 
-        if limit and int(limit) > self.max_limit:
-            # TODO: We should throw here, I don't like this.
-            msg = 'Limit "%s" specified, maximum value is "%s"' % (limit, self.max_limit)
-            raise ValueError(msg)
-
+        limit = validate_limit_query_param(limit=limit, requester_user=requester_user)
         eop = offset + int(limit) if limit else None
 
         filters = {}
@@ -197,6 +194,7 @@ class ResourceController(object):
 
         resp = Response(json=result)
         resp.headers['X-Total-Count'] = str(instances.count())
+
         if limit:
             resp.headers['X-Limit'] = str(limit)
 
@@ -371,7 +369,7 @@ class ContentPackResourceController(ResourceController):
         return Response(json=result)
 
     def _get_all(self, exclude_fields=None, sort=None, offset=0, limit=None, query_options=None,
-                 from_model_kwargs=None, raw_filters=None):
+                 from_model_kwargs=None, raw_filters=None, requester_user=None):
         resp = super(ContentPackResourceController,
                      self)._get_all(exclude_fields=exclude_fields,
                                     sort=sort,
@@ -379,7 +377,8 @@ class ContentPackResourceController(ResourceController):
                                     limit=limit,
                                     query_options=query_options,
                                     from_model_kwargs=from_model_kwargs,
-                                    raw_filters=raw_filters)
+                                    raw_filters=raw_filters,
+                                    requester_user=requester_user)
 
         if self.include_reference:
             result = resp.json
@@ -425,3 +424,41 @@ class ContentPackResourceController(ResourceController):
         resource_db = self.access.query(name=ref.name, pack=ref.pack,
                                         exclude_fields=exclude_fields).first()
         return resource_db
+
+
+def validate_limit_query_param(limit, requester_user=None):
+    """
+    Validate that the provided value for "limit" query parameter is valid.
+
+    Note: We only perform max_page_size check for non-admin users. Admin users
+    can provide arbitrary limit value.
+    """
+    user_is_admin = rbac_utils.user_is_admin(user_db=requester_user)
+
+    if limit:
+        # Display all the results
+        if int(limit) == -1:
+            if not user_is_admin:
+                # Only admins can specify limit -1
+                message = ('Administrator access required to be able to specify limit=-1 and '
+                           'retrieve all the records')
+                raise AccessDeniedError(message=message,
+                                        user_db=requester_user)
+
+            return 0
+        elif int(limit) <= -2:
+            msg = 'Limit, "%s" specified, must be a positive number.' % (limit)
+            raise ValueError(msg)
+        elif int(limit) > cfg.CONF.api.max_page_size and not user_is_admin:
+            msg = ('Limit "%s" specified, maximum value is "%s"' % (limit,
+                                                                    cfg.CONF.api.max_page_size))
+
+            raise AccessDeniedError(message=msg,
+                                    user_db=requester_user)
+    # Disable n = 0
+    elif limit == 0:
+        msg = ('Limit, "%s" specified, must be a positive number or -1 for full result set.' %
+               (limit))
+        raise ValueError(msg)
+
+    return limit

@@ -28,9 +28,25 @@ Added
 * Add new ``--tail`` flag to the ``st2 run`` / ``st2 action execute`` and ``st2 execution re-run``
   CLI command. When this flag is provided, new execution will automatically be followed and tailed
   after it has been scheduled. (new feature) #3867
-* Added flag `--auto-dict` to `st2 run` and `st2 execution re-run` commands. This flag must now
+* Added flag ``--auto-dict`` to ``st2 run`` and ``st2 execution re-run`` commands. This flag must now
   be specified in order to automatically convert list items to dicts based on presence of colon
   (`:`) in all of the list items (new feature) #3909
+* Allow user to set default log level used by all the Python runner actions by setting
+  ``actionrunner.pythonrunner```` option in ``st2.conf`` (new feature) #3929
+* Update ``st2client`` package which is also utilized by the CLI so it also works under Python 3.
+
+  Note: Python 2.7 is only officially supported and tested Python version. Using Python 3 is at
+  your own risk - they are likely still many bugs related to Python 3 compatibility. You have been warned.
+  (new feature) #3929 #3932
+
+  Contributed by Anthony Shaw.
+* Add ``?limit=-1`` support for the API to fetch full result set (CLI equivalent flag
+  ``--last/-n``). Post error message for ``limit=0`` and fix corner case where negative values for
+  limit query param were not handled correctly. #3761 #3708 #3735
+* Only allow RBAC admins to retrieve all the results at once using ``?limit=-1`` query param, upate
+  the code so ``api.max_page_size`` config option only applies to non-admin users, meaning users
+  with admin permission can specify arbitrary value for ``?limit`` query param which can also be
+  larger than ``api.max_page_size``. (improvement) #3939
 
 Changed
 ~~~~~~~
@@ -50,6 +66,10 @@ Changed
   gitpython, pymongo, stevedore, paramiko, prompt-toolkit, flex). #3830
 * Mask values in an Inquiry response displayed to the user that were marked as "secret" in the
   inquiry's response schema. #3825
+* Real-time action output streaming is now enabled by default. For more information on this
+  feature, please refer to the documentation - https://docs.stackstorm.com/latest/reference/action_output_streaming.html.
+  You can disable this functionality by setting ``actionrunner.stream_output`` config option in
+  ``st2.conf`` to ``False`` and restart the services (``sudo st2ctl restart``).
 
 Fixed
 ~~~~~
@@ -59,6 +79,13 @@ Fixed
 * Fix 'NameError: name 'cmd' is not defined' error when using ``linux.service`` with CentOS systems.
   #3843. Contributed by @shkadov
 * Fix bugs with newlines in execution formatter (client) (bug fix) #3872
+* Fixed ``st2ctl status`` to use better match when checking running process status. #3920
+* Removed invalid ``st2ctl`` option to re-open Mistral log files. #3920
+* Update garbage collection service and ``st2-purge-executions`` CLI tool and make deletion more
+  efficient. Previously we incorrectly loaded all the execution fields in memory, but there was no
+  need for that and now we only retrieve and load id which is the only field we need. #3936
+
+  Reported by @kevin-vh.
 
 2.5.1 - December 14, 2017
 -------------------------

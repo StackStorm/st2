@@ -78,7 +78,8 @@ class ActionsController(resource.ContentPackResourceController):
         super(ActionsController, self).__init__(*args, **kwargs)
         self._trigger_dispatcher = TriggerDispatcher(LOG)
 
-    def get_all(self, exclude_attributes=None, sort=None, offset=0, limit=None, **raw_filters):
+    def get_all(self, exclude_attributes=None, sort=None, offset=0, limit=None,
+                requester_user=None, **raw_filters):
         if exclude_attributes:
             exclude_fields = exclude_attributes.split(',')
         else:
@@ -89,7 +90,8 @@ class ActionsController(resource.ContentPackResourceController):
                                                        sort=sort,
                                                        offset=offset,
                                                        limit=limit,
-                                                       raw_filters=raw_filters)
+                                                       raw_filters=raw_filters,
+                                                       requester_user=requester_user)
 
     def get_one(self, ref_or_id, requester_user):
         return super(ActionsController, self)._get_one(ref_or_id, requester_user=requester_user,
