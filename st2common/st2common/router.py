@@ -440,6 +440,9 @@ class Router(object):
                 elif param_type == 'array' and param.get('items', {}).get('type', None) == 'string':
                     if kw[argument_name] is None:
                         kw[argument_name] = []
+                    elif isinstance(kw[argument_name], (list, tuple)):
+                        # argument is already an array
+                        pass
                     else:
                         kw[argument_name] = kw[argument_name].split(',')
 

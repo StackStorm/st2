@@ -42,7 +42,7 @@ RESERVED_QUERY_PARAMS = {
 
 
 def split_id_value(value):
-    if not value:
+    if not value or isinstance(value, (list, tuple)):
         return value
 
     split = value.split(',')
