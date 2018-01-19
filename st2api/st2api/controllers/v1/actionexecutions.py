@@ -513,15 +513,10 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         Handles requests:
             GET /executions[?exclude_attributes=result,trigger_instance]
 
-        :param exclude_attributes: Comma delimited string of attributes to exclude from the object.
-        :type exclude_attributes: ``str``
+        :param exclude_attributes: List of attributes to exclude from the object.
+        :type exclude_attributes: ``list``
         """
-        if exclude_attributes:
-            exclude_fields = exclude_attributes.split(',')
-        else:
-            exclude_fields = None
-
-        exclude_fields = self._validate_exclude_fields(exclude_fields=exclude_fields)
+        exclude_fields = self._validate_exclude_fields(exclude_fields=exclude_attributes)
 
         # Use a custom sort order when filtering on a timestamp so we return a correct result as
         # expected by the user
@@ -550,15 +545,10 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         Handles requests:
             GET /executions/<id>[?exclude_attributes=result,trigger_instance]
 
-        :param exclude_attributes: Comma delimited string of attributes to exclude from the object.
-        :type exclude_attributes: ``str``
+        :param exclude_attributes: List of attributes to exclude from the object.
+        :type exclude_attributes: ``list``
         """
-        if exclude_attributes:
-            exclude_fields = exclude_attributes.split(',')
-        else:
-            exclude_fields = None
-
-        exclude_fields = self._validate_exclude_fields(exclude_fields=exclude_fields)
+        exclude_fields = self._validate_exclude_fields(exclude_fields=exclude_attributes)
 
         from_model_kwargs = {
             'mask_secrets': self._get_mask_secrets(requester_user, show_secrets=show_secrets)

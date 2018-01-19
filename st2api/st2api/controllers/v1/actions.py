@@ -80,12 +80,7 @@ class ActionsController(resource.ContentPackResourceController):
 
     def get_all(self, exclude_attributes=None, sort=None, offset=0, limit=None,
                 requester_user=None, **raw_filters):
-        if exclude_attributes:
-            exclude_fields = exclude_attributes.split(',')
-        else:
-            exclude_fields = None
-
-        exclude_fields = self._validate_exclude_fields(exclude_fields)
+        exclude_fields = self._validate_exclude_fields(exclude_attributes)
         return super(ActionsController, self)._get_all(exclude_fields=exclude_fields,
                                                        sort=sort,
                                                        offset=offset,
