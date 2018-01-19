@@ -304,6 +304,7 @@ class MongoDBAccess(object):
     def get(self, *args, **kwargs):
         exclude_fields = kwargs.pop('exclude_fields', None)
         raise_exception = kwargs.pop('raise_exception', False)
+        only_fields = kwargs.pop('only_fields', None)
 
         args = self._process_arg_filters(args)
 
@@ -311,6 +312,9 @@ class MongoDBAccess(object):
 
         if exclude_fields:
             instances = instances.exclude(*exclude_fields)
+
+        if only_fields:
+            instances = instances.only(*only_fields)
 
         instance = instances[0] if instances else None
         log_query_and_profile_data_for_queryset(queryset=instances)
