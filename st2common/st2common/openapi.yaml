@@ -868,7 +868,13 @@ paths:
           items:
             type: string
           required: false
-        - name: limit
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
+          required: false
           in: query
           description: Number of executions to get
           type: integer

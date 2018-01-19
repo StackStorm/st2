@@ -506,7 +506,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
     }
 
     def get_all(self, requester_user, exclude_attributes=None, sort=None, offset=0, limit=None,
-                show_secrets=False, **raw_filters):
+                show_secrets=False, include_attributes=None, **raw_filters):
         """
         List all executions.
 
@@ -530,6 +530,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
             'mask_secrets': self._get_mask_secrets(requester_user, show_secrets=show_secrets)
         }
         return self._get_action_executions(exclude_fields=exclude_fields,
+                                           include_fields=include_attributes,
                                            from_model_kwargs=from_model_kwargs,
                                            sort=sort,
                                            offset=offset,
@@ -700,7 +701,8 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         return ActionExecutionAPI.from_model(execution_db,
                                              mask_secrets=from_model_kwargs['mask_secrets'])
 
-    def _get_action_executions(self, exclude_fields=None, sort=None, offset=0, limit=None,
+    def _get_action_executions(self, exclude_fields=None, include_fields=None,
+                               sort=None, offset=0, limit=None,
                                query_options=None, raw_filters=None, from_model_kwargs=None,
                                requester_user=None):
         """
@@ -715,6 +717,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
 
         LOG.debug('Retrieving all action executions with filters=%s', raw_filters)
         return super(ActionExecutionsController, self)._get_all(exclude_fields=exclude_fields,
+                                                                include_fields=include_fields,
                                                                 from_model_kwargs=from_model_kwargs,
                                                                 sort=sort,
                                                                 offset=offset,
