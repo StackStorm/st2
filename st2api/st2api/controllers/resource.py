@@ -177,7 +177,7 @@ class ResourceController(object):
             value_transform_function = value_transform_function or (lambda value: value)
             filter_value = value_transform_function(value=filter_value)
 
-            if k == 'id' and isinstance(filter_value, list):
+            if k in ['id', 'name'] and isinstance(filter_value, list):
                 filters[k + '__in'] = filter_value
             else:
                 filters['__'.join(v.split('.'))] = filter_value
