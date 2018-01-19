@@ -82,6 +82,11 @@ class ActionsController(resource.ContentPackResourceController):
                 sort=None, offset=0, limit=None,
                 requester_user=None, **raw_filters):
         exclude_fields = self._validate_exclude_fields(exclude_attributes)
+
+        if include_attributes:
+            # Note: Those fields need to be always included for API model to work
+            include_attributes += ['name', 'pack', 'runner_type']
+
         return super(ActionsController, self)._get_all(exclude_fields=exclude_fields,
                                                        include_fields=include_attributes,
                                                        sort=sort,
