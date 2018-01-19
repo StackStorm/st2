@@ -314,7 +314,11 @@ class MongoDBAccess(object):
             instances = instances.exclude(*exclude_fields)
 
         if only_fields:
-            instances = instances.only(*only_fields)
+            try:
+                instances = instances.only(*only_fields)
+            except mongoengine.errors.LookUpError as e:
+                msg = ('Invalid or unsupported include attribute specified: %s' % str(e))
+                raise ValueError(msg)
 
         instance = instances[0] if instances else None
         log_query_and_profile_data_for_queryset(queryset=instances)
@@ -364,7 +368,11 @@ class MongoDBAccess(object):
             result = result.exclude(*exclude_fields)
 
         if only_fields:
-            result = result.only(*only_fields)
+            try:
+                result = result.only(*only_fields)
+            except mongoengine.errors.LookUpError as e:
+                msg = ('Invalid or unsupported include attribute specified: %s' % str(e))
+                raise ValueError(msg)
 
         if no_dereference:
             result = result.no_dereference()
