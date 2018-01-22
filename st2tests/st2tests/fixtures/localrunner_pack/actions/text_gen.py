@@ -1,13 +1,19 @@
 #! /usr/bin/python
 
 from __future__ import absolute_import
+
 import argparse
 import string
+
+try:
+    from string import letters as ascii_letters
+except ImportError:
+    from string import ascii_letters
+
 import random
-from six.moves import range
 
 
-def print_random_chars(chars=1000, selection=string.letters + string.digits):
+def print_random_chars(chars=1000, selection=ascii_letters + string.digits):
     s = []
     for _ in range(chars - 1):
         s.append(random.choice(selection))
@@ -17,7 +23,7 @@ def print_random_chars(chars=1000, selection=string.letters + string.digits):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--chars', type=int, metavar='N')
+    parser.add_argument('--chars', type=int, metavar='N', default=10)
     args = parser.parse_args()
     print_random_chars(args.chars)
 
