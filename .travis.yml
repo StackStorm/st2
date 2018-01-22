@@ -53,8 +53,8 @@ cache:
     - .tox/
 
 install:
-  - if [ ${TASK} = 'compilepy3 ci-st2client-py3-tests' ]; then pip install tox; else make requirements; fi
-  - if [ ${TASK} = 'ci-unit' ] || [ ${TASK} = 'ci-integration' ]; then pip install codecov; sudo .circle/add-itest-user.sh; fi
+  - if [ "${TASK}" = 'compilepy3 ci-st2client-py3-tests' ]; then pip install tox; else make requirements; fi
+  - if [ "${TASK}" = 'ci-unit' ] || [ ${TASK} = 'ci-integration' ]; then pip install codecov; sudo .circle/add-itest-user.sh; fi
 
 script:
   - make ${TASK}
