@@ -22,7 +22,7 @@ matrix:
       python: 2.7
     - env: TASK="ci-checks ci-packs-tests"
       python: 2.7
-    - env: TASK=ci-st2client-py3-tests
+    - env: TASK="compilepy3 ci-st2client-py3-tests"
       python: 3.6
 addons:
   apt:
