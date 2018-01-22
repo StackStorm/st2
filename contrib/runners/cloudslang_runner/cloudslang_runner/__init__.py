@@ -18,4 +18,5 @@
 # packages, but now they are full blown Python packages.
 # This means you can either do "from runner_name import RunnerClass" (old way, don't do that)
 # or "from runner_name.runner_name import RunnerClass"
-from cloudslang_runner import *  # noqa
+from __future__ import absolute_import
+from .cloudslang_runner import *  # noqa

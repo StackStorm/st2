@@ -18,6 +18,7 @@ Module containing resolver classes which contain permission resolving logic for 
 types.
 """
 
+from __future__ import absolute_import
 import sys
 import logging as stdlib_logging
 

@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import, print_function
 from mongoengine import ValidationError
 
 from st2common import log as logging
@@ -26,6 +27,7 @@ from st2common.models.system.common import ResourceReference
 from st2common.persistence.execution import ActionExecution
 from st2common.persistence.trace import Trace
 from st2common.services import executions
+import six
 
 LOG = logging.getLogger(__name__)
 
@@ -372,11 +374,11 @@ def _to_trace_component_db(component):
 
     :rtype: ``TraceComponentDB``
     """
-    if not isinstance(component, (basestring, dict)):
-        print type(component)
+    if not isinstance(component, (six.string_types, dict)):
+        print(type(component))
         raise ValueError('Expected component to be str or dict')
 
-    object_id = component if isinstance(component, basestring) else component['id']
+    object_id = component if isinstance(component, six.string_types) else component['id']
     ref = component.get('ref', '') if isinstance(component, dict) else ''
     caused_by = component.get('caused_by', {}) if isinstance(component, dict) else {}
 

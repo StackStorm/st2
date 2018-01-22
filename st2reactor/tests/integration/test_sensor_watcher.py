@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import eventlet
 from monotonic import monotonic
 from pyrabbit.api import Client
@@ -65,4 +66,4 @@ class SensorWatcherTestCase(IntegrationTestCase):
 
     def _get_sensor_watcher_amqp_queues(self, queue_name):
         all_queues = self._list_amqp_queues()
-        return set(filter(lambda q_name: queue_name in q_name, all_queues))
+        return set([q_name for q_name in all_queues if queue_name in q_name])

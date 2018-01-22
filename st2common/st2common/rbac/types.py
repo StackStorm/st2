@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import six
 import itertools
 
@@ -417,7 +418,7 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
     ]
 }
 
-ALL_PERMISSION_TYPES = RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP.values()
+ALL_PERMISSION_TYPES = list(RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP.values())
 ALL_PERMISSION_TYPES = list(itertools.chain(*ALL_PERMISSION_TYPES))
 LIST_PERMISSION_TYPES = [permission_type for permission_type in ALL_PERMISSION_TYPES if
                          permission_type.endswith('_list')]

@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import copy
 import datetime
 import json
@@ -29,6 +30,7 @@ from mistralclient.api.v2 import tasks
 from oslo_config import cfg
 
 import st2tests.config as tests_config
+from six.moves import range
 tests_config.parse_args()
 
 from st2common.constants import action as action_constants

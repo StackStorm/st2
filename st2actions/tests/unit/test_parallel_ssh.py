@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import json
 import os
 
@@ -177,9 +178,9 @@ class ParallelSSHTests(unittest2.TestCase):
                                    user='ubuntu',
                                    pkey_file='~/.ssh/id_rsa',
                                    connect=True)
-        client.put('/local/stuff', '/remote/stuff', mode=0744)
+        client.put('/local/stuff', '/remote/stuff', mode=0o744)
         expected_kwargs = {
-            'mode': 0744,
+            'mode': 0o744,
             'mirror_local_mode': False
         }
         for host in hosts:

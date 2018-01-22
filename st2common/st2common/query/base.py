@@ -13,9 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import abc
 import eventlet
-import Queue
+import six.moves.queue
 import six
 import time
 
@@ -59,7 +60,7 @@ class Querier(object):
         self._no_workers_sleep_time = self._get_config_value('no_workers_sleep_time')
         self._query_interval = self._get_config_value('query_interval')
         self._query_thread_pool_size = self._get_config_value('thread_pool_size')
-        self._query_contexts = Queue.Queue()
+        self._query_contexts = six.moves.queue.Queue()
         self._thread_pool = eventlet.GreenPool(self._query_thread_pool_size)
         self._started = False
 

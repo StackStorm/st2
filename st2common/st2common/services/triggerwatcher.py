@@ -14,6 +14,7 @@
 # limitations under the License.
 # pylint: disable=assignment-from-none
 
+from __future__ import absolute_import
 import eventlet
 from kombu.mixins import ConsumerMixin
 from kombu import Connection

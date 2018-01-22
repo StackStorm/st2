@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import six
 
 from oslo_config import cfg
@@ -50,7 +51,7 @@ def validate_criteria(criteria):
         if operator not in allowed_operators:
             raise ValueValidationException('For field: ' + key + ', operator ' + operator +
                                            ' not in list of allowed operators: ' +
-                                           str(allowed_operators.keys()))
+                                           str(list(allowed_operators.keys())))
         pattern = value.get('pattern', None)
         if pattern is None:
             raise ValueValidationException('For field: ' + key + ', no pattern specified ' +

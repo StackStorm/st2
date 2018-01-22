@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import bson
 
 from st2common.models.db.executionstate import ActionExecutionStateDB

@@ -17,6 +17,7 @@
 File system related utility functions.
 """
 
+from __future__ import absolute_import
 import os
 import os.path
 import fnmatch

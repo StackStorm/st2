@@ -17,6 +17,7 @@
 Module containing various versioning utils.
 """
 
+from __future__ import absolute_import
 import semver
 
 from st2common import __version__ as stackstorm_version
