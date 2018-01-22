@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import copy
 import importlib
 import traceback
@@ -445,7 +446,8 @@ class MongoDBAccess(object):
         result = copy.deepcopy(filters)
 
         null_filters = {k: v for k, v in six.iteritems(filters)
-                        if v is None or (type(v) in [str, six.text_type] and str(v.lower()) == 'null')}
+                        if v is None or
+                        (type(v) in [str, six.text_type] and str(v.lower()) == 'null')}
 
         for key in null_filters.keys():
             result['%s__exists' % (key)] = False
