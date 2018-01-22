@@ -133,6 +133,6 @@ class SensorWrapperTestCase(unittest2.TestCase):
                           trigger_types=trigger_types, parent_args=parent_args)
         except NameError as e:
             self.assertTrue('Traceback (most recent call last)' in str(e))
-            self.assertTrue('line 3, in <module>' in str(e))
+            self.assertTrue('line 5, in <module>' in str(e))
         else:
             self.fail('NameError not thrown')
