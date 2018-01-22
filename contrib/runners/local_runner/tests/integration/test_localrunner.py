@@ -135,10 +135,6 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         char_count = 10 ** 6  # Note 10^7 succeeds but ends up being slow.
         status, result, _ = runner.run({'chars': char_count})
         runner.post_run(status, result)
-
-        print('=====')
-        print(result)
-        print(status)
         self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         self.assertEquals(len(result['stdout']), char_count)
 
