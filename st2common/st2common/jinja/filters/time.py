@@ -14,8 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import datetime
+
 import six
+
+import datetime
 
 __all__ = [
     'to_human_time_from_seconds'
