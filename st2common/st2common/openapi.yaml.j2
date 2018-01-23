@@ -4757,7 +4757,9 @@ definitions:
   WebhookBody:
     description: Given support of Content-Type header, that could be anything.
     x-api-model: st2common.models.api.webhook:WebhookBodyAPI
-    x-api-use-data-arg: True
+    type:
+      - object
+      - array
   ActionParametersSubSchema:
     type: object
     description: Input parameters for the action.
