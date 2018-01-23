@@ -181,6 +181,11 @@ class TestWebhooksController(FunctionalTest):
         self.assertTrue('Failed to parse request body' in post_resp)
         self.assertTrue('Unsupported Content-Type' in post_resp)
 
+    def test_custom_webhook_invalid_input_type(self):
+        post_resp = self.__do_post('sample', [{'foo': 'bar'}], expect_errors=True)
+        self.assertTrue('Input body needs to be an object, got: ' in post_resp)
+        self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
+
     def test_leading_trailing_slashes(self):
         # Ideally the test should setup fixtures in DB. However, the triggerwatcher
         # that is supposed to load the models from DB does not real start given
