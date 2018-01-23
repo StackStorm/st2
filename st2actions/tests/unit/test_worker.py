@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 from bson.errors import InvalidStringData
 import eventlet
 import mock
@@ -34,6 +35,7 @@ from local_runner import LocalShellRunner
 from st2tests.base import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
 import st2tests.config as tests_config
+from six.moves import range
 tests_config.parse_args()
 
 TEST_FIXTURES = {

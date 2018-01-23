@@ -17,6 +17,7 @@
 Utility functions related to masking secrets in the logs.
 """
 
+from __future__ import absolute_import
 import copy
 
 import six

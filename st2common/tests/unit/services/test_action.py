@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import jsonschema
 import mock
 import six
@@ -33,6 +34,7 @@ from st2common.transport.publishers import PoolPublisher
 from st2common.util import isotime
 from st2common.util import action_db
 from st2tests import DbTestCase
+from six.moves import range
 
 
 RUNNER = {

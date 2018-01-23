@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import unittest2
 
 import st2common.util.jsonify as jsonify

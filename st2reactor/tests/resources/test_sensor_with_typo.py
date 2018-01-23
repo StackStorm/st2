@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 from st2reactor.sensor.base import Sensor
 
 typobar  # noqa

@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import uuid
 import datetime
 
@@ -22,6 +23,7 @@ from st2tests import DbTestCase
 from st2common.util import date as date_utils
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from tests.unit.base import FakeModel, FakeModelDB
+from six.moves import range
 
 
 class TestPersistence(DbTestCase):
@@ -188,8 +190,8 @@ class TestPersistence(DbTestCase):
         obj2 = self.access.add_or_update(obj1)
 
         # Check that the original dict has not been altered.
-        self.assertIn('a.b.c', context.keys())
-        self.assertNotIn('a\uff0eb\uff0ec', context.keys())
+        self.assertIn('a.b.c', list(context.keys()))
+        self.assertNotIn('a\uff0eb\uff0ec', list(context.keys()))
 
         # Check to_python has run and context is not left escaped.
         self.assertDictEqual(obj2.context, context)

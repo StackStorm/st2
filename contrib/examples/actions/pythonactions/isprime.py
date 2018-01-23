@@ -20,4 +20,4 @@ class PrimeCheckerAction(Action):
 if __name__ == '__main__':
     checker = PrimeCheckerAction()
     for i in range(0, 10):
-        print '%s : %s' % (i, checker.run(value=1))
+        print('%s : %s' % (i, checker.run(value=1)))

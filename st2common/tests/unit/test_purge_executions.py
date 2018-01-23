@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import copy
 from datetime import timedelta
 
@@ -29,6 +30,7 @@ from st2common.persistence.liveaction import LiveAction
 from st2common.util import date as date_utils
 from st2tests.base import CleanDbTestCase
 from st2tests.fixturesloader import FixturesLoader
+from six.moves import range
 
 LOG = logging.getLogger(__name__)
 

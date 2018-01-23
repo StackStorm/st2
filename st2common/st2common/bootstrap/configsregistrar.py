@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import os
 
 from oslo_config import cfg
@@ -56,7 +57,7 @@ class ConfigsRegistrar(ResourceRegistrar):
 
         registered_count = 0
         packs = self._pack_loader.get_packs(base_dirs=base_dirs)
-        pack_names = packs.keys()
+        pack_names = list(packs.keys())
 
         for pack_name in pack_names:
             config_path = self._get_config_path_for_pack(pack_name=pack_name)

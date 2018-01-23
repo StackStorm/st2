@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 from st2common.triggers import register_internal_trigger_types
 from st2common.rbac.types import PermissionType
 from st2common.rbac.types import ResourceType

@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import itertools
 import json
 
@@ -23,6 +24,7 @@ from oslo_config import cfg
 from st2common import log as logging
 from st2common.persistence.pack import Pack
 from st2common.util.misc import lowercase_value
+from six.moves import range
 
 __all__ = [
     'get_pack_by_ref',

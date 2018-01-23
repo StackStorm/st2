@@ -13,10 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import time
 
 import eventlet
-import Queue
+import six.moves.queue
 
 from st2common import log as logging
 
@@ -47,7 +48,7 @@ class BufferedDispatcher(object):
         self._monitor_thread_no_workers_sleep_time = monitor_thread_no_workers_sleep_time
         self._name = name
 
-        self._work_buffer = Queue.Queue()
+        self._work_buffer = six.moves.queue.Queue()
 
         # Internal attributes we use to track how long the pool is busy without any free workers
         self._pool_last_free_ts = time.time()
