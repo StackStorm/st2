@@ -37,6 +37,7 @@ from st2common.persistence.auth import User
 from st2common.rbac import resolvers
 from st2common.util import date as date_utils
 from st2common.util.jsonify import json_encode
+from st2common.util.jsonify import get_json_type_for_python_value
 from st2common.util.http import parse_content_type_header
 
 
@@ -506,7 +507,8 @@ class Router(object):
         except TypeError as e:
             # Throw a more user-friendly exception when input data is not an object
             if 'type object argument after ** must be a mapping, not' in str(e):
-                msg = ('Input body needs to be an object, got: %s' % (type(data)))
+                type_string = get_json_type_for_python_value(data)
+                msg = ('Input body needs to be an object, got: %s' % (type_string))
                 raise ValueError(msg)
 
             raise e

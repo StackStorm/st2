@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 try:
     import simplejson as json
     from simplejson import JSONEncoder
@@ -27,7 +28,9 @@ import six
 __all__ = [
     'json_encode',
     'json_loads',
-    'try_loads'
+    'try_loads',
+
+    'get_json_type_for_python_value'
 ]
 
 
@@ -80,3 +83,25 @@ def try_loads(s):
         return json.loads(s) if s and isinstance(s, six.string_types) else s
     except:
         return s
+
+
+def get_json_type_for_python_value(value):
+    """
+    Return JSON type string for the provided Python value.
+
+    :rtype: ``str``
+    """
+    if isinstance(value, six.text_type):
+        return 'string'
+    elif isinstance(value, (int, float)):
+        return 'number'
+    elif isinstance(value, dict):
+        return 'object'
+    elif isinstance(value, (list, tuple)):
+        return 'array'
+    elif isinstance(value, bool):
+        return 'boolean'
+    elif value is None:
+        return 'null'
+    else:
+        return 'unknown'

@@ -183,7 +183,7 @@ class TestWebhooksController(FunctionalTest):
 
     def test_custom_webhook_invalid_input_type(self):
         post_resp = self.__do_post('sample', [{'foo': 'bar'}], expect_errors=True)
-        self.assertTrue('Input body needs to be an object, got: ' in post_resp)
+        self.assertTrue('Input body needs to be an object, got: array' in post_resp)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
 
     def test_leading_trailing_slashes(self):
