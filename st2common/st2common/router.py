@@ -407,8 +407,6 @@ class Router(object):
                         LOG.debug('Missing x-api-model definition for %s, using generic Body '
                                   'model.' % (endpoint['operationId']))
                         model = Body
-                        print 'xxxx'
-                        print model
                         instance = model(**data)
 
                     kw[argument_name] = instance
