@@ -15,10 +15,16 @@
 
 from __future__ import absolute_import
 import datetime
+import six
 
 __all__ = [
     'to_human_time_from_seconds'
 ]
+
+if six.PY3:
+    long_int = int
+else:
+    long_int = long
 
 
 def to_human_time_from_seconds(seconds):
@@ -57,7 +63,7 @@ def _get_human_time(seconds):
         return '%s\u03BCs' % seconds  # Microseconds
 
     if isinstance(seconds, float):
-        seconds = int(round(seconds))  # Let's lose microseconds.
+        seconds = long_int(round(seconds))  # Let's lose microseconds.
 
     timedelta = datetime.timedelta(seconds=seconds)
     offset_date = datetime.datetime(1, 1, 1) + timedelta
