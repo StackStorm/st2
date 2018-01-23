@@ -30,6 +30,7 @@ from st2common.services.triggerwatcher import TriggerWatcher
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.router import abort
 from st2common.router import Response
+from st2common.util.jsonify import get_json_type_for_python_value
 
 http_client = six.moves.http_client
 
@@ -130,7 +131,8 @@ class WebhooksController(object):
         if hook == 'st2' or hook == 'st2/':
             # When using st2 or system webhook, body needs to always be a dict
             if not isinstance(body, dict):
-                msg = ('Webhook body needs to be an object, got %s' % (type(body)))
+                type_string = get_json_type_for_python_value(body)
+                msg = ('Webhook body needs to be an object, got: %s' % (type_string))
                 raise ValueError(msg)
 
             trigger = body.get('trigger', None)

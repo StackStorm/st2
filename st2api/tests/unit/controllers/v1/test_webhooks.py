@@ -193,6 +193,12 @@ class TestWebhooksController(FunctionalTest):
         self.assertEqual(post_resp.status_int, http_client.ACCEPTED)
         self.assertEqual(post_resp.json, [{'foo': 'bar'}])
 
+    def test_array_webhook_array_input_type_not_valid(self):
+        post_resp = self.__do_post('st2', [{'foo': 'bar'}], expect_errors=True)
+        self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
+        self.assertEqual(post_resp.json['faultstring'],
+                         'Webhook body needs to be an object, got: array')
+
     def test_leading_trailing_slashes(self):
         # Ideally the test should setup fixtures in DB. However, the triggerwatcher
         # that is supposed to load the models from DB does not real start given
