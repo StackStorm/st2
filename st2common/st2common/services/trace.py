@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import
 from mongoengine import ValidationError
 
 from st2common import log as logging
