@@ -114,8 +114,8 @@ class WebhooksController(object):
         # For demonstration purpose return 1st
         return triggers[0]
 
-    def post(self, hook, body, headers, requester_user):
-        body = vars(body)
+    def post(self, hook, webhook_body_api, headers, requester_user):
+        body = webhook_body_api.data
 
         permission_type = PermissionType.WEBHOOK_SEND
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
@@ -128,6 +128,11 @@ class WebhooksController(object):
                                                    hook=hook)
 
         if hook == 'st2' or hook == 'st2/':
+            # When using st2 or system webhook, body needs to always be a dict
+            if not isinstance(body, dict):
+                msg = ('Webhook body needs to be an object, got %s' % (type(body)))
+                raise ValueError(msg)
+
             trigger = body.get('trigger', None)
             payload = body.get('payload', None)
 

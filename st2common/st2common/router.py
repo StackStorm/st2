@@ -386,7 +386,14 @@ class Router(object):
 
                     if 'x-api-model' in schema:
                         Model = op_resolver(schema['x-api-model'])
-                        instance = Model(**data)
+                        use_data_argument = schema.get('x-api-use-data-arg', False)
+
+                        # Special case for endpoints which support arbitrary non object types for
+                        # the object root (e.g. an array)
+                        if use_data_argument:
+                            instance = Model(data=data)
+                        else:
+                            instance = Model(**data)
 
                         # Call validate on the API model - note we should eventually move all
                         # those model schema definitions into openapi.yaml
@@ -399,6 +406,8 @@ class Router(object):
                         LOG.debug('Missing x-api-model definition for %s, using generic Body '
                                   'model.' % (endpoint['operationId']))
                         model = Body
+                        print 'xxxx'
+                        print model
                         instance = model(**data)
 
                     kw[argument_name] = instance
