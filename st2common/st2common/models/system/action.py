@@ -15,6 +15,7 @@
 # limitations under the License.
 # pylint: disable=not-context-manager
 
+from __future__ import absolute_import
 import os
 import pwd
 import six
@@ -159,7 +160,7 @@ class ShellCommandAction(object):
             # injection attacks. Always quote the key and the value.
             exports = ' '.join(
                 '%s=%s' % (quote_unix(k), quote_unix(v))
-                for k, v in env_vars.iteritems()
+                for k, v in six.iteritems(env_vars)
             )
             shell_env_str = '%s %s' % (ShellCommandAction.EXPORT_CMD, exports)
         else:
@@ -269,7 +270,7 @@ class ShellScriptAction(ShellCommandAction):
         # add all named_args in the format <kwarg_op>name=value (e.g. --name=value)
         if named_args is not None:
             for (arg, value) in six.iteritems(named_args):
-                if value is None or (isinstance(value, (str, unicode)) and len(value) < 1):
+                if value is None or (isinstance(value, (str, six.text_type)) and len(value) < 1):
                     LOG.debug('Ignoring arg %s as its value is %s.', arg, value)
                     continue
 

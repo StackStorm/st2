@@ -17,6 +17,7 @@
 Mock classes for use in pack testing.
 """
 
+from __future__ import absolute_import
 from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.services.datastore import BaseDatastoreService
 from st2client.models.keyvalue import KeyValuePair
@@ -79,7 +80,7 @@ class MockDatastoreService(BaseDatastoreService):
         key_prefix = self._get_full_key_prefix(local=local, prefix=prefix)
 
         if not key_prefix:
-            return self._datastore_items.values()
+            return list(self._datastore_items.values())
 
         result = []
         for name, kvp in self._datastore_items.items():

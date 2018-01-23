@@ -17,6 +17,7 @@
 Configuration options registration and useful routines.
 """
 
+from __future__ import absolute_import
 from oslo_config import cfg
 
 import st2common.config as common_config

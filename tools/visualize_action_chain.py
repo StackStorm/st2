@@ -18,6 +18,7 @@
 Script which creates graphviz visualization of an action-chain workflow.
 """
 
+from __future__ import absolute_import
 import os
 import argparse
 import sets

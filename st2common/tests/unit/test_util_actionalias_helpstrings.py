@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import unittest2
 import mock
 
@@ -81,7 +82,7 @@ class ActionAliasTestCase(unittest2.TestCase):
     Test scenarios must consist of 80s movie quotes.
     '''
     def check_data_structure(self, result):
-        tmp = result.keys()
+        tmp = list(result.keys())
         tmp.sort()
         self.assertEqual(tmp, ["available", "helpstrings"])
 

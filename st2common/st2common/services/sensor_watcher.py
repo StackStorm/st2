@@ -17,6 +17,7 @@
 # XXX: This file has a lot of duplication with TriggerWatcher.
 # XXX: Refactor.
 
+from __future__ import absolute_import
 import eventlet
 from kombu.mixins import ConsumerMixin
 from kombu import Connection

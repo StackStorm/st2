@@ -17,6 +17,7 @@
 Script for validating a config file against a a particular config schema.
 """
 
+from __future__ import absolute_import
 import os
 import yaml
 

@@ -14,6 +14,7 @@
 # limitations under the License.
 
 
+from __future__ import absolute_import
 from st2common.constants.keyvalue import ALL_SCOPE, DATASTORE_PARENT_SCOPE
 from st2common.constants.keyvalue import DATASTORE_SCOPE_SEPARATOR
 

@@ -1,4 +1,6 @@
+from __future__ import absolute_import
 import random
+from six.moves import range
 
 
 def get_random_numbers(count):

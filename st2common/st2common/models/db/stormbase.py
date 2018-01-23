@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import abc
 import datetime
 
@@ -68,7 +69,7 @@ class StormFoundationDB(me.Document, DictSerializableClassMixin):
         attrs = list()
         for k in sorted(self._fields.keys()):
             v = getattr(self, k)
-            v = '"%s"' % str(v) if type(v) in [str, unicode, datetime.datetime] else str(v)
+            v = '"%s"' % str(v) if type(v) in [str, six.text_type, datetime.datetime] else str(v)
             attrs.append('%s=%s' % (k, v))
         return '%s(%s)' % (self.__class__.__name__, ', '.join(attrs))
 

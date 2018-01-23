@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 from st2common.persistence.rule import Rule
 from st2common.persistence.sensor import SensorType
 from st2common.persistence.trigger import (Trigger, TriggerInstance, TriggerType)

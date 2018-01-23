@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import os
 import sys
 import time
@@ -122,7 +123,7 @@ class ProcessSensorContainer(object):
         try:
             while not self._stopped:
                 # Poll for all running processes
-                sensor_ids = self._sensors.keys()
+                sensor_ids = list(self._sensors.keys())
 
                 if len(sensor_ids) >= 1:
                     LOG.debug('%d active sensor(s)' % (len(sensor_ids)))
@@ -195,7 +196,7 @@ class ProcessSensorContainer(object):
         else:
             exit_timeout = PROCESS_EXIT_TIMEOUT
 
-        sensor_ids = self._sensors.keys()
+        sensor_ids = list(self._sensors.keys())
         for sensor_id in sensor_ids:
             self._stop_sensor_process(sensor_id=sensor_id, exit_timeout=exit_timeout)
 
@@ -238,7 +239,7 @@ class ProcessSensorContainer(object):
         return True
 
     def _run_all_sensors(self):
-        sensor_ids = self._sensors.keys()
+        sensor_ids = list(self._sensors.keys())
 
         for sensor_id in sensor_ids:
             sensor_obj = self._sensors[sensor_id]

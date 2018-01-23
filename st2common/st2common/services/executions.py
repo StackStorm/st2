@@ -28,6 +28,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 from oslo_config import cfg
 import six
 
@@ -45,6 +46,7 @@ from st2common.models.api.rule import RuleAPI
 from st2common.models.api.trigger import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.db.execution import ActionExecutionDB
 from st2common.runners import utils as runners_utils
+from six.moves import range
 
 
 __all__ = [

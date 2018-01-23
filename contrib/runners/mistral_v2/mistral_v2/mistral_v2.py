@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import copy
 import uuid
 
@@ -134,7 +135,7 @@ class MistralRunner(AsyncActionRunner):
             self._client.workflows.update(def_yaml)
 
     def _find_default_workflow(self, def_dict):
-        num_workflows = len(def_dict['workflows'].keys())
+        num_workflows = len(list(def_dict['workflows'].keys()))
 
         if num_workflows > 1:
             fully_qualified_wf_name = self.runner_parameters.get('workflow')
@@ -149,7 +150,7 @@ class MistralRunner(AsyncActionRunner):
 
             return fully_qualified_wf_name
         elif num_workflows == 1:
-            return '%s.%s' % (def_dict['name'], def_dict['workflows'].keys()[0])
+            return '%s.%s' % (def_dict['name'], list(def_dict['workflows'].keys())[0])
         else:
             raise Exception('There are no workflows in the workbook.')
 
@@ -501,13 +502,13 @@ class MistralRunner(AsyncActionRunner):
         if not parent:
             context['mistral'] = current
         else:
-            if 'mistral' in parent.keys():
+            if 'mistral' in list(parent.keys()):
                 orig_parent_context = parent.get('mistral', dict())
                 actual_parent = dict()
-                if 'workflow_name' in orig_parent_context.keys():
+                if 'workflow_name' in list(orig_parent_context.keys()):
                     actual_parent['workflow_name'] = orig_parent_context['workflow_name']
                     del orig_parent_context['workflow_name']
-                if 'workflow_execution_id' in orig_parent_context.keys():
+                if 'workflow_execution_id' in list(orig_parent_context.keys()):
                     actual_parent['workflow_execution_id'] = \
                         orig_parent_context['workflow_execution_id']
                     del orig_parent_context['workflow_execution_id']

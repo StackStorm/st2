@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import os
 import signal
 import datetime
@@ -34,6 +35,7 @@ from st2tests.base import IntegrationTestCase
 from st2tests.base import CleanDbTestCase
 
 from st2tests.fixturesloader import FixturesLoader
+from six.moves import range
 
 __all__ = [
     'GarbageCollectorServiceTestCase'

@@ -14,6 +14,7 @@
 # limitations under the License.
 
 
+from __future__ import absolute_import
 from st2common.rbac.types import PermissionType
 from st2common.rbac.types import ResourceType
 from st2common.persistence.auth import User
