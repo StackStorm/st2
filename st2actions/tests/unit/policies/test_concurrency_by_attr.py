@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import eventlet
 import mock
 from mock import call
@@ -31,6 +32,7 @@ from st2tests.fixturesloader import FixturesLoader
 from st2tests.mocks.execution import MockExecutionPublisher, MockExecutionPublisherNonBlocking
 from st2tests.mocks.liveaction import MockLiveActionPublisherNonBlocking
 from st2tests.mocks import runner
+from six.moves import range
 
 PACK = 'generic'
 TEST_FIXTURES = {

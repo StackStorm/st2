@@ -1,5 +1,6 @@
 # Monkey patching should be done as early as possible.
 # See http://eventlet.net/doc/patching.html#monkeypatching-the-standard-library
+from __future__ import absolute_import
 from st2common.util.monkey_patch import monkey_patch
 monkey_patch()
 

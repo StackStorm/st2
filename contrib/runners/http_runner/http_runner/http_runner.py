@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import ast
 import copy
 import json
@@ -29,6 +30,8 @@ from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
+import six
+from six.moves import range
 
 __all__ = [
     'HttpRunner',
@@ -287,7 +290,7 @@ class HTTPClient(object):
         return normalized.get('content-type', None) == 'application/json'
 
     def _cast_object(self, value):
-        if isinstance(value, str) or isinstance(value, unicode):
+        if isinstance(value, str) or isinstance(value, six.text_type):
             try:
                 return json.loads(value)
             except:

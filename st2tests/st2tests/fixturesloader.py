@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import copy
 import os
 
@@ -351,7 +352,7 @@ class FixturesLoader(object):
         return fixtures_pack_path
 
     def _validate_fixture_dict(self, fixtures_dict, allowed=ALLOWED_FIXTURES):
-        fixture_types = fixtures_dict.keys()
+        fixture_types = list(fixtures_dict.keys())
         for fixture_type in fixture_types:
             if fixture_type not in allowed:
                 raise Exception('Disallowed fixture type: %s' % fixture_type)

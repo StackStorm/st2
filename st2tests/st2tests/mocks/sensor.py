@@ -17,6 +17,7 @@
 Mock classes for use in pack testing.
 """
 
+from __future__ import absolute_import
 from logging import RootLogger
 
 from mock import Mock

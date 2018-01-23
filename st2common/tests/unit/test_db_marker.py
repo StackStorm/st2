@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 from st2common.models.db.marker import DumperMarkerDB
 from st2common.persistence.marker import DumperMarker
 from st2common.exceptions.db import StackStormDBObjectNotFoundError

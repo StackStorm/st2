@@ -18,6 +18,7 @@
 A utility script which sends test messages to a queue.
 """
 
+from __future__ import absolute_import
 import argparse
 import fnmatch
 try:

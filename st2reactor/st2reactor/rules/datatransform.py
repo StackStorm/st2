@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import copy
 
 from st2common.constants.keyvalue import SYSTEM_SCOPE, FULL_SYSTEM_SCOPE, DATASTORE_PARENT_SCOPE

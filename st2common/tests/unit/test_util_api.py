@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import unittest2
 
 from oslo_config import cfg
@@ -22,6 +23,7 @@ from st2common.util.api import get_base_public_api_url
 from st2common.util.api import get_full_public_api_url
 from st2common.util.api import get_mistral_api_url
 from st2tests.config import parse_args
+from six.moves import zip
 parse_args()
 
 

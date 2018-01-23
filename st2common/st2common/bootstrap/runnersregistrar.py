@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import absolute_import
 import os
 
 import st2common.content.utils as content_utils
@@ -22,6 +23,7 @@ from st2common.persistence.runner import RunnerType
 from st2common.content.loader import RunnersLoader, MetaLoader
 from st2common.constants.runners import MANIFEST_FILE_NAME
 from st2common.util.action_db import get_runnertype_by_name
+import six
 
 __all__ = [
     'register_runner_types',
@@ -43,7 +45,7 @@ def register_runners(runner_dirs=None, experimental=False, fail_on_failure=True)
 
     runners = runner_loader.get_runners(runner_dirs)
 
-    for runner, path in runners.iteritems():
+    for runner, path in six.iteritems(runners):
         LOG.debug('Runner "%s"' % (runner))
         runner_manifest = os.path.join(path, MANIFEST_FILE_NAME)
         meta_loader = MetaLoader()
