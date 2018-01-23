@@ -37,6 +37,7 @@ from st2common.persistence.auth import User
 from st2common.rbac import resolvers
 from st2common.util import date as date_utils
 from st2common.util.jsonify import json_encode
+from st2common.util.jsonify import get_json_type_for_python_value
 from st2common.util.http import parse_content_type_header
 
 
@@ -392,9 +393,9 @@ class Router(object):
                         # Special case for endpoints which support arbitrary non object types for
                         # the object root (e.g. an array)
                         if use_data_argument:
-                            instance = Model(data=data)
+                            instance = self._get_model_instance(model_cls=Model, data=data)
                         else:
-                            instance = Model(**data)
+                            instance = self._get_model_instance(model_cls=Model, data=data)
 
                         # Call validate on the API model - note we should eventually move all
                         # those model schema definitions into openapi.yaml
@@ -407,7 +408,7 @@ class Router(object):
                         LOG.debug('Missing x-api-model definition for %s, using generic Body '
                                   'model.' % (endpoint['operationId']))
                         model = Body
-                        instance = model(**data)
+                        instance = self._get_model_instance(model_cls=model, data=data)
 
                     kw[argument_name] = instance
 
@@ -506,3 +507,17 @@ class Router(object):
         req = Request(environ)
         resp = self(req)
         return resp(environ, start_response)
+
+    def _get_model_instance(self, model_cls, data):
+        try:
+            instance = model_cls(**data)
+        except TypeError as e:
+            # Throw a more user-friendly exception when input data is not an object
+            if 'type object argument after ** must be a mapping, not' in str(e):
+                type_string = get_json_type_for_python_value(data)
+                msg = ('Input body needs to be an object, got: %s' % (type_string))
+                raise ValueError(msg)
+
+            raise e
+
+        return instance
