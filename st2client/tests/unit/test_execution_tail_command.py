@@ -150,6 +150,19 @@ MOCK_LIVEACTION_4_CHILD_1_RUNNING = {
     'status': LIVEACTION_STATUS_RUNNING
 }
 
+MOCK_LIVEACTION_4_CHILD_1_1_RUNNING = {
+    'id': 'idmistralchild1_1',
+    'context': {
+        'mistral': {
+            'task_name': 'task_1'
+        },
+        'parent': {
+            'execution_id': 'idmistralchild1'
+        }
+    },
+    'status': LIVEACTION_STATUS_RUNNING
+}
+
 MOCK_LIVEACTION_4_CHILD_1_SUCCEEDED = {
     'id': 'idmistralchild1',
     'context': {
@@ -158,6 +171,19 @@ MOCK_LIVEACTION_4_CHILD_1_SUCCEEDED = {
         },
         'parent': {
             'execution_id': 'idfoo4'
+        }
+    },
+    'status': LIVEACTION_STATUS_SUCCEEDED
+}
+
+MOCK_LIVEACTION_4_CHILD_1_1_SUCCEEDED = {
+    'id': 'idmistralchild1_1',
+    'context': {
+        'mistral': {
+            'task_name': 'task_1',
+        },
+        'parent': {
+            'execution_id': 'idmistralchild1'
         }
     },
     'status': LIVEACTION_STATUS_SUCCEEDED
@@ -172,6 +198,20 @@ MOCK_LIVEACTION_4_CHILD_1_OUTPUT_1 = {
 
 MOCK_LIVEACTION_4_CHILD_1_OUTPUT_2 = {
     'execution_id': 'mistral',
+    'timestamp': '1505732598',
+    'output_type': 'stderr',
+    'data': 'line mistral 5\n'
+}
+
+MOCK_LIVEACTION_4_CHILD_1_1_OUTPUT_1 = {
+    'execution_id': 'idmistralchild1_1',
+    'timestamp': '1505732598',
+    'output_type': 'stdout',
+    'data': 'line mistral 4\n'
+}
+
+MOCK_LIVEACTION_4_CHILD_1_1_OUTPUT_2 = {
+    'execution_id': 'idmistralchild1_1',
     'timestamp': '1505732598',
     'output_type': 'stderr',
     'data': 'line mistral 5\n'
@@ -324,6 +364,8 @@ Execution idfoo1 has completed (status=succeeded).
         stderr = self.stderr.getvalue()
 
         expected_result = """
+Execution idfoo3 has started.
+
 line 1
 line 2
 
@@ -381,6 +423,8 @@ Execution idfoo3 has completed (status=succeeded).
         stderr = self.stderr.getvalue()
 
         expected_result = """
+Execution idfoo3 has started.
+
 Child execution (task=task_1) idchild1 has started.
 
 line ac 4
@@ -447,10 +491,90 @@ Execution idfoo3 has completed (status=succeeded).
         stderr = self.stderr.getvalue()
 
         expected_result = """
+Execution idfoo4 has started.
+
 Child execution (task=task_1) idmistralchild1 has started.
 
 line mistral 4
 line mistral 5
+
+Child execution (task=task_1) idmistralchild1 has finished (status=succeeded).
+Child execution (task=task_2) idmistralchild2 has started.
+
+line mistral 100
+
+Child execution (task=task_2) idmistralchild2 has finished (status=timeout).
+
+Execution idfoo4 has completed (status=succeeded).
+""".lstrip()
+        self.assertEqual(stdout, expected_result)
+        self.assertEqual(stderr, '')
+
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(MOCK_LIVEACTION_4_RUNNING),
+                                                     200, 'OK')))
+    @mock.patch('st2client.client.StreamManager', autospec=True)
+    def test_tail_double_nested_mistral_workflow_execution(self, mock_stream_manager):
+        argv = ['execution', 'tail', 'idfoo4']
+
+        MOCK_EVENTS = [
+            # Workflow started running
+            MOCK_LIVEACTION_4_RUNNING,
+
+            # Child task 1 started running (sub workflow)
+            MOCK_LIVEACTION_4_CHILD_1_RUNNING,
+
+            # Child task 1 started running
+            MOCK_LIVEACTION_4_CHILD_1_1_RUNNING,
+
+            # Output produced by the child task
+            MOCK_LIVEACTION_4_CHILD_1_1_OUTPUT_1,
+            MOCK_LIVEACTION_4_CHILD_1_1_OUTPUT_2,
+
+            # Child task 1 has finished
+            MOCK_LIVEACTION_4_CHILD_1_1_SUCCEEDED,
+
+            # Child task 1 finished (sub workflow)
+            MOCK_LIVEACTION_4_CHILD_1_SUCCEEDED,
+
+            # Child task 2 started running
+            MOCK_LIVEACTION_4_CHILD_2_RUNNING,
+
+            # Output produced by child task
+            MOCK_LIVEACTION_4_CHILD_2_OUTPUT_1,
+
+            # Child task 2 finished
+            MOCK_LIVEACTION_4_CHILD_2_TIMED_OUT,
+
+            # Parent workflow task finished
+            MOCK_LIVEACTION_4_SUCCEDED
+        ]
+
+        mock_cls = mock.Mock()
+        mock_cls.listen = mock.Mock()
+        mock_listen_generator = mock.Mock()
+        mock_listen_generator.return_value = MOCK_EVENTS
+        mock_cls.listen.side_effect = mock_listen_generator
+        mock_stream_manager.return_value = mock_cls
+
+        self.assertEqual(self.shell.run(argv), 0)
+        self.assertEqual(mock_listen_generator.call_count, 1)
+
+        stdout = self.stdout.getvalue()
+        stderr = self.stderr.getvalue()
+
+        expected_result = """
+Execution idfoo4 has started.
+
+Child execution (task=task_1) idmistralchild1 has started.
+
+Child execution (task=task_1) idmistralchild1_1 has started.
+
+line mistral 4
+line mistral 5
+
+Child execution (task=task_1) idmistralchild1_1 has finished (status=succeeded).
 
 Child execution (task=task_1) idmistralchild1 has finished (status=succeeded).
 Child execution (task=task_2) idmistralchild2 has started.
