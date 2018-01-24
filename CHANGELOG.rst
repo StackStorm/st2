@@ -4,6 +4,12 @@ Changelog
 in development
 --------------
 
+Added
+~~~~~
+
+* Update ``st2 execution tail`` command so it supports double nested workflows (workflow ->
+  workflow -> execution). Previously, only top-level executions and single nested workflows
+  (workflow -> execution) were supported. (improvement) #3962 #3960
 
 2.6.0 - January 19, 2018
 ------------------------
