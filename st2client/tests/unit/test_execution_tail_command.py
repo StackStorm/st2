@@ -364,6 +364,8 @@ Execution idfoo1 has completed (status=succeeded).
         stderr = self.stderr.getvalue()
 
         expected_result = """
+Execution idfoo3 has started.
+
 line 1
 line 2
 
@@ -421,6 +423,8 @@ Execution idfoo3 has completed (status=succeeded).
         stderr = self.stderr.getvalue()
 
         expected_result = """
+Execution idfoo3 has started.
+
 Child execution (task=task_1) idchild1 has started.
 
 line ac 4
@@ -487,6 +491,8 @@ Execution idfoo3 has completed (status=succeeded).
         stderr = self.stderr.getvalue()
 
         expected_result = """
+Execution idfoo4 has started.
+
 Child execution (task=task_1) idmistralchild1 has started.
 
 line mistral 4
@@ -559,6 +565,7 @@ Execution idfoo4 has completed (status=succeeded).
         stderr = self.stderr.getvalue()
 
         expected_result = """
+Execution idfoo4 has started.
 
 Child execution (task=task_1) idmistralchild1 has started.
 

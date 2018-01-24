@@ -1495,7 +1495,11 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
                         # We don't care about other child events so we simply skip then
                         continue
                 else:
-                    if status in LIVEACTION_COMPLETED_STATES:
+                    if status == LIVEACTION_STATUS_RUNNING:
+                        print('Execution %s has started.' % (execution_id))
+                        print('')
+                        continue
+                    elif status in LIVEACTION_COMPLETED_STATES:
                         # Bail out once parent execution has finished
                         print('')
                         print('Execution %s has completed (status=%s).' % (execution_id, status))
