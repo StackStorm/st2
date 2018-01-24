@@ -1450,6 +1450,7 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
     def tail_execution(cls, execution_manager, stream_manager, execution, output_type=None,
                        include_metadata=False, **kwargs):
         execution_id = str(execution.id)
+
         # Note: For non-workflow actions child_execution_id always matches parent_execution_id so
         # we don't need to do any other checks to determine if executions represents a workflow
         # action
