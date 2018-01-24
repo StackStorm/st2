@@ -1453,7 +1453,7 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
         # Note: For non-workflow actions child_execution_id always matches parent_execution_id so
         # we don't need to do any other checks to determine if executions represents a workflow
         # action
-        parent_execution_id = execution_id
+        parent_execution_id = execution_id  # noqa
 
         # Execution has already finished
         if execution.status in LIVEACTION_COMPLETED_STATES:
@@ -1475,7 +1475,9 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
                 task_execution_id = context['execution_id']
                 task_name = context['task_name']
                 task_parent_execution_id = context['parent_execution_id']
-                is_child_execution = (task_parent_execution_id == parent_execution_id)
+
+                # An execution is considered a child execution if it has parent execution id
+                is_child_execution = bool(task_parent_execution_id)
 
                 if is_child_execution:
                     if status == LIVEACTION_STATUS_RUNNING:
