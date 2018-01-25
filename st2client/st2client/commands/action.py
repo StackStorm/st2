@@ -413,13 +413,23 @@ class ActionRunCommandMixin(object):
         # Include result on the top-level object so user doesn't need to issue another command to
         # see the result
         if len(tasks) >= 1:
-            task_result = self._get_task_result(task=tasks[-1])
+            output = copy.deepcopy(instance.result)
+            # the published variables are present in the root of the
+            # result, there are two other variables that are injected
+            # called 'tasks' and 'extra', remove these so only the published
+            # variables are present in the output
+            if 'tasks' in output:
+                del output['tasks']
+            if 'extra' in output:
+                del output['extra']
+            if 'published' in output:
+                output = output['published']
 
-            if task_result:
-                instance.result_task = tasks[-1].get('name', 'unknown')
-                options['attributes'].insert(status_index + 1, 'result_task')
-                options['attributes'].insert(status_index + 2, 'result')
-                instance.result = task_result
+            # 'output' variable now contains only the published vars
+            instance.result = output
+            instance.result_task = tasks[-1].get('name', 'unknown')
+            options['attributes'].insert(status_index + 1, 'result_task')
+            options['attributes'].insert(status_index + 2, 'result')
 
         # print root task
         self.print_output(instance, formatter, **options)

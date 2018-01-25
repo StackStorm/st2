@@ -233,8 +233,32 @@ class MistralResultsQuerier(Querier):
             'state_info': task.get('state_info', None)
         }
 
-        for attr in ['result', 'input', 'published']:
+        for attr in ['result', 'published']:
             result[attr] = jsonify.try_loads(task.get(attr, None))
+
+        # the "inputs" for the task are stored in its "action execution" object
+        # first we retrieve the execution given the task's id
+        action_executions = self._client.action_executions.list(task_execution_id=task['id'])
+        for ae in action_executions:
+            ae_dict = ae.to_dict()
+
+            # the input parameter contains serialized JSON, we need to parse
+            # that to convert it into a dict
+            input = jsonify.try_loads(ae_dict.get('input', None))
+            if not input:
+                continue
+
+            # In a StackStorm action (st2.action) the inputs for the action
+            # are actually burried within a sub-field: input.parameters
+            # In a non-StackStorm action the inputs are just a dict.
+            if ae_dict.get('name', None) == 'st2.action':
+                result['input'] = input.get('parameters')
+                result['action'] = input.get('ref')
+            else:
+                result['input'] = input
+                result['action'] = ae_dict.get('name', None)
+
+            break
 
         return result
 
