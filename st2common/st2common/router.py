@@ -387,7 +387,17 @@ class Router(object):
                             schema = resolved
 
                     if 'x-api-model' in schema:
+                        input_type = schema.get('type', [])
                         Model = op_resolver(schema['x-api-model'])
+
+                        if input_type and not isinstance(input_type, (list, tuple)):
+                            input_type = [input_type]
+
+                        # root attribute is not an object, we need to use wrapper attribute to
+                        # make it work with **kwarg expansion
+                        if input_type and 'array' in input_type:
+                            data = {'data': data}
+
                         instance = self._get_model_instance(model_cls=Model, data=data)
 
                         # Call validate on the API model - note we should eventually move all

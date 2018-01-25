@@ -3863,7 +3863,7 @@ paths:
           description: Webhook path
           type: string
           required: true
-        - name: body
+        - name: webhook_body_api
           in: body
           description: Webhook payload
           schema:
@@ -4756,6 +4756,10 @@ definitions:
     type: object
   WebhookBody:
     description: Given support of Content-Type header, that could be anything.
+    x-api-model: st2common.models.api.webhook:WebhookBodyAPI
+    type:
+      - object
+      - array
   ActionParametersSubSchema:
     type: object
     description: Input parameters for the action.

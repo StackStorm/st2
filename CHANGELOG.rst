@@ -11,6 +11,15 @@ Added
   workflow -> execution). Previously, only top-level executions and single nested workflows
   (workflow -> execution) were supported. (improvement) #3962 #3960
 
+Fixed
+~~~~~
+
+* Fix a regression in ``POST /v1/webhooks/<webhook name>`` API endpoint introduced in v2.4.0
+  and add back support for arrays. In 2.4.0 support for arrays was inadvertently removed and
+  only objects were supported. Keep in mind that this only applies to custom user-defined
+  webhooks and system ``st2`` webhook still requires input to be an object (dictionary).
+  (bug fix) #3956 #3955
+
 2.6.0 - January 19, 2018
 ------------------------
 
