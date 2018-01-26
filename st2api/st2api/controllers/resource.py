@@ -183,7 +183,7 @@ class ResourceController(object):
                 filters['__'.join(v.split('.'))] = filter_value
 
         if exclude_fields and include_fields:
-            msg = ('exclude_fields and include_fields arguments are mutually exclusive.'
+            msg = ('exclude_fields and include_fields arguments are mutually exclusive. '
                    'You need to provide either one or another, but not both.')
             raise ValueError(msg)
 
@@ -420,7 +420,7 @@ class ContentPackResourceController(ResourceController):
         """
 
         if exclude_fields and include_fields:
-            msg = ('exclude_fields and include_fields arguments are mutually exclusive.'
+            msg = ('exclude_fields and include_fields arguments are mutually exclusive. '
                    'You need to provide either one or another, but not both.')
             raise ValueError(msg)
 
@@ -445,7 +445,7 @@ class ContentPackResourceController(ResourceController):
 
     def _get_by_ref(self, resource_ref, exclude_fields=None, include_fields=None):
         if exclude_fields and include_fields:
-            msg = ('exclude_fields and include_fields arguments are mutually exclusive.'
+            msg = ('exclude_fields and include_fields arguments are mutually exclusive. '
                    'You need to provide either one or another, but not both.')
             raise ValueError(msg)
 
