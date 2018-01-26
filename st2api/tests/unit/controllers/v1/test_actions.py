@@ -390,7 +390,7 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
         self.assertEqual(resp.status_int, 400)
         expected_msg = ('exclude_fields and include_fields arguments are mutually exclusive. '
                         'You need to provide either one or another, but not both.')
-        self.assertTrue(resp.json['faultstring'], expected_msg)
+        self.assertEqual(resp.json['faultstring'], expected_msg)
 
         # Valid include attribute
         resp = self.app.get('/v1/actions?include_attributes=name')
