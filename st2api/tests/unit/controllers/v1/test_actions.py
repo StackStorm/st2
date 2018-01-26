@@ -357,8 +357,8 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
         resp = self.app.get('/v1/actions?exclude_attributes=invalid',
                             expect_errors=True)
         self.assertEqual(resp.status_int, 400)
-        self.assertTrue('Invalid or unsupported attribute specified' in
-                        resp.json['faultstring'])
+        self.assertEqual(resp.json['faultstring'],
+                         'Invalid or unsupported exclude attribute specified: invalid')
 
         # Valid exclude attribute
         resp = self.app.get('/v1/actions?exclude_attributes=parameters')

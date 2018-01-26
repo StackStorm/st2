@@ -349,7 +349,7 @@ class ResourceController(object):
 
         for field in exclude_fields:
             if field not in self.valid_exclude_attributes:
-                msg = 'Invalid or unsupported attribute specified: %s' % (field)
+                msg = 'Invalid or unsupported exclude attribute specified: %s' % (field)
                 raise ValueError(msg)
 
         return exclude_fields
