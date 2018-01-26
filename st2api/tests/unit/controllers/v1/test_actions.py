@@ -383,6 +383,15 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
         self.assertTrue('Invalid or unsupported include attribute specified' in
                         resp.json['faultstring'])
 
+        # include_attributes and exclude_attributes are mutually exclusive
+        url = '/v1/actions?include_attributes=parameters&exclude_attributes=parameters'
+        resp = self.app.get(url,
+                            expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        expected_msg = ('exclude_fields and include_fields arguments are mutually exclusive. '
+                        'You need to provide either one or another, but not both.')
+        self.assertTrue(resp.json['faultstring'], expected_msg)
+
         # Valid include attribute
         resp = self.app.get('/v1/actions?include_attributes=name')
         self.assertEqual(resp.status_int, 200)
