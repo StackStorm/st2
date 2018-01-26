@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import copy
 import json
 import re
@@ -99,7 +100,7 @@ def _merge_dicts(left, right):
     if right is None:
         return left
 
-    for k, v in right.iteritems():
+    for k, v in six.iteritems(right):
         if k not in left:
             left[k] = v
         else:

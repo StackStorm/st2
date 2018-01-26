@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import copy
 import uuid
 
@@ -207,7 +208,7 @@ class MistralRunnerTest(DbTestCase):
 
         context = MistralRunner._build_mistral_context(parent, current)
         self.assertTrue(context is not None)
-        self.assertTrue('parent' in context['mistral'].keys())
+        self.assertTrue('parent' in list(context['mistral'].keys()))
 
         parent_dict = {
             'workflow_name': parent['mistral']['workflow_name'],

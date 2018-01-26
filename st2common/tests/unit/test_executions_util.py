@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import mock
 import six
 
@@ -33,6 +34,7 @@ from st2tests.base import CleanDbTestCase
 from st2tests.fixturesloader import FixturesLoader
 
 import st2tests.config as tests_config
+from six.moves import range
 tests_config.parse_args()
 
 FIXTURES_PACK = 'generic'

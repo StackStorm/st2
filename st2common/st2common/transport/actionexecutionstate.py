@@ -15,6 +15,7 @@
 
 # All Exchanges and Queues related to liveaction.
 
+from __future__ import absolute_import
 from kombu import Exchange, Queue
 from st2common.transport import publishers
 

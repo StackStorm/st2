@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import uuid
 
 from apscheduler.schedulers.background import BlockingScheduler
@@ -44,7 +45,7 @@ class St2Timer(object):
         self._timezone = local_timezone
         self._scheduler = BlockingScheduler(timezone=self._timezone)
         self._jobs = {}
-        self._trigger_types = TIMER_TRIGGER_TYPES.keys()
+        self._trigger_types = list(TIMER_TRIGGER_TYPES.keys())
         self._trigger_watcher = TriggerWatcher(create_handler=self._handle_create_trigger,
                                                update_handler=self._handle_update_trigger,
                                                delete_handler=self._handle_delete_trigger,
@@ -154,7 +155,7 @@ class St2Timer(object):
         return trigger_type['name']
 
     def _register_timer_trigger_types(self):
-        return trigger_services.add_trigger_models(TIMER_TRIGGER_TYPES.values())
+        return trigger_services.add_trigger_models(list(TIMER_TRIGGER_TYPES.values()))
 
     ##############################################
     # Event handler methods for the trigger events

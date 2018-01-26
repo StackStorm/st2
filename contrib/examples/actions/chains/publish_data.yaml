@@ -1,6 +1,6 @@
 ---
 vars:
-    domain: "{{ system.domain }}" # `system` references DataStore key-values. Null if not set.
+    domain: "{{ st2kv.system.domain }}" # `system` references DataStore key-values. Null if not set.
     api_port: 9101
     webui_port: 8080
 chain:

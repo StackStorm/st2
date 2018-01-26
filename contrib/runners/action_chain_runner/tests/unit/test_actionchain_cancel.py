@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import eventlet
 import mock
 import os
@@ -32,6 +33,7 @@ from st2common.transport.publishers import CUDPublisher
 from st2tests import DbTestCase
 from st2tests import fixturesloader
 from st2tests.mocks.liveaction import MockLiveActionPublisherNonBlocking
+from six.moves import range
 
 
 TEST_FIXTURES = {
@@ -93,7 +95,7 @@ class ActionChainRunnerPauseResumeTest(DbTestCase):
 
         # Create temporary directory used by the tests
         _, self.temp_file_path = tempfile.mkstemp()
-        os.chmod(self.temp_file_path, 0755)   # nosec
+        os.chmod(self.temp_file_path, 0o755)   # nosec
 
     def tearDown(self):
         if self.temp_file_path and os.path.exists(self.temp_file_path):

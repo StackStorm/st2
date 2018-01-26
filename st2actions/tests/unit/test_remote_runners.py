@@ -14,6 +14,7 @@
 # limitations under the License.
 
 # XXX: FabricRunner import depends on config being setup.
+from __future__ import absolute_import
 import st2tests.config as tests_config
 tests_config.parse_args()
 

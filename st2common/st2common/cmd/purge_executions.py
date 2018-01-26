@@ -21,6 +21,7 @@ timestamp.
 *** RISK RISK RISK. You will lose data. Run at your own risk. ***
 """
 
+from __future__ import absolute_import
 from datetime import datetime
 import pytz
 

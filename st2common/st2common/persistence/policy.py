@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 from st2common.models.db import MongoDBAccess
 from st2common.models.db.policy import PolicyTypeReference, PolicyTypeDB, PolicyDB
 from st2common.persistence.base import Access, ContentPackResource

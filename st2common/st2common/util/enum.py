@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import inspect
 
 __all__ = [
@@ -23,7 +24,7 @@ __all__ = [
 class Enum(object):
     @classmethod
     def get_valid_values(cls):
-        keys = cls.__dict__.keys()
+        keys = list(cls.__dict__.keys())
         values = [getattr(cls, key) for key in keys if (not key.startswith('_') and
                   not inspect.ismethod(getattr(cls, key)))]
         return values

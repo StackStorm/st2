@@ -13,10 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import unittest2
 
 from st2common.util import hash as hash_utils
 from st2common.util import auth as auth_utils
+from six.moves import range
 
 
 class TestHashWithApiKeys(unittest2.TestCase):

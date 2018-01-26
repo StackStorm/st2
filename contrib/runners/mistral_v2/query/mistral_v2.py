@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import random
 import uuid
 
@@ -187,7 +188,7 @@ class MistralResultsQuerier(Querier):
             wf_tasks = self._client.tasks.list(workflow_execution_id=mistral_exec_id)
 
             for wf_task in wf_tasks:
-                recorded = list(filter(lambda x: x['id'] == wf_task.id, recorded_tasks))
+                recorded = list([x for x in recorded_tasks if x['id'] == wf_task.id])
 
                 if (not recorded or
                         recorded[0].get('state') != wf_task.state or

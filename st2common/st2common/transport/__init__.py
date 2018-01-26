@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 from st2common.transport import liveaction, actionexecutionstate, execution, publishers, reactor
 from st2common.transport import utils, connection_retry_wrapper
 

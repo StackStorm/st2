@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import os
 import sys
 import traceback
@@ -87,7 +88,7 @@ class ParamikoRemoteScriptRunner(BaseParallelSSHRunner):
         # Copy the script to remote dir in remote host.
         local_script_abs_path = remote_action.get_local_script_abs_path()
         remote_script_abs_path = remote_action.get_remote_script_abs_path()
-        file_mode = 0744
+        file_mode = 0o744
         extra = {'_local_script': local_script_abs_path, '_remote_script': remote_script_abs_path,
                  'mode': file_mode}
         LOG.debug('Copying local script to remote box.', extra=extra)

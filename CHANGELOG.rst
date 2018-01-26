@@ -7,6 +7,16 @@ in development
 Added
 ~~~~~
 
+* Update ``st2 execution tail`` command so it supports double nested workflows (workflow ->
+  workflow -> execution). Previously, only top-level executions and single nested workflows
+  (workflow -> execution) were supported. (improvement) #3962 #3960
+
+2.6.0 - January 19, 2018
+------------------------
+
+Added
+~~~~~
+
 * Add new ``get_user_info`` method to action and sensor service. With this method, user can
   retrieve information about the user account which is used to perform datastore operations inside
   the action and sensor service. (new feature) #3831

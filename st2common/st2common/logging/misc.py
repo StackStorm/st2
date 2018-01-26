@@ -92,7 +92,7 @@ def set_log_level_for_all_loggers(level=logging.DEBUG):
     Set a log level for all the loggers and handlers to the provided level.
     """
     root_logger = logging.getLogger()
-    loggers = logging.Logger.manager.loggerDict.values()
+    loggers = list(logging.Logger.manager.loggerDict.values())
     loggers += [root_logger]
 
     for logger in loggers:
