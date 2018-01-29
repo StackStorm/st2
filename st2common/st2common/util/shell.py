@@ -97,7 +97,10 @@ def kill_process(process):
     kill_command = shlex.split('sudo pkill -TERM -s %s' % (process.pid))
 
     try:
-        status = subprocess.call(kill_command)
+        if six.PY3:
+            status = subprocess.call(kill_command, timeout=100)
+        else:
+            status = subprocess.call(kill_command)
     except Exception:
         LOG.exception('Unable to pkill process.')
 
