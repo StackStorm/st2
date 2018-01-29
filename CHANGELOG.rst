@@ -66,6 +66,12 @@ Added
   the code so ``api.max_page_size`` config option only applies to non-admin users, meaning users
   with admin permission can specify arbitrary value for ``?limit`` query param which can also be
   larger than ``api.max_page_size``. (improvement) #3939
+* Add new ``?include_attributes`` query param filter to ``/v1/executions/`` API endpoint
+  With this filter user can select which fields to include in the response (whitelist approach,
+  opposite of the existing ``?exclude_attributes`` filter).
+
+  For example, if you only want to retrieve ``id`` and ``status`` field, the URL would look like
+  this - ``/v1/executions?include_attributes=id,status``. (new feature) #3953 #3858 #3856
 
 Changed
 ~~~~~~~

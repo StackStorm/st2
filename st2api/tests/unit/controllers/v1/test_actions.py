@@ -357,8 +357,8 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
         resp = self.app.get('/v1/actions?exclude_attributes=invalid',
                             expect_errors=True)
         self.assertEqual(resp.status_int, 400)
-        self.assertTrue('Invalid or unsupported attribute specified' in
-                        resp.json['faultstring'])
+        self.assertEqual(resp.json['faultstring'],
+                         'Invalid or unsupported exclude attribute specified: invalid')
 
         # Valid exclude attribute
         resp = self.app.get('/v1/actions?exclude_attributes=parameters')
@@ -366,6 +366,45 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
         self.assertEqual(len(resp.json), 2, '/v1/actions did not return all actions.')
         self.assertEqual(resp.json[0]['parameters'], {})
         self.assertEqual(resp.json[1]['parameters'], {})
+
+        self.__do_delete(action_1_id)
+        self.__do_delete(action_2_id)
+
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    def test_get_all_include_attributes(self):
+        action_1_id = self.__get_action_id(self.__do_post(ACTION_1))
+        action_2_id = self.__get_action_id(self.__do_post(ACTION_2))
+
+        # Invalid include attribute
+        resp = self.app.get('/v1/actions?include_attributes=invalid',
+                            expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertTrue('Invalid or unsupported include attribute specified' in
+                        resp.json['faultstring'])
+
+        # include_attributes and exclude_attributes are mutually exclusive
+        url = '/v1/actions?include_attributes=parameters&exclude_attributes=parameters'
+        resp = self.app.get(url,
+                            expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        expected_msg = ('exclude_fields and include_fields arguments are mutually exclusive. '
+                        'You need to provide either one or another, but not both.')
+        self.assertEqual(resp.json['faultstring'], expected_msg)
+
+        # Valid include attribute
+        resp = self.app.get('/v1/actions?include_attributes=name')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 2, '/v1/actions did not return all actions.')
+        self.assertFalse(resp.json[0]['entry_point'])
+        self.assertFalse(resp.json[1]['entry_point'])
+
+        # Valid include attribute
+        resp = self.app.get('/v1/actions?include_attributes=entry_point')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 2, '/v1/actions did not return all actions.')
+        self.assertTrue(resp.json[0]['entry_point'])
+        self.assertTrue(resp.json[1]['entry_point'])
 
         self.__do_delete(action_1_id)
         self.__do_delete(action_2_id)
