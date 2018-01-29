@@ -39,6 +39,7 @@ from st2common.transport.publishers import PoolPublisher
 from st2common.util import action_db as action_db_util
 from st2common.util import isotime
 from st2common.util import date as date_utils
+from st2common.stream.listener import get_listener
 import st2common.validators.api.action as action_validator
 from tests.base import BaseActionExecutionControllerTestCase
 from st2tests.api import SUPER_SECRET_PARAMETER
@@ -1195,6 +1196,10 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
 class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestCase,
                                               FunctionalTest):
     def test_get_output_running_execution(self):
+        # Retrieve lister instance to avoid race with listener connection not
+        # being established early enough for tests to pass
+        listener = get_listener(name='execution_output')  # NOQA
+
         # Test the execution output API endpoint for execution which is running (blocking)
         status = action_constants.LIVEACTION_STATUS_RUNNING
         timestamp = date_utils.get_datetime_utc_now()
