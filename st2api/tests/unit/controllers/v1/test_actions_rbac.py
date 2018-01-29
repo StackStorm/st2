@@ -15,7 +15,6 @@
 
 import mock
 import six
-from six.moves import http_client
 
 import st2common.validators.api.action as action_validator
 from st2common.rbac.types import PermissionType

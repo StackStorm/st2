@@ -15,7 +15,6 @@
 
 import six
 import mock
-from six.moves import http_client
 
 from st2common.rbac.types import PermissionType
 from st2common.rbac.types import ResourceType
