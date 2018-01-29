@@ -14,11 +14,14 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+import os
 import logging as stdlib_logging
 
 from oslo_config import cfg
 
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
+from st2common.constants.action import PARAM_FILE_PREPEND
+from st2common.constants.action import PARAM_FILE_LOCATION
 from st2common import log as logging
 
 
@@ -175,3 +178,12 @@ def invoke_post_run(liveaction_db, action_db=None):
 
     # Invoke the post_run method.
     runner.post_run(liveaction_db.status, liveaction_db.result)
+
+
+def get_file_params_path(execution_id):
+    """Returns file path for file params
+
+    :param execution_id: Execution ID of action execution.
+    :type execution_id: ``str``
+    """
+    return os.path.join(PARAM_FILE_LOCATION, PARAM_FILE_PREPEND + execution_id)
