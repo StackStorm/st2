@@ -93,7 +93,10 @@ class Shell(BaseCLIApp):
         self.parser.add_argument(
             '--version',
             action='version',
-            version='%(prog)s {version}'.format(version=__version__))
+            version='%(prog)s {version}, on Python {python_major}.{python_minor}'.format(
+                version=__version__,
+                python_major=sys.version_info.major,
+                python_minor=sys.version_info.minor))
 
         self.parser.add_argument(
             '--url',
