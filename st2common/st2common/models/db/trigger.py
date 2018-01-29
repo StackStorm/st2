@@ -106,7 +106,7 @@ class TriggerDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
         # in the same hash
         parameters = getattr(self, 'parameters', {})
         parameters = json.dumps(parameters, sort_keys=True)
-        parameters = hashlib.md5(parameters).hexdigest()
+        parameters = hashlib.md5(parameters.encode()).hexdigest()
 
         uid = uid + self.UID_SEPARATOR + parameters
         return uid

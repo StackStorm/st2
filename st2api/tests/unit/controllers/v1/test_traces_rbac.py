@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import httplib
-
 import six
 
 from st2common.rbac.types import PermissionType
@@ -118,7 +116,7 @@ class TraceControllerRBACTestCase(APIControllerWithRBACTestCase):
 
         resp = self.app.get('/v1/traces', expect_errors=True)
         expected_msg = ('User "no_permissions" doesn\'t have required permission "trace_list"')
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_get_one_no_permissions(self):
@@ -130,7 +128,7 @@ class TraceControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.app.get('/v1/traces/%s' % (trace_id), expect_errors=True)
         expected_msg = ('User "no_permissions" doesn\'t have required permission "trace_view"'
                         ' on resource "%s"' % (trace_uid))
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_get_all_permission_success_get_one_no_permission_failure(self):
@@ -139,7 +137,7 @@ class TraceControllerRBACTestCase(APIControllerWithRBACTestCase):
 
         # trace_list permission, but no trace_view permission
         resp = self.app.get('/v1/traces')
-        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(resp.status_code, http_client.OK)
         self.assertEqual(len(resp.json), 3)
 
         trace_id = self.models['traces']['trace_for_test_enforce.yaml'].id
@@ -147,7 +145,7 @@ class TraceControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.app.get('/v1/traces/%s' % (trace_id), expect_errors=True)
         expected_msg = ('User "trace_list" doesn\'t have required permission "trace_view"'
                         ' on resource "%s"' % (trace_uid))
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_get_one_permission_success_get_all_no_permission_failure(self):
@@ -159,10 +157,10 @@ class TraceControllerRBACTestCase(APIControllerWithRBACTestCase):
         trace_uid = self.models['traces']['trace_for_test_enforce.yaml'].get_uid()
 
         resp = self.app.get('/v1/traces/%s' % (trace_id))
-        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(resp.status_code, http_client.OK)
         self.assertEqual(resp.json['uid'], trace_uid)
 
         resp = self.app.get('/v1/traces', expect_errors=True)
         expected_msg = ('User "trace_view" doesn\'t have required permission "trace_list"')
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)

@@ -15,7 +15,6 @@
 
 import copy
 import re
-import httplib
 import sys
 import traceback
 import itertools
@@ -244,10 +243,10 @@ class BaseActionExecutionNestedController(ActionExecutionsControllerMixin, Resou
     supported_filters = {}
 
     def get_all(self):
-        abort(httplib.NOT_FOUND)
+        abort(http_client.NOT_FOUND)
 
     def get_one(self, id):
-        abort(httplib.NOT_FOUND)
+        abort(http_client.NOT_FOUND)
 
 
 class ActionExecutionChildrenController(BaseActionExecutionNestedController):

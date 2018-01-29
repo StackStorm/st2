@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import httplib
 from collections import OrderedDict
 
 import six
@@ -460,7 +459,7 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             msg = '%s "%s" didn\'t return 403 status code (body=%s)' % (endpoint['method'],
                                                                         endpoint['path'],
                                                                         response.body)
-            self.assertEqual(response.status_code, httplib.FORBIDDEN, msg)
+            self.assertEqual(response.status_code, http_client.FORBIDDEN, msg)
 
         # Also test ?limit=-1 - non-admin user
         self.use_user(self.users['observer'])
@@ -473,7 +472,7 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             msg = '%s "%s" didn\'t return 403 status code (body=%s)' % (endpoint['method'],
                                                                         endpoint['path'],
                                                                         response.body)
-            self.assertEqual(response.status_code, httplib.FORBIDDEN, msg)
+            self.assertEqual(response.status_code, http_client.FORBIDDEN, msg)
 
         # Also test ?limit=-1 - admin user
         self.use_user(self.users['admin'])
@@ -483,19 +482,19 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
                 continue
 
             response = self.app.get(endpoint['path'] + '?limit=-1')
-            self.assertEqual(response.status_code, httplib.OK)
+            self.assertEqual(response.status_code, http_client.OK)
 
     def test_icon_png_file_is_whitelisted(self):
         self.use_user(self.users['no_permissions'])
 
         # Test that access to icon.png file doesn't require any permissions
         response = self.app.get('/v1/packs/views/file/dummy_pack_2/icon.png')
-        self.assertEqual(response.status_code, httplib.OK)
+        self.assertEqual(response.status_code, http_client.OK)
 
         # Other files should return forbidden
         response = self.app.get('/v1/packs/views/file/dummy_pack_2/pack.yaml',
                                 expect_errors=True)
-        self.assertEqual(response.status_code, httplib.FORBIDDEN)
+        self.assertEqual(response.status_code, http_client.FORBIDDEN)
 
     def _perform_request_for_endpoint(self, endpoint):
         if endpoint['method'] == 'GET':
