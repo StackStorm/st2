@@ -1199,7 +1199,7 @@ class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestC
         # Retrieve lister instance to avoid race with listener connection not being established
         # early enough for tests to pass.
         # NOTE: This only affects tests where listeners are not pre-initialized.
-        listener = get_listener(name='execution_output')  # NOQA
+        listener = get_listener(name='execution_output')
         eventlet.sleep(1.0)
 
         # Test the execution output API endpoint for execution which is running (blocking)
