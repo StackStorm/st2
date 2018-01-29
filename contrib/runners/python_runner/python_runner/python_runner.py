@@ -144,7 +144,7 @@ class PythonRunner(ActionRunner):
             LOG.error('Action "%s" is missing entry_point attribute' % (self.action.name))
             raise Exception('Action "%s" is missing entry_point attribute' % (self.action.name))
 
-        # Here we check serilized parameters and write to tmp file (if too big)
+        # Here we check serialized parameters and write to tmp file (if too big)
         # This allows us to pass both a large number of params as well as large
         # values. This avoids the character limit imposed by the linux kernel.
         params_too_big = _param_size_check(serialized_parameters)
