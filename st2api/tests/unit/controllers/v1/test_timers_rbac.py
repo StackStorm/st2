@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import httplib
-
 import six
 
 from st2common.rbac.types import PermissionType
@@ -119,7 +117,7 @@ class TimerControllerRBACTestCase(APIControllerWithRBACTestCase):
 
         resp = self.app.get('/v1/timers', expect_errors=True)
         expected_msg = ('User "no_permissions" doesn\'t have required permission "timer_list"')
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_get_one_no_permissions(self):
@@ -132,7 +130,7 @@ class TimerControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.app.get('/v1/timers/%s' % (trigger_id), expect_errors=True)
         expected_msg = ('User "no_permissions" doesn\'t have required permission "timer_view"'
                         ' on resource "%s"' % (timer_uid))
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_get_all_permission_success_get_one_no_permission_failure(self):
@@ -141,7 +139,7 @@ class TimerControllerRBACTestCase(APIControllerWithRBACTestCase):
 
         # timer_list permission, but no timer_view permission
         resp = self.app.get('/v1/timers')
-        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(resp.status_code, http_client.OK)
         self.assertEqual(len(resp.json), 5)
 
         trigger_db = self.models['triggers']['cron1.yaml']
@@ -150,7 +148,7 @@ class TimerControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.app.get('/v1/timers/%s' % (trigger_id), expect_errors=True)
         expected_msg = ('User "timer_list" doesn\'t have required permission "timer_view"'
                         ' on resource "%s"' % (timer_uid))
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_get_one_permission_success_get_all_no_permission_failure(self):
@@ -162,10 +160,10 @@ class TimerControllerRBACTestCase(APIControllerWithRBACTestCase):
         trigger_id = trigger_db.id
         trigger_uid = trigger_db.get_uid()
         resp = self.app.get('/v1/timers/%s' % (trigger_id))
-        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(resp.status_code, http_client.OK)
         self.assertEqual(resp.json['uid'], trigger_uid)
 
         resp = self.app.get('/v1/timers', expect_errors=True)
         expected_msg = ('User "timer_view" doesn\'t have required permission "timer_list"')
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)

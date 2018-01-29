@@ -16,7 +16,6 @@
 import os
 import os.path
 import copy
-import httplib
 
 try:
     import simplejson as json
@@ -25,6 +24,7 @@ except ImportError:
 
 import mock
 import unittest2
+from six.moves import http_client
 
 from st2common.persistence.action import Action
 import st2common.validators.api.action as action_validator
@@ -337,7 +337,7 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
     def test_get_all_invalid_limit_too_large_none_admin(self):
         # limit > max_page_size, but user is not admin
         resp = self.app.get('/v1/actions?limit=1000', expect_errors=True)
-        self.assertEqual(resp.status_int, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_int, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], 'Limit "1000" specified, maximum value is'
                          ' "100"')
 
