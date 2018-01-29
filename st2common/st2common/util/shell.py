@@ -81,7 +81,10 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     stdout, stderr = process.communicate()
     exit_code = process.returncode
 
-    return (exit_code, stdout, stderr)
+    if six.PY3:
+        return (exit_code, stdout.decode(), stderr.decode())
+    else:
+        return (exit_code, stdout, stderr)
 
 
 def kill_process(process):
