@@ -332,7 +332,7 @@ class ActionExecutionOutputController(ActionExecutionsControllerMixin, ResourceC
 
         def new_output_iter():
             def noop_gen():
-                yield ''
+                yield six.binary_type('')
 
             # Bail out if execution has already completed / been paused
             if execution_db.status in self.CLOSE_STREAM_LIVEACTION_STATES:
