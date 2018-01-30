@@ -369,7 +369,7 @@ class PacksControllerTestCase(FunctionalTest):
         # Verify that resources are registered in the same order as they are inside
         # st2-register-content.
         # Note: Sadly there is no easier / better way to test this
-        resource_types = ENTITIES.keys()
+        resource_types = list(ENTITIES.keys())
         expected_order = [
             'trigger',
             'sensor',
