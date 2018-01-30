@@ -16,6 +16,7 @@
 from __future__ import absolute_import
 import os
 import sys
+from six.moves import input
 
 # Note: This work-around is required to fix the issue with other Python modules which live
 # inside this directory polluting and masking sys.path for Python runner actions.
@@ -203,7 +204,7 @@ class PythonActionWrapper(object):
 
         try:
             print_output = json.dumps(action_output)
-        except Exception:
+        except Exception as error:
             print_output = str(action_output)
 
         # Print output to stdout so the parent can capture it
@@ -249,8 +250,6 @@ if __name__ == '__main__':
                         help='Path to the action module')
     parser.add_argument('--config', required=False,
                         help='Pack config serialized as JSON')
-    parser.add_argument('--parameters', required=False,
-                        help='Serialized action parameters')
     parser.add_argument('--user', required=False,
                         help='User who triggered the action execution')
     parser.add_argument('--parent-args', required=False,
@@ -261,11 +260,13 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     config = json.loads(args.config) if args.config else {}
-    parameters = args.parameters
-    parameters = json.loads(parameters) if parameters else {}
     user = args.user
     parent_args = json.loads(args.parent_args) if args.parent_args else []
     log_level = args.log_level
+    LOG.debug('Getting parameters from stdin')
+    stdin_parameters = json.loads(input())
+    parameters = stdin_parameters.get('parameters', {})
+    LOG.debug('Received parameters: %s', parameters)
 
     assert isinstance(parent_args, list)
     obj = PythonActionWrapper(pack=args.pack,

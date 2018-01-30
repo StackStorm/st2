@@ -117,7 +117,9 @@ class PythonRunner(ActionRunner):
         LOG.debug('Getting user.')
         user = self.get_user()
         LOG.debug('Serializing parameters.')
-        serialized_parameters = json.dumps(action_parameters) if action_parameters else ''
+        serialized_parameters = '%s\n' % (json.dumps(
+            {'parameters': action_parameters if action_parameters else {}}
+        ))
         LOG.debug('Getting virtualenv_path.')
         virtualenv_path = get_sandbox_virtualenv_path(pack=pack)
         LOG.debug('Getting python path.')
@@ -147,7 +149,6 @@ class PythonRunner(ActionRunner):
             WRAPPER_SCRIPT_PATH,
             '--pack=%s' % (pack),
             '--file-path=%s' % (self.entry_point),
-            '--parameters=%s' % (serialized_parameters),
             '--user=%s' % (user),
             '--parent-args=%s' % (json.dumps(sys.argv[1:])),
         ]
@@ -212,8 +213,12 @@ class PythonRunner(ActionRunner):
         command_string = list2cmdline(args)
         LOG.debug('Running command: PATH=%s PYTHONPATH=%s %s' % (env['PATH'], env['PYTHONPATH'],
                                                                  command_string))
-        exit_code, stdout, stderr, timed_out = run_command(cmd=args, stdout=subprocess.PIPE,
-                                                           stderr=subprocess.PIPE, shell=False,
+
+        exit_code, stdout, stderr, timed_out = run_command(cmd=args,
+                                                           stdin=serialized_parameters,
+                                                           stdout=subprocess.PIPE,
+                                                           stderr=subprocess.PIPE,
+                                                           shell=False,
                                                            env=env,
                                                            timeout=self._timeout,
                                                            read_stdout_func=read_and_store_stdout,
