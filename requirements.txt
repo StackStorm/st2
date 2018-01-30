@@ -47,4 +47,5 @@ stevedore==1.27.1
 tooz==1.57.4
 unittest2
 webob==1.7.3
+webtest
 zake==0.2.2
