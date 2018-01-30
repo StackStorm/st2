@@ -10,8 +10,8 @@ branches:
     - /^v[0-9]+\.[0-9]+$/
 
 env:
-  # global:
-  #  - CACHE_NAME=JOB1
+  global:
+   - CACHE_NAME=JOB1
 matrix:
   include:
     - env: TASK=ci-unit NODE_INDEX=0 NODE_TOTAL=2 CACHE_NAME=JOB1
