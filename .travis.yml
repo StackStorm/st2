@@ -11,7 +11,7 @@ branches:
 
 env:
   global:
-   - CACHE_NAME=JOB1
+    - CACHE_NAME=JOB1
 matrix:
   include:
     - env: TASK=ci-unit NODE_INDEX=0 NODE_TOTAL=2
