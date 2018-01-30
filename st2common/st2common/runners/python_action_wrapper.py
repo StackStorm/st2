@@ -39,7 +39,6 @@ from st2common import config as st2common_config
 from st2common.runners.base_action import Action
 from st2common.runners.utils import get_logger_for_python_runner_action
 from st2common.runners.utils import get_action_class_instance
-from st2common.runners.utils import get_file_params_path
 from st2common.util import loader as action_loader
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.keyvalue import SYSTEM_SCOPE
@@ -253,10 +252,7 @@ if __name__ == '__main__':
     parser.add_argument('--parameters', required=False,
                         help='Serialized action parameters')
     parser.add_argument('--file-params', required=False,
-                        help='Serialized action params are located on disk',
-                        action='store_true')
-    parser.add_argument('--execution-id', required=False,
-                        help='Execution id of this execution')
+                        help='Serialized action params location on disk')
     parser.add_argument('--user', required=False,
                         help='User who triggered the action execution')
     parser.add_argument('--parent-args', required=False,
@@ -270,8 +266,7 @@ if __name__ == '__main__':
     parameters = args.parameters
     parameters = json.loads(parameters) if parameters else {}
     if args.file_params:
-        param_file_path = get_file_params_path(args.execution_id)
-        with open(param_file_path, 'rb+') as fd:
+        with open(args.file_params, 'rb+') as fd:
             parameters = json.loads(fd.read())
 
     user = args.user

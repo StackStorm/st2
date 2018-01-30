@@ -50,7 +50,7 @@ from st2common.util.sandboxing import get_sandbox_virtualenv_path
 from st2common.runners import python_action_wrapper
 from st2common.services.action import store_execution_output_data
 from st2common.runners.utils import make_read_and_store_stream_func
-from st2common.runners.utils import get_file_params_path
+from st2common.runners.utils import get_file_params
 
 __all__ = [
     'PythonRunner',
@@ -150,7 +150,7 @@ class PythonRunner(ActionRunner):
         params_too_big = _param_size_check(serialized_parameters)
 
         if params_too_big:
-            self._write_params(serialized_parameters)
+            param_file_path = self._write_params(serialized_parameters)
 
         # Note: We pass config as command line args so the actual wrapper process is standalone
         # and doesn't need access to db
@@ -161,11 +161,14 @@ class PythonRunner(ActionRunner):
             WRAPPER_SCRIPT_PATH,
             '--pack=%s' % (pack),
             '--file-path=%s' % (self.entry_point),
-            '--parameters=%s' % (serialized_parameters) if not params_too_big else '--file-params',
             '--user=%s' % (user),
             '--parent-args=%s' % (json.dumps(sys.argv[1:])),
-            '--execution-id=%s' % (self.execution_id),
         ]
+
+        if params_too_big:
+            args.append('--file-params=%s' % (param_file_path))
+        else:
+            args.append('--parameters=%s' % (serialized_parameters))
 
         if self._config:
             args.append('--config=%s' % (json.dumps(self._config)))
@@ -237,6 +240,10 @@ class PythonRunner(ActionRunner):
                                                            read_stderr_buffer=stderr)
         LOG.debug('Returning values: %s, %s, %s, %s' % (exit_code, stdout, stderr, timed_out))
         LOG.debug('Returning.')
+
+        if LOG.getEffectiveLevel() is not logging.logging.DEBUG and params_too_big:
+            os.remove(param_file_path)
+
         return self._get_output_values(exit_code, stdout, stderr, timed_out)
 
     def _get_output_values(self, exit_code, stdout, stderr, timed_out):
@@ -300,15 +307,18 @@ class PythonRunner(ActionRunner):
 
         status = self._get_final_status(action_status=status, timed_out=timed_out,
                                         exit_code=exit_code)
+
         return (status, output, None)
 
     def _write_params(self, serialized_parameters):
         """Write paramers to file
         """
         LOG.debug('Writing params file')
-        param_file_path = get_file_params_path(self.execution_id)
-        with open(param_file_path, 'wb+') as fd:
+        temp_os_fd, param_file_path = get_file_params(self.execution_id)
+        with open(param_file_path, 'wb') as fd:
             fd.write(serialized_parameters)
+        os.close(temp_os_fd)
+        return param_file_path
 
     def _get_final_status(self, action_status, timed_out, exit_code):
         """
