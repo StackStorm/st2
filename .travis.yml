@@ -14,13 +14,13 @@ env:
    - CACHE_NAME=JOB1
 matrix:
   include:
-    - env: TASK=ci-unit NODE_INDEX=0 NODE_TOTAL=2 CACHE_NAME=JOB1
+    - env: TASK=ci-unit NODE_INDEX=0 NODE_TOTAL=2
       python: 2.7
-    - env: TASK=ci-unit NODE_INDEX=1 NODE_TOTAL=2 CACHE_NAME=JOB1
+    - env: TASK=ci-unit NODE_INDEX=1 NODE_TOTAL=2
       python: 2.7
-    - env: TASK=ci-integration CACHE_NAME=JOB1
+    - env: TASK=ci-integration
       python: 2.7
-    - env: TASK="ci-checks ci-packs-tests" CACHE_NAME=JOB1
+    - env: TASK="ci-checks ci-packs-tests"
       python: 2.7
     - env: TASK="compilepy3 ci-st2client-py3-tests" CACHE_NAME=py3
       python: 3.6
