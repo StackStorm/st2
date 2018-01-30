@@ -368,8 +368,8 @@ class ContentPackResourceController(ResourceController):
             instance = self._get_by_ref_or_id(ref_or_id=ref_or_id, exclude_fields=exclude_fields,
                                               include_fields=include_fields)
         except Exception as e:
-            LOG.exception(e.message)
-            abort(http_client.NOT_FOUND, e.message)
+            LOG.exception(str(e))
+            abort(http_client.NOT_FOUND, str(e))
             return
 
         if permission_type:
