@@ -480,7 +480,8 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
         if six.PY3:
             expected_error = b'[\'string\', \'object\'] is not valid under any of the given schemas'
         else:
-            expected_error = b'[u\'string\', u\'object\'] is not valid under any of the given schemas'
+            expected_error = \
+                b'[u\'string\', u\'object\'] is not valid under any of the given schemas'
 
         self.assertTrue(expected_error in post_resp.body)
 
