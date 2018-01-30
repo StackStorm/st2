@@ -79,7 +79,8 @@ class TestApp(webtest.TestApp):
                 else:
                     raise e
 
-            if six.b(SUPER_SECRET_PARAMETER) in body or six.b(ANOTHER_SUPER_SECRET_PARAMETER) in body:
+            if six.b(SUPER_SECRET_PARAMETER) in body or \
+                    six.b(ANOTHER_SUPER_SECRET_PARAMETER) in body:
                 raise ResponseLeakError('Endpoint response contains secret parameter. '
                                         'Find the leak.')
 
