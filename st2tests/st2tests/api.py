@@ -44,8 +44,8 @@ __all__ = [
 ]
 
 
-SUPER_SECRET_PARAMETER = b'SUPER_SECRET_PARAMETER_THAT_SHOULD_NEVER_APPEAR_IN_RESPONSES_OR_LOGS'
-ANOTHER_SUPER_SECRET_PARAMETER = b'ANOTHER_SUPER_SECRET_PARAMETER_TO_TEST_OVERRIDING'
+SUPER_SECRET_PARAMETER = 'SUPER_SECRET_PARAMETER_THAT_SHOULD_NEVER_APPEAR_IN_RESPONSES_OR_LOGS'
+ANOTHER_SUPER_SECRET_PARAMETER = 'ANOTHER_SUPER_SECRET_PARAMETER_TO_TEST_OVERRIDING'
 
 
 class ResponseValidationError(ValueError):
@@ -79,7 +79,7 @@ class TestApp(webtest.TestApp):
                 else:
                     raise e
 
-            if SUPER_SECRET_PARAMETER in body or ANOTHER_SUPER_SECRET_PARAMETER in body:
+            if six.b(SUPER_SECRET_PARAMETER) in body or six.b(ANOTHER_SUPER_SECRET_PARAMETER) in body:
                 raise ResponseLeakError('Endpoint response contains secret parameter. '
                                         'Find the leak.')
 

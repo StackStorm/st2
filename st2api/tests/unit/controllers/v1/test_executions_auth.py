@@ -69,7 +69,7 @@ LIVE_ACTION_1 = {
     'parameters': {
         'hosts': 'localhost',
         'cmd': 'uname -a',
-        'd': SUPER_SECRET_PARAMETER.decode()
+        'd': SUPER_SECRET_PARAMETER
     }
 }
 

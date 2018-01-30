@@ -162,7 +162,7 @@ LIVE_ACTION_1 = {
     'parameters': {
         'hosts': 'localhost',
         'cmd': 'uname -a',
-        'd': SUPER_SECRET_PARAMETER.decode()
+        'd': SUPER_SECRET_PARAMETER
     }
 }
 
@@ -804,7 +804,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         self.assertEqual(re_run_result.json['parameters'], LIVE_ACTION_1['parameters'])
 
         # Re-run created execution (with parameters overrides)
-        data = {'parameters': {'a': 'val1', 'd': ANOTHER_SUPER_SECRET_PARAMETER.decode()}}
+        data = {'parameters': {'a': 'val1', 'd': ANOTHER_SUPER_SECRET_PARAMETER}}
         re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id), data)
         self.assertEqual(re_run_resp.status_int, 201)
 

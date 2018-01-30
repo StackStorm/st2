@@ -138,16 +138,16 @@ class AliasExecutionTestCase(FunctionalTest):
 
         request.return_value = (None, execution)
 
-        command = 'Lorem ipsum value1 dolor sit ' + SUPER_SECRET_PARAMETER.decode() + ' amet.'
+        command = 'Lorem ipsum value1 dolor sit ' + SUPER_SECRET_PARAMETER + ' amet.'
         post_resp = self._do_post(alias_execution=self.alias4, command=command)
         self.assertEqual(post_resp.status_int, 201)
-        expected_parameters = {'param1': 'value1', 'param4': SUPER_SECRET_PARAMETER.decode()}
+        expected_parameters = {'param1': 'value1', 'param4': SUPER_SECRET_PARAMETER}
         self.assertEquals(request.call_args[0][0].parameters, expected_parameters)
         post_resp = self._do_post(alias_execution=self.alias4, command=command, show_secrets=True,
                                   expect_errors=True)
         self.assertEqual(post_resp.status_int, 201)
         self.assertEqual(post_resp.json['execution']['parameters']['param4'],
-                         SUPER_SECRET_PARAMETER.decode())
+                         SUPER_SECRET_PARAMETER)
 
     @mock.patch.object(action_service, 'request',
                        return_value=(None, EXECUTION))
