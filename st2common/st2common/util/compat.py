@@ -14,14 +14,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Module with Python 3 related compatibility functions.
+"""
+
 from __future__ import absolute_import
+
 import six
 
 
 __all__ = [
+    'mock_open_name',
+
     'to_unicode',
     'to_ascii',
 ]
+
+if six.PY3:
+    mock_open_name = 'builtins.open'
+else:
+    mock_open_name = '__builtin__.open'
 
 
 def to_unicode(value):

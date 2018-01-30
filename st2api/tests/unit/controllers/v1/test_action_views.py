@@ -17,6 +17,7 @@ import mock
 
 from st2common.content import utils as content_utils
 import st2common.validators.api.action as action_validator
+from st2common.util.compat import mock_open_name
 from tests import FunctionalTest
 
 # ACTION_1: Good action definition.
@@ -160,7 +161,7 @@ class TestEntryPointView(FunctionalTest):
         return_value=True))
     @mock.patch.object(content_utils, 'get_entry_point_abs_path', mock.MagicMock(
         return_value='/path/to/file'))
-    @mock.patch('__builtin__.open', mock.mock_open(read_data='file content'), create=True)
+    @mock.patch(mock_open_name, mock.mock_open(read_data='file content'), create=True)
     def test_get_one(self):
         post_resp = self.app.post_json('/v1/actions', ACTION_1)
         action_id = post_resp.json['id']
@@ -174,7 +175,7 @@ class TestEntryPointView(FunctionalTest):
         return_value=True))
     @mock.patch.object(content_utils, 'get_entry_point_abs_path', mock.MagicMock(
         return_value='/path/to/file'))
-    @mock.patch('__builtin__.open', mock.mock_open(read_data='file content'), create=True)
+    @mock.patch(mock_open_name, mock.mock_open(read_data='file content'), create=True)
     def test_get_one_ref(self):
         post_resp = self.app.post_json('/v1/actions', ACTION_1)
         action_id = post_resp.json['id']
