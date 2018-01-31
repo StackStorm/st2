@@ -143,7 +143,8 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     timeout_thread = eventlet.spawn(on_timeout_expired, timeout)
     LOG.debug('Attaching to process.')
 
-    process.stdin.write(stdin)
+    if stdin:
+        process.stdin.write(stdin)
 
     if read_stdout_func and read_stderr_func:
         LOG.debug('Using real-time stdout and stderr read mode, calling process.wait()')
