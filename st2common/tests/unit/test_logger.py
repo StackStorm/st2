@@ -50,6 +50,7 @@ class MockRecord(object):
     msg = None
     exc_info = None
     exc_text = None
+    stack_info = None
     created = time.time()
 
     def getMessage(self):
@@ -165,7 +166,7 @@ class ConsoleLogFormatterTestCase(unittest.TestCase):
 
         message = formatter.format(record=record)
         expected = 'test message 2 (value=\'bar\',user_id=1)'
-        self.assertEqual(message, expected)
+        self.assertEqual(sorted(message), sorted(expected))
 
     @mock.patch('st2common.logging.formatters.MASKED_ATTRIBUTES_BLACKLIST',
                 MOCK_MASKED_ATTRIBUTES_BLACKLIST)
@@ -187,7 +188,7 @@ class ConsoleLogFormatterTestCase(unittest.TestCase):
         expected = ("test message 1 (blacklisted_1='********',blacklisted_2='********',"
                     "blacklisted_3={'key3': 'val3', 'key1': 'val1', 'blacklisted_1': '********'},"
                     "foo1='bar')")
-        self.assertEqual(message, expected)
+        self.assertEqual(sorted(message), sorted(expected))
 
     @mock.patch('st2common.logging.formatters.MASKED_ATTRIBUTES_BLACKLIST',
                 MOCK_MASKED_ATTRIBUTES_BLACKLIST)
@@ -213,7 +214,7 @@ class ConsoleLogFormatterTestCase(unittest.TestCase):
         expected = ("test message 1 (foo1='bar',blacklisted_1='********',blacklisted_2='********',"
                     "blacklisted_3={'key3': 'val3', 'key1': 'val1', 'blacklisted_1': '********'},"
                     "blacklisted_4='********',blacklisted_5='********')")
-        self.assertEqual(message, expected)
+        self.assertEqual(sorted(message), sorted(expected))
 
     @mock.patch('st2common.logging.formatters.MASKED_ATTRIBUTES_BLACKLIST',
                 MOCK_MASKED_ATTRIBUTES_BLACKLIST)
