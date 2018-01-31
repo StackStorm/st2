@@ -23,9 +23,9 @@ import six
 from itertools import chain
 
 if six.PY3:
-    from itertools import zip_longest as izip_longest
+    from itertools import zip_longest as izip_longest  # NOQA
 else:
-    from itertools import izip_longest
+    from itertools import izip_longest  # NOQA
 
 from collections import defaultdict
 
