@@ -59,4 +59,8 @@ def to_ascii(value):
     Function which encodes the provided bytes / string to ASCII encoding ignoring any errors
     which could come up when trying to encode a non-ascii value.
     """
+
+    if six.PY3:
+        value = value.encode()
+
     return value.decode('ascii', errors='ignore')

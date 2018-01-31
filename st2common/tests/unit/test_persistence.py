@@ -145,7 +145,7 @@ class TestPersistence(DbTestCase):
     def test_pagination(self):
         count = 100
         page_size = 25
-        pages = count / page_size
+        pages = int(count / page_size)
         users = ['Peter', 'Susan', 'Edmund', 'Lucy']
 
         for user in users:
@@ -180,9 +180,9 @@ class TestPersistence(DbTestCase):
         for i in range(count):
             category = 'type1' if i < count / 2 else 'type2'
             self.assertEqual(objs[i].category, category)
-        self.assertLess(objs[0].timestamp, objs[(count / 2) - 1].timestamp)
-        self.assertLess(objs[count / 2].timestamp, objs[(count / 2) - 1].timestamp)
-        self.assertLess(objs[count / 2].timestamp, objs[count - 1].timestamp)
+        self.assertLess(objs[0].timestamp, objs[(int(count / 2)) - 1].timestamp)
+        self.assertLess(objs[int(count / 2)].timestamp, objs[(int(count / 2)) - 1].timestamp)
+        self.assertLess(objs[int(count / 2)].timestamp, objs[count - 1].timestamp)
 
     def test_escaped_field(self):
         context = {'a.b.c': 'abc'}

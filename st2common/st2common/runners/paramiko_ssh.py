@@ -16,11 +16,11 @@
 from __future__ import absolute_import
 import os
 import posixpath
-from StringIO import StringIO
 import time
 
 import eventlet
 from oslo_config import cfg
+from six.moves import StringIO
 
 import paramiko
 from paramiko.ssh_exception import SSHException

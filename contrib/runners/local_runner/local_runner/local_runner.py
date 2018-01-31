@@ -19,10 +19,10 @@ import re
 import pwd
 import uuid
 import functools
-from StringIO import StringIO
 
 from oslo_config import cfg
 from eventlet.green import subprocess
+from six.moves import StringIO
 
 from st2common.constants import action as action_constants
 from st2common.constants import exit_codes as exit_code_constants
