@@ -23,8 +23,10 @@ import six
 from itertools import chain
 
 if six.PY3:
+    # pylint: disable=no-name-in-module
     from itertools import zip_longest as izip_longest  # NOQA
 else:
+    # pylint: disable=no-name-in-module
     from itertools import izip_longest  # NOQA
 
 from collections import defaultdict
