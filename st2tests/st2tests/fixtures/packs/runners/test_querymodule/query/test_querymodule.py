@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from st2common.query.base import Querier
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 

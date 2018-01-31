@@ -2,6 +2,7 @@ ROOT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 SHELL := /bin/bash
 TOX_DIR := .tox
 VIRTUALENV_DIR ?= virtualenv
+PYTHON_VERSION = python2.7
 
 BINARIES := bin
 
@@ -179,8 +180,14 @@ clean: .cleanpycs
 .PHONY: compile
 compile:
 	@echo "======================= compile ========================"
-	@echo "------- Compile all .py files (syntax check test) ------"
+	@echo "------- Compile all .py files (syntax check test - Python 2) ------"
 	@if python -c 'import compileall,re; compileall.compile_dir(".", rx=re.compile(r"/virtualenv|.tox"), quiet=True)' | grep .; then exit 1; else exit 0; fi
+
+.PHONY: compilepy3
+compilepy3:
+	@echo "======================= compile ========================"
+	@echo "------- Compile all .py files (syntax check test - Python 3) ------"
+	@if python3 -c 'import compileall,re; compileall.compile_dir(".", rx=re.compile(r"/virtualenv|.tox"), quiet=True)' | grep .; then exit 1; else exit 0; fi
 
 .PHONY: .cleanpycs
 .cleanpycs:
@@ -270,7 +277,8 @@ $(VIRTUALENV_DIR)/bin/activate:
 	@echo
 	@echo "==================== virtualenv ===================="
 	@echo
-	test -f $(VIRTUALENV_DIR)/bin/activate || virtualenv --no-site-packages $(VIRTUALENV_DIR) --python=python2.7
+	test -f $(VIRTUALENV_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) --no-site-packages $(VIRTUALENV_DIR)
+
 
 	# Setup PYTHONPATH in bash activate script...
 	echo '' >> $(VIRTUALENV_DIR)/bin/activate

@@ -22,6 +22,7 @@ A utility script that diffs models registered in st2 db versus what's on disk.
 
 """
 
+from __future__ import absolute_import
 import difflib
 import json
 import os
@@ -162,7 +163,7 @@ def _diff(persistence_model, artifact_type, pack_dir=None, verbose=True,
     artifacts_in_disk_dict = _get_api_models_from_disk(artifact_type, pack_dir=pack_dir)
 
     # print(artifacts_in_disk_dict)
-    all_artifacts = set(artifacts_in_db_dict.keys() + artifacts_in_disk_dict.keys())
+    all_artifacts = set(list(artifacts_in_db_dict.keys()) + list(artifacts_in_disk_dict.keys()))
 
     for artifact in all_artifacts:
         artifact_in_db = artifacts_in_db_dict.get(artifact, None)

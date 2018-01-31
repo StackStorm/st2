@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 from st2common.models.db.auth import UserDB
 from st2common.models.db.auth import TokenDB
 from st2common.models.db.auth import ApiKeyDB

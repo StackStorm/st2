@@ -15,6 +15,7 @@
 
 # Note: Imports are in-line to avoid large import time overhead
 
+from __future__ import absolute_import
 __all__ = [
     'BACKENDS_NAMESPACE',
 

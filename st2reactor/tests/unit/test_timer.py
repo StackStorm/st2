@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import bson
 import mock
 
@@ -39,7 +40,7 @@ class St2TimerTestCase(CleanDbTestCase):
         trigger_type_dbs = TriggerType.get_all()
         self.assertEqual(len(trigger_type_dbs), len(TIMER_TRIGGER_TYPES))
 
-        timer_trigger_type_refs = TIMER_TRIGGER_TYPES.keys()
+        timer_trigger_type_refs = list(TIMER_TRIGGER_TYPES.keys())
 
         for trigger_type in trigger_type_dbs:
             ref = ResourceReference(pack=trigger_type.pack, name=trigger_type.name).ref
@@ -58,7 +59,7 @@ class St2TimerTestCase(CleanDbTestCase):
         self.assertItemsEqual(TriggerType.get_all(), [])
 
         # Add a dummy timer Trigger object
-        type_ = TIMER_TRIGGER_TYPES.keys()[0]
+        type_ = list(TIMER_TRIGGER_TYPES.keys())[0]
         parameters = {'unit': 'seconds', 'delta': 1000}
         trigger_db = TriggerDB(id=bson.ObjectId(), name='test_trigger_1', pack='dummy',
                                type=type_, parameters=parameters)
@@ -80,7 +81,7 @@ class St2TimerTestCase(CleanDbTestCase):
         timer._trigger_watcher = mock.Mock()
 
         # Add a dummy timer Trigger object
-        type_ = TIMER_TRIGGER_TYPES.keys()[0]
+        type_ = list(TIMER_TRIGGER_TYPES.keys())[0]
         parameters = {'unit': 'seconds', 'delta': 1}
         trigger_db = TriggerDB(name='test_trigger_1', pack='dummy', type=type_,
                                parameters=parameters)

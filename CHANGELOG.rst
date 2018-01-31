@@ -7,6 +7,25 @@ in development
 Added
 ~~~~~
 
+* Update ``st2 execution tail`` command so it supports double nested workflows (workflow ->
+  workflow -> execution). Previously, only top-level executions and single nested workflows
+  (workflow -> execution) were supported. (improvement) #3962 #3960
+
+Fixed
+~~~~~
+
+* Fix a regression in ``POST /v1/webhooks/<webhook name>`` API endpoint introduced in v2.4.0
+  and add back support for arrays. In 2.4.0 support for arrays was inadvertently removed and
+  only objects were supported. Keep in mind that this only applies to custom user-defined
+  webhooks and system ``st2`` webhook still requires input to be an object (dictionary).
+  (bug fix) #3956 #3955
+
+2.6.0 - January 19, 2018
+------------------------
+
+Added
+~~~~~
+
 * Add new ``get_user_info`` method to action and sensor service. With this method, user can
   retrieve information about the user account which is used to perform datastore operations inside
   the action and sensor service. (new feature) #3831
@@ -47,6 +66,12 @@ Added
   the code so ``api.max_page_size`` config option only applies to non-admin users, meaning users
   with admin permission can specify arbitrary value for ``?limit`` query param which can also be
   larger than ``api.max_page_size``. (improvement) #3939
+* Add new ``?include_attributes`` query param filter to ``/v1/executions/`` API endpoint
+  With this filter user can select which fields to include in the response (whitelist approach,
+  opposite of the existing ``?exclude_attributes`` filter).
+
+  For example, if you only want to retrieve ``id`` and ``status`` field, the URL would look like
+  this - ``/v1/executions?include_attributes=id,status``. (new feature) #3953 #3858 #3856
 
 Changed
 ~~~~~~~

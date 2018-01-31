@@ -18,6 +18,7 @@ Utility functions for our sandboxing model which is implemented on top of
 separate processes and virtualenv.
 """
 
+from __future__ import absolute_import
 import os
 import sys
 from distutils.sysconfig import get_python_lib

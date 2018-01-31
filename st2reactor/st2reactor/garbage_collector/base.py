@@ -17,6 +17,7 @@
 Garbage collection service which deletes old data from the database.
 """
 
+from __future__ import absolute_import
 import signal
 import datetime
 import random

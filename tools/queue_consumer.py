@@ -18,6 +18,7 @@
 A utility script which listens on queue for messages and prints them to stdout.
 """
 
+from __future__ import absolute_import
 import random
 import argparse
 from pprint import pprint

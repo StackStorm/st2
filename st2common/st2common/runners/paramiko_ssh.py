@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import os
 import posixpath
 from StringIO import StringIO
@@ -32,6 +33,7 @@ from st2common.log import logging
 from st2common.util.misc import strip_shell_chars
 from st2common.util.shell import quote_unix
 from st2common.constants.runners import DEFAULT_SSH_PORT, REMOTE_RUNNER_PRIVATE_KEY_HEADER
+import six
 
 __all__ = [
     'ParamikoSSHClient',
@@ -182,13 +184,13 @@ class ParamikoSSHClient(object):
                 local_mode = os.stat(local_path).st_mode
 
             # Cast to octal integer in case of string
-            if isinstance(local_mode, basestring):
+            if isinstance(local_mode, six.string_types):
                 local_mode = int(local_mode, 8)
-            local_mode = local_mode & 07777
+            local_mode = local_mode & 0o7777
             remote_mode = rattrs.st_mode
             # Only bitshift if we actually got an remote_mode
             if remote_mode is not None:
-                remote_mode = (remote_mode & 07777)
+                remote_mode = (remote_mode & 0o7777)
             if local_mode != remote_mode:
                 self.sftp.chmod(remote_path, local_mode)
 

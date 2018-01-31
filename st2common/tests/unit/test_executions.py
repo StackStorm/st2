@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import copy
 import bson
 import datetime
@@ -24,6 +25,7 @@ from st2common.util import date as date_utils
 from st2common.persistence.execution import ActionExecution
 from st2common.models.api.execution import ActionExecutionAPI
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from six.moves import range
 
 
 class TestActionExecutionHistoryModel(DbTestCase):

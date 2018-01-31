@@ -13,10 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import unittest2
 
 from st2common.util.shell import quote_unix
 from st2common.util.shell import quote_windows
+from six.moves import zip
 
 
 class ShellUtilsTestCase(unittest2.TestCase):

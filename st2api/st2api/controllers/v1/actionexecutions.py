@@ -15,7 +15,6 @@
 
 import copy
 import re
-import httplib
 import sys
 import traceback
 import itertools
@@ -244,10 +243,10 @@ class BaseActionExecutionNestedController(ActionExecutionsControllerMixin, Resou
     supported_filters = {}
 
     def get_all(self):
-        abort(httplib.NOT_FOUND)
+        abort(http_client.NOT_FOUND)
 
     def get_one(self, id):
-        abort(httplib.NOT_FOUND)
+        abort(http_client.NOT_FOUND)
 
 
 class ActionExecutionChildrenController(BaseActionExecutionNestedController):
@@ -506,22 +505,17 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
     }
 
     def get_all(self, requester_user, exclude_attributes=None, sort=None, offset=0, limit=None,
-                show_secrets=False, **raw_filters):
+                show_secrets=False, include_attributes=None, **raw_filters):
         """
         List all executions.
 
         Handles requests:
             GET /executions[?exclude_attributes=result,trigger_instance]
 
-        :param exclude_attributes: Comma delimited string of attributes to exclude from the object.
-        :type exclude_attributes: ``str``
+        :param exclude_attributes: List of attributes to exclude from the object.
+        :type exclude_attributes: ``list``
         """
-        if exclude_attributes:
-            exclude_fields = exclude_attributes.split(',')
-        else:
-            exclude_fields = None
-
-        exclude_fields = self._validate_exclude_fields(exclude_fields=exclude_fields)
+        exclude_fields = self._validate_exclude_fields(exclude_fields=exclude_attributes)
 
         # Use a custom sort order when filtering on a timestamp so we return a correct result as
         # expected by the user
@@ -535,6 +529,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
             'mask_secrets': self._get_mask_secrets(requester_user, show_secrets=show_secrets)
         }
         return self._get_action_executions(exclude_fields=exclude_fields,
+                                           include_fields=include_attributes,
                                            from_model_kwargs=from_model_kwargs,
                                            sort=sort,
                                            offset=offset,
@@ -550,15 +545,10 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         Handles requests:
             GET /executions/<id>[?exclude_attributes=result,trigger_instance]
 
-        :param exclude_attributes: Comma delimited string of attributes to exclude from the object.
-        :type exclude_attributes: ``str``
+        :param exclude_attributes: List of attributes to exclude from the object.
+        :type exclude_attributes: ``list``
         """
-        if exclude_attributes:
-            exclude_fields = exclude_attributes.split(',')
-        else:
-            exclude_fields = None
-
-        exclude_fields = self._validate_exclude_fields(exclude_fields=exclude_fields)
+        exclude_fields = self._validate_exclude_fields(exclude_fields=exclude_attributes)
 
         from_model_kwargs = {
             'mask_secrets': self._get_mask_secrets(requester_user, show_secrets=show_secrets)
@@ -710,7 +700,8 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         return ActionExecutionAPI.from_model(execution_db,
                                              mask_secrets=from_model_kwargs['mask_secrets'])
 
-    def _get_action_executions(self, exclude_fields=None, sort=None, offset=0, limit=None,
+    def _get_action_executions(self, exclude_fields=None, include_fields=None,
+                               sort=None, offset=0, limit=None,
                                query_options=None, raw_filters=None, from_model_kwargs=None,
                                requester_user=None):
         """
@@ -725,6 +716,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
 
         LOG.debug('Retrieving all action executions with filters=%s', raw_filters)
         return super(ActionExecutionsController, self)._get_all(exclude_fields=exclude_fields,
+                                                                include_fields=include_fields,
                                                                 from_model_kwargs=from_model_kwargs,
                                                                 sort=sort,
                                                                 offset=offset,

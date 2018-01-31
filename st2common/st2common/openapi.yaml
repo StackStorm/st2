@@ -258,6 +258,13 @@ paths:
           items:
             type: string
           required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
+          required: false
         - name: limit
           in: query
           description: Number of actions to get
@@ -453,6 +460,13 @@ paths:
         - name: exclude_attributes
           in: query
           description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
           type: array
           items:
             type: string
@@ -864,6 +878,13 @@ paths:
         - name: exclude_attributes
           in: query
           description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
           type: array
           items:
             type: string
@@ -2490,6 +2511,13 @@ paths:
           items:
             type: string
           required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
+          required: false
         - name: limit
           in: query
           description: Number of entities to get
@@ -2668,6 +2696,13 @@ paths:
           items:
             type: string
           required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
+          required: false
         - name: limit
           in: query
           description: Number of entities to get
@@ -2798,6 +2833,13 @@ paths:
         - name: exclude_attributes
           in: query
           description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
           type: array
           items:
             type: string
@@ -3867,7 +3909,7 @@ paths:
           description: Webhook path
           type: string
           required: true
-        - name: body
+        - name: webhook_body_api
           in: body
           description: Webhook payload
           schema:
@@ -4760,6 +4802,10 @@ definitions:
     type: object
   WebhookBody:
     description: Given support of Content-Type header, that could be anything.
+    x-api-model: st2common.models.api.webhook:WebhookBodyAPI
+    type:
+      - object
+      - array
   ActionParametersSubSchema:
     type: object
     description: Input parameters for the action.

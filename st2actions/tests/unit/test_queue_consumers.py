@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import st2tests.config as tests_config
 tests_config.parse_args()
 
@@ -64,7 +65,7 @@ class QueueConsumerTest(DbTestCase):
 
         self.dispatcher._queue_consumer._process_message(scheduled_live_action_db)
         dispatched_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
-        self.assertGreater(len(dispatched_live_action_db.runner_info.keys()), 0)
+        self.assertGreater(len(list(dispatched_live_action_db.runner_info.keys())), 0)
         self.assertEqual(dispatched_live_action_db.status,
                          action_constants.LIVEACTION_STATUS_RUNNING)
 

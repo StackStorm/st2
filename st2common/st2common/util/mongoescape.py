@@ -13,22 +13,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import copy
 import six
+from six.moves import zip
 
 # http://docs.mongodb.org/manual/faq/developers/#faq-dollar-sign-escaping
 UNESCAPED = ['.', '$']
 ESCAPED = [u'\uFF0E', u'\uFF04']
-ESCAPE_TRANSLATION = dict(zip(UNESCAPED, ESCAPED))
-UNESCAPE_TRANSLATION = dict(zip(ESCAPED, UNESCAPED))
+ESCAPE_TRANSLATION = dict(list(zip(UNESCAPED, ESCAPED)))
+UNESCAPE_TRANSLATION = dict(list(zip(ESCAPED, UNESCAPED)))
 
 # Note: Because of old rule escaping code, two different characters can be translated back to dot
 RULE_CRITERIA_UNESCAPED = ['.']
 RULE_CRITERIA_ESCAPED = [u'\u2024']
-RULE_CRITERIA_ESCAPE_TRANSLATION = dict(zip(RULE_CRITERIA_UNESCAPED,
-                                            RULE_CRITERIA_ESCAPED))
-RULE_CRITERIA_UNESCAPE_TRANSLATION = dict(zip(RULE_CRITERIA_ESCAPED,
-                                              RULE_CRITERIA_UNESCAPED))
+RULE_CRITERIA_ESCAPE_TRANSLATION = dict(list(zip(RULE_CRITERIA_UNESCAPED,
+                                            RULE_CRITERIA_ESCAPED)))
+RULE_CRITERIA_UNESCAPE_TRANSLATION = dict(list(zip(RULE_CRITERIA_ESCAPED,
+                                              RULE_CRITERIA_UNESCAPED)))
 
 
 def _prep_work_items(d):

@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 from st2common.constants.pack import SYSTEM_PACK_NAME
 from st2common.models.system.common import ResourceReference
 
@@ -246,7 +247,7 @@ WEBHOOK_TRIGGER_TYPES = {
         'payload_schema': WEBHOOKS_PAYLOAD_SCHEMA
     }
 }
-WEBHOOK_TRIGGER_TYPE = WEBHOOK_TRIGGER_TYPES.keys()[0]
+WEBHOOK_TRIGGER_TYPE = list(WEBHOOK_TRIGGER_TYPES.keys())[0]
 
 # Timer specs
 
@@ -405,7 +406,7 @@ TIMER_TRIGGER_TYPES = {
     }
 }
 
-SYSTEM_TRIGGER_TYPES = dict(WEBHOOK_TRIGGER_TYPES.items() + TIMER_TRIGGER_TYPES.items())
+SYSTEM_TRIGGER_TYPES = dict(list(WEBHOOK_TRIGGER_TYPES.items()) + list(TIMER_TRIGGER_TYPES.items()))
 
 # various status to record lifecycle of a TriggerInstance
 TRIGGER_INSTANCE_PENDING = 'pending'

@@ -181,6 +181,24 @@ class TestWebhooksController(FunctionalTest):
         self.assertTrue('Failed to parse request body' in post_resp)
         self.assertTrue('Unsupported Content-Type' in post_resp)
 
+    @mock.patch.object(TriggerInstancePublisher, 'publish_trigger', mock.MagicMock(
+        return_value=True))
+    @mock.patch.object(WebhooksController, '_is_valid_hook', mock.MagicMock(
+        return_value=True))
+    @mock.patch.object(HooksHolder, 'get_triggers_for_hook', mock.MagicMock(
+        return_value=[DUMMY_TRIGGER]))
+    @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
+    def test_custom_webhook_array_input_type(self, _):
+        post_resp = self.__do_post('sample', [{'foo': 'bar'}])
+        self.assertEqual(post_resp.status_int, http_client.ACCEPTED)
+        self.assertEqual(post_resp.json, [{'foo': 'bar'}])
+
+    def test_array_webhook_array_input_type_not_valid(self):
+        post_resp = self.__do_post('st2', [{'foo': 'bar'}], expect_errors=True)
+        self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
+        self.assertEqual(post_resp.json['faultstring'],
+                         'Webhook body needs to be an object, got: array')
+
     def test_leading_trailing_slashes(self):
         # Ideally the test should setup fixtures in DB. However, the triggerwatcher
         # that is supposed to load the models from DB does not real start given

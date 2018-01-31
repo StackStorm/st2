@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import copy
 import six
 
@@ -24,8 +25,8 @@ LOG = logging.getLogger(__name__)
 
 
 def _merge_param_meta_values(action_meta=None, runner_meta=None):
-    runner_meta_keys = runner_meta.keys() if runner_meta else []
-    action_meta_keys = action_meta.keys() if action_meta else []
+    runner_meta_keys = list(runner_meta.keys()) if runner_meta else []
+    action_meta_keys = list(action_meta.keys()) if action_meta else []
     all_keys = set(runner_meta_keys).union(set(action_meta_keys))
 
     merged_meta = {}

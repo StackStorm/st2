@@ -1,3 +1,4 @@
+from __future__ import print_function
 from st2common.runners.base_action import Action
 
 
@@ -6,7 +7,7 @@ class PushGithubRepos(Action):
         try:
             for each_item in data_to_push:
                 # Push data to a service here
-                print str(each_item)
+                print(str(each_item))
         except Exception as e:
             raise Exception("Process failed: {}".format(e.message))
 

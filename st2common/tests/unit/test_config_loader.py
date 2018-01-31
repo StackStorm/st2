@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 from st2common.persistence.pack import Config
 from st2common.models.db.pack import ConfigDB
 from st2common.exceptions.db import StackStormDBObjectNotFoundError

@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+
 import copy
 import importlib
 import traceback
@@ -217,7 +219,7 @@ def drop_obsolete_types_indexes(model_class):
     collection.update({}, {'$unset': {'_types': 1}}, multi=True)
 
     info = collection.index_information()
-    indexes_to_drop = [key for key, value in info.iteritems()
+    indexes_to_drop = [key for key, value in six.iteritems(info)
                        if '_types' in dict(value['key']) or 'types' in value]
 
     LOG.debug('Will drop obsolete types indexes for model "%s": %s' % (class_name,
@@ -304,6 +306,7 @@ class MongoDBAccess(object):
     def get(self, *args, **kwargs):
         exclude_fields = kwargs.pop('exclude_fields', None)
         raise_exception = kwargs.pop('raise_exception', False)
+        only_fields = kwargs.pop('only_fields', None)
 
         args = self._process_arg_filters(args)
 
@@ -311,6 +314,13 @@ class MongoDBAccess(object):
 
         if exclude_fields:
             instances = instances.exclude(*exclude_fields)
+
+        if only_fields:
+            try:
+                instances = instances.only(*only_fields)
+            except mongoengine.errors.LookUpError as e:
+                msg = ('Invalid or unsupported include attribute specified: %s' % str(e))
+                raise ValueError(msg)
 
         instance = instances[0] if instances else None
         log_query_and_profile_data_for_queryset(queryset=instances)
@@ -360,7 +370,11 @@ class MongoDBAccess(object):
             result = result.exclude(*exclude_fields)
 
         if only_fields:
-            result = result.only(*only_fields)
+            try:
+                result = result.only(*only_fields)
+            except mongoengine.errors.LookUpError as e:
+                msg = ('Invalid or unsupported include attribute specified: %s' % str(e))
+                raise ValueError(msg)
 
         if no_dereference:
             result = result.no_dereference()
@@ -405,7 +419,7 @@ class MongoDBAccess(object):
         return count
 
     def _undo_dict_field_escape(self, instance):
-        for attr, field in instance._fields.iteritems():
+        for attr, field in six.iteritems(instance._fields):
             if isinstance(field, stormbase.EscapedDictField):
                 value = getattr(instance, attr)
                 setattr(instance, attr, field.to_python(value))
@@ -444,7 +458,8 @@ class MongoDBAccess(object):
         result = copy.deepcopy(filters)
 
         null_filters = {k: v for k, v in six.iteritems(filters)
-                        if v is None or (type(v) in [str, unicode] and str(v.lower()) == 'null')}
+                        if v is None or
+                        (type(v) in [str, six.text_type] and str(v.lower()) == 'null')}
 
         for key in null_filters.keys():
             result['%s__exists' % (key)] = False
@@ -453,11 +468,11 @@ class MongoDBAccess(object):
         return result
 
     def _process_datetime_range_filters(self, filters, order_by=None):
-        ranges = {k: v for k, v in filters.iteritems()
-                  if type(v) in [str, unicode] and '..' in v}
+        ranges = {k: v for k, v in six.iteritems(filters)
+                  if type(v) in [str, six.text_type] and '..' in v}
 
         order_by_list = copy.deepcopy(order_by) if order_by else []
-        for k, v in ranges.iteritems():
+        for k, v in six.iteritems(ranges):
             values = v.split('..')
             dt1 = isotime.parse(values[0])
             dt2 = isotime.parse(values[1])

@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import collections
 import importlib
 import six
@@ -105,7 +106,7 @@ def _clear_config():
 
 
 def _read_group(opt_group):
-    all_options = opt_group._opts.values()
+    all_options = list(opt_group._opts.values())
 
     if opt_group.name == 'auth':
         print(COMMON_AUTH_OPTIONS_COMMENT)

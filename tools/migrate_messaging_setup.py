@@ -18,6 +18,7 @@
 A migration script that cleans up old queues.
 """
 
+from __future__ import absolute_import
 import traceback
 
 from kombu import Connection

@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 from st2common.models.api.base import BaseAPI
 from st2common.models.db.sensor import SensorTypeDB
 from st2common.models.utils import sensor_type_utils

@@ -16,6 +16,7 @@
 """
 Module for syncing RBAC definitions in the database with the ones from the filesystem.
 """
+from __future__ import absolute_import
 import itertools
 
 from collections import defaultdict
@@ -214,9 +215,9 @@ class RBACDefinitionsDBSyncer(object):
         # and ones which are in the database). We want to make sure assignments are correctly
         # deleted from the database for users which existing in the database, but have no
         # assignment file on disk and for assignments for users which don't exist in the database.
-        all_usernames = (username_to_user_db_map.keys() +
-                         username_to_role_assignment_apis_map.keys() +
-                         username_to_role_assignment_dbs_map.keys())
+        all_usernames = (list(username_to_user_db_map.keys()) +
+                         list(username_to_role_assignment_apis_map.keys()) +
+                         list(username_to_role_assignment_dbs_map.keys()))
         all_usernames = list(set(all_usernames))
 
         results = {}

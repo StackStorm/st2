@@ -17,6 +17,7 @@
 Various base classes and test utility functions for API related tests.
 """
 
+from __future__ import absolute_import
 import webtest
 import mock
 from oslo_config import cfg
@@ -41,8 +42,8 @@ __all__ = [
 ]
 
 
-SUPER_SECRET_PARAMETER = 'SUPER_SECRET_PARAMETER_THAT_SHOULD_NEVER_APPEAR_IN_RESPONSES_OR_LOGS'
-ANOTHER_SUPER_SECRET_PARAMETER = 'ANOTHER_SUPER_SECRET_PARAMETER_TO_TEST_OVERRIDING'
+SUPER_SECRET_PARAMETER = b'SUPER_SECRET_PARAMETER_THAT_SHOULD_NEVER_APPEAR_IN_RESPONSES_OR_LOGS'
+ANOTHER_SUPER_SECRET_PARAMETER = b'ANOTHER_SUPER_SECRET_PARAMETER_TO_TEST_OVERRIDING'
 
 
 class ResponseValidationError(ValueError):

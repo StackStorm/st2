@@ -17,6 +17,7 @@
 Module containing MongoDB profiling related functionality.
 """
 
+from __future__ import absolute_import
 from mongoengine.queryset import QuerySet
 
 from st2common import log as logging
