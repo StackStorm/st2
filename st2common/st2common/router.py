@@ -348,7 +348,7 @@ class Router(object):
                 # Note: We also want to perform validation if no body is explicitly provided - in a
                 # lot of POST, PUT scenarios, body is mandatory
                 if not req.body:
-                    req.body = '{}'
+                    req.body = b'{}'
 
                 content_type = req.headers.get('Content-Type', 'application/json')
                 content_type = parse_content_type_header(content_type=content_type)[0]

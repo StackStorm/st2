@@ -28,6 +28,7 @@ from st2common.models.db.rbac import UserRoleAssignmentDB
 from st2common.models.db.rbac import PermissionGrantDB
 from st2common.content import utils as content_utils
 from st2tests.fixturesloader import FixturesLoader
+from st2common.util.compat import mock_open_name
 from tests.base import APIControllerWithRBACTestCase
 
 http_client = six.moves.http_client
@@ -102,7 +103,7 @@ class ActionViewsControllerRBACTestCase(APIControllerWithRBACTestCase):
 
     @mock.patch.object(content_utils, 'get_entry_point_abs_path', mock.MagicMock(
         return_value='/path/to/file'))
-    @mock.patch('__builtin__.open', mock.mock_open(read_data='file content'), create=True)
+    @mock.patch(mock_open_name, mock.mock_open(read_data='file content'), create=True)
     def test_get_entry_point_view_success(self):
         user_db = self.users['action_view_a1']
         self.use_user(user_db)

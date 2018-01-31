@@ -14,7 +14,14 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
+import six
+
 import hashlib
+
+__all__ = [
+    'hash'
+]
 
 
 FIXED_SALT = 'saltnpepper'
@@ -22,6 +29,6 @@ FIXED_SALT = 'saltnpepper'
 
 def hash(value, salt=FIXED_SALT):
     sha512 = hashlib.sha512()
-    sha512.update(salt)
-    sha512.update(value)
+    sha512.update(six.b(salt))
+    sha512.update(six.b(value))
     return sha512.hexdigest()

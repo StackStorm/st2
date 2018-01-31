@@ -160,7 +160,7 @@ class FilesController(BaseFileController):
         if codecs.BOM_UTF8 in content[:1024]:
             return False
 
-        if "\0" in content[:1024]:
+        if b"\0" in content[:1024]:
             # Found null byte, most likely a binary file
             return False
 

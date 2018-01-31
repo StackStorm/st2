@@ -2,5 +2,7 @@
 mock
 unittest2
 nose
-rednose
 psutil
+webtest
+nose-timer
+rednose

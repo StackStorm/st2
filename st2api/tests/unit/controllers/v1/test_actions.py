@@ -22,6 +22,7 @@ try:
 except ImportError:
     import json
 
+import six
 import mock
 import unittest2
 from six.moves import http_client
@@ -451,7 +452,7 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
     def test_post_no_enable_field(self):
         post_resp = self.__do_post(ACTION_3)
         self.assertEqual(post_resp.status_int, 201)
-        self.assertIn('enabled', post_resp.body)
+        self.assertIn(b'enabled', post_resp.body)
 
         # If enabled field is not provided it should default to True
         data = json.loads(post_resp.body)
@@ -476,7 +477,12 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
         post_resp = self.__do_post(ACTION_13, expect_errors=True)
         self.assertEqual(post_resp.status_int, 400)
 
-        expected_error = '[u\'string\', u\'object\'] is not valid under any of the given schemas'
+        if six.PY3:
+            expected_error = b'[\'string\', \'object\'] is not valid under any of the given schemas'
+        else:
+            expected_error = \
+                b'[u\'string\', u\'object\'] is not valid under any of the given schemas'
+
         self.assertTrue(expected_error in post_resp.body)
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
@@ -484,7 +490,7 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
     def test_post_discard_id_field(self):
         post_resp = self.__do_post(ACTION_7)
         self.assertEqual(post_resp.status_int, 201)
-        self.assertIn('id', post_resp.body)
+        self.assertIn(b'id', post_resp.body)
         data = json.loads(post_resp.body)
         # Verify that user-provided id is discarded.
         self.assertNotEquals(data['id'], ACTION_7['id'])
@@ -545,7 +551,7 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
         action = copy.copy(ACTION_1)
         post_resp = self.__do_post(action)
         self.assertEqual(post_resp.status_int, 201)
-        self.assertIn('id', post_resp.body)
+        self.assertIn(b'id', post_resp.body)
         body = json.loads(post_resp.body)
         action['id'] = body['id']
         action['description'] = 'some other test description'
@@ -554,7 +560,7 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
         self.assertNotIn('pack', action)
         put_resp = self.__do_put(action['id'], action)
         self.assertEqual(put_resp.status_int, 200)
-        self.assertIn('description', put_resp.body)
+        self.assertIn(b'description', put_resp.body)
         body = json.loads(put_resp.body)
         self.assertEqual(body['description'], action['description'])
         self.assertEqual(body['pack'], pack)
