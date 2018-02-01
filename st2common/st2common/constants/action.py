@@ -128,3 +128,5 @@ WORKFLOW_RUNNER_TYPES = [
     'action-chain',
     'mistral-v2',
 ]
+
+MAX_PARAM_LENGTH = 131072

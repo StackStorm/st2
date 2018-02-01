@@ -34,6 +34,7 @@ from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
+from st2common.constants.action import MAX_PARAM_LENGTH
 from st2common.constants.runners import PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE
 from st2common.constants.error_messages import PACK_VIRTUALENV_DOESNT_EXIST
 from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT
@@ -117,9 +118,7 @@ class PythonRunner(ActionRunner):
         LOG.debug('Getting user.')
         user = self.get_user()
         LOG.debug('Serializing parameters.')
-        serialized_parameters = '%s\n' % (json.dumps(
-            {'parameters': action_parameters if action_parameters else {}}
-        ))
+        serialized_parameters = json.dumps(action_parameters if action_parameters else {})
         LOG.debug('Getting virtualenv_path.')
         virtualenv_path = get_sandbox_virtualenv_path(pack=pack)
         LOG.debug('Getting python path.')
@@ -152,6 +151,18 @@ class PythonRunner(ActionRunner):
             '--user=%s' % (user),
             '--parent-args=%s' % (json.dumps(sys.argv[1:])),
         ]
+
+        # If parameter size is larger than the maximum allowed by Linux kernel
+        # we need to swap to stdin to communicate parameters. This avoids a
+        # failure to fork the wrapper process when using large parameters.
+        stdin = None
+        if len(serialized_parameters) >= MAX_PARAM_LENGTH:
+            LOG.debug('Parameters are too big...changing to stdin')
+            stdin = '{"parameters": %s}\n' % (serialized_parameters)
+            args.append('--stdin-parameters')
+        else:
+            LOG.debug('Parameters are just right...adding them to arguments')
+            args.append('--parameters=%s' % (serialized_parameters))
 
         if self._config:
             args.append('--config=%s' % (json.dumps(self._config)))
@@ -213,9 +224,8 @@ class PythonRunner(ActionRunner):
         command_string = list2cmdline(args)
         LOG.debug('Running command: PATH=%s PYTHONPATH=%s %s' % (env['PATH'], env['PYTHONPATH'],
                                                                  command_string))
-
         exit_code, stdout, stderr, timed_out = run_command(cmd=args,
-                                                           stdin=serialized_parameters,
+                                                           stdin=stdin,
                                                            stdout=subprocess.PIPE,
                                                            stderr=subprocess.PIPE,
                                                            shell=False,
