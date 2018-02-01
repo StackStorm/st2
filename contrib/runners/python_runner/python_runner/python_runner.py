@@ -20,11 +20,11 @@ import sys
 import json
 import uuid
 import functools
-from StringIO import StringIO
 from subprocess import list2cmdline
 
 from eventlet.green import subprocess
 from oslo_config import cfg
+from six.moves import StringIO
 
 from st2common import log as logging
 from st2common.runners.base import ActionRunner

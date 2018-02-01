@@ -158,7 +158,7 @@ def _validate(G):
 
             variable_names.append(variable_name)
 
-        variable_names = ', '.join(variable_names)
+        variable_names = ', '.join(sorted(variable_names))
         msg = ('Cyclic dependency found in the following variables: %s. Likely the variable is '
                'referencing itself' % (variable_names))
         raise ParamException(msg)

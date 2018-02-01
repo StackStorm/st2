@@ -26,7 +26,7 @@ from st2common.exceptions.db import StackStormDBObjectNotFoundError
 __all__ = [
     'BaseDBModelCRUDTestCase',
 
-    'FakeModelDB',
+    'FakeModel',
     'FakeModelDB'
 ]
 
@@ -91,3 +91,11 @@ class FakeModel(Access):
     @classmethod
     def _get_impl(cls):
         return cls.impl
+
+    @classmethod
+    def _get_by_object(cls, object):
+        return None
+
+    @classmethod
+    def _get_publisher(cls):
+        return None
