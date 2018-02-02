@@ -34,6 +34,7 @@ from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
+from st2common.constants.action import MAX_PARAM_LENGTH
 from st2common.constants.runners import PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE
 from st2common.constants.error_messages import PACK_VIRTUALENV_DOESNT_EXIST
 from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT
@@ -49,6 +50,7 @@ from st2common.util.sandboxing import get_sandbox_virtualenv_path
 from st2common.runners import python_action_wrapper
 from st2common.services.action import store_execution_output_data
 from st2common.runners.utils import make_read_and_store_stream_func
+from st2common.runners.utils import get_file_params
 
 __all__ = [
     'PythonRunner',
@@ -73,6 +75,10 @@ BLACKLISTED_ENV_VARS = [
 BASE_DIR = os.path.dirname(os.path.abspath(python_action_wrapper.__file__))
 WRAPPER_SCRIPT_NAME = 'python_action_wrapper.py'
 WRAPPER_SCRIPT_PATH = os.path.join(BASE_DIR, WRAPPER_SCRIPT_NAME)
+
+
+def _param_size_check(serialized_parameters):
+    return serialized_parameters and len(serialized_parameters) >= MAX_PARAM_LENGTH
 
 
 class PythonRunner(ActionRunner):
@@ -138,6 +144,14 @@ class PythonRunner(ActionRunner):
             LOG.error('Action "%s" is missing entry_point attribute' % (self.action.name))
             raise Exception('Action "%s" is missing entry_point attribute' % (self.action.name))
 
+        # Here we check serialized parameters and write to tmp file (if too big)
+        # This allows us to pass both a large number of params as well as large
+        # values. This avoids the character limit imposed by the linux kernel.
+        params_too_big = _param_size_check(serialized_parameters)
+
+        if params_too_big:
+            param_file_path = self._write_params(serialized_parameters)
+
         # Note: We pass config as command line args so the actual wrapper process is standalone
         # and doesn't need access to db
         LOG.debug('Setting args.')
@@ -147,10 +161,14 @@ class PythonRunner(ActionRunner):
             WRAPPER_SCRIPT_PATH,
             '--pack=%s' % (pack),
             '--file-path=%s' % (self.entry_point),
-            '--parameters=%s' % (serialized_parameters),
             '--user=%s' % (user),
             '--parent-args=%s' % (json.dumps(sys.argv[1:])),
         ]
+
+        if params_too_big:
+            args.append('--file-params=%s' % (param_file_path))
+        else:
+            args.append('--parameters=%s' % (serialized_parameters))
 
         if self._config:
             args.append('--config=%s' % (json.dumps(self._config)))
@@ -222,6 +240,10 @@ class PythonRunner(ActionRunner):
                                                            read_stderr_buffer=stderr)
         LOG.debug('Returning values: %s, %s, %s, %s' % (exit_code, stdout, stderr, timed_out))
         LOG.debug('Returning.')
+
+        if LOG.getEffectiveLevel() is not logging.logging.DEBUG and params_too_big:
+            os.remove(param_file_path)
+
         return self._get_output_values(exit_code, stdout, stderr, timed_out)
 
     def _get_output_values(self, exit_code, stdout, stderr, timed_out):
@@ -285,7 +307,18 @@ class PythonRunner(ActionRunner):
 
         status = self._get_final_status(action_status=status, timed_out=timed_out,
                                         exit_code=exit_code)
+
         return (status, output, None)
+
+    def _write_params(self, serialized_parameters):
+        """Write paramers to file
+        """
+        LOG.debug('Writing params file')
+        temp_os_fd, param_file_path = get_file_params(self.execution_id)
+        with open(param_file_path, 'wb') as fd:
+            fd.write(serialized_parameters)
+        os.close(temp_os_fd)
+        return param_file_path
 
     def _get_final_status(self, action_status, timed_out, exit_code):
         """

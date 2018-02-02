@@ -128,3 +128,7 @@ WORKFLOW_RUNNER_TYPES = [
     'action-chain',
     'mistral-v2',
 ]
+
+MAX_PARAM_LENGTH = 131072
+
+PARAM_FILE_PREPEND = 'st2_action_runner_'

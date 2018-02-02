@@ -251,6 +251,8 @@ if __name__ == '__main__':
                         help='Pack config serialized as JSON')
     parser.add_argument('--parameters', required=False,
                         help='Serialized action parameters')
+    parser.add_argument('--file-params', required=False,
+                        help='Serialized action params location on disk')
     parser.add_argument('--user', required=False,
                         help='User who triggered the action execution')
     parser.add_argument('--parent-args', required=False,
@@ -263,6 +265,10 @@ if __name__ == '__main__':
     config = json.loads(args.config) if args.config else {}
     parameters = args.parameters
     parameters = json.loads(parameters) if parameters else {}
+    if args.file_params:
+        with open(args.file_params, 'rb+') as fd:
+            parameters = json.loads(fd.read())
+
     user = args.user
     parent_args = json.loads(args.parent_args) if args.parent_args else []
     log_level = args.log_level
