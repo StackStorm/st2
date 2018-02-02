@@ -44,7 +44,7 @@ ST2_WEBHOOK = {
 }
 
 DUMMY_TRIGGER = TriggerDB(name='pr-merged', pack='git')
-DUMMY_TRIGGER.type = WEBHOOK_TRIGGER_TYPES.keys()[0]
+DUMMY_TRIGGER.type = list(WEBHOOK_TRIGGER_TYPES.keys())[0]
 DUMMY_TRIGGER_API = TriggerAPI.from_model(DUMMY_TRIGGER)
 
 
@@ -164,7 +164,11 @@ class TestWebhooksController(FunctionalTest):
     @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
     def test_form_encoded_request_body(self, dispatch_mock):
         # Send request body as form urlencoded data
-        data = {'form': ['test']}
+        if six.PY3:
+            data = {b'form': [b'test']}
+        else:
+            data = {'form': ['test']}
+
         self.app.post('/v1/webhooks/git', data, headers={'St2-Trace-Tag': 'tag1'})
         self.assertEqual(dispatch_mock.call_args[1]['payload']['headers']['Content-Type'],
                         'application/x-www-form-urlencoded')
@@ -211,7 +215,7 @@ class TestWebhooksController(FunctionalTest):
         # TLDR; sorry for the ghetto test. Not sure how else to test this as a unit test.
         def get_webhook_trigger(name, url):
             trigger = TriggerDB(name=name, pack='test')
-            trigger.type = WEBHOOK_TRIGGER_TYPES.keys()[0]
+            trigger.type = list(WEBHOOK_TRIGGER_TYPES.keys())[0]
             trigger.parameters = {'url': url}
             return trigger
 

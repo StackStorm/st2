@@ -285,7 +285,7 @@ class KeyValuePairController(ResourceController):
         :param name: Datastore item name (PK).
         :type name: ``str``
         """
-        lock_name = 'kvp-crud-%s.%s' % (scope, name)
+        lock_name = six.b('kvp-crud-%s.%s' % (scope, name))
         return lock_name
 
     def _validate_decrypt_query_parameter(self, decrypt, scope, is_admin, requester_user):

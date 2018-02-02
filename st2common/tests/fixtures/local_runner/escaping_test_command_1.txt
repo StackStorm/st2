@@ -1,1 +1,1 @@
-/tmp/foo.sh key3='date ; whoami' key2='value "bar" foo' key1='value foo bar' key4='"date ; whoami"'
+/tmp/foo.sh key1='value foo bar' key2='value "bar" foo' key3='date ; whoami' key4='"date ; whoami"'

@@ -111,7 +111,7 @@ class ActionAliasTestCase(unittest2.TestCase):
         with self.assertRaises(TypeError) as cm:
             matching.normalise_alias_format_string(alias_list)
 
-        self.assertEqual(cm.exception.message, expected_msg)
+            self.assertEqual(str(cm), expected_msg)
 
     def test_matching(self, mock):
         ALIASES = [

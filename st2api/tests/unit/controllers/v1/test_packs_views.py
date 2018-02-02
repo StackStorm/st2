@@ -71,7 +71,7 @@ class PacksViewsControllerTestCase(FunctionalTest):
     def test_get_pack_file_success(self):
         resp = self.app.get('/v1/packs/views/file/dummy_pack_1/pack.yaml')
         self.assertEqual(resp.status_int, http_client.OK)
-        self.assertTrue('name : dummy_pack_1' in resp.body)
+        self.assertTrue(b'name : dummy_pack_1' in resp.body)
 
     def test_get_pack_file_pack_doesnt_exist(self):
         resp = self.app.get('/v1/packs/views/files/doesntexist/pack.yaml', expect_errors=True)
@@ -86,14 +86,14 @@ class PacksViewsControllerTestCase(FunctionalTest):
     def test_headers_get_pack_file(self):
         resp = self.app.get('/v1/packs/views/file/dummy_pack_1/pack.yaml')
         self.assertEqual(resp.status_int, http_client.OK)
-        self.assertTrue('name : dummy_pack_1' in resp.body)
+        self.assertTrue(b'name : dummy_pack_1' in resp.body)
         self.assertIsNotNone(resp.headers['ETag'])
         self.assertIsNotNone(resp.headers['Last-Modified'])
 
     def test_no_change_get_pack_file(self):
         resp = self.app.get('/v1/packs/views/file/dummy_pack_1/pack.yaml')
         self.assertEqual(resp.status_int, http_client.OK)
-        self.assertTrue('name : dummy_pack_1' in resp.body)
+        self.assertTrue(b'name : dummy_pack_1' in resp.body)
 
         # Confirm NOT_MODIFIED
         resp = self.app.get('/v1/packs/views/file/dummy_pack_1/pack.yaml',
@@ -108,12 +108,12 @@ class PacksViewsControllerTestCase(FunctionalTest):
         resp = self.app.get('/v1/packs/views/file/dummy_pack_1/pack.yaml',
                             headers={'If-None-Match': 'ETAG'})
         self.assertEqual(resp.status_code, http_client.OK)
-        self.assertTrue('name : dummy_pack_1' in resp.body)
+        self.assertTrue(b'name : dummy_pack_1' in resp.body)
 
         resp = self.app.get('/v1/packs/views/file/dummy_pack_1/pack.yaml',
                             headers={'If-Modified-Since': 'Last-Modified'})
         self.assertEqual(resp.status_code, http_client.OK)
-        self.assertTrue('name : dummy_pack_1' in resp.body)
+        self.assertTrue(b'name : dummy_pack_1' in resp.body)
 
     def test_get_pack_files_and_pack_file_ref_doesnt_equal_pack_name(self):
         # Ref is not equal to the name, controller should still work
@@ -124,4 +124,4 @@ class PacksViewsControllerTestCase(FunctionalTest):
 
         resp = self.app.get('/v1/packs/views/file/dummy_pack_16/pack.yaml')
         self.assertEqual(resp.status_int, http_client.OK)
-        self.assertTrue('ref: dummy_pack_16' in resp.body)
+        self.assertTrue(b'ref: dummy_pack_16' in resp.body)

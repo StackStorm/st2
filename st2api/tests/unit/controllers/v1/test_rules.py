@@ -236,33 +236,37 @@ class TestRuleController(FunctionalTest):
         post_resp = self.__do_post(TestRuleController.RULE_2)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
 
-        expected_msg = 'Additional properties are not allowed (u\'minutex\' was unexpected)'
+        if six.PY3:
+            expected_msg = b'Additional properties are not allowed (\'minutex\' was unexpected)'
+        else:
+            expected_msg = b'Additional properties are not allowed (u\'minutex\' was unexpected)'
+
         self.assertTrue(expected_msg in post_resp.body)
 
     def test_post_trigger_parameter_schema_validation_fails_missing_required_param(self):
         post_resp = self.__do_post(TestRuleController.RULE_5)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
 
-        expected_msg = '\'date\' is a required property'
+        expected_msg = b'\'date\' is a required property'
         self.assertTrue(expected_msg in post_resp.body)
 
     def test_post_invalid_crontimer_trigger_parameters(self):
         post_resp = self.__do_post(TestRuleController.RULE_6)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
 
-        expected_msg = '1000 is greater than the maximum of 6'
+        expected_msg = b'1000 is greater than the maximum of 6'
         self.assertTrue(expected_msg in post_resp.body)
 
         post_resp = self.__do_post(TestRuleController.RULE_7)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
 
-        expected_msg = 'Invalid weekday name \\"abcdef\\"'
+        expected_msg = b'Invalid weekday name \\"abcdef\\"'
         self.assertTrue(expected_msg in post_resp.body)
 
         post_resp = self.__do_post(TestRuleController.RULE_8)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
 
-        expected_msg = 'Invalid weekday name \\"a\\"'
+        expected_msg = b'Invalid weekday name \\"a\\"'
         self.assertTrue(expected_msg in post_resp.body)
 
     def test_post_invalid_custom_trigger_parameter_trigger_param_validation_enabled(self):
@@ -272,9 +276,16 @@ class TestRuleController(FunctionalTest):
 
         post_resp = self.__do_post(TestRuleController.RULE_9)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
-        self.assertTrue("Failed validating u'type' in schema[u'properties'][u'param1']:" in
-                        post_resp.json['faultstring'])
-        self.assertTrue('12345 is not of type u\'string\'' in post_resp.json['faultstring'])
+
+        if six.PY3:
+            expected_msg_1 = "Failed validating 'type' in schema['properties']['param1']:"
+            expected_msg_2 = '12345 is not of type \'string\''
+        else:
+            expected_msg_1 = "Failed validating u'type' in schema[u'properties'][u'param1']:"
+            expected_msg_2 = '12345 is not of type u\'string\''
+
+        self.assertTrue(expected_msg_1 in post_resp.json['faultstring'])
+        self.assertTrue(expected_msg_2 in post_resp.json['faultstring'])
 
     def test_post_invalid_custom_trigger_param_trigger_param_validation_disabled_default_cfg(self):
         """Test validation does NOT take place with the default configuration.

@@ -70,7 +70,7 @@ class TestActionExecutionFilters(FunctionalTest):
         ]
 
         def assign_parent(child):
-            candidates = [v for k, v in cls.refs.iteritems() if v.action['name'] == 'chain']
+            candidates = [v for k, v in cls.refs.items() if v.action['name'] == 'chain']
             if candidates:
                 parent = random.choice(candidates)
                 child['parent'] = str(parent.id)
@@ -120,7 +120,7 @@ class TestActionExecutionFilters(FunctionalTest):
         self.assertFalse('result' in response.json[0])
 
     def test_get_one(self):
-        obj_id = random.choice(self.refs.keys())
+        obj_id = random.choice(list(self.refs.keys()))
         response = self.app.get('/v1/executions/%s' % obj_id)
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, dict)
@@ -222,7 +222,7 @@ class TestActionExecutionFilters(FunctionalTest):
     def test_pagination(self):
         retrieved = []
         page_size = 10
-        page_count = self.num_records / page_size
+        page_count = int(self.num_records / page_size)
         for i in range(page_count):
             offset = i * page_size
             response = self.app.get('/v1/executions?offset=%s&limit=%s' % (
@@ -249,7 +249,7 @@ class TestActionExecutionFilters(FunctionalTest):
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
         self.assertEqual(len(response.json), limit)
-        self.assertTrue(response.headers['X-Total-Count'] > limit)
+        self.assertTrue(int(response.headers['X-Total-Count']) > limit)
 
     def test_datetime_range(self):
         dt_range = '2014-12-25T00:00:10Z..2014-12-25T00:00:19Z'

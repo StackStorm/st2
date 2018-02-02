@@ -14,12 +14,15 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import imp
 import inspect
 import json
 import os
 import sys
 import yaml
+
+import six
 from oslo_config import cfg
 
 from st2common.exceptions.plugins import IncompatiblePluginException
@@ -86,7 +89,10 @@ def _get_plugin_methods(plugin_klass):
 
     :rtype: ``list`` of ``str``
     """
-    methods = inspect.getmembers(plugin_klass, inspect.ismethod)
+    if six.PY3:
+        methods = inspect.getmembers(plugin_klass, inspect.isfunction)
+    else:
+        methods = inspect.getmembers(plugin_klass, inspect.ismethod)
 
     # Exclude inherited abstract methods from the parent class
     method_names = []

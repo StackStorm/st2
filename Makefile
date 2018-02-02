@@ -483,17 +483,10 @@ ci: ci-checks ci-unit ci-integration ci-mistral ci-packs-tests
 .PHONY: ci-checks
 ci-checks: compile .generated-files-check .pylint .flake8 .bandit .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check
 
-.PHONY: ci-st2client-py3-tests
-ci-st2client-py3-tests:
+.PHONY: ci-py3-unit
+ci-py3-unit:
 	@echo
-	@echo "==================== ci-st2client-py3-tests ===================="
-	@echo
-	tox -e py36 -v
-
-.PHONY: st2client-py3-tests
-st2client-py3-tests:
-	@echo
-	@echo "==================== ci-st2client-py3-tests ===================="
+	@echo "==================== ci-py3-unit ===================="
 	@echo
 	tox -e py36 -vv
 

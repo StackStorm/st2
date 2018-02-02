@@ -83,7 +83,7 @@ class WebhooksController(object):
     def __init__(self, *args, **kwargs):
         self._hooks = HooksHolder()
         self._base_url = '/webhooks/'
-        self._trigger_types = WEBHOOK_TRIGGER_TYPES.keys()
+        self._trigger_types = list(WEBHOOK_TRIGGER_TYPES.keys())
 
         self._trigger_dispatcher = TriggerDispatcher(LOG)
         queue_suffix = self.__class__.__name__
