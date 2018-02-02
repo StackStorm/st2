@@ -273,7 +273,7 @@ if __name__ == '__main__':
     if args.parameters:
         LOG.debug('Getting parameters from argument')
         args_parameters = args.parameters
-        args_parameters = json.loads(args_parameters) if parameters else {}
+        args_parameters = json.loads(args_parameters) if args_parameters else {}
         parameters.update(args_parameters)
 
     if args.stdin_parameters:
