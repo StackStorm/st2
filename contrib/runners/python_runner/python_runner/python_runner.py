@@ -156,9 +156,11 @@ class PythonRunner(ActionRunner):
         # we need to swap to stdin to communicate parameters. This avoids a
         # failure to fork the wrapper process when using large parameters.
         stdin = None
+        stdin_params = None
         if len(serialized_parameters) >= MAX_PARAM_LENGTH:
+            stdin = subprocess.PIPE
             LOG.debug('Parameters are too big...changing to stdin')
-            stdin = '{"parameters": %s}\n' % (serialized_parameters)
+            stdin_params = '{"parameters": %s}\n' % (serialized_parameters)
             args.append('--stdin-parameters')
         else:
             LOG.debug('Parameters are just right...adding them to arguments')
@@ -234,8 +236,9 @@ class PythonRunner(ActionRunner):
                                                            read_stdout_func=read_and_store_stdout,
                                                            read_stderr_func=read_and_store_stderr,
                                                            read_stdout_buffer=stdout,
-                                                           read_stderr_buffer=stderr)
-        LOG.debug('Returning values: %s, %s, %s, %s' % (exit_code, stdout, stderr, timed_out))
+                                                           read_stderr_buffer=stderr,
+                                                           stdin_value=stdin_params)
+        LOG.debug('Returning values: %s, %s, %s, %s', exit_code, stdout, stderr, timed_out)
         LOG.debug('Returning.')
         return self._get_output_values(exit_code, stdout, stderr, timed_out)
 

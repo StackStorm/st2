@@ -37,7 +37,7 @@ LOG = logging.getLogger(__name__)
 def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False,
                 cwd=None, env=None, timeout=60, preexec_func=None, kill_func=None,
                 read_stdout_func=None, read_stderr_func=None,
-                read_stdout_buffer=None, read_stderr_buffer=None):
+                read_stdout_buffer=None, read_stderr_buffer=None, stdin_value=None):
     """
     Run the provided command in a subprocess and wait until it completes.
 
@@ -103,8 +103,7 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     # Note: We are using eventlet friendly implementation of subprocess
     # which uses GreenPipe so it doesn't block
     LOG.debug('Creating subprocess.')
-    process = subprocess.Popen(args=cmd, stdin=subprocess.PIPE if stdin else None,
-                               stdout=stdout, stderr=stderr,
+    process = subprocess.Popen(args=cmd, stdin=stdin, stdout=stdout, stderr=stderr,
                                env=env, cwd=cwd, shell=shell, preexec_fn=preexec_func)
 
     if read_stdout_func:
@@ -143,8 +142,8 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     timeout_thread = eventlet.spawn(on_timeout_expired, timeout)
     LOG.debug('Attaching to process.')
 
-    if stdin:
-        process.stdin.write(stdin)
+    if stdin_value:
+        process.stdin.write(stdin_value)
 
     if read_stdout_func and read_stderr_func:
         LOG.debug('Using real-time stdout and stderr read mode, calling process.wait()')
