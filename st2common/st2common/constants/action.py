@@ -129,4 +129,8 @@ WORKFLOW_RUNNER_TYPES = [
     'mistral-v2',
 ]
 
-MAX_PARAM_LENGTH = 131072
+# Linux's limit for param size
+_LINUX_PARAM_LIMIT = 131072
+# Overhead for `--parameters=` + 2 to grow on.
+_ST2_PARAM_BUFFER = 15
+MAX_PARAM_LENGTH = _LINUX_PARAM_LIMIT - _ST2_PARAM_BUFFER
