@@ -151,8 +151,6 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     else:
         LOG.debug('Using delayed stdout and stderr read mode, calling process.communicate()')
         stdout, stderr = process.communicate()
-        LOG.debug("stdout: %s", stdout)
-        LOG.debug("stderr: %s", stderr)
 
     timeout_thread.cancel()
     exit_code = process.returncode
