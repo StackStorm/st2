@@ -17,6 +17,7 @@ from __future__ import absolute_import
 import os
 
 import yaml
+import io
 
 from st2common.content import utils
 
@@ -94,7 +95,7 @@ class ContentPackConfigParser(object):
             return None
 
         if os.path.exists(config_path) and os.path.isfile(config_path):
-            with open(config_path, 'r') as fp:
+            with io.open(config_path, 'r', encoding='utf8') as fp:
                 config = yaml.safe_load(fp.read())
 
             return ContentPackConfig(file_path=config_path, config=config)
