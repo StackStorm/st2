@@ -89,6 +89,6 @@ class CLIConfigParserTestCase(unittest2.TestCase):
         config = parser.parse()
 
         if six.PY3:
-            self.assertEqual(config['credentials']['password'], u'测试')
+            self.assertEqual(config['credentials']['password'], '密码')
         else:
             self.assertEqual(config['credentials']['password'], u'\u5bc6\u7801')
