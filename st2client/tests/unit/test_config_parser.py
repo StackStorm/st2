@@ -86,7 +86,4 @@ class CLIConfigParserTestCase(unittest2.TestCase):
         parser = CLIConfigParser(config_file_path=CONFIG_FILE_PATH_UNICODE,
                                  validate_config_exists=False)
         config = parser.parse()
-        print parser.config_file_path
-        print config
         self.assertEqual(config['credentials']['password'], u'测试')
-
