@@ -17,6 +17,7 @@
 from __future__ import absolute_import
 import os
 
+import six
 import unittest2
 
 from st2client.config_parser import CLIConfigParser
@@ -25,7 +26,7 @@ from st2client.config_parser import CONFIG_DEFAULT_VALUES
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE_PATH_FULL = os.path.join(BASE_DIR, '../fixtures/st2rc.full.ini')
 CONFIG_FILE_PATH_PARTIAL = os.path.join(BASE_DIR, '../fixtures/st2rc.partial.ini')
-CONFIG_FILE_PATH_UNICODE = os.path.join(BASE_DIR, '..\\fixtures\\test_unicode.ini')
+CONFIG_FILE_PATH_UNICODE = os.path.join(BASE_DIR, '../fixtures/test_unicode.ini')
 
 
 class CLIConfigParserTestCase(unittest2.TestCase):
@@ -86,4 +87,8 @@ class CLIConfigParserTestCase(unittest2.TestCase):
         parser = CLIConfigParser(config_file_path=CONFIG_FILE_PATH_UNICODE,
                                  validate_config_exists=False)
         config = parser.parse()
-        self.assertEqual(config['credentials']['password'], u'测试')
+
+        if six.PY3:
+            self.assertEqual(config['credentials']['password'], u'测试')
+        else:
+            self.assertEqual(config['credentials']['password'], u'\u5bc6\u7801')
