@@ -19,7 +19,7 @@ import abc
 import copy
 
 from oslo_config import cfg
-from mongoengine import ValidationError
+from mongoengine import ValidationError, LookUpError
 import six
 from six.moves import http_client
 
@@ -120,7 +120,7 @@ class ResourceController(object):
 
         self.get_one_db_method = self._get_by_name_or_id
 
-    def _get_all(self, exclude_fields=None, include_fields=None,
+    def _get_all(self, exclude_fields=None, include_fields=None, advanced_filters=None,
                  sort=None, offset=0, limit=None, query_options=None,
                  from_model_kwargs=None, raw_filters=None, requester_user=None):
         """
@@ -181,6 +181,16 @@ class ResourceController(object):
                 filters[k + '__in'] = filter_value
             else:
                 filters['__'.join(v.split('.'))] = filter_value
+
+        if advanced_filters:
+            for token in advanced_filters.split(' '):
+                [k, v] = token.split(':', 1)
+                path = k.split('.')
+                try:
+                    self.model.model._lookup_field(path)
+                    filters['__'.join(path)] = v
+                except LookUpError as e:
+                    raise ValueError(str(e))
 
         if exclude_fields and include_fields:
             msg = ('exclude_fields and include_fields arguments are mutually exclusive. '
