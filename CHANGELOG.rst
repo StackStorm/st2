@@ -14,6 +14,11 @@ Added
 
   Contributed by @sumkire.
 
+Changed
+~~~~~~~
+
+* Modified RabbitMQ connection error message to make clear that it is an MQ connection issue. #3992
+
 Fixed
 ~~~~~
 
