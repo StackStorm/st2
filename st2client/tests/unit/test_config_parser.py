@@ -1,3 +1,4 @@
+# coding=utf-8
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -16,6 +17,7 @@
 from __future__ import absolute_import
 import os
 
+import six
 import unittest2
 
 from st2client.config_parser import CLIConfigParser
@@ -24,6 +26,7 @@ from st2client.config_parser import CONFIG_DEFAULT_VALUES
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE_PATH_FULL = os.path.join(BASE_DIR, '../fixtures/st2rc.full.ini')
 CONFIG_FILE_PATH_PARTIAL = os.path.join(BASE_DIR, '../fixtures/st2rc.partial.ini')
+CONFIG_FILE_PATH_UNICODE = os.path.join(BASE_DIR, '../fixtures/test_unicode.ini')
 
 
 class CLIConfigParserTestCase(unittest2.TestCase):
@@ -79,3 +82,13 @@ class CLIConfigParserTestCase(unittest2.TestCase):
                                  validate_config_exists=False)
         result = parser.parse()
         self.assertTrue(result['cli']['cache_token'], True)
+
+    def test_get_config_for_unicode_char(self):
+        parser = CLIConfigParser(config_file_path=CONFIG_FILE_PATH_UNICODE,
+                                 validate_config_exists=False)
+        config = parser.parse()
+
+        if six.PY3:
+            self.assertEqual(config['credentials']['password'], '密码')
+        else:
+            self.assertEqual(config['credentials']['password'], u'\u5bc6\u7801')
