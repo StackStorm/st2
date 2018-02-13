@@ -14,20 +14,27 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import abc
+import shutil
+import tempfile
+from subprocess import list2cmdline
 
 import six
 import yaml
 from oslo_config import cfg
+from eventlet.green import subprocess
 
 from st2common import log as logging
 from st2common.constants import action as action_constants
 from st2common.constants import pack as pack_constants
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
+from st2common.content.utils import get_pack_directory
 from st2common.util import action_db as action_utils
 from st2common.util.loader import register_runner, register_callback_module
 from st2common.util.api import get_full_public_api_url
 from st2common.util.deprecation import deprecated
+from st2common.util.green.shell import run_command
 
 __all__ = [
     'ActionRunner',
@@ -119,6 +126,7 @@ class ActionRunner(object):
         self.rerun_ex_ref = None
 
     def pre_run(self):
+        # Handle runner "enabled" attribute
         runner_enabled = getattr(self.runner_type_db, 'enabled', True)
         runner_name = getattr(self.runner_type_db, 'name', 'unknown')
         if not runner_enabled:
@@ -193,6 +201,58 @@ class ActionRunner(object):
         user = context.get('user', cfg.CONF.system_user.user)
 
         return user
+
+    def create_git_worktree(self, content_version):
+        """
+        Create a git worktree for the provided git content version.
+
+        :return: Path to the created git worktree directory.
+        :rtype: ``str``
+        """
+        # TODO: If we assume branches and tags are immutable we could re-use working directories
+        # instead of creating new ones per execution.
+        pack_name = self.get_pack_name()
+        pack_directory = get_pack_directory(pack_name=pack_name)
+        worktree_path = tempfile.mkdtemp()
+
+        args = [
+            'git',
+            'worktree',
+            worktree_path,
+            content_version
+        ]
+        cmd = list2cmdline(args)
+
+        LOG.debug('Creating git worktree for pack "%s", content version "%s" and execution '
+                  'id "%s" in "%s"' % (pack_name, content_version, self.execution_id))
+        LOG.debug('Command: %s' % (cmd))
+        result = run_command(cmd=cmd,
+                             cwd=pack_directory,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             shell=False)
+
+        # TODO: Handle result
+        # - pack directory doesnt exist
+        # - pack directory is not a git repo
+        # - invalid revision provided
+        return worktree_path
+
+    def cleanup_git_worktree(self, worktree_path, pack_name, content_version):
+        """
+        Remove / cleanup the provided git worktree directory.
+
+        :rtype: ``bool``
+        """
+        LOG.debug('Removing git worktree "%s" for pack "%s" and content version "%s"' %
+                  (worktree_path, pack_name, content_version))
+
+        try:
+            shutil.rmtree(worktree_path, ignore_errors=True)
+        except:
+            pass
+
+        return True
 
     def _get_common_action_env_variables(self):
         """
