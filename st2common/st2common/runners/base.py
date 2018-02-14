@@ -50,6 +50,7 @@ LOG = logging.getLogger(__name__)
 
 # constants to lookup in runner_parameters
 RUNNER_COMMAND = 'cmd'
+RUNNER_CONTENT_VERSION = 'content_version'
 
 
 def get_runner(module_name, config=None):
@@ -138,6 +139,12 @@ class ActionRunner(object):
             msg = ('Runner "%s" has been disabled by the administrator' %
                    (runner_name))
             raise ValueError(msg)
+
+        # Handle git worktree creation
+        self._content_version = self.runner_parameters.get(RUNNER_CONTENT_VERSION, None)
+
+        if self._content_version:
+            self.create_git_worktree(content_version=self._content_version)
 
     # Run will need to take an action argument
     # Run may need result data argument
