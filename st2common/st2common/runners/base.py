@@ -125,7 +125,10 @@ class ActionRunner(object):
         self.callback = None
         self.auth_token = None
         self.rerun_ex_ref = None
+
+        # Git work tree related attributes
         self.git_worktree_path = None
+        self.git_worktree_revision = None
 
     def pre_run(self):
         # Handle runner "enabled" attribute
@@ -158,7 +161,14 @@ class ActionRunner(object):
         )
 
     def post_run(self, status, result):
-        print('in post run')
+        # Remove git worktree directories (if used and available)
+        if self.git_worktree_path and self.git_worktree_revision:
+            pack_name = self.get_pack_name()
+            self.cleanup_git_worktree(worktree_path=self.git_worktree_path,
+                                      content_version=self.git_worktree_revision,
+                                      pack_name=pack_name)
+
+        # Handle callback (if specified)
         callback = self.callback or {}
 
         if callback and not (set(['url', 'source']) - set(callback.keys())):
@@ -212,11 +222,13 @@ class ActionRunner(object):
         :return: Path to the created git worktree directory.
         :rtype: ``str``
         """
-        # TODO: If we assume branches and tags are immutable we could re-use working directories
-        # instead of creating new ones per execution.
         pack_name = self.get_pack_name()
         pack_directory = get_pack_directory(pack_name=pack_name)
-        worktree_path = tempfile.mkdtemp()
+        worktree_path = tempfile.mkdtemp(prefix='st2-git-worktree-')
+
+        # Set class variables
+        self.git_worktree_revision = content_version
+        self.git_worktree_path = worktree_path
 
         extra = {
             'pack_name': pack_name,
@@ -269,6 +281,9 @@ class ActionRunner(object):
 
         :rtype: ``bool``
         """
+        # Safety check to make sure we don't remove something outside /tmp
+        assert(worktree_path.startswith('/tmp'))
+
         LOG.debug('Removing git worktree "%s" for pack "%s" and content version "%s"' %
                   (worktree_path, pack_name, content_version))
 
@@ -321,7 +336,7 @@ class ActionRunner(object):
         # 3. Invalid revision provided
         if "invalid reference" in stderr:
             msg = ('Invalid content_version "%s" provided. Make sure that git repository is up '
-                   'to date and contains that reference.' % (content_version))
+                   'to date and contains that revision.' % (content_version))
             raise ValueError(error_prefix + msg)
 
         # 4. Repo is not a bare repository
