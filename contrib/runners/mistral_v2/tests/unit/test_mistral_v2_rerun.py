@@ -174,7 +174,7 @@ class MistralRunnerTest(DbTestCase):
         executions.ExecutionManager, 'create',
         mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC)))
     def test_resume_option(self):
-        patched_mistral_runner = self.get_runner_class('mistral_v2')
+        patched_mistral_runner = self.get_runner_class('mistral_v2', 'mistral_v2')
 
         mock_resume_result = (
             action_constants.LIVEACTION_STATUS_RUNNING,
@@ -226,7 +226,7 @@ class MistralRunnerTest(DbTestCase):
         executions.ExecutionManager, 'create',
         mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC)))
     def test_resume_option_reset_tasks(self):
-        patched_mistral_runner = self.get_runner_class('mistral_v2')
+        patched_mistral_runner = self.get_runner_class('mistral_v2', 'mistral_v2')
 
         mock_resume_result = (
             action_constants.LIVEACTION_STATUS_RUNNING,
