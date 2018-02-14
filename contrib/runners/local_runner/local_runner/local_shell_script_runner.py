@@ -35,21 +35,21 @@ class LocalShellScriptRunner(BaseLocalShellRunner):
         if not self.entry_point:
             raise ValueError('Missing entry_point action metadata attribute')
 
-            script_local_path_abs = self.entry_point
-            positional_args, named_args = self._get_script_args(action_parameters)
-            named_args = self._transform_named_args(named_args)
+        script_local_path_abs = self.entry_point
+        positional_args, named_args = self._get_script_args(action_parameters)
+        named_args = self._transform_named_args(named_args)
 
-            action = ShellScriptAction(name=self.action_name,
-                                       action_exec_id=str(self.liveaction_id),
-                                       script_local_path_abs=script_local_path_abs,
-                                       named_args=named_args,
-                                       positional_args=positional_args,
-                                       user=self._user,
-                                       env_vars=self._env,
-                                       sudo=self._sudo,
-                                       timeout=self._timeout,
-                                       cwd=self._cwd,
-                                       sudo_password=self._sudo_password)
+        action = ShellScriptAction(name=self.action_name,
+                                   action_exec_id=str(self.liveaction_id),
+                                   script_local_path_abs=script_local_path_abs,
+                                   named_args=named_args,
+                                   positional_args=positional_args,
+                                   user=self._user,
+                                   env_vars=self._env,
+                                   sudo=self._sudo,
+                                   timeout=self._timeout,
+                                   cwd=self._cwd,
+                                   sudo_password=self._sudo_password)
 
         return self._run(action=action)
 
