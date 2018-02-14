@@ -15,6 +15,7 @@
 
 from __future__ import absolute_import
 
+import os
 import abc
 import shutil
 import tempfile
@@ -124,6 +125,7 @@ class ActionRunner(object):
         self.callback = None
         self.auth_token = None
         self.rerun_ex_ref = None
+        self.git_worktree_path = None
 
     def pre_run(self):
         # Handle runner "enabled" attribute
@@ -156,6 +158,7 @@ class ActionRunner(object):
         )
 
     def post_run(self, status, result):
+        print('in post run')
         callback = self.callback or {}
 
         if callback and not (set(['url', 'source']) - set(callback.keys())):
@@ -215,27 +218,49 @@ class ActionRunner(object):
         pack_directory = get_pack_directory(pack_name=pack_name)
         worktree_path = tempfile.mkdtemp()
 
+        extra = {
+            'pack_name': pack_name,
+            'pack_directory': pack_directory,
+            'content_version': content_version,
+            'worktree_path': worktree_path
+        }
+
+        if not os.path.isdir(pack_directory):
+            msg = ('Failed to create git worktree for pack "%s". Pack directory "%s" doesn\'t '
+                   'exist.' % (pack_name, pack_directory))
+            raise ValueError(msg)
+
         args = [
             'git',
+            '-C',
+            pack_directory,
             'worktree',
+            'add',
             worktree_path,
             content_version
         ]
         cmd = list2cmdline(args)
 
         LOG.debug('Creating git worktree for pack "%s", content version "%s" and execution '
-                  'id "%s" in "%s"' % (pack_name, content_version, self.execution_id))
+                  'id "%s" in "%s"' % (pack_name, content_version, self.execution_id,
+                                       worktree_path), extra=extra)
         LOG.debug('Command: %s' % (cmd))
-        result = run_command(cmd=cmd,
-                             cwd=pack_directory,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE,
-                             shell=False)
+        exit_code, stdout, stderr, timed_out = run_command(cmd=cmd,
+                                                           cwd=pack_directory,
+                                                           stdout=subprocess.PIPE,
+                                                           stderr=subprocess.PIPE,
+                                                           shell=True)
 
-        # TODO: Handle result
-        # - pack directory doesnt exist
-        # - pack directory is not a git repo
-        # - invalid revision provided
+        print exit_code
+        print stdout
+        print stderr
+        print timed_out
+
+        if exit_code != 0:
+            self._handle_git_worktree_error(pack_name=pack_name, pack_directory=pack_directory,
+                                            content_version=content_version,
+                                            exit_code=exit_code, stdout=stdout, stderr=stderr)
+
         return worktree_path
 
     def cleanup_git_worktree(self, worktree_path, pack_name, content_version):
@@ -272,6 +297,34 @@ class ActionRunner(object):
             result['ST2_ACTION_AUTH_TOKEN'] = self.auth_token.token
 
         return result
+
+    def _handle_git_worktree_error(self, pack_name, pack_directory, content_version, exit_code,
+                                   stdout, stderr):
+        """
+        Handle "git worktree" related errors and throw a more user-friendly exception.
+        """
+        error_prefix = 'Failed to create git worktree for pack "%s": ' % (pack_name)
+
+        # 1. Installed version of git which doesn't support worktree command
+        if "git: 'worktree' is not a git command." in stderr:
+            msg = ('Installed git version doesn\'t support git worktree command. '
+                   'To be able to utilize this functionality you need to use git '
+                   '>= 2.5.0.')
+            raise ValueError(error_prefix + msg)
+
+        # 2. Provided pack directory is not a git repository
+        if "Not a git repository" in stderr:
+            msg = ('Pack directory "%s" is not a git repository. To utilize this functionality, '
+                   'pack directory needs to be a git repository.' % (pack_directory))
+            raise ValueError(error_prefix + msg)
+
+        # 3. Invalid revision provided
+        if "invalid reference" in stderr:
+            msg = ('Invalid content_version "%s" provided. Make sure that git repository is up '
+                   'to date and contains that reference.' % (content_version))
+            raise ValueError(error_prefix + msg)
+
+        # 4. Repo is not a bare repository
 
     def __str__(self):
         attrs = ', '.join(['%s=%s' % (k, v) for k, v in six.iteritems(self.__dict__)])
