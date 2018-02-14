@@ -263,15 +263,12 @@ class ActionRunner(object):
                                                            stderr=subprocess.PIPE,
                                                            shell=True)
 
-        print exit_code
-        print stdout
-        print stderr
-        print timed_out
-
         if exit_code != 0:
             self._handle_git_worktree_error(pack_name=pack_name, pack_directory=pack_directory,
                                             content_version=content_version,
                                             exit_code=exit_code, stdout=stdout, stderr=stderr)
+        else:
+            LOG.debug('Git worktree created in "%s"' % (worktree_path), extra=extra)
 
         return worktree_path
 
