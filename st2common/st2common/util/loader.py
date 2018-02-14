@@ -20,9 +20,10 @@ import inspect
 import json
 import os
 import sys
-import yaml
+from collections import defaultdict
 
 import six
+import yaml
 from oslo_config import cfg
 
 from st2common.exceptions.plugins import IncompatiblePluginException
@@ -47,7 +48,7 @@ ALLOWED_EXTS = ['.json', '.yaml', '.yml']
 PARSER_FUNCS = {'.json': json.load, '.yml': yaml.safe_load, '.yaml': yaml.safe_load}
 
 # Cache for dynamically loaded runner modules
-RUNNER_MODULES_CACHE = {}
+RUNNER_MODULES_CACHE = defaultdict(dict)
 QUERIER_MODULES_CACHE = {}
 CALLBACK_MODULES_CACHE = {}
 
@@ -189,26 +190,25 @@ def register_plugin(plugin_base_class, plugin_abs_file_path):
     return registered_plugins
 
 
-def register_runner(module_name):
-    base_path = cfg.CONF.system.base_path
-
+def register_runner(package_name, module_name):
     # TODO: Switch to stevedore enumeration and loading
+    base_path = cfg.CONF.system.base_path
 
     # 1. First try pre StackStorm v2.6.0 path (runners are not Python packages)
     module_path = os.path.join(base_path, 'runners', module_name, module_name + '.py')
 
     # 2. Second try post StackStorm v2.6.0 path (runners are Python packages)
     if not os.path.isfile(module_path):
-        module_path = os.path.join(base_path, 'runners', module_name, module_name,
+        module_path = os.path.join(base_path, 'runners', package_name, package_name,
                                    module_name + '.py')
 
-    if module_name not in RUNNER_MODULES_CACHE:
+    if not RUNNER_MODULES_CACHE.get(package_name, {}).get(module_name, None):
         LOG.info('Loading runner module from "%s".', module_path)
-        RUNNER_MODULES_CACHE[module_name] = imp.load_source(module_name, module_path)
+        RUNNER_MODULES_CACHE[package_name][module_name] = imp.load_source(module_name, module_path)
     else:
         LOG.info('Reusing runner module "%s" from cache.', module_path)
 
-    return RUNNER_MODULES_CACHE[module_name]
+    return RUNNER_MODULES_CACHE[package_name][module_name]
 
 
 def register_query_module(module_name):
