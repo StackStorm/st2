@@ -81,12 +81,12 @@ class RunnerContainerTest(DbTestCase):
 
     def test_get_runner_module(self):
         runnertype_db = RunnerContainerTest.runnertype_db
-        runner = get_runner(runnertype_db.runner_module)
+        runner = get_runner(runnertype_db.runner_module, runnertype_db.runner_module)
         self.assertTrue(runner is not None, 'TestRunner must be valid.')
 
     def test_pre_run_runner_is_disabled(self):
         runnertype_db = RunnerContainerTest.runnertype_db
-        runner = get_runner(runnertype_db.runner_module)
+        runner = get_runner(runnertype_db.runner_module, runnertype_db.runner_module)
 
         runner.runner_type_db = runnertype_db
         runner.runner_type_db.enabled = False
@@ -228,7 +228,7 @@ class RunnerContainerTest(DbTestCase):
         runnertype_db = RunnerTypeDB(name='dummy', runner_module='absent.module')
         runner = None
         try:
-            runner = get_runner(runnertype_db.runner_module)
+            runner = get_runner(runnertype_db.runner_module, runnertype_db.runner_module)
         except ActionRunnerCreateError:
             pass
         self.assertFalse(runner, 'TestRunner must be valid.')
