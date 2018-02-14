@@ -194,13 +194,13 @@ def register_runner(package_name, module_name):
     # TODO: Switch to stevedore enumeration and loading
     base_path = cfg.CONF.system.base_path
 
-    # 1. First try pre StackStorm v2.6.0 path (runners are not Python packages)
-    module_path = os.path.join(base_path, 'runners', module_name, module_name + '.py')
+    # 1. First try post StackStorm v2.6.0 path (runners are Python packages)
+    module_path = os.path.join(base_path, 'runners', package_name, package_name,
+                               module_name + '.py')
 
-    # 2. Second try post StackStorm v2.6.0 path (runners are Python packages)
+    # 2. Second try pre StackStorm v2.6.0 path (runners are not Python packages)
     if not os.path.isfile(module_path):
-        module_path = os.path.join(base_path, 'runners', package_name, package_name,
-                                   module_name + '.py')
+        module_path = os.path.join(base_path, 'runners', module_name, module_name + '.py')
 
     if not RUNNER_MODULES_CACHE.get(package_name, {}).get(module_name, None):
         LOG.info('Loading runner module from "%s".', module_path)
