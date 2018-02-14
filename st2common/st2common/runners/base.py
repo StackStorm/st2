@@ -40,6 +40,7 @@ from st2common.util.green.shell import run_command
 __all__ = [
     'ActionRunner',
     'AsyncActionRunner',
+    'GitWorktreeActionRunner',
     'ShellRunnerMixin',
     'get_runner',
     'get_metadata'
@@ -101,8 +102,8 @@ def get_metadata(package_name):
 @six.add_metaclass(abc.ABCMeta)
 class ActionRunner(object):
     """
-        The interface that must be implemented by each StackStorm
-        Action Runner implementation.
+    The interface that must be implemented by each StackStorm
+    Action Runner implementation.
     """
 
     def __init__(self, runner_id):
@@ -126,10 +127,6 @@ class ActionRunner(object):
         self.callback = None
         self.auth_token = None
         self.rerun_ex_ref = None
-
-        # Git work tree related attributes
-        self.git_worktree_path = None
-        self.git_worktree_revision = None
 
     def pre_run(self):
         # Handle runner "enabled" attribute
@@ -222,6 +219,71 @@ class ActionRunner(object):
 
         return user
 
+    def _get_common_action_env_variables(self):
+        """
+        Retrieve common ST2_ACTION_ environment variables which will be available to the action.
+
+        Note: Environment variables are prefixed with ST2_ACTION_* so they don't clash with CLI
+        environment variables.
+
+        :rtype: ``dict``
+        """
+        result = {}
+        result['ST2_ACTION_PACK_NAME'] = self.get_pack_ref()
+        result['ST2_ACTION_EXECUTION_ID'] = str(self.execution_id)
+        result['ST2_ACTION_API_URL'] = get_full_public_api_url()
+
+        if self.auth_token:
+            result['ST2_ACTION_AUTH_TOKEN'] = self.auth_token.token
+
+        return result
+
+    def __str__(self):
+        attrs = ', '.join(['%s=%s' % (k, v) for k, v in six.iteritems(self.__dict__)])
+        return '%s@%s(%s)' % (self.__class__.__name__, str(id(self)), attrs)
+
+
+@six.add_metaclass(abc.ABCMeta)
+class AsyncActionRunner(ActionRunner):
+    pass
+
+
+@six.add_metaclass(abc.ABCMeta)
+class GitWorktreeActionRunner(ActionRunner):
+    """
+    Base class for runners which work with files (e.g. Python runner, Local script runner)
+    and support git worktree functionality - ability to use a file under a specific git revision
+    from a git repository.
+
+    This revision is specified using "content_version" runner parameter.
+    """
+
+    def __init__(self, runner_id):
+        super(GitWorktreeActionRunner, self).__init__(runner_id=runner_id)
+
+        # Git work tree related attributes
+        self.git_worktree_path = None
+        self.git_worktree_revision = None
+
+    def pre_run(self):
+        super(GitWorktreeActionRunner, self).pre_run()
+
+        # Handle git worktree creation
+        self._content_version = self.runner_parameters.get(RUNNER_CONTENT_VERSION, None)
+
+        if self._content_version:
+            self.create_git_worktree(content_version=self._content_version)
+
+    def post_run(self, status, result):
+        super(GitWorktreeActionRunner, self).post_run()
+
+        # Remove git worktree directories (if used and available)
+        if self.git_worktree_path and self.git_worktree_revision:
+            pack_name = self.get_pack_name()
+            self.cleanup_git_worktree(worktree_path=self.git_worktree_path,
+                                      content_version=self.git_worktree_revision,
+                                      pack_name=pack_name)
+
     def create_git_worktree(self, content_version):
         """
         Create a git worktree for the provided git content version.
@@ -298,25 +360,6 @@ class ActionRunner(object):
 
         return True
 
-    def _get_common_action_env_variables(self):
-        """
-        Retrieve common ST2_ACTION_ environment variables which will be available to the action.
-
-        Note: Environment variables are prefixed with ST2_ACTION_* so they don't clash with CLI
-        environment variables.
-
-        :rtype: ``dict``
-        """
-        result = {}
-        result['ST2_ACTION_PACK_NAME'] = self.get_pack_ref()
-        result['ST2_ACTION_EXECUTION_ID'] = str(self.execution_id)
-        result['ST2_ACTION_API_URL'] = get_full_public_api_url()
-
-        if self.auth_token:
-            result['ST2_ACTION_AUTH_TOKEN'] = self.auth_token.token
-
-        return result
-
     def _handle_git_worktree_error(self, pack_name, pack_directory, content_version, exit_code,
                                    stdout, stderr):
         """
@@ -344,15 +387,6 @@ class ActionRunner(object):
             raise ValueError(error_prefix + msg)
 
         # 4. Repo is not a bare repository
-
-    def __str__(self):
-        attrs = ', '.join(['%s=%s' % (k, v) for k, v in six.iteritems(self.__dict__)])
-        return '%s@%s(%s)' % (self.__class__.__name__, str(id(self)), attrs)
-
-
-@six.add_metaclass(abc.ABCMeta)
-class AsyncActionRunner(ActionRunner):
-    pass
 
 
 class ShellRunnerMixin(object):
