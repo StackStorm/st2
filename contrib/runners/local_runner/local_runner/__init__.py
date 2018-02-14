@@ -19,4 +19,4 @@
 # This means you can either do "from runner_name import RunnerClass" (old way, don't do that)
 # or "from runner_name.runner_name import RunnerClass"
 from __future__ import absolute_import
-from .local_runner import *  # noqa
+from .base import *  # noqa

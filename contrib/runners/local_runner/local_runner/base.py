@@ -14,12 +14,15 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 import re
+import abc
 import pwd
 import uuid
 import functools
 
+import six
 from oslo_config import cfg
 from eventlet.green import subprocess
 from six.moves import StringIO
@@ -31,8 +34,6 @@ from st2common import log as logging
 from st2common.runners.base import ActionRunner
 from st2common.runners.base import ShellRunnerMixin
 from st2common.runners.base import get_metadata as get_runner_metadata
-from st2common.models.system.action import ShellCommandAction
-from st2common.models.system.action import ShellScriptAction
 from st2common.util.misc import strip_shell_chars
 from st2common.util.green import shell
 from st2common.util.shell import kill_process
@@ -41,10 +42,9 @@ from st2common.services.action import store_execution_output_data
 from st2common.runners.utils import make_read_and_store_stream_func
 
 __all__ = [
-    'LocalShellRunner',
+    'BaseLocalShellRunner',
 
-    'get_runner',
-    'get_metadata'
+    'RUNNER_COMMAND'
 ]
 
 LOG = logging.getLogger(__name__)
@@ -70,7 +70,8 @@ PROC_EXIT_CODE_TO_LIVEACTION_STATUS_MAP = {
 }
 
 
-class LocalShellRunner(ActionRunner, ShellRunnerMixin):
+@six.add_metaclass(abc.ABCMeta)
+class BaseLocalShellRunner(ActionRunner, ShellRunnerMixin):
     """
     Runner which executes actions locally using the user under which the action runner service is
     running or under the provided user.
@@ -81,10 +82,10 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
     KEYS_TO_TRANSFORM = ['stdout', 'stderr']
 
     def __init__(self, runner_id):
-        super(LocalShellRunner, self).__init__(runner_id=runner_id)
+        super(BaseLocalShellRunner, self).__init__(runner_id=runner_id)
 
     def pre_run(self):
-        super(LocalShellRunner, self).pre_run()
+        super(BaseLocalShellRunner, self).pre_run()
 
         self._sudo = self.runner_parameters.get(RUNNER_SUDO, False)
         self._sudo_password = self.runner_parameters.get(RUNNER_SUDO_PASSWORD, None)
@@ -97,43 +98,20 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         self._timeout = self.runner_parameters.get(
             RUNNER_TIMEOUT, runner_constants.LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT)
 
-    def run(self, action_parameters):
+    def _run(self, action):
         env_vars = self._env
 
         if not self.entry_point:
             script_action = False
-            command = self.runner_parameters.get(RUNNER_COMMAND, None)
-            action = ShellCommandAction(name=self.action_name,
-                                        action_exec_id=str(self.liveaction_id),
-                                        command=command,
-                                        user=self._user,
-                                        env_vars=env_vars,
-                                        sudo=self._sudo,
-                                        timeout=self._timeout,
-                                        sudo_password=self._sudo_password)
         else:
             script_action = True
-            script_local_path_abs = self.entry_point
-            positional_args, named_args = self._get_script_args(action_parameters)
-            named_args = self._transform_named_args(named_args)
-
-            action = ShellScriptAction(name=self.action_name,
-                                       action_exec_id=str(self.liveaction_id),
-                                       script_local_path_abs=script_local_path_abs,
-                                       named_args=named_args,
-                                       positional_args=positional_args,
-                                       user=self._user,
-                                       env_vars=env_vars,
-                                       sudo=self._sudo,
-                                       timeout=self._timeout,
-                                       cwd=self._cwd,
-                                       sudo_password=self._sudo_password)
 
         args = action.get_full_command_string()
         sanitized_args = action.get_sanitized_full_command_string()
 
         # For consistency with the old Fabric based runner, make sure the file is executable
         if script_action:
+            script_local_path_abs = self.entry_point
             args = 'chmod +x %s ; %s' % (script_local_path_abs, args)
             sanitized_args = 'chmod +x %s ; %s' % (script_local_path_abs, sanitized_args)
 
@@ -236,11 +214,11 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
             action_constants.LIVEACTION_STATUS_FAILED
         )
 
-        return (status, jsonify.json_loads(result, LocalShellRunner.KEYS_TO_TRANSFORM), None)
+        return (status, jsonify.json_loads(result, BaseLocalShellRunner.KEYS_TO_TRANSFORM), None)
 
 
 def get_runner():
-    return LocalShellRunner(str(uuid.uuid4()))
+    return BaseLocalShellRunner(str(uuid.uuid4()))
 
 
 def get_metadata():
