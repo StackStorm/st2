@@ -165,13 +165,6 @@ class ActionRunner(object):
         )
 
     def post_run(self, status, result):
-        # Remove git worktree directories (if used and available)
-        if self.git_worktree_path and self.git_worktree_revision:
-            pack_name = self.get_pack_name()
-            self.cleanup_git_worktree(worktree_path=self.git_worktree_path,
-                                      content_version=self.git_worktree_revision,
-                                      pack_name=pack_name)
-
         # Handle callback (if specified)
         callback = self.callback or {}
 
