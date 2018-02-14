@@ -138,8 +138,6 @@ class PythonRunner(ActionRunner):
             LOG.error('Action "%s" is missing entry_point attribute' % (self.action.name))
             raise Exception('Action "%s" is missing entry_point attribute' % (self.action.name))
 
-        self.create_git_worktree(content_version='v0.7.1')
-
         # Note: We pass config as command line args so the actual wrapper process is standalone
         # and doesn't need access to db
         LOG.debug('Setting args.')
