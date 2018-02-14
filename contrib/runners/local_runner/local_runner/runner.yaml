@@ -41,6 +41,10 @@
   name: local-shell-script
   runner_module: local_runner
   runner_parameters:
+    content_version:
+      description: Git revision of the pack content to use for this action execution (git commit sha / tag / branch). Only applies to packs which are git repositories.
+      type: string
+      required: false
     cwd:
       description: Working directory where the script will be executed in
       type: string

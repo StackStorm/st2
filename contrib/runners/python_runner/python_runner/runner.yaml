@@ -5,6 +5,10 @@
   name: python-script
   runner_module: python_runner
   runner_parameters:
+    content_version:
+      description: Git revision of the pack content to use for this action execution (git commit sha / tag / branch). Only applies to packs which are git repositories.
+      type: string
+      required: false
     env:
       description: Environment variables which will be available to the script.
       type: object
