@@ -14,11 +14,13 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import imp
 import os
 import mock
-import unittest2
+from collections import defaultdict
 
+import unittest2
 from oslo_config import cfg
 
 from st2common import config
@@ -49,7 +51,7 @@ class PluginLoaderTestCase(unittest2.TestCase):
 
     def setUp(self):
         super(PluginLoaderTestCase, self).setUp()
-        loader.RUNNER_MODULES_CACHE = {}
+        loader.RUNNER_MODULES_CACHE = defaultdict(dict)
         loader.QUERIER_MODULES_CACHE = {}
         loader.CALLBACK_MODULES_CACHE = {}
 
