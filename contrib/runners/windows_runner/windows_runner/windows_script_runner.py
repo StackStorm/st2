@@ -28,9 +28,10 @@ from st2common.util.shell import quote_windows
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.runners import WINDOWS_RUNNER_DEFAULT_ACTION_TIMEOUT
-from st2common.runners.windows_runner import BaseWindowsRunner
 from st2common.runners.base import ShellRunnerMixin
 from st2common.runners.base import get_metadata as get_runner_metadata
+
+from windows_runner.base import BaseWindowsRunner
 
 __all__ = [
     'WindowsScriptRunner',
