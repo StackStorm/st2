@@ -273,8 +273,7 @@ requirements: virtualenv .sdist-requirements
 	$(VIRTUALENV_DIR)/bin/pip install "prance==0.6.1"
 
 .PHONY: virtualenv
-virtualenv: $(VIRTUALENV_DIR)/bin/activate
-$(VIRTUALENV_DIR)/bin/activate:
+virtualenv:
 	@echo
 	@echo "==================== virtualenv ===================="
 	@echo
