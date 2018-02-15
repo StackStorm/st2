@@ -20,7 +20,7 @@ import uuid
 from st2common.models.system.action import ShellScriptAction
 from st2common.runners.base import get_metadata as get_runner_metadata
 
-from local_runner import BaseLocalShellRunner
+from local_runner.base import BaseLocalShellRunner
 
 __all__ = [
     'LocalShellScriptRunner',
