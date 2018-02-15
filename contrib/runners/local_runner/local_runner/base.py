@@ -19,7 +19,6 @@ import os
 import re
 import abc
 import pwd
-import uuid
 import functools
 
 import six
@@ -33,7 +32,6 @@ from st2common.constants import runners as runner_constants
 from st2common import log as logging
 from st2common.runners.base import ActionRunner
 from st2common.runners.base import ShellRunnerMixin
-from st2common.runners.base import get_metadata as get_runner_metadata
 from st2common.util.misc import strip_shell_chars
 from st2common.util.green import shell
 from st2common.util.shell import kill_process
@@ -215,11 +213,3 @@ class BaseLocalShellRunner(ActionRunner, ShellRunnerMixin):
         )
 
         return (status, jsonify.json_loads(result, BaseLocalShellRunner.KEYS_TO_TRANSFORM), None)
-
-
-def get_runner():
-    return BaseLocalShellRunner(str(uuid.uuid4()))
-
-
-def get_metadata():
-    return get_runner_metadata('local_runner')

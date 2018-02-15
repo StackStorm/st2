@@ -22,7 +22,6 @@ import mock
 import st2tests.config as tests_config
 tests_config.parse_args()
 
-import action_chain_runner
 import st2common.bootstrap.runnersregistrar as runners_registrar
 from st2common.constants import action as action_constants
 from st2common.models.db.liveaction import LiveActionDB
@@ -43,7 +42,8 @@ import st2common.util.action_db as action_utils
 from st2common.util import reference
 from st2reactor.rules.enforcer import RuleEnforcer
 
-from local_runner import base as local_runner
+from action_chain_runner import action_chain_runner
+from local_runner import local_shell_command_runner as local_runner
 from local_runner.local_shell_command_runner import LocalShellCommandRunner
 
 from st2tests.fixtures.packs import executions as fixture

@@ -24,11 +24,13 @@ import st2tests.config as tests_config
 tests_config.parse_args()
 
 from st2common.util import jsonify
-from remote_script_runner import ParamikoRemoteScriptRunner
 from st2common.runners.parallel_ssh import ParallelSSHClient
 from st2common.exceptions.ssh import NoHostsConnectedToException
 from st2common.models.system.paramiko_script_action import ParamikoRemoteScriptAction
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
+
+from remote_script_runner.remote_script_runner import ParamikoRemoteScriptRunner
+
 from st2tests.fixturesloader import FixturesLoader
 
 __all__ = [
