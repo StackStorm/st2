@@ -20,3 +20,4 @@
 # or "from runner_name.runner_name import RunnerClass"
 from __future__ import absolute_import
 from .windows_command_runner import *  # noqa
+from .windows_script_runner import *  # noqa

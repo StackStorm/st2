@@ -32,7 +32,7 @@ apply_vagrant_workaround()
 setup(
     name='stackstorm-runner-windows',
     version='2.5.0',
-    description=('Windows script action runner for StackStorm event-driven '
+    description=('Windows command and script action runner for StackStorm event-driven '
                  'automation platform'),
     author='StackStorm',
     author_email='info@stackstorm.com',
@@ -48,7 +48,8 @@ setup(
     scripts=[],
     entry_points={
         'st2common.runners.runner': [
-            'windows-script = windows_script_runner.windows_script_runner',
+            'windows-cmd = windows_runner.windows_command_runner',
+            'windows-script = windows_runner.windows_script_runner',
         ],
     }
 )
