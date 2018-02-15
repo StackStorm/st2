@@ -26,18 +26,16 @@ from st2common.constants import action as action_constants
 from st2common.content import utils as content_utils
 from st2common.exceptions import actionrunner
 from st2common.exceptions.param import ParamException
-from st2common.models.db.executionstate import ActionExecutionStateDB
 from st2common.models.system.action import ResolvedActionParameters
 from st2common.persistence.execution import ActionExecution
-from st2common.persistence.executionstate import ActionExecutionState
-from st2common.services import access, executions
+from st2common.services import access, executions, queries
 from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
 from st2common.util.action_db import (update_liveaction_status, get_liveaction_by_id)
 from st2common.util import param as param_utils
 from st2common.util.config_loader import ContentPackConfigLoader
 
 from st2common.runners.base import get_runner
-from st2common.runners.base import AsyncActionRunner
+from st2common.runners.base import AsyncActionRunner, PollingAsyncActionRunner
 
 LOG = logging.getLogger(__name__)
 
@@ -126,8 +124,8 @@ class RunnerContainer(object):
                 pass
 
             action_completed = status in action_constants.LIVEACTION_COMPLETED_STATES
-            if isinstance(runner, AsyncActionRunner) and not action_completed:
-                self._setup_async_query(liveaction_db.id, runnertype_db, context)
+            if isinstance(runner, PollingAsyncActionRunner) and not action_completed:
+                queries.setup_query(liveaction_db.id, runnertype_db, context)
         except:
             LOG.exception('Failed to run action.')
             _, ex, tb = sys.exc_info()
@@ -217,8 +215,8 @@ class RunnerContainer(object):
 
             action_completed = status in action_constants.LIVEACTION_COMPLETED_STATES
 
-            if isinstance(runner, AsyncActionRunner) and not action_completed:
-                self._setup_async_query(liveaction_db.id, runnertype_db, context)
+            if isinstance(runner, PollingAsyncActionRunner) and not action_completed:
+                queries.setup_query(liveaction_db.id, runnertype_db, context)
         except:
             _, ex, tb = sys.exc_info()
             # include the error message and traceback to try and provide some hints.
@@ -385,29 +383,6 @@ class RunnerContainer(object):
     def _delete_auth_token(self, auth_token):
         if auth_token:
             access.delete_token(auth_token.token)
-
-    def _setup_async_query(self, liveaction_id, runnertype_db, query_context):
-        query_module = getattr(runnertype_db, 'query_module', None)
-        if not query_module:
-            LOG.error('No query module specified for runner %s.', runnertype_db)
-            return
-        try:
-            self._create_execution_state(liveaction_id, runnertype_db, query_context)
-        except:
-            LOG.exception('Unable to create action execution state db model ' +
-                          'for liveaction_id %s', liveaction_id)
-
-    def _create_execution_state(self, liveaction_id, runnertype_db, query_context):
-        state_db = ActionExecutionStateDB(
-            execution_id=liveaction_id,
-            query_module=runnertype_db.query_module,
-            query_context=query_context)
-        try:
-            return ActionExecutionState.add_or_update(state_db)
-        except:
-            LOG.exception('Unable to create execution state db for liveaction_id %s.'
-                          % liveaction_id)
-            return None
 
 
 def get_runner_container():

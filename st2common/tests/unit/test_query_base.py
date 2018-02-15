@@ -16,12 +16,14 @@
 from __future__ import absolute_import
 import six.moves.queue
 import time
+import uuid
 
 from unittest2 import TestCase
 import mock
 
-
-from st2common.query.base import Querier
+from st2common.constants import action as action_constants
+from st2common.query.base import Querier, QueryContext
+from st2common.runners import utils as runners_utils
 from st2tests.config import parse_args
 parse_args()
 
@@ -36,41 +38,43 @@ class QueryBaseTests(TestCase):
     def test_fire_queries_doesnt_loop(self):
         querier = Querier()
 
-        mock_query_state_1 = {
-            'execution_id': '59194ff9adf592042d3005bf',
-            'query_module': 'mistral_v2',
-            'query_context': {
+        mock_query_state_1 = QueryContext(
+            uuid.uuid4().hex,
+            uuid.uuid4().hex,
+            'mistral_v2',
+            {
                 'mistral': {
                     'workflow_name': 'st2ci.st2_pkg_e2e_test',
                     'execution_id': '6d624534-42ca-425c-aa3a-ccc676386fb2'
                 }
             }
-        }
+        )
 
-        mock_query_state_2 = {
-            'execution_id': '59194ff9adf592042d3005bg',
-            'query_module': 'mistral_v2',
-            'query_context': {
+        mock_query_state_2 = QueryContext(
+            uuid.uuid4().hex,
+            uuid.uuid4().hex,
+            'mistral_v2',
+            {
                 'mistral': {
                     'workflow_name': 'st2ci.st2_pkg_e2e_test',
                     'execution_id': '6d624534-42ca-425c-aa3a-ccc676386fb3'
                 }
             }
-        }
+        )
 
-        mock_query_state_3 = {
-            'execution_id': '59194ff9adf592042d3005bh',
-            'query_module': 'mistral_v2',
-            'query_context': {
+        mock_query_state_3 = QueryContext(
+            uuid.uuid4().hex,
+            uuid.uuid4().hex,
+            'mistral_v2',
+            {
                 'mistral': {
                     'workflow_name': 'st2ci.st2_pkg_e2e_test',
                     'execution_id': '6d624534-42ca-425c-aa3a-ccc676386fb4'
                 }
             }
-        }
+        )
 
         now = time.time()
-
         query_contexts = six.moves.queue.Queue()
         query_contexts.put((now + 100000, mock_query_state_1)),
         query_contexts.put((now + 100001, mock_query_state_2)),
@@ -78,3 +82,138 @@ class QueryBaseTests(TestCase):
         querier._query_contexts = query_contexts
         querier._fire_queries()
         self.assertEqual(querier._query_contexts.qsize(), 2)
+
+    @mock.patch.object(
+        Querier,
+        'query',
+        mock.MagicMock(return_value=(action_constants.LIVEACTION_STATUS_RUNNING, {}))
+    )
+    @mock.patch.object(
+        Querier,
+        '_update_action_results',
+        mock.MagicMock(return_value=None)
+    )
+    @mock.patch.object(
+        Querier,
+        '_is_state_object_exist',
+        mock.MagicMock(return_value=True)
+    )
+    @mock.patch.object(
+        Querier,
+        '_delete_state_object',
+        mock.MagicMock(return_value=None)
+    )
+    def test_query_rescheduled(self):
+        querier = Querier()
+
+        mock_query_state_1 = QueryContext(
+            uuid.uuid4().hex,
+            uuid.uuid4().hex,
+            'mistral_v2',
+            {
+                'mistral': {
+                    'workflow_name': 'st2ci.st2_pkg_e2e_test',
+                    'execution_id': '6d624534-42ca-425c-aa3a-ccc676386fb2'
+                }
+            }
+        )
+
+        now = time.time()
+        query_contexts = six.moves.queue.Queue()
+        query_contexts.put((now - 200000, mock_query_state_1)),
+        querier._query_contexts = query_contexts
+        querier._fire_queries(blocking=True)
+        self.assertFalse(Querier._delete_state_object.called)
+        self.assertEqual(querier._query_contexts.qsize(), 1)
+
+    @mock.patch.object(
+        Querier,
+        'query',
+        mock.MagicMock(return_value=(action_constants.LIVEACTION_STATUS_SUCCEEDED, {}))
+    )
+    @mock.patch.object(
+        Querier,
+        '_update_action_results',
+        mock.MagicMock(return_value=None)
+    )
+    @mock.patch.object(
+        Querier,
+        '_is_state_object_exist',
+        mock.MagicMock(return_value=True)
+    )
+    @mock.patch.object(
+        Querier,
+        '_delete_state_object',
+        mock.MagicMock(return_value=None)
+    )
+    @mock.patch.object(
+        runners_utils,
+        'invoke_post_run',
+        mock.MagicMock(return_value=None)
+    )
+    def test_query_completed(self):
+        querier = Querier()
+
+        mock_query_state_1 = QueryContext(
+            uuid.uuid4().hex,
+            uuid.uuid4().hex,
+            'mistral_v2',
+            {
+                'mistral': {
+                    'workflow_name': 'st2ci.st2_pkg_e2e_test',
+                    'execution_id': '6d624534-42ca-425c-aa3a-ccc676386fb2'
+                }
+            }
+        )
+
+        now = time.time()
+        query_contexts = six.moves.queue.Queue()
+        query_contexts.put((now - 200000, mock_query_state_1)),
+        querier._query_contexts = query_contexts
+        querier._fire_queries(blocking=True)
+        self.assertTrue(runners_utils.invoke_post_run.called)
+        self.assertTrue(Querier._delete_state_object.called)
+        self.assertEqual(querier._query_contexts.qsize(), 0)
+
+    @mock.patch.object(
+        Querier,
+        'query',
+        mock.MagicMock(return_value=(action_constants.LIVEACTION_STATUS_RUNNING, {}))
+    )
+    @mock.patch.object(
+        Querier,
+        '_update_action_results',
+        mock.MagicMock(return_value=None)
+    )
+    @mock.patch.object(
+        Querier,
+        '_is_state_object_exist',
+        mock.MagicMock(return_value=False)
+    )
+    @mock.patch.object(
+        Querier,
+        '_delete_state_object',
+        mock.MagicMock(return_value=None)
+    )
+    def test_state_db_entry_deleted(self):
+        querier = Querier()
+
+        mock_query_state_1 = QueryContext(
+            uuid.uuid4().hex,
+            uuid.uuid4().hex,
+            'mistral_v2',
+            {
+                'mistral': {
+                    'workflow_name': 'st2ci.st2_pkg_e2e_test',
+                    'execution_id': '6d624534-42ca-425c-aa3a-ccc676386fb2'
+                }
+            }
+        )
+
+        now = time.time()
+        query_contexts = six.moves.queue.Queue()
+        query_contexts.put((now - 200000, mock_query_state_1)),
+        querier._query_contexts = query_contexts
+        querier._fire_queries(blocking=True)
+        self.assertFalse(Querier._delete_state_object.called)
+        self.assertEqual(querier._query_contexts.qsize(), 0)

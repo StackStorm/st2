@@ -46,15 +46,31 @@ from st2tests.fixturesloader import FixturesLoader
 from st2actions.container.base import get_runner_container
 
 TEST_FIXTURES = {
-    'runners': ['run-local.yaml', 'testrunner1.yaml', 'testfailingrunner1.yaml',
-                'testasyncrunner1.yaml'],
-    'actions': ['local.yaml', 'action1.yaml', 'async_action1.yaml', 'action-invalid-runner.yaml']
+    'runners': [
+        'run-local.yaml',
+        'testrunner1.yaml',
+        'testfailingrunner1.yaml',
+        'testasyncrunner1.yaml',
+        'testasyncrunner2.yaml'
+    ],
+    'actions': [
+        'local.yaml',
+        'action1.yaml',
+        'async_action1.yaml',
+        'async_action2.yaml',
+        'action-invalid-runner.yaml'
+    ]
 }
 
 FIXTURES_PACK = 'generic'
 
-NON_UTF8_RESULT = {'stderr': '', 'stdout': '\x82\n', 'succeeded': True, 'failed': False,
-                   'return_code': 0}
+NON_UTF8_RESULT = {
+    'stderr': '',
+    'stdout': '\x82\n',
+    'succeeded': True,
+    'failed': False,
+    'return_code': 0
+}
 
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
@@ -74,6 +90,7 @@ class RunnerContainerTest(DbTestCase):
         RunnerContainerTest.action_db = models['actions']['action1.yaml']
         RunnerContainerTest.local_action_db = models['actions']['local.yaml']
         RunnerContainerTest.async_action_db = models['actions']['async_action1.yaml']
+        RunnerContainerTest.polling_async_action_db = models['actions']['async_action2.yaml']
         RunnerContainerTest.failingaction_db = models['actions']['action-invalid-runner.yaml']
 
     @classmethod
@@ -327,27 +344,56 @@ class RunnerContainerTest(DbTestCase):
         self.assertTrue(result.get('action_params').get('actionint') == 20)
         self.assertTrue(result.get('action_params').get('actionstr') == 'foo')
 
-    def test_state_db_creation_async_actions(self):
+    def test_state_db_created_for_polling_async_actions(self):
         runner_container = get_runner_container()
+
         params = {
             'actionstr': 'foo',
             'actionint': 20,
             'async_test': True
         }
-        liveaction_db = self._get_liveaction_model(RunnerContainerTest.async_action_db, params)
+
+        liveaction_db = self._get_liveaction_model(
+            RunnerContainerTest.polling_async_action_db,
+            params
+        )
+
         liveaction_db = LiveAction.add_or_update(liveaction_db)
         executions.create_execution_object(liveaction_db)
+
         # Assert that execution ran without exceptions.
         runner_container.dispatch(liveaction_db)
         states = ActionExecutionState.get_all()
+        found = [state for state in states if state.execution_id == liveaction_db.id]
 
-        found = None
-        for state in states:
-            if state.execution_id == liveaction_db.id:
-                found = state
-        self.assertTrue(found is not None, 'There should be a state db object.')
-        self.assertTrue(found.query_context is not None)
-        self.assertTrue(found.query_module is not None)
+        self.assertTrue(len(found) > 0, 'There should be a state db object.')
+        self.assertTrue(len(found) == 1, 'There should only be one state db object.')
+        self.assertTrue(found[0].query_context is not None)
+        self.assertTrue(found[0].query_module is not None)
+
+    def test_state_db_not_created_for_async_actions(self):
+        runner_container = get_runner_container()
+
+        params = {
+            'actionstr': 'foo',
+            'actionint': 20,
+            'async_test': True
+        }
+
+        liveaction_db = self._get_liveaction_model(
+            RunnerContainerTest.async_action_db,
+            params
+        )
+
+        liveaction_db = LiveAction.add_or_update(liveaction_db)
+        executions.create_execution_object(liveaction_db)
+
+        # Assert that execution ran without exceptions.
+        runner_container.dispatch(liveaction_db)
+        states = ActionExecutionState.get_all()
+        found = [state for state in states if state.execution_id == liveaction_db.id]
+
+        self.assertTrue(len(found) == 0, 'There should not be a state db object.')
 
     def _get_liveaction_model(self, action_db, params):
         status = action_constants.LIVEACTION_STATUS_REQUESTED
