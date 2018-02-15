@@ -204,7 +204,18 @@ def register_runner(package_name, module_name):
 
     if not RUNNER_MODULES_CACHE.get(package_name, {}).get(module_name, None):
         LOG.info('Loading runner module from "%s".', module_path)
-        RUNNER_MODULES_CACHE[package_name][module_name] = imp.load_source(module_name, module_path)
+
+        # Make sure all the runner packages are in PYTHONPATH
+        # Note: This won't be needed anymore when we modify this code so it also works under
+        # Python 3 and move away from imp.load_source
+        package_directory = os.path.abspath(os.path.join(os.path.dirname(module_path), '../'))
+
+        if os.path.isdir(package_directory) and package_directory not in sys.path:
+            LOG.debug('Adding runner package directory "%s" to PYTHONPATH' % (package_directory))
+            sys.path.append(package_directory)
+
+        load_name = '%s.%s' % (package_name, module_name)
+        RUNNER_MODULES_CACHE[package_name][module_name] = imp.load_source(load_name, module_path)
     else:
         LOG.info('Reusing runner module "%s" from cache.', module_path)
 
