@@ -273,6 +273,8 @@ requirements: virtualenv .sdist-requirements
 	$(VIRTUALENV_DIR)/bin/pip install "prance==0.6.1"
 
 .PHONY: virtualenv
+	# Note: We always want to update virtualenv/bin/activate file to make sure
+	# PYTHONPATH is up to date and to avoid caching issues on Travis
 virtualenv:
 	@echo
 	@echo "==================== virtualenv ===================="
