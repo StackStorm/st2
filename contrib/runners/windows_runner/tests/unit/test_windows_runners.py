@@ -177,7 +177,7 @@ class WindowsRunnerTestCase(TestCase):
         self.assertEqual(result['path'], 'C:\\')
         self.assertEqual(result['users'], None)
 
-    @mock.patch('windows_script_runner.windows_script_runner.run_command')
+    @mock.patch('windows_runner.windows_script_runner.run_command')
     def test_get_share_absolute_path(self, mock_run_command):
         runner = self._get_script_runner()
 
