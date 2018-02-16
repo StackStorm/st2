@@ -446,3 +446,17 @@ class ActionCommandTestCase(base.BaseCLITestCase):
         expected = {'action': 'mockety.mock2', 'user': None,
                     'parameters': {'key': 'foo=bar&ponies=unicorns'}}
         httpclient.HTTPClient.post.assert_called_with('/executions', expected)
+
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_ref_or_id',
+        mock.MagicMock(side_effect=get_by_ref))
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_name',
+        mock.MagicMock(side_effect=get_by_name))
+    @mock.patch.object(
+        httpclient.HTTPClient, 'put',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
+    def test_pause_single_execution(self):
+        self.shell.run(['execution', 'pause', '123'])
+        expected = {'status': 'pausing'}
+        httpclient.HTTPClient.post.assert_called_with('/executions/123', expected)

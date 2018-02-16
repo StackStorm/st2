@@ -1335,8 +1335,8 @@ class ActionExecutionPauseCommand(ActionRunCommandMixin, ActionExecutionReadComm
             resource.get_plural_display_name().lower(),
             *args, **kwargs)
 
-        self.parser.add_argument('id', nargs='+',
-                                 metavar='id',
+        self.parser.add_argument('ids',
+                                 nargs='+',
                                  help='ID of action execution to pause.')
 
         self._add_common_options()
@@ -1344,9 +1344,13 @@ class ActionExecutionPauseCommand(ActionRunCommandMixin, ActionExecutionReadComm
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         responses = []
-        for execution_id in args.id:
-            response = self.manager.pause(execution_id)
-            responses.append([execution_id, response])
+        for execution_id in args.ids:
+            try:
+                response = self.manager.pause(execution_id)
+                responses.append([execution_id, response])
+            except resource.ResourceNotFoundError:
+                self.print_not_found(args.ids)
+                raise ResourceNotFoundError('Execution with id %s not found.' % (execution_id))
 
         return responses
 
@@ -1358,13 +1362,9 @@ class ActionExecutionPauseCommand(ActionRunCommandMixin, ActionExecutionReadComm
             self._print_result(args, execution_id, response, **kwargs)
 
     def _print_result(self, args, execution_id, execution, **kwargs):
-        try:
-            if not args.json and not args.yaml:
-                # Include elapsed time for running executions
-                execution = format_execution_status(execution)
-        except resource.ResourceNotFoundError:
-            self.print_not_found(args.id)
-            raise ResourceNotFoundError('Execution with id %s not found.' % (execution_id))
+        if not args.json and not args.yaml:
+            # Include elapsed time for running executions
+            execution = format_execution_status(execution)
         return self._print_execution_details(execution=execution, args=args, **kwargs)
 
 
@@ -1378,8 +1378,8 @@ class ActionExecutionResumeCommand(ActionRunCommandMixin, ActionExecutionReadCom
             resource.get_plural_display_name().lower(),
             *args, **kwargs)
 
-        self.parser.add_argument('id', nargs='+',
-                                 metavar='id',
+        self.parser.add_argument('ids',
+                                 nargs='+',
                                  help='ID of action execution to resume.')
 
         self._add_common_options()
@@ -1387,9 +1387,13 @@ class ActionExecutionResumeCommand(ActionRunCommandMixin, ActionExecutionReadCom
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         responses = []
-        for execution_id in args.id:
-            response = self.manager.resume(execution_id)
-            responses.append([execution_id, response])
+        for execution_id in args.ids:
+            try:
+                response = self.manager.resume(execution_id)
+                responses.append([execution_id, response])
+            except resource.ResourceNotFoundError:
+                self.print_not_found(execution_id)
+                raise ResourceNotFoundError('Execution with id %s not found.' % (execution_id))
 
         return responses
 
@@ -1398,16 +1402,12 @@ class ActionExecutionResumeCommand(ActionRunCommandMixin, ActionExecutionReadCom
         responses = self.run(args, **kwargs)
 
         for execution_id, response in responses:
-            self._print_result(args, execution_id, response, **kwargs)
+            self._print_result(args, response, **kwargs)
 
-    def _print_result(self, args, execution_id, execution, **kwargs):
-        try:
-            if not args.json and not args.yaml:
-                # Include elapsed time for running executions
-                execution = format_execution_status(execution)
-        except resource.ResourceNotFoundError:
-            self.print_not_found(args.id)
-            raise ResourceNotFoundError('Execution with id %s not found.' % (execution_id))
+    def _print_result(self, args, execution, **kwargs):
+        if not args.json and not args.yaml:
+            # Include elapsed time for running executions
+            execution = format_execution_status(execution)
         return self._print_execution_details(execution=execution, args=args, **kwargs)
 
 
