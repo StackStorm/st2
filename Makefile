@@ -288,7 +288,8 @@ virtualenv:
 	sed -i '/export PYTHONPATH/d' $(VIRTUALENV_DIR)/bin/activate
 
 	echo '_OLD_PYTHONPATH=$$PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate
-	echo 'PYTHONPATH=$$_OLD_PYTHONPATH:$(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_DIR)/bin/activate
+	#echo 'PYTHONPATH=$$_OLD_PYTHONPATH:$(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_DIR)/bin/activate
+	echo 'PYTHONPATH=${ROOT_DIR}:$(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_DIR)/bin/activate
 	echo 'export PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate
 	touch $(VIRTUALENV_DIR)/bin/activate
 
@@ -305,7 +306,7 @@ virtualenv:
 	#echo '  old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
 	#echo '  functions -e old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
 	#echo 'end' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	touch $(VIRTUALENV_DIR)/bin/activate.fish
+	#touch $(VIRTUALENV_DIR)/bin/activate.fish
 
 .PHONY: tests
 tests: pytests
