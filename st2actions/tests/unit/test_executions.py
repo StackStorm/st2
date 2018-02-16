@@ -22,8 +22,6 @@ import mock
 import st2tests.config as tests_config
 tests_config.parse_args()
 
-import local_runner
-import action_chain_runner
 import st2common.bootstrap.runnersregistrar as runners_registrar
 from st2common.constants import action as action_constants
 from st2common.models.db.liveaction import LiveActionDB
@@ -43,6 +41,11 @@ from st2common.transport.publishers import CUDPublisher
 import st2common.util.action_db as action_utils
 from st2common.util import reference
 from st2reactor.rules.enforcer import RuleEnforcer
+
+from action_chain_runner import action_chain_runner
+from local_runner import local_shell_command_runner as local_runner
+from local_runner.local_shell_command_runner import LocalShellCommandRunner
+
 from st2tests.fixtures.packs import executions as fixture
 from st2tests import DbTestCase
 from st2tests.mocks.liveaction import MockLiveActionPublisher
@@ -51,7 +54,7 @@ from st2tests.mocks.liveaction import MockLiveActionPublisher
 MOCK_FAIL_EXECUTION_CREATE = False
 
 
-@mock.patch.object(local_runner.LocalShellRunner, 'run',
+@mock.patch.object(LocalShellCommandRunner, 'run',
                    mock.MagicMock(return_value=(action_constants.LIVEACTION_STATUS_FAILED,
                                                 'Non-empty', None)))
 @mock.patch('st2common.runners.base.register_runner',

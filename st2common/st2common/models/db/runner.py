@@ -51,6 +51,10 @@ class RunnerTypeDB(stormbase.StormBaseDB, stormbase.UIDFieldMixin):
     enabled = me.BooleanField(
         required=True, default=True,
         help_text='A flag indicating whether the runner for this type is enabled.')
+    runner_package = me.StringField(
+        required=False,
+        help_text=('The python package that implements the action runner for this type. If'
+                   'not provided it assumes package name equals module name.'))
     runner_module = me.StringField(
         required=True,
         help_text='The python module that implements the action runner for this type.')

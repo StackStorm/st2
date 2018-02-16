@@ -21,7 +21,6 @@ from oslo_config import cfg
 
 from st2common.constants import action as action_constants
 from st2common.runners.base import get_runner
-import local_runner
 from st2common.exceptions.actionrunner import ActionRunnerCreateError, ActionRunnerDispatchError
 from st2common.models.system.common import ResourceReference
 from st2common.models.db.liveaction import LiveActionDB
@@ -31,6 +30,10 @@ from st2common.persistence.executionstate import ActionExecutionState
 from st2common.services import executions
 from st2common.util import date as date_utils
 from st2common.transport.publishers import PoolPublisher
+
+from local_runner import local_shell_command_runner
+from local_runner.local_shell_command_runner import LocalShellCommandRunner
+
 from st2tests.base import DbTestCase
 import st2tests.config as tests_config
 tests_config.parse_args()
@@ -81,12 +84,12 @@ class RunnerContainerTest(DbTestCase):
 
     def test_get_runner_module(self):
         runnertype_db = RunnerContainerTest.runnertype_db
-        runner = get_runner(runnertype_db.runner_module)
+        runner = get_runner(runnertype_db.runner_module, runnertype_db.runner_module)
         self.assertTrue(runner is not None, 'TestRunner must be valid.')
 
     def test_pre_run_runner_is_disabled(self):
         runnertype_db = RunnerContainerTest.runnertype_db
-        runner = get_runner(runnertype_db.runner_module)
+        runner = get_runner(runnertype_db.runner_module, runnertype_db.runner_module)
 
         runner.runner_type_db = runnertype_db
         runner.runner_type_db.enabled = False
@@ -228,7 +231,7 @@ class RunnerContainerTest(DbTestCase):
         runnertype_db = RunnerTypeDB(name='dummy', runner_module='absent.module')
         runner = None
         try:
-            runner = get_runner(runnertype_db.runner_module)
+            runner = get_runner(runnertype_db.runner_module, runnertype_db.runner_module)
         except ActionRunnerCreateError:
             pass
         self.assertFalse(runner, 'TestRunner must be valid.')
@@ -275,10 +278,10 @@ class RunnerContainerTest(DbTestCase):
             liveaction_db
         )
 
-    @mock.patch.object(local_runner.LocalShellRunner, 'run', mock.MagicMock(
+    @mock.patch.object(LocalShellCommandRunner, 'run', mock.MagicMock(
         return_value=(action_constants.LIVEACTION_STATUS_SUCCEEDED, NON_UTF8_RESULT, None)))
     @mock.patch('st2common.runners.base.register_runner',
-                mock.MagicMock(return_value=local_runner))
+                mock.MagicMock(return_value=local_shell_command_runner))
     def test_dispatch_non_utf8_result(self):
         runner_container = get_runner_container()
         params = {
