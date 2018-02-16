@@ -26,6 +26,11 @@ Changed
 Fixed
 ~~~~~
 
+* Fix ``Argument list too long`` error when very large parameters are passed into the python
+  wrapper arguments. The fix utilizes ``stdin`` to pass parameters instead of cli argument
+  list.
+  (bug fix) #1598
+
 * Fix a regression in ``POST /v1/webhooks/<webhook name>`` API endpoint introduced in v2.4.0
   and add back support for arrays. In 2.4.0 support for arrays was inadvertently removed and
   only objects were supported. Keep in mind that this only applies to custom user-defined

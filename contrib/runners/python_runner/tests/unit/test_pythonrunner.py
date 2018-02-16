@@ -29,6 +29,7 @@ from st2common.services import config as config_service
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
+from st2common.constants.action import MAX_PARAM_LENGTH
 from st2common.constants.pack import SYSTEM_PACK_NAME
 from st2common.persistence.execution import ActionExecutionOutput
 from st2tests.base import RunnerTestCase
@@ -40,6 +41,8 @@ import st2tests.base as tests_base
 
 PASCAL_ROW_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
                                       'pythonactions/actions/pascal_row.py')
+ECHOER_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
+                                  'pythonactions/actions/echoer.py')
 TEST_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
                                 'pythonactions/actions/test.py')
 PATHS_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
@@ -684,6 +687,30 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertTrue(expected_msg_3 in output['stderr'])
         self.assertTrue(expected_msg_4 not in output['stderr'])
         self.assertTrue(expected_msg_5 in output['stderr'])
+
+    def test_execution_with_very_large_parameter(self):
+        runner = self._get_mock_runner_obj()
+        runner.entry_point = ECHOER_ACTION_PATH
+        runner.pre_run()
+        large_value = ''.join(['1' for _ in range(MAX_PARAM_LENGTH)])
+        (status, output, _) = runner.run({'action_input': large_value})
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+        self.assertTrue(output is not None)
+        self.assertEqual(output['result']['action_input'], large_value)
+
+    def test_execution_with_close_to_very_large_parameter(self):
+        runner = self._get_mock_runner_obj()
+        runner.entry_point = ECHOER_ACTION_PATH
+        runner.pre_run()
+        # 21 is the minimum overhead required to make the param fall back to
+        # param based payload. The linux max includes all parts of the param
+        # not just the value portion. So we need to subtract the remaining
+        # overhead from the initial padding.
+        large_value = ''.join(['1' for _ in range(MAX_PARAM_LENGTH - 21)])
+        (status, output, _) = runner.run({'action_input': large_value})
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+        self.assertTrue(output is not None)
+        self.assertEqual(output['result']['action_input'], large_value)
 
     def _get_mock_runner_obj(self):
         runner = python_runner.get_runner()
