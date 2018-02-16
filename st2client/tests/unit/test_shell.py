@@ -219,7 +219,7 @@ class TestShell(base.BaseCLITestCase):
             ['execution', 're-run', '123', '--tasks', 'x', 'y', 'z', '--no-reset', 'x'],
             ['execution', 're-run', '123', 'a=1', 'b=x', 'c=True'],
             ['execution', 'cancel', '123'],
-            ['execution', 'cancel', '123', '456']
+            ['execution', 'cancel', '123', '456'],
             ['execution', 'pause', '123'],
             ['execution', 'pause', '123', '456'],
             ['execution', 'resume', '123'],
