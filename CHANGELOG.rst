@@ -10,17 +10,14 @@ Added
 * Update ``st2 execution tail`` command so it supports double nested workflows (workflow ->
   workflow -> execution). Previously, only top-level executions and single nested workflows
   (workflow -> execution) were supported. (improvement) #3962 #3960
-* Add support for utf-8 / unicode characters in the pack config files. (improvement) #3980 #3989
-
-  Contributed by @sumkire.
-
-Changed
-~~~~~~~
-
-* Modified RabbitMQ connection error message to make clear that it is an MQ connection issue. #3992
 
 Fixed
 ~~~~~
+
+* Fix ``Argument list too long`` error when very large parameters are passed into the python
+  wrapper arguments. The fix utilizes ``stdin`` to pass parameters instead of cli argument
+  list.
+  (bug fix) #1598
 
 * Fix a regression in ``POST /v1/webhooks/<webhook name>`` API endpoint introduced in v2.4.0
   and add back support for arrays. In 2.4.0 support for arrays was inadvertently removed and
