@@ -18,6 +18,10 @@ Changed
 ~~~~~~~
 
 * Modified RabbitMQ connection error message to make clear that it is an MQ connection issue. #3992
+* Additional refactor which makes action runners fully standalone and re-distributable Python
+  packages. Also add support for multiple runners (runner modules) inside a single Python package
+  and consolidate Python packages from two to one for the following runners: local runners, remote
+  runners, windows runners. #3999
 
 Fixed
 ~~~~~
@@ -944,7 +948,6 @@ Added
   ``True``. However, to access remote hosts, action parameters like username and
   password/private_key, if provided with action, will have precedence over the config file
   entry for the host. #2941 #3032 #3058 [Eric Edgar] (improvement)
-
 
 Changed
 ~~~~~~~

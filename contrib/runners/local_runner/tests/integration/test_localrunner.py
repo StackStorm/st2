@@ -35,7 +35,10 @@ from st2tests.base import RunnerTestCase
 from st2tests.base import CleanDbTestCase
 from st2tests.base import blocking_eventlet_spawn
 from st2tests.base import make_mock_stream_readline
-from local_runner import local_runner
+
+from local_runner import base as local_runner
+from local_runner.local_shell_command_runner import LocalShellCommandRunner
+from local_runner.local_shell_script_runner import LocalShellScriptRunner
 
 __all__ = [
     'LocalShellCommandRunnerTestCase',
@@ -88,19 +91,6 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(output_dbs[0].output_type, 'stdout')
         self.assertEqual(output_dbs[0].data, '10\n')
 
-    def test_shell_script_action(self):
-        models = self.fixtures_loader.load_models(
-            fixtures_pack='localrunner_pack', fixtures_dict={'actions': ['text_gen.yml']})
-        action_db = models['actions']['text_gen.yml']
-        entry_point = self.fixtures_loader.get_fixture_file_path_abs(
-            'localrunner_pack', 'actions', 'text_gen.py')
-        runner = self._get_runner(action_db, entry_point=entry_point)
-        runner.pre_run()
-        status, result, _ = runner.run({'chars': 1000})
-        runner.post_run(status, result)
-        self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
-        self.assertEquals(len(result['stdout']), 1000)
-
     def test_timeout(self):
         models = self.fixtures_loader.load_models(
             fixtures_pack='generic', fixtures_dict={'actions': ['local.yaml']})
@@ -123,20 +113,6 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         status, result, _ = runner.run({})
         self.assertEquals(status, action_constants.LIVEACTION_STATUS_ABANDONED)
-
-    def test_large_stdout(self):
-        models = self.fixtures_loader.load_models(
-            fixtures_pack='localrunner_pack', fixtures_dict={'actions': ['text_gen.yml']})
-        action_db = models['actions']['text_gen.yml']
-        entry_point = self.fixtures_loader.get_fixture_file_path_abs(
-            'localrunner_pack', 'actions', 'text_gen.py')
-        runner = self._get_runner(action_db, entry_point=entry_point)
-        runner.pre_run()
-        char_count = 10 ** 6  # Note 10^7 succeeds but ends up being slow.
-        status, result, _ = runner.run({'chars': char_count})
-        runner.post_run(status, result)
-        self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
-        self.assertEquals(len(result['stdout']), char_count)
 
     def test_common_st2_env_vars_are_available_to_the_action(self):
         models = self.fixtures_loader.load_models(
@@ -408,7 +384,7 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
                     timeout=LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT,
                     sudo=False,
                     env=None):
-        runner = local_runner.LocalShellRunner(uuid.uuid4().hex)
+        runner = LocalShellCommandRunner(uuid.uuid4().hex)
         runner.execution = MOCK_EXECUTION
         runner.action = action_db
         runner.action_name = action_db.name
@@ -608,8 +584,35 @@ class LocalShellScriptRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(output_dbs[1].data, mock_stderr[1])
         self.assertEqual(output_dbs[2].data, mock_stderr[2])
 
+    def test_shell_script_action(self):
+        models = self.fixtures_loader.load_models(
+            fixtures_pack='localrunner_pack', fixtures_dict={'actions': ['text_gen.yml']})
+        action_db = models['actions']['text_gen.yml']
+        entry_point = self.fixtures_loader.get_fixture_file_path_abs(
+            'localrunner_pack', 'actions', 'text_gen.py')
+        runner = self._get_runner(action_db, entry_point=entry_point)
+        runner.pre_run()
+        status, result, _ = runner.run({'chars': 1000})
+        runner.post_run(status, result)
+        self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEquals(len(result['stdout']), 1000)
+
+    def test_large_stdout(self):
+        models = self.fixtures_loader.load_models(
+            fixtures_pack='localrunner_pack', fixtures_dict={'actions': ['text_gen.yml']})
+        action_db = models['actions']['text_gen.yml']
+        entry_point = self.fixtures_loader.get_fixture_file_path_abs(
+            'localrunner_pack', 'actions', 'text_gen.py')
+        runner = self._get_runner(action_db, entry_point=entry_point)
+        runner.pre_run()
+        char_count = 10 ** 6  # Note 10^7 succeeds but ends up being slow.
+        status, result, _ = runner.run({'chars': char_count})
+        runner.post_run(status, result)
+        self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEquals(len(result['stdout']), char_count)
+
     def _get_runner(self, action_db, entry_point):
-        runner = local_runner.LocalShellRunner(uuid.uuid4().hex)
+        runner = LocalShellScriptRunner(uuid.uuid4().hex)
         runner.execution = MOCK_EXECUTION
         runner.action = action_db
         runner.action_name = action_db.name

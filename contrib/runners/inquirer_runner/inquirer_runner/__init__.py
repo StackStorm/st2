@@ -13,10 +13,3 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-# Note: This is here for backward compatibility - in the past, runners were single module
-# packages, but now they are full blown Python packages.
-# This means you can either do "from runner_name import RunnerClass" (old way, don't do that)
-# or "from runner_name.runner_name import RunnerClass"
-from __future__ import absolute_import
-from .inquirer_runner import *  # noqa
