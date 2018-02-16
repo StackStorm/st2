@@ -454,9 +454,86 @@ class ActionCommandTestCase(base.BaseCLITestCase):
         models.ResourceManager, 'get_by_name',
         mock.MagicMock(side_effect=get_by_name))
     @mock.patch.object(
+        httpclient.HTTPClient, 'delete',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
+    def test_cancel_single_execution(self):
+        self.shell.run(['execution', 'cancel', '123'])
+        httpclient.HTTPClient.delete.assert_called_with('/executions/123')
+
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_ref_or_id',
+        mock.MagicMock(side_effect=get_by_ref))
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_name',
+        mock.MagicMock(side_effect=get_by_name))
+    @mock.patch.object(
+        httpclient.HTTPClient, 'delete',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
+    def test_cancel_multiple_executions(self):
+        self.shell.run(['execution', 'cancel', '123', '456', '789'])
+        calls = [mock.call('/executions/123'),
+                 mock.call('/executions/456'),
+                 mock.call('/executions/789')]
+        httpclient.HTTPClient.delete.assert_has_calls(calls)
+
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_ref_or_id',
+        mock.MagicMock(side_effect=get_by_ref))
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_name',
+        mock.MagicMock(side_effect=get_by_name))
+    @mock.patch.object(
         httpclient.HTTPClient, 'put',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
     def test_pause_single_execution(self):
         self.shell.run(['execution', 'pause', '123'])
         expected = {'status': 'pausing'}
-        httpclient.HTTPClient.post.assert_called_with('/executions/123', expected)
+        httpclient.HTTPClient.put.assert_called_with('/executions/123', expected)
+
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_ref_or_id',
+        mock.MagicMock(side_effect=get_by_ref))
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_name',
+        mock.MagicMock(side_effect=get_by_name))
+    @mock.patch.object(
+        httpclient.HTTPClient, 'put',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
+    def test_pause_multiple_executions(self):
+        self.shell.run(['execution', 'pause', '123', '456', '789'])
+        expected = {'status': 'pausing'}
+        calls = [mock.call('/executions/123', expected),
+                 mock.call('/executions/456', expected),
+                 mock.call('/executions/789', expected)]
+        httpclient.HTTPClient.put.assert_has_calls(calls)
+
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_ref_or_id',
+        mock.MagicMock(side_effect=get_by_ref))
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_name',
+        mock.MagicMock(side_effect=get_by_name))
+    @mock.patch.object(
+        httpclient.HTTPClient, 'put',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
+    def test_resume_single_execution(self):
+        self.shell.run(['execution', 'resume', '123'])
+        expected = {'status': 'resuming'}
+        httpclient.HTTPClient.put.assert_called_with('/executions/123', expected)
+
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_ref_or_id',
+        mock.MagicMock(side_effect=get_by_ref))
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_name',
+        mock.MagicMock(side_effect=get_by_name))
+    @mock.patch.object(
+        httpclient.HTTPClient, 'put',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
+    def test_resume_multiple_executions(self):
+        self.shell.run(['execution', 'resume', '123', '456', '789'])
+        expected = {'status': 'resuming'}
+        calls = [mock.call('/executions/123', expected),
+                 mock.call('/executions/456', expected),
+                 mock.call('/executions/789', expected)]
+        httpclient.HTTPClient.put.assert_has_calls(calls)
