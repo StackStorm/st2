@@ -30,9 +30,9 @@ install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
 
 apply_vagrant_workaround()
 setup(
-    name='stackstorm-runner-local',
+    name='stackstorm-runner-windows',
     version='2.5.0',
-    description=('Local Shell Command and Script action runner for StackStorm event-driven '
+    description=('Windows command and script action runner for StackStorm event-driven '
                  'automation platform'),
     author='StackStorm',
     author_email='info@stackstorm.com',
@@ -44,12 +44,12 @@ setup(
     zip_safe=False,
     include_package_data=True,
     packages=find_packages(exclude=['setuptools', 'tests']),
-    package_data={'local_runner': ['runner.yaml']},
+    package_data={'windows_runner': ['runner.yaml']},
     scripts=[],
     entry_points={
         'st2common.runners.runner': [
-            'local-shell-cmd = local_runner.local_shell_command_runner',
-            'local-shell-script = local_runner.local_shell_script_runner',
+            'windows-cmd = windows_runner.windows_command_runner',
+            'windows-script = windows_runner.windows_script_runner',
         ],
     }
 )

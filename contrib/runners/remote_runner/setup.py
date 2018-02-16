@@ -30,9 +30,9 @@ install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
 
 apply_vagrant_workaround()
 setup(
-    name='stackstorm-runner-local',
+    name='stackstorm-runner-remote',
     version='2.5.0',
-    description=('Local Shell Command and Script action runner for StackStorm event-driven '
+    description=('Remote SSH shell command and script action runner for StackStorm event-driven '
                  'automation platform'),
     author='StackStorm',
     author_email='info@stackstorm.com',
@@ -44,12 +44,12 @@ setup(
     zip_safe=False,
     include_package_data=True,
     packages=find_packages(exclude=['setuptools', 'tests']),
-    package_data={'local_runner': ['runner.yaml']},
+    package_data={'remote_command_runner': ['runner.yaml']},
     scripts=[],
     entry_points={
         'st2common.runners.runner': [
-            'local-shell-cmd = local_runner.local_shell_command_runner',
-            'local-shell-script = local_runner.local_shell_script_runner',
+            'remote-shell-cmd = remote_runner.remote_command_runner',
+            'remote-shell-script = remote_runner.remote_script_runner',
         ],
     }
 )

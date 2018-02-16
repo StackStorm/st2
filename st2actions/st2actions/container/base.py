@@ -338,7 +338,9 @@ class RunnerContainer(object):
         else:
             config = None
 
-        runner = get_runner(module_name=runnertype_db.runner_module, config=config)
+        runner = get_runner(package_name=runnertype_db.runner_package,
+                            module_name=runnertype_db.runner_module,
+                            config=config)
 
         # TODO: Pass those arguments to the constructor instead of late
         # assignment, late assignment is awful

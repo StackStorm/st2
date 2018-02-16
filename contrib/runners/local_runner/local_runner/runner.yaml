@@ -3,7 +3,8 @@
   enabled: true
   name: local-shell-cmd
   description: A runner to execute local actions as a fixed user.
-  runner_module: local_runner
+  runner_package: local_runner
+  runner_module: local_shell_command_runner
   runner_parameters:
     cmd:
       description: Arbitrary Linux command to be executed on the host.
@@ -39,7 +40,8 @@
   description: A runner to execute local actions as a fixed user.
   enabled: true
   name: local-shell-script
-  runner_module: local_runner
+  runner_package: local_runner
+  runner_module: local_shell_script_runner
   runner_parameters:
     content_version:
       description: Git revision of the pack content to use for this action execution (git commit sha / tag / branch). Only applies to packs which are git repositories.
