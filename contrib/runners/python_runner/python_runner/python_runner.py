@@ -159,6 +159,10 @@ class PythonRunner(ActionRunner):
             # We only pass --log-level parameter if non default log level value is specified
             args.append('--log-level=%s' % (self._log_level))
 
+        if cfg.CONF.metrics.enable:
+            LOG.debug("Enabling metrics for wrapper")
+            args.append('--metrics')
+
         # We need to ensure all the st2 dependencies are also available to the
         # subprocess
         LOG.debug('Setting env.')

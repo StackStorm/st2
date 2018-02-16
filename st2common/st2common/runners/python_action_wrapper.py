@@ -122,7 +122,7 @@ class ActionService(object):
 
 class PythonActionWrapper(object):
     def __init__(self, pack, file_path, config=None, parameters=None, user=None, parent_args=None,
-                 log_level=PYTHON_RUNNER_DEFAULT_LOG_LEVEL):
+                 log_level=PYTHON_RUNNER_DEFAULT_LOG_LEVEL, metrics=False):
         """
         :param pack: Name of the pack this action belongs to.
         :type pack: ``str``
@@ -150,6 +150,7 @@ class PythonActionWrapper(object):
         self._user = user
         self._parent_args = parent_args or []
         self._log_level = log_level
+        self._metrics = None
 
         self._class_name = None
         self._logger = logging.getLogger('PythonActionWrapper')
@@ -162,12 +163,16 @@ class PythonActionWrapper(object):
 
         # Note: We can only set a default user value if one is not provided after parsing the
         # config
-        if not self._user:
+        if not self._user or metrics:
             # Note: We use late import to avoid performance overhead
             from oslo_config import cfg
+            from st2common.metrics.metrics import METRICS
+            self._metrics = METRICS
             self._user = cfg.CONF.system_user.user
 
     def run(self):
+        if self._metrics:
+            self._metrics.inc_counter("python_actions_in_progress")
         action = self._get_action_instance()
         output = action.run(**self._parameters)
 
@@ -211,6 +216,8 @@ class PythonActionWrapper(object):
         sys.stdout.write(print_output + '\n')
         sys.stdout.write(ACTION_OUTPUT_RESULT_DELIMITER)
         sys.stdout.flush()
+        if self._metrics:
+            self._metrics.dec_counter("python_actions_in_progress")
 
     def _get_action_instance(self):
         try:
@@ -258,6 +265,8 @@ if __name__ == '__main__':
                              ' JSON')
     parser.add_argument('--log-level', required=False, default=PYTHON_RUNNER_DEFAULT_LOG_LEVEL,
                         help='Log level for actions')
+    parser.add_argument('--metrics', required=False, action='store_true',
+                        help='Enable metrics')
     args = parser.parse_args()
 
     config = json.loads(args.config) if args.config else {}
@@ -274,6 +283,7 @@ if __name__ == '__main__':
                               parameters=parameters,
                               user=user,
                               parent_args=parent_args,
-                              log_level=log_level)
+                              log_level=log_level,
+                              metrics=args.metrics)
 
     obj.run()

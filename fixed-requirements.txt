@@ -42,3 +42,5 @@ routes==2.4.1
 flex==6.11.1
 webob==1.7.3
 prance==0.6.1
+prometheus_client==0.1.1
+statsd==3.2.2
