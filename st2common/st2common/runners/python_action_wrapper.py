@@ -294,7 +294,7 @@ if __name__ == '__main__':
 
         try:
             stdin_parameters = json.loads(stdin_data)
-            stdin_parameters = stdin_parameters['parameters']
+            stdin_parameters = stdin_parameters.get('parameters', {})
         except Exception as e:
             msg = ('Failed to parse parameters from stdin. Expected a JSON object with '
                    '"parameters" attribute: %s' % (str(e)))
