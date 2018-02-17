@@ -14,9 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 import sys
-from six.moves import input
+import select
 
 # Note: This work-around is required to fix the issue with other Python modules which live
 # inside this directory polluting and masking sys.path for Python runner actions.
@@ -62,6 +63,10 @@ either:
 
 For more information, please see: https://docs.stackstorm.com/upgrade_notes.html#st2-v1-6
 """.strip()
+
+# How many seconds to wait for stdin input when parameters are passed in via stdin before
+# timing out
+READ_STDIN_INPUT_TIMEOUT = 2
 
 
 class ActionService(object):
@@ -278,7 +283,14 @@ if __name__ == '__main__':
 
     if args.stdin_parameters:
         LOG.debug('Getting parameters from stdin')
-        stdin_parameters = json.loads(input())
+
+        i, _, _ = select.select([sys.stdin], [], [], READ_STDIN_INPUT_TIMEOUT)
+
+        if not i:
+            raise ValueError(('No input received and timed out while waiting for '
+                              'parameters from stdin'))
+
+        stdin_parameters = json.loads(sys.stdin.readline().strip())
         stdin_parameters = stdin_parameters.get('parameters', {})
         parameters.update(stdin_parameters)
 
