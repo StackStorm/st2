@@ -290,8 +290,16 @@ if __name__ == '__main__':
             raise ValueError(('No input received and timed out while waiting for '
                               'parameters from stdin'))
 
-        stdin_parameters = json.loads(sys.stdin.readline().strip())
-        stdin_parameters = stdin_parameters.get('parameters', {})
+        stdin_data = sys.stdin.readline().strip()
+
+        try:
+            stdin_parameters = json.loads(stdin_data)
+            stdin_parameters = stdin_parameters.get('parameters', {})
+        except Exception as e:
+            msg = ('Failed to parse parameters from stdin. Expected a JSON object with '
+                   '"parameters" attribute: %s' % (str(e)))
+            raise ValueError(msg)
+
         parameters.update(stdin_parameters)
 
     LOG.debug('Received parameters: %s', parameters)
