@@ -14,10 +14,16 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 import sys
+import subprocess
 
 import unittest2
+import eventlet
+
+from st2common.util.monkey_patch import monkey_patch
+monkey_patch()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PACK_ACTIONS_DIR = os.path.join(BASE_DIR, '../../../contrib/packs/actions')
@@ -25,7 +31,15 @@ PACK_ACTIONS_DIR = os.path.abspath(PACK_ACTIONS_DIR)
 
 sys.path.insert(0, PACK_ACTIONS_DIR)
 
+# Work around to get tests to pass with eventlet >= 0.20.0
+sys.modules['select'] = eventlet.patcher.original('select')
+subprocess.select = eventlet.patcher.original('select')
+
 from pack_mgmt.download import DownloadGitRepoAction
+
+__all__ = [
+    'InstallPackTestCase'
+]
 
 
 class InstallPackTestCase(unittest2.TestCase):
