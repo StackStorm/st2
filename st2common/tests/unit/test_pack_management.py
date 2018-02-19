@@ -22,9 +22,6 @@ import subprocess
 import unittest2
 import eventlet
 
-from st2common.util.monkey_patch import monkey_patch
-monkey_patch()
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PACK_ACTIONS_DIR = os.path.join(BASE_DIR, '../../../contrib/packs/actions')
 PACK_ACTIONS_DIR = os.path.abspath(PACK_ACTIONS_DIR)
