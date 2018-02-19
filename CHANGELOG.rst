@@ -21,15 +21,13 @@ Changed
 * Additional refactor which makes action runners fully standalone and re-distributable Python
   packages. Also add support for multiple runners (runner modules) inside a single Python package
   and consolidate Python packages from two to one for the following runners: local runners, remote
-  runners, windows runners. #3999
+  runners, windows runners. (improvement) #3999
 
 Fixed
 ~~~~~
-
-* Fix ``Argument list too long`` error when very large parameters are passed into the python
-  wrapper arguments. The fix utilizes ``stdin`` to pass parameters instead of cli argument
-  list.
-  (bug fix) #1598
+* Fix Python runner actions and ``Argument list too long`` error when very large parameters are
+  passed into the action. The fix utilizes ``stdin`` to pass parameters to the Python action wrapper
+  process instead of CLI argument list. (bug fix) #1598 #3976
 
 * Fix a regression in ``POST /v1/webhooks/<webhook name>`` API endpoint introduced in v2.4.0
   and add back support for arrays. In 2.4.0 support for arrays was inadvertently removed and
