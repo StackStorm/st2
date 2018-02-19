@@ -28,10 +28,8 @@ PACK_ACTIONS_DIR = os.path.abspath(PACK_ACTIONS_DIR)
 
 sys.path.insert(0, PACK_ACTIONS_DIR)
 
-# Work around to get tests to pass with eventlet >= 0.20.0
-if 'nose' in sys.modules.keys():
-    sys.modules['select'] = eventlet.patcher.original('select')
-    subprocess.select = eventlet.patcher.original('select')
+from st2common.util.monkey_patch import use_select_poll_workaround
+use_select_poll_workaround()
 
 from pack_mgmt.download import DownloadGitRepoAction
 

@@ -16,10 +16,19 @@
 # limitations under the License.
 
 import os
+import sys
 import mock
 import shutil
 import tempfile
 import hashlib
+import subprocess
+
+import eventlet
+# Work around to get tests to pass with eventlet >= 0.20.0
+if 'nose' in sys.modules.keys():
+    sys.modules['select'] = eventlet.patcher.original('select')
+    subprocess.select = eventlet.patcher.original('select')
+
 
 from lockfile import LockFile
 from lockfile import LockTimeout
