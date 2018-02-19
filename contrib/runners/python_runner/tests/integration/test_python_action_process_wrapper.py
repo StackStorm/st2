@@ -57,7 +57,7 @@ re-organize code if possible.
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 WRAPPER_SCRIPT_PATH = os.path.join(BASE_DIR,
-                                   '../../../st2common/st2common/runners/python_action_wrapper.py')
+                                   '../../../python_runner/python_runner/python_action_wrapper.py')
 WRAPPER_SCRIPT_PATH = os.path.abspath(WRAPPER_SCRIPT_PATH)
 TIME_BINARY_PATH = find_executable('time')
 TIME_BINARY_AVAILABLE = TIME_BINARY_PATH is not None
@@ -107,7 +107,7 @@ class PythonRunnerActionWrapperProcessTestCase(unittest2.TestCase):
             parameters['param_foo_%s' % (index)] = 'some param value %s' % (index)
         parameters = json.dumps(parameters)
 
-        file_path = os.path.join(BASE_DIR, '../../../contrib/examples/actions/noop.py')
+        file_path = os.path.join(BASE_DIR, '../../../../examples/actions/noop.py')
 
         command_string = ('python %s --pack=dummy --file-path=%s --config=\'%s\' '
                           '--parameters=\'%s\'' %
@@ -118,7 +118,7 @@ class PythonRunnerActionWrapperProcessTestCase(unittest2.TestCase):
 
     def test_stdin_params_timeout_no_stdin_data_provided(self):
         config = {}
-        file_path = os.path.join(BASE_DIR, '../../../contrib/examples/actions/noop.py')
+        file_path = os.path.join(BASE_DIR, '../../../../examples/actions/noop.py')
 
         command_string = ('python %s --pack=dummy --file-path=%s --config=\'%s\' '
                           '--stdin-parameters' %
