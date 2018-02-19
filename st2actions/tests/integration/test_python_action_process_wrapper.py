@@ -115,3 +115,32 @@ class PythonRunnerActionWrapperProcessTestCase(unittest2.TestCase):
         exit_code, stdout, stderr = run_command(command_string, shell=True)
         self.assertEqual(exit_code, 0)
         self.assertTrue('"status"' in stdout)
+
+    def test_stdin_params_timeout_no_stdin_data_provided(self):
+        config = {}
+        file_path = os.path.join(BASE_DIR, '../../../contrib/examples/actions/noop.py')
+
+        command_string = ('python %s --pack=dummy --file-path=%s --config=\'%s\' '
+                          '--stdin-parameters' %
+                         (WRAPPER_SCRIPT_PATH, file_path, config))
+        exit_code, stdout, stderr = run_command(command_string, shell=True)
+
+        expected_msg = ('ValueError: No input received and timed out while waiting for parameters '
+                        'from stdin')
+        self.assertEqual(exit_code, 1)
+        self.assertTrue(expected_msg in stderr)
+
+    def test_stdin_params_invalid_format_friendly_error(self):
+        config = {}
+
+        file_path = os.path.join(BASE_DIR, '../../../contrib/examples/actions/noop.py')
+        # Not a valid JSON string
+        command_string = ('echo "invalid" | python %s --pack=dummy --file-path=%s --config=\'%s\' '
+                          '--stdin-parameters' %
+                         (WRAPPER_SCRIPT_PATH, file_path, config))
+        exit_code, stdout, stderr = run_command(command_string, shell=True)
+
+        expected_msg = ('ValueError: Failed to parse parameters from stdin. Expected a JSON '
+                        'object with "parameters" attribute: No JSON object could be decoded')
+        self.assertEqual(exit_code, 1)
+        self.assertTrue(expected_msg in stderr)

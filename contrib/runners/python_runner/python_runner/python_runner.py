@@ -47,6 +47,7 @@ from st2common.util.sandboxing import get_sandbox_path
 from st2common.util.sandboxing import get_sandbox_python_path
 from st2common.util.sandboxing import get_sandbox_python_binary_path
 from st2common.util.sandboxing import get_sandbox_virtualenv_path
+from st2common.util.shell import quote_unix
 from st2common.runners import python_action_wrapper
 from st2common.services.action import store_execution_output_data
 from st2common.runners.utils import make_read_and_store_stream_func
@@ -224,6 +225,9 @@ class PythonRunner(ActionRunner):
             action_db=self.action, store_data_func=store_execution_stderr_line)
 
         command_string = list2cmdline(args)
+        if stdin_params:
+            command_string = 'echo %s | %s' % (quote_unix(stdin_params), command_string)
+
         LOG.debug('Running command: PATH=%s PYTHONPATH=%s %s' % (env['PATH'], env['PYTHONPATH'],
                                                                  command_string))
         exit_code, stdout, stderr, timed_out = run_command(cmd=args,
