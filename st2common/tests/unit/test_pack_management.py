@@ -17,10 +17,8 @@ from __future__ import absolute_import
 
 import os
 import sys
-import subprocess
 
 import unittest2
-import eventlet
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PACK_ACTIONS_DIR = os.path.join(BASE_DIR, '../../../contrib/packs/actions')

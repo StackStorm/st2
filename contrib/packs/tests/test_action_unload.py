@@ -16,10 +16,7 @@
 # limitations under the License.
 
 import os
-import sys
-import subprocess
 
-import eventlet
 from oslo_config import cfg
 
 from st2common.util.monkey_patch import use_select_poll_workaround
