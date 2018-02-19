@@ -48,9 +48,10 @@ from st2common.util.sandboxing import get_sandbox_python_path
 from st2common.util.sandboxing import get_sandbox_python_binary_path
 from st2common.util.sandboxing import get_sandbox_virtualenv_path
 from st2common.util.shell import quote_unix
-from st2common.runners import python_action_wrapper
 from st2common.services.action import store_execution_output_data
 from st2common.runners.utils import make_read_and_store_stream_func
+
+from python_runner import python_action_wrapper
 
 __all__ = [
     'PythonRunner',
