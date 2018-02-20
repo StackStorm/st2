@@ -261,6 +261,8 @@ class GitWorktreeActionRunner(ActionRunner):
     This revision is specified using "content_version" runner parameter.
     """
 
+    WORKTREE_DIRECTORY_PREFIX = 'st2-git-worktree-'
+
     def __init__(self, runner_id):
         super(GitWorktreeActionRunner, self).__init__(runner_id=runner_id)
 
@@ -306,7 +308,7 @@ class GitWorktreeActionRunner(ActionRunner):
         """
         pack_name = self.get_pack_name()
         pack_directory = get_pack_directory(pack_name=pack_name)
-        worktree_path = tempfile.mkdtemp(prefix='st2-git-worktree-')
+        worktree_path = tempfile.mkdtemp(prefix=self.WORKTREE_DIRECTORY_PREFIX)
 
         # Set class variables
         self.git_worktree_revision = content_version
@@ -373,6 +375,7 @@ class GitWorktreeActionRunner(ActionRunner):
         """
         # Safety check to make sure we don't remove something outside /tmp
         assert(worktree_path.startswith('/tmp'))
+        assert(worktree_path.startswith('/tmp/%s' % (self.WORKTREE_DIRECTORY_PREFIX)))
 
         if self._debug:
             LOG.debug('Not removing git worktree "%s" because debug mode is enabled' %
