@@ -787,7 +787,7 @@ Stopping at filesystem boundary (GIT_DISCOVERY_ACROSS_FILESYSTEM not set).
         runner.runner_parameters = {'content_version': 'v0.10.0'}
 
         expected_msg = (r'Failed to create git worktree for pack "core": Pack directory '
-                        '"/data/stanley/st2tests/st2tests/fixtures/packs/core" is not a '
+                        '".*" is not a '
                         'git repository. To utilize this functionality, pack directory needs to '
                         'be a git repository.')
         self.assertRaisesRegexp(ValueError, expected_msg, runner.pre_run)
