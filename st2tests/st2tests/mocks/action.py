@@ -22,7 +22,7 @@ from logging import RootLogger
 
 from mock import Mock
 
-from st2common.runners.python_action_wrapper import ActionService
+from python_runner.python_action_wrapper import ActionService
 from st2tests.mocks.datastore import MockDatastoreService
 
 __all__ = [

@@ -34,6 +34,7 @@ from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
+from st2common.constants.action import MAX_PARAM_LENGTH
 from st2common.constants.runners import PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE
 from st2common.constants.error_messages import PACK_VIRTUALENV_DOESNT_EXIST
 from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT
@@ -46,9 +47,11 @@ from st2common.util.sandboxing import get_sandbox_path
 from st2common.util.sandboxing import get_sandbox_python_path
 from st2common.util.sandboxing import get_sandbox_python_binary_path
 from st2common.util.sandboxing import get_sandbox_virtualenv_path
-from st2common.runners import python_action_wrapper
+from st2common.util.shell import quote_unix
 from st2common.services.action import store_execution_output_data
 from st2common.runners.utils import make_read_and_store_stream_func
+
+from python_runner import python_action_wrapper
 
 __all__ = [
     'PythonRunner',
@@ -117,7 +120,7 @@ class PythonRunner(ActionRunner):
         LOG.debug('Getting user.')
         user = self.get_user()
         LOG.debug('Serializing parameters.')
-        serialized_parameters = json.dumps(action_parameters) if action_parameters else ''
+        serialized_parameters = json.dumps(action_parameters if action_parameters else {})
         LOG.debug('Getting virtualenv_path.')
         virtualenv_path = get_sandbox_virtualenv_path(pack=pack)
         LOG.debug('Getting python path.')
@@ -147,10 +150,23 @@ class PythonRunner(ActionRunner):
             WRAPPER_SCRIPT_PATH,
             '--pack=%s' % (pack),
             '--file-path=%s' % (self.entry_point),
-            '--parameters=%s' % (serialized_parameters),
             '--user=%s' % (user),
             '--parent-args=%s' % (json.dumps(sys.argv[1:])),
         ]
+
+        # If parameter size is larger than the maximum allowed by Linux kernel
+        # we need to swap to stdin to communicate parameters. This avoids a
+        # failure to fork the wrapper process when using large parameters.
+        stdin = None
+        stdin_params = None
+        if len(serialized_parameters) >= MAX_PARAM_LENGTH:
+            stdin = subprocess.PIPE
+            LOG.debug('Parameters are too big...changing to stdin')
+            stdin_params = '{"parameters": %s}\n' % (serialized_parameters)
+            args.append('--stdin-parameters')
+        else:
+            LOG.debug('Parameters are just right...adding them to arguments')
+            args.append('--parameters=%s' % (serialized_parameters))
 
         if self._config:
             args.append('--config=%s' % (json.dumps(self._config)))
@@ -210,17 +226,24 @@ class PythonRunner(ActionRunner):
             action_db=self.action, store_data_func=store_execution_stderr_line)
 
         command_string = list2cmdline(args)
+        if stdin_params:
+            command_string = 'echo %s | %s' % (quote_unix(stdin_params), command_string)
+
         LOG.debug('Running command: PATH=%s PYTHONPATH=%s %s' % (env['PATH'], env['PYTHONPATH'],
                                                                  command_string))
-        exit_code, stdout, stderr, timed_out = run_command(cmd=args, stdout=subprocess.PIPE,
-                                                           stderr=subprocess.PIPE, shell=False,
+        exit_code, stdout, stderr, timed_out = run_command(cmd=args,
+                                                           stdin=stdin,
+                                                           stdout=subprocess.PIPE,
+                                                           stderr=subprocess.PIPE,
+                                                           shell=False,
                                                            env=env,
                                                            timeout=self._timeout,
                                                            read_stdout_func=read_and_store_stdout,
                                                            read_stderr_func=read_and_store_stderr,
                                                            read_stdout_buffer=stdout,
-                                                           read_stderr_buffer=stderr)
-        LOG.debug('Returning values: %s, %s, %s, %s' % (exit_code, stdout, stderr, timed_out))
+                                                           read_stderr_buffer=stderr,
+                                                           stdin_value=stdin_params)
+        LOG.debug('Returning values: %s, %s, %s, %s', exit_code, stdout, stderr, timed_out)
         LOG.debug('Returning.')
         return self._get_output_values(exit_code, stdout, stderr, timed_out)
 
