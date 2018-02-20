@@ -27,7 +27,7 @@ from oslo_config import cfg
 from six.moves import StringIO
 
 from st2common import log as logging
-from st2common.runners.base import ActionRunner
+from st2common.runners.base import GitWorktreeActionRunner
 from st2common.runners.base import get_metadata as get_runner_metadata
 from st2common.util.green.shell import run_command
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
@@ -78,7 +78,7 @@ WRAPPER_SCRIPT_NAME = 'python_action_wrapper.py'
 WRAPPER_SCRIPT_PATH = os.path.join(BASE_DIR, WRAPPER_SCRIPT_NAME)
 
 
-class PythonRunner(ActionRunner):
+class PythonRunner(GitWorktreeActionRunner):
 
     def __init__(self, runner_id, config=None, timeout=PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT,
                  log_level=None, sandbox=True):
