@@ -14,8 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 import re
+import sys
 
 import mock
 from oslo_config import cfg
@@ -53,11 +55,15 @@ ACTION_2_PATH = os.path.join(tests_base.get_fixtures_path(),
                              'packs/dummy_pack_9/actions/invalid_syntax.py')
 NON_SIMPLE_TYPE_ACTION = os.path.join(tests_base.get_resources_path(), 'packs',
                                       'pythonactions/actions/non_simple_type.py')
+PRINT_VERSION_ACTION = os.path.join(tests_base.get_fixtures_path(), 'packs',
+                                    'test/actions/print_version.py')
+
 
 # Note: runner inherits parent args which doesn't work with tests since test pass additional
 # unrecognized args
 mock_sys = mock.Mock()
 mock_sys.argv = []
+mock_sys.executable = sys.executable
 
 MOCK_EXECUTION = mock.Mock()
 MOCK_EXECUTION.id = '598dbf0c0640fd54bffc688b'
@@ -712,6 +718,44 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertTrue(output is not None)
         self.assertEqual(output['result']['action_input'], large_value)
 
+    @mock.patch('python_runner.python_runner.get_sandbox_virtualenv_path')
+    def test_content_version_success(self, mock_get_sandbox_virtualenv_path):
+        mock_get_sandbox_virtualenv_path.return_value = None
+
+        # 1. valid version - 0.12.0
+        runner = self._get_mock_runner_obj(pack='test', sandbox=False)
+        runner.entry_point = PRINT_VERSION_ACTION
+        runner.runner_parameters = {'content_version': 'v0.12.0'}
+        runner.pre_run()
+
+        (status, output, _) = runner.run({})
+
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(output['result'], 'v0.12.0')
+        self.assertEqual(output['stdout'].strip(), 'v0.12.0')
+
+        # 2. valid version - 0.12.0
+        runner = self._get_mock_runner_obj(pack='test', sandbox=False)
+        runner.entry_point = PRINT_VERSION_ACTION
+        runner.runner_parameters = {'content_version': 'v0.13.0'}
+        runner.pre_run()
+
+        (status, output, _) = runner.run({})
+
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(output['result'], 'v0.13.0')
+        self.assertEqual(output['stdout'].strip(), 'v0.13.0')
+
+        # 3. invalid version = 0.30.0
+        runner = self._get_mock_runner_obj(pack='test', sandbox=False)
+        runner.entry_point = PRINT_VERSION_ACTION
+        runner.runner_parameters = {'content_version': 'v0.30.0'}
+
+        expected_msg = (r'Failed to create git worktree for pack "test": Invalid content_version '
+                        '"v0.30.0" provided. Make sure that git repository is up '
+                        'to date and contains that revision.')
+        self.assertRaisesRegexp(ValueError, expected_msg, runner.pre_run)
+
     @mock.patch('st2common.runners.base.run_command')
     def test_content_version_old_git_version(self, mock_run_command):
         mock_stdout = ''
@@ -765,16 +809,22 @@ fatal: invalid reference: vinvalid
                         'to date and contains that revision.')
         self.assertRaisesRegexp(ValueError, expected_msg, runner.pre_run)
 
-    def _get_mock_runner_obj(self):
+    def _get_mock_runner_obj(self, pack=None, sandbox=None):
         runner = python_runner.get_runner()
         runner.execution = MOCK_EXECUTION
         runner.action = self._get_mock_action_obj()
         runner.runner_parameters = {}
 
+        if pack:
+            runner.action.pack = pack
+
+        if sandbox is not None:
+            runner._sandbox = sandbox
+
         return runner
 
     @mock.patch('st2actions.container.base.ActionExecution.get', mock.Mock())
-    def _get_mock_runner_obj_from_container(self, pack, user):
+    def _get_mock_runner_obj_from_container(self, pack, user, sandbox=None):
         container = RunnerContainer()
 
         runnertype_db = mock.Mock()
@@ -789,8 +839,11 @@ fatal: invalid reference: vinvalid
         runner = container._get_runner(runnertype_db=runnertype_db, action_db=action_db,
                                        liveaction_db=liveaction_db)
         runner.execution = MOCK_EXECUTION
-        runner.action = self._get_mock_action_obj()
+        runner.action = action_db
         runner.runner_parameters = {}
+
+        if sandbox is not None:
+            runner._sandbox = sandbox
 
         return runner
 
