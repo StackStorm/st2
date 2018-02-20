@@ -712,6 +712,59 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertTrue(output is not None)
         self.assertEqual(output['result']['action_input'], large_value)
 
+    @mock.patch('st2common.runners.base.run_command')
+    def test_content_version_old_git_version(self, mock_run_command):
+        mock_stdout = ''
+        mock_stderr = '''
+git: 'worktree' is not a git command. See 'git --help'.
+'''
+        mock_run_command.return_value = 1, mock_stdout, mock_stderr, False
+
+        runner = self._get_mock_runner_obj()
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.runner_parameters = {'content_version': 'v0.10.0'}
+
+        expected_msg = (r'Failed to create git worktree for pack "core": Installed git version '
+                        'doesn\'t support git worktree command. To be able to utilize this '
+                        'functionality you need to use git >= 2.5.0.')
+        self.assertRaisesRegexp(ValueError, expected_msg, runner.pre_run)
+
+    @mock.patch('st2common.runners.base.run_command')
+    def test_content_version_pack_repo_not_git_repository(self, mock_run_command):
+        mock_stdout = ''
+        mock_stderr = '''
+fatal: Not a git repository (or any parent up to mount point /home)
+Stopping at filesystem boundary (GIT_DISCOVERY_ACROSS_FILESYSTEM not set).
+'''
+        mock_run_command.return_value = 1, mock_stdout, mock_stderr, False
+
+        runner = self._get_mock_runner_obj()
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.runner_parameters = {'content_version': 'v0.10.0'}
+
+        expected_msg = (r'Failed to create git worktree for pack "core": Pack directory '
+                        '"/data/stanley/st2tests/st2tests/fixtures/packs/core" is not a '
+                        'git repository. To utilize this functionality, pack directory needs to '
+                        'be a git repository.')
+        self.assertRaisesRegexp(ValueError, expected_msg, runner.pre_run)
+
+    @mock.patch('st2common.runners.base.run_command')
+    def test_content_version_invalid_git_revision(self, mock_run_command):
+        mock_stdout = ''
+        mock_stderr = '''
+fatal: invalid reference: vinvalid
+'''
+        mock_run_command.return_value = 1, mock_stdout, mock_stderr, False
+
+        runner = self._get_mock_runner_obj()
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.runner_parameters = {'content_version': 'vinvalid'}
+
+        expected_msg = (r'Failed to create git worktree for pack "core": Invalid content_version '
+                        '"vinvalid" provided. Make sure that git repository is up '
+                        'to date and contains that revision.')
+        self.assertRaisesRegexp(ValueError, expected_msg, runner.pre_run)
+
     def _get_mock_runner_obj(self):
         runner = python_runner.get_runner()
         runner.execution = MOCK_EXECUTION
