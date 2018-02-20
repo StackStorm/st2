@@ -18,9 +18,16 @@ Changed
 ~~~~~~~
 
 * Modified RabbitMQ connection error message to make clear that it is an MQ connection issue. #3992
+* Additional refactor which makes action runners fully standalone and re-distributable Python
+  packages. Also add support for multiple runners (runner modules) inside a single Python package
+  and consolidate Python packages from two to one for the following runners: local runners, remote
+  runners, windows runners. (improvement) #3999
 
 Fixed
 ~~~~~
+* Fix Python runner actions and ``Argument list too long`` error when very large parameters are
+  passed into the action. The fix utilizes ``stdin`` to pass parameters to the Python action wrapper
+  process instead of CLI argument list. (bug fix) #1598 #3976
 
 * Fix a regression in ``POST /v1/webhooks/<webhook name>`` API endpoint introduced in v2.4.0
   and add back support for arrays. In 2.4.0 support for arrays was inadvertently removed and
@@ -948,7 +955,6 @@ Added
   ``True``. However, to access remote hosts, action parameters like username and
   password/private_key, if provided with action, will have precedence over the config file
   entry for the host. #2941 #3032 #3058 [Eric Edgar] (improvement)
-
 
 Changed
 ~~~~~~~

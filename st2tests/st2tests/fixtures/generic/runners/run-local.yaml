@@ -2,7 +2,8 @@
 description: A runner to execute local actions as a fixed user.
 enabled: true
 name: local-shell-cmd
-runner_module: local_runner
+runner_package: local_runner
+runner_module: local_shell_command_runner
 runner_parameters:
   cmd:
     type: string

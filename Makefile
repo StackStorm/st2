@@ -49,6 +49,7 @@ all: requirements configgen check tests
 .PHONY: play
 play:
 	@echo COMPONENTS=$(COMPONENTS)
+	@echo COMPONENTS_WITH_RUNNERS=$(COMPONENTS_WITH_RUNNERS)
 	@echo COMPONENTS_TEST=$(COMPONENTS_TEST)
 	@echo COMPONENTS_TEST_COMMA=$(COMPONENTS_TEST_COMMA)
 	@echo COMPONENT_PYTHONPATH=$(COMPONENT_PYTHONPATH)
@@ -272,34 +273,40 @@ requirements: virtualenv .sdist-requirements
 	$(VIRTUALENV_DIR)/bin/pip install "prance==0.6.1"
 
 .PHONY: virtualenv
-virtualenv: $(VIRTUALENV_DIR)/bin/activate
-$(VIRTUALENV_DIR)/bin/activate:
+	# Note: We always want to update virtualenv/bin/activate file to make sure
+	# PYTHONPATH is up to date and to avoid caching issues on Travis
+virtualenv:
 	@echo
 	@echo "==================== virtualenv ===================="
 	@echo
 	test -f $(VIRTUALENV_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) --no-site-packages $(VIRTUALENV_DIR)
 
 	# Setup PYTHONPATH in bash activate script...
-	echo '' >> $(VIRTUALENV_DIR)/bin/activate
+	# Delete existing entries (if any)
+	sed -i '/_OLD_PYTHONPATHp/d' $(VIRTUALENV_DIR)/bin/activate
+	sed -i '/PYTHONPATH=/d' $(VIRTUALENV_DIR)/bin/activate
+	sed -i '/export PYTHONPATH/d' $(VIRTUALENV_DIR)/bin/activate
+
 	echo '_OLD_PYTHONPATH=$$PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate
-	echo 'PYTHONPATH=$$_OLD_PYTHONPATH:$(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_DIR)/bin/activate
+	#echo 'PYTHONPATH=$$_OLD_PYTHONPATH:$(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_DIR)/bin/activate
+	echo 'PYTHONPATH=${ROOT_DIR}:$(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_DIR)/bin/activate
 	echo 'export PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate
 	touch $(VIRTUALENV_DIR)/bin/activate
 
 	# Setup PYTHONPATH in fish activate script...
-	echo '' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	echo 'set -gx _OLD_PYTHONPATH $$PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	echo 'set -gx PYTHONPATH $$_OLD_PYTHONPATH $(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	echo 'functions -c deactivate old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	echo 'function deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	echo '  if test -n $$_OLD_PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	echo '    set -gx PYTHONPATH $$_OLD_PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	echo '    set -e _OLD_PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	echo '  end' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	echo '  old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	echo '  functions -e old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	echo 'end' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	touch $(VIRTUALENV_DIR)/bin/activate.fish
+	#echo '' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	#echo 'set -gx _OLD_PYTHONPATH $$PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	#echo 'set -gx PYTHONPATH $$_OLD_PYTHONPATH $(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	#echo 'functions -c deactivate old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	#echo 'function deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	#echo '  if test -n $$_OLD_PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	#echo '    set -gx PYTHONPATH $$_OLD_PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	#echo '    set -e _OLD_PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	#echo '  end' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	#echo '  old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	#echo '  functions -e old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	#echo 'end' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	#touch $(VIRTUALENV_DIR)/bin/activate.fish
 
 .PHONY: tests
 tests: pytests
