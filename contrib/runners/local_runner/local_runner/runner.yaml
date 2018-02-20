@@ -43,6 +43,11 @@
   runner_package: local_runner
   runner_module: local_shell_script_runner
   runner_parameters:
+    debug:
+      description: Enable runner debug mode.
+      type: boolean
+      required: false
+      default: false
     content_version:
       description: Git revision of the pack content to use for this action execution (git commit sha / tag / branch). Only applies to packs which are git repositories.
       type: string

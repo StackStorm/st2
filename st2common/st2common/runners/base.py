@@ -56,6 +56,7 @@ LOG = logging.getLogger(__name__)
 # constants to lookup in runner_parameters
 RUNNER_COMMAND = 'cmd'
 RUNNER_CONTENT_VERSION = 'content_version'
+RUNNER_DEBUG = 'debug'
 
 
 def get_runner(package_name, module_name, config=None):
@@ -146,6 +147,7 @@ class ActionRunner(object):
             raise ValueError(msg)
 
         # Handle git worktree creation
+        self._debug = self.runner_parameters.get(RUNNER_DEBUG, False)
         self._content_version = self.runner_parameters.get(RUNNER_CONTENT_VERSION, None)
 
         if self._content_version:
@@ -371,6 +373,10 @@ class GitWorktreeActionRunner(ActionRunner):
         """
         # Safety check to make sure we don't remove something outside /tmp
         assert(worktree_path.startswith('/tmp'))
+
+        if self._debug:
+            LOG.debug('Not removing git worktree "%s" because debug mode is enabled' %
+                      (worktree_path))
 
         LOG.debug('Removing git worktree "%s" for pack "%s" and content version "%s"' %
                   (worktree_path, pack_name, content_version))
