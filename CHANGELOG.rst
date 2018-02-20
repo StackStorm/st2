@@ -27,6 +27,10 @@ Fixed
   only objects were supported. Keep in mind that this only applies to custom user-defined
   webhooks and system ``st2`` webhook still requires input to be an object (dictionary).
   (bug fix) #3956 #3955
+* Fix a bug in the CLI causing ``st2 execution pause`` and ``st2 execution resume``
+  to not work. (bugfix) #4001
+
+  Contributed by Nick Maludy (Encore Technologies).
 
 2.6.0 - January 19, 2018
 ------------------------
