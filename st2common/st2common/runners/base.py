@@ -274,7 +274,7 @@ class GitWorktreeActionRunner(ActionRunner):
             self.create_git_worktree(content_version=self._content_version)
 
     def post_run(self, status, result):
-        super(GitWorktreeActionRunner, self).post_run()
+        super(GitWorktreeActionRunner, self).post_run(status=status, result=result)
 
         # Remove git worktree directories (if used and available)
         if self.git_worktree_path and self.git_worktree_revision:
