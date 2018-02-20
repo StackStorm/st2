@@ -23,7 +23,7 @@ import yaml
 from mistralclient.api import client as mistral
 from oslo_config import cfg
 
-from st2common.runners.base import AsyncActionRunner
+from st2common.runners.base import PollingAsyncActionRunner
 from st2common.runners.base import get_metadata as get_runner_metadata
 from st2common.constants import action as action_constants
 from st2common import log as logging
@@ -48,7 +48,7 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 
-class MistralRunner(AsyncActionRunner):
+class MistralRunner(PollingAsyncActionRunner):
 
     url = get_url_without_trailing_slash(cfg.CONF.mistral.v2_base_url)
 
@@ -65,6 +65,10 @@ class MistralRunner(AsyncActionRunner):
             auth_url=cfg.CONF.mistral.keystone_auth_url,
             cacert=cfg.CONF.mistral.cacert,
             insecure=cfg.CONF.mistral.insecure)
+
+    @classmethod
+    def is_polling_enabled(cls):
+        return cfg.CONF.mistral.enable_polling
 
     @staticmethod
     def get_workflow_definition(entry_point):
@@ -209,13 +213,11 @@ class MistralRunner(AsyncActionRunner):
                         'st2_context': st2_execution_context
                     }
                 }
-            },
-            'notify': [
-                {
-                    'type': 'st2',
-                }
-            ]
+            }
         }
+
+        if not self.is_polling_enabled():
+            options['notify'] = [{'type': 'st2'}]
 
         return options
 

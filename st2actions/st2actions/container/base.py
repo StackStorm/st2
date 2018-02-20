@@ -124,7 +124,8 @@ class RunnerContainer(object):
                 pass
 
             action_completed = status in action_constants.LIVEACTION_COMPLETED_STATES
-            if isinstance(runner, PollingAsyncActionRunner) and not action_completed:
+            if (isinstance(runner, PollingAsyncActionRunner) and
+                    runner.is_polling_enabled() and not action_completed):
                 queries.setup_query(liveaction_db.id, runnertype_db, context)
         except:
             LOG.exception('Failed to run action.')
@@ -215,7 +216,8 @@ class RunnerContainer(object):
 
             action_completed = status in action_constants.LIVEACTION_COMPLETED_STATES
 
-            if isinstance(runner, PollingAsyncActionRunner) and not action_completed:
+            if (isinstance(runner, PollingAsyncActionRunner) and
+                    runner.is_polling_enabled() and not action_completed):
                 queries.setup_query(liveaction_db.id, runnertype_db, context)
         except:
             _, ex, tb = sys.exc_info()

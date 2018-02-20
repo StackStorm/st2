@@ -27,6 +27,7 @@ from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.runner import RunnerTypeDB
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.executionstate import ActionExecutionState
+from st2common.runners.base import PollingAsyncActionRunner
 from st2common.services import executions
 from st2common.util import date as date_utils
 from st2common.transport.publishers import PoolPublisher
@@ -370,6 +371,34 @@ class RunnerContainerTest(DbTestCase):
         self.assertTrue(len(found) == 1, 'There should only be one state db object.')
         self.assertTrue(found[0].query_context is not None)
         self.assertTrue(found[0].query_module is not None)
+
+    @mock.patch.object(
+        PollingAsyncActionRunner,
+        'is_polling_enabled',
+        mock.MagicMock(return_value=False))
+    def test_state_db_not_created_for_disabled_polling_async_actions(self):
+        runner_container = get_runner_container()
+
+        params = {
+            'actionstr': 'foo',
+            'actionint': 20,
+            'async_test': True
+        }
+
+        liveaction_db = self._get_liveaction_model(
+            RunnerContainerTest.polling_async_action_db,
+            params
+        )
+
+        liveaction_db = LiveAction.add_or_update(liveaction_db)
+        executions.create_execution_object(liveaction_db)
+
+        # Assert that execution ran without exceptions.
+        runner_container.dispatch(liveaction_db)
+        states = ActionExecutionState.get_all()
+        found = [state for state in states if state.execution_id == liveaction_db.id]
+
+        self.assertTrue(len(found) == 0, 'There should not be a state db object.')
 
     def test_state_db_not_created_for_async_actions(self):
         runner_container = get_runner_container()

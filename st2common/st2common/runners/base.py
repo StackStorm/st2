@@ -232,7 +232,10 @@ class AsyncActionRunner(ActionRunner):
 
 @six.add_metaclass(abc.ABCMeta)
 class PollingAsyncActionRunner(AsyncActionRunner):
-    pass
+
+    @classmethod
+    def is_polling_enabled(cls):
+        return True
 
 
 class ShellRunnerMixin(object):
