@@ -81,7 +81,7 @@ WRAPPER_SCRIPT_PATH = os.path.join(BASE_DIR, WRAPPER_SCRIPT_NAME)
 class PythonRunner(GitWorktreeActionRunner):
 
     def __init__(self, runner_id, config=None, timeout=PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT,
-                 log_level=None, sandbox=True):
+                 log_level=None, sandbox=True, use_parent_args=True):
 
         """
         :param timeout: Action execution timeout in seconds.
@@ -93,13 +93,18 @@ class PythonRunner(GitWorktreeActionRunner):
         :param sandbox: True to use python binary from pack-specific virtual environment for the
                         child action False to use a default system python binary from PATH.
         :type sandbox: ``bool``
+
+        :param use_parent_args: True to use command line arguments from the parent process.
+        :type use_parent_args: ``bool``
         """
         super(PythonRunner, self).__init__(runner_id=runner_id)
+
         self._config = config
         self._timeout = timeout
         self._enable_common_pack_libs = cfg.CONF.packs.enable_common_libs or False
         self._log_level = log_level or cfg.CONF.actionrunner.python_runner_log_level
         self._sandbox = sandbox
+        self._use_parent_args = use_parent_args
 
     def pre_run(self):
         super(PythonRunner, self).pre_run()
@@ -144,6 +149,12 @@ class PythonRunner(GitWorktreeActionRunner):
         # Note: We pass config as command line args so the actual wrapper process is standalone
         # and doesn't need access to db
         LOG.debug('Setting args.')
+
+        if self._use_parent_args:
+            parent_args = json.dumps(sys.argv[1:])
+        else:
+            parent_args = json.dumps([])
+
         args = [
             python_path,
             '-u',  # unbuffered mode so streaming mode works as expected
@@ -151,7 +162,7 @@ class PythonRunner(GitWorktreeActionRunner):
             '--pack=%s' % (pack),
             '--file-path=%s' % (self.entry_point),
             '--user=%s' % (user),
-            '--parent-args=%s' % (json.dumps(sys.argv[1:])),
+            '--parent-args=%s' % (parent_args),
         ]
 
         # If parameter size is larger than the maximum allowed by Linux kernel
