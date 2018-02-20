@@ -20,6 +20,9 @@ Added
 
   Keep in mind that providing this parameter only ensures a particular revision of the pack content
   is used. Python runner virtual environment and dependencies are outside of this scope.
+
+  Note: To be able to utilize this functionality, git version >= 2.5.0 must be installed on the
+  system.
   (new feature) #3997
 
 Changed
