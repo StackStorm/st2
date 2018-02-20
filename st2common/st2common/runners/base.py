@@ -145,12 +145,7 @@ class ActionRunner(object):
                    (runner_name))
             raise ValueError(msg)
 
-        # Handle git worktree creation
         self._debug = self.runner_parameters.get(RUNNER_DEBUG, False)
-        self._content_version = self.runner_parameters.get(RUNNER_CONTENT_VERSION, None)
-
-        if self._content_version:
-            self.create_git_worktree(content_version=self._content_version)
 
     # Run will need to take an action argument
     # Run may need result data argument
