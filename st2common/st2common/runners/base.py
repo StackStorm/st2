@@ -145,7 +145,8 @@ class ActionRunner(object):
                    (runner_name))
             raise ValueError(msg)
 
-        self._debug = self.runner_parameters.get(RUNNER_DEBUG, False)
+        runner_parameters = getattr(self, 'runner_parameters', {}) or {}
+        self._debug = runner_parameters.get(RUNNER_DEBUG, False)
 
     # Run will need to take an action argument
     # Run may need result data argument
