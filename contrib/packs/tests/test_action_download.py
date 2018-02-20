@@ -318,18 +318,18 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
 
         self.repo_instance.commit.side_effect = side_effect
 
-        edge_cases = {
-            'master': '1.2.3',
-            'master': 'some-branch',
-            'master': 'default-branch',
-            'master': None,
-            'default-branch': '1.2.3',
-            'default-branch': 'some-branch',
-            'default-branch': 'default-branch',
-            'default-branch': None
-        }
+        edge_cases = [
+            ('master', '1.2.3'),
+            ('master', 'some-branch'),
+            ('master', 'default-branch'),
+            ('master', None),
+            ('default-branch', '1.2.3'),
+            ('default-branch', 'some-branch'),
+            ('default-branch', 'default-branch'),
+            ('default-branch', None)
+        ]
 
-        for default_branch, ref in edge_cases.items():
+        for default_branch, ref in edge_cases:
             self.repo_instance.git = mock.MagicMock(
                 branch=(lambda *args: default_branch),
                 checkout=(lambda *args: True)
