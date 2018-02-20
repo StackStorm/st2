@@ -38,7 +38,6 @@ from st2common.util.loader import register_callback_module
 from st2common.util.api import get_full_public_api_url
 from st2common.util.deprecation import deprecated
 from st2common.util.green.shell import run_command
-from st2common.util.file_system import recursive_chown
 
 __all__ = [
     'ActionRunner',
@@ -355,8 +354,6 @@ class GitWorktreeActionRunner(ActionRunner):
             LOG.debug('Git worktree created in "%s"' % (worktree_path), extra=extra)
 
         # Make sure system / action runner user can access that directory
-        #user = cfg.CONF.system_user.user
-        #recursive_chown(path=worktree_path, uid=user, gid=user)
         args = [
             'chmod',
             '777',
