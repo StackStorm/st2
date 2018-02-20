@@ -31,6 +31,7 @@ from st2common.constants import action as action_constants
 from st2common.constants import pack as pack_constants
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.content.utils import get_pack_directory
+from st2common.content.utils import get_pack_base_path
 from st2common.util import action_db as action_utils
 from st2common.util.loader import register_runner
 from st2common.util.loader import register_callback_module
@@ -273,6 +274,16 @@ class GitWorktreeActionRunner(ActionRunner):
         if self._content_version:
             self.create_git_worktree(content_version=self._content_version)
 
+            # Override entry_point so it points to git worktree directory
+            pack_name = self.get_pack_name()
+            entry_point = self._get_entry_point_for_worktree_path(pack_name=pack_name,
+                                                  entry_point=self.entry_point,
+                                                  worktree_path=self.git_worktree_path)
+
+            assert(entry_point.startswith(self.git_worktree_path))
+
+            self.entry_point = entry_point
+
     def post_run(self, status, result):
         super(GitWorktreeActionRunner, self).post_run(status=status, result=result)
 
@@ -385,7 +396,29 @@ class GitWorktreeActionRunner(ActionRunner):
                    'to date and contains that revision.' % (content_version))
             raise ValueError(error_prefix + msg)
 
-        # 4. Repo is not a bare repository
+    def _get_entry_point_for_worktree_path(self, pack_name, entry_point, worktree_path):
+        """
+        Method which returns path to an action entry point which is located inside the git
+        worktree directory.
+
+        :rtype: ``str``
+        """
+        pack_base_path = get_pack_base_path(pack_name=pack_name)
+
+        new_entry_point = entry_point.replace(pack_base_path, '')
+
+        # Remove leading slash (if any)
+        if new_entry_point.startswith('/'):
+            new_entry_point = new_entry_point[1:]
+
+        new_entry_point = os.path.join(worktree_path, new_entry_point)
+
+        # Check to prevent directory traversal
+        common_prefix = os.path.commonprefix([worktree_path, new_entry_point])
+        if common_prefix != worktree_path:
+            raise ValueError('entry_point is not located inside the pack directory')
+
+        return new_entry_point
 
 
 class ShellRunnerMixin(object):
