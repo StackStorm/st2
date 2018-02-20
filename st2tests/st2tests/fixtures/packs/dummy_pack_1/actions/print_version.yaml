@@ -1,7 +1,0 @@
----
-"name": "print_version"
-"runner_type": "local-shell-script"
-"description": "Action which prints pack version."
-"enabled": true
-"entry_point": "print_version.sh"
-"parameters": {}
