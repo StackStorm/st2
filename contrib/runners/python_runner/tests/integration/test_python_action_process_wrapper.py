@@ -73,7 +73,12 @@ class PythonRunnerActionWrapperProcessTestCase(unittest2.TestCase):
         command_string = 'python %s --file-path=foo.py' % (WRAPPER_SCRIPT_PATH)
         _, _, stderr = run_command(command_string, shell=True)
         self.assertTrue('usage: python_action_wrapper.py' in stderr)
-        self.assertTrue('python_action_wrapper.py: error: argument --pack is required' in stderr)
+
+        expected_msg_1 = 'python_action_wrapper.py: error: argument --pack is required'
+        expected_msg_2 = ('python_action_wrapper.py: error: the following arguments are '
+                          'required: --pack')
+
+        self.assertTrue(expected_msg_1 in stderr or expected_msg_2 in stderr)
 
         # 3. Now time it
         command_string = '%s -f "%%e" python %s' % (TIME_BINARY_PATH, WRAPPER_SCRIPT_PATH)
