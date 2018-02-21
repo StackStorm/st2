@@ -73,7 +73,7 @@ class PythonRunnerActionWrapperProcessTestCase(unittest2.TestCase):
         command_string = 'python %s' % (WRAPPER_SCRIPT_PATH)
         _, _, stderr = run_command(command_string, shell=True)
         self.assertTrue('usage: python_action_wrapper.py' in stderr)
-        self.assertTrue('python_action_wrapper.py: error: argument' in stderr)
+        self.assertTrue('python_action_wrapper.py: error: ' in stderr)
 
         # 3. Now time it
         command_string = '%s -f "%%e" python %s' % (TIME_BINARY_PATH, WRAPPER_SCRIPT_PATH)
@@ -141,6 +141,6 @@ class PythonRunnerActionWrapperProcessTestCase(unittest2.TestCase):
         exit_code, stdout, stderr = run_command(command_string, shell=True)
 
         expected_msg = ('ValueError: Failed to parse parameters from stdin. Expected a JSON '
-                        'object with "parameters" attribute: No JSON object could be decoded')
+                        'object with "parameters" attribute:')
         self.assertEqual(exit_code, 1)
         self.assertTrue(expected_msg in stderr)
