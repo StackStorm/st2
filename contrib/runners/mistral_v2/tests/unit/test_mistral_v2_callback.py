@@ -15,9 +15,11 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
+import six
 import mock
-from mock import call
 import requests
+from mock import call
 
 from mistralclient.api.v2 import action_executions
 from oslo_config import cfg
@@ -51,7 +53,10 @@ PACKS = [
     fixturesloader.get_fixtures_packs_base_path() + '/core'
 ]
 
-NON_EMPTY_RESULT = 'non-empty'
+if six.PY2:
+    NON_EMPTY_RESULT = 'non-empty'
+else:
+    NON_EMPTY_RESULT = u'non-empty'
 
 
 @mock.patch.object(
@@ -227,10 +232,15 @@ class MistralRunnerCallbackTest(DbTestCase):
         self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
                                      action_constants.LIVEACTION_STATUS_SUCCEEDED, '什麼')
 
+        if six.PY2:
+            expected_output = '\\u4ec0\\u9ebc'
+        else:
+            expected_output = '什麼'
+
         action_executions.ActionExecutionManager.update.assert_called_with(
             '12345',
             state='SUCCESS',
-            output='\\u4ec0\\u9ebc'
+            output=expected_output
         )
 
     @mock.patch.object(
@@ -240,10 +250,15 @@ class MistralRunnerCallbackTest(DbTestCase):
         self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
                                      action_constants.LIVEACTION_STATUS_SUCCEEDED, '\u4ec0\u9ebc')
 
+        if six.PY2:
+            expected_output = '\\\\u4ec0\\\\u9ebc'
+        else:
+            expected_output = '什麼'
+
         action_executions.ActionExecutionManager.update.assert_called_with(
             '12345',
             state='SUCCESS',
-            output='\\\\u4ec0\\\\u9ebc'
+            output=expected_output
         )
 
     @mock.patch.object(
@@ -253,10 +268,15 @@ class MistralRunnerCallbackTest(DbTestCase):
         self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
                                      action_constants.LIVEACTION_STATUS_SUCCEEDED, u'\u4ec0\u9ebc')
 
+        if six.PY2:
+            expected_output = '\\u4ec0\\u9ebc'
+        else:
+            expected_output = '什麼'
+
         action_executions.ActionExecutionManager.update.assert_called_with(
             '12345',
             state='SUCCESS',
-            output='\\u4ec0\\u9ebc'
+            output=expected_output
         )
 
     @mock.patch.object(
@@ -267,10 +287,15 @@ class MistralRunnerCallbackTest(DbTestCase):
                                      action_constants.LIVEACTION_STATUS_SUCCEEDED,
                                      ['\u4ec0\u9ebc'])
 
+        if six.PY2:
+            expected_output = '["\\\\u4ec0\\\\u9ebc"]'
+        else:
+            expected_output = '["\\u4ec0\\u9ebc"]'
+
         action_executions.ActionExecutionManager.update.assert_called_with(
             '12345',
             state='SUCCESS',
-            output='["\\\\u4ec0\\\\u9ebc"]'
+            output=expected_output
         )
 
     @mock.patch.object(
@@ -281,10 +306,15 @@ class MistralRunnerCallbackTest(DbTestCase):
                                      action_constants.LIVEACTION_STATUS_SUCCEEDED,
                                      [u'\u4ec0\u9ebc'])
 
+        if six.PY2:
+            expected_output = '["\\\\u4ec0\\\\u9ebc"]'
+        else:
+            expected_output = '["\\u4ec0\\u9ebc"]'
+
         action_executions.ActionExecutionManager.update.assert_called_with(
             '12345',
             state='SUCCESS',
-            output='["\\\\u4ec0\\\\u9ebc"]'
+            output=expected_output
         )
 
     @mock.patch.object(
@@ -295,10 +325,15 @@ class MistralRunnerCallbackTest(DbTestCase):
                                      action_constants.LIVEACTION_STATUS_SUCCEEDED,
                                      {'a': '\u4ec0\u9ebc'})
 
+        if six.PY2:
+            expected_output = '{"a": "\\\\u4ec0\\\\u9ebc"}'
+        else:
+            expected_output = '{"a": "\\u4ec0\\u9ebc"}'
+
         action_executions.ActionExecutionManager.update.assert_called_with(
             '12345',
             state='SUCCESS',
-            output='{"a": "\\\\u4ec0\\\\u9ebc"}'
+            output=expected_output
         )
 
     @mock.patch.object(
@@ -309,10 +344,15 @@ class MistralRunnerCallbackTest(DbTestCase):
                                      action_constants.LIVEACTION_STATUS_SUCCEEDED,
                                      {'a': u'\u4ec0\u9ebc'})
 
+        if six.PY2:
+            expected_output = '{"a": "\\\\u4ec0\\\\u9ebc"}'
+        else:
+            expected_output = '{"a": "\\u4ec0\\u9ebc"}'
+
         action_executions.ActionExecutionManager.update.assert_called_with(
             '12345',
             state='SUCCESS',
-            output='{"a": "\\\\u4ec0\\\\u9ebc"}'
+            output=expected_output
         )
 
     @mock.patch.object(
