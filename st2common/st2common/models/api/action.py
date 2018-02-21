@@ -84,6 +84,12 @@ class RunnerTypeAPI(BaseAPI):
                 "type": "boolean",
                 "default": True
             },
+            "runner_package": {
+                "description": "The python package that implements the "
+                               "action runner for this type.",
+                "type": "string",
+                "required": False
+            },
             "runner_module": {
                 "description": "The python module that implements the "
                                "action runner for this type.",
@@ -126,12 +132,14 @@ class RunnerTypeAPI(BaseAPI):
         name = runner_type.name
         description = runner_type.description
         enabled = getattr(runner_type, 'enabled', True)
+        runner_package = getattr(runner_type, 'runner_package', runner_type.runner_module)
         runner_module = str(runner_type.runner_module)
         runner_parameters = getattr(runner_type, 'runner_parameters', dict())
         query_module = getattr(runner_type, 'query_module', None)
 
         model = cls.model(name=name, description=description, enabled=enabled,
-                          runner_module=runner_module, runner_parameters=runner_parameters,
+                          runner_package=runner_package, runner_module=runner_module,
+                          runner_parameters=runner_parameters,
                           query_module=query_module)
 
         return model

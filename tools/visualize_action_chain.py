@@ -31,7 +31,7 @@ except ImportError:
     raise ImportError(msg)
 
 from st2common.content.loader import MetaLoader
-from action_chain_runner import ChainHolder  # pylint: disable=import-error
+from action_chain_runner.action_chain_runner import ChainHolder
 
 
 def main(metadata_path, output_path, print_source=False):

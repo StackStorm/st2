@@ -87,6 +87,11 @@ def register_runner(runner_type, experimental):
         if runner_type_db and runner_type_db['enabled'] != runner_type['enabled']:
             runner_type['enabled'] = runner_type_db['enabled']
 
+        # If package is not provided, assume it's the same as module name for backward
+        # compatibility reasons
+        if not runner_type.get('runner_package', None):
+            runner_type['runner_package'] = runner_type['runner_module']
+
         runner_type_api = RunnerTypeAPI(**runner_type)
         runner_type_api.validate()
         runner_type_model = RunnerTypeAPI.to_model(runner_type_api)
