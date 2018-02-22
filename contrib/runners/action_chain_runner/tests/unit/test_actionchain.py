@@ -14,6 +14,8 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
+import six
 import mock
 
 from action_chain_runner import action_chain_runner as acr
@@ -464,14 +466,22 @@ class TestActionChainRunner(DbTestCase):
         chain_runner.pre_run()
         chain_runner.run({'s1': 1})
         self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
-        expected_values = [{u'p1': u'1'},
-                           {u'p1': u'1'},
-                           {u'out': u"{'c2': {'o1': '1'}, 'c1': {'o1': '1'}}"}]
+
+        if six.PY2:
+            expected_values = [{u'p1': u'1'},
+                               {u'p1': u'1'},
+                               {u'out': u"{'c2': {'o1': '1'}, 'c1': {'o1': '1'}}"}]
+        else:
+            expected_values = [{'p1': '1'},
+                               {'p1': '1'},
+                               {'out': "{'c1': {'o1': '1'}, 'c2': {'o1': '1'}}"}]
+
         # Each of the call_args must be one of
         self.assertEqual(request.call_count, 3)
         for call_args in request.call_args_list:
             self.assertTrue(call_args[0][0].parameters in expected_values)
             expected_values.remove(call_args[0][0].parameters)
+
         self.assertEqual(len(expected_values), 0, 'Not all expected values received.')
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',

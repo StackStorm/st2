@@ -97,7 +97,7 @@ class MistralCallbackHandler(callback.AsyncActionExecutionCallbackHandler):
             return {k: cls._encode(v) for k, v in six.iteritems(value)}
         elif isinstance(value, list):
             return [cls._encode(item) for item in value]
-        elif isinstance(value, six.string_types):
+        elif isinstance(value, six.string_types) and not six.PY3:
             try:
                 value = value.decode('utf-8')
             except Exception:
