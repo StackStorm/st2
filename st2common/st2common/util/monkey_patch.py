@@ -23,6 +23,7 @@ import sys
 
 __all__ = [
     'monkey_patch',
+    'use_select_poll_workaround',
     'is_use_debugger_flag_provided'
 ]
 
@@ -42,6 +43,21 @@ def monkey_patch():
 
     patch_thread = not is_use_debugger_flag_provided()
     eventlet.monkey_patch(os=True, select=True, socket=True, thread=patch_thread, time=True)
+
+
+def use_select_poll_workaround():
+    """
+    Work around for some tests which injects original select module with select.poll()
+    available to sys.modules.
+    """
+    import sys
+    import subprocess
+    import eventlet
+
+    # Work around to get tests to pass with eventlet >= 0.20.0
+    if 'nose' in sys.modules.keys():
+        sys.modules['select'] = eventlet.patcher.original('select')
+        subprocess.select = eventlet.patcher.original('select')
 
 
 def is_use_debugger_flag_provided():

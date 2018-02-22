@@ -21,6 +21,9 @@ import shutil
 import tempfile
 import hashlib
 
+from st2common.util.monkey_patch import use_select_poll_workaround
+use_select_poll_workaround()
+
 from lockfile import LockFile
 from lockfile import LockTimeout
 from git.repo import Repo
