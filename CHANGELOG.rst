@@ -22,6 +22,7 @@ Changed
   packages. Also add support for multiple runners (runner modules) inside a single Python package
   and consolidate Python packages from two to one for the following runners: local runners, remote
   runners, windows runners. (improvement) #3999
+* Upgrade eventlet library to the latest stable version (0.22.1) (improvement) #4007
 
 Fixed
 ~~~~~
