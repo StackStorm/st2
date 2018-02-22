@@ -54,6 +54,8 @@ from st2common.runners.utils import make_read_and_store_stream_func
 from python_runner import python_action_wrapper
 from st2common.metrics.metrics import CounterWithTimer
 
+from st2common.constants.metrics import PYTHON_RUNNER_EXECUTION, PYTHON_WRAPPER_EXECUTION
+
 
 __all__ = [
     'PythonRunner',
@@ -116,7 +118,7 @@ class PythonRunner(ActionRunner):
             self._log_level = cfg.CONF.actionrunner.python_runner_log_level
 
     def run(self, action_parameters):
-        with CounterWithTimer("python_runner_execution"):
+        with CounterWithTimer(PYTHON_RUNNER_EXECUTION):
             LOG.debug('Running pythonrunner.')
             LOG.debug('Getting pack name.')
             pack = self.get_pack_ref()
@@ -234,7 +236,7 @@ class PythonRunner(ActionRunner):
 
             LOG.debug('Running command: PATH=%s PYTHONPATH=%s %s' % (env['PATH'], env['PYTHONPATH'],
                                                                     command_string))
-            with CounterWithTimer("python_actions_in_progress"):
+            with CounterWithTimer(PYTHON_WRAPPER_EXECUTION):
                 exit_code, stdout, stderr, timed_out = run_command(cmd=args,
                                                                 stdin=stdin,
                                                                 stdout=subprocess.PIPE,

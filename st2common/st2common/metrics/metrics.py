@@ -16,6 +16,8 @@ from datetime import datetime
 
 from oslo_config import cfg
 
+from st2common.constants.metrics import METRICS_COUNTER_SUFFIX, METRICS_TIMER_SUFFIX
+
 
 class BaseMetricsDriver(object):
     """ Base class for driver implementations for metric collection
@@ -107,7 +109,8 @@ class CounterWithTimer(object):
             assert isinstance(key, str)
             self._metrics.time(key, time_delta.total_seconds())
         else:
-            self._metrics.time("%s_timer" % self.key, time_delta.total_seconds())
+            self._metrics.time("%s%s" % (self.key, METRICS_TIMER_SUFFIX),
+                               time_delta.total_seconds())
 
     def get_time_delta(self):
         """ Get current time delta.
@@ -115,7 +118,7 @@ class CounterWithTimer(object):
         return datetime.now() - self._start_time
 
     def __enter__(self):
-        self._metrics.inc_counter("%s_counter" % self.key)
+        self._metrics.inc_counter("%s%s" % (self.key, METRICS_COUNTER_SUFFIX))
         self._start_time = datetime.now()
         return self
 
@@ -125,21 +128,16 @@ class CounterWithTimer(object):
 
 
 def _get_metrics_driver():
-    if not cfg.CONF.metrics.enable:
-        return BaseMetricsDriver()
-
     driver = cfg.CONF.metrics.driver
 
-    if driver == "prometheus":
+    if driver == "prometheus" and cfg.CONF.metrics.enable:
         from st2common.metrics.drivers.prometheus import PrometheusDriver
-        driver_instance = PrometheusDriver()
-    elif driver == "statsd":
+        return PrometheusDriver()
+    elif driver == "statsd" and cfg.CONF.metrics.enable:
         from st2common.metrics.drivers.statsd_driver import StatsdDriver
-        driver_instance = StatsdDriver()
-    else:
-        driver_instance = None
+        return StatsdDriver()
 
-    return driver_instance
+    return BaseMetricsDriver()
 
 
 METRICS = _get_metrics_driver()
