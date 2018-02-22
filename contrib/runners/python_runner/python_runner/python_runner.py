@@ -52,6 +52,8 @@ from st2common.services.action import store_execution_output_data
 from st2common.runners.utils import make_read_and_store_stream_func
 
 from python_runner import python_action_wrapper
+from st2common.metrics.metrics import CounterWithTimer
+
 
 __all__ = [
     'PythonRunner',
@@ -114,142 +116,140 @@ class PythonRunner(ActionRunner):
             self._log_level = cfg.CONF.actionrunner.python_runner_log_level
 
     def run(self, action_parameters):
-        LOG.debug('Running pythonrunner.')
-        LOG.debug('Getting pack name.')
-        pack = self.get_pack_ref()
-        LOG.debug('Getting user.')
-        user = self.get_user()
-        LOG.debug('Serializing parameters.')
-        serialized_parameters = json.dumps(action_parameters if action_parameters else {})
-        LOG.debug('Getting virtualenv_path.')
-        virtualenv_path = get_sandbox_virtualenv_path(pack=pack)
-        LOG.debug('Getting python path.')
-        if self._sandbox:
-            python_path = get_sandbox_python_binary_path(pack=pack)
-        else:
-            python_path = sys.executable
+        with CounterWithTimer("python_runner_execution"):
+            LOG.debug('Running pythonrunner.')
+            LOG.debug('Getting pack name.')
+            pack = self.get_pack_ref()
+            LOG.debug('Getting user.')
+            user = self.get_user()
+            LOG.debug('Serializing parameters.')
+            serialized_parameters = json.dumps(action_parameters if action_parameters else {})
+            LOG.debug('Getting virtualenv_path.')
+            virtualenv_path = get_sandbox_virtualenv_path(pack=pack)
+            LOG.debug('Getting python path.')
+            if self._sandbox:
+                python_path = get_sandbox_python_binary_path(pack=pack)
+            else:
+                python_path = sys.executable
 
-        LOG.debug('Checking virtualenv path.')
-        if virtualenv_path and not os.path.isdir(virtualenv_path):
-            format_values = {'pack': pack, 'virtualenv_path': virtualenv_path}
-            msg = PACK_VIRTUALENV_DOESNT_EXIST % format_values
-            LOG.error('virtualenv_path set but not a directory: %s', msg)
-            raise Exception(msg)
+            LOG.debug('Checking virtualenv path.')
+            if virtualenv_path and not os.path.isdir(virtualenv_path):
+                format_values = {'pack': pack, 'virtualenv_path': virtualenv_path}
+                msg = PACK_VIRTUALENV_DOESNT_EXIST % format_values
+                LOG.error('virtualenv_path set but not a directory: %s', msg)
+                raise Exception(msg)
 
-        LOG.debug('Checking entry_point.')
-        if not self.entry_point:
-            LOG.error('Action "%s" is missing entry_point attribute' % (self.action.name))
-            raise Exception('Action "%s" is missing entry_point attribute' % (self.action.name))
+            LOG.debug('Checking entry_point.')
+            if not self.entry_point:
+                LOG.error('Action "%s" is missing entry_point attribute' % (self.action.name))
+                raise Exception('Action "%s" is missing entry_point attribute' % (self.action.name))
 
-        # Note: We pass config as command line args so the actual wrapper process is standalone
-        # and doesn't need access to db
-        LOG.debug('Setting args.')
-        args = [
-            python_path,
-            '-u',  # unbuffered mode so streaming mode works as expected
-            WRAPPER_SCRIPT_PATH,
-            '--pack=%s' % (pack),
-            '--file-path=%s' % (self.entry_point),
-            '--user=%s' % (user),
-            '--parent-args=%s' % (json.dumps(sys.argv[1:])),
-        ]
+            # Note: We pass config as command line args so the actual wrapper process is standalone
+            # and doesn't need access to db
+            LOG.debug('Setting args.')
+            args = [
+                python_path,
+                '-u',  # unbuffered mode so streaming mode works as expected
+                WRAPPER_SCRIPT_PATH,
+                '--pack=%s' % (pack),
+                '--file-path=%s' % (self.entry_point),
+                '--user=%s' % (user),
+                '--parent-args=%s' % (json.dumps(sys.argv[1:])),
+            ]
 
-        # If parameter size is larger than the maximum allowed by Linux kernel
-        # we need to swap to stdin to communicate parameters. This avoids a
-        # failure to fork the wrapper process when using large parameters.
-        stdin = None
-        stdin_params = None
-        if len(serialized_parameters) >= MAX_PARAM_LENGTH:
-            stdin = subprocess.PIPE
-            LOG.debug('Parameters are too big...changing to stdin')
-            stdin_params = '{"parameters": %s}\n' % (serialized_parameters)
-            args.append('--stdin-parameters')
-        else:
-            LOG.debug('Parameters are just right...adding them to arguments')
-            args.append('--parameters=%s' % (serialized_parameters))
+            # If parameter size is larger than the maximum allowed by Linux kernel
+            # we need to swap to stdin to communicate parameters. This avoids a
+            # failure to fork the wrapper process when using large parameters.
+            stdin = None
+            stdin_params = None
+            if len(serialized_parameters) >= MAX_PARAM_LENGTH:
+                stdin = subprocess.PIPE
+                LOG.debug('Parameters are too big...changing to stdin')
+                stdin_params = '{"parameters": %s}\n' % (serialized_parameters)
+                args.append('--stdin-parameters')
+            else:
+                LOG.debug('Parameters are just right...adding them to arguments')
+                args.append('--parameters=%s' % (serialized_parameters))
 
-        if self._config:
-            args.append('--config=%s' % (json.dumps(self._config)))
+            if self._config:
+                args.append('--config=%s' % (json.dumps(self._config)))
 
-        if self._log_level != PYTHON_RUNNER_DEFAULT_LOG_LEVEL:
-            # We only pass --log-level parameter if non default log level value is specified
-            args.append('--log-level=%s' % (self._log_level))
+            if self._log_level != PYTHON_RUNNER_DEFAULT_LOG_LEVEL:
+                # We only pass --log-level parameter if non default log level value is specified
+                args.append('--log-level=%s' % (self._log_level))
 
-        if cfg.CONF.metrics.enable:
-            LOG.debug("Enabling metrics for wrapper")
-            args.append('--metrics')
+            # We need to ensure all the st2 dependencies are also available to the
+            # subprocess
+            LOG.debug('Setting env.')
+            env = os.environ.copy()
+            env['PATH'] = get_sandbox_path(virtualenv_path=virtualenv_path)
 
-        # We need to ensure all the st2 dependencies are also available to the
-        # subprocess
-        LOG.debug('Setting env.')
-        env = os.environ.copy()
-        env['PATH'] = get_sandbox_path(virtualenv_path=virtualenv_path)
+            sandbox_python_path = get_sandbox_python_path(inherit_from_parent=True,
+                                                        inherit_parent_virtualenv=True)
 
-        sandbox_python_path = get_sandbox_python_path(inherit_from_parent=True,
-                                                      inherit_parent_virtualenv=True)
-
-        if self._enable_common_pack_libs:
-            try:
-                pack_common_libs_path = get_pack_common_libs_path_for_pack_ref(pack_ref=pack)
-            except Exception:
-                # There is no MongoDB connection available in Lambda and pack common lib
-                # functionality is not also mandatory for Lambda so we simply ignore those errors.
-                # Note: We should eventually refactor this code to make runner standalone and not
-                # depend on a db connection (as it was in the past) - this param should be passed
-                # to the runner by the action runner container
+            if self._enable_common_pack_libs:
+                try:
+                    pack_common_libs_path = get_pack_common_libs_path_for_pack_ref(pack_ref=pack)
+                except Exception:
+                    # There is no MongoDB connection available in Lambda and pack common lib
+                    # functionality is not also mandatory for Lambda so we simply ignore those errors.
+                    # Note: We should eventually refactor this code to make runner standalone and not
+                    # depend on a db connection (as it was in the past) - this param should be passed
+                    # to the runner by the action runner container
+                    pack_common_libs_path = None
+            else:
                 pack_common_libs_path = None
-        else:
-            pack_common_libs_path = None
 
-        if self._enable_common_pack_libs and pack_common_libs_path:
-            env['PYTHONPATH'] = pack_common_libs_path + ':' + sandbox_python_path
-        else:
-            env['PYTHONPATH'] = sandbox_python_path
+            if self._enable_common_pack_libs and pack_common_libs_path:
+                env['PYTHONPATH'] = pack_common_libs_path + ':' + sandbox_python_path
+            else:
+                env['PYTHONPATH'] = sandbox_python_path
 
-        # Include user provided environment variables (if any)
-        user_env_vars = self._get_env_vars()
-        env.update(user_env_vars)
+            # Include user provided environment variables (if any)
+            user_env_vars = self._get_env_vars()
+            env.update(user_env_vars)
 
-        # Include common st2 environment variables
-        st2_env_vars = self._get_common_action_env_variables()
-        env.update(st2_env_vars)
-        datastore_env_vars = self._get_datastore_access_env_vars()
-        env.update(datastore_env_vars)
+            # Include common st2 environment variables
+            st2_env_vars = self._get_common_action_env_variables()
+            env.update(st2_env_vars)
+            datastore_env_vars = self._get_datastore_access_env_vars()
+            env.update(datastore_env_vars)
 
-        stdout = StringIO()
-        stderr = StringIO()
+            stdout = StringIO()
+            stderr = StringIO()
 
-        store_execution_stdout_line = functools.partial(store_execution_output_data,
-                                                        output_type='stdout')
-        store_execution_stderr_line = functools.partial(store_execution_output_data,
-                                                        output_type='stderr')
+            store_execution_stdout_line = functools.partial(store_execution_output_data,
+                                                            output_type='stdout')
+            store_execution_stderr_line = functools.partial(store_execution_output_data,
+                                                            output_type='stderr')
 
-        read_and_store_stdout = make_read_and_store_stream_func(execution_db=self.execution,
-            action_db=self.action, store_data_func=store_execution_stdout_line)
-        read_and_store_stderr = make_read_and_store_stream_func(execution_db=self.execution,
-            action_db=self.action, store_data_func=store_execution_stderr_line)
+            read_and_store_stdout = make_read_and_store_stream_func(execution_db=self.execution,
+                action_db=self.action, store_data_func=store_execution_stdout_line)
+            read_and_store_stderr = make_read_and_store_stream_func(execution_db=self.execution,
+                action_db=self.action, store_data_func=store_execution_stderr_line)
 
-        command_string = list2cmdline(args)
-        if stdin_params:
-            command_string = 'echo %s | %s' % (quote_unix(stdin_params), command_string)
+            command_string = list2cmdline(args)
+            if stdin_params:
+                command_string = 'echo %s | %s' % (quote_unix(stdin_params), command_string)
 
-        LOG.debug('Running command: PATH=%s PYTHONPATH=%s %s' % (env['PATH'], env['PYTHONPATH'],
-                                                                 command_string))
-        exit_code, stdout, stderr, timed_out = run_command(cmd=args,
-                                                           stdin=stdin,
-                                                           stdout=subprocess.PIPE,
-                                                           stderr=subprocess.PIPE,
-                                                           shell=False,
-                                                           env=env,
-                                                           timeout=self._timeout,
-                                                           read_stdout_func=read_and_store_stdout,
-                                                           read_stderr_func=read_and_store_stderr,
-                                                           read_stdout_buffer=stdout,
-                                                           read_stderr_buffer=stderr,
-                                                           stdin_value=stdin_params)
-        LOG.debug('Returning values: %s, %s, %s, %s', exit_code, stdout, stderr, timed_out)
-        LOG.debug('Returning.')
-        return self._get_output_values(exit_code, stdout, stderr, timed_out)
+            LOG.debug('Running command: PATH=%s PYTHONPATH=%s %s' % (env['PATH'], env['PYTHONPATH'],
+                                                                    command_string))
+            with CounterWithTimer("python_actions_in_progress"):
+                exit_code, stdout, stderr, timed_out = run_command(cmd=args,
+                                                                stdin=stdin,
+                                                                stdout=subprocess.PIPE,
+                                                                stderr=subprocess.PIPE,
+                                                                shell=False,
+                                                                env=env,
+                                                                timeout=self._timeout,
+                                                                read_stdout_func=read_and_store_stdout,
+                                                                read_stderr_func=read_and_store_stderr,
+                                                                read_stdout_buffer=stdout,
+                                                                read_stderr_buffer=stderr,
+                                                                stdin_value=stdin_params)
+            LOG.debug('Returning values: %s, %s, %s, %s', exit_code, stdout, stderr, timed_out)
+            LOG.debug('Returning.')
+            return self._get_output_values(exit_code, stdout, stderr, timed_out)
 
     def _get_output_values(self, exit_code, stdout, stderr, timed_out):
         """

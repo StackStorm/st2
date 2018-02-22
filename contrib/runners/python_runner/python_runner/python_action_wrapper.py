@@ -128,7 +128,7 @@ class ActionService(object):
 
 class PythonActionWrapper(object):
     def __init__(self, pack, file_path, config=None, parameters=None, user=None, parent_args=None,
-                 log_level=PYTHON_RUNNER_DEFAULT_LOG_LEVEL, metrics=False):
+                 log_level=PYTHON_RUNNER_DEFAULT_LOG_LEVEL):
         """
         :param pack: Name of the pack this action belongs to.
         :type pack: ``str``
@@ -148,7 +148,6 @@ class PythonActionWrapper(object):
         :param parent_args: Command line arguments passed to the parent process.
         :type parse_args: ``list``
         """
-
         self._pack = pack
         self._file_path = file_path
         self._config = config or {}
@@ -156,7 +155,6 @@ class PythonActionWrapper(object):
         self._user = user
         self._parent_args = parent_args or []
         self._log_level = log_level
-        self._metrics = None
 
         self._class_name = None
         self._logger = logging.getLogger('PythonActionWrapper')
@@ -169,16 +167,12 @@ class PythonActionWrapper(object):
 
         # Note: We can only set a default user value if one is not provided after parsing the
         # config
-        if not self._user or metrics:
+        if not self._user:
             # Note: We use late import to avoid performance overhead
             from oslo_config import cfg
-            from st2common.metrics.metrics import METRICS
-            self._metrics = METRICS
             self._user = cfg.CONF.system_user.user
 
     def run(self):
-        if self._metrics:
-            self._metrics.inc_counter("python_actions_in_progress")
         action = self._get_action_instance()
         output = action.run(**self._parameters)
 
@@ -198,15 +192,15 @@ class PythonActionWrapper(object):
 
         if action_status is not None and not isinstance(action_status, bool):
             sys.stderr.write('Status returned from the action run() method must either be '
-                             'True or False, got: %s\n' % (action_status))
+                                'True or False, got: %s\n' % (action_status))
             sys.stderr.write(INVALID_STATUS_ERROR_MESSAGE)
             sys.exit(PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE)
 
         if action_status is not None and isinstance(action_status, bool):
             action_output['status'] = action_status
 
-            # Special case if result object is not JSON serializable - aka user wanted to return a
-            # non-simple type (e.g. class instance or other non-JSON serializable type)
+            # Special case if result object is not JSON serializable - aka user wanted to return
+            # a non-simple type (e.g. class instance or other non-JSON serializable type)
             try:
                 json.dumps(action_output['result'])
             except TypeError:
@@ -222,8 +216,6 @@ class PythonActionWrapper(object):
         sys.stdout.write(print_output + '\n')
         sys.stdout.write(ACTION_OUTPUT_RESULT_DELIMITER)
         sys.stdout.flush()
-        if self._metrics:
-            self._metrics.dec_counter("python_actions_in_progress")
 
     def _get_action_instance(self):
         try:
@@ -273,8 +265,6 @@ if __name__ == '__main__':
                              ' JSON')
     parser.add_argument('--log-level', required=False, default=PYTHON_RUNNER_DEFAULT_LOG_LEVEL,
                         help='Log level for actions')
-    parser.add_argument('--metrics', required=False, action='store_true',
-                        help='Enable metrics')
     args = parser.parse_args()
 
     config = json.loads(args.config) if args.config else {}
@@ -320,7 +310,6 @@ if __name__ == '__main__':
                               parameters=parameters,
                               user=user,
                               parent_args=parent_args,
-                              log_level=log_level,
-                              metrics=args.metrics)
+                              log_level=log_level)
 
     obj.run()

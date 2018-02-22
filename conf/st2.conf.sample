@@ -310,3 +310,8 @@ local_timezone = America/Los_Angeles
 # Base https URL to access st2 Web UI. This is used to constructhistory URLs that are sent out when chatops is used to kick off executions.
 webui_base_url = https://localhost
 
+[metrics]
+enable = False
+driver = statsd
+host = 127.0.0.1
+port = 8125
