@@ -3,4 +3,4 @@ chain:
         name: task1
         ref: core.local
         params:
-            cmd: "while [ -e {{tempfile}} ]; do sleep 0.1; done; exit 1"
+            cmd: "while [ -e '{{tempfile}}' ]; do sleep 0.1; done; exit 1"

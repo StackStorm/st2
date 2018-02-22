@@ -9,7 +9,7 @@ chain:
         name: task2
         ref: core.local
         params:
-            cmd: "while [ -e {{tempfile}} ]; do sleep 0.1; done"
+            cmd: "while [ -e '{{tempfile}}' ]; do sleep 0.1; done"
         on-success: task3
     -
         name: task3
