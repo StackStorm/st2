@@ -54,7 +54,8 @@ cache:
 
 install:
   - if [ "${TASK}" = 'compilepy3 ci-py3-unit' ]; then pip install tox; else make requirements; fi
-  - if [ "${TASK}" = 'ci-unit' ] || [ ${TASK} = 'ci-integration' ] || [ ${TASK} = 'compilepy3 ci-py3-unit' ]; then pip install codecov; sudo .circle/add-itest-user.sh; fi
+  - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ]; then pip install codecov; fi
+  - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ] || [ "${TASK}" = 'compilepy3 ci-py3-unit' ]; then sudo .circle/add-itest-user.sh; fi
 
 script:
   - make ${TASK}
