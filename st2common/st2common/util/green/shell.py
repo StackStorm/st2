@@ -18,12 +18,14 @@ Shell utility functions which use non-blocking and eventlet friendly code.
 """
 
 from __future__ import absolute_import
+
 import os
 
 import six
 import eventlet
-from st2common import log as logging
 from eventlet.green import subprocess
+
+from st2common import log as logging
 
 __all__ = [
     'run_command'
@@ -143,6 +145,9 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     LOG.debug('Attaching to process.')
 
     if stdin_value:
+        if six.PY3:
+            stdin_value = stdin_value.encode('utf-8')
+
         process.stdin.write(stdin_value)
 
     if read_stdout_func and read_stderr_func:

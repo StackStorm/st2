@@ -17,7 +17,9 @@ from __future__ import absolute_import
 import os
 import re
 
+import six
 import mock
+import unittest2
 from oslo_config import cfg
 
 from python_runner import python_runner
@@ -84,8 +86,13 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
         self.assertTrue(output is not None)
 
-        expected_result_re = (r"\[{'a': '1'}, {'h': 3, 'c': 2}, {'e': "
-                              "<non_simple_type.Test object at .*?>}\]")
+        if six.PY2:
+            expected_result_re = (r"\[{'a': '1'}, {'h': 3, 'c': 2}, {'e': "
+                                  "<non_simple_type.Test object at .*?>}\]")
+        else:
+            expected_result_re = (r"\[{'a': '1'}, {'c': 2, 'h': 3}, {'e': "
+                                  "<non_simple_type.Test object at .*?>}\]")
+
         match = re.match(expected_result_re, output['result'])
         self.assertTrue(match)
 
@@ -176,6 +183,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertTrue(output is not None)
         self.assertEqual(output['result'], [1, 2])
 
+    @unittest2.skipIf(six.PY3, 'keyczar doesn\'t work under Python 3')
     def test_simple_action_config_value_provided_overriden_in_datastore(self):
         pack = 'dummy_pack_5'
         user = 'joe'
@@ -611,7 +619,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
                                       user='joe')
         expected_msg = ('Failed to load action class from file ".*?invalid_syntax.py" '
                        '\(action file most likely doesn\'t exist or contains invalid syntax\): '
-                       'No module named invalid')
+                       'No module named \'?invalid\'?')
         self.assertRaisesRegexp(Exception, expected_msg, wrapper._get_action_instance)
 
     def test_simple_action_log_messages_and_log_level_runner_param(self):
