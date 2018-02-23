@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from datetime import datetime
+from functools import wraps
 
 from oslo_config import cfg
 
@@ -71,13 +72,20 @@ class Timer(object):
     def __exit__(self, *args):
         self.send_time()
 
+    def __call__(self, func):
+        @wraps(func)
+        def wrapper(*args, **kw):
+            with self:
+                return func(*args, **kw)
+        return wrapper
+
 
 class Counter(object):
     """ Timer context manager for easily sending timer statistics.
     """
     def __init__(self, key):
         assert isinstance(key, str)
-        assert len(key) > 0
+        assert key
         self.key = key
         self._metrics = METRICS
 
@@ -88,6 +96,13 @@ class Counter(object):
     def __exit__(self, *args):
         self._metrics.dec_counter(self.key)
 
+    def __call__(self, func):
+        @wraps(func)
+        def wrapper(*args, **kw):
+            with self:
+                return func(*args, **kw)
+        return wrapper
+
 
 class CounterWithTimer(object):
     """ Timer and counter context manager for easily sending timer statistics
@@ -95,7 +110,7 @@ class CounterWithTimer(object):
     """
     def __init__(self, key):
         assert isinstance(key, str)
-        assert len(key) > 0
+        assert key
         self.key = key
         self._metrics = METRICS
         self._start_time = None
@@ -125,6 +140,13 @@ class CounterWithTimer(object):
     def __exit__(self, *args):
         self.send_time()
         self._metrics.dec_counter("%s_counter" % self.key)
+
+    def __call__(self, func):
+        @wraps(func)
+        def wrapper(*args, **kw):
+            with self:
+                return func(*args, **kw)
+        return wrapper
 
 
 def _get_metrics_driver():
