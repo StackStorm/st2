@@ -22,7 +22,6 @@ import mock
 import unittest2
 from oslo_config import cfg
 
-from python_runner import python_runner
 from st2actions.container.base import RunnerContainer
 from st2common.runners.base_action import Action
 from st2common.runners.utils import get_action_class_instance
@@ -33,6 +32,7 @@ from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
 from st2common.constants.action import MAX_PARAM_LENGTH
 from st2common.constants.pack import SYSTEM_PACK_NAME
 from st2common.persistence.execution import ActionExecutionOutput
+from st2common import config as st2common_config
 from python_runner.python_action_wrapper import PythonActionWrapper
 from st2tests.base import RunnerTestCase
 from st2tests.base import CleanDbTestCase
@@ -40,6 +40,9 @@ from st2tests.base import blocking_eventlet_spawn
 from st2tests.base import make_mock_stream_readline
 import st2tests.base as tests_base
 
+st2common_config.parse_args(args=[])
+
+from python_runner import python_runner
 
 PASCAL_ROW_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
                                       'pythonactions/actions/pascal_row.py')
