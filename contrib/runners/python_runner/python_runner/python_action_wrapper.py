@@ -148,6 +148,7 @@ class PythonActionWrapper(object):
         :param parent_args: Command line arguments passed to the parent process.
         :type parse_args: ``list``
         """
+
         self._pack = pack
         self._file_path = file_path
         self._config = config or {}
@@ -192,15 +193,15 @@ class PythonActionWrapper(object):
 
         if action_status is not None and not isinstance(action_status, bool):
             sys.stderr.write('Status returned from the action run() method must either be '
-                                'True or False, got: %s\n' % (action_status))
+                             'True or False, got: %s\n' % (action_status))
             sys.stderr.write(INVALID_STATUS_ERROR_MESSAGE)
             sys.exit(PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE)
 
         if action_status is not None and isinstance(action_status, bool):
             action_output['status'] = action_status
 
-            # Special case if result object is not JSON serializable - aka user wanted to return
-            # a non-simple type (e.g. class instance or other non-JSON serializable type)
+            # Special case if result object is not JSON serializable - aka user wanted to return a
+            # non-simple type (e.g. class instance or other non-JSON serializable type)
             try:
                 json.dumps(action_output['result'])
             except TypeError:
