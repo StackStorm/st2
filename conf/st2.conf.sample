@@ -178,6 +178,16 @@ connection_retries = 10
 # URL of all the nodes in a messaging service cluster.
 cluster_urls =  # comma separated list allowed here.
 
+[metrics]
+# Destination server to connect to if driver requires connection.
+host = 127.0.0.1
+# Enable metrics collection.
+enable = False
+# Driver type for metrics collection.
+driver = statsd
+# Destination port to connect to if driver requires connection.
+port = 8125
+
 [mistral]
 # URL Mistral uses to talk back to the API.If not provided it defaults to public API URL. Note: This needs to be a base URL without API version (e.g. http://127.0.0.1:9101)
 api_url = None
@@ -310,8 +320,3 @@ local_timezone = America/Los_Angeles
 # Base https URL to access st2 Web UI. This is used to constructhistory URLs that are sent out when chatops is used to kick off executions.
 webui_base_url = https://localhost
 
-[metrics]
-enable = False
-driver = statsd
-host = 127.0.0.1
-port = 8125
