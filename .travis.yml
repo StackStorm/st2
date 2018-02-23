@@ -22,7 +22,7 @@ matrix:
       python: 2.7
     - env: TASK="ci-checks ci-packs-tests"
       python: 2.7
-    - env: TASK="compilepy3 ci-st2client-py3-tests"
+    - env: TASK="compilepy3 ci-py3-unit" CACHE_NAME=py3
       python: 3.6
 addons:
   apt:
@@ -53,8 +53,9 @@ cache:
     - .tox/
 
 install:
-  - if [ "${TASK}" = 'compilepy3 ci-st2client-py3-tests' ]; then pip install tox; else make requirements; fi
-  - if [ "${TASK}" = 'ci-unit' ] || [ ${TASK} = 'ci-integration' ]; then pip install codecov; sudo .circle/add-itest-user.sh; fi
+  - if [ "${TASK}" = 'compilepy3 ci-py3-unit' ]; then pip install tox; else make requirements; fi
+  - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ]; then pip install codecov; fi
+  - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ] || [ "${TASK}" = 'compilepy3 ci-py3-unit' ]; then sudo .circle/add-itest-user.sh; fi
 
 script:
   - make ${TASK}

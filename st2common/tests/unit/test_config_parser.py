@@ -1,3 +1,4 @@
+# coding=utf-8
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -44,3 +45,9 @@ class ContentPackConfigParserTestCase(TestCase):
         config = parser.get_config()
         self.assertEqual(config.config['section1']['key1'], 'value1')
         self.assertEqual(config.config['section2']['key10'], 'value10')
+
+    def test_get_config_for_unicode_char(self):
+        pack_name = 'dummy_pack_18'
+        parser = ContentPackConfigParser(pack_name=pack_name)
+        config = parser.get_config()
+        self.assertEqual(config.config['section1']['key1'], u'测试')

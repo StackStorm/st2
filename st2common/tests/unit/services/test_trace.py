@@ -14,9 +14,11 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import bson
-import copy
 
+import copy
+from collections import OrderedDict
+
+import bson
 from unittest2 import TestCase
 
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
@@ -30,31 +32,31 @@ from st2tests import DbTestCase
 
 FIXTURES_PACK = 'traces'
 
-TEST_MODELS = {
-    'executions': [
+TEST_MODELS = OrderedDict((
+    ('executions', [
         'traceable_execution.yaml',
         'rule_fired_execution.yaml',
         'execution_with_parent.yaml'
-    ],
-    'liveactions': [
+    ]),
+    ('liveactions', [
         'traceable_liveaction.yaml',
         'liveaction_with_parent.yaml'
-    ],
-    'rules': ['rule1.yaml'],
-    'traces': [
+    ]),
+    ('traces', [
         'trace_empty.yaml',
         'trace_multiple_components.yaml',
         'trace_one_each.yaml',
         'trace_one_each_dup.yaml',
         'trace_execution.yaml'
-    ],
-    'triggers': ['trigger1.yaml'],
-    'triggerinstances': [
+    ]),
+    ('triggers', ['trigger1.yaml']),
+    ('triggerinstances', [
         'action_trigger.yaml',
         'notify_trigger.yaml',
         'non_internal_trigger.yaml'
-    ]
-}
+    ]),
+    ('rules', ['rule1.yaml']),
+))
 
 
 class DummyComponent(object):

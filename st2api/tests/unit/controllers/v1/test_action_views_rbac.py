@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import httplib
-
 import six
 import mock
 
@@ -30,6 +28,7 @@ from st2common.models.db.rbac import UserRoleAssignmentDB
 from st2common.models.db.rbac import PermissionGrantDB
 from st2common.content import utils as content_utils
 from st2tests.fixturesloader import FixturesLoader
+from st2common.util.compat import mock_open_name
 from tests.base import APIControllerWithRBACTestCase
 
 http_client = six.moves.http_client
@@ -99,12 +98,12 @@ class ActionViewsControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.app.get('/v1/actions/views/entry_point/%s' % (action_id), expect_errors=True)
         expected_msg = ('User "no_permissions" doesn\'t have required permission "action_view"'
                         ' on resource "%s"' % (action_uid))
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     @mock.patch.object(content_utils, 'get_entry_point_abs_path', mock.MagicMock(
         return_value='/path/to/file'))
-    @mock.patch('__builtin__.open', mock.mock_open(read_data='file content'), create=True)
+    @mock.patch(mock_open_name, mock.mock_open(read_data='file content'), create=True)
     def test_get_entry_point_view_success(self):
         user_db = self.users['action_view_a1']
         self.use_user(user_db)
@@ -112,14 +111,14 @@ class ActionViewsControllerRBACTestCase(APIControllerWithRBACTestCase):
         # action_view on a1, but no permissions on a2
         action_id = self.models['actions']['a1.yaml'].id
         resp = self.app.get('/v1/actions/views/entry_point/%s' % (action_id))
-        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(resp.status_code, http_client.OK)
 
         action_id = self.models['actions']['a2.yaml'].id
         action_uid = self.models['actions']['a2.yaml'].get_uid()
         resp = self.app.get('/v1/actions/views/entry_point/%s' % (action_id), expect_errors=True)
         expected_msg = ('User "action_view_a1" doesn\'t have required permission "action_view"'
                         ' on resource "%s"' % (action_uid))
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_get_parameters_view_no_permission(self):
@@ -131,7 +130,7 @@ class ActionViewsControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.app.get('/v1/actions/views/parameters/%s' % (action_id), expect_errors=True)
         expected_msg = ('User "no_permissions" doesn\'t have required permission "action_view"'
                         ' on resource "%s"' % (action_uid))
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_get_parameters_view_success(self):
@@ -141,12 +140,12 @@ class ActionViewsControllerRBACTestCase(APIControllerWithRBACTestCase):
         # action_view on a1, but no permissions on a2
         action_id = self.models['actions']['a1.yaml'].id
         resp = self.app.get('/v1/actions/views/parameters/%s' % (action_id))
-        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(resp.status_code, http_client.OK)
 
         action_id = self.models['actions']['a2.yaml'].id
         action_uid = self.models['actions']['a2.yaml'].get_uid()
         resp = self.app.get('/v1/actions/views/parameters/%s' % (action_id), expect_errors=True)
         expected_msg = ('User "action_view_a1" doesn\'t have required permission "action_view"'
                         ' on resource "%s"' % (action_uid))
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)

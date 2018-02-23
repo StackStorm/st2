@@ -129,7 +129,7 @@ class MistralRunnerCancelTest(DbTestCase):
 
     @classmethod
     def get_runner_class(cls, runner_name):
-        return runners.get_runner(runner_name).__class__
+        return runners.get_runner(runner_name, runner_name).__class__
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',

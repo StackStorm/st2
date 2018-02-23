@@ -13,10 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import httplib
-
 import mock
 
+from six.moves import http_client
 import st2common.validators.api.action as action_validator
 from st2common.models.db.auth import UserDB
 from st2common.persistence.auth import User
@@ -129,10 +128,10 @@ class ActionExecutionRBACControllerTestCase(BaseActionExecutionControllerTestCas
         self.use_user(user_db)
 
         resp = self.app.get('/v1/actionexecutions?limit=-1', expect_errors=True)
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
 
         user_db = self.users['admin']
         self.use_user(user_db)
 
         resp = self.app.get('/v1/actionexecutions?limit=-1')
-        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(resp.status_code, http_client.OK)

@@ -15,8 +15,8 @@
 
 import os
 import random
-import httplib
 
+from six.moves import http_client
 import unittest2
 import requests
 import eventlet
@@ -44,7 +44,7 @@ class GunicornWSGIEntryPointTestCase(IntegrationTestCase):
             eventlet.sleep(10)
             self.assertProcessIsRunning(process=process)
             response = requests.get('http://127.0.0.1:%s/v1/actions' % (port))
-            self.assertEqual(response.status_code, httplib.OK)
+            self.assertEqual(response.status_code, http_client.OK)
         finally:
             kill_process(process)
 
@@ -60,6 +60,6 @@ class GunicornWSGIEntryPointTestCase(IntegrationTestCase):
             eventlet.sleep(10)
             self.assertProcessIsRunning(process=process)
             response = requests.post('http://127.0.0.1:%s/tokens' % (port))
-            self.assertEqual(response.status_code, httplib.UNAUTHORIZED)
+            self.assertEqual(response.status_code, http_client.UNAUTHORIZED)
         finally:
             kill_process(process)

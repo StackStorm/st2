@@ -112,7 +112,7 @@ class MistralResultsQuerier(Querier):
             )
         except exceptions.ReferenceNotFoundError as exc:
             LOG.exception('[%s] Unable to find reference.', execution_id)
-            return (action_constants.LIVEACTION_STATUS_FAILED, exc.message)
+            return (action_constants.LIVEACTION_STATUS_FAILED, str(exc))
         except Exception:
             LOG.exception('[%s] Unable to fetch mistral workflow result and tasks. %s',
                           execution_id, query_context)
@@ -148,8 +148,8 @@ class MistralResultsQuerier(Querier):
             eventlet.sleep(jitter)
             execution = self._client.executions.get(mistral_exec_id)
         except mistralclient_base.APIException as mistral_exc:
-            if 'not found' in mistral_exc.message:
-                raise exceptions.ReferenceNotFoundError(mistral_exc.message)
+            if 'not found' in str(mistral_exc):
+                raise exceptions.ReferenceNotFoundError(str(mistral_exc))
             raise mistral_exc
 
         result = jsonify.try_loads(execution.output) if execution.state in DONE_STATES else {}
@@ -212,8 +212,8 @@ class MistralResultsQuerier(Querier):
                 jitter = random.uniform(0, self._jitter)
                 eventlet.sleep(jitter)
         except mistralclient_base.APIException as mistral_exc:
-            if 'not found' in mistral_exc.message:
-                raise exceptions.ReferenceNotFoundError(mistral_exc.message)
+            if 'not found' in str(mistral_exc):
+                raise exceptions.ReferenceNotFoundError(str(mistral_exc))
             raise mistral_exc
 
         return [self._format_task_result(task=entry.to_dict()) for entry in result]

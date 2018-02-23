@@ -62,7 +62,7 @@ class DBModelUIDFieldTestCase(unittest2.TestCase):
         # Verify that same set of parameters always results in the same hash
         parameters = {'a': 1, 'b': 'unicode', 'c': [1, 2, 3], 'd': {'g': 1, 'h': 2}}
         paramers_hash = json.dumps(parameters, sort_keys=True)
-        paramers_hash = hashlib.md5(paramers_hash).hexdigest()
+        paramers_hash = hashlib.md5(paramers_hash.encode()).hexdigest()
 
         parameters = {'a': 1, 'b': 'unicode', 'c': [1, 2, 3], 'd': {'g': 1, 'h': 2}}
         trigger_db = TriggerDB(name='tname', pack='tpack', parameters=parameters)

@@ -87,7 +87,7 @@ class RBACControllerTestCase(APIControllerWithRBACTestCase):
 
         resp = self.app.get('/v1/rbac/roles')
         self.assertEqual(resp.status_int, 200)
-        self.assertTrue(list(resp.json) > 0,
+        self.assertTrue(len(list(resp.json)) > 0,
                         '/v1/rbac/roles did not return correct roles.')
 
     def test_roles_get_all_system_flter(self):
@@ -95,7 +95,7 @@ class RBACControllerTestCase(APIControllerWithRBACTestCase):
 
         resp = self.app.get('/v1/rbac/roles?system=1')
         self.assertEqual(resp.status_int, 200)
-        self.assertTrue(list(resp.json) > 0,
+        self.assertTrue(len(list(resp.json)) > 0,
                         '/v1/rbac/roles did not return correct roles.')
 
         for role in resp.json:
@@ -112,7 +112,7 @@ class RBACControllerTestCase(APIControllerWithRBACTestCase):
 
         resp = self.app.get('/v1/rbac/role_assignments')
         self.assertEqual(resp.status_int, 200)
-        self.assertTrue(list(resp.json) > 0,
+        self.assertTrue(len(list(resp.json)) > 0,
                         '/v1/rbac/role_assignments did not return correct assignments.')
         self.assertEqual(resp.json[0]['role'], 'system_admin')
         self.assertEqual(resp.json[0]['user'], 'system_admin')

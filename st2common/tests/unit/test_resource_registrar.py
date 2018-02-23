@@ -107,7 +107,7 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         # Ref is provided
         pack_db = Pack.get_by_name('dummy_pack_6')
         self.assertEqual(pack_db.ref, 'dummy_pack_6_ref')
-        self.assertEqual(len(pack_dbs[0].contributors), 0)
+        self.assertEqual(len(pack_db.contributors), 0)
 
         # Ref is not provided, directory name should be used
         pack_db = Pack.get_by_name('dummy_pack_1')

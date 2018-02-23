@@ -10,6 +10,35 @@ Added
 * Update ``st2 execution tail`` command so it supports double nested workflows (workflow ->
   workflow -> execution). Previously, only top-level executions and single nested workflows
   (workflow -> execution) were supported. (improvement) #3962 #3960
+* Add support for utf-8 / unicode characters in the pack config files. (improvement) #3980 #3989
+
+  Contributed by @sumkire.
+
+Changed
+~~~~~~~
+
+* Modified RabbitMQ connection error message to make clear that it is an MQ connection issue. #3992
+* Additional refactor which makes action runners fully standalone and re-distributable Python
+  packages. Also add support for multiple runners (runner modules) inside a single Python package
+  and consolidate Python packages from two to one for the following runners: local runners, remote
+  runners, windows runners. (improvement) #3999
+* Upgrade eventlet library to the latest stable version (0.22.1) (improvement) #4007
+
+Fixed
+~~~~~
+* Fix Python runner actions and ``Argument list too long`` error when very large parameters are
+  passed into the action. The fix utilizes ``stdin`` to pass parameters to the Python action wrapper
+  process instead of CLI argument list. (bug fix) #1598 #3976
+
+* Fix a regression in ``POST /v1/webhooks/<webhook name>`` API endpoint introduced in v2.4.0
+  and add back support for arrays. In 2.4.0 support for arrays was inadvertently removed and
+  only objects were supported. Keep in mind that this only applies to custom user-defined
+  webhooks and system ``st2`` webhook still requires input to be an object (dictionary).
+  (bug fix) #3956 #3955
+* Fix a bug in the CLI causing ``st2 execution pause`` and ``st2 execution resume``
+  to not work. (bugfix) #4001
+
+  Contributed by Nick Maludy (Encore Technologies).
 
 2.6.0 - January 19, 2018
 ------------------------
@@ -57,6 +86,12 @@ Added
   the code so ``api.max_page_size`` config option only applies to non-admin users, meaning users
   with admin permission can specify arbitrary value for ``?limit`` query param which can also be
   larger than ``api.max_page_size``. (improvement) #3939
+* Add new ``?include_attributes`` query param filter to ``/v1/executions/`` API endpoint
+  With this filter user can select which fields to include in the response (whitelist approach,
+  opposite of the existing ``?exclude_attributes`` filter).
+
+  For example, if you only want to retrieve ``id`` and ``status`` field, the URL would look like
+  this - ``/v1/executions?include_attributes=id,status``. (new feature) #3953 #3858 #3856
 
 Changed
 ~~~~~~~
@@ -921,7 +956,6 @@ Added
   ``True``. However, to access remote hosts, action parameters like username and
   password/private_key, if provided with action, will have precedence over the config file
   entry for the host. #2941 #3032 #3058 [Eric Edgar] (improvement)
-
 
 Changed
 ~~~~~~~
