@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from prometheus_client import Histogram, Counter
+from prometheus_client import Histogram, Gauge
 
 from st2common.metrics.metrics import BaseMetricsDriver
 
@@ -32,11 +32,11 @@ class PrometheusDriver(BaseMetricsDriver):
     def inc_counter(self, key, amount=1):
         """ Increment counter
         """
-        prometheus_counter = Counter(key)
+        prometheus_counter = Gauge(key)
         prometheus_counter.inc(amount)
 
     def dec_counter(self, key, amount=1):
         """ Decrement metric
         """
-        prometheus_counter = Counter(key)
+        prometheus_counter = Gauge(key)
         prometheus_counter.dec(amount)
