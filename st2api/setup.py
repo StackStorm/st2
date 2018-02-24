@@ -20,18 +20,19 @@ from setuptools import setup, find_packages
 
 from dist_utils import fetch_requirements
 from dist_utils import apply_vagrant_workaround
-from st2api import __version__
+from dist_utils import get_version_string
 
 ST2_COMPONENT = 'st2api'
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 REQUIREMENTS_FILE = os.path.join(BASE_DIR, 'requirements.txt')
+INIT_FILE = os.path.join(BASE_DIR, 'st2api/__init__.py')
 
 install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
 
 apply_vagrant_workaround()
 setup(
     name=ST2_COMPONENT,
-    version=__version__,
+    version=get_version_string(INIT_FILE),
     description='{} StackStorm event-driven automation platform component'.format(ST2_COMPONENT),
     author='StackStorm',
     author_email='info@stackstorm.com',
