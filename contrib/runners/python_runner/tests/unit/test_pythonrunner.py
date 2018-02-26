@@ -767,6 +767,32 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertRaisesRegexp(ValueError, expected_msg, runner.pre_run)
 
     @mock.patch('python_runner.python_runner.get_sandbox_virtualenv_path')
+    @mock.patch('st2common.util.green.shell.subprocess.Popen')
+    def test_content_version_contains_common_libs_config_enabled(self, mock_popen,
+                                                                 mock_get_sandbox_virtualenv_path):
+        # Verify that the common libs path correctly reflects directory in git worktree
+        mock_get_sandbox_virtualenv_path.return_value = None
+
+        mock_process = mock.Mock()
+        mock_process.communicate.return_value = ('', '')
+        mock_popen.return_value = mock_process
+
+        runner = self._get_mock_runner_obj(pack='test', sandbox=False)
+        runner._enable_common_pack_libs = True
+        runner.auth_token = mock.Mock()
+        runner.auth_token.token = 'ponies'
+        runner.runner_parameters = {'content_version': 'v0.25.0'}
+        runner.entry_point = PRINT_VERSION_ACTION
+        runner.pre_run()
+        (_, _, _) = runner.run({'row_index': 4})
+
+        _, call_kwargs = mock_popen.call_args
+        actual_env = call_kwargs['env']
+        pack_common_lib_path = os.path.join(runner.git_worktree_path, 'lib')
+        self.assertTrue('PYTHONPATH' in actual_env)
+        self.assertTrue(pack_common_lib_path in actual_env['PYTHONPATH'])
+
+    @mock.patch('python_runner.python_runner.get_sandbox_virtualenv_path')
     def test_content_version_success_local_modules_work_fine(self,
                                                              mock_get_sandbox_virtualenv_path):
         # Verify that local module import correctly use git worktree directory
