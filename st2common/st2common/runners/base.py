@@ -373,14 +373,14 @@ class GitWorktreeActionRunner(ActionRunner):
         if self._debug:
             LOG.debug('Not removing git worktree "%s" because debug mode is enabled' %
                       (worktree_path))
+        else:
+            LOG.debug('Removing git worktree "%s" for pack "%s" and content version "%s"' %
+                      (worktree_path, pack_name, content_version))
 
-        LOG.debug('Removing git worktree "%s" for pack "%s" and content version "%s"' %
-                  (worktree_path, pack_name, content_version))
-
-        try:
-            shutil.rmtree(worktree_path, ignore_errors=True)
-        except:
-            pass
+            try:
+                shutil.rmtree(worktree_path, ignore_errors=True)
+            except:
+                pass
 
         return True
 
