@@ -14,8 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import logging as stdlib_logging
 
+import six
 from oslo_config import cfg
 
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
@@ -118,6 +120,9 @@ def make_read_and_store_stream_func(execution_db, action_db, store_data_func):
                 line = stream.readline()
                 if not line:
                     break
+
+                if isinstance(line, six.binary_type):
+                    line = line.decode('utf-8')
 
                 buff.write(line)
 
