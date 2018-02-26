@@ -221,6 +221,7 @@ def register_opts(ignore_errors=False):
 
     # Runner options
     default_python_bin_path = sys.executable
+    default_python3_bin_path = '/usr/bin/python3'
     base_dir = os.path.dirname(os.path.realpath(default_python_bin_path))
     default_virtualenv_bin_path = os.path.join(base_dir, 'virtualenv')
     action_runner_opts = [
@@ -231,6 +232,8 @@ def register_opts(ignore_errors=False):
         # Python runner options
         cfg.StrOpt('python_binary', default=default_python_bin_path,
                    help='Python binary which will be used by Python actions.'),
+        cfg.StrOpt('python3_binary', default=default_python3_bin_path,
+                   help='Python 3 binary which will be used by Python actions.'),
         cfg.StrOpt('virtualenv_binary', default=default_virtualenv_bin_path,
                    help='Virtualenv binary which should be used to create pack virtualenvs.'),
         cfg.StrOpt('python_runner_log_level',

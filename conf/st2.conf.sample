@@ -14,6 +14,10 @@ python_runner_log_level = DEBUG
 workflows_pool_size = 40
 # Virtualenv binary which should be used to create pack virtualenvs.
 virtualenv_binary = /data/stanley/virtualenv/bin/virtualenv
+# Python 3 binary which will be used by Python actions.
+python3_binary = /data/stanley/virtualenv/bin/python3
+# True to store and stream action output (stdout and stderr) in real-time.
+stream_output = False
 # location of the logging.conf file
 logging = conf/logging.conf
 # True to store and stream action output (stdout and stderr) in real-time.
@@ -154,7 +158,7 @@ collection_interval = 600
 
 [keyvalue]
 # Location of the symmetric encryption key for encrypting values in kvstore. This key should be in JSON and should've been generated using keyczar.
-encryption_key_path = 
+encryption_key_path =
 # Allow encryption of values in key value stored qualified as "secret".
 enable_encryption = True
 
@@ -309,4 +313,3 @@ local_timezone = America/Los_Angeles
 [webui]
 # Base https URL to access st2 Web UI. This is used to constructhistory URLs that are sent out when chatops is used to kick off executions.
 webui_base_url = https://localhost
-

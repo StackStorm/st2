@@ -281,6 +281,7 @@ virtualenv:
 	@echo
 	test -f $(VIRTUALENV_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) --no-site-packages $(VIRTUALENV_DIR)
 
+
 	# Setup PYTHONPATH in bash activate script...
 	# Delete existing entries (if any)
 	sed -i '/_OLD_PYTHONPATHp/d' $(VIRTUALENV_DIR)/bin/activate
