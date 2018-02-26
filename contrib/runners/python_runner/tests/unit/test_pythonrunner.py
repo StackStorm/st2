@@ -732,22 +732,22 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     def test_content_version_success(self, mock_get_sandbox_virtualenv_path):
         mock_get_sandbox_virtualenv_path.return_value = None
 
-        # 1. valid version - 0.12.0
+        # 1. valid version - 0.25.0
         runner = self._get_mock_runner_obj(pack='test', sandbox=False)
         runner.entry_point = PRINT_VERSION_ACTION
-        runner.runner_parameters = {'content_version': 'v0.12.0'}
+        runner.runner_parameters = {'content_version': 'v0.25.0'}
         runner.pre_run()
 
         (status, output, _) = runner.run({})
 
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertEqual(output['result'], 'v0.12.0')
-        self.assertEqual(output['stdout'].strip(), 'v0.12.0')
+        self.assertEqual(output['result'], 'v0.25.0')
+        self.assertEqual(output['stdout'].strip(), 'v0.25.0')
 
-        # 2. valid version - 0.12.0
+        # 2. valid version - 0.24.0
         runner = self._get_mock_runner_obj(pack='test', sandbox=False)
         runner.entry_point = PRINT_VERSION_ACTION
-        runner.runner_parameters = {'content_version': 'v0.13.0'}
+        runner.runner_parameters = {'content_version': 'v0.24.0'}
         runner.pre_run()
 
         (status, output, _) = runner.run({})
@@ -793,6 +793,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         mock_stderr = '''
 git: 'worktree' is not a git command. See 'git --help'.
 '''
+        mock_stderr = six.text_type(mock_stderr)
         mock_run_command.return_value = 1, mock_stdout, mock_stderr, False
 
         runner = self._get_mock_runner_obj()
@@ -811,6 +812,7 @@ git: 'worktree' is not a git command. See 'git --help'.
 fatal: Not a git repository (or any parent up to mount point /home)
 Stopping at filesystem boundary (GIT_DISCOVERY_ACROSS_FILESYSTEM not set).
 '''
+        mock_stderr = six.text_type(mock_stderr)
         mock_run_command.return_value = 1, mock_stdout, mock_stderr, False
 
         runner = self._get_mock_runner_obj()
@@ -829,6 +831,7 @@ Stopping at filesystem boundary (GIT_DISCOVERY_ACROSS_FILESYSTEM not set).
         mock_stderr = '''
 fatal: invalid reference: vinvalid
 '''
+        mock_stderr = six.text_type(mock_stderr)
         mock_run_command.return_value = 1, mock_stdout, mock_stderr, False
 
         runner = self._get_mock_runner_obj()

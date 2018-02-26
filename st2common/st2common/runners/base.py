@@ -391,6 +391,12 @@ class GitWorktreeActionRunner(ActionRunner):
         """
         error_prefix = 'Failed to create git worktree for pack "%s": ' % (pack_name)
 
+        if isinstance(stdout, six.binary_type):
+            stdout = stdout.decode('utf-8')
+
+        if isinstance(stderr, six.binary_type):
+            stderr = stderr.decode('utf-8')
+
         # 1. Installed version of git which doesn't support worktree command
         if "git: 'worktree' is not a git command." in stderr:
             msg = ('Installed git version doesn\'t support git worktree command. '
