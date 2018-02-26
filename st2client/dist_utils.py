@@ -14,14 +14,39 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import os
+import re
+import sys
 
-from pip.req import parse_requirements
+from distutils.version import StrictVersion
+
+GET_PIP = 'curl https://bootstrap.pypa.io/get-pip.py | python'
+
+try:
+    import pip
+    from pip.req import parse_requirements
+except ImportError:
+    print('Download pip:\n', GET_PIP)
+    sys.exit(1)
 
 __all__ = [
+    'check_pip_version',
     'fetch_requirements',
-    'apply_vagrant_workaround'
+    'apply_vagrant_workaround',
+    'get_version_string',
+    'parse_version_string'
 ]
+
+
+def check_pip_version():
+    """
+    Ensure that a minimum supported version of pip is installed.
+    """
+    if StrictVersion(pip.__version__) < StrictVersion('6.0.0'):
+        print("Upgrade pip, your version `{0}' "
+              "is outdated:\n{1}".format(pip.__version__, GET_PIP))
+        sys.exit(1)
 
 
 def fetch_requirements(requirements_file_path):
@@ -46,3 +71,22 @@ def apply_vagrant_workaround():
     """
     if os.environ.get('USER', None) == 'vagrant':
         del os.link
+
+
+def get_version_string(init_file):
+    """
+    Read __version__ string for an init file.
+    """
+
+    with open(init_file, 'r') as fp:
+        content = fp.read()
+        version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
+                                  content, re.M)
+        if version_match:
+            return version_match.group(1)
+
+        raise RuntimeError('Unable to find version string in %s.' % (init_file))
+
+
+# alias for get_version_string
+parse_version_string = get_version_string

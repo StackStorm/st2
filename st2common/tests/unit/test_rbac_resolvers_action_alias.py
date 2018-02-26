@@ -15,6 +15,7 @@
 # limitations under the License.
 
 
+from __future__ import absolute_import
 from st2common.rbac.types import PermissionType
 from st2common.rbac.types import ResourceType
 from st2common.persistence.auth import User
@@ -190,55 +191,56 @@ class ActionAliasPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         # Create some mock role assignments
         user_db = self.users['alias_pack_grant']
         role_assignment_db = UserRoleAssignmentDB(
-            user=user_db.name,
-            role=self.roles['alias_pack_grant'].name)
+            user=user_db.name, role=self.roles['alias_pack_grant'].name,
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         user_db = self.users['alias_grant']
-        role_assignment_db = UserRoleAssignmentDB(user=user_db.name,
-                                                  role=self.roles['alias_grant'].name)
+        role_assignment_db = UserRoleAssignmentDB(
+            user=user_db.name, role=self.roles['alias_grant'].name,
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         user_db = self.users['pack_alias_all_grant']
         role_assignment_db = UserRoleAssignmentDB(
-            user=user_db.name,
-            role=self.roles['pack_alias_all_grant'].name)
+            user=user_db.name, role=self.roles['pack_alias_all_grant'].name,
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         user_db = self.users['alias_all_grant']
         role_assignment_db = UserRoleAssignmentDB(
-            user=user_db.name,
-            role=self.roles['alias_all_grant'].name)
+            user=user_db.name, role=self.roles['alias_all_grant'].name,
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         user_db = self.users['alias_modify_grant']
         role_assignment_db = UserRoleAssignmentDB(
-            user=user_db.name,
-            role=self.roles['alias_modify_grant'].name)
+            user=user_db.name, role=self.roles['alias_modify_grant'].name,
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         user_db = self.users['alias_pack_alias_create_grant']
         role_assignment_db = UserRoleAssignmentDB(
-            user=user_db.name,
-            role=self.roles['alias_pack_alias_create_grant'].name)
+            user=user_db.name, role=self.roles['alias_pack_alias_create_grant'].name,
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         user_db = self.users['alias_pack_alias_all_grant']
         role_assignment_db = UserRoleAssignmentDB(
-            user=user_db.name,
-            role=self.roles['alias_pack_alias_all_grant'].name)
+            user=user_db.name, role=self.roles['alias_pack_alias_all_grant'].name,
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         user_db = self.users['alias_alias_create_grant']
         role_assignment_db = UserRoleAssignmentDB(
-            user=user_db.name,
-            role=self.roles['alias_alias_create_grant'].name)
+            user=user_db.name, role=self.roles['alias_alias_create_grant'].name,
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         user_db = self.users['alias_list_grant']
         role_assignment_db = UserRoleAssignmentDB(
-            user=user_db.name,
-            role=self.roles['alias_list_grant'].name)
+            user=user_db.name, role=self.roles['alias_list_grant'].name,
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
     def test_user_has_permission(self):

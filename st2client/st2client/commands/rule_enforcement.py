@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+
 from st2client import models
 from st2client.commands import resource
 from st2client.formatters import table
@@ -56,16 +58,19 @@ class RuleEnforcementListCommand(resource.ResourceCommand):
     }
 
     def __init__(self, resource, *args, **kwargs):
-        super(RuleEnforcementListCommand, self).__init__(
-            resource, 'list', 'Get the list of the 50 most recent %s.' %
-            resource.get_plural_display_name().lower(),
-            *args, **kwargs)
+
         self.default_limit = 50
+
+        super(RuleEnforcementListCommand, self).__init__(
+            resource, 'list', 'Get the list of the %s most recent %s.' %
+            (self.default_limit, resource.get_plural_display_name().lower()),
+            *args, **kwargs)
         self.resource_name = resource.get_plural_display_name().lower()
         self.group = self.parser.add_argument_group()
         self.parser.add_argument('-n', '--last', type=int, dest='last',
                                  default=self.default_limit,
-                                 help=('List N most recent %s.' % self.resource_name))
+                                 help=('List N most recent %s. Use -n -1 to fetch the full result \
+                                       set.' % self.resource_name))
 
         # Filter options
         self.group.add_argument('--trigger-instance',

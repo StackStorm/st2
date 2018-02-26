@@ -17,6 +17,7 @@
 Module for loading RBAC role definitions and grants from the filesystem.
 """
 
+from __future__ import absolute_import
 import os
 import glob
 
@@ -44,11 +45,11 @@ class RBACDefinitionsLoader(object):
 
     def __init__(self):
         base_path = cfg.CONF.system.base_path
-        rbac_definitions_path = os.path.join(base_path, 'rbac/')
 
-        self._role_definitions_path = os.path.join(rbac_definitions_path, 'roles/')
-        self._role_assignments_path = os.path.join(rbac_definitions_path, 'assignments/')
-        self._role_maps_path = os.path.join(rbac_definitions_path, 'mappings/')
+        self._rbac_definitions_path = os.path.join(base_path, 'rbac/')
+        self._role_definitions_path = os.path.join(self._rbac_definitions_path, 'roles/')
+        self._role_assignments_path = os.path.join(self._rbac_definitions_path, 'assignments/')
+        self._role_maps_path = os.path.join(self._rbac_definitions_path, 'mappings/')
         self._meta_loader = MetaLoader()
 
     def load(self):
@@ -175,6 +176,7 @@ class RBACDefinitionsLoader(object):
             raise ValueError(msg)
 
         user_role_assignment_api = UserRoleAssignmentFileFormatAPI(**content)
+        user_role_assignment_api.file_path = file_path[file_path.rfind('assignments/'):]
         user_role_assignment_api = user_role_assignment_api.validate()
 
         return user_role_assignment_api
@@ -187,6 +189,7 @@ class RBACDefinitionsLoader(object):
             raise ValueError(msg)
 
         group_to_role_map_api = AuthGroupToRoleMapAssignmentFileFormatAPI(**content)
+        group_to_role_map_api.file_path = file_path[file_path.rfind('mappings/'):]
         group_to_role_map_api = group_to_role_map_api.validate()
 
         return group_to_role_map_api

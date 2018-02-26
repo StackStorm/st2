@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+
 from st2client.commands import resource
 from st2client.models import TriggerType
 from st2client.formatters import table
@@ -62,7 +64,7 @@ class TriggerTypeSubTriggerCommand(resource.ResourceCommand):
 
         super(TriggerTypeSubTriggerCommand, self).__init__(
             resource, kwargs.pop('name', 'getspecs'),
-            'A command to return Trigger Specifications of a Trigger.',
+            'Return Trigger Specifications of a Trigger.',
             *args, **kwargs)
 
         self.parser.add_argument('ref', nargs='?',

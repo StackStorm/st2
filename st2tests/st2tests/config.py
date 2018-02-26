@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 from oslo_config import cfg, types
 
 from st2common import log as logging
@@ -81,6 +82,7 @@ def _override_common_opts():
     CONF.set_override(name='lock_timeout', override=1, group='coordination')
     CONF.set_override(name='jitter_interval', override=0, group='mistral')
     CONF.set_override(name='query_interval', override=0.1, group='resultstracker')
+    CONF.set_override(name='stream_output', override=False, group='actionrunner')
 
 
 def _override_api_opts():

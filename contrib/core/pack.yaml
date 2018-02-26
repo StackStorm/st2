@@ -1,6 +1,6 @@
 ---
 name : core
-description : st2 content pack containing basic actions.
-version : 0.3.1
-author : st2-dev
+description : Basic core actions.
+version : 1.0.0
+author : StackStorm, Inc.
 email : info@stackstorm.com

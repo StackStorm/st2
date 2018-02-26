@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 from kombu import Exchange, Queue
 
 from st2common import log as logging
@@ -70,5 +71,6 @@ class AnnouncementDispatcher(object):
         self._publisher.publish(payload=payload, routing_key=routing_key)
 
 
-def get_queue(name=None, routing_key='#', exclusive=False):
-    return Queue(name, ANNOUNCEMENT_XCHG, routing_key=routing_key, exclusive=exclusive)
+def get_queue(name=None, routing_key='#', exclusive=False, auto_delete=False):
+    return Queue(name, ANNOUNCEMENT_XCHG, routing_key=routing_key, exclusive=exclusive,
+                 auto_delete=auto_delete)

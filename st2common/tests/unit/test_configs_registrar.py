@@ -13,8 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+
 import os
 
+import six
 import mock
 
 from st2common.content import utils as content_utils
@@ -104,8 +107,13 @@ class ConfigsRegistrarTestCase(CleanDbTestCase):
         registrar._register_pack(pack_name='dummy_pack_5', pack_dir=PACK_6_PATH)
         packs_base_paths = content_utils.get_packs_base_paths()
 
-        expected_msg = ('Failed validating attribute "regions" in config for pack "dummy_pack_6" '
-                        '(.*?): 1000 is not of type u\'array\'')
+        if six.PY3:
+            expected_msg = ('Failed validating attribute "regions" in config for pack '
+                            '"dummy_pack_6" (.*?): 1000 is not of type \'array\'')
+        else:
+            expected_msg = ('Failed validating attribute "regions" in config for pack '
+                            '"dummy_pack_6" (.*?): 1000 is not of type u\'array\'')
+
         self.assertRaisesRegexp(ValueError, expected_msg,
                                 registrar.register_from_packs,
                                 base_dirs=packs_base_paths)

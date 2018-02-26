@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import copy
 import six
 import yaml
@@ -159,8 +160,8 @@ class DSLTransformTestCase(DbTestCase):
         with self.assertRaises(WorkflowDefinitionException) as cm:
             utils.transform_definition(def_dict)
 
-        self.assertIn('strtype', cm.exception.message)
-        self.assertIn('references to both local context', cm.exception.message)
+            self.assertIn('strtype', str(cm))
+            self.assertIn('references to both local context', str(cm))
 
     def test_mixed_jinja_context_separate_delimiters(self):
         def_dict = self._read_yaml_file_as_json(WF_JINJA_MIXED_CTX2_PATH)
@@ -168,8 +169,8 @@ class DSLTransformTestCase(DbTestCase):
         with self.assertRaises(WorkflowDefinitionException) as cm:
             utils.transform_definition(def_dict)
 
-        self.assertIn('inttype', cm.exception.message)
-        self.assertIn('references to both local context', cm.exception.message)
+            self.assertIn('inttype', str(cm))
+            self.assertIn('references to both local context', str(cm))
 
     def test_required_action_params_failure(self):
         def_dict = self._read_yaml_file_as_json(WF_NO_REQ_PARAM_PATH)
@@ -177,7 +178,7 @@ class DSLTransformTestCase(DbTestCase):
         with self.assertRaises(WorkflowDefinitionException) as cm:
             utils.transform_definition(def_dict)
 
-        self.assertIn('Missing required parameters', cm.exception.message)
+            self.assertIn('Missing required parameters', str(cm))
 
     def test_unexpected_action_params_failure(self):
         def_dict = self._read_yaml_file_as_json(WF_UNEXP_PARAM_PATH)
@@ -185,7 +186,7 @@ class DSLTransformTestCase(DbTestCase):
         with self.assertRaises(WorkflowDefinitionException) as cm:
             utils.transform_definition(def_dict)
 
-        self.assertIn('Unexpected parameters', cm.exception.message)
+            self.assertIn('Unexpected parameters', str(cm))
 
     def test_deprecated_callback_action(self):
         def_dict = self._read_yaml_file_as_json(WB_PRE_XFORM_PATH)

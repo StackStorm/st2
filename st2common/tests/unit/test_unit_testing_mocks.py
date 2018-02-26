@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import unittest2
 
 from st2tests.base import BaseSensorTestCase
@@ -34,6 +35,11 @@ class MockSensorClass(object):
 
 class BaseMockResourceServiceTestCase(object):
     class TestCase(unittest2.TestCase):
+        def test_get_user_info(self):
+            result = self.mock_service.get_user_info()
+            self.assertEqual(result['username'], 'admin')
+            self.assertEqual(result['rbac']['roles'], ['admin'])
+
         def test_list_set_get_delete_values(self):
             # list_values, set_value
             result = self.mock_service.list_values()

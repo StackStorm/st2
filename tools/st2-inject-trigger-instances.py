@@ -26,6 +26,7 @@ meaningful work.
 
 """
 
+from __future__ import absolute_import
 import os
 import random
 
@@ -96,7 +97,7 @@ def main():
             return
         with open(cfg.CONF.schema_file) as fd:
             trigger_payload_schema = yaml.safe_load(fd)
-            triggers = trigger_payload_schema.keys()
+            triggers = list(trigger_payload_schema.keys())
             print('Triggers=%s' % triggers)
 
     rate = cfg.CONF.rate

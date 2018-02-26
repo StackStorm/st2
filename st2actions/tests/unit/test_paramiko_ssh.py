@@ -13,13 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import os
-from StringIO import StringIO
-import unittest2
 
-from oslo_config import cfg
-from mock import (call, patch, Mock, MagicMock)
+import mock
 import paramiko
+import unittest2
+from oslo_config import cfg
+from mock import call, patch, Mock, MagicMock
+from six.moves import StringIO
 
 from st2common.runners.paramiko_ssh import ParamikoSSHClient
 from st2tests.fixturesloader import get_resources_base_path
@@ -610,3 +612,76 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         client.close()
 
         self.assertEqual(client.sftp_client.close.call_count, 1)
+
+    @patch('paramiko.SSHClient', Mock)
+    @patch.object(os.path, 'exists', MagicMock(return_value=True))
+    @patch.object(os, 'stat', MagicMock(return_value=None))
+    def test_handle_stdout_and_stderr_line_funcs(self):
+        mock_handle_stdout_line_func = mock.Mock()
+        mock_handle_stderr_line_func = mock.Mock()
+
+        conn_params = {
+            'hostname': 'dummy.host.org',
+            'username': 'ubuntu',
+            'password': 'ubuntu',
+            'handle_stdout_line_func': mock_handle_stdout_line_func,
+            'handle_stderr_line_func': mock_handle_stderr_line_func
+        }
+        client = ParamikoSSHClient(**conn_params)
+        client.connect()
+
+        mock_get_transport = mock.Mock()
+        mock_chan = mock.Mock()
+
+        client.client.get_transport = mock.Mock()
+        client.client.get_transport.return_value = mock_get_transport
+        mock_get_transport.open_session.return_value = mock_chan
+
+        def mock_recv_ready_factory(chan):
+            chan.recv_counter = 0
+
+            def mock_recv_ready():
+                chan.recv_counter += 1
+                if chan.recv_counter < 2:
+                    return True
+
+                return False
+            return mock_recv_ready
+
+        def mock_recv_stderr_ready_factory(chan):
+            chan.recv_stderr_counter = 0
+
+            def mock_recv_stderr_ready():
+                chan.recv_stderr_counter += 1
+                if chan.recv_stderr_counter < 2:
+                    return True
+
+                return False
+            return mock_recv_stderr_ready
+
+        mock_chan.recv_ready = mock_recv_ready_factory(mock_chan)
+        mock_chan.recv_stderr_ready = mock_recv_stderr_ready_factory(mock_chan)
+        mock_chan.recv.return_value = 'stdout 1\nstdout 2\nstdout 3'
+        mock_chan.recv_stderr.return_value = 'stderr 1\nstderr 2\nstderr 3'
+
+        # call_line_handler_func is False so handler functions shouldn't be called
+        client.run(cmd='echo "test"', call_line_handler_func=False)
+
+        self.assertEqual(mock_handle_stdout_line_func.call_count, 0)
+        self.assertEqual(mock_handle_stderr_line_func.call_count, 0)
+
+        # Reset counters
+        mock_chan.recv_counter = 0
+        mock_chan.recv_stderr_counter = 0
+
+        # call_line_handler_func is True so handler functions should be called for each line
+        client.run(cmd='echo "test"', call_line_handler_func=True)
+
+        self.assertEqual(mock_handle_stdout_line_func.call_count, 3)
+        self.assertEqual(mock_handle_stdout_line_func.call_args_list[0][1]['line'], 'stdout 1\n')
+        self.assertEqual(mock_handle_stdout_line_func.call_args_list[1][1]['line'], 'stdout 2\n')
+        self.assertEqual(mock_handle_stdout_line_func.call_args_list[2][1]['line'], 'stdout 3\n')
+        self.assertEqual(mock_handle_stderr_line_func.call_count, 3)
+        self.assertEqual(mock_handle_stdout_line_func.call_args_list[0][1]['line'], 'stdout 1\n')
+        self.assertEqual(mock_handle_stdout_line_func.call_args_list[1][1]['line'], 'stdout 2\n')
+        self.assertEqual(mock_handle_stdout_line_func.call_args_list[2][1]['line'], 'stdout 3\n')

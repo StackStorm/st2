@@ -13,9 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+
 import ast
 import logging
-import sys
+import struct
 
 import yaml
 
@@ -23,9 +25,12 @@ from st2client import formatters
 from st2client.utils import jsutil
 from st2client.utils import strutil
 from st2client.utils.color import DisplayColors
+import six
 
 
 LOG = logging.getLogger(__name__)
+
+PLATFORM_MAXINT = 2 ** (struct.Struct('i').size * 8 - 1) - 1
 
 
 class ExecutionResult(formatters.Formatter):
@@ -33,6 +38,7 @@ class ExecutionResult(formatters.Formatter):
     @classmethod
     def format(cls, entry, *args, **kwargs):
         attrs = kwargs.get('attributes', [])
+        attribute_transform_functions = kwargs.get('attribute_transform_functions', {})
         key = kwargs.get('key', None)
         if key:
             output = jsutil.get_value(entry.result, key)
@@ -43,7 +49,7 @@ class ExecutionResult(formatters.Formatter):
             for attr in attrs:
                 value = jsutil.get_value(entry, attr)
                 value = strutil.strip_carriage_returns(strutil.unescape(value))
-                if (isinstance(value, basestring) and len(value) > 0 and
+                if (isinstance(value, six.string_types) and len(value) > 0 and
                         value[0] in ['{', '['] and value[len(value) - 1] in ['}', ']']):
                     new_value = ast.literal_eval(value)
                     if type(new_value) in [dict, list]:
@@ -56,9 +62,22 @@ class ExecutionResult(formatters.Formatter):
                     #    and likely we will see other issues like storage :P.
                     formatted_value = yaml.safe_dump({attr: value},
                                                      default_flow_style=False,
-                                                     width=sys.maxint,
+                                                     width=PLATFORM_MAXINT,
                                                      indent=2)[len(attr) + 2:-1]
                     value = ('\n' if isinstance(value, dict) else '') + formatted_value
+                    value = strutil.dedupe_newlines(value)
+
+                # transform the value of our attribute so things like 'status'
+                # and 'timestamp' are formatted nicely
+                transform_function = attribute_transform_functions.get(attr,
+                                                                       lambda value: value)
+                value = transform_function(value=value)
+
                 output += ('\n' if output else '') + '%s: %s' % \
                     (DisplayColors.colorize(attr, DisplayColors.BLUE), value)
-        return output
+
+        if six.PY3:
+            return strutil.unescape(str(output))
+        else:
+            # Assume Python 2
+            return strutil.unescape(str(output)).decode('unicode_escape').encode('utf-8')

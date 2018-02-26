@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+
 import json
 import logging
 
@@ -37,13 +39,13 @@ class BaseFormatter(formatters.Formatter):
             subject = json.loads(subject)
         elif not isinstance(subject, (list, tuple)) and not hasattr(subject, '__iter__'):
             doc = subject if isinstance(subject, dict) else subject.__dict__
-            keys = doc.keys() if not attributes or 'all' in attributes else attributes
+            keys = list(doc.keys()) if not attributes or 'all' in attributes else attributes
             docs = jsutil.get_kvps(doc, keys)
         else:
             docs = []
             for item in subject:
                 doc = item if isinstance(item, dict) else item.__dict__
-                keys = doc.keys() if not attributes or 'all' in attributes else attributes
+                keys = list(doc.keys()) if not attributes or 'all' in attributes else attributes
                 docs.append(jsutil.get_kvps(doc, keys))
 
         return docs

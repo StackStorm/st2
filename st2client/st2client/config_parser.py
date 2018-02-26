@@ -17,9 +17,13 @@
 Module for parsing CLI config file.
 """
 
+from __future__ import absolute_import
+
 import os
 
 from collections import defaultdict
+
+import io
 
 import six
 from six.moves.configparser import ConfigParser
@@ -135,7 +139,7 @@ class CLIConfigParser(object):
             return CONFIG_DEFAULT_VALUES
 
         config = ConfigParser()
-        with open(self.config_file_path, 'r') as fp:
+        with io.open(self.config_file_path, 'r', encoding='utf8') as fp:
             config.readfp(fp)
 
         for section, keys in six.iteritems(CONFIG_FILE_OPTIONS):

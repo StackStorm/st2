@@ -1,0 +1,40 @@
+- aliases:
+  - http-runner
+  description: HTTP client for running HTTP actions.
+  enabled: true
+  name: http-request
+  runner_module: http_runner
+  runner_parameters:
+    allow_redirects:
+      default: false
+      description: Set to True if POST/PUT/DELETE redirect following is allowed.
+      type: boolean
+    cookies:
+      description: Optional cookies to send with the request.
+      type: object
+    headers:
+      description: HTTP headers for the request.
+      type: object
+    http_proxy:
+      description: URL of HTTP proxy to use (e.g. http://10.10.1.10:3128).
+      type: string
+    https_proxy:
+      description: URL of HTTPS proxy to use (e.g. http://10.10.1.10:3128).
+      type: string
+    password:
+      description: Password required by basic authentication.
+      type: string
+    url:
+      description: URL to the HTTP endpoint.
+      required: true
+      type: string
+    username:
+      description: Username required by basic authentication.
+      type: string
+    verify_ssl_cert:
+      default: true
+      description: Certificate for HTTPS request is verified by default using requests
+        CA bundle which comes from Mozilla. Verification using a custom CA bundle
+        is not yet supported. Set to False to skip verification.
+      type: boolean
+

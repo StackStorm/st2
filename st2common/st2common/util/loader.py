@@ -13,11 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+
 import imp
 import inspect
 import json
 import os
 import sys
+from collections import defaultdict
+
+import six
 import yaml
 from oslo_config import cfg
 
@@ -26,15 +31,24 @@ from st2common import log as logging
 
 __all__ = [
     'register_plugin',
-    'register_plugin_class'
+    'register_plugin_class',
+
+    'register_runner',
+    'register_query_module',
+    'register_callback_module',
+
+    'load_meta_file'
 ]
 
 
 LOG = logging.getLogger(__name__)
-PYTHON_EXTENSIONS = ('.py')
+
+PYTHON_EXTENSION = '.py'
+ALLOWED_EXTS = ['.json', '.yaml', '.yml']
+PARSER_FUNCS = {'.json': json.load, '.yml': yaml.safe_load, '.yaml': yaml.safe_load}
 
 # Cache for dynamically loaded runner modules
-RUNNER_MODULES_CACHE = {}
+RUNNER_MODULES_CACHE = defaultdict(dict)
 QUERIER_MODULES_CACHE = {}
 CALLBACK_MODULES_CACHE = {}
 
@@ -51,7 +65,7 @@ def _register_plugin_path(plugin_dir_abs_path):
 
 def _get_plugin_module(plugin_file_path):
     plugin_module = os.path.basename(plugin_file_path)
-    if plugin_module.endswith(PYTHON_EXTENSIONS):
+    if plugin_module.endswith(PYTHON_EXTENSION):
         plugin_module = plugin_module[:plugin_module.rfind('.py')]
     else:
         plugin_module = None
@@ -76,7 +90,10 @@ def _get_plugin_methods(plugin_klass):
 
     :rtype: ``list`` of ``str``
     """
-    methods = inspect.getmembers(plugin_klass, inspect.ismethod)
+    if six.PY3:
+        methods = inspect.getmembers(plugin_klass, inspect.isfunction)
+    else:
+        methods = inspect.getmembers(plugin_klass, inspect.ismethod)
 
     # Exclude inherited abstract methods from the parent class
     method_names = []
@@ -173,17 +190,36 @@ def register_plugin(plugin_base_class, plugin_abs_file_path):
     return registered_plugins
 
 
-def register_runner(module_name):
+def register_runner(package_name, module_name):
+    # TODO: Switch to stevedore enumeration and loading
     base_path = cfg.CONF.system.base_path
-    module_path = os.path.join(base_path, 'runners', module_name, module_name + '.py')
 
-    if module_name not in RUNNER_MODULES_CACHE:
+    # 1. First try post StackStorm v2.6.0 path (runners are Python packages)
+    module_path = os.path.join(base_path, 'runners', package_name, package_name,
+                               module_name + '.py')
+
+    # 2. Second try pre StackStorm v2.6.0 path (runners are not Python packages)
+    if not os.path.isfile(module_path):
+        module_path = os.path.join(base_path, 'runners', module_name, module_name + '.py')
+
+    if not RUNNER_MODULES_CACHE.get(package_name, {}).get(module_name, None):
         LOG.info('Loading runner module from "%s".', module_path)
-        RUNNER_MODULES_CACHE[module_name] = imp.load_source(module_name, module_path)
+
+        # Make sure all the runner packages are in PYTHONPATH
+        # Note: This won't be needed anymore when we modify this code so it also works under
+        # Python 3 and move away from imp.load_source
+        package_directory = os.path.abspath(os.path.join(os.path.dirname(module_path), '../'))
+
+        if os.path.isdir(package_directory) and package_directory not in sys.path:
+            LOG.debug('Adding runner package directory "%s" to PYTHONPATH' % (package_directory))
+            sys.path.append(package_directory)
+
+        load_name = '%s.%s' % (package_name, module_name)
+        RUNNER_MODULES_CACHE[package_name][module_name] = imp.load_source(load_name, module_path)
     else:
         LOG.info('Reusing runner module "%s" from cache.', module_path)
 
-    return RUNNER_MODULES_CACHE[module_name]
+    return RUNNER_MODULES_CACHE[package_name][module_name]
 
 
 def register_query_module(module_name):
@@ -210,10 +246,6 @@ def register_callback_module(module_name):
         LOG.info('Reusing callback module "%s" from cache.', module_path)
 
     return CALLBACK_MODULES_CACHE[module_name]
-
-
-ALLOWED_EXTS = ['.json', '.yaml', '.yml']
-PARSER_FUNCS = {'.json': json.load, '.yml': yaml.safe_load, '.yaml': yaml.safe_load}
 
 
 def load_meta_file(file_path):

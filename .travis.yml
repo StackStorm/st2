@@ -3,8 +3,6 @@
 sudo: required
 dist: precise
 language: python
-python:
-  - 2.7
 
 branches:
   only:
@@ -14,12 +12,18 @@ branches:
 env:
   global:
     - CACHE_NAME=JOB1
-  matrix:
-    - TASK=ci-unit NODE_INDEX=0 NODE_TOTAL=2
-    - TASK=ci-unit NODE_INDEX=1 NODE_TOTAL=2
-    - TASK=ci-integration
-    - TASK="ci-checks ci-packs-tests"
-
+matrix:
+  include:
+    - env: TASK=ci-unit NODE_INDEX=0 NODE_TOTAL=2
+      python: 2.7
+    - env: TASK=ci-unit NODE_INDEX=1 NODE_TOTAL=2
+      python: 2.7
+    - env: TASK=ci-integration
+      python: 2.7
+    - env: TASK="ci-checks ci-packs-tests"
+      python: 2.7
+    - env: TASK="compilepy3 ci-py3-unit" CACHE_NAME=py3
+      python: 3.6
 addons:
   apt:
     sources:
@@ -34,17 +38,33 @@ services:
   - mongodb
   - rabbitmq
 
+# Let's enable rabbitmqadmin
+# See https://github.com/messagebus/lapine/wiki/Testing-on-Travis.
+before_script:
+  - sudo rabbitmq-plugins enable rabbitmq_management
+  - sudo wget http://guest:guest@localhost:15672/cli/rabbitmqadmin -O /usr/local/bin/rabbitmqadmin
+  - sudo chmod +x /usr/local/bin/rabbitmqadmin
+  - sudo service rabbitmq-server restart
+
 cache:
   pip: true
   directories:
     - virtualenv/
+    - .tox/
 
 install:
-  - make requirements
-  - if [ ${TASK} = 'ci-unit' ] || [ ${TASK} = 'ci-integration' ]; then pip install codecov; sudo .circle/add-itest-user.sh; fi
+  - if [ "${TASK}" = 'compilepy3 ci-py3-unit' ]; then pip install tox; else make requirements; fi
+  - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ]; then pip install codecov; fi
+  - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ] || [ "${TASK}" = 'compilepy3 ci-py3-unit' ]; then sudo .circle/add-itest-user.sh; fi
 
 script:
   - make ${TASK}
+
+# Don't store cache for target PR branch (typically `master`), because it will be re-used for opened PRs
+# See: https://docs.travis-ci.com/user/caching/#Pull-request-builds-and-caches
+# Alternative: use strict pip pinning, including git-based pip packages
+before_cache:
+  - if [ ${TRAVIS_PULL_REQUEST} = 'false' ]; then rm -rf virtualenv/; fi
 
 after_success:
   - if [ ${TASK} = 'ci-unit' ] || [ ${TASK} = 'ci-integration' ]; then codecov; fi

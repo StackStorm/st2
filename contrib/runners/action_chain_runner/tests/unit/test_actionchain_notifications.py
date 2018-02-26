@@ -13,15 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import mock
 
-from st2actions.container.service import RunnerContainerService
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
+from st2common.models.db.liveaction import LiveActionDB
+from st2common.models.system.common import ResourceReference
 from st2common.services import action as action_service
 from st2common.util import action_db as action_db_util
 from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
-import action_chain_runner as acr
+from action_chain_runner import action_chain_runner as acr
 
 
 class DummyActionExecution(object):
@@ -48,8 +50,18 @@ CHAIN_1_PATH = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_with_notifications.yaml')
 
 
-@mock.patch.object(action_db_util, 'get_runnertype_by_name',
-                   mock.MagicMock(return_value=RUNNER))
+@mock.patch.object(
+    action_db_util,
+    'get_runnertype_by_name',
+    mock.MagicMock(return_value=RUNNER))
+@mock.patch.object(
+    action_service,
+    'is_action_canceled_or_canceling',
+    mock.MagicMock(return_value=False))
+@mock.patch.object(
+    action_service,
+    'is_action_paused_or_pausing',
+    mock.MagicMock(return_value=False))
 class TestActionChainNotifications(DbTestCase):
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
@@ -59,7 +71,8 @@ class TestActionChainNotifications(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_1_PATH
         chain_runner.action = ACTION_1
-        chain_runner.container_service = RunnerContainerService()
+        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name, pack=ACTION_1.pack)
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
         chain_runner.pre_run()
         chain_runner.run({})
         self.assertNotEqual(chain_runner.chain_holder.actionchain, None)

@@ -54,7 +54,8 @@ class RolesController(ResourceController):
         return self._get_all(sort=sort,
                              offset=offset,
                              limit=limit,
-                             raw_filters=raw_filters)
+                             raw_filters=raw_filters,
+                             requester_user=requester_user)
 
 
 class RoleAssignmentsController(ResourceController):
@@ -66,6 +67,7 @@ class RoleAssignmentsController(ResourceController):
     supported_filters = {
         'user': 'user',
         'role': 'role',
+        'source': 'source',
         'remote': 'is_remote'
     }
 
@@ -77,7 +79,8 @@ class RoleAssignmentsController(ResourceController):
         return self._get_all(sort=sort,
                              offset=offset,
                              limit=limit,
-                             raw_filters=raw_filters)
+                             raw_filters=raw_filters,
+                             requester_user=requester_user)
 
     def get_one(self, id, requester_user):
         result = self._get_one_by_id(id,

@@ -13,13 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 from oslo_config import cfg
 from webob.headers import ResponseHeaders
 
 from st2common.constants.api import REQUEST_ID_HEADER
 from st2common.constants.auth import HEADER_ATTRIBUTE_NAME
 from st2common.constants.auth import HEADER_API_KEY_ATTRIBUTE_NAME
-from st2common.router import Request, Response
+from st2common.util.types import OrderedSet
+from st2common.router import Request
+from st2common.router import Response
 
 
 class CorsMiddleware(object):
@@ -40,7 +43,7 @@ class CorsMiddleware(object):
             headers = ResponseHeaders(headers)
 
             origin = request.headers.get('Origin')
-            origins = set(cfg.CONF.api.allow_origin)
+            origins = OrderedSet(cfg.CONF.api.allow_origin)
 
             # Build a list of the default allowed origins
             public_api_url = cfg.CONF.auth.api_url
@@ -56,9 +59,11 @@ class CorsMiddleware(object):
                 # Public API URL
                 origins.add(public_api_url)
 
+            origins = list(origins)
+
             if origin:
                 if '*' in origins:
-                    origin_allowed = '*'
+                    origin_allowed = origin
                 else:
                     # See http://www.w3.org/TR/cors/#access-control-allow-origin-response-header
                     origin_allowed = origin if origin in origins else 'null'
@@ -74,6 +79,7 @@ class CorsMiddleware(object):
             headers['Access-Control-Allow-Origin'] = origin_allowed
             headers['Access-Control-Allow-Methods'] = ','.join(methods_allowed)
             headers['Access-Control-Allow-Headers'] = ','.join(request_headers_allowed)
+            headers['Access-Control-Allow-Credentials'] = 'true'
             headers['Access-Control-Expose-Headers'] = ','.join(response_headers_allowed)
 
             return start_response(status, headers._items, exc_info)

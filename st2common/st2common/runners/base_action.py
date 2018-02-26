@@ -13,11 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import abc
 
 import six
 
 from st2common.runners.utils import get_logger_for_python_runner_action
+
+__all__ = [
+    'Action'
+]
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -38,7 +43,14 @@ class Action(object):
         """
         self.config = config or {}
         self.action_service = action_service
-        self.logger = get_logger_for_python_runner_action(action_name=self.__class__.__name__)
+
+        if action_service and getattr(action_service, '_action_wrapper', None):
+            log_level = getattr(action_service._action_wrapper, '_log_level', 'debug')
+        else:
+            log_level = 'debug'
+
+        self.logger = get_logger_for_python_runner_action(action_name=self.__class__.__name__,
+                                                          log_level=log_level)
 
     @abc.abstractmethod
     def run(self, **kwargs):

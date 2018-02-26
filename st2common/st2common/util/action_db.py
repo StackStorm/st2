@@ -13,7 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import simplejson as json
+from __future__ import absolute_import
+try:
+    import simplejson as json
+except ImportError:
+    import json
+
 from collections import OrderedDict
 
 from mongoengine import ValidationError

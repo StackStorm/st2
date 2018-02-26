@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import json
 import logging
 import mock
@@ -120,3 +121,49 @@ class TestLiveActionResourceManager(unittest2.TestCase):
         }
 
         httpclient.HTTPClient.post.assert_called_with(endpoint, data)
+
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_id',
+        mock.MagicMock(return_vaue=models.LiveAction(**LIVE_ACTION)))
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_ref_or_id',
+        mock.MagicMock(return_value=models.Action(**ACTION)))
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_name',
+        mock.MagicMock(return_value=models.RunnerType(**RUNNER)))
+    @mock.patch.object(
+        httpclient.HTTPClient, 'put',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
+    def test_pause(self):
+        self.client.liveactions.pause(LIVE_ACTION['id'])
+
+        endpoint = '/executions/%s' % LIVE_ACTION['id']
+
+        data = {
+            'status': 'pausing'
+        }
+
+        httpclient.HTTPClient.put.assert_called_with(endpoint, data)
+
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_id',
+        mock.MagicMock(return_vaue=models.LiveAction(**LIVE_ACTION)))
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_ref_or_id',
+        mock.MagicMock(return_value=models.Action(**ACTION)))
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_name',
+        mock.MagicMock(return_value=models.RunnerType(**RUNNER)))
+    @mock.patch.object(
+        httpclient.HTTPClient, 'put',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
+    def test_resume(self):
+        self.client.liveactions.resume(LIVE_ACTION['id'])
+
+        endpoint = '/executions/%s' % LIVE_ACTION['id']
+
+        data = {
+            'status': 'resuming'
+        }
+
+        httpclient.HTTPClient.put.assert_called_with(endpoint, data)

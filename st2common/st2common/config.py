@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import os
 import socket
 import sys
@@ -20,6 +21,7 @@ import sys
 from oslo_config import cfg
 
 from st2common.constants.system import VERSION_STRING
+from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_LOG_LEVEL
 
 
 def do_register_opts(opts, group=None, ignore_errors=False):
@@ -59,7 +61,7 @@ def register_opts(ignore_errors=False):
                    default='stanley',
                    help='Default system user.'),
         cfg.StrOpt('ssh_key_file',
-                   default='/home/vagrant/.ssh/stanley_rsa',
+                   default='/home/stanley/.ssh/stanley_rsa',
                    help='SSH private key for the system user.')
     ]
     do_register_opts(system_user_opts, 'system_user', ignore_errors)
@@ -217,22 +219,65 @@ def register_opts(ignore_errors=False):
     ]
     do_register_opts(auth_opts, 'auth', ignore_errors)
 
-    # Common action runner options
+    # Runner options
     default_python_bin_path = sys.executable
     base_dir = os.path.dirname(os.path.realpath(default_python_bin_path))
     default_virtualenv_bin_path = os.path.join(base_dir, 'virtualenv')
     action_runner_opts = [
+        # Common runner options
         cfg.StrOpt('logging', default='conf/logging.conf',
                    help='location of the logging.conf file'),
+
+        # Python runner options
         cfg.StrOpt('python_binary', default=default_python_bin_path,
                    help='Python binary which will be used by Python actions.'),
         cfg.StrOpt('virtualenv_binary', default=default_virtualenv_bin_path,
                    help='Virtualenv binary which should be used to create pack virtualenvs.'),
+        cfg.StrOpt('python_runner_log_level',
+                   default=PYTHON_RUNNER_DEFAULT_LOG_LEVEL,
+                   help=('Default log level to use for Python runner actions. Can be overriden on '
+                         'invocation basis using "log_level" runner parameter.')),
         cfg.ListOpt('virtualenv_opts', default=['--system-site-packages'],
                     help='List of virtualenv options to be passsed to "virtualenv" command that ' +
-                         'creates pack virtualenv.')
+                         'creates pack virtualenv.'),
+        cfg.BoolOpt('stream_output', default=True, help='True to store and stream action output '
+                                                        '(stdout and stderr) in real-time.')
     ]
     do_register_opts(action_runner_opts, group='actionrunner')
+
+    dispatcher_pool_opts = [
+        cfg.IntOpt('workflows_pool_size', default=40,
+                   help='Internal pool size for dispatcher used by workflow actions.'),
+        cfg.IntOpt('actions_pool_size', default=60,
+                   help='Internal pool size for dispatcher used by regular actions.')
+    ]
+    do_register_opts(dispatcher_pool_opts, group='actionrunner')
+
+    ssh_runner_opts = [
+        cfg.StrOpt('remote_dir',
+                   default='/tmp',
+                   help='Location of the script on the remote filesystem.'),
+        cfg.BoolOpt('allow_partial_failure',
+                    default=False,
+                    help='How partial success of actions run on multiple nodes ' +
+                         'should be treated.'),
+        cfg.IntOpt('max_parallel_actions', default=50,
+                   help='Max number of parallel remote SSH actions that should be run.  ' +
+                        'Works only with Paramiko SSH runner.'),
+        cfg.BoolOpt('use_ssh_config', default=False,
+                    help='Use the .ssh/config file. Useful to override ports etc.'),
+        cfg.StrOpt('ssh_config_file_path',
+                   default='~/.ssh/config',
+                   help='Path to the ssh config file.')
+
+    ]
+    do_register_opts(ssh_runner_opts, group='ssh_runner')
+
+    cloudslang_opts = [
+        cfg.StrOpt('home_dir', default='/opt/cslang',
+                   help='CloudSlang home directory.'),
+    ]
+    do_register_opts(cloudslang_opts, group='cloudslang')
 
     # Common options (used by action runner and sensor container)
     action_sensor_opts = [
@@ -240,6 +285,20 @@ def register_opts(ignore_errors=False):
                     help='Whether to enable or disable the ability to post a trigger on action.'),
     ]
     do_register_opts(action_sensor_opts, group='action_sensor')
+
+    # Common options for content
+
+    pack_lib_opts = [
+        cfg.BoolOpt('enable_common_libs', default=False,
+                    help='Enable/Disable support for pack common libs. ' +
+                         'Setting this config to ``True`` would allow you to ' +
+                         'place common library code for sensors and actions in lib/ folder ' +
+                         'in packs and use them in python sensors and actions. ' +
+                         'See https://docs.stackstorm.com/reference/' +
+                         'sharing_code_sensors_actions.html ' +
+                         'for details.')
+    ]
+    do_register_opts(pack_lib_opts, group='packs')
 
     # Coordination options
     coord_opts = [
@@ -260,26 +319,37 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt('keystone_auth_url', default=None, help='Auth endpoint for Keystone.'),
         cfg.StrOpt('cacert', default=None, help='Optional certificate to validate endpoint.'),
         cfg.BoolOpt('insecure', default=False, help='Allow insecure communication with Mistral.'),
-        cfg.FloatOpt('jitter_interval', default=1,
-                   help='Jitter interval to smooth out HTTP requests ' +
-                        'to mistral tasks and executions API.'),
-
-        cfg.StrOpt('api_url', default=None, help=('URL Mistral uses to talk back to the API.'
-            'If not provided it defaults to public API URL. Note: This needs to be a base '
-            'URL without API version (e.g. http://127.0.0.1:9101)'))
+        cfg.FloatOpt(
+            'jitter_interval', default=0.1,
+            help='Jitter interval to smooth out HTTP requests '
+                 'to mistral tasks and executions API.'),
+        cfg.StrOpt(
+            'api_url', default=None,
+            help='URL Mistral uses to talk back to the API.'
+                 'If not provided it defaults to public API URL. '
+                 'Note: This needs to be a base URL without API '
+                 'version (e.g. http://127.0.0.1:9101)')
     ]
     do_register_opts(mistral_opts, group='mistral', ignore_errors=ignore_errors)
 
     # Results Tracker query module options
     # Note that these are currently used only by mistral query module.
     query_opts = [
-        cfg.IntOpt('thread_pool_size', default=10,
-                   help='Number of threads to use to query external workflow systems.'),
-        cfg.FloatOpt('query_interval', default=20,
-                     help='Time interval between subsequent queries for a context ' +
-                          'to external workflow system.')
+        cfg.IntOpt(
+            'thread_pool_size', default=10,
+            help='Number of threads to use to query external workflow systems.'),
+        cfg.FloatOpt(
+            'query_interval', default=5,
+            help='Time interval between queries to external workflow system.'),
+        cfg.FloatOpt(
+            'empty_q_sleep_time', default=1,
+            help='Sleep delay in between queries when query queue is empty.'),
+        cfg.FloatOpt(
+            'no_workers_sleep_time', default=1,
+            help='Sleep delay for query when there is no more worker in pool.')
     ]
     do_register_opts(query_opts, group='resultstracker', ignore_errors=ignore_errors)
+
     # XXX: This is required for us to support deprecated config group results_tracker
     query_opts = [
         cfg.IntOpt('thread_pool_size',
@@ -289,6 +359,13 @@ def register_opts(ignore_errors=False):
                           'to external workflow system.')
     ]
     do_register_opts(query_opts, group='results_tracker', ignore_errors=ignore_errors)
+
+    # Common stream options
+    stream_opts = [
+        cfg.IntOpt('heartbeat', default=25,
+                   help='Send empty message every N seconds to keep connection open')
+    ]
+    do_register_opts(stream_opts, group='stream', ignore_errors=ignore_errors)
 
     # Common CLI options
     debug = cfg.BoolOpt('debug', default=False,

@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import httplib
-
 import six
 
 from st2tests.fixturesloader import FixturesLoader
@@ -51,14 +49,14 @@ class RunnerTypesControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.app.get('/v1/runnertypes', expect_errors=True)
         expected_msg = ('User "no_permissions" doesn\'t have required permission '
                         '"runner_type_list"')
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
         # get one
         resp = self.app.get('/v1/runnertypes/test-runner-1', expect_errors=True)
         expected_msg = ('User "no_permissions" doesn\'t have required permission '
                         '"runner_type_view" on resource "runner_type:test-runner-1"')
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_put_disable_runner_no_permissions(self):
@@ -78,7 +76,7 @@ class RunnerTypesControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.__do_put(runnertype_id, update_input)
         expected_msg = ('User "no_permissions" doesn\'t have required permission '
                         '"runner_type_modify" on resource "runner_type:test-runner-1"')
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def __do_put(self, runner_type_id, runner_type):

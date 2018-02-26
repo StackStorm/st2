@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import json
 import yaml
 
@@ -23,6 +24,46 @@ REGEX_SEARCH_STRINGS = [
     "567 Elsewhere Dr is your address. My address is 123 Somewhere Ave.",
     "No address to be found here! Well, maybe 127.0.0.1"
 ]
+
+
+class FromJsonStringFiltersTest(base.TestWorkflowExecution):
+
+    def test_from_json_string(self):
+
+        execution = self._execute_workflow(
+            'examples.mistral-test-func-from-json-string',
+            parameters={
+                "input_str": '{"a": "b"}'
+            }
+        )
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=1)
+        jinja_dict = execution.result['result_jinja']
+        yaql_dict = execution.result['result_yaql']
+        self.assertTrue(isinstance(jinja_dict, dict))
+        self.assertEqual(jinja_dict["a"], "b")
+        self.assertTrue(isinstance(yaql_dict, dict))
+        self.assertEqual(yaql_dict["a"], "b")
+
+
+class FromYamlStringFiltersTest(base.TestWorkflowExecution):
+
+    def test_from_yaml_string(self):
+
+        execution = self._execute_workflow(
+            'examples.mistral-test-func-from-yaml-string',
+            parameters={
+                "input_str": 'a: b'
+            }
+        )
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=1)
+        jinja_dict = execution.result['result_jinja']
+        yaql_dict = execution.result['result_yaql']
+        self.assertTrue(isinstance(jinja_dict, dict))
+        self.assertEqual(jinja_dict["a"], "b")
+        self.assertTrue(isinstance(yaql_dict, dict))
+        self.assertEqual(yaql_dict["a"], "b")
 
 
 class JsonEscapeFiltersTest(base.TestWorkflowExecution):
@@ -42,6 +83,32 @@ class JsonEscapeFiltersTest(base.TestWorkflowExecution):
         self.assertEqual(jinja_dict["title"], breaking_str)
         self.assertTrue(isinstance(yaql_dict, dict))
         self.assertEqual(yaql_dict["title"], breaking_str)
+
+
+class JsonpathQueryFiltersTest(base.TestWorkflowExecution):
+
+    def test_jsonpath_query(self):
+
+        execution = self._execute_workflow(
+            'examples.mistral-test-func-jsonpath-query',
+            parameters={
+                "input_obj": {'people': [{'first': 'James', 'last': 'Smith'},
+                                         {'first': 'Jacob', 'last': 'Alberts'},
+                                         {'first': 'Jayden', 'last': 'Davis'},
+                                         {'missing': 'different'}]},
+                "input_query": "people[*].last"
+            }
+        )
+        expected_result = ['Smith', 'Alberts', 'Davis']
+
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=1)
+        jinja_result = execution.result['result_jinja']
+        yaql_result = execution.result['result_yaql']
+        self.assertTrue(isinstance(jinja_result, list))
+        self.assertEqual(jinja_result, expected_result)
+        self.assertTrue(isinstance(yaql_result, list))
+        self.assertEqual(yaql_result, expected_result)
 
 
 class RegexMatchFiltersTest(base.TestWorkflowExecution):

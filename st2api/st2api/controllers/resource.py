@@ -27,6 +27,7 @@ from st2common import log as logging
 from st2common.models.system.common import ResourceReference
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.rbac import utils as rbac_utils
+from st2common.exceptions.rbac import AccessDeniedError
 from st2common.util import schema as util_schema
 from st2common.router import abort
 from st2common.router import Response
@@ -41,7 +42,7 @@ RESERVED_QUERY_PARAMS = {
 
 
 def split_id_value(value):
-    if not value:
+    if not value or isinstance(value, (list, tuple)):
         return value
 
     split = value.split(',')
@@ -102,6 +103,7 @@ class ResourceController(object):
     }
 
     # A list of attributes which can be specified using ?exclude_attributes filter
+    # If not provided, no validation is performed.
     valid_exclude_attributes = []
 
     # Method responsible for retrieving an instance of the corresponding model DB object
@@ -118,8 +120,9 @@ class ResourceController(object):
 
         self.get_one_db_method = self._get_by_name_or_id
 
-    def _get_all(self, exclude_fields=None, sort=None, offset=0, limit=None, query_options=None,
-                 from_model_kwargs=None, raw_filters=None):
+    def _get_all(self, exclude_fields=None, include_fields=None,
+                 sort=None, offset=0, limit=None, query_options=None,
+                 from_model_kwargs=None, raw_filters=None, requester_user=None):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
@@ -127,6 +130,7 @@ class ResourceController(object):
         raw_filters = copy.deepcopy(raw_filters) or {}
 
         exclude_fields = exclude_fields or []
+        include_fields = include_fields or []
         query_options = query_options if query_options else self.query_options
 
         # TODO: Why do we use comma delimited string, user can just specify
@@ -159,11 +163,7 @@ class ResourceController(object):
         if offset >= 2**31:
             raise ValueError('Offset "%s" specified is more than 32-bit int' % (offset))
 
-        if limit and int(limit) > self.max_limit:
-            # TODO: We should throw here, I don't like this.
-            msg = 'Limit "%s" specified, maximum value is "%s"' % (limit, self.max_limit)
-            raise ValueError(msg)
-
+        limit = validate_limit_query_param(limit=limit, requester_user=requester_user)
         eop = offset + int(limit) if limit else None
 
         filters = {}
@@ -177,12 +177,18 @@ class ResourceController(object):
             value_transform_function = value_transform_function or (lambda value: value)
             filter_value = value_transform_function(value=filter_value)
 
-            if k == 'id' and isinstance(filter_value, list):
+            if k in ['id', 'name'] and isinstance(filter_value, list):
                 filters[k + '__in'] = filter_value
             else:
                 filters['__'.join(v.split('.'))] = filter_value
 
-        instances = self.access.query(exclude_fields=exclude_fields, **filters)
+        if exclude_fields and include_fields:
+            msg = ('exclude_fields and include_fields arguments are mutually exclusive. '
+                   'You need to provide either one or another, but not both.')
+            raise ValueError(msg)
+
+        instances = self.access.query(exclude_fields=exclude_fields, only_fields=include_fields,
+                                      **filters)
         if limit == 1:
             # Perform the filtering on the DB side
             instances = instances.limit(limit)
@@ -197,6 +203,7 @@ class ResourceController(object):
 
         resp = Response(json=result)
         resp.headers['X-Total-Count'] = str(instances.count())
+
         if limit:
             resp.headers['X-Limit'] = str(limit)
 
@@ -250,8 +257,10 @@ class ResourceController(object):
 
         return result
 
-    def _get_one_by_pack_ref(self, pack_ref, exclude_fields=None, from_model_kwargs=None):
-        instance = self._get_by_pack_ref(pack_ref=pack_ref, exclude_fields=exclude_fields)
+    def _get_one_by_pack_ref(self, pack_ref, exclude_fields=None, include_fields=None,
+                             from_model_kwargs=None):
+        instance = self._get_by_pack_ref(pack_ref=pack_ref, exclude_fields=exclude_fields,
+                                         include_fields=include_fields)
 
         if not instance:
             msg = 'Unable to identify resource with pack_ref "%s".' % (pack_ref)
@@ -263,35 +272,39 @@ class ResourceController(object):
 
         return result
 
-    def _get_by_id(self, resource_id, exclude_fields=None):
+    def _get_by_id(self, resource_id, exclude_fields=None, include_fields=None):
         try:
-            resource_db = self.access.get(id=resource_id, exclude_fields=exclude_fields)
+            resource_db = self.access.get(id=resource_id, exclude_fields=exclude_fields,
+                                          only_fields=include_fields)
         except ValidationError:
             resource_db = None
 
         return resource_db
 
-    def _get_by_name(self, resource_name, exclude_fields=None):
+    def _get_by_name(self, resource_name, exclude_fields=None, include_fields=None):
         try:
-            resource_db = self.access.get(name=resource_name, exclude_fields=exclude_fields)
+            resource_db = self.access.get(name=resource_name, exclude_fields=exclude_fields,
+                                          only_fields=include_fields)
         except Exception:
             resource_db = None
 
         return resource_db
 
-    def _get_by_pack_ref(self, pack_ref, exclude_fields=None):
+    def _get_by_pack_ref(self, pack_ref, exclude_fields=None, include_fields=None):
         try:
-            resource_db = self.access.get(pack=pack_ref, exclude_fields=exclude_fields)
+            resource_db = self.access.get(pack=pack_ref, exclude_fields=exclude_fields,
+                                          only_fields=include_fields)
         except Exception:
             resource_db = None
 
         return resource_db
 
-    def _get_by_name_or_id(self, name_or_id, exclude_fields=None):
+    def _get_by_name_or_id(self, name_or_id, exclude_fields=None, include_fields=None):
         """
         Retrieve resource object by an id of a name.
         """
-        resource_db = self._get_by_id(resource_id=name_or_id, exclude_fields=exclude_fields)
+        resource_db = self._get_by_id(resource_id=name_or_id, exclude_fields=exclude_fields,
+                                      include_fields=include_fields)
 
         if not resource_db:
             # Try name
@@ -331,9 +344,12 @@ class ResourceController(object):
         if not exclude_fields:
             return exclude_fields
 
+        if not self.valid_exclude_attributes:
+            return exclude_fields
+
         for field in exclude_fields:
             if field not in self.valid_exclude_attributes:
-                msg = 'Invalid or unsupported attribute specified: %s' % (field)
+                msg = 'Invalid or unsupported exclude attribute specified: %s' % (field)
                 raise ValueError(msg)
 
         return exclude_fields
@@ -347,12 +363,13 @@ class ContentPackResourceController(ResourceController):
         self.get_one_db_method = self._get_by_ref_or_id
 
     def _get_one(self, ref_or_id, requester_user, permission_type, exclude_fields=None,
-                 from_model_kwargs=None):
+                 include_fields=None, from_model_kwargs=None):
         try:
-            instance = self._get_by_ref_or_id(ref_or_id=ref_or_id, exclude_fields=exclude_fields)
+            instance = self._get_by_ref_or_id(ref_or_id=ref_or_id, exclude_fields=exclude_fields,
+                                              include_fields=include_fields)
         except Exception as e:
-            LOG.exception(e.message)
-            abort(http_client.NOT_FOUND, e.message)
+            LOG.exception(str(e))
+            abort(http_client.NOT_FOUND, str(e))
             return
 
         if permission_type:
@@ -370,16 +387,19 @@ class ContentPackResourceController(ResourceController):
 
         return Response(json=result)
 
-    def _get_all(self, exclude_fields=None, sort=None, offset=0, limit=None, query_options=None,
-                 from_model_kwargs=None, raw_filters=None):
+    def _get_all(self, exclude_fields=None, include_fields=None,
+                 sort=None, offset=0, limit=None, query_options=None,
+                 from_model_kwargs=None, raw_filters=None, requester_user=None):
         resp = super(ContentPackResourceController,
                      self)._get_all(exclude_fields=exclude_fields,
+                                    include_fields=include_fields,
                                     sort=sort,
                                     offset=offset,
                                     limit=limit,
                                     query_options=query_options,
                                     from_model_kwargs=from_model_kwargs,
-                                    raw_filters=raw_filters)
+                                    raw_filters=raw_filters,
+                                    requester_user=requester_user)
 
         if self.include_reference:
             result = resp.json
@@ -391,13 +411,18 @@ class ContentPackResourceController(ResourceController):
 
         return resp
 
-    def _get_by_ref_or_id(self, ref_or_id, exclude_fields=None):
+    def _get_by_ref_or_id(self, ref_or_id, exclude_fields=None, include_fields=None):
         """
         Retrieve resource object by an id of a reference.
 
         Note: This method throws StackStormDBObjectNotFoundError exception if the object is not
         found in the database.
         """
+
+        if exclude_fields and include_fields:
+            msg = ('exclude_fields and include_fields arguments are mutually exclusive. '
+                   'You need to provide either one or another, but not both.')
+            raise ValueError(msg)
 
         if ResourceReference.is_resource_reference(ref_or_id):
             # references always contain a dot and id's can't contain it
@@ -406,9 +431,11 @@ class ContentPackResourceController(ResourceController):
             is_reference = False
 
         if is_reference:
-            resource_db = self._get_by_ref(resource_ref=ref_or_id, exclude_fields=exclude_fields)
+            resource_db = self._get_by_ref(resource_ref=ref_or_id, exclude_fields=exclude_fields,
+                                          include_fields=include_fields)
         else:
-            resource_db = self._get_by_id(resource_id=ref_or_id, exclude_fields=exclude_fields)
+            resource_db = self._get_by_id(resource_id=ref_or_id, exclude_fields=exclude_fields,
+                                          include_fields=include_fields)
 
         if not resource_db:
             msg = 'Resource with a reference or id "%s" not found' % (ref_or_id)
@@ -416,12 +443,56 @@ class ContentPackResourceController(ResourceController):
 
         return resource_db
 
-    def _get_by_ref(self, resource_ref, exclude_fields=None):
+    def _get_by_ref(self, resource_ref, exclude_fields=None, include_fields=None):
+        if exclude_fields and include_fields:
+            msg = ('exclude_fields and include_fields arguments are mutually exclusive. '
+                   'You need to provide either one or another, but not both.')
+            raise ValueError(msg)
+
         try:
             ref = ResourceReference.from_string_reference(ref=resource_ref)
         except Exception:
             return None
 
         resource_db = self.access.query(name=ref.name, pack=ref.pack,
-                                        exclude_fields=exclude_fields).first()
+                                        exclude_fields=exclude_fields,
+                                        only_fields=include_fields).first()
         return resource_db
+
+
+def validate_limit_query_param(limit, requester_user=None):
+    """
+    Validate that the provided value for "limit" query parameter is valid.
+
+    Note: We only perform max_page_size check for non-admin users. Admin users
+    can provide arbitrary limit value.
+    """
+    user_is_admin = rbac_utils.user_is_admin(user_db=requester_user)
+
+    if limit:
+        # Display all the results
+        if int(limit) == -1:
+            if not user_is_admin:
+                # Only admins can specify limit -1
+                message = ('Administrator access required to be able to specify limit=-1 and '
+                           'retrieve all the records')
+                raise AccessDeniedError(message=message,
+                                        user_db=requester_user)
+
+            return 0
+        elif int(limit) <= -2:
+            msg = 'Limit, "%s" specified, must be a positive number.' % (limit)
+            raise ValueError(msg)
+        elif int(limit) > cfg.CONF.api.max_page_size and not user_is_admin:
+            msg = ('Limit "%s" specified, maximum value is "%s"' % (limit,
+                                                                    cfg.CONF.api.max_page_size))
+
+            raise AccessDeniedError(message=msg,
+                                    user_db=requester_user)
+    # Disable n = 0
+    elif limit == 0:
+        msg = ('Limit, "%s" specified, must be a positive number or -1 for full result set.' %
+               (limit))
+        raise ValueError(msg)
+
+    return limit

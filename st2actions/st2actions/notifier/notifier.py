@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 from datetime import datetime
 import json
 
@@ -33,7 +34,7 @@ from st2common import policies
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.execution import ActionExecution
 from st2common.services import trace as trace_service
-from st2common.transport import consumers, execution, publishers
+from st2common.transport import consumers
 from st2common.transport import utils as transport_utils
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.util import isotime
@@ -43,6 +44,7 @@ from st2common.constants.action import ACTION_PARAMETERS_KV_PREFIX
 from st2common.constants.action import ACTION_RESULTS_KV_PREFIX
 from st2common.constants.keyvalue import FULL_SYSTEM_SCOPE, SYSTEM_SCOPE, DATASTORE_PARENT_SCOPE
 from st2common.services.keyvalues import KeyValueLookup
+from st2common.transport.queues import NOTIFIER_ACTIONUPDATE_WORK_QUEUE
 
 __all__ = [
     'Notifier',
@@ -50,9 +52,6 @@ __all__ = [
 ]
 
 LOG = logging.getLogger(__name__)
-
-ACTIONUPDATE_WORK_Q = execution.get_queue('st2.notifiers.execution.work',
-                                          routing_key=publishers.UPDATE_RK)
 
 ACTION_SENSOR_ENABLED = cfg.CONF.action_sensor.enable
 # XXX: Fix this nasty positional dependency.
@@ -281,4 +280,5 @@ class Notifier(consumers.MessageHandler):
 
 def get_notifier():
     with Connection(transport_utils.get_messaging_urls()) as conn:
-        return Notifier(conn, [ACTIONUPDATE_WORK_Q], trigger_dispatcher=TriggerDispatcher(LOG))
+        return Notifier(conn, [NOTIFIER_ACTIONUPDATE_WORK_QUEUE],
+                        trigger_dispatcher=TriggerDispatcher(LOG))

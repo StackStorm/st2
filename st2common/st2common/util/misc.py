@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import os
 import sys
 import collections
@@ -102,7 +103,7 @@ def deep_update(d, u):
     Perform deep merge / update of the target dict.
     """
 
-    for k, v in u.iteritems():
+    for k, v in six.iteritems(u):
         if isinstance(v, collections.Mapping):
             r = deep_update(d.get(k, {}), v)
             d[k] = r

@@ -13,11 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+
 import imp
 import os
 import mock
-import unittest2
+from collections import defaultdict
 
+import unittest2
 from oslo_config import cfg
 
 from st2common import config
@@ -48,7 +51,7 @@ class PluginLoaderTestCase(unittest2.TestCase):
 
     def setUp(self):
         super(PluginLoaderTestCase, self).setUp()
-        loader.RUNNER_MODULES_CACHE = {}
+        loader.RUNNER_MODULES_CACHE = defaultdict(dict)
         loader.QUERIER_MODULES_CACHE = {}
         loader.CALLBACK_MODULES_CACHE = {}
 
@@ -58,12 +61,12 @@ class PluginLoaderTestCase(unittest2.TestCase):
         mock.MagicMock(return_value=MOCK_RUNNER_MODULE)
     )
     def test_register_runner(self):
-        runner = loader.register_runner(MOCK_RUNNER_NAME)
+        runner = loader.register_runner(MOCK_RUNNER_NAME, MOCK_RUNNER_NAME)
 
         self.assertIsNotNone(runner)
         self.assertEqual(MOCK_RUNNER_NAME, runner.__name__)
         self.assertIn(MOCK_RUNNER_NAME, loader.RUNNER_MODULES_CACHE)
-        self.assertEqual(runner, loader.RUNNER_MODULES_CACHE[MOCK_RUNNER_NAME])
+        self.assertEqual(runner, loader.RUNNER_MODULES_CACHE[MOCK_RUNNER_NAME][MOCK_RUNNER_NAME])
 
     @mock.patch.object(
         imp,
@@ -71,22 +74,22 @@ class PluginLoaderTestCase(unittest2.TestCase):
         mock.MagicMock(return_value=MOCK_RUNNER_MODULE)
     )
     def test_register_runner_again(self):
-        runner1 = loader.register_runner(MOCK_RUNNER_NAME)
+        runner1 = loader.register_runner(MOCK_RUNNER_NAME, MOCK_RUNNER_NAME)
 
         self.assertEqual(1, imp.load_source.call_count)
         self.assertIsNotNone(runner1)
         self.assertEqual(MOCK_RUNNER_NAME, runner1.__name__)
         self.assertIn(MOCK_RUNNER_NAME, loader.RUNNER_MODULES_CACHE)
-        self.assertEqual(runner1, loader.RUNNER_MODULES_CACHE[MOCK_RUNNER_NAME])
+        self.assertEqual(runner1, loader.RUNNER_MODULES_CACHE[MOCK_RUNNER_NAME][MOCK_RUNNER_NAME])
 
-        runner2 = loader.register_runner(MOCK_RUNNER_NAME)
+        runner2 = loader.register_runner(MOCK_RUNNER_NAME, MOCK_RUNNER_NAME)
 
         self.assertEqual(1, imp.load_source.call_count)
         self.assertEqual(runner1, runner2)
         self.assertIsNotNone(runner2)
         self.assertEqual(MOCK_RUNNER_NAME, runner2.__name__)
         self.assertIn(MOCK_RUNNER_NAME, loader.RUNNER_MODULES_CACHE)
-        self.assertEqual(runner2, loader.RUNNER_MODULES_CACHE[MOCK_RUNNER_NAME])
+        self.assertEqual(runner2, loader.RUNNER_MODULES_CACHE[MOCK_RUNNER_NAME][MOCK_RUNNER_NAME])
 
     @mock.patch.object(
         imp,

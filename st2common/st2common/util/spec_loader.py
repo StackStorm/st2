@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import pkg_resources
 
 import jinja2
@@ -39,12 +40,13 @@ ARGUMENTS = {
 def load_spec(module_name, spec_file):
     spec_string = generate_spec(module_name, spec_file)
     spec = yaml.load(spec_string)
-
     return spec
 
 
 def generate_spec(module_name, spec_file):
     spec_template = pkg_resources.resource_string(module_name, spec_file)
+    if not isinstance(spec_template, str):
+        spec_template = spec_template.decode()
     spec_string = jinja2.Template(spec_template).render(**ARGUMENTS)
 
     return spec_string

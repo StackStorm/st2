@@ -78,18 +78,22 @@ class ActionsController(resource.ContentPackResourceController):
         super(ActionsController, self).__init__(*args, **kwargs)
         self._trigger_dispatcher = TriggerDispatcher(LOG)
 
-    def get_all(self, exclude_attributes=None, sort=None, offset=0, limit=None, **raw_filters):
-        if exclude_attributes:
-            exclude_fields = exclude_attributes.split(',')
-        else:
-            exclude_fields = None
+    def get_all(self, exclude_attributes=None, include_attributes=None,
+                sort=None, offset=0, limit=None,
+                requester_user=None, **raw_filters):
+        exclude_fields = self._validate_exclude_fields(exclude_attributes)
 
-        exclude_fields = self._validate_exclude_fields(exclude_fields)
+        if include_attributes:
+            # Note: Those fields need to be always included for API model to work
+            include_attributes += ['name', 'pack', 'runner_type']
+
         return super(ActionsController, self)._get_all(exclude_fields=exclude_fields,
+                                                       include_fields=include_attributes,
                                                        sort=sort,
                                                        offset=offset,
                                                        limit=limit,
-                                                       raw_filters=raw_filters)
+                                                       raw_filters=raw_filters,
+                                                       requester_user=requester_user)
 
     def get_one(self, ref_or_id, requester_user):
         return super(ActionsController, self)._get_one(ref_or_id, requester_user=requester_user,

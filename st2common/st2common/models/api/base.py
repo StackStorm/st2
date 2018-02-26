@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import abc
 
 import six
@@ -130,6 +131,10 @@ class APIUIDMixin(object):
         resource_db = self.to_model(self)
         pack_uid = resource_db.get_pack_uid()
         return pack_uid
+
+    def has_valid_uid(self):
+        resource_db = self.to_model(self)
+        return resource_db.has_valid_uid()
 
 
 def cast_argument_value(value_type, value):

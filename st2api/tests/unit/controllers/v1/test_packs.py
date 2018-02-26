@@ -15,6 +15,7 @@
 
 import os
 
+import requests
 import mock
 
 from st2common.content.loader import ContentPackLoader
@@ -52,6 +53,57 @@ PACK_INDEX = {
         "description": "another st2 pack to test package management pipeline"
     }
 }
+
+PACK_INDEXES = {
+    'http://main.example.com': PACK_INDEX,
+    'http://fallback.example.com': {
+        "test": {
+            "version": "0.1.0",
+            "name": "test",
+            "repo_url": "https://github.com/StackStorm-Exchange/stackstorm-test",
+            "author": "st2-dev",
+            "keywords": ["some", "search", "another", "terms"],
+            "email": "info@stackstorm.com",
+            "description": "st2 pack to test package management pipeline"
+        }
+    },
+    'http://override.example.com': {
+        "test2": {
+            "version": "1.0.0",
+            "name": "test2",
+            "repo_url": "https://github.com/StackStorm-Exchange/stackstorm-test2",
+            "author": "stanley",
+            "keywords": ["some", "special", "terms"],
+            "email": "info@stackstorm.com",
+            "description": "another st2 pack to test package management pipeline"
+        }
+    },
+    'http://broken.example.com': requests.exceptions.RequestException('index is broken')
+}
+
+
+def mock_index_get(url, *args, **kwargs):
+    index = PACK_INDEXES[url]
+
+    if isinstance(index, requests.exceptions.RequestException):
+        raise index
+
+    status = 200
+    content = {
+        'metadata': {},
+        'packs': index
+    }
+
+    # Return mock response object
+
+    mock_resp = mock.Mock()
+    mock_resp.raise_for_status = mock.Mock()
+    mock_resp.status_code = status
+    mock_resp.content = content
+    mock_resp.json = mock.Mock(
+        return_value=content
+    )
+    return mock_resp
 
 
 class PacksControllerTestCase(FunctionalTest):
@@ -200,11 +252,135 @@ class PacksControllerTestCase(FunctionalTest):
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json, PACK_INDEX['test2'])
 
+    @mock.patch.object(pack_service, '_build_index_list',
+                       mock.MagicMock(return_value=['http://main.example.com']))
+    @mock.patch.object(requests, 'get', mock_index_get)
+    def test_index_health(self):
+        resp = self.app.get('/v1/packs/index/health')
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, {
+            'packs': {
+                'count': 2
+            },
+            'indexes': {
+                'count': 1,
+                'status': [{
+                    'url': 'http://main.example.com',
+                    'message': 'Success.',
+                    'packs': 2,
+                    'error': None
+                }],
+                'valid': 1,
+                'errors': {},
+                'invalid': 0
+            }
+        })
+
+    @mock.patch.object(pack_service, '_build_index_list',
+                       mock.MagicMock(return_value=['http://main.example.com',
+                                                    'http://broken.example.com']))
+    @mock.patch.object(requests, 'get', mock_index_get)
+    def test_index_health_broken(self):
+        resp = self.app.get('/v1/packs/index/health')
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, {
+            'packs': {
+                'count': 2
+            },
+            'indexes': {
+                'count': 2,
+                'status': [{
+                    'url': 'http://main.example.com',
+                    'message': 'Success.',
+                    'packs': 2,
+                    'error': None
+                }, {
+                    'url': 'http://broken.example.com',
+                    'message': "RequestException('index is broken',)",
+                    'packs': 0,
+                    'error': 'unresponsive'
+                }],
+                'valid': 1,
+                'errors': {
+                    'unresponsive': 1
+                },
+                'invalid': 1
+            }
+        })
+
+    @mock.patch.object(pack_service, '_build_index_list',
+                       mock.MagicMock(return_value=['http://main.example.com']))
+    @mock.patch.object(requests, 'get', mock_index_get)
+    def test_index(self):
+        resp = self.app.get('/v1/packs/index')
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, {
+            'status': [{
+                'url': 'http://main.example.com',
+                'message': 'Success.',
+                'packs': 2,
+                'error': None
+            }],
+            'index': PACK_INDEX
+        })
+
+    @mock.patch.object(pack_service, '_build_index_list',
+                       mock.MagicMock(return_value=['http://fallback.example.com',
+                                                    'http://main.example.com']))
+    @mock.patch.object(requests, 'get', mock_index_get)
+    def test_index_fallback(self):
+        resp = self.app.get('/v1/packs/index')
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, {
+            'status': [{
+                'url': 'http://fallback.example.com',
+                'message': 'Success.',
+                'packs': 1,
+                'error': None
+            }, {
+                'url': 'http://main.example.com',
+                'message': 'Success.',
+                'packs': 2,
+                'error': None
+            }],
+            'index': PACK_INDEX
+        })
+
+    @mock.patch.object(pack_service, '_build_index_list',
+                       mock.MagicMock(return_value=['http://main.example.com',
+                                                    'http://override.example.com']))
+    @mock.patch.object(requests, 'get', mock_index_get)
+    def test_index_override(self):
+        resp = self.app.get('/v1/packs/index')
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, {
+            'status': [{
+                'url': 'http://main.example.com',
+                'message': 'Success.',
+                'packs': 2,
+                'error': None
+            }, {
+                'url': 'http://override.example.com',
+                'message': 'Success.',
+                'packs': 1,
+                'error': None
+            }],
+            'index': {
+                'test': PACK_INDEX['test'],
+                'test2': PACK_INDEXES['http://override.example.com']['test2']
+            }
+        })
+
     def test_packs_register_endpoint_resource_register_order(self):
         # Verify that resources are registered in the same order as they are inside
         # st2-register-content.
         # Note: Sadly there is no easier / better way to test this
-        resource_types = ENTITIES.keys()
+        resource_types = list(ENTITIES.keys())
         expected_order = [
             'trigger',
             'sensor',
@@ -326,14 +502,14 @@ class PacksControllerTestCase(FunctionalTest):
                                   {'packs': ['dummy_pack_1'], 'types': ['action']})
 
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json, {'actions': 1, 'runners': 13})
+        self.assertEqual(resp.json, {'actions': 1, 'runners': 14})
 
         # Verify that plural name form also works
         resp = self.app.post_json('/v1/packs/register',
                                   {'packs': ['dummy_pack_1'], 'types': ['actions']})
 
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json, {'actions': 1, 'runners': 13})
+        self.assertEqual(resp.json, {'actions': 1, 'runners': 14})
 
         # Register single resource from a single pack specified multiple times - verify that
         # resources from the same pack are only registered once
@@ -343,7 +519,7 @@ class PacksControllerTestCase(FunctionalTest):
                                    'fail_on_failure': False})
 
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json, {'actions': 1, 'runners': 13})
+        self.assertEqual(resp.json, {'actions': 1, 'runners': 14})
 
         # Register resources from a single (non-existent pack)
         resp = self.app.post_json('/v1/packs/register', {'packs': ['doesntexist']},

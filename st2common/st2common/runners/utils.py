@@ -13,36 +13,56 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+
 import logging as stdlib_logging
 
-from st2actions.container.service import RunnerContainerService
+import six
+from oslo_config import cfg
+
+from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common import log as logging
-from st2common.runners import base as runners
-from st2common.util import action_db as action_db_utils
 
 
 __all__ = [
     'get_logger_for_python_runner_action',
-    'get_action_class_instance'
+    'get_action_class_instance',
+
+    'make_read_and_store_stream_func',
+
+    'invoke_post_run',
 ]
 
 LOG = logging.getLogger(__name__)
 
+# Maps logger name to the actual logger instance
+# We re-use loggers for the same actions to make sure only a single instance exists for a
+# particular action. This way we avoid duplicate log messages, etc.
+LOGGERS = {}
 
-def get_logger_for_python_runner_action(action_name):
+
+def get_logger_for_python_runner_action(action_name, log_level='debug'):
     """
     Set up a logger which logs all the messages with level DEBUG and above to stderr.
     """
     logger_name = 'actions.python.%s' % (action_name)
-    logger = logging.getLogger(logger_name)
 
-    console = stdlib_logging.StreamHandler()
-    console.setLevel(stdlib_logging.DEBUG)
+    if logger_name not in LOGGERS:
+        level_name = log_level.upper()
+        log_level_constant = getattr(stdlib_logging, level_name, stdlib_logging.DEBUG)
+        logger = logging.getLogger(logger_name)
 
-    formatter = stdlib_logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
-    console.setFormatter(formatter)
-    logger.addHandler(console)
-    logger.setLevel(stdlib_logging.DEBUG)
+        console = stdlib_logging.StreamHandler()
+        console.setLevel(log_level_constant)
+
+        formatter = stdlib_logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+        console.setFormatter(formatter)
+        logger.addHandler(console)
+        logger.setLevel(log_level_constant)
+
+        LOGGERS[logger_name] = logger
+    else:
+        logger = LOGGERS[logger_name]
 
     return logger
 
@@ -84,7 +104,51 @@ def get_action_class_instance(action_cls, config=None, action_service=None):
     return action_instance
 
 
+def make_read_and_store_stream_func(execution_db, action_db, store_data_func):
+    """
+    Factory function which returns a function for reading from a stream (stdout / stderr).
+
+    This function writes read data into a buffer and stores it in a database.
+    """
+    # NOTE: This import has intentionally been moved here to avoid massive performance overhead
+    # (1+ second) for other functions inside this module which don't need to use those imports.
+    import eventlet
+
+    def read_and_store_stream(stream, buff):
+        try:
+            while not stream.closed:
+                line = stream.readline()
+                if not line:
+                    break
+
+                if isinstance(line, six.binary_type):
+                    line = line.decode('utf-8')
+
+                buff.write(line)
+
+                # Filter out result delimiter lines
+                if ACTION_OUTPUT_RESULT_DELIMITER in line:
+                    continue
+
+                if cfg.CONF.actionrunner.stream_output:
+                    store_data_func(execution_db=execution_db, action_db=action_db, data=line)
+        except RuntimeError:
+            # process was terminated abruptly
+            pass
+        except eventlet.support.greenlets.GreenletExit:
+            # Green thread exited / was killed
+            pass
+
+    return read_and_store_stream
+
+
 def invoke_post_run(liveaction_db, action_db=None):
+    # NOTE: This import has intentionally been moved here to avoid massive performance overhead
+    # (1+ second) for other functions inside this module which don't need to use those imports.
+    from st2common.runners import base as runners
+    from st2common.util import action_db as action_db_utils
+    from st2common.content import utils as content_utils
+
     LOG.info('Invoking post run for action execution %s.', liveaction_db.id)
 
     # Identify action and runner.
@@ -101,19 +165,19 @@ def invoke_post_run(liveaction_db, action_db=None):
 
     # Get an instance of the action runner.
     runnertype_db = action_db_utils.get_runnertype_by_name(action_db.runner_type['name'])
-    runner = runners.get_runner(runnertype_db.runner_module)
+    runner = runners.get_runner(package_name=runnertype_db.runner_package,
+                                module_name=runnertype_db.runner_module)
 
     # Configure the action runner.
-    runner.container_service = RunnerContainerService()
     runner.action = action_db
     runner.action_name = action_db.name
     runner.action_execution_id = str(liveaction_db.id)
-    runner.entry_point = RunnerContainerService.get_entry_point_abs_path(
-        pack=action_db.pack, entry_point=action_db.entry_point)
+    runner.entry_point = content_utils.get_entry_point_abs_path(pack=action_db.pack,
+                                                                entry_point=action_db.entry_point)
     runner.context = getattr(liveaction_db, 'context', dict())
     runner.callback = getattr(liveaction_db, 'callback', dict())
-    runner.libs_dir_path = RunnerContainerService.get_action_libs_abs_path(
-        pack=action_db.pack, entry_point=action_db.entry_point)
+    runner.libs_dir_path = content_utils.get_action_libs_abs_path(pack=action_db.pack,
+        entry_point=action_db.entry_point)
 
     # Invoke the post_run method.
     runner.post_run(liveaction_db.status, liveaction_db.result)

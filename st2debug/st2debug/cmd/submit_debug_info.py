@@ -37,7 +37,6 @@ import tarfile
 import argparse
 import platform
 import tempfile
-import httplib
 
 import six
 import yaml
@@ -326,7 +325,7 @@ class DebugInfoCollector(object):
 
             with open(archive_file_path, 'rb') as fp:
                 response = requests.put(url=url, files={'file': fp})
-            assert response.status_code == httplib.OK
+            assert response.status_code == six.moves.http_client.OK
         except Exception as e:
             LOG.exception('Failed to upload tarball to %s' % self.company_name, exc_info=True)
             raise e

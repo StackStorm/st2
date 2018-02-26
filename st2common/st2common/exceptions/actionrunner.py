@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 from st2common.exceptions import StackStormPluginException
 
 
@@ -29,4 +30,12 @@ class ActionRunnerDispatchError(ActionRunnerException):
 
 
 class ActionRunnerPreRunError(ActionRunnerException):
+    pass
+
+
+class InvalidActionRunnerOperationError(ActionRunnerException):
+    pass
+
+
+class UnexpectedActionExecutionStatusError(ActionRunnerException):
     pass

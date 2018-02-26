@@ -1,0 +1,18 @@
+- aliases: []
+  description: A runner for emitting an announcement event on the stream.
+  enabled: true
+  name: announcement
+  runner_module: announcement_runner
+  runner_parameters:
+    experimental:
+      default: false
+      description: Flag to indicate acknowledgment of using experimental runner
+      required: true
+      type: boolean
+    route:
+      default: general
+      description: The routing_key used to route the message to consumers. Might be
+        a list of words, delimited by dots.
+      maxLength: 255
+      minLength: 1
+      type: string

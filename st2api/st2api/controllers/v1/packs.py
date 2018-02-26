@@ -20,6 +20,7 @@ from collections import defaultdict
 from collections import OrderedDict
 
 import six
+from oslo_config import cfg
 
 import st2common
 from st2common import log as logging
@@ -34,6 +35,7 @@ from st2common.bootstrap.rulesregistrar import RulesRegistrar
 import st2common.bootstrap.ruletypesregistrar as rule_types_registrar
 from st2common.bootstrap.configsregistrar import ConfigsRegistrar
 import st2common.content.utils as content_utils
+from st2common.models.db.auth import UserDB
 from st2common.models.api.action import LiveActionCreateAPI
 from st2common.models.api.pack import PackAPI
 from st2common.models.api.pack import PackAsyncAPI
@@ -72,9 +74,28 @@ ENTITIES = OrderedDict([
 ])
 
 
+def _get_proxy_config():
+    LOG.debug('Loading proxy configuration from env variables %s.', os.environ)
+    http_proxy = os.environ.get('http_proxy', None)
+    https_proxy = os.environ.get('https_proxy', None)
+    no_proxy = os.environ.get('no_proxy', None)
+    proxy_ca_bundle_path = os.environ.get('proxy_ca_bundle_path', None)
+
+    proxy_config = {
+        'http_proxy': http_proxy,
+        'https_proxy': https_proxy,
+        'proxy_ca_bundle_path': proxy_ca_bundle_path,
+        'no_proxy': no_proxy
+    }
+
+    LOG.debug('Proxy configuration: %s', proxy_config)
+
+    return proxy_config
+
+
 class PackInstallController(ActionExecutionsControllerMixin):
 
-    def post(self, pack_install_request):
+    def post(self, pack_install_request, requester_user=None):
         parameters = {
             'packs': pack_install_request.packs,
         }
@@ -82,12 +103,15 @@ class PackInstallController(ActionExecutionsControllerMixin):
         if pack_install_request.force:
             parameters['force'] = True
 
+        if not requester_user:
+            requester_user = UserDB(cfg.CONF.system_user.user)
+
         new_liveaction_api = LiveActionCreateAPI(action='packs.install',
                                                  parameters=parameters,
-                                                 user=None)
+                                                 user=requester_user.name)
 
         execution_resp = self._handle_schedule_execution(liveaction_api=new_liveaction_api,
-                                                         requester_user=None)
+                                                         requester_user=requester_user)
 
         exec_id = PackAsyncAPI(execution_id=execution_resp.json['id'])
 
@@ -96,7 +120,7 @@ class PackInstallController(ActionExecutionsControllerMixin):
 
 class PackUninstallController(ActionExecutionsControllerMixin):
 
-    def post(self, pack_uninstall_request, ref_or_id=None):
+    def post(self, pack_uninstall_request, ref_or_id=None, requester_user=None):
         if ref_or_id:
             parameters = {
                 'packs': [ref_or_id]
@@ -106,12 +130,15 @@ class PackUninstallController(ActionExecutionsControllerMixin):
                 'packs': pack_uninstall_request.packs
             }
 
+        if not requester_user:
+            requester_user = UserDB(cfg.CONF.system_user.user)
+
         new_liveaction_api = LiveActionCreateAPI(action='packs.uninstall',
                                                  parameters=parameters,
-                                                 user=None)
+                                                 user=requester_user.name)
 
         execution_resp = self._handle_schedule_execution(liveaction_api=new_liveaction_api,
-                                                         requester_user=None)
+                                                         requester_user=requester_user)
 
         exec_id = PackAsyncAPI(execution_id=execution_resp.json['id'])
 
@@ -180,7 +207,7 @@ class PackSearchController(object):
 
     def post(self, pack_search_request):
 
-        proxy_config = self._get_proxy_config()
+        proxy_config = _get_proxy_config()
 
         if hasattr(pack_search_request, 'query'):
             packs = packs_service.search_pack_index(pack_search_request.query,
@@ -192,24 +219,6 @@ class PackSearchController(object):
                                                      proxy_config=proxy_config)
             return PackAPI(**pack) if pack else []
 
-    def _get_proxy_config(self):
-        LOG.debug('Loading proxy configuration from env variables %s.', os.environ)
-        http_proxy = os.environ.get('http_proxy', None)
-        https_proxy = os.environ.get('https_proxy', None)
-        no_proxy = os.environ.get('no_proxy', None)
-        proxy_ca_bundle_path = os.environ.get('proxy_ca_bundle_path', None)
-
-        proxy_config = {
-            'http_proxy': http_proxy,
-            'https_proxy': https_proxy,
-            'proxy_ca_bundle_path': proxy_ca_bundle_path,
-            'no_proxy': no_proxy
-        }
-
-        LOG.debug('Proxy configuration: %s', proxy_config)
-
-        return proxy_config
-
 
 class IndexHealthController(object):
 
@@ -218,7 +227,9 @@ class IndexHealthController(object):
         Check if all listed indexes are healthy: they should be reachable,
         return valid JSON objects, and yield more than one result.
         """
-        _, status = packs_service.fetch_pack_index(allow_empty=True)
+        proxy_config = _get_proxy_config()
+
+        _, status = packs_service.fetch_pack_index(allow_empty=True, proxy_config=proxy_config)
 
         health = {
             "indexes": {
@@ -290,6 +301,16 @@ class PacksIndexController():
     search = PackSearchController()
     health = IndexHealthController()
 
+    def get_all(self):
+        proxy_config = _get_proxy_config()
+
+        index, status = packs_service.fetch_pack_index(proxy_config=proxy_config)
+
+        return {
+            'status': status,
+            'index': index
+        }
+
 
 class PacksController(BasePacksController):
     from st2api.controllers.v1.packviews import PackViewsController
@@ -316,11 +337,12 @@ class PacksController(BasePacksController):
         super(PacksController, self).__init__()
         self.get_one_db_method = self._get_by_ref_or_id
 
-    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
+    def get_all(self, sort=None, offset=0, limit=None, requester_user=None, **raw_filters):
         return super(PacksController, self)._get_all(sort=sort,
                                                      offset=offset,
                                                      limit=limit,
-                                                     raw_filters=raw_filters)
+                                                     raw_filters=raw_filters,
+                                                     requester_user=requester_user)
 
     def get_one(self, ref_or_id, requester_user):
         return self._get_one_by_ref_or_id(ref_or_id=ref_or_id, requester_user=requester_user)

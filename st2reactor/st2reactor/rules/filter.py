@@ -13,16 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import six
 import json
 import re
-from jsonpath_rw import parse
 
 from st2common import log as logging
 import st2common.operators as criteria_operators
-from st2common.constants.rules import TRIGGER_PAYLOAD_PREFIX, RULE_TYPE_BACKSTOP, MATCH_CRITERIA
-from st2common.constants.keyvalue import SYSTEM_SCOPES
-from st2common.services.keyvalues import KeyValueLookup
+from st2common.constants.rules import RULE_TYPE_BACKSTOP, MATCH_CRITERIA
+
+from st2common.util.payload import PayloadLookup
 from st2common.util.templating import render_template_with_system_context
 
 
@@ -78,8 +78,7 @@ class RuleFilter(object):
         LOG.debug('Trigger payload: %s', self.trigger_instance.payload,
                   extra=self._base_logger_context)
 
-        for criterion_k in criteria.keys():
-            criterion_v = criteria[criterion_k]
+        for (criterion_k, criterion_v) in six.iteritems(criteria):
             is_rule_applicable, payload_value, criterion_pattern = self._check_criterion(
                 criterion_k,
                 criterion_v,
@@ -110,6 +109,7 @@ class RuleFilter(object):
             return (False, None, None)
 
         criteria_operator = criterion_v['type']
+        criteria_condition = criterion_v.get('condition', None)
         criteria_pattern = criterion_v.get('pattern', None)
 
         # Render the pattern (it can contain a jinja expressions)
@@ -138,13 +138,23 @@ class RuleFilter(object):
         op_func = criteria_operators.get_operator(criteria_operator)
 
         try:
-            result = op_func(value=payload_value, criteria_pattern=criteria_pattern)
+            if criteria_operator == criteria_operators.SEARCH:
+                result = op_func(value=payload_value, criteria_pattern=criteria_pattern,
+                                 criteria_condition=criteria_condition,
+                                 check_function=self._bool_criterion)
+            else:
+                result = op_func(value=payload_value, criteria_pattern=criteria_pattern)
         except:
             LOG.exception('There might be a problem with the criteria in rule %s.', self.rule,
                           extra=self._base_logger_context)
             return (False, None, None)
 
         return result, payload_value, criteria_pattern
+
+    def _bool_criterion(self, criterion_k, criterion_v, payload_lookup):
+        # Pass through to _check_criterion, but pull off and return only the
+        # final result
+        return self._check_criterion(criterion_k, criterion_v, payload_lookup)[0]
 
     def _render_criteria_pattern(self, criteria_pattern, criteria_context):
         # Note: Here we want to use strict comparison to None to make sure that
@@ -181,7 +191,7 @@ class RuleFilter(object):
                 )
                 criteria_rendered = json.loads(criteria_rendered)
                 to_complex = True
-            except ValueError, error:
+            except ValueError as error:
                 LOG.debug('Criteria pattern not valid JSON: %s', error)
 
         if not to_complex:
@@ -228,21 +238,3 @@ class SecondPassRuleFilter(RuleFilter):
 
     def _is_backstop_rule(self):
         return self.rule.type['ref'] == RULE_TYPE_BACKSTOP
-
-
-class PayloadLookup(object):
-
-    def __init__(self, payload):
-        self.context = {
-            TRIGGER_PAYLOAD_PREFIX: payload
-        }
-
-        for system_scope in SYSTEM_SCOPES:
-            self.context[system_scope] = KeyValueLookup(scope=system_scope)
-
-    def get_value(self, lookup_key):
-        expr = parse(lookup_key)
-        matches = [match.value for match in expr.find(self.context)]
-        if not matches:
-            return None
-        return matches

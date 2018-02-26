@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import httplib
-
 import six
 
 from st2common.rbac.types import PermissionType
@@ -115,17 +113,20 @@ class ApiKeyControllerRBACTestCase(APIControllerWithRBACTestCase):
         # Role assignments
         role_assignment_db = UserRoleAssignmentDB(
             user=self.users['api_key_list'].name,
-            role=self.roles['api_key_list'].name)
+            role=self.roles['api_key_list'].name,
+            source='assignments/%s.yaml' % self.users['api_key_list'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         role_assignment_db = UserRoleAssignmentDB(
             user=self.users['api_key_view'].name,
-            role=self.roles['api_key_view'].name)
+            role=self.roles['api_key_view'].name,
+            source='assignments/%s.yaml' % self.users['api_key_view'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         role_assignment_db = UserRoleAssignmentDB(
             user=self.users['api_key_create'].name,
-            role=self.roles['api_key_create'].name)
+            role=self.roles['api_key_create'].name,
+            source='assignments/%s.yaml' % self.users['api_key_create'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
     def test_get_all_no_permissions(self):
@@ -134,7 +135,7 @@ class ApiKeyControllerRBACTestCase(APIControllerWithRBACTestCase):
 
         resp = self.app.get('/v1/apikeys', expect_errors=True)
         expected_msg = ('User "no_permissions" doesn\'t have required permission "api_key_list"')
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_get_one_no_permissions(self):
@@ -146,7 +147,7 @@ class ApiKeyControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.app.get('/v1/apikeys/%s' % (api_key_id), expect_errors=True)
         expected_msg = ('User "no_permissions" doesn\'t have required permission "api_key_view"'
                         ' on resource "%s"' % (api_key_uid))
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_get_all_permission_success_get_one_no_permission_failure(self):
@@ -155,7 +156,7 @@ class ApiKeyControllerRBACTestCase(APIControllerWithRBACTestCase):
 
         # api_key_list permission, but no api_key_view permission
         resp = self.app.get('/v1/apikeys')
-        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(resp.status_code, http_client.OK)
         self.assertEqual(len(resp.json), 2)
 
         api_key_id = self.models['apikeys']['apikey1.yaml'].id
@@ -163,7 +164,7 @@ class ApiKeyControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.app.get('/v1/apikeys/%s' % (api_key_id), expect_errors=True)
         expected_msg = ('User "api_key_list" doesn\'t have required permission "api_key_view"'
                         ' on resource "%s"' % (api_key_uid))
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_get_one_permission_success_get_all_no_permission_failure(self):
@@ -174,12 +175,12 @@ class ApiKeyControllerRBACTestCase(APIControllerWithRBACTestCase):
         api_key_id = self.models['apikeys']['apikey1.yaml'].id
 
         resp = self.app.get('/v1/apikeys/%s' % (api_key_id))
-        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(resp.status_code, http_client.OK)
         self.assertEqual(resp.json['user'], self.models['apikeys']['apikey1.yaml'].user)
 
         resp = self.app.get('/v1/apikeys', expect_errors=True)
         expected_msg = ('User "api_key_view" doesn\'t have required permission "api_key_list"')
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_create_no_permissions_failure(self):
@@ -188,7 +189,7 @@ class ApiKeyControllerRBACTestCase(APIControllerWithRBACTestCase):
 
         resp = self.app.post('/v1/apikeys', {}, expect_errors=True)
         expected_msg = ('User "no_permissions" doesn\'t have required permission "api_key_create"')
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_create_correct_permission_success(self):
@@ -197,8 +198,21 @@ class ApiKeyControllerRBACTestCase(APIControllerWithRBACTestCase):
 
         # User provided
         resp = self.app.post_json('/v1/apikeys', {'user': 'joe22'})
-        self.assertEqual(resp.status_code, httplib.CREATED)
+        self.assertEqual(resp.status_code, http_client.CREATED)
 
         # User not provide
         resp = self.app.post_json('/v1/apikeys', {'user': 'joe22'})
-        self.assertEqual(resp.status_code, httplib.CREATED)
+        self.assertEqual(resp.status_code, http_client.CREATED)
+
+    def test_get_all_limit_minus_one(self):
+        user_db = self.users['observer']
+        self.use_user(user_db)
+
+        resp = self.app.get('/v1/apikeys?limit=-1', expect_errors=True)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
+
+        user_db = self.users['admin']
+        self.use_user(user_db)
+
+        resp = self.app.get('/v1/apikeys?limit=-1')
+        self.assertEqual(resp.status_code, http_client.OK)

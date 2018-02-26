@@ -14,12 +14,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Module with Python 3 related compatibility functions.
+"""
+
+from __future__ import absolute_import
+
 import six
 
+
 __all__ = [
+    'mock_open_name',
+
     'to_unicode',
-    'to_ascii'
+    'to_ascii',
 ]
+
+if six.PY3:
+    mock_open_name = 'builtins.open'
+else:
+    mock_open_name = '__builtin__.open'
 
 
 def to_unicode(value):
@@ -45,4 +59,8 @@ def to_ascii(value):
     Function which encodes the provided bytes / string to ASCII encoding ignoring any errors
     which could come up when trying to encode a non-ascii value.
     """
+
+    if six.PY3:
+        value = value.encode()
+
     return value.decode('ascii', errors='ignore')

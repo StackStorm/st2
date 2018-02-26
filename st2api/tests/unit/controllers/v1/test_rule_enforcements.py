@@ -43,6 +43,22 @@ class TestRuleEnforcementController(FunctionalTest):
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertEqual(len(resp.json), 3)
 
+    def test_get_all_minus_one(self):
+        resp = self.app.get('/v1/ruleenforcements/?limit=-1')
+        self.assertEqual(resp.status_int, http_client.OK)
+        self.assertEqual(len(resp.json), 3)
+
+    def test_get_all_limit(self):
+        resp = self.app.get('/v1/ruleenforcements/?limit=1')
+        self.assertEqual(resp.status_int, http_client.OK)
+        self.assertEqual(len(resp.json), 1)
+
+    def test_get_all_limit_negative_number(self):
+        resp = self.app.get('/v1/ruleenforcements?limit=-22', expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertEqual(resp.json['faultstring'],
+                         u'Limit, "-22" specified, must be a positive number.')
+
     def test_get_one_by_id(self):
         e_id = str(TestRuleEnforcementController.ENFORCEMENT_1.id)
         resp = self.app.get('/v1/ruleenforcements/%s' % e_id)

@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 try:
     import simplejson as json
 except ImportError:
@@ -27,6 +28,7 @@ import logging
 import six
 import eventlet
 import psutil
+import mock
 from oslo_config import cfg
 from unittest2 import TestCase
 
@@ -72,7 +74,13 @@ __all__ = [
     # Pack test classes
     'BaseSensorTestCase',
     'BaseActionTestCase',
-    'BaseActionAliasTestCase'
+    'BaseActionAliasTestCase',
+
+    'get_fixtures_path',
+    'get_resources_path',
+
+    'blocking_eventlet_spawn',
+    'make_mock_stream_readline'
 ]
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -486,3 +494,27 @@ def get_fixtures_path():
 
 def get_resources_path():
     return os.path.join(os.path.dirname(__file__), 'resources')
+
+
+def blocking_eventlet_spawn(func, *args, **kwargs):
+    func(*args, **kwargs)
+    return mock.Mock()
+
+
+# Utility function for mocking read_and_store_{stdout,stderr} functions
+def make_mock_stream_readline(mock_stream, mock_data, stop_counter=1, sleep_delay=0):
+    mock_stream.counter = 0
+
+    def mock_stream_readline():
+        if sleep_delay:
+            eventlet.sleep(sleep_delay)
+
+        if mock_stream.counter >= stop_counter:
+            mock_stream.closed = True
+            return
+
+        line = mock_data[mock_stream.counter]
+        mock_stream.counter += 1
+        return line
+
+    return mock_stream_readline

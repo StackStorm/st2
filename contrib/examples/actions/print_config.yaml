@@ -1,6 +1,6 @@
 ---
 name: print_config
-runner_type: run-python
+runner_type: python-script
 description: Action which prints config values.
 enabled: true
 entry_point: print_config.py

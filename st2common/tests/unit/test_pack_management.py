@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+
 import os
 import sys
 
@@ -24,7 +26,14 @@ PACK_ACTIONS_DIR = os.path.abspath(PACK_ACTIONS_DIR)
 
 sys.path.insert(0, PACK_ACTIONS_DIR)
 
+from st2common.util.monkey_patch import use_select_poll_workaround
+use_select_poll_workaround()
+
 from pack_mgmt.download import DownloadGitRepoAction
+
+__all__ = [
+    'InstallPackTestCase'
+]
 
 
 class InstallPackTestCase(unittest2.TestCase):

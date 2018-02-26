@@ -40,6 +40,7 @@ setup(
     author='StackStorm',
     author_email='info@stackstorm.com',
     license='Apache License (2.0)',
+    url='https://stackstorm.com/',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Information Technology',

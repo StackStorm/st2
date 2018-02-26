@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 from st2common.persistence.pack import Config
 from st2common.models.db.pack import ConfigDB
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
@@ -30,20 +31,15 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
     register_packs = True
     register_pack_configs = True
 
-    def test_get_config_all_values_are_loaded_from_local_config(self):
-        # Test a scenario where all the values are loaded from pack local config and pack global
-        # config (pack name.yaml) doesn't exist
+    def test_ensure_local_pack_config_feature_removed(self):
+        # Test a scenario where all the values are loaded from pack local
+        # config and pack global config (pack name.yaml) doesn't exist.
         # Test a scenario where no values are overridden in the datastore
         loader = ContentPackConfigLoader(pack_name='dummy_pack_4')
         config = loader.get_config()
+        expected_config = {}
 
-        expected_config = {
-            'api_key': '',
-            'api_secret': '',
-            'regions': ['us-west-1', 'us-east-1'],
-            'private_key_path': None
-        }
-        self.assertEqual(config, expected_config)
+        self.assertDictEqual(config, expected_config)
 
     def test_get_config_some_values_overriden_in_datastore(self):
         # Test a scenario where some values are overriden in datastore via pack

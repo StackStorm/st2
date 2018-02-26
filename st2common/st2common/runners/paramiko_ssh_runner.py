@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 from oslo_config import cfg
 import six
 
@@ -26,6 +27,7 @@ from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.runners import REMOTE_RUNNER_DEFAULT_ACTION_TIMEOUT
 from st2common.exceptions.actionrunner import ActionRunnerPreRunError
+from st2common.services.action import store_execution_output_data
 
 __all__ = [
     'BaseParallelSSHRunner'
@@ -40,6 +42,7 @@ RUNNER_PASSWORD = 'password'
 RUNNER_PRIVATE_KEY = 'private_key'
 RUNNER_PARALLEL = 'parallel'
 RUNNER_SUDO = 'sudo'
+RUNNER_SUDO_PASSWORD = 'sudo_password'
 RUNNER_ON_BEHALF_USER = 'user'
 RUNNER_REMOTE_DIR = 'dir'
 RUNNER_COMMAND = 'cmd'
@@ -59,6 +62,7 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
         self._hosts = None
         self._parallel = True
         self._sudo = False
+        self._sudo_password = None
         self._on_behalf_user = None
         self._username = None
         self._password = None
@@ -96,8 +100,11 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
         self._parallel = self.runner_parameters.get(RUNNER_PARALLEL, True)
         self._sudo = self.runner_parameters.get(RUNNER_SUDO, False)
         self._sudo = self._sudo if self._sudo else False
+        self._sudo_password = self.runner_parameters.get(RUNNER_SUDO_PASSWORD, None)
+
         if self.context:
             self._on_behalf_user = self.context.get(RUNNER_ON_BEHALF_USER, self._on_behalf_user)
+
         self._cwd = self.runner_parameters.get(RUNNER_CWD, None)
         self._env = self.runner_parameters.get(RUNNER_ENV, {})
         self._kwarg_op = self.runner_parameters.get(RUNNER_KWARG_OP, '--')
@@ -123,6 +130,37 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
             'connect': True
         }
 
+        def make_store_stdout_line_func(execution_db, action_db):
+            def store_stdout_line(line):
+                if cfg.CONF.actionrunner.stream_output:
+                    store_execution_output_data(execution_db=execution_db, action_db=action_db,
+                                                data=line, output_type='stdout')
+
+            return store_stdout_line
+
+        def make_store_stderr_line_func(execution_db, action_db):
+            def store_stderr_line(line):
+                if cfg.CONF.actionrunner.stream_output:
+                    store_execution_output_data(execution_db=execution_db, action_db=action_db,
+                                                data=line, output_type='stderr')
+
+            return store_stderr_line
+
+        handle_stdout_line_func = make_store_stdout_line_func(execution_db=self.execution,
+                                                              action_db=self.action)
+        handle_stderr_line_func = make_store_stderr_line_func(execution_db=self.execution,
+                                                              action_db=self.action)
+
+        if len(self._hosts) == 1:
+            # We only support streaming output when running action on one host. That is because
+            # the action output is tied to a particulat execution. User can still achieve output
+            # streaming for multiple hosts by running one execution per host.
+            client_kwargs['handle_stdout_line_func'] = handle_stdout_line_func
+            client_kwargs['handle_stderr_line_func'] = handle_stderr_line_func
+        else:
+            LOG.debug('Real-time action output streaming is disabled, because action is running '
+                      'on more than one host')
+
         if self._password:
             client_kwargs['password'] = self._password
         elif self._private_key:
@@ -141,6 +179,9 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
         else:
             # Default to stanley key file specified in the config
             client_kwargs['pkey_file'] = self._ssh_key_file
+
+        if self._sudo_password:
+            client_kwargs['sudo_password'] = True
 
         self._parallel_ssh_client = ParallelSSHClient(**client_kwargs)
 

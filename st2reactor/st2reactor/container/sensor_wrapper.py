@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import os
 import json
 import atexit
@@ -31,9 +32,10 @@ from st2common.transport.reactor import TriggerDispatcher
 from st2common.util import loader
 from st2common.util.config_loader import ContentPackConfigLoader
 from st2common.services.triggerwatcher import TriggerWatcher
-from st2reactor.sensor.base import Sensor, PollingSensor
+from st2reactor.sensor.base import Sensor
+from st2reactor.sensor.base import PollingSensor
 from st2reactor.sensor import config
-from st2common.services.datastore import DatastoreService
+from st2common.services.datastore import SensorDatastoreService
 from st2common.util.monkey_patch import monkey_patch
 from st2common.validators.api.reactor import validate_trigger_payload
 
@@ -55,12 +57,17 @@ class SensorService(object):
         self._sensor_wrapper = sensor_wrapper
         self._logger = self._sensor_wrapper._logger
         self._dispatcher = TriggerDispatcher(self._logger)
-        self._datastore_service = DatastoreService(logger=self._logger,
-                                                   pack_name=self._sensor_wrapper._pack,
-                                                   class_name=self._sensor_wrapper._class_name,
-                                                   api_username='sensor_service')
+        self._datastore_service = SensorDatastoreService(
+            logger=self._logger,
+            pack_name=self._sensor_wrapper._pack,
+            class_name=self._sensor_wrapper._class_name,
+            api_username='sensor_service')
 
         self._client = None
+
+    @property
+    def datastore_service(self):
+        return self._datastore_service
 
     def get_logger(self, name):
         """
@@ -71,6 +78,17 @@ class SensorService(object):
         logger.propagate = True
 
         return logger
+
+    ##################################
+    # General methods
+    ##################################
+
+    def get_user_info(self):
+        return self.datastore_service.get_user_info()
+
+    ##################################
+    # Sensor related methods
+    ##################################
 
     def dispatch(self, trigger, payload=None, trace_tag=None):
         """

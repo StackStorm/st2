@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import httplib
-
 import mock
 import six
 
@@ -93,7 +91,8 @@ class ActionControllerRBACTestCase(APIControllerWithRBACTestCase):
         user_db = self.users['action_create']
         role_assignment_db = UserRoleAssignmentDB(
             user=user_db.name,
-            role=self.roles['action_create'].name)
+            role=self.roles['action_create'].name,
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
     def test_create_action_no_action_create_permission(self):
@@ -103,7 +102,7 @@ class ActionControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.__do_post(ActionControllerRBACTestCase.ACTION_1)
         expected_msg = ('User "no_permissions" doesn\'t have required permission "action_create" '
                         'on resource "action:wolfpack:action-1"')
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
@@ -113,7 +112,45 @@ class ActionControllerRBACTestCase(APIControllerWithRBACTestCase):
         self.use_user(user_db)
 
         resp = self.__do_post(ACTION_2)
-        self.assertEqual(resp.status_code, httplib.CREATED)
+        self.assertEqual(resp.status_code, http_client.CREATED)
+
+    def test_get_all_limit_minus_one(self):
+        # non-admin user, should return permission error
+        user_db = self.users['observer']
+        self.use_user(user_db)
+
+        resp = self.app.get('/v1/actions?limit=-1', expect_errors=True)
+
+        expected_msg = ('Administrator access required to be able to specify limit=-1 and '
+                        'retrieve all the records')
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
+        self.assertEqual(resp.json['faultstring'], expected_msg)
+
+        # admin user, should return all the results
+        user_db = self.users['admin']
+        self.use_user(user_db)
+
+        resp = self.app.get('/v1/actions?limit=-1')
+        self.assertEqual(resp.status_code, http_client.OK)
+
+    def test_get_all_limit_larget_than_page_size(self):
+        # non-admin user, should return permission error
+        # admin user, should return all the results
+        user_db = self.users['observer']
+        self.use_user(user_db)
+
+        resp = self.app.get('/v1/actions?limit=20000', expect_errors=True)
+
+        expected_msg = ('Limit "20000" specified, maximum value is "100"')
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
+        self.assertEqual(resp.json['faultstring'], expected_msg)
+
+        # admin user, should return all the results
+        user_db = self.users['admin']
+        self.use_user(user_db)
+
+        resp = self.app.get('/v1/actions?limit=20000')
+        self.assertEqual(resp.status_code, http_client.OK)
 
     @staticmethod
     def __get_action_id(resp):

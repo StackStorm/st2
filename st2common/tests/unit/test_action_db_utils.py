@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import copy
 import uuid
 
@@ -225,7 +226,7 @@ class ActionDBUtilsTestCase(DbTestCase):
 
         self.assertEqual(origliveaction_db.id, newliveaction_db.id)
         self.assertEqual(newliveaction_db.status, status)
-        self.assertIn('a.b.c', result.keys())
+        self.assertIn('a.b.c', list(result.keys()))
         self.assertDictEqual(newliveaction_db.result, result)
         self.assertDictEqual(newliveaction_db.context, context)
         self.assertEqual(newliveaction_db.end_timestamp, now)

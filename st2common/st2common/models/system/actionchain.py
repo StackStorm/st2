@@ -13,8 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+
 import six
-import string
 
 from st2common.util import schema as util_schema
 from st2common.models.api.notification import NotificationSubSchemaAPI
@@ -89,7 +90,7 @@ class Node(object):
             value = kw.get(prop, None)
             # having '-' in the property name lead to challenges in referencing the property.
             # At hindsight the schema property should've been on_success rather than on-success.
-            prop = string.replace(prop, '-', '_')
+            prop = prop.replace('-', '_')
             setattr(self, prop, value)
 
     def validate(self):

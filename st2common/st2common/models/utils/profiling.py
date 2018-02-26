@@ -17,6 +17,7 @@
 Module containing MongoDB profiling related functionality.
 """
 
+from __future__ import absolute_import
 from mongoengine.queryset import QuerySet
 
 from st2common import log as logging
@@ -77,6 +78,7 @@ def log_query_and_profile_data_for_queryset(queryset):
     limit = getattr(queryset, '_limit', None)
     collection = getattr(queryset, '_collection', None)
     collection_name = getattr(collection, 'name', None)
+    only_fields = getattr(queryset, 'only_fields', None)
 
     # Note: We need to clone the queryset when using explain because explain advances the cursor
     # internally which changes the function result
@@ -87,7 +89,8 @@ def log_query_and_profile_data_for_queryset(queryset):
         mongo_shell_query = construct_mongo_shell_query(mongo_query=mongo_query,
                                                         collection_name=collection_name,
                                                         ordering=ordering,
-                                                        limit=limit)
+                                                        limit=limit,
+                                                        only_fields=only_fields)
         extra = {'mongo_query': mongo_query, 'mongo_shell_query': mongo_shell_query}
         LOG.debug('MongoDB query: %s' % (mongo_shell_query), extra=extra)
         LOG.debug('MongoDB explain data: %s' % (explain_info))
@@ -95,7 +98,8 @@ def log_query_and_profile_data_for_queryset(queryset):
     return queryset
 
 
-def construct_mongo_shell_query(mongo_query, collection_name, ordering, limit):
+def construct_mongo_shell_query(mongo_query, collection_name, ordering, limit,
+                                only_fields=None):
     result = []
 
     # Select collection
@@ -109,6 +113,16 @@ def construct_mongo_shell_query(mongo_query, collection_name, ordering, limit):
         filter_predicate = ''
 
     part = 'find({filter_predicate})'.format(filter_predicate=filter_predicate)
+
+    # Include only fields (projection)
+    if only_fields:
+        projection_items = ['%s: 1' % (field) for field in only_fields]
+        projection = ', '.join(projection_items)
+        part = 'find({filter_predicate}, {{{projection}}})'.format(
+            filter_predicate=filter_predicate, projection=projection)
+    else:
+        part = 'find({filter_predicate})'.format(filter_predicate=filter_predicate)
+
     result.append(part)
 
     # Include ordering info (if any)

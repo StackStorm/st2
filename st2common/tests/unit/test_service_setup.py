@@ -13,9 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+
 import tempfile
 
+import six
+import mock
+
 from st2common import service_setup
+from st2common.transport.bootstrap_utils import register_exchanges
+from st2common.transport.bootstrap_utils import QUEUES
 
 from st2tests.base import CleanFilesTestCase
 from st2tests import config
@@ -58,7 +65,11 @@ class ServiceSetupTestCase(CleanFilesTestCase):
 
         config.get_logging_config_path = mock_get_logging_config_path
 
-        expected_msg = "No section: .*"
+        if six.PY3:
+            expected_msg = ".*KeyError:.*"
+        else:
+            expected_msg = "No section: .*"
+
         self.assertRaisesRegexp(Exception, expected_msg,
                                 service_setup.setup, service='api',
                                 config=config,
@@ -79,11 +90,25 @@ class ServiceSetupTestCase(CleanFilesTestCase):
 
         config.get_logging_config_path = mock_get_logging_config_path
 
-        expected_msg = 'Invalid log level selected. Log level names need to be all uppercase'
-        self.assertRaisesRegexp(KeyError, expected_msg,
+        if six.PY3:
+            expected_msg = 'ValueError: Unknown level: \'invalid_log_level\''
+            exc_type = ValueError
+        else:
+            expected_msg = 'Invalid log level selected. Log level names need to be all uppercase'
+            exc_type = KeyError
+
+        self.assertRaisesRegexp(exc_type, expected_msg,
                                 service_setup.setup, service='api',
                                 config=config,
                                 setup_db=False, register_mq_exchanges=False,
                                 register_signal_handlers=False,
                                 register_internal_trigger_types=False,
                                 run_migrations=False)
+
+    @mock.patch('kombu.Queue.declare')
+    def test_register_exchanges_predeclare_queues(self, mock_declare):
+        # Verify that queues are correctly pre-declared
+        self.assertEqual(mock_declare.call_count, 0)
+
+        register_exchanges()
+        self.assertEqual(mock_declare.call_count, len(QUEUES))

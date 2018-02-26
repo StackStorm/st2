@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import uuid
 
 import mock
@@ -21,10 +22,9 @@ import st2tests.config as tests_config
 tests_config.parse_args()
 
 from unittest2 import TestCase
-from st2actions.container.service import RunnerContainerService
 from st2common.constants import action as action_constants
 from st2tests.fixturesloader import FixturesLoader
-import noop_runner
+from noop_runner import noop_runner
 
 
 class TestNoopRunner(TestCase):
@@ -47,7 +47,6 @@ class TestNoopRunner(TestCase):
     @staticmethod
     def _get_runner(action_db):
         runner = noop_runner.NoopRunner(uuid.uuid4().hex)
-        runner.container_service = RunnerContainerService()
         runner.action = action_db
         runner.action_name = action_db.name
         runner.liveaction_id = uuid.uuid4().hex

@@ -17,6 +17,10 @@
 Module containing various debugging functionality.
 """
 
+from __future__ import absolute_import
+import paramiko
+from kombu.utils.debug import setup_logging
+
 import logging as stdlib_logging
 
 from st2common.logging.misc import set_log_level_for_all_loggers
@@ -34,7 +38,14 @@ def enable_debugging():
     global ENABLE_DEBUGGING
     ENABLE_DEBUGGING = True
 
+    # Set debug level for all StackStorm loggers
     set_log_level_for_all_loggers(level=stdlib_logging.DEBUG)
+
+    # Set debug log level for kombu
+    setup_logging(loglevel=stdlib_logging.DEBUG)
+
+    # Set debug log level for paramiko
+    paramiko.common.logging.basicConfig(level=paramiko.common.DEBUG)
 
     return ENABLE_DEBUGGING
 
@@ -42,6 +53,12 @@ def enable_debugging():
 def disable_debugging():
     global ENABLE_DEBUGGING
     ENABLE_DEBUGGING = False
+
+    set_log_level_for_all_loggers(level=stdlib_logging.INFO)
+
+    setup_logging(loglevel=stdlib_logging.INFO)
+    paramiko.common.logging.basicConfig(level=paramiko.common.INFO)
+
     return ENABLE_DEBUGGING
 
 

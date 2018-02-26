@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import retrying
 import unittest2
 
@@ -45,6 +46,17 @@ class TestWorkflowExecution(unittest2.TestCase):
         return execution
 
     @retrying.retry(wait_fixed=3000, stop_max_delay=900000)
+    def _wait_for_task(self, execution, task, state=None):
+        execution = self.st2client.liveactions.get_by_id(execution.id)
+        self.assertGreater(len(execution.result['tasks']), 0)
+
+        matches = [t for t in execution.result['tasks'] if t['name'] == task]
+        self.assertGreater(len(matches), 0)
+        self.assertEqual(matches[0]['state'], state)
+
+        return execution
+
+    @retrying.retry(wait_fixed=3000, stop_max_delay=900000)
     def _wait_for_completion(self, execution, expect_tasks=True, expect_tasks_completed=True):
         execution = self._wait_for_state(execution, ['succeeded', 'failed', 'canceled'])
         self.assertTrue(hasattr(execution, 'result'))
@@ -53,9 +65,13 @@ class TestWorkflowExecution(unittest2.TestCase):
             self.assertIn('tasks', execution.result)
             self.assertGreater(len(execution.result['tasks']), 0)
 
+        mistral_completed_states = ['SUCCESS', 'ERROR', 'CANCELLED']
+        chain_completed_states = ['succeeded', 'failed', 'abandoned', 'canceled']
+        completed_states = mistral_completed_states + chain_completed_states
+
         if expect_tasks and expect_tasks_completed:
             tasks = execution.result['tasks']
-            self.assertTrue(all([t['state'] in ['SUCCESS', 'ERROR', 'CANCELLED'] for t in tasks]))
+            self.assertTrue(all([t['state'] in completed_states for t in tasks]))
 
         return execution
 
@@ -63,7 +79,7 @@ class TestWorkflowExecution(unittest2.TestCase):
         self.assertEqual(execution.status, 'succeeded')
         tasks = execution.result.get('tasks', [])
         self.assertEqual(num_tasks, len(tasks))
-        self.assertTrue(all([task['state'] == 'SUCCESS' for task in tasks]))
+        self.assertTrue(all([task['state'] in ['SUCCESS', 'succeeded'] for task in tasks]))
 
     def _assert_failure(self, execution, expect_tasks_failure=True):
         self.assertEqual(execution.status, 'failed')

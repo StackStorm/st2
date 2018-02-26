@@ -17,6 +17,7 @@
 # XXX: This file has a lot of duplication with TriggerWatcher.
 # XXX: Refactor.
 
+from __future__ import absolute_import
 import eventlet
 from kombu.mixins import ConsumerMixin
 from kombu import Connection
@@ -95,9 +96,18 @@ class SensorWatcher(ConsumerMixin):
             self.connection.release()
 
     def stop(self):
+        LOG.debug('Shutting down sensor watcher.')
         try:
             if self._updates_thread:
                 self._updates_thread = eventlet.kill(self._updates_thread)
+
+            if self.connection:
+                channel = self.connection.channel()
+                bound_sensor_watch_q = self._sensor_watcher_q(channel)
+                try:
+                    bound_sensor_watch_q.delete()
+                except:
+                    LOG.error('Unable to delete sensor watcher queue: %s', self._sensor_watcher_q)
         finally:
             if self.connection:
                 self.connection.release()

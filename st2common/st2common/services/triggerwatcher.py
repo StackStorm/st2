@@ -14,6 +14,7 @@
 # limitations under the License.
 # pylint: disable=assignment-from-none
 
+from __future__ import absolute_import
 import eventlet
 from kombu.mixins import ConsumerMixin
 from kombu import Connection
@@ -91,7 +92,7 @@ class TriggerWatcher(ConsumerMixin):
 
             trigger_type = getattr(body, 'type', None)
             if self._trigger_types and trigger_type not in self._trigger_types:
-                LOG.debug('Skipping message %s since\'t trigger_type doesn\'t match (type=%s)',
+                LOG.debug('Skipping message %s since trigger_type doesn\'t match (type=%s)',
                           message, trigger_type)
                 return
 

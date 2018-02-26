@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import time
 
 import mongoengine
@@ -25,7 +26,7 @@ from st2common.exceptions.db import StackStormDBObjectNotFoundError
 __all__ = [
     'BaseDBModelCRUDTestCase',
 
-    'FakeModelDB',
+    'FakeModel',
     'FakeModelDB'
 ]
 
@@ -90,3 +91,11 @@ class FakeModel(Access):
     @classmethod
     def _get_impl(cls):
         return cls.impl
+
+    @classmethod
+    def _get_by_object(cls, object):
+        return None
+
+    @classmethod
+    def _get_publisher(cls):
+        return None

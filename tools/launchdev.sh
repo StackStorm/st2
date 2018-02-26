@@ -59,6 +59,11 @@ function init(){
         ST2_REPO=${CURRENT_DIR}/${COMMAND_PATH}/..
     fi
 
+    VENV=${ST2_REPO}/virtualenv
+    PY=${VENV}/bin/python
+    echo "Using virtualenv: ${VENV}"
+    echo "Using python: ${PY}"
+
     if [ -z "$ST2_CONF" ]; then
         ST2_CONF=${ST2_REPO}/conf/st2.dev.conf
     fi
@@ -399,7 +404,10 @@ function st2stop(){
 
 function st2clean(){
     # clean mongo
-    mongo st2 --eval "db.dropDatabase();"
+    . ${VENV}/bin/activate
+    python ${ST2_REPO}/st2common/bin/st2-cleanup-db --config-file $ST2_CONF
+    deactivate
+
     # start with clean logs
     LOGDIR=$(dirname $0)/../logs
     if [ -d ${LOGDIR} ]; then

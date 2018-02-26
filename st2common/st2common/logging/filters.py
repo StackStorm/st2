@@ -13,15 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import logging
 
 __all__ = [
-    'ExclusionFilter',
+    'LoggerNameExclusionFilter',
+    'LoggerFunctionNameExclusionFilter',
     'LogLevelFilter',
 ]
 
 
-class ExclusionFilter(object):
+class LoggerNameExclusionFilter(object):
+    """
+    Filter which excludes log messages whose first component of the logger name matches one of the
+    entries in the exclusions list.
+    """
 
     def __init__(self, exclusions):
         self._exclusions = set(exclusions)
@@ -29,9 +35,30 @@ class ExclusionFilter(object):
     def filter(self, record):
         if len(self._exclusions) < 1:
             return True
+
         module_decomposition = record.name.split('.')
         exclude = len(module_decomposition) > 0 and module_decomposition[0] in self._exclusions
         return not exclude
+
+
+class LoggerFunctionNameExclusionFilter(object):
+    """
+    Filter which excludes log messages whose function name matches one of the names in the
+    exclusions list.
+    """
+
+    def __init__(self, exclusions):
+        self._exclusions = set(exclusions)
+
+    def filter(self, record):
+        if len(self._exclusions) < 1:
+            return True
+
+        function_name = getattr(record, 'funcName', None)
+        if function_name in self._exclusions:
+            return False
+
+        return True
 
 
 class LogLevelFilter(logging.Filter):

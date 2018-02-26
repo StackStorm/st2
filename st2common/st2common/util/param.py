@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import json
 import re
 import six
@@ -21,6 +22,7 @@ import networkx as nx
 from jinja2 import meta
 from st2common import log as logging
 from st2common.util.config_loader import get_config
+from st2common.util.jinja import is_jinja_expression
 from st2common.constants.action import ACTION_CONTEXT_KV_PREFIX
 from st2common.constants.pack import PACK_CONFIG_CONTEXT_KV_PREFIX
 from st2common.constants.keyvalue import DATASTORE_PARENT_SCOPE, SYSTEM_SCOPE, FULL_SYSTEM_SCOPE
@@ -141,11 +143,24 @@ def _validate(G):
     '''
     for name in G.nodes():
         if 'value' not in G.node[name] and 'template' not in G.node[name]:
-            msg = 'Dependecy unsatisfied in %s' % name
+            msg = 'Dependency unsatisfied in variable "%s"' % name
             raise ParamException(msg)
 
     if not nx.is_directed_acyclic_graph(G):
-        msg = 'Cyclic dependecy found'
+        graph_cycles = nx.simple_cycles(G)
+
+        variable_names = []
+        for cycle in graph_cycles:
+            try:
+                variable_name = cycle[0]
+            except IndexError:
+                continue
+
+            variable_names.append(variable_name)
+
+        variable_names = ', '.join(sorted(variable_names))
+        msg = ('Cyclic dependency found in the following variables: %s. Likely the variable is '
+               'referencing itself' % (variable_names))
         raise ParamException(msg)
 
 
@@ -159,7 +174,7 @@ def _render(node, render_context):
         if isinstance(node['template'], list) or isinstance(node['template'], dict):
             node['template'] = json.dumps(node['template'])
 
-            # Finds occourances of "{{variable}}" and adds `to_complex` filter
+            # Finds occurrences of "{{variable}}" and adds `to_complex` filter
             # so types are honored. If it doesn't follow that syntax then it's
             # rendered as a string.
             node['template'] = re.sub(
@@ -207,23 +222,65 @@ def _cast_params_from(params, context, schemas):
     Pick a list of parameters from context and cast each of them according to the schemas provided
     '''
     result = {}
+
+    # First, cast only explicitly provided live parameters
     for name in params:
         param_schema = {}
         for schema in schemas:
             if name in schema:
                 param_schema = schema[name]
         result[name] = _cast(context[name], param_schema)
+
+    # Now, iterate over all parameters, and add any to the live set that satisfy ALL of the
+    # following criteria:
+    #
+    # - Have a default value that is a Jinja template
+    # - Are using the default value (i.e. not being overwritten by an actual live param)
+    #
+    # We do this because the execution API controller first determines live params before
+    # validating params against the schema. So, we want to make sure that if the default
+    # value is a template, it is rendered and added to the live params before this validation.
+    for schema in schemas:
+        for param_name, param_details in schema.items():
+
+            # Skip if the parameter have immutable set to true in schema
+            if param_details.get('immutable'):
+                continue
+
+            # Skip if the parameter doesn't have a default, or if the
+            # value in the context is identical to the default
+            if 'default' not in param_details or \
+                    param_details.get('default') == context[param_name]:
+                continue
+
+            # Skip if the default value isn't a Jinja expression
+            if not is_jinja_expression(param_details.get('default')):
+                continue
+
+            # Skip if the parameter is being overridden
+            if param_name in params:
+                continue
+
+            result[param_name] = _cast(context[param_name], param_details)
+
     return result
 
 
-def render_live_params(runner_parameters, action_parameters, params, action_context):
+def render_live_params(runner_parameters, action_parameters, params, action_context,
+                       additional_contexts=None):
     '''
     Renders list of parameters. Ensures that there's no cyclic or missing dependencies. Returns a
     dict of plain rendered parameters.
     '''
+    additional_contexts = additional_contexts or {}
     config = get_config(action_context.get('pack'), action_context.get('user'))
 
     G = _create_graph(action_context, config)
+
+    # Additional contexts are applied after all other contexts (see _create_graph), but before any
+    # of the dependencies have been resolved.
+    for name, value in six.iteritems(additional_contexts):
+        G.add_node(name, value=value)
 
     [_process(G, name, value) for name, value in six.iteritems(params)]
     _process_defaults(G, [action_parameters, runner_parameters])

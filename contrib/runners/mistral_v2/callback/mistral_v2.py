@@ -13,10 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import ast
+import copy
 import json
 import re
 import retrying
+import six
 
 from oslo_config import cfg
 from mistralclient.api import client as mistral
@@ -39,9 +42,16 @@ STATUS_MAP = {
     action_constants.LIVEACTION_STATUS_FAILED: 'ERROR',
     action_constants.LIVEACTION_STATUS_TIMED_OUT: 'ERROR',
     action_constants.LIVEACTION_STATUS_ABANDONED: 'ERROR',
-    action_constants.LIVEACTION_STATUS_CANCELING: 'RUNNING',
-    action_constants.LIVEACTION_STATUS_CANCELED: 'CANCELLED'
+    action_constants.LIVEACTION_STATUS_PENDING: 'PAUSED',
+    action_constants.LIVEACTION_STATUS_CANCELING: 'CANCELLED',
+    action_constants.LIVEACTION_STATUS_CANCELED: 'CANCELLED',
+    action_constants.LIVEACTION_STATUS_PAUSING: 'PAUSED',
+    action_constants.LIVEACTION_STATUS_PAUSED: 'PAUSED',
+    action_constants.LIVEACTION_STATUS_RESUMING: 'RUNNING'
 }
+
+MISTRAL_ACCEPTED_STATES = copy.deepcopy(action_constants.LIVEACTION_COMPLETED_STATES)
+MISTRAL_ACCEPTED_STATES += [action_constants.LIVEACTION_STATUS_PAUSED]
 
 
 def get_instance():
@@ -82,17 +92,41 @@ class MistralCallbackHandler(callback.AsyncActionExecutionCallbackHandler):
         client.action_executions.update(action_execution_id, **data)
 
     @classmethod
+    def _encode(cls, value):
+        if isinstance(value, dict):
+            return {k: cls._encode(v) for k, v in six.iteritems(value)}
+        elif isinstance(value, list):
+            return [cls._encode(item) for item in value]
+        elif isinstance(value, six.string_types) and not six.PY3:
+            try:
+                value = value.decode('utf-8')
+            except Exception:
+                LOG.exception('Unable to decode value to utf-8.')
+
+            try:
+                value = value.encode('unicode_escape')
+            except Exception:
+                LOG.exception('Unable to unicode escape value.')
+
+            return value
+        else:
+            return value
+
+    @classmethod
     def callback(cls, url, context, status, result):
-        if status not in action_constants.LIVEACTION_COMPLETED_STATES:
+        if status not in MISTRAL_ACCEPTED_STATES:
+            LOG.warning('Unable to callback %s because status "%s" is not supported.', url, status)
             return
 
         try:
-            if isinstance(result, basestring) and len(result) > 0 and result[0] in ['{', '[']:
+            if isinstance(result, six.string_types) and len(result) > 0 and result[0] in ['{', '[']:
                 value = ast.literal_eval(result)
                 if type(value) in [dict, list]:
                     result = value
 
+            result = cls._encode(result)
             output = json.dumps(result) if type(result) in [dict, list] else str(result)
+            output = output.replace('\\\\\\\\u', '\\\\u')
             data = {'state': STATUS_MAP[status], 'output': output}
 
             cls._update_action_execution(url, data)

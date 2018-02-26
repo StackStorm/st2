@@ -13,11 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 from st2common import transport
 from st2common.models.db import MongoDBAccess
 from st2common.models.db.execution import ActionExecutionDB
+from st2common.models.db.execution import ActionExecutionOutputDB
 from st2common.persistence.base import Access
 from st2common.transport import utils as transport_utils
+
+__all__ = [
+    'ActionExecution',
+    'ActionExecutionOutput',
+]
 
 
 class ActionExecution(Access):
@@ -36,5 +43,24 @@ class ActionExecution(Access):
         return cls.publisher
 
     @classmethod
-    def delete_by_query(cls, **query):
-        return cls._get_impl().delete_by_query(**query)
+    def delete_by_query(cls, *args, **query):
+        return cls._get_impl().delete_by_query(*args, **query)
+
+
+class ActionExecutionOutput(Access):
+    impl = MongoDBAccess(ActionExecutionOutputDB)
+
+    @classmethod
+    def _get_impl(cls):
+        return cls.impl
+
+    @classmethod
+    def _get_publisher(cls):
+        if not cls.publisher:
+            cls.publisher = transport.execution.ActionExecutionOutputPublisher(
+                urls=transport_utils.get_messaging_urls())
+        return cls.publisher
+
+    @classmethod
+    def delete_by_query(cls, *args, **query):
+        return cls._get_impl().delete_by_query(*args, **query)

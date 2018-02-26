@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -13,15 +14,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+
+import six
 import mock
-from mock import call
 import requests
+from mock import call
 
 from mistralclient.api.v2 import action_executions
 from oslo_config import cfg
 
 # XXX: actionsensor import depends on config being setup.
 import st2tests.config as tests_config
+from six.moves import range
 tests_config.parse_args()
 
 from st2common.bootstrap import actionsregistrar
@@ -48,7 +53,10 @@ PACKS = [
     fixturesloader.get_fixtures_packs_base_path() + '/core'
 ]
 
-NON_EMPTY_RESULT = 'non-empty'
+if six.PY2:
+    NON_EMPTY_RESULT = 'non-empty'
+else:
+    NON_EMPTY_RESULT = u'non-empty'
 
 
 @mock.patch.object(
@@ -94,8 +102,8 @@ class MistralRunnerCallbackTest(DbTestCase):
         cls.status_map = cls.callback_module.STATUS_MAP
 
     @classmethod
-    def get_runner_class(cls, runner_name):
-        return runners.get_runner(runner_name).__class__
+    def get_runner_class(cls, package_name, module_name):
+        return runners.get_runner(package_name, module_name).__class__
 
     def test_callback_handler_status_map(self):
         # Ensure all StackStorm status are mapped otherwise leads to zombie workflow.
@@ -110,6 +118,12 @@ class MistralRunnerCallbackTest(DbTestCase):
                                      action_constants.LIVEACTION_STATUS_SUCCEEDED,
                                      '<html></html>')
 
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output='<html></html>'
+        )
+
     @mock.patch.object(
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
@@ -117,14 +131,51 @@ class MistralRunnerCallbackTest(DbTestCase):
         self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
                                      action_constants.LIVEACTION_STATUS_SUCCEEDED, {'a': 1})
 
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output='{"a": 1}'
+        )
+
     @mock.patch.object(
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
     def test_callback_handler_with_result_as_json_str(self):
         self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
                                      action_constants.LIVEACTION_STATUS_SUCCEEDED, '{"a": 1}')
+
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output='{"a": 1}'
+        )
+
         self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
                                      action_constants.LIVEACTION_STATUS_SUCCEEDED, "{'a': 1}")
+
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output='{"a": 1}'
+        )
+
+        self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
+                                     action_constants.LIVEACTION_STATUS_SUCCEEDED, u"{'a': 1}")
+
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output='{"a": 1}'
+        )
+
+        self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
+                                     action_constants.LIVEACTION_STATUS_SUCCEEDED, "{u'a': u'xyz'}")
+
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output='{"a": "xyz"}'
+        )
 
     @mock.patch.object(
         action_executions.ActionExecutionManager, 'update',
@@ -134,6 +185,12 @@ class MistralRunnerCallbackTest(DbTestCase):
                                      action_constants.LIVEACTION_STATUS_SUCCEEDED,
                                      ["a", "b", "c"])
 
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output='["a", "b", "c"]'
+        )
+
     @mock.patch.object(
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
@@ -142,11 +199,170 @@ class MistralRunnerCallbackTest(DbTestCase):
                                      action_constants.LIVEACTION_STATUS_SUCCEEDED,
                                      '["a", "b", "c"]')
 
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output='["a", "b", "c"]'
+        )
+
+        self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
+                                     action_constants.LIVEACTION_STATUS_SUCCEEDED,
+                                     u'["a", "b", "c"]')
+
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output='["a", "b", "c"]'
+        )
+
+        self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
+                                     action_constants.LIVEACTION_STATUS_SUCCEEDED,
+                                     '[u"a", "b", "c"]')
+
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output='["a", "b", "c"]'
+        )
+
     @mock.patch.object(
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
-    def test_callback(self):
-        local_runner_cls = self.get_runner_class('local_runner')
+    def test_callback_handler_with_result_unicode_str(self):
+        self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
+                                     action_constants.LIVEACTION_STATUS_SUCCEEDED, '什麼')
+
+        if six.PY2:
+            expected_output = '\\u4ec0\\u9ebc'
+        else:
+            expected_output = '什麼'
+
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output=expected_output
+        )
+
+    @mock.patch.object(
+        action_executions.ActionExecutionManager, 'update',
+        mock.MagicMock(return_value=None))
+    def test_callback_handler_with_result_unicode_encoded_as_ascii_str(self):
+        self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
+                                     action_constants.LIVEACTION_STATUS_SUCCEEDED, '\u4ec0\u9ebc')
+
+        if six.PY2:
+            expected_output = '\\\\u4ec0\\\\u9ebc'
+        else:
+            expected_output = '什麼'
+
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output=expected_output
+        )
+
+    @mock.patch.object(
+        action_executions.ActionExecutionManager, 'update',
+        mock.MagicMock(return_value=None))
+    def test_callback_handler_with_result_unicode_encoded_as_type(self):
+        self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
+                                     action_constants.LIVEACTION_STATUS_SUCCEEDED, u'\u4ec0\u9ebc')
+
+        if six.PY2:
+            expected_output = '\\u4ec0\\u9ebc'
+        else:
+            expected_output = '什麼'
+
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output=expected_output
+        )
+
+    @mock.patch.object(
+        action_executions.ActionExecutionManager, 'update',
+        mock.MagicMock(return_value=None))
+    def test_callback_handler_with_result_as_list_with_unicode_str(self):
+        self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
+                                     action_constants.LIVEACTION_STATUS_SUCCEEDED,
+                                     ['\u4ec0\u9ebc'])
+
+        if six.PY2:
+            expected_output = '["\\\\u4ec0\\\\u9ebc"]'
+        else:
+            expected_output = '["\\u4ec0\\u9ebc"]'
+
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output=expected_output
+        )
+
+    @mock.patch.object(
+        action_executions.ActionExecutionManager, 'update',
+        mock.MagicMock(return_value=None))
+    def test_callback_handler_with_result_as_list_with_unicode_type(self):
+        self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
+                                     action_constants.LIVEACTION_STATUS_SUCCEEDED,
+                                     [u'\u4ec0\u9ebc'])
+
+        if six.PY2:
+            expected_output = '["\\\\u4ec0\\\\u9ebc"]'
+        else:
+            expected_output = '["\\u4ec0\\u9ebc"]'
+
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output=expected_output
+        )
+
+    @mock.patch.object(
+        action_executions.ActionExecutionManager, 'update',
+        mock.MagicMock(return_value=None))
+    def test_callback_handler_with_result_as_dict_with_unicode_str(self):
+        self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
+                                     action_constants.LIVEACTION_STATUS_SUCCEEDED,
+                                     {'a': '\u4ec0\u9ebc'})
+
+        if six.PY2:
+            expected_output = '{"a": "\\\\u4ec0\\\\u9ebc"}'
+        else:
+            expected_output = '{"a": "\\u4ec0\\u9ebc"}'
+
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output=expected_output
+        )
+
+    @mock.patch.object(
+        action_executions.ActionExecutionManager, 'update',
+        mock.MagicMock(return_value=None))
+    def test_callback_handler_with_result_as_dict_with_unicode_type(self):
+        self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
+                                     action_constants.LIVEACTION_STATUS_SUCCEEDED,
+                                     {'a': u'\u4ec0\u9ebc'})
+
+        if six.PY2:
+            expected_output = '{"a": "\\\\u4ec0\\\\u9ebc"}'
+        else:
+            expected_output = '{"a": "\\u4ec0\\u9ebc"}'
+
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345',
+            state='SUCCESS',
+            output=expected_output
+        )
+
+    @mock.patch.object(
+        action_executions.ActionExecutionManager, 'update',
+        mock.MagicMock(return_value=None))
+    def test_callback_success_state(self):
+        local_runner_cls = self.get_runner_class('local_runner', 'local_shell_command_runner')
+        local_run_result = (action_constants.LIVEACTION_STATUS_SUCCEEDED, NON_EMPTY_RESULT, None)
+        local_runner_cls.run = mock.Mock(return_value=local_run_result)
+        expected_mistral_status = self.status_map[local_run_result[0]]
 
         liveaction = LiveActionDB(
             action='core.local', parameters={'cmd': 'uname -a'},
@@ -156,20 +372,19 @@ class MistralRunnerCallbackTest(DbTestCase):
             }
         )
 
-        for status in action_constants.LIVEACTION_COMPLETED_STATES:
-            expected_mistral_status = self.status_map[status]
-            local_runner_cls.run = mock.Mock(return_value=(status, NON_EMPTY_RESULT, None))
-            liveaction, execution = action_service.request(liveaction)
-            liveaction = LiveAction.get_by_id(str(liveaction.id))
-            self.assertEqual(liveaction.status, status)
-            action_executions.ActionExecutionManager.update.assert_called_with(
-                '12345', state=expected_mistral_status, output=NON_EMPTY_RESULT)
+        liveaction, execution = action_service.request(liveaction)
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345', state=expected_mistral_status, output=NON_EMPTY_RESULT)
 
     @mock.patch.object(
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
     def test_callback_incomplete_state(self):
-        local_runner_cls = self.get_runner_class('local_runner')
+        local_runner_cls = self.get_runner_class('local_runner', 'local_shell_command_runner')
         local_run_result = (action_constants.LIVEACTION_STATUS_RUNNING, NON_EMPTY_RESULT, None)
         local_runner_cls.run = mock.Mock(return_value=local_run_result)
 
@@ -183,7 +398,132 @@ class MistralRunnerCallbackTest(DbTestCase):
 
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+
+        self.assertEqual(liveaction.status, local_run_result[0])
+        self.assertFalse(action_executions.ActionExecutionManager.update.called)
+
+    @mock.patch.object(
+        action_executions.ActionExecutionManager, 'update',
+        mock.MagicMock(return_value=None))
+    def test_callback_canceling_state(self):
+        local_runner_cls = self.get_runner_class('local_runner', 'local_shell_command_runner')
+        local_run_result = (action_constants.LIVEACTION_STATUS_CANCELING, NON_EMPTY_RESULT, None)
+        local_runner_cls.run = mock.Mock(return_value=local_run_result)
+        local_cancel_result = (action_constants.LIVEACTION_STATUS_CANCELING, NON_EMPTY_RESULT, None)
+        local_runner_cls.cancel = mock.Mock(return_value=local_cancel_result)
+
+        liveaction = LiveActionDB(
+            action='core.local', parameters={'cmd': 'uname -a'},
+            callback={
+                'source': MISTRAL_RUNNER_NAME,
+                'url': 'http://127.0.0.1:8989/v2/action_executions/12345'
+            }
+        )
+
+        liveaction, execution = action_service.request(liveaction)
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+
+        self.assertEqual(liveaction.status, local_cancel_result[0])
+
+        action_executions.ActionExecutionManager.update.assert_not_called()
+
+    @mock.patch.object(
+        action_executions.ActionExecutionManager, 'update',
+        mock.MagicMock(return_value=None))
+    def test_callback_canceled_state(self):
+        local_runner_cls = self.get_runner_class('local_runner', 'local_shell_command_runner')
+        local_run_result = (action_constants.LIVEACTION_STATUS_CANCELED, NON_EMPTY_RESULT, None)
+        local_runner_cls.run = mock.Mock(return_value=local_run_result)
+        expected_mistral_status = self.status_map[local_run_result[0]]
+
+        liveaction = LiveActionDB(
+            action='core.local', parameters={'cmd': 'uname -a'},
+            callback={
+                'source': MISTRAL_RUNNER_NAME,
+                'url': 'http://127.0.0.1:8989/v2/action_executions/12345'
+            }
+        )
+
+        liveaction, execution = action_service.request(liveaction)
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+
+        self.assertEqual(liveaction.status, local_run_result[0])
+
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345', state=expected_mistral_status, output=NON_EMPTY_RESULT)
+
+    @mock.patch.object(
+        action_executions.ActionExecutionManager, 'update',
+        mock.MagicMock(return_value=None))
+    def test_callback_pausing_state(self):
+        local_runner_cls = self.get_runner_class('local_runner', 'local_shell_command_runner')
+        local_run_result = (action_constants.LIVEACTION_STATUS_PAUSING, NON_EMPTY_RESULT, None)
+        local_runner_cls.run = mock.Mock(return_value=local_run_result)
+        local_pause_result = (action_constants.LIVEACTION_STATUS_PAUSING, NON_EMPTY_RESULT, None)
+        local_runner_cls.pause = mock.Mock(return_value=local_pause_result)
+
+        liveaction = LiveActionDB(
+            action='core.local', parameters={'cmd': 'uname -a'},
+            callback={
+                'source': MISTRAL_RUNNER_NAME,
+                'url': 'http://127.0.0.1:8989/v2/action_executions/12345'
+            }
+        )
+
+        liveaction, execution = action_service.request(liveaction)
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+
+        self.assertEqual(liveaction.status, local_pause_result[0])
+
+        action_executions.ActionExecutionManager.update.assert_not_called()
+
+    @mock.patch.object(
+        action_executions.ActionExecutionManager, 'update',
+        mock.MagicMock(return_value=None))
+    def test_callback_paused_state(self):
+        local_runner_cls = self.get_runner_class('local_runner', 'local_shell_command_runner')
+        local_run_result = (action_constants.LIVEACTION_STATUS_PAUSED, NON_EMPTY_RESULT, None)
+        local_runner_cls.run = mock.Mock(return_value=local_run_result)
+        expected_mistral_status = self.status_map[local_run_result[0]]
+
+        liveaction = LiveActionDB(
+            action='core.local', parameters={'cmd': 'uname -a'},
+            callback={
+                'source': MISTRAL_RUNNER_NAME,
+                'url': 'http://127.0.0.1:8989/v2/action_executions/12345'
+            }
+        )
+
+        liveaction, execution = action_service.request(liveaction)
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+
+        self.assertEqual(liveaction.status, local_run_result[0])
+
+        action_executions.ActionExecutionManager.update.assert_called_with(
+            '12345', state=expected_mistral_status, output=NON_EMPTY_RESULT)
+
+    @mock.patch.object(
+        action_executions.ActionExecutionManager, 'update',
+        mock.MagicMock(return_value=None))
+    def test_callback_resuming_state(self):
+        local_runner_cls = self.get_runner_class('local_runner', 'local_shell_command_runner')
+        local_run_result = (action_constants.LIVEACTION_STATUS_RESUMING, NON_EMPTY_RESULT, None)
+        local_runner_cls.run = mock.Mock(return_value=local_run_result)
+        local_resume_result = (action_constants.LIVEACTION_STATUS_RUNNING, NON_EMPTY_RESULT, None)
+        local_runner_cls.resume = mock.Mock(return_value=local_resume_result)
+
+        liveaction = LiveActionDB(
+            action='core.local', parameters={'cmd': 'uname -a'},
+            callback={
+                'source': MISTRAL_RUNNER_NAME,
+                'url': 'http://127.0.0.1:8989/v2/action_executions/12345'
+            }
+        )
+
+        liveaction, execution = action_service.request(liveaction)
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+
+        self.assertEqual(liveaction.status, local_resume_result[0])
         self.assertFalse(action_executions.ActionExecutionManager.update.called)
 
     @mock.patch.object(
@@ -192,7 +532,7 @@ class MistralRunnerCallbackTest(DbTestCase):
             requests.exceptions.ConnectionError(),
             None]))
     def test_callback_retry(self):
-        local_runner_cls = self.get_runner_class('local_runner')
+        local_runner_cls = self.get_runner_class('local_runner', 'local_shell_command_runner')
         local_run_result = (action_constants.LIVEACTION_STATUS_SUCCEEDED, NON_EMPTY_RESULT, None)
         local_runner_cls.run = mock.Mock(return_value=local_run_result)
 
@@ -220,7 +560,7 @@ class MistralRunnerCallbackTest(DbTestCase):
             requests.exceptions.ConnectionError(),
             None]))
     def test_callback_retry_exhausted(self):
-        local_runner_cls = self.get_runner_class('local_runner')
+        local_runner_cls = self.get_runner_class('local_runner', 'local_shell_command_runner')
         local_run_result = (action_constants.LIVEACTION_STATUS_SUCCEEDED, NON_EMPTY_RESULT, None)
         local_runner_cls.run = mock.Mock(return_value=local_run_result)
 
