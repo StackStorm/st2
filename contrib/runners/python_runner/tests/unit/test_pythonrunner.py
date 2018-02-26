@@ -59,6 +59,8 @@ NON_SIMPLE_TYPE_ACTION = os.path.join(tests_base.get_resources_path(), 'packs',
                                       'pythonactions/actions/non_simple_type.py')
 PRINT_VERSION_ACTION = os.path.join(tests_base.get_fixtures_path(), 'packs',
                                     'test/actions/print_version.py')
+PRINT_VERSION_LOCAL_MODULE_ACTION = os.path.join(tests_base.get_fixtures_path(), 'packs',
+                                    'test/actions/print_version_local_import.py')
 
 
 # Note: runner inherits parent args which doesn't work with tests since test pass additional
@@ -763,6 +765,27 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
                         '"v0.30.0" provided. Make sure that git repository is up '
                         'to date and contains that revision.')
         self.assertRaisesRegexp(ValueError, expected_msg, runner.pre_run)
+
+    @mock.patch('python_runner.python_runner.get_sandbox_virtualenv_path')
+    def test_content_version_success_local_modules_work_fine(self,
+                                                             mock_get_sandbox_virtualenv_path):
+        # Verify that local module import correctly use git worktree directory
+        mock_get_sandbox_virtualenv_path.return_value = None
+
+        runner = self._get_mock_runner_obj(pack='test', sandbox=False)
+        runner.entry_point = PRINT_VERSION_LOCAL_MODULE_ACTION
+        runner.runner_parameters = {'content_version': 'v0.24.0'}
+        runner.pre_run()
+
+        (status, output, _) = runner.run({})
+
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(output['result'], 'v0.24.0')
+
+        # Verify local_module has been correctly loaded from git work tree directory
+        expected_stdout = ("<module '?local_module'? from '?%s/actions/local_module.py'?>.*" %
+                           runner.git_worktree_path)
+        self.assertRegexpMatches(output['stdout'].strip(), expected_stdout)
 
     @mock.patch('st2common.runners.base.run_command')
     def test_content_version_old_git_version(self, mock_run_command):
