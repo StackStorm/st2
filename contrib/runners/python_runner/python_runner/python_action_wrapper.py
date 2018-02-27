@@ -18,6 +18,7 @@ from __future__ import absolute_import
 import os
 import sys
 import select
+import traceback
 
 # Note: This work-around is required to fix the issue with other Python modules which live
 # inside this directory polluting and masking sys.path for Python runner actions.
@@ -34,7 +35,6 @@ if __name__ == '__main__':
 import sys
 import json
 import argparse
-import traceback
 
 from st2common import log as logging
 from st2common import config as st2common_config
@@ -42,6 +42,7 @@ from st2common.runners.base_action import Action
 from st2common.runners.utils import get_logger_for_python_runner_action
 from st2common.runners.utils import get_action_class_instance
 from st2common.util import loader as action_loader
+from st2common.content.utils import get_pack_base_path
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.constants.runners import PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE
@@ -63,6 +64,14 @@ either:
 
 For more information, please see: https://docs.stackstorm.com/upgrade_notes.html#st2-v1-6
 """.strip()
+
+CONFIG_MISSING_ITEM_ERROR = """
+Config for pack "%s" is missing key "%s".
+Make sure that the config file exists on disk (%s) and contains that key.
+
+Also make sure you run "st2ctl reload --register-configs" when you add a
+config and after every change you make to the config.
+"""
 
 # How many seconds to wait for stdin input when parameters are passed in via stdin before
 # timing out
@@ -124,6 +133,32 @@ class ActionService(object):
 
     def delete_value(self, name, local=True, scope=SYSTEM_SCOPE):
         return self.datastore_service.delete_value(name, local)
+
+
+class PackConfigDict(dict):
+    """
+    Dictionary class wraper for pack config dictionaries.
+
+    This class throws a user-friendly exception in case user tries to access config item which
+    doesn't exist in the dict.
+    """
+    def __init__(self, pack_name, *args):
+        super(PackConfigDict, self).__init__(*args)
+        self._pack_name = pack_name
+
+    def __getitem__(self, key):
+        try:
+            value = super(PackConfigDict, self).__getitem__(key)
+        except KeyError:
+            pack_path = get_pack_base_path(pack_name=self._pack_name)
+            config_path = os.path.join(pack_path, 'configs/', self._pack_name + '.yaml')
+            msg = CONFIG_MISSING_ITEM_ERROR % (self._pack_name, key, config_path)
+            raise ValueError(msg)
+
+        return value
+
+    def __setitem__(self, key, value):
+        super(PackConfigDict, self).__setitem__(key, value)
 
 
 class PythonActionWrapper(object):
@@ -275,6 +310,8 @@ if __name__ == '__main__':
 
     if not isinstance(config, dict):
         raise ValueError('Pack config needs to be a dictionary')
+
+    config = PackConfigDict(args.pack, config)
 
     parameters = {}
 
