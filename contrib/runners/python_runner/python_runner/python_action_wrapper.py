@@ -273,6 +273,9 @@ if __name__ == '__main__':
     parent_args = json.loads(args.parent_args) if args.parent_args else []
     log_level = args.log_level
 
+    if not isinstance(config, dict):
+        raise ValueError('Pack config needs to be a dictionary')
+
     parameters = {}
 
     if args.parameters:
