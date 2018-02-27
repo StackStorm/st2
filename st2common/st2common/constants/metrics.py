@@ -18,3 +18,5 @@ METRICS_TIMER_SUFFIX = "_timer"
 
 PYTHON_RUNNER_EXECUTION = "python_runner_execution"
 PYTHON_WRAPPER_EXECUTION = "python_wrapper_execution"
+
+METRICS_REGISTER_RUNNER = "register_runner"

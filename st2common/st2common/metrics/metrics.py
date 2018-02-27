@@ -75,8 +75,8 @@ class Timer(object):
     def __call__(self, func):
         @wraps(func)
         def wrapper(*args, **kw):
-            with self:
-                return func(*args, **kw)
+            with self as metrics_timer:
+                return func(*args, metrics_timer=metrics_timer, **kw)
         return wrapper
 
 
@@ -144,8 +144,8 @@ class CounterWithTimer(object):
     def __call__(self, func):
         @wraps(func)
         def wrapper(*args, **kw):
-            with self:
-                return func(*args, **kw)
+            with self as counter_with_timer:
+                return func(*args, metrics_counter_with_timer=counter_with_timer, **kw)
         return wrapper
 
 
