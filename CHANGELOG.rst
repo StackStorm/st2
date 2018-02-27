@@ -7,6 +7,10 @@ in development
 Added
 ~~~~~
 
+* Add context field to rule model in which each rule has its own corresponding user. Besides, there
+  is a new rbac configuration `permission_isolation`. Whoever can only operate and observe their own
+  rules or executions except system_user when set `True`. That means system_user has the most poweful
+  permission to operate all resources including rules or executions.
 * Update ``st2 execution tail`` command so it supports double nested workflows (workflow ->
   workflow -> execution). Previously, only top-level executions and single nested workflows
   (workflow -> execution) were supported. (improvement) #3962 #3960

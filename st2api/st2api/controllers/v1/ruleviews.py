@@ -13,18 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 import six
 
 from mongoengine.queryset import Q
+from oslo_config import cfg
 
 from st2common import log as logging
 from st2api.controllers import resource
 from st2common.models.api.rule import RuleViewAPI
+from st2common.models.db.auth import UserDB
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.action import Action
 from st2common.persistence.rule import Rule
 from st2common.persistence.trigger import TriggerType, Trigger
 from st2common.rbac.types import PermissionType
+from st2common.router import Response
 
 http_client = six.moves.http_client
 
@@ -75,7 +79,8 @@ class RuleViewController(resource.ContentPackResourceController):
     access = Rule
     supported_filters = {
         'name': 'name',
-        'pack': 'pack'
+        'pack': 'pack',
+        'user': 'context.user'
     }
 
     query_options = {
@@ -85,6 +90,9 @@ class RuleViewController(resource.ContentPackResourceController):
     include_reference = True
 
     def get_all(self, sort=None, offset=0, limit=None, requester_user=None, **raw_filters):
+        if not requester_user:
+            requester_user = UserDB(cfg.CONF.system_user.user)
+
         rules = self._get_all(sort=sort,
                               offset=offset,
                               limit=limit,
@@ -93,6 +101,94 @@ class RuleViewController(resource.ContentPackResourceController):
         result = self._append_view_properties(rules.json)
         rules.json = result
         return rules
+
+    def _get_all(self, exclude_fields=None, sort=None, offset=0, limit=None, query_options=None,
+                 from_model_kwargs=None, raw_filters=None, requester_user=None):
+        """
+        :param exclude_fields: A list of object fields to exclude.
+        :type exclude_fields: ``list``
+        """
+        raw_filters = copy.deepcopy(raw_filters) or {}
+
+        exclude_fields = exclude_fields or []
+        query_options = query_options if query_options else self.query_options
+
+        # TODO: Why do we use comma delimited string, user can just specify
+        # multiple values using ?sort=foo&sort=bar and we get a list back
+        sort = sort.split(',') if sort else []
+
+        db_sort_values = []
+        for sort_key in sort:
+            if sort_key.startswith('-'):
+                direction = '-'
+                sort_key = sort_key[1:]
+            elif sort_key.startswith('+'):
+                direction = '+'
+                sort_key = sort_key[1:]
+            else:
+                direction = ''
+
+            if sort_key not in self.supported_filters:
+                # Skip unsupported sort key
+                continue
+
+            sort_value = direction + self.supported_filters[sort_key]
+            db_sort_values.append(sort_value)
+
+        default_sort_values = copy.copy(query_options.get('sort'))
+        raw_filters['sort'] = db_sort_values if db_sort_values else default_sort_values
+
+        # TODO: To protect us from DoS, we need to make max_limit mandatory
+        offset = int(offset)
+        if offset >= 2**31:
+            raise ValueError('Offset "%s" specified is more than 32-bit int' % (offset))
+
+        limit = resource.validate_limit_query_param(limit=limit, requester_user=requester_user)
+        eop = offset + int(limit) if limit else None
+
+        filters = {}
+        for k, v in six.iteritems(self.supported_filters):
+            filter_value = raw_filters.get(k, None)
+
+            if not filter_value:
+                continue
+
+            value_transform_function = self.filter_transform_functions.get(k, None)
+            value_transform_function = value_transform_function or (lambda value: value)
+            filter_value = value_transform_function(value=filter_value)
+
+            if k == 'id' and isinstance(filter_value, list):
+                filters[k + '__in'] = filter_value
+            else:
+                filters['__'.join(v.split('.'))] = filter_value
+
+        instances = self.access.query(exclude_fields=exclude_fields, **filters)
+        if limit == 1:
+            # Perform the filtering on the DB side
+            instances = instances.limit(limit)
+
+        from_model_kwargs = from_model_kwargs or {}
+        from_model_kwargs.update(self.from_model_kwargs)
+
+        result = []
+        for instance in instances[offset:eop]:
+            item = self.model.from_model(instance, **from_model_kwargs)
+            if cfg.CONF.rbac.enable and not cfg.CONF.rbac.permission_isolation:
+                result.append(item)
+            elif requester_user.name == cfg.CONF.system_user.user:
+                result.append(item)
+            else:
+                user = item.context.get('user', None)
+                if user and user == requester_user.name:
+                    result.append(item)
+
+        resp = Response(json=result)
+        resp.headers['X-Total-Count'] = str(instances.count())
+
+        if limit:
+            resp.headers['X-Limit'] = str(limit)
+
+        return resp
 
     def get_one(self, ref_or_id, requester_user):
         rule = self._get_one(ref_or_id, permission_type=PermissionType.RULE_VIEW,

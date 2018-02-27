@@ -52,7 +52,9 @@ def register_opts(ignore_errors=False):
         cfg.BoolOpt('sync_remote_groups', default=False,
                     help=('True to synchronize remote groups returned by the auth backed for each '
                           'StackStorm user with local StackStorm roles based on the group to role '
-                          'mapping definition files.'))
+                          'mapping definition files.')),
+        cfg.BoolOpt('permission_isolation', default=False,
+                    help='isolate all rules of by user field')
     ]
     do_register_opts(rbac_opts, 'rbac', ignore_errors)
 
