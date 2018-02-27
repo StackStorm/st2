@@ -64,14 +64,6 @@ either:
 For more information, please see: https://docs.stackstorm.com/upgrade_notes.html#st2-v1-6
 """.strip()
 
-CONFIG_MISSING_ITEM_ERROR = """
-Config for pack "%s" is missing key "%s".
-Make sure that the config file exists on disk (%s) and contains that key.
-
-Also make sure you run "st2ctl reload --register-configs" when you add a
-config and after every change you make to the config.
-"""
-
 # How many seconds to wait for stdin input when parameters are passed in via stdin before
 # timing out
 READ_STDIN_INPUT_TIMEOUT = 2
@@ -132,35 +124,6 @@ class ActionService(object):
 
     def delete_value(self, name, local=True, scope=SYSTEM_SCOPE):
         return self.datastore_service.delete_value(name, local)
-
-
-class PackConfigDict(dict):
-    """
-    Dictionary class wraper for pack config dictionaries.
-
-    This class throws a user-friendly exception in case user tries to access config item which
-    doesn't exist in the dict.
-    """
-    def __init__(self, pack_name, *args):
-        super(PackConfigDict, self).__init__(*args)
-        self._pack_name = pack_name
-
-    def __getitem__(self, key):
-        try:
-            value = super(PackConfigDict, self).__getitem__(key)
-        except KeyError:
-            # Note: We use late import to avoid performance overhead
-            from oslo_config import cfg
-
-            configs_path = os.path.join(cfg.CONF.system.base_path, 'configs/')
-            config_path = os.path.join(configs_path, self._pack_name + '.yaml')
-            msg = CONFIG_MISSING_ITEM_ERROR % (self._pack_name, key, config_path)
-            raise ValueError(msg)
-
-        return value
-
-    def __setitem__(self, key, value):
-        super(PackConfigDict, self).__setitem__(key, value)
 
 
 class PythonActionWrapper(object):
@@ -312,8 +275,6 @@ if __name__ == '__main__':
 
     if not isinstance(config, dict):
         raise ValueError('Pack config needs to be a dictionary')
-
-    config = PackConfigDict(args.pack, config)
 
     parameters = {}
 
