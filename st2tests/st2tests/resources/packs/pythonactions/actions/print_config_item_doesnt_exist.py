@@ -21,4 +21,6 @@ from st2common.runners.base_action import Action
 class PrintConfigItemAction(Action):
     def run(self):
         print(self.config)
+        # Verify .get() still works
+        print(self.config.get('item1', 'default_value'))
         print(self.config['key'])

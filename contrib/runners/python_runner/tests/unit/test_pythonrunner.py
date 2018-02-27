@@ -731,6 +731,8 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
         self.assertTrue(output is not None)
+        self.assertTrue('{}' in output['stdout'])
+        self.assertTrue('default_value' in output['stdout'])
         self.assertTrue('Config for pack "core" is missing key "key"' in output['stderr'])
         self.assertTrue('make sure you run "st2ctl reload --register-configs"' in output['stderr'])
 
