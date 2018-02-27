@@ -22,7 +22,7 @@ Changed
   packages. Also add support for multiple runners (runner modules) inside a single Python package
   and consolidate Python packages from two to one for the following runners: local runners, remote
   runners, windows runners. (improvement) #3999
-* Upgrade eventlet library to the latest stable version (0.22.1) (improvement) #4007
+* Upgrade eventlet library to the latest stable version (0.22.1) (improvement) #4007 #3968
 * Increase maximum retry delay for ``action.retry`` policy from 5 seconds to 120 seconds. Because
   of the way retries are currently implemented (they are not st2notifier service restart safe),
   long retry delays are not recommended. For more information on this limitation please refer to
