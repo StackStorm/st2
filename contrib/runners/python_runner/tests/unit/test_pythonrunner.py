@@ -55,6 +55,9 @@ ACTION_2_PATH = os.path.join(tests_base.get_fixtures_path(),
                              'packs/dummy_pack_9/actions/invalid_syntax.py')
 NON_SIMPLE_TYPE_ACTION = os.path.join(tests_base.get_resources_path(), 'packs',
                                       'pythonactions/actions/non_simple_type.py')
+PRINT_CONFIG_ITEM_ACTION = os.path.join(tests_base.get_resources_path(), 'packs',
+                                      'pythonactions/actions/print_config_item_doesnt_exist.py')
+
 
 # Note: runner inherits parent args which doesn't work with tests since test pass additional
 # unrecognized args
@@ -719,6 +722,19 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
         self.assertTrue(output is not None)
         self.assertEqual(output['result']['action_input'], large_value)
+
+    def test_missing_config_item_user_friendly_error(self):
+        runner = self._get_mock_runner_obj()
+        runner.entry_point = PRINT_CONFIG_ITEM_ACTION
+        runner.pre_run()
+        (status, output, _) = runner.run({})
+
+        self.assertEqual(status, LIVEACTION_STATUS_FAILED)
+        self.assertTrue(output is not None)
+        self.assertTrue('{}' in output['stdout'])
+        self.assertTrue('default_value' in output['stdout'])
+        self.assertTrue('Config for pack "core" is missing key "key"' in output['stderr'])
+        self.assertTrue('make sure you run "st2ctl reload --register-configs"' in output['stderr'])
 
     def _get_mock_runner_obj(self):
         runner = python_runner.get_runner()
