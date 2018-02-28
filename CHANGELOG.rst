@@ -28,6 +28,8 @@ Changed
   long retry delays are not recommended. For more information on this limitation please refer to
   the documentation - https://docs.stackstorm.com/reference/policies.html#retry.
   #3630
+* Update various Python dependencies to the latest stable versions (apscheduler, gitpython,
+  pymongo, stevedore, paramiko, tooz, flex, webob, prance).
 
 Fixed
 ~~~~~
