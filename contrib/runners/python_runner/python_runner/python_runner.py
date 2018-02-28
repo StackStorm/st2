@@ -187,17 +187,17 @@ class PythonRunner(ActionRunner):
             env['PATH'] = get_sandbox_path(virtualenv_path=virtualenv_path)
 
             sandbox_python_path = get_sandbox_python_path(inherit_from_parent=True,
-                                                        inherit_parent_virtualenv=True)
+                                                          inherit_parent_virtualenv=True)
 
             if self._enable_common_pack_libs:
                 try:
                     pack_common_libs_path = get_pack_common_libs_path_for_pack_ref(pack_ref=pack)
                 except Exception:
                     # There is no MongoDB connection available in Lambda and pack common lib
-                    # functionality is not also mandatory for Lambda so we simply ignore those errors.
-                    # Note: We should eventually refactor this code to make runner standalone and not
-                    # depend on a db connection (as it was in the past) - this param should be passed
-                    # to the runner by the action runner container
+                    # functionality is not also mandatory for Lambda so we simply ignore those
+                    # errors. Note: We should eventually refactor this code to make runner
+                    # standalone and not depend on a db connection (as it was in the past) -
+                    # this param should be passed to the runner by the action runner container
                     pack_common_libs_path = None
             else:
                 pack_common_libs_path = None
@@ -235,20 +235,22 @@ class PythonRunner(ActionRunner):
                 command_string = 'echo %s | %s' % (quote_unix(stdin_params), command_string)
 
             LOG.debug('Running command: PATH=%s PYTHONPATH=%s %s' % (env['PATH'], env['PYTHONPATH'],
-                                                                    command_string))
+                                                                     command_string))
             with CounterWithTimer(PYTHON_WRAPPER_EXECUTION):
-                exit_code, stdout, stderr, timed_out = run_command(cmd=args,
-                                                                stdin=stdin,
-                                                                stdout=subprocess.PIPE,
-                                                                stderr=subprocess.PIPE,
-                                                                shell=False,
-                                                                env=env,
-                                                                timeout=self._timeout,
-                                                                read_stdout_func=read_and_store_stdout,
-                                                                read_stderr_func=read_and_store_stderr,
-                                                                read_stdout_buffer=stdout,
-                                                                read_stderr_buffer=stderr,
-                                                                stdin_value=stdin_params)
+                exit_code, stdout, stderr, timed_out = run_command(
+                    cmd=args,
+                    stdin=stdin,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    shell=False,
+                    env=env,
+                    timeout=self._timeout,
+                    read_stdout_func=read_and_store_stdout,
+                    read_stderr_func=read_and_store_stderr,
+                    read_stdout_buffer=stdout,
+                    read_stderr_buffer=stderr,
+                    stdin_value=stdin_params
+                )
             LOG.debug('Returning values: %s, %s, %s, %s', exit_code, stdout, stderr, timed_out)
             LOG.debug('Returning.')
             return self._get_output_values(exit_code, stdout, stderr, timed_out)

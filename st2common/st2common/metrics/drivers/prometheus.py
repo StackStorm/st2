@@ -26,17 +26,23 @@ class PrometheusDriver(BaseMetricsDriver):
     def time(self, key, time):
         """ Timer metric
         """
-        prometheus_histogram = Histogram(key)
+        prometheus_histogram = Histogram(  # pylint: disable=no-value-for-parameter
+            key
+        )
         prometheus_histogram.observe(time)
 
     def inc_counter(self, key, amount=1):
         """ Increment counter
         """
-        prometheus_counter = Gauge(key)
+        prometheus_counter = Gauge(  # pylint: disable=no-value-for-parameter
+            key
+        )
         prometheus_counter.inc(amount)
 
     def dec_counter(self, key, amount=1):
         """ Decrement metric
         """
-        prometheus_counter = Gauge(key)
+        prometheus_counter = Gauge(  # pylint: disable=no-value-for-parameter
+            key
+        )
         prometheus_counter.dec(amount)
