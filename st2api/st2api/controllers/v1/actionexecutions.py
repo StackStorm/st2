@@ -644,7 +644,6 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
             LOG.exception('Failed updating liveaction %s. %s', liveaction_db.id, str(e))
             abort(http_client.BAD_REQUEST, 'Failed updating execution. %s' % str(e))
         except Exception as e:
-            print str(e)
             LOG.exception('Failed updating liveaction %s. %s', liveaction_db.id, str(e))
             abort(
                 http_client.INTERNAL_SERVER_ERROR,
