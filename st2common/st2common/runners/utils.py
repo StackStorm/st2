@@ -46,12 +46,11 @@ Make sure that the config file exists on disk (%s) and contains that key.
 
 Also make sure you run "st2ctl reload --register-configs" when you add a
 config and after every change you make to the config.
-"
+"""
+
 # Maps logger name to the actual logger instance
 # We re-use loggers for the same actions to make sure only a single instance exists for a
 # particular action. This way we avoid duplicate log messages, etc.
-"""
-
 LOGGERS = {}
 
 
