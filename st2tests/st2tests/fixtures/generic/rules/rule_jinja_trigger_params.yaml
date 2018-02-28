@@ -1,0 +1,16 @@
+---
+name: rule_jinja_trigger_params
+pack: wolfpack
+description: ''
+enabled: true
+trigger:
+  type: wolfpack.triggertype_with_params
+  parameters:
+    x : '{{st2kv.system.foo}}'
+    y : '{{st2kv.system.bar}}'
+criteria: {}
+action:
+  parameters:
+    ip1: '{{trigger.t1_p}}'
+    ip2: '{{trigger}}'
+  ref: wolfpack.action-1
