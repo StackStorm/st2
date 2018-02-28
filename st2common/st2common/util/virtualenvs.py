@@ -41,7 +41,8 @@ LOG = logging.getLogger(__name__)
 
 
 def setup_pack_virtualenv(pack_name, update=False, logger=None, include_pip=True,
-                          include_setuptools=True, include_wheel=True, proxy_config=None):
+                          include_setuptools=True, include_wheel=True, proxy_config=None,
+                          use_python3=False):
 
     """
     Setup virtual environment for the provided pack.
@@ -54,6 +55,9 @@ def setup_pack_virtualenv(pack_name, update=False, logger=None, include_pip=True
 
     :param logger: Optional logger instance to use. If not provided it defaults to the module
                    level logger.
+
+    :param use_python3: Use Python3 binary when creating virtualenv for this pack.
+    :type use_python3: ``bool``
     """
     logger = logger or LOG
 
@@ -82,7 +86,8 @@ def setup_pack_virtualenv(pack_name, update=False, logger=None, include_pip=True
         # 1. Create virtual environment
         logger.debug('Creating virtualenv for pack "%s" in "%s"' % (pack_name, virtualenv_path))
         create_virtualenv(virtualenv_path=virtualenv_path, logger=logger, include_pip=include_pip,
-                          include_setuptools=include_setuptools, include_wheel=include_wheel)
+                          include_setuptools=include_setuptools, include_wheel=include_wheel,
+                          use_python3=use_python3)
 
     # 2. Install base requirements which are common to all the packs
     logger.debug('Installing base requirements')
@@ -110,7 +115,7 @@ def setup_pack_virtualenv(pack_name, update=False, logger=None, include_pip=True
 
 
 def create_virtualenv(virtualenv_path, logger=None, include_pip=True, include_setuptools=True,
-                      include_wheel=True):
+                      include_wheel=True, use_python3=False):
     """
     :param include_pip: Include pip binary and package in the newely created virtual environment.
     :type include_pip: ``bool``
@@ -121,11 +126,15 @@ def create_virtualenv(virtualenv_path, logger=None, include_pip=True, include_se
 
     :param include_wheel: Include wheel in the newely created virtual environment.
     :type include_wheel : ``bool``
+
+    :param use_python3: Use Python3 binary when creating virtualenv for this pack.
+    :type use_python3: ``bool``
     """
 
     logger = logger or LOG
 
     python_binary = cfg.CONF.actionrunner.python_binary
+    python3_binary = cfg.CONF.actionrunner.python3_binary
     virtualenv_binary = cfg.CONF.actionrunner.virtualenv_binary
     virtualenv_opts = cfg.CONF.actionrunner.virtualenv_opts
 
@@ -138,7 +147,18 @@ def create_virtualenv(virtualenv_path, logger=None, include_pip=True, include_se
     logger.debug('Creating virtualenv in "%s" using Python binary "%s"' %
                  (virtualenv_path, python_binary))
 
-    cmd = [virtualenv_binary, '-p', python_binary]
+    cmd = [virtualenv_binary]
+
+    if use_python3 and not python3_binary:
+        msg = ('Requested to use Python 3, but python3 binary not found on the system or '
+               'actionrunner.python3 config option is not configured correctly.')
+        raise ValueError(msg)
+
+    if use_python3:
+        cmd.extend(['-p', python3_binary])
+    else:
+        cmd.extend(['-p', python_binary])
+
     cmd.extend(virtualenv_opts)
 
     if not include_pip:
