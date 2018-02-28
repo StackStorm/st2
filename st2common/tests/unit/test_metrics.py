@@ -17,8 +17,6 @@ from datetime import datetime, timedelta
 import unittest2
 from mock import patch, MagicMock
 
-from st2common import config as st2common_config
-st2common_config.parse_args(args=[])
 from oslo_config import cfg
 
 from st2common.metrics import metrics
@@ -201,7 +199,9 @@ class TestCounterWithTimerContextManager(unittest2.TestCase):
                 time_delta.total_seconds(),
                 (end_time - middle_time).total_seconds()
             )
-            metrics_patch.inc_counter.assert_called_with("%s%s" % (test_key, METRICS_COUNTER_SUFFIX))
+            metrics_patch.inc_counter.assert_called_with(
+                "%s%s" % (test_key, METRICS_COUNTER_SUFFIX)
+            )
             metrics_patch.dec_counter.assert_not_called()
         metrics_patch.dec_counter.assert_called_with("%s%s" % (test_key, METRICS_COUNTER_SUFFIX))
         metrics_patch.time.assert_called_with(
