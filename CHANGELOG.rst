@@ -26,7 +26,7 @@ Changed
 * Increase maximum retry delay for ``action.retry`` policy from 5 seconds to 120 seconds. Because
   of the way retries are currently implemented (they are not st2notifier service restart safe),
   long retry delays are not recommended. For more information on this limitation please refer to
-  the documentation - https://docs.stackstorm.com/reference/policies.html#retry. #3630
+  the documentation - https://docs.stackstorm.com/reference/policies.html#retry. #3630 #3637
 * Update Python runner so it throws a more user-friendly exception in case Python script tries to
   access a key in ``self.config`` dictionary which doesn't exist. (improvement) #4014
 
