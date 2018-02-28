@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+
 import getpass
 import json
 import logging
@@ -176,38 +178,43 @@ class WhoamiCommand(resource.ResourceCommand):
 
         super(WhoamiCommand, self).__init__(
             resource, kwargs.pop('name', 'create'),
-            'Display the currently authenticated/configured user',
+            'Display the currently authenticated user',
             *args, **kwargs)
 
     def run(self, args, **kwargs):
-
-        cli = BaseCLIApp()
-
-        # Determine path to config file
-        try:
-            config_file = cli._get_config_file_path(args)
-        except ValueError:
-            # config file not found in args or in env, defaulting
-            config_file = config_parser.ST2_CONFIG_PATH
-
-        # Update existing configuration with new credentials
-        config = ConfigParser()
-        config.read(config_file)
-
-        return config.get('credentials', 'username')
+        user_info = self.app.client.get_user_info(**kwargs)
+        return user_info
 
     def run_and_print(self, args, **kwargs):
         try:
-            username = self.run(args, **kwargs)
-            print("Currently logged in as %s" % username)
-        except KeyError:
-            print("No user is currently logged in")
+            user_info = self.run(args, **kwargs)
+        except Exception as e:
+            response = getattr(e, 'response', None)
+            status_code = getattr(response, 'status_code', None)
+            is_unathorized_error = (status_code == http_client.UNAUTHORIZED)
+
+            if response and is_unathorized_error:
+                print('Not authenticated')
+            else:
+                print('Unable to retrieve currently logged-in user')
+
             if self.app.client.debug:
                 raise
-        except Exception:
-            print("Unable to retrieve currently logged-in user")
-            if self.app.client.debug:
-                raise
+
+            return
+
+        print('Currently logged in as "%s".' % (user_info['username']))
+        print('')
+        print('Authentication method: %s' % (user_info['authentication']['method']))
+
+        if user_info['authentication']['method'] == 'authentication token':
+            print('Authentication token expire time: %s' %
+                  (user_info['authentication']['token_expire']))
+
+        print('')
+        print('RBAC:')
+        print(' - Enabled: %s' % (user_info['rbac']['enabled']))
+        print(' - Roles: %s' % (', '.join(user_info['rbac']['roles'])))
 
 
 class ApiKeyBranch(resource.ResourceBranch):

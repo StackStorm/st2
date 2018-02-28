@@ -77,3 +77,16 @@ class PackControllerRBACTestCase(APIControllerWithRBACTestCase):
         call_kwargs = _handle_schedule_execution.call_args[1]
         self.assertEqual(call_kwargs['requester_user'], user_db)
         self.assertEqual(call_kwargs['liveaction_api'].user, user_db.name)
+
+    def test_get_all_limit_minus_one(self):
+        user_db = self.users['observer']
+        self.use_user(user_db)
+
+        resp = self.app.get('/v1/packs?limit=-1', expect_errors=True)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
+
+        user_db = self.users['admin']
+        self.use_user(user_db)
+
+        resp = self.app.get('/v1/packs?limit=-1')
+        self.assertEqual(resp.status_code, http_client.OK)

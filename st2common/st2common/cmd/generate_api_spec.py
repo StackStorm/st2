@@ -18,6 +18,7 @@ A script generates final openapi.yaml file based on openapi.yaml.j2 Jinja
 template file.
 """
 
+from __future__ import absolute_import
 from st2common import config
 from st2common import log as logging
 from st2common.util import spec_loader

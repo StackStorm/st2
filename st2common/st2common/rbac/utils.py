@@ -17,6 +17,7 @@
 RBAC related utility functions.
 """
 
+from __future__ import absolute_import
 import six
 
 from oslo_config import cfg
@@ -123,7 +124,7 @@ def assert_user_has_resource_api_permission(user_db, resource_api, permission_ty
 
     if not has_permission:
         # TODO: Refactor exception
-        raise ResourceAccessDeniedError(user_db=user_db, resource_db=resource_api,
+        raise ResourceAccessDeniedError(user_db=user_db, resource_api_or_db=resource_api,
                                         permission_type=permission_type)
 
 
@@ -138,7 +139,7 @@ def assert_user_has_resource_db_permission(user_db, resource_db, permission_type
                                                      permission_type=permission_type)
 
     if not has_permission:
-        raise ResourceAccessDeniedError(user_db=user_db, resource_db=resource_db,
+        raise ResourceAccessDeniedError(user_db=user_db, resource_api_or_db=resource_db,
                                         permission_type=permission_type)
 
 

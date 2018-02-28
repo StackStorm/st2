@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import mongoengine
 
 from oslo_config import cfg
@@ -41,12 +42,9 @@ def _retry_if_connection_error(error):
     return is_connection_error
 
 
-def db_setup_with_retry(db_name, db_host, db_port, username=None, password=None,
-                        ensure_indexes=True, ssl=False, ssl_keyfile=None,
-                        ssl_certfile=None, ssl_cert_reqs=None, ssl_ca_certs=None,
-                        ssl_match_hostname=True):
+def db_func_with_retry(db_func, *args, **kwargs):
     """
-    This method is a retry version of db_setup.
+    This method is a generic retry function to support database setup and cleanup.
     """
     # Using as an annotation would be nice but annotations are evaluated at import
     # time and simple ways to use the annotation means the config gets read before
@@ -58,8 +56,20 @@ def db_setup_with_retry(db_name, db_host, db_port, username=None, password=None,
         wait_exponential_max=cfg.CONF.database.connection_retry_backoff_max_s * 1000,
         stop_max_delay=cfg.CONF.database.connection_retry_max_delay_m * 60 * 1000
     )
-    return retrying_obj.call(db_setup, db_name, db_host, db_port, username=username,
-                             password=password, ensure_indexes=ensure_indexes,
-                             ssl=ssl, ssl_keyfile=ssl_keyfile, ssl_certfile=ssl_certfile,
-                             ssl_cert_reqs=ssl_cert_reqs, ssl_ca_certs=ssl_ca_certs,
-                             ssl_match_hostname=ssl_match_hostname)
+    return retrying_obj.call(db_func, *args, **kwargs)
+
+
+def db_setup_with_retry(db_name, db_host, db_port, username=None, password=None,
+                        ensure_indexes=True, ssl=False, ssl_keyfile=None,
+                        ssl_certfile=None, ssl_cert_reqs=None, ssl_ca_certs=None,
+                        ssl_match_hostname=True):
+    """
+    This method is a retry version of db_setup.
+    """
+    return db_func_with_retry(db_setup, db_name, db_host, db_port,
+                              username=username, password=password,
+                              ensure_indexes=ensure_indexes,
+                              ssl=ssl, ssl_keyfile=ssl_keyfile,
+                              ssl_certfile=ssl_certfile, ssl_cert_reqs=ssl_cert_reqs,
+                              ssl_ca_certs=ssl_ca_certs,
+                              ssl_match_hostname=ssl_match_hostname)

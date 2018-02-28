@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import ast
 import copy
 import json
@@ -96,7 +97,7 @@ class MistralCallbackHandler(callback.AsyncActionExecutionCallbackHandler):
             return {k: cls._encode(v) for k, v in six.iteritems(value)}
         elif isinstance(value, list):
             return [cls._encode(item) for item in value]
-        elif isinstance(value, six.string_types):
+        elif isinstance(value, six.string_types) and not six.PY3:
             try:
                 value = value.decode('utf-8')
             except Exception:
@@ -118,7 +119,7 @@ class MistralCallbackHandler(callback.AsyncActionExecutionCallbackHandler):
             return
 
         try:
-            if isinstance(result, basestring) and len(result) > 0 and result[0] in ['{', '[']:
+            if isinstance(result, six.string_types) and len(result) > 0 and result[0] in ['{', '[']:
                 value = ast.literal_eval(result)
                 if type(value) in [dict, list]:
                     result = value

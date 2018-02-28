@@ -13,14 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import re
+import six
 import fnmatch
 
 from st2common.util import date as date_utils
+from st2common.constants.rules import TRIGGER_ITEM_PAYLOAD_PREFIX
+from st2common.util.payload import PayloadLookup
 
 __all__ = [
+    'SEARCH',
     'get_operator',
-    'get_allowed_operators'
+    'get_allowed_operators',
+    'UnrecognizedConditionError',
 ]
 
 
@@ -35,7 +41,101 @@ def get_operator(op):
     else:
         raise Exception('Invalid operator: ' + op)
 
+
+class UnrecognizedConditionError(Exception):
+    pass
+
+
 # Operation implementations
+
+
+def search(value, criteria_pattern, criteria_condition, check_function):
+    """
+    Search a list of values that match all child criteria. If condition is 'any', return a
+    successful match if any items match all child criteria. If condition is 'all', return a
+    successful match if ALL items match all child criteria.
+
+    value: the payload list to search
+    condition: one of:
+      * any - return true if any items of the list match and false if none of them match
+      * all - return true if all items of the list match and false if any of them do not match
+    pattern: a dictionary of criteria to apply to each item of the list
+
+    This operator has O(n) algorithmic complexity in terms of number of child patterns.
+    This operator has O(n) algorithmic complexity in terms of number of payload fields.
+
+    However, it has O(n_patterns * n_payloads) algorithmic complexity, where:
+      n_patterns = number of child patterns
+      n_payloads = number of fields in payload
+    It is therefore very easy to write a slow rule when using this operator.
+
+    This operator should ONLY be used when trying to match a small number of child patterns and/or
+    a small number of payload list elements.
+
+    Other conditions (such as 'count', 'count_gt', 'count_gte', etc.) can be added as needed.
+
+    Data from the trigger:
+
+    {
+        "fields": [
+            {
+                "field_name": "Status",
+                "to_value": "Approved"
+            }
+        ]
+    }
+
+    And an example usage in criteria:
+
+    ---
+    criteria:
+      trigger.fields:
+        type: search
+        # Controls whether this criteria has to match any or all items of the list
+        condition: any  # or all
+        pattern:
+          # Here our context is each item of the list
+          # All of these patterns have to match the item for the item to match
+          # These are simply other operators applied to each item in the list
+          item.field_name:
+            type: "equals"
+            pattern: "Status"
+
+          item.to_value:
+            type: "equals"
+            pattern: "Approved"
+    """
+    if criteria_condition == 'any':
+        # Any item of the list can match all patterns
+        rtn = any([
+            # Any payload item can match
+            all([
+                # Match all patterns
+                check_function(
+                    child_criterion_k, child_criterion_v,
+                    PayloadLookup(child_payload, prefix=TRIGGER_ITEM_PAYLOAD_PREFIX))
+                for child_criterion_k, child_criterion_v in six.iteritems(criteria_pattern)
+            ])
+            for child_payload in value
+        ])
+    elif criteria_condition == 'all':
+        # Every item of the list must match all patterns
+        rtn = all([
+            # All payload items must match
+            all([
+                # Match all patterns
+                check_function(
+                    child_criterion_k, child_criterion_v,
+                    PayloadLookup(child_payload, prefix=TRIGGER_ITEM_PAYLOAD_PREFIX))
+                for child_criterion_k, child_criterion_v in six.iteritems(criteria_pattern)
+            ])
+            for child_payload in value
+        ])
+    else:
+        raise UnrecognizedConditionError("The '%s' search condition is not recognized, only 'any' "
+                                         "and 'all' are allowed" % criteria_condition)
+
+    return rtn
 
 
 def equals(value, criteria_pattern):
@@ -231,6 +331,7 @@ INSIDE_LONG = 'inside'
 INSIDE_SHORT = 'in'
 NINSIDE_LONG = 'ninside'
 NINSIDE_SHORT = 'nin'
+SEARCH = 'search'
 
 # operator lookups
 operators = {
@@ -265,5 +366,6 @@ operators = {
     INSIDE_LONG: inside,
     INSIDE_SHORT: inside,
     NINSIDE_LONG: ninside,
-    NINSIDE_SHORT: ninside
+    NINSIDE_SHORT: ninside,
+    SEARCH: search,
 }

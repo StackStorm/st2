@@ -131,13 +131,29 @@ class TestRuleController(FunctionalTest):
             fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_FIXTURES)
         super(TestRuleController, cls).setUpClass()
 
-    def test_get_all(self):
+    def test_get_all_and_minus_one(self):
         post_resp_rule_1 = self.__do_post(TestRuleController.RULE_1)
         post_resp_rule_3 = self.__do_post(TestRuleController.RULE_3)
 
         resp = self.app.get('/v1/rules')
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertEqual(len(resp.json), 2)
+
+        resp = self.app.get('/v1/rules/?limit=-1')
+        self.assertEqual(resp.status_int, http_client.OK)
+        self.assertEqual(len(resp.json), 2)
+
+        self.__do_delete(self.__get_rule_id(post_resp_rule_1))
+        self.__do_delete(self.__get_rule_id(post_resp_rule_3))
+
+    def test_get_all_limit_negative_number(self):
+        post_resp_rule_1 = self.__do_post(TestRuleController.RULE_1)
+        post_resp_rule_3 = self.__do_post(TestRuleController.RULE_3)
+
+        resp = self.app.get('/v1/rules?limit=-22', expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertEqual(resp.json['faultstring'],
+                         u'Limit, "-22" specified, must be a positive number.')
 
         self.__do_delete(self.__get_rule_id(post_resp_rule_1))
         self.__do_delete(self.__get_rule_id(post_resp_rule_3))
@@ -220,33 +236,37 @@ class TestRuleController(FunctionalTest):
         post_resp = self.__do_post(TestRuleController.RULE_2)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
 
-        expected_msg = 'Additional properties are not allowed (u\'minutex\' was unexpected)'
+        if six.PY3:
+            expected_msg = b'Additional properties are not allowed (\'minutex\' was unexpected)'
+        else:
+            expected_msg = b'Additional properties are not allowed (u\'minutex\' was unexpected)'
+
         self.assertTrue(expected_msg in post_resp.body)
 
     def test_post_trigger_parameter_schema_validation_fails_missing_required_param(self):
         post_resp = self.__do_post(TestRuleController.RULE_5)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
 
-        expected_msg = '\'date\' is a required property'
+        expected_msg = b'\'date\' is a required property'
         self.assertTrue(expected_msg in post_resp.body)
 
     def test_post_invalid_crontimer_trigger_parameters(self):
         post_resp = self.__do_post(TestRuleController.RULE_6)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
 
-        expected_msg = '1000 is greater than the maximum of 6'
+        expected_msg = b'1000 is greater than the maximum of 6'
         self.assertTrue(expected_msg in post_resp.body)
 
         post_resp = self.__do_post(TestRuleController.RULE_7)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
 
-        expected_msg = 'Invalid weekday name \\"abcdef\\"'
+        expected_msg = b'Invalid weekday name \\"abcdef\\"'
         self.assertTrue(expected_msg in post_resp.body)
 
         post_resp = self.__do_post(TestRuleController.RULE_8)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
 
-        expected_msg = 'Invalid weekday name \\"a\\"'
+        expected_msg = b'Invalid weekday name \\"a\\"'
         self.assertTrue(expected_msg in post_resp.body)
 
     def test_post_invalid_custom_trigger_parameter_trigger_param_validation_enabled(self):
@@ -256,9 +276,16 @@ class TestRuleController(FunctionalTest):
 
         post_resp = self.__do_post(TestRuleController.RULE_9)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
-        self.assertTrue("Failed validating u'type' in schema[u'properties'][u'param1']:" in
-                        post_resp.json['faultstring'])
-        self.assertTrue('12345 is not of type u\'string\'' in post_resp.json['faultstring'])
+
+        if six.PY3:
+            expected_msg_1 = "Failed validating 'type' in schema['properties']['param1']:"
+            expected_msg_2 = '12345 is not of type \'string\''
+        else:
+            expected_msg_1 = "Failed validating u'type' in schema[u'properties'][u'param1']:"
+            expected_msg_2 = '12345 is not of type u\'string\''
+
+        self.assertTrue(expected_msg_1 in post_resp.json['faultstring'])
+        self.assertTrue(expected_msg_2 in post_resp.json['faultstring'])
 
     def test_post_invalid_custom_trigger_param_trigger_param_validation_disabled_default_cfg(self):
         """Test validation does NOT take place with the default configuration.
@@ -363,6 +390,29 @@ class TestRuleController(FunctionalTest):
         self.assertEqual(assigned_rule_type['ref'], RULE_TYPE_BACKSTOP,
                          'rule_type should be backstop')
         self.__do_delete(rule_id)
+
+    def test_update_rule_no_data(self):
+        post_resp = self.__do_post(self.RULE_1)
+        rule_1_id = self.__get_rule_id(post_resp)
+
+        put_resp = self.__do_put(rule_1_id, {})
+        expected_msg = "'name' is a required property"
+        self.assertEqual(put_resp.status_code, http_client.BAD_REQUEST)
+        self.assertEqual(put_resp.json['faultstring'], expected_msg)
+
+        self.__do_delete(rule_1_id)
+
+    def test_update_rule_missing_id_in_body(self):
+        post_resp = self.__do_post(self.RULE_1)
+        rule_1_id = self.__get_rule_id(post_resp)
+
+        rule_without_id = copy.deepcopy(self.RULE_1)
+        rule_without_id.pop('id', None)
+        put_resp = self.__do_put(rule_1_id, rule_without_id)
+        self.assertEqual(put_resp.status_int, http_client.OK)
+        self.assertEqual(put_resp.json['id'], rule_1_id)
+
+        self.__do_delete(rule_1_id)
 
     @staticmethod
     def __get_rule_id(resp):

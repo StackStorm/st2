@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import os
 
 import mock
@@ -106,7 +107,7 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         # Ref is provided
         pack_db = Pack.get_by_name('dummy_pack_6')
         self.assertEqual(pack_db.ref, 'dummy_pack_6_ref')
-        self.assertEqual(len(pack_dbs[0].contributors), 0)
+        self.assertEqual(len(pack_db.contributors), 0)
 
         # Ref is not provided, directory name should be used
         pack_db = Pack.get_by_name('dummy_pack_1')
@@ -162,7 +163,7 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         self.assertEqual(pack_db.stackstorm_version, '>=1.6.0, <2.2.0')
         self.assertEqual(pack_db.system, {'centos': {'foo': '>= 1.0'}})
 
-        # Note: We only store paramters which are defined in the schema, all other custom user
+        # Note: We only store parameters which are defined in the schema, all other custom user
         # defined attributes are ignored
         self.assertTrue(not hasattr(pack_db, 'future'))
         self.assertTrue(not hasattr(pack_db, 'this'))

@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import copy
 import uuid
 
@@ -28,7 +29,7 @@ from oslo_config import cfg
 import st2tests.config as tests_config
 tests_config.parse_args()
 
-from mistral_v2 import MistralRunner
+from mistral_v2.mistral_v2 import MistralRunner
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar
 from st2common.constants import action as action_constants
@@ -133,13 +134,13 @@ class MistralAuthTest(DbTestCase):
         super(MistralAuthTest, self).setUp()
 
         # Mock the local runner run method.
-        local_runner_cls = self.get_runner_class('local_runner')
+        local_runner_cls = self.get_runner_class('local_runner', 'local_shell_command_runner')
         local_run_result = (action_constants.LIVEACTION_STATUS_SUCCEEDED, NON_EMPTY_RESULT, None)
         local_runner_cls.run = mock.Mock(return_value=local_run_result)
 
     @classmethod
-    def get_runner_class(cls, runner_name):
-        return runners.get_runner(runner_name).__class__
+    def get_runner_class(cls, package_name, module_name):
+        return runners.get_runner(package_name, module_name).__class__
 
     def tearDown(self):
         super(MistralAuthTest, self).tearDown()

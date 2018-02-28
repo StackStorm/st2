@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import copy
 import uuid
 
@@ -30,7 +31,7 @@ from oslo_config import cfg
 import st2tests.config as tests_config
 tests_config.parse_args()
 
-from mistral_v2 import MistralRunner
+from mistral_v2.mistral_v2 import MistralRunner
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar
 from st2common.constants import action as action_constants
@@ -186,7 +187,7 @@ class MistralRunnerTest(DbTestCase):
 
     @classmethod
     def get_runner_class(cls, runner_name):
-        return runners.get_runner(runner_name).__class__
+        return runners.get_runner(runner_name, runner_name).__class__
 
     def test_build_context(self):
         parent = {
@@ -207,7 +208,7 @@ class MistralRunnerTest(DbTestCase):
 
         context = MistralRunner._build_mistral_context(parent, current)
         self.assertTrue(context is not None)
-        self.assertTrue('parent' in context['mistral'].keys())
+        self.assertTrue('parent' in list(context['mistral'].keys()))
 
         parent_dict = {
             'workflow_name': parent['mistral']['workflow_name'],

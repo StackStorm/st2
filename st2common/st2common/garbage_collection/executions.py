@@ -18,6 +18,7 @@ Module with utility functions for purging old action executions and
 corresponding live action objects.
 """
 
+from __future__ import absolute_import
 import copy
 
 from mongoengine.errors import InvalidQueryError
@@ -79,7 +80,9 @@ def purge_executions(logger, timestamp, action_ref=None, purge_incomplete=False)
     # 1. Delete ActionExecutionDB objects
     try:
         # Note: We call list() on the query set object because it's lazyily evaluated otherwise
-        to_delete_execution_dbs = list(ActionExecution.query(**exec_filters))
+        to_delete_execution_dbs = list(ActionExecution.query(only_fields=['id'],
+                                                             no_dereference=True,
+                                                             **exec_filters))
         deleted_count = ActionExecution.delete_by_query(**exec_filters)
     except InvalidQueryError as e:
         msg = ('Bad query (%s) used to delete execution instances: %s'
@@ -121,8 +124,12 @@ def purge_executions(logger, timestamp, action_ref=None, purge_incomplete=False)
     else:
         logger.info('Deleted %s execution output objects' % (deleted_count))
 
-    zombie_execution_instances = len(ActionExecution.query(**exec_filters))
-    zombie_liveaction_instances = len(LiveAction.query(**liveaction_filters))
+    zombie_execution_instances = len(ActionExecution.query(only_fields=['id'],
+                                                           no_dereference=True,
+                                                           **exec_filters))
+    zombie_liveaction_instances = len(LiveAction.query(only_fields=['id'],
+                                                      no_dereference=True,
+                                                       **liveaction_filters))
 
     if (zombie_execution_instances > 0) or (zombie_liveaction_instances > 0):
         logger.error('Zombie execution instances left: %d.', zombie_execution_instances)

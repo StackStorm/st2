@@ -7,6 +7,7 @@
 =======
 
 ## TL;DR
+
 * Install Get yourself a clean 64-bit Linux box that fits the [system requirements](https://docs.stackstorm.com/install/system_requirements.html). Run the installer script:
 
    ```
@@ -71,7 +72,7 @@ in our documentation.
 
 ## Copyright, License, and Contributors Agreement
 
-Copyright 2015 StackStorm, Inc.
+Copyright 2014-2018 StackStorm, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this work except in compliance with the License. You may obtain a copy of the License in the [LICENSE](LICENSE) file, or at:
 

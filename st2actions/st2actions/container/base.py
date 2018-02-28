@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import json
 import sys
 import traceback
@@ -33,6 +34,7 @@ from st2common.services import access, executions
 from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
 from st2common.util.action_db import (update_liveaction_status, get_liveaction_by_id)
 from st2common.util import param as param_utils
+from st2common.util.config_loader import ContentPackConfigLoader
 
 from st2common.runners.base import get_runner
 from st2common.runners.base import AsyncActionRunner
@@ -322,11 +324,26 @@ class RunnerContainer(object):
         return ActionExecution.get_by_id(execution_id) if execution_id else None
 
     def _get_runner(self, runnertype_db, action_db, liveaction_db):
-        runner = get_runner(runnertype_db.runner_module)
-
         resolved_entry_point = self._get_entry_point_abs_path(action_db.pack,
                                                               action_db.entry_point)
+        context = getattr(liveaction_db, 'context', dict())
+        user = context.get('user', cfg.CONF.system_user.user)
 
+        # Note: Right now configs are only supported by the Python runner actions
+        if runnertype_db.runner_module == 'python_runner':
+            LOG.debug('Loading config for pack')
+
+            config_loader = ContentPackConfigLoader(pack_name=action_db.pack, user=user)
+            config = config_loader.get_config()
+        else:
+            config = None
+
+        runner = get_runner(package_name=runnertype_db.runner_package,
+                            module_name=runnertype_db.runner_module,
+                            config=config)
+
+        # TODO: Pass those arguments to the constructor instead of late
+        # assignment, late assignment is awful
         runner.runner_type_db = runnertype_db
         runner.action = action_db
         runner.action_name = action_db.name
@@ -335,7 +352,7 @@ class RunnerContainer(object):
         runner.execution = ActionExecution.get(liveaction__id=runner.liveaction_id)
         runner.execution_id = str(runner.execution.id)
         runner.entry_point = resolved_entry_point
-        runner.context = getattr(liveaction_db, 'context', dict())
+        runner.context = context
         runner.callback = getattr(liveaction_db, 'callback', dict())
         runner.libs_dir_path = self._get_action_libs_abs_path(action_db.pack,
                                                               action_db.entry_point)

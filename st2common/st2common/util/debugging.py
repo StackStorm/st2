@@ -17,6 +17,7 @@
 Module containing various debugging functionality.
 """
 
+from __future__ import absolute_import
 import paramiko
 from kombu.utils.debug import setup_logging
 

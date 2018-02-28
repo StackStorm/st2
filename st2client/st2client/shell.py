@@ -54,7 +54,6 @@ from st2client.exceptions.operations import OperationFailureException
 from st2client.utils.logging import LogLevelFilter, set_log_level_for_all_loggers
 from st2client.commands.auth import TokenCreateCommand
 from st2client.commands.auth import LoginCommand
-from st2client.commands.auth import WhoamiCommand
 
 
 __all__ = [
@@ -81,7 +80,6 @@ class Shell(BaseCLIApp):
     SKIP_AUTH_CLASSES = [
         TokenCreateCommand.__name__,
         LoginCommand.__name__,
-        WhoamiCommand.__name__
     ]
 
     def __init__(self):
@@ -95,7 +93,10 @@ class Shell(BaseCLIApp):
         self.parser.add_argument(
             '--version',
             action='version',
-            version='%(prog)s {version}'.format(version=__version__))
+            version='%(prog)s {version}, on Python {python_major}.{python_minor}'.format(
+                version=__version__,
+                python_major=sys.version_info.major,
+                python_minor=sys.version_info.minor))
 
         self.parser.add_argument(
             '--url',
@@ -186,7 +187,8 @@ class Shell(BaseCLIApp):
         )
 
         # Set up list of commands and subcommands.
-        self.subparsers = self.parser.add_subparsers()
+        self.subparsers = self.parser.add_subparsers(dest='parser')
+        self.subparsers.required = True
         self.commands = {}
 
         self.commands['run'] = action.ActionRunCommand(
@@ -329,8 +331,16 @@ class Shell(BaseCLIApp):
             # Set up client.
             self.client = self.get_client(args=args, debug=debug)
 
+            # TODO: This is not so nice work-around for Python 3 because of a breaking change in
+            # Python 3 - https://bugs.python.org/issue16308
+            try:
+                func = getattr(args, 'func')
+            except AttributeError:
+                parser.print_help()
+                sys.exit(2)
+
             # Execute command.
-            args.func(args)
+            func(args)
 
             return 0
         except OperationFailureException as e:

@@ -27,7 +27,7 @@ from st2common.rbac import utils as rbac_utils
 
 from st2common.router import abort
 from st2common.router import Response
-from st2common.util.actionalias_matching import match_command_to_alias
+from st2common.util.actionalias_matching import get_matching_alias
 from st2common.util.actionalias_helpstring import generate_helpstring_result
 
 
@@ -56,18 +56,12 @@ class ActionAliasController(resource.ContentPackResourceController):
         'help': ['POST']
     }
 
-    def _match_tuple_to_dict(self, match):
-        return {
-            'actionalias': match[0],
-            'display': match[1],
-            'representation': match[2]
-        }
-
-    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
+    def get_all(self, sort=None, offset=0, limit=None, requester_user=None, **raw_filters):
         return super(ActionAliasController, self)._get_all(sort=sort,
                                                            offset=offset,
                                                            limit=limit,
-                                                           raw_filters=raw_filters)
+                                                           raw_filters=raw_filters,
+                                                           requester_user=requester_user)
 
     def get_one(self, ref_or_id, requester_user):
         permission_type = PermissionType.ACTION_ALIAS_VIEW
@@ -77,32 +71,26 @@ class ActionAliasController(resource.ContentPackResourceController):
 
     def match(self, action_alias_match_api):
         """
-            Run a chatops command
+            Find a matching action alias.
 
             Handles requests:
                 POST /actionalias/match
         """
         command = action_alias_match_api.command
+
         try:
-            # 1. Get aliases
-            aliases_resp = super(ActionAliasController, self)._get_all()
-            aliases = [ActionAliasAPI(**alias) for alias in aliases_resp.json]
-            # 2. Match alias(es) to command
-            matches = match_command_to_alias(command, aliases)
-            if len(matches) > 1:
-                raise ActionAliasAmbiguityException("Command '%s' matched more than 1 pattern" %
-                                                    command,
-                                                    matches=matches,
-                                                    command=command)
-            elif len(matches) == 0:
-                raise ActionAliasAmbiguityException("Command '%s' matched no patterns" %
-                                                    command,
-                                                    matches=[],
-                                                    command=command)
-            return [self._match_tuple_to_dict(match) for match in matches]
+            format_ = get_matching_alias(command=command)
         except ActionAliasAmbiguityException as e:
             LOG.exception('Command "%s" matched (%s) patterns.', e.command, len(e.matches))
             return abort(http_client.BAD_REQUEST, str(e))
+
+        # Convert ActionAliasDB to API
+        action_alias_api = ActionAliasAPI.from_model(format_['alias'])
+        return {
+            'actionalias': action_alias_api,
+            'display': format_['display'],
+            'representation': format_['representation'],
+        }
 
     def help(self, filter, pack, limit, offset, **kwargs):
         """

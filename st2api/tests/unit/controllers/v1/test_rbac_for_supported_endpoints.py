@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import httplib
 from collections import OrderedDict
 
 import six
@@ -37,7 +36,7 @@ __all__ = [
 
 FIXTURES_PACK = 'generic'
 TEST_FIXTURES = OrderedDict([
-    ('runners', ['testrunner1.yaml']),
+    ('runners', ['testrunner1.yaml', 'run-local.yaml']),
     ('sensors', ['sensor1.yaml']),
     ('actions', ['action1.yaml', 'local.yaml']),
     ('aliases', ['alias1.yaml']),
@@ -141,7 +140,8 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             # Runners
             {
                 'path': '/v1/runnertypes',
-                'method': 'GET'
+                'method': 'GET',
+                'is_getall': True
             },
             {
                 'path': '/v1/runnertypes/test-runner-1',
@@ -155,7 +155,8 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             # Packs
             {
                 'path': '/v1/packs',
-                'method': 'GET'
+                'method': 'GET',
+                'is_getall': True
             },
             {
                 'path': '/v1/packs/dummy_pack_1',
@@ -194,7 +195,8 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             # Pack config schemas
             {
                 'path': '/v1/config_schemas',
-                'method': 'GET'
+                'method': 'GET',
+                'is_getall': True
             },
             {
                 'path': '/v1/config_schemas/dummy_pack_1',
@@ -206,8 +208,9 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             },
             # Pack configs
             {
-                'path': '/v1/configs/',
-                'method': 'GET'
+                'path': '/v1/configs',
+                'method': 'GET',
+                'is_getall': True
             },
             {
                 'path': '/v1/configs/dummy_pack_1',
@@ -223,7 +226,8 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             # Sensors
             {
                 'path': '/v1/sensortypes',
-                'method': 'GET'
+                'method': 'GET',
+                'is_getall': True
             },
             {
                 'path': '/v1/sensortypes/%s' % (sensor_model.ref),
@@ -237,7 +241,8 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             # Actions
             {
                 'path': '/v1/actions',
-                'method': 'GET'
+                'method': 'GET',
+                'is_getall': True
             },
             {
                 'path': '/v1/actions/wolfpack.action-1',
@@ -260,7 +265,8 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             # Action aliases
             {
                 'path': '/v1/actionalias',
-                'method': 'GET'
+                'method': 'GET',
+                'is_getall': True
             },
             {
                 'path': '/v1/actionalias/aliases.alias1',
@@ -288,7 +294,8 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             # Rules
             {
                 'path': '/v1/rules',
-                'method': 'GET'
+                'method': 'GET',
+                'is_getall': True
             },
             {
                 'path': '/v1/rules/%s' % (rule_model.ref),
@@ -311,7 +318,8 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             # Rule enforcements
             {
                 'path': '/v1/ruleenforcements',
-                'method': 'GET'
+                'method': 'GET',
+                'is_getall': True
             },
             {
                 'path': '/v1/ruleenforcements/%s' % (enforcement_model.id),
@@ -320,7 +328,8 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             # Action Executions
             {
                 'path': '/v1/executions',
-                'method': 'GET'
+                'method': 'GET',
+                'is_getall': True
             },
             {
                 'path': '/v1/executions/%s' % (execution_model.id),
@@ -375,7 +384,8 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             # Traces
             {
                 'path': '/v1/traces',
-                'method': 'GET'
+                'method': 'GET',
+                'is_getall': True
             },
             {
                 'path': '/v1/traces/%s' % (trace_model.id),
@@ -402,7 +412,8 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             # RBAC - roles
             {
                 'path': '/v1/rbac/roles',
-                'method': 'GET'
+                'method': 'GET',
+                'is_getall': True
             },
             {
                 'path': '/v1/rbac/roles/admin',
@@ -411,7 +422,8 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             # RBAC - user role assignments
             {
                 'path': '/v1/rbac/role_assignments',
-                'method': 'GET'
+                'method': 'GET',
+                'is_getall': True
             },
             {
                 'path': '/v1/rbac/role_assignments/%s' % (self.role_assignment_db_model['id']),
@@ -420,11 +432,24 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             # RBAC - permission types
             {
                 'path': '/v1/rbac/permission_types',
-                'method': 'GET'
+                'method': 'GET',
+                'is_getall': True
             },
             {
                 'path': '/v1/rbac/permission_types/action',
                 'method': 'GET'
+            },
+            # Action views
+            {
+                'path': '/v1/actions/views/overview',
+                'method': 'GET',
+                'is_getall': True
+            },
+            # Rule views
+            {
+                'path': '/v1/rules/views',
+                'method': 'GET',
+                'is_getall': True
             }
         ]
 
@@ -434,19 +459,42 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             msg = '%s "%s" didn\'t return 403 status code (body=%s)' % (endpoint['method'],
                                                                         endpoint['path'],
                                                                         response.body)
-            self.assertEqual(response.status_code, httplib.FORBIDDEN, msg)
+            self.assertEqual(response.status_code, http_client.FORBIDDEN, msg)
+
+        # Also test ?limit=-1 - non-admin user
+        self.use_user(self.users['observer'])
+
+        for endpoint in supported_endpoints:
+            if not endpoint.get('is_getall', False):
+                continue
+
+            response = self.app.get(endpoint['path'] + '?limit=-1', expect_errors=True)
+            msg = '%s "%s" didn\'t return 403 status code (body=%s)' % (endpoint['method'],
+                                                                        endpoint['path'],
+                                                                        response.body)
+            self.assertEqual(response.status_code, http_client.FORBIDDEN, msg)
+
+        # Also test ?limit=-1 - admin user
+        self.use_user(self.users['admin'])
+
+        for endpoint in supported_endpoints:
+            if not endpoint.get('is_getall', False):
+                continue
+
+            response = self.app.get(endpoint['path'] + '?limit=-1')
+            self.assertEqual(response.status_code, http_client.OK)
 
     def test_icon_png_file_is_whitelisted(self):
         self.use_user(self.users['no_permissions'])
 
         # Test that access to icon.png file doesn't require any permissions
         response = self.app.get('/v1/packs/views/file/dummy_pack_2/icon.png')
-        self.assertEqual(response.status_code, httplib.OK)
+        self.assertEqual(response.status_code, http_client.OK)
 
         # Other files should return forbidden
         response = self.app.get('/v1/packs/views/file/dummy_pack_2/pack.yaml',
                                 expect_errors=True)
-        self.assertEqual(response.status_code, httplib.FORBIDDEN)
+        self.assertEqual(response.status_code, http_client.FORBIDDEN)
 
     def _perform_request_for_endpoint(self, endpoint):
         if endpoint['method'] == 'GET':

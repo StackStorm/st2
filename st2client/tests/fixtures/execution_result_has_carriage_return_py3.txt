@@ -1,0 +1,71 @@
++-----------------+--------------------------------------------------------------+
+| Property        | Value                                                        |
++-----------------+--------------------------------------------------------------+
+| id              | 548235439c993840e690d710                                     |
+| action.ref      | packs.uninstall                                              |
+| context.user    | stanley                                                      |
+| parameters      | {                                                            |
+|                 |     "packs": [                                               |
+|                 |         "sensu"                                              |
+|                 |     ]                                                        |
+|                 | }                                                            |
+| status          | succeeded                                                    |
+| start_timestamp | Fri, 05 Dec 2014 22:44:19 UTC                                |
+| end_timestamp   |                                                              |
+| result          | {                                                            |
+|                 |     "unregister": {                                          |
+|                 |         "exit_code": 0,                                      |
+|                 |         "result": null,                                      |
+|                 |         "stderr": "st2.actions.python.UnregisterPackAction:  |
+|                 | DEBUG    Removing pack sensu.                                |
+|                 | st2.actions.python.UnregisterPackAction: INFO     Removed    |
+|                 | pack sensu.                                                  |
+|                 | ",                                                           |
+|                 |         "stdout": ""                                         |
+|                 |     },                                                       |
+|                 |     "restart-sensor-container": {                            |
+|                 |         "localhost": {                                       |
+|                 |             "failed": false,                                 |
+|                 |             "stderr": "",                                    |
+|                 |             "return_code": 0,                                |
+|                 |             "succeeded": true,                               |
+|                 |             "stdout": "restarting service sensor_containesr  |
+|                 | with 1 process(es).                                          |
+|                 | sensor_containesr is not running                             |
+|                 | actionrunner PID: 16604                                      |
+|                 | actionrunner PID: 16605                                      |
+|                 | actionrunner PID: 16606                                      |
+|                 | actionrunner PID: 16607                                      |
+|                 | actionrunner PID: 16608                                      |
+|                 | actionrunner PID: 16609                                      |
+|                 | actionrunner PID: 16610                                      |
+|                 | actionrunner PID: 16611                                      |
+|                 | actionrunner PID: 16612                                      |
+|                 | actionrunner PID: 16613                                      |
+|                 | actionrunner PID: 19916                                      |
+|                 | st2api PID: 16614                                            |
+|                 | sensor_container is not running                              |
+|                 | history PID: 16616                                           |
+|                 | rules_engine PID: 16617                                      |
+|                 | mistral PID: 16624                                           |
+|                 | mistral PID: 16625"                                          |
+|                 |         }                                                    |
+|                 |     },                                                       |
+|                 |     "delete": {                                              |
+|                 |         "exit_code": 0,                                      |
+|                 |         "result": null,                                      |
+|                 |         "stderr": "st2.actions.python.UninstallPackAction:   |
+|                 | DEBUG    Deleting pack directory                             |
+|                 | "/opt/stackstorm/packs/sensu"                                |
+|                 | st2.actions.python.UninstallPackAction: DEBUG    Deleting    |
+|                 | virtualenv "/opt/stackstorm/virtualenvs/sensu" for pack      |
+|                 | "sensu"                                                      |
+|                 | ",                                                           |
+|                 |         "stdout": ""                                         |
+|                 |     }                                                        |
+|                 | }                                                            |
+| liveaction      | {                                                            |
+|                 |     "callback": {},                                          |
+|                 |     "id": "1"                                                |
+|                 | }                                                            |
++-----------------+--------------------------------------------------------------+

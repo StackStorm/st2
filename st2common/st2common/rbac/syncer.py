@@ -16,7 +16,18 @@
 """
 Module for syncing RBAC definitions in the database with the ones from the filesystem.
 """
-import itertools
+from __future__ import absolute_import
+
+import six
+
+from itertools import chain
+
+if six.PY3:
+    # pylint: disable=no-name-in-module
+    from itertools import zip_longest as izip_longest  # NOQA
+else:
+    # pylint: disable=no-name-in-module
+    from itertools import izip_longest  # NOQA
 
 from collections import defaultdict
 
@@ -214,9 +225,9 @@ class RBACDefinitionsDBSyncer(object):
         # and ones which are in the database). We want to make sure assignments are correctly
         # deleted from the database for users which existing in the database, but have no
         # assignment file on disk and for assignments for users which don't exist in the database.
-        all_usernames = (username_to_user_db_map.keys() +
-                         username_to_role_assignment_apis_map.keys() +
-                         username_to_role_assignment_dbs_map.keys())
+        all_usernames = (list(username_to_user_db_map.keys()) +
+                         list(username_to_role_assignment_apis_map.keys()) +
+                         list(username_to_role_assignment_dbs_map.keys()))
         all_usernames = list(set(all_usernames))
 
         results = {}
@@ -290,11 +301,11 @@ class RBACDefinitionsDBSyncer(object):
         db_roles = set([(entry.role, entry.source) for entry in role_assignment_dbs])
 
         api_roles = [
-            list(itertools.izip_longest(entry.roles, [], fillvalue=entry.file_path))
+            list(izip_longest(entry.roles, [], fillvalue=entry.file_path))
             for entry in role_assignment_apis
         ]
 
-        api_roles = set(list(itertools.chain.from_iterable(api_roles)))
+        api_roles = set(list(chain.from_iterable(api_roles)))
 
         # A list of new assignments which should be added to the database
         new_roles = api_roles.difference(db_roles)

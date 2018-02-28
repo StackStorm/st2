@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import copy
 import json
 import mock
@@ -23,6 +24,7 @@ import uuid
 
 from tests import base
 from st2client import shell
+from six.moves import range
 
 LOG = logging.getLogger(__name__)
 
@@ -166,16 +168,16 @@ class TestInquirySubcommands(TestInquiryBase):
     @mock.patch.object(
         requests, 'get',
         mock.MagicMock(return_value=(base.FakeResponse(
-            json.dumps(_generate_inquiries(22)), 200, 'OK', {'X-Total-Count': '25'}
+            json.dumps(_generate_inquiries(50)), 200, 'OK', {'X-Total-Count': '55'}
         ))))
     def test_list_inquiries_limit(self):
         """Test retrieval of a list of Inquiries while using the "limit" option
         """
-        args = ['inquiry', 'list', '-n', '22']
+        args = ['inquiry', 'list', '-n', '50']
         retcode = self.shell.run(args)
         self.assertEqual(retcode, 0)
-        self.assertEqual(self.stdout.getvalue().count('1440'), 22)
-        self.assertTrue('Note: Only first 22 inquiries are displayed.' in self.stderr.getvalue())
+        self.assertEqual(self.stdout.getvalue().count('1440'), 50)
+        self.assertTrue('Note: Only first 50 inquiries are displayed.' in self.stderr.getvalue())
 
     @mock.patch.object(
         requests, 'get',
@@ -244,11 +246,6 @@ class TestInquirySubcommands(TestInquiryBase):
         self.assertEqual(retcode, 1)
         self.assertEqual('ERROR: 400 Client Error: Bad Request', self.stdout.getvalue().strip())
 
-    @mock.patch.object(
-        requests, 'put',
-        mock.MagicMock(return_value=(base.FakeResponse(
-            json.dumps({}), 404, '404 Client Error: Not Found'
-        ))))
     def test_respond_nonexistent_inquiry(self):
         """Test responding to an inquiry that doesn't exist
         """
@@ -256,7 +253,7 @@ class TestInquirySubcommands(TestInquiryBase):
         args = ['inquiry', 'respond', '-r', '"%s"' % RESPONSE_DEFAULT, inquiry_id]
         retcode = self.shell.run(args)
         self.assertEqual(retcode, 1)
-        self.assertEqual('ERROR: 404 Client Error: Not Found',
+        self.assertEqual('ERROR: Resource with id "%s" doesn\'t exist.' % inquiry_id,
                          self.stdout.getvalue().strip())
 
     @mock.patch.object(

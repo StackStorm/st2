@@ -14,18 +14,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+
 import pwd
 import os
 import copy
+from collections import OrderedDict
+
 import unittest2
 
 from st2common.models.system.action import ShellCommandAction
 from st2common.models.system.action import ShellScriptAction
-
+from st2common.logging.formatters import MASKED_ATTRIBUTE_VALUE
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 FIXTURES_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '../fixtures'))
 LOGGED_USER_USERNAME = pwd.getpwuid(os.getuid())[0]
+
+__all__ = [
+    'ShellCommandActionTestCase',
+    'ShellScriptActionTestCase'
+]
 
 
 class ShellCommandActionTestCase(unittest2.TestCase):
@@ -55,6 +64,17 @@ class ShellCommandActionTestCase(unittest2.TestCase):
         command = action.get_full_command_string()
         self.assertEqual(command, 'sudo -E -H -u mauser -- bash -c \'ls -la\'')
 
+        # sudo with password
+        kwargs = copy.deepcopy(self._base_kwargs)
+        kwargs['sudo'] = False
+        kwargs['sudo_password'] = 'sudopass'
+        kwargs['user'] = 'mauser'
+        action = ShellCommandAction(**kwargs)
+        command = action.get_full_command_string()
+
+        expected_command = 'sudo -S -E -H -u mauser -- bash -c \'ls -la\''
+        self.assertEqual(command, expected_command)
+
         # sudo is used, it doesn't matter what user is specified since the
         # command should run as root
         kwargs = copy.deepcopy(self._base_kwargs)
@@ -63,6 +83,17 @@ class ShellCommandActionTestCase(unittest2.TestCase):
         action = ShellCommandAction(**kwargs)
         command = action.get_full_command_string()
         self.assertEqual(command, 'sudo -E -- bash -c \'ls -la\'')
+
+        # sudo with passwd
+        kwargs = copy.deepcopy(self._base_kwargs)
+        kwargs['sudo'] = True
+        kwargs['user'] = 'mauser'
+        kwargs['sudo_password'] = 'sudopass'
+        action = ShellCommandAction(**kwargs)
+        command = action.get_full_command_string()
+
+        expected_command = 'sudo -S -E -- bash -c \'ls -la\''
+        self.assertEqual(command, expected_command)
 
 
 class ShellScriptActionTestCase(unittest2.TestCase):
@@ -102,35 +133,106 @@ class ShellScriptActionTestCase(unittest2.TestCase):
         command = action.get_full_command_string()
         self.assertEqual(command, 'sudo -E -H -u mauser -- bash -c /tmp/foo.sh')
 
+        # sudo with password
+        kwargs = copy.deepcopy(self._base_kwargs)
+        kwargs['sudo'] = False
+        kwargs['user'] = 'mauser'
+        kwargs['sudo_password'] = 'sudopass'
+        action = ShellScriptAction(**kwargs)
+        command = action.get_full_command_string()
+
+        expected_command = 'sudo -S -E -H -u mauser -- bash -c /tmp/foo.sh'
+        self.assertEqual(command, expected_command)
+
+        # complex sudo password which needs escaping
+        kwargs = copy.deepcopy(self._base_kwargs)
+        kwargs['sudo'] = False
+        kwargs['user'] = 'mauser'
+        kwargs['sudo_password'] = '$udo p\'as"sss'
+        action = ShellScriptAction(**kwargs)
+        command = action.get_full_command_string()
+
+        expected_command = ('sudo -S -E -H '
+                            '-u mauser -- bash -c /tmp/foo.sh')
+        self.assertEqual(command, expected_command)
+
+        command = action.get_sanitized_full_command_string()
+        expected_command = ('echo -e \'%s\n\' | sudo -S -E -H '
+                            '-u mauser -- bash -c /tmp/foo.sh' % (MASKED_ATTRIBUTE_VALUE))
+        self.assertEqual(command, expected_command)
+
         # sudo is used, it doesn't matter what user is specified since the
         # command should run as root
         kwargs = copy.deepcopy(self._base_kwargs)
         kwargs['sudo'] = True
         kwargs['user'] = 'mauser'
+        kwargs['sudo_password'] = 'sudopass'
         action = ShellScriptAction(**kwargs)
         command = action.get_full_command_string()
-        self.assertEqual(command, 'sudo -E -- bash -c /tmp/foo.sh')
+
+        expected_command = 'sudo -S -E -- bash -c /tmp/foo.sh'
+        self.assertEqual(command, expected_command)
 
     def test_command_construction_with_parameters(self):
         # same user, named args, no positional args
         kwargs = copy.deepcopy(self._base_kwargs)
         kwargs['sudo'] = False
         kwargs['user'] = LOGGED_USER_USERNAME
-        kwargs['named_args'] = {'key1': 'value1', 'key2': 'value2'}
+        kwargs['named_args'] = OrderedDict([
+            ('key1', 'value1'),
+            ('key2', 'value2')
+        ])
         kwargs['positional_args'] = []
         action = ShellScriptAction(**kwargs)
         command = action.get_full_command_string()
-        self.assertEqual(command, '/tmp/foo.sh key2=value2 key1=value1')
+        self.assertEqual(command, '/tmp/foo.sh key1=value1 key2=value2')
+
+        # same user, named args, no positional args, sudo password
+        kwargs = copy.deepcopy(self._base_kwargs)
+        kwargs['sudo'] = True
+        kwargs['sudo_password'] = 'sudopass'
+        kwargs['user'] = LOGGED_USER_USERNAME
+        kwargs['named_args'] = OrderedDict([
+            ('key1', 'value1'),
+            ('key2', 'value2')
+        ])
+        kwargs['positional_args'] = []
+        action = ShellScriptAction(**kwargs)
+        command = action.get_full_command_string()
+
+        expected = ('sudo -S -E -- bash -c '
+                    '\'/tmp/foo.sh key1=value1 key2=value2\'')
+        self.assertEqual(command, expected)
 
         # different user, named args, no positional args
         kwargs = copy.deepcopy(self._base_kwargs)
         kwargs['sudo'] = False
         kwargs['user'] = 'mauser'
-        kwargs['named_args'] = {'key1': 'value1', 'key2': 'value2'}
+        kwargs['named_args'] = OrderedDict([
+            ('key1', 'value1'),
+            ('key2', 'value2')
+        ])
         kwargs['positional_args'] = []
         action = ShellScriptAction(**kwargs)
         command = action.get_full_command_string()
-        expected = 'sudo -E -H -u mauser -- bash -c \'/tmp/foo.sh key2=value2 key1=value1\''
+        expected = 'sudo -E -H -u mauser -- bash -c \'/tmp/foo.sh key1=value1 key2=value2\''
+        self.assertEqual(command, expected)
+
+        # different user, named args, no positional args, sudo password
+        kwargs = copy.deepcopy(self._base_kwargs)
+        kwargs['sudo'] = False
+        kwargs['sudo_password'] = 'sudopass'
+        kwargs['user'] = 'mauser'
+        kwargs['named_args'] = OrderedDict([
+            ('key1', 'value1'),
+            ('key2', 'value2')
+        ])
+        kwargs['positional_args'] = []
+        action = ShellScriptAction(**kwargs)
+
+        command = action.get_full_command_string()
+        expected = ('sudo -S -E -H -u mauser -- bash -c '
+                    '\'/tmp/foo.sh key1=value1 key2=value2\'')
         self.assertEqual(command, expected)
 
         # same user, positional args, no named args
@@ -159,23 +261,32 @@ class ShellScriptActionTestCase(unittest2.TestCase):
         kwargs = copy.deepcopy(self._base_kwargs)
         kwargs['sudo'] = False
         kwargs['user'] = LOGGED_USER_USERNAME
-        kwargs['named_args'] = {'key1': 'value1', 'key2': 'value2', 'key3': 'value 3'}
+        kwargs['named_args'] = OrderedDict([
+            ('key1', 'value1'),
+            ('key2', 'value2'),
+            ('key3', 'value 3')
+        ])
+
         kwargs['positional_args'] = ['ein', 'zwei', 'drei']
         action = ShellScriptAction(**kwargs)
         command = action.get_full_command_string()
-        exp = '/tmp/foo.sh key3=\'value 3\' key2=value2 key1=value1 ein zwei drei'
+        exp = '/tmp/foo.sh key1=value1 key2=value2 key3=\'value 3\' ein zwei drei'
         self.assertEqual(command, exp)
 
         # different user, positional and named args
         kwargs = copy.deepcopy(self._base_kwargs)
         kwargs['sudo'] = False
         kwargs['user'] = 'mauser'
-        kwargs['named_args'] = {'key1': 'value1', 'key2': 'value2', 'key3': 'value 3'}
+        kwargs['named_args'] = OrderedDict([
+            ('key1', 'value1'),
+            ('key2', 'value2'),
+            ('key3', 'value 3')
+        ])
         kwargs['positional_args'] = ['ein', 'zwei', 'drei']
         action = ShellScriptAction(**kwargs)
         command = action.get_full_command_string()
-        expected = ('sudo -E -H -u mauser -- bash -c \'/tmp/foo.sh key3=\'"\'"\'value 3\'"\'"\' '
-                    'key2=value2 key1=value1 ein zwei drei\'')
+        expected = ('sudo -E -H -u mauser -- bash -c \'/tmp/foo.sh key1=value1 key2=value2 '
+                    'key3=\'"\'"\'value 3\'"\'"\' ein zwei drei\'')
         self.assertEqual(command, expected)
 
     def test_named_parameter_escaping(self):
@@ -183,12 +294,12 @@ class ShellScriptActionTestCase(unittest2.TestCase):
         kwargs = copy.deepcopy(self._base_kwargs)
         kwargs['sudo'] = False
         kwargs['user'] = LOGGED_USER_USERNAME
-        kwargs['named_args'] = {
-            'key1': 'value foo bar',
-            'key2': 'value "bar" foo',
-            'key3': 'date ; whoami',
-            'key4': '"date ; whoami"',
-        }
+        kwargs['named_args'] = OrderedDict([
+            ('key1', 'value foo bar'),
+            ('key2', 'value "bar" foo'),
+            ('key3', 'date ; whoami'),
+            ('key4', '"date ; whoami"'),
+        ])
         action = ShellScriptAction(**kwargs)
         command = action.get_full_command_string()
         expected = self._get_fixture('escaping_test_command_1.txt')
@@ -198,12 +309,12 @@ class ShellScriptActionTestCase(unittest2.TestCase):
         kwargs = copy.deepcopy(self._base_kwargs)
         kwargs['sudo'] = True
         kwargs['user'] = LOGGED_USER_USERNAME
-        kwargs['named_args'] = {
-            'key1': 'value foo bar',
-            'key2': 'value "bar" foo',
-            'key3': 'date ; whoami',
-            'key4': '"date ; whoami"',
-        }
+        kwargs['named_args'] = OrderedDict([
+            ('key1', 'value foo bar'),
+            ('key2', 'value "bar" foo'),
+            ('key3', 'date ; whoami'),
+            ('key4', '"date ; whoami"'),
+        ])
         action = ShellScriptAction(**kwargs)
         command = action.get_full_command_string()
         expected = self._get_fixture('escaping_test_command_2.txt')

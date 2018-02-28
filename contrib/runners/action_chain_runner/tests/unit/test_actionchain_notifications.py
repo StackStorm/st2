@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import mock
 
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
@@ -22,7 +23,7 @@ from st2common.services import action as action_service
 from st2common.util import action_db as action_db_util
 from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
-import action_chain_runner as acr
+from action_chain_runner import action_chain_runner as acr
 
 
 class DummyActionExecution(object):

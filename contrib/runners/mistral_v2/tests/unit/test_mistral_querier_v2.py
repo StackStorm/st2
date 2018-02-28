@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import copy
 import datetime
 import json
@@ -29,6 +30,7 @@ from mistralclient.api.v2 import tasks
 from oslo_config import cfg
 
 import st2tests.config as tests_config
+from six.moves import range
 tests_config.parse_args()
 
 from st2common.constants import action as action_constants
@@ -204,6 +206,14 @@ MOCK_LIVEACTION_UP_TO_DATE_INCOMPLETE_TASKS_RESULT = {
     ]
 }
 
+MOCK_CHILD_ACTIONEXECUTION_REQUESTED = ActionExecutionDB(
+    action={'ref': 'mock.task'},
+    runner={'name': 'local_runner'},
+    liveaction={'id': uuid.uuid4().hex},
+    status=action_constants.LIVEACTION_STATUS_REQUESTED,
+    children=[]
+)
+
 MOCK_CHILD_ACTIONEXECUTION_RUNNING = ActionExecutionDB(
     action={'ref': 'mock.task'},
     runner={'name': 'local_runner'},
@@ -231,6 +241,14 @@ MOCK_CHILD_ACTIONEXECUTION_PAUSED = ActionExecutionDB(
 MOCK_LIVEACTION_RUNNING = LiveActionDB(
     action='mock.workflow',
     status=action_constants.LIVEACTION_STATUS_RUNNING
+)
+
+MOCK_ACTIONEXECUTION_RUNNING_CHILD_REQUESTED = ActionExecutionDB(
+    action={'ref': 'mock.workflow'},
+    runner={'name': 'mistral_v2'},
+    liveaction={'id': MOCK_LIVEACTION_RUNNING.id},
+    status=action_constants.LIVEACTION_STATUS_RUNNING,
+    children=[MOCK_CHILD_ACTIONEXECUTION_REQUESTED.id]
 )
 
 MOCK_ACTIONEXECUTION_RUNNING_CHILD_RUNNING = ActionExecutionDB(
@@ -1201,4 +1219,43 @@ class MistralQuerierTest(DbTestCase):
             task['published'] = json.loads(task['published'])
 
         self.assertEqual(action_constants.LIVEACTION_STATUS_RUNNING, status)
+        self.assertDictEqual(expected, result)
+
+    @mock.patch.object(
+        action_utils, 'get_liveaction_by_id',
+        mock.MagicMock(return_value=MOCK_LIVEACTION_RUNNING))
+    @mock.patch.object(
+        executions.ExecutionManager, 'get',
+        mock.MagicMock(return_value=MOCK_WF_EX))
+    @mock.patch.object(
+        tasks.TaskManager, 'list',
+        mock.MagicMock(return_value=MOCK_WF_EX_TASKS))
+    @mock.patch.object(
+        tasks.TaskManager, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_WF_EX_TASKS[0],
+            MOCK_WF_EX_TASKS[1]]))
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_RUNNING_CHILD_REQUESTED,
+            MOCK_CHILD_ACTIONEXECUTION_REQUESTED]))
+    def test_orphaned_execution_child_in_requested_state(self):
+        (status, result) = self.querier.query(uuid.uuid4().hex, MOCK_QRY_CONTEXT)
+
+        expected = {
+            'k1': 'v1',
+            'tasks': copy.deepcopy(MOCK_WF_EX_TASKS_DATA),
+            'extra': {
+                'state': MOCK_WF_EX.state,
+                'state_info': MOCK_WF_EX.state_info
+            }
+        }
+
+        for task in expected['tasks']:
+            task['input'] = json.loads(task['input'])
+            task['result'] = json.loads(task['result'])
+            task['published'] = json.loads(task['published'])
+
+        self.assertEqual(action_constants.LIVEACTION_STATUS_SUCCEEDED, status)
         self.assertDictEqual(expected, result)

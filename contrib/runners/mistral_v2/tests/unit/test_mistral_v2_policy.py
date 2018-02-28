@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import copy
 import uuid
 
@@ -26,10 +27,11 @@ from oslo_config import cfg
 
 # XXX: actionsensor import depends on config being setup.
 import st2tests.config as tests_config
+from six.moves import range
 tests_config.parse_args()
 
-from mistral_v2 import MistralRunner
 import st2common
+from mistral_v2.mistral_v2 import MistralRunner
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import policiesregistrar
 from st2common.bootstrap import runnersregistrar
@@ -125,7 +127,7 @@ class MistralRunnerPolicyTest(DbTestCase):
 
     @classmethod
     def get_runner_class(cls, runner_name):
-        return runners.get_runner(runner_name).__class__
+        return runners.get_runner(runner_name, runner_name).__class__
 
     def _drop_all_other_policies(self, test_policy):
         policy_dbs = [policy_db for policy_db in Policy.get_all() if policy_db.ref != test_policy]

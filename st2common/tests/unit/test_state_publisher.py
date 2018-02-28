@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import kombu
 import mock
 import mongoengine as me
@@ -56,6 +57,10 @@ class FakeModel(persistence.Access):
         publisher = cls._get_publisher()
         if publisher:
             publisher.publish_state(model_object, getattr(model_object, 'state', None))
+
+    @classmethod
+    def _get_by_object(cls, object):
+        return None
 
 
 class StatePublisherTest(DbTestCase):

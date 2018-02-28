@@ -19,6 +19,7 @@ A script that validates each entry defined in OpenAPI-Spec for st2 APIs
 in st2common/models/api/.
 """
 
+from __future__ import absolute_import
 import os
 
 from oslo_config import cfg
@@ -29,6 +30,7 @@ from st2common import log as logging
 from st2common.util import spec_loader
 from st2common.script_setup import setup as common_setup
 from st2common.script_setup import teardown as common_teardown
+import six
 
 
 __all__ = [
@@ -58,7 +60,7 @@ def _validate_definitions(spec):
     error = False
     verbose = cfg.CONF.verbose
 
-    for (model, definition) in defs.iteritems():
+    for (model, definition) in six.iteritems(defs):
         api_model = definition.get('x-api-model', None)
 
         if not api_model:

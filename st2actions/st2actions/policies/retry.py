@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import copy
 import functools
 
@@ -103,6 +104,11 @@ class ExecutionRetryPolicyApplicator(ResourcePolicyApplicator):
                                                    self._re_run_live_action,
                                                    live_action_db=live_action_db)
         else:
+            # Even if delay is 0, use a small delay (0.1 seconds) to prevent busy wait
+            re_run_live_action = functools.partial(eventlet.spawn_after, 0.1,
+                                                   self._re_run_live_action,
+                                                   live_action_db=live_action_db)
+
             re_run_live_action = functools.partial(self._re_run_live_action,
                                                    live_action_db=live_action_db)
 
@@ -119,6 +125,9 @@ class ExecutionRetryPolicyApplicator(ResourcePolicyApplicator):
                      (self.delay), extra=extra)
             re_run_live_action()
             return target
+
+        LOG.info('Invalid status "%s" for live action "%s", wont retry' %
+                (live_action_db.status, str(live_action_db.id)), extra=extra)
 
         return target
 

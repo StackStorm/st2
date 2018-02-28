@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import json
 import hashlib
 
@@ -105,10 +106,15 @@ class TriggerDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
         # in the same hash
         parameters = getattr(self, 'parameters', {})
         parameters = json.dumps(parameters, sort_keys=True)
-        parameters = hashlib.md5(parameters).hexdigest()
+        parameters = hashlib.md5(parameters.encode()).hexdigest()
 
         uid = uid + self.UID_SEPARATOR + parameters
         return uid
+
+    def has_valid_uid(self):
+        parts = self.get_uid_parts()
+        # Note: We add 1 for parameters field which is not part of self.UID_FIELDS
+        return len(parts) == len(self.UID_FIELDS) + 1 + 1
 
 
 class TriggerInstanceDB(stormbase.StormFoundationDB):

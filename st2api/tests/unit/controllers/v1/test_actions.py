@@ -22,8 +22,10 @@ try:
 except ImportError:
     import json
 
+import six
 import mock
 import unittest2
+from six.moves import http_client
 
 from st2common.persistence.action import Action
 import st2common.validators.api.action as action_validator
@@ -311,7 +313,7 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
-    def test_get_all(self):
+    def test_get_all_and_with_minus_one(self):
         action_1_ref = '.'.join([ACTION_1['pack'], ACTION_1['name']])
         action_1_id = self.__get_action_id(self.__do_post(ACTION_1))
         action_2_id = self.__get_action_id(self.__do_post(ACTION_2))
@@ -322,13 +324,29 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
         item = [i for i in resp.json if i['id'] == action_1_id][0]
         self.assertEqual(item['ref'], action_1_ref)
 
+        resp = self.app.get('/v1/actions?limit=-1')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 2, '/v1/actions did not return all actions.')
+
+        item = [i for i in resp.json if i['id'] == action_1_id][0]
+        self.assertEqual(item['ref'], action_1_ref)
+
         self.__do_delete(action_1_id)
         self.__do_delete(action_2_id)
 
-    def test_get_all_invalid_limit_too_large(self):
+    @mock.patch('st2common.rbac.utils.user_is_admin', mock.Mock(return_value=False))
+    def test_get_all_invalid_limit_too_large_none_admin(self):
+        # limit > max_page_size, but user is not admin
         resp = self.app.get('/v1/actions?limit=1000', expect_errors=True)
+        self.assertEqual(resp.status_int, http_client.FORBIDDEN)
+        self.assertEqual(resp.json['faultstring'], 'Limit "1000" specified, maximum value is'
+                         ' "100"')
+
+    def test_get_all_limit_negative_number(self):
+        resp = self.app.get('/v1/actions?limit=-22', expect_errors=True)
         self.assertEqual(resp.status_int, 400)
-        self.assertEqual(resp.json['faultstring'], 'Limit "1000" specified, maximum value is "100"')
+        self.assertEqual(resp.json['faultstring'],
+                         u'Limit, "-22" specified, must be a positive number.')
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
@@ -340,8 +358,8 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
         resp = self.app.get('/v1/actions?exclude_attributes=invalid',
                             expect_errors=True)
         self.assertEqual(resp.status_int, 400)
-        self.assertTrue('Invalid or unsupported attribute specified' in
-                        resp.json['faultstring'])
+        self.assertEqual(resp.json['faultstring'],
+                         'Invalid or unsupported exclude attribute specified: invalid')
 
         # Valid exclude attribute
         resp = self.app.get('/v1/actions?exclude_attributes=parameters')
@@ -349,6 +367,45 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
         self.assertEqual(len(resp.json), 2, '/v1/actions did not return all actions.')
         self.assertEqual(resp.json[0]['parameters'], {})
         self.assertEqual(resp.json[1]['parameters'], {})
+
+        self.__do_delete(action_1_id)
+        self.__do_delete(action_2_id)
+
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    def test_get_all_include_attributes(self):
+        action_1_id = self.__get_action_id(self.__do_post(ACTION_1))
+        action_2_id = self.__get_action_id(self.__do_post(ACTION_2))
+
+        # Invalid include attribute
+        resp = self.app.get('/v1/actions?include_attributes=invalid',
+                            expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertTrue('Invalid or unsupported include attribute specified' in
+                        resp.json['faultstring'])
+
+        # include_attributes and exclude_attributes are mutually exclusive
+        url = '/v1/actions?include_attributes=parameters&exclude_attributes=parameters'
+        resp = self.app.get(url,
+                            expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        expected_msg = ('exclude_fields and include_fields arguments are mutually exclusive. '
+                        'You need to provide either one or another, but not both.')
+        self.assertEqual(resp.json['faultstring'], expected_msg)
+
+        # Valid include attribute
+        resp = self.app.get('/v1/actions?include_attributes=name')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 2, '/v1/actions did not return all actions.')
+        self.assertFalse(resp.json[0]['entry_point'])
+        self.assertFalse(resp.json[1]['entry_point'])
+
+        # Valid include attribute
+        resp = self.app.get('/v1/actions?include_attributes=entry_point')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 2, '/v1/actions did not return all actions.')
+        self.assertTrue(resp.json[0]['entry_point'])
+        self.assertTrue(resp.json[1]['entry_point'])
 
         self.__do_delete(action_1_id)
         self.__do_delete(action_2_id)
@@ -395,7 +452,7 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
     def test_post_no_enable_field(self):
         post_resp = self.__do_post(ACTION_3)
         self.assertEqual(post_resp.status_int, 201)
-        self.assertIn('enabled', post_resp.body)
+        self.assertIn(b'enabled', post_resp.body)
 
         # If enabled field is not provided it should default to True
         data = json.loads(post_resp.body)
@@ -420,7 +477,12 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
         post_resp = self.__do_post(ACTION_13, expect_errors=True)
         self.assertEqual(post_resp.status_int, 400)
 
-        expected_error = '[u\'string\', u\'object\'] is not valid under any of the given schemas'
+        if six.PY3:
+            expected_error = b'[\'string\', \'object\'] is not valid under any of the given schemas'
+        else:
+            expected_error = \
+                b'[u\'string\', u\'object\'] is not valid under any of the given schemas'
+
         self.assertTrue(expected_error in post_resp.body)
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
@@ -428,7 +490,7 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
     def test_post_discard_id_field(self):
         post_resp = self.__do_post(ACTION_7)
         self.assertEqual(post_resp.status_int, 201)
-        self.assertIn('id', post_resp.body)
+        self.assertIn(b'id', post_resp.body)
         data = json.loads(post_resp.body)
         # Verify that user-provided id is discarded.
         self.assertNotEquals(data['id'], ACTION_7['id'])
@@ -489,7 +551,7 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
         action = copy.copy(ACTION_1)
         post_resp = self.__do_post(action)
         self.assertEqual(post_resp.status_int, 201)
-        self.assertIn('id', post_resp.body)
+        self.assertIn(b'id', post_resp.body)
         body = json.loads(post_resp.body)
         action['id'] = body['id']
         action['description'] = 'some other test description'
@@ -498,7 +560,7 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
         self.assertNotIn('pack', action)
         put_resp = self.__do_put(action['id'], action)
         self.assertEqual(put_resp.status_int, 200)
-        self.assertIn('description', put_resp.body)
+        self.assertIn(b'description', put_resp.body)
         body = json.loads(put_resp.body)
         self.assertEqual(body['description'], action['description'])
         self.assertEqual(body['pack'], pack)

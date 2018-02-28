@@ -1,8 +1,214 @@
 Changelog
 =========
 
-In development
+in development
 --------------
+
+Added
+~~~~~
+
+* Update ``st2 execution tail`` command so it supports double nested workflows (workflow ->
+  workflow -> execution). Previously, only top-level executions and single nested workflows
+  (workflow -> execution) were supported. (improvement) #3962 #3960
+* Add support for utf-8 / unicode characters in the pack config files. (improvement) #3980 #3989
+
+  Contributed by @sumkire.
+
+Changed
+~~~~~~~
+
+* Modified RabbitMQ connection error message to make clear that it is an MQ connection issue. #3992
+* Additional refactor which makes action runners fully standalone and re-distributable Python
+  packages. Also add support for multiple runners (runner modules) inside a single Python package
+  and consolidate Python packages from two to one for the following runners: local runners, remote
+  runners, windows runners. (improvement) #3999
+* Upgrade eventlet library to the latest stable version (0.22.1) (improvement) #4007 #3968
+* Increase maximum retry delay for ``action.retry`` policy from 5 seconds to 120 seconds. Because
+  of the way retries are currently implemented (they are not st2notifier service restart safe),
+  long retry delays are not recommended. For more information on this limitation please refer to
+  the documentation - https://docs.stackstorm.com/reference/policies.html#retry. #3630 #3637
+* Update Python runner so it throws a more user-friendly exception in case Python script tries to
+  access a key in ``self.config`` dictionary which doesn't exist. (improvement) #4014
+
+Fixed
+~~~~~
+* Fix Python runner actions and ``Argument list too long`` error when very large parameters are
+  passed into the action. The fix utilizes ``stdin`` to pass parameters to the Python action wrapper
+  process instead of CLI argument list. (bug fix) #1598 #3976
+
+* Fix a regression in ``POST /v1/webhooks/<webhook name>`` API endpoint introduced in v2.4.0
+  and add back support for arrays. In 2.4.0 support for arrays was inadvertently removed and
+  only objects were supported. Keep in mind that this only applies to custom user-defined
+  webhooks and system ``st2`` webhook still requires input to be an object (dictionary).
+  (bug fix) #3956 #3955
+* Fix a bug in the CLI causing ``st2 execution pause`` and ``st2 execution resume``
+  to not work. (bugfix) #4001
+
+  Contributed by Nick Maludy (Encore Technologies).
+
+2.6.0 - January 19, 2018
+------------------------
+
+Added
+~~~~~
+
+* Add new ``get_user_info`` method to action and sensor service. With this method, user can
+  retrieve information about the user account which is used to perform datastore operations inside
+  the action and sensor service. (new feature) #3831
+* Add new ``/api/v1/user`` API endpoint. This API endpoint is only available to the authenticated
+  users and returns various metadata on the authenticated user (which method did the user use to
+  authenticate, under which username the user is authenticated, which RBAC roles are assignment to
+  this user in case RBAC is enabled, etc.) (new feature) #3831
+* The ``/api/v1/match_and_execute`` API endpoint matches a single alias and executes multiple times
+  if the alias format has a ``match_multiple`` key set to ``true``. Please refer to the
+  documentation for usage. #3884
+
+  Contributed by @ahubl-mz.
+* Add ability to share common code between python sensors and python actions. You can now place
+  common code inside a ``lib`` directory inside a pack (with an ``__init__.py`` inside ``lib``
+  directory to declare it a python package). You can then import the common code in sensors and
+  actions. Please refer to documentation for samples and guidelines. #3490
+* Add support for password protected sudo to the local and remote runner. Password can be provided
+  via the new ``sudo_password`` runner parameter. (new feature) #3867
+* Add new ``--tail`` flag to the ``st2 run`` / ``st2 action execute`` and ``st2 execution re-run``
+  CLI command. When this flag is provided, new execution will automatically be followed and tailed
+  after it has been scheduled. (new feature) #3867
+* Added flag ``--auto-dict`` to ``st2 run`` and ``st2 execution re-run`` commands. This flag must now
+  be specified in order to automatically convert list items to dicts based on presence of colon
+  (`:`) in all of the list items (new feature) #3909
+* Allow user to set default log level used by all the Python runner actions by setting
+  ``actionrunner.pythonrunner```` option in ``st2.conf`` (new feature) #3929
+* Update ``st2client`` package which is also utilized by the CLI so it also works under Python 3.
+
+  Note: Python 2.7 is only officially supported and tested Python version. Using Python 3 is at
+  your own risk - they are likely still many bugs related to Python 3 compatibility. You have been warned.
+  (new feature) #3929 #3932
+
+  Contributed by Anthony Shaw.
+* Add ``?limit=-1`` support for the API to fetch full result set (CLI equivalent flag
+  ``--last/-n``). Post error message for ``limit=0`` and fix corner case where negative values for
+  limit query param were not handled correctly. #3761 #3708 #3735
+* Only allow RBAC admins to retrieve all the results at once using ``?limit=-1`` query param, upate
+  the code so ``api.max_page_size`` config option only applies to non-admin users, meaning users
+  with admin permission can specify arbitrary value for ``?limit`` query param which can also be
+  larger than ``api.max_page_size``. (improvement) #3939
+* Add new ``?include_attributes`` query param filter to ``/v1/executions/`` API endpoint
+  With this filter user can select which fields to include in the response (whitelist approach,
+  opposite of the existing ``?exclude_attributes`` filter).
+
+  For example, if you only want to retrieve ``id`` and ``status`` field, the URL would look like
+  this - ``/v1/executions?include_attributes=id,status``. (new feature) #3953 #3858 #3856
+
+Changed
+~~~~~~~
+
+* ``st2actions.runners.pythonrunner.Action`` class path for base Python runner actions has been
+  deprecated since StackStorm v1.6.0 and will be fully removed in StackStorm v2.7.0. If you have
+  any actions still using this path you are encouraged to update them to use
+  ``st2common.runners.base_action.Action`` path. #3803
+* Refactor ``st2common`` Python package so it's fully self sustaining and can be used in a
+  standalone manner. (improvement) #3803
+* Refactor Python action runner so it only depends on ``st2common`` Python package (previously it
+  also depended on ``st2actions``) and can be used in a standalone mode. Previously pack config and
+  and some other parameters were retrieved inside the Python process wrapper, but now they are
+  retrieved inside the runner container and passed to the runner. This also makes it easier to add
+  support for pack configs to other runners in the future. (improvement) #3803
+* Update various Python dependencies to the latest stable versions (kombu, amqp, apscheduler,
+  gitpython, pymongo, stevedore, paramiko, prompt-toolkit, flex). #3830
+* Mask values in an Inquiry response displayed to the user that were marked as "secret" in the
+  inquiry's response schema. #3825
+* Real-time action output streaming is now enabled by default. For more information on this
+  feature, please refer to the documentation - https://docs.stackstorm.com/latest/reference/action_output_streaming.html.
+  You can disable this functionality by setting ``actionrunner.stream_output`` config option in
+  ``st2.conf`` to ``False`` and restart the services (``sudo st2ctl restart``).
+
+Fixed
+~~~~~
+
+* Fully fix performance regressions for short Python runner actions introduced in the past and
+  partially fixed in #3809. (bug fix) #3803
+* Fix 'NameError: name 'cmd' is not defined' error when using ``linux.service`` with CentOS systems.
+  #3843. Contributed by @shkadov
+* Fix bugs with newlines in execution formatter (client) (bug fix) #3872
+* Fixed ``st2ctl status`` to use better match when checking running process status. #3920
+* Removed invalid ``st2ctl`` option to re-open Mistral log files. #3920
+* Update garbage collection service and ``st2-purge-executions`` CLI tool and make deletion more
+  efficient. Previously we incorrectly loaded all the execution fields in memory, but there was no
+  need for that and now we only retrieve and load id which is the only field we need. #3936
+
+  Reported by @kevin-vh.
+
+2.5.1 - December 14, 2017
+-------------------------
+
+Added
+~~~~~
+
+* Add new ``log_level`` runner parameter to Python runner. With this parameter, user can control
+  which log messages generated by Python runner actions are output to action ``stderr``. For
+  backward compatibility reasons it defaults to ``debug``.
+  This functionality comes handy in situations when an action depends on an external library which
+  logs a lot of information under ``debug``, but you only want to see messages with log level
+  ``error`` or higher (or similar). (new feature) #3824
+* Add stevedore related metadata to Python package setup.py files for runner packages. This way
+  runners can be installed using pip and dynamically enumerated and loaded using stevedore and
+  corresponding helper functions.
+
+  All runners are now also fully fledged Python packages (previously they were single module
+  Python packages which caused various install and distribution related issues when installing
+  them via pip) (new feature)
+* Add new ``search`` rule criteria comparison operator. Please refer to the documentation for
+  usage. (new feature) #3833
+
+  Contributed by @ahubl-mz.
+* Now a more user-friendly error message is thrown if a cycle is found inside the Jinja template
+  string (e.g. when parameter / variable references itself). (improvement) #3908
+* Jinja templates in default parameter values now render as live parameters, if no "real" live
+  parameter was provided. This allows the template to render pre-schema validation, resulting
+  in the intended value type. (improvement) #3892
+
+Changed
+~~~~~~~
+
+* Update the output of ``st2 execution {run,get}`` CLI command to colorize the value of the
+  ``status`` attribute (green for ``succeeded``, red for ``failed``, etc. aka the same as for the
+  output of ``st2 execution list`` command). (improvement) #3810
+
+  Contributed by Nick Maludy (Encore Technologies).
+* Update log messages in the datastore service to correctly use ``DEBUG`` log level instead of
+  ``AUDIT``. #3845
+* Add the ability of ``st2 key load`` to load keys from both JSON and YAML files. Files can now
+  contain a single KeyValuePair, or an array of KeyValuePairs. (improvement) #3815
+* Add the ability of ``st2 key load`` to load non-string values (objects, arrays, integers,
+  booleans) and convert them to JSON before going into the datastore, this conversion requires the
+  user passing in the ``-c/--convert`` flag. (improvement) #3815
+* Update ``st2 key load`` to load all properties of a key/value pair, now secret values can be
+  loaded. (improvement) #3815
+
+  Contributed by Nick Maludy (Encore Technologies).
+
+Fixed
+~~~~~
+
+* Fix log messages generated by Python runner actions to include the correct action class name.
+  Previously they always incorrectly used "ABCMeta" instead of the actual action class name.
+  (bug fix) #3824
+* Fix ``st2 execution tail [last]`` CLI command so it doesn't throw an exception if there are no
+  executions in the database. (bug fix) #3760 #3802
+* Fix edge case for workflows stuck in running state. When Mistral receives a connection error from
+  the st2 API on requesting action execution, there's a duplicate action execution stuck in
+  requested state. This leads to the st2resultstracker assuming the workflow is still running.
+* Fix a regression and a bug with no API validation being performed and API returning 500 instead
+  of 400 status code if user didn't include any request payload (body) when hitting POST and PUT
+  API endpoints where body is mandatory. (bug fix) #3864
+* Fix a bug in Python runner which would cause action log messages to be duplicated in action
+  stderr output when utilizing action service / datastore service inside actions. (bug fix)
+* Fix performance issue on the CLI when formatting the output as JSON or YAML. (bug fix) #3697
+
+  Contributed by Nick Maludy (Encore Technologies).
+
+2.5.0 - October 25, 2017
+------------------------
 
 Added
 ~~~~~
@@ -43,9 +249,27 @@ Added
 
   Contributed by mierdin. #3653
 * Added two new rule operators, `inside` and `ninside` which allow for the reverse intent of
-  the `contains` and `ncontains` operators.
+  the `contains` and `ncontains` operators. #3781
 
-  Contributed by lampwins.
+  Contributed by @lampwins.
+* Allow user to use more expressive regular expressions inside action alias format string by
+  allowing them to specify start (``^``) and end (``$``) anchors. Previously, those anchors were
+  automatically added at the beginning and end of the alias format string. Now they are only added
+  if a format string doesn't already contain them. #3789
+
+  Contributed by @ahubl-mz.
+* Add new ``POST /v1/aliasexecution/match_and_execute`` API endpoint which allows user to
+  schedule an execution based on a command string if a matching alias is found in the database.
+
+  This API endpoint is meant to be used with chat bot plugins. It allows them to be simple thin
+  wrappers around this API endpoint which send each chat line to this API endpoint and handle the
+  response. #3773
+* Add several improvements to the installation scripts: They support using proxy servers.
+  ``~stanley`` no longer has to be ``/home/stanley``. In addition to the on-screen display, the
+  output from the installation script is now logged to a file beginning with ``st2-install`` under
+  ``/var/log/st2/``. Furthermore, the script handles re-runs better, although it's
+  not fully idempotent yet. More improvements are expected in the near future.
+  st2-packages: #505, #506, #507, #508, #509, #510, #512, #517.
 
 Fixed
 ~~~~~
@@ -89,11 +313,24 @@ Fixed
   #3748 #3786
 
   Reported by Christopher Baklid.
+* Don't log MongoDB database password if user specifies URI for ``database.db_host`` config
+  parameter and that URI also includes a password. Default and a common scenario is specifying
+  password as a separate ``database.password`` config parameter. #3797
+
+  Reported by Igor Cherkaev.
+* Fix ``POST /v1/actionalias/match`` API endpoint to correctly return a dictionary instead of an
+  array. We had a correct OpenAPI definition for the response, but the code incorrectly returned
+  an array instead of a dictionary.
+
+  Note: This is a breaking change so if your code utilizes this API endpoint you need to update
+  to treat response as a dictionary and not as an array with a single item. #377
+* Partially fix performance overhead and regression for short and simple Python runner actions.
+  Full / complete fix will be included in v2.6.0. #3809
 
 Changed
 ~~~~~~~
 
-* Minor language and style tidy up of help strings and error messages #3782 
+* Minor language and style tidy up of help strings and error messages. #3782
 
 2.4.1 - September 12, 2017
 --------------------------
@@ -110,6 +347,10 @@ Fixed
 * Fix cancellation of delayed action execution for tasks in workflow. (bug fix)
 * Fix timeout of mistral shutdown in systemd service. The fix is done upstream.
   https://review.openstack.org/#/c/499853/ (bug fix)
+* Fix ``st2ctl clean`` not using database connection information from config.
+  This now uses the new ``st2-cleanup-db`` command. (bug fix) #3659
+
+  Contributed by Nick Maludy (Encore Technologies).
 
 Changed
 ~~~~~~~
@@ -120,6 +361,9 @@ Changed
   ``st2 run`` CLI command. #3670
 
   Contributed by Hiroyasu OHYAMA.
+* Added new command ``st2-cleanup-db`` that drops the current StackStorm MongoDB database. #3659
+
+  Contributed by Nick Maludy (Encore Technologies).
 
 2.4.0 - August 23, 2017
 -----------------------
@@ -718,7 +962,6 @@ Added
   ``True``. However, to access remote hosts, action parameters like username and
   password/private_key, if provided with action, will have precedence over the config file
   entry for the host. #2941 #3032 #3058 [Eric Edgar] (improvement)
-
 
 Changed
 ~~~~~~~

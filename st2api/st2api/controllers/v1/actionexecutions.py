@@ -15,7 +15,6 @@
 
 import copy
 import re
-import httplib
 import sys
 import traceback
 import itertools
@@ -174,8 +173,6 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
 
         # Schedule the action execution.
         liveaction_db = LiveActionAPI.to_model(liveaction)
-        liveaction_db, actionexecution_db = action_service.create_request(liveaction_db)
-
         action_db = action_utils.get_action_by_ref(liveaction_db.action)
         runnertype_db = action_utils.get_runnertype_by_name(action_db.runner_type['name'])
 
@@ -184,6 +181,10 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
                 runnertype_db.runner_parameters, action_db.parameters, liveaction_db.parameters,
                 liveaction_db.context)
         except param_exc.ParamException:
+
+            # We still need to create a request, so liveaction_db is assigned an ID
+            liveaction_db, actionexecution_db = action_service.create_request(liveaction_db)
+
             # By this point the execution is already in the DB therefore need to mark it failed.
             _, e, tb = sys.exc_info()
             action_service.update_status(
@@ -191,9 +192,12 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
                 new_status=action_constants.LIVEACTION_STATUS_FAILED,
                 result={'error': str(e), 'traceback': ''.join(traceback.format_tb(tb, 20))})
             # Might be a good idea to return the actual ActionExecution rather than bubble up
-            # the execption.
+            # the exception.
             raise validation_exc.ValueValidationException(str(e))
 
+        # The request should be created after the above call to render_live_params
+        # so any templates in live parameters have a chance to render.
+        liveaction_db, actionexecution_db = action_service.create_request(liveaction_db)
         liveaction_db = LiveAction.add_or_update(liveaction_db, publish=False)
 
         _, actionexecution_db = action_service.publish_request(liveaction_db, actionexecution_db)
@@ -239,10 +243,10 @@ class BaseActionExecutionNestedController(ActionExecutionsControllerMixin, Resou
     supported_filters = {}
 
     def get_all(self):
-        abort(httplib.NOT_FOUND)
+        abort(http_client.NOT_FOUND)
 
     def get_one(self, id):
-        abort(httplib.NOT_FOUND)
+        abort(http_client.NOT_FOUND)
 
 
 class ActionExecutionChildrenController(BaseActionExecutionNestedController):
@@ -313,7 +317,7 @@ class ActionExecutionOutputController(ActionExecutionsControllerMixin, ResourceC
         execution_id = str(execution_db.id)
 
         query_filters = {}
-        if output_type:
+        if output_type and output_type != 'all':
             query_filters['output_type'] = output_type
 
         def existing_output_iter():
@@ -328,7 +332,7 @@ class ActionExecutionOutputController(ActionExecutionsControllerMixin, ResourceC
 
         def new_output_iter():
             def noop_gen():
-                yield ''
+                yield six.binary_type('')
 
             # Bail out if execution has already completed / been paused
             if execution_db.status in self.CLOSE_STREAM_LIVEACTION_STATES:
@@ -501,22 +505,17 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
     }
 
     def get_all(self, requester_user, exclude_attributes=None, sort=None, offset=0, limit=None,
-                show_secrets=False, **raw_filters):
+                show_secrets=False, include_attributes=None, **raw_filters):
         """
         List all executions.
 
         Handles requests:
             GET /executions[?exclude_attributes=result,trigger_instance]
 
-        :param exclude_attributes: Comma delimited string of attributes to exclude from the object.
-        :type exclude_attributes: ``str``
+        :param exclude_attributes: List of attributes to exclude from the object.
+        :type exclude_attributes: ``list``
         """
-        if exclude_attributes:
-            exclude_fields = exclude_attributes.split(',')
-        else:
-            exclude_fields = None
-
-        exclude_fields = self._validate_exclude_fields(exclude_fields=exclude_fields)
+        exclude_fields = self._validate_exclude_fields(exclude_fields=exclude_attributes)
 
         # Use a custom sort order when filtering on a timestamp so we return a correct result as
         # expected by the user
@@ -530,12 +529,14 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
             'mask_secrets': self._get_mask_secrets(requester_user, show_secrets=show_secrets)
         }
         return self._get_action_executions(exclude_fields=exclude_fields,
+                                           include_fields=include_attributes,
                                            from_model_kwargs=from_model_kwargs,
                                            sort=sort,
                                            offset=offset,
                                            limit=limit,
                                            query_options=query_options,
-                                           raw_filters=raw_filters)
+                                           raw_filters=raw_filters,
+                                           requester_user=requester_user)
 
     def get_one(self, id, requester_user, exclude_attributes=None, show_secrets=False):
         """
@@ -544,15 +545,10 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         Handles requests:
             GET /executions/<id>[?exclude_attributes=result,trigger_instance]
 
-        :param exclude_attributes: Comma delimited string of attributes to exclude from the object.
-        :type exclude_attributes: ``str``
+        :param exclude_attributes: List of attributes to exclude from the object.
+        :type exclude_attributes: ``list``
         """
-        if exclude_attributes:
-            exclude_fields = exclude_attributes.split(',')
-        else:
-            exclude_fields = None
-
-        exclude_fields = self._validate_exclude_fields(exclude_fields=exclude_fields)
+        exclude_fields = self._validate_exclude_fields(exclude_fields=exclude_attributes)
 
         from_model_kwargs = {
             'mask_secrets': self._get_mask_secrets(requester_user, show_secrets=show_secrets)
@@ -704,8 +700,10 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         return ActionExecutionAPI.from_model(execution_db,
                                              mask_secrets=from_model_kwargs['mask_secrets'])
 
-    def _get_action_executions(self, exclude_fields=None, sort=None, offset=0, limit=None,
-                               query_options=None, raw_filters=None, from_model_kwargs=None):
+    def _get_action_executions(self, exclude_fields=None, include_fields=None,
+                               sort=None, offset=0, limit=None,
+                               query_options=None, raw_filters=None, from_model_kwargs=None,
+                               requester_user=None):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
@@ -718,12 +716,14 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
 
         LOG.debug('Retrieving all action executions with filters=%s', raw_filters)
         return super(ActionExecutionsController, self)._get_all(exclude_fields=exclude_fields,
+                                                                include_fields=include_fields,
                                                                 from_model_kwargs=from_model_kwargs,
                                                                 sort=sort,
                                                                 offset=offset,
                                                                 limit=limit,
                                                                 query_options=query_options,
-                                                                raw_filters=raw_filters)
+                                                                raw_filters=raw_filters,
+                                                                requester_user=requester_user)
 
 
 action_executions_controller = ActionExecutionsController()

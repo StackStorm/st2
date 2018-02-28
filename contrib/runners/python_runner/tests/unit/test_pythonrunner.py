@@ -13,22 +13,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import os
 import re
 
+import six
 import mock
+import unittest2
 from oslo_config import cfg
 
-import python_runner
-from st2common.runners.python_action_wrapper import PythonActionWrapper
+from python_runner import python_runner
+from st2actions.container.base import RunnerContainer
 from st2common.runners.base_action import Action
 from st2common.runners.utils import get_action_class_instance
 from st2common.services import config as config_service
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
+from st2common.constants.action import MAX_PARAM_LENGTH
 from st2common.constants.pack import SYSTEM_PACK_NAME
 from st2common.persistence.execution import ActionExecutionOutput
+from python_runner.python_action_wrapper import PythonActionWrapper
 from st2tests.base import RunnerTestCase
 from st2tests.base import CleanDbTestCase
 from st2tests.base import blocking_eventlet_spawn
@@ -38,6 +43,8 @@ import st2tests.base as tests_base
 
 PASCAL_ROW_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
                                       'pythonactions/actions/pascal_row.py')
+ECHOER_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
+                                  'pythonactions/actions/echoer.py')
 TEST_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
                                 'pythonactions/actions/test.py')
 PATHS_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
@@ -48,6 +55,9 @@ ACTION_2_PATH = os.path.join(tests_base.get_fixtures_path(),
                              'packs/dummy_pack_9/actions/invalid_syntax.py')
 NON_SIMPLE_TYPE_ACTION = os.path.join(tests_base.get_resources_path(), 'packs',
                                       'pythonactions/actions/non_simple_type.py')
+PRINT_CONFIG_ITEM_ACTION = os.path.join(tests_base.get_resources_path(), 'packs',
+                                      'pythonactions/actions/print_config_item_doesnt_exist.py')
+
 
 # Note: runner inherits parent args which doesn't work with tests since test pass additional
 # unrecognized args
@@ -58,7 +68,7 @@ MOCK_EXECUTION = mock.Mock()
 MOCK_EXECUTION.id = '598dbf0c0640fd54bffc688b'
 
 
-@mock.patch('python_runner.sys', mock_sys)
+@mock.patch('python_runner.python_runner.sys', mock_sys)
 class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     register_packs = True
     register_pack_configs = True
@@ -79,8 +89,13 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
         self.assertTrue(output is not None)
 
-        expected_result_re = (r"\[{'a': '1'}, {'h': 3, 'c': 2}, {'e': "
-                              "<non_simple_type.Test object at .*?>}\]")
+        if six.PY2:
+            expected_result_re = (r"\[{'a': '1'}, {'h': 3, 'c': 2}, {'e': "
+                                  "<non_simple_type.Test object at .*?>}\]")
+        else:
+            expected_result_re = (r"\[{'a': '1'}, {'c': 2, 'h': 3}, {'e': "
+                                  "<non_simple_type.Test object at .*?>}\]")
+
         match = re.match(expected_result_re, output['result'])
         self.assertTrue(match)
 
@@ -171,16 +186,18 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertTrue(output is not None)
         self.assertEqual(output['result'], [1, 2])
 
+    @unittest2.skipIf(six.PY3, 'keyczar doesn\'t work under Python 3')
     def test_simple_action_config_value_provided_overriden_in_datastore(self):
-        wrapper = PythonActionWrapper(pack='dummy_pack_5', file_path=PASCAL_ROW_ACTION_PATH,
-                                      user='joe')
+        pack = 'dummy_pack_5'
+        user = 'joe'
 
         # No values provided in the datastore
-        instance = wrapper._get_action_instance()
-        self.assertEqual(instance.config['api_key'], 'some_api_key')  # static value
-        self.assertEqual(instance.config['regions'], ['us-west-1'])  # static value
-        self.assertEqual(instance.config['api_secret'], None)
-        self.assertEqual(instance.config['private_key_path'], None)
+        runner = self._get_mock_runner_obj_from_container(pack=pack, user=user)
+
+        self.assertEqual(runner._config['api_key'], 'some_api_key')  # static value
+        self.assertEqual(runner._config['regions'], ['us-west-1'])  # static value
+        self.assertEqual(runner._config['api_secret'], None)
+        self.assertEqual(runner._config['private_key_path'], None)
 
         # api_secret overriden in the datastore (user scoped value)
         config_service.set_datastore_value_for_config_key(pack_name='dummy_pack_5',
@@ -194,11 +211,11 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
                                                           key_name='private_key_path',
                                                           value='foopath')
 
-        instance = wrapper._get_action_instance()
-        self.assertEqual(instance.config['api_key'], 'some_api_key')  # static value
-        self.assertEqual(instance.config['regions'], ['us-west-1'])  # static value
-        self.assertEqual(instance.config['api_secret'], 'foosecret')
-        self.assertEqual(instance.config['private_key_path'], 'foopath')
+        runner = self._get_mock_runner_obj_from_container(pack=pack, user=user)
+        self.assertEqual(runner._config['api_key'], 'some_api_key')  # static value
+        self.assertEqual(runner._config['regions'], ['us-west-1'])  # static value
+        self.assertEqual(runner._config['api_secret'], 'foosecret')
+        self.assertEqual(runner._config['private_key_path'], 'foopath')
 
     def test_simple_action_fail(self):
         runner = self._get_mock_runner_obj()
@@ -467,6 +484,46 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         actual_env = call_kwargs['env']
         self.assertCommonSt2EnvVarsAvailableInEnv(env=actual_env)
 
+    @mock.patch('st2common.util.green.shell.subprocess.Popen')
+    def test_pythonpath_env_var_contains_common_libs_config_enabled(self, mock_popen):
+        mock_process = mock.Mock()
+        mock_process.communicate.return_value = ('', '')
+        mock_popen.return_value = mock_process
+
+        runner = self._get_mock_runner_obj()
+        runner._enable_common_pack_libs = True
+        runner.auth_token = mock.Mock()
+        runner.auth_token.token = 'ponies'
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.pre_run()
+        (_, _, _) = runner.run({'row_index': 4})
+
+        _, call_kwargs = mock_popen.call_args
+        actual_env = call_kwargs['env']
+        pack_common_lib_path = 'fixtures/packs/core/lib'
+        self.assertTrue('PYTHONPATH' in actual_env)
+        self.assertTrue(pack_common_lib_path in actual_env['PYTHONPATH'])
+
+    @mock.patch('st2common.util.green.shell.subprocess.Popen')
+    def test_pythonpath_env_var_not_contains_common_libs_config_disabled(self, mock_popen):
+        mock_process = mock.Mock()
+        mock_process.communicate.return_value = ('', '')
+        mock_popen.return_value = mock_process
+
+        runner = self._get_mock_runner_obj()
+        runner._enable_common_pack_libs = False
+        runner.auth_token = mock.Mock()
+        runner.auth_token.token = 'ponies'
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.pre_run()
+        (_, _, _) = runner.run({'row_index': 4})
+
+        _, call_kwargs = mock_popen.call_args
+        actual_env = call_kwargs['env']
+        pack_common_lib_path = '/mnt/src/storm/st2/st2tests/st2tests/fixtures/packs/core/lib'
+        self.assertTrue('PYTHONPATH' in actual_env)
+        self.assertTrue(pack_common_lib_path not in actual_env['PYTHONPATH'])
+
     def test_action_class_instantiation_action_service_argument(self):
         class Action1(Action):
             # Constructor not overriden so no issue here
@@ -565,11 +622,143 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
                                       user='joe')
         expected_msg = ('Failed to load action class from file ".*?invalid_syntax.py" '
                        '\(action file most likely doesn\'t exist or contains invalid syntax\): '
-                       'No module named invalid')
+                       'No module named \'?invalid\'?')
         self.assertRaisesRegexp(Exception, expected_msg, wrapper._get_action_instance)
+
+    def test_simple_action_log_messages_and_log_level_runner_param(self):
+        expected_msg_1 = 'st2.actions.python.PascalRowAction: DEBUG    Creating new Client object.'
+        expected_msg_2 = 'Retrieving all the values from the datastore'
+
+        expected_msg_3 = 'st2.actions.python.PascalRowAction: INFO     test info log message'
+        expected_msg_4 = 'st2.actions.python.PascalRowAction: DEBUG    test debug log message'
+        expected_msg_5 = 'st2.actions.python.PascalRowAction: ERROR    test error log message'
+
+        runner = self._get_mock_runner_obj()
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.pre_run()
+        (status, output, _) = runner.run({'row_index': 'e'})
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+        self.assertTrue(output is not None)
+        self.assertEqual(output['result'], [1, 2])
+
+        self.assertTrue(expected_msg_1 in output['stderr'])
+        self.assertTrue(expected_msg_2 in output['stderr'])
+        self.assertTrue(expected_msg_3 in output['stderr'])
+        self.assertTrue(expected_msg_4 in output['stderr'])
+        self.assertTrue(expected_msg_5 in output['stderr'])
+
+        # Verify messages are not duplicated
+        self.assertEqual(len(output['stderr'].split('\n')), 6 + 1)
+
+        # Only log messages with level info and above should be displayed
+        runner = self._get_mock_runner_obj()
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.runner_parameters = {
+            'log_level': 'info'
+        }
+        runner.pre_run()
+        (status, output, _) = runner.run({'row_index': 'e'})
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+        self.assertTrue(output is not None)
+        self.assertEqual(output['result'], [1, 2])
+
+        self.assertTrue(expected_msg_3 in output['stderr'])
+        self.assertTrue(expected_msg_4 not in output['stderr'])
+        self.assertTrue(expected_msg_5 in output['stderr'])
+
+        # Only log messages with level error and above should be displayed
+        runner = self._get_mock_runner_obj()
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.runner_parameters = {
+            'log_level': 'error'
+        }
+        runner.pre_run()
+        (status, output, _) = runner.run({'row_index': 'e'})
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+        self.assertTrue(output is not None)
+        self.assertEqual(output['result'], [1, 2])
+
+        self.assertTrue(expected_msg_3 not in output['stderr'])
+        self.assertTrue(expected_msg_4 not in output['stderr'])
+        self.assertTrue(expected_msg_5 in output['stderr'])
+
+        # Default log level is changed in st2.config
+        cfg.CONF.set_override(name='python_runner_log_level', override='INFO',
+                              group='actionrunner')
+
+        runner = self._get_mock_runner_obj()
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.runner_parameters = {}
+        runner.pre_run()
+        (status, output, _) = runner.run({'row_index': 'e'})
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+        self.assertTrue(output is not None)
+        self.assertEqual(output['result'], [1, 2])
+
+        self.assertTrue(expected_msg_3 in output['stderr'])
+        self.assertTrue(expected_msg_4 not in output['stderr'])
+        self.assertTrue(expected_msg_5 in output['stderr'])
+
+    def test_execution_with_very_large_parameter(self):
+        runner = self._get_mock_runner_obj()
+        runner.entry_point = ECHOER_ACTION_PATH
+        runner.pre_run()
+        large_value = ''.join(['1' for _ in range(MAX_PARAM_LENGTH)])
+        (status, output, _) = runner.run({'action_input': large_value})
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+        self.assertTrue(output is not None)
+        self.assertEqual(output['result']['action_input'], large_value)
+
+    def test_execution_with_close_to_very_large_parameter(self):
+        runner = self._get_mock_runner_obj()
+        runner.entry_point = ECHOER_ACTION_PATH
+        runner.pre_run()
+        # 21 is the minimum overhead required to make the param fall back to
+        # param based payload. The linux max includes all parts of the param
+        # not just the value portion. So we need to subtract the remaining
+        # overhead from the initial padding.
+        large_value = ''.join(['1' for _ in range(MAX_PARAM_LENGTH - 21)])
+        (status, output, _) = runner.run({'action_input': large_value})
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+        self.assertTrue(output is not None)
+        self.assertEqual(output['result']['action_input'], large_value)
+
+    def test_missing_config_item_user_friendly_error(self):
+        runner = self._get_mock_runner_obj()
+        runner.entry_point = PRINT_CONFIG_ITEM_ACTION
+        runner.pre_run()
+        (status, output, _) = runner.run({})
+
+        self.assertEqual(status, LIVEACTION_STATUS_FAILED)
+        self.assertTrue(output is not None)
+        self.assertTrue('{}' in output['stdout'])
+        self.assertTrue('default_value' in output['stdout'])
+        self.assertTrue('Config for pack "core" is missing key "key"' in output['stderr'])
+        self.assertTrue('make sure you run "st2ctl reload --register-configs"' in output['stderr'])
 
     def _get_mock_runner_obj(self):
         runner = python_runner.get_runner()
+        runner.execution = MOCK_EXECUTION
+        runner.action = self._get_mock_action_obj()
+        runner.runner_parameters = {}
+
+        return runner
+
+    @mock.patch('st2actions.container.base.ActionExecution.get', mock.Mock())
+    def _get_mock_runner_obj_from_container(self, pack, user):
+        container = RunnerContainer()
+
+        runnertype_db = mock.Mock()
+        runnertype_db.runner_package = 'python_runner'
+        runnertype_db.runner_module = 'python_runner'
+        action_db = mock.Mock()
+        action_db.pack = pack
+        action_db.entry_point = 'foo.py'
+        liveaction_db = mock.Mock()
+        liveaction_db.id = '123'
+        liveaction_db.context = {'user': user}
+        runner = container._get_runner(runnertype_db=runnertype_db, action_db=action_db,
+                                       liveaction_db=liveaction_db)
         runner.execution = MOCK_EXECUTION
         runner.action = self._get_mock_action_obj()
         runner.runner_parameters = {}

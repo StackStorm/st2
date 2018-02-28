@@ -14,12 +14,16 @@
 # limitations under the License.
 
 
+from __future__ import absolute_import
+import six
+
+
 def unescape(s):
     """
     Action execution escapes escaped chars in result (i.e. \n is stored as \\n).
     This function unescapes those chars.
     """
-    if isinstance(s, basestring):
+    if isinstance(s, six.string_types):
         s = s.replace('\\n', '\n')
         s = s.replace('\\r', '\r')
         s = s.replace('\\"', '\"')
@@ -27,8 +31,21 @@ def unescape(s):
     return s
 
 
+def dedupe_newlines(s):
+    """yaml.safe_dump converts single newlines to double.
+
+    Since we're printing this output and not loading it, we should
+    deduplicate them.
+    """
+
+    if isinstance(s, six.string_types):
+        s = s.replace('\n\n', '\n')
+
+    return s
+
+
 def strip_carriage_returns(s):
-    if isinstance(s, basestring):
+    if isinstance(s, six.string_types):
         s = s.replace('\\r', '')
         s = s.replace('\r', '')
 

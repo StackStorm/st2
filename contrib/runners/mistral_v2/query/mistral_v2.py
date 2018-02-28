@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import random
 import uuid
 
@@ -111,7 +112,7 @@ class MistralResultsQuerier(Querier):
             )
         except exceptions.ReferenceNotFoundError as exc:
             LOG.exception('[%s] Unable to find reference.', execution_id)
-            return (action_constants.LIVEACTION_STATUS_FAILED, exc.message)
+            return (action_constants.LIVEACTION_STATUS_FAILED, str(exc))
         except Exception:
             LOG.exception('[%s] Unable to fetch mistral workflow result and tasks. %s',
                           execution_id, query_context)
@@ -147,8 +148,8 @@ class MistralResultsQuerier(Querier):
             eventlet.sleep(jitter)
             execution = self._client.executions.get(mistral_exec_id)
         except mistralclient_base.APIException as mistral_exc:
-            if 'not found' in mistral_exc.message:
-                raise exceptions.ReferenceNotFoundError(mistral_exc.message)
+            if 'not found' in str(mistral_exc):
+                raise exceptions.ReferenceNotFoundError(str(mistral_exc))
             raise mistral_exc
 
         result = jsonify.try_loads(execution.output) if execution.state in DONE_STATES else {}
@@ -187,7 +188,7 @@ class MistralResultsQuerier(Querier):
             wf_tasks = self._client.tasks.list(workflow_execution_id=mistral_exec_id)
 
             for wf_task in wf_tasks:
-                recorded = list(filter(lambda x: x['id'] == wf_task.id, recorded_tasks))
+                recorded = list([x for x in recorded_tasks if x['id'] == wf_task.id])
 
                 if (not recorded or
                         recorded[0].get('state') != wf_task.state or
@@ -211,8 +212,8 @@ class MistralResultsQuerier(Querier):
                 jitter = random.uniform(0, self._jitter)
                 eventlet.sleep(jitter)
         except mistralclient_base.APIException as mistral_exc:
-            if 'not found' in mistral_exc.message:
-                raise exceptions.ReferenceNotFoundError(mistral_exc.message)
+            if 'not found' in str(mistral_exc):
+                raise exceptions.ReferenceNotFoundError(str(mistral_exc))
             raise mistral_exc
 
         return [self._format_task_result(task=entry.to_dict()) for entry in result]
@@ -251,7 +252,7 @@ class MistralResultsQuerier(Querier):
 
         return result
 
-    def _has_active_tasks(self, liveaction_db, mistral_tasks):
+    def _has_active_tasks(self, liveaction_db, mistral_wf_state, mistral_tasks):
         # Identify if there are any active tasks in Mistral.
         active_mistral_tasks = len([t for t in mistral_tasks if t['state'] in ACTIVE_STATES]) > 0
 
@@ -260,6 +261,13 @@ class MistralResultsQuerier(Querier):
 
         for child_exec_id in execution.children:
             child_exec = ActionExecution.get(id=child_exec_id)
+
+            # Catch exception where a child is requested twice due to st2mistral retrying
+            # from a st2 API connection failure. The first child will be stuck in requested
+            # while the mistral workflow is already completed.
+            if (mistral_wf_state in DONE_STATES and
+                    child_exec.status == action_constants.LIVEACTION_STATUS_REQUESTED):
+                continue
 
             if (child_exec.status not in action_constants.LIVEACTION_COMPLETED_STATES and
                     child_exec.status != action_constants.LIVEACTION_STATUS_PAUSED):
@@ -281,7 +289,7 @@ class MistralResultsQuerier(Querier):
         is_action_resuming = liveaction_db.status in RESUMING_STATES
 
         # Identify the list of tasks that are still running or pausing.
-        active_tasks = self._has_active_tasks(liveaction_db, tasks)
+        active_tasks = self._has_active_tasks(liveaction_db, wf_state, tasks)
 
         # Keep the execution in running state if there are active tasks.
         # In certain use cases, Mistral sets the workflow state to

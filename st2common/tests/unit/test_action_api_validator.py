@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 try:
     import simplejson as json
 except ImportError:
@@ -70,7 +71,7 @@ class TestActionAPIValidator(DbTestCase):
             action_validator.validate_action(action_api)
             self.fail('Action validation should not have passed. %s' % json.dumps(action_api_dict))
         except ValueValidationException as e:
-            self.assertTrue('Cannot override in action.' in e.message)
+            self.assertTrue('Cannot override in action.' in str(e))
 
     @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(
         return_value=True))
@@ -81,7 +82,7 @@ class TestActionAPIValidator(DbTestCase):
             action_validator.validate_action(action_api)
             self.fail('Action validation should not have passed. %s' % json.dumps(action_api_dict))
         except ValueValidationException as e:
-            self.assertTrue('requires a default value.' in e.message)
+            self.assertTrue('requires a default value.' in str(e))
 
     @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(
         return_value=True))
@@ -108,7 +109,7 @@ class TestActionAPIValidator(DbTestCase):
             self.fail('Action validation should have failed ' +
                       'because position values are not unique.' % json.dumps(action_api_dict))
         except ValueValidationException as e:
-            self.assertTrue('have same position' in e.message)
+            self.assertTrue('have same position' in str(e))
 
     @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(
         return_value=True))
@@ -121,4 +122,4 @@ class TestActionAPIValidator(DbTestCase):
             self.fail('Action validation should have failed ' +
                       'because position values are not contiguous.' % json.dumps(action_api_dict))
         except ValueValidationException as e:
-            self.assertTrue('are not contiguous' in e.message)
+            self.assertTrue('are not contiguous' in str(e))

@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import hashlib
 
 import mongoengine as me
@@ -99,11 +100,11 @@ class TraceDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
         parts.append(self.RESOURCE_TYPE)
 
         componenets_hash = hashlib.md5()
-        componenets_hash.update(str(self.trace_tag))
-        componenets_hash.update(str(self.trigger_instances))
-        componenets_hash.update(str(self.rules))
-        componenets_hash.update(str(self.action_executions))
-        componenets_hash.update(str(self.start_timestamp))
+        componenets_hash.update(str(self.trace_tag).encode())
+        componenets_hash.update(str(self.trigger_instances).encode())
+        componenets_hash.update(str(self.rules).encode())
+        componenets_hash.update(str(self.action_executions).encode())
+        componenets_hash.update(str(self.start_timestamp).encode())
 
         parts.append(componenets_hash.hexdigest())
 

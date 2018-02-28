@@ -17,6 +17,7 @@
 Service functions for managing pack configuration inside the datastore.
 """
 
+from __future__ import absolute_import
 from st2common import log as logging
 from st2common.services.keyvalues import get_key_reference
 from st2common.constants.keyvalue import FULL_USER_SCOPE

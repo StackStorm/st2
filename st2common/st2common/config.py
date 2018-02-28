@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import os
 import socket
 import sys
@@ -20,6 +21,7 @@ import sys
 from oslo_config import cfg
 
 from st2common.constants.system import VERSION_STRING
+from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_LOG_LEVEL
 
 
 def do_register_opts(opts, group=None, ignore_errors=False):
@@ -59,7 +61,7 @@ def register_opts(ignore_errors=False):
                    default='stanley',
                    help='Default system user.'),
         cfg.StrOpt('ssh_key_file',
-                   default='/home/vagrant/.ssh/stanley_rsa',
+                   default='/home/stanley/.ssh/stanley_rsa',
                    help='SSH private key for the system user.')
     ]
     do_register_opts(system_user_opts, 'system_user', ignore_errors)
@@ -217,22 +219,29 @@ def register_opts(ignore_errors=False):
     ]
     do_register_opts(auth_opts, 'auth', ignore_errors)
 
-    # Common action runner options
+    # Runner options
     default_python_bin_path = sys.executable
     base_dir = os.path.dirname(os.path.realpath(default_python_bin_path))
     default_virtualenv_bin_path = os.path.join(base_dir, 'virtualenv')
     action_runner_opts = [
+        # Common runner options
         cfg.StrOpt('logging', default='conf/logging.conf',
                    help='location of the logging.conf file'),
+
+        # Python runner options
         cfg.StrOpt('python_binary', default=default_python_bin_path,
                    help='Python binary which will be used by Python actions.'),
         cfg.StrOpt('virtualenv_binary', default=default_virtualenv_bin_path,
                    help='Virtualenv binary which should be used to create pack virtualenvs.'),
+        cfg.StrOpt('python_runner_log_level',
+                   default=PYTHON_RUNNER_DEFAULT_LOG_LEVEL,
+                   help=('Default log level to use for Python runner actions. Can be overriden on '
+                         'invocation basis using "log_level" runner parameter.')),
         cfg.ListOpt('virtualenv_opts', default=['--system-site-packages'],
                     help='List of virtualenv options to be passsed to "virtualenv" command that ' +
                          'creates pack virtualenv.'),
-        cfg.BoolOpt('stream_output', default=False, help='True to store and stream action output '
-                                                         '(stdout and stderr) in real-time.')
+        cfg.BoolOpt('stream_output', default=True, help='True to store and stream action output '
+                                                        '(stdout and stderr) in real-time.')
     ]
     do_register_opts(action_runner_opts, group='actionrunner')
 
@@ -276,6 +285,20 @@ def register_opts(ignore_errors=False):
                     help='Whether to enable or disable the ability to post a trigger on action.'),
     ]
     do_register_opts(action_sensor_opts, group='action_sensor')
+
+    # Common options for content
+
+    pack_lib_opts = [
+        cfg.BoolOpt('enable_common_libs', default=False,
+                    help='Enable/Disable support for pack common libs. ' +
+                         'Setting this config to ``True`` would allow you to ' +
+                         'place common library code for sensors and actions in lib/ folder ' +
+                         'in packs and use them in python sensors and actions. ' +
+                         'See https://docs.stackstorm.com/reference/' +
+                         'sharing_code_sensors_actions.html ' +
+                         'for details.')
+    ]
+    do_register_opts(pack_lib_opts, group='packs')
 
     # Coordination options
     coord_opts = [

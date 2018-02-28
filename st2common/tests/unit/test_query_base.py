@@ -13,7 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import Queue
+from __future__ import absolute_import
+import six.moves.queue
 import time
 
 from unittest2 import TestCase
@@ -70,7 +71,7 @@ class QueryBaseTests(TestCase):
 
         now = time.time()
 
-        query_contexts = Queue.Queue()
+        query_contexts = six.moves.queue.Queue()
         query_contexts.put((now + 100000, mock_query_state_1)),
         query_contexts.put((now + 100001, mock_query_state_2)),
         query_contexts.put((now - 200000, mock_query_state_3)),

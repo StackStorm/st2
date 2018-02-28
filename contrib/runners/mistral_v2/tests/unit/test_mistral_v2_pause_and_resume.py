@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import copy
 import uuid
 
@@ -27,7 +28,7 @@ from oslo_config import cfg
 import st2tests.config as tests_config
 tests_config.parse_args()
 
-from mistral_v2 import MistralRunner
+from mistral_v2.mistral_v2 import MistralRunner
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar
 from st2common.constants import action as action_constants
@@ -125,7 +126,7 @@ class MistralRunnerPauseResumeTest(DbTestCase):
 
     @classmethod
     def get_runner_class(cls, runner_name):
-        return runners.get_runner(runner_name).__class__
+        return runners.get_runner(runner_name, runner_name).__class__
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',

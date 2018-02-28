@@ -13,9 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import mock
 import six
 import uuid
+from collections import defaultdict
 
 from oslo_config import cfg
 
@@ -73,7 +75,7 @@ class ExecutionCancellationTest(DbTestCase):
     @classmethod
     def tearDownClass(cls):
         # Unset the cache for the runner modules
-        loader.RUNNER_MODULES_CACHE = {}
+        loader.RUNNER_MODULES_CACHE = defaultdict(dict)
 
         super(ExecutionCancellationTest, cls).tearDownClass()
 
@@ -85,7 +87,7 @@ class ExecutionCancellationTest(DbTestCase):
 
     @classmethod
     def get_runner_class(cls, runner_name):
-        return runners.get_runner(runner_name).__class__
+        return runners.get_runner(runner_name, runner_name).__class__
 
     @mock.patch.object(
         CUDPublisher, 'publish_create',

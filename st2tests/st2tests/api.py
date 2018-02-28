@@ -17,6 +17,9 @@
 Various base classes and test utility functions for API related tests.
 """
 
+from __future__ import absolute_import
+
+import six
 import webtest
 import mock
 from oslo_config import cfg
@@ -68,7 +71,16 @@ class TestApp(webtest.TestApp):
                                           'response matches OpenAPI scheme for the endpoint.')
 
         if not kwargs.get('expect_errors', None):
-            if SUPER_SECRET_PARAMETER in res.body or ANOTHER_SUPER_SECRET_PARAMETER in res.body:
+            try:
+                body = res.body
+            except AssertionError as e:
+                if 'Iterator read after closed' in str(e):
+                    body = b''
+                else:
+                    raise e
+
+            if six.b(SUPER_SECRET_PARAMETER) in body or \
+                    six.b(ANOTHER_SUPER_SECRET_PARAMETER) in body:
                 raise ResponseLeakError('Endpoint response contains secret parameter. '
                                         'Find the leak.')
 
@@ -171,7 +183,11 @@ class BaseAPIControllerWithRBACTestCase(BaseFunctionalTest, CleanDbTestCase):
             raise ValueError('"user_db" is mandatory')
 
         mock_context = {
-            'user': user_db
+            'user': user_db,
+            'auth_info': {
+                'method': 'authentication token',
+                'location': 'header'
+            }
         }
         self.request_context_mock = mock.PropertyMock(return_value=mock_context)
         Router.mock_context = self.request_context_mock

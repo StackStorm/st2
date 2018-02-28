@@ -13,9 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import unittest
 
 from st2common.transport.connection_retry_wrapper import ClusterRetryContext
+from six.moves import range
 
 
 class TestClusterRetryContext(unittest.TestCase):

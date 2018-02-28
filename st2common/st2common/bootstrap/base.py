@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import os
 import glob
 
@@ -91,7 +92,7 @@ class ResourceRegistrar(object):
 
         :rype: ``list``
         """
-        return REGISTERED_PACKS_CACHE.keys()
+        return list(REGISTERED_PACKS_CACHE.keys())
 
     def register_packs(self, base_dirs):
         """
@@ -172,6 +173,7 @@ class ResourceRegistrar(object):
         # Include a list of pack files
         pack_file_list = get_file_list(directory=pack_dir, exclude_patterns=EXCLUDE_FILE_PATTERNS)
         content['files'] = pack_file_list
+        content['path'] = pack_dir
 
         pack_api = PackAPI(**content)
         pack_api.validate()

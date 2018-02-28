@@ -70,7 +70,8 @@ class InquiriesController(ResourceController):
             raw_filters={
                 'status': action_constants.LIVEACTION_STATUS_PENDING,
                 'runner': INQUIRY_RUNNER
-            }
+            },
+            requester_user=requester_user
         )
 
         # Since "model" is set to InquiryAPI (for good reasons), _get_all returns a list of
@@ -191,7 +192,7 @@ class InquiriesController(ResourceController):
         :rtype: str - Error message, if any
         """
 
-        if inquiry_candidate.runner.get('runner_module') != "inquirer":
+        if inquiry_candidate.runner.get('name') != 'inquirer':
             return (False, '%s is not an Inquiry.' % inquiry_candidate.id)
 
         if inquiry_candidate.status == action_constants.LIVEACTION_STATUS_TIMED_OUT:

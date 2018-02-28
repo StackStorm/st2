@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import unittest
 
 from st2common.util import mongoescape
@@ -62,12 +63,12 @@ class TestMongoEscape(unittest.TestCase):
         field = {'k1.k2.k3': 'v1'}
 
         escaped = mongoescape.escape_chars(field)
-        self.assertIn('k1.k2.k3', field.keys())
-        self.assertIn(u'k1\uff0ek2\uff0ek3', escaped.keys())
+        self.assertIn('k1.k2.k3', list(field.keys()))
+        self.assertIn(u'k1\uff0ek2\uff0ek3', list(escaped.keys()))
 
         unescaped = mongoescape.unescape_chars(escaped)
-        self.assertIn('k1.k2.k3', unescaped.keys())
-        self.assertIn(u'k1\uff0ek2\uff0ek3', escaped.keys())
+        self.assertIn('k1.k2.k3', list(unescaped.keys()))
+        self.assertIn(u'k1\uff0ek2\uff0ek3', list(escaped.keys()))
 
     def test_complex(self):
         field = {

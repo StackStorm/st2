@@ -92,7 +92,7 @@ def set_log_level_for_all_loggers(level=logging.DEBUG):
     Set a log level for all the loggers and handlers to the provided level.
     """
     root_logger = logging.getLogger()
-    loggers = logging.Logger.manager.loggerDict.values()
+    loggers = list(logging.Logger.manager.loggerDict.values())
     loggers += [root_logger]
 
     for logger in loggers:
@@ -108,10 +108,9 @@ def set_log_level_for_all_loggers(level=logging.DEBUG):
             set_log_level_for_all_handlers(logger=logger, level=level)
 
 
-def get_logger_name_for_module(module):
+def get_logger_name_for_module(module, exclude_module_name=False):
     """
-    Retrieve fully qualified logger name for current module (e.g.
-    st2common.cmd.sensormanager)
+    Retrieve fully qualified logger name for current module (e.g. st2common.cmd.sensormanager).
 
     :type: ``str``
     """
@@ -131,6 +130,10 @@ def get_logger_name_for_module(module):
             break
 
     split = split[start_index:]
-    name = '.'.join(split) + '.' + module_name
+
+    if exclude_module_name:
+        name = '.'.join(split)
+    else:
+        name = '.'.join(split) + '.' + module_name
 
     return name

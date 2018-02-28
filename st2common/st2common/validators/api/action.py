@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import six
 
 from st2common.exceptions.apivalidation import ValueValidationException
@@ -23,6 +24,7 @@ from st2common.util import schema as util_schema
 from st2common.content.utils import get_packs_base_paths
 from st2common.content.utils import check_pack_content_directory_exists
 from st2common.models.system.common import ResourceReference
+from six.moves import range
 
 
 LOG = logging.getLogger(__name__)
@@ -103,7 +105,7 @@ def _validate_position_values_contiguous(position_params):
         return True
 
     positions = sorted(position_params.keys())
-    contiguous = (positions == range(min(positions), max(positions) + 1))
+    contiguous = (positions == list(range(min(positions), max(positions) + 1)))
 
     if not contiguous:
         msg = 'Positions supplied %s for parameters are not contiguous.' % positions

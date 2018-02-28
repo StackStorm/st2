@@ -13,14 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import os
 import json
 import logging
 from functools import wraps
 
 import six
-
 from six.moves import urllib
+from six.moves import http_client
 
 from st2client.utils import httpclient
 
@@ -77,7 +78,7 @@ class Resource(object):
         """
         exclude_attributes = exclude_attributes or []
 
-        attributes = self.__dict__.keys()
+        attributes = list(self.__dict__.keys())
         attributes = [attr for attr in attributes if not attr.startswith('__') and
                       attr not in exclude_attributes]
 
@@ -174,8 +175,7 @@ class ResourceManager(object):
         user = kwargs.pop('user', None)
 
         params = kwargs.pop('params', {})
-        if limit and limit <= 0:
-            limit = None
+
         if limit:
             params['limit'] = limit
 
@@ -189,7 +189,7 @@ class ResourceManager(object):
             params['user'] = user
 
         response = self.client.get(url=url, params=params, **kwargs)
-        if response.status_code != 200:
+        if response.status_code != http_client.OK:
             self.handle_error(response)
         return [self.resource.deserialize(item)
                 for item in response.json()]
@@ -198,9 +198,9 @@ class ResourceManager(object):
     def get_by_id(self, id, **kwargs):
         url = '/%s/%s' % (self.resource.get_url_path_name(), id)
         response = self.client.get(url, **kwargs)
-        if response.status_code == 404:
+        if response.status_code == http_client.NOT_FOUND:
             return None
-        if response.status_code != 200:
+        if response.status_code != http_client.OK:
             self.handle_error(response)
         return self.resource.deserialize(response.json())
 
@@ -228,9 +228,9 @@ class ResourceManager(object):
         else:
             response = self.client.get(url)
 
-        if response.status_code == 404:
+        if response.status_code == http_client.NOT_FOUND:
             return None
-        if response.status_code != 200:
+        if response.status_code != http_client.OK:
             self.handle_error(response)
 
         if self_deserialize:
@@ -245,8 +245,6 @@ class ResourceManager(object):
     def _query_details(self, **kwargs):
         if not kwargs:
             raise Exception('Query parameter is not provided.')
-        if 'limit' in kwargs and kwargs.get('limit') <= 0:
-            kwargs.pop('limit')
 
         token = kwargs.get('token', None)
         api_key = kwargs.get('api_key', None)
@@ -267,10 +265,10 @@ class ResourceManager(object):
         else:
             response = self.client.get(url)
 
-        if response.status_code == 404:
+        if response.status_code == http_client.NOT_FOUND:
             # for query and query_with_count
             return [], None
-        if response.status_code != 200:
+        if response.status_code != http_client.OK:
             self.handle_error(response)
         items = response.json()
         instances = [self.resource.deserialize(item) for item in items]
@@ -304,7 +302,7 @@ class ResourceManager(object):
     def create(self, instance, **kwargs):
         url = '/%s' % self.resource.get_url_path_name()
         response = self.client.post(url, instance.serialize(), **kwargs)
-        if response.status_code != 200:
+        if response.status_code != http_client.OK:
             self.handle_error(response)
         instance = self.resource.deserialize(response.json())
         return instance
@@ -313,7 +311,7 @@ class ResourceManager(object):
     def update(self, instance, **kwargs):
         url = '/%s/%s' % (self.resource.get_url_path_name(), instance.id)
         response = self.client.put(url, instance.serialize(), **kwargs)
-        if response.status_code != 200:
+        if response.status_code != http_client.OK:
             self.handle_error(response)
         instance = self.resource.deserialize(response.json())
         return instance
@@ -323,7 +321,9 @@ class ResourceManager(object):
         url = '/%s/%s' % (self.resource.get_url_path_name(), instance.id)
         response = self.client.delete(url, **kwargs)
 
-        if response.status_code not in [200, 204, 404]:
+        if response.status_code not in [http_client.OK,
+                                        http_client.NO_CONTENT,
+                                        http_client.NOT_FOUND]:
             self.handle_error(response)
             return False
 
@@ -333,7 +333,9 @@ class ResourceManager(object):
     def delete_by_id(self, instance_id, **kwargs):
         url = '/%s/%s' % (self.resource.get_url_path_name(), instance_id)
         response = self.client.delete(url, **kwargs)
-        if response.status_code not in [200, 204, 404]:
+        if response.status_code not in [http_client.OK,
+                                        http_client.NO_CONTENT,
+                                        http_client.NOT_FOUND]:
             self.handle_error(response)
             return False
         try:
@@ -355,14 +357,22 @@ class ActionAliasResourceManager(ResourceManager):
     def match(self, instance, **kwargs):
         url = '/%s/match' % self.resource.get_url_path_name()
         response = self.client.post(url, instance.serialize(), **kwargs)
-        if response.status_code != 201:
+        if response.status_code != http_client.OK:
             self.handle_error(response)
-        matches = response.json()
-        if len(matches) > 0:
-            return (self.resource.deserialize(matches[0]['actionalias']),
-                    matches[0]['representation'])
-        else:
-            return matches
+        match = response.json()
+        return (self.resource.deserialize(match['actionalias']), match['representation'])
+
+
+class ActionAliasExecutionManager(ResourceManager):
+    @add_auth_token_to_kwargs_from_env
+    def match_and_execute(self, instance, **kwargs):
+        url = '/%s/match_and_execute' % self.resource.get_url_path_name()
+        response = self.client.post(url, instance.serialize(), **kwargs)
+
+        if response.status_code != http_client.OK:
+            self.handle_error(response)
+        instance = self.resource.deserialize(response.json())
+        return instance
 
 
 class LiveActionResourceManager(ResourceManager):
@@ -383,7 +393,7 @@ class LiveActionResourceManager(ResourceManager):
         }
 
         response = self.client.post(url, data, **kwargs)
-        if response.status_code != 200:
+        if response.status_code != http_client.OK:
             self.handle_error(response)
 
         instance = self.resource.deserialize(response.json())
@@ -397,7 +407,7 @@ class LiveActionResourceManager(ResourceManager):
             url += '?' + urllib.parse.urlencode({'output_type': output_type})
 
         response = self.client.get(url, **kwargs)
-        if response.status_code != 200:
+        if response.status_code != http_client.OK:
             self.handle_error(response)
 
         return response.text
@@ -409,7 +419,7 @@ class LiveActionResourceManager(ResourceManager):
 
         response = self.client.put(url, data, **kwargs)
 
-        if response.status_code != 200:
+        if response.status_code != http_client.OK:
             self.handle_error(response)
 
         return self.resource.deserialize(response.json())
@@ -421,14 +431,33 @@ class LiveActionResourceManager(ResourceManager):
 
         response = self.client.put(url, data, **kwargs)
 
-        if response.status_code != 200:
+        if response.status_code != http_client.OK:
             self.handle_error(response)
 
         return self.resource.deserialize(response.json())
 
 
 class InquiryResourceManager(ResourceManager):
-    pass
+
+    @add_auth_token_to_kwargs_from_env
+    def respond(self, inquiry_id, inquiry_response, **kwargs):
+        """
+        Update st2.inquiry.respond action
+        Update st2client respond command to use this?
+        """
+        url = '/%s/%s' % (self.resource.get_url_path_name(), inquiry_id)
+
+        payload = {
+            "id": inquiry_id,
+            "response": inquiry_response
+        }
+
+        response = self.client.put(url, payload, **kwargs)
+
+        if response.status_code != http_client.OK:
+            self.handle_error(response)
+
+        return self.resource.deserialize(response.json())
 
 
 class TriggerInstanceResourceManager(ResourceManager):
@@ -436,7 +465,7 @@ class TriggerInstanceResourceManager(ResourceManager):
     def re_emit(self, trigger_instance_id, **kwargs):
         url = '/%s/%s/re_emit' % (self.resource.get_url_path_name(), trigger_instance_id)
         response = self.client.post(url, None, **kwargs)
-        if response.status_code != 200:
+        if response.status_code != http_client.OK:
             self.handle_error(response)
         return response.json()
 
@@ -454,7 +483,7 @@ class PackResourceManager(ResourceManager):
             'force': force
         }
         response = self.client.post(url, payload, **kwargs)
-        if response.status_code != 200:
+        if response.status_code != http_client.OK:
             self.handle_error(response)
         instance = AsyncRequest.deserialize(response.json())
         return instance
@@ -463,7 +492,7 @@ class PackResourceManager(ResourceManager):
     def remove(self, packs, **kwargs):
         url = '/%s/uninstall' % (self.resource.get_url_path_name())
         response = self.client.post(url, {'packs': packs}, **kwargs)
-        if response.status_code != 200:
+        if response.status_code != http_client.OK:
             self.handle_error(response)
         instance = AsyncRequest.deserialize(response.json())
         return instance
@@ -476,7 +505,7 @@ class PackResourceManager(ResourceManager):
         else:
             payload = {'pack': args.pack}
         response = self.client.post(url, payload, **kwargs)
-        if response.status_code != 200:
+        if response.status_code != http_client.OK:
             self.handle_error(response)
         data = response.json()
         if isinstance(data, list):
@@ -493,7 +522,7 @@ class PackResourceManager(ResourceManager):
         if packs:
             payload['packs'] = packs
         response = self.client.post(url, payload, **kwargs)
-        if response.status_code != 200:
+        if response.status_code != http_client.OK:
             self.handle_error(response)
         instance = self.resource.deserialize(response.json())
         return instance
@@ -504,7 +533,7 @@ class ConfigManager(ResourceManager):
     def update(self, instance, **kwargs):
         url = '/%s/%s' % (self.resource.get_url_path_name(), instance.pack)
         response = self.client.put(url, instance.values, **kwargs)
-        if response.status_code != 200:
+        if response.status_code != http_client.OK:
             self.handle_error(response)
         instance = self.resource.deserialize(response.json())
         return instance

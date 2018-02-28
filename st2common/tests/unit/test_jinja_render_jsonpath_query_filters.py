@@ -14,6 +14,7 @@
 # limitations under the License.
 
 
+from __future__ import absolute_import
 import unittest2
 
 from st2common.util import jinja as jinja_utils

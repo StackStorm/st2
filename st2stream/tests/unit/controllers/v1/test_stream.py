@@ -235,7 +235,6 @@ class TestStreamController(FunctionalTest):
 
         # Filter provided, only three messages should be received
         events = ['st2.execution__create', 'st2.liveaction__delete']
-        events = ','.join(events)
         resp = stream.StreamController().get_all(events=events)
 
         received_messages = dispatch_and_handle_mock_data(resp)
@@ -246,7 +245,6 @@ class TestStreamController(FunctionalTest):
 
         # Filter provided, only three messages should be received
         events = ['st2.liveaction__create', 'st2.liveaction__delete']
-        events = ','.join(events)
         resp = stream.StreamController().get_all(events=events)
 
         received_messages = dispatch_and_handle_mock_data(resp)
@@ -258,7 +256,6 @@ class TestStreamController(FunctionalTest):
 
         # Glob filter
         events = ['st2.announcement__*']
-        events = ','.join(events)
         resp = stream.StreamController().get_all(events=events)
 
         received_messages = dispatch_and_handle_mock_data(resp)
@@ -268,7 +265,6 @@ class TestStreamController(FunctionalTest):
 
         # Filter provided
         events = ['st2.execution.output__create']
-        events = ','.join(events)
         resp = stream.StreamController().get_all(events=events)
 
         received_messages = dispatch_and_handle_mock_data(resp)
@@ -278,7 +274,6 @@ class TestStreamController(FunctionalTest):
 
         # Filter provided, invalid , no message should be received
         events = ['invalid1', 'invalid2']
-        events = ','.join(events)
         resp = stream.StreamController().get_all(events=events)
 
         received_messages = dispatch_and_handle_mock_data(resp)
@@ -286,14 +281,12 @@ class TestStreamController(FunctionalTest):
 
         # 2. ?action_refs= filter
         action_refs = ['invalid1', 'invalid2']
-        action_refs = ','.join(action_refs)
         resp = stream.StreamController().get_all(action_refs=action_refs)
 
         received_messages = dispatch_and_handle_mock_data(resp)
         self.assertEqual(len(received_messages), 0)
 
         action_refs = ['dummy.action1']
-        action_refs = ','.join(action_refs)
         resp = stream.StreamController().get_all(action_refs=action_refs)
 
         received_messages = dispatch_and_handle_mock_data(resp)
@@ -301,14 +294,12 @@ class TestStreamController(FunctionalTest):
 
         # 3. ?execution_ids= filter
         execution_ids = ['invalid1', 'invalid2']
-        execution_ids = ','.join(execution_ids)
         resp = stream.StreamController().get_all(execution_ids=execution_ids)
 
         received_messages = dispatch_and_handle_mock_data(resp)
         self.assertEqual(len(received_messages), 0)
 
         execution_ids = [EXECUTION_1['id']]
-        execution_ids = ','.join(execution_ids)
         resp = stream.StreamController().get_all(execution_ids=execution_ids)
 
         received_messages = dispatch_and_handle_mock_data(resp)

@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import uuid
 
 import mock
@@ -23,7 +24,7 @@ tests_config.parse_args()
 from unittest2 import TestCase
 from st2common.constants import action as action_constants
 from st2tests.fixturesloader import FixturesLoader
-import noop_runner
+from noop_runner import noop_runner
 
 
 class TestNoopRunner(TestCase):

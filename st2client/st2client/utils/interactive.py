@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import re
 
 import jsonschema
@@ -22,6 +23,7 @@ from prompt_toolkit import token
 from prompt_toolkit import validation
 
 from st2client.exceptions.operations import OperationFailureException
+from six.moves import range
 
 
 POSITIVE_BOOLEAN = {'1', 'y', 'yes', 'true'}

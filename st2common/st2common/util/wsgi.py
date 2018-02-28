@@ -17,6 +17,7 @@
 Eventlet WSGI server related utility functions.
 """
 
+from __future__ import absolute_import
 import eventlet
 
 from st2common import log as logging

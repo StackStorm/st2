@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 from oslo_config import cfg
 
 __all__ = [
@@ -65,6 +66,8 @@ PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT = 10 * 60
 # Exit code with which the Python runner wrapper script exists if the Python
 # action returns invalid status from the run() method
 PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE = 220
+
+PYTHON_RUNNER_DEFAULT_LOG_LEVEL = 'DEBUG'
 
 # Windows runner
 WINDOWS_RUNNER_DEFAULT_ACTION_TIMEOUT = 10 * 60

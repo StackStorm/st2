@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import os
 import shutil
 import tempfile
@@ -20,6 +21,7 @@ import tempfile
 import eventlet
 
 from integration.mistral import base
+from six.moves import range
 
 
 class WiringTest(base.TestWorkflowExecution):
@@ -31,7 +33,7 @@ class WiringTest(base.TestWorkflowExecution):
 
         # Create temporary directory used by the tests
         _, self.temp_dir_path = tempfile.mkstemp()
-        os.chmod(self.temp_dir_path, 0755)   # nosec
+        os.chmod(self.temp_dir_path, 0o755)   # nosec
 
     def tearDown(self):
         if self.temp_dir_path and os.path.exists(self.temp_dir_path):

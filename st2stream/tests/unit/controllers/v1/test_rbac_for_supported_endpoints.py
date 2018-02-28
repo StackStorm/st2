@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import httplib
-
 import six
 
 from st2common.persistence.rbac import UserRoleAssignment
@@ -62,7 +60,7 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             msg = '%s "%s" didn\'t return 403 status code (body=%s)' % (endpoint['method'],
                                                                         endpoint['path'],
                                                                         response.body)
-            self.assertEqual(response.status_code, httplib.FORBIDDEN, msg)
+            self.assertEqual(response.status_code, http_client.FORBIDDEN, msg)
             self.assertRegexpMatches(response.json['faultstring'], expected_msg)
 
     def _perform_request_for_endpoint(self, endpoint):

@@ -13,8 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import abc
+
 import six
+import yaml
 from oslo_config import cfg
 
 from st2common import log as logging
@@ -22,15 +25,18 @@ from st2common.constants import action as action_constants
 from st2common.constants import pack as pack_constants
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.util import action_db as action_utils
-from st2common.util.loader import register_runner, register_callback_module
+from st2common.util.loader import register_runner
+from st2common.util.loader import register_callback_module
 from st2common.util.api import get_full_public_api_url
-
+from st2common.util.deprecation import deprecated
 
 __all__ = [
     'ActionRunner',
     'AsyncActionRunner',
     'ShellRunnerMixin',
-    'get_runner'
+
+    'get_runner',
+    'get_metadata'
 ]
 
 
@@ -40,22 +46,53 @@ LOG = logging.getLogger(__name__)
 RUNNER_COMMAND = 'cmd'
 
 
-def get_runner(module_name):
-    """Load the module and return an instance of the runner."""
+def get_runner(package_name, module_name, config=None):
+    """
+    Load the module and return an instance of the runner.
+    """
 
-    LOG.debug('Runner loading python module: %s', module_name)
+    if not package_name:
+        # Backward compatibility for Pre 2.7.0 where package name always equaled module name
+        package_name = module_name
+
+    LOG.debug('Runner loading Python module: %s.%s', package_name, module_name)
+
     try:
         # TODO: Explore modifying this to support register_plugin
-        module = register_runner(module_name)
+        module = register_runner(package_name=package_name, module_name=module_name)
     except Exception as e:
-        LOG.exception('Failed to import module %s.', module_name)
-        raise ActionRunnerCreateError(e)
+        msg = ('Failed to import runner module %s.%s' % (package_name, module_name))
+        LOG.exception(msg)
+
+        raise ActionRunnerCreateError('%s\n\n%s' % (msg, str(e)))
 
     LOG.debug('Instance of runner module: %s', module)
 
-    runner = module.get_runner()
+    if config:
+        runner_kwargs = {'config': config}
+    else:
+        runner_kwargs = {}
+
+    runner = module.get_runner(**runner_kwargs)
     LOG.debug('Instance of runner: %s', runner)
     return runner
+
+
+def get_metadata(package_name):
+    """
+    Return runner related metadata for the provided runner package name.
+
+    :rtype: ``list`` of ``dict``
+    """
+    import pkg_resources
+
+    file_path = pkg_resources.resource_filename(package_name, 'runner.yaml')
+
+    with open(file_path, 'r') as fp:
+        content = fp.read()
+
+    metadata = yaml.safe_load(content)
+    return metadata
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -137,7 +174,11 @@ class ActionRunner(object):
                 result
             )
 
+    @deprecated
     def get_pack_name(self):
+        return self.get_pack_ref()
+
+    def get_pack_ref(self):
         """
         Retrieve pack name for the action which is being currently executed.
 
@@ -169,7 +210,7 @@ class ActionRunner(object):
         :rtype: ``dict``
         """
         result = {}
-        result['ST2_ACTION_PACK_NAME'] = self.get_pack_name()
+        result['ST2_ACTION_PACK_NAME'] = self.get_pack_ref()
         result['ST2_ACTION_EXECUTION_ID'] = str(self.execution_id)
         result['ST2_ACTION_API_URL'] = get_full_public_api_url()
 

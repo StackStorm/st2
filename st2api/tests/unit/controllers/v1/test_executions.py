@@ -16,7 +16,9 @@
 import copy
 import mock
 
+import six
 import eventlet
+import unittest2
 
 try:
     import simplejson as json
@@ -26,6 +28,7 @@ except ImportError:
 from six.moves import filter
 
 from st2common.constants import action as action_constants
+from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 from st2common.models.db.execution import ActionExecutionDB
 from st2common.models.db.execution import ActionExecutionOutputDB
 from st2common.persistence.execution import ActionExecution
@@ -38,6 +41,7 @@ from st2common.transport.publishers import PoolPublisher
 from st2common.util import action_db as action_db_util
 from st2common.util import isotime
 from st2common.util import date as date_utils
+from st2common.stream.listener import get_listener
 import st2common.validators.api.action as action_validator
 from tests.base import BaseActionExecutionControllerTestCase
 from st2tests.api import SUPER_SECRET_PARAMETER
@@ -133,6 +137,28 @@ ACTION_4 = {
     }
 }
 
+ACTION_INQUIRY = {
+    'name': 'st2.dummy.ask',
+    'description': 'another test description',
+    'enabled': True,
+    'pack': 'wolfpack',
+    'runner_type': 'inquirer',
+}
+
+ACTION_DEFAULT_TEMPLATE = {
+    'name': 'st2.dummy.default_template',
+    'description': 'An action that uses a jinja template as a default value for a parameter',
+    'enabled': True,
+    'pack': 'starterpack',
+    'runner_type': 'local-shell-cmd',
+    'parameters': {
+        'intparam': {
+            'type': 'integer',
+            'default': '{{ st2kv.system.test_int | int }}'
+        }
+    }
+}
+
 LIVE_ACTION_1 = {
     'action': 'sixpack.st2.dummy.action1',
     'parameters': {
@@ -162,6 +188,50 @@ LIVE_ACTION_3 = {
 
 LIVE_ACTION_4 = {
     'action': 'starterpack.st2.dummy.action4',
+}
+
+LIVE_ACTION_INQUIRY = {
+    'parameters': {
+        'route': 'developers',
+        'schema': {
+            'type': 'object',
+            'properties': {
+                'secondfactor': {
+                    'secret': True,
+                    'required': True,
+                    'type': u'string',
+                    'description': 'Please enter second factor for authenticating to "foo" service'
+                }
+            }
+        }
+    },
+    'action': 'wolfpack.st2.dummy.ask',
+    'result': {
+        'users': [],
+        'roles': [],
+        'route': 'developers',
+        'ttl': 1440,
+        'response': {
+            'secondfactor': 'supersecretvalue'
+        },
+        'schema': {
+            'type': 'object',
+            'properties': {
+                'secondfactor': {
+                    'secret': True,
+                    'required': True,
+                    'type': 'string',
+                    'description': 'Please enter second factor for authenticating to "foo" service'
+                }
+            }
+        }
+    }
+}
+
+# Do not add parameters to this. There are tests that will test first without params,
+# then make a copy with params.
+LIVE_ACTION_DEFAULT_TEMPLATE = {
+    'action': 'starterpack.st2.dummy.default_template',
 }
 
 FIXTURES_PACK = 'generic'
@@ -196,12 +266,22 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         post_resp = cls.app.post_json('/v1/actions', cls.action4)
         cls.action4['id'] = post_resp.json['id']
 
+        cls.action_inquiry = copy.deepcopy(ACTION_INQUIRY)
+        post_resp = cls.app.post_json('/v1/actions', cls.action_inquiry)
+        cls.action_inquiry['id'] = post_resp.json['id']
+
+        cls.action_template = copy.deepcopy(ACTION_DEFAULT_TEMPLATE)
+        post_resp = cls.app.post_json('/v1/actions', cls.action_template)
+        cls.action_template['id'] = post_resp.json['id']
+
     @classmethod
     def tearDownClass(cls):
         cls.app.delete('/v1/actions/%s' % cls.action1['id'])
         cls.app.delete('/v1/actions/%s' % cls.action2['id'])
         cls.app.delete('/v1/actions/%s' % cls.action3['id'])
         cls.app.delete('/v1/actions/%s' % cls.action4['id'])
+        cls.app.delete('/v1/actions/%s' % cls.action_inquiry['id'])
+        cls.app.delete('/v1/actions/%s' % cls.action_template['id'])
         super(BaseActionExecutionControllerTestCase, cls).tearDownClass()
 
     def test_get_one(self):
@@ -291,23 +371,36 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 1)
 
-        resp = self.app.get('/v1/executions?limit=0')
+        resp = self.app.get('/v1/executions?limit=0', expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertTrue(resp.json['faultstring'],
+                        u'Limit, "0" specified, must be a positive number or -1 for full \
+                        result set.')
+
+        resp = self.app.get('/v1/executions?limit=-1')
         self.assertEqual(resp.status_int, 200)
         self.assertTrue(len(resp.json) > 1)
+
+        resp = self.app.get('/v1/executions?limit=-22', expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertEqual(resp.json['faultstring'],
+                         u'Limit, "-22" specified, must be a positive number.')
 
         resp = self.app.get('/v1/executions?action=%s' % LIVE_ACTION_1['action'])
         self.assertEqual(resp.status_int, 200)
         self.assertTrue(len(resp.json) > 1)
 
+        resp = self.app.get('/v1/executions?action=%s&limit=0' %
+                            LIVE_ACTION_1['action'], expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertTrue(resp.json['faultstring'],
+                        u'Limit, "0" specified, must be a positive number or -1 for full \
+                        result set.')
+
         resp = self.app.get('/v1/executions?action=%s&limit=1' %
                             LIVE_ACTION_1['action'])
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 1)
-
-        resp = self.app.get('/v1/executions?action=%s&limit=0' %
-                            LIVE_ACTION_1['action'])
-        self.assertEqual(resp.status_int, 200)
-        self.assertTrue(len(resp.json) > 1)
         total_count = resp.headers['X-Total-Count']
 
         resp = self.app.get('/v1/executions?offset=%s&limit=1' % total_count)
@@ -387,7 +480,8 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         execution['parameters'] = {"hosts": "127.0.0.1", "cmd": 1000}
         post_resp = self._do_post(execution, expect_errors=True)
         self.assertEqual(post_resp.status_int, 400)
-        self.assertEqual(post_resp.json['faultstring'], "1000 is not of type 'string', 'null'")
+        self.assertIn('Value "1000" must either be a string or None. Got "int"',
+                      post_resp.json['faultstring'])
 
         # Runner type expects parameters "cmd" to be str.
         execution['parameters'] = {"hosts": "127.0.0.1", "cmd": "1000", "c": 1}
@@ -407,7 +501,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         post_resp = self._do_post(execution, expect_errors=True)
         self.assertEqual(post_resp.status_int, 400)
         self.assertEqual(post_resp.json['faultstring'],
-                         'Dependecy unsatisfied in ABSENT')
+                         'Dependency unsatisfied in variable "ABSENT"')
 
     def test_post_parameter_validation_explicit_none(self):
         execution = copy.deepcopy(LIVE_ACTION_1)
@@ -489,7 +583,31 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id),
                                          data, expect_errors=True)
         self.assertEqual(re_run_resp.status_int, 400)
-        self.assertIn('1000 is not of type \'string\'', re_run_resp.json['faultstring'])
+        self.assertIn('Value "1000" must either be a string or None. Got "int"',
+                      re_run_resp.json['faultstring'])
+
+    def test_template_param(self):
+
+        # Test with default value containing template
+        post_resp = self._do_post(LIVE_ACTION_DEFAULT_TEMPLATE)
+        self.assertEqual(post_resp.status_int, 201)
+
+        # Assert that the template in the parameter default value
+        # was rendered and st2kv was used
+        self.assertEqual(post_resp.json['parameters']['intparam'], 0)
+
+        # Test with live param
+        live_int_param = 3
+        livaction_with_params = copy.deepcopy(LIVE_ACTION_DEFAULT_TEMPLATE)
+        livaction_with_params['parameters'] = {
+            "intparam": live_int_param
+        }
+        post_resp = self._do_post(livaction_with_params)
+        self.assertEqual(post_resp.status_int, 201)
+
+        # Assert that the template in the parameter default value
+        # was not rendered, and the provided parameter was used
+        self.assertEqual(post_resp.json['parameters']['intparam'], live_int_param)
 
     def test_re_run_workflow_success(self):
         # Create a new execution
@@ -1051,10 +1169,42 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         finally:
             action_constants.WORKFLOW_RUNNER_TYPES.remove(ACTION_1['runner_type'])
 
+    def test_get_inquiry_mask(self):
+        """Ensure Inquiry responses are masked when retrieved via ActionExecution GET
+
+        The reason this test is included here is so that we can verify that the ActionExecution
+        GET function properly masks fields within an Inquiry response.
+        TODO(mierdin): This test, and the constants it uses, should not be necessary here
+        once Inquiries get their own data model.
+        """
+
+        post_resp = self._do_post(LIVE_ACTION_INQUIRY)
+        actionexecution_id = self._get_actionexecution_id(post_resp)
+        get_resp = self._do_get_one(actionexecution_id)
+        self.assertEqual(get_resp.status_int, 200)
+
+        resp = json.loads(get_resp.body)
+        self.assertEqual(resp['result']['response']['secondfactor'], MASKED_ATTRIBUTE_VALUE)
+
+        post_resp = self._do_post(LIVE_ACTION_INQUIRY)
+        actionexecution_id = self._get_actionexecution_id(post_resp)
+        get_resp = self._do_get_one(actionexecution_id, params={'show_secrets': True})
+        self.assertEqual(get_resp.status_int, 200)
+
+        resp = json.loads(get_resp.body)
+        self.assertEqual(resp['result']['response']['secondfactor'], "supersecretvalue")
+
 
 class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestCase,
                                               FunctionalTest):
+    @unittest2.skipIf(six.PY3, 'Skipping under Python 3 (closed iterator read issue)')
     def test_get_output_running_execution(self):
+        # Retrieve lister instance to avoid race with listener connection not being established
+        # early enough for tests to pass.
+        # NOTE: This only affects tests where listeners are not pre-initialized.
+        listener = get_listener(name='execution_output')
+        eventlet.sleep(1.0)
+
         # Test the execution output API endpoint for execution which is running (blocking)
         status = action_constants.LIVEACTION_STATUS_RUNNING
         timestamp = date_utils.get_datetime_utc_now()
@@ -1075,13 +1225,12 @@ class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestC
 
         # Insert mock output object
         output_db = ActionExecutionOutputDB(**output_params)
-        ActionExecutionOutput.add_or_update(output_db)
+        ActionExecutionOutput.add_or_update(output_db, publish=False)
 
         def insert_mock_data():
             output_params['data'] = 'stdout mid 1\n'
             output_db = ActionExecutionOutputDB(**output_params)
             ActionExecutionOutput.add_or_update(output_db)
-            pass
 
         # Since the API endpoint is blocking (connection is kept open until action finishes), we
         # spawn an eventlet which eventually finishes the action.
@@ -1091,17 +1240,22 @@ class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestC
             output_db = ActionExecutionOutputDB(**output_params)
             ActionExecutionOutput.add_or_update(output_db)
 
+            eventlet.sleep(1.0)
+
             # Transition execution to completed state so the connection closes
             action_execution_db.status = action_constants.LIVEACTION_STATUS_SUCCEEDED
             action_execution_db = ActionExecution.add_or_update(action_execution_db)
 
         eventlet.spawn_after(0.2, insert_mock_data)
         eventlet.spawn_after(1.5, publish_action_finished, action_execution_db)
+
+        # Retrieve data while execution is running - endpoint return new data once it's available
+        # and block until the execution finishes
         resp = self.app.get('/v1/executions/%s/output' % (str(action_execution_db.id)),
                             expect_errors=False)
-
         self.assertEqual(resp.status_int, 200)
         lines = resp.text.strip().split('\n')
+        lines = [line for line in lines if line.strip()]
         self.assertEqual(len(lines), 3)
         self.assertEqual(lines[0], 'stdout before start')
         self.assertEqual(lines[1], 'stdout mid 1')
@@ -1113,11 +1267,15 @@ class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestC
 
         self.assertEqual(resp.status_int, 200)
         lines = resp.text.strip().split('\n')
+        lines = [line for line in lines if line.strip()]
         self.assertEqual(len(lines), 3)
         self.assertEqual(lines[0], 'stdout before start')
         self.assertEqual(lines[1], 'stdout mid 1')
         self.assertEqual(lines[2], 'stdout pre finish 1')
 
+        listener.shutdown()
+
+    @unittest2.skipIf(six.PY3, 'Skipping under Python 3 (closed iterator read issue)')
     def test_get_output_finished_execution(self):
         # Test the execution output API endpoint for execution which has finished
         for status in action_constants.LIVEACTION_COMPLETED_STATES:

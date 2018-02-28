@@ -46,6 +46,3 @@ nosetests.xml
 # Editor Saves
 *~
 \#*\#
-
-# st2 specific
-contrib/runners/*/dist_utils.py
