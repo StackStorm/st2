@@ -54,7 +54,10 @@ def register_opts(ignore_errors=False):
                           'StackStorm user with local StackStorm roles based on the group to role '
                           'mapping definition files.')),
         cfg.BoolOpt('permission_isolation', default=False,
-                    help='isolate all rules of by user field')
+                    help='Isolate resources by user. For now, these resources only include '
+                         'rules and executions. All resources can only be viewed or executed '
+                         'by the owning user except the system_user who can view or run '
+                         'everything.')
     ]
     do_register_opts(rbac_opts, 'rbac', ignore_errors)
 
