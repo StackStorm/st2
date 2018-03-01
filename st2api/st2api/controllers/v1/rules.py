@@ -19,7 +19,10 @@ from mongoengine import ValidationError
 
 from st2common import log as logging
 from st2common.exceptions.apivalidation import ValueValidationException
+from st2common.exceptions.db import StackStormDBObjectConflictError
+from st2common.exceptions.rbac import AccessDeniedError
 from st2common.exceptions.triggers import TriggerDoesNotExistException
+from st2common.exceptions.triggers import TriggerParametersValidationException
 from st2api.controllers import resource
 from st2api.controllers.controller_transforms import transform_to_bool
 from st2api.controllers.v1.ruleviews import RuleViewController
@@ -121,10 +124,19 @@ class RuleController(resource.ContentPackResourceController):
             LOG.exception(msg)
             abort(http_client.BAD_REQUEST, msg)
             return
-        except Exception as e:
+        except TriggerParametersValidationException as e:
             msg = e.message
             LOG.exception(msg)
             abort(http_client.BAD_REQUEST, msg)
+            return
+        except StackStormDBObjectConflictError as e:
+            raise
+        except AccessDeniedError:
+            raise
+        except Exception as e:
+            msg = e.message
+            LOG.exception(msg)
+            abort(http_client.INTERNAL_SERVER_ERROR, msg)
             return
 
         extra = {'rule_db': rule_db}

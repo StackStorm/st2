@@ -241,20 +241,19 @@ class RuleAPI(BaseAPI, APIUIDMixin):
         trigger_type_ref = trigger.get('type', None)
         parameters = trigger.get('parameters', {})
 
-        if parameters:
-            context = {}
-            context.update({
-                kv_constants.DATASTORE_PARENT_SCOPE: {
-                    kv_constants.SYSTEM_SCOPE: kv_service.KeyValueLookup(
-                        scope=kv_constants.FULL_SYSTEM_SCOPE)
-                }
-            })
-            parameters = jinja_utils.render_values(mapping=parameters, context=context,
-                                                   allow_undefined=True)
-            rule.trigger['parameters'] = parameters
-            LOG.debug('Rendered trigger parameters: %s', parameters)
-            validator.validate_trigger_parameters(trigger_type_ref=trigger_type_ref,
-                                                  parameters=parameters)
+        context = {}
+        context.update({
+            kv_constants.DATASTORE_PARENT_SCOPE: {
+                kv_constants.SYSTEM_SCOPE: kv_service.KeyValueLookup(
+                    scope=kv_constants.FULL_SYSTEM_SCOPE)
+            }
+        })
+        parameters = jinja_utils.render_values(mapping=parameters, context=context,
+                                               allow_undefined=True)
+        rule.trigger['parameters'] = parameters
+        LOG.debug('Rendered trigger parameters: %s', parameters)
+        validator.validate_trigger_parameters(trigger_type_ref=trigger_type_ref,
+                                              parameters=parameters)
 
         # Create a trigger for the provided rule
         trigger_db = TriggerService.create_trigger_db_from_rule(rule)

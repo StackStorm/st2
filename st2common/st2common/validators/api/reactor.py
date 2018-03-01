@@ -107,8 +107,9 @@ def validate_trigger_parameters(trigger_type_ref, parameters):
         # Note: Constructor throws ValueError on invalid parameters
         try:
             CronTrigger(**parameters)
-        except:
+        except Exception as e:
             msg = ('Cron trigger parameters do not match expected format.')
+            msg += " Validation error: %s" % e.message
             LOG.exception(msg)
             raise TriggerParametersValidationException(msg)
 
