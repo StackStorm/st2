@@ -125,7 +125,7 @@ class RuleController(resource.ContentPackResourceController):
             abort(http_client.BAD_REQUEST, msg)
             return
         except TriggerParametersValidationException as e:
-            msg = e.message
+            msg = str(e)
             LOG.exception(msg)
             abort(http_client.BAD_REQUEST, msg)
             return
