@@ -191,6 +191,8 @@ jitter_interval = 0.1
 insecure = False
 # Username for authentication.
 keystone_username = None
+# Enable results tracking and disable callbacks.
+enable_polling = False
 # OpenStack project scope.
 keystone_project_name = None
 # Password for authentication.

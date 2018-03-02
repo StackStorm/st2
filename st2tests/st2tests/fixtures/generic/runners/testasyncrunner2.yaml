@@ -1,8 +1,9 @@
 ---
-description: A test async runner.
+description: A test polling async runner.
 enabled: true
-name: test-async-runner-1
-runner_module: test_async_runner
+name: test-async-runner-2
+query_module: test_querier
+runner_module: test_polling_async_runner
 runner_parameters:
   runnerdummy:
     default: runnerdummy

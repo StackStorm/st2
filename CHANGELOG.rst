@@ -39,6 +39,10 @@ Changed
   access a key in ``self.config`` dictionary which doesn't exist. (improvement) #4014
 * Update various Python dependencies to the latest stable versions (apscheduler, gitpython,
   pymongo, stevedore, paramiko, tooz, flex, webob, prance).
+* Refactored mistral runner to support callback from mistral instead of relying on st2resultstracker.
+  This reduces the unnecessary traffic and CPU time by querying the mistral API. Included a command to
+  manually add a state entry for Mistral workflow execution to recover from any callback failures.
+  (improvement)
 
 Fixed
 ~~~~~
