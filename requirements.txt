@@ -1,13 +1,13 @@
 # Don't edit this file. It's generated automatically!
-apscheduler==3.4.0
+apscheduler==3.5.1
 argcomplete
 bcrypt
 eventlet==0.22.1
-flex==6.11.1
+flex==6.12.0
 git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper
 git+https://github.com/StackStorm/python-mistralclient.git#egg=python-mistralclient
 git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2-auth-backend-flat-file
-gitpython==2.1.7
+gitpython==2.1.8
 greenlet==0.4.12
 gunicorn==19.7.1
 ipaddr
@@ -23,13 +23,13 @@ nose
 nose-timer
 oslo.config<1.13,>=1.12.1
 oslo.utils<=3.33.0,>=3.15.0
-paramiko==2.3.1
+paramiko==2.4.0
 passlib==1.7.1
 prettytable
 prompt-toolkit==1.0.15
 psutil
 pyinotify==0.9.6
-pymongo==3.5.1
+pymongo==3.6.0
 python-dateutil
 python-editor==1.0.3
 python-gnupg==0.4.1
@@ -44,9 +44,9 @@ routes==2.4.1
 semver==2.7.7
 six==1.10.0
 sseclient==0.0.18
-stevedore==1.27.1
-tooz==1.57.4
+stevedore==1.28.0
+tooz==1.60.0
 unittest2
-webob==1.7.3
+webob==1.7.4
 webtest
 zake==0.2.2
