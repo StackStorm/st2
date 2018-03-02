@@ -19,6 +19,7 @@
       parameters:
         packs: "{{ __results['make a prerun'].result }}"
         env: "{{env}}"
+        python3: "{{python3}}"
       on-success: "register pack"
     -
       name: "register pack"

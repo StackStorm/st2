@@ -19,6 +19,7 @@ import abc
 import six
 
 from st2common.runners.utils import get_logger_for_python_runner_action
+from st2common.runners.utils import PackConfigDict
 
 __all__ = [
     'Action'
@@ -46,9 +47,12 @@ class Action(object):
 
         if action_service and getattr(action_service, '_action_wrapper', None):
             log_level = getattr(action_service._action_wrapper, '_log_level', 'debug')
+            pack_name = getattr(action_service._action_wrapper, '_pack', 'unknown')
         else:
             log_level = 'debug'
+            pack_name = 'unknown'
 
+        self.config = PackConfigDict(pack_name, self.config)
         self.logger = get_logger_for_python_runner_action(action_name=self.__class__.__name__,
                                                           log_level=log_level)
 

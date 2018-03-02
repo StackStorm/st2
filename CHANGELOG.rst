@@ -13,6 +13,14 @@ Added
 * Add support for utf-8 / unicode characters in the pack config files. (improvement) #3980 #3989
 
   Contributed by @sumkire.
+* Add new ``--python3`` flag to ``st2 pack install`` CLI command and ``python3`` parameter to
+  ``packs.{install,setup_virtualenv}`` actions. When the value of this parameter is True, it
+  uses ``python3`` binary when creating virtual environment for that pack (based on the value of
+  ``actionrunner.python3_binary`` config option).
+
+  Note: For this feature to work, Python 3 needs to be installed on the system and ``virtualenv``
+  package installed on the system needs to support Python 3 (it needs to be a recent version).
+  (new feature) #4016 #3922
 * Add support for new optional ``content_version`` runner parameter to the Python and Local Shell
   Script runner. This parameter can contain a git commit hash / tag / branch from a pack git
   repository and runner will ensure this revision of the pack content (Python action / local shell
@@ -33,12 +41,13 @@ Changed
   packages. Also add support for multiple runners (runner modules) inside a single Python package
   and consolidate Python packages from two to one for the following runners: local runners, remote
   runners, windows runners. (improvement) #3999
-* Upgrade eventlet library to the latest stable version (0.22.1) (improvement) #4007
+* Upgrade eventlet library to the latest stable version (0.22.1) (improvement) #4007 #3968
 * Increase maximum retry delay for ``action.retry`` policy from 5 seconds to 120 seconds. Because
   of the way retries are currently implemented (they are not st2notifier service restart safe),
   long retry delays are not recommended. For more information on this limitation please refer to
-  the documentation - https://docs.stackstorm.com/reference/policies.html#retry.
-  #3630
+  the documentation - https://docs.stackstorm.com/reference/policies.html#retry. #3630 #3637
+* Update Python runner so it throws a more user-friendly exception in case Python script tries to
+  access a key in ``self.config`` dictionary which doesn't exist. (improvement) #4014
 
 Fixed
 ~~~~~
