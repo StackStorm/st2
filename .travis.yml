@@ -55,6 +55,10 @@ cache:
     - virtualenv/
     - .tox/
 
+before_install:
+  # Work around for Travis timeout issues, see https://github.com/travis-ci/travis-ci/issues/9112
+  - sudo apt-get update --option Acquire::Retries=100 --option Acquire::http::Timeout="60"
+
 install:
   - if [ "${TASK}" = 'compilepy3 ci-py3-unit' ]; then pip install tox; else make requirements; fi
   - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ]; then pip install codecov; fi
