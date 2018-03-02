@@ -48,6 +48,8 @@ Changed
   the documentation - https://docs.stackstorm.com/reference/policies.html#retry. #3630 #3637
 * Update Python runner so it throws a more user-friendly exception in case Python script tries to
   access a key in ``self.config`` dictionary which doesn't exist. (improvement) #4014
+* Update various Python dependencies to the latest stable versions (apscheduler, gitpython,
+  pymongo, stevedore, paramiko, tooz, flex, webob, prance).
 
 Fixed
 ~~~~~
