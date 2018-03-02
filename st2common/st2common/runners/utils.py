@@ -15,6 +15,8 @@
 
 from __future__ import absolute_import
 
+import os
+
 import logging as stdlib_logging
 
 import six
@@ -25,6 +27,8 @@ from st2common import log as logging
 
 
 __all__ = [
+    'PackConfigDict',
+
     'get_logger_for_python_runner_action',
     'get_action_class_instance',
 
@@ -35,10 +39,48 @@ __all__ = [
 
 LOG = logging.getLogger(__name__)
 
+# Error which is thrown when Python action tries to access self.config key which doesn't exist
+CONFIG_MISSING_ITEM_ERROR = """
+Config for pack "%s" is missing key "%s".
+Make sure that the config file exists on disk (%s) and contains that key.
+
+Also make sure you run "st2ctl reload --register-configs" when you add a
+config and after every change you make to the config.
+"""
+
 # Maps logger name to the actual logger instance
 # We re-use loggers for the same actions to make sure only a single instance exists for a
 # particular action. This way we avoid duplicate log messages, etc.
 LOGGERS = {}
+
+
+class PackConfigDict(dict):
+    """
+    Dictionary class wraper for pack config dictionaries.
+
+    This class throws a user-friendly exception in case user tries to access config item which
+    doesn't exist in the dict.
+    """
+    def __init__(self, pack_name, *args):
+        super(PackConfigDict, self).__init__(*args)
+        self._pack_name = pack_name
+
+    def __getitem__(self, key):
+        try:
+            value = super(PackConfigDict, self).__getitem__(key)
+        except KeyError:
+            # Note: We use late import to avoid performance overhead
+            from oslo_config import cfg
+
+            configs_path = os.path.join(cfg.CONF.system.base_path, 'configs/')
+            config_path = os.path.join(configs_path, self._pack_name + '.yaml')
+            msg = CONFIG_MISSING_ITEM_ERROR % (self._pack_name, key, config_path)
+            raise ValueError(msg)
+
+        return value
+
+    def __setitem__(self, key, value):
+        super(PackConfigDict, self).__setitem__(key, value)
 
 
 def get_logger_for_python_runner_action(action_name, log_level='debug'):

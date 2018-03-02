@@ -27,3 +27,8 @@
       description: "Set to True to force install the pack and skip StackStorm version compatibility check and also delete and ignore lock file if one exists."
       required: false
       default: false
+    python3:
+      type: "boolean"
+      description: "Use Python 3 binary when creating a virtualenv for this pack."
+      required: false
+      default: false
