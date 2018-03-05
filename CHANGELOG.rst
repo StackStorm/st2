@@ -21,6 +21,7 @@ Added
   Note: For this feature to work, Python 3 needs to be installed on the system and ``virtualenv``
   package installed on the system needs to support Python 3 (it needs to be a recent version).
   (new feature) #4016 #3922
+* Add support for using datastore items and jinja expressions in parameters section of triggers. #3681
 
 Changed
 ~~~~~~~
