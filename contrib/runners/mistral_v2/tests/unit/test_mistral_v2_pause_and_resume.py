@@ -143,6 +143,9 @@ class MistralRunnerPauseResumeTest(DbTestCase):
     @mock.patch.object(
         executions.ExecutionManager, 'update',
         mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC_PAUSED)))
+    @mock.patch.object(
+        action_service, 'is_children_active',
+        mock.MagicMock(return_value=True))
     def test_pause(self):
         # Launch the workflow execution.
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
@@ -179,6 +182,9 @@ class MistralRunnerPauseResumeTest(DbTestCase):
         mock.MagicMock(side_effect=[
             executions.Execution(None, WF1_EXEC_PAUSED),
             executions.Execution(None, WF1_EXEC)]))
+    @mock.patch.object(
+        action_service, 'is_children_active',
+        mock.MagicMock(return_value=True))
     def test_resume(self):
         # Launch the workflow execution.
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
@@ -231,6 +237,9 @@ class MistralRunnerPauseResumeTest(DbTestCase):
             executions.Execution(None, WF1_EXEC_PAUSED),
             executions.Execution(None, WF2_EXEC),
             executions.Execution(None, WF1_EXEC)]))
+    @mock.patch.object(
+        action_service, 'is_children_active',
+        mock.MagicMock(return_value=True))
     def test_resume_subworkflow_action(self):
         requester = cfg.CONF.system_user.user
 
@@ -387,6 +396,9 @@ class MistralRunnerPauseResumeTest(DbTestCase):
             executions.Execution(None, WF1_EXEC_PAUSED),
             executions.Execution(None, WF2_EXEC),
             executions.Execution(None, WF1_EXEC)]))
+    @mock.patch.object(
+        action_service, 'is_children_active',
+        mock.MagicMock(return_value=True))
     def test_resume_missing_subworkflow_action(self):
         requester = cfg.CONF.system_user.user
 

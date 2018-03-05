@@ -17,6 +17,7 @@ from __future__ import absolute_import
 from integration.mistral import base
 
 from st2client import models
+from st2common.constants import action as action_constants
 
 
 class CustomKeyValuePairTest(base.TestWorkflowExecution):
@@ -61,19 +62,19 @@ class UnencryptedKeyValuePairTest(CustomKeyValuePairTest):
     secret = False
 
     def test_yaql_system_kvp(self):
-        execution = self._execute_workflow('examples.mistral-yaql-st2kv-system-scope')
-        execution = self._wait_for_completion(execution)
-        self._assert_success(execution, num_tasks=1)
+        ex = self._execute_workflow('examples.mistral-yaql-st2kv-system-scope')
+        ex = self._wait_for_completion(ex)
+        self.assertEqual(ex.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
 
     def test_yaql_user_kvp(self):
-        execution = self._execute_workflow('examples.mistral-yaql-st2kv-user-scope')
-        execution = self._wait_for_completion(execution)
-        self._assert_success(execution, num_tasks=1)
+        ex = self._execute_workflow('examples.mistral-yaql-st2kv-user-scope')
+        ex = self._wait_for_completion(ex)
+        self.assertEqual(ex.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
 
     def test_jinja_system_kvp(self):
-        execution = self._execute_workflow('examples.mistral-jinja-st2kv-system-scope')
-        execution = self._wait_for_completion(execution)
-        self._assert_success(execution, num_tasks=1)
+        ex = self._execute_workflow('examples.mistral-jinja-st2kv-system-scope')
+        ex = self._wait_for_completion(ex)
+        self.assertEqual(ex.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
 
     def test_jinja_user_kvp(self):
         # Pending completion of jinja rendering of user scoped variable.
@@ -85,19 +86,19 @@ class EncryptedKeyValuePairTest(CustomKeyValuePairTest):
     secret = True
 
     def test_yaql_system_kvp(self):
-        execution = self._execute_workflow('examples.mistral-yaql-st2kv-system-scope')
-        execution = self._wait_for_completion(execution)
-        self._assert_success(execution, num_tasks=1)
+        ex = self._execute_workflow('examples.mistral-yaql-st2kv-system-scope')
+        ex = self._wait_for_completion(ex)
+        self.assertEqual(ex.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
 
     def test_yaql_user_kvp(self):
-        execution = self._execute_workflow('examples.mistral-yaql-st2kv-user-scope')
-        execution = self._wait_for_completion(execution)
-        self._assert_success(execution, num_tasks=1)
+        ex = self._execute_workflow('examples.mistral-yaql-st2kv-user-scope')
+        ex = self._wait_for_completion(ex)
+        self.assertEqual(ex.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
 
     def test_jinja_system_kvp(self):
-        execution = self._execute_workflow('examples.mistral-jinja-st2kv-system-scope-encrypted')
-        execution = self._wait_for_completion(execution)
-        self._assert_success(execution, num_tasks=1)
+        ex = self._execute_workflow('examples.mistral-jinja-st2kv-system-scope-encrypted')
+        ex = self._wait_for_completion(ex)
+        self.assertEqual(ex.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
 
     def test_jinja_user_kvp(self):
         # Per https://docs.stackstorm.com/datastore.html#storing-secrets,

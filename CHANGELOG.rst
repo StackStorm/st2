@@ -13,6 +13,14 @@ Added
 * Add support for utf-8 / unicode characters in the pack config files. (improvement) #3980 #3989
 
   Contributed by @sumkire.
+* Add new ``--python3`` flag to ``st2 pack install`` CLI command and ``python3`` parameter to
+  ``packs.{install,setup_virtualenv}`` actions. When the value of this parameter is True, it
+  uses ``python3`` binary when creating virtual environment for that pack (based on the value of
+  ``actionrunner.python3_binary`` config option).
+
+  Note: For this feature to work, Python 3 needs to be installed on the system and ``virtualenv``
+  package installed on the system needs to support Python 3 (it needs to be a recent version).
+  (new feature) #4016 #3922
 
 Changed
 ~~~~~~~
@@ -29,6 +37,12 @@ Changed
   the documentation - https://docs.stackstorm.com/reference/policies.html#retry. #3630 #3637
 * Update Python runner so it throws a more user-friendly exception in case Python script tries to
   access a key in ``self.config`` dictionary which doesn't exist. (improvement) #4014
+* Update various Python dependencies to the latest stable versions (apscheduler, gitpython,
+  pymongo, stevedore, paramiko, tooz, flex, webob, prance).
+* Refactored mistral runner to support callback from mistral instead of relying on st2resultstracker.
+  This reduces the unnecessary traffic and CPU time by querying the mistral API. Included a command to
+  manually add a state entry for Mistral workflow execution to recover from any callback failures.
+  (improvement)
 
 Fixed
 ~~~~~

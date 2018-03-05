@@ -25,6 +25,7 @@ from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
 from st2common.persistence.execution import ActionExecutionOutput
 from st2common.models.db.execution import ActionExecutionOutputDB
+from st2common.runners import utils as runners_utils
 from st2common.services import executions
 from st2common.services import trace as trace_service
 from st2common.util import date as date_utils
@@ -166,9 +167,17 @@ def update_status(liveaction, new_status, result=None, publish=True):
 
     old_status = liveaction.status
 
-    liveaction = action_utils.update_liveaction_status(
-        status=new_status, result=result, liveaction_id=liveaction.id, publish=False)
+    updates = {
+        'liveaction_id': liveaction.id,
+        'status': new_status,
+        'result': result,
+        'publish': False
+    }
 
+    if new_status in action_constants.LIVEACTION_COMPLETED_STATES:
+        updates['end_timestamp'] = date_utils.get_datetime_utc_now()
+
+    liveaction = action_utils.update_liveaction_status(**updates)
     action_execution = executions.update_execution(liveaction)
 
     msg = ('The status of action execution is changed from %s to %s. '
@@ -182,6 +191,11 @@ def update_status(liveaction, new_status, result=None, publish=True):
 
     LOG.audit(msg, extra=extra)
     LOG.info(msg)
+
+    # Invoke post run if liveaction status is completed or paused.
+    if (new_status in action_constants.LIVEACTION_COMPLETED_STATES or
+            new_status == action_constants.LIVEACTION_STATUS_PAUSED):
+        runners_utils.invoke_post_run(liveaction)
 
     if publish:
         LiveAction.publish_status(liveaction)
@@ -358,6 +372,27 @@ def store_execution_output_data(execution_db, action_db, data, output_type='outp
                                                     dispatch_trigger=False)
 
     return output_db
+
+
+def is_children_active(liveaction_id):
+    execution_db = ActionExecution.get(liveaction__id=str(liveaction_id))
+
+    if execution_db.runner['name'] not in action_constants.WORKFLOW_RUNNER_TYPES:
+        return False
+
+    children_execution_dbs = ActionExecution.query(parent=str(execution_db.id))
+
+    inactive_statuses = (
+        action_constants.LIVEACTION_COMPLETED_STATES +
+        [action_constants.LIVEACTION_STATUS_PAUSED]
+    )
+
+    completed = [
+        child_exec_db.status in inactive_statuses
+        for child_exec_db in children_execution_dbs
+    ]
+
+    return (not all(completed))
 
 
 def _cleanup_liveaction(liveaction):
