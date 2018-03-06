@@ -30,7 +30,7 @@ from st2common import log as logging
 from st2common.util import isotime
 from st2common.models.db import stormbase
 from st2common.models.utils.profiling import log_query_and_profile_data_for_queryset
-from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.exceptions import db as db_exc
 
 
 LOG = logging.getLogger(__name__)
@@ -327,7 +327,7 @@ class MongoDBAccess(object):
 
         if not instance and raise_exception:
             msg = 'Unable to find the %s instance. %s' % (self.model.__name__, kwargs)
-            raise StackStormDBObjectNotFoundError(msg)
+            raise db_exc.StackStormDBObjectNotFoundError(msg)
 
         return instance
 
@@ -496,6 +496,42 @@ class MongoDBAccess(object):
                 order_by_list = [sort_key] + order_by_list
 
         return filters, order_by_list
+
+
+class ChangeRevisionMongoDBAccess(MongoDBAccess):
+
+    def get(self, *args, **kwargs):
+        instance = super(ChangeRevisionMongoDBAccess, self).get(*args, **kwargs)
+        instance._original_rev = instance.rev
+        return instance
+
+    def insert(self, instance):
+        instance = self.model.objects.insert(instance)
+        instance._original_rev = instance.rev
+
+        return self._undo_dict_field_escape(instance)
+
+    def add_or_update(self, instance):
+        return self.save(instance)
+
+    def update(self, instance, **kwargs):
+        for k, v in six.iteritems(kwargs):
+            setattr(instance, k, v)
+
+        return self.save(instance)
+
+    def save(self, instance):
+        if not hasattr(instance, '_original_rev'):
+            return self.insert(instance)
+        else:
+            try:
+                save_condition = {'id': instance.id, 'rev': instance._original_rev}
+                instance.rev = instance._original_rev + 1
+                instance.save(save_condition=save_condition)
+            except mongoengine.SaveConditionError:
+                raise db_exc.StackStormDBObjectWriteConflictError(instance)
+
+            return self._undo_dict_field_escape(instance)
 
 
 def get_host_names_for_uri_dict(uri_dict):

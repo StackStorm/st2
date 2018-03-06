@@ -272,3 +272,17 @@ class ContentPackResourceMixin(object):
             ref = ResourceReference(pack=self.pack, name=self.name)
 
         return ref
+
+
+class ChangeRevisionFieldMixin(object):
+
+    rev = me.IntField(required=True, default=1)
+
+    @classmethod
+    def get_indexes(cls):
+        return [
+            {
+                'fields': ['id', 'rev'],
+                'unique': True
+            }
+        ]
