@@ -27,7 +27,10 @@ __all__ = [
     'BaseDBModelCRUDTestCase',
 
     'FakeModel',
-    'FakeModelDB'
+    'FakeModelDB',
+
+    'ChangeRevFakeModel',
+    'ChangeRevFakeModelDB'
 ]
 
 
@@ -87,6 +90,26 @@ class FakeModelDB(stormbase.StormBaseDB):
 
 class FakeModel(Access):
     impl = db.MongoDBAccess(FakeModelDB)
+
+    @classmethod
+    def _get_impl(cls):
+        return cls.impl
+
+    @classmethod
+    def _get_by_object(cls, object):
+        return None
+
+    @classmethod
+    def _get_publisher(cls):
+        return None
+
+
+class ChangeRevFakeModelDB(stormbase.StormBaseDB, stormbase.ChangeRevisionFieldMixin):
+    context = stormbase.EscapedDictField()
+
+
+class ChangeRevFakeModel(Access):
+    impl = db.ChangeRevisionMongoDBAccess(ChangeRevFakeModelDB)
 
     @classmethod
     def _get_impl(cls):
