@@ -13,7 +13,9 @@ python_runner_log_level = DEBUG
 # Internal pool size for dispatcher used by workflow actions.
 workflows_pool_size = 40
 # Virtualenv binary which should be used to create pack virtualenvs.
-virtualenv_binary = /data/stanley/virtualenv/bin/virtualenv
+virtualenv_binary = /usr/bin/virtualenv
+# Python 3 binary which will be used by Python actions for packs which use Python 3 virtual environment
+python3_binary = /usr/bin/python3
 # location of the logging.conf file
 logging = conf/logging.conf
 # True to store and stream action output (stdout and stderr) in real-time.
@@ -21,7 +23,7 @@ stream_output = True
 # List of virtualenv options to be passsed to "virtualenv" command that creates pack virtualenv.
 virtualenv_opts = --system-site-packages # comma separated list allowed here.
 # Python binary which will be used by Python actions.
-python_binary = /data/stanley/virtualenv/bin/python
+python_binary = /usr/bin/python
 
 [api]
 # List of origins allowed for api, auth and stream
@@ -199,6 +201,8 @@ jitter_interval = 0.1
 insecure = False
 # Username for authentication.
 keystone_username = None
+# Enable results tracking and disable callbacks.
+enable_polling = False
 # OpenStack project scope.
 keystone_project_name = None
 # Password for authentication.
