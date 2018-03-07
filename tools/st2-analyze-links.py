@@ -33,7 +33,6 @@ from __future__ import print_function
 
 from __future__ import absolute_import
 import os
-import sets
 
 from oslo_config import cfg
 
@@ -104,7 +103,7 @@ class LinksAnalyzer(object):
 
     def _do_analyze(self, action_ref, rule_links=None, processed=None, depth=0):
         if processed is None:
-            processed = sets.Set()
+            processed = set()
         if rule_links is None:
             rule_links = []
         processed.add(action_ref)
@@ -131,7 +130,7 @@ class Grapher(object):
         dot = Digraph(comment='Rule based links visualization',
                       node_attr=node_attr, graph_attr=graph_attr, format='png')
 
-        nodes = sets.Set()
+        nodes = set()
         for _, rule_link in rule_links:
             print(rule_link._source_action_ref)
             if rule_link._source_action_ref not in nodes:

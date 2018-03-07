@@ -19,6 +19,8 @@ import hashlib
 import os
 import random
 
+import six
+
 from st2common import log as logging
 from st2common.persistence.auth import Token, ApiKey
 from st2common.exceptions import auth as exceptions
@@ -89,15 +91,21 @@ def generate_api_key():
     Generates an sufficiently large and random key.
 
     credit: http://jetfar.com/simple-api-key-generation-in-python/
+
+    :rtype: ``str``
     """
     # 256bit seed from urandom
     seed = os.urandom(256)
+
     # since urandom does not provide sufficient entropy hash, base64encode and salt.
     # The resulting value is now large and should be hard to predict.
     hashed_seed = hashlib.sha256(seed).hexdigest()
-    return base64.b64encode(
-        hashed_seed,
-        random.choice(['rA', 'aZ', 'gQ', 'hH', 'hG', 'aR', 'DD'])).rstrip('==')
+
+    base64_encoded = base64.b64encode(
+        six.b(hashed_seed),
+        six.b(random.choice(['rA', 'aZ', 'gQ', 'hH', 'hG', 'aR', 'DD']))).rstrip(b'==')
+    base64_encoded = base64_encoded.decode()
+    return base64_encoded
 
 
 def generate_api_key_and_hash():

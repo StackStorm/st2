@@ -15,6 +15,8 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
+import six
 import mock
 
 from st2common.exceptions.param import ParamException
@@ -304,7 +306,7 @@ class ParamsUtilsTest(DbTestCase):
         except ParamException as e:
             error_msg = 'Failed to render parameter "a2": \'dict object\' ' + \
                         'has no attribute \'lorem_ipsum\''
-            self.assertTrue(error_msg in e.message)
+            self.assertTrue(error_msg in str(e))
             pass
 
     def test_unicode_value_casting(self):
@@ -313,10 +315,17 @@ class ParamsUtilsTest(DbTestCase):
 
         result = param_utils._cast_params(rendered=rendered,
                                           parameter_schemas=parameter_schemas)
-        expected = {
-            'a1': (u'unicode1 \xd9\xa9(\xcc\xbe\xe2\x97\x8f\xcc\xae\xcc\xae\xcc'
-                   u'\x83\xcc\xbe\xe2\x80\xa2\xcc\x83\xcc\xbe)\xdb\xb6 unicode2')
-        }
+
+        if six.PY3:
+            expected = {
+                'a1': (u'unicode1 ٩(̾●̮̮̃̾•̃̾)۶ unicode2')
+            }
+        else:
+            expected = {
+                'a1': (u'unicode1 \xd9\xa9(\xcc\xbe\xe2\x97\x8f\xcc\xae\xcc\xae\xcc'
+                       u'\x83\xcc\xbe\xe2\x80\xa2\xcc\x83\xcc\xbe)\xdb\xb6 unicode2')
+            }
+
         self.assertEqual(result, expected)
 
     def test_get_finalized_params_with_casting_unicode_values(self):
@@ -330,10 +339,16 @@ class ParamsUtilsTest(DbTestCase):
         r_runner_params, r_action_params = param_utils.get_finalized_params(
             runner_param_info, action_param_info, params, action_context)
 
-        expected_action_params = {
-            'a1': (u'unicode1 \xd9\xa9(\xcc\xbe\xe2\x97\x8f\xcc\xae\xcc\xae\xcc'
-                   u'\x83\xcc\xbe\xe2\x80\xa2\xcc\x83\xcc\xbe)\xdb\xb6 unicode2')
-        }
+        if six.PY3:
+            expected_action_params = {
+                'a1': (u'unicode1 ٩(̾●̮̮̃̾•̃̾)۶ unicode2')
+            }
+        else:
+            expected_action_params = {
+                'a1': (u'unicode1 \xd9\xa9(\xcc\xbe\xe2\x97\x8f\xcc\xae\xcc\xae\xcc'
+                       u'\x83\xcc\xbe\xe2\x80\xa2\xcc\x83\xcc\xbe)\xdb\xb6 unicode2')
+            }
+
         self.assertEqual(r_runner_params, {})
         self.assertEqual(r_action_params, expected_action_params)
 
@@ -462,7 +477,7 @@ class ParamsUtilsTest(DbTestCase):
             param_utils.get_finalized_params(runner_param_info, action_param_info, params, {})
             test_pass = False
         except ParamException as e:
-            test_pass = e.message.find('Cyclic') == 0
+            test_pass = str(e).find('Cyclic') == 0
         self.assertTrue(test_pass)
 
     def test_get_finalized_params_with_missing_dependency(self):
@@ -474,7 +489,7 @@ class ParamsUtilsTest(DbTestCase):
             param_utils.get_finalized_params(runner_param_info, action_param_info, params, {})
             test_pass = False
         except ParamException as e:
-            test_pass = e.message.find('Dependency') == 0
+            test_pass = str(e).find('Dependency') == 0
         self.assertTrue(test_pass)
 
         params = {}
@@ -485,7 +500,7 @@ class ParamsUtilsTest(DbTestCase):
             param_utils.get_finalized_params(runner_param_info, action_param_info, params, {})
             test_pass = False
         except ParamException as e:
-            test_pass = e.message.find('Dependency') == 0
+            test_pass = str(e).find('Dependency') == 0
         self.assertTrue(test_pass)
 
     def test_get_finalized_params_no_double_rendering(self):

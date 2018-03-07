@@ -19,9 +19,9 @@ Script which creates graphviz visualization of an action-chain workflow.
 """
 
 from __future__ import absolute_import
+
 import os
 import argparse
-import sets
 
 try:
     from graphviz import Digraph
@@ -31,7 +31,7 @@ except ImportError:
     raise ImportError(msg)
 
 from st2common.content.loader import MetaLoader
-from action_chain_runner import ChainHolder  # pylint: disable=import-error
+from action_chain_runner.action_chain_runner import ChainHolder
 
 
 def main(metadata_path, output_path, print_source=False):
@@ -70,7 +70,7 @@ def main(metadata_path, output_path, print_source=False):
 
     # Add connections
     node = chain_holder.get_next_node()
-    processed_nodes = sets.Set([node.name])
+    processed_nodes = set([node.name])
     nodes = [node]
     while nodes:
         previous_node = nodes.pop()

@@ -142,8 +142,8 @@ class ResourceCommand(commands.Command):
         return '%s-id' % resource_name.replace(' ', '-')
 
     def print_not_found(self, name):
-        print ('%s "%s" is not found.\n' %
-               (self.resource.get_display_name(), name))
+        print('%s "%s" is not found.\n' %
+              (self.resource.get_display_name(), name))
 
     def get_resource(self, name_or_id, **kwargs):
         pk_argument_name = self.pk_argument_name

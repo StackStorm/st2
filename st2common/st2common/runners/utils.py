@@ -14,8 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import logging as stdlib_logging
 
+import six
 from oslo_config import cfg
 
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
@@ -119,6 +121,9 @@ def make_read_and_store_stream_func(execution_db, action_db, store_data_func):
                 if not line:
                     break
 
+                if isinstance(line, six.binary_type):
+                    line = line.decode('utf-8')
+
                 buff.write(line)
 
                 # Filter out result delimiter lines
@@ -160,7 +165,8 @@ def invoke_post_run(liveaction_db, action_db=None):
 
     # Get an instance of the action runner.
     runnertype_db = action_db_utils.get_runnertype_by_name(action_db.runner_type['name'])
-    runner = runners.get_runner(runnertype_db.runner_module)
+    runner = runners.get_runner(package_name=runnertype_db.runner_package,
+                                module_name=runnertype_db.runner_module)
 
     # Configure the action runner.
     runner.action = action_db

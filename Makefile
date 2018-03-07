@@ -2,6 +2,7 @@ ROOT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 SHELL := /bin/bash
 TOX_DIR := .tox
 VIRTUALENV_DIR ?= virtualenv
+PYTHON_VERSION = python2.7
 
 BINARIES := bin
 
@@ -48,6 +49,7 @@ all: requirements configgen check tests
 .PHONY: play
 play:
 	@echo COMPONENTS=$(COMPONENTS)
+	@echo COMPONENTS_WITH_RUNNERS=$(COMPONENTS_WITH_RUNNERS)
 	@echo COMPONENTS_TEST=$(COMPONENTS_TEST)
 	@echo COMPONENTS_TEST_COMMA=$(COMPONENTS_TEST_COMMA)
 	@echo COMPONENT_PYTHONPATH=$(COMPONENT_PYTHONPATH)
@@ -271,34 +273,40 @@ requirements: virtualenv .sdist-requirements
 	$(VIRTUALENV_DIR)/bin/pip install "prance==0.6.1"
 
 .PHONY: virtualenv
-virtualenv: $(VIRTUALENV_DIR)/bin/activate
-$(VIRTUALENV_DIR)/bin/activate:
+	# Note: We always want to update virtualenv/bin/activate file to make sure
+	# PYTHONPATH is up to date and to avoid caching issues on Travis
+virtualenv:
 	@echo
 	@echo "==================== virtualenv ===================="
 	@echo
-	test -f $(VIRTUALENV_DIR)/bin/activate || virtualenv --no-site-packages $(VIRTUALENV_DIR)
+	test -f $(VIRTUALENV_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) --no-site-packages $(VIRTUALENV_DIR)
 
 	# Setup PYTHONPATH in bash activate script...
-	echo '' >> $(VIRTUALENV_DIR)/bin/activate
+	# Delete existing entries (if any)
+	sed -i '/_OLD_PYTHONPATHp/d' $(VIRTUALENV_DIR)/bin/activate
+	sed -i '/PYTHONPATH=/d' $(VIRTUALENV_DIR)/bin/activate
+	sed -i '/export PYTHONPATH/d' $(VIRTUALENV_DIR)/bin/activate
+
 	echo '_OLD_PYTHONPATH=$$PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate
-	echo 'PYTHONPATH=$$_OLD_PYTHONPATH:$(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_DIR)/bin/activate
+	#echo 'PYTHONPATH=$$_OLD_PYTHONPATH:$(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_DIR)/bin/activate
+	echo 'PYTHONPATH=${ROOT_DIR}:$(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_DIR)/bin/activate
 	echo 'export PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate
 	touch $(VIRTUALENV_DIR)/bin/activate
 
 	# Setup PYTHONPATH in fish activate script...
-	echo '' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	echo 'set -gx _OLD_PYTHONPATH $$PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	echo 'set -gx PYTHONPATH $$_OLD_PYTHONPATH $(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	echo 'functions -c deactivate old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	echo 'function deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	echo '  if test -n $$_OLD_PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	echo '    set -gx PYTHONPATH $$_OLD_PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	echo '    set -e _OLD_PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	echo '  end' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	echo '  old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	echo '  functions -e old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	echo 'end' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	touch $(VIRTUALENV_DIR)/bin/activate.fish
+	#echo '' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	#echo 'set -gx _OLD_PYTHONPATH $$PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	#echo 'set -gx PYTHONPATH $$_OLD_PYTHONPATH $(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	#echo 'functions -c deactivate old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	#echo 'function deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	#echo '  if test -n $$_OLD_PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	#echo '    set -gx PYTHONPATH $$_OLD_PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	#echo '    set -e _OLD_PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	#echo '  end' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	#echo '  old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	#echo '  functions -e old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	#echo 'end' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	#touch $(VIRTUALENV_DIR)/bin/activate.fish
 
 .PHONY: tests
 tests: pytests
@@ -482,17 +490,10 @@ ci: ci-checks ci-unit ci-integration ci-mistral ci-packs-tests
 .PHONY: ci-checks
 ci-checks: compile .generated-files-check .pylint .flake8 .bandit .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check
 
-.PHONY: ci-st2client-py3-tests
-ci-st2client-py3-tests:
+.PHONY: ci-py3-unit
+ci-py3-unit:
 	@echo
-	@echo "==================== ci-st2client-py3-tests ===================="
-	@echo
-	tox -e py36 -v
-
-.PHONY: st2client-py3-tests
-st2client-py3-tests:
-	@echo
-	@echo "==================== ci-st2client-py3-tests ===================="
+	@echo "==================== ci-py3-unit ===================="
 	@echo
 	tox -e py36 -vv
 

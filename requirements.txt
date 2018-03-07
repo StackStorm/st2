@@ -2,7 +2,7 @@
 apscheduler==3.4.0
 argcomplete
 bcrypt
-eventlet==0.19.0
+eventlet==0.22.1
 flex==6.11.1
 git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper
 git+https://github.com/StackStorm/python-mistralclient.git#egg=python-mistralclient
@@ -20,6 +20,7 @@ mock
 mongoengine==0.12.0
 networkx==1.11
 nose
+nose-timer
 oslo.config<1.13,>=1.12.1
 oslo.utils<=3.33.0,>=3.15.0
 paramiko==2.3.1
@@ -47,4 +48,5 @@ stevedore==1.27.1
 tooz==1.57.4
 unittest2
 webob==1.7.3
+webtest
 zake==0.2.2

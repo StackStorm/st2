@@ -17,20 +17,23 @@ from __future__ import absolute_import
 import os
 import re
 
+import six
 import mock
+import unittest2
 from oslo_config import cfg
 
 from python_runner import python_runner
 from st2actions.container.base import RunnerContainer
-from st2common.runners.python_action_wrapper import PythonActionWrapper
 from st2common.runners.base_action import Action
 from st2common.runners.utils import get_action_class_instance
 from st2common.services import config as config_service
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
+from st2common.constants.action import MAX_PARAM_LENGTH
 from st2common.constants.pack import SYSTEM_PACK_NAME
 from st2common.persistence.execution import ActionExecutionOutput
+from python_runner.python_action_wrapper import PythonActionWrapper
 from st2tests.base import RunnerTestCase
 from st2tests.base import CleanDbTestCase
 from st2tests.base import blocking_eventlet_spawn
@@ -40,6 +43,8 @@ import st2tests.base as tests_base
 
 PASCAL_ROW_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
                                       'pythonactions/actions/pascal_row.py')
+ECHOER_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
+                                  'pythonactions/actions/echoer.py')
 TEST_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
                                 'pythonactions/actions/test.py')
 PATHS_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
@@ -81,8 +86,13 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
         self.assertTrue(output is not None)
 
-        expected_result_re = (r"\[{'a': '1'}, {'h': 3, 'c': 2}, {'e': "
-                              "<non_simple_type.Test object at .*?>}\]")
+        if six.PY2:
+            expected_result_re = (r"\[{'a': '1'}, {'h': 3, 'c': 2}, {'e': "
+                                  "<non_simple_type.Test object at .*?>}\]")
+        else:
+            expected_result_re = (r"\[{'a': '1'}, {'c': 2, 'h': 3}, {'e': "
+                                  "<non_simple_type.Test object at .*?>}\]")
+
         match = re.match(expected_result_re, output['result'])
         self.assertTrue(match)
 
@@ -173,6 +183,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertTrue(output is not None)
         self.assertEqual(output['result'], [1, 2])
 
+    @unittest2.skipIf(six.PY3, 'keyczar doesn\'t work under Python 3')
     def test_simple_action_config_value_provided_overriden_in_datastore(self):
         pack = 'dummy_pack_5'
         user = 'joe'
@@ -608,7 +619,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
                                       user='joe')
         expected_msg = ('Failed to load action class from file ".*?invalid_syntax.py" '
                        '\(action file most likely doesn\'t exist or contains invalid syntax\): '
-                       'No module named invalid')
+                       'No module named \'?invalid\'?')
         self.assertRaisesRegexp(Exception, expected_msg, wrapper._get_action_instance)
 
     def test_simple_action_log_messages_and_log_level_runner_param(self):
@@ -685,6 +696,30 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertTrue(expected_msg_4 not in output['stderr'])
         self.assertTrue(expected_msg_5 in output['stderr'])
 
+    def test_execution_with_very_large_parameter(self):
+        runner = self._get_mock_runner_obj()
+        runner.entry_point = ECHOER_ACTION_PATH
+        runner.pre_run()
+        large_value = ''.join(['1' for _ in range(MAX_PARAM_LENGTH)])
+        (status, output, _) = runner.run({'action_input': large_value})
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+        self.assertTrue(output is not None)
+        self.assertEqual(output['result']['action_input'], large_value)
+
+    def test_execution_with_close_to_very_large_parameter(self):
+        runner = self._get_mock_runner_obj()
+        runner.entry_point = ECHOER_ACTION_PATH
+        runner.pre_run()
+        # 21 is the minimum overhead required to make the param fall back to
+        # param based payload. The linux max includes all parts of the param
+        # not just the value portion. So we need to subtract the remaining
+        # overhead from the initial padding.
+        large_value = ''.join(['1' for _ in range(MAX_PARAM_LENGTH - 21)])
+        (status, output, _) = runner.run({'action_input': large_value})
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+        self.assertTrue(output is not None)
+        self.assertEqual(output['result']['action_input'], large_value)
+
     def _get_mock_runner_obj(self):
         runner = python_runner.get_runner()
         runner.execution = MOCK_EXECUTION
@@ -698,6 +733,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         container = RunnerContainer()
 
         runnertype_db = mock.Mock()
+        runnertype_db.runner_package = 'python_runner'
         runnertype_db.runner_module = 'python_runner'
         action_db = mock.Mock()
         action_db.pack = pack

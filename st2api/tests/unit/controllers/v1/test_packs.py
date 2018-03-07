@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
 import os
 
 import requests
@@ -56,8 +55,8 @@ PACK_INDEX = {
 }
 
 PACK_INDEXES = {
-    'http://main': PACK_INDEX,
-    'http://fallback': {
+    'http://main.example.com': PACK_INDEX,
+    'http://fallback.example.com': {
         "test": {
             "version": "0.1.0",
             "name": "test",
@@ -68,7 +67,7 @@ PACK_INDEXES = {
             "description": "st2 pack to test package management pipeline"
         }
     },
-    'http://override': {
+    'http://override.example.com': {
         "test2": {
             "version": "1.0.0",
             "name": "test2",
@@ -79,7 +78,7 @@ PACK_INDEXES = {
             "description": "another st2 pack to test package management pipeline"
         }
     },
-    'http://broken': requests.exceptions.RequestException('index is broken')
+    'http://broken.example.com': requests.exceptions.RequestException('index is broken')
 }
 
 
@@ -89,13 +88,22 @@ def mock_index_get(url, *args, **kwargs):
     if isinstance(index, requests.exceptions.RequestException):
         raise index
 
-    response = requests.Response()
-    response._content = json.dumps({
+    status = 200
+    content = {
         'metadata': {},
         'packs': index
-    })
+    }
 
-    return response
+    # Return mock response object
+
+    mock_resp = mock.Mock()
+    mock_resp.raise_for_status = mock.Mock()
+    mock_resp.status_code = status
+    mock_resp.content = content
+    mock_resp.json = mock.Mock(
+        return_value=content
+    )
+    return mock_resp
 
 
 class PacksControllerTestCase(FunctionalTest):
@@ -245,7 +253,7 @@ class PacksControllerTestCase(FunctionalTest):
         self.assertEqual(resp.json, PACK_INDEX['test2'])
 
     @mock.patch.object(pack_service, '_build_index_list',
-                       mock.MagicMock(return_value=['http://main']))
+                       mock.MagicMock(return_value=['http://main.example.com']))
     @mock.patch.object(requests, 'get', mock_index_get)
     def test_index_health(self):
         resp = self.app.get('/v1/packs/index/health')
@@ -258,7 +266,7 @@ class PacksControllerTestCase(FunctionalTest):
             'indexes': {
                 'count': 1,
                 'status': [{
-                    'url': 'http://main',
+                    'url': 'http://main.example.com',
                     'message': 'Success.',
                     'packs': 2,
                     'error': None
@@ -270,7 +278,8 @@ class PacksControllerTestCase(FunctionalTest):
         })
 
     @mock.patch.object(pack_service, '_build_index_list',
-                       mock.MagicMock(return_value=['http://main', 'http://broken']))
+                       mock.MagicMock(return_value=['http://main.example.com',
+                                                    'http://broken.example.com']))
     @mock.patch.object(requests, 'get', mock_index_get)
     def test_index_health_broken(self):
         resp = self.app.get('/v1/packs/index/health')
@@ -283,12 +292,12 @@ class PacksControllerTestCase(FunctionalTest):
             'indexes': {
                 'count': 2,
                 'status': [{
-                    'url': 'http://main',
+                    'url': 'http://main.example.com',
                     'message': 'Success.',
                     'packs': 2,
                     'error': None
                 }, {
-                    'url': 'http://broken',
+                    'url': 'http://broken.example.com',
                     'message': "RequestException('index is broken',)",
                     'packs': 0,
                     'error': 'unresponsive'
@@ -302,7 +311,7 @@ class PacksControllerTestCase(FunctionalTest):
         })
 
     @mock.patch.object(pack_service, '_build_index_list',
-                       mock.MagicMock(return_value=['http://main']))
+                       mock.MagicMock(return_value=['http://main.example.com']))
     @mock.patch.object(requests, 'get', mock_index_get)
     def test_index(self):
         resp = self.app.get('/v1/packs/index')
@@ -310,7 +319,7 @@ class PacksControllerTestCase(FunctionalTest):
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json, {
             'status': [{
-                'url': 'http://main',
+                'url': 'http://main.example.com',
                 'message': 'Success.',
                 'packs': 2,
                 'error': None
@@ -319,7 +328,8 @@ class PacksControllerTestCase(FunctionalTest):
         })
 
     @mock.patch.object(pack_service, '_build_index_list',
-                       mock.MagicMock(return_value=['http://fallback', 'http://main']))
+                       mock.MagicMock(return_value=['http://fallback.example.com',
+                                                    'http://main.example.com']))
     @mock.patch.object(requests, 'get', mock_index_get)
     def test_index_fallback(self):
         resp = self.app.get('/v1/packs/index')
@@ -327,12 +337,12 @@ class PacksControllerTestCase(FunctionalTest):
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json, {
             'status': [{
-                'url': 'http://fallback',
+                'url': 'http://fallback.example.com',
                 'message': 'Success.',
                 'packs': 1,
                 'error': None
             }, {
-                'url': 'http://main',
+                'url': 'http://main.example.com',
                 'message': 'Success.',
                 'packs': 2,
                 'error': None
@@ -341,7 +351,8 @@ class PacksControllerTestCase(FunctionalTest):
         })
 
     @mock.patch.object(pack_service, '_build_index_list',
-                       mock.MagicMock(return_value=['http://main', 'http://override']))
+                       mock.MagicMock(return_value=['http://main.example.com',
+                                                    'http://override.example.com']))
     @mock.patch.object(requests, 'get', mock_index_get)
     def test_index_override(self):
         resp = self.app.get('/v1/packs/index')
@@ -349,19 +360,19 @@ class PacksControllerTestCase(FunctionalTest):
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json, {
             'status': [{
-                'url': 'http://main',
+                'url': 'http://main.example.com',
                 'message': 'Success.',
                 'packs': 2,
                 'error': None
             }, {
-                'url': 'http://override',
+                'url': 'http://override.example.com',
                 'message': 'Success.',
                 'packs': 1,
                 'error': None
             }],
             'index': {
                 'test': PACK_INDEX['test'],
-                'test2': PACK_INDEXES['http://override']['test2']
+                'test2': PACK_INDEXES['http://override.example.com']['test2']
             }
         })
 
@@ -369,7 +380,7 @@ class PacksControllerTestCase(FunctionalTest):
         # Verify that resources are registered in the same order as they are inside
         # st2-register-content.
         # Note: Sadly there is no easier / better way to test this
-        resource_types = ENTITIES.keys()
+        resource_types = list(ENTITIES.keys())
         expected_order = [
             'trigger',
             'sensor',

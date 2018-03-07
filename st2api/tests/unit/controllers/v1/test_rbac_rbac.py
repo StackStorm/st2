@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import httplib
-
 import six
 
 from st2common.persistence.auth import User
@@ -45,7 +43,7 @@ class RBACRolesControllerRBACTestCase(APIControllerWithRBACTestCase):
 
         resp = self.app.get('/v1/rbac/roles', expect_errors=True)
         expected_msg = ('Administrator access required')
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_get_one_no_permissions(self):
@@ -54,7 +52,7 @@ class RBACRolesControllerRBACTestCase(APIControllerWithRBACTestCase):
 
         resp = self.app.get('/v1/rbac/roles/admin', expect_errors=True)
         expected_msg = ('Administrator access required')
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_get_all_success(self):
@@ -62,7 +60,7 @@ class RBACRolesControllerRBACTestCase(APIControllerWithRBACTestCase):
         self.use_user(user_db)
 
         resp = self.app.get('/v1/rbac/roles')
-        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(resp.status_code, http_client.OK)
         self.assertEqual(len(resp.json), 3)
 
 
@@ -104,12 +102,12 @@ class RBACRoleAssignmentsControllerRBACTestCase(APIControllerWithRBACTestCase):
 
         resp = self.app.get('/v1/rbac/role_assignments', expect_errors=True)
         expected_msg = ('Administrator or self access required')
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
         resp = self.app.get('/v1/rbac/role_assignments?user=not-me', expect_errors=True)
         expected_msg = ('Administrator or self access required')
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_get_one_no_permissions(self):
@@ -119,7 +117,7 @@ class RBACRoleAssignmentsControllerRBACTestCase(APIControllerWithRBACTestCase):
         assignment_id = self.role_assignments['assignment_one']['id']
         resp = self.app.get('/v1/rbac/role_assignments/%s' % (assignment_id), expect_errors=True)
         expected_msg = ('Administrator or self access required')
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_get_all_admin_success(self):
@@ -127,11 +125,11 @@ class RBACRoleAssignmentsControllerRBACTestCase(APIControllerWithRBACTestCase):
         self.use_user(user_db)
 
         resp = self.app.get('/v1/rbac/role_assignments')
-        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(resp.status_code, http_client.OK)
         self.assertTrue(len(resp.json) > 1)
 
         resp = self.app.get('/v1/rbac/role_assignments?user=user_foo')
-        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(resp.status_code, http_client.OK)
         self.assertEqual(len(resp.json), 1)
 
     def test_get_all_user_foo_success(self):
@@ -141,16 +139,16 @@ class RBACRoleAssignmentsControllerRBACTestCase(APIControllerWithRBACTestCase):
 
         resp = self.app.get('/v1/rbac/role_assignments', expect_errors=True)
         expected_msg = ('Administrator or self access required')
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
         resp = self.app.get('/v1/rbac/role_assignments?user=admin', expect_errors=True)
         expected_msg = ('Administrator or self access required')
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
         resp = self.app.get('/v1/rbac/role_assignments?user=user_foo')
-        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(resp.status_code, http_client.OK)
         self.assertEqual(len(resp.json), 1)
 
     def test_get_one_admin_success(self):
@@ -160,7 +158,7 @@ class RBACRoleAssignmentsControllerRBACTestCase(APIControllerWithRBACTestCase):
         assignment_id = self.role_assignments['assignment_one']['id']
 
         resp = self.app.get('/v1/rbac/role_assignments/%s' % (assignment_id))
-        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(resp.status_code, http_client.OK)
 
     def test_get_one_user_foo_success(self):
         # Users can view their own roles, but nothing else
@@ -169,12 +167,12 @@ class RBACRoleAssignmentsControllerRBACTestCase(APIControllerWithRBACTestCase):
 
         assignment_id = self.role_assignments['assignment_one']['id']
         resp = self.app.get('/v1/rbac/role_assignments/%s' % (assignment_id))
-        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(resp.status_code, http_client.OK)
 
         assignment_id = self.role_assignments['assignment_two']['id']
         resp = self.app.get('/v1/rbac/role_assignments/%s' % (assignment_id), expect_errors=True)
         expected_msg = ('Administrator or self access required')
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
 
@@ -185,7 +183,7 @@ class RBACPermissionTypesControllerRBACTestCase(APIControllerWithRBACTestCase):
 
         resp = self.app.get('/v1/rbac/permission_types', expect_errors=True)
         expected_msg = ('Administrator access required')
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_get_one_no_permissions(self):
@@ -194,7 +192,7 @@ class RBACPermissionTypesControllerRBACTestCase(APIControllerWithRBACTestCase):
 
         resp = self.app.get('/v1/rbac/permission_types/action', expect_errors=True)
         expected_msg = ('Administrator access required')
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_get_all_success(self):
@@ -202,5 +200,5 @@ class RBACPermissionTypesControllerRBACTestCase(APIControllerWithRBACTestCase):
         self.use_user(user_db)
 
         resp = self.app.get('/v1/rbac/role_assignments')
-        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(resp.status_code, http_client.OK)
         self.assertTrue(len(resp.json) >= 1)

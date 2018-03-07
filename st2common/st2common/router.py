@@ -348,7 +348,7 @@ class Router(object):
                 # Note: We also want to perform validation if no body is explicitly provided - in a
                 # lot of POST, PUT scenarios, body is mandatory
                 if not req.body:
-                    req.body = '{}'
+                    req.body = b'{}'
 
                 content_type = req.headers.get('Content-Type', 'application/json')
                 content_type = parse_content_type_header(content_type=content_type)[0]
@@ -387,7 +387,17 @@ class Router(object):
                             schema = resolved
 
                     if 'x-api-model' in schema:
+                        input_type = schema.get('type', [])
                         Model = op_resolver(schema['x-api-model'])
+
+                        if input_type and not isinstance(input_type, (list, tuple)):
+                            input_type = [input_type]
+
+                        # root attribute is not an object, we need to use wrapper attribute to
+                        # make it work with **kwarg expansion
+                        if input_type and 'array' in input_type:
+                            data = {'data': data}
+
                         instance = self._get_model_instance(model_cls=Model, data=data)
 
                         # Call validate on the API model - note we should eventually move all
@@ -439,6 +449,14 @@ class Router(object):
                         raise exc.HTTPBadRequest(detail=detail)
 
                     kw[argument_name] = float(kw[argument_name])
+                elif param_type == 'array' and param.get('items', {}).get('type', None) == 'string':
+                    if kw[argument_name] is None:
+                        kw[argument_name] = []
+                    elif isinstance(kw[argument_name], (list, tuple)):
+                        # argument is already an array
+                        pass
+                    else:
+                        kw[argument_name] = kw[argument_name].split(',')
 
         # Call the controller
         try:

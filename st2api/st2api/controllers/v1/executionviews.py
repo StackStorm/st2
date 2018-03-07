@@ -57,10 +57,6 @@ FILTERS_WITH_VALID_NULL_VALUES = [
 IGNORE_FILTERS = ['parent', 'timestamp', 'liveaction', 'trigger_instance']
 
 
-def csv(s):
-    return s.split(',')
-
-
 class FiltersController(object):
     def get_all(self, types=None):
         """
