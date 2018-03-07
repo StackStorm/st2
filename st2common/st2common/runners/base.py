@@ -33,6 +33,7 @@ from st2common.util.deprecation import deprecated
 __all__ = [
     'ActionRunner',
     'AsyncActionRunner',
+    'PollingAsyncActionRunner',
     'ShellRunnerMixin',
 
     'get_runner',
@@ -227,6 +228,14 @@ class ActionRunner(object):
 @six.add_metaclass(abc.ABCMeta)
 class AsyncActionRunner(ActionRunner):
     pass
+
+
+@six.add_metaclass(abc.ABCMeta)
+class PollingAsyncActionRunner(AsyncActionRunner):
+
+    @classmethod
+    def is_polling_enabled(cls):
+        return True
 
 
 class ShellRunnerMixin(object):

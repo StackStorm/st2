@@ -15,10 +15,23 @@
 
 from __future__ import absolute_import
 import retrying
+import six
 import unittest2
 
 from st2client import client as st2
 from st2client import models
+from st2common.constants import action as action_constants
+
+
+LIVEACTION_LAUNCHED_STATUSES = [
+    action_constants.LIVEACTION_STATUS_REQUESTED,
+    action_constants.LIVEACTION_STATUS_SCHEDULED,
+    action_constants.LIVEACTION_STATUS_RUNNING
+]
+
+
+def retry_on_exceptions(exc):
+    return isinstance(exc, AssertionError)
 
 
 class TestWorkflowExecution(unittest2.TestCase):
@@ -28,69 +41,83 @@ class TestWorkflowExecution(unittest2.TestCase):
         cls.st2client = st2.Client(base_url='http://127.0.0.1')
 
     def _execute_workflow(self, action, parameters=None):
-        if parameters is None:
-            parameters = {}
+        ex = models.LiveAction(action=action, parameters=(parameters or {}))
+        ex = self.st2client.liveactions.create(ex)
+        self.assertIsNotNone(ex.id)
+        self.assertEqual(ex.action['ref'], action)
+        self.assertIn(ex.status, LIVEACTION_LAUNCHED_STATUSES)
 
-        execution = models.LiveAction(action=action, parameters=parameters)
-        execution = self.st2client.liveactions.create(execution)
-        self.assertIsNotNone(execution.id)
-        self.assertEqual(execution.action['ref'], action)
-        self.assertIn(execution.status, ['requested', 'scheduled', 'running'])
+        return ex
 
-        return execution
+    @retrying.retry(
+        retry_on_exception=retry_on_exceptions,
+        wait_fixed=3000, stop_max_delay=900000)
+    def _wait_for_state(self, ex, states):
+        if isinstance(states, six.string_types):
+            states = [states]
 
-    @retrying.retry(wait_fixed=3000, stop_max_delay=900000)
-    def _wait_for_state(self, execution, states):
-        execution = self.st2client.liveactions.get_by_id(execution.id)
-        self.assertIn(execution.status, states)
-        return execution
+        for state in states:
+            if state not in action_constants.LIVEACTION_STATUSES:
+                raise ValueError('Status %s is not valid.' % state)
 
-    @retrying.retry(wait_fixed=3000, stop_max_delay=900000)
-    def _wait_for_task(self, execution, task, state=None):
-        execution = self.st2client.liveactions.get_by_id(execution.id)
-        self.assertGreater(len(execution.result['tasks']), 0)
+        try:
+            ex = self.st2client.liveactions.get_by_id(ex.id)
+            self.assertIn(ex.status, states)
+        except:
+            if ex.status in action_constants.LIVEACTION_COMPLETED_STATES:
+                raise Exception(
+                    'Execution is in completed state and does not '
+                    'match expected state(s).'
+                )
+            else:
+                raise
 
-        matches = [t for t in execution.result['tasks'] if t['name'] == task]
-        self.assertGreater(len(matches), 0)
-        self.assertEqual(matches[0]['state'], state)
+        return ex
 
-        return execution
+    def _get_children(self, ex):
+        return self.st2client.liveactions.query(parent=ex.id)
 
-    @retrying.retry(wait_fixed=3000, stop_max_delay=900000)
-    def _wait_for_completion(self, execution, expect_tasks=True, expect_tasks_completed=True):
-        execution = self._wait_for_state(execution, ['succeeded', 'failed', 'canceled'])
-        self.assertTrue(hasattr(execution, 'result'))
+    @retrying.retry(
+        retry_on_exception=retry_on_exceptions,
+        wait_fixed=3000, stop_max_delay=900000)
+    def _wait_for_task(self, ex, task, status, num_task_exs=1):
+        ex = self.st2client.liveactions.get_by_id(ex.id)
 
-        if expect_tasks:
-            self.assertIn('tasks', execution.result)
-            self.assertGreater(len(execution.result['tasks']), 0)
+        task_exs = [
+            task_ex for task_ex in self._get_children(ex)
+            if (task_ex.context.get('mistral', {}).get('task_name', '') == task and
+                task_ex.status == status)
+        ]
 
-        mistral_completed_states = ['SUCCESS', 'ERROR', 'CANCELLED']
-        chain_completed_states = ['succeeded', 'failed', 'abandoned', 'canceled']
-        completed_states = mistral_completed_states + chain_completed_states
+        try:
+            self.assertEqual(len(task_exs), num_task_exs)
+            self.assertTrue(all([task_ex.status == status for task_ex in task_exs]))
+        except:
+            if ex.status in action_constants.LIVEACTION_COMPLETED_STATES:
+                raise Exception(
+                    'Execution is in completed state and does not '
+                    'match expected task.'
+                )
+            else:
+                raise
 
-        if expect_tasks and expect_tasks_completed:
-            tasks = execution.result['tasks']
-            self.assertTrue(all([t['state'] in completed_states for t in tasks]))
+        return task_exs
 
-        return execution
+    @retrying.retry(
+        retry_on_exception=retry_on_exceptions,
+        wait_fixed=3000, stop_max_delay=900000)
+    def _wait_for_completion(self, ex):
+        ex = self._wait_for_state(ex, action_constants.LIVEACTION_COMPLETED_STATES)
 
-    def _assert_success(self, execution, num_tasks=0):
-        self.assertEqual(execution.status, 'succeeded')
-        tasks = execution.result.get('tasks', [])
-        self.assertEqual(num_tasks, len(tasks))
-        self.assertTrue(all([task['state'] in ['SUCCESS', 'succeeded'] for task in tasks]))
+        try:
+            self.assertTrue(hasattr(ex, 'result'))
+        except:
+            if ex.status in action_constants.LIVEACTION_COMPLETED_STATES:
+                raise Exception(
+                    'Execution is in completed state and does not '
+                    'contain expected result.'
+                )
+            else:
+                raise
 
-    def _assert_failure(self, execution, expect_tasks_failure=True):
-        self.assertEqual(execution.status, 'failed')
-        tasks = execution.result.get('tasks', [])
-
-        if expect_tasks_failure:
-            self.assertTrue(any([task['state'] == 'ERROR' for task in tasks]))
-
-    def _assert_canceled(self, execution, are_tasks_completed=False):
-        self.assertEqual(execution.status, 'canceled')
-        tasks = execution.result.get('tasks', [])
-
-        if are_tasks_completed:
-            self.assertTrue(all([t['state'] in ['SUCCESS', 'ERROR', 'CANCELLED'] for t in tasks]))
+        return ex

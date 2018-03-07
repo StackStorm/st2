@@ -86,6 +86,9 @@ WF1_OLD = workflows.Workflow(None, {'name': WF1_NAME, 'definition': ''})
 WF1_EXEC = copy.deepcopy(MISTRAL_EXECUTION)
 WF1_EXEC['workflow_name'] = WF1_NAME
 
+# Data for the notify param
+NOTIFY = [{'type': 'st2'}]
+
 # Token for auth test cases
 TOKEN_API = TokenAPI(
     user=ACTION_CONTEXT['user'], token=uuid.uuid4().hex,
@@ -201,7 +204,7 @@ class MistralAuthTest(DbTestCase):
         }
 
         executions.ExecutionManager.create.assert_called_with(
-            WF1_NAME, workflow_input=workflow_input, env=env)
+            WF1_NAME, workflow_input=workflow_input, env=env, notify=NOTIFY)
 
     @mock.patch.object(
         keystone.KeystoneAuthHandler, 'authenticate',
@@ -270,4 +273,4 @@ class MistralAuthTest(DbTestCase):
         keystone.KeystoneAuthHandler.authenticate.assert_called_with(auth_req, session=None)
 
         executions.ExecutionManager.create.assert_called_with(
-            WF1_NAME, workflow_input=workflow_input, env=env)
+            WF1_NAME, workflow_input=workflow_input, env=env, notify=NOTIFY)
