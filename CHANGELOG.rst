@@ -21,6 +21,14 @@ Added
   Note: For this feature to work, Python 3 needs to be installed on the system and ``virtualenv``
   package installed on the system needs to support Python 3 (it needs to be a recent version).
   (new feature) #4016 #3922
+* Added the ability of ``st2ctl`` to utilize environment variables from ``/etc/default/st2ctl``
+  (for Ubuntu/Debian) and ``/etc/sysconfig/st2ctl`` (RHEL/CentOS). This allows
+  deployments to override ``COMPONENTS`` and ``ST2_CONF`` in a global location
+  so ``st2ctl`` can start/stop/restart selected components and utilize a non-default
+  location for ``st2.conf``.
+  (new feature) #4027
+
+  Contributed by Nick Maludy (Encore Technologies).
 
 Changed
 ~~~~~~~
