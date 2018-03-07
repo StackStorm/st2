@@ -249,22 +249,16 @@ class MistralResultsQuerier(Querier):
 
         # get all of the task objects that existed in the livaction_db object
         # from the last time we checked on the results.
-        # @note there could be no results, so the default is am empty list
         old_wf_tasks_result = [
             entry for entry in current_result.get('tasks', [])
             if entry['id'] not in new_wf_task_ids
         ]
         old_wf_task_ids = [entry['id'] for entry in old_wf_tasks_result]
 
-        # @note We perform this extract in this funtion to avoid extracting
-        # duplicate information over-over. By performing these API calls here
-        # the inputs are only extracted when they are a in the new_wf_task_ids
-        # list
+        # query for inputs in new tasks only
         for task_result in new_wf_tasks_result:
             # if this task result is in the "old" list then skip it since we
             # extracted inputs from a previous run when it was "new"
-            # or if 'input' has already been queried for and added to
-            # the results
             if task_result['id'] in old_wf_task_ids:
                 continue
 
@@ -285,20 +279,22 @@ class MistralResultsQuerier(Querier):
                 LOG.error('Unknown task type "{}" for task_execution.id: {}'.
                           format(task_result.get('type', None), task_result['id']))
 
+            # there _should_ only be 1 execution, but an array is returned from
+            # the mistral client
             for exe in executions:
                 exe_dict = exe.to_dict()
 
-                # the input parameter contains serialized JSON, we need to parse
-                # that to convert it into a dict
+                # the `input` parameter contains serialized JSON, we need to
+                # parse the JSON and into a dict
                 input = jsonify.try_loads(exe_dict.get('input', None))
                 if not input:
                     continue
 
-                # In a StackStorm action (st2.action) the inputs for the action
-                # are actually burried within a sub-field: input.parameters
-                # In a non-StackStorm action the inputs are just a dict.
                 if exe_dict.get('name', None) == 'st2.action':
+                    # StackStorm action (st2.action) inputs are burried within a
+                    # sub-field: input.parameters
                     task_result['input'] = input.get('parameters')
+                    # the name of the action is in the `ref` field
                     task_result['action'] = input.get('ref')
                 else:
                     task_result['input'] = input
