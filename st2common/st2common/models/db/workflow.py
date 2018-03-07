@@ -15,18 +15,24 @@
 
 from __future__ import absolute_import
 
-from st2common.transport import liveaction, actionexecutionstate, execution, workflow
-from st2common.transport import publishers, reactor, utils, connection_retry_wrapper
+import mongoengine as me
 
-# TODO(manas) : Exchanges, Queues and RoutingKey design discussion pending.
+from st2common.constants.types import ResourceType
+from st2common import log as logging
+from st2common.models.db import stormbase
 
 __all__ = [
-    'liveaction',
-    'actionexecutionstate',
-    'execution',
-    'workflow',
-    'publishers',
-    'reactor',
-    'utils',
-    'connection_retry_wrapper'
+    'WorkflowExecutionDB'
 ]
+
+
+LOG = logging.getLogger(__name__)
+
+
+class WorkflowExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionFieldMixin):
+    RESOURCE_TYPE = ResourceType.EXECUTION
+
+    graph = me.DictField()
+
+
+MODELS = [WorkflowExecutionDB]

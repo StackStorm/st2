@@ -15,18 +15,29 @@
 
 from __future__ import absolute_import
 
-from st2common.transport import liveaction, actionexecutionstate, execution, workflow
-from st2common.transport import publishers, reactor, utils, connection_retry_wrapper
-
-# TODO(manas) : Exchanges, Queues and RoutingKey design discussion pending.
+from st2common import transport
+from st2common.models.db import ChangeRevisionMongoDBAccess
+from st2common.models.db.workflow import WorkflowExecutionDB
+from st2common.persistence import base as persistence
+from st2common.transport import utils as transport_utils
 
 __all__ = [
-    'liveaction',
-    'actionexecutionstate',
-    'execution',
-    'workflow',
-    'publishers',
-    'reactor',
-    'utils',
-    'connection_retry_wrapper'
+    'WorkflowExecution'
 ]
+
+
+class WorkflowExecution(persistence.StatusBasedResource):
+    impl = ChangeRevisionMongoDBAccess(WorkflowExecutionDB)
+    publisher = None
+
+    @classmethod
+    def _get_impl(cls):
+        return cls.impl
+
+    @classmethod
+    def _get_publisher(cls):
+        if not cls.publisher:
+            cls.publisher = transport.workflow.WorkflowExecutionPublisher(
+                urls=transport_utils.get_messaging_urls())
+
+        return cls.publisher
