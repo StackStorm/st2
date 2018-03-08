@@ -127,6 +127,7 @@ LIVEACTION_FAILED_STATES = [
 WORKFLOW_RUNNER_TYPES = [
     'action-chain',
     'mistral-v2',
+    'orchestra'
 ]
 
 # Linux's limit for param size

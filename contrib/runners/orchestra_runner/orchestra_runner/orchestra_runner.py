@@ -17,6 +17,10 @@ from __future__ import absolute_import
 
 import uuid
 
+from orchestra import exceptions as wf_lib_exc
+from orchestra.specs import loader as specs_loader
+from orchestra.utils import plugin
+
 from st2common.constants import action as action_constants
 from st2common import log as logging
 from st2common.runners import base as runners
@@ -33,9 +37,10 @@ LOG = logging.getLogger(__name__)
 
 
 class OrchestraRunner(runners.AsyncActionRunner):
-
     def __init__(self, runner_id):
         super(OrchestraRunner, self).__init__(runner_id=runner_id)
+        self.composer = plugin.get_module('orchestra.composers', 'native')
+        self.spec_module = specs_loader.get_spec_module('native')
 
     @staticmethod
     def get_workflow_definition(entry_point):
@@ -43,7 +48,22 @@ class OrchestraRunner(runners.AsyncActionRunner):
             return def_file.read()
 
     def run(self, action_parameters):
+        # Load workflow definition from file into spec model.
+        wf_def = self.get_workflow_definition(self.entry_point)
+        wf_spec = self.spec_module.instantiate(wf_def)
 
+        # Inspect workflow definition.
+        try:
+            wf_spec.inspect(raise_exception=True)
+        except wf_lib_exc.WorkflowInspectionError as e:
+            status = action_constants.LIVEACTION_STATUS_FAILED
+            result = {'errors': e.args[1]}
+            return (status, result, self.context)
+
+        # Composer workflow spec into workflow execution graph.
+        # wf_ex_graph = self.composer.compose(wf_spec)
+
+        # Set return values.
         status = action_constants.LIVEACTION_STATUS_RUNNING
         partial_results = {'tasks': []}
         exec_context = self.context
