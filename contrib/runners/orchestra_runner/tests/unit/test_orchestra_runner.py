@@ -22,7 +22,7 @@ import yaml
 import st2tests.config as tests_config
 tests_config.parse_args()
 
-from orchestra.orchestra import OrchestraRunner
+from orchestra_runner.orchestra_runner import OrchestraRunner
 
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar

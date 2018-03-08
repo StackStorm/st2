@@ -2,4 +2,4 @@
   description: A runner for executing orchestra workflow.
   enabled: true
   name: orchestra
-  runner_module: orchestra
+  runner_module: orchestra_runner

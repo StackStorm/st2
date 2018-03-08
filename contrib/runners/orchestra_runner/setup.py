@@ -43,11 +43,11 @@ setup(
     zip_safe=False,
     include_package_data=True,
     packages=find_packages(exclude=['setuptools', 'tests']),
-    package_data={'orchestra': ['runner.yaml']},
+    package_data={'orchestra_runner': ['runner.yaml']},
     scripts=[],
     entry_points={
         'st2common.runners.runner': [
-            'orchestra = orchestra.orchestra',
+            'orchestra = orchestra_runner.orchestra_runner',
         ],
     }
 )

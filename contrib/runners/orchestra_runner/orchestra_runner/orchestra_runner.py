@@ -56,4 +56,4 @@ def get_runner():
 
 
 def get_metadata():
-    return runners.get_metadata('orchestra')
+    return runners.get_metadata('orchestra_runner')
