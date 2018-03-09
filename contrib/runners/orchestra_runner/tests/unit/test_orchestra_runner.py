@@ -28,6 +28,7 @@ from st2common.bootstrap import runnersregistrar
 from st2common.constants import action as action_constants
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.persistence.liveaction import LiveAction
+from st2common.persistence.workflow import WorkflowExecution
 from st2common.runners import base as runners
 from st2common.services import action as action_service
 from st2common.transport.liveaction import LiveActionPublisher
@@ -99,6 +100,18 @@ class OrchestraRunnerTest(DbTestCase):
 
         self.assertTrue(liveaction.action_is_workflow)
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+
+        wf_exs = WorkflowExecution.query(liveaction=str(liveaction.id))
+
+        self.assertEqual(len(wf_exs), 1)
+        self.assertIsNotNone(wf_exs[0].id)
+        self.assertGreater(wf_exs[0].rev, 0)
+        self.assertIn('workflow_execution', liveaction.context)
+        self.assertEqual(liveaction.context['workflow_execution'], str(wf_exs[0].id))
+        self.assertIsNotNone(wf_exs[0].graph)
+        self.assertTrue(isinstance(wf_exs[0].graph, dict))
+        self.assertIn('graph', wf_exs[0].graph)
+        self.assertIn('flow', wf_exs[0].graph)
 
     def test_workflow_inspection_failure(self):
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][1])

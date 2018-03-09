@@ -16,6 +16,7 @@
 from __future__ import absolute_import
 
 import mock
+import uuid
 
 from st2common.models.db.workflow import WorkflowExecutionDB
 from st2common.persistence.workflow import WorkflowExecution
@@ -30,6 +31,7 @@ class WorkflowExecutionModelTest(DbTestCase):
 
     def test_workflow_execution_crud(self):
         initial = WorkflowExecutionDB()
+        initial.liveaction = uuid.uuid4().hex
         initial.graph = {'var1': 'foobar'}
 
         # Test create
@@ -39,6 +41,7 @@ class WorkflowExecutionModelTest(DbTestCase):
 
         # Test read
         retrieved = WorkflowExecution.get_by_id(doc_id)
+        self.assertEqual(created.liveaction, retrieved.liveaction)
         self.assertDictEqual(created.graph, retrieved.graph)
 
         # Test update
@@ -67,6 +70,7 @@ class WorkflowExecutionModelTest(DbTestCase):
 
     def test_workflow_execution_write_conflict(self):
         initial = WorkflowExecutionDB()
+        initial.liveaction = uuid.uuid4().hex
         initial.graph = {'var1': 'foobar'}
 
         # Prep record

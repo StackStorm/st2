@@ -15,6 +15,7 @@
 
 from __future__ import absolute_import
 
+import copy
 import uuid
 
 from orchestra import exceptions as wf_lib_exc
@@ -23,6 +24,8 @@ from orchestra.utils import plugin
 
 from st2common.constants import action as action_constants
 from st2common import log as logging
+from st2common.models.db.workflow import WorkflowExecutionDB
+from st2common.persistence.workflow import WorkflowExecution
 from st2common.runners import base as runners
 
 
@@ -47,6 +50,12 @@ class OrchestraRunner(runners.AsyncActionRunner):
         with open(entry_point, 'r') as def_file:
             return def_file.read()
 
+    def _construct_context(self, wf_ex):
+        ctx = copy.deepcopy(self.context)
+        ctx['workflow_execution'] = str(wf_ex.id)
+
+        return ctx
+
     def run(self, action_parameters):
         # Load workflow definition from file into spec model.
         wf_def = self.get_workflow_definition(self.entry_point)
@@ -61,14 +70,18 @@ class OrchestraRunner(runners.AsyncActionRunner):
             return (status, result, self.context)
 
         # Composer workflow spec into workflow execution graph.
-        # wf_ex_graph = self.composer.compose(wf_spec)
+        wf_ex_graph = self.composer.compose(wf_spec)
+
+        # Create a record for workflow execution.
+        wf_ex_db = WorkflowExecutionDB(graph=wf_ex_graph.serialize(), liveaction=self.liveaction_id)
+        wf_ex_db = WorkflowExecution.insert(wf_ex_db)
 
         # Set return values.
         status = action_constants.LIVEACTION_STATUS_RUNNING
         partial_results = {'tasks': []}
-        exec_context = self.context
+        ctx = self._construct_context(wf_ex_db)
 
-        return (status, partial_results, exec_context)
+        return (status, partial_results, ctx)
 
 
 def get_runner():

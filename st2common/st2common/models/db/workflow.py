@@ -32,7 +32,14 @@ LOG = logging.getLogger(__name__)
 class WorkflowExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionFieldMixin):
     RESOURCE_TYPE = ResourceType.EXECUTION
 
+    liveaction = me.StringField(required=True)
     graph = me.DictField()
+
+    meta = {
+        'indexes': [
+            {'fields': ['liveaction']}
+        ]
+    }
 
 
 MODELS = [WorkflowExecutionDB]
