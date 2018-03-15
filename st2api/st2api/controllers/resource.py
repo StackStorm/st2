@@ -184,7 +184,10 @@ class ResourceController(object):
 
         if advanced_filters:
             for token in advanced_filters.split(' '):
-                [k, v] = token.split(':', 1)
+                try:
+                    [k, v] = token.split(':', 1)
+                except ValueError:
+                    raise ValueError('invalid format for filter "%s"' % token)
                 path = k.split('.')
                 try:
                     self.model.model._lookup_field(path)
