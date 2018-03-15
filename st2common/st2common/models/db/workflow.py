@@ -33,7 +33,9 @@ class WorkflowExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionF
     RESOURCE_TYPE = ResourceType.EXECUTION
 
     liveaction = me.StringField(required=True)
+    spec = me.DictField()
     graph = me.DictField()
+    flow = me.DictField()
 
     meta = {
         'indexes': [

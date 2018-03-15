@@ -18,6 +18,7 @@ from __future__ import absolute_import
 import copy
 import uuid
 
+from orchestra import conducting
 from orchestra import exceptions as wf_lib_exc
 from orchestra.specs import loader as specs_loader
 from orchestra.utils import plugin
@@ -56,12 +57,21 @@ class OrchestraRunner(runners.AsyncActionRunner):
 
         return ctx
 
+    def _persist_conductor(self, conductor, wf_ex_db):
+        state = conductor.serialize()
+
+        wf_ex_db.spec = state['spec']
+        wf_ex_db.graph = state['graph']
+        wf_ex_db.flow = state['flow']
+
+        return wf_ex_db
+
     def run(self, action_parameters):
         # Load workflow definition from file into spec model.
         wf_def = self.get_workflow_definition(self.entry_point)
         wf_spec = self.spec_module.instantiate(wf_def)
 
-        # Inspect workflow definition.
+        # Inspect workflow spec.
         try:
             wf_spec.inspect(raise_exception=True)
         except wf_lib_exc.WorkflowInspectionError as e:
@@ -69,14 +79,15 @@ class OrchestraRunner(runners.AsyncActionRunner):
             result = {'errors': e.args[1]}
             return (status, result, self.context)
 
-        # Composer workflow spec into workflow execution graph.
-        wf_ex_graph = self.composer.compose(wf_spec)
+        # Instantiate the workflow conductor.
+        conductor = conducting.WorkflowConductor(wf_spec)
 
         # Create a record for workflow execution.
-        wf_ex_db = WorkflowExecutionDB(graph=wf_ex_graph.serialize(), liveaction=self.liveaction_id)
+        wf_ex_db = WorkflowExecutionDB(liveaction=self.liveaction_id)
+        wf_ex_db = self._persist_conductor(conductor, wf_ex_db)
         wf_ex_db = WorkflowExecution.insert(wf_ex_db)
 
-        # Set return values.
+        # Set return values for the workflow action.
         status = action_constants.LIVEACTION_STATUS_RUNNING
         partial_results = {'tasks': []}
         ctx = self._construct_context(wf_ex_db)

@@ -110,8 +110,12 @@ class OrchestraRunnerTest(DbTestCase):
         self.assertEqual(liveaction.context['workflow_execution'], str(wf_exs[0].id))
         self.assertIsNotNone(wf_exs[0].graph)
         self.assertTrue(isinstance(wf_exs[0].graph, dict))
-        self.assertIn('graph', wf_exs[0].graph)
-        self.assertIn('flow', wf_exs[0].graph)
+        self.assertIn('nodes', wf_exs[0].graph)
+        self.assertIn('adjacency', wf_exs[0].graph)
+        self.assertIsNotNone(wf_exs[0].flow)
+        self.assertTrue(isinstance(wf_exs[0].flow, dict))
+        self.assertIn('tasks', wf_exs[0].flow)
+        self.assertIn('sequence', wf_exs[0].flow)
 
     def test_workflow_inspection_failure(self):
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][1])
