@@ -86,6 +86,9 @@ WF1_OLD = workflows.Workflow(None, {'name': WF1_NAME, 'definition': ''})
 WF1_EXEC = copy.deepcopy(MISTRAL_EXECUTION)
 WF1_EXEC['workflow_name'] = WF1_NAME
 
+# Data for the notify param
+NOTIFY = [{'type': 'st2'}]
+
 # Token for auth test cases
 TOKEN_API = TokenAPI(
     user=ACTION_CONTEXT['user'], token=uuid.uuid4().hex,
@@ -134,13 +137,13 @@ class MistralAuthTest(DbTestCase):
         super(MistralAuthTest, self).setUp()
 
         # Mock the local runner run method.
-        local_runner_cls = self.get_runner_class('local_runner')
+        local_runner_cls = self.get_runner_class('local_runner', 'local_shell_command_runner')
         local_run_result = (action_constants.LIVEACTION_STATUS_SUCCEEDED, NON_EMPTY_RESULT, None)
         local_runner_cls.run = mock.Mock(return_value=local_run_result)
 
     @classmethod
-    def get_runner_class(cls, runner_name):
-        return runners.get_runner(runner_name).__class__
+    def get_runner_class(cls, package_name, module_name):
+        return runners.get_runner(package_name, module_name).__class__
 
     def tearDown(self):
         super(MistralAuthTest, self).tearDown()
@@ -201,7 +204,7 @@ class MistralAuthTest(DbTestCase):
         }
 
         executions.ExecutionManager.create.assert_called_with(
-            WF1_NAME, workflow_input=workflow_input, env=env)
+            WF1_NAME, workflow_input=workflow_input, env=env, notify=NOTIFY)
 
     @mock.patch.object(
         keystone.KeystoneAuthHandler, 'authenticate',
@@ -270,4 +273,4 @@ class MistralAuthTest(DbTestCase):
         keystone.KeystoneAuthHandler.authenticate.assert_called_with(auth_req, session=None)
 
         executions.ExecutionManager.create.assert_called_with(
-            WF1_NAME, workflow_input=workflow_input, env=env)
+            WF1_NAME, workflow_input=workflow_input, env=env, notify=NOTIFY)

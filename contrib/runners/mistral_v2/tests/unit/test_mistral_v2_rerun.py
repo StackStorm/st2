@@ -153,13 +153,13 @@ class MistralRunnerTest(DbTestCase):
         super(MistralRunnerTest, self).setUp()
 
         # Mock the local runner run method.
-        local_runner_cls = self.get_runner_class('local_runner')
+        local_runner_cls = self.get_runner_class('local_runner', 'local_shell_command_runner')
         local_run_result = (action_constants.LIVEACTION_STATUS_SUCCEEDED, NON_EMPTY_RESULT, None)
         local_runner_cls.run = mock.Mock(return_value=local_run_result)
 
     @classmethod
-    def get_runner_class(cls, runner_name):
-        return runners.get_runner(runner_name).__class__
+    def get_runner_class(cls, package_name, module_name):
+        return runners.get_runner(package_name, module_name).__class__
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',
@@ -174,7 +174,7 @@ class MistralRunnerTest(DbTestCase):
         executions.ExecutionManager, 'create',
         mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC)))
     def test_resume_option(self):
-        patched_mistral_runner = self.get_runner_class('mistral_v2')
+        patched_mistral_runner = self.get_runner_class('mistral_v2', 'mistral_v2')
 
         mock_resume_result = (
             action_constants.LIVEACTION_STATUS_RUNNING,
@@ -226,7 +226,7 @@ class MistralRunnerTest(DbTestCase):
         executions.ExecutionManager, 'create',
         mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC)))
     def test_resume_option_reset_tasks(self):
-        patched_mistral_runner = self.get_runner_class('mistral_v2')
+        patched_mistral_runner = self.get_runner_class('mistral_v2', 'mistral_v2')
 
         mock_resume_result = (
             action_constants.LIVEACTION_STATUS_RUNNING,
@@ -396,17 +396,33 @@ class MistralRunnerTest(DbTestCase):
         executions.ExecutionManager, 'create',
         mock.MagicMock(return_value=executions.Execution(None, WB1_MAIN_EXEC)))
     @mock.patch.object(
+        executions.ExecutionManager, 'update',
+        mock.MagicMock(side_effect=[
+            executions.Execution(None, WB1_MAIN_EXEC),
+            executions.Execution(None, WB1_SUB1_EXEC)
+        ]))
+    @mock.patch.object(
         executions.ExecutionManager, 'get',
         mock.MagicMock(return_value=executions.Execution(None, WB1_MAIN_EXEC_ERRORED)))
     @mock.patch.object(
         executions.ExecutionManager, 'list',
-        mock.MagicMock(
-            return_value=[
+        mock.MagicMock(side_effect=[
+            [
                 executions.Execution(None, WB1_MAIN_EXEC_ERRORED),
-                executions.Execution(None, WB1_SUB1_EXEC_ERRORED)]))
+                executions.Execution(None, WB1_SUB1_EXEC_ERRORED)
+            ],
+            [
+                executions.Execution(None, WB1_SUB1_EXEC_ERRORED)
+            ]
+        ]))
     @mock.patch.object(
         tasks.TaskManager, 'list',
-        mock.MagicMock(side_effect=[WB1_MAIN_TASKS, WB1_SUB1_TASKS]))
+        mock.MagicMock(side_effect=[
+            WB1_MAIN_TASKS,     # First call of _get_tasks at mistral_v2 runner
+            WB1_SUB1_TASKS,     # Recursive call of the first _get_tasks
+            WB1_MAIN_TASKS,     # tasks.list in _update_workflow_env at mistral_v2 runner
+            []                  # Resursive call of _update_workflow_env
+        ]))
     @mock.patch.object(
         tasks.TaskManager, 'rerun',
         mock.MagicMock(return_value=None))
@@ -510,17 +526,33 @@ class MistralRunnerTest(DbTestCase):
         executions.ExecutionManager, 'create',
         mock.MagicMock(return_value=executions.Execution(None, WB1_MAIN_EXEC)))
     @mock.patch.object(
+        executions.ExecutionManager, 'update',
+        mock.MagicMock(side_effect=[
+            executions.Execution(None, WB1_MAIN_EXEC),
+            executions.Execution(None, WB1_SUB1_EXEC)
+        ]))
+    @mock.patch.object(
         executions.ExecutionManager, 'get',
         mock.MagicMock(return_value=executions.Execution(None, WB1_MAIN_EXEC_ERRORED)))
     @mock.patch.object(
         executions.ExecutionManager, 'list',
-        mock.MagicMock(
-            return_value=[
+        mock.MagicMock(side_effect=[
+            [
                 executions.Execution(None, WB1_MAIN_EXEC_ERRORED),
-                executions.Execution(None, WB1_SUB1_EXEC_ERRORED)]))
+                executions.Execution(None, WB1_SUB1_EXEC_ERRORED)
+            ],
+            [
+                executions.Execution(None, WB1_SUB1_EXEC_ERRORED)
+            ]
+        ]))
     @mock.patch.object(
         tasks.TaskManager, 'list',
-        mock.MagicMock(side_effect=[WB1_MAIN_TASKS, WB1_SUB1_TASKS]))
+        mock.MagicMock(side_effect=[
+            WB1_MAIN_TASKS,     # First call of _get_tasks at mistral_v2 runner
+            WB1_SUB1_TASKS,     # Recursive call of the first _get_tasks
+            WB1_MAIN_TASKS,     # tasks.list in _update_workflow_env at mistral_v2 runner
+            []                  # Resursive call of _update_workflow_env
+        ]))
     @mock.patch.object(
         tasks.TaskManager, 'rerun',
         mock.MagicMock(return_value=None))

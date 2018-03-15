@@ -7,6 +7,7 @@
 =======
 
 ## TL;DR
+
 * Install Get yourself a clean 64-bit Linux box that fits the [system requirements](https://docs.stackstorm.com/install/system_requirements.html). Run the installer script:
 
    ```

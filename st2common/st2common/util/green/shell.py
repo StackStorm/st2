@@ -18,12 +18,14 @@ Shell utility functions which use non-blocking and eventlet friendly code.
 """
 
 from __future__ import absolute_import
+
 import os
 
 import six
 import eventlet
-from st2common import log as logging
 from eventlet.green import subprocess
+
+from st2common import log as logging
 
 __all__ = [
     'run_command'
@@ -37,7 +39,7 @@ LOG = logging.getLogger(__name__)
 def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False,
                 cwd=None, env=None, timeout=60, preexec_func=None, kill_func=None,
                 read_stdout_func=None, read_stderr_func=None,
-                read_stdout_buffer=None, read_stderr_buffer=None):
+                read_stdout_buffer=None, read_stderr_buffer=None, stdin_value=None):
     """
     Run the provided command in a subprocess and wait until it completes.
 
@@ -141,6 +143,12 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     LOG.debug('Spawning timeout handler thread.')
     timeout_thread = eventlet.spawn(on_timeout_expired, timeout)
     LOG.debug('Attaching to process.')
+
+    if stdin_value:
+        if six.PY3:
+            stdin_value = stdin_value.encode('utf-8')
+
+        process.stdin.write(stdin_value)
 
     if read_stdout_func and read_stderr_func:
         LOG.debug('Using real-time stdout and stderr read mode, calling process.wait()')

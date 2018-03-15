@@ -129,7 +129,7 @@ class MistralRunnerCancelTest(DbTestCase):
 
     @classmethod
     def get_runner_class(cls, runner_name):
-        return runners.get_runner(runner_name).__class__
+        return runners.get_runner(runner_name, runner_name).__class__
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',
@@ -146,6 +146,9 @@ class MistralRunnerCancelTest(DbTestCase):
     @mock.patch.object(
         executions.ExecutionManager, 'update',
         mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC_CANCELLED)))
+    @mock.patch.object(
+        action_service, 'is_children_active',
+        mock.MagicMock(return_value=True))
     def test_cancel(self):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
@@ -234,6 +237,9 @@ class MistralRunnerCancelTest(DbTestCase):
         executions.ExecutionManager, 'update',
         mock.MagicMock(side_effect=[requests.exceptions.ConnectionError(),
                                     executions.Execution(None, WF1_EXEC_CANCELLED)]))
+    @mock.patch.object(
+        action_service, 'is_children_active',
+        mock.MagicMock(return_value=True))
     def test_cancel_retry(self):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)

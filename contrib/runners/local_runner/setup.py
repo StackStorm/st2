@@ -48,8 +48,8 @@ setup(
     scripts=[],
     entry_points={
         'st2common.runners.runner': [
-            'local-shell-cmd = local_runner.local_runner',
-            'local-shell-script = local_runner.local_runner',
+            'local-shell-cmd = local_runner.local_shell_command_runner',
+            'local-shell-script = local_runner.local_shell_script_runner',
         ],
     }
 )

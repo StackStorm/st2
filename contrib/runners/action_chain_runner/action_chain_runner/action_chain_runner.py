@@ -272,7 +272,7 @@ class ActionChainRunner(ActionRunner):
             LOG.exception('Failed to instantiate ActionChain.')
             raise runner_exc.ActionRunnerPreRunError(message)
         except Exception as e:
-            message = e.message or str(e)
+            message = str(e)
             LOG.exception('Failed to instantiate ActionChain.')
             raise runner_exc.ActionRunnerPreRunError(message)
 
@@ -288,7 +288,7 @@ class ActionChainRunner(ActionRunner):
         try:
             self.chain_holder.validate()
         except Exception as e:
-            raise runner_exc.ActionRunnerPreRunError(e.message)
+            raise runner_exc.ActionRunnerPreRunError(str(e))
 
     def run(self, action_parameters):
         # Run the action chain.

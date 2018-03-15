@@ -24,6 +24,7 @@ from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.constants import action as action_constants
+from st2common.exceptions import db as db_exc
 from st2common.persistence.executionstate import ActionExecutionState
 from st2common.persistence.liveaction import LiveAction
 from st2common.runners import utils as runners_utils
@@ -84,7 +85,7 @@ class Querier(object):
     def is_started(self):
         return self._started
 
-    def _fire_queries(self):
+    def _fire_queries(self, blocking=False):
         if self._thread_pool.free() <= 0:
             return
 
@@ -97,11 +98,18 @@ class Querier(object):
                 reschedule_queries.append((last_query_time, query_context))
                 continue
             else:
-                self._thread_pool.spawn(
-                    self._query_and_save_results,
-                    query_context,
-                    last_query_time
-                )
+                if not blocking:
+                    self._thread_pool.spawn(
+                        self._query_and_save_results,
+                        query_context,
+                        last_query_time
+                    )
+                # Add an option to block and execute the function directly for unit tests.
+                else:
+                    self._query_and_save_results(
+                        query_context,
+                        last_query_time
+                    )
 
         for query in reschedule_queries:
             self._query_contexts.put((query[0], query[1]))
@@ -144,6 +152,16 @@ class Querier(object):
             )
             return
 
+        if not self._is_state_object_exist(query_context):
+            LOG.warning(
+                'Query for liveaction_id %s is not rescheduled '
+                'because state object %s has been deleted.',
+                execution_id,
+                query_context.id
+            )
+
+            return
+
         self._query_contexts.put((this_query_time, query_context))
 
     def _update_action_results(self, execution_id, status, results):
@@ -169,13 +187,29 @@ class Querier(object):
         return updated_liveaction
 
     def _delete_state_object(self, query_context):
-        state_db = ActionExecutionState.get_by_id(query_context.id)
+        state_db = None
+
+        try:
+            state_db = ActionExecutionState.get_by_id(query_context.id)
+        except db_exc.StackStormDBObjectNotFoundError:
+            pass
+
         if state_db is not None:
             try:
                 LOG.info('Clearing state object: %s', state_db)
                 ActionExecutionState.delete(state_db)
             except:
                 LOG.exception('Failed clearing state object: %s', state_db)
+
+    def _is_state_object_exist(self, query_context):
+        state_db = None
+
+        try:
+            state_db = ActionExecutionState.get_by_id(query_context.id)
+        except db_exc.StackStormDBObjectNotFoundError:
+            pass
+
+        return (state_db is not None)
 
     def query(self, execution_id, query_context, last_query_time=None):
         """

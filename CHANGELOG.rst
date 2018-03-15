@@ -10,15 +10,63 @@ Added
 * Update ``st2 execution tail`` command so it supports double nested workflows (workflow ->
   workflow -> execution). Previously, only top-level executions and single nested workflows
   (workflow -> execution) were supported. (improvement) #3962 #3960
+* Add support for utf-8 / unicode characters in the pack config files. (improvement) #3980 #3989
+
+  Contributed by @sumkire.
+* Add new ``--python3`` flag to ``st2 pack install`` CLI command and ``python3`` parameter to
+  ``packs.{install,setup_virtualenv}`` actions. When the value of this parameter is True, it
+  uses ``python3`` binary when creating virtual environment for that pack (based on the value of
+  ``actionrunner.python3_binary`` config option).
+
+  Note: For this feature to work, Python 3 needs to be installed on the system and ``virtualenv``
+  package installed on the system needs to support Python 3 (it needs to be a recent version).
+  (new feature) #4016 #3922
+* Added the ability of ``st2ctl`` to utilize environment variables from ``/etc/default/st2ctl``
+  (for Ubuntu/Debian) and ``/etc/sysconfig/st2ctl`` (RHEL/CentOS). This allows
+  deployments to override ``COMPONENTS`` and ``ST2_CONF`` in a global location
+  so ``st2ctl`` can start/stop/restart selected components and utilize a non-default
+  location for ``st2.conf``.
+  (new feature) #4027
+
+  Contributed by Nick Maludy (Encore Technologies).
+
+Changed
+~~~~~~~
+
+* Modified RabbitMQ connection error message to make clear that it is an MQ connection issue. #3992
+* Additional refactor which makes action runners fully standalone and re-distributable Python
+  packages. Also add support for multiple runners (runner modules) inside a single Python package
+  and consolidate Python packages from two to one for the following runners: local runners, remote
+  runners, windows runners. (improvement) #3999
+* Upgrade eventlet library to the latest stable version (0.22.1) (improvement) #4007 #3968
+* Increase maximum retry delay for ``action.retry`` policy from 5 seconds to 120 seconds. Because
+  of the way retries are currently implemented (they are not st2notifier service restart safe),
+  long retry delays are not recommended. For more information on this limitation please refer to
+  the documentation - https://docs.stackstorm.com/reference/policies.html#retry. #3630 #3637
+* Update Python runner so it throws a more user-friendly exception in case Python script tries to
+  access a key in ``self.config`` dictionary which doesn't exist. (improvement) #4014
+* Update various Python dependencies to the latest stable versions (apscheduler, gitpython,
+  pymongo, stevedore, paramiko, tooz, flex, webob, prance).
+* Refactored mistral runner to support callback from mistral instead of relying on st2resultstracker.
+  This reduces the unnecessary traffic and CPU time by querying the mistral API. Included a command to
+  manually add a state entry for Mistral workflow execution to recover from any callback failures.
+  (improvement)
 
 Fixed
 ~~~~~
+* Fix Python runner actions and ``Argument list too long`` error when very large parameters are
+  passed into the action. The fix utilizes ``stdin`` to pass parameters to the Python action wrapper
+  process instead of CLI argument list. (bug fix) #1598 #3976
 
 * Fix a regression in ``POST /v1/webhooks/<webhook name>`` API endpoint introduced in v2.4.0
   and add back support for arrays. In 2.4.0 support for arrays was inadvertently removed and
   only objects were supported. Keep in mind that this only applies to custom user-defined
   webhooks and system ``st2`` webhook still requires input to be an object (dictionary).
   (bug fix) #3956 #3955
+* Fix a bug in the CLI causing ``st2 execution pause`` and ``st2 execution resume``
+  to not work. (bugfix) #4001
+
+  Contributed by Nick Maludy (Encore Technologies).
 
 2.6.0 - January 19, 2018
 ------------------------
@@ -936,7 +984,6 @@ Added
   ``True``. However, to access remote hosts, action parameters like username and
   password/private_key, if provided with action, will have precedence over the config file
   entry for the host. #2941 #3032 #3058 [Eric Edgar] (improvement)
-
 
 Changed
 ~~~~~~~
