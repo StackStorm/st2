@@ -200,6 +200,7 @@ Changed
   two new attributes added - ``succeeded`` and ``failed``.
 
   For more information, please refer to the upgrade notes. #4044 #4047
+* Refactor the callback module for the post run in runner to be more generic. (improvement)
 
 Fixed
 ~~~~~

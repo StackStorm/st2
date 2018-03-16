@@ -113,7 +113,14 @@ class MistralCallbackHandler(callback.AsyncActionExecutionCallbackHandler):
             return value
 
     @classmethod
-    def callback(cls, url, context, status, result):
+    def callback(cls, liveaction):
+        assert isinstance(liveaction.callback, dict)
+        assert 'url' in liveaction.callback
+
+        url = liveaction.callback['url']
+        status = liveaction.status
+        result = liveaction.result
+
         if status not in MISTRAL_ACCEPTED_STATES:
             LOG.warning('Unable to callback %s because status "%s" is not supported.', url, status)
             return

@@ -198,28 +198,37 @@ def invoke_post_run(liveaction_db, action_db=None):
         action_db = action_db_utils.get_action_by_ref(liveaction_db.action)
 
     if not action_db:
-        LOG.exception('Unable to invoke post run. Action %s no longer exists.',
-                      liveaction_db.action)
+        LOG.error('Unable to invoke post run. Action %s no longer exists.', liveaction_db.action)
         return
 
     LOG.info('Action execution %s runs %s of runner type %s.',
              liveaction_db.id, action_db.name, action_db.runner_type['name'])
 
-    # Get an instance of the action runner.
-    runnertype_db = action_db_utils.get_runnertype_by_name(action_db.runner_type['name'])
-    runner = runners.get_runner(package_name=runnertype_db.runner_package,
-                                module_name=runnertype_db.runner_module)
+    # Get instance of the action runner and related configuration.
+    runner_type_db = action_db_utils.get_runnertype_by_name(action_db.runner_type['name'])
+
+    runner = runners.get_runner(
+        package_name=runner_type_db.runner_package,
+        module_name=runner_type_db.runner_module)
+
+    entry_point = content_utils.get_entry_point_abs_path(
+        pack=action_db.pack,
+        entry_point=action_db.entry_point)
+
+    libs_dir_path = content_utils.get_action_libs_abs_path(
+        pack=action_db.pack,
+        entry_point=action_db.entry_point)
 
     # Configure the action runner.
+    runner.runner_type_db = runner_type_db
     runner.action = action_db
     runner.action_name = action_db.name
-    runner.action_execution_id = str(liveaction_db.id)
-    runner.entry_point = content_utils.get_entry_point_abs_path(pack=action_db.pack,
-                                                                entry_point=action_db.entry_point)
+    runner.liveaction = liveaction_db
+    runner.liveaction_id = str(liveaction_db.id)
+    runner.entry_point = entry_point
     runner.context = getattr(liveaction_db, 'context', dict())
     runner.callback = getattr(liveaction_db, 'callback', dict())
-    runner.libs_dir_path = content_utils.get_action_libs_abs_path(pack=action_db.pack,
-        entry_point=action_db.entry_point)
+    runner.libs_dir_path = libs_dir_path
 
     # Invoke the post_run method.
     runner.post_run(liveaction_db.status, liveaction_db.result)
