@@ -2983,10 +2983,6 @@ paths:
           in: query
           description: Entity pack name filter
           type: string
-        - name: action
-          in: query
-          description: Action ref filter
-          type: string
         - name: trigger
           in: query
           description: Trigger filter
