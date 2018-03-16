@@ -36,7 +36,9 @@ class SensorTypeController(resource.ContentPackResourceController):
     access = SensorType
     supported_filters = {
         'name': 'name',
-        'pack': 'pack'
+        'pack': 'pack',
+        'enabled': 'enabled',
+        'trigger': 'trigger_types'
     }
 
     options = {
