@@ -68,7 +68,7 @@ Fixed
 
   Contributed by Nick Maludy (Encore Technologies).
   
-* Fixed missing "paused" status option from "st2 execution list" help output.
+* Fixed missing "paused" status option from "st2 execution list" help output. (bugfix) #4037
 
   Contributed by Ben Hohnke (NTT Communications ICT Solutions)
 
