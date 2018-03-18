@@ -1022,7 +1022,7 @@ class ActionExecutionBranch(resource.ResourceBranch):
                                                            add_help=True)
 
 
-POSSIBLE_ACTION_STATUS_VALUES = ('succeeded', 'running', 'scheduled', 'paused', 'failed', 
+POSSIBLE_ACTION_STATUS_VALUES = ('succeeded', 'running', 'scheduled', 'paused', 'failed',
                                  'canceling', 'canceled')
 
 
