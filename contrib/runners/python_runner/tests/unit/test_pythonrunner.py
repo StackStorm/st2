@@ -707,6 +707,24 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertTrue(expected_msg_4 not in output['stderr'])
         self.assertTrue(expected_msg_5 in output['stderr'])
 
+    def test_traceback_messages_are_not_duplicated_in_stderr(self):
+        # Verify tracebacks are not duplicated
+        runner = self._get_mock_runner_obj()
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.pre_run()
+        (status, output, _) = runner.run({'row_index': 'f'})
+        self.assertEqual(status, LIVEACTION_STATUS_FAILED)
+        self.assertTrue(output is not None)
+
+        expected_msg_1 = 'Traceback (most recent'
+        expected_msg_2 = 'ValueError: Duplicate traceback test'
+
+        self.assertTrue(expected_msg_1 in output['stderr'])
+        self.assertTrue(expected_msg_2 in output['stderr'])
+
+        self.assertEqual(output['stderr'].count(expected_msg_1), 1)
+        self.assertEqual(output['stderr'].count(expected_msg_2), 1)
+
     def test_execution_with_very_large_parameter(self):
         runner = self._get_mock_runner_obj()
         runner.entry_point = ECHOER_ACTION_PATH
