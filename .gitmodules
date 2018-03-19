@@ -1,0 +1,3 @@
+[submodule "st2tests/st2tests/fixtures/packs/test"]
+	path = st2tests/st2tests/fixtures/packs/test
+	url = https://github.com/StackStorm-Exchange/stackstorm-test2.git

@@ -29,6 +29,17 @@ Added
   (new feature) #4027
 
   Contributed by Nick Maludy (Encore Technologies).
+* Add support for new optional ``content_version`` runner parameter to the Python and Local Shell
+  Script runner. This parameter can contain a git commit hash / tag / branch from a pack git
+  repository and runner will ensure this revision of the pack content (Python action / local shell
+  script action) is used for a particular action execution.
+
+  Keep in mind that providing this parameter only ensures a particular revision of the pack content
+  is used. Python runner virtual environment and dependencies are outside of this scope.
+
+  Note: To be able to utilize this functionality, git version >= 2.5.0 must be installed on the
+  system.
+  (new feature) #3997
 
 Changed
 ~~~~~~~
