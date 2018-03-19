@@ -56,6 +56,25 @@ class SensorTypeControllerTestCase(FunctionalTest):
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertEqual(len(resp.json), 3)
 
+        # ?name filter
+        resp = self.app.get('/v1/sensortypes?name=foobar')
+        self.assertEqual(len(resp.json), 0)
+
+        resp = self.app.get('/v1/sensortypes?name=SampleSensor2')
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['name'], 'SampleSensor2')
+
+        resp = self.app.get('/v1/sensortypes?name=SampleSensor3')
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['name'], 'SampleSensor3')
+
+        # ?pack filter
+        resp = self.app.get('/v1/sensortypes?pack=foobar')
+        self.assertEqual(len(resp.json), 0)
+
+        resp = self.app.get('/v1/sensortypes?pack=dummy_pack_1')
+        self.assertEqual(len(resp.json), 3)
+
         # ?enabled filter
         resp = self.app.get('/v1/sensortypes?enabled=False')
         self.assertEqual(len(resp.json), 1)
