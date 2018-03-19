@@ -713,8 +713,8 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertTrue(expected_msg_1 in output['stderr'])
         self.assertTrue(expected_msg_2 in output['stderr'])
 
-        self.assertEqual(output.count(expected_msg_1, 1))
-        self.assertEqual(output.count(expected_msg_2, 1))
+        self.assertEqual(output['stderr'].count(expected_msg_1), 1)
+        self.assertEqual(output['stderr'].count(expected_msg_2), 1)
 
     def test_execution_with_very_large_parameter(self):
         runner = self._get_mock_runner_obj()
