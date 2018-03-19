@@ -246,7 +246,8 @@ class ActionRunner(object):
 @six.add_metaclass(abc.ABCMeta)
 class AsyncActionRunner(ActionRunner):
     pass
-  
+
+
 class PollingAsyncActionRunner(AsyncActionRunner):
 
     @classmethod
@@ -447,6 +448,7 @@ class GitWorktreeActionRunner(ActionRunner):
             raise ValueError('entry_point is not located inside the pack directory')
 
         return new_entry_point
+
 
 class ShellRunnerMixin(object):
     """
