@@ -699,6 +699,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertTrue(expected_msg_4 not in output['stderr'])
         self.assertTrue(expected_msg_5 in output['stderr'])
 
+    def test_traceback_messages_are_not_duplicated_in_stderr(self):
         # Verify tracebacks are not duplicated
         runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
