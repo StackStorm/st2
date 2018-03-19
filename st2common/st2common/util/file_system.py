@@ -18,12 +18,17 @@ File system related utility functions.
 """
 
 from __future__ import absolute_import
+
 import os
 import os.path
+import pwd
 import fnmatch
 
+import six
+
 __all__ = [
-    'get_file_list'
+    'get_file_list',
+    'recursive_chown'
 ]
 
 
@@ -70,3 +75,24 @@ def get_file_list(directory, exclude_patterns=None):
                 result.append(file_path)
 
     return result
+
+
+def recursive_chown(path, uid, gid):
+    """
+    Recursive version of os.chown.
+    """
+    if isinstance(uid, six.string_types) or isinstance(gid, six.string_types):
+        result = pwd.getpwnam(uid)
+        uid = result.pw_uid
+        gid = result.pw_gid
+
+    os.chown(path, uid, gid)
+
+    for item in os.listdir(path):
+        itempath = os.path.join(path, item)
+
+        if os.path.isfile(itempath):
+            os.chown(itempath, uid, gid)
+        elif os.path.isdir(itempath):
+            os.chown(itempath, uid, gid)
+            recursive_chown(itempath, uid, gid)

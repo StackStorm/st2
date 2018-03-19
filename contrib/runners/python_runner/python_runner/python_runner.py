@@ -27,7 +27,7 @@ from oslo_config import cfg
 from six.moves import StringIO
 
 from st2common import log as logging
-from st2common.runners.base import ActionRunner
+from st2common.runners.base import GitWorktreeActionRunner
 from st2common.runners.base import get_metadata as get_runner_metadata
 from st2common.util.green.shell import run_command
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
@@ -43,6 +43,7 @@ from st2common.constants.system import API_URL_ENV_VARIABLE_NAME
 from st2common.constants.system import AUTH_TOKEN_ENV_VARIABLE_NAME
 from st2common.util.api import get_full_public_api_url
 from st2common.util.pack import get_pack_common_libs_path_for_pack_ref
+from st2common.content.utils import get_pack_base_path
 from st2common.util.sandboxing import get_sandbox_path
 from st2common.util.sandboxing import get_sandbox_python_path
 from st2common.util.sandboxing import get_sandbox_python_binary_path
@@ -78,10 +79,10 @@ WRAPPER_SCRIPT_NAME = 'python_action_wrapper.py'
 WRAPPER_SCRIPT_PATH = os.path.join(BASE_DIR, WRAPPER_SCRIPT_NAME)
 
 
-class PythonRunner(ActionRunner):
+class PythonRunner(GitWorktreeActionRunner):
 
     def __init__(self, runner_id, config=None, timeout=PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT,
-                 log_level=None, sandbox=True):
+                 log_level=None, sandbox=True, use_parent_args=True):
 
         """
         :param timeout: Action execution timeout in seconds.
@@ -93,13 +94,18 @@ class PythonRunner(ActionRunner):
         :param sandbox: True to use python binary from pack-specific virtual environment for the
                         child action False to use a default system python binary from PATH.
         :type sandbox: ``bool``
+
+        :param use_parent_args: True to use command line arguments from the parent process.
+        :type use_parent_args: ``bool``
         """
         super(PythonRunner, self).__init__(runner_id=runner_id)
+
         self._config = config
         self._timeout = timeout
         self._enable_common_pack_libs = cfg.CONF.packs.enable_common_libs or False
         self._log_level = log_level or cfg.CONF.actionrunner.python_runner_log_level
         self._sandbox = sandbox
+        self._use_parent_args = use_parent_args
 
     def pre_run(self):
         super(PythonRunner, self).pre_run()
@@ -144,6 +150,12 @@ class PythonRunner(ActionRunner):
         # Note: We pass config as command line args so the actual wrapper process is standalone
         # and doesn't need access to db
         LOG.debug('Setting args.')
+
+        if self._use_parent_args:
+            parent_args = json.dumps(sys.argv[1:])
+        else:
+            parent_args = json.dumps([])
+
         args = [
             python_path,
             '-u',  # unbuffered mode so streaming mode works as expected
@@ -151,7 +163,7 @@ class PythonRunner(ActionRunner):
             '--pack=%s' % (pack),
             '--file-path=%s' % (self.entry_point),
             '--user=%s' % (user),
-            '--parent-args=%s' % (json.dumps(sys.argv[1:])),
+            '--parent-args=%s' % (parent_args),
         ]
 
         # If parameter size is larger than the maximum allowed by Linux kernel
@@ -186,8 +198,10 @@ class PythonRunner(ActionRunner):
 
         if self._enable_common_pack_libs:
             try:
-                pack_common_libs_path = get_pack_common_libs_path_for_pack_ref(pack_ref=pack)
-            except Exception:
+                pack_common_libs_path = self._get_pack_common_libs_path(pack_ref=pack)
+            except Exception as e:
+                LOG.debug('Failed to retrieve pack common lib path: %s' % (str(e)))
+                print(e)
                 # There is no MongoDB connection available in Lambda and pack common lib
                 # functionality is not also mandatory for Lambda so we simply ignore those errors.
                 # Note: We should eventually refactor this code to make runner standalone and not
@@ -196,6 +210,10 @@ class PythonRunner(ActionRunner):
                 pack_common_libs_path = None
         else:
             pack_common_libs_path = None
+
+        # Remove leading : (if any)
+        if sandbox_python_path.startswith(':'):
+            sandbox_python_path = sandbox_python_path[1:]
 
         if self._enable_common_pack_libs and pack_common_libs_path:
             env['PYTHONPATH'] = pack_common_libs_path + ':' + sandbox_python_path
@@ -246,6 +264,35 @@ class PythonRunner(ActionRunner):
         LOG.debug('Returning values: %s, %s, %s, %s', exit_code, stdout, stderr, timed_out)
         LOG.debug('Returning.')
         return self._get_output_values(exit_code, stdout, stderr, timed_out)
+
+    def _get_pack_common_libs_path(self, pack_ref):
+        """
+        Retrieve path to the pack common lib/ directory taking git work tree path into account
+        (if used).
+        """
+        worktree_path = self.git_worktree_path
+        pack_common_libs_path = get_pack_common_libs_path_for_pack_ref(pack_ref=pack_ref)
+
+        if not worktree_path:
+            return pack_common_libs_path
+
+        # Modify the path so it uses git worktree directory
+        pack_base_path = get_pack_base_path(pack_name=pack_ref)
+
+        new_pack_common_libs_path = pack_common_libs_path.replace(pack_base_path, '')
+
+        # Remove leading slash (if any)
+        if new_pack_common_libs_path.startswith('/'):
+            new_pack_common_libs_path = new_pack_common_libs_path[1:]
+
+        new_pack_common_libs_path = os.path.join(worktree_path, new_pack_common_libs_path)
+
+        # Check to prevent directory traversal
+        common_prefix = os.path.commonprefix([worktree_path, new_pack_common_libs_path])
+        if common_prefix != worktree_path:
+            raise ValueError('pack libs path is not located inside the pack directory')
+
+        return new_pack_common_libs_path
 
     def _get_output_values(self, exit_code, stdout, stderr, timed_out):
         """
