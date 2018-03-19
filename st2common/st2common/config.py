@@ -325,6 +325,9 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt('keystone_auth_url', default=None, help='Auth endpoint for Keystone.'),
         cfg.StrOpt('cacert', default=None, help='Optional certificate to validate endpoint.'),
         cfg.BoolOpt('insecure', default=False, help='Allow insecure communication with Mistral.'),
+        cfg.BoolOpt(
+            'enable_polling', default=False,
+            help='Enable results tracking and disable callbacks.'),
         cfg.FloatOpt(
             'jitter_interval', default=0.1,
             help='Jitter interval to smooth out HTTP requests '

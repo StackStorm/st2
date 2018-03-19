@@ -21,6 +21,14 @@ Added
   Note: For this feature to work, Python 3 needs to be installed on the system and ``virtualenv``
   package installed on the system needs to support Python 3 (it needs to be a recent version).
   (new feature) #4016 #3922
+* Added the ability of ``st2ctl`` to utilize environment variables from ``/etc/default/st2ctl``
+  (for Ubuntu/Debian) and ``/etc/sysconfig/st2ctl`` (RHEL/CentOS). This allows
+  deployments to override ``COMPONENTS`` and ``ST2_CONF`` in a global location
+  so ``st2ctl`` can start/stop/restart selected components and utilize a non-default
+  location for ``st2.conf``.
+  (new feature) #4027
+
+  Contributed by Nick Maludy (Encore Technologies).
 * Add support for new optional ``content_version`` runner parameter to the Python and Local Shell
   Script runner. This parameter can contain a git commit hash / tag / branch from a pack git
   repository and runner will ensure this revision of the pack content (Python action / local shell
@@ -50,6 +58,10 @@ Changed
   access a key in ``self.config`` dictionary which doesn't exist. (improvement) #4014
 * Update various Python dependencies to the latest stable versions (apscheduler, gitpython,
   pymongo, stevedore, paramiko, tooz, flex, webob, prance).
+* Refactored mistral runner to support callback from mistral instead of relying on st2resultstracker.
+  This reduces the unnecessary traffic and CPU time by querying the mistral API. Included a command to
+  manually add a state entry for Mistral workflow execution to recover from any callback failures.
+  (improvement)
 
 Fixed
 ~~~~~

@@ -42,7 +42,9 @@ from st2common.util.green.shell import run_command
 __all__ = [
     'ActionRunner',
     'AsyncActionRunner',
+    'PollingAsyncActionRunner',
     'GitWorktreeActionRunner',
+    'PollingAsyncActionRunner',
     'ShellRunnerMixin',
 
     'get_runner',
@@ -244,6 +246,12 @@ class ActionRunner(object):
 @six.add_metaclass(abc.ABCMeta)
 class AsyncActionRunner(ActionRunner):
     pass
+  
+class PollingAsyncActionRunner(AsyncActionRunner):
+
+    @classmethod
+    def is_polling_enabled(cls):
+        return True
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -439,7 +447,6 @@ class GitWorktreeActionRunner(ActionRunner):
             raise ValueError('entry_point is not located inside the pack directory')
 
         return new_entry_point
-
 
 class ShellRunnerMixin(object):
     """

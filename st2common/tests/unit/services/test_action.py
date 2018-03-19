@@ -28,6 +28,7 @@ from st2common.models.system.common import ResourceReference
 from st2common.persistence.action import Action
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.runner import RunnerType
+from st2common.runners import utils as runners_utils
 from st2common.services import action as action_service
 from st2common.services import executions
 from st2common.transport.publishers import PoolPublisher
@@ -173,6 +174,7 @@ ACTION_OVR_PARAM_BAD_ATTR_NOOP_REF = ResourceReference(
 USERNAME = 'stanley'
 
 
+@mock.patch.object(runners_utils, 'invoke_post_run', mock.MagicMock(return_value=None))
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
 class TestActionExecutionService(DbTestCase):
 

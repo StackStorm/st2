@@ -22,11 +22,17 @@ examples.mistral-branching:
             action: core.local
             input:
                 cmd: "echo 'Took path A.'"
+            publish:
+                stdout: <% task(a).result.stdout %> 
         b:
             action: core.local
             input:
                 cmd: "echo 'Took path B.'"
+            publish:
+                stdout: <% task(b).result.stdout %> 
         c:
             action: core.local
             input:
                 cmd: "echo 'Took path C.'"
+            publish:
+                stdout: <% task(c).result.stdout %> 

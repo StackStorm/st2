@@ -1,0 +1,115 @@
+#!/usr/bin/env python
+# Licensed to the StackStorm, Inc ('StackStorm') under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import mongoengine as me
+import sys
+
+from oslo_config import cfg
+
+from st2common import config
+from st2common.constants import action as action_constants
+from st2common.exceptions import db as db_exc
+from st2common import log as logging
+from st2common.persistence.execution import ActionExecution
+from st2common import script_setup
+from st2common.services import queries
+from st2common.util import action_db
+
+LOG = logging.getLogger(__name__)
+
+
+def setup():
+    cfg.CONF.register_cli_opt(
+        cfg.StrOpt('id', positional=True, help='ID of the action execution.')
+    )
+
+    cfg.CONF.register_cli_opt(
+        cfg.BoolOpt('delete', default=False, help='Delete the result tracker entry.')
+    )
+
+    script_setup.setup(config, register_mq_exchanges=False)
+
+
+def add_result_tracker(exec_id):
+    LOG.info('Retrieving action execution record...')
+    exec_db = ActionExecution.get_by_id(exec_id)
+    LOG.info('Found action execution record for "%s".', exec_id)
+
+    # Check runner type.
+    runner_type = exec_db.action.get('runner_type')
+
+    if runner_type != 'mistral-v2':
+        LOG.error('Result tracker is only supported for Mistral workflows.')
+        return
+
+    # Skip if action execution is completed.
+    if exec_db.status in action_constants.LIVEACTION_COMPLETED_STATES:
+        LOG.info('Action execution "%s" is already in a completed state.', exec_id)
+        LOG.info('Result tracker entry is not created.')
+        return
+
+    LOG.info('Retrieving runner type and liveaction records...')
+    runnertype_db = action_db.get_runnertype_by_name(exec_db.action.get('runner_type'))
+    liveaction_db = action_db.get_liveaction_by_id(exec_db.liveaction['id'])
+
+    # Skip if liveaction is completed.
+    if liveaction_db.status in action_constants.LIVEACTION_COMPLETED_STATES:
+        LOG.info('Liveaction "%s" is already in a completed state.', liveaction_db.id)
+        LOG.info('Result tracker entry is not created.')
+        return
+
+    # Add query into action execution state DB
+    try:
+        LOG.info('Inserting new request tracker entry...')
+        queries.setup_query(liveaction_db.id, runnertype_db, liveaction_db.context)
+        LOG.info('Successfully inserted the result tracker entry.')
+    except (db_exc.StackStormDBObjectConflictError, me.NotUniqueError):
+        LOG.error('Action execution "%s" already has a result tracker entry.', exec_id)
+    except Exception as e:
+        LOG.error('Unable to create result tracker entry for "%s". %s', exec_id, e.message)
+
+    # Add result tracker for children workflows.
+    for child_exec_id in exec_db.children:
+        child_exec = ActionExecution.get(id=child_exec_id, raise_exception=True)
+        if child_exec.runner['name'] == 'mistral-v2':
+            LOG.info('Adding result tracker for children "%s"...', child_exec_id)
+            add_result_tracker(child_exec_id)
+
+
+def del_result_tracker(exec_id):
+    LOG.info('Retrieving action execution record...')
+    exec_db = ActionExecution.get_by_id(exec_id)
+    LOG.info('Found action execution record for "%s".', exec_id)
+
+    LOG.info('Retrieving runner type and liveaction records...')
+    liveaction_db = action_db.get_liveaction_by_id(exec_db.liveaction['id'])
+
+    LOG.info('Removing result tracker entry...')
+    removed = queries.remove_query(liveaction_db.id)
+
+    if removed:
+        LOG.info('Successfully removed the result tracker entry.')
+    else:
+        LOG.info('There is no result tracker entry to remove.')
+
+
+if __name__ == '__main__':
+    setup()
+
+    if not cfg.CONF.delete:
+        add_result_tracker(cfg.CONF.id)
+    else:
+        del_result_tracker(cfg.CONF.id)
