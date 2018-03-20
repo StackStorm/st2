@@ -93,13 +93,12 @@ class WindowsCommandRunner(BaseWindowsRunner):
         if exit_code != 0:
             error = self._parse_winexe_error(stdout=stdout, stderr=stderr)
 
-        result = stdout
-
         output = {
             'stdout': stdout,
             'stderr': stderr,
-            'exit_code': exit_code,
-            'result': result
+            'return_code': exit_code,
+            'succeeded': (exit_code == 0),
+            'failed': (exit_code != 0)
         }
 
         if error:
