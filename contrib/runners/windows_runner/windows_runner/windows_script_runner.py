@@ -118,15 +118,17 @@ class WindowsScriptRunner(BaseWindowsRunner, ShellRunnerMixin):
         else:
             error = None
 
-        if exit_code != 0:
+        succeeded = (exit_code == 0)
+
+        if not succeeded:
             error = self._parse_winexe_error(stdout=stdout, stderr=stderr)
 
         output = {
             'stdout': stdout,
             'stderr': stderr,
             'return_code': exit_code,
-            'succeeded': (exit_code == 0),
-            'failed': (exit_code != 0)
+            'succeeded': succeeded,
+            'failed': not succeeded
         }
 
         if error:
