@@ -209,7 +209,7 @@ class PackInstallCommand(PackAsyncCommand):
             if args.pack.startswith('file://'):
                 return
 
-            pack_info = self.manager.search(args, **kwargs)
+            pack_info = self.manager.search(args, ignore_errors=True, **kwargs)
             content = getattr(pack_info, 'content', {})
 
             if content:
@@ -229,7 +229,7 @@ class PackInstallCommand(PackAsyncCommand):
                 if args.pack.startswith('file://'):
                     return
 
-                pack_info = self.manager.search(args, **kwargs)
+                pack_info = self.manager.search(args, ignore_errors=True, **kwargs)
                 content = getattr(pack_info, 'content', {})
 
                 if content:
