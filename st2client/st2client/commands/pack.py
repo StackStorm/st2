@@ -200,11 +200,16 @@ class PackInstallCommand(PackAsyncCommand):
 
     def _get_content_counts_for_pack(self, args, **kwargs):
         # Global content list, excluding "tests"
+        # Note: We skip this step for local packs
         pack_content = {'actions': 0, 'rules': 0, 'sensors': 0, 'aliases': 0, 'triggers': 0}
 
         if len(args.packs) == 1:
             args.pack = args.packs[0]
-            pack_info = self.manager.search(args, **kwargs)
+
+            if args.pack.startswith('file://'):
+                return
+
+            pack_info = self.manager.search(args, ignore_errors=True, **kwargs)
             content = getattr(pack_info, 'content', {})
 
             if content:
@@ -220,7 +225,11 @@ class PackInstallCommand(PackAsyncCommand):
             for pack in args.packs:
                 # args.pack required for search
                 args.pack = pack
-                pack_info = self.manager.search(args, **kwargs)
+
+                if args.pack.startswith('file://'):
+                    return
+
+                pack_info = self.manager.search(args, ignore_errors=True, **kwargs)
                 content = getattr(pack_info, 'content', {})
 
                 if content:

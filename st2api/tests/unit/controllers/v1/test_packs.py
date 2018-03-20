@@ -490,7 +490,7 @@ class PacksControllerTestCase(FunctionalTest):
                                                          'fail_on_failure': False})
 
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json, {'sensors': 1})
+        self.assertEqual(resp.json, {'sensors': 3})
 
         # Verify that plural name form also works
         resp = self.app.post_json('/v1/packs/register', {'types': ['sensors'],

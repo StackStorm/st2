@@ -25,6 +25,7 @@ from st2common.content.utils import get_pack_base_path
 from st2common.content.utils import get_packs_base_paths
 from st2common.content.utils import get_aliases_base_paths
 from st2common.content.utils import get_pack_resource_file_abs_path
+from st2common.content.utils import get_pack_file_abs_path
 from st2common.content.utils import get_entry_point_abs_path
 from st2common.content.utils import get_action_libs_abs_path
 from st2tests import config as tests_config
@@ -113,12 +114,34 @@ class ContentUtilsTestCase(unittest2.TestCase):
                                 file_path='test.py')
 
         # Invalid paths (directory traversal and absolute paths)
-        file_paths = ['/tmp/foo.py', '../foo.py', '/etc/passwd', '../../foo.py']
+        file_paths = ['/tmp/foo.py', '../foo.py', '/etc/passwd', '../../foo.py',
+                     '/opt/stackstorm/packs/invalid_pack/actions/my_action.py',
+                     '../../foo.py']
         for file_path in file_paths:
-            expected_msg = 'Invalid file path: .*%s' % (file_path)
+            # action resource_type
+            expected_msg = ('Invalid file path: ".*%s"\. File path needs to be relative to the '
+                            'pack actions directory (.*). For example "my_action.py"\.' %
+                            (file_path))
             self.assertRaisesRegexp(ValueError, expected_msg, get_pack_resource_file_abs_path,
                                     pack_ref='dummy_pack_1',
                                     resource_type='action',
+                                    file_path=file_path)
+
+            # sensor resource_type
+            expected_msg = ('Invalid file path: ".*%s"\. File path needs to be relative to the '
+                            'pack sensors directory (.*). For example "my_sensor.py"\.' %
+                            (file_path))
+            self.assertRaisesRegexp(ValueError, expected_msg, get_pack_resource_file_abs_path,
+                                    pack_ref='dummy_pack_1',
+                                    resource_type='sensor',
+                                    file_path=file_path)
+
+            # no resource type
+            expected_msg = ('Invalid file path: ".*%s"\. File path needs to be relative to the '
+                            'pack directory (.*). For example "my_action.py"\.' %
+                            (file_path))
+            self.assertRaisesRegexp(ValueError, expected_msg, get_pack_file_abs_path,
+                                    pack_ref='dummy_pack_1',
                                     file_path=file_path)
 
         # Valid paths

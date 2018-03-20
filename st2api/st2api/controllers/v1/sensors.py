@@ -22,6 +22,7 @@ from st2common.models.api.sensor import SensorTypeAPI
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.validators.api.misc import validate_not_part_of_system_pack
 from st2api.controllers import resource
+from st2api.controllers.controller_transforms import transform_to_bool
 from st2common.rbac.types import PermissionType
 from st2common.rbac import utils as rbac_utils
 from st2common.router import abort
@@ -39,6 +40,10 @@ class SensorTypeController(resource.ContentPackResourceController):
         'pack': 'pack',
         'enabled': 'enabled',
         'trigger': 'trigger_types'
+    }
+
+    filter_transform_functions = {
+        'enabled': transform_to_bool
     }
 
     options = {
