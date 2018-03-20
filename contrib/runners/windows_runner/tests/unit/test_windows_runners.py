@@ -20,6 +20,10 @@ from unittest2 import TestCase
 import mock
 from six.moves import zip
 
+from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
+from st2common.constants.action import LIVEACTION_STATUS_FAILED
+from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
+
 from windows_runner.windows_command_runner import BaseWindowsRunner
 from windows_runner.windows_script_runner import WindowsScriptRunner
 
@@ -198,6 +202,91 @@ class WindowsRunnerTestCase(TestCase):
         share_path = runner._get_share_absolute_path(share='C$')
         self.assertEqual(share_path, 'C:\\')
 
+    def test_run_output_object(self):
+        runner = self._get_script_runner()
+
+        runner._upload_file = mock.Mock(return_value=('/tmp/a', '/tmp/b'))
+        runner._delete_directory = mock.Mock()
+        runner._get_share_absolute_path = mock.Mock(return_value='/tmp')
+        runner._parse_winexe_error = mock.Mock(return_value='')
+
+        # success
+        exit_code, stdout, stderr, timed_out = 0, 'stdout foo', 'stderr bar', False
+        runner._run_script = mock.Mock(return_value=(exit_code, stdout, stderr, timed_out))
+
+        runner.runner_parameters = {}
+        (status, output, _) = runner.run({})
+
+        expected_output = {
+            'stdout': 'stdout foo',
+            'stderr': 'stderr bar',
+            'return_code': 0,
+            'succeeded': True,
+            'failed': False
+        }
+
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+        self.assertDictEqual(output, expected_output)
+
+        # failure
+        exit_code, stdout, stderr, timed_out = 1, 'stdout fail', 'stderr fail', False
+        runner._run_script = mock.Mock(return_value=(exit_code, stdout, stderr, timed_out))
+
+        runner.runner_parameters = {}
+        (status, output, _) = runner.run({})
+
+        expected_output = {
+            'stdout': 'stdout fail',
+            'stderr': 'stderr fail',
+            'return_code': 1,
+            'succeeded': False,
+            'failed': True
+        }
+
+        self.assertEqual(status, LIVEACTION_STATUS_FAILED)
+        self.assertDictEqual(output, expected_output)
+
+        # timeout with non zero exit code
+        exit_code, stdout, stderr, timed_out = 200, 'stdout timeout', 'stderr timeout', True
+        runner._run_script = mock.Mock(return_value=(exit_code, stdout, stderr, timed_out))
+        runner._timeout = 5
+
+        runner.runner_parameters = {}
+        (status, output, _) = runner.run({})
+
+        expected_output = {
+            'stdout': 'stdout timeout',
+            'stderr': 'stderr timeout',
+            'return_code': 200,
+            'succeeded': False,
+            'failed': True,
+            'error': 'Action failed to complete in 5 seconds'
+        }
+
+        self.assertEqual(status, LIVEACTION_STATUS_TIMED_OUT)
+        self.assertDictEqual(output, expected_output)
+
+        # timeout with zero exit code
+        exit_code, stdout, stderr, timed_out = 0, 'stdout timeout', 'stderr timeout', True
+        runner._run_script = mock.Mock(return_value=(exit_code, stdout, stderr, timed_out))
+        runner._timeout = 5
+        runner._parse_winexe_error = mock.Mock(return_value='winexe error')
+
+        runner.runner_parameters = {}
+        (status, output, _) = runner.run({})
+
+        expected_output = {
+            'stdout': 'stdout timeout',
+            'stderr': 'stderr timeout',
+            'return_code': 0,
+            'succeeded': False,
+            'failed': True,
+            'error': 'Action failed to complete in 5 seconds: winexe error'
+        }
+
+        self.assertEqual(status, LIVEACTION_STATUS_TIMED_OUT)
+        self.assertDictEqual(output, expected_output)
+
     def test_shell_command_parameter_escaping(self):
         pass
 
@@ -212,11 +301,19 @@ class WindowsRunnerTestCase(TestCase):
         runner = Runner('id')
         return runner
 
-    def _get_script_runner(self):
+    def _get_script_runner(self, action_parameters=None):
         runner = WindowsScriptRunner('id')
         runner._host = None
         runner._username = None
         runner._password = None
         runner._timeout = None
+        runner._share = None
+
+        action_db = mock.Mock()
+        action_db.pack = 'dummy_pack_1'
+        action_db.entry_point = 'foo.py'
+        action_db.parameters = action_parameters or {}
+
+        runner.action = action_db
 
         return runner
