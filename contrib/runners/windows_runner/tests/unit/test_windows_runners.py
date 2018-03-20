@@ -158,13 +158,13 @@ class WindowsRunnerTestCase(TestCase):
             'a b c -arg1 value1 -arg2 -arg3:$false -arg4 foo,bar,baz'
         ]
 
-        runner = self._get_script_runner()
+        runner = self._get_mock_script_runner()
         for arguments, expected_value in zip(arguments, expected_values):
             actual_value = runner._get_script_arguments(**arguments)
             self.assertEqual(actual_value, expected_value)
 
     def test_parse_share_information(self):
-        runner = self._get_script_runner()
+        runner = self._get_mock_script_runner()
 
         fixture_path = os.path.join(FIXTURES_DIR, 'net_share_C_stdout.txt')
         with open(fixture_path, 'r') as fp:
@@ -183,7 +183,7 @@ class WindowsRunnerTestCase(TestCase):
 
     @mock.patch('windows_runner.windows_script_runner.run_command')
     def test_get_share_absolute_path(self, mock_run_command):
-        runner = self._get_script_runner()
+        runner = self._get_mock_script_runner()
 
         fixture_path = os.path.join(FIXTURES_DIR, 'net_share_C_stdout.txt')
         with open(fixture_path, 'r') as fp:
@@ -202,8 +202,8 @@ class WindowsRunnerTestCase(TestCase):
         share_path = runner._get_share_absolute_path(share='C$')
         self.assertEqual(share_path, 'C:\\')
 
-    def test_run_output_object(self):
-        runner = self._get_script_runner()
+    def test_run_output_object_and_status(self):
+        runner = self._get_mock_script_runner()
 
         runner._upload_file = mock.Mock(return_value=('/tmp/a', '/tmp/b'))
         runner._delete_directory = mock.Mock()
@@ -301,7 +301,7 @@ class WindowsRunnerTestCase(TestCase):
         runner = Runner('id')
         return runner
 
-    def _get_script_runner(self, action_parameters=None):
+    def _get_mock_script_runner(self, action_parameters=None):
         runner = WindowsScriptRunner('id')
         runner._host = None
         runner._username = None
