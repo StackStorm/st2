@@ -62,6 +62,8 @@ Changed
   This reduces the unnecessary traffic and CPU time by querying the mistral API. Included a command to
   manually add a state entry for Mistral workflow execution to recover from any callback failures.
   (improvement)
+* Throw a more user-friendly error when writing pack data files to disk and when an invalid file
+  path is provided (e.g. path is outside the pack directory, etc.). (improvement) #4039 #4046
 
 Fixed
 ~~~~~
