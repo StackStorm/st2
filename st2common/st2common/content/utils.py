@@ -271,7 +271,9 @@ def get_pack_file_abs_path(pack_ref, file_path):
     normalized_file_path = os.path.normpath('/' + file_path).lstrip('/')
 
     if normalized_file_path != file_path:
-        raise ValueError('Invalid file path: %s' % (file_path))
+        msg = ('Invalid file path: %s. File path needs to be relative to the pack directory (%s). '
+               'For example "actions/my_action.py" ' % (file_path, pack_base_path))
+        raise ValueError(msg)
 
     path_components.append(normalized_file_path)
     result = os.path.join(*path_components)
@@ -281,7 +283,9 @@ def get_pack_file_abs_path(pack_ref, file_path):
     # Final safety check for common prefix to avoid traversal attack
     common_prefix = os.path.commonprefix([pack_base_path, result])
     if common_prefix != pack_base_path:
-        raise ValueError('Invalid file_path: %s' % (file_path))
+        msg = ('Invalid file path: %s. File path needs to be relative to the pack directory (%s). '
+               'For example "actions/my_action.py" ' % (file_path, pack_base_path))
+        raise ValueError(msg)
 
     return result
 

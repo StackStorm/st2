@@ -113,9 +113,12 @@ class ContentUtilsTestCase(unittest2.TestCase):
                                 file_path='test.py')
 
         # Invalid paths (directory traversal and absolute paths)
-        file_paths = ['/tmp/foo.py', '../foo.py', '/etc/passwd', '../../foo.py']
+        file_paths = ['/tmp/foo.py', '../foo.py', '/etc/passwd', '../../foo.py',
+                     '/opt/stackstorm/packs/invalid_pack/actions/my_action.py',
+                     '../../foo.py']
         for file_path in file_paths:
-            expected_msg = 'Invalid file path: .*%s' % (file_path)
+            expected_msg = ('Invalid file path: .*%s\. File path needs to be relative to the pack '
+                            'directory' % (file_path))
             self.assertRaisesRegexp(ValueError, expected_msg, get_pack_resource_file_abs_path,
                                     pack_ref='dummy_pack_1',
                                     resource_type='action',
