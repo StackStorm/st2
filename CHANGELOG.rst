@@ -65,10 +65,10 @@ Changed
 
 Fixed
 ~~~~~
+
 * Fix Python runner actions and ``Argument list too long`` error when very large parameters are
   passed into the action. The fix utilizes ``stdin`` to pass parameters to the Python action wrapper
   process instead of CLI argument list. (bug fix) #1598 #3976
-
 * Fix a regression in ``POST /v1/webhooks/<webhook name>`` API endpoint introduced in v2.4.0
   and add back support for arrays. In 2.4.0 support for arrays was inadvertently removed and
   only objects were supported. Keep in mind that this only applies to custom user-defined
@@ -78,10 +78,11 @@ Fixed
   to not work. (bugfix) #4001
 
   Contributed by Nick Maludy (Encore Technologies).
-  
 * Fixed missing "paused" status option from "st2 execution list" help output. (bugfix) #4037
 
   Contributed by Ben Hohnke (NTT Communications ICT Solutions)
+* Fix "st2 pack install" command so it doesn't require access to pack index (index.stackstorm.org)
+  when installing a local pack (pack name starting with "file://"). (bug fix) #3771 #3772
 
 2.6.0 - January 19, 2018
 ------------------------
