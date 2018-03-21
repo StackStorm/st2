@@ -209,6 +209,7 @@ class WindowsRunnerTestCase(TestCase):
         runner._delete_directory = mock.Mock()
         runner._get_share_absolute_path = mock.Mock(return_value='/tmp')
         runner._parse_winexe_error = mock.Mock(return_value='')
+        runner._verify_winexe_exists = mock.Mock()
 
         # success
         exit_code, stdout, stderr, timed_out = 0, 'stdout foo', 'stderr bar', False
