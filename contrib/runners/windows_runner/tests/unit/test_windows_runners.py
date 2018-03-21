@@ -247,9 +247,27 @@ class WindowsRunnerTestCase(TestCase):
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
         self.assertDictEqual(output, expected_output)
 
+        # failure with winexe error
+        exit_code, stdout, stderr, timed_out = 1, 'stdout fail 2', 'stderr fail 2', False
+        runner._run_script = mock.Mock(return_value=(exit_code, stdout, stderr, timed_out))
+        runner._parse_winexe_error = mock.Mock(return_value='winexe error 2')
+
+        runner.runner_parameters = {}
+        (status, output, _) = runner.run({})
+
+        expected_output = {
+            'stdout': 'stdout fail 2',
+            'stderr': 'stderr fail 2',
+            'return_code': 1,
+            'succeeded': False,
+            'failed': True,
+            'error': 'winexe error 2'
+        }
+
         # timeout with non zero exit code
         exit_code, stdout, stderr, timed_out = 200, 'stdout timeout', 'stderr timeout', True
         runner._run_script = mock.Mock(return_value=(exit_code, stdout, stderr, timed_out))
+        runner._parse_winexe_error = mock.Mock(return_value=None)
         runner._timeout = 5
 
         runner.runner_parameters = {}
