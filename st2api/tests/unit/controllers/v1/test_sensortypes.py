@@ -37,12 +37,12 @@ class SensorTypeControllerTestCase(FunctionalTest):
     def test_get_all_and_minus_one(self):
         resp = self.app.get('/v1/sensortypes')
         self.assertEqual(resp.status_int, http_client.OK)
-        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(len(resp.json), 3)
         self.assertEqual(resp.json[0]['name'], 'SampleSensor')
 
         resp = self.app.get('/v1/sensortypes/?limit=-1')
         self.assertEqual(resp.status_int, http_client.OK)
-        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(len(resp.json), 3)
         self.assertEqual(resp.json[0]['name'], 'SampleSensor')
 
     def test_get_all_negative_limit(self):
@@ -50,6 +50,50 @@ class SensorTypeControllerTestCase(FunctionalTest):
         self.assertEqual(resp.status_int, 400)
         self.assertEqual(resp.json['faultstring'],
                          u'Limit, "-22" specified, must be a positive number.')
+
+    def test_get_all_filters(self):
+        resp = self.app.get('/v1/sensortypes')
+        self.assertEqual(resp.status_int, http_client.OK)
+        self.assertEqual(len(resp.json), 3)
+
+        # ?name filter
+        resp = self.app.get('/v1/sensortypes?name=foobar')
+        self.assertEqual(len(resp.json), 0)
+
+        resp = self.app.get('/v1/sensortypes?name=SampleSensor2')
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['name'], 'SampleSensor2')
+
+        resp = self.app.get('/v1/sensortypes?name=SampleSensor3')
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['name'], 'SampleSensor3')
+
+        # ?pack filter
+        resp = self.app.get('/v1/sensortypes?pack=foobar')
+        self.assertEqual(len(resp.json), 0)
+
+        resp = self.app.get('/v1/sensortypes?pack=dummy_pack_1')
+        self.assertEqual(len(resp.json), 3)
+
+        # ?enabled filter
+        resp = self.app.get('/v1/sensortypes?enabled=False')
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['enabled'], False)
+
+        resp = self.app.get('/v1/sensortypes?enabled=True')
+        self.assertEqual(len(resp.json), 2)
+        self.assertEqual(resp.json[0]['enabled'], True)
+        self.assertEqual(resp.json[1]['enabled'], True)
+
+        # ?trigger filter
+        resp = self.app.get('/v1/sensortypes?trigger=dummy_pack_1.event3')
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['trigger_types'], ['dummy_pack_1.event3'])
+
+        resp = self.app.get('/v1/sensortypes?trigger=dummy_pack_1.event')
+        self.assertEqual(len(resp.json), 2)
+        self.assertEqual(resp.json[0]['trigger_types'], ['dummy_pack_1.event'])
+        self.assertEqual(resp.json[1]['trigger_types'], ['dummy_pack_1.event'])
 
     def test_get_one_success(self):
         resp = self.app.get('/v1/sensortypes/dummy_pack_1.SampleSensor')

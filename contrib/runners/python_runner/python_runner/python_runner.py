@@ -27,7 +27,7 @@ from oslo_config import cfg
 from six.moves import StringIO
 
 from st2common import log as logging
-from st2common.runners.base import ActionRunner
+from st2common.runners.base import GitWorktreeActionRunner
 from st2common.runners.base import get_metadata as get_runner_metadata
 from st2common.util.green.shell import run_command
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
@@ -43,6 +43,7 @@ from st2common.constants.system import API_URL_ENV_VARIABLE_NAME
 from st2common.constants.system import AUTH_TOKEN_ENV_VARIABLE_NAME
 from st2common.util.api import get_full_public_api_url
 from st2common.util.pack import get_pack_common_libs_path_for_pack_ref
+from st2common.content.utils import get_pack_base_path
 from st2common.util.sandboxing import get_sandbox_path
 from st2common.util.sandboxing import get_sandbox_python_path
 from st2common.util.sandboxing import get_sandbox_python_binary_path
@@ -82,10 +83,10 @@ WRAPPER_SCRIPT_NAME = 'python_action_wrapper.py'
 WRAPPER_SCRIPT_PATH = os.path.join(BASE_DIR, WRAPPER_SCRIPT_NAME)
 
 
-class PythonRunner(ActionRunner):
+class PythonRunner(GitWorktreeActionRunner):
 
     def __init__(self, runner_id, config=None, timeout=PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT,
-                 log_level=None, sandbox=True):
+                 log_level=None, sandbox=True, use_parent_args=True):
 
         """
         :param timeout: Action execution timeout in seconds.
@@ -97,13 +98,18 @@ class PythonRunner(ActionRunner):
         :param sandbox: True to use python binary from pack-specific virtual environment for the
                         child action False to use a default system python binary from PATH.
         :type sandbox: ``bool``
+
+        :param use_parent_args: True to use command line arguments from the parent process.
+        :type use_parent_args: ``bool``
         """
         super(PythonRunner, self).__init__(runner_id=runner_id)
+
         self._config = config
         self._timeout = timeout
         self._enable_common_pack_libs = cfg.CONF.packs.enable_common_libs or False
         self._log_level = log_level or cfg.CONF.actionrunner.python_runner_log_level
         self._sandbox = sandbox
+        self._use_parent_args = use_parent_args
 
     def pre_run(self):
         super(PythonRunner, self).pre_run()
@@ -117,143 +123,184 @@ class PythonRunner(ActionRunner):
         if self._log_level == PYTHON_RUNNER_DEFAULT_LOG_LEVEL:
             self._log_level = cfg.CONF.actionrunner.python_runner_log_level
 
-    def run(self, action_parameters):
-        with CounterWithTimer(PYTHON_RUNNER_EXECUTION):
-            LOG.debug('Running pythonrunner.')
-            LOG.debug('Getting pack name.')
-            pack = self.get_pack_ref()
-            LOG.debug('Getting user.')
-            user = self.get_user()
-            LOG.debug('Serializing parameters.')
-            serialized_parameters = json.dumps(action_parameters if action_parameters else {})
-            LOG.debug('Getting virtualenv_path.')
-            virtualenv_path = get_sandbox_virtualenv_path(pack=pack)
-            LOG.debug('Getting python path.')
-            if self._sandbox:
-                python_path = get_sandbox_python_binary_path(pack=pack)
-            else:
-                python_path = sys.executable
+    @CounterWithTimer(PYTHON_RUNNER_EXECUTION)
+    def run(self, action_parameters, **kwargs):
+        LOG.debug('Running pythonrunner.')
+        LOG.debug('Getting pack name.')
+        pack = self.get_pack_ref()
+        LOG.debug('Getting user.')
+        user = self.get_user()
+        LOG.debug('Serializing parameters.')
+        serialized_parameters = json.dumps(action_parameters if action_parameters else {})
+        LOG.debug('Getting virtualenv_path.')
+        virtualenv_path = get_sandbox_virtualenv_path(pack=pack)
+        LOG.debug('Getting python path.')
+        if self._sandbox:
+            python_path = get_sandbox_python_binary_path(pack=pack)
+        else:
+            python_path = sys.executable
 
-            LOG.debug('Checking virtualenv path.')
-            if virtualenv_path and not os.path.isdir(virtualenv_path):
-                format_values = {'pack': pack, 'virtualenv_path': virtualenv_path}
-                msg = PACK_VIRTUALENV_DOESNT_EXIST % format_values
-                LOG.error('virtualenv_path set but not a directory: %s', msg)
-                raise Exception(msg)
+        LOG.debug('Checking virtualenv path.')
+        if virtualenv_path and not os.path.isdir(virtualenv_path):
+            format_values = {'pack': pack, 'virtualenv_path': virtualenv_path}
+            msg = PACK_VIRTUALENV_DOESNT_EXIST % format_values
+            LOG.error('virtualenv_path set but not a directory: %s', msg)
+            raise Exception(msg)
 
-            LOG.debug('Checking entry_point.')
-            if not self.entry_point:
-                LOG.error('Action "%s" is missing entry_point attribute' % (self.action.name))
-                raise Exception('Action "%s" is missing entry_point attribute' % (self.action.name))
+        LOG.debug('Checking entry_point.')
+        if not self.entry_point:
+            LOG.error('Action "%s" is missing entry_point attribute' % (self.action.name))
+            raise Exception('Action "%s" is missing entry_point attribute' % (self.action.name))
 
-            # Note: We pass config as command line args so the actual wrapper process is standalone
-            # and doesn't need access to db
-            LOG.debug('Setting args.')
-            args = [
-                python_path,
-                '-u',  # unbuffered mode so streaming mode works as expected
-                WRAPPER_SCRIPT_PATH,
-                '--pack=%s' % (pack),
-                '--file-path=%s' % (self.entry_point),
-                '--user=%s' % (user),
-                '--parent-args=%s' % (json.dumps(sys.argv[1:])),
-            ]
+        # Note: We pass config as command line args so the actual wrapper process is standalone
+        # and doesn't need access to db
+        LOG.debug('Setting args.')
 
-            # If parameter size is larger than the maximum allowed by Linux kernel
-            # we need to swap to stdin to communicate parameters. This avoids a
-            # failure to fork the wrapper process when using large parameters.
-            stdin = None
-            stdin_params = None
-            if len(serialized_parameters) >= MAX_PARAM_LENGTH:
-                stdin = subprocess.PIPE
-                LOG.debug('Parameters are too big...changing to stdin')
-                stdin_params = '{"parameters": %s}\n' % (serialized_parameters)
-                args.append('--stdin-parameters')
-            else:
-                LOG.debug('Parameters are just right...adding them to arguments')
-                args.append('--parameters=%s' % (serialized_parameters))
+        if self._use_parent_args:
+            parent_args = json.dumps(sys.argv[1:])
+        else:
+            parent_args = json.dumps([])
 
-            if self._config:
-                args.append('--config=%s' % (json.dumps(self._config)))
+        args = [
+            python_path,
+            '-u',  # unbuffered mode so streaming mode works as expected
+            WRAPPER_SCRIPT_PATH,
+            '--pack=%s' % (pack),
+            '--file-path=%s' % (self.entry_point),
+            '--user=%s' % (user),
+            '--parent-args=%s' % (parent_args),
+        ]
 
-            if self._log_level != PYTHON_RUNNER_DEFAULT_LOG_LEVEL:
-                # We only pass --log-level parameter if non default log level value is specified
-                args.append('--log-level=%s' % (self._log_level))
+        # If parameter size is larger than the maximum allowed by Linux kernel
+        # we need to swap to stdin to communicate parameters. This avoids a
+        # failure to fork the wrapper process when using large parameters.
+        stdin = None
+        stdin_params = None
+        if len(serialized_parameters) >= MAX_PARAM_LENGTH:
+            stdin = subprocess.PIPE
+            LOG.debug('Parameters are too big...changing to stdin')
+            stdin_params = '{"parameters": %s}\n' % (serialized_parameters)
+            args.append('--stdin-parameters')
+        else:
+            LOG.debug('Parameters are just right...adding them to arguments')
+            args.append('--parameters=%s' % (serialized_parameters))
 
-            # We need to ensure all the st2 dependencies are also available to the
-            # subprocess
-            LOG.debug('Setting env.')
-            env = os.environ.copy()
-            env['PATH'] = get_sandbox_path(virtualenv_path=virtualenv_path)
+        if self._config:
+            args.append('--config=%s' % (json.dumps(self._config)))
 
-            sandbox_python_path = get_sandbox_python_path(inherit_from_parent=True,
-                                                          inherit_parent_virtualenv=True)
+        if self._log_level != PYTHON_RUNNER_DEFAULT_LOG_LEVEL:
+            # We only pass --log-level parameter if non default log level value is specified
+            args.append('--log-level=%s' % (self._log_level))
 
-            if self._enable_common_pack_libs:
-                try:
-                    pack_common_libs_path = get_pack_common_libs_path_for_pack_ref(pack_ref=pack)
-                except Exception:
-                    # There is no MongoDB connection available in Lambda and pack common lib
-                    # functionality is not also mandatory for Lambda so we simply ignore those
-                    # errors. Note: We should eventually refactor this code to make runner
-                    # standalone and not depend on a db connection (as it was in the past) -
-                    # this param should be passed to the runner by the action runner container
-                    pack_common_libs_path = None
-            else:
+        # We need to ensure all the st2 dependencies are also available to the
+        # subprocess
+        LOG.debug('Setting env.')
+        env = os.environ.copy()
+        env['PATH'] = get_sandbox_path(virtualenv_path=virtualenv_path)
+
+        sandbox_python_path = get_sandbox_python_path(inherit_from_parent=True,
+                                                      inherit_parent_virtualenv=True)
+
+        if self._enable_common_pack_libs:
+            try:
+                pack_common_libs_path = self._get_pack_common_libs_path(pack_ref=pack)
+            except Exception as e:
+                LOG.debug('Failed to retrieve pack common lib path: %s' % (str(e)))
+                print(e)
+                # There is no MongoDB connection available in Lambda and pack common lib
+                # functionality is not also mandatory for Lambda so we simply ignore those errors.
+                # Note: We should eventually refactor this code to make runner standalone and not
+                # depend on a db connection (as it was in the past) - this param should be passed
+                # to the runner by the action runner container
                 pack_common_libs_path = None
+        else:
+            pack_common_libs_path = None
 
-            if self._enable_common_pack_libs and pack_common_libs_path:
-                env['PYTHONPATH'] = pack_common_libs_path + ':' + sandbox_python_path
-            else:
-                env['PYTHONPATH'] = sandbox_python_path
+        # Remove leading : (if any)
+        if sandbox_python_path.startswith(':'):
+            sandbox_python_path = sandbox_python_path[1:]
 
-            # Include user provided environment variables (if any)
-            user_env_vars = self._get_env_vars()
-            env.update(user_env_vars)
+        if self._enable_common_pack_libs and pack_common_libs_path:
+            env['PYTHONPATH'] = pack_common_libs_path + ':' + sandbox_python_path
+        else:
+            env['PYTHONPATH'] = sandbox_python_path
 
-            # Include common st2 environment variables
-            st2_env_vars = self._get_common_action_env_variables()
-            env.update(st2_env_vars)
-            datastore_env_vars = self._get_datastore_access_env_vars()
-            env.update(datastore_env_vars)
+        # Include user provided environment variables (if any)
+        user_env_vars = self._get_env_vars()
+        env.update(user_env_vars)
 
-            stdout = StringIO()
-            stderr = StringIO()
+        # Include common st2 environment variables
+        st2_env_vars = self._get_common_action_env_variables()
+        env.update(st2_env_vars)
+        datastore_env_vars = self._get_datastore_access_env_vars()
+        env.update(datastore_env_vars)
 
-            store_execution_stdout_line = functools.partial(store_execution_output_data,
-                                                            output_type='stdout')
-            store_execution_stderr_line = functools.partial(store_execution_output_data,
-                                                            output_type='stderr')
+        stdout = StringIO()
+        stderr = StringIO()
 
-            read_and_store_stdout = make_read_and_store_stream_func(execution_db=self.execution,
-                action_db=self.action, store_data_func=store_execution_stdout_line)
-            read_and_store_stderr = make_read_and_store_stream_func(execution_db=self.execution,
-                action_db=self.action, store_data_func=store_execution_stderr_line)
+        store_execution_stdout_line = functools.partial(store_execution_output_data,
+                                                        output_type='stdout')
+        store_execution_stderr_line = functools.partial(store_execution_output_data,
+                                                        output_type='stderr')
 
-            command_string = list2cmdline(args)
-            if stdin_params:
-                command_string = 'echo %s | %s' % (quote_unix(stdin_params), command_string)
+        read_and_store_stdout = make_read_and_store_stream_func(execution_db=self.execution,
+            action_db=self.action, store_data_func=store_execution_stdout_line)
+        read_and_store_stderr = make_read_and_store_stream_func(execution_db=self.execution,
+            action_db=self.action, store_data_func=store_execution_stderr_line)
 
-            LOG.debug('Running command: PATH=%s PYTHONPATH=%s %s' % (env['PATH'], env['PYTHONPATH'],
-                                                                     command_string))
-            with CounterWithTimer(PYTHON_WRAPPER_EXECUTION):
-                exit_code, stdout, stderr, timed_out = run_command(
-                    cmd=args,
-                    stdin=stdin,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    shell=False,
-                    env=env,
-                    timeout=self._timeout,
-                    read_stdout_func=read_and_store_stdout,
-                    read_stderr_func=read_and_store_stderr,
-                    read_stdout_buffer=stdout,
-                    read_stderr_buffer=stderr,
-                    stdin_value=stdin_params
-                )
-            LOG.debug('Returning values: %s, %s, %s, %s', exit_code, stdout, stderr, timed_out)
-            LOG.debug('Returning.')
-            return self._get_output_values(exit_code, stdout, stderr, timed_out)
+        command_string = list2cmdline(args)
+        if stdin_params:
+            command_string = 'echo %s | %s' % (quote_unix(stdin_params), command_string)
+
+        LOG.debug('Running command: PATH=%s PYTHONPATH=%s %s' % (env['PATH'], env['PYTHONPATH'],
+                                                                 command_string))
+        with CounterWithTimer(PYTHON_WRAPPER_EXECUTION):
+            exit_code, stdout, stderr, timed_out = run_command(
+                cmd=args,
+                stdin=stdin,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                shell=False,
+                env=env,
+                timeout=self._timeout,
+                read_stdout_func=read_and_store_stdout,
+                read_stderr_func=read_and_store_stderr,
+                read_stdout_buffer=stdout,
+                read_stderr_buffer=stderr,
+                stdin_value=stdin_params
+            )
+        LOG.debug('Returning values: %s, %s, %s, %s', exit_code, stdout, stderr, timed_out)
+        LOG.debug('Returning.')
+        return self._get_output_values(exit_code, stdout, stderr, timed_out)
+
+    def _get_pack_common_libs_path(self, pack_ref):
+        """
+        Retrieve path to the pack common lib/ directory taking git work tree path into account
+        (if used).
+        """
+        worktree_path = self.git_worktree_path
+        pack_common_libs_path = get_pack_common_libs_path_for_pack_ref(pack_ref=pack_ref)
+
+        if not worktree_path:
+            return pack_common_libs_path
+
+        # Modify the path so it uses git worktree directory
+        pack_base_path = get_pack_base_path(pack_name=pack_ref)
+
+        new_pack_common_libs_path = pack_common_libs_path.replace(pack_base_path, '')
+
+        # Remove leading slash (if any)
+        if new_pack_common_libs_path.startswith('/'):
+            new_pack_common_libs_path = new_pack_common_libs_path[1:]
+
+        new_pack_common_libs_path = os.path.join(worktree_path, new_pack_common_libs_path)
+
+        # Check to prevent directory traversal
+        common_prefix = os.path.commonprefix([worktree_path, new_pack_common_libs_path])
+        if common_prefix != worktree_path:
+            raise ValueError('pack libs path is not located inside the pack directory')
+
+        return new_pack_common_libs_path
 
     def _get_output_values(self, exit_code, stdout, stderr, timed_out):
         """

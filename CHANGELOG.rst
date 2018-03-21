@@ -21,8 +21,11 @@ Added
   Note: For this feature to work, Python 3 needs to be installed on the system and ``virtualenv``
   package installed on the system needs to support Python 3 (it needs to be a recent version).
   (new feature) #4016 #3922
-* Added metrics for collecting performance and health information about
-  the various ST2 services and functions.
+* Added the ability of ``st2ctl`` to utilize environment variables from ``/etc/default/st2ctl``
+  (for Ubuntu/Debian) and ``/etc/sysconfig/st2ctl`` (RHEL/CentOS). This allows
+  deployments to override ``COMPONENTS`` and ``ST2_CONF`` in a global location
+  so ``st2ctl`` can start/stop/restart selected components and utilize a non-default
+  location for ``st2.conf``.
 
 Changed
 ~~~~~~~
@@ -45,13 +48,17 @@ Changed
   This reduces the unnecessary traffic and CPU time by querying the mistral API. Included a command to
   manually add a state entry for Mistral workflow execution to recover from any callback failures.
   (improvement)
+* Throw a more user-friendly error when writing pack data files to disk and when an invalid file
+  path is provided (e.g. path is outside the pack directory, etc.). (improvement) #4039 #4046
+* Added metrics for collecting performance and health information about
+  the various ST2 services and functions.
 
 Fixed
 ~~~~~
+
 * Fix Python runner actions and ``Argument list too long`` error when very large parameters are
   passed into the action. The fix utilizes ``stdin`` to pass parameters to the Python action wrapper
   process instead of CLI argument list. (bug fix) #1598 #3976
-
 * Fix a regression in ``POST /v1/webhooks/<webhook name>`` API endpoint introduced in v2.4.0
   and add back support for arrays. In 2.4.0 support for arrays was inadvertently removed and
   only objects were supported. Keep in mind that this only applies to custom user-defined
@@ -61,6 +68,11 @@ Fixed
   to not work. (bugfix) #4001
 
   Contributed by Nick Maludy (Encore Technologies).
+* Fixed missing "paused" status option from "st2 execution list" help output. (bugfix) #4037
+
+  Contributed by Ben Hohnke (NTT Communications ICT Solutions)
+* Fix "st2 pack install" command so it doesn't require access to pack index (index.stackstorm.org)
+  when installing a local pack (pack name starting with "file://"). (bug fix) #3771 #3772
 
 2.6.0 - January 19, 2018
 ------------------------

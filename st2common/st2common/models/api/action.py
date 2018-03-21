@@ -286,10 +286,13 @@ class ActionCreateAPI(ActionAPI, APIUIDMixin):
             'properties': {
                 'file_path': {
                     'type': 'string',
+                    'description': ('Path to the file relative to the pack actions directory '
+                                    '(e.g. my_action.py)'),
                     'required': True
                 },
                 'content': {
                     'type': 'string',
+                    'description': 'Raw file content.',
                     'required': True
                 },
             },

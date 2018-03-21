@@ -18,6 +18,7 @@ from __future__ import absolute_import
 import uuid
 
 from st2common.models.system.action import ShellScriptAction
+from st2common.runners.base import GitWorktreeActionRunner
 from st2common.runners.base import get_metadata as get_runner_metadata
 
 from local_runner.base import BaseLocalShellRunner
@@ -30,7 +31,7 @@ __all__ = [
 ]
 
 
-class LocalShellScriptRunner(BaseLocalShellRunner):
+class LocalShellScriptRunner(BaseLocalShellRunner, GitWorktreeActionRunner):
     def run(self, action_parameters):
         if not self.entry_point:
             raise ValueError('Missing entry_point action metadata attribute')
