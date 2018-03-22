@@ -27,6 +27,7 @@ from st2common.util.green.shell import run_command
 from st2common.util.shell import quote_windows
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
+from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
 from st2common.constants.runners import WINDOWS_RUNNER_DEFAULT_ACTION_TIMEOUT
 from st2common.runners.base import ShellRunnerMixin
 from st2common.runners.base import get_metadata as get_runner_metadata
@@ -113,27 +114,38 @@ class WindowsScriptRunner(BaseWindowsRunner, ShellRunnerMixin):
         # 4. Delete temporary directory
         self._delete_directory(directory_path=temporary_directory_path)
 
+        succeeded = (exit_code == 0)
+
         if timed_out:
+            succeeded = False
             error = 'Action failed to complete in %s seconds' % (self._timeout)
+
+            winexe_error = self._parse_winexe_error(stdout=stdout, stderr=stderr)
+
+            if winexe_error:
+                error += ': %s' % (winexe_error)
         else:
             error = None
 
-        if exit_code != 0:
-            error = self._parse_winexe_error(stdout=stdout, stderr=stderr)
-
-        result = stdout
+        if not succeeded and not timed_out:
+            error = self._parse_winexe_error()
 
         output = {
             'stdout': stdout,
             'stderr': stderr,
-            'exit_code': exit_code,
-            'result': result
+            'return_code': exit_code,
+            'succeeded': succeeded,
+            'failed': not succeeded
         }
 
         if error:
             output['error'] = error
 
-        status = LIVEACTION_STATUS_SUCCEEDED if exit_code == 0 else LIVEACTION_STATUS_FAILED
+        if timed_out:
+            status = LIVEACTION_STATUS_TIMED_OUT
+        else:
+            status = LIVEACTION_STATUS_SUCCEEDED if exit_code == 0 else LIVEACTION_STATUS_FAILED
+
         return (status, output, None)
 
     def _run_script(self, script_path, arguments=None):
