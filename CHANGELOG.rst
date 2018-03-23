@@ -26,6 +26,22 @@ Added
   deployments to override ``COMPONENTS`` and ``ST2_CONF`` in a global location
   so ``st2ctl`` can start/stop/restart selected components and utilize a non-default
   location for ``st2.conf``.
+  (new feature) #4027
+
+  Contributed by Nick Maludy (Encore Technologies).
+* Add support for new optional ``content_version`` runner parameter to the Python and Local Shell
+  Script runner. This parameter can contain a git commit hash / tag / branch from a pack git
+  repository and runner will ensure this revision of the pack content (Python action / local shell
+  script action) is used for a particular action execution.
+
+  Keep in mind that providing this parameter only ensures a particular revision of the pack content
+  is used. Python runner virtual environment and dependencies are outside of this scope.
+
+  Note: To be able to utilize this functionality, git version >= 2.5.0 must be installed on the
+  system.
+  (new feature) #3997
+* Added metrics for collecting performance and health information about
+  the various ST2 services and functions.
 
 Changed
 ~~~~~~~
@@ -50,8 +66,6 @@ Changed
   (improvement)
 * Throw a more user-friendly error when writing pack data files to disk and when an invalid file
   path is provided (e.g. path is outside the pack directory, etc.). (improvement) #4039 #4046
-* Added metrics for collecting performance and health information about
-  the various ST2 services and functions.
 
 Fixed
 ~~~~~

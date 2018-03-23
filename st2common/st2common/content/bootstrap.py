@@ -22,6 +22,7 @@ from oslo_config import cfg
 
 import st2common
 from st2common import config
+config.register_opts()
 from st2common.script_setup import setup as common_setup
 from st2common.script_setup import teardown as common_teardown
 from st2common.bootstrap.base import ResourceRegistrar
