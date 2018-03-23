@@ -41,11 +41,15 @@ FIXTURES_1 = {
                'trace_for_test_enforce_3.yaml']
 }
 FIXTURES_2 = {
-    'rules': ['rule1.yaml', 'rule2.yaml', 'rule_use_none_filter.yaml',
-              'rule_none_no_use_none_filter.yaml',
-              'rule_action_default_value.yaml',
-              'rule_action_default_value_overridden.yaml',
-              'rule_action_default_value_render_fail.yaml']
+    'rules': [
+        'rule1.yaml',
+        'rule2.yaml',
+        'rule_use_none_filter.yaml',
+        'rule_none_no_use_none_filter.yaml',
+        'rule_action_default_value.yaml',
+        'rule_action_default_value_overridden.yaml',
+        'rule_action_default_value_render_fail.yaml'
+    ]
 }
 
 MOCK_TRIGGER_INSTANCE = TriggerInstanceDB()
@@ -269,8 +273,8 @@ class RuleEnforcerTestCase(DbTestCase):
         self.assertEqual(action_service.update_status.call_args[1]['new_status'],
                          action_constants.LIVEACTION_STATUS_FAILED)
 
-        expected_msg= ('Failed to render parameter "arrtype": \'dict object\' has no '
-                       'attribute \'arrtype_value\'')
+        expected_msg = ('Failed to render parameter "arrtype": \'dict object\' has no '
+                        'attribute \'arrtype_value\'')
 
         result = action_service.update_status.call_args[1]['result']
         self.assertEqual(result['error'], expected_msg)
