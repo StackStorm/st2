@@ -40,6 +40,8 @@ Added
   Note: To be able to utilize this functionality, git version >= 2.5.0 must be installed on the
   system.
   (new feature) #3997
+* Update windows runner to correctly handle and use ``timeout`` action execution status.
+  (improvement) #4047
 * Added metrics for collecting performance and health information about
   the various ST2 services and functions.
 
@@ -66,6 +68,14 @@ Changed
   (improvement)
 * Throw a more user-friendly error when writing pack data files to disk and when an invalid file
   path is provided (e.g. path is outside the pack directory, etc.). (improvement) #4039 #4046
+* Change the output object returned by Windows runners so it matches the format from the local and
+  remote runner.
+
+  Note: This change is backward incompatible - ``result`` attribute has been removed (same
+  information is available in ``stdout`` attribute), ``exit_code`` renamed to ``return_code`` and
+  two new attributes added - ``succeeded`` and ``failed``.
+
+  For more information, please refer to the upgrade notes. #4044 #4047
 
 Fixed
 ~~~~~
