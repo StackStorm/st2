@@ -14,8 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import mock
 
+from st2common.constants import action as action_constants
 from st2common.models.db.trigger import TriggerInstanceDB
 from st2common.models.db.execution import ActionExecutionDB
 from st2common.models.db.liveaction import LiveActionDB
@@ -42,7 +44,8 @@ FIXTURES_2 = {
     'rules': ['rule1.yaml', 'rule2.yaml', 'rule_use_none_filter.yaml',
               'rule_none_no_use_none_filter.yaml',
               'rule_action_default_value.yaml',
-              'rule_action_default_value_overridden.yaml']
+              'rule_action_default_value_overridden.yaml',
+              'rule_action_default_value_render_fail.yaml']
 }
 
 MOCK_TRIGGER_INSTANCE = TriggerInstanceDB()
@@ -222,10 +225,8 @@ class RuleEnforcerTestCase(DbTestCase):
     @mock.patch.object(action_service, 'request', mock.MagicMock(
         return_value=(MOCK_LIVEACTION, MOCK_EXECUTION)))
     @mock.patch.object(RuleEnforcement, 'add_or_update', mock.MagicMock())
-    @mock.patch('st2common.util.param.get_config',
-                mock.Mock(return_value={'arrtype_value': ['one 1', 'two 2', 'three 3']}))
     def test_action_default_jinja_parameter_value_overridden_in_rule(self):
-         # Verify that it works correctly if default parameter value is overridden in rule
+        # Verify that it works correctly if default parameter value is overridden in rule
         rule = self.models['rules']['rule_action_default_value_overridden.yaml']
 
         enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE, rule)
@@ -240,3 +241,39 @@ class RuleEnforcerTestCase(DbTestCase):
         self.assertEqual(call_parameters['objtype'], {'t1_p': 't1_p_v'})
         self.assertEqual(call_parameters['strtype'], 't1_p_v')
         self.assertEqual(call_parameters['arrtype'], ['override 1', 'override 2'])
+
+    @mock.patch.object(action_service, 'request', mock.MagicMock(
+        return_value=(MOCK_LIVEACTION, MOCK_EXECUTION)))
+    @mock.patch.object(action_service, 'create_request', mock.MagicMock(
+        return_value=(MOCK_LIVEACTION, MOCK_EXECUTION)))
+    @mock.patch.object(action_service, 'update_status', mock.MagicMock(
+        return_value=(MOCK_LIVEACTION, MOCK_EXECUTION)))
+    @mock.patch.object(RuleEnforcement, 'add_or_update', mock.MagicMock())
+    def test_action_default_jinja_parameter_value_render_fail(self):
+        # Action parameter render failure should result in a failed execution
+        rule = self.models['rules']['rule_action_default_value_render_fail.yaml']
+
+        enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE, rule)
+        execution_db = enforcer.enforce()
+
+        self.assertTrue(execution_db is None)
+        self.assertTrue(RuleEnforcement.add_or_update.called)
+        self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].rule.ref, rule.ref)
+        self.assertFalse(action_service.request.called)
+
+        self.assertTrue(action_service.create_request.called)
+        self.assertEqual(action_service.create_request.call_args[0][0].action,
+                         'wolfpack.a2_default_value')
+
+        self.assertTrue(action_service.update_status.called)
+        self.assertEqual(action_service.update_status.call_args[1]['new_status'],
+                         action_constants.LIVEACTION_STATUS_FAILED)
+
+        expected_msg= ('Failed to render parameter "arrtype": \'dict object\' has no '
+                       'attribute \'arrtype_value\'')
+
+        result = action_service.update_status.call_args[1]['result']
+        self.assertEqual(result['error'], expected_msg)
+
+        self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].failure_reason,
+                        expected_msg)
