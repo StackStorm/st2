@@ -21,16 +21,16 @@ from st2common.constants import action as action_constants
 from st2common.constants.trace import TRACE_CONTEXT
 from st2common.models.api.trace import TraceContext
 from st2common.models.db.liveaction import LiveActionDB
-
 from st2common.models.db.rule_enforcement import RuleEnforcementDB
-from st2common.models.utils import action_param_utils
 from st2common.models.api.auth import get_system_username
 from st2common.persistence.rule_enforcement import RuleEnforcement
 from st2common.services import action as action_service
 from st2common.services import trace as trace_service
 from st2common.util import reference
-from st2common.util import action_db as action_db_util
+from st2common.util import action_db as action_utils
+from st2common.util import param as param_utils
 from st2reactor.rules.datatransform import get_transformer
+from st2common.exceptions import param as param_exc
 
 
 LOG = logging.getLogger('st2reactor.ruleenforcement.enforce')
@@ -53,13 +53,7 @@ class RuleEnforcer(object):
             raise ValueError(message)
 
     def get_resolved_parameters(self):
-        # TODO: Refactor this to avoid additional lookup in cast_params
         # TODO: rename self.rule.action -> self.rule.action_exec_spec
-        action_ref = self.rule.action['ref']
-        action_db = action_db_util.get_action_by_ref(action_ref)
-        if not action_db:
-            raise ValueError('Action "%s" doesn\'t exist' % (action_ref))
-
         return self.data_transformer(self.rule.action.parameters)
 
     def enforce(self):
@@ -96,6 +90,14 @@ class RuleEnforcer(object):
         return execution_db
 
     def _do_enforce(self):
+        # TODO: Refactor this to avoid additional lookup in cast_params
+        action_ref = self.rule.action['ref']
+        action_db = action_utils.get_action_by_ref(action_ref)
+        if not action_db:
+            raise ValueError('Action "%s" doesn\'t exist' % (action_ref))
+
+        runnertype_db = action_utils.get_runnertype_by_name(action_db.runner_type['name'])
+
         params = self.get_resolved_parameters()
         LOG.info('Invoking action %s for trigger_instance %s with params %s.',
                  self.rule.action.ref, self.trigger_instance.id,
@@ -109,10 +111,12 @@ class RuleEnforcer(object):
             'trigger_instance': reference.get_ref_from_model(self.trigger_instance),
             'rule': reference.get_ref_from_model(self.rule),
             'user': get_system_username(),
+            'pack': action_db.pack,
             TRACE_CONTEXT: trace_context
         }
 
-        return RuleEnforcer._invoke_action(self.rule.action, params, context)
+        return RuleEnforcer._invoke_action(self.rule.action, params, 
+                                           action_db, runnertype_db, context)
 
     def _update_trace(self):
         """
@@ -143,7 +147,7 @@ class RuleEnforcer(object):
             LOG.exception('Failed writing enforcement model to db.', extra=extra)
 
     @staticmethod
-    def _invoke_action(action_exec_spec, params, context=None):
+    def _invoke_action(action_exec_spec, params, action_db, runnertype_db, context=None):
         """
         Schedule an action execution.
 
@@ -154,11 +158,24 @@ class RuleEnforcer(object):
 
         :rtype: :class:`LiveActionDB` on successful schedueling, None otherwise.
         """
+        # TODO: Re-use the same code path as we use in action executions API
+        # endpoint
         action_ref = action_exec_spec['ref']
+        runnertype_db = action_utils.get_runnertype_by_name(action_db.runner_type['name'])
+
+
+        liveaction_db = LiveActionDB(action=action_ref, context=context, parameters=params)
+
+        try:
+            liveaction_db.parameters = param_utils.render_live_params(
+                runnertype_db.runner_parameters, action_db.parameters, liveaction_db.parameters,
+                liveaction_db.context)
+        except param_exc.ParamException:
+            # TODO:
+            pass
 
         # prior to shipping off the params cast them to the right type.
-        params = action_param_utils.cast_params(action_ref, params)
-        liveaction = LiveActionDB(action=action_ref, context=context, parameters=params)
-        liveaction, execution = action_service.request(liveaction)
+        #params = action_param_utils.cast_params(action_ref, params)
+        liveaction, execution = action_service.request(liveaction_db)
 
         return execution
