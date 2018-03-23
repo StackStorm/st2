@@ -14,7 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
+import sys
 import json
+import traceback
 
 from st2common import log as logging
 from st2common.constants import action as action_constants
@@ -29,8 +32,9 @@ from st2common.services import trace as trace_service
 from st2common.util import reference
 from st2common.util import action_db as action_utils
 from st2common.util import param as param_utils
-from st2reactor.rules.datatransform import get_transformer
 from st2common.exceptions import param as param_exc
+from st2common.exceptions import apivalidation as validation_exc
+from st2reactor.rules.datatransform import get_transformer
 
 
 LOG = logging.getLogger('st2reactor.ruleenforcement.enforce')
@@ -160,11 +164,9 @@ class RuleEnforcer(object):
 
         :rtype: :class:`LiveActionDB` on successful schedueling, None otherwise.
         """
-        # TODO: Re-use the same code path as we use in action executions API
-        # endpoint
+        # TODO: Re-use the same code path as we use in action executions API endpoint
         action_ref = action_db.ref
         runnertype_db = action_utils.get_runnertype_by_name(action_db.runner_type['name'])
-
 
         liveaction_db = LiveActionDB(action=action_ref, context=context, parameters=params)
 
@@ -172,12 +174,21 @@ class RuleEnforcer(object):
             liveaction_db.parameters = param_utils.render_live_params(
                 runnertype_db.runner_parameters, action_db.parameters, liveaction_db.parameters,
                 liveaction_db.context)
-        except param_exc.ParamException:
-            # TODO:
-            pass
+        except param_exc.ParamException as e:
+            # We still need to create a request, so liveaction_db is assigned an ID
+            liveaction_db, execution_db = action_service.create_request(liveaction_db)
 
-        # prior to shipping off the params cast them to the right type.
-        #params = action_param_utils.cast_params(action_ref, params)
-        liveaction, execution = action_service.request(liveaction_db)
+            # By this point the execution is already in the DB therefore need to mark it failed.
+            _, e, tb = sys.exc_info()
+            action_service.update_status(
+                liveaction=liveaction_db,
+                new_status=action_constants.LIVEACTION_STATUS_FAILED,
+                result={'error': str(e), 'traceback': ''.join(traceback.format_tb(tb, 20))})
 
-        return execution
+            # Might be a good idea to return the actual ActionExecution rather than bubble up
+            # the exception.
+            raise validation_exc.ValueValidationException(str(e))
+
+        liveaction_db, execution_db = action_service.request(liveaction_db)
+
+        return execution_db
