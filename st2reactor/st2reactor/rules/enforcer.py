@@ -92,6 +92,8 @@ class RuleEnforcer(object):
     def _do_enforce(self):
         # TODO: Refactor this to avoid additional lookup in cast_params
         action_ref = self.rule.action['ref']
+
+        # Verify action referenced in the rule exists in the database
         action_db = action_utils.get_action_by_ref(action_ref)
         if not action_db:
             raise ValueError('Action "%s" doesn\'t exist' % (action_ref))
@@ -115,8 +117,8 @@ class RuleEnforcer(object):
             TRACE_CONTEXT: trace_context
         }
 
-        return RuleEnforcer._invoke_action(self.rule.action, params, 
-                                           action_db, runnertype_db, context)
+        return RuleEnforcer._invoke_action(action_db=action_db, runnertype_db=runnertype_db,
+                                           params=params, context=context)
 
     def _update_trace(self):
         """
@@ -147,20 +149,20 @@ class RuleEnforcer(object):
             LOG.exception('Failed writing enforcement model to db.', extra=extra)
 
     @staticmethod
-    def _invoke_action(action_exec_spec, params, action_db, runnertype_db, context=None):
+    def _invoke_action(action_db, runnertype_db, params, context=None):
         """
         Schedule an action execution.
 
         :type action_exec_spec: :class:`ActionExecutionSpecDB`
 
-        :param params: Parameters to execute the action with.
+        :param params: Partially rendered parameters to execute the action with.
         :type params: ``dict``
 
         :rtype: :class:`LiveActionDB` on successful schedueling, None otherwise.
         """
         # TODO: Re-use the same code path as we use in action executions API
         # endpoint
-        action_ref = action_exec_spec['ref']
+        action_ref = action_db.ref
         runnertype_db = action_utils.get_runnertype_by_name(action_db.runner_type['name'])
 
 
