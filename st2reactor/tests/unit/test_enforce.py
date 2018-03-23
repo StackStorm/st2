@@ -32,7 +32,7 @@ from st2tests.fixturesloader import FixturesLoader
 PACK = 'generic'
 FIXTURES_1 = {
     'runners': ['testrunner1.yaml', 'testrunner2.yaml'],
-    'actions': ['action1.yaml', 'a2.yaml'],
+    'actions': ['action1.yaml', 'a2.yaml', 'a2_default_value.yaml'],
     'triggertypes': ['triggertype1.yaml'],
     'triggers': ['trigger1.yaml'],
     'traces': ['trace_for_test_enforce.yaml', 'trace_for_test_enforce_2.yaml',
@@ -40,7 +40,9 @@ FIXTURES_1 = {
 }
 FIXTURES_2 = {
     'rules': ['rule1.yaml', 'rule2.yaml', 'rule_use_none_filter.yaml',
-              'rule_none_no_use_none_filter.yaml']
+              'rule_none_no_use_none_filter.yaml',
+              'rule_action_default_value.yaml',
+              'rule_action_default_value_overridden.yaml']
 }
 
 MOCK_TRIGGER_INSTANCE = TriggerInstanceDB()
@@ -69,13 +71,13 @@ MOCK_EXECUTION.status = 'requested'
 FAILURE_REASON = "fail!"
 
 
-class EnforceTest(DbTestCase):
+class RuleEnforcerTestCase(DbTestCase):
 
     models = None
 
     @classmethod
     def setUpClass(cls):
-        super(EnforceTest, cls).setUpClass()
+        super(RuleEnforcerTestCase, cls).setUpClass()
         # Create TriggerTypes before creation of Rule to avoid failure. Rule requires the
         # Trigger and therefore TriggerType to be created prior to rule creation.
         cls.models = FixturesLoader().save_fixtures_to_db(
@@ -194,3 +196,47 @@ class EnforceTest(DbTestCase):
         self.assertTrue(RuleEnforcement.add_or_update.called)
         self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].failure_reason,
                          FAILURE_REASON)
+
+    @mock.patch.object(action_service, 'request', mock.MagicMock(
+        return_value=(MOCK_LIVEACTION, MOCK_EXECUTION)))
+    @mock.patch.object(RuleEnforcement, 'add_or_update', mock.MagicMock())
+    @mock.patch('st2common.util.param.get_config',
+                mock.Mock(return_value={'arrtype_value': ['one 1', 'two 2', 'three 3']}))
+    def test_action_default_jinja_parameter_value_is_rendered(self):
+        # Verify that a default action parameter which is a Jinja variable is correctly rendered
+        rule = self.models['rules']['rule_action_default_value.yaml']
+
+        enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE, rule)
+        execution_db = enforcer.enforce()
+
+        self.assertTrue(execution_db is not None)
+        self.assertTrue(RuleEnforcement.add_or_update.called)
+        self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].rule.ref, rule.ref)
+
+        call_parameters = action_service.request.call_args[0][0].parameters
+
+        self.assertEqual(call_parameters['objtype'], {'t1_p': 't1_p_v'})
+        self.assertEqual(call_parameters['strtype'], 't1_p_v')
+        self.assertEqual(call_parameters['arrtype'], ['one 1', 'two 2', 'three 3'])
+
+    @mock.patch.object(action_service, 'request', mock.MagicMock(
+        return_value=(MOCK_LIVEACTION, MOCK_EXECUTION)))
+    @mock.patch.object(RuleEnforcement, 'add_or_update', mock.MagicMock())
+    @mock.patch('st2common.util.param.get_config',
+                mock.Mock(return_value={'arrtype_value': ['one 1', 'two 2', 'three 3']}))
+    def test_action_default_jinja_parameter_value_overridden_in_rule(self):
+         # Verify that it works correctly if default parameter value is overridden in rule
+        rule = self.models['rules']['rule_action_default_value_overridden.yaml']
+
+        enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE, rule)
+        execution_db = enforcer.enforce()
+
+        self.assertTrue(execution_db is not None)
+        self.assertTrue(RuleEnforcement.add_or_update.called)
+        self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].rule.ref, rule.ref)
+
+        call_parameters = action_service.request.call_args[0][0].parameters
+
+        self.assertEqual(call_parameters['objtype'], {'t1_p': 't1_p_v'})
+        self.assertEqual(call_parameters['strtype'], 't1_p_v')
+        self.assertEqual(call_parameters['arrtype'], ['override 1', 'override 2'])
