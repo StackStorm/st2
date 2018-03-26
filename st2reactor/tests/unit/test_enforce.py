@@ -430,7 +430,6 @@ class RuleEnforcerDataTransformationTestCase(BaseRuleEnforcerTestCase):
 
     def test_system_transform(self):
         rule = self.models['rules']['rule_action_default_value_render_fail.yaml']
-        payload = {'headers': {'hypenated-header': 'dont-care'}, 'k2': 'v2'}
 
         runner_type_db = mock.Mock()
         runner_type_db.runner_parameters = {}
