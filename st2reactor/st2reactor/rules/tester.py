@@ -14,8 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 import six
+import mock
 
 from jinja2.exceptions import UndefinedError
 
@@ -81,9 +83,28 @@ class RuleTester(object):
             return False
 
         # Check if rule can be enforced
+        enforcer = RuleEnforcer(trigger_instance=trigger_instance_db, rule=rule_db)
+
+        runner_type_db = mock.Mock()
+        runner_type_db.runner_parameters = {}
+        action_db = mock.Mock()
+        action_db.parameters = {}
+        params = rule_db.action.parameters
+
+        context, additional_contexts = enforcer.get_action_execution_context(action_db=action_db, trace_context=None)
+
+        # Note: We only return partially resolved parameters.
+        # To be able to return all parameters we would need access to
+        # corresponding ActionDB, RunnerTypeDB and ConfigDB object, but this
+        # would add a dependency on the database and the tool is meant to be
+        # used standalone
         try:
-            enforcer = RuleEnforcer(trigger_instance=trigger_instance_db, rule=rule_db)
-            params = enforcer.get_resolved_parameters()
+            params = enforcer.get_resolved_parameters(action_db=action_db,
+                                                      runnertype_db=runner_type_db,
+                                                      params=params,
+                                                      context=context,
+                                                      additional_contexts=additional_contexts)
+
             LOG.info('Action parameters resolved to:')
             for param in six.iteritems(params):
                 LOG.info('\t%s: %s', param[0], param[1])
@@ -124,12 +145,14 @@ class RuleTester(object):
 
         rule_db = RuleDB(pack=pack, name=name, trigger=trigger, criteria=criteria, action=action,
                          enabled=True)
+        rule_db.id = 'rule_tester_rule'
 
         return rule_db
 
     def _get_trigger_instance_db_from_file(self, file_path):
         data = self._meta_loader.load(file_path=file_path)
         instance = TriggerInstanceDB(**data)
+        instance.id = 'rule_tester_instance'
 
         trigger_ref = ResourceReference.from_string_reference(instance['trigger'])
         trigger_db = TriggerDB(pack=trigger_ref.pack, name=trigger_ref.name, type=trigger_ref.ref)

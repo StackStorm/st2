@@ -48,6 +48,35 @@ class RuleEnforcer(object):
         self.trigger_instance = trigger_instance
         self.rule = rule
 
+    def get_action_execution_context(self, action_db, trace_context=None):
+        context = {
+            'trigger_instance': reference.get_ref_from_model(self.trigger_instance),
+            'rule': reference.get_ref_from_model(self.rule),
+            'user': get_system_username(),
+            'pack': action_db.pack,
+        }
+
+        if trace_context is not None:
+            context[TRACE_CONTEXT] = trace_context
+
+        # Additional non-action / global context
+        additional_context = {
+            TRIGGER_PAYLOAD_PREFIX: self.trigger_instance.payload
+        }
+
+        return context, additional_context
+
+    def get_resolved_parameters(self, action_db, runnertype_db, params, context=None,
+                                additional_contexts=None):
+        resolved_params = param_utils.render_live_params(
+            runner_parameters=runnertype_db.runner_parameters,
+            action_parameters=action_db.parameters,
+            params=params,
+            action_context=context,
+            additional_contexts=additional_contexts)
+
+        return resolved_params
+
     def enforce(self):
         rule_spec = {'ref': self.rule.ref, 'id': str(self.rule.id), 'uid': self.rule.uid}
         enforcement_db = RuleEnforcementDB(trigger_instance_id=str(self.trigger_instance.id),
@@ -101,22 +130,13 @@ class RuleEnforcer(object):
         trace_context = self._update_trace()
         LOG.debug('Updated trace %s with rule %s.', trace_context, self.rule.id)
 
-        context = {
-            'trigger_instance': reference.get_ref_from_model(self.trigger_instance),
-            'rule': reference.get_ref_from_model(self.rule),
-            'user': get_system_username(),
-            'pack': action_db.pack,
-            TRACE_CONTEXT: trace_context
-        }
+        context, additional_contexts = self.get_action_execution_context(
+            action_db=action_db,
+            trace_context=trace_context)
 
-        # Additional non-action / global context
-        additional_context = {
-            TRIGGER_PAYLOAD_PREFIX: self.trigger_instance.payload
-        }
-
-        return RuleEnforcer._invoke_action(action_db=action_db, runnertype_db=runnertype_db,
-                                           params=params, context=context,
-                                           additional_contexts=additional_context)
+        return self._invoke_action(action_db=action_db, runnertype_db=runnertype_db, params=params,
+                                   context=context,
+                                           additional_contexts=additional_contexts)
 
     def _update_trace(self):
         """
@@ -146,8 +166,8 @@ class RuleEnforcer(object):
             extra = {'enforcement_db': enforcement_db}
             LOG.exception('Failed writing enforcement model to db.', extra=extra)
 
-    @staticmethod
-    def _invoke_action(action_db, runnertype_db, params, context=None, additional_contexts=None):
+    def _invoke_action(self, action_db, runnertype_db, params, context=None,
+                       additional_contexts=None):
         """
         Schedule an action execution.
 
@@ -156,20 +176,19 @@ class RuleEnforcer(object):
         :param params: Partially rendered parameters to execute the action with.
         :type params: ``dict``
 
-        :rtype: :class:`LiveActionDB` on successful schedueling, None otherwise.
+        :rtype: :class:`LiveActionDB` on successful scheduling, None otherwise.
         """
-        # TODO: Re-use the same code path as we use in action executions API endpoint
         action_ref = action_db.ref
         runnertype_db = action_utils.get_runnertype_by_name(action_db.runner_type['name'])
 
         liveaction_db = LiveActionDB(action=action_ref, context=context, parameters=params)
 
         try:
-            liveaction_db.parameters = param_utils.render_live_params(
-                runner_parameters=runnertype_db.runner_parameters,
-                action_parameters=action_db.parameters,
+            liveaction_db.parameters = self.get_resolved_parameters(
+                runnertype_db=runnertype_db,
+                action_db=action_db,
                 params=liveaction_db.parameters,
-                action_context=liveaction_db.context,
+                context=liveaction_db.context,
                 additional_contexts=additional_contexts)
         except param_exc.ParamException as e:
             # We still need to create a request, so liveaction_db is assigned an ID
