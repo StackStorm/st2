@@ -136,7 +136,7 @@ class RuleEnforcer(object):
 
         return self._invoke_action(action_db=action_db, runnertype_db=runnertype_db, params=params,
                                    context=context,
-                                           additional_contexts=additional_contexts)
+                                   additional_contexts=additional_contexts)
 
     def _update_trace(self):
         """

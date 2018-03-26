@@ -89,15 +89,15 @@ class RuleTester(object):
         runner_type_db.runner_parameters = {}
         action_db = mock.Mock()
         action_db.parameters = {}
-        params = rule_db.action.parameters
+        params = rule_db.action.parameters  # pylint: disable=no-member
 
-        context, additional_contexts = enforcer.get_action_execution_context(action_db=action_db, trace_context=None)
+        context, additional_contexts = enforcer.get_action_execution_context(action_db=action_db,
+                                                                             trace_context=None)
 
         # Note: We only return partially resolved parameters.
-        # To be able to return all parameters we would need access to
-        # corresponding ActionDB, RunnerTypeDB and ConfigDB object, but this
-        # would add a dependency on the database and the tool is meant to be
-        # used standalone
+        # To be able to return all parameters we would need access to corresponding ActionDB,
+        # RunnerTypeDB and ConfigDB object, but this would add a dependency on the database and the
+        # tool is meant to be used standalone.
         try:
             params = enforcer.get_resolved_parameters(action_db=action_db,
                                                       runnertype_db=runner_type_db,
