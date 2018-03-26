@@ -22,6 +22,7 @@ import traceback
 from st2common import log as logging
 from st2common.constants import action as action_constants
 from st2common.constants.trace import TRACE_CONTEXT
+from st2common.constants.rules import TRIGGER_PAYLOAD_PREFIX
 from st2common.models.api.trace import TraceContext
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.rule_enforcement import RuleEnforcementDB
@@ -34,7 +35,6 @@ from st2common.util import action_db as action_utils
 from st2common.util import param as param_utils
 from st2common.exceptions import param as param_exc
 from st2common.exceptions import apivalidation as validation_exc
-from st2reactor.rules.datatransform import get_transformer
 
 
 LOG = logging.getLogger('st2reactor.ruleenforcement.enforce')
@@ -47,18 +47,6 @@ class RuleEnforcer(object):
     def __init__(self, trigger_instance, rule):
         self.trigger_instance = trigger_instance
         self.rule = rule
-
-        try:
-            self.data_transformer = get_transformer(trigger_instance.payload)
-        except Exception as e:
-            message = ('Failed to template-ize trigger payload: %s. If the payload contains '
-                       'special characters such as "{{" which dont\'t reference value in '
-                       'a datastore, those characters need to be escaped' % (str(e)))
-            raise ValueError(message)
-
-    def get_resolved_parameters(self):
-        # TODO: rename self.rule.action -> self.rule.action_exec_spec
-        return self.data_transformer(self.rule.action.parameters)
 
     def enforce(self):
         rule_spec = {'ref': self.rule.ref, 'id': str(self.rule.id), 'uid': self.rule.uid}
@@ -104,7 +92,7 @@ class RuleEnforcer(object):
 
         runnertype_db = action_utils.get_runnertype_by_name(action_db.runner_type['name'])
 
-        params = self.get_resolved_parameters()
+        params = self.rule.action.parameters
         LOG.info('Invoking action %s for trigger_instance %s with params %s.',
                  self.rule.action.ref, self.trigger_instance.id,
                  json.dumps(params))
@@ -121,8 +109,14 @@ class RuleEnforcer(object):
             TRACE_CONTEXT: trace_context
         }
 
+        # Additional non-action / global context
+        additional_context = {
+            TRIGGER_PAYLOAD_PREFIX: self.trigger_instance.payload
+        }
+
         return RuleEnforcer._invoke_action(action_db=action_db, runnertype_db=runnertype_db,
-                                           params=params, context=context)
+                                           params=params, context=context,
+                                           additional_contexts=additional_context)
 
     def _update_trace(self):
         """
@@ -153,7 +147,7 @@ class RuleEnforcer(object):
             LOG.exception('Failed writing enforcement model to db.', extra=extra)
 
     @staticmethod
-    def _invoke_action(action_db, runnertype_db, params, context=None):
+    def _invoke_action(action_db, runnertype_db, params, context=None, additional_contexts=None):
         """
         Schedule an action execution.
 
@@ -172,8 +166,11 @@ class RuleEnforcer(object):
 
         try:
             liveaction_db.parameters = param_utils.render_live_params(
-                runnertype_db.runner_parameters, action_db.parameters, liveaction_db.parameters,
-                liveaction_db.context)
+                runner_parameters=runnertype_db.runner_parameters,
+                action_parameters=action_db.parameters,
+                params=liveaction_db.parameters,
+                action_context=liveaction_db.context,
+                additional_contexts=additional_contexts)
         except param_exc.ParamException as e:
             # We still need to create a request, so liveaction_db is assigned an ID
             liveaction_db, execution_db = action_service.create_request(liveaction_db)
