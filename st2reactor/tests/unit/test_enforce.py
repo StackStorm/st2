@@ -18,9 +18,12 @@ from __future__ import absolute_import
 import mock
 
 from st2common.constants import action as action_constants
+from st2common.constants.keyvalue import FULL_SYSTEM_SCOPE
 from st2common.models.db.trigger import TriggerInstanceDB
 from st2common.models.db.execution import ActionExecutionDB
 from st2common.models.db.liveaction import LiveActionDB
+from st2common.models.db.keyvalue import KeyValuePairDB
+from st2common.persistence.keyvalue import KeyValuePair
 from st2common.persistence.rule_enforcement import RuleEnforcement
 from st2common.services import action as action_service
 from st2common.util import casts
@@ -28,8 +31,14 @@ from st2common.util import reference
 from st2common.util import date as date_utils
 from st2common.util.jinja import NONE_MAGIC_VALUE
 from st2reactor.rules.enforcer import RuleEnforcer
+
 from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
+
+__all__ = [
+    'RuleEnforcerTestCase',
+    'RuleEnforcerDataTransformationTestCase'
+]
 
 PACK = 'generic'
 FIXTURES_1 = {
@@ -67,6 +76,14 @@ MOCK_TRIGGER_INSTANCE_3.id = 'triggerinstance-test3'
 MOCK_TRIGGER_INSTANCE_3.payload = {'t1_p': None, 't2_p': 'value2'}
 MOCK_TRIGGER_INSTANCE_3.occurrence_time = date_utils.get_datetime_utc_now()
 
+MOCK_TRIGGER_INSTANCE_PAYLOAD = {'k1': 'v1', 'k2': 'v2', 'k3': 3, 'k4': True,
+                                 'k5': {'foo': 'bar'}, 'k6': [1, 3]}
+
+MOCK_TRIGGER_INSTANCE_4 = TriggerInstanceDB()
+MOCK_TRIGGER_INSTANCE_4.id = 'triggerinstance-test4'
+MOCK_TRIGGER_INSTANCE_4.payload = MOCK_TRIGGER_INSTANCE_PAYLOAD
+MOCK_TRIGGER_INSTANCE_4.occurrence_time = date_utils.get_datetime_utc_now()
+
 MOCK_LIVEACTION = LiveActionDB()
 MOCK_LIVEACTION.id = 'liveaction-test-1.id'
 MOCK_LIVEACTION.status = 'requested'
@@ -78,13 +95,13 @@ MOCK_EXECUTION.status = 'requested'
 FAILURE_REASON = "fail!"
 
 
-class RuleEnforcerTestCase(DbTestCase):
+class BaseRuleEnforcerTestCase(DbTestCase):
 
     models = None
 
     @classmethod
     def setUpClass(cls):
-        super(RuleEnforcerTestCase, cls).setUpClass()
+        super(BaseRuleEnforcerTestCase, cls).setUpClass()
         # Create TriggerTypes before creation of Rule to avoid failure. Rule requires the
         # Trigger and therefore TriggerType to be created prior to rule creation.
         cls.models = FixturesLoader().save_fixtures_to_db(
@@ -93,6 +110,14 @@ class RuleEnforcerTestCase(DbTestCase):
             fixtures_pack=PACK, fixtures_dict=FIXTURES_2))
         MOCK_TRIGGER_INSTANCE.trigger = reference.get_ref_from_model(
             cls.models['triggers']['trigger1.yaml'])
+
+    def setUp(self):
+        super(BaseRuleEnforcerTestCase, self).setUp()
+
+        MOCK_TRIGGER_INSTANCE_4.payload = MOCK_TRIGGER_INSTANCE_PAYLOAD
+
+
+class RuleEnforcerTestCase(BaseRuleEnforcerTestCase):
 
     @mock.patch.object(action_service, 'request', mock.MagicMock(
         return_value=(MOCK_LIVEACTION, MOCK_EXECUTION)))
@@ -280,4 +305,164 @@ class RuleEnforcerTestCase(DbTestCase):
         self.assertEqual(result['error'], expected_msg)
 
         self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].failure_reason,
-                        expected_msg)
+                         expected_msg)
+
+
+class RuleEnforcerDataTransformationTestCase(BaseRuleEnforcerTestCase):
+
+    def test_payload_data_transform(self):
+        rule = self.models['rules']['rule_action_default_value_render_fail.yaml']
+
+        runner_type_db = mock.Mock()
+        runner_type_db.runner_parameters = {}
+        action_db = mock.Mock()
+        action_db.parameters = {}
+
+        params = {'ip1': '{{trigger.k1}}-static',
+                  'ip2': '{{trigger.k2}} static'}
+
+        enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE_4, rule)
+        context, additional_contexts = enforcer.get_action_execution_context(action_db=action_db)
+
+        resolved_params = enforcer.get_resolved_parameters(action_db=action_db,
+            runnertype_db=runner_type_db,
+            params=params,
+            context=context,
+            additional_contexts=additional_contexts)
+        self.assertEqual(resolved_params, {'ip1': 'v1-static', 'ip2': 'v2 static'})
+
+    def test_payload_transforms_int_type(self):
+        rule = self.models['rules']['rule_action_default_value_render_fail.yaml']
+
+        runner_type_db = mock.Mock()
+        runner_type_db.runner_parameters = {}
+        action_db = mock.Mock()
+        action_db.parameters = {}
+
+        params = {'int': 666}
+
+        enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE_4, rule)
+        context, additional_contexts = enforcer.get_action_execution_context(action_db=action_db)
+
+        resolved_params = enforcer.get_resolved_parameters(action_db=action_db,
+            runnertype_db=runner_type_db,
+            params=params,
+            context=context,
+            additional_contexts=additional_contexts)
+        self.assertEqual(resolved_params, {'int': 666})
+
+    def test_payload_transforms_bool_type(self):
+        rule = self.models['rules']['rule_action_default_value_render_fail.yaml']
+
+        runner_type_db = mock.Mock()
+        runner_type_db.runner_parameters = {}
+        action_db = mock.Mock()
+        action_db.parameters = {}
+
+        params = {'bool': True}
+
+        enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE_4, rule)
+        context, additional_contexts = enforcer.get_action_execution_context(action_db=action_db)
+
+        resolved_params = enforcer.get_resolved_parameters(action_db=action_db,
+            runnertype_db=runner_type_db,
+            params=params,
+            context=context,
+            additional_contexts=additional_contexts)
+        self.assertEqual(resolved_params, {'bool': True})
+
+    def test_payload_transforms_complex_type(self):
+        rule = self.models['rules']['rule_action_default_value_render_fail.yaml']
+
+        runner_type_db = mock.Mock()
+        runner_type_db.runner_parameters = {}
+        action_db = mock.Mock()
+        action_db.parameters = {}
+
+        params = {'complex_dict': {'bool': True, 'int': 666, 'str': '{{trigger.k1}}-string'}}
+
+        enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE_4, rule)
+        context, additional_contexts = enforcer.get_action_execution_context(action_db=action_db)
+
+        expected = {'complex_dict': {'bool': True, 'int': 666, 'str': 'v1-string'}}
+        resolved_params = enforcer.get_resolved_parameters(action_db=action_db,
+            runnertype_db=runner_type_db,
+            params=params,
+            context=context,
+            additional_contexts=additional_contexts)
+        self.assertEqual(resolved_params, expected)
+
+        params = {'simple_list': [1, 2, 3]}
+
+        enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE_4, rule)
+        context, additional_contexts = enforcer.get_action_execution_context(action_db=action_db)
+
+        resolved_params = enforcer.get_resolved_parameters(action_db=action_db,
+            runnertype_db=runner_type_db,
+            params=params,
+            context=context,
+            additional_contexts=additional_contexts)
+        self.assertEqual(resolved_params, params)
+
+    def test_hypenated_payload_transform(self):
+        rule = self.models['rules']['rule_action_default_value_render_fail.yaml']
+        payload = {'headers': {'hypenated-header': 'dont-care'}, 'k2': 'v2'}
+
+        runner_type_db = mock.Mock()
+        runner_type_db.runner_parameters = {}
+        action_db = mock.Mock()
+        action_db.parameters = {}
+
+        MOCK_TRIGGER_INSTANCE_4.payload = payload
+        params = {'ip1': '{{trigger.headers[\'hypenated-header\']}}-static',
+                  'ip2': '{{trigger.k2}} static'}
+
+        enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE_4, rule)
+        context, additional_contexts = enforcer.get_action_execution_context(action_db=action_db)
+
+        expected = {'ip1': 'dont-care-static', 'ip2': 'v2 static'}
+        resolved_params = enforcer.get_resolved_parameters(action_db=action_db,
+            runnertype_db=runner_type_db,
+            params=params,
+            context=context,
+            additional_contexts=additional_contexts)
+        self.assertEqual(resolved_params, expected)
+
+    def test_system_transform(self):
+        rule = self.models['rules']['rule_action_default_value_render_fail.yaml']
+        payload = {'headers': {'hypenated-header': 'dont-care'}, 'k2': 'v2'}
+
+        runner_type_db = mock.Mock()
+        runner_type_db.runner_parameters = {}
+        action_db = mock.Mock()
+        action_db.parameters = {}
+
+        k5 = KeyValuePair.add_or_update(KeyValuePairDB(name='k5', value='v5'))
+        k6 = KeyValuePair.add_or_update(KeyValuePairDB(name='k6', value='v6'))
+        k7 = KeyValuePair.add_or_update(KeyValuePairDB(name='k7', value='v7'))
+        k8 = KeyValuePair.add_or_update(KeyValuePairDB(name='k8', value='v8',
+                                                       scope=FULL_SYSTEM_SCOPE))
+
+        params = {'ip5': '{{trigger.k2}}-static',
+                  'ip6': '{{st2kv.system.k6}}-static',
+                  'ip7': '{{st2kv.system.k7}}-static'}
+
+        enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE_4, rule)
+        context, additional_contexts = enforcer.get_action_execution_context(action_db=action_db)
+
+        expected = {'ip5': 'v2-static',
+                    'ip6': 'v6-static',
+                    'ip7': 'v7-static'}
+
+        try:
+            resolved_params = enforcer.get_resolved_parameters(action_db=action_db,
+                runnertype_db=runner_type_db,
+                params=params,
+                context=context,
+                additional_contexts=additional_contexts)
+            self.assertEqual(resolved_params, expected)
+        finally:
+            KeyValuePair.delete(k5)
+            KeyValuePair.delete(k6)
+            KeyValuePair.delete(k7)
+            KeyValuePair.delete(k8)

@@ -36,6 +36,10 @@ from st2common.util import param as param_utils
 from st2common.exceptions import param as param_exc
 from st2common.exceptions import apivalidation as validation_exc
 
+__all__ = [
+    'RuleEnforcer'
+]
+
 
 LOG = logging.getLogger('st2reactor.ruleenforcement.enforce')
 
