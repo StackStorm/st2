@@ -313,43 +313,26 @@ class RuleEnforcerDataTransformationTestCase(BaseRuleEnforcerTestCase):
     def test_payload_data_transform(self):
         rule = self.models['rules']['rule_action_default_value_render_fail.yaml']
 
-        runner_type_db = mock.Mock()
-        runner_type_db.runner_parameters = {}
-        action_db = mock.Mock()
-        action_db.parameters = {}
-
         params = {'ip1': '{{trigger.k1}}-static',
                   'ip2': '{{trigger.k2}} static'}
 
-        enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE_4, rule)
-        context, additional_contexts = enforcer.get_action_execution_context(action_db=action_db)
+        expected_params = {'ip1': 'v1-static', 'ip2': 'v2 static'}
 
-        resolved_params = enforcer.get_resolved_parameters(action_db=action_db,
-            runnertype_db=runner_type_db,
-            params=params,
-            context=context,
-            additional_contexts=additional_contexts)
-        self.assertEqual(resolved_params, {'ip1': 'v1-static', 'ip2': 'v2 static'})
+        self.assertResolvedParamsMatchExpected(rule=rule,
+                                               trigger_instance=MOCK_TRIGGER_INSTANCE_4,
+                                               params=params,
+                                               expected_params=expected_params)
 
     def test_payload_transforms_int_type(self):
         rule = self.models['rules']['rule_action_default_value_render_fail.yaml']
 
-        runner_type_db = mock.Mock()
-        runner_type_db.runner_parameters = {}
-        action_db = mock.Mock()
-        action_db.parameters = {}
-
         params = {'int': 666}
+        expected_params = {'int': 666}
 
-        enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE_4, rule)
-        context, additional_contexts = enforcer.get_action_execution_context(action_db=action_db)
-
-        resolved_params = enforcer.get_resolved_parameters(action_db=action_db,
-            runnertype_db=runner_type_db,
-            params=params,
-            context=context,
-            additional_contexts=additional_contexts)
-        self.assertEqual(resolved_params, {'int': 666})
+        self.assertResolvedParamsMatchExpected(rule=rule,
+                                               trigger_instance=MOCK_TRIGGER_INSTANCE_4,
+                                               params=params,
+                                               expected_params=expected_params)
 
     def test_payload_transforms_bool_type(self):
         rule = self.models['rules']['rule_action_default_value_render_fail.yaml']
@@ -360,16 +343,12 @@ class RuleEnforcerDataTransformationTestCase(BaseRuleEnforcerTestCase):
         action_db.parameters = {}
 
         params = {'bool': True}
+        expected_params = {'bool': True}
 
-        enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE_4, rule)
-        context, additional_contexts = enforcer.get_action_execution_context(action_db=action_db)
-
-        resolved_params = enforcer.get_resolved_parameters(action_db=action_db,
-            runnertype_db=runner_type_db,
-            params=params,
-            context=context,
-            additional_contexts=additional_contexts)
-        self.assertEqual(resolved_params, {'bool': True})
+        self.assertResolvedParamsMatchExpected(rule=rule,
+                                               trigger_instance=MOCK_TRIGGER_INSTANCE_4,
+                                               params=params,
+                                               expected_params=expected_params)
 
     def test_payload_transforms_complex_type(self):
         rule = self.models['rules']['rule_action_default_value_render_fail.yaml']
@@ -380,53 +359,34 @@ class RuleEnforcerDataTransformationTestCase(BaseRuleEnforcerTestCase):
         action_db.parameters = {}
 
         params = {'complex_dict': {'bool': True, 'int': 666, 'str': '{{trigger.k1}}-string'}}
+        expected_params = {'complex_dict': {'bool': True, 'int': 666, 'str': 'v1-string'}}
 
-        enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE_4, rule)
-        context, additional_contexts = enforcer.get_action_execution_context(action_db=action_db)
-
-        expected = {'complex_dict': {'bool': True, 'int': 666, 'str': 'v1-string'}}
-        resolved_params = enforcer.get_resolved_parameters(action_db=action_db,
-            runnertype_db=runner_type_db,
-            params=params,
-            context=context,
-            additional_contexts=additional_contexts)
-        self.assertEqual(resolved_params, expected)
+        self.assertResolvedParamsMatchExpected(rule=rule,
+                                               trigger_instance=MOCK_TRIGGER_INSTANCE_4,
+                                               params=params,
+                                               expected_params=expected_params)
 
         params = {'simple_list': [1, 2, 3]}
+        expected_params = {'simple_list': [1, 2, 3]}
 
-        enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE_4, rule)
-        context, additional_contexts = enforcer.get_action_execution_context(action_db=action_db)
-
-        resolved_params = enforcer.get_resolved_parameters(action_db=action_db,
-            runnertype_db=runner_type_db,
-            params=params,
-            context=context,
-            additional_contexts=additional_contexts)
-        self.assertEqual(resolved_params, params)
+        self.assertResolvedParamsMatchExpected(rule=rule,
+                                               trigger_instance=MOCK_TRIGGER_INSTANCE_4,
+                                               params=params,
+                                               expected_params=expected_params)
 
     def test_hypenated_payload_transform(self):
         rule = self.models['rules']['rule_action_default_value_render_fail.yaml']
         payload = {'headers': {'hypenated-header': 'dont-care'}, 'k2': 'v2'}
 
-        runner_type_db = mock.Mock()
-        runner_type_db.runner_parameters = {}
-        action_db = mock.Mock()
-        action_db.parameters = {}
-
         MOCK_TRIGGER_INSTANCE_4.payload = payload
         params = {'ip1': '{{trigger.headers[\'hypenated-header\']}}-static',
                   'ip2': '{{trigger.k2}} static'}
+        expected_params = {'ip1': 'dont-care-static', 'ip2': 'v2 static'}
 
-        enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE_4, rule)
-        context, additional_contexts = enforcer.get_action_execution_context(action_db=action_db)
-
-        expected = {'ip1': 'dont-care-static', 'ip2': 'v2 static'}
-        resolved_params = enforcer.get_resolved_parameters(action_db=action_db,
-            runnertype_db=runner_type_db,
-            params=params,
-            context=context,
-            additional_contexts=additional_contexts)
-        self.assertEqual(resolved_params, expected)
+        self.assertResolvedParamsMatchExpected(rule=rule,
+                                               trigger_instance=MOCK_TRIGGER_INSTANCE_4,
+                                               params=params,
+                                               expected_params=expected_params)
 
     def test_system_transform(self):
         rule = self.models['rules']['rule_action_default_value_render_fail.yaml']
@@ -445,23 +405,33 @@ class RuleEnforcerDataTransformationTestCase(BaseRuleEnforcerTestCase):
         params = {'ip5': '{{trigger.k2}}-static',
                   'ip6': '{{st2kv.system.k6}}-static',
                   'ip7': '{{st2kv.system.k7}}-static'}
-
-        enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE_4, rule)
-        context, additional_contexts = enforcer.get_action_execution_context(action_db=action_db)
-
-        expected = {'ip5': 'v2-static',
-                    'ip6': 'v6-static',
-                    'ip7': 'v7-static'}
+        expected_params = {'ip5': 'v2-static',
+                           'ip6': 'v6-static',
+                           'ip7': 'v7-static'}
 
         try:
-            resolved_params = enforcer.get_resolved_parameters(action_db=action_db,
-                runnertype_db=runner_type_db,
-                params=params,
-                context=context,
-                additional_contexts=additional_contexts)
-            self.assertEqual(resolved_params, expected)
+            self.assertResolvedParamsMatchExpected(rule=rule,
+                                                   trigger_instance=MOCK_TRIGGER_INSTANCE_4,
+                                                   params=params,
+                                                   expected_params=expected_params)
         finally:
             KeyValuePair.delete(k5)
             KeyValuePair.delete(k6)
             KeyValuePair.delete(k7)
             KeyValuePair.delete(k8)
+
+    def assertResolvedParamsMatchExpected(self, rule, trigger_instance, params, expected_params):
+        runner_type_db = mock.Mock()
+        runner_type_db.runner_parameters = {}
+        action_db = mock.Mock()
+        action_db.parameters = {}
+
+        enforcer = RuleEnforcer(trigger_instance, rule)
+        context, additional_contexts = enforcer.get_action_execution_context(action_db=action_db)
+
+        resolved_params = enforcer.get_resolved_parameters(action_db=action_db,
+            runnertype_db=runner_type_db,
+            params=params,
+            context=context,
+            additional_contexts=additional_contexts)
+        self.assertEqual(resolved_params, expected_params)
