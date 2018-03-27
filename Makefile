@@ -272,6 +272,9 @@ requirements: virtualenv .sdist-requirements
 	# new version of requests) which we cant resolve at this moment
 	$(VIRTUALENV_DIR)/bin/pip install "prance==0.6.1"
 
+	# Fix for Travis CI race
+	$(VIRTUALENV_DIR)/bin/pip install "six==1.11.0"
+
 .PHONY: virtualenv
 	# Note: We always want to update virtualenv/bin/activate file to make sure
 	# PYTHONPATH is up to date and to avoid caching issues on Travis
