@@ -260,6 +260,9 @@ requirements: virtualenv .sdist-requirements
 	# Generate all requirements to support current CI pipeline.
 	$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv -s st2*/in-requirements.txt -f fixed-requirements.txt -o requirements.txt
 
+	# Fix for Travis CI race
+	$(VIRTUALENV_DIR)/bin/pip install "six==1.11.0"
+
 	# Install requirements
 	#
 	for req in $(REQUIREMENTS); do \

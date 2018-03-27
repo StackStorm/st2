@@ -95,6 +95,10 @@ Fixed
   Contributed by Ben Hohnke (NTT Communications ICT Solutions)
 * Fix "st2 pack install" command so it doesn't require access to pack index (index.stackstorm.org)
   when installing a local pack (pack name starting with "file://"). (bug fix) #3771 #3772
+* Fix rules engine so it correctly handles and renders action parameters which contain Jinja
+  expressions and default values. (bug fix) #4050 #4050
+
+  Reported by @rakeshrm.
 
 2.6.0 - January 19, 2018
 ------------------------
