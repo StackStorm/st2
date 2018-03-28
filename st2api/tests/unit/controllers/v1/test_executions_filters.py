@@ -209,7 +209,7 @@ class TestActionExecutionFilters(FunctionalTest):
             self.assertIsInstance(response.json, list)
             self.assertGreater(len(response.json), 0)
             self.assertGreater(int(response.headers['X-Total-Count']), 0)
-    
+
     def test_advanced_filters_malformed(self):
         response = self.app.get('/v1/executions?filter=a:b,c:d', expect_errors=True)
         self.assertEqual(response.status_int, 400)
