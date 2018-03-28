@@ -273,7 +273,15 @@ def render_live_params(runner_parameters, action_parameters, params, action_cont
     dict of plain rendered parameters.
     '''
     additional_contexts = additional_contexts or {}
-    config = get_config(action_context.get('pack'), action_context.get('user'))
+
+    pack = action_context.get('pack')
+    user = action_context.get('user')
+
+    try:
+        config = get_config(pack, user)
+    except Exception as e:
+        LOG.info('Failed to retrieve config for pack %s and user %s: %s' % (pack, user, str(e)))
+        config = {}
 
     G = _create_graph(action_context, config)
 

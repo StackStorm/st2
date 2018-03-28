@@ -29,6 +29,19 @@ Added
   (new feature) #4027
 
   Contributed by Nick Maludy (Encore Technologies).
+* Add support for new optional ``content_version`` runner parameter to the Python and Local Shell
+  Script runner. This parameter can contain a git commit hash / tag / branch from a pack git
+  repository and runner will ensure this revision of the pack content (Python action / local shell
+  script action) is used for a particular action execution.
+
+  Keep in mind that providing this parameter only ensures a particular revision of the pack content
+  is used. Python runner virtual environment and dependencies are outside of this scope.
+
+  Note: To be able to utilize this functionality, git version >= 2.5.0 must be installed on the
+  system.
+  (new feature) #3997
+* Update windows runner to correctly handle and use ``timeout`` action execution status.
+  (improvement) #4047
 
 Changed
 ~~~~~~~
@@ -51,13 +64,23 @@ Changed
   This reduces the unnecessary traffic and CPU time by querying the mistral API. Included a command to
   manually add a state entry for Mistral workflow execution to recover from any callback failures.
   (improvement)
+* Throw a more user-friendly error when writing pack data files to disk and when an invalid file
+  path is provided (e.g. path is outside the pack directory, etc.). (improvement) #4039 #4046
+* Change the output object returned by Windows runners so it matches the format from the local and
+  remote runner.
+
+  Note: This change is backward incompatible - ``result`` attribute has been removed (same
+  information is available in ``stdout`` attribute), ``exit_code`` renamed to ``return_code`` and
+  two new attributes added - ``succeeded`` and ``failed``.
+
+  For more information, please refer to the upgrade notes. #4044 #4047
 
 Fixed
 ~~~~~
+
 * Fix Python runner actions and ``Argument list too long`` error when very large parameters are
   passed into the action. The fix utilizes ``stdin`` to pass parameters to the Python action wrapper
   process instead of CLI argument list. (bug fix) #1598 #3976
-
 * Fix a regression in ``POST /v1/webhooks/<webhook name>`` API endpoint introduced in v2.4.0
   and add back support for arrays. In 2.4.0 support for arrays was inadvertently removed and
   only objects were supported. Keep in mind that this only applies to custom user-defined
@@ -67,6 +90,15 @@ Fixed
   to not work. (bugfix) #4001
 
   Contributed by Nick Maludy (Encore Technologies).
+* Fixed missing "paused" status option from "st2 execution list" help output. (bugfix) #4037
+
+  Contributed by Ben Hohnke (NTT Communications ICT Solutions)
+* Fix "st2 pack install" command so it doesn't require access to pack index (index.stackstorm.org)
+  when installing a local pack (pack name starting with "file://"). (bug fix) #3771 #3772
+* Fix rules engine so it correctly handles and renders action parameters which contain Jinja
+  expressions and default values. (bug fix) #4050 #4050
+
+  Reported by @rakeshrm.
 
 2.6.0 - January 19, 2018
 ------------------------
