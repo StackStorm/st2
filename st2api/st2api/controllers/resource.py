@@ -406,7 +406,7 @@ class BaseResourceIsolationControllerMixin(object):
         return result
 
 
-class ContentPackResourceController(BaseResourceIsolationControllerMixin, ResourceController):
+class ContentPackResourceController(ResourceController):
     include_reference = False
 
     def __init__(self):

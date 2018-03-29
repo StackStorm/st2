@@ -21,7 +21,8 @@ from oslo_config import cfg
 from st2common import log as logging
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.exceptions.triggers import TriggerDoesNotExistException
-from st2api.controllers import resource
+from st2api.controllers.resource import BaseResourceIsolationControllerMixin
+from st2api.controllers.resource import ContentPackResourceController
 from st2api.controllers.controller_transforms import transform_to_bool
 from st2api.controllers.v1.ruleviews import RuleViewController
 from st2common.models.api.rule import RuleAPI
@@ -41,7 +42,7 @@ http_client = six.moves.http_client
 LOG = logging.getLogger(__name__)
 
 
-class RuleController(resource.ContentPackResourceController):
+class RuleController(BaseResourceIsolationControllerMixin, ContentPackResourceController):
     """
         Implements the RESTful web endpoint that handles
         the lifecycle of Rules in the system.
