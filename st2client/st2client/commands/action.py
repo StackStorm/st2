@@ -1032,8 +1032,8 @@ class ActionExecutionBranch(resource.ResourceBranch):
                                                            add_help=True)
 
 
-POSSIBLE_ACTION_STATUS_VALUES = ('succeeded', 'running', 'scheduled', 'failed', 'canceling',
-                                 'canceled')
+POSSIBLE_ACTION_STATUS_VALUES = ('succeeded', 'running', 'scheduled', 'paused', 'failed',
+                                 'canceling', 'canceled')
 
 
 class ActionExecutionReadCommand(resource.ResourceCommand):
@@ -1103,7 +1103,7 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
         self.group.add_argument('--action', help='Action reference to filter the list.')
         self.group.add_argument('--status', help=('Only return executions with the provided \
                                                   status. Possible values are \'%s\', \'%s\', \
-                                                  \'%s\', \'%s\', \'%s\' or \'%s\''
+                                                  \'%s\', \'%s\', \'%s\', \'%s\' or \'%s\''
                                                   '.' % POSSIBLE_ACTION_STATUS_VALUES))
         self.group.add_argument('--trigger_instance',
                                 help='Trigger instance id to filter the list.')

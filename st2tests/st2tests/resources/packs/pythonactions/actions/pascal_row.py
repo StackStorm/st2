@@ -39,6 +39,8 @@ class PascalRowAction(Action):
             return [math.factorial(row_index) /
                     (math.factorial(i) * math.factorial(row_index - i))
                     for i in range(row_index + 1)]
+        elif row_index == 'f':
+            raise ValueError('Duplicate traceback test')
         else:
             return True, [math.factorial(row_index) /
                           (math.factorial(i) * math.factorial(row_index - i))
