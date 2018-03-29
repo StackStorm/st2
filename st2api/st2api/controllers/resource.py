@@ -196,11 +196,12 @@ class ResourceController(object):
         from_model_kwargs = from_model_kwargs or {}
         from_model_kwargs.update(self.from_model_kwargs)
 
-        result = self.resource_model_filter(model=self.model,
-                                            instances=instances,
-                                            offset=offset, eop=eop,
-                                            requester_user=requester_user,
-                                            **from_model_kwargs)
+        result = self.resources_model_filter(model=self.model,
+                                             instances=instances,
+                                             offset=offset,
+                                             eop=eop,
+                                             requester_user=requester_user,
+                                             **from_model_kwargs)
 
         resp = Response(json=result)
         resp.headers['X-Total-Count'] = str(instances.count())
@@ -210,11 +211,14 @@ class ResourceController(object):
 
         return resp
 
-    def resource_model_filter(self, model, instances, requester_user=None, offset=0, eop=0,
-                              **kwargs):
+    def resources_model_filter(self, model, instances, requester_user=None, offset=0, eop=0,
+                              **from_model_kwargs):
+        """
+        Method which converts DB object to API object and performs any additional filtering.
+        """
         result = []
         for instance in instances[offset:eop]:
-            item = model.from_model(instance, **kwargs)
+            item = model.from_model(instance, **from_model_kwargs)
             result.append(item)
         return result
 
@@ -366,44 +370,57 @@ class ResourceController(object):
 
 class BaseResourceIsolationControllerMixin(object):
     """
-    Isolate resources for users except system_user.
+    Base API controller which isolates resources for users. Users can only see their own resources.
+
+    Exceptions include admin and system user which can view all the resources (also for other
+    users).
     """
 
-    def resource_model_filter(self, model, instances, requester_user=None, offset=0, eop=0,
-                              **kwargs):
-
+    def resources_model_filter(self, model, instances, requester_user=None, offset=0, eop=0,
+                              **from_model_kwargs):
         # RBAC is disabled, bail out
         if not cfg.CONF.rbac.enable:
-            result = super(BaseResourceIsolationControllerMixin, self).resource_model_filter(
+            result = super(BaseResourceIsolationControllerMixin, self).resources_model_filter(
                 model=model, instances=instances, requester_user=requester_user,
-                offset=offset, eop=eop, **kwargs)
+                offset=offset, eop=eop, **from_model_kwargs)
 
             return result
 
         # RBAC permission isolation is disabled, bail out
         if not cfg.CONF.rbac.permission_isolation:
-            result = super(BaseResourceIsolationControllerMixin, self).resource_model_filter(
+            result = super(BaseResourceIsolationControllerMixin, self).resources_model_filter(
                 model=model, instances=instances, requester_user=requester_user,
-                offset=offset, eop=eop, **kwargs)
+                offset=offset, eop=eop, **from_model_kwargs)
 
             return result
 
+        result = []
+        for instance in instances[offset:eop]:
+            item = self.resource_model_filter(model=model, instance=instance,
+                                              requester_user=requester_user, **from_model_kwargs)
+
+            if not item:
+                continue
+
+            result.append(item)
+
+        return result
+
+    def resource_model_filter(self, model, instance, requester_user=None, **from_model_kwargs):
         user_is_admin = rbac_utils.user_is_admin(user_db=requester_user)
         user_is_system_user = (requester_user.name == cfg.CONF.system_user.user)
 
-        result = []
-        for instance in instances[offset:eop]:
-            item = model.from_model(instance, **kwargs)
+        item = model.from_model(instance, **from_model_kwargs)
 
-            # Admin users and system users can view all the resoruces
-            if user_is_admin or user_is_system_user:
-                result.append(item)
-            else:
-                user = item.context.get('user', None)
-                if user and user == requester_user.name:
-                    result.append(item)
+        # Admin users and system users can view all the resoruces
+        if user_is_admin or user_is_system_user:
+            return item
 
-        return result
+        user = item.context.get('user', None)
+        if user and user == requester_user.name:
+            return item
+
+        return None
 
 
 class ContentPackResourceController(ResourceController):
@@ -427,6 +444,8 @@ class ContentPackResourceController(ResourceController):
             rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                               resource_db=instance,
                                                               permission_type=permission_type)
+
+        # Perform resource isolation check (if supported)
 
         from_model_kwargs = from_model_kwargs or {}
         from_model_kwargs.update(self.from_model_kwargs)
