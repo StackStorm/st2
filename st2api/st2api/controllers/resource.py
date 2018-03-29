@@ -372,8 +372,16 @@ class BaseResourceIsolationHandlerMixin(object):
     def resource_model_filter(self, model, instances, requester_user=None, offset=0, eop=0,
                               **kwargs):
 
-        # RBAC / RBAC permission isolateion is disabled, bail out
-        if not cfg.CONF.rbac.enable or not cfg.CONF.rbac.permission_isolation:
+        # RBAC is disabled, bail out
+        if not cfg.CONF.rbac.enable:
+            result = super(BaseResourceIsolationHandlerMixin, self).resource_model_filter(
+                model=model, instances=instances, requester_user=requester_user,
+                offset=offset, eop=eop, **kwargs)
+
+            return result
+
+        # RBAC permission isolation is disabled, bail out
+        if not cfg.CONF.rbac.permission_isolation:
             result = super(BaseResourceIsolationHandlerMixin, self).resource_model_filter(
                 model=model, instances=instances, requester_user=requester_user,
                 offset=offset, eop=eop, **kwargs)
