@@ -176,7 +176,7 @@ class ActionExecutionRBACControllerTestCase(BaseActionExecutionControllerTestCas
         resp = self.app.get('/v1/actionexecutions?limit=-1')
         self.assertEqual(resp.status_code, http_client.OK)
 
-    def test_get_respective_actions_with_permission_isolation(self):
+    def test_get_all_respective_actions_with_permission_isolation(self):
         cfg.CONF.set_override(name='permission_isolation', override=True, group='rbac')
 
         data = {
