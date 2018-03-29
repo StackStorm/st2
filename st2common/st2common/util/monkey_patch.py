@@ -55,7 +55,6 @@ def use_select_poll_workaround():
     import eventlet
 
     # Work around to get tests to pass with eventlet >= 0.20.0
-    print(sys.modules.keys())
     if 'nose' in sys.modules.keys():
         sys.modules['select'] = eventlet.patcher.original('select')
         subprocess.select = eventlet.patcher.original('select')
