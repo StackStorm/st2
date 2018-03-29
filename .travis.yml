@@ -23,7 +23,7 @@ matrix:
     - env: TASK="ci-checks ci-packs-tests"
       python: 2.7
     - env: TASK="compilepy3 ci-py3-unit" CACHE_NAME=py3
-      python: 3.6.4
+      python: 3.6
 addons:
   apt:
     sources:
