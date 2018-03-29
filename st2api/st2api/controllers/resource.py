@@ -364,7 +364,7 @@ class ResourceController(object):
         return exclude_fields
 
 
-class BaseResourceIsolationHandlerMixin(object):
+class BaseResourceIsolationControllerMixin(object):
     """
     Isolate resources for users except system_user.
     """
@@ -374,7 +374,7 @@ class BaseResourceIsolationHandlerMixin(object):
 
         # RBAC is disabled, bail out
         if not cfg.CONF.rbac.enable:
-            result = super(BaseResourceIsolationHandlerMixin, self).resource_model_filter(
+            result = super(BaseResourceIsolationControllerMixin, self).resource_model_filter(
                 model=model, instances=instances, requester_user=requester_user,
                 offset=offset, eop=eop, **kwargs)
 
@@ -382,7 +382,7 @@ class BaseResourceIsolationHandlerMixin(object):
 
         # RBAC permission isolation is disabled, bail out
         if not cfg.CONF.rbac.permission_isolation:
-            result = super(BaseResourceIsolationHandlerMixin, self).resource_model_filter(
+            result = super(BaseResourceIsolationControllerMixin, self).resource_model_filter(
                 model=model, instances=instances, requester_user=requester_user,
                 offset=offset, eop=eop, **kwargs)
 
@@ -406,7 +406,7 @@ class BaseResourceIsolationHandlerMixin(object):
         return result
 
 
-class ContentPackResourceController(BaseResourceIsolationHandlerMixin, ResourceController):
+class ContentPackResourceController(BaseResourceIsolationControllerMixin, ResourceController):
     include_reference = False
 
     def __init__(self):

@@ -26,7 +26,7 @@ from six.moves import http_client
 
 from st2api.controllers.base import BaseRestControllerMixin
 from st2api.controllers.resource import ResourceController
-from st2api.controllers.resource import BaseResourceIsolationHandlerMixin
+from st2api.controllers.resource import BaseResourceIsolationControllerMixin
 from st2api.controllers.v1.executionviews import ExecutionViewsController
 from st2api.controllers.v1.executionviews import SUPPORTED_FILTERS
 from st2common import log as logging
@@ -482,7 +482,7 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
                                                show_secrets=show_secrets)
 
 
-class ActionExecutionsController(BaseResourceIsolationHandlerMixin,
+class ActionExecutionsController(BaseResourceIsolationControllerMixin,
                                  ActionExecutionsControllerMixin, ResourceController):
     """
         Implements the RESTful web endpoint that handles
