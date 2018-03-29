@@ -476,11 +476,12 @@ class AsyncRequest(Resource):
 
 class PackResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
-    def install(self, packs, force=False, **kwargs):
+    def install(self, packs, force=False, python3=False, **kwargs):
         url = '/%s/install' % (self.resource.get_url_path_name())
         payload = {
             'packs': packs,
-            'force': force
+            'force': force,
+            'python3': python3
         }
         response = self.client.post(url, payload, **kwargs)
         if response.status_code != http_client.OK:
@@ -498,14 +499,19 @@ class PackResourceManager(ResourceManager):
         return instance
 
     @add_auth_token_to_kwargs_from_env
-    def search(self, args, **kwargs):
+    def search(self, args, ignore_errors=False, **kwargs):
         url = '/%s/index/search' % (self.resource.get_url_path_name())
         if 'query' in vars(args):
             payload = {'query': args.query}
         else:
             payload = {'pack': args.pack}
-        response = self.client.post(url, payload, **kwargs)
+
+            response = self.client.post(url, payload, **kwargs)
+
         if response.status_code != http_client.OK:
+            if ignore_errors:
+                return None
+
             self.handle_error(response)
         data = response.json()
         if isinstance(data, list):

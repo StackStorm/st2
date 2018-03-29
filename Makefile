@@ -188,7 +188,7 @@ compile:
 compilepy3:
 	@echo "======================= compile ========================"
 	@echo "------- Compile all .py files (syntax check test - Python 3) ------"
-	@if python3 -c 'import compileall,re; compileall.compile_dir(".", rx=re.compile(r"/virtualenv|.tox"), quiet=True)' | grep .; then exit 1; else exit 0; fi
+	@if python3 -c 'import compileall,re; compileall.compile_dir(".", rx=re.compile(r"/virtualenv|.tox|./st2tests/st2tests/fixtures/packs/test"), quiet=True)' | grep .; then exit 1; else exit 0; fi
 
 .PHONY: .cleanpycs
 .cleanpycs:
@@ -259,6 +259,9 @@ requirements: virtualenv .sdist-requirements
 
 	# Generate all requirements to support current CI pipeline.
 	$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv -s st2*/in-requirements.txt -f fixed-requirements.txt -o requirements.txt
+
+	# Fix for Travis CI race
+	$(VIRTUALENV_DIR)/bin/pip install "six==1.11.0"
 
 	# Install requirements
 	#

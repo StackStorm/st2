@@ -2,7 +2,6 @@
 description: A test async runner.
 enabled: true
 name: test-async-runner-1
-query_module: test_querier
 runner_module: test_async_runner
 runner_parameters:
   runnerdummy:

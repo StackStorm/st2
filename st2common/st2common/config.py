@@ -19,6 +19,7 @@ import socket
 import sys
 
 from oslo_config import cfg
+from distutils.spawn import find_executable
 
 from st2common.constants.system import VERSION_STRING
 from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_LOG_LEVEL
@@ -226,8 +227,10 @@ def register_opts(ignore_errors=False):
 
     # Runner options
     default_python_bin_path = sys.executable
+    default_python3_bin_path = find_executable('python3')
     base_dir = os.path.dirname(os.path.realpath(default_python_bin_path))
     default_virtualenv_bin_path = os.path.join(base_dir, 'virtualenv')
+
     action_runner_opts = [
         # Common runner options
         cfg.StrOpt('logging', default='conf/logging.conf',
@@ -236,6 +239,9 @@ def register_opts(ignore_errors=False):
         # Python runner options
         cfg.StrOpt('python_binary', default=default_python_bin_path,
                    help='Python binary which will be used by Python actions.'),
+        cfg.StrOpt('python3_binary', default=default_python3_bin_path,
+                   help=('Python 3 binary which will be used by Python actions for packs which '
+                         'use Python 3 virtual environment')),
         cfg.StrOpt('virtualenv_binary', default=default_virtualenv_bin_path,
                    help='Virtualenv binary which should be used to create pack virtualenvs.'),
         cfg.StrOpt('python_runner_log_level',
@@ -324,6 +330,9 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt('keystone_auth_url', default=None, help='Auth endpoint for Keystone.'),
         cfg.StrOpt('cacert', default=None, help='Optional certificate to validate endpoint.'),
         cfg.BoolOpt('insecure', default=False, help='Allow insecure communication with Mistral.'),
+        cfg.BoolOpt(
+            'enable_polling', default=False,
+            help='Enable results tracking and disable callbacks.'),
         cfg.FloatOpt(
             'jitter_interval', default=0.1,
             help='Jitter interval to smooth out HTTP requests '

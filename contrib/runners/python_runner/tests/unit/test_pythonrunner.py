@@ -14,8 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 import re
+import sys
 
 import six
 import mock
@@ -55,11 +57,20 @@ ACTION_2_PATH = os.path.join(tests_base.get_fixtures_path(),
                              'packs/dummy_pack_9/actions/invalid_syntax.py')
 NON_SIMPLE_TYPE_ACTION = os.path.join(tests_base.get_resources_path(), 'packs',
                                       'pythonactions/actions/non_simple_type.py')
+PRINT_VERSION_ACTION = os.path.join(tests_base.get_fixtures_path(), 'packs',
+                                    'test/actions/print_version.py')
+PRINT_VERSION_LOCAL_MODULE_ACTION = os.path.join(tests_base.get_fixtures_path(), 'packs',
+                                                 'test/actions/print_version_local_import.py')
+
+PRINT_CONFIG_ITEM_ACTION = os.path.join(tests_base.get_resources_path(), 'packs',
+                                        'pythonactions/actions/print_config_item_doesnt_exist.py')
+
 
 # Note: runner inherits parent args which doesn't work with tests since test pass additional
 # unrecognized args
 mock_sys = mock.Mock()
 mock_sys.argv = []
+mock_sys.executable = sys.executable
 
 MOCK_EXECUTION = mock.Mock()
 MOCK_EXECUTION.id = '598dbf0c0640fd54bffc688b'
@@ -696,6 +707,24 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertTrue(expected_msg_4 not in output['stderr'])
         self.assertTrue(expected_msg_5 in output['stderr'])
 
+    def test_traceback_messages_are_not_duplicated_in_stderr(self):
+        # Verify tracebacks are not duplicated
+        runner = self._get_mock_runner_obj()
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.pre_run()
+        (status, output, _) = runner.run({'row_index': 'f'})
+        self.assertEqual(status, LIVEACTION_STATUS_FAILED)
+        self.assertTrue(output is not None)
+
+        expected_msg_1 = 'Traceback (most recent'
+        expected_msg_2 = 'ValueError: Duplicate traceback test'
+
+        self.assertTrue(expected_msg_1 in output['stderr'])
+        self.assertTrue(expected_msg_2 in output['stderr'])
+
+        self.assertEqual(output['stderr'].count(expected_msg_1), 1)
+        self.assertEqual(output['stderr'].count(expected_msg_2), 1)
+
     def test_execution_with_very_large_parameter(self):
         runner = self._get_mock_runner_obj()
         runner.entry_point = ECHOER_ACTION_PATH
@@ -720,16 +749,176 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertTrue(output is not None)
         self.assertEqual(output['result']['action_input'], large_value)
 
-    def _get_mock_runner_obj(self):
+    @mock.patch('python_runner.python_runner.get_sandbox_virtualenv_path')
+    def test_content_version_success(self, mock_get_sandbox_virtualenv_path):
+        mock_get_sandbox_virtualenv_path.return_value = None
+
+        # 1. valid version - 0.25.0
+        runner = self._get_mock_runner_obj(pack='test', sandbox=False)
+        runner.entry_point = PRINT_VERSION_ACTION
+        runner.runner_parameters = {'content_version': 'v0.25.0'}
+        runner.pre_run()
+
+        (status, output, _) = runner.run({})
+
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(output['result'], 'v0.25.0')
+        self.assertEqual(output['stdout'].strip(), 'v0.25.0')
+
+        # 2. valid version - 0.24.0
+        runner = self._get_mock_runner_obj(pack='test', sandbox=False)
+        runner.entry_point = PRINT_VERSION_ACTION
+        runner.runner_parameters = {'content_version': 'v0.24.0'}
+        runner.pre_run()
+
+        (status, output, _) = runner.run({})
+
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(output['result'], 'v0.13.0')
+        self.assertEqual(output['stdout'].strip(), 'v0.13.0')
+
+        # 3. invalid version = 0.30.0
+        runner = self._get_mock_runner_obj(pack='test', sandbox=False)
+        runner.entry_point = PRINT_VERSION_ACTION
+        runner.runner_parameters = {'content_version': 'v0.30.0'}
+
+        expected_msg = (r'Failed to create git worktree for pack "test": Invalid content_version '
+                        '"v0.30.0" provided. Make sure that git repository is up '
+                        'to date and contains that revision.')
+        self.assertRaisesRegexp(ValueError, expected_msg, runner.pre_run)
+
+    @mock.patch('python_runner.python_runner.get_sandbox_virtualenv_path')
+    @mock.patch('st2common.util.green.shell.subprocess.Popen')
+    def test_content_version_contains_common_libs_config_enabled(self, mock_popen,
+                                                                 mock_get_sandbox_virtualenv_path):
+        # Verify that the common libs path correctly reflects directory in git worktree
+        mock_get_sandbox_virtualenv_path.return_value = None
+
+        mock_process = mock.Mock()
+        mock_process.communicate.return_value = ('', '')
+        mock_popen.return_value = mock_process
+
+        runner = self._get_mock_runner_obj(pack='test', sandbox=False)
+        runner._enable_common_pack_libs = True
+        runner.auth_token = mock.Mock()
+        runner.auth_token.token = 'ponies'
+        runner.runner_parameters = {'content_version': 'v0.25.0'}
+        runner.entry_point = PRINT_VERSION_ACTION
+        runner.pre_run()
+        (_, _, _) = runner.run({'row_index': 4})
+
+        _, call_kwargs = mock_popen.call_args
+        actual_env = call_kwargs['env']
+        pack_common_lib_path = os.path.join(runner.git_worktree_path, 'lib')
+        self.assertTrue('PYTHONPATH' in actual_env)
+        self.assertTrue(pack_common_lib_path in actual_env['PYTHONPATH'])
+
+    @mock.patch('python_runner.python_runner.get_sandbox_virtualenv_path')
+    def test_content_version_success_local_modules_work_fine(self,
+                                                             mock_get_sandbox_virtualenv_path):
+        # Verify that local module import correctly use git worktree directory
+        mock_get_sandbox_virtualenv_path.return_value = None
+
+        runner = self._get_mock_runner_obj(pack='test', sandbox=False)
+        runner.entry_point = PRINT_VERSION_LOCAL_MODULE_ACTION
+        runner.runner_parameters = {'content_version': 'v0.24.0'}
+        runner.pre_run()
+
+        (status, output, _) = runner.run({})
+
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(output['result'], 'v0.24.0')
+
+        # Verify local_module has been correctly loaded from git work tree directory
+        expected_stdout = ("<module '?local_module'? from '?%s/actions/local_module.py'?>.*" %
+                           runner.git_worktree_path)
+        self.assertRegexpMatches(output['stdout'].strip(), expected_stdout)
+
+    @mock.patch('st2common.runners.base.run_command')
+    def test_content_version_old_git_version(self, mock_run_command):
+        mock_stdout = ''
+        mock_stderr = '''
+git: 'worktree' is not a git command. See 'git --help'.
+'''
+        mock_stderr = six.text_type(mock_stderr)
+        mock_run_command.return_value = 1, mock_stdout, mock_stderr, False
+
+        runner = self._get_mock_runner_obj()
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.runner_parameters = {'content_version': 'v0.10.0'}
+
+        expected_msg = (r'Failed to create git worktree for pack "core": Installed git version '
+                        'doesn\'t support git worktree command. To be able to utilize this '
+                        'functionality you need to use git >= 2.5.0.')
+        self.assertRaisesRegexp(ValueError, expected_msg, runner.pre_run)
+
+    @mock.patch('st2common.runners.base.run_command')
+    def test_content_version_pack_repo_not_git_repository(self, mock_run_command):
+        mock_stdout = ''
+        mock_stderr = '''
+fatal: Not a git repository (or any parent up to mount point /home)
+Stopping at filesystem boundary (GIT_DISCOVERY_ACROSS_FILESYSTEM not set).
+'''
+        mock_stderr = six.text_type(mock_stderr)
+        mock_run_command.return_value = 1, mock_stdout, mock_stderr, False
+
+        runner = self._get_mock_runner_obj()
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.runner_parameters = {'content_version': 'v0.10.0'}
+
+        expected_msg = (r'Failed to create git worktree for pack "core": Pack directory '
+                        '".*" is not a '
+                        'git repository. To utilize this functionality, pack directory needs to '
+                        'be a git repository.')
+        self.assertRaisesRegexp(ValueError, expected_msg, runner.pre_run)
+
+    @mock.patch('st2common.runners.base.run_command')
+    def test_content_version_invalid_git_revision(self, mock_run_command):
+        mock_stdout = ''
+        mock_stderr = '''
+fatal: invalid reference: vinvalid
+'''
+        mock_stderr = six.text_type(mock_stderr)
+        mock_run_command.return_value = 1, mock_stdout, mock_stderr, False
+
+        runner = self._get_mock_runner_obj()
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.runner_parameters = {'content_version': 'vinvalid'}
+
+        expected_msg = (r'Failed to create git worktree for pack "core": Invalid content_version '
+                        '"vinvalid" provided. Make sure that git repository is up '
+                        'to date and contains that revision.')
+        self.assertRaisesRegexp(ValueError, expected_msg, runner.pre_run)
+
+    def test_missing_config_item_user_friendly_error(self):
+        runner = self._get_mock_runner_obj()
+        runner.entry_point = PRINT_CONFIG_ITEM_ACTION
+        runner.pre_run()
+        (status, output, _) = runner.run({})
+
+        self.assertEqual(status, LIVEACTION_STATUS_FAILED)
+        self.assertTrue(output is not None)
+        self.assertTrue('{}' in output['stdout'])
+        self.assertTrue('default_value' in output['stdout'])
+        self.assertTrue('Config for pack "core" is missing key "key"' in output['stderr'])
+        self.assertTrue('make sure you run "st2ctl reload --register-configs"' in output['stderr'])
+
+    def _get_mock_runner_obj(self, pack=None, sandbox=None):
         runner = python_runner.get_runner()
         runner.execution = MOCK_EXECUTION
         runner.action = self._get_mock_action_obj()
         runner.runner_parameters = {}
 
+        if pack:
+            runner.action.pack = pack
+
+        if sandbox is not None:
+            runner._sandbox = sandbox
+
         return runner
 
     @mock.patch('st2actions.container.base.ActionExecution.get', mock.Mock())
-    def _get_mock_runner_obj_from_container(self, pack, user):
+    def _get_mock_runner_obj_from_container(self, pack, user, sandbox=None):
         container = RunnerContainer()
 
         runnertype_db = mock.Mock()
@@ -744,8 +933,11 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner = container._get_runner(runnertype_db=runnertype_db, action_db=action_db,
                                        liveaction_db=liveaction_db)
         runner.execution = MOCK_EXECUTION
-        runner.action = self._get_mock_action_obj()
+        runner.action = action_db
         runner.runner_parameters = {}
+
+        if sandbox is not None:
+            runner._sandbox = sandbox
 
         return runner
 
