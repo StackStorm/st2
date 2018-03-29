@@ -210,9 +210,8 @@ class ResourceController(object):
 
         return resp
 
-    @staticmethod
-    def resource_model_filter(model, instances, requester_user=None,
-                              offset=0, eop=0, **kwargs):
+    def resource_model_filter(self, model, instances, requester_user=None, offset=0, eop=0,
+                              **kwargs):
         result = []
         for instance in instances[offset:eop]:
             item = model.from_model(instance, **kwargs)
@@ -369,15 +368,24 @@ class BeseResourceIsolationHandlerMixin(object):
     """
     Isolate resources for users except system_user.
     """
+
     @staticmethod
-    def resource_model_filter(model, instances, requester_user=None,
-                              offset=0, eop=0, **kwargs):
+    def resource_model_filter(self, model, instances, requester_user=None, offset=0, eop=0,
+                              **kwargs):
+
+        # RBAC / RBAC permission isolateion is disabled, bail out
+        if not cfg.CONF.rbac.enable or not cfg.CONF.rbac.permission_isolation:
+            result = super(BeseResourceIsolationHandlerMixin, self).resource_model_filter(
+                model=model, instances=instances, requester_user=requester_user,
+                offset=offset, eop=eop, **kwargs)
+
+            return result
+
         result = []
         for instance in instances[offset:eop]:
             item = model.from_model(instance, **kwargs)
-            if not cfg.CONF.rbac.permission_isolation:
-                result.append(item)
-            elif requester_user.name == cfg.CONF.system_user.user:
+
+            if requester_user.name == cfg.CONF.system_user.user:
                 result.append(item)
             else:
                 user = item.context.get('user', None)
