@@ -381,16 +381,20 @@ class BaseResourceIsolationHandlerMixin(object):
 
             return result
 
+        user_is_admin = rbac_utils.user_is_admin(user_db=requester_user)
+
         result = []
         for instance in instances[offset:eop]:
             item = model.from_model(instance, **kwargs)
 
-            if requester_user.name == cfg.CONF.system_user.user:
+            # Admin users and system users can view all the resoruces
+            if user_is_admin or requester_user.name == cfg.CONF.system_user.user:
                 result.append(item)
             else:
                 user = item.context.get('user', None)
                 if user and user == requester_user.name:
                     result.append(item)
+
         return result
 
 
