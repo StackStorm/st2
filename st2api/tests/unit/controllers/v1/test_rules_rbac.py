@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
+import copy
 
 import mock
 import six
@@ -90,6 +90,14 @@ class RuleControllerRBACTestCase(APIControllerWithRBACTestCase):
         user_4_db = User.add_or_update(user_4_db)
         self.users['rule_create_1'] = user_4_db
 
+        user_5_db = UserDB(name='user_two')
+        user_5_db = User.add_or_update(user_5_db)
+        self.users['user_two'] = user_5_db
+
+        user_6_db = UserDB(name='user_three')
+        user_6_db = User.add_or_update(user_6_db)
+        self.users['user_three'] = user_6_db
+
         # Roles
         # rule_create grant on parent pack
         grant_db = PermissionGrantDB(resource_uid='pack:examples',
@@ -136,6 +144,20 @@ class RuleControllerRBACTestCase(APIControllerWithRBACTestCase):
         role_3_db = Role.add_or_update(role_3_db)
         self.roles['rule_create_webhook_create_core_local_execute'] = role_3_db
 
+        # rule_create, rule_list, webhook_create, action_execute on parent pack
+        grant_6_db = PermissionGrantDB(resource_uid='pack:examples',
+                                     resource_type=ResourceType.RULE,
+                                     permission_types=[PermissionType.RULE_LIST])
+        grant_6_db = PermissionGrant.add_or_update(grant_6_db)
+
+        permission_grants = [str(grant_1_db.id), str(grant_2_db.id), str(grant_3_db.id),
+                             str(grant_6_db.id)]
+
+        role_5_db = RoleDB(name='rule_create_list_webhook_create_core_local_execute',
+                           permission_grants=permission_grants)
+        role_5_db = Role.add_or_update(role_5_db)
+        self.roles['rule_create_list_webhook_create_core_local_execute'] = role_5_db
+
         # rule_create grant on parent pack, webhook_create on webhook "sample", action_execute on
         # examples and wolfpack
         grant_1_db = PermissionGrantDB(resource_uid='pack:examples',
@@ -158,6 +180,7 @@ class RuleControllerRBACTestCase(APIControllerWithRBACTestCase):
                                      resource_type=ResourceType.PACK,
                                      permission_types=[PermissionType.ACTION_ALL])
         grant_5_db = PermissionGrant.add_or_update(grant_5_db)
+
         permission_grants = [str(grant_1_db.id), str(grant_2_db.id), str(grant_3_db.id),
                              str(grant_4_db.id), str(grant_5_db.id)]
 
@@ -193,6 +216,18 @@ class RuleControllerRBACTestCase(APIControllerWithRBACTestCase):
             user=user_db.name,
             role=self.roles['rule_create_webhook_create_action_execute'].name,
             source='assignments/%s.yaml' % user_db.name)
+        UserRoleAssignment.add_or_update(role_assignment_db)
+
+        role_assignment_db = UserRoleAssignmentDB(
+            user=user_5_db.name,
+            role='rule_create_list_webhook_create_core_local_execute',
+            source='assignments/%s.yaml' % user_5_db.name)
+        UserRoleAssignment.add_or_update(role_assignment_db)
+
+        role_assignment_db = UserRoleAssignmentDB(
+            user=user_6_db.name,
+            role='rule_create_list_webhook_create_core_local_execute',
+            source='assignments/%s.yaml' % user_6_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
     def test_post_webhook_trigger_no_trigger_and_action_permission(self):
@@ -263,26 +298,82 @@ class RuleControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.app.get('/v1/rules?limit=-1')
         self.assertEqual(resp.status_code, http_client.OK)
 
-    def test_get_respective_created_rules(self):
-        cfg.CONF.set_override(name='permission_isolation', override=True,
-                              group='rbac')
+    def test_get_all_respective_actions_with_permission_isolation(self):
+        cfg.CONF.set_override(name='permission_isolation', override=True, group='rbac')
 
+        data = copy.copy(RuleControllerRBACTestCase.RULE_1)
+
+        # User with admin role assignment
         user_db = self.users['admin']
         self.use_user(user_db)
-        resp = self.__do_post(RuleControllerRBACTestCase.RULE_1)
-        self.assertEqual(resp.status_code, http_client.CREATED)
-        resp1 = self.app.get('/v1/rules')
 
-        user_db = self.users['rule_create_1']
+        data['name'] += '1'
+        resp = self.__do_post(data)
+        self.assertEqual(resp.status_code, http_client.CREATED)
+
+        # User one
+        user_db = self.users['user_two']
         self.use_user(user_db)
-        resp = self.__do_post(RuleControllerRBACTestCase.RULE_2)
-        self.assertEqual(resp.status_code, http_client.CREATED)
-        resp = self.__do_post(RuleControllerRBACTestCase.RULE_3)
-        self.assertEqual(resp.status_code, http_client.CREATED)
-        resp2 = self.app.get('/v1/rules')
 
-        self.assertEqual(len(json.loads(resp1.body)), 1)
-        self.assertEqual(len(json.loads(resp2.body)), 2)
+        data['name'] += '2'
+        resp = self.__do_post(data)
+        self.assertEqual(resp.status_code, http_client.CREATED)
+        data['name'] += '3'
+        resp = self.__do_post(data)
+        self.assertEqual(resp.status_code, http_client.CREATED)
+
+        # User two
+        user_db = self.users['user_three']
+        self.use_user(user_db)
+
+        data['name'] += '4'
+        resp = self.__do_post(data)
+        self.assertEqual(resp.status_code, http_client.CREATED)
+        data['name'] += '5'
+        resp = self.__do_post(data)
+        self.assertEqual(resp.status_code, http_client.CREATED)
+
+        # 1. Admin can view all
+        user_db = self.users['admin']
+        self.use_user(user_db)
+
+        resp = self.app.get('/v1/rules?limit=100')
+        self.assertEqual(len(resp.json), (1 + 2 + 2))
+        self.assertEqual(resp.json[0]['context']['user'], 'admin')
+        self.assertEqual(resp.json[1]['context']['user'], 'user_two')
+        self.assertEqual(resp.json[2]['context']['user'], 'user_two')
+        self.assertEqual(resp.json[3]['context']['user'], 'user_three')
+        self.assertEqual(resp.json[4]['context']['user'], 'user_three')
+
+        # 2. System user can view all
+        user_db = self.users['system_user']
+        self.use_user(user_db)
+
+        resp = self.app.get('/v1/rules?limit=100')
+        self.assertEqual(len(resp.json), (1 + 2 + 2))
+        self.assertEqual(resp.json[0]['context']['user'], 'admin')
+        self.assertEqual(resp.json[1]['context']['user'], 'user_two')
+        self.assertEqual(resp.json[2]['context']['user'], 'user_two')
+        self.assertEqual(resp.json[3]['context']['user'], 'user_three')
+        self.assertEqual(resp.json[4]['context']['user'], 'user_three')
+
+        # 3. User two can only view their own
+        user_db = self.users['user_two']
+        self.use_user(user_db)
+
+        resp = self.app.get('/v1/rules?limit=100')
+        self.assertEqual(len(resp.json), 2)
+        self.assertEqual(resp.json[0]['context']['user'], 'user_two')
+        self.assertEqual(resp.json[1]['context']['user'], 'user_two')
+
+        # 4. User three can only view their own
+        user_db = self.users['user_three']
+        self.use_user(user_db)
+
+        resp = self.app.get('/v1/rules?limit=100')
+        self.assertEqual(len(resp.json), 2)
+        self.assertEqual(resp.json[0]['context']['user'], 'user_three')
+        self.assertEqual(resp.json[1]['context']['user'], 'user_three')
 
     @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
     def __do_post(self, rule):
