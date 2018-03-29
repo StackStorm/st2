@@ -252,3 +252,10 @@ class ActionExecutionRBACControllerTestCase(BaseActionExecutionControllerTestCas
         self.assertEqual(len(resp.json), 2)
         self.assertEqual(resp.json[0]['context']['user'], 'user_three')
         self.assertEqual(resp.json[1]['context']['user'], 'user_three')
+
+        # 5. Observer can only view their own
+        user_db = self.users['observer']
+        self.use_user(user_db)
+
+        resp = self.app.get('/v1/actionexecutions?limit=100')
+        self.assertEqual(len(resp.json), 0)
