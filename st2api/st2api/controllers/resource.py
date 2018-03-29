@@ -369,7 +369,6 @@ class BaseResourceIsolationHandlerMixin(object):
     Isolate resources for users except system_user.
     """
 
-    @staticmethod
     def resource_model_filter(self, model, instances, requester_user=None, offset=0, eop=0,
                               **kwargs):
 
