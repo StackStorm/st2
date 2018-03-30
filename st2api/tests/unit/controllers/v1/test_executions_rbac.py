@@ -77,10 +77,12 @@ class ActionExecutionRBACControllerTestCase(BaseActionExecutionControllerTestCas
             role_db = RoleDB(name=role)
             Role.add_or_update(role_db)
 
-        # action_execute on parent pack
+        # action_execute, execution_list on parent pack
+        # action_view on parent pack
         grant_1_db = PermissionGrantDB(resource_uid='pack:wolfpack',
                                        resource_type=ResourceType.PACK,
-                                       permission_types=[PermissionType.ACTION_EXECUTE])
+                                       permission_types=[PermissionType.ACTION_EXECUTE,
+                                                         PermissionType.ACTION_VIEW])
         grant_1_db = PermissionGrant.add_or_update(grant_1_db)
         grant_2_db = PermissionGrantDB(resource_uid=None,
                                      resource_type=ResourceType.EXECUTION,
@@ -179,37 +181,10 @@ class ActionExecutionRBACControllerTestCase(BaseActionExecutionControllerTestCas
     def test_get_all_respective_actions_with_permission_isolation(self):
         cfg.CONF.set_override(name='permission_isolation', override=True, group='rbac')
 
-        data = {
-            'action': 'wolfpack.action-1',
-            'parameters': {
-                'actionstr': 'foo'
-            }
-        }
-
-        # User with admin role assignment
-        user_db = self.users['admin']
-        self.use_user(user_db)
-
-        resp = self._do_post(data)
-        self.assertEqual(resp.status_code, http_client.CREATED)
-
-        # User with multiple roles assignment
-        user_db = self.users['user_two']
-        self.use_user(user_db)
-
-        resp = self._do_post(data)
-        self.assertEqual(resp.status_code, http_client.CREATED)
-        resp = self._do_post(data)
-        self.assertEqual(resp.status_code, http_client.CREATED)
-
-        # User two
-        user_db = self.users['user_three']
-        self.use_user(user_db)
-
-        resp = self._do_post(data)
-        self.assertEqual(resp.status_code, http_client.CREATED)
-        resp = self._do_post(data)
-        self.assertEqual(resp.status_code, http_client.CREATED)
+        result = self._inset_mock_execution_data_for_isolation_tests()
+        self.assertEqual(len(result['admin']), 1)
+        self.assertEqual(len(result['user_two']), 2)
+        self.assertEqual(len(result['user_three']), 2)
 
         # 1. Admin can view all
         user_db = self.users['admin']
@@ -259,3 +234,140 @@ class ActionExecutionRBACControllerTestCase(BaseActionExecutionControllerTestCas
 
         resp = self.app.get('/v1/actionexecutions?limit=100')
         self.assertEqual(len(resp.json), 0)
+
+    def test_get_one_user_resource_permission_isolation(self):
+        cfg.CONF.set_override(name='permission_isolation', override=True, group='rbac')
+
+        result = self._inset_mock_execution_data_for_isolation_tests()
+        self.assertEqual(len(result['admin']), 1)
+        self.assertEqual(len(result['user_two']), 2)
+        self.assertEqual(len(result['user_three']), 2)
+
+        # 1. Admin can view all
+        user_db = self.users['admin']
+        self.use_user(user_db)
+
+        for username, execution_ids in result.items():
+            for execution_id in execution_ids:
+                resp = self.app.get('/v1/actionexecutions/%s' % (execution_id))
+                self.assertEqual(resp.status_code, http_client.OK)
+                self.assertEqual(resp.json['id'], execution_id)
+                self.assertEqual(resp.json['context']['user'], username)
+
+        # 2. System user can view all
+        user_db = self.users['system_user']
+        self.use_user(user_db)
+
+        for username, execution_ids in result.items():
+            for execution_id in execution_ids:
+                resp = self.app.get('/v1/actionexecutions/%s' % (execution_id))
+                self.assertEqual(resp.status_code, http_client.OK)
+                self.assertEqual(resp.json['id'], execution_id)
+                self.assertEqual(resp.json['context']['user'], username)
+
+        # 3. User two can only view their own
+        user_db = self.users['user_two']
+        self.use_user(user_db)
+
+        for execution_id in result['user_two']:
+            resp = self.app.get('/v1/actionexecutions/%s' % (execution_id))
+            self.assertEqual(resp.status_code, http_client.OK)
+            self.assertEqual(resp.json['id'], execution_id)
+            self.assertEqual(resp.json['context']['user'], 'user_two')
+
+        expected_msg = ('User "user_two" doesn\'t have access to resource "execution:%s" due to '
+                        'resource permission isolation.')
+
+        for execution_id in result['admin']:
+            resp = self.app.get('/v1/actionexecutions/%s' % (execution_id), expect_errors=True)
+            self.assertEqual(resp.status_code, http_client.FORBIDDEN)
+            self.assertEqual(resp.json['faultstring'], expected_msg % (execution_id))
+
+        for execution_id in result['user_three']:
+            resp = self.app.get('/v1/actionexecutions/%s' % (execution_id), expect_errors=True)
+            self.assertEqual(resp.status_code, http_client.FORBIDDEN)
+            self.assertEqual(resp.json['faultstring'], expected_msg % (execution_id))
+
+        # 4. User three can only view their own
+        user_db = self.users['user_three']
+        self.use_user(user_db)
+
+        for execution_id in result['user_three']:
+            resp = self.app.get('/v1/actionexecutions/%s' % (execution_id))
+            self.assertEqual(resp.status_code, http_client.OK)
+            self.assertEqual(resp.json['id'], execution_id)
+            self.assertEqual(resp.json['context']['user'], 'user_three')
+
+        expected_msg = ('User "user_three" doesn\'t have access to resource "execution:%s" due to '
+                        'resource permission isolation.')
+
+        for execution_id in result['admin']:
+            resp = self.app.get('/v1/actionexecutions/%s' % (execution_id), expect_errors=True)
+            self.assertEqual(resp.status_code, http_client.FORBIDDEN)
+            self.assertEqual(resp.json['faultstring'], expected_msg % (execution_id))
+
+        for execution_id in result['user_two']:
+            resp = self.app.get('/v1/actionexecutions/%s' % (execution_id), expect_errors=True)
+            self.assertEqual(resp.status_code, http_client.FORBIDDEN)
+            self.assertEqual(resp.json['faultstring'], expected_msg % (execution_id))
+
+        # 5. Observer can only view their own
+        user_db = self.users['observer']
+        self.use_user(user_db)
+
+        expected_msg = ('User "observer" doesn\'t have access to resource "execution:%s" due to '
+                        'resource permission isolation.')
+
+        for username, execution_ids in result.items():
+            for execution_id in execution_ids:
+                resp = self.app.get('/v1/actionexecutions/%s' % (execution_id), expect_errors=True)
+                self.assertEqual(resp.status_code, http_client.FORBIDDEN)
+                self.assertEqual(resp.json['faultstring'], expected_msg % (execution_id))
+
+    def _inset_mock_execution_data_for_isolation_tests(self):
+        data = {
+            'action': 'wolfpack.action-1',
+            'parameters': {
+                'actionstr': 'foo'
+            }
+        }
+
+        result = {
+            'admin': [],
+            'user_two': [],
+            'user_three': []
+        }
+
+        # User with admin role assignment
+        user_db = self.users['admin']
+        self.use_user(user_db)
+
+        resp = self._do_post(data)
+        self.assertEqual(resp.status_code, http_client.CREATED)
+        result['admin'].append(resp.json['id'])
+
+        # User two
+        user_db = self.users['user_two']
+        self.use_user(user_db)
+
+        resp = self._do_post(data)
+        self.assertEqual(resp.status_code, http_client.CREATED)
+        result['user_two'].append(resp.json['id'])
+
+        resp = self._do_post(data)
+        self.assertEqual(resp.status_code, http_client.CREATED)
+        result['user_two'].append(resp.json['id'])
+
+        # User three
+        user_db = self.users['user_three']
+        self.use_user(user_db)
+
+        resp = self._do_post(data)
+        self.assertEqual(resp.status_code, http_client.CREATED)
+        result['user_three'].append(resp.json['id'])
+
+        resp = self._do_post(data)
+        self.assertEqual(resp.status_code, http_client.CREATED)
+        result['user_three'].append(resp.json['id'])
+
+        return result
