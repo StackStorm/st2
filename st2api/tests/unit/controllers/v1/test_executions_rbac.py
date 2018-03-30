@@ -181,7 +181,7 @@ class ActionExecutionRBACControllerTestCase(BaseActionExecutionControllerTestCas
     def test_get_all_respective_actions_with_permission_isolation(self):
         cfg.CONF.set_override(name='permission_isolation', override=True, group='rbac')
 
-        result = self._inset_mock_execution_data_for_isolation_tests()
+        result = self._insert_mock_execution_data_for_isolation_tests()
         self.assertEqual(len(result['admin']), 1)
         self.assertEqual(len(result['user_two']), 2)
         self.assertEqual(len(result['user_three']), 2)
@@ -238,7 +238,7 @@ class ActionExecutionRBACControllerTestCase(BaseActionExecutionControllerTestCas
     def test_get_one_user_resource_permission_isolation(self):
         cfg.CONF.set_override(name='permission_isolation', override=True, group='rbac')
 
-        result = self._inset_mock_execution_data_for_isolation_tests()
+        result = self._insert_mock_execution_data_for_isolation_tests()
         self.assertEqual(len(result['admin']), 1)
         self.assertEqual(len(result['user_two']), 2)
         self.assertEqual(len(result['user_three']), 2)
@@ -324,7 +324,7 @@ class ActionExecutionRBACControllerTestCase(BaseActionExecutionControllerTestCas
                 self.assertEqual(resp.status_code, http_client.FORBIDDEN)
                 self.assertEqual(resp.json['faultstring'], expected_msg % (execution_id))
 
-    def _inset_mock_execution_data_for_isolation_tests(self):
+    def _insert_mock_execution_data_for_isolation_tests(self):
         data = {
             'action': 'wolfpack.action-1',
             'parameters': {
