@@ -220,8 +220,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         action_exec_db = self.access.impl.model.objects.filter(id=id).only(*fields).get()
         return action_exec_db.result
 
-    def _get_children(self, id_, requester_user, depth=-1, result_fmt=None,
-                      show_secrets=False):
+    def _get_children(self, id_, requester_user, depth=-1, result_fmt=None, show_secrets=False):
         # make sure depth is int. Url encoding will make it a string and needs to
         # be converted back in that case.
         depth = int(depth)
@@ -258,12 +257,9 @@ class ActionExecutionChildrenController(BaseActionExecutionNestedController):
         :rtype: ``list``
         """
 
-        instance = self._get_by_id(resource_id=id)
-
-        permission_type = PermissionType.EXECUTION_VIEW
-        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
-                                                          resource_db=instance,
-                                                          permission_type=permission_type)
+        execution_db = self._get_one_by_id(id=id, requester_user=requester_user,
+                                           permission_type=PermissionType.EXECUTION_VIEW)
+        id = str(execution_db.id)
 
         return self._get_children(id_=id, depth=depth, result_fmt=result_fmt,
                                   requester_user=requester_user, show_secrets=show_secrets)
