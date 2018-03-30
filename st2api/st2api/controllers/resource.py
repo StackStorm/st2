@@ -257,7 +257,8 @@ class ResourceController(object):
                                             **from_model_kwargs)
 
         if not result:
-            LOG.debug('Not returning the result due to RBAC resource isolation filter')
+            LOG.debug('Not returning the result because RBAC resource isolation is enabled and '
+                      'current user doesn\'t match the resource user')
             raise ResourceAccessDeniedPermissionIsolationError(user_db=requester_user,
                                                                resource_api_or_db=instance,
                                                                permission_type=permission_type)
@@ -472,7 +473,8 @@ class ContentPackResourceController(ResourceController):
                                             **from_model_kwargs)
 
         if not result:
-            LOG.debug('Not returning the result due to RBAC resource isolation filter')
+            LOG.debug('Not returning the result because RBAC resource isolation is enabled and '
+                      'current user doesn\'t match the resource user')
             raise ResourceAccessDeniedPermissionIsolationError(user_db=requester_user,
                                                                resource_api_or_db=instance,
                                                                permission_type=permission_type)
