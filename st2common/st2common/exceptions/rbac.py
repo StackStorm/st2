@@ -20,7 +20,8 @@ from st2common.rbac.types import GLOBAL_PERMISSION_TYPES
 __all__ = [
     'AccessDeniedError',
     'ResourceTypeAccessDeniedError',
-    'ResourceAccessDeniedError'
+    'ResourceAccessDeniedError',
+    'ResourceAccessDeniedPermissionIsolationError'
 ]
 
 
@@ -67,3 +68,21 @@ class ResourceAccessDeniedError(AccessDeniedError):
             message = ('User "%s" doesn\'t have required permission "%s"' %
                        (user_db.name, permission_type))
         super(ResourceAccessDeniedError, self).__init__(message=message, user_db=user_db)
+
+
+class ResourceAccessDeniedPermissionIsolationError(AccessDeniedError):
+    """
+    Class representing an error where user doesn't have a required permission on a resource due
+    to resource permission isolation.
+    """
+
+    def __init__(self, user_db, resource_api_or_db, permission_type):
+        self.resource_api_db = resource_api_or_db
+        self.permission_type = permission_type
+
+        resource_uid = resource_api_or_db.get_uid() if resource_api_or_db else 'unknown'
+
+        message = ('User "%s" doesn\'t have access to resource "%s" due to resource permission '
+                   ' isolation.' % (user_db.name, resource_uid))
+        super(ResourceAccessDeniedPermissionIsolationError, self).__init__(message=message,
+                                                                           user_db=user_db)
