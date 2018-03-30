@@ -314,10 +314,11 @@ class ActionExecutionOutputController(ActionExecutionsControllerMixin, ResourceC
 
             if not execution_db:
                 raise ValueError('No executions found in the database')
-        else:
-            execution_db = self._get_one_by_id(id=id, requester_user=requester_user,
-                                               permission_type=PermissionType.EXECUTION_VIEW)
 
+            id = str(execution_db.id)
+
+        execution_db = self._get_one_by_id(id=id, requester_user=requester_user,
+                                           permission_type=PermissionType.EXECUTION_VIEW)
         execution_id = str(execution_db.id)
 
         query_filters = {}
