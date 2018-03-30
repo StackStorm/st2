@@ -301,37 +301,10 @@ class RuleControllerRBACTestCase(APIControllerWithRBACTestCase):
     def test_get_all_respective_actions_with_permission_isolation(self):
         cfg.CONF.set_override(name='permission_isolation', override=True, group='rbac')
 
-        data = copy.copy(RuleControllerRBACTestCase.RULE_1)
-
-        # User with admin role assignment
-        user_db = self.users['admin']
-        self.use_user(user_db)
-
-        data['name'] += '1'
-        resp = self.__do_post(data)
-        self.assertEqual(resp.status_code, http_client.CREATED)
-
-        # User one
-        user_db = self.users['user_two']
-        self.use_user(user_db)
-
-        data['name'] += '2'
-        resp = self.__do_post(data)
-        self.assertEqual(resp.status_code, http_client.CREATED)
-        data['name'] += '3'
-        resp = self.__do_post(data)
-        self.assertEqual(resp.status_code, http_client.CREATED)
-
-        # User two
-        user_db = self.users['user_three']
-        self.use_user(user_db)
-
-        data['name'] += '4'
-        resp = self.__do_post(data)
-        self.assertEqual(resp.status_code, http_client.CREATED)
-        data['name'] += '5'
-        resp = self.__do_post(data)
-        self.assertEqual(resp.status_code, http_client.CREATED)
+        result = self._insert_mock_rule_data_for_isolation_tests()
+        self.assertEqual(len(result['admin']), 1)
+        self.assertEqual(len(result['user_two']), 2)
+        self.assertEqual(len(result['user_three']), 2)
 
         # 1. Admin can view all
         user_db = self.users['admin']
@@ -374,6 +347,143 @@ class RuleControllerRBACTestCase(APIControllerWithRBACTestCase):
         self.assertEqual(len(resp.json), 2)
         self.assertEqual(resp.json[0]['context']['user'], 'user_three')
         self.assertEqual(resp.json[1]['context']['user'], 'user_three')
+
+    def test_get_one_user_resource_permission_isolation(self):
+        cfg.CONF.set_override(name='permission_isolation', override=True, group='rbac')
+
+        result = self._insert_mock_rule_data_for_isolation_tests()
+        self.assertEqual(len(result['admin']), 1)
+        self.assertEqual(len(result['user_two']), 2)
+        self.assertEqual(len(result['user_three']), 2)
+
+        # 1. Admin can view all
+        user_db = self.users['admin']
+        self.use_user(user_db)
+
+        for username, rule_ids in result.items():
+            for rule_id in rule_ids:
+                resp = self.app.get('/v1/rules/%s' % (rule_id))
+                self.assertEqual(resp.status_code, http_client.OK)
+                self.assertEqual(resp.json['id'], rule_id)
+                self.assertEqual(resp.json['context']['user'], username)
+
+        # 2. System user can view all
+        user_db = self.users['system_user']
+        self.use_user(user_db)
+
+        for username, rule_ids in result.items():
+            for rule_id in rule_ids:
+                resp = self.app.get('/v1/rules/%s' % (rule_id))
+                self.assertEqual(resp.status_code, http_client.OK)
+                self.assertEqual(resp.json['id'], rule_id)
+                self.assertEqual(resp.json['context']['user'], username)
+
+        # 3. User two can only view their own
+        user_db = self.users['user_two']
+        self.use_user(user_db)
+
+        for rule_id in result['user_two']:
+            resp = self.app.get('/v1/rules/%s' % (rule_id))
+            self.assertEqual(resp.status_code, http_client.OK)
+            self.assertEqual(resp.json['id'], rule_id)
+            self.assertEqual(resp.json['context']['user'], 'user_two')
+
+        expected_msg = ('User "user_two" doesn\'t have access to resource "rule:.*" due to '
+                        'resource permission isolation.')
+
+        for rule_id in result['admin']:
+            resp = self.app.get('/v1/rules/%s' % (rule_id), expect_errors=True)
+            self.assertEqual(resp.status_code, http_client.FORBIDDEN)
+            self.assertRegexpMatches(resp.json['faultstring'], expected_msg)
+
+        for rule_id in result['user_three']:
+            resp = self.app.get('/v1/rules/%s' % (rule_id), expect_errors=True)
+            self.assertEqual(resp.status_code, http_client.FORBIDDEN)
+            self.assertRegexpMatches(resp.json['faultstring'], expected_msg)
+
+        # 4. User three can only view their own
+        user_db = self.users['user_three']
+        self.use_user(user_db)
+
+        for rule_id in result['user_three']:
+            resp = self.app.get('/v1/rules/%s' % (rule_id))
+            self.assertEqual(resp.status_code, http_client.OK)
+            self.assertEqual(resp.json['id'], rule_id)
+            self.assertEqual(resp.json['context']['user'], 'user_three')
+
+        expected_msg = ('User "user_three" doesn\'t have access to resource "rule:.*" due to '
+                        'resource permission isolation.')
+
+        for rule_id in result['admin']:
+            resp = self.app.get('/v1/rules/%s' % (rule_id), expect_errors=True)
+            self.assertEqual(resp.status_code, http_client.FORBIDDEN)
+            self.assertRegexpMatches(resp.json['faultstring'], expected_msg)
+
+        for rule_id in result['user_two']:
+            resp = self.app.get('/v1/rules/%s' % (rule_id), expect_errors=True)
+            self.assertEqual(resp.status_code, http_client.FORBIDDEN)
+            self.assertRegexpMatches(resp.json['faultstring'], expected_msg)
+
+        # 5. Observer can only view their own
+        user_db = self.users['observer']
+        self.use_user(user_db)
+
+        expected_msg = ('User "observer" doesn\'t have access to resource "rule:.*" due to '
+                        'resource permission isolation.')
+
+        for username, rule_ids in result.items():
+            for rule_id in rule_ids:
+                resp = self.app.get('/v1/rules/%s' % (rule_id), expect_errors=True)
+                self.assertEqual(resp.status_code, http_client.FORBIDDEN)
+                self.assertRegexpMatches(resp.json['faultstring'], expected_msg)
+
+    def _insert_mock_rule_data_for_isolation_tests(self):
+        data = copy.copy(RuleControllerRBACTestCase.RULE_1)
+
+        result = {
+            'admin': [],
+            'user_two': [],
+            'user_three': []
+        }
+
+        # User with admin role assignment
+        user_db = self.users['admin']
+        self.use_user(user_db)
+
+        data['name'] += '1'
+        resp = self.__do_post(data)
+        self.assertEqual(resp.status_code, http_client.CREATED)
+        result['admin'].append(resp.json['id'])
+
+        # User two
+        user_db = self.users['user_two']
+        self.use_user(user_db)
+
+        data['name'] += '2'
+        resp = self.__do_post(data)
+        self.assertEqual(resp.status_code, http_client.CREATED)
+        result['user_two'].append(resp.json['id'])
+
+        data['name'] += '3'
+        resp = self.__do_post(data)
+        self.assertEqual(resp.status_code, http_client.CREATED)
+        result['user_two'].append(resp.json['id'])
+
+        # User two
+        user_db = self.users['user_three']
+        self.use_user(user_db)
+
+        data['name'] += '4'
+        resp = self.__do_post(data)
+        self.assertEqual(resp.status_code, http_client.CREATED)
+        result['user_three'].append(resp.json['id'])
+
+        data['name'] += '5'
+        resp = self.__do_post(data)
+        self.assertEqual(resp.status_code, http_client.CREATED)
+        result['user_three'].append(resp.json['id'])
+
+        return result
 
     @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
     def __do_post(self, rule):
