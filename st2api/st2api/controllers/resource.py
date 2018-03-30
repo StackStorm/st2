@@ -26,7 +26,7 @@ from six.moves import http_client
 from st2common import log as logging
 from st2common.models.system.common import ResourceReference
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
-from st2common.exceptions.rbac import ResourceAccessDeniedError
+from st2common.exceptions.rbac import ResourceAccessDeniedPermissionIsolationError
 from st2common.rbac import utils as rbac_utils
 from st2common.exceptions.rbac import AccessDeniedError
 from st2common.util import schema as util_schema
@@ -251,7 +251,16 @@ class ResourceController(object):
 
         from_model_kwargs = from_model_kwargs or {}
         from_model_kwargs.update(self.from_model_kwargs)
-        result = self.model.from_model(instance, **from_model_kwargs)
+
+        result = self.resource_model_filter(model=self.model, instance=instance,
+                                            requester_user=requester_user,
+                                            **from_model_kwargs)
+
+        if not result:
+            LOG.debug('Not returning the result due to RBAC resource isolation filter')
+            raise ResourceAccessDeniedPermissionIsolationError(user_db=requester_user,
+                                                               resource_api_or_db=instance,
+                                                               permission_type=permission_type)
 
         return result
 
@@ -464,8 +473,9 @@ class ContentPackResourceController(ResourceController):
 
         if not result:
             LOG.debug('Not returning the result due to RBAC resource isolation filter')
-            raise ResourceAccessDeniedError(user_db=requester_user, resource_api_or_db=instance,
-                                            permission_type=permission_type)
+            raise ResourceAccessDeniedPermissionIsolationError(user_db=requester_user,
+                                                               resource_api_or_db=instance,
+                                                               permission_type=permission_type)
 
         if result and self.include_reference:
             pack = getattr(result, 'pack', None)
