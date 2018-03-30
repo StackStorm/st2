@@ -83,6 +83,6 @@ class ResourceAccessDeniedPermissionIsolationError(AccessDeniedError):
         resource_uid = resource_api_or_db.get_uid() if resource_api_or_db else 'unknown'
 
         message = ('User "%s" doesn\'t have access to resource "%s" due to resource permission '
-                   ' isolation.' % (user_db.name, resource_uid))
+                   'isolation.' % (user_db.name, resource_uid))
         super(ResourceAccessDeniedPermissionIsolationError, self).__init__(message=message,
                                                                            user_db=user_db)
