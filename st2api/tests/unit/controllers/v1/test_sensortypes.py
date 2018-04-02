@@ -63,6 +63,7 @@ class SensorTypeControllerTestCase(FunctionalTest):
         resp = self.app.get('/v1/sensortypes?name=SampleSensor2')
         self.assertEqual(len(resp.json), 1)
         self.assertEqual(resp.json[0]['name'], 'SampleSensor2')
+        self.assertEqual(resp.json[0]['ref'], 'dummy_pack_1.SampleSensor2')
 
         resp = self.app.get('/v1/sensortypes?name=SampleSensor3')
         self.assertEqual(len(resp.json), 1)
@@ -99,6 +100,7 @@ class SensorTypeControllerTestCase(FunctionalTest):
         resp = self.app.get('/v1/sensortypes/dummy_pack_1.SampleSensor')
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertEqual(resp.json['name'], 'SampleSensor')
+        self.assertEqual(resp.json['ref'], 'dummy_pack_1.SampleSensor')
 
     def test_get_one_doesnt_exist(self):
         resp = self.app.get('/v1/sensortypes/1', expect_errors=True)
@@ -117,6 +119,7 @@ class SensorTypeControllerTestCase(FunctionalTest):
         data['enabled'] = False
         put_resp = self.app.put_json('/v1/sensortypes/dummy_pack_1.SampleSensor', data)
         self.assertEqual(put_resp.status_int, http_client.OK)
+        self.assertEqual(put_resp.json['ref'], 'dummy_pack_1.SampleSensor')
         self.assertFalse(put_resp.json['enabled'])
 
         # Verify sensor has been disabled

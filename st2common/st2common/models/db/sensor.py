@@ -43,6 +43,7 @@ class SensorTypeDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
     UID_FIELDS = ['pack', 'name']
 
     name = me.StringField(required=True)
+    ref = me.StringField(required=True)
     pack = me.StringField(required=True, unique_with='name')
     artifact_uri = me.StringField()
     entry_point = me.StringField()
