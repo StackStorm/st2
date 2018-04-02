@@ -99,6 +99,8 @@ Fixed
   expressions and default values. (bug fix) #4050 #4050
 
   Reported by @rakeshrm.
+* Fix st2 webhook get -h which was asking for a name or id as opposed to the URL of the webhook.
+  Also, fix st2 webhook list to explicitly add a webhook column. (bugfix) #4048
 
 2.6.0 - January 19, 2018
 ------------------------
