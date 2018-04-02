@@ -1,10 +1,6 @@
 Changelog
 =========
 
-in development
---------------
-
-
 2.7.0 - April 06, 2018
 ----------------------
 
@@ -110,6 +106,8 @@ Fixed
 * Make sure ``observer`` system role also grants ``pack_search`` permission. (bug fix) #4063 #4064
 
   Reported by @SURAJTHEGREAT.
+* Fix st2 webhook get -h which was asking for a name or id as opposed to the URL of the webhook.
+  Also, fix st2 webhook list to explicitly add a webhook column. (bugfix) #4048
 
 2.6.0 - January 19, 2018
 ------------------------
