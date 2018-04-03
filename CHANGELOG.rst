@@ -42,6 +42,10 @@ Added
   (new feature) #3997
 * Update windows runner to correctly handle and use ``timeout`` action execution status.
   (improvement) #4047
+* Add missing ``scope``, ``decrypt`` and ``encrypt`` arguments to the datastore management
+  related methods on the SensorService class. (improvement) #3895 #4057 #4058
+
+  Reported by @djh2020, @mxmader.
 * Add context field to rule model in which each rule has its own corresponding user. Besides, there
   is a new RBAC configuration ``permission_isolation``. Whoever can only operate and observe their
   own rules or executions except ``system_user`` and users with RBAC admin role when set to
