@@ -13,8 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
+
 import mock
 import six
+from oslo_config import cfg
 
 from st2common.transport.publishers import PoolPublisher
 from st2common.rbac.types import PermissionType
@@ -83,6 +86,10 @@ class RuleControllerRBACTestCase(APIControllerWithRBACTestCase):
         user_3_db = User.add_or_update(user_3_db)
         self.users['rule_create_webhook_create_core_local_execute'] = user_3_db
 
+        user_4_db = UserDB(name='rule_create_1')
+        user_4_db = User.add_or_update(user_4_db)
+        self.users['rule_create_1'] = user_4_db
+
         # Roles
         # rule_create grant on parent pack
         grant_db = PermissionGrantDB(resource_uid='pack:examples',
@@ -123,10 +130,41 @@ class RuleControllerRBACTestCase(APIControllerWithRBACTestCase):
                                      permission_types=[PermissionType.ACTION_EXECUTE])
         grant_3_db = PermissionGrant.add_or_update(grant_3_db)
         permission_grants = [str(grant_1_db.id), str(grant_2_db.id), str(grant_3_db.id)]
+
         role_3_db = RoleDB(name='rule_create_webhook_create_core_local_execute',
                            permission_grants=permission_grants)
         role_3_db = Role.add_or_update(role_3_db)
         self.roles['rule_create_webhook_create_core_local_execute'] = role_3_db
+
+        # rule_create grant on parent pack, webhook_create on webhook "sample", action_execute on
+        # examples and wolfpack
+        grant_1_db = PermissionGrantDB(resource_uid='pack:examples',
+                                     resource_type=ResourceType.PACK,
+                                     permission_types=[PermissionType.RULE_CREATE])
+        grant_1_db = PermissionGrant.add_or_update(grant_1_db)
+        grant_2_db = PermissionGrantDB(resource_uid='webhook:sample',
+                                     resource_type=ResourceType.WEBHOOK,
+                                     permission_types=[PermissionType.WEBHOOK_CREATE])
+        grant_2_db = PermissionGrant.add_or_update(grant_2_db)
+        grant_3_db = PermissionGrantDB(resource_uid='pack:wolfpack',
+                                     resource_type=ResourceType.PACK,
+                                     permission_types=[PermissionType.ACTION_ALL])
+        grant_3_db = PermissionGrant.add_or_update(grant_3_db)
+        grant_4_db = PermissionGrantDB(resource_uid=None,
+                                       resource_type=ResourceType.RULE,
+                                       permission_types=[PermissionType.RULE_LIST])
+        grant_4_db = PermissionGrant.add_or_update(grant_4_db)
+        grant_5_db = PermissionGrantDB(resource_uid='pack:examples',
+                                     resource_type=ResourceType.PACK,
+                                     permission_types=[PermissionType.ACTION_ALL])
+        grant_5_db = PermissionGrant.add_or_update(grant_5_db)
+        permission_grants = [str(grant_1_db.id), str(grant_2_db.id), str(grant_3_db.id),
+                             str(grant_4_db.id), str(grant_5_db.id)]
+
+        role_4_db = RoleDB(name='rule_create_webhook_create_action_execute',
+                           permission_grants=permission_grants)
+        role_4_db = Role.add_or_update(role_4_db)
+        self.roles['rule_create_webhook_create_action_execute'] = role_4_db
 
         # Role assignments
         user_db = self.users['rule_create']
@@ -147,6 +185,13 @@ class RuleControllerRBACTestCase(APIControllerWithRBACTestCase):
         role_assignment_db = UserRoleAssignmentDB(
             user=user_db.name,
             role=self.roles['rule_create_webhook_create_core_local_execute'].name,
+            source='assignments/%s.yaml' % user_db.name)
+        UserRoleAssignment.add_or_update(role_assignment_db)
+
+        user_db = self.users['rule_create_1']
+        role_assignment_db = UserRoleAssignmentDB(
+            user=user_db.name,
+            role=self.roles['rule_create_webhook_create_action_execute'].name,
             source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
@@ -217,6 +262,27 @@ class RuleControllerRBACTestCase(APIControllerWithRBACTestCase):
 
         resp = self.app.get('/v1/rules?limit=-1')
         self.assertEqual(resp.status_code, http_client.OK)
+
+    def test_get_respective_created_rules(self):
+        cfg.CONF.set_override(name='permission_isolation', override=True,
+                              group='rbac')
+
+        user_db = self.users['admin']
+        self.use_user(user_db)
+        resp = self.__do_post(RuleControllerRBACTestCase.RULE_1)
+        self.assertEqual(resp.status_code, http_client.CREATED)
+        resp1 = self.app.get('/v1/rules')
+
+        user_db = self.users['rule_create_1']
+        self.use_user(user_db)
+        resp = self.__do_post(RuleControllerRBACTestCase.RULE_2)
+        self.assertEqual(resp.status_code, http_client.CREATED)
+        resp = self.__do_post(RuleControllerRBACTestCase.RULE_3)
+        self.assertEqual(resp.status_code, http_client.CREATED)
+        resp2 = self.app.get('/v1/rules')
+
+        self.assertEqual(len(json.loads(resp1.body)), 1)
+        self.assertEqual(len(json.loads(resp2.body)), 2)
 
     @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
     def __do_post(self, rule):

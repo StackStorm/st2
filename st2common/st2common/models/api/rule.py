@@ -195,6 +195,9 @@ class RuleAPI(BaseAPI, APIUIDMixin):
                 'type': 'boolean',
                 'default': False
             },
+            'context': {
+                'type': 'object'
+            },
             "tags": {
                 "description": "User associated metadata assigned to this object.",
                 "type": "array",
@@ -259,6 +262,7 @@ class RuleAPI(BaseAPI, APIUIDMixin):
                                             parameters=rule_type.get('parameters', {}))
 
         kwargs['enabled'] = getattr(rule, 'enabled', False)
+        kwargs['context'] = getattr(rule, 'context', dict())
         kwargs['tags'] = TagsHelper.to_model(getattr(rule, 'tags', []))
 
         model = cls.model(**kwargs)

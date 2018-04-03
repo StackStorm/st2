@@ -209,10 +209,11 @@ class ResourceController(object):
         from_model_kwargs = from_model_kwargs or {}
         from_model_kwargs.update(self.from_model_kwargs)
 
-        result = []
-        for instance in instances[offset:eop]:
-            item = self.model.from_model(instance, **from_model_kwargs)
-            result.append(item)
+        result = self.resource_model_filter(model=self.model,
+                                            instances=instances,
+                                            offset=offset, eop=eop,
+                                            requester_user=requester_user,
+                                            **from_model_kwargs)
 
         resp = Response(json=result)
         resp.headers['X-Total-Count'] = str(instances.count())
@@ -221,6 +222,15 @@ class ResourceController(object):
             resp.headers['X-Limit'] = str(limit)
 
         return resp
+
+    @staticmethod
+    def resource_model_filter(model, instances, requester_user=None,
+                              offset=0, eop=0, **kwargs):
+        result = []
+        for instance in instances[offset:eop]:
+            item = model.from_model(instance, **kwargs)
+            result.append(item)
+        return result
 
     def _get_one_by_id(self, id, requester_user, permission_type, exclude_fields=None,
                        from_model_kwargs=None):
@@ -368,7 +378,28 @@ class ResourceController(object):
         return exclude_fields
 
 
-class ContentPackResourceController(ResourceController):
+class BeseResourceIsolationHandlerMixin(object):
+    """
+    Isolate resources for users except system_user.
+    """
+    @staticmethod
+    def resource_model_filter(model, instances, requester_user=None,
+                              offset=0, eop=0, **kwargs):
+        result = []
+        for instance in instances[offset:eop]:
+            item = model.from_model(instance, **kwargs)
+            if not cfg.CONF.rbac.permission_isolation:
+                result.append(item)
+            elif requester_user.name == cfg.CONF.system_user.user:
+                result.append(item)
+            else:
+                user = item.context.get('user', None)
+                if user and user == requester_user.name:
+                    result.append(item)
+        return result
+
+
+class ContentPackResourceController(BeseResourceIsolationHandlerMixin, ResourceController):
     include_reference = False
 
     def __init__(self):

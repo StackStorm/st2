@@ -26,6 +26,7 @@ from six.moves import http_client
 
 from st2api.controllers.base import BaseRestControllerMixin
 from st2api.controllers.resource import ResourceController
+from st2api.controllers.resource import BeseResourceIsolationHandlerMixin
 from st2api.controllers.v1.executionviews import ExecutionViewsController
 from st2api.controllers.v1.executionviews import SUPPORTED_FILTERS
 from st2common import log as logging
@@ -481,7 +482,8 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
                                                show_secrets=show_secrets)
 
 
-class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceController):
+class ActionExecutionsController(BeseResourceIsolationHandlerMixin,
+                                 ActionExecutionsControllerMixin, ResourceController):
     """
         Implements the RESTful web endpoint that handles
         the lifecycle of ActionExecutions in the system.
@@ -724,7 +726,6 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
 
         LOG.debug('Retrieving all action executions with filters=%s', raw_filters)
         return super(ActionExecutionsController, self)._get_all(exclude_fields=exclude_fields,
-                                                                include_fields=include_fields,
                                                                 from_model_kwargs=from_model_kwargs,
                                                                 sort=sort,
                                                                 offset=offset,
