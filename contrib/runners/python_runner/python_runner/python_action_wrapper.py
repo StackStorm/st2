@@ -113,17 +113,18 @@ class ActionService(object):
     ##################################
 
     def list_values(self, local=True, prefix=None):
-        return self.datastore_service.list_values(local, prefix)
+        return self.datastore_service.list_values(local=local, prefix=prefix)
 
     def get_value(self, name, local=True, scope=SYSTEM_SCOPE, decrypt=False):
-        return self.datastore_service.get_value(name, local, scope=scope, decrypt=decrypt)
+        return self.datastore_service.get_value(name=name, local=local, scope=scope,
+                                                decrypt=decrypt)
 
     def set_value(self, name, value, ttl=None, local=True, scope=SYSTEM_SCOPE, encrypt=False):
-        return self.datastore_service.set_value(name, value, ttl, local, scope=scope,
-                                                encrypt=encrypt)
+        return self.datastore_service.set_value(name=name, value=value, ttl=ttl, local=local,
+                                                scope=scope, encrypt=encrypt)
 
     def delete_value(self, name, local=True, scope=SYSTEM_SCOPE):
-        return self.datastore_service.delete_value(name, local, scope=scope)
+        return self.datastore_service.delete_value(name=name, local=local, scope=scope)
 
 
 class PythonActionWrapper(object):
