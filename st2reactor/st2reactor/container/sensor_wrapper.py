@@ -24,6 +24,7 @@ from oslo_config import cfg
 from jsonschema import ValidationError
 
 from st2common import log as logging
+from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.logging.misc import set_log_level_for_all_loggers
 from st2common.models.api.trace import TraceContext
 from st2common.models.api.trigger import TriggerAPI
@@ -84,7 +85,7 @@ class SensorService(object):
     ##################################
 
     def get_user_info(self):
-        return self.datastore_service.get_user_info()
+        return self._datastore_service.get_user_info()
 
     ##################################
     # Sensor related methods
@@ -145,16 +146,18 @@ class SensorService(object):
     ##################################
 
     def list_values(self, local=True, prefix=None):
-        return self._datastore_service.list_values(local, prefix)
+        return self.datastore_service.list_values(local=local, prefix=prefix)
 
-    def get_value(self, name, local=True):
-        return self._datastore_service.get_value(name, local)
+    def get_value(self, name, local=True, scope=SYSTEM_SCOPE, decrypt=False):
+        return self.datastore_service.get_value(name=name, local=local, scope=scope,
+                                                decrypt=decrypt)
 
-    def set_value(self, name, value, ttl=None, local=True):
-        return self._datastore_service.set_value(name, value, ttl, local)
+    def set_value(self, name, value, ttl=None, local=True, scope=SYSTEM_SCOPE, encrypt=False):
+        return self.datastore_service.set_value(name=name, value=value, ttl=ttl, local=local,
+                                                scope=scope, encrypt=encrypt)
 
-    def delete_value(self, name, local=True):
-        return self._datastore_service.delete_value(name, local)
+    def delete_value(self, name, local=True, scope=SYSTEM_SCOPE):
+        return self.datastore_service.delete_value(name=name, local=local, scope=scope)
 
 
 class SensorWrapper(object):
