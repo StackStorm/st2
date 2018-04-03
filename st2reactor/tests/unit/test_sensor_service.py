@@ -5,6 +5,12 @@ import unittest2
 from oslo_config import cfg
 
 from st2reactor.container.sensor_wrapper import SensorService
+from st2common.constants.keyvalue import SYSTEM_SCOPE
+from st2common.constants.keyvalue import USER_SCOPE
+
+__all__ = [
+    'SensorServiceTestCase'
+]
 
 # This trigger has schema that uses all property types
 TEST_SCHEMA = {
@@ -202,3 +208,41 @@ class SensorServiceTestCase(unittest2.TestCase):
 
         self.sensor_service.dispatch('not-in-database-ref', {})
         self.assertEqual(self._dispatched_count, 1)
+
+    def test_datastore_methods(self):
+        self.sensor_service._datastore_service = mock.Mock()
+
+        # Verify methods take encrypt, decrypt and scope arguments
+        self.sensor_service.get_value(name='foo1', scope=SYSTEM_SCOPE, decrypt=True)
+
+        call_kwargs = self.sensor_service.datastore_service.get_value.call_args[1]
+        expected_kwargs = {
+            'name': 'foo1',
+            'local': True,
+            'scope': SYSTEM_SCOPE,
+            'decrypt': True
+        }
+        self.assertEqual(call_kwargs, expected_kwargs)
+
+        self.sensor_service.set_value(name='foo2', value='bar', scope=USER_SCOPE, encrypt=True)
+
+        call_kwargs = self.sensor_service.datastore_service.set_value.call_args[1]
+        expected_kwargs = {
+            'name': 'foo2',
+            'value': 'bar',
+            'ttl': None,
+            'local': True,
+            'scope': USER_SCOPE,
+            'encrypt': True
+        }
+        self.assertEqual(call_kwargs, expected_kwargs)
+
+        self.sensor_service.delete_value(name='foo3', scope=USER_SCOPE)
+
+        call_kwargs = self.sensor_service.datastore_service.delete_value.call_args[1]
+        expected_kwargs = {
+            'name': 'foo3',
+            'local': True,
+            'scope': USER_SCOPE
+        }
+        self.assertEqual(call_kwargs, expected_kwargs)

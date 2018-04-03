@@ -42,6 +42,10 @@ Added
   (new feature) #3997
 * Update windows runner to correctly handle and use ``timeout`` action execution status.
   (improvement) #4047
+* Add missing ``scope``, ``decrypt`` and ``encrypt`` arguments to the datastore management
+  related methods on the SensorService class. (improvement) #3895 #4057 #4058
+
+  Reported by @djh2020, @mxmader.
 
 Changed
 ~~~~~~~
