@@ -16,8 +16,6 @@
 from __future__ import absolute_import
 import copy
 
-import six
-
 from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.models.api.base import BaseAPI
 from st2common.models.api.base import APIUIDMixin
@@ -44,30 +42,6 @@ class RuleTypeSpec(BaseAPI):
         },
         'additionalProperties': False
     }
-
-
-class ActionSpec(BaseAPI):
-    schema = {
-        'type': 'object',
-        'properties': {
-            'ref': {
-                'type': 'string',
-                'required': True
-            },
-            'parameters': {
-                'type': 'object'
-            }
-        },
-        'additionalProperties': False
-    }
-
-
-REQUIRED_ATTR_SCHEMAS = {
-    'action': copy.deepcopy(ActionSpec.schema)
-}
-
-for k, v in six.iteritems(REQUIRED_ATTR_SCHEMAS):
-    v.update({'required': True})
 
 
 class RuleTypeAPI(BaseAPI):
@@ -175,6 +149,10 @@ class RuleAPI(BaseAPI, APIUIDMixin):
                         'type': 'string',
                         'required': True
                     },
+                    'description': {
+                        'type': 'string',
+                        'require': False
+                    },
                     'parameters': {
                         'type': 'object',
                         'default': {}
@@ -190,7 +168,24 @@ class RuleAPI(BaseAPI, APIUIDMixin):
                 'type': 'object',
                 'default': {}
             },
-            'action': REQUIRED_ATTR_SCHEMAS['action'],
+            'action': {
+                'type': 'object',
+                'required': True,
+                'properties': {
+                    'ref': {
+                        'type': 'string',
+                        'required': True
+                    },
+                    'description': {
+                        'type': 'string',
+                        'require': False
+                    },
+                    'parameters': {
+                        'type': 'object'
+                    }
+                },
+                'additionalProperties': False
+            },
             'enabled': {
                 'type': 'boolean',
                 'default': False
