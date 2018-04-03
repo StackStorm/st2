@@ -57,7 +57,7 @@ def register_opts(ignore_errors=False):
         cfg.BoolOpt('permission_isolation', default=False,
                     help='Isolate resources by user. For now, these resources only include '
                          'rules and executions. All resources can only be viewed or executed '
-                         'by the owning user except the system_user who can view or run '
+                         'by the owning user except the admin and system_user who can view or run '
                          'everything.')
     ]
     do_register_opts(rbac_opts, 'rbac', ignore_errors)
