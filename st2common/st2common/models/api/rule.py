@@ -16,8 +16,6 @@
 from __future__ import absolute_import
 import copy
 
-import six
-
 from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.models.api.base import BaseAPI
 from st2common.models.api.base import APIUIDMixin
