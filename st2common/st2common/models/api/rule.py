@@ -46,30 +46,6 @@ class RuleTypeSpec(BaseAPI):
     }
 
 
-class ActionSpec(BaseAPI):
-    schema = {
-        'type': 'object',
-        'properties': {
-            'ref': {
-                'type': 'string',
-                'required': True
-            },
-            'parameters': {
-                'type': 'object'
-            }
-        },
-        'additionalProperties': False
-    }
-
-
-REQUIRED_ATTR_SCHEMAS = {
-    'action': copy.deepcopy(ActionSpec.schema)
-}
-
-for k, v in six.iteritems(REQUIRED_ATTR_SCHEMAS):
-    v.update({'required': True})
-
-
 class RuleTypeAPI(BaseAPI):
     model = RuleTypeDB
     schema = {
@@ -175,6 +151,10 @@ class RuleAPI(BaseAPI, APIUIDMixin):
                         'type': 'string',
                         'required': True
                     },
+                    'description': {
+                        'type': 'string',
+                        'require': False
+                    },
                     'parameters': {
                         'type': 'object',
                         'default': {}
@@ -190,7 +170,24 @@ class RuleAPI(BaseAPI, APIUIDMixin):
                 'type': 'object',
                 'default': {}
             },
-            'action': REQUIRED_ATTR_SCHEMAS['action'],
+            'action': {
+                'type': 'object',
+                'required': True,
+                'properties': {
+                    'ref': {
+                        'type': 'string',
+                        'required': True
+                    },
+                    'description': {
+                        'type': 'string',
+                        'require': False
+                    },
+                    'parameters': {
+                        'type': 'object'
+                    }
+                },
+                'additionalProperties': False
+            },
             'enabled': {
                 'type': 'boolean',
                 'default': False
