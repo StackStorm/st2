@@ -156,7 +156,7 @@ class SensorService(object):
                                                 encrypt=encrypt)
 
     def delete_value(self, name, local=True, scope=SYSTEM_SCOPE):
-        return self.datastore_service.delete_value(name, local)
+        return self.datastore_service.delete_value(name, local, scope=scope)
 
 
 class SensorWrapper(object):
