@@ -194,6 +194,34 @@ class TestActionExecutionFilters(FunctionalTest):
             self.assertGreater(len(response.json), 0)
             self.assertGreater(int(response.headers['X-Total-Count']), 0)
 
+    def test_advanced_filters(self):
+        excludes = ['parent', 'timestamp', 'action', 'liveaction', 'timestamp_gt',
+                    'timestamp_lt', 'status']
+        for param, field in six.iteritems(ActionExecutionsController.supported_filters):
+            if param in excludes:
+                continue
+
+            value = self.fake_types[0]
+            for item in field.split('.'):
+                value = value[item]
+            response = self.app.get('/v1/executions?filter=%s:%s' % (field, value))
+            self.assertEqual(response.status_int, 200)
+            self.assertIsInstance(response.json, list)
+            self.assertGreater(len(response.json), 0)
+            self.assertGreater(int(response.headers['X-Total-Count']), 0)
+
+    def test_advanced_filters_malformed(self):
+        response = self.app.get('/v1/executions?filter=a:b,c:d', expect_errors=True)
+        self.assertEqual(response.status_int, 400)
+        self.assertEqual(response.json, {
+            "faultstring": "Cannot resolve field \"a\""
+        })
+        response = self.app.get('/v1/executions?filter=action.ref', expect_errors=True)
+        self.assertEqual(response.status_int, 400)
+        self.assertEqual(response.json, {
+            "faultstring": "invalid format for filter \"action.ref\""
+        })
+
     def test_parent(self):
         refs = [v for k, v in six.iteritems(self.refs)
                 if v.action['name'] == 'chain' and v.children]

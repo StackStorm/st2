@@ -507,7 +507,7 @@ class ActionExecutionsController(BaseResourceIsolationControllerMixin,
     }
 
     def get_all(self, requester_user, exclude_attributes=None, sort=None, offset=0, limit=None,
-                show_secrets=False, include_attributes=None, **raw_filters):
+                show_secrets=False, include_attributes=None, advanced_filters=None, **raw_filters):
         """
         List all executions.
 
@@ -538,6 +538,7 @@ class ActionExecutionsController(BaseResourceIsolationControllerMixin,
                                            limit=limit,
                                            query_options=query_options,
                                            raw_filters=raw_filters,
+                                           advanced_filters=advanced_filters,
                                            requester_user=requester_user)
 
     def get_one(self, id, requester_user, exclude_attributes=None, show_secrets=False):
@@ -714,7 +715,7 @@ class ActionExecutionsController(BaseResourceIsolationControllerMixin,
                                              mask_secrets=from_model_kwargs['mask_secrets'])
 
     def _get_action_executions(self, exclude_fields=None, include_fields=None,
-                               sort=None, offset=0, limit=None,
+                               sort=None, offset=0, limit=None, advanced_filters=None,
                                query_options=None, raw_filters=None, from_model_kwargs=None,
                                requester_user=None):
         """
@@ -735,6 +736,7 @@ class ActionExecutionsController(BaseResourceIsolationControllerMixin,
                                                                 limit=limit,
                                                                 query_options=query_options,
                                                                 raw_filters=raw_filters,
+                                                                advanced_filters=advanced_filters,
                                                                 requester_user=requester_user)
 
 
