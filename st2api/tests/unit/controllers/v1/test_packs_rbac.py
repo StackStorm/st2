@@ -101,7 +101,10 @@ class PackControllerRBACTestCase(APIControllerWithRBACTestCase):
 
         data = {'query': 'test'}
         resp = self.app.post_json('/v1/packs/index/search', data, expect_errors=True)
+
+        expected_msg = 'User \"no_permissions\" doesn\'t have required permission \"pack_search\"'
         self.assertEqual(resp.status_code, http_client.FORBIDDEN)
+        self.assertEqual(resp.json['faultstring'], expected_msg)
 
         # Observer role also grants pack_search permission
         user_db = self.users['observer']
