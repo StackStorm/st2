@@ -4,6 +4,7 @@ chain:
         ref: core.local
         params:
             cmd: "while [ -e '{{tempfile}}' ]; do sleep 0.1; done"
+            timeout: 180
         on-success: task2
     -
         name: task2
