@@ -60,7 +60,8 @@ __all__ = [
 # "Read" permission names which are granted to observer role by default
 READ_PERMISSION_NAMES = [
     'view',
-    'list'
+    'list',
+    'search'
 ]
 
 

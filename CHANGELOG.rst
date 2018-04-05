@@ -103,6 +103,9 @@ Fixed
   expressions and default values. (bug fix) #4050 #4050
 
   Reported by @rakeshrm.
+* Make sure ``observer`` system role also grants ``pack_search`` permission. (bug fix) #4063 #4064
+
+  Reported by @SURAJTHEGREAT.
 
 2.6.0 - January 19, 2018
 ------------------------
