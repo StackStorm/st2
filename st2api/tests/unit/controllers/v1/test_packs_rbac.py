@@ -17,8 +17,10 @@ import mock
 import six
 
 from st2common.router import Response
+from st2common.services import packs as pack_service
 from st2api.controllers.v1.actionexecutions import ActionExecutionsControllerMixin
 from tests.base import APIControllerWithRBACTestCase
+from tests.unit.controllers.v1.test_packs import PACK_INDEX
 
 http_client = six.moves.http_client
 
@@ -89,4 +91,22 @@ class PackControllerRBACTestCase(APIControllerWithRBACTestCase):
         self.use_user(user_db)
 
         resp = self.app.get('/v1/packs?limit=-1')
+        self.assertEqual(resp.status_code, http_client.OK)
+
+    @mock.patch.object(pack_service, 'fetch_pack_index',
+                       mock.MagicMock(return_value=(PACK_INDEX, {})))
+    def test_pack_search(self):
+        user_db = self.users['no_permissions']
+        self.use_user(user_db)
+
+        data = {'query': 'test'}
+        resp = self.app.post_json('/v1/packs/index/search', data, expect_errors=True)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
+
+        # Observer role also grants pack_search permission
+        user_db = self.users['observer']
+        self.use_user(user_db)
+
+        data = {'query': 'test'}
+        resp = self.app.post_json('/v1/packs/index/search', data)
         self.assertEqual(resp.status_code, http_client.OK)
