@@ -33,15 +33,15 @@ class WebhookBranch(resource.ResourceBranch):
 
 
 class WebhookListCommand(resource.ContentPackResourceListCommand):
-    display_attributes = ['webhook', 'type', 'pack', 'name', 'description', 'parameters']
+    display_attributes = ['url', 'type', 'description']
 
     def run_and_print(self, args, **kwargs):
         instances = self.run(args, **kwargs)
 
         for instance in instances:
-            instance.webhook = instance.parameters['url']
+            instance.url = instance.parameters['url']
 
-        instances = sorted(instances, key=lambda k: k.webhook)
+        instances = sorted(instances, key=lambda k: k.url)
 
         if args.json or args.yaml:
             self.print_output(instances, table.MultiColumnTable,
@@ -54,6 +54,6 @@ class WebhookListCommand(resource.ContentPackResourceListCommand):
 
 class WebhookGetCommand(resource.ResourceGetCommand):
     display_attributes = ['all']
-    attribute_display_order = ['type', 'pack', 'name', 'description', 'parameters']
+    attribute_display_order = ['type', 'description']
 
-    pk_argument_name = 'webhook'
+    pk_argument_name = 'url'
