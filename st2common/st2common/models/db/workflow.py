@@ -17,12 +17,16 @@ from __future__ import absolute_import
 
 import mongoengine as me
 
-from st2common.constants.types import ResourceType
+from st2common.constants import types
+from st2common import fields as db_field_types
 from st2common import log as logging
 from st2common.models.db import stormbase
+from st2common.util import date as date_utils
+
 
 __all__ = [
-    'WorkflowExecutionDB'
+    'WorkflowExecutionDB',
+    'TaskExecutionDB'
 ]
 
 
@@ -30,18 +34,48 @@ LOG = logging.getLogger(__name__)
 
 
 class WorkflowExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionFieldMixin):
-    RESOURCE_TYPE = ResourceType.EXECUTION
+    RESOURCE_TYPE = types.ResourceType.EXECUTION
 
-    liveaction = me.StringField(required=True)
-    spec = me.DictField()
-    graph = me.DictField()
-    flow = me.DictField()
+    action_execution = me.StringField(required=True)
+    spec = stormbase.EscapedDictField()
+    graph = stormbase.EscapedDictField()
+    flow = stormbase.EscapedDictField()
+    inputs = stormbase.EscapedDictField()
+    context = stormbase.EscapedDictField()
+    status = me.StringField(required=True)
+    start_timestamp = db_field_types.ComplexDateTimeField(default=date_utils.get_datetime_utc_now)
+    end_timestamp = db_field_types.ComplexDateTimeField()
 
     meta = {
         'indexes': [
-            {'fields': ['liveaction']}
+            {'fields': ['action_execution']}
         ]
     }
 
 
-MODELS = [WorkflowExecutionDB]
+class TaskExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionFieldMixin):
+    RESOURCE_TYPE = types.ResourceType.EXECUTION
+
+    workflow_execution = me.StringField(required=True)
+    task_name = me.StringField(required=True)
+    task_id = me.StringField(required=True)
+    task_spec = stormbase.EscapedDictField()
+    status = me.StringField(required=True)
+    start_timestamp = db_field_types.ComplexDateTimeField(default=date_utils.get_datetime_utc_now)
+    end_timestamp = db_field_types.ComplexDateTimeField()
+    incoming_context = stormbase.EscapedDictField()
+    outgoing_context = stormbase.EscapedDictField()
+    result = stormbase.EscapedDictField()
+
+    meta = {
+        'indexes': [
+            {'fields': ['workflow_execution']},
+            {'fields': ['workflow_execution', 'task_id']}
+        ]
+    }
+
+
+MODELS = [
+    WorkflowExecutionDB,
+    TaskExecutionDB
+]

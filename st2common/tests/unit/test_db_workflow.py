@@ -18,81 +18,94 @@ from __future__ import absolute_import
 import mock
 import uuid
 
-from st2common.models.db.workflow import WorkflowExecutionDB
-from st2common.persistence.workflow import WorkflowExecution
-from st2common.transport.publishers import PoolPublisher
+import st2tests
+
+from st2common.models.db import workflow as wf_db_models
+from st2common.persistence import workflow as wf_db_access
+from st2common.transport import publishers
 from st2common.exceptions import db as db_exc
 
-from st2tests import DbTestCase
 
-
-@mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
-class WorkflowExecutionModelTest(DbTestCase):
+@mock.patch.object(publishers.PoolPublisher, 'publish', mock.MagicMock())
+class WorkflowExecutionModelTest(st2tests.DbTestCase):
 
     def test_workflow_execution_crud(self):
-        initial = WorkflowExecutionDB()
-        initial.liveaction = uuid.uuid4().hex
+        initial = wf_db_models.WorkflowExecutionDB()
+        initial.action_execution = uuid.uuid4().hex
         initial.graph = {'var1': 'foobar'}
+        initial.status = 'requested'
 
         # Test create
-        created = WorkflowExecution.add_or_update(initial)
+        created = wf_db_access.WorkflowExecution.add_or_update(initial)
         self.assertEqual(initial.rev, 1)
         doc_id = created.id
 
         # Test read
-        retrieved = WorkflowExecution.get_by_id(doc_id)
-        self.assertEqual(created.liveaction, retrieved.liveaction)
+        retrieved = wf_db_access.WorkflowExecution.get_by_id(doc_id)
+        self.assertEqual(created.action_execution, retrieved.action_execution)
         self.assertDictEqual(created.graph, retrieved.graph)
+        self.assertEqual(created.status, retrieved.status)
 
         # Test update
-        retrieved = WorkflowExecution.update(retrieved, graph={'var1': 'fubar'})
-        updated = WorkflowExecution.get_by_id(doc_id)
+        graph = {'var1': 'fubar'}
+        status = 'running'
+        retrieved = wf_db_access.WorkflowExecution.update(retrieved, graph=graph, status=status)
+        updated = wf_db_access.WorkflowExecution.get_by_id(doc_id)
         self.assertNotEqual(created.rev, updated.rev)
         self.assertEqual(retrieved.rev, updated.rev)
+        self.assertEqual(retrieved.action_execution, updated.action_execution)
         self.assertDictEqual(retrieved.graph, updated.graph)
+        self.assertEqual(retrieved.status, updated.status)
 
         # Test add or update
         retrieved.graph = {'var2': 'fubar'}
-        retrieved = WorkflowExecution.add_or_update(retrieved)
-        updated = WorkflowExecution.get_by_id(doc_id)
+        retrieved = wf_db_access.WorkflowExecution.add_or_update(retrieved)
+        updated = wf_db_access.WorkflowExecution.get_by_id(doc_id)
         self.assertNotEqual(created.rev, updated.rev)
         self.assertEqual(retrieved.rev, updated.rev)
+        self.assertEqual(retrieved.action_execution, updated.action_execution)
         self.assertDictEqual(retrieved.graph, updated.graph)
+        self.assertEqual(retrieved.status, updated.status)
 
         # Test delete
         created.delete()
 
         self.assertRaises(
             db_exc.StackStormDBObjectNotFoundError,
-            WorkflowExecution.get_by_id,
+            wf_db_access.WorkflowExecution.get_by_id,
             doc_id
         )
 
     def test_workflow_execution_write_conflict(self):
-        initial = WorkflowExecutionDB()
-        initial.liveaction = uuid.uuid4().hex
+        initial = wf_db_models.WorkflowExecutionDB()
+        initial.action_execution = uuid.uuid4().hex
         initial.graph = {'var1': 'foobar'}
+        initial.status = 'requested'
 
         # Prep record
-        created = WorkflowExecution.add_or_update(initial)
+        created = wf_db_access.WorkflowExecution.add_or_update(initial)
         self.assertEqual(initial.rev, 1)
         doc_id = created.id
 
         # Get two separate instances of the document.
-        retrieved1 = WorkflowExecution.get_by_id(doc_id)
-        retrieved2 = WorkflowExecution.get_by_id(doc_id)
+        retrieved1 = wf_db_access.WorkflowExecution.get_by_id(doc_id)
+        retrieved2 = wf_db_access.WorkflowExecution.get_by_id(doc_id)
 
         # Test update on instance 1, expect success
-        retrieved1 = WorkflowExecution.update(retrieved1, graph={'var1': 'fubar'})
-        updated = WorkflowExecution.get_by_id(doc_id)
+        graph = {'var1': 'fubar'}
+        status = 'running'
+        retrieved1 = wf_db_access.WorkflowExecution.update(retrieved1, graph=graph, status=status)
+        updated = wf_db_access.WorkflowExecution.get_by_id(doc_id)
         self.assertNotEqual(created.rev, updated.rev)
         self.assertEqual(retrieved1.rev, updated.rev)
+        self.assertEqual(retrieved1.action_execution, updated.action_execution)
         self.assertDictEqual(retrieved1.graph, updated.graph)
+        self.assertEqual(retrieved1.status, updated.status)
 
         # Test update on instance 2, expect race error
         self.assertRaises(
             db_exc.StackStormDBObjectWriteConflictError,
-            WorkflowExecution.update,
+            wf_db_access.WorkflowExecution.update,
             retrieved2,
             graph={'var2': 'fubar'}
         )
@@ -102,6 +115,6 @@ class WorkflowExecutionModelTest(DbTestCase):
 
         self.assertRaises(
             db_exc.StackStormDBObjectNotFoundError,
-            WorkflowExecution.get_by_id,
+            wf_db_access.WorkflowExecution.get_by_id,
             doc_id
         )

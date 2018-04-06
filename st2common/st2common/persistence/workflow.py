@@ -16,18 +16,20 @@
 from __future__ import absolute_import
 
 from st2common import transport
-from st2common.models.db import ChangeRevisionMongoDBAccess
-from st2common.models.db.workflow import WorkflowExecutionDB
+from st2common.models import db
+from st2common.models.db import workflow as wf_db_models
 from st2common.persistence import base as persistence
 from st2common.transport import utils as transport_utils
 
+
 __all__ = [
-    'WorkflowExecution'
+    'WorkflowExecution',
+    'TaskExecution'
 ]
 
 
 class WorkflowExecution(persistence.StatusBasedResource):
-    impl = ChangeRevisionMongoDBAccess(WorkflowExecutionDB)
+    impl = db.ChangeRevisionMongoDBAccess(wf_db_models.WorkflowExecutionDB)
     publisher = None
 
     @classmethod
@@ -41,3 +43,12 @@ class WorkflowExecution(persistence.StatusBasedResource):
                 urls=transport_utils.get_messaging_urls())
 
         return cls.publisher
+
+
+class TaskExecution(persistence.StatusBasedResource):
+    impl = db.ChangeRevisionMongoDBAccess(wf_db_models.TaskExecutionDB)
+    publisher = None
+
+    @classmethod
+    def _get_impl(cls):
+        return cls.impl
