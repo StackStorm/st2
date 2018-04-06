@@ -5,7 +5,7 @@ bcrypt
 eventlet==0.22.1
 flex==6.12.0
 git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper
-git+https://github.com/StackStorm/python-mistralclient.git#egg=python-mistralclient
+git+https://github.com/StackStorm/python-mistralclient.git@st2-2.7.0#egg=python-mistralclient
 git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2-auth-backend-flat-file
 gitpython==2.1.8
 greenlet==0.4.13
