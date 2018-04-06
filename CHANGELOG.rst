@@ -4,6 +4,10 @@ Changelog
 in development
 --------------
 
+
+2.7.0 - April 06, 2018
+----------------------
+
 Added
 ~~~~~
 
