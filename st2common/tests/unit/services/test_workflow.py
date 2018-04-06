@@ -16,36 +16,31 @@
 from __future__ import absolute_import
 
 import mock
+import os
 
 import st2tests
-
-# XXX: actionsensor import depends on config being setup.
-import st2tests.config as tests_config
-tests_config.parse_args()
-
-from tests.unit import base
 
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar
 from st2common.constants import action as ac_const
+from st2common.exceptions import action as ac_exc
 from st2common.models.db import liveaction as lv_db_models
-from st2common.persistence import liveaction as lv_db_access
+from st2common.models.db import execution as ex_db_models
 from st2common.persistence import workflow as wf_db_access
-from st2common.runners import base as runners
 from st2common.services import action as ac_svc
+from st2common.services import workflows as wf_svc
 from st2common.transport import liveaction as lv_ac_xport
 from st2common.transport import publishers
+from st2common.util import loader
 from st2tests.mocks import liveaction as mock_lv_ac_xport
 
 
 TEST_FIXTURES = {
     'workflows': [
-        'sequential.yaml',
-        'fail-inspection.yaml'
+        'sequential.yaml'
     ],
     'actions': [
-        'sequential.yaml',
-        'fail-inspection.yaml'
+        'sequential.yaml'
     ]
 }
 
@@ -56,6 +51,27 @@ PACKS = [
     TEST_PACK_PATH,
     st2tests.fixturesloader.get_fixtures_packs_base_path() + '/core'
 ]
+
+
+def get_wf_fixture_meta_data(fixture_pack_path, wf_meta_file_name):
+    wf_meta_file_path = fixture_pack_path + '/actions/' + wf_meta_file_name
+    wf_meta_content = loader.load_meta_file(wf_meta_file_path)
+    wf_name = wf_meta_content['pack'] + '.' + wf_meta_content['name']
+
+    return {
+        'file_name': wf_meta_file_name,
+        'file_path': wf_meta_file_path,
+        'content': wf_meta_content,
+        'name': wf_name
+    }
+
+
+def get_wf_def(wf_meta):
+    rel_wf_def_path = wf_meta['content']['entry_point']
+    abs_wf_def_path = os.path.join(TEST_PACK_PATH, 'actions', rel_wf_def_path)
+
+    with open(abs_wf_def_path, 'r') as def_file:
+        return def_file.read()
 
 
 @mock.patch.object(
@@ -70,11 +86,11 @@ PACKS = [
     lv_ac_xport.LiveActionPublisher,
     'publish_state',
     mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_state))
-class OrchestraRunnerTest(st2tests.DbTestCase):
+class WorkflowExecutionServiceTest(st2tests.DbTestCase):
 
     @classmethod
     def setUpClass(cls):
-        super(OrchestraRunnerTest, cls).setUpClass()
+        super(WorkflowExecutionServiceTest, cls).setUpClass()
 
         # Register runners.
         runnersregistrar.register_runners()
@@ -88,52 +104,57 @@ class OrchestraRunnerTest(st2tests.DbTestCase):
         for pack in PACKS:
             actions_registrar.register_from_pack(pack)
 
-    @classmethod
-    def get_runner_class(cls, runner_name):
-        return runners.get_runner(runner_name, runner_name).__class__
+    def test_request(self):
+        wf_meta = get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][0])
 
-    def test_launch_workflow(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][0])
+        # Manually create the liveaction and action execution objects without publishing.
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
-        lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
-        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        lv_ac_db, ac_ex_db = ac_svc.create_request(lv_ac_db)
 
-        self.assertTrue(lv_ac_db.action_is_workflow)
-        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result)
+        # Request the workflow execution.
+        wf_def = get_wf_def(wf_meta)
+        wf_ex_db = wf_svc.request(wf_def, ac_ex_db) 
 
+        # Check workflow execution is saved to the database..
         wf_ex_dbs = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))
-        wf_ex_db = wf_ex_dbs[0]
+        self.assertEqual(len(wf_ex_dbs), 1)
 
         # Check required attributes.
-        self.assertEqual(len(wf_ex_dbs), 1)
+        wf_ex_db = wf_ex_dbs[0]
         self.assertIsNotNone(wf_ex_db.id)
         self.assertGreater(wf_ex_db.rev, 0)
         self.assertEqual(wf_ex_db.action_execution, str(ac_ex_db.id))
         self.assertEqual(wf_ex_db.status, ac_const.LIVEACTION_STATUS_REQUESTED)
 
-        # Check context.
-        self.assertIn('workflow_execution', lv_ac_db.context)
-        self.assertEqual(lv_ac_db.context['workflow_execution'], str(wf_ex_db.id))
+    def test_request_with_inputs(self):
+        wf_meta = get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][0])
 
-        # Check graph.
-        self.assertIsNotNone(wf_ex_db.graph)
-        self.assertTrue(isinstance(wf_ex_db.graph, dict))
-        self.assertIn('nodes', wf_ex_db.graph)
-        self.assertIn('adjacency', wf_ex_db.graph)
+        # Manually create the liveaction and action execution objects without publishing.
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters={'who': 'stan'})
+        lv_ac_db, ac_ex_db = ac_svc.create_request(lv_ac_db)
 
-        # Check task flow.
-        self.assertIsNotNone(wf_ex_db.flow)
-        self.assertTrue(isinstance(wf_ex_db.flow, dict))
-        self.assertIn('tasks', wf_ex_db.flow)
-        self.assertIn('sequence', wf_ex_db.flow)
+        # Request the workflow execution.
+        wf_def = get_wf_def(wf_meta)
+        wf_ex_db = wf_svc.request(wf_def, ac_ex_db)
+
+        # Check workflow execution is saved to the database..
+        wf_ex_dbs = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))
+        self.assertEqual(len(wf_ex_dbs), 1)
+
+        # Check required attributes.
+        wf_ex_db = wf_ex_dbs[0]
+        self.assertIsNotNone(wf_ex_db.id)
+        self.assertGreater(wf_ex_db.rev, 0)
+        self.assertEqual(wf_ex_db.action_execution, str(ac_ex_db.id))
+        self.assertEqual(wf_ex_db.status, ac_const.LIVEACTION_STATUS_REQUESTED)
 
         # Check inputs and context.
         expected_inputs = {
-            'who': 'Stanley'
+            'who': 'stan'
         }
 
         expected_context = {
-            'who': 'Stanley',
+            'who': 'stan',
             'msg1': 'Veni, vidi, vici.',
             'msg2': 'Resistance is futile!',
             'msg3': 'All your base are belong to us!'
@@ -142,17 +163,16 @@ class OrchestraRunnerTest(st2tests.DbTestCase):
         self.assertDictEqual(wf_ex_db.inputs, expected_inputs)
         self.assertDictEqual(wf_ex_db.context, expected_context)
 
-    def test_workflow_inspection_failure(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][1])
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
-        lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
-        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+    def test_request_bad_action(self):
+        wf_meta = get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][0])
 
-        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_FAILED)
-        self.assertIn('errors', lv_ac_db.result)
-        self.assertIn('expressions', lv_ac_db.result['errors'])
-        self.assertGreater(len(lv_ac_db.result['errors']['expressions']), 0)
-        self.assertIn('context', lv_ac_db.result['errors'])
-        self.assertGreater(len(lv_ac_db.result['errors']['context']), 0)
-        self.assertIn('syntax', lv_ac_db.result['errors'])
-        self.assertGreater(len(lv_ac_db.result['errors']['syntax']), 0)
+        # Manually create the action execution object with the bad action.
+        ac_ex_db = ex_db_models.ActionExecutionDB(action={'ref': 'mock.foobar'})
+
+        # Request the workflow execution.
+        self.assertRaises(
+            ac_exc.InvalidActionReferencedException,
+            wf_svc.request,
+            get_wf_def(wf_meta),
+            ac_ex_db
+        )
