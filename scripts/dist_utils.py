@@ -25,9 +25,11 @@ GET_PIP = 'curl https://bootstrap.pypa.io/get-pip.py | python'
 
 try:
     import pip
+    from pip import __version__ as pip_version
 except ImportError as e:
     print('Failed to import pip: %s' % (str(e)))
-    print('Download pip:\n', GET_PIP)
+    print('')
+    print('Download pip:\n%s' % (GET_PIP))
     sys.exit(1)
 
 try:
@@ -38,8 +40,9 @@ except ImportError:
 
     try:
         from pip._internal.req.req_file import parse_requirements
-    except ImportError:
+    except ImportError as e:
         print('Failed to import parse_requirements from pip: %s' % (str(e)))
+        print('Using pip: %s' % (str(pip_version)))
         sys.exit(1)
 
 __all__ = [
