@@ -34,6 +34,7 @@ from st2common import policies
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.execution import ActionExecution
 from st2common.services import trace as trace_service
+from st2common.services import workflows as wf_svc
 from st2common.transport import consumers
 from st2common.transport import utils as transport_utils
 from st2common.transport.reactor import TriggerDispatcher
@@ -92,6 +93,9 @@ class Notifier(consumers.MessageHandler):
             self._post_notify_triggers(liveaction_db=liveaction_db, execution_db=execution_db)
 
         self._post_generic_trigger(liveaction_db=liveaction_db, execution_db=execution_db)
+
+        if 'orchestra' in liveaction_db.context:
+            wf_svc.handle_action_execution_completion(execution_db)
 
     def _get_execution_for_liveaction(self, liveaction):
         execution = ActionExecution.get(liveaction__id=str(liveaction.id))
