@@ -210,11 +210,11 @@ class WorkflowExecutionServiceTest(st2tests.DbTestCase):
         self.assertIsNotNone(task_ex_db.id)
         self.assertGreater(task_ex_db.rev, 0)
         self.assertEqual(task_ex_db.workflow_execution, str(wf_ex_db.id))
-        self.assertEqual(task_ex_db.status, wf_lib_states.REQUESTED)
+        self.assertEqual(task_ex_db.status, wf_lib_states.RUNNING)
 
         # Check action execution for the task query with task execution ID.
         ac_ex_dbs = ex_db_access.ActionExecution.query(task_execution=str(task_ex_db.id))
-        self.assertEqual(len(ac_ex_dbs), 1) 
+        self.assertEqual(len(ac_ex_dbs), 1)
 
         # Check action execution for the task query with workflow execution ID.
         ac_ex_dbs = ex_db_access.ActionExecution.query(workflow_execution=str(wf_ex_db.id))

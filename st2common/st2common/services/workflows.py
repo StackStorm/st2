@@ -135,4 +135,8 @@ def request_task_execution(wf_ex_db, task_id, task_spec, task_ctx, st2_ctx):
     # Request action execution.
     ac_svc.request(lv_ac_db)
 
+    # Sst the task execution to running.
+    task_ex_db.status = states.RUNNING
+    task_ex_db = wf_db_access.TaskExecution.update(task_ex_db, publish=False)
+
     return task_ex_db

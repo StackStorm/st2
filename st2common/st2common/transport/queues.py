@@ -21,15 +21,17 @@ encountering cylic import issues.
 """
 
 from __future__ import absolute_import
+
 from kombu import Queue
 
 from st2common.constants import action as action_constants
-from st2common.transport import reactor
-from st2common.transport import liveaction
-from st2common.transport import execution
 from st2common.transport import actionexecutionstate
 from st2common.transport import announcement
+from st2common.transport import execution
+from st2common.transport import liveaction
 from st2common.transport import publishers
+from st2common.transport import reactor
+from st2common.transport import workflow
 
 __all__ = [
     'ACTIONSCHEDULER_REQUEST_QUEUE',
@@ -50,7 +52,10 @@ __all__ = [
     'STREAM_ANNOUNCEMENT_WORK_QUEUE',
     'STREAM_EXECUTION_ALL_WORK_QUEUE',
     'STREAM_EXECUTION_UPDATE_WORK_QUEUE',
-    'STREAM_LIVEACTION_WORK_QUEUE'
+    'STREAM_LIVEACTION_WORK_QUEUE',
+
+    'WORKFLOW_EXECUTION_WORK_QUEUE',
+    'WORKFLOW_EXECUTION_RESUME_QUEUE'
 ]
 
 
@@ -132,3 +137,9 @@ STREAM_EXECUTION_OUTPUT_QUEUE = execution.get_output_queue(
     routing_key=publishers.CREATE_RK,
     exclusive=True,
     auto_delete=True)
+
+
+# Used by the workflow engine service
+WORKFLOW_EXECUTION_WORK_QUEUE = workflow.get_status_management_queue(
+    name='st2.workflow.work',
+    routing_key=action_constants.LIVEACTION_STATUS_REQUESTED)
