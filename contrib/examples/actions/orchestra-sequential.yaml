@@ -1,0 +1,11 @@
+---
+name: orchestra-sequential
+description: A basic sequential workflow.
+runner_type: orchestra
+entry_point: workflows/orchestra-sequential.yaml
+enabled: true
+parameters:
+  who:
+    required: true
+    type: string
+    default: Lakshmi
