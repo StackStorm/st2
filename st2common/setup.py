@@ -59,6 +59,7 @@ setup(
         'bin/migrations/v2.1/st2-migrate-datastore-scopes.py',
         'bin/migrations/v2.1/st2-migrate-runners.sh',
         'bin/st2-self-check',
+        'bin/st2-track-result',
         'bin/st2-validate-pack-config',
         'bin/st2-check-license'
     ]
