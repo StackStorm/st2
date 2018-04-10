@@ -185,10 +185,6 @@ class PackInstallCommand(PackAsyncCommand):
                                  metavar='pack',
                                  help='Name of the %s in Exchange, or a git repo URL.' %
                                  resource.get_plural_display_name().lower())
-        self.parser.add_argument('--python3',
-                                 action='store_true',
-                                 default=False,
-                                 help='Use Python 3 binary for pack virtual environment.')
         self.parser.add_argument('--force',
                                  action='store_true',
                                  default=False,
@@ -196,7 +192,7 @@ class PackInstallCommand(PackAsyncCommand):
 
     def run(self, args, **kwargs):
         self._get_content_counts_for_pack(args, **kwargs)
-        return self.manager.install(args.packs, python3=args.python3, force=args.force, **kwargs)
+        return self.manager.install(args.packs, force=args.force, **kwargs)
 
     def _get_content_counts_for_pack(self, args, **kwargs):
         # Global content list, excluding "tests"
