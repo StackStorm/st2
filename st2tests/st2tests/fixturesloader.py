@@ -128,6 +128,12 @@ FIXTURE_PERSISTENCE_MODEL = {
     'users': User
 }
 
+GIT_SUBMODULES_NOT_CHECKED_OUT_ERROR = """
+Git submodule "%s" is not checked out. Make sure to run "git submodule update --init
+ --recursive" in the repository root directory to check out all the
+submodules.
+""".replace('\n', '').strip()
+
 
 def get_fixtures_base_path():
     return os.path.join(os.path.dirname(__file__), 'fixtures')
@@ -368,3 +374,18 @@ class FixturesLoader(object):
 
     def get_fixture_file_path_abs(self, fixtures_pack, fixtures_type, fixture_name):
         return os.path.join(get_fixtures_base_path(), fixtures_pack, fixtures_type, fixture_name)
+
+
+def assert_submodules_are_checked_out():
+    """
+    Function which verifies that user has ran "git submodule update --init --recursive" in the
+    root of the directory and that the "st2tests/st2tests/fixtures/packs/test" git repo submodule
+    used by the tests is checked out.
+    """
+    test_pack_path = os.path.abspath(os.path.join(get_fixtures_packs_base_path(), 'test/'))
+    submodule_git_dir_path = os.path.join(test_pack_path, '.git')
+
+    if not os.path.isdir(submodule_git_dir_path):
+        raise ValueError(GIT_SUBMODULES_NOT_CHECKED_OUT_ERROR % (test_pack_path))
+
+    return True
