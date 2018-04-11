@@ -40,6 +40,7 @@ from st2tests.base import RunnerTestCase
 from st2tests.base import CleanDbTestCase
 from st2tests.base import blocking_eventlet_spawn
 from st2tests.base import make_mock_stream_readline
+from st2tests.fixturesloader import assert_submodules_are_checked_out
 import st2tests.base as tests_base
 
 
@@ -80,6 +81,11 @@ MOCK_EXECUTION.id = '598dbf0c0640fd54bffc688b'
 class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     register_packs = True
     register_pack_configs = True
+
+    @classmethod
+    def setUpClass(cls):
+        super(PythonRunnerTestCase, cls).setUpClass()
+        assert_submodules_are_checked_out()
 
     def test_runner_creation(self):
         runner = python_runner.get_runner()
