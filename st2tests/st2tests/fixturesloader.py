@@ -382,11 +382,12 @@ def assert_submodules_are_checked_out():
     root of the directory and that the "st2tests/st2tests/fixtures/packs/test" git repo submodule
     used by the tests is checked out.
     """
-    test_pack_path = os.path.abspath(os.path.join(get_fixtures_packs_base_path(), 'test/'))
-    submodule_git_dir_path = os.path.join(test_pack_path, '.git')
+    pack_path = os.path.join(get_fixtures_packs_base_path(), 'test_content_version/')
+    pack_path = os.path.abspath(pack_path)
+    submodule_git_dir_or_file_path = os.path.join(pack_path, '.git')
 
     # NOTE: In newer versions of git, that .git is a file and not a directory
-    if not os.path.exists(submodule_git_dir_path):
-        raise ValueError(GIT_SUBMODULES_NOT_CHECKED_OUT_ERROR % (test_pack_path))
+    if not os.path.exists(submodule_git_dir_or_file_path):
+        raise ValueError(GIT_SUBMODULES_NOT_CHECKED_OUT_ERROR % (pack_path))
 
     return True
