@@ -385,7 +385,8 @@ def assert_submodules_are_checked_out():
     test_pack_path = os.path.abspath(os.path.join(get_fixtures_packs_base_path(), 'test/'))
     submodule_git_dir_path = os.path.join(test_pack_path, '.git')
 
-    if not os.path.isdir(submodule_git_dir_path):
+    # NOTE: In newer versions of git, that .git is a file and not a directory
+    if not os.path.exists(submodule_git_dir_path):
         raise ValueError(GIT_SUBMODULES_NOT_CHECKED_OUT_ERROR % (test_pack_path))
 
     return True
