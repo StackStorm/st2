@@ -977,6 +977,11 @@ paths:
           description: Show secrets in plain text
           type: boolean
       x-parameters:
+        - name: filter
+          in: query
+          x-as: advanced_filters
+          description: Advanced filter string. Overrides other filters.
+          type: string
         - name: user
           in: context
           x-as: requester_user
@@ -3931,15 +3936,15 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /api/v1/webhooks/{name}:
+  /api/v1/webhooks/{url}:
     get:
       operationId: st2api.controllers.v1.webhooks:webhooks_controller.get_one
       description: |
         Get one action.
       parameters:
-        - name: name
+        - name: url
           in: path
-          description: Entity reference or id
+          description: Webhook relative URL path
           type: string
           required: true
       x-parameters:

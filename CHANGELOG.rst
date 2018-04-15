@@ -7,20 +7,22 @@ in development
 Added
 ~~~~~
 
+* Added metrics for collecting performance and health information about
+  the various ST2 services and functions.
+
+
+2.7.0 - April 12, 2018
+----------------------
+
+Added
+~~~~~
+
 * Update ``st2 execution tail`` command so it supports double nested workflows (workflow ->
   workflow -> execution). Previously, only top-level executions and single nested workflows
   (workflow -> execution) were supported. (improvement) #3962 #3960
 * Add support for utf-8 / unicode characters in the pack config files. (improvement) #3980 #3989
 
   Contributed by @sumkire.
-* Add new ``--python3`` flag to ``st2 pack install`` CLI command and ``python3`` parameter to
-  ``packs.{install,setup_virtualenv}`` actions. When the value of this parameter is True, it
-  uses ``python3`` binary when creating virtual environment for that pack (based on the value of
-  ``actionrunner.python3_binary`` config option).
-
-  Note: For this feature to work, Python 3 needs to be installed on the system and ``virtualenv``
-  package installed on the system needs to support Python 3 (it needs to be a recent version).
-  (new feature) #4016 #3922
 * Added the ability of ``st2ctl`` to utilize environment variables from ``/etc/default/st2ctl``
   (for Ubuntu/Debian) and ``/etc/sysconfig/st2ctl`` (RHEL/CentOS). This allows
   deployments to override ``COMPONENTS`` and ``ST2_CONF`` in a global location
@@ -42,8 +44,10 @@ Added
   (new feature) #3997
 * Update windows runner to correctly handle and use ``timeout`` action execution status.
   (improvement) #4047
-* Added metrics for collecting performance and health information about
-  the various ST2 services and functions.
+* Add missing ``scope``, ``decrypt`` and ``encrypt`` arguments to the datastore management
+  related methods on the SensorService class. (improvement) #3895 #4057 #4058
+
+  Reported by @djh2020, @mxmader.
 
 Changed
 ~~~~~~~
@@ -97,6 +101,15 @@ Fixed
   Contributed by Ben Hohnke (NTT Communications ICT Solutions)
 * Fix "st2 pack install" command so it doesn't require access to pack index (index.stackstorm.org)
   when installing a local pack (pack name starting with "file://"). (bug fix) #3771 #3772
+* Fix rules engine so it correctly handles and renders action parameters which contain Jinja
+  expressions and default values. (bug fix) #4050 #4050
+
+  Reported by @rakeshrm.
+* Make sure ``observer`` system role also grants ``pack_search`` permission. (bug fix) #4063 #4064
+
+  Reported by @SURAJTHEGREAT.
+* Fix st2 webhook get -h which was asking for a name or id as opposed to the URL of the webhook.
+  Also, fix st2 webhook list to explicitly add a webhook column. (bugfix) #4048
 
 2.6.0 - January 19, 2018
 ------------------------
