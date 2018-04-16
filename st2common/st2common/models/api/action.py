@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import copy
 
 from st2common.util import isotime
@@ -40,6 +41,7 @@ __all__ = [
     'RunnerTypeAPI',
 
     'AliasExecutionAPI',
+    'AliasMatchAndExecuteInputAPI',
     'ActionAliasAPI',
     'ActionAliasMatchAPI',
     'ActionAliasHelpAPI'
@@ -81,6 +83,12 @@ class RunnerTypeAPI(BaseAPI):
                 "description": "Enable or disable the action runner.",
                 "type": "boolean",
                 "default": True
+            },
+            "runner_package": {
+                "description": "The python package that implements the "
+                               "action runner for this type.",
+                "type": "string",
+                "required": False
             },
             "runner_module": {
                 "description": "The python module that implements the "
@@ -124,12 +132,14 @@ class RunnerTypeAPI(BaseAPI):
         name = runner_type.name
         description = runner_type.description
         enabled = getattr(runner_type, 'enabled', True)
+        runner_package = getattr(runner_type, 'runner_package', runner_type.runner_module)
         runner_module = str(runner_type.runner_module)
         runner_parameters = getattr(runner_type, 'runner_parameters', dict())
         query_module = getattr(runner_type, 'query_module', None)
 
         model = cls.model(name=name, description=description, enabled=enabled,
-                          runner_module=runner_module, runner_parameters=runner_parameters,
+                          runner_package=runner_package, runner_module=runner_module,
+                          runner_parameters=runner_parameters,
                           query_module=query_module)
 
         return model
@@ -276,10 +286,13 @@ class ActionCreateAPI(ActionAPI, APIUIDMixin):
             'properties': {
                 'file_path': {
                     'type': 'string',
+                    'description': ('Path to the file relative to the pack actions directory '
+                                    '(e.g. my_action.py)'),
                     'required': True
                 },
                 'content': {
                     'type': 'string',
+                    'description': 'Raw file content.',
                     'required': True
                 },
             },
@@ -654,6 +667,48 @@ class AliasExecutionAPI(BaseAPI):
     @classmethod
     def from_model(cls, aliasexecution):
         raise NotImplementedError()
+
+
+class AliasMatchAndExecuteInputAPI(BaseAPI):
+    """
+    API object used for alias execution "match and execute" API endpoint request payload.
+    """
+    model = None
+    schema = {
+        "title": "ActionAliasMatchAndExecuteInputAPI",
+        "description": "Input for alias execution match and execute API.",
+        "type": "object",
+        "properties": {
+            "command": {
+                "type": "string",
+                "description": "Command used in chat.",
+                "required": True
+            },
+            "user": {
+                "type": "string",
+                "description": "User that requested the execution.",
+            },
+            "source_channel": {
+                "type": "string",
+                "description": "Channel from which the execution was requested. This is not the \
+                                channel as defined by the notification system.",
+                "required": True
+            },
+            "notification_channel": {
+                "type": "string",
+                "description": "StackStorm notification channel to use to respond.",
+                "required": False,
+                "default": None
+            },
+            "notification_route": {
+                "type": "string",
+                "description": "StackStorm notification route to use to respond.",
+                "required": False,
+                "default": None
+            }
+        },
+        "additionalProperties": False
+    }
 
 
 class ActionAliasMatchAPI(BaseAPI):

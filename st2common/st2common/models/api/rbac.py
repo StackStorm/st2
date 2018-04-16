@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 from st2common.models.api.base import BaseAPI
 from st2common.models.db.rbac import RoleDB
 from st2common.models.db.rbac import UserRoleAssignmentDB
@@ -110,6 +111,9 @@ class UserRoleAssignmentAPI(BaseAPI):
             },
             'is_remote': {
                 'type': 'boolean'
+            },
+            'source': {
+                'type': 'string'
             }
         },
         'additionalProperties': False
@@ -282,7 +286,14 @@ class UserRoleAssignmentFileFormatAPI(BaseAPI):
                     'type': 'string'
                 },
                 'required': True
+            },
+            'file_path': {
+                'type': 'string',
+                'description': 'Path of the file of where this assignment comes from.',
+                'default': None,
+                'required': False
             }
+
         },
         'additionalProperties': False
     }
@@ -324,7 +335,12 @@ class AuthGroupToRoleMapAssignmentFileFormatAPI(BaseAPI):
                 },
                 'required': True
             },
-
+            'file_path': {
+                'type': 'string',
+                'description': 'Path of the file of where this assignment comes from.',
+                'default': None,
+                'required': False
+            }
         },
         'additionalProperties': False
     }

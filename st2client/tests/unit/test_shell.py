@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import os
 import time
 import datetime
@@ -20,6 +21,7 @@ import json
 import logging
 import tempfile
 
+import six
 import mock
 import unittest2
 
@@ -48,6 +50,51 @@ class TestShell(base.BaseCLITestCase):
     def __init__(self, *args, **kwargs):
         super(TestShell, self).__init__(*args, **kwargs)
         self.shell = Shell()
+
+    def test_commands_usage_and_help_strings(self):
+        # No command, should print out user friendly usage / help string
+        self.assertEqual(self.shell.run([]), 2)
+
+        self.stderr.seek(0)
+        stderr = self.stderr.read()
+        self.assertTrue('Usage: ' in stderr)
+        self.assertTrue('For example:' in stderr)
+        self.assertTrue('CLI for StackStorm' in stderr)
+        self.assertTrue('positional arguments:' in stderr)
+
+        self.stdout.truncate()
+        self.stderr.truncate()
+
+        # --help should result in the same output
+        try:
+            self.assertEqual(self.shell.run(['--help']), 0)
+        except SystemExit as e:
+            self.assertEqual(e.code, 0)
+
+        self.stdout.seek(0)
+        stdout = self.stdout.read()
+        self.assertTrue('Usage: ' in stdout)
+        self.assertTrue('For example:' in stdout)
+        self.assertTrue('CLI for StackStorm' in stdout)
+        self.assertTrue('positional arguments:' in stdout)
+
+        self.stdout.truncate()
+        self.stderr.truncate()
+
+        # Sub command with no args
+        try:
+            self.assertEqual(self.shell.run(['action']), 2)
+        except SystemExit as e:
+            self.assertEqual(e.code, 2)
+
+        self.stderr.seek(0)
+        stderr = self.stderr.read()
+
+        self.assertTrue('usage' in stderr)
+
+        if six.PY2:
+            self.assertTrue('{list,get,create,update' in stderr)
+            self.assertTrue('error: too few arguments' in stderr)
 
     def test_endpoints_default(self):
         base_url = 'http://127.0.0.1'
@@ -170,7 +217,13 @@ class TestShell(base.BaseCLITestCase):
             ['execution', 're-run', '123'],
             ['execution', 're-run', '123', '--tasks', 'x', 'y', 'z'],
             ['execution', 're-run', '123', '--tasks', 'x', 'y', 'z', '--no-reset', 'x'],
-            ['execution', 're-run', '123', 'a=1', 'b=x', 'c=True']
+            ['execution', 're-run', '123', 'a=1', 'b=x', 'c=True'],
+            ['execution', 'cancel', '123'],
+            ['execution', 'cancel', '123', '456'],
+            ['execution', 'pause', '123'],
+            ['execution', 'pause', '123', '456'],
+            ['execution', 'resume', '123'],
+            ['execution', 'resume', '123', '456']
         ]
         self._validate_parser(args_list)
 
@@ -181,6 +234,7 @@ class TestShell(base.BaseCLITestCase):
     def test_key(self):
         args_list = [
             ['key', 'list'],
+            ['key', 'list', '-n', '2'],
             ['key', 'get', 'abc'],
             ['key', 'set', 'abc', '123'],
             ['key', 'delete', 'abc'],
@@ -212,6 +266,21 @@ class TestShell(base.BaseCLITestCase):
             ['policy-type', 'list', '-r', 'action'],
             ['policy-type', 'list', '--resource-type', 'action'],
             ['policy-type', 'get', 'abc']
+        ]
+        self._validate_parser(args_list)
+
+    def test_pack(self):
+        args_list = [
+            ['pack', 'list'],
+            ['pack', 'get', 'abc'],
+            ['pack', 'search', 'abc'],
+            ['pack', 'show', 'abc'],
+            ['pack', 'remove', 'abc'],
+            ['pack', 'remove', 'abc', '--detail'],
+            ['pack', 'install', 'abc'],
+            ['pack', 'install', 'abc', '--force'],
+            ['pack', 'install', 'abc', '--detail'],
+            ['pack', 'config', 'abc']
         ]
         self._validate_parser(args_list)
 
@@ -347,7 +416,7 @@ class CLITokenCachingTestCase(unittest2.TestCase):
         self.assertRegexpMatches(log_message, expected_msg)
 
         # 2. Read access on the directory, but not on the cached token file
-        os.chmod(self._mock_config_directory_path, 0777)  # nosec
+        os.chmod(self._mock_config_directory_path, 0o777)  # nosec
         os.chmod(cached_token_path, 0000)
 
         shell.LOG = mock.Mock()
@@ -362,8 +431,8 @@ class CLITokenCachingTestCase(unittest2.TestCase):
         self.assertRegexpMatches(log_message, expected_msg)
 
         # 3. Other users also have read access to the file
-        os.chmod(self._mock_config_directory_path, 0777)  # nosec
-        os.chmod(cached_token_path, 0444)
+        os.chmod(self._mock_config_directory_path, 0o777)  # nosec
+        os.chmod(cached_token_path, 0o444)
 
         shell.LOG = mock.Mock()
         result = shell._get_cached_auth_token(client=client, username=username,
@@ -407,7 +476,7 @@ class CLITokenCachingTestCase(unittest2.TestCase):
         self.assertRegexpMatches(log_message, expected_msg)
 
         # 2. Current user has no write access to the cached token file
-        os.chmod(self._mock_config_directory_path, 0777)  # nosec
+        os.chmod(self._mock_config_directory_path, 0o777)  # nosec
         os.chmod(cached_token_path, 0000)
 
         shell.LOG = mock.Mock()

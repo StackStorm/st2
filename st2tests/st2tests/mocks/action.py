@@ -17,11 +17,12 @@
 Mock classes for use in pack testing.
 """
 
+from __future__ import absolute_import
 from logging import RootLogger
 
 from mock import Mock
 
-from st2common.runners.python_action_wrapper import ActionService
+from python_runner.python_action_wrapper import ActionService
 from st2tests.mocks.datastore import MockDatastoreService
 
 __all__ = [
@@ -50,5 +51,8 @@ class MockActionService(ActionService):
 
         self._datastore_service = MockDatastoreService(logger=self._logger,
                                                        pack_name=self._action_wrapper._pack,
-                                                       class_name=self._action_wrapper._class_name,
-                                                       api_username='action_service')
+                                                       class_name=self._action_wrapper._class_name)
+
+    @property
+    def datastore_service(self):
+        return self._datastore_service

@@ -13,17 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import abc
 import eventlet
-import Queue
+import six.moves.queue
 import six
 import time
 
 from oslo_config import cfg
 
-from st2actions.container.service import RunnerContainerService
 from st2common import log as logging
 from st2common.constants import action as action_constants
+from st2common.exceptions import db as db_exc
 from st2common.persistence.executionstate import ActionExecutionState
 from st2common.persistence.liveaction import LiveAction
 from st2common.runners import utils as runners_utils
@@ -42,38 +43,26 @@ __all__ = [
 class Querier(object):
     delete_state_object_on_error = True
 
-    def __init__(self, empty_q_sleep_time=5,
-                 no_workers_sleep_time=1, container_service=None):
+    def _get_config_value(self, config_option):
+        config_value = None
 
-        # Let's check to see if deprecated config group ``results_tracker`` is being used.
-        try:
-            query_interval = cfg.CONF.results_tracker.query_interval
-            LOG.warning('You are using deprecated config group ``results_tracker``.' +
-                        '\nPlease use ``resultstracker`` group instead.')
-        except:
-            pass
+        if 'results_tracker' in cfg.CONF and config_option in cfg.CONF.results_tracker:
+            config_value = getattr(cfg.CONF.results_tracker, config_option)
+            LOG.warning('You are using deprecated config group "results_tracker" for "%s". '
+                        'Please use "resultstracker" group instead.', config_option)
 
-        try:
-            thread_pool_size = cfg.CONF.results_tracker.thread_pool_size
-            LOG.warning('You are using deprecated config group ``results_tracker``.' +
-                        '\nPlease use ``resultstracker`` group instead.')
-        except:
-            pass
+        if not config_value and config_option in cfg.CONF.resultstracker:
+            config_value = getattr(cfg.CONF.resultstracker, config_option)
 
-        if not query_interval:
-            query_interval = cfg.CONF.resultstracker.query_interval
-        if not thread_pool_size:
-            thread_pool_size = cfg.CONF.resultstracker.thread_pool_size
+        return config_value
 
-        self._query_thread_pool_size = thread_pool_size
-        self._query_interval = query_interval
-        self._query_contexts = Queue.Queue()
+    def __init__(self):
+        self._empty_q_sleep_time = self._get_config_value('empty_q_sleep_time')
+        self._no_workers_sleep_time = self._get_config_value('no_workers_sleep_time')
+        self._query_interval = self._get_config_value('query_interval')
+        self._query_thread_pool_size = self._get_config_value('thread_pool_size')
+        self._query_contexts = six.moves.queue.Queue()
         self._thread_pool = eventlet.GreenPool(self._query_thread_pool_size)
-        self._empty_q_sleep_time = empty_q_sleep_time
-        self._no_workers_sleep_time = no_workers_sleep_time
-        if not container_service:
-            container_service = RunnerContainerService()
-        self.container_service = container_service
         self._started = False
 
     def start(self):
@@ -96,7 +85,7 @@ class Querier(object):
     def is_started(self):
         return self._started
 
-    def _fire_queries(self):
+    def _fire_queries(self, blocking=False):
         if self._thread_pool.free() <= 0:
             return
 
@@ -109,11 +98,18 @@ class Querier(object):
                 reschedule_queries.append((last_query_time, query_context))
                 continue
             else:
-                self._thread_pool.spawn(
-                    self._query_and_save_results,
-                    query_context,
-                    last_query_time
-                )
+                if not blocking:
+                    self._thread_pool.spawn(
+                        self._query_and_save_results,
+                        query_context,
+                        last_query_time
+                    )
+                # Add an option to block and execute the function directly for unit tests.
+                else:
+                    self._query_and_save_results(
+                        query_context,
+                        last_query_time
+                    )
 
         for query in reschedule_queries:
             self._query_contexts.put((query[0], query[1]))
@@ -147,11 +143,22 @@ class Querier(object):
                 LOG.debug('Removed state object %s.', query_context)
             return
 
-        if status in action_constants.LIVEACTION_COMPLETED_STATES:
-            if status != action_constants.LIVEACTION_STATUS_CANCELED:
-                runners_utils.invoke_post_run(liveaction_db)
-
+        if (status in action_constants.LIVEACTION_COMPLETED_STATES or
+                status == action_constants.LIVEACTION_STATUS_PAUSED):
+            runners_utils.invoke_post_run(liveaction_db)
             self._delete_state_object(query_context)
+            LOG.debug(
+                "Detailed workflow liveaction results - ", extra={'liveaction_db': liveaction_db}
+            )
+            return
+
+        if not self._is_state_object_exist(query_context):
+            LOG.warning(
+                'Query for liveaction_id %s is not rescheduled '
+                'because state object %s has been deleted.',
+                execution_id,
+                query_context.id
+            )
 
             return
 
@@ -180,13 +187,29 @@ class Querier(object):
         return updated_liveaction
 
     def _delete_state_object(self, query_context):
-        state_db = ActionExecutionState.get_by_id(query_context.id)
+        state_db = None
+
+        try:
+            state_db = ActionExecutionState.get_by_id(query_context.id)
+        except db_exc.StackStormDBObjectNotFoundError:
+            pass
+
         if state_db is not None:
             try:
                 LOG.info('Clearing state object: %s', state_db)
                 ActionExecutionState.delete(state_db)
             except:
                 LOG.exception('Failed clearing state object: %s', state_db)
+
+    def _is_state_object_exist(self, query_context):
+        state_db = None
+
+        try:
+            state_db = ActionExecutionState.get_by_id(query_context.id)
+        except db_exc.StackStormDBObjectNotFoundError:
+            pass
+
+        return (state_db is not None)
 
     def query(self, execution_id, query_context, last_query_time=None):
         """

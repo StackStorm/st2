@@ -17,8 +17,9 @@
 Mock classes for use in pack testing.
 """
 
+from __future__ import absolute_import
 from st2common.constants.keyvalue import SYSTEM_SCOPE
-from st2common.services.datastore import DatastoreService
+from st2common.services.datastore import BaseDatastoreService
 from st2client.models.keyvalue import KeyValuePair
 
 __all__ = [
@@ -26,17 +27,51 @@ __all__ = [
 ]
 
 
-class MockDatastoreService(DatastoreService):
+class MockDatastoreService(BaseDatastoreService):
     """
     Mock DatastoreService for use in testing.
     """
-    def __init__(self, logger, pack_name, class_name, api_username):
+
+    def __init__(self, logger, pack_name, class_name, api_username=None):
         self._pack_name = pack_name
         self._class_name = class_name
+        self._username = api_username or 'admin'
 
         # Holds mock KeyValuePair objects
         # Key is a KeyValuePair name and value is the KeyValuePair object
         self._datastore_items = {}
+
+    ##################################
+    # General methods
+    ##################################
+
+    def get_user_info(self):
+        """
+        Retrieve information about the current user which is authenticated against StackStorm and
+        used to perform other datastore operations via the API.
+
+        :rtype: ``dict``
+        """
+        result = {
+            'username': self._username,
+            'rbac': {
+                'is_admin': True,
+                'enabled': True,
+                'roles': [
+                    'admin'
+                ]
+            },
+            'authentication': {
+                'method': 'authentication token',
+                'location': 'header'
+            }
+        }
+
+        return result
+
+    ##################################
+    # Methods for datastore management
+    ##################################
 
     def list_values(self, local=True, prefix=None):
         """
@@ -45,7 +80,7 @@ class MockDatastoreService(DatastoreService):
         key_prefix = self._get_full_key_prefix(local=local, prefix=prefix)
 
         if not key_prefix:
-            return self._datastore_items.values()
+            return list(self._datastore_items.values())
 
         result = []
         for name, kvp in self._datastore_items.items():

@@ -23,7 +23,8 @@ import sys
 
 __all__ = [
     'monkey_patch',
-    'monkey_patch_pkg_resources'
+    'use_select_poll_workaround',
+    'is_use_debugger_flag_provided'
 ]
 
 USE_DEBUGGER_FLAG = '--use-debugger'
@@ -44,13 +45,26 @@ def monkey_patch():
     eventlet.monkey_patch(os=True, select=True, socket=True, thread=patch_thread, time=True)
 
 
-def monkey_patch_pkg_resources():
-    # Note: This is a work-around for a very slow "pkg_resources" import.
-    # pkg_resources is used by cryptography which is used by eventlet and importing pkg_resources
-    # adds ~500-600ms to the import time of any script which uses that code :/
-    # See https://github.com/pypa/setuptools/issues/510 for details
-    import entrypoints
-    sys.modules['pkg_resources'] = entrypoints
+def use_select_poll_workaround():
+    """
+    Work around for some tests which injects original select module with select.poll()
+    available to sys.modules.
+    """
+    import sys
+    import subprocess
+    import eventlet
+
+    # Work around to get tests to pass with eventlet >= 0.20.0
+    if 'nose' in sys.modules.keys():
+        sys.modules['select'] = eventlet.patcher.original('select')
+        subprocess.select = eventlet.patcher.original('select')
+
+        if sys.version_info >= (3, 6, 5):
+            # If we also don't patch selectors.select, it will fail with Python >= 3.6.5
+            import selectors
+
+            sys.modules['selectors'] = selectors
+            selectors.select = sys.modules['select']
 
 
 def is_use_debugger_flag_provided():

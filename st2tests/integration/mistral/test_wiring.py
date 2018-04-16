@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import os
 import shutil
 import tempfile
@@ -20,6 +21,9 @@ import tempfile
 import eventlet
 
 from integration.mistral import base
+from six.moves import range
+
+from st2common.constants import action as action_constants
 
 
 class WiringTest(base.TestWorkflowExecution):
@@ -31,7 +35,7 @@ class WiringTest(base.TestWorkflowExecution):
 
         # Create temporary directory used by the tests
         _, self.temp_dir_path = tempfile.mkstemp()
-        os.chmod(self.temp_dir_path, 0755)   # nosec
+        os.chmod(self.temp_dir_path, 0o755)   # nosec
 
     def tearDown(self):
         if self.temp_dir_path and os.path.exists(self.temp_dir_path):
@@ -41,313 +45,71 @@ class WiringTest(base.TestWorkflowExecution):
                 os.remove(self.temp_dir_path)
 
     def test_basic_workflow(self):
-        execution = self._execute_workflow('examples.mistral-basic', {'cmd': 'date'})
-        execution = self._wait_for_completion(execution)
-        self._assert_success(execution, num_tasks=1)
-        self.assertIn('stdout', execution.result)
+        ex = self._execute_workflow('examples.mistral-basic', {'cmd': 'date'})
+        ex = self._wait_for_completion(ex)
+        self.assertEqual(ex.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertIn('stdout', ex.result)
+        self.assertEqual(len(ex.result.get('tasks', [])), 1)
 
     def test_basic_workbook(self):
-        execution = self._execute_workflow('examples.mistral-workbook-basic', {'cmd': 'date'})
-        execution = self._wait_for_completion(execution)
-        self._assert_success(execution, num_tasks=1)
-        self.assertIn('stdout', execution.result)
+        ex = self._execute_workflow('examples.mistral-workbook-basic', {'cmd': 'date'})
+        ex = self._wait_for_completion(ex)
+        self.assertEqual(ex.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertIn('stdout', ex.result)
+        self.assertEqual(len(ex.result.get('tasks', [])), 1)
 
     def test_complex_workbook_with_yaql(self):
-        execution = self._execute_workflow(
-            'examples.mistral-workbook-complex', {'vm_name': 'demo1'})
-        execution = self._wait_for_completion(execution)
-        self._assert_success(execution, num_tasks=8)
-        self.assertIn('vm_id', execution.result)
+        params = {'vm_name': 'demo1'}
+        ex = self._execute_workflow('examples.mistral-workbook-complex', params)
+        ex = self._wait_for_completion(ex)
+        self.assertEqual(ex.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertIn('vm_id', ex.result)
+        self.assertEqual(len(ex.result.get('tasks', [])), 8)
 
     def test_complex_workbook_with_jinja(self):
-        execution = self._execute_workflow(
-            'examples.mistral-jinja-workbook-complex', {'vm_name': 'demo2'})
-        execution = self._wait_for_completion(execution)
-        self._assert_success(execution, num_tasks=8)
-        self.assertIn('vm_id', execution.result)
+        params = {'vm_name': 'demo2'}
+        ex = self._execute_workflow('examples.mistral-jinja-workbook-complex', params)
+        ex = self._wait_for_completion(ex)
+        self.assertEqual(ex.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertIn('vm_id', ex.result)
+        self.assertEqual(len(ex.result.get('tasks', [])), 8)
 
     def test_complex_workbook_subflow_actions(self):
-        execution = self._execute_workflow(
-            'examples.mistral-workbook-subflows', {'subject': 'st2', 'adjective': 'cool'})
-        execution = self._wait_for_completion(execution)
-        self._assert_success(execution, num_tasks=2)
-        self.assertIn('tagline', execution.result)
-        self.assertEqual(execution.result['tagline'], 'st2 is cool!')
+        params = {'subject': 'st2', 'adjective': 'cool'}
+        ex = self._execute_workflow('examples.mistral-workbook-subflows', params)
+        ex = self._wait_for_completion(ex)
+        self.assertEqual(ex.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertIn('tagline', ex.result)
+        self.assertEqual(ex.result['tagline'], 'st2 is cool!')
+        self.assertEqual(len(ex.result.get('tasks', [])), 2)
 
     def test_with_items(self):
         params = {'cmd': 'date', 'count': 8}
-        execution = self._execute_workflow('examples.mistral-repeat', params)
-        execution = self._wait_for_completion(execution)
-        self._assert_success(execution, num_tasks=1)
-        self.assertEqual(len(execution.result['result']), params['count'])
+        ex = self._execute_workflow('examples.mistral-repeat', params)
+        ex = self._wait_for_completion(ex)
+        self.assertEqual(ex.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(len(ex.result['result']), params['count'])
+        self.assertEqual(len(ex.result.get('tasks', [])), 1)
 
     def test_concurrent_load(self):
         wf_name = 'examples.mistral-workbook-complex'
         wf_params = {'vm_name': 'demo1'}
-        executions = [self._execute_workflow(wf_name, wf_params) for i in range(3)]
+        exs = [self._execute_workflow(wf_name, wf_params) for i in range(3)]
 
-        eventlet.sleep(30)
+        eventlet.sleep(20)
 
-        for execution in executions:
-            e = self._wait_for_completion(execution)
-            self._assert_success(e, num_tasks=8)
+        for ex in exs:
+            e = self._wait_for_completion(ex)
+            self.assertEqual(e.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
             self.assertIn('vm_id', e.result)
+            self.assertEqual(len(e.result.get('tasks', [])), 8)
 
     def test_execution_failure(self):
-        execution = self._execute_workflow('examples.mistral-basic', {'cmd': 'foo'})
-        execution = self._wait_for_completion(execution)
-        self._assert_failure(execution)
-
-    def test_cancellation(self):
-        execution = self._execute_workflow('examples.mistral-test-cancel', {'sleep': 10})
-        execution = self._wait_for_state(execution, ['running'])
-        self.st2client.liveactions.delete(execution)
-
-        execution = self._wait_for_completion(
-            execution,
-            expect_tasks=False,
-            expect_tasks_completed=False
-        )
-
-        self._assert_canceled(execution, are_tasks_completed=False)
-
-    def test_cancellation_cascade_subworkflow_action(self):
-        execution = self._execute_workflow(
-            'examples.mistral-test-cancel-subworkflow-action',
-            {'sleep': 30}
-        )
-
-        execution = self._wait_for_state(execution, ['running'])
-        self.st2client.liveactions.delete(execution)
-
-        execution = self._wait_for_completion(
-            execution,
-            expect_tasks=False,
-            expect_tasks_completed=False
-        )
-
-        self.assertEqual(execution.status, 'canceled')
-
-        task_executions = [e for e in self.st2client.liveactions.get_all()
-                           if e.context.get('parent', {}).get('execution_id') == execution.id]
-
-        subworkflow_execution = self.st2client.liveactions.get_by_id(task_executions[0].id)
-
-        subworkflow_execution = self._wait_for_completion(
-            subworkflow_execution,
-            expect_tasks=False,
-            expect_tasks_completed=False
-        )
-
-        self.assertEqual(execution.status, 'canceled')
-
-    def test_task_cancellation(self):
-        execution = self._execute_workflow('examples.mistral-test-cancel', {'sleep': 30})
-        execution = self._wait_for_state(execution, ['running'])
-
-        task_executions = [e for e in self.st2client.liveactions.get_all()
-                           if e.context.get('parent', {}).get('execution_id') == execution.id]
-
-        self.assertGreater(len(task_executions), 0)
-
-        self.st2client.liveactions.delete(task_executions[0])
-        execution = self._wait_for_completion(execution, expect_tasks_completed=True)
-        self._assert_canceled(execution, are_tasks_completed=True)
-
-        task_results = execution.result.get('tasks', [])
-        self.assertGreater(len(task_results), 0)
-        self.assertEqual(task_results[0]['state'], 'CANCELLED')
-
-    def test_basic_rerun(self):
-        path = self.temp_dir_path
-
-        with open(path, 'w') as f:
-            f.write('1')
-
-        execution = self._execute_workflow('examples.mistral-test-rerun', {'tempfile': path})
-        execution = self._wait_for_completion(execution)
-        self._assert_failure(execution)
-        orig_st2_ex_id = execution.id
-        orig_wf_ex_id = execution.context['mistral']['execution_id']
-
-        with open(path, 'w') as f:
-            f.write('0')
-
-        execution = self.st2client.liveactions.re_run(orig_st2_ex_id)
-        self.assertNotEqual(execution.id, orig_st2_ex_id)
-        execution = self._wait_for_completion(execution)
-        self._assert_success(execution, num_tasks=1)
-        self.assertNotEqual(execution.context['mistral']['execution_id'], orig_wf_ex_id)
-
-    def test_basic_rerun_task(self):
-        path = self.temp_dir_path
-
-        with open(path, 'w') as f:
-            f.write('1')
-
-        execution = self._execute_workflow('examples.mistral-test-rerun', {'tempfile': path})
-        execution = self._wait_for_completion(execution)
-        self._assert_failure(execution)
-        orig_st2_ex_id = execution.id
-        orig_wf_ex_id = execution.context['mistral']['execution_id']
-
-        with open(path, 'w') as f:
-            f.write('0')
-
-        execution = self.st2client.liveactions.re_run(orig_st2_ex_id, tasks=['task1'])
-        self.assertNotEqual(execution.id, orig_st2_ex_id)
-        execution = self._wait_for_completion(execution)
-        self._assert_success(execution, num_tasks=1)
-        self.assertEqual(execution.context['mistral']['execution_id'], orig_wf_ex_id)
-
-    def test_rerun_subflow_task(self):
-        path = self.temp_dir_path
-
-        with open(path, 'w') as f:
-            f.write('1')
-
-        workflow_name = 'examples.mistral-test-rerun-subflow'
-        execution = self._execute_workflow(workflow_name, {'tempfile': path})
-        execution = self._wait_for_completion(execution)
-        self._assert_failure(execution)
-        orig_st2_ex_id = execution.id
-        orig_wf_ex_id = execution.context['mistral']['execution_id']
-
-        with open(path, 'w') as f:
-            f.write('0')
-
-        execution = self.st2client.liveactions.re_run(orig_st2_ex_id, tasks=['task1.task1'])
-        self.assertNotEqual(execution.id, orig_st2_ex_id)
-        execution = self._wait_for_completion(execution)
-        self._assert_success(execution, num_tasks=1)
-        self.assertEqual(execution.context['mistral']['execution_id'], orig_wf_ex_id)
-
-    def test_basic_rerun_and_reset_with_items_task(self):
-        path = self.temp_dir_path
-
-        with open(path, 'w') as f:
-            f.write('1')
-
-        execution = self._execute_workflow(
-            'examples.mistral-test-rerun-with-items',
-            {'tempfile': path}
-        )
-
-        execution = self._wait_for_completion(execution)
-        self._assert_failure(execution)
-        orig_st2_ex_id = execution.id
-        orig_wf_ex_id = execution.context['mistral']['execution_id']
-
-        with open(path, 'w') as f:
-            f.write('0')
-
-        execution = self.st2client.liveactions.re_run(orig_st2_ex_id, tasks=['task1'])
-        self.assertNotEqual(execution.id, orig_st2_ex_id)
-
-        execution = self._wait_for_completion(execution)
-        self._assert_success(execution, num_tasks=1)
-        self.assertEqual(execution.context['mistral']['execution_id'], orig_wf_ex_id)
-
-        children = self.st2client.liveactions.get_property(execution.id, 'children')
-        self.assertEqual(len(children), 4)
-
-    def test_basic_rerun_and_resume_with_items_task(self):
-        path = self.temp_dir_path
-
-        with open(path, 'w') as f:
-            f.write('1')
-
-        execution = self._execute_workflow(
-            'examples.mistral-test-rerun-with-items',
-            {'tempfile': path}
-        )
-
-        execution = self._wait_for_completion(execution)
-        self._assert_failure(execution)
-        orig_st2_ex_id = execution.id
-        orig_wf_ex_id = execution.context['mistral']['execution_id']
-
-        with open(path, 'w') as f:
-            f.write('0')
-
-        execution = self.st2client.liveactions.re_run(
-            orig_st2_ex_id,
-            tasks=['task1'],
-            no_reset=['task1']
-        )
-
-        self.assertNotEqual(execution.id, orig_st2_ex_id)
-
-        execution = self._wait_for_completion(execution)
-        self._assert_success(execution, num_tasks=1)
-        self.assertEqual(execution.context['mistral']['execution_id'], orig_wf_ex_id)
-
-        children = self.st2client.liveactions.get_property(execution.id, 'children')
-        self.assertEqual(len(children), 2)
-
-    def test_rerun_subflow_and_reset_with_items_task(self):
-        path = self.temp_dir_path
-
-        with open(path, 'w') as f:
-            f.write('1')
-
-        execution = self._execute_workflow(
-            'examples.mistral-test-rerun-subflow-with-items',
-            {'tempfile': path}
-        )
-
-        execution = self._wait_for_completion(execution)
-        self._assert_failure(execution)
-        orig_st2_ex_id = execution.id
-        orig_wf_ex_id = execution.context['mistral']['execution_id']
-
-        with open(path, 'w') as f:
-            f.write('0')
-
-        execution = self.st2client.liveactions.re_run(orig_st2_ex_id, tasks=['task1.task1'])
-        self.assertNotEqual(execution.id, orig_st2_ex_id)
-
-        execution = self._wait_for_completion(execution)
-        self._assert_success(execution, num_tasks=1)
-        self.assertEqual(execution.context['mistral']['execution_id'], orig_wf_ex_id)
-
-        children = self.st2client.liveactions.get_property(execution.id, 'children')
-        self.assertEqual(len(children), 4)
-
-    def test_rerun_subflow_and_resume_with_items_task(self):
-        path = self.temp_dir_path
-
-        with open(path, 'w') as f:
-            f.write('1')
-
-        execution = self._execute_workflow(
-            'examples.mistral-test-rerun-subflow-with-items',
-            {'tempfile': path}
-        )
-
-        execution = self._wait_for_completion(execution)
-        self._assert_failure(execution)
-        orig_st2_ex_id = execution.id
-        orig_wf_ex_id = execution.context['mistral']['execution_id']
-
-        with open(path, 'w') as f:
-            f.write('0')
-
-        execution = self.st2client.liveactions.re_run(
-            orig_st2_ex_id,
-            tasks=['task1.task1'],
-            no_reset=['task1.task1']
-        )
-
-        self.assertNotEqual(execution.id, orig_st2_ex_id)
-
-        execution = self._wait_for_completion(execution)
-        self._assert_success(execution, num_tasks=1)
-        self.assertEqual(execution.context['mistral']['execution_id'], orig_wf_ex_id)
-
-        children = self.st2client.liveactions.get_property(execution.id, 'children')
-        self.assertEqual(len(children), 2)
+        ex = self._execute_workflow('examples.mistral-basic', {'cmd': 'foo'})
+        ex = self._wait_for_completion(ex)
+        self.assertEqual(ex.status, action_constants.LIVEACTION_STATUS_FAILED)
 
     def test_invoke_from_action_chain(self):
-        execution = self._execute_workflow('examples.invoke-mistral-with-jinja', {'cmd': 'date'})
-        execution = self._wait_for_state(execution, ['succeeded'])
+        ex = self._execute_workflow('examples.invoke-mistral-with-jinja', {'cmd': 'date'})
+        ex = self._wait_for_completion(ex)
+        self.assertEqual(ex.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)

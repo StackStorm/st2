@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 from st2common.rbac.types import PermissionType
 from st2common.rbac.types import ResourceType
 from st2common.persistence.auth import User
@@ -60,8 +61,8 @@ class WebhookPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         # Create some mock role assignments
         user_db = self.users['custom_role_webhook_grant']
         role_assignment_db = UserRoleAssignmentDB(
-            user=user_db.name,
-            role=self.roles['custom_role_webhook_grant'].name)
+            user=user_db.name, role=self.roles['custom_role_webhook_grant'].name,
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
     def test_user_has_resource_db_permission(self):

@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import os
 import mock
 import json
@@ -23,7 +24,9 @@ import unittest2
 from collections import namedtuple
 
 from tests import base
+from tests.base import BaseCLITestCase
 
+from st2client.shell import Shell
 from st2client import models
 from st2client.utils import httpclient
 from st2client.commands import resource
@@ -271,3 +274,78 @@ class ActionExecutionReadCommandTestCase(unittest2.TestCase):
         args = cls(attr=['result.stdout', 'trigger_instance.id'])
         result = ActionExecutionReadCommand._get_exclude_attributes(args=args)
         self.assertEqual(result, [])
+
+
+class CommandsHelpStringTestCase(BaseCLITestCase):
+    """
+    Test case which verifies that all the commands support -h / --help flag.
+    """
+
+    capture_output = True
+
+    # TODO: Automatically iterate all the available commands
+    COMMANDS = [
+        # action
+        ['action', 'list'],
+        ['action', 'get'],
+        ['action', 'create'],
+        ['action', 'update'],
+        ['action', 'delete'],
+        ['action', 'enable'],
+        ['action', 'disable'],
+        ['action', 'execute'],
+
+        # execution
+        ['execution', 'cancel'],
+        ['execution', 'pause'],
+        ['execution', 'resume'],
+        ['execution', 'tail']
+    ]
+
+    def test_help_command_line_arg_works_for_supported_commands(self):
+        shell = Shell()
+
+        for command in self.COMMANDS:
+            # First test longhang notation
+            argv = command + ['--help']
+
+            try:
+                result = shell.run(argv)
+            except SystemExit as e:
+                self.assertEqual(e.code, 0)
+            else:
+                self.assertEqual(result, 0)
+
+            stdout = self.stdout.getvalue()
+
+            self.assertTrue('usage:' in stdout)
+            self.assertTrue(' '.join(command) in stdout)
+            # self.assertTrue('positional arguments:' in stdout)
+            self.assertTrue('optional arguments:' in stdout)
+
+            # Reset stdout and stderr after each iteration
+            self._reset_output_streams()
+
+            # Then shorthand notation
+            argv = command + ['-h']
+
+            try:
+                result = shell.run(argv)
+            except SystemExit as e:
+                self.assertEqual(e.code, 0)
+            else:
+                self.assertEqual(result, 0)
+
+            stdout = self.stdout.getvalue()
+
+            self.assertTrue('usage:' in stdout)
+            self.assertTrue(' '.join(command) in stdout)
+            # self.assertTrue('positional arguments:' in stdout)
+            self.assertTrue('optional arguments:' in stdout)
+
+            # Verify that the actual help usage string was triggered and not the invalid
+            # "too few arguments" which would indicate command doesn't actually correctly handle
+            # --help flag
+            self.assertTrue('too few arguments' not in stdout)
+
+            self._reset_output_streams()

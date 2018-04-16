@@ -13,12 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+
 from st2client.models.core import *         # noqa
 from st2client.models.auth import *       # noqa
 from st2client.models.action import *       # noqa
 from st2client.models.action_alias import *  # noqa
 from st2client.models.aliasexecution import *  # noqa
 from st2client.models.config import *  # noqa
+from st2client.models.inquiry import *  # noqa
 from st2client.models.keyvalue import *    # noqa
 from st2client.models.pack import *          # noqa
 from st2client.models.policy import *       # noqa

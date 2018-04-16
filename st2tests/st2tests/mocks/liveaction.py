@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import eventlet
 import traceback
 
@@ -51,12 +52,14 @@ class MockLiveActionPublisher(object):
 
 
 class MockLiveActionPublisherNonBlocking(object):
+    threads = []
 
     @classmethod
     def publish_create(cls, payload):
         try:
             if isinstance(payload, LiveActionDB):
-                eventlet.spawn(scheduler.get_scheduler().process, payload)
+                thread = eventlet.spawn(scheduler.get_scheduler().process, payload)
+                cls.threads.append(thread)
         except Exception:
             traceback.print_exc()
             print(payload)
@@ -66,9 +69,21 @@ class MockLiveActionPublisherNonBlocking(object):
         try:
             if isinstance(payload, LiveActionDB):
                 if state == action_constants.LIVEACTION_STATUS_REQUESTED:
-                    eventlet.spawn(scheduler.get_scheduler().process, payload)
+                    thread = eventlet.spawn(scheduler.get_scheduler().process, payload)
+                    cls.threads.append(thread)
                 else:
-                    eventlet.spawn(worker.get_worker().process, payload)
+                    thread = eventlet.spawn(worker.get_worker().process, payload)
+                    cls.threads.append(thread)
         except Exception:
             traceback.print_exc()
             print(payload)
+
+    @classmethod
+    def wait_all(cls):
+        for thread in cls.threads:
+            try:
+                thread.wait()
+            except Exception as e:
+                print(str(e))
+            finally:
+                cls.threads.remove(thread)

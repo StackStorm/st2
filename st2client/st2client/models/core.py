@@ -13,14 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import os
 import json
 import logging
 from functools import wraps
 
 import six
-
 from six.moves import urllib
+from six.moves import http_client
 
 from st2client.utils import httpclient
 
@@ -77,7 +78,7 @@ class Resource(object):
         """
         exclude_attributes = exclude_attributes or []
 
-        attributes = self.__dict__.keys()
+        attributes = list(self.__dict__.keys())
         attributes = [attr for attr in attributes if not attr.startswith('__') and
                       attr not in exclude_attributes]
 
@@ -174,8 +175,7 @@ class ResourceManager(object):
         user = kwargs.pop('user', None)
 
         params = kwargs.pop('params', {})
-        if limit and limit <= 0:
-            limit = None
+
         if limit:
             params['limit'] = limit
 
@@ -189,7 +189,7 @@ class ResourceManager(object):
             params['user'] = user
 
         response = self.client.get(url=url, params=params, **kwargs)
-        if response.status_code != 200:
+        if response.status_code != http_client.OK:
             self.handle_error(response)
         return [self.resource.deserialize(item)
                 for item in response.json()]
@@ -198,9 +198,9 @@ class ResourceManager(object):
     def get_by_id(self, id, **kwargs):
         url = '/%s/%s' % (self.resource.get_url_path_name(), id)
         response = self.client.get(url, **kwargs)
-        if response.status_code == 404:
+        if response.status_code == http_client.NOT_FOUND:
             return None
-        if response.status_code != 200:
+        if response.status_code != http_client.OK:
             self.handle_error(response)
         return self.resource.deserialize(response.json())
 
@@ -228,9 +228,9 @@ class ResourceManager(object):
         else:
             response = self.client.get(url)
 
-        if response.status_code == 404:
+        if response.status_code == http_client.NOT_FOUND:
             return None
-        if response.status_code != 200:
+        if response.status_code != http_client.OK:
             self.handle_error(response)
 
         if self_deserialize:
@@ -245,8 +245,6 @@ class ResourceManager(object):
     def _query_details(self, **kwargs):
         if not kwargs:
             raise Exception('Query parameter is not provided.')
-        if 'limit' in kwargs and kwargs.get('limit') <= 0:
-            kwargs.pop('limit')
 
         token = kwargs.get('token', None)
         api_key = kwargs.get('api_key', None)
@@ -254,7 +252,7 @@ class ResourceManager(object):
 
         for k, v in six.iteritems(kwargs):
             # Note: That's a special case to support api_key and token kwargs
-            if k not in ['token', 'api_key']:
+            if k not in ['token', 'api_key', 'params']:
                 params[k] = v
 
         url = '/%s/?%s' % (self.resource.get_url_path_name(),
@@ -267,10 +265,10 @@ class ResourceManager(object):
         else:
             response = self.client.get(url)
 
-        if response.status_code == 404:
+        if response.status_code == http_client.NOT_FOUND:
             # for query and query_with_count
             return [], None
-        if response.status_code != 200:
+        if response.status_code != http_client.OK:
             self.handle_error(response)
         items = response.json()
         instances = [self.resource.deserialize(item) for item in items]
@@ -304,7 +302,7 @@ class ResourceManager(object):
     def create(self, instance, **kwargs):
         url = '/%s' % self.resource.get_url_path_name()
         response = self.client.post(url, instance.serialize(), **kwargs)
-        if response.status_code != 200:
+        if response.status_code != http_client.OK:
             self.handle_error(response)
         instance = self.resource.deserialize(response.json())
         return instance
@@ -313,7 +311,7 @@ class ResourceManager(object):
     def update(self, instance, **kwargs):
         url = '/%s/%s' % (self.resource.get_url_path_name(), instance.id)
         response = self.client.put(url, instance.serialize(), **kwargs)
-        if response.status_code != 200:
+        if response.status_code != http_client.OK:
             self.handle_error(response)
         instance = self.resource.deserialize(response.json())
         return instance
@@ -323,7 +321,9 @@ class ResourceManager(object):
         url = '/%s/%s' % (self.resource.get_url_path_name(), instance.id)
         response = self.client.delete(url, **kwargs)
 
-        if response.status_code not in [200, 204, 404]:
+        if response.status_code not in [http_client.OK,
+                                        http_client.NO_CONTENT,
+                                        http_client.NOT_FOUND]:
             self.handle_error(response)
             return False
 
@@ -333,7 +333,9 @@ class ResourceManager(object):
     def delete_by_id(self, instance_id, **kwargs):
         url = '/%s/%s' % (self.resource.get_url_path_name(), instance_id)
         response = self.client.delete(url, **kwargs)
-        if response.status_code not in [200, 204, 404]:
+        if response.status_code not in [http_client.OK,
+                                        http_client.NO_CONTENT,
+                                        http_client.NOT_FOUND]:
             self.handle_error(response)
             return False
         try:
@@ -355,14 +357,22 @@ class ActionAliasResourceManager(ResourceManager):
     def match(self, instance, **kwargs):
         url = '/%s/match' % self.resource.get_url_path_name()
         response = self.client.post(url, instance.serialize(), **kwargs)
-        if response.status_code != 201:
+        if response.status_code != http_client.OK:
             self.handle_error(response)
-        matches = response.json()
-        if len(matches) > 0:
-            return (self.resource.deserialize(matches[0]['actionalias']),
-                    matches[0]['representation'])
-        else:
-            return matches
+        match = response.json()
+        return (self.resource.deserialize(match['actionalias']), match['representation'])
+
+
+class ActionAliasExecutionManager(ResourceManager):
+    @add_auth_token_to_kwargs_from_env
+    def match_and_execute(self, instance, **kwargs):
+        url = '/%s/match_and_execute' % self.resource.get_url_path_name()
+        response = self.client.post(url, instance.serialize(), **kwargs)
+
+        if response.status_code != http_client.OK:
+            self.handle_error(response)
+        instance = self.resource.deserialize(response.json())
+        return instance
 
 
 class LiveActionResourceManager(ResourceManager):
@@ -383,11 +393,71 @@ class LiveActionResourceManager(ResourceManager):
         }
 
         response = self.client.post(url, data, **kwargs)
-        if response.status_code != 200:
+        if response.status_code != http_client.OK:
             self.handle_error(response)
 
         instance = self.resource.deserialize(response.json())
         return instance
+
+    @add_auth_token_to_kwargs_from_env
+    def get_output(self, execution_id, output_type=None, **kwargs):
+        url = '/%s/%s/output' % (self.resource.get_url_path_name(), execution_id)
+
+        if output_type:
+            url += '?' + urllib.parse.urlencode({'output_type': output_type})
+
+        response = self.client.get(url, **kwargs)
+        if response.status_code != http_client.OK:
+            self.handle_error(response)
+
+        return response.text
+
+    @add_auth_token_to_kwargs_from_env
+    def pause(self, execution_id, **kwargs):
+        url = '/%s/%s' % (self.resource.get_url_path_name(), execution_id)
+        data = {'status': 'pausing'}
+
+        response = self.client.put(url, data, **kwargs)
+
+        if response.status_code != http_client.OK:
+            self.handle_error(response)
+
+        return self.resource.deserialize(response.json())
+
+    @add_auth_token_to_kwargs_from_env
+    def resume(self, execution_id, **kwargs):
+        url = '/%s/%s' % (self.resource.get_url_path_name(), execution_id)
+        data = {'status': 'resuming'}
+
+        response = self.client.put(url, data, **kwargs)
+
+        if response.status_code != http_client.OK:
+            self.handle_error(response)
+
+        return self.resource.deserialize(response.json())
+
+
+class InquiryResourceManager(ResourceManager):
+
+    @add_auth_token_to_kwargs_from_env
+    def respond(self, inquiry_id, inquiry_response, **kwargs):
+        """
+        Update st2.inquiry.respond action
+        Update st2client respond command to use this?
+        """
+        url = '/%s/%s' % (self.resource.get_url_path_name(), inquiry_id)
+
+        payload = {
+            "id": inquiry_id,
+            "response": inquiry_response
+        }
+
+        response = self.client.put(url, payload, **kwargs)
+
+        if response.status_code != http_client.OK:
+            self.handle_error(response)
+
+        return self.resource.deserialize(response.json())
 
 
 class TriggerInstanceResourceManager(ResourceManager):
@@ -395,7 +465,7 @@ class TriggerInstanceResourceManager(ResourceManager):
     def re_emit(self, trigger_instance_id, **kwargs):
         url = '/%s/%s/re_emit' % (self.resource.get_url_path_name(), trigger_instance_id)
         response = self.client.post(url, None, **kwargs)
-        if response.status_code != 200:
+        if response.status_code != http_client.OK:
             self.handle_error(response)
         return response.json()
 
@@ -406,14 +476,15 @@ class AsyncRequest(Resource):
 
 class PackResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
-    def install(self, packs, force=False, **kwargs):
+    def install(self, packs, force=False, python3=False, **kwargs):
         url = '/%s/install' % (self.resource.get_url_path_name())
         payload = {
             'packs': packs,
-            'force': force
+            'force': force,
+            'python3': python3
         }
         response = self.client.post(url, payload, **kwargs)
-        if response.status_code != 200:
+        if response.status_code != http_client.OK:
             self.handle_error(response)
         instance = AsyncRequest.deserialize(response.json())
         return instance
@@ -422,20 +493,25 @@ class PackResourceManager(ResourceManager):
     def remove(self, packs, **kwargs):
         url = '/%s/uninstall' % (self.resource.get_url_path_name())
         response = self.client.post(url, {'packs': packs}, **kwargs)
-        if response.status_code != 200:
+        if response.status_code != http_client.OK:
             self.handle_error(response)
         instance = AsyncRequest.deserialize(response.json())
         return instance
 
     @add_auth_token_to_kwargs_from_env
-    def search(self, args, **kwargs):
+    def search(self, args, ignore_errors=False, **kwargs):
         url = '/%s/index/search' % (self.resource.get_url_path_name())
         if 'query' in vars(args):
             payload = {'query': args.query}
         else:
             payload = {'pack': args.pack}
-        response = self.client.post(url, payload, **kwargs)
-        if response.status_code != 200:
+
+            response = self.client.post(url, payload, **kwargs)
+
+        if response.status_code != http_client.OK:
+            if ignore_errors:
+                return None
+
             self.handle_error(response)
         data = response.json()
         if isinstance(data, list):
@@ -452,7 +528,7 @@ class PackResourceManager(ResourceManager):
         if packs:
             payload['packs'] = packs
         response = self.client.post(url, payload, **kwargs)
-        if response.status_code != 200:
+        if response.status_code != http_client.OK:
             self.handle_error(response)
         instance = self.resource.deserialize(response.json())
         return instance
@@ -463,7 +539,7 @@ class ConfigManager(ResourceManager):
     def update(self, instance, **kwargs):
         url = '/%s/%s' % (self.resource.get_url_path_name(), instance.pack)
         response = self.client.put(url, instance.values, **kwargs)
-        if response.status_code != 200:
+        if response.status_code != http_client.OK:
             self.handle_error(response)
         instance = self.resource.deserialize(response.json())
         return instance
@@ -476,22 +552,34 @@ class StreamManager(object):
         self.cacert = cacert
 
     @add_auth_token_to_kwargs_from_env
-    def listen(self, events, **kwargs):
+    def listen(self, events=None, **kwargs):
         # Late import to avoid very expensive in-direct import (~1 second) when this function is
         # not called / used
         from sseclient import SSEClient
 
         url = self._url
+        query_params = {}
 
-        if 'token' in kwargs:
-            url += '?x-auth-token=%s' % kwargs.get('token')
-
-        if 'api_key' in kwargs:
-            url += '?st2-api-key=%s' % kwargs.get('api_key')
-
-        if isinstance(events, six.string_types):
+        if events and isinstance(events, six.string_types):
             events = [events]
 
+        if 'token' in kwargs:
+            query_params['x-auth-token'] = kwargs.get('token')
+
+        if 'api_key' in kwargs:
+            query_params['st2-api-key'] = kwargs.get('api_key')
+
+        if events:
+            query_params['events'] = ','.join(events)
+
+        query_string = '?' + urllib.parse.urlencode(query_params)
+        url = url + query_string
+
         for message in SSEClient(url):
-            if message.event in events:
-                yield json.loads(message.data)
+
+            # If the execution on the API server takes too long, the message
+            # can be empty. In this case, rerun the query.
+            if not message.data:
+                continue
+
+            yield json.loads(message.data)

@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import abc
 import datetime
 
@@ -68,7 +69,7 @@ class StormFoundationDB(me.Document, DictSerializableClassMixin):
         attrs = list()
         for k in sorted(self._fields.keys()):
             v = getattr(self, k)
-            v = '"%s"' % str(v) if type(v) in [str, unicode, datetime.datetime] else str(v)
+            v = '"%s"' % str(v) if type(v) in [str, six.text_type, datetime.datetime] else str(v)
             attrs.append('%s=%s' % (k, v))
         return '%s(%s)' % (self.__class__.__name__, ', '.join(attrs))
 
@@ -209,15 +210,39 @@ class UIDFieldMixin(object):
         return indexes
 
     def get_uid(self):
+        """
+        Return an object UID constructed from the object properties / fields.
+
+        :rtype: ``str``
+        """
         parts = []
         parts.append(self.RESOURCE_TYPE)
 
         for field in self.UID_FIELDS:
-            value = getattr(self, field, None)
+            value = getattr(self, field, None) or ''
             parts.append(value)
 
         uid = self.UID_SEPARATOR.join(parts)
         return uid
+
+    def get_uid_parts(self):
+        """
+        Return values for fields which make up the UID.
+
+        :rtype: ``list``
+        """
+        parts = self.uid.split(self.UID_SEPARATOR)  # pylint: disable=no-member
+        parts = [part for part in parts if part.strip()]
+        return parts
+
+    def has_valid_uid(self):
+        """
+        Return True if object contains a valid id (aka all parts contain a valid value).
+
+        :rtype: ``bool``
+        """
+        parts = self.get_uid_parts()
+        return len(parts) == len(self.UID_FIELDS) + 1
 
 
 class ContentPackResourceMixin(object):
@@ -247,3 +272,17 @@ class ContentPackResourceMixin(object):
             ref = ResourceReference(pack=self.pack, name=self.name)
 
         return ref
+
+
+class ChangeRevisionFieldMixin(object):
+
+    rev = me.IntField(required=True, default=1)
+
+    @classmethod
+    def get_indexes(cls):
+        return [
+            {
+                'fields': ['id', 'rev'],
+                'unique': True
+            }
+        ]

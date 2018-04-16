@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import os
 import os.path
 
@@ -34,6 +35,11 @@ __all__ = [
     'check_pack_directory_exists',
     'check_pack_content_directory_exists'
 ]
+
+INVALID_FILE_PATH_ERROR = """
+Invalid file path: "%s". File path needs to be relative to the pack%sdirectory (%s).
+For example "my_%s.py".
+""".strip().replace('\n', ' ')
 
 
 def get_pack_group():
@@ -245,7 +251,7 @@ def get_entry_point_abs_path(pack=None, entry_point=None):
     return entry_point_abs_path
 
 
-def get_pack_file_abs_path(pack_ref, file_path):
+def get_pack_file_abs_path(pack_ref, file_path, resource_type=None):
     """
     Retrieve full absolute path to the pack file.
 
@@ -259,9 +265,20 @@ def get_pack_file_abs_path(pack_ref, file_path):
                      actions/directory/my_file.py)
     :type file_path: ``str``
 
+    param: resource_type: Optional resource type. If provided, more user-friendly exception
+                          is thrown on error.
+    :type resource_type: ``str``
+
     :rtype: ``str``
     """
     pack_base_path = get_pack_base_path(pack_name=pack_ref)
+
+    if resource_type:
+        resource_type_plural = ' %ss ' % (resource_type)
+        resource_base_path = os.path.join(pack_base_path, '%ss/' % (resource_type))
+    else:
+        resource_type_plural = ' '
+        resource_base_path = pack_base_path
 
     path_components = []
     path_components.append(pack_base_path)
@@ -270,7 +287,9 @@ def get_pack_file_abs_path(pack_ref, file_path):
     normalized_file_path = os.path.normpath('/' + file_path).lstrip('/')
 
     if normalized_file_path != file_path:
-        raise ValueError('Invalid file path: %s' % (file_path))
+        msg = INVALID_FILE_PATH_ERROR % (file_path, resource_type_plural, resource_base_path,
+                                         resource_type or 'action')
+        raise ValueError(msg)
 
     path_components.append(normalized_file_path)
     result = os.path.join(*path_components)
@@ -280,7 +299,9 @@ def get_pack_file_abs_path(pack_ref, file_path):
     # Final safety check for common prefix to avoid traversal attack
     common_prefix = os.path.commonprefix([pack_base_path, result])
     if common_prefix != pack_base_path:
-        raise ValueError('Invalid file_path: %s' % (file_path))
+        msg = INVALID_FILE_PATH_ERROR % (file_path, resource_type_plural, resource_base_path,
+                                         resource_type or 'action')
+        raise ValueError(msg)
 
     return result
 
@@ -316,7 +337,8 @@ def get_pack_resource_file_abs_path(pack_ref, resource_type, file_path):
 
     path_components.append(file_path)
     file_path = os.path.join(*path_components)
-    result = get_pack_file_abs_path(pack_ref=pack_ref, file_path=file_path)
+    result = get_pack_file_abs_path(pack_ref=pack_ref, file_path=file_path,
+                                    resource_type=resource_type)
     return result
 
 

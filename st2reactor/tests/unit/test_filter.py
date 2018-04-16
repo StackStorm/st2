@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import bson
 import copy
 import mock
@@ -37,7 +38,16 @@ MOCK_TRIGGER_INSTANCE = TriggerInstanceDB(
         'bool': True,
         'int': 1,
         'float': 0.8,
-        'list': ['v1', True, 1]
+        'list': ['v1', True, 1],
+        'recursive_list': [
+            {
+                'field_name': "Status",
+                'to_value': "Approved",
+            }, {
+                'field_name': "Signed off by",
+                'to_value': "Stanley",
+            }
+        ],
     }
 )
 
@@ -76,6 +86,86 @@ class FilterTest(DbTestCase):
         trigger_instance.payload = None
         f = RuleFilter(trigger_instance, MOCK_TRIGGER, rule)
         self.assertTrue(f.filter(), 'equals check should have failed.')
+
+    def test_search_operator_pass_any_criteria(self):
+        rule = MOCK_RULE_1
+        rule.criteria = {
+            'trigger.recursive_list': {
+                'type': 'search',
+                'condition': 'any',
+                'pattern': {
+                    'item.field_name': {
+                        'type': 'equals',
+                        'pattern': 'Status',
+                    },
+                    'item.to_value': {
+                        'type': 'equals',
+                        'pattern': 'Approved'
+                    }
+                }
+            }
+        }
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
+        self.assertTrue(f.filter(), 'Failed evaluation')
+
+    def test_search_operator_fail_any_criteria(self):
+        rule = MOCK_RULE_1
+        rule.criteria = {
+            'trigger.recursive_list': {
+                'type': 'search',
+                'condition': 'any',
+                'pattern': {
+                    'item.field_name': {
+                        'type': 'equals',
+                        'pattern': 'Status',
+                    },
+                    'item.to_value': {
+                        'type': 'equals',
+                        'pattern': 'Denied',
+                    }
+                }
+            }
+        }
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
+        self.assertFalse(f.filter(), 'Passed evaluation')
+
+    def test_search_operator_pass_all_criteria(self):
+        rule = MOCK_RULE_1
+        rule.criteria = {
+            'trigger.recursive_list': {
+                'type': 'search',
+                'condition': 'all',
+                'pattern': {
+                    'item.field_name': {
+                        'type': 'startswith',
+                        'pattern': 'S',
+                    }
+                }
+            }
+        }
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
+        self.assertTrue(f.filter(), 'Failed evaluation')
+
+    def test_search_operator_fail_all_criteria(self):
+        rule = MOCK_RULE_1
+        rule.criteria = {
+            'trigger.recursive_list': {
+                'type': 'search',
+                'condition': 'all',
+                'pattern': {
+                    'item.field_name': {
+                        'type': 'equals',
+                        'pattern': 'Status',
+                    },
+                    'item.to_value': {
+                        'type': 'equals',
+                        'pattern': 'Denied',
+                    }
+                }
+            }
+        }
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
+        self.assertFalse(f.filter(), 'Passed evaluation')
 
     def test_matchregex_operator_pass_criteria(self):
         rule = MOCK_RULE_1

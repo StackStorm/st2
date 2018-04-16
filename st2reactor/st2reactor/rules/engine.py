@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 from st2common import log as logging
 from st2common.services.rules import get_rules_given_trigger
 from st2common.services.triggers import get_trigger_db_by_ref

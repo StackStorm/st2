@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import copy
 import uuid
 
@@ -27,9 +28,10 @@ from oslo_config import cfg
 
 # XXX: actionsensor import depends on config being setup.
 import st2tests.config as tests_config
+from six.moves import range
 tests_config.parse_args()
 
-from mistral_v2 import MistralRunner
+from mistral_v2.mistral_v2 import MistralRunner
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar
 from st2common.constants import action as action_constants
@@ -127,7 +129,7 @@ class MistralRunnerCancelTest(DbTestCase):
 
     @classmethod
     def get_runner_class(cls, runner_name):
-        return runners.get_runner(runner_name).__class__
+        return runners.get_runner(runner_name, runner_name).__class__
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',
@@ -144,6 +146,9 @@ class MistralRunnerCancelTest(DbTestCase):
     @mock.patch.object(
         executions.ExecutionManager, 'update',
         mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC_CANCELLED)))
+    @mock.patch.object(
+        action_service, 'is_children_active',
+        mock.MagicMock(return_value=True))
     def test_cancel(self):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
@@ -159,7 +164,7 @@ class MistralRunnerCancelTest(DbTestCase):
         liveaction, execution = action_service.request_cancellation(liveaction, requester)
         executions.ExecutionManager.update.assert_called_with(WF1_EXEC.get('id'), 'CANCELLED')
         liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELED)
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELING)
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',
@@ -193,25 +198,28 @@ class MistralRunnerCancelTest(DbTestCase):
 
         # Mock the children of the parent execution to make this
         # test case has subworkflow execution.
-        ActionExecutionDB.children = mock.PropertyMock(return_value=[execution2.id])
+        with mock.patch.object(
+                ActionExecutionDB, 'children',
+                new_callable=mock.PropertyMock) as action_ex_children_mock:
+            action_ex_children_mock.return_value = [execution2.id]
 
-        mistral_context = liveaction1.context.get('mistral', None)
-        self.assertIsNotNone(mistral_context)
-        self.assertEqual(mistral_context['execution_id'], WF2_EXEC.get('id'))
-        self.assertEqual(mistral_context['workflow_name'], WF2_EXEC.get('workflow_name'))
+            mistral_context = liveaction1.context.get('mistral', None)
+            self.assertIsNotNone(mistral_context)
+            self.assertEqual(mistral_context['execution_id'], WF2_EXEC.get('id'))
+            self.assertEqual(mistral_context['workflow_name'], WF2_EXEC.get('workflow_name'))
 
-        requester = cfg.CONF.system_user.user
-        liveaction1, execution1 = action_service.request_cancellation(liveaction1, requester)
+            requester = cfg.CONF.system_user.user
+            liveaction1, execution1 = action_service.request_cancellation(liveaction1, requester)
 
-        self.assertTrue(executions.ExecutionManager.update.called)
-        self.assertEqual(executions.ExecutionManager.update.call_count, 2)
+            self.assertTrue(executions.ExecutionManager.update.called)
+            self.assertEqual(executions.ExecutionManager.update.call_count, 2)
 
-        calls = [
-            mock.call(WF2_EXEC.get('id'), 'CANCELLED'),
-            mock.call(WF1_EXEC.get('id'), 'CANCELLED')
-        ]
+            calls = [
+                mock.call(WF2_EXEC.get('id'), 'CANCELLED'),
+                mock.call(WF1_EXEC.get('id'), 'CANCELLED')
+            ]
 
-        executions.ExecutionManager.update.assert_has_calls(calls, any_order=False)
+            executions.ExecutionManager.update.assert_has_calls(calls, any_order=False)
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',
@@ -229,6 +237,9 @@ class MistralRunnerCancelTest(DbTestCase):
         executions.ExecutionManager, 'update',
         mock.MagicMock(side_effect=[requests.exceptions.ConnectionError(),
                                     executions.Execution(None, WF1_EXEC_CANCELLED)]))
+    @mock.patch.object(
+        action_service, 'is_children_active',
+        mock.MagicMock(return_value=True))
     def test_cancel_retry(self):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
@@ -244,7 +255,7 @@ class MistralRunnerCancelTest(DbTestCase):
         liveaction, execution = action_service.request_cancellation(liveaction, requester)
         executions.ExecutionManager.update.assert_called_with(WF1_EXEC.get('id'), 'CANCELLED')
         liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELED)
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELING)
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',

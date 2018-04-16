@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import socket
 
 import retrying
@@ -28,11 +29,17 @@ from st2common.transport.execution import EXECUTION_XCHG
 from st2common.transport.liveaction import LIVEACTION_XCHG, LIVEACTION_STATUS_MGMT_XCHG
 from st2common.transport.reactor import SENSOR_CUD_XCHG
 from st2common.transport.reactor import TRIGGER_CUD_XCHG, TRIGGER_INSTANCE_XCHG
-from st2common.transport import actionexecutionstate
-from st2common.transport import announcement
-from st2common.transport import execution
-from st2common.transport import liveaction
 from st2common.transport import reactor
+from st2common.transport.queues import ACTIONSCHEDULER_REQUEST_QUEUE
+from st2common.transport.queues import ACTIONRUNNER_WORK_QUEUE
+from st2common.transport.queues import ACTIONRUNNER_CANCEL_QUEUE
+from st2common.transport.queues import NOTIFIER_ACTIONUPDATE_WORK_QUEUE
+from st2common.transport.queues import RESULTSTRACKER_ACTIONSTATE_WORK_QUEUE
+from st2common.transport.queues import RULESENGINE_WORK_QUEUE
+from st2common.transport.queues import STREAM_ANNOUNCEMENT_WORK_QUEUE
+from st2common.transport.queues import STREAM_EXECUTION_ALL_WORK_QUEUE
+from st2common.transport.queues import STREAM_LIVEACTION_WORK_QUEUE
+from st2common.transport.queues import STREAM_EXECUTION_OUTPUT_QUEUE
 
 LOG = logging.getLogger('st2common.transport.bootstrap')
 
@@ -55,19 +62,26 @@ EXCHANGES = [
     SENSOR_CUD_XCHG
 ]
 
-# List of queues which are pre-declared on service set up.
-# Because of the worker model used, this is required with some non-standard transports such as
-# Redis one. Even though kombu requires queues to be pre-declared upfront in such scenarios,
-# RabbitMQ transport doesn't require that.
+# List of queues which are pre-declared on service startup.
+# All the queues need to be declared and bound up front so we can guarantee messages get routed
+# and don't get lost even if there are no consumers online
 QUEUES = [
-    actionexecutionstate.get_queue(name='st2.preinit', routing_key='init'),
-    announcement.get_queue(name='st2.preinit', routing_key='init'),
-    execution.get_queue(name='st2.preinit', routing_key='init'),
-    liveaction.get_queue(name='st2.preinit', routing_key='init'),
-    liveaction.get_status_management_queue(name='st2.preinit', routing_key='init'),
+    ACTIONSCHEDULER_REQUEST_QUEUE,
+    ACTIONRUNNER_WORK_QUEUE,
+    ACTIONRUNNER_CANCEL_QUEUE,
+    NOTIFIER_ACTIONUPDATE_WORK_QUEUE,
+    RESULTSTRACKER_ACTIONSTATE_WORK_QUEUE,
+    RULESENGINE_WORK_QUEUE,
+
+    STREAM_ANNOUNCEMENT_WORK_QUEUE,
+    STREAM_EXECUTION_ALL_WORK_QUEUE,
+    STREAM_LIVEACTION_WORK_QUEUE,
+    STREAM_EXECUTION_OUTPUT_QUEUE,
+
+    # Those queues are dynamically / late created on some class init but we still need to
+    # pre-declare them for redis Kombu backend to work.
     reactor.get_trigger_cud_queue(name='st2.preinit', routing_key='init'),
-    reactor.get_trigger_instances_queue(name='st2.preinit', routing_key='init'),
-    reactor.get_sensor_cud_queue(name='st2.preinit', routing_key='init'),
+    reactor.get_sensor_cud_queue(name='st2.preinit', routing_key='init')
 ]
 
 
@@ -125,8 +139,7 @@ def register_exchanges():
             for queue in QUEUES:
                 _do_predeclare_queue(channel=channel, queue=queue)
 
-        if cfg.CONF.messaging.predeclare_queues:
-            retry_wrapper.run(connection=conn, wrapped_callback=wrapped_predeclare_queues)
+        retry_wrapper.run(connection=conn, wrapped_callback=wrapped_predeclare_queues)
 
 
 def register_exchanges_with_retry():

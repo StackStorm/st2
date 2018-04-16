@@ -13,7 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sets
+from __future__ import absolute_import
+
 import yaml
 
 from st2common import log as logging
@@ -90,7 +91,7 @@ class KVStorePartitioner(DefaultPartitioner):
 
         kvp = KeyValuePair.get_by_name(partition_lookup_key)
         sensor_refs_str = kvp.value if kvp.value else ''
-        self._supported_sensor_refs = sets.Set([
+        self._supported_sensor_refs = set([
             sensor_ref.strip() for sensor_ref in sensor_refs_str.split(',')])
         return self._supported_sensor_refs
 
@@ -115,7 +116,7 @@ class FileBasedPartitioner(DefaultPartitioner):
             if sensor_refs is None:
                 raise SensorPartitionMapMissingException('Sensor partition not found for %s in %s.',
                                                          self.sensor_node_name, self.partition_file)
-            self._supported_sensor_refs = sets.Set(sensor_refs)
+            self._supported_sensor_refs = set(sensor_refs)
             return self._supported_sensor_refs
 
 

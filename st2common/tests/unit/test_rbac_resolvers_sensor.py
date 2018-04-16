@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 from st2common.rbac.types import PermissionType
 from st2common.rbac.types import ResourceType
 from st2common.persistence.auth import User
@@ -131,31 +132,32 @@ class SensorPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         # Create some mock role assignments
         user_db = self.users['custom_role_sensor_pack_grant']
         role_assignment_db = UserRoleAssignmentDB(
-            user=user_db.name,
-            role=self.roles['custom_role_sensor_pack_grant'].name)
+            user=user_db.name, role=self.roles['custom_role_sensor_pack_grant'].name,
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         user_db = self.users['custom_role_sensor_grant']
-        role_assignment_db = UserRoleAssignmentDB(user=user_db.name,
-                                                  role=self.roles['custom_role_sensor_grant'].name)
+        role_assignment_db = UserRoleAssignmentDB(
+            user=user_db.name, role=self.roles['custom_role_sensor_grant'].name,
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         user_db = self.users['custom_role_pack_sensor_all_grant']
         role_assignment_db = UserRoleAssignmentDB(
-            user=user_db.name,
-            role=self.roles['custom_role_pack_sensor_all_grant'].name)
+            user=user_db.name, role=self.roles['custom_role_pack_sensor_all_grant'].name,
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         user_db = self.users['custom_role_sensor_all_grant']
         role_assignment_db = UserRoleAssignmentDB(
-            user=user_db.name,
-            role=self.roles['custom_role_sensor_all_grant'].name)
+            user=user_db.name, role=self.roles['custom_role_sensor_all_grant'].name,
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         user_db = self.users['custom_role_sensor_list_grant']
         role_assignment_db = UserRoleAssignmentDB(
-            user=user_db.name,
-            role=self.roles['custom_role_sensor_list_grant'].name)
+            user=user_db.name, role=self.roles['custom_role_sensor_list_grant'].name,
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
     def test_user_has_permission(self):

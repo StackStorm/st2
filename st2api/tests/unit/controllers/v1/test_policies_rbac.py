@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import copy
-import httplib
 
 import six
 
@@ -107,12 +106,14 @@ class PolicyTypeControllerRBACTestCase(APIControllerWithRBACTestCase):
         # Role assignments
         role_assignment_db = UserRoleAssignmentDB(
             user=self.users['policy_type_list'].name,
-            role=self.roles['policy_type_list'].name)
+            role=self.roles['policy_type_list'].name,
+            source='assignments/%s.yaml' % self.users['policy_type_list'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         role_assignment_db = UserRoleAssignmentDB(
             user=self.users['policy_type_view'].name,
-            role=self.roles['policy_type_view'].name)
+            role=self.roles['policy_type_view'].name,
+            source='assignments/%s.yaml' % self.users['policy_type_view'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
     def test_get_all_no_permissions(self):
@@ -122,7 +123,7 @@ class PolicyTypeControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.app.get('/v1/policytypes', expect_errors=True)
         expected_msg = ('User "no_permissions" doesn\'t have required permission '
                         '"policy_type_list"')
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_get_one_no_permissions(self):
@@ -134,7 +135,7 @@ class PolicyTypeControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.app.get('/v1/policytypes/%s' % (policy_type_id), expect_errors=True)
         expected_msg = ('User "no_permissions" doesn\'t have required permission "policy_type_view"'
                         ' on resource "%s"' % (policy_type_uid))
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_get_all_permission_success_get_one_no_permission_failure(self):
@@ -143,7 +144,7 @@ class PolicyTypeControllerRBACTestCase(APIControllerWithRBACTestCase):
 
         # policy_type_list permission, but no policy_type_view permission
         resp = self.app.get('/v1/policytypes')
-        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(resp.status_code, http_client.OK)
         self.assertEqual(len(resp.json), 3)
 
         policy_type_id = self.models['policytypes']['fake_policy_type_1.yaml'].id
@@ -151,7 +152,7 @@ class PolicyTypeControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.app.get('/v1/policytypes/%s' % (policy_type_id), expect_errors=True)
         expected_msg = ('User "policy_type_list" doesn\'t have required permission '
                         '"policy_type_view" on resource "%s"' % (policy_type_uid))
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_get_one_permission_success_get_all_no_permission_failure(self):
@@ -162,7 +163,7 @@ class PolicyTypeControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.app.get('/v1/policytypes', expect_errors=True)
         expected_msg = ('User "policy_type_view" doesn\'t have required permission '
                         '"policy_type_list"')
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
         # policy_type_view in fake_policy_type_1, but not on fake_policy_type_2
@@ -170,7 +171,7 @@ class PolicyTypeControllerRBACTestCase(APIControllerWithRBACTestCase):
         policy_type_uid = self.models['policytypes']['fake_policy_type_1.yaml'].get_uid()
         resp = self.app.get('/v1/policytypes/%s' % (policy_type_id), expect_errors=True)
         resp = self.app.get('/v1/policytypes/%s' % (policy_type_id))
-        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(resp.status_code, http_client.OK)
         self.assertEqual(resp.json['uid'], policy_type_uid)
 
         policy_type_id = self.models['policytypes']['fake_policy_type_2.yaml'].id
@@ -178,8 +179,21 @@ class PolicyTypeControllerRBACTestCase(APIControllerWithRBACTestCase):
         expected_msg = ('User "policy_type_view" doesn\'t have required permission '
                         '"policy_type_view" on resource "%s"' % (policy_type_uid))
         resp = self.app.get('/v1/policytypes/%s' % (policy_type_id), expect_errors=True)
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
+
+    def test_get_all_limit_minus_one(self):
+        user_db = self.users['observer']
+        self.use_user(user_db)
+
+        resp = self.app.get('/v1/policytypes?limit=-1', expect_errors=True)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
+
+        user_db = self.users['admin']
+        self.use_user(user_db)
+
+        resp = self.app.get('/v1/policytypes?limit=-1')
+        self.assertEqual(resp.status_code, http_client.OK)
 
 
 class PolicyControllerRBACTestCase(APIControllerWithRBACTestCase):
@@ -304,32 +318,38 @@ class PolicyControllerRBACTestCase(APIControllerWithRBACTestCase):
         # Role assignments
         role_assignment_db = UserRoleAssignmentDB(
             user=self.users['policy_list'].name,
-            role=self.roles['policy_list'].name)
+            role=self.roles['policy_list'].name,
+            source='assignments/%s.yaml' % self.users['policy_list'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         role_assignment_db = UserRoleAssignmentDB(
             user=self.users['policy_view_direct_policy1'].name,
-            role=self.roles['policy_view_direct_policy1'].name)
+            role=self.roles['policy_view_direct_policy1'].name,
+            source='assignments/%s.yaml' % self.users['policy_view_direct_policy1'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         role_assignment_db = UserRoleAssignmentDB(
             user=self.users['policy_view_policy8_parent_pack'].name,
-            role=self.roles['policy_view_policy8_parent_pack'].name)
+            role=self.roles['policy_view_policy8_parent_pack'].name,
+            source='assignments/%s.yaml' % self.users['policy_view_policy8_parent_pack'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         role_assignment_db = UserRoleAssignmentDB(
             user=self.users['policy_create_policy8_parent_pack'].name,
-            role=self.roles['policy_create_policy8_parent_pack'].name)
+            role=self.roles['policy_create_policy8_parent_pack'].name,
+            source='assignments/%s.yaml' % self.users['policy_create_policy8_parent_pack'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         role_assignment_db = UserRoleAssignmentDB(
             user=self.users['policy_update_direct_policy2'].name,
-            role=self.roles['policy_update_direct_policy2'].name)
+            role=self.roles['policy_update_direct_policy2'].name,
+            source='assignments/%s.yaml' % self.users['policy_update_direct_policy2'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         role_assignment_db = UserRoleAssignmentDB(
             user=self.users['policy_delete_policy8_parent_pack'].name,
-            role=self.roles['policy_delete_policy8_parent_pack'].name)
+            role=self.roles['policy_delete_policy8_parent_pack'].name,
+            source='assignments/%s.yaml' % self.users['policy_delete_policy8_parent_pack'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
     def test_get_all_no_permissions(self):
@@ -339,7 +359,7 @@ class PolicyControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.app.get('/v1/policies', expect_errors=True)
         expected_msg = ('User "no_permissions" doesn\'t have required permission '
                         '"policy_list"')
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_get_one_no_permissions(self):
@@ -351,7 +371,7 @@ class PolicyControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.app.get('/v1/policies/%s' % (policy_id), expect_errors=True)
         expected_msg = ('User "no_permissions" doesn\'t have required permission "policy_view"'
                         ' on resource "%s"' % (policy_uid))
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_get_all_permission_success_get_one_no_permission_failure(self):
@@ -360,7 +380,7 @@ class PolicyControllerRBACTestCase(APIControllerWithRBACTestCase):
 
         # policy_list permission, but no policy_view permission
         resp = self.app.get('/v1/policies')
-        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(resp.status_code, http_client.OK)
         self.assertEqual(len(resp.json), 3)
 
         policy_id = self.models['policies']['policy_1.yaml'].id
@@ -368,7 +388,7 @@ class PolicyControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.app.get('/v1/policies/%s' % (policy_id), expect_errors=True)
         expected_msg = ('User "policy_list" doesn\'t have required permission "policy_view"'
                         ' on resource "%s"' % (policy_uid))
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_get_one_permission_success_get_all_no_permission_failure(self):
@@ -379,14 +399,14 @@ class PolicyControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.app.get('/v1/policies', expect_errors=True)
         expected_msg = ('User "policy_view_direct_policy1" doesn\'t have required permission '
                         '"policy_list"')
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
         # policy_view in policy_1, but not on policy_2
         policy_id = self.models['policies']['policy_1.yaml'].id
         policy_uid = self.models['policies']['policy_1.yaml'].get_uid()
         resp = self.app.get('/v1/policies/%s' % (policy_id))
-        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(resp.status_code, http_client.OK)
         self.assertEqual(resp.json['uid'], policy_uid)
 
         policy_id = self.models['policies']['policy_2.yaml'].id
@@ -394,7 +414,7 @@ class PolicyControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.app.get('/v1/policies/%s' % (policy_id), expect_errors=True)
         expected_msg = ('User "policy_view_direct_policy1" doesn\'t have required permission'
                         ' "policy_view" on resource "%s"' % (policy_uid))
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
         # policy_view on parent pack of policy8, but not on policy1
@@ -404,7 +424,7 @@ class PolicyControllerRBACTestCase(APIControllerWithRBACTestCase):
         policy_id = self.models['policies']['policy_8.yaml'].id
         policy_uid = self.models['policies']['policy_8.yaml'].get_uid()
         resp = self.app.get('/v1/policies/%s' % (policy_id))
-        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(resp.status_code, http_client.OK)
         self.assertEqual(resp.json['uid'], policy_uid)
 
         policy_id = self.models['policies']['policy_1.yaml'].id
@@ -412,19 +432,17 @@ class PolicyControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.app.get('/v1/policies/%s' % (policy_id), expect_errors=True)
         expected_msg = ('User "policy_view_policy8_parent_pack" doesn\'t have required permission'
                         ' "policy_view" on resource "%s"' % (policy_uid))
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_policy_create_no_permissions(self):
         user_db = self.users['no_permissions']
         self.use_user(user_db)
 
-        policy_uid = self.models['policies']['policy_1.yaml'].get_uid()
         data = self.POLICY_1
         resp = self.app.post_json('/v1/policies', data, expect_errors=True)
-        expected_msg = ('User "no_permissions" doesn\'t have required permission "policy_create" '
-                        'on resource "%s"' % (policy_uid))
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        expected_msg = ('User "no_permissions" doesn\'t have required permission "policy_create"')
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_policy_create_success(self):
@@ -435,7 +453,7 @@ class PolicyControllerRBACTestCase(APIControllerWithRBACTestCase):
         data['name'] = 'foo-bar-8'
         data['resource_ref'] = 'foo-bar-8'
         resp = self.app.post_json('/v1/policies', data)
-        self.assertEqual(resp.status_code, httplib.CREATED)
+        self.assertEqual(resp.status_code, http_client.CREATED)
 
     def test_policy_update_no_permissions(self):
         user_db = self.users['no_permissions']
@@ -447,7 +465,7 @@ class PolicyControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.app.put_json('/v1/policies/%s' % (policy_id), data, expect_errors=True)
         expected_msg = ('User "no_permissions" doesn\'t have required permission "policy_modify"'
                         ' on resource "%s"' % (policy_uid))
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_policy_update_success(self):
@@ -459,7 +477,7 @@ class PolicyControllerRBACTestCase(APIControllerWithRBACTestCase):
         data['id'] = str(policy_id)
         data['name'] = 'new-name'
         resp = self.app.put_json('/v1/policies/%s' % (policy_id), data)
-        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(resp.status_code, http_client.OK)
         self.assertEqual(resp.json['name'], data['name'])
 
     def test_policy_delete_success(self):
@@ -468,7 +486,7 @@ class PolicyControllerRBACTestCase(APIControllerWithRBACTestCase):
 
         policy_id = self.models['policies']['policy_8.yaml'].id
         resp = self.app.delete('/v1/policies/%s' % (policy_id), expect_errors=True)
-        self.assertEqual(resp.status_code, httplib.NO_CONTENT)
+        self.assertEqual(resp.status_code, http_client.NO_CONTENT)
 
     def test_policy_delete_no_permissions(self):
         user_db = self.users['no_permissions']
@@ -479,5 +497,18 @@ class PolicyControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.app.delete('/v1/policies/%s' % (policy_id), expect_errors=True)
         expected_msg = ('User "no_permissions" doesn\'t have required permission "policy_delete"'
                         ' on resource "%s"' % (policy_uid))
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
+
+    def test_get_all_limit_minus_one(self):
+        user_db = self.users['observer']
+        self.use_user(user_db)
+
+        resp = self.app.get('/v1/policies?limit=-1', expect_errors=True)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
+
+        user_db = self.users['admin']
+        self.use_user(user_db)
+
+        resp = self.app.get('/v1/policies?limit=-1')
+        self.assertEqual(resp.status_code, http_client.OK)

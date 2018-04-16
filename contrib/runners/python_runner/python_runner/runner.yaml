@@ -1,0 +1,35 @@
+- aliases:
+  - run-python
+  description: A runner for launching python actions.
+  enabled: true
+  name: python-script
+  runner_module: python_runner
+  runner_parameters:
+    debug:
+      description: Enable runner debug mode.
+      type: boolean
+      required: false
+      default: false
+    content_version:
+      description: Git revision of the pack content to use for this action execution (git commit sha / tag / branch). Only applies to packs which are git repositories.
+      type: string
+      required: false
+    env:
+      description: Environment variables which will be available to the script.
+      type: object
+    timeout:
+      default: 600
+      description: Action timeout in seconds. Action will get killed if it doesn't
+        finish in timeout seconds.
+      type: integer
+    log_level:
+      description: Default log level for Python runner actions.
+      type: string
+      default: DEBUG
+      enum:
+        - AUDIT
+        - CRITICAL
+        - ERROR
+        - WARNING
+        - INFO
+        - DEBUG

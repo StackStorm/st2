@@ -30,6 +30,7 @@ from st2common.services.triggerwatcher import TriggerWatcher
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.router import abort
 from st2common.router import Response
+from st2common.util.jsonify import get_json_type_for_python_value
 
 http_client = six.moves.http_client
 
@@ -82,7 +83,7 @@ class WebhooksController(object):
     def __init__(self, *args, **kwargs):
         self._hooks = HooksHolder()
         self._base_url = '/webhooks/'
-        self._trigger_types = WEBHOOK_TRIGGER_TYPES.keys()
+        self._trigger_types = list(WEBHOOK_TRIGGER_TYPES.keys())
 
         self._trigger_dispatcher = TriggerDispatcher(LOG)
         queue_suffix = self.__class__.__name__
@@ -99,8 +100,8 @@ class WebhooksController(object):
         # Return only the hooks known by this controller.
         return self._hooks.get_all()
 
-    def get_one(self, name, requester_user):
-        triggers = self._hooks.get_triggers_for_hook(name)
+    def get_one(self, url, requester_user):
+        triggers = self._hooks.get_triggers_for_hook(url)
 
         if not triggers:
             abort(http_client.NOT_FOUND)
@@ -108,14 +109,14 @@ class WebhooksController(object):
 
         permission_type = PermissionType.WEBHOOK_VIEW
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
-                                                          resource_db=WebhookDB(name=name),
+                                                          resource_db=WebhookDB(name=url),
                                                           permission_type=permission_type)
 
         # For demonstration purpose return 1st
         return triggers[0]
 
-    def post(self, hook, body, headers, requester_user):
-        body = vars(body)
+    def post(self, hook, webhook_body_api, headers, requester_user):
+        body = webhook_body_api.data
 
         permission_type = PermissionType.WEBHOOK_SEND
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
@@ -128,6 +129,12 @@ class WebhooksController(object):
                                                    hook=hook)
 
         if hook == 'st2' or hook == 'st2/':
+            # When using st2 or system webhook, body needs to always be a dict
+            if not isinstance(body, dict):
+                type_string = get_json_type_for_python_value(body)
+                msg = ('Webhook body needs to be an object, got: %s' % (type_string))
+                raise ValueError(msg)
+
             trigger = body.get('trigger', None)
             payload = body.get('payload', None)
 

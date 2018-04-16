@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import copy
 import mongoengine as me
 
@@ -50,6 +51,7 @@ class PackDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin,
     email = me.EmailField()
     contributors = me.ListField(field=me.StringField())
     files = me.ListField(field=me.StringField())
+    path = me.StringField(required=False)
     dependencies = me.ListField(field=me.StringField())
     system = me.DictField()
 

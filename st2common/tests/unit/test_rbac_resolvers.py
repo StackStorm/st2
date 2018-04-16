@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import six
 import unittest2
 from oslo_config import cfg
@@ -248,21 +249,30 @@ class BasePermissionsResolverTestCase(CleanDbTestCase):
 
     def _insert_common_mock_role_assignments(self):
         # Insert common mock role assignments
-        role_assignment_admin = UserRoleAssignmentDB(user=self.users['admin'].name,
-                                                     role=self.roles['admin_role'].name)
+        role_assignment_admin = UserRoleAssignmentDB(
+            user=self.users['admin'].name, role=self.roles['admin_role'].name,
+            source='assignments/admin.yaml')
+
         role_assignment_admin = UserRoleAssignment.add_or_update(role_assignment_admin)
-        role_assignment_observer = UserRoleAssignmentDB(user=self.users['observer'].name,
-                                                        role=self.roles['observer_role'].name)
+
+        role_assignment_observer = UserRoleAssignmentDB(
+            user=self.users['observer'].name, role=self.roles['observer_role'].name,
+            source='assignments/observer.yaml')
+
         role_assignment_observer = UserRoleAssignment.add_or_update(role_assignment_observer)
 
         user_db = self.users['1_custom_role_no_permissions']
-        role_assignment_db = UserRoleAssignmentDB(user=user_db.name,
-                                                  role=self.roles['custom_role_1'].name)
+        role_assignment_db = UserRoleAssignmentDB(
+            user=user_db.name, role=self.roles['custom_role_1'].name,
+            source='assignments/%s.yaml' % user_db.name)
+
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         user_db = self.users['custom_role_pack_grant']
-        role_assignment_db = UserRoleAssignmentDB(user=user_db.name,
-                                                  role=self.roles['custom_role_pack_grant'].name)
+        role_assignment_db = UserRoleAssignmentDB(
+            user=user_db.name, role=self.roles['custom_role_pack_grant'].name,
+            source='assignments/%s.yaml' % user_db.name)
+
         UserRoleAssignment.add_or_update(role_assignment_db)
 
 

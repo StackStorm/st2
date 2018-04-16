@@ -159,7 +159,8 @@ class KeyValuePairController(ResourceController):
                                                                 sort=sort,
                                                                 offset=offset,
                                                                 limit=limit,
-                                                                raw_filters=raw_filters)
+                                                                raw_filters=raw_filters,
+                                                                requester_user=requester_user)
         return kvp_apis
 
     def put(self, kvp, name, requester_user, scope=FULL_SYSTEM_SCOPE):
@@ -284,7 +285,7 @@ class KeyValuePairController(ResourceController):
         :param name: Datastore item name (PK).
         :type name: ``str``
         """
-        lock_name = 'kvp-crud-%s.%s' % (scope, name)
+        lock_name = six.b('kvp-crud-%s.%s' % (scope, name))
         return lock_name
 
     def _validate_decrypt_query_parameter(self, decrypt, scope, is_admin, requester_user):

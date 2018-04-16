@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import os
 from datetime import timedelta
 from st2common.util.date import get_datetime_utc_now
@@ -20,10 +21,16 @@ from st2common.util.date import get_datetime_utc_now
 import mock
 
 from st2common.constants.keyvalue import SYSTEM_SCOPE
-from st2common.services.datastore import DatastoreService
+from st2common.services.datastore import BaseDatastoreService
+from st2common.services.datastore import SensorDatastoreService
 from st2client.models.keyvalue import KeyValuePair
+
 from st2tests import DbTestCase
 from st2tests import config
+
+__all__ = [
+    'DatastoreServiceTestCase'
+]
 
 CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
 RESOURCES_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '../resources'))
@@ -34,10 +41,9 @@ class DatastoreServiceTestCase(DbTestCase):
         super(DatastoreServiceTestCase, self).setUp()
         config.parse_args()
 
-        self._datastore_service = DatastoreService(logger=mock.Mock(),
-                                                   pack_name='core',
-                                                   class_name='TestSensor',
-                                                   api_username='sensor_service')
+        self._datastore_service = BaseDatastoreService(logger=mock.Mock(),
+                                                       pack_name='core',
+                                                       class_name='TestSensor')
         self._datastore_service._get_api_client = mock.Mock()
 
     def test_datastore_operations_list_values(self):
@@ -146,10 +152,10 @@ class DatastoreServiceTestCase(DbTestCase):
         self.assertEquals(delete_success, False)
 
     def test_datastore_token_timeout(self):
-        datastore_service = DatastoreService(logger=mock.Mock(),
-                                             pack_name='core',
-                                             class_name='TestSensor',
-                                             api_username='sensor_service')
+        datastore_service = SensorDatastoreService(logger=mock.Mock(),
+                                                   pack_name='core',
+                                                   class_name='TestSensor',
+                                                   api_username='sensor_service')
 
         mock_api_client = mock.Mock()
         kvp1 = KeyValuePair()

@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import copy
 
 import mongoengine as me
@@ -22,11 +23,12 @@ from st2common.models.db import stormbase
 from st2common.fields import ComplexDateTimeField
 from st2common.util import date as date_utils
 from st2common.util.secrets import get_secret_parameters
+from st2common.util.secrets import mask_inquiry_response
 from st2common.util.secrets import mask_secret_parameters
 from st2common.constants.types import ResourceType
-
 __all__ = [
-    'ActionExecutionDB'
+    'ActionExecutionDB',
+    'ActionExecutionOutputDB'
 ]
 
 
@@ -109,6 +111,30 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
         if 'parameters' in liveaction:
             liveaction['parameters'] = mask_secret_parameters(parameters=liveaction['parameters'],
                                                               secret_parameters=secret_parameters)
+
+            if liveaction.get('action', '') == 'st2.inquiry.respond':
+                # Special case to mask parameters for `st2.inquiry.respond` action
+                # In this case, this execution is just a plain python action, not
+                # an inquiry, so we don't natively have a handle on the response
+                # schema.
+                #
+                # To prevent leakage, we can just mask all response fields.
+                result['parameters']['response'] = mask_secret_parameters(
+                    parameters=liveaction['parameters']['response'],
+                    secret_parameters=[p for p in liveaction['parameters']['response']]
+                )
+
+        # TODO(mierdin): This logic should be moved to the dedicated Inquiry
+        # data model once it exists.
+        if self.runner.get('name') == "inquirer":
+
+            schema = result['result'].get('schema', {})
+            response = result['result'].get('response', {})
+
+            # We can only mask response secrets if response and schema exist and are
+            # not empty
+            if response and schema:
+                result['result']['response'] = mask_inquiry_response(response, schema)
         return result
 
     def get_masked_parameters(self):
@@ -121,4 +147,39 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
         return serializable_dict['parameters']
 
 
-MODELS = [ActionExecutionDB]
+class ActionExecutionOutputDB(stormbase.StormFoundationDB):
+    """
+    Stores output of a particular execution.
+
+    New document is inserted dynamically when a new chunk / line is received which means you can
+    simulate tail behavior by periodically reading from this collection.
+
+    Attribute:
+        execution_id: ID of the execution to which this output belongs.
+        action_ref: Parent action reference.
+        runner_ref: Parent action runner reference.
+        timestamp: Timestamp when this output has been produced / received.
+        output_type: Type of the output (e.g. stdout, stderr, output)
+        data: Actual output data. This could either be line, chunk or similar, depending on the
+              runner.
+    """
+    execution_id = me.StringField(required=True)
+    action_ref = me.StringField(required=True)
+    runner_ref = me.StringField(required=True)
+    timestamp = ComplexDateTimeField(required=True, default=date_utils.get_datetime_utc_now)
+    output_type = me.StringField(required=True, default='output')
+
+    data = me.StringField()
+
+    meta = {
+        'indexes': [
+            {'fields': ['execution_id']},
+            {'fields': ['action_ref']},
+            {'fields': ['runner_ref']},
+            {'fields': ['timestamp']},
+            {'fields': ['output_type']}
+        ]
+    }
+
+
+MODELS = [ActionExecutionDB, ActionExecutionOutputDB]

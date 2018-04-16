@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+
+import six
 from oslo_config import cfg
 from tooz import coordination
 from tooz import locking
@@ -147,7 +150,7 @@ def coordinator_setup():
     url = cfg.CONF.coordination.url
     lock_timeout = cfg.CONF.coordination.lock_timeout
     proc_info = system_info.get_process_info()
-    member_id = '%s_%d' % (proc_info['hostname'], proc_info['pid'])
+    member_id = six.b('%s_%d' % (proc_info['hostname'], proc_info['pid']))
 
     if url:
         coordinator = coordination.get_coordinator(url, member_id, lock_timeout=lock_timeout)

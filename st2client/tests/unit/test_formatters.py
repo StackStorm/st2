@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import six
 import os
 import sys
@@ -23,6 +24,8 @@ import tempfile
 import unittest2
 
 from io import BytesIO
+from six.moves import StringIO
+
 from tests import base
 from tests.fixtures import loader
 
@@ -37,18 +40,26 @@ LOG = logging.getLogger(__name__)
 
 FIXTURES_MANIFEST = {
     'executions': ['execution.json',
-                   'execution_result_has_carriage_return.json'],
+                   'execution_result_has_carriage_return.json',
+                   'execution_unicode.json',
+                   'execution_with_stack_trace.json'],
     'results': ['execution_get_default.txt',
                 'execution_get_detail.txt',
                 'execution_get_result_by_key.txt',
                 'execution_result_has_carriage_return.txt',
+                'execution_result_has_carriage_return_py3.txt',
                 'execution_get_attributes.txt',
                 'execution_list_attr_start_timestamp.txt',
-                'execution_list_empty_response_start_timestamp_attr.txt']
+                'execution_list_empty_response_start_timestamp_attr.txt',
+                'execution_unescape_newline.txt',
+                'execution_unicode.txt',
+                'execution_unicode_py3.txt']
 }
 
 FIXTURES = loader.load_fixtures(fixtures_dict=FIXTURES_MANIFEST)
 EXECUTION = FIXTURES['executions']['execution.json']
+UNICODE = FIXTURES['executions']['execution_unicode.json']
+NEWLINE = FIXTURES['executions']['execution_with_stack_trace.json']
 HAS_CARRIAGE_RETURN = FIXTURES['executions']['execution_result_has_carriage_return.json']
 
 
@@ -63,6 +74,7 @@ class TestExecutionResultFormatter(unittest2.TestCase):
     def setUp(self):
         self.fd, self.path = tempfile.mkstemp()
         self._redirect_console(self.path)
+        self.maxDiff = None
 
     def tearDown(self):
         self._undo_console_redirect()
@@ -106,6 +118,39 @@ class TestExecutionResultFormatter(unittest2.TestCase):
         content = self._get_execution(argv)
         self.assertEqual(content, FIXTURES['results']['execution_get_detail.txt'])
 
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(NEWLINE), 200, 'OK', {})))
+    def test_execution_unescape_newline(self):
+        """Ensure client renders newline characters
+        """
+
+        argv = ['execution', 'get', NEWLINE['id']]
+        self.assertEqual(self.shell.run(argv), 0)
+        self._undo_console_redirect()
+        with open(self.path, 'r') as fd:
+            content = fd.read()
+
+        self.assertEqual(content, FIXTURES['results']['execution_unescape_newline.txt'])
+
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(UNICODE), 200, 'OK', {})))
+    def test_execution_unicode(self):
+        """Ensure client renders unicode escape sequences
+        """
+
+        argv = ['execution', 'get', UNICODE['id']]
+        self.assertEqual(self.shell.run(argv), 0)
+        self._undo_console_redirect()
+        with open(self.path, 'r') as fd:
+            content = fd.read()
+
+        if six.PY2:
+            self.assertEqual(content, FIXTURES['results']['execution_unicode.txt'])
+        else:
+            self.assertEqual(content, FIXTURES['results']['execution_unicode_py3.txt'])
+
     def test_execution_get_detail_in_json(self):
         argv = ['execution', 'get', EXECUTION['id'], '-d', '-j']
         content = self._get_execution(argv)
@@ -138,8 +183,14 @@ class TestExecutionResultFormatter(unittest2.TestCase):
         self._undo_console_redirect()
         with open(self.path, 'r') as fd:
             content = fd.read()
-        self.assertEqual(
-            content, FIXTURES['results']['execution_result_has_carriage_return.txt'])
+
+        if six.PY2:
+            self.assertEqual(
+                content, FIXTURES['results']['execution_result_has_carriage_return.txt'])
+        else:
+            self.assertEqual(
+                content,
+                FIXTURES['results']['execution_result_has_carriage_return_py3.txt'])
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
@@ -181,28 +232,26 @@ class TestExecutionResultFormatter(unittest2.TestCase):
         return content
 
     def test_SinlgeRowTable_notebox_one(self):
-        with mock.patch('sys.stderr', new=BytesIO()) as fackety_fake:
+        with mock.patch('sys.stderr', new=StringIO()) as fackety_fake:
             expected = "Note: Only one action execution is displayed. Use -n/--last flag for " \
                 "more results."
-            print self.table.note_box("action executions", 1)
+            print(self.table.note_box("action executions", 1))
             content = (fackety_fake.getvalue().split("|")[1].strip())
             self.assertEquals(content, expected)
 
     def test_SinlgeRowTable_notebox_zero(self):
         with mock.patch('sys.stderr', new=BytesIO()) as fackety_fake:
-            print self.table.note_box("action executions", 0)
             contents = (fackety_fake.getvalue())
-            print "sdf", contents
-            self.assertEquals(contents, "")
+            self.assertEquals(contents, b'')
 
     def test_SinlgeRowTable_notebox_default(self):
-        with mock.patch('sys.stderr', new=BytesIO()) as fackety_fake:
+        with mock.patch('sys.stderr', new=StringIO()) as fackety_fake:
             expected = "Note: Only first 50 action executions are displayed. Use -n/--last flag " \
                 "for more results."
             print(self.table.note_box("action executions", 50))
             content = (fackety_fake.getvalue().split("|")[1].strip())
             self.assertEquals(content, expected)
-        with mock.patch('sys.stderr', new=BytesIO()) as fackety_fake:
+        with mock.patch('sys.stderr', new=StringIO()) as fackety_fake:
             expected = "Note: Only first 15 action executions are displayed. Use -n/--last flag " \
                 "for more results."
             print(self.table.note_box("action executions", 15))

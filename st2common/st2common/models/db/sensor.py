@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import mongoengine as me
 
 from st2common.models.db import MongoDBAccess
@@ -42,6 +43,7 @@ class SensorTypeDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
     UID_FIELDS = ['pack', 'name']
 
     name = me.StringField(required=True)
+    ref = me.StringField(required=True)
     pack = me.StringField(required=True, unique_with='name')
     artifact_uri = me.StringField()
     entry_point = me.StringField()

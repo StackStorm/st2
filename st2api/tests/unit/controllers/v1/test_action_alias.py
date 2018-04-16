@@ -21,7 +21,7 @@ from tests import FunctionalTest
 FIXTURES_PACK = 'aliases'
 
 TEST_MODELS = {
-    'aliases': ['alias1.yaml', 'alias2.yaml']
+    'aliases': ['alias1.yaml', 'alias2.yaml', 'alias_with_undefined_jinja_in_ack_format.yaml']
 }
 
 TEST_LOAD_MODELS = {
@@ -65,11 +65,13 @@ class TestActionAlias(FunctionalTest):
     def test_get_all(self):
         resp = self.app.get('/v1/actionalias')
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(len(resp.json), 3, '/v1/actionalias did not return all aliases.')
+        self.assertEqual(len(resp.json), 4, '/v1/actionalias did not return all aliases.')
 
         retrieved_names = [alias['name'] for alias in resp.json]
 
-        self.assertEqual(retrieved_names, [self.alias1.name, self.alias2.name, 'alias7'],
+        self.assertEqual(retrieved_names, [self.alias1.name, self.alias2.name,
+                                           'alias_with_undefined_jinja_in_ack_format',
+                                           'alias7'],
                          'Incorrect aliases retrieved.')
 
     def test_get_all_query_param_filters(self):
@@ -79,7 +81,7 @@ class TestActionAlias(FunctionalTest):
 
         resp = self.app.get('/v1/actionalias?pack=aliases')
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(len(resp.json), 2)
+        self.assertEqual(len(resp.json), 3)
 
         for alias_api in resp.json:
             self.assertEqual(alias_api['pack'], 'aliases')
@@ -148,12 +150,14 @@ class TestActionAlias(FunctionalTest):
         self.__do_delete(post_resp_dup_name.json['id'])
 
     def test_match(self):
+        # No matching patterns
         data = {'command': 'hello donny'}
         resp = self.app.post_json("/v1/actionalias/match", data, expect_errors=True)
         self.assertEqual(resp.status_int, 400)
         self.assertEqual(str(resp.json['faultstring']),
                          "Command 'hello donny' matched no patterns")
 
+        # More than one matching pattern
         data = {'command': 'Lorem ipsum banana dolor sit pineapple amet.'}
         resp = self.app.post_json("/v1/actionalias/match", data, expect_errors=True)
         self.assertEqual(resp.status_int, 400)
@@ -161,15 +165,22 @@ class TestActionAlias(FunctionalTest):
                          "Command 'Lorem ipsum banana dolor sit pineapple amet.' "
                          "matched more than 1 pattern")
 
+        # Single matching pattern - success
+        data = {'command': 'run whoami on localhost1'}
+        resp = self.app.post_json("/v1/actionalias/match", data)
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json['actionalias']['name'],
+                         'alias_with_undefined_jinja_in_ack_format')
+
     def test_help(self):
         resp = self.app.get("/v1/actionalias/help")
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json.get('available'), 4)
+        self.assertEqual(resp.json.get('available'), 5)
 
     def test_help_args(self):
         resp = self.app.get("/v1/actionalias/help?filter=.*&pack=aliases&limit=1&offset=0")
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json.get('available'), 2)
+        self.assertEqual(resp.json.get('available'), 3)
         self.assertEqual(len(resp.json.get('helpstrings')), 1)
 
     def _do_post(self, actionalias, expect_errors=False):

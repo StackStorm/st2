@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import re
 from st2common.util.actionalias_matching import normalise_alias_format_string
 
@@ -52,7 +53,7 @@ def generate_helpstring_result(aliases, filter=None, pack=None, limit=0, offset=
         if pack and pack != alias.pack:
             continue
         for format_ in alias.formats:
-            display, _ = normalise_alias_format_string(format_)
+            display, _, _ = normalise_alias_format_string(format_)
             if display:
                 # Skip help strings not containing keyword.
                 if not re.search(filter or '', display, flags=re.IGNORECASE):

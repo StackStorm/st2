@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+
 import logging
 
 from st2client.models import core
@@ -26,3 +28,4 @@ class Webhook(core.Resource):
     _display_name = 'Webhook'
     _plural = 'Webhooks'
     _plural_display_name = 'Webhooks'
+    _repr_attributes = ['parameters', 'type', 'pack', 'name']

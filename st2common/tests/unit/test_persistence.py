@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import uuid
 import datetime
 
@@ -22,6 +23,7 @@ from st2tests import DbTestCase
 from st2common.util import date as date_utils
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from tests.unit.base import FakeModel, FakeModelDB
+from six.moves import range
 
 
 class TestPersistence(DbTestCase):
@@ -143,7 +145,7 @@ class TestPersistence(DbTestCase):
     def test_pagination(self):
         count = 100
         page_size = 25
-        pages = count / page_size
+        pages = int(count / page_size)
         users = ['Peter', 'Susan', 'Edmund', 'Lucy']
 
         for user in users:
@@ -178,9 +180,9 @@ class TestPersistence(DbTestCase):
         for i in range(count):
             category = 'type1' if i < count / 2 else 'type2'
             self.assertEqual(objs[i].category, category)
-        self.assertLess(objs[0].timestamp, objs[(count / 2) - 1].timestamp)
-        self.assertLess(objs[count / 2].timestamp, objs[(count / 2) - 1].timestamp)
-        self.assertLess(objs[count / 2].timestamp, objs[count - 1].timestamp)
+        self.assertLess(objs[0].timestamp, objs[(int(count / 2)) - 1].timestamp)
+        self.assertLess(objs[int(count / 2)].timestamp, objs[(int(count / 2)) - 1].timestamp)
+        self.assertLess(objs[int(count / 2)].timestamp, objs[count - 1].timestamp)
 
     def test_escaped_field(self):
         context = {'a.b.c': 'abc'}
@@ -188,8 +190,8 @@ class TestPersistence(DbTestCase):
         obj2 = self.access.add_or_update(obj1)
 
         # Check that the original dict has not been altered.
-        self.assertIn('a.b.c', context.keys())
-        self.assertNotIn('a\uff0eb\uff0ec', context.keys())
+        self.assertIn('a.b.c', list(context.keys()))
+        self.assertNotIn('a\uff0eb\uff0ec', list(context.keys()))
 
         # Check to_python has run and context is not left escaped.
         self.assertDictEqual(obj2.context, context)
@@ -199,3 +201,61 @@ class TestPersistence(DbTestCase):
         self.assertIsNotNone(obj3)
         self.assertEqual(obj3.id, obj2.id)
         self.assertDictEqual(obj3.context, context)
+
+    def test_query_only_fields(self):
+        count = 5
+        ts = date_utils.add_utc_tz(datetime.datetime(2014, 12, 25, 0, 0, 0))
+        for i in range(count):
+            category = 'type1'
+            obj = FakeModelDB(name='test-%s' % (i), timestamp=ts, category=category)
+            self.access.add_or_update(obj)
+
+        model_dbs = FakeModel.query()
+        self.assertEqual(model_dbs[0].name, 'test-0')
+        self.assertEqual(model_dbs[0].timestamp, ts)
+        self.assertEqual(model_dbs[0].category, 'type1')
+
+        # only id
+        model_dbs = FakeModel.query(only_fields=['id'])
+        self.assertTrue(model_dbs[0].id)
+        self.assertEqual(model_dbs[0].name, None)
+        self.assertEqual(model_dbs[0].timestamp, None)
+        self.assertEqual(model_dbs[0].category, None)
+
+        # only name - note: id is always included
+        model_dbs = FakeModel.query(only_fields=['name'])
+        self.assertTrue(model_dbs[0].id)
+        self.assertEqual(model_dbs[0].name, 'test-0')
+        self.assertEqual(model_dbs[0].timestamp, None)
+        self.assertEqual(model_dbs[0].category, None)
+
+    def test_query_exclude_fields(self):
+        count = 5
+        ts = date_utils.add_utc_tz(datetime.datetime(2014, 12, 25, 0, 0, 0))
+        for i in range(count):
+            category = 'type1'
+            obj = FakeModelDB(name='test-2-%s' % (i), timestamp=ts, category=category)
+            self.access.add_or_update(obj)
+
+        model_dbs = FakeModel.query()
+        self.assertEqual(model_dbs[0].name, 'test-2-0')
+        self.assertEqual(model_dbs[0].timestamp, ts)
+        self.assertEqual(model_dbs[0].category, 'type1')
+
+        model_dbs = FakeModel.query(exclude_fields=['name'])
+        self.assertTrue(model_dbs[0].id)
+        self.assertEqual(model_dbs[0].name, None)
+        self.assertEqual(model_dbs[0].timestamp, ts)
+        self.assertEqual(model_dbs[0].category, 'type1')
+
+        model_dbs = FakeModel.query(exclude_fields=['name', 'timestamp'])
+        self.assertTrue(model_dbs[0].id)
+        self.assertEqual(model_dbs[0].name, None)
+        self.assertEqual(model_dbs[0].timestamp, None)
+        self.assertEqual(model_dbs[0].category, 'type1')
+
+        model_dbs = FakeModel.query(exclude_fields=['name', 'timestamp', 'category'])
+        self.assertTrue(model_dbs[0].id)
+        self.assertEqual(model_dbs[0].name, None)
+        self.assertEqual(model_dbs[0].timestamp, None)
+        self.assertEqual(model_dbs[0].category, None)

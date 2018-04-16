@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import httplib
-
 import six
 import mock
 
@@ -89,12 +87,14 @@ class WebhookControllerRBACTestCase(APIControllerWithRBACTestCase):
         # Role assignments
         role_assignment_db = UserRoleAssignmentDB(
             user=self.users['webhook_list'].name,
-            role=self.roles['webhook_list'].name)
+            role=self.roles['webhook_list'].name,
+            source='assignments/%s.yaml' % self.users['webhook_list'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         role_assignment_db = UserRoleAssignmentDB(
             user=self.users['webhook_view'].name,
-            role=self.roles['webhook_view'].name)
+            role=self.roles['webhook_view'].name,
+            source='assignments/%s.yaml' % self.users['webhook_view'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
     def test_get_all_no_permissions(self):
@@ -103,7 +103,7 @@ class WebhookControllerRBACTestCase(APIControllerWithRBACTestCase):
 
         resp = self.app.get('/v1/webhooks', expect_errors=True)
         expected_msg = ('User "no_permissions" doesn\'t have required permission "webhook_list"')
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     @mock.patch.object(HooksHolder, 'get_triggers_for_hook', mock.MagicMock(
@@ -120,7 +120,7 @@ class WebhookControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.app.get('/v1/webhooks/%s' % (webhook_id), expect_errors=True)
         expected_msg = ('User "no_permissions" doesn\'t have required permission "webhook_view"'
                         ' on resource "%s"' % (webhook_uid))
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     @mock.patch.object(HooksHolder, 'get_all', mock.MagicMock(
@@ -133,7 +133,7 @@ class WebhookControllerRBACTestCase(APIControllerWithRBACTestCase):
 
         # webhook_list permission, but no webhook_view permission
         resp = self.app.get('/v1/webhooks')
-        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(resp.status_code, http_client.OK)
         self.assertEqual(len(resp.json), 1)
 
         name = 'git'
@@ -144,7 +144,7 @@ class WebhookControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.app.get('/v1/webhooks/%s' % (webhook_id), expect_errors=True)
         expected_msg = ('User "webhook_list" doesn\'t have required permission "webhook_view"'
                         ' on resource "%s"' % (webhook_uid))
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     @mock.patch.object(HooksHolder, 'get_all', mock.MagicMock(
@@ -160,10 +160,10 @@ class WebhookControllerRBACTestCase(APIControllerWithRBACTestCase):
         webhook_id = name
 
         resp = self.app.get('/v1/webhooks/%s' % (webhook_id))
-        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(resp.status_code, http_client.OK)
         self.assertEqual(resp.json['ref'], DUMMY_TRIGGER.ref)
 
         resp = self.app.get('/v1/webhooks', expect_errors=True)
         expected_msg = ('User "webhook_view" doesn\'t have required permission "webhook_list"')
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)

@@ -17,6 +17,7 @@ from oslo_config import cfg
 
 from st2api import config as st2api_config
 from st2common import log as logging
+from st2common.middleware.streaming import StreamingMiddleware
 from st2common.middleware.error_handling import ErrorHandlingMiddleware
 from st2common.middleware.cors import CorsMiddleware
 from st2common.middleware.request_id import RequestIDMiddleware
@@ -59,7 +60,7 @@ def setup_app(config={}):
 
     spec = spec_loader.load_spec('st2common', 'openapi.yaml.j2')
     transforms = {
-        '^/api/v1/': ['/', '/v1/'],
+        '^/api/v1/': ['/', '/v1/', '/v1'],
         '^/api/v1/executions': ['/actionexecutions', '/v1/actionexecutions'],
         '^/api/exp/': ['/exp/']
     }
@@ -68,6 +69,7 @@ def setup_app(config={}):
     app = router.as_wsgi
 
     # Order is important. Check middleware for detailed explanation.
+    app = StreamingMiddleware(app, path_whitelist=['/v1/executions/*/output*'])
     app = ErrorHandlingMiddleware(app)
     app = CorsMiddleware(app)
     app = LoggingMiddleware(app, router)

@@ -13,12 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import mock
 
 import st2actions
 from st2common.constants.action import LIVEACTION_STATUS_REQUESTED
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
+from st2common.constants.action import LIVEACTION_STATUS_SCHEDULED
+from st2common.constants.action import LIVEACTION_STATUS_DELAYED
+from st2common.constants.action import LIVEACTION_STATUS_CANCELING
+from st2common.constants.action import LIVEACTION_STATUS_CANCELED
 from st2common.bootstrap.policiesregistrar import register_policy_types
 from st2common.models.db.action import LiveActionDB
 from st2common.persistence.action import LiveAction, ActionExecution
@@ -272,3 +277,37 @@ class RetryPolicyTestCase(CleanDbTestCase):
         self.assertEqual(len(live_action_dbs), 1)
         self.assertEqual(len(action_execution_dbs), 1)
         self.assertEqual(action_execution_dbs[0].status, LIVEACTION_STATUS_TIMED_OUT)
+
+    def test_no_retry_on_non_applicable_statuses(self):
+        # Verify initial state
+        self.assertSequenceEqual(LiveAction.get_all(), [])
+        self.assertSequenceEqual(ActionExecution.get_all(), [])
+
+        # Start a mock action in various statuses in which we shouldn't retry
+        non_retry_statuses = [
+            LIVEACTION_STATUS_REQUESTED,
+            LIVEACTION_STATUS_SCHEDULED,
+            LIVEACTION_STATUS_DELAYED,
+            LIVEACTION_STATUS_CANCELING,
+            LIVEACTION_STATUS_CANCELED,
+        ]
+
+        action_ref = 'wolfpack.action-1'
+
+        for status in non_retry_statuses:
+            liveaction = LiveActionDB(action=action_ref, parameters={'actionstr': 'foo'})
+            live_action_db, execution_db = action_service.request(liveaction)
+
+            live_action_db.status = status
+            execution_db.status = status
+            LiveAction.add_or_update(live_action_db)
+            ActionExecution.add_or_update(execution_db)
+
+            # Simulate policy "apply_after" run
+            self.policy.apply_after(target=live_action_db)
+
+        # None of the actions should have been retried
+        live_action_dbs = LiveAction.get_all()
+        action_execution_dbs = ActionExecution.get_all()
+        self.assertEqual(len(live_action_dbs), len(non_retry_statuses))
+        self.assertEqual(len(action_execution_dbs), len(non_retry_statuses))

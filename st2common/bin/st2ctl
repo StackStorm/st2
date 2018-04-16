@@ -14,13 +14,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-LOGFILE="/dev/null"
 COMPONENTS="st2actionrunner st2api st2stream st2auth st2garbagecollector st2notifier st2resultstracker st2rulesengine st2sensorcontainer st2chatops mistral"
-STANCONF="/etc/st2/st2.conf"
+ST2_CONF="/etc/st2/st2.conf"
 
 # Ensure global environment is sourced if exists
 # Does not happen consistently with all OSes we support.
-[ -r /etc/environment ] && . /etc/environment
+[ -r /etc/environment ] && source /etc/environment
+
+# load in environment to allow override of COMPONENTS and ST2_CONF above
+# Ubuntu/Debian
+[ -r /etc/default/st2ctl ] && source /etc/default/st2ctl
+# RHEL/CentOS
+[ -r /etc/sysconfig/st2ctl ] && source /etc/sysconfig/st2ctl
 
 
 function print_usage() {
@@ -34,7 +39,7 @@ function print_usage() {
     echo "Usage: st2ctl {reopen-log-files}"
     echo "positional arguments:"
     echo "  component           Name of the st2 service to reopen the log files for."
-    echo "                      ${COMPONENTS}"
+    echo "                      ${COMPONENTS/mistral}"
     echo
     echo "Usage: st2ctl {reload, clean}"
     echo "optional arguments:"
@@ -116,7 +121,12 @@ function service_manager() {
 function reopen_component_log_files() {
   COM=${1}
 
-  PID=`ps ax | grep -v grep | grep -v st2ctl | grep "${COM}" | awk '{print $1}'`
+  if [[ "$COM" == "mistral" ]]; then
+    echo "Sorry, Mistral does not yet support gracefully reopening log files"
+    return 1
+  fi
+
+  PID=`ps ax | grep -v grep | grep -v st2ctl | grep -E "(${COM}\.wsgi)|(bin/${COM})|(hubot ${COM})" | awk '{print $1}'`
   if [[ ! -z ${PID} ]]; then
     for p in ${PID}; do
       echo "Sending SIGUSR1 to ${COM} PID: ${p}"
@@ -157,13 +167,13 @@ function register_content() {
     REGISTER_FLAGS=${flags}
   fi
 
-  echo "Registering content...[flags = --config-file ${STANCONF} ${REGISTER_FLAGS}]"
-  st2-register-content --config-file ${STANCONF} ${REGISTER_FLAGS}
+  echo "Registering content...[flags = --config-file ${ST2_CONF} ${REGISTER_FLAGS}]"
+  st2-register-content --config-file ${ST2_CONF} ${REGISTER_FLAGS}
 }
 
 function clean_db() {
   echo "Dropping st2 Database..."
-  mongo st2 --eval "db.dropDatabase();"
+  /opt/stackstorm/st2/bin/st2-cleanup-db --config-file ${ST2_CONF}
 }
 
 function clean_logs() {
@@ -173,10 +183,10 @@ function clean_logs() {
 
 function getpids() {
   echo "##### st2 components status #####"
-  COMPONENTS=${COMPONENTS/mistral/mistral-server mistral-api}
+  COMPONENTS=${COMPONENTS/mistral/mistral-server mistral.api}
 
   for COM in ${COMPONENTS}; do
-    PID=`ps ax | grep -v grep | grep -v st2ctl | grep "${COM}" | awk '{print $1}'`
+    PID=`ps ax | grep -v grep | grep -v st2ctl | grep -E "(${COM}\.wsgi)|(bin/${COM})|(hubot ${COM})" | awk '{print $1}'`
 
     if [[ ! -z ${PID} ]]; then
       for p in ${PID}; do

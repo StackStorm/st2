@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import copy
 import functools
 import re
@@ -26,7 +27,7 @@ from oslo_config import cfg
 import routes
 from six.moves.urllib import parse as urlparse  # pylint: disable=import-error
 import webob
-from webob import exc, Request
+from webob import cookies, exc, Request
 from webob.compat import url_unquote
 
 from st2common.exceptions import rbac as rbac_exc
@@ -34,7 +35,9 @@ from st2common.exceptions import auth as auth_exc
 from st2common import log as logging
 from st2common.persistence.auth import User
 from st2common.rbac import resolvers
+from st2common.util import date as date_utils
 from st2common.util.jsonify import json_encode
+from st2common.util.jsonify import get_json_type_for_python_value
 from st2common.util.http import parse_content_type_header
 
 
@@ -227,6 +230,7 @@ class Router(object):
         LOG.debug("Parsed path_vars: %s", path_vars)
 
         context = copy.copy(getattr(self, 'mock_context', {}))
+        cookie_token = None
 
         # Handle security
         if 'security' in endpoint:
@@ -236,7 +240,6 @@ class Router(object):
 
         if self.auth and security:
             try:
-                auth_resp = None
                 security_definitions = self.spec.get('securityDefinitions', {})
                 for statement in security:
                     declaration, options = statement.copy().popitem()
@@ -247,18 +250,39 @@ class Router(object):
                             token = req.headers.get(definition['name'])
                         elif definition['in'] == 'query':
                             token = req.GET.get(definition['name'])
+                        elif definition['in'] == 'cookie':
+                            token = req.cookies.get(definition['name'])
                         else:
                             token = None
 
                         if token:
-                            if auth_resp:
-                                raise auth_exc.MultipleAuthSourcesError(
-                                    'Only one of Token or API key expected.')
-
                             auth_func = op_resolver(definition['x-operationId'])
                             auth_resp = auth_func(token)
 
+                            # Include information on how user authenticated inside the context
+                            if 'auth-token' in definition['name'].lower():
+                                auth_method = 'authentication token'
+                            elif 'api-key' in definition['name'].lower():
+                                auth_method = 'API key'
+
                             context['user'] = User.get_by_name(auth_resp.user)
+                            context['auth_info'] = {
+                                'method': auth_method,
+                                'location': definition['in']
+                            }
+
+                            # Also include token expiration time when authenticated via auth token
+                            if 'auth-token' in definition['name'].lower():
+                                context['auth_info']['token_expire'] = auth_resp.expiry
+
+                            if 'x-set-cookie' in definition:
+                                max_age = auth_resp.expiry - date_utils.get_datetime_utc_now()
+                                cookie_token = cookies.make_cookie(definition['x-set-cookie'],
+                                                                   token,
+                                                                   max_age=max_age,
+                                                                   httponly=True)
+
+                            break
 
                 if 'user' not in context:
                     raise auth_exc.NoAuthSourceProvidedError('One of Token or API key required.')
@@ -321,63 +345,75 @@ class Router(object):
             elif source == 'request':
                 kw[argument_name] = getattr(req, name)
             elif source == 'body':
-                if req.body:
-                    content_type = req.headers.get('Content-Type', 'application/json')
-                    content_type = parse_content_type_header(content_type=content_type)[0]
-                    schema = param['schema']
+                # Note: We also want to perform validation if no body is explicitly provided - in a
+                # lot of POST, PUT scenarios, body is mandatory
+                if not req.body:
+                    req.body = b'{}'
 
-                    try:
-                        if content_type == 'application/json':
-                            data = req.json
-                        elif content_type == 'text/plain':
-                            data = req.body
-                        elif content_type in ['application/x-www-form-urlencoded',
-                                              'multipart/form-data']:
-                            data = urlparse.parse_qs(req.body)
-                        else:
-                            raise ValueError('Unsupported Content-Type: "%s"' % (content_type))
-                    except Exception as e:
-                        detail = 'Failed to parse request body: %s' % str(e)
-                        raise exc.HTTPBadRequest(detail=detail)
+                content_type = req.headers.get('Content-Type', 'application/json')
+                content_type = parse_content_type_header(content_type=content_type)[0]
+                schema = param['schema']
 
-                    try:
-                        CustomValidator(schema, resolver=self.spec_resolver).validate(data)
-                    except (jsonschema.ValidationError, ValueError) as e:
-                        raise exc.HTTPBadRequest(detail=e.message,
-                                                 comment=traceback.format_exc())
-
-                    if content_type == 'text/plain':
-                        kw[argument_name] = data
+                try:
+                    if content_type == 'application/json':
+                        data = req.json
+                    elif content_type == 'text/plain':
+                        data = req.body
+                    elif content_type in ['application/x-www-form-urlencoded',
+                                          'multipart/form-data']:
+                        data = urlparse.parse_qs(req.body)
                     else:
-                        class Body(object):
-                            def __init__(self, **entries):
-                                self.__dict__.update(entries)
+                        raise ValueError('Unsupported Content-Type: "%s"' % (content_type))
+                except Exception as e:
+                    detail = 'Failed to parse request body: %s' % str(e)
+                    raise exc.HTTPBadRequest(detail=detail)
 
-                        ref = schema.get('$ref', None)
-                        if ref:
-                            with self.spec_resolver.resolving(ref) as resolved:
-                                schema = resolved
+                try:
+                    CustomValidator(schema, resolver=self.spec_resolver).validate(data)
+                except (jsonschema.ValidationError, ValueError) as e:
+                    raise exc.HTTPBadRequest(detail=e.message,
+                                             comment=traceback.format_exc())
 
-                        if 'x-api-model' in schema:
-                            Model = op_resolver(schema['x-api-model'])
-                            instance = Model(**data)
-
-                            # Call validate on the API model - note we should eventually move all
-                            # those model schema definitions into openapi.yaml
-                            try:
-                                instance = instance.validate()
-                            except (jsonschema.ValidationError, ValueError) as e:
-                                raise exc.HTTPBadRequest(detail=e.message,
-                                                         comment=traceback.format_exc())
-                        else:
-                            LOG.debug('Missing x-api-model definition for %s, using generic Body '
-                                      'model.' % (endpoint['operationId']))
-                            model = Body
-                            instance = model(**data)
-
-                        kw[argument_name] = instance
+                if content_type == 'text/plain':
+                    kw[argument_name] = data
                 else:
-                    kw[argument_name] = None
+                    class Body(object):
+                        def __init__(self, **entries):
+                            self.__dict__.update(entries)
+
+                    ref = schema.get('$ref', None)
+                    if ref:
+                        with self.spec_resolver.resolving(ref) as resolved:
+                            schema = resolved
+
+                    if 'x-api-model' in schema:
+                        input_type = schema.get('type', [])
+                        Model = op_resolver(schema['x-api-model'])
+
+                        if input_type and not isinstance(input_type, (list, tuple)):
+                            input_type = [input_type]
+
+                        # root attribute is not an object, we need to use wrapper attribute to
+                        # make it work with **kwarg expansion
+                        if input_type and 'array' in input_type:
+                            data = {'data': data}
+
+                        instance = self._get_model_instance(model_cls=Model, data=data)
+
+                        # Call validate on the API model - note we should eventually move all
+                        # those model schema definitions into openapi.yaml
+                        try:
+                            instance = instance.validate()
+                        except (jsonschema.ValidationError, ValueError) as e:
+                            raise exc.HTTPBadRequest(detail=e.message,
+                                                     comment=traceback.format_exc())
+                    else:
+                        LOG.debug('Missing x-api-model definition for %s, using generic Body '
+                                  'model.' % (endpoint['operationId']))
+                        model = Body
+                        instance = self._get_model_instance(model_cls=model, data=data)
+
+                    kw[argument_name] = instance
 
             # Making sure all required params are present
             required = param.get('required', False)
@@ -413,6 +449,14 @@ class Router(object):
                         raise exc.HTTPBadRequest(detail=detail)
 
                     kw[argument_name] = float(kw[argument_name])
+                elif param_type == 'array' and param.get('items', {}).get('type', None) == 'string':
+                    if kw[argument_name] is None:
+                        kw[argument_name] = []
+                    elif isinstance(kw[argument_name], (list, tuple)):
+                        # argument is already an array
+                        pass
+                    else:
+                        kw[argument_name] = kw[argument_name].split(',')
 
         # Call the controller
         try:
@@ -462,6 +506,9 @@ class Router(object):
         else:
             LOG.debug('No response spec found for endpoint "%s"' % (endpoint['operationId']))
 
+        if cookie_token:
+            resp.headerlist.append(('Set-Cookie', cookie_token))
+
         return resp
 
     def as_wsgi(self, environ, start_response):
@@ -471,3 +518,17 @@ class Router(object):
         req = Request(environ)
         resp = self(req)
         return resp(environ, start_response)
+
+    def _get_model_instance(self, model_cls, data):
+        try:
+            instance = model_cls(**data)
+        except TypeError as e:
+            # Throw a more user-friendly exception when input data is not an object
+            if 'type object argument after ** must be a mapping, not' in str(e):
+                type_string = get_json_type_for_python_value(data)
+                msg = ('Input body needs to be an object, got: %s' % (type_string))
+                raise ValueError(msg)
+
+            raise e
+
+        return instance

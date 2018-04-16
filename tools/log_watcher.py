@@ -15,6 +15,7 @@
 # limitations under the License.
 
 from __future__ import print_function
+from __future__ import absolute_import
 import collections
 import fnmatch
 import os
@@ -129,9 +130,9 @@ def _detect_log_lines(fil, matchers):
 
         ln = 0
         for line in lines:
-            l = line.strip()
+            line = line.strip()
             ln += 1
-            matched, level, line = _match(l, matchers)
+            matched, level, line = _match(line, matchers)
             if matched:
                 # print('File: %s, Level: %s, Line: %d:%s' % (fil, level, ln, line.strip()))
                 FILE_LOG_COUNT[fil][level] += 1

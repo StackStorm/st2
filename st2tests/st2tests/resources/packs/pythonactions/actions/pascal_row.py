@@ -1,11 +1,23 @@
+from __future__ import absolute_import
 import math
 
 
 from st2common.runners.base_action import Action
+from six.moves import range
 
 
 class PascalRowAction(Action):
     def run(self, **kwargs):
+        # We call list values to verify that log messages are not duplicated when
+        # datastore service is used
+        try:
+            self.action_service.list_values()
+        except Exception:
+            pass
+
+        self.logger.info('test info log message')
+        self.logger.debug('test debug log message')
+        self.logger.error('test error log message')
         return PascalRowAction._compute_pascal_row(**kwargs)
 
     @staticmethod
@@ -27,6 +39,8 @@ class PascalRowAction(Action):
             return [math.factorial(row_index) /
                     (math.factorial(i) * math.factorial(row_index - i))
                     for i in range(row_index + 1)]
+        elif row_index == 'f':
+            raise ValueError('Duplicate traceback test')
         else:
             return True, [math.factorial(row_index) /
                           (math.factorial(i) * math.factorial(row_index - i))

@@ -4,3 +4,9 @@ chain:
         ref: examples.mistral-basic
         params:
             cmd: "{{cmd}}"
+        on-success: task2
+    -
+        name: task2
+        ref: examples.mistral-basic
+        parameters:
+            cmd: "{{cmd}}"

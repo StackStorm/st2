@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import copy
 import os
 
@@ -126,6 +127,12 @@ FIXTURE_PERSISTENCE_MODEL = {
     'triggerinstances': TriggerInstance,
     'users': User
 }
+
+GIT_SUBMODULES_NOT_CHECKED_OUT_ERROR = """
+Git submodule "%s" is not checked out. Make sure to run "git submodule update --init
+ --recursive" in the repository root directory to check out all the
+submodules.
+""".replace('\n', '').strip()
 
 
 def get_fixtures_base_path():
@@ -351,7 +358,7 @@ class FixturesLoader(object):
         return fixtures_pack_path
 
     def _validate_fixture_dict(self, fixtures_dict, allowed=ALLOWED_FIXTURES):
-        fixture_types = fixtures_dict.keys()
+        fixture_types = list(fixtures_dict.keys())
         for fixture_type in fixture_types:
             if fixture_type not in allowed:
                 raise Exception('Disallowed fixture type: %s' % fixture_type)
@@ -367,3 +374,20 @@ class FixturesLoader(object):
 
     def get_fixture_file_path_abs(self, fixtures_pack, fixtures_type, fixture_name):
         return os.path.join(get_fixtures_base_path(), fixtures_pack, fixtures_type, fixture_name)
+
+
+def assert_submodules_are_checked_out():
+    """
+    Function which verifies that user has ran "git submodule update --init --recursive" in the
+    root of the directory and that the "st2tests/st2tests/fixtures/packs/test" git repo submodule
+    used by the tests is checked out.
+    """
+    pack_path = os.path.join(get_fixtures_packs_base_path(), 'test_content_version/')
+    pack_path = os.path.abspath(pack_path)
+    submodule_git_dir_or_file_path = os.path.join(pack_path, '.git')
+
+    # NOTE: In newer versions of git, that .git is a file and not a directory
+    if not os.path.exists(submodule_git_dir_or_file_path):
+        raise ValueError(GIT_SUBMODULES_NOT_CHECKED_OUT_ERROR % (pack_path))
+
+    return True

@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import os
 import json
 import atexit
@@ -23,6 +24,7 @@ from oslo_config import cfg
 from jsonschema import ValidationError
 
 from st2common import log as logging
+from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.logging.misc import set_log_level_for_all_loggers
 from st2common.models.api.trace import TraceContext
 from st2common.models.api.trigger import TriggerAPI
@@ -31,9 +33,10 @@ from st2common.transport.reactor import TriggerDispatcher
 from st2common.util import loader
 from st2common.util.config_loader import ContentPackConfigLoader
 from st2common.services.triggerwatcher import TriggerWatcher
-from st2reactor.sensor.base import Sensor, PollingSensor
+from st2reactor.sensor.base import Sensor
+from st2reactor.sensor.base import PollingSensor
 from st2reactor.sensor import config
-from st2common.services.datastore import DatastoreService
+from st2common.services.datastore import SensorDatastoreService
 from st2common.util.monkey_patch import monkey_patch
 from st2common.validators.api.reactor import validate_trigger_payload
 
@@ -55,12 +58,17 @@ class SensorService(object):
         self._sensor_wrapper = sensor_wrapper
         self._logger = self._sensor_wrapper._logger
         self._dispatcher = TriggerDispatcher(self._logger)
-        self._datastore_service = DatastoreService(logger=self._logger,
-                                                   pack_name=self._sensor_wrapper._pack,
-                                                   class_name=self._sensor_wrapper._class_name,
-                                                   api_username='sensor_service')
+        self._datastore_service = SensorDatastoreService(
+            logger=self._logger,
+            pack_name=self._sensor_wrapper._pack,
+            class_name=self._sensor_wrapper._class_name,
+            api_username='sensor_service')
 
         self._client = None
+
+    @property
+    def datastore_service(self):
+        return self._datastore_service
 
     def get_logger(self, name):
         """
@@ -71,6 +79,17 @@ class SensorService(object):
         logger.propagate = True
 
         return logger
+
+    ##################################
+    # General methods
+    ##################################
+
+    def get_user_info(self):
+        return self._datastore_service.get_user_info()
+
+    ##################################
+    # Sensor related methods
+    ##################################
 
     def dispatch(self, trigger, payload=None, trace_tag=None):
         """
@@ -127,16 +146,18 @@ class SensorService(object):
     ##################################
 
     def list_values(self, local=True, prefix=None):
-        return self._datastore_service.list_values(local, prefix)
+        return self.datastore_service.list_values(local=local, prefix=prefix)
 
-    def get_value(self, name, local=True):
-        return self._datastore_service.get_value(name, local)
+    def get_value(self, name, local=True, scope=SYSTEM_SCOPE, decrypt=False):
+        return self.datastore_service.get_value(name=name, local=local, scope=scope,
+                                                decrypt=decrypt)
 
-    def set_value(self, name, value, ttl=None, local=True):
-        return self._datastore_service.set_value(name, value, ttl, local)
+    def set_value(self, name, value, ttl=None, local=True, scope=SYSTEM_SCOPE, encrypt=False):
+        return self.datastore_service.set_value(name=name, value=value, ttl=ttl, local=local,
+                                                scope=scope, encrypt=encrypt)
 
-    def delete_value(self, name, local=True):
-        return self._datastore_service.delete_value(name, local)
+    def delete_value(self, name, local=True, scope=SYSTEM_SCOPE):
+        return self.datastore_service.delete_value(name=name, local=local, scope=scope)
 
 
 class SensorWrapper(object):

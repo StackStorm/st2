@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 from bson.errors import InvalidStringData
 import eventlet
 import mock
@@ -28,12 +29,12 @@ from st2common.persistence.execution import ActionExecution
 from st2common.persistence.liveaction import LiveAction
 from st2common.services import executions
 from st2common.util import date as date_utils
-from local_runner import LocalShellRunner
-
+from local_runner.local_shell_command_runner import LocalShellCommandRunner
 
 from st2tests.base import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
 import st2tests.config as tests_config
+from six.moves import range
 tests_config.parse_args()
 
 TEST_FIXTURES = {
@@ -70,7 +71,7 @@ class WorkerTestCase(DbTestCase):
                                      context=context)
         return liveaction_db
 
-    @mock.patch.object(LocalShellRunner, 'run', mock.MagicMock(
+    @mock.patch.object(LocalShellCommandRunner, 'run', mock.MagicMock(
         return_value=(action_constants.LIVEACTION_STATUS_SUCCEEDED, NON_UTF8_RESULT, None)))
     def test_non_utf8_action_result_string(self):
         action_worker = actions_worker.get_worker()

@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import os.path
 
 from setuptools import setup, find_packages
@@ -32,9 +33,11 @@ apply_vagrant_workaround()
 setup(
     name=ST2_COMPONENT,
     version=__version__,
-    description='{} component'.format(ST2_COMPONENT),
+    description='{} StackStorm event-driven automation platform component'.format(ST2_COMPONENT),
     author='StackStorm',
     author_email='info@stackstorm.com',
+    license='Apache License (2.0)',
+    url='https://stackstorm.com/',
     install_requires=install_reqs,
     dependency_links=dep_links,
     test_suite=ST2_COMPONENT,

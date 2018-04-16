@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 from st2common import log as logging
 from st2common import transport
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
@@ -87,5 +88,5 @@ class TriggerInstance(Access):
         return cls.impl
 
     @classmethod
-    def delete_by_query(cls, **query):
-        return cls._get_impl().delete_by_query(**query)
+    def delete_by_query(cls, *args, **query):
+        return cls._get_impl().delete_by_query(*args, **query)

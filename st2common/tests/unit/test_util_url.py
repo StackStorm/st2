@@ -13,9 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import unittest2
 
 from st2common.util.url import get_url_without_trailing_slash
+from six.moves import zip
 
 
 class URLUtilsTestCase(unittest2.TestCase):

@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import os
 
 import unittest2
@@ -93,6 +94,7 @@ class RBACDefinitionsLoaderTestCase(unittest2.TestCase):
         self.assertEqual(user_role_assignment_api.username, 'user3')
         self.assertEqual(user_role_assignment_api.description, 'Observer assignments')
         self.assertEqual(user_role_assignment_api.roles, ['observer'])
+        self.assertEqual(user_role_assignment_api.file_path, 'assignments/user3.yaml')
 
     def test_load_role_definitions_duplicate_role_definition(self):
         loader = RBACDefinitionsLoader()
@@ -198,6 +200,7 @@ class RBACDefinitionsLoaderTestCase(unittest2.TestCase):
         assignment_api = loader.load_user_role_assignments_from_file(file_path=file_path)
         self.assertEqual(assignment_api.username, 'stackstorm_user')
         self.assertFalse(assignment_api.enabled)
+        self.assertEqual(assignment_api.file_path, 'assignments/user_sample.yaml')
 
     def test_load_group_to_role_mappings_empty_file(self):
         loader = RBACDefinitionsLoader()
@@ -240,6 +243,7 @@ class RBACDefinitionsLoaderTestCase(unittest2.TestCase):
         self.assertEqual(role_mapping_api.roles, ['pack_admin'])
         self.assertEqual(role_mapping_api.description, None)
         self.assertTrue(role_mapping_api.enabled)
+        self.assertTrue(role_mapping_api.file_path.endswith('mappings/mapping_one.yaml'))
 
         file_path = os.path.join(get_fixtures_base_path(), 'rbac/mappings/mapping_two.yaml')
         role_mapping_api = loader.load_group_to_role_map_assignment_from_file(file_path=file_path)
@@ -248,3 +252,4 @@ class RBACDefinitionsLoaderTestCase(unittest2.TestCase):
         self.assertEqual(role_mapping_api.roles, ['role_one', 'role_two', 'role_three'])
         self.assertEqual(role_mapping_api.description, 'Grant 3 roles to stormers group members')
         self.assertFalse(role_mapping_api.enabled)
+        self.assertEqual(role_mapping_api.file_path, 'mappings/mapping_two.yaml')

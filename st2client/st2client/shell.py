@@ -36,6 +36,7 @@ from st2client.commands import auth
 from st2client.commands import action
 from st2client.commands import action_alias
 from st2client.commands import keyvalue
+from st2client.commands import inquiry
 from st2client.commands import pack
 from st2client.commands import policy
 from st2client.commands import resource
@@ -53,7 +54,6 @@ from st2client.exceptions.operations import OperationFailureException
 from st2client.utils.logging import LogLevelFilter, set_log_level_for_all_loggers
 from st2client.commands.auth import TokenCreateCommand
 from st2client.commands.auth import LoginCommand
-from st2client.commands.auth import WhoamiCommand
 
 
 __all__ = [
@@ -63,6 +63,15 @@ __all__ = [
 LOGGER = logging.getLogger(__name__)
 
 CLI_DESCRIPTION = 'CLI for StackStorm event-driven automation platform. https://stackstorm.com'
+USAGE_STRING = """
+Usage: %(prog)s [options] <command> <sub command> [options]
+
+For example:
+
+    %(prog)s action list --pack=st2
+    %(prog)s run core.local cmd=date
+    %(prog)s --debug run core.local cmd=date
+""".strip()
 
 
 class Shell(BaseCLIApp):
@@ -71,7 +80,6 @@ class Shell(BaseCLIApp):
     SKIP_AUTH_CLASSES = [
         TokenCreateCommand.__name__,
         LoginCommand.__name__,
-        WhoamiCommand.__name__
     ]
 
     def __init__(self):
@@ -85,7 +93,10 @@ class Shell(BaseCLIApp):
         self.parser.add_argument(
             '--version',
             action='version',
-            version='%(prog)s {version}'.format(version=__version__))
+            version='%(prog)s {version}, on Python {python_major}.{python_minor}'.format(
+                version=__version__,
+                python_major=sys.version_info.major,
+                python_minor=sys.version_info.minor))
 
         self.parser.add_argument(
             '--url',
@@ -176,8 +187,12 @@ class Shell(BaseCLIApp):
         )
 
         # Set up list of commands and subcommands.
-        self.subparsers = self.parser.add_subparsers()
-        self.commands = dict()
+        self.subparsers = self.parser.add_subparsers(dest='parser')
+        self.subparsers.required = True
+        self.commands = {}
+
+        self.commands['run'] = action.ActionRunCommand(
+            models.Action, self, self.subparsers, name='run', add_help=False)
 
         self.commands['action'] = action.ActionBranch(
             'An activity that happens as a response to the external event.',
@@ -190,6 +205,12 @@ class Shell(BaseCLIApp):
         self.commands['auth'] = auth.TokenCreateCommand(
             models.Token, self, self.subparsers, name='auth')
 
+        self.commands['login'] = auth.LoginCommand(
+            models.Token, self, self.subparsers, name='login')
+
+        self.commands['whoami'] = auth.WhoamiCommand(
+            models.Token, self, self.subparsers, name='whoami')
+
         self.commands['api-key'] = auth.ApiKeyBranch(
             'API Keys.',
             self, self.subparsers)
@@ -198,13 +219,15 @@ class Shell(BaseCLIApp):
             'An invocation of an action.',
             self, self.subparsers)
 
+        self.commands['inquiry'] = inquiry.InquiryBranch(
+            'Inquiries provide an opportunity to ask a question '
+            'and wait for a response in a workflow.',
+            self, self.subparsers)
+
         self.commands['key'] = keyvalue.KeyValuePairBranch(
             'Key value pair is used to store commonly used configuration '
             'for reuse in sensors, actions, and rules.',
             self, self.subparsers)
-
-        self.commands['login'] = auth.LoginCommand(
-            models.Token, self, self.subparsers, name='login')
 
         self.commands['pack'] = pack.PackBranch(
             'A group of related integration resources: '
@@ -224,8 +247,13 @@ class Shell(BaseCLIApp):
             'based on some criteria.',
             self, self.subparsers)
 
-        self.commands['run'] = action.ActionRunCommand(
-            models.Action, self, self.subparsers, name='run', add_help=False)
+        self.commands['webhook'] = webhook.WebhookBranch(
+            'Webhooks.',
+            self, self.subparsers)
+
+        self.commands['timer'] = timer.TimerBranch(
+            'Timers.',
+            self, self.subparsers)
 
         self.commands['runner'] = resource.ResourceBranch(
             models.RunnerType,
@@ -249,17 +277,6 @@ class Shell(BaseCLIApp):
             'Actual instances of triggers received by st2.',
             self, self.subparsers)
 
-        self.commands['webhook'] = webhook.WebhookBranch(
-            'Webhooks.',
-            self, self.subparsers)
-
-        self.commands['whoami'] = auth.WhoamiCommand(
-            models.Token, self, self.subparsers, name='whoami')
-
-        self.commands['timer'] = timer.TimerBranch(
-            'Timers.',
-            self, self.subparsers)
-
         self.commands['rule-enforcement'] = rule_enforcement.RuleEnforcementBranch(
             'Models that represent enforcement of rules.',
             self, self.subparsers)
@@ -274,6 +291,17 @@ class Shell(BaseCLIApp):
 
     def run(self, argv):
         debug = False
+
+        parser = self.parser
+
+        if len(argv) == 0:
+            # Print a more user-friendly help string if no arguments are provided
+            # Note: We only set usage variable for the main parser. If we passed "usage" argument
+            # to the main ArgumentParser class above, this would also set a custom usage string for
+            # sub-parsers which we don't want.
+            parser.usage = USAGE_STRING
+            sys.stderr.write(parser.format_help())
+            return 2
 
         # Provide autocomplete for shell
         argcomplete.autocomplete(self.parser)
@@ -303,8 +331,16 @@ class Shell(BaseCLIApp):
             # Set up client.
             self.client = self.get_client(args=args, debug=debug)
 
+            # TODO: This is not so nice work-around for Python 3 because of a breaking change in
+            # Python 3 - https://bugs.python.org/issue16308
+            try:
+                func = getattr(args, 'func')
+            except AttributeError:
+                parser.print_help()
+                sys.exit(2)
+
             # Execute command.
-            args.func(args)
+            func(args)
 
             return 0
         except OperationFailureException as e:

@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import os
 import tempfile
 
@@ -288,6 +289,41 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
             'env': {}
         }
         virtualenvs.run_command.assert_called_once_with(**expected_args)
+
+    @mock.patch.object(virtualenvs, 'run_command')
+    def test_setup_pack_virtualenv_use_python3_binary(self, mock_run_command):
+        mock_run_command.return_value = 0, '', ''
+
+        cfg.CONF.set_override(name='python_binary', group='actionrunner',
+                              override='/usr/bin/python2.7')
+        cfg.CONF.set_override(name='python3_binary', group='actionrunner',
+                              override='/usr/bin/python3')
+
+        pack_name = 'dummy_pack_2'
+
+        # Python 2
+        setup_pack_virtualenv(pack_name=pack_name, update=False,
+                              include_setuptools=False, include_wheel=False,
+                              use_python3=False)
+
+        actual_cmd = mock_run_command.call_args_list[0][1]['cmd']
+        actual_cmd = ' '.join(actual_cmd)
+
+        self.assertEqual(mock_run_command.call_count, 2)
+        self.assertTrue('-p /usr/bin/python2.7' in actual_cmd)
+
+        mock_run_command.reset_mock()
+
+        # Python 3
+        setup_pack_virtualenv(pack_name=pack_name, update=False,
+                              include_setuptools=False, include_wheel=False,
+                              use_python3=True)
+
+        actual_cmd = mock_run_command.call_args_list[0][1]['cmd']
+        actual_cmd = ' '.join(actual_cmd)
+
+        self.assertEqual(mock_run_command.call_count, 2)
+        self.assertTrue('-p /usr/bin/python3' in actual_cmd)
 
     def assertVirtulenvExists(self, virtualenv_dir):
         self.assertTrue(os.path.exists(virtualenv_dir))

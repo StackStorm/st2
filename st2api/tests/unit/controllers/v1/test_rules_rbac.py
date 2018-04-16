@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import httplib
-
 import mock
 import six
 
@@ -134,19 +132,22 @@ class RuleControllerRBACTestCase(APIControllerWithRBACTestCase):
         user_db = self.users['rule_create']
         role_assignment_db = UserRoleAssignmentDB(
             user=user_db.name,
-            role=self.roles['rule_create'].name)
+            role=self.roles['rule_create'].name,
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         user_db = self.users['rule_create_webhook_create']
         role_assignment_db = UserRoleAssignmentDB(
             user=user_db.name,
-            role=self.roles['rule_create_webhook_create'].name)
+            role=self.roles['rule_create_webhook_create'].name,
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         user_db = self.users['rule_create_webhook_create_core_local_execute']
         role_assignment_db = UserRoleAssignmentDB(
             user=user_db.name,
-            role=self.roles['rule_create_webhook_create_core_local_execute'].name)
+            role=self.roles['rule_create_webhook_create_core_local_execute'].name,
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
     def test_post_webhook_trigger_no_trigger_and_action_permission(self):
@@ -158,7 +159,7 @@ class RuleControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.__do_post(RuleControllerRBACTestCase.RULE_1)
         expected_msg = ('User "rule_create" doesn\'t have required permission (webhook_create) '
                         'to use trigger core.st2.webhook')
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_post_user_has_no_permission_on_action_which_doesnt_exist_in_db(self):
@@ -169,7 +170,7 @@ class RuleControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.__do_post(RuleControllerRBACTestCase.RULE_3)
         expected_msg = ('User "rule_create_webhook_create" doesn\'t have required (action_execute)'
                         ' permission to use action wolfpack.action-doesnt-exist-woo')
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_post_no_webhook_trigger(self):
@@ -181,7 +182,7 @@ class RuleControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.__do_post(RuleControllerRBACTestCase.RULE_2)
         expected_msg = ('User "rule_create" doesn\'t have required (action_execute) permission '
                         'to use action wolfpack.action-1')
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_post_webhook_trigger_webhook_create_permission_no_action_permission(self):
@@ -193,7 +194,7 @@ class RuleControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.__do_post(RuleControllerRBACTestCase.RULE_1)
         expected_msg = ('User "rule_create_webhook_create" doesn\'t have required '
                         '(action_execute) permission to use action core.local')
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_post_action_webhook_trigger_webhook_create_and_action_execute_permission(self):
@@ -202,7 +203,20 @@ class RuleControllerRBACTestCase(APIControllerWithRBACTestCase):
         self.use_user(user_db)
 
         resp = self.__do_post(RuleControllerRBACTestCase.RULE_1)
-        self.assertEqual(resp.status_code, httplib.CREATED)
+        self.assertEqual(resp.status_code, http_client.CREATED)
+
+    def test_get_all_limit_minus_one(self):
+        user_db = self.users['observer']
+        self.use_user(user_db)
+
+        resp = self.app.get('/v1/rules?limit=-1', expect_errors=True)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
+
+        user_db = self.users['admin']
+        self.use_user(user_db)
+
+        resp = self.app.get('/v1/rules?limit=-1')
+        self.assertEqual(resp.status_code, http_client.OK)
 
     @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
     def __do_post(self, rule):

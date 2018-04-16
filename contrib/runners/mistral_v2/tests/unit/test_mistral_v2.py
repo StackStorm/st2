@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import copy
 import uuid
 
@@ -30,7 +31,7 @@ from oslo_config import cfg
 import st2tests.config as tests_config
 tests_config.parse_args()
 
-from mistral_v2 import MistralRunner
+from mistral_v2.mistral_v2 import MistralRunner
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar
 from st2common.constants import action as action_constants
@@ -146,6 +147,9 @@ WF2 = workflows.Workflow(None, {'name': WF2_NAME, 'definition': WF2_YAML})
 WF2_EXEC = copy.deepcopy(MISTRAL_EXECUTION)
 WF2_EXEC['workflow_name'] = WF2_NAME
 
+# Data for the notify param
+NOTIFY = [{'type': 'st2'}]
+
 
 @mock.patch.object(
     CUDPublisher,
@@ -186,7 +190,7 @@ class MistralRunnerTest(DbTestCase):
 
     @classmethod
     def get_runner_class(cls, runner_name):
-        return runners.get_runner(runner_name).__class__
+        return runners.get_runner(runner_name, runner_name).__class__
 
     def test_build_context(self):
         parent = {
@@ -207,7 +211,7 @@ class MistralRunnerTest(DbTestCase):
 
         context = MistralRunner._build_mistral_context(parent, current)
         self.assertTrue(context is not None)
-        self.assertTrue('parent' in context['mistral'].keys())
+        self.assertTrue('parent' in list(context['mistral'].keys()))
 
         parent_dict = {
             'workflow_name': parent['mistral']['workflow_name'],
@@ -269,7 +273,7 @@ class MistralRunnerTest(DbTestCase):
         }
 
         executions.ExecutionManager.create.assert_called_with(
-            WF1_NAME, workflow_input=workflow_input, env=env)
+            WF1_NAME, workflow_input=workflow_input, env=env, notify=NOTIFY)
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',
@@ -353,7 +357,82 @@ class MistralRunnerTest(DbTestCase):
         }
 
         executions.ExecutionManager.create.assert_called_with(
-            WF1_NAME, workflow_input=workflow_input, env=env)
+            WF1_NAME, workflow_input=workflow_input, env=env, notify=NOTIFY)
+
+    @mock.patch.object(
+        workflows.WorkflowManager, 'list',
+        mock.MagicMock(return_value=[]))
+    @mock.patch.object(
+        workflows.WorkflowManager, 'get',
+        mock.MagicMock(return_value=WF1))
+    @mock.patch.object(
+        workflows.WorkflowManager, 'create',
+        mock.MagicMock(return_value=[WF1]))
+    @mock.patch.object(
+        executions.ExecutionManager, 'create',
+        mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC)))
+    def test_launch_workflow_under_parent_chain_with_jinja_parameters(self):
+        ac_ctx = {
+            'chain': {
+                'parameters': {
+                    'var1': 'foobar',
+                    'var2': '{{foobar}}',
+                    'var3': ['{{foo}}', '{{bar}}'],
+                    'var4': {
+                        'foobar': '{{foobar}}'
+                    },
+                }
+            }
+        }
+
+        liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=ac_ctx)
+        liveaction, execution = action_service.request(liveaction)
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+
+        mistral_context = liveaction.context.get('mistral', None)
+        self.assertIsNotNone(mistral_context)
+        self.assertEqual(mistral_context['execution_id'], WF1_EXEC.get('id'))
+        self.assertEqual(mistral_context['workflow_name'], WF1_EXEC.get('workflow_name'))
+
+        workflow_input = copy.deepcopy(ACTION_PARAMS)
+        workflow_input.update({'count': '3'})
+
+        env = {
+            'st2_execution_id': str(execution.id),
+            'st2_liveaction_id': str(liveaction.id),
+            'st2_action_api_url': 'http://0.0.0.0:9101/v1',
+            '__actions': {
+                'st2.action': {
+                    'st2_context': {
+                        'api_url': 'http://0.0.0.0:9101/v1',
+                        'endpoint': 'http://0.0.0.0:9101/v1/actionexecutions',
+                        'parent': {
+                            'pack': 'mistral_tests',
+                            'execution_id': str(execution.id),
+                            'chain': {
+                                'parameters': {
+                                    'var1': 'foobar',
+                                    'var2': '{% raw %}{{foobar}}{% endraw %}',
+                                    'var3': [
+                                        '{% raw %}{{foo}}{% endraw %}',
+                                        '{% raw %}{{bar}}{% endraw %}'
+                                    ],
+                                    'var4': {
+                                        'foobar': '{% raw %}{{foobar}}{% endraw %}'
+                                    }
+                                }
+                            }
+                        },
+                        'notify': {},
+                        'skip_notify_tasks': []
+                    }
+                }
+            }
+        }
+
+        executions.ExecutionManager.create.assert_called_with(
+            WF1_NAME, workflow_input=workflow_input, env=env, notify=NOTIFY)
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',
@@ -405,7 +484,7 @@ class MistralRunnerTest(DbTestCase):
         }
 
         executions.ExecutionManager.create.assert_called_with(
-            WF1_NAME, workflow_input=workflow_input, env=env)
+            WF1_NAME, workflow_input=workflow_input, env=env, notify=NOTIFY)
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',
@@ -459,7 +538,7 @@ class MistralRunnerTest(DbTestCase):
         }
 
         executions.ExecutionManager.create.assert_called_with(
-            WF1_NAME, workflow_input=workflow_input, env=env)
+            WF1_NAME, workflow_input=workflow_input, env=env, notify=NOTIFY)
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',
@@ -510,7 +589,7 @@ class MistralRunnerTest(DbTestCase):
         }
 
         executions.ExecutionManager.create.assert_called_with(
-            WF1_NAME, workflow_input=workflow_input, env=env)
+            WF1_NAME, workflow_input=workflow_input, env=env, notify=NOTIFY)
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',
@@ -562,7 +641,7 @@ class MistralRunnerTest(DbTestCase):
         }
 
         executions.ExecutionManager.create.assert_called_with(
-            WF1_NAME, workflow_input=workflow_input, env=env)
+            WF1_NAME, workflow_input=workflow_input, env=env, notify=NOTIFY)
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',

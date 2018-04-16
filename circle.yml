@@ -147,13 +147,24 @@ jobs:
             export ST2_GITREV=${CIRCLE_BRANCH}
             .circle/buildenv_st2.sh
           working_directory: ~/st2-packages
+      # Verify that Docker environment is properly cleaned up and there is nothing left from the previous build
+      # See issue: https://discuss.circleci.com/t/no-space-left-on-device-while-creating-mongo/11532/13
       - run:
-          # Workaround for CircleCI docker-compose limtation where volumes don't work
+          name: Pre Docker cleanup
+          command: |
+            set -x
+            # Clean-up running containers
+            .circle/docker-compose2.sh clean
+            # Remove st2-packages-vol container
+            docker rm -v --force st2-packages-vol || true
+            # Clean-up any created volumes
+            docker volume prune --force
+          working_directory: ~/st2-packages
+      - run:
+          # Workaround for CircleCI docker-compose limitation where volumes don't work
           # See detailed explanation: https://circleci.com/docs/2.0/building-docker-images/#mounting-folders
           name: Copy st2-packages files to build containers
           command: |
-            # Remove st2-packages-vol container if exists in CircleCI cache
-            docker rm -f st2-packages-vol || true
             # creating dummy container which will hold a volume with data files
             docker create -v /root/st2-packages -v ${ST2_GITDIR} -v /root/build -v /var/log/st2 -v /root/.cache/pip -v /tmp/wheelhouse --name st2-packages-vol alpine:3.4 /bin/true
             # copy st2-packages data files into this volume
@@ -162,11 +173,7 @@ jobs:
             docker cp . st2-packages-vol:${ST2_GITDIR}
       - run:
           name: Pull dependent Docker Images
-          command: |
-            # Clean-up running containers from the previous build
-            .circle/docker-compose2.sh clean
-            # Pull Docker images
-            .circle/docker-compose2.sh pull ${DISTRO}
+          command: .circle/docker-compose2.sh pull ${DISTRO}
           working_directory: ~/st2-packages
       - run:
           name: Build the ${DISTRO} Packages
@@ -187,13 +194,10 @@ jobs:
       - run:
           name: Test the Packages
           command: |
-            set +e
-            .circle/docker-compose2.sh test ${DISTRO} || export TEST_FAILED=1
+            set -x
+            .circle/docker-compose2.sh test ${DISTRO}
             # Once test container finishes we can copy logs directly from it
             docker cp st2-packages-vol:/var/log/st2 ~/st2/packages/${DISTRO}/log/st2
-            # Clean-up running containers
-            .circle/docker-compose2.sh clean
-            test -z "$TEST_FAILED"
           working_directory: ~/st2-packages
       - store_artifacts:
           path: ~/st2/packages
@@ -202,6 +206,21 @@ jobs:
           root: packages
           paths:
             - .
+      # Verify that Docker environment is properly cleaned up, and there is nothing left for the next build
+      # See issue: https://discuss.circleci.com/t/no-space-left-on-device-while-creating-mongo/11532/13
+      - run:
+          name: Post Docker cleanup
+          # don't cleanup resources on error since failed container might be used for SSH debug
+          when: on_success
+          command: |
+            set -x
+            # Clean-up running containers
+            .circle/docker-compose2.sh clean
+            # Remove st2-packages-vol container
+            docker rm -v --force st2-packages-vol || true
+            # Clean-up any created volumes
+            docker volume prune --force
+          working_directory: ~/st2-packages
 
   # Deploy produced deb/rpm packages to PackageCloud staging
   deploy:

@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 from st2common.models.db.rbac import RoleDB
 from st2common.models.db.rbac import UserRoleAssignmentDB
 from st2common.models.db.rbac import PermissionGrantDB
@@ -52,6 +53,7 @@ class UserRoleAssignmentDBModelCRUDTestCase(BaseDBModelCRUDTestCase, DbTestCase)
     model_class_kwargs = {
         'user': 'user_one',
         'role': 'role_one',
+        'source': 'source_one',
         'is_remote': True
     }
     update_attribute_name = 'role'

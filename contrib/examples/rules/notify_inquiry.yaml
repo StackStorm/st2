@@ -1,0 +1,14 @@
+---
+name: "notify_inquiry"
+pack: "examples"
+description: Notify relevant users of an Inquiry action
+enabled: false
+
+trigger:
+  type: core.st2.generic.inquiry
+
+action:
+  ref: slack.post_message
+  parameters:
+    channel: "#{{ trigger.route }}"
+    message: 'Inquiry {{trigger.id}} is awaiting an approval action'

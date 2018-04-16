@@ -13,6 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+
+import os
+
 from oslo_config import cfg, types
 
 from st2common import log as logging
@@ -81,6 +85,7 @@ def _override_common_opts():
     CONF.set_override(name='lock_timeout', override=1, group='coordination')
     CONF.set_override(name='jitter_interval', override=0, group='mistral')
     CONF.set_override(name='query_interval', override=0.1, group='resultstracker')
+    CONF.set_override(name='stream_output', override=False, group='actionrunner')
 
 
 def _override_api_opts():
@@ -89,9 +94,12 @@ def _override_api_opts():
 
 
 def _override_keyvalue_opts():
-    CONF.set_override(name='encryption_key_path',
-                      override='st2tests/conf/st2_kvstore_tests.crypto.key.json',
-                      group='keyvalue')
+    current_file_path = os.path.dirname(__file__)
+    rel_st2_base_path = os.path.join(current_file_path, '../..')
+    abs_st2_base_path = os.path.abspath(rel_st2_base_path)
+    rel_enc_key_path = 'st2tests/conf/st2_kvstore_tests.crypto.key.json'
+    ovr_enc_key_path = os.path.join(abs_st2_base_path, rel_enc_key_path)
+    CONF.set_override(name='encryption_key_path', override=ovr_enc_key_path, group='keyvalue')
 
 
 def _register_common_opts():

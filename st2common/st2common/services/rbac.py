@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 from mongoengine.queryset.visitor import Q
 
 from st2common.rbac.types import PermissionType
@@ -185,7 +186,7 @@ def delete_role(name):
     return result
 
 
-def assign_role_to_user(role_db, user_db, description=None, is_remote=False):
+def assign_role_to_user(role_db, user_db, description=None, is_remote=False, source=None):
     """
     Assign role to a user.
 
@@ -200,11 +201,16 @@ def assign_role_to_user(role_db, user_db, description=None, is_remote=False):
 
     :param include_remote: True if this a remote assignment.
     :type include_remote: ``bool``
+
+    :param source: Source from where this assignment comes from. For example, path of a file if
+                   it's a local assignment or mapping or "API".
+    :type source: ``str``
     """
-    role_assignment_db = UserRoleAssignmentDB(user=user_db.name, role=role_db.name,
-                                              description=description,
-                                              is_remote=is_remote)
+    role_assignment_db = UserRoleAssignmentDB(user=user_db.name, role=role_db.name, source=source,
+                                              description=description, is_remote=is_remote)
+
     role_assignment_db = UserRoleAssignment.add_or_update(role_assignment_db)
+
     return role_assignment_db
 
 
@@ -218,9 +224,10 @@ def revoke_role_from_user(role_db, user_db):
     :param user_db: User to revoke the role from.
     :type user_db: :class:`UserDB`
     """
-    role_assignment_db = UserRoleAssignment.get(user=user_db.name, role=role_db.name)
-    result = UserRoleAssignment.delete(role_assignment_db)
-    return result
+    role_assignment_dbs = UserRoleAssignment.query(user=user_db.name, role=role_db.name)
+
+    for role_assignment_db in role_assignment_dbs:
+        UserRoleAssignment.delete(role_assignment_db)
 
 
 def get_all_permission_grants_for_user(user_db, resource_uid=None, resource_types=None,
@@ -327,13 +334,15 @@ def get_all_group_to_role_maps():
     return result
 
 
-def create_group_to_role_map(group, roles, description=None, enabled=True):
+def create_group_to_role_map(group, roles, description=None, enabled=True, source=None):
     group_to_role_map_db = GroupToRoleMappingDB(group=group,
                                                 roles=roles,
+                                                source=source,
                                                 description=description,
                                                 enabled=enabled)
 
     group_to_role_map_db = GroupToRoleMapping.add_or_update(group_to_role_map_db)
+
     return group_to_role_map_db
 
 

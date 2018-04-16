@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import os
 import sys
 import json
@@ -107,3 +108,17 @@ class BaseCLITestCase(unittest2.TestCase):
             # Reset to original stdout and stderr.
             sys.stdout = sys.__stdout__
             sys.stderr = sys.__stderr__
+
+    def _reset_output_streams(self):
+        """
+        Reset / clear stdout and stderr stream.
+        """
+
+        self.stdout.seek(0)
+        self.stdout.truncate()
+        self.stderr.seek(0)
+        self.stderr.truncate()
+
+        # Verify it has been reset correctly
+        self.assertEqual(self.stdout.getvalue(), '')
+        self.assertEqual(self.stderr.getvalue(), '')

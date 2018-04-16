@@ -3,9 +3,11 @@
 **StackStorm** is a platform for integration and automation across services and tools, taking actions in response to events. Learn more at [www.stackstorm.com](http://www.stackstorm.com/product).
 
 [![Tests Build Status](https://travis-ci.org/StackStorm/st2.svg?branch=master)](https://travis-ci.org/StackStorm/st2) [![Packages Build Status](https://circleci.com/gh/StackStorm/st2/tree/master.svg?style=shield)](https://circleci.com/gh/StackStorm/st2) [![Codecov](https://codecov.io/github/StackStorm/st2/badge.svg?branch=master&service=github)](https://codecov.io/github/StackStorm/st2?branch=master) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/StackStorm/st2/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/StackStorm/st2/?branch=master) ![Python 2.7](https://img.shields.io/badge/python-2.7-blue.svg) [![Join our community Slack](https://stackstorm-community.herokuapp.com/badge.svg)](https://stackstorm.com/community-signup) [![IRC](https://img.shields.io/irc/%23stackstorm.png)](http://webchat.freenode.net/?channels=stackstorm)
-=======
+
+---
 
 ## TL;DR
+
 * Install Get yourself a clean 64-bit Linux box that fits the [system requirements](https://docs.stackstorm.com/install/system_requirements.html). Run the installer script:
 
    ```
@@ -70,7 +72,7 @@ in our documentation.
 
 ## Copyright, License, and Contributors Agreement
 
-Copyright 2015 StackStorm, Inc.
+Copyright 2014-2018 StackStorm, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this work except in compliance with the License. You may obtain a copy of the License in the [LICENSE](LICENSE) file, or at:
 

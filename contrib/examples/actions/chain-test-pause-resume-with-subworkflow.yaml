@@ -1,0 +1,13 @@
+---
+name: chain-test-pause-resume-with-subworkflow
+description: Simple action chain with a Mistral subworkflow to test pause and resume.
+runner_type: action-chain
+entry_point: chains/chain_test_pause_resume_with_subworkflow.yaml
+enabled: true
+parameters:
+    tempfile:
+        type: string
+        required: true
+    message:
+        type: string
+        required: true

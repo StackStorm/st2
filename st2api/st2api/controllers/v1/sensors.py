@@ -22,6 +22,7 @@ from st2common.models.api.sensor import SensorTypeAPI
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.validators.api.misc import validate_not_part_of_system_pack
 from st2api.controllers import resource
+from st2api.controllers.controller_transforms import transform_to_bool
 from st2common.rbac.types import PermissionType
 from st2common.rbac import utils as rbac_utils
 from st2common.router import abort
@@ -36,7 +37,13 @@ class SensorTypeController(resource.ContentPackResourceController):
     access = SensorType
     supported_filters = {
         'name': 'name',
-        'pack': 'pack'
+        'pack': 'pack',
+        'enabled': 'enabled',
+        'trigger': 'trigger_types'
+    }
+
+    filter_transform_functions = {
+        'enabled': transform_to_bool
     }
 
     options = {
@@ -45,11 +52,12 @@ class SensorTypeController(resource.ContentPackResourceController):
 
     include_reference = True
 
-    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
+    def get_all(self, sort=None, offset=0, limit=None, requester_user=None, **raw_filters):
         return super(SensorTypeController, self)._get_all(sort=sort,
                                                           offset=offset,
                                                           limit=limit,
-                                                          raw_filters=raw_filters)
+                                                          raw_filters=raw_filters,
+                                                          requester_user=requester_user)
 
     def get_one(self, ref_or_id, requester_user):
         permission_type = PermissionType.SENSOR_VIEW

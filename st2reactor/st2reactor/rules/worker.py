@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 from kombu import Connection
 
 from st2common import log as logging
@@ -20,16 +21,14 @@ from st2common.constants.trace import TRACE_CONTEXT, TRACE_ID
 from st2common.constants import triggers as trigger_constants
 from st2common.util import date as date_utils
 from st2common.services import trace as trace_service
-from st2common.transport import consumers, reactor
+from st2common.transport import consumers
 from st2common.transport import utils as transport_utils
 import st2reactor.container.utils as container_utils
 from st2reactor.rules.engine import RulesEngine
+from st2common.transport.queues import RULESENGINE_WORK_QUEUE
 
 
 LOG = logging.getLogger(__name__)
-
-RULESENGINE_WORK_Q = reactor.get_trigger_instances_queue(
-    name='st2.trigger_instances_dispatch.rules_engine', routing_key='#')
 
 
 class TriggerInstanceDispatcher(consumers.StagedMessageHandler):
@@ -112,4 +111,4 @@ class TriggerInstanceDispatcher(consumers.StagedMessageHandler):
 
 def get_worker():
     with Connection(transport_utils.get_messaging_urls()) as conn:
-        return TriggerInstanceDispatcher(conn, [RULESENGINE_WORK_Q])
+        return TriggerInstanceDispatcher(conn, [RULESENGINE_WORK_QUEUE])

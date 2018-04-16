@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import httplib
-
 import six
 
 from st2common.rbac.types import PermissionType
@@ -63,7 +61,8 @@ class ExecutionViewsFiltersControllerRBACTestCase(APIControllerWithRBACTestCase)
         # Role assignments
         role_assignment_db = UserRoleAssignmentDB(
             user=self.users['execution_views_filters_list'].name,
-            role=self.roles['execution_views_filters_list'].name)
+            role=self.roles['execution_views_filters_list'].name,
+            source='assignments/%s.yaml' % self.users['execution_views_filters_list'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
     def test_get_view_filters_no_permissions(self):
@@ -73,7 +72,7 @@ class ExecutionViewsFiltersControllerRBACTestCase(APIControllerWithRBACTestCase)
         resp = self.app.get('/v1/executions/views/filters', expect_errors=True)
         expected_msg = ('User "no_permissions" doesn\'t have required permission '
                         '"execution_views_filters_list"')
-        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_get_view_filters_success(self):
@@ -81,6 +80,6 @@ class ExecutionViewsFiltersControllerRBACTestCase(APIControllerWithRBACTestCase)
         self.use_user(user_db)
 
         resp = self.app.get('/v1/executions/views/filters')
-        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(resp.status_code, http_client.OK)
         self.assertTrue('status' in resp.json)
         self.assertTrue('action' in resp.json)

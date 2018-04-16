@@ -13,9 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+
+import six
 import mock
-import action_chain_runner as acr
-from st2actions.container.service import RunnerContainerService
+
+from action_chain_runner import action_chain_runner as acr
 from st2common.constants.action import LIVEACTION_STATUS_RUNNING
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_CANCELED
@@ -115,8 +118,18 @@ CHAIN_NOTIFY_API = {'notify': {'on-complete': {'message': 'foo happened.'}}}
 CHAIN_NOTIFY_DB = NotificationsHelper.to_model(CHAIN_NOTIFY_API)
 
 
-@mock.patch.object(action_db_util, 'get_runnertype_by_name',
-                   mock.MagicMock(return_value=RUNNER))
+@mock.patch.object(
+    action_db_util,
+    'get_runnertype_by_name',
+    mock.MagicMock(return_value=RUNNER))
+@mock.patch.object(
+    action_service,
+    'is_action_canceled_or_canceling',
+    mock.MagicMock(return_value=False))
+@mock.patch.object(
+    action_service,
+    'is_action_paused_or_pausing',
+    mock.MagicMock(return_value=False))
 class TestActionChainRunner(DbTestCase):
 
     def test_runner_creation(self):
@@ -129,7 +142,6 @@ class TestActionChainRunner(DbTestCase):
             chain_runner = acr.get_runner()
             chain_runner.entry_point = MALFORMED_CHAIN_PATH
             chain_runner.action = ACTION_1
-            chain_runner.container_service = RunnerContainerService()
             chain_runner.pre_run()
             self.assertTrue(False, 'Expected pre_run to fail.')
         except runnerexceptions.ActionRunnerPreRunError:
@@ -142,11 +154,9 @@ class TestActionChainRunner(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_1_PATH
         chain_runner.action = ACTION_1
-        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name,
-                                                           pack=ACTION_1.pack)
+        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name, pack=ACTION_1.pack)
         chain_runner.liveaction = LiveActionDB(action=action_ref)
         chain_runner.liveaction.notify = CHAIN_NOTIFY_DB
-        chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({})
         self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
@@ -173,11 +183,8 @@ class TestActionChainRunner(DbTestCase):
             return liveaction
 
         chain_runner._run_action = mock_run_action
-
-        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name,
-                                                           pack=ACTION_1.pack)
+        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name, pack=ACTION_1.pack)
         chain_runner.liveaction = LiveActionDB(action=action_ref)
-        chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         status, _, _ = chain_runner.run({})
 
@@ -209,11 +216,8 @@ class TestActionChainRunner(DbTestCase):
             return liveaction
 
         chain_runner._run_action = mock_run_action
-
-        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name,
-                                                           pack=ACTION_1.pack)
+        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name, pack=ACTION_1.pack)
         chain_runner.liveaction = LiveActionDB(action=action_ref)
-        chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         status, _, _ = chain_runner.run({})
 
@@ -232,11 +236,9 @@ class TestActionChainRunner(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_ACTION_CALL_NO_PARAMS_PATH
         chain_runner.action = ACTION_1
-        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name,
-                                                           pack=ACTION_1.pack)
+        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name, pack=ACTION_1.pack)
         chain_runner.liveaction = LiveActionDB(action=action_ref)
         chain_runner.liveaction.notify = CHAIN_NOTIFY_DB
-        chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({})
         self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
@@ -250,7 +252,8 @@ class TestActionChainRunner(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_NO_DEFAULT
         chain_runner.action = ACTION_1
-        chain_runner.container_service = RunnerContainerService()
+        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name, pack=ACTION_1.pack)
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
         chain_runner.pre_run()
         chain_runner.run({})
         self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
@@ -271,7 +274,8 @@ class TestActionChainRunner(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_NO_DEFAULT_2
         chain_runner.action = ACTION_1
-        chain_runner.container_service = RunnerContainerService()
+        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name, pack=ACTION_1.pack)
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
         chain_runner.pre_run()
         chain_runner.run({})
         self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
@@ -289,7 +293,6 @@ class TestActionChainRunner(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_BAD_DEFAULT
         chain_runner.action = ACTION_1
-        chain_runner.container_service = RunnerContainerService()
         expected_msg = 'Unable to find node with name "bad_default" referenced in "default".'
         self.assertRaisesRegexp(runnerexceptions.ActionRunnerPreRunError,
                                 expected_msg, chain_runner.pre_run)
@@ -305,7 +308,8 @@ class TestActionChainRunner(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_1_PATH
         chain_runner.action = ACTION_1
-        chain_runner.container_service = RunnerContainerService()
+        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name, pack=ACTION_1.pack)
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
         chain_runner.pre_run()
         chain_runner.run({})
         self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
@@ -320,7 +324,8 @@ class TestActionChainRunner(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_1_PATH
         chain_runner.action = ACTION_1
-        chain_runner.container_service = RunnerContainerService()
+        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name, pack=ACTION_1.pack)
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
         chain_runner.pre_run()
         status, _, _ = chain_runner.run({})
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
@@ -336,7 +341,6 @@ class TestActionChainRunner(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_BROKEN_ON_SUCCESS_PATH_STATIC_TASK_NAME
         chain_runner.action = ACTION_1
-        chain_runner.container_service = RunnerContainerService()
 
         expected_msg = ('Unable to find node with name "c5" referenced in "on-success" '
                         'in task "c2"')
@@ -351,7 +355,6 @@ class TestActionChainRunner(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_BROKEN_ON_FAILURE_PATH_STATIC_TASK_NAME
         chain_runner.action = ACTION_1
-        chain_runner.container_service = RunnerContainerService()
 
         expected_msg = ('Unable to find node with name "c6" referenced in "on-failure" '
                         'in task "c2"')
@@ -365,7 +368,8 @@ class TestActionChainRunner(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_1_PATH
         chain_runner.action = ACTION_1
-        chain_runner.container_service = RunnerContainerService()
+        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name, pack=ACTION_1.pack)
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
         chain_runner.pre_run()
         status, results, _ = chain_runner.run({})
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
@@ -388,7 +392,8 @@ class TestActionChainRunner(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_FIRST_TASK_RENDER_FAIL_PATH
         chain_runner.action = ACTION_1
-        chain_runner.container_service = RunnerContainerService()
+        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name, pack=ACTION_1.pack)
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
         chain_runner.pre_run()
         chain_runner.run({'s1': 1, 's2': 2, 's3': 3, 's4': 4})
         self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
@@ -402,7 +407,8 @@ class TestActionChainRunner(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_LIST_TEMP_PATH
         chain_runner.action = ACTION_1
-        chain_runner.container_service = RunnerContainerService()
+        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name, pack=ACTION_1.pack)
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
         chain_runner.pre_run()
         chain_runner.run({'s1': 1, 's2': 2, 's3': 3, 's4': 4})
         self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
@@ -416,7 +422,8 @@ class TestActionChainRunner(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_DICT_TEMP_PATH
         chain_runner.action = ACTION_1
-        chain_runner.container_service = RunnerContainerService()
+        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name, pack=ACTION_1.pack)
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
         chain_runner.pre_run()
         chain_runner.run({'s1': 1, 's2': 2, 's3': 3, 's4': 4})
         self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
@@ -432,7 +439,8 @@ class TestActionChainRunner(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_DEP_INPUT
         chain_runner.action = ACTION_1
-        chain_runner.container_service = RunnerContainerService()
+        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name, pack=ACTION_1.pack)
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
         chain_runner.pre_run()
         chain_runner.run({'s1': 1, 's2': 2, 's3': 3, 's4': 4})
         self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
@@ -453,18 +461,27 @@ class TestActionChainRunner(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_DEP_RESULTS_INPUT
         chain_runner.action = ACTION_1
-        chain_runner.container_service = RunnerContainerService()
+        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name, pack=ACTION_1.pack)
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
         chain_runner.pre_run()
         chain_runner.run({'s1': 1})
         self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
-        expected_values = [{u'p1': u'1'},
-                           {u'p1': u'1'},
-                           {u'out': u"{'c2': {'o1': '1'}, 'c1': {'o1': '1'}}"}]
+
+        if six.PY2:
+            expected_values = [{u'p1': u'1'},
+                               {u'p1': u'1'},
+                               {u'out': u"{'c2': {'o1': '1'}, 'c1': {'o1': '1'}}"}]
+        else:
+            expected_values = [{'p1': '1'},
+                               {'p1': '1'},
+                               {'out': "{'c1': {'o1': '1'}, 'c2': {'o1': '1'}}"}]
+
         # Each of the call_args must be one of
         self.assertEqual(request.call_count, 3)
         for call_args in request.call_args_list:
             self.assertTrue(call_args[0][0].parameters in expected_values)
             expected_values.remove(call_args[0][0].parameters)
+
         self.assertEqual(len(expected_values), 0, 'Not all expected values received.')
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
@@ -476,7 +493,8 @@ class TestActionChainRunner(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_FIRST_TASK_RENDER_FAIL_PATH
         chain_runner.action = ACTION_1
-        chain_runner.container_service = RunnerContainerService()
+        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name, pack=ACTION_1.pack)
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
         chain_runner.pre_run()
         chain_runner.run({})
         self.assertEqual(request.call_count, 0, 'No call expected.')
@@ -490,7 +508,8 @@ class TestActionChainRunner(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_FIRST_TASK_RENDER_FAIL_PATH
         chain_runner.action = ACTION_1
-        chain_runner.container_service = RunnerContainerService()
+        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name, pack=ACTION_1.pack)
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
         chain_runner.pre_run()
         status, result, _ = chain_runner.run({})
 
@@ -511,7 +530,8 @@ class TestActionChainRunner(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_SECOND_TASK_RENDER_FAIL_PATH
         chain_runner.action = ACTION_1
-        chain_runner.container_service = RunnerContainerService()
+        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name, pack=ACTION_1.pack)
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
         chain_runner.pre_run()
         status, result, _ = chain_runner.run({})
 
@@ -536,7 +556,8 @@ class TestActionChainRunner(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_TYPED_PARAMS
         chain_runner.action = ACTION_2
-        chain_runner.container_service = RunnerContainerService()
+        action_ref = ResourceReference.to_string_reference(name=ACTION_2.name, pack=ACTION_2.pack)
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
         chain_runner.pre_run()
         chain_runner.run({'s1': 1, 's2': 'two', 's3': 3.14})
         self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
@@ -554,6 +575,7 @@ class TestActionChainRunner(DbTestCase):
                        mock.MagicMock(return_value=ACTION_2))
     @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
     def test_chain_runner_typed_system_params(self, request):
+        action_ref = ResourceReference.to_string_reference(name=ACTION_2.name, pack=ACTION_2.pack)
         kvps = []
         try:
             kvps.append(KeyValuePair.add_or_update(KeyValuePairDB(name='a', value='1')))
@@ -561,7 +583,7 @@ class TestActionChainRunner(DbTestCase):
             chain_runner = acr.get_runner()
             chain_runner.entry_point = CHAIN_SYSTEM_PARAMS
             chain_runner.action = ACTION_2
-            chain_runner.container_service = RunnerContainerService()
+            chain_runner.liveaction = LiveActionDB(action=action_ref)
             chain_runner.pre_run()
             chain_runner.run({})
             self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
@@ -577,13 +599,14 @@ class TestActionChainRunner(DbTestCase):
                        mock.MagicMock(return_value=ACTION_2))
     @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
     def test_chain_runner_vars_system_params(self, request):
+        action_ref = ResourceReference.to_string_reference(name=ACTION_2.name, pack=ACTION_2.pack)
         kvps = []
         try:
             kvps.append(KeyValuePair.add_or_update(KeyValuePairDB(name='a', value='two')))
             chain_runner = acr.get_runner()
             chain_runner.entry_point = CHAIN_WITH_SYSTEM_VARS
             chain_runner.action = ACTION_2
-            chain_runner.container_service = RunnerContainerService()
+            chain_runner.liveaction = LiveActionDB(action=action_ref)
             chain_runner.pre_run()
             chain_runner.run({})
             self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
@@ -603,7 +626,8 @@ class TestActionChainRunner(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_WITH_ACTIONPARAM_VARS
         chain_runner.action = ACTION_2
-        chain_runner.container_service = RunnerContainerService()
+        action_ref = ResourceReference.to_string_reference(name=ACTION_2.name, pack=ACTION_2.pack)
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
         chain_runner.pre_run()
         chain_runner.run({'input_a': 'two'})
         self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
@@ -621,7 +645,8 @@ class TestActionChainRunner(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_WITH_PUBLISH
         chain_runner.action = ACTION_2
-        chain_runner.container_service = RunnerContainerService()
+        action_ref = ResourceReference.to_string_reference(name=ACTION_2.name, pack=ACTION_2.pack)
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
         chain_runner.runner_parameters = {'display_published': True}
         chain_runner.pre_run()
 
@@ -650,7 +675,8 @@ class TestActionChainRunner(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_WITH_PUBLISH_PARAM_RENDERING_FAILURE
         chain_runner.action = ACTION_1
-        chain_runner.container_service = RunnerContainerService()
+        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name, pack=ACTION_1.pack)
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
         chain_runner.pre_run()
 
         try:
@@ -673,7 +699,6 @@ class TestActionChainRunner(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_ACTION_INVALID_PARAMETER_TYPE
         chain_runner.action = ACTION_2
-        chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
 
         action_parameters = {}
@@ -691,7 +716,8 @@ class TestActionChainRunner(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_WITH_INVALID_ACTION
         chain_runner.action = ACTION_2
-        chain_runner.container_service = RunnerContainerService()
+        action_ref = ResourceReference.to_string_reference(name=ACTION_2.name, pack=ACTION_2.pack)
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
         chain_runner.pre_run()
 
         action_parameters = {}
@@ -707,7 +733,6 @@ class TestActionChainRunner(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_ACTION_PARAMS_AND_PARAMETERS_ATTRIBUTE
         chain_runner.action = ACTION_2
-        chain_runner.container_service = RunnerContainerService()
 
         expected_msg = ('Either "params" or "parameters" attribute needs to be provided, but '
                        'not both')
@@ -715,14 +740,16 @@ class TestActionChainRunner(DbTestCase):
                                 chain_runner.pre_run)
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
-                       mock.MagicMock(return_value=ACTION_1))
+                       mock.MagicMock(return_value=ACTION_2))
     @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
     def test_params_and_parameters_attributes_both_work(self, _):
+        action_ref = ResourceReference.to_string_reference(name=ACTION_2.name, pack=ACTION_2.pack)
+
         # "params" attribute used
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_ACTION_PARAMS_ATTRIBUTE
         chain_runner.action = ACTION_2
-        chain_runner.container_service = RunnerContainerService()
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
         chain_runner.pre_run()
 
         original_build_liveaction_object = chain_runner._build_liveaction_object
@@ -744,7 +771,7 @@ class TestActionChainRunner(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_ACTION_PARAMETERS_ATTRIBUTE
         chain_runner.action = ACTION_2
-        chain_runner.container_service = RunnerContainerService()
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
         chain_runner.pre_run()
 
         def mock_build_liveaction_object(action_node, resolved_params, parent_context):
@@ -765,6 +792,8 @@ class TestActionChainRunner(DbTestCase):
     @mock.patch.object(action_service, 'request',
                        return_value=(DummyActionExecution(result={'raw_out': 'published'}), None))
     def test_display_published_is_true_by_default(self, _):
+        action_ref = ResourceReference.to_string_reference(name=ACTION_2.name, pack=ACTION_2.pack)
+
         expected_published_values = {
             't1_publish_param_1': 'foo1',
             't1_publish_param_2': 'foo2',
@@ -779,7 +808,7 @@ class TestActionChainRunner(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_WITH_PUBLISH_2
         chain_runner.action = ACTION_2
-        chain_runner.container_service = RunnerContainerService()
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
         chain_runner.runner_parameters = {}
         chain_runner.pre_run()
 
@@ -793,7 +822,7 @@ class TestActionChainRunner(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_WITH_PUBLISH_2
         chain_runner.action = ACTION_2
-        chain_runner.container_service = RunnerContainerService()
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
         chain_runner.runner_parameters = {'display_published': True}
         chain_runner.pre_run()
 
@@ -807,7 +836,7 @@ class TestActionChainRunner(DbTestCase):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_WITH_PUBLISH_2
         chain_runner.action = ACTION_2
-        chain_runner.container_service = RunnerContainerService()
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
         chain_runner.runner_parameters = {'display_published': False}
         chain_runner.pre_run()
 

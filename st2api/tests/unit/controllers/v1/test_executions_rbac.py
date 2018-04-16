@@ -15,6 +15,7 @@
 
 import mock
 
+from six.moves import http_client
 import st2common.validators.api.action as action_validator
 from st2common.models.db.auth import UserDB
 from st2common.persistence.auth import User
@@ -66,13 +67,15 @@ class ActionExecutionRBACControllerTestCase(BaseActionExecutionControllerTestCas
         user_db = self.users['multiple_roles']
         role_assignment_db = UserRoleAssignmentDB(
             user=user_db.name,
-            role='admin')
+            role='admin',
+            source='assignments/%s.yaml' % user_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         for role in roles:
             role_assignment_db = UserRoleAssignmentDB(
                 user=user_db.name,
-                role=role)
+                role=role,
+                source='assignments/%s.yaml' % user_db.name)
             UserRoleAssignment.add_or_update(role_assignment_db)
 
     def test_post_rbac_info_in_context_success(self):
@@ -119,3 +122,16 @@ class ActionExecutionRBACControllerTestCase(BaseActionExecutionControllerTestCas
         }
 
         self.assertEqual(resp.json['context'], expected_context)
+
+    def test_get_all_limit_minus_one(self):
+        user_db = self.users['observer']
+        self.use_user(user_db)
+
+        resp = self.app.get('/v1/actionexecutions?limit=-1', expect_errors=True)
+        self.assertEqual(resp.status_code, http_client.FORBIDDEN)
+
+        user_db = self.users['admin']
+        self.use_user(user_db)
+
+        resp = self.app.get('/v1/actionexecutions?limit=-1')
+        self.assertEqual(resp.status_code, http_client.OK)

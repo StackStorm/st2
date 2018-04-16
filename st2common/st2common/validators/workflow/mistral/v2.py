@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import re
 
 import six
@@ -108,6 +109,6 @@ class MistralWorkflowValidator(WorkflowValidator):
             # Run custom DSL transformer to check action parameters.
             utils.transform_definition(def_dict)
         except WorkflowDefinitionException as e:
-            return [self.parse(e.message)]
+            return [self.parse(str(e))]
 
         return []

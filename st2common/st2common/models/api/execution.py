@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 import copy
 
 import six
@@ -21,10 +22,16 @@ from st2common.constants.action import LIVEACTION_STATUSES
 from st2common.util import isotime
 from st2common.models.api.base import BaseAPI
 from st2common.models.db.execution import ActionExecutionDB
+from st2common.models.db.execution import ActionExecutionOutputDB
 from st2common.models.api.trigger import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.api.rule import RuleAPI
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI, LiveActionAPI
 from st2common import log as logging
+
+__all__ = [
+    'ActionExecutionAPI',
+    'ActionExecutionOutputAPI'
+]
 
 
 LOG = logging.getLogger(__name__)
@@ -181,3 +188,43 @@ class ActionExecutionAPI(BaseAPI):
 
         model = cls.model(**values)
         return model
+
+
+class ActionExecutionOutputAPI(BaseAPI):
+    model = ActionExecutionOutputDB
+    schema = {
+        'type': 'object',
+        'properties': {
+            'id': {
+                'type': 'string'
+            },
+            'execution_id': {
+                'type': 'string'
+            },
+            'action_ref': {
+                'type': 'string'
+            },
+            'runner_ref': {
+                'type': 'string'
+            },
+            'timestamp': {
+                'type': 'string',
+                'pattern': isotime.ISO8601_UTC_REGEX
+            },
+            'output_type': {
+                'type': 'string'
+            },
+            'data': {
+                'type': 'string'
+            }
+        },
+        'additionalProperties': False
+    }
+
+    @classmethod
+    def from_model(cls, model, mask_secrets=True):
+        doc = cls._from_model(model, mask_secrets=mask_secrets)
+        doc['timestamp'] = isotime.format(model.timestamp, offset=False)
+
+        attrs = {attr: value for attr, value in six.iteritems(doc) if value is not None}
+        return cls(**attrs)

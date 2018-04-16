@@ -15,8 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2actions.runners.pythonrunner import Action
 from st2common.content import utils
+from st2common.runners.base_action import Action
 
 
 class RenderTemplateAction(Action):

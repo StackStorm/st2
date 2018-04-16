@@ -27,6 +27,7 @@ which pins production versions for the whole st2 stack. During production use
 where version of packages are fixed according to fixed-requirements.txt.
 """
 
+from __future__ import absolute_import, print_function
 import argparse
 import os
 import os.path
@@ -40,7 +41,7 @@ try:
     import pip
     from pip.req import parse_requirements
 except ImportError:
-    print 'Download pip:\n', GET_PIP
+    print('Download pip:\n', GET_PIP)
     sys.exit(1)
 
 
@@ -65,8 +66,8 @@ def parse_args():
 
 def check_pip_version():
     if StrictVersion(pip.__version__) < StrictVersion('6.1.0'):
-        print "Upgrade pip, your version `{0}' "\
-              "is outdated:\n".format(pip.__version__), GET_PIP
+        print("Upgrade pip, your version `{0}' "
+              "is outdated:\n".format(pip.__version__), GET_PIP)
         sys.exit(1)
 
 

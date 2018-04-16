@@ -40,6 +40,7 @@ setup(
     author='StackStorm',
     author_email='info@stackstorm.com',
     license='Apache License (2.0)',
+    url='https://stackstorm.com/',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Information Technology',
@@ -57,7 +58,7 @@ setup(
         'python-dateutil',
         'pyyaml<4.0,>=3.11',
         'requests[security]>=2.14.1,<2.15',
-        'six==1.10.0'
+        'six==1.11.0'
     ],
     dependency_links=[],
     test_suite=ST2_COMPONENT,
