@@ -39,10 +39,25 @@ GET_PIP = '    curl https://bootstrap.pypa.io/get-pip.py | python'
 
 try:
     import pip
+    from pip import __version__ as pip_version
+except ImportError as e:
+    print('Failed to import pip: %s' % (str(e)))
+    print('')
+    print('Download pip:\n%s' % (GET_PIP))
+    sys.exit(1)
+
+try:
+    # pip < 10.0
     from pip.req import parse_requirements
 except ImportError:
-    print('Download pip:\n', GET_PIP)
-    sys.exit(1)
+    # pip >= 10.0
+
+    try:
+        from pip._internal.req.req_file import parse_requirements
+    except ImportError as e:
+        print('Failed to import parse_requirements from pip: %s' % (str(e)))
+        print('Using pip: %s' % (str(pip_version)))
+        sys.exit(1)
 
 
 def parse_args():
