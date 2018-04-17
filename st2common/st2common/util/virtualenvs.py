@@ -115,7 +115,7 @@ def setup_pack_virtualenv(pack_name, update=False, logger=None, include_pip=True
 
 
 def create_virtualenv(virtualenv_path, logger=None, include_pip=True, include_setuptools=True,
-                      include_wheel=True, use_python3=False):
+                      include_wheel=True, use_python3=False, no_download=True):
     """
     :param include_pip: Include pip binary and package in the newely created virtual environment.
     :type include_pip: ``bool``
@@ -129,6 +129,10 @@ def create_virtualenv(virtualenv_path, logger=None, include_pip=True, include_se
 
     :param use_python3: Use Python3 binary when creating virtualenv for this pack.
     :type use_python3: ``bool``
+
+    :param no_download: Do not download and install latest version of pre-installed packages such
+                        as pip and distutils.
+    :type no_download: ``bool``
     """
 
     logger = logger or LOG
@@ -169,6 +173,9 @@ def create_virtualenv(virtualenv_path, logger=None, include_pip=True, include_se
 
     if not include_wheel:
         cmd.append('--no-wheel')
+
+    if no_download:
+        cmd.append('--no-download')
 
     cmd.extend([virtualenv_path])
     logger.debug('Running command "%s" to create virtualenv.', ' '.join(cmd))
