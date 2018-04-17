@@ -253,7 +253,7 @@ requirements: virtualenv .sdist-requirements
 	@echo
 	@echo "==================== requirements ===================="
 	@echo
-	# Make sure we use latest version of pip
+	# Make sure we use latest version of pip which is < 10.0.0
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip>=9.0,<9.1"
 	$(VIRTUALENV_DIR)/bin/pip install virtualenv  # Required for packs.install in dev envs.
 
@@ -282,7 +282,9 @@ virtualenv:
 	@echo
 	@echo "==================== virtualenv ===================="
 	@echo
-	test -f $(VIRTUALENV_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) --no-site-packages $(VIRTUALENV_DIR)
+	# Note: We pass --no-download flag to make sure version of pip which we install (9.0.1) is used
+	# instead of latest version being downloaded from PyPi
+	test -f $(VIRTUALENV_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) --no-site-packages $(VIRTUALENV_DIR) --no-download
 
 	# Setup PYTHONPATH in bash activate script...
 	# Delete existing entries (if any)
