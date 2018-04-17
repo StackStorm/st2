@@ -156,6 +156,9 @@ def write_requirements(sources=None, fixed_requirements=None, output_file=None,
         if req.link and req.link not in links:
             links.add(req.link)
             rline = str(req.link)
+
+            if req.editable:
+                rline = '-e %s' % (rline)
         elif req.req:
             project = req.name
             if project in fixedreq_hash:
