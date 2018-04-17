@@ -86,7 +86,7 @@ class SetupVirtualEnvironmentAction(Action):
         for pack_name in packs:
             setup_pack_virtualenv(pack_name=pack_name, update=update, logger=self.logger,
                                   proxy_config=self.proxy_config, use_python3=python3,
-                                  no_download=True)
+                                  no_download=no_download)
 
         message = ('Successfuly set up virtualenv for the following packs: %s' %
                    (', '.join(packs)))
