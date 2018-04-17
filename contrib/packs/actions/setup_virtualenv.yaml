@@ -23,7 +23,7 @@
       type: "boolean"
       description: "Use version of pip which is already on the system instead of downloading the latest version from PyPi when creating a virtual environment."
       required: false
-      default: false
+      default: true
     env:
       type: "object"
       description: "Optional environment variables"
