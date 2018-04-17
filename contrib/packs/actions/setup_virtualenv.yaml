@@ -19,6 +19,11 @@
       description: "Use Python 3 binary when creating a virtualenv for this pack."
       required: false
       default: false
+    no_download:
+      type: "boolean"
+      description: "Use version of pip which is already on the system instead of downloading the latest version from PyPi when creating a virtual environment."
+      required: false
+      default: false
     env:
       type: "object"
       description: "Optional environment variables"
