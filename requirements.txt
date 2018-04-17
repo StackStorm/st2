@@ -1,10 +1,10 @@
 # Don't edit this file. It's generated automatically!
+-e git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper
 apscheduler==3.5.1
 argcomplete
 bcrypt
 eventlet==0.22.1
 flex==6.12.0
-git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper
 git+https://github.com/StackStorm/python-mistralclient.git#egg=python-mistralclient
 git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2-auth-backend-flat-file
 gitpython==2.1.8
