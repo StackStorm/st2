@@ -28,7 +28,6 @@ from oslo_config import cfg
 
 from st2common.exceptions.plugins import IncompatiblePluginException
 from st2common import log as logging
-from st2common.util.file_system import get_file_list
 
 __all__ = [
     'register_plugin',
@@ -193,42 +192,34 @@ def register_plugin(plugin_base_class, plugin_abs_file_path):
 
 def register_runner(package_name, module_name):
     # TODO: Switch to stevedore enumeration and loading
-    # This needs to be imported here to avoid other processes/runners that rely on this
-    # file but don't have oslo context.
-    from st2common.metrics.metrics import CounterWithTimer
-    from st2common.constants.metrics import METRICS_REGISTER_RUNNER
-    with CounterWithTimer(METRICS_REGISTER_RUNNER):
-        base_path = cfg.CONF.system.base_path
+    base_path = cfg.CONF.system.base_path
 
-        # 1. First try post StackStorm v2.6.0 path (runners are Python packages)
-        module_path = os.path.join(base_path, 'runners', package_name, package_name,
-                                   module_name + '.py')
+    # 1. First try post StackStorm v2.6.0 path (runners are Python packages)
+    module_path = os.path.join(base_path, 'runners', package_name, package_name,
+                               module_name + '.py')
 
-        # 2. Second try pre StackStorm v2.6.0 path (runners are not Python packages)
-        if not os.path.isfile(module_path):
-            module_path = os.path.join(base_path, 'runners', module_name, module_name + '.py')
+    # 2. Second try pre StackStorm v2.6.0 path (runners are not Python packages)
+    if not os.path.isfile(module_path):
+        module_path = os.path.join(base_path, 'runners', module_name, module_name + '.py')
 
-        if not RUNNER_MODULES_CACHE.get(package_name, {}).get(module_name, None):
-            LOG.info('Loading runner module from "%s".', module_path)
+    if not RUNNER_MODULES_CACHE.get(package_name, {}).get(module_name, None):
+        LOG.info('Loading runner module from "%s".', module_path)
 
-            # Make sure all the runner packages are in PYTHONPATH
-            # Note: This won't be needed anymore when we modify this code so it also works under
-            # Python 3 and move away from imp.load_source
-            package_directory = os.path.abspath(os.path.join(os.path.dirname(module_path), '../'))
+        # Make sure all the runner packages are in PYTHONPATH
+        # Note: This won't be needed anymore when we modify this code so it also works under
+        # Python 3 and move away from imp.load_source
+        package_directory = os.path.abspath(os.path.join(os.path.dirname(module_path), '../'))
 
-            if os.path.isdir(package_directory) and package_directory not in sys.path:
-                LOG.debug('Adding runner package directory "%s" to PYTHONPATH', package_directory)
-                sys.path.append(package_directory)
+        if os.path.isdir(package_directory) and package_directory not in sys.path:
+            LOG.debug('Adding runner package directory "%s" to PYTHONPATH' % (package_directory))
+            sys.path.append(package_directory)
 
-            load_name = '%s.%s' % (package_name, module_name)
-            RUNNER_MODULES_CACHE[package_name][module_name] = imp.load_source(
-                load_name,
-                module_path
-            )
-        else:
-            LOG.info('Reusing runner module "%s" from cache.', module_path)
+        load_name = '%s.%s' % (package_name, module_name)
+        RUNNER_MODULES_CACHE[package_name][module_name] = imp.load_source(load_name, module_path)
+    else:
+        LOG.info('Reusing runner module "%s" from cache.', module_path)
 
-        return RUNNER_MODULES_CACHE[package_name][module_name]
+    return RUNNER_MODULES_CACHE[package_name][module_name]
 
 
 def register_query_module(module_name):
@@ -268,21 +259,3 @@ def load_meta_file(file_path):
 
     with open(file_path, 'r') as f:
         return PARSER_FUNCS[file_ext](f)
-
-
-def load_metrics_drivers():
-    base_path = cfg.CONF.system.base_path
-
-    file_list = get_file_list(base_path + '/metrics')
-
-    print file_list
-
-    for driver_file in file_list:
-        print driver_file
-        if 'setup.py' not in driver_file:
-            print 'removing non setup'
-            file_list.remove(driver_file)
-
-    print file_list
-
-    return file_list

@@ -28,7 +28,6 @@ from st2common.bootstrap.base import ResourceRegistrar
 import st2common.bootstrap.triggersregistrar as triggers_registrar
 import st2common.bootstrap.sensorsregistrar as sensors_registrar
 import st2common.bootstrap.actionsregistrar as actions_registrar
-import st2common.bootstrap.metricsregistrar as metrics_registrar
 import st2common.bootstrap.aliasesregistrar as aliases_registrar
 import st2common.bootstrap.policiesregistrar as policies_registrar
 import st2common.bootstrap.runnersregistrar as runners_registrar
@@ -307,26 +306,6 @@ def register_policies():
     LOG.info('Registered %s policies.', registered_count)
 
 
-def register_metrics_drivers():
-    fail_on_failure = not cfg.CONF.register.no_fail_on_failure
-
-    registered_count = 0
-
-    try:
-        LOG.info('=========================================================')
-        LOG.info('########## Registering metrics drivers ##################')
-        LOG.info('=========================================================')
-        registered_count = metrics_registrar.register_metrics()
-    except Exception as e:
-        exc_info = not fail_on_failure
-        LOG.warning('Failed to register metrics driver: %s', e, exc_info=exc_info)
-
-        if fail_on_failure:
-            raise e
-
-    LOG.info('Registered %s metrics drivers.' % (registered_count))
-
-
 def register_configs():
     pack_dir = cfg.CONF.register.pack
     fail_on_failure = not cfg.CONF.register.no_fail_on_failure
@@ -354,7 +333,6 @@ def register_content():
     register_all = cfg.CONF.register.all
 
     if register_all:
-        register_metrics_drivers()
         register_triggers()
         register_sensors()
         register_runners()

@@ -12,38 +12,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from __future__ import absolute_import
 from datetime import datetime
 from functools import wraps
 
 from oslo_config import cfg
 
 from st2common.constants.metrics import METRICS_COUNTER_SUFFIX, METRICS_TIMER_SUFFIX
-
-
-BACKENDS_NAMESPACE = 'st2common.metrics.driver'
-
-
-def get_available_drivers():
-    """
-    Return names of the available / installed action runners.
-
-    :rtype: ``list`` of ``str``
-    """
-    from stevedore.extension import ExtensionManager
-
-    manager = ExtensionManager(namespace=BACKENDS_NAMESPACE, invoke_on_load=False)
-    return manager.names()
-
-
-def get_driver_instance(name):
-    """
-    Return a class instance for the provided runner name.
-    """
-    from stevedore.driver import DriverManager
-
-    manager = DriverManager(namespace=BACKENDS_NAMESPACE, name=name, invoke_on_load=False)
-    return manager.driver
 
 
 class BaseMetricsDriver(object):
@@ -173,3 +147,19 @@ class CounterWithTimer(object):
             with self as counter_with_timer:
                 return func(*args, metrics_counter_with_timer=counter_with_timer, **kw)
         return wrapper
+
+
+def _get_metrics_driver():
+    driver = cfg.CONF.metrics.driver
+
+    if driver == "prometheus" and cfg.CONF.metrics.enable:
+        from st2common.metrics.drivers.prometheus import PrometheusDriver
+        return PrometheusDriver()
+    elif driver == "statsd" and cfg.CONF.metrics.enable:
+        from st2common.metrics.drivers.statsd_driver import StatsdDriver
+        return StatsdDriver()
+
+    return BaseMetricsDriver()
+
+
+METRICS = _get_metrics_driver()
