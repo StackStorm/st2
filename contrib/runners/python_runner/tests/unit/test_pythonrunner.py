@@ -40,6 +40,7 @@ from st2tests.base import RunnerTestCase
 from st2tests.base import CleanDbTestCase
 from st2tests.base import blocking_eventlet_spawn
 from st2tests.base import make_mock_stream_readline
+from st2tests.fixturesloader import assert_submodules_are_checked_out
 import st2tests.base as tests_base
 
 
@@ -58,9 +59,9 @@ ACTION_2_PATH = os.path.join(tests_base.get_fixtures_path(),
 NON_SIMPLE_TYPE_ACTION = os.path.join(tests_base.get_resources_path(), 'packs',
                                       'pythonactions/actions/non_simple_type.py')
 PRINT_VERSION_ACTION = os.path.join(tests_base.get_fixtures_path(), 'packs',
-                                    'test/actions/print_version.py')
+                                    'test_content_version/actions/print_version.py')
 PRINT_VERSION_LOCAL_MODULE_ACTION = os.path.join(tests_base.get_fixtures_path(), 'packs',
-                                                 'test/actions/print_version_local_import.py')
+    'test_content_version/actions/print_version_local_import.py')
 
 PRINT_CONFIG_ITEM_ACTION = os.path.join(tests_base.get_resources_path(), 'packs',
                                         'pythonactions/actions/print_config_item_doesnt_exist.py')
@@ -80,6 +81,11 @@ MOCK_EXECUTION.id = '598dbf0c0640fd54bffc688b'
 class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     register_packs = True
     register_pack_configs = True
+
+    @classmethod
+    def setUpClass(cls):
+        super(PythonRunnerTestCase, cls).setUpClass()
+        assert_submodules_are_checked_out()
 
     def test_runner_creation(self):
         runner = python_runner.get_runner()
@@ -753,36 +759,37 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     def test_content_version_success(self, mock_get_sandbox_virtualenv_path):
         mock_get_sandbox_virtualenv_path.return_value = None
 
-        # 1. valid version - 0.25.0
-        runner = self._get_mock_runner_obj(pack='test', sandbox=False)
+        # 1. valid version - 0.2.0
+        runner = self._get_mock_runner_obj(pack='test_content_version', sandbox=False)
         runner.entry_point = PRINT_VERSION_ACTION
-        runner.runner_parameters = {'content_version': 'v0.25.0'}
+        runner.runner_parameters = {'content_version': 'v0.2.0'}
         runner.pre_run()
 
         (status, output, _) = runner.run({})
 
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertEqual(output['result'], 'v0.25.0')
-        self.assertEqual(output['stdout'].strip(), 'v0.25.0')
+        self.assertEqual(output['result'], 'v0.2.0')
+        self.assertEqual(output['stdout'].strip(), 'v0.2.0')
 
-        # 2. valid version - 0.24.0
-        runner = self._get_mock_runner_obj(pack='test', sandbox=False)
+        # 2. valid version - 0.23.0
+        runner = self._get_mock_runner_obj(pack='test_content_version', sandbox=False)
         runner.entry_point = PRINT_VERSION_ACTION
-        runner.runner_parameters = {'content_version': 'v0.24.0'}
+        runner.runner_parameters = {'content_version': 'v0.3.0'}
         runner.pre_run()
 
         (status, output, _) = runner.run({})
 
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertEqual(output['result'], 'v0.13.0')
-        self.assertEqual(output['stdout'].strip(), 'v0.13.0')
+        self.assertEqual(output['result'], 'v0.3.0')
+        self.assertEqual(output['stdout'].strip(), 'v0.3.0')
 
         # 3. invalid version = 0.30.0
-        runner = self._get_mock_runner_obj(pack='test', sandbox=False)
+        runner = self._get_mock_runner_obj(pack='test_content_version', sandbox=False)
         runner.entry_point = PRINT_VERSION_ACTION
         runner.runner_parameters = {'content_version': 'v0.30.0'}
 
-        expected_msg = (r'Failed to create git worktree for pack "test": Invalid content_version '
+        expected_msg = (r'Failed to create git worktree for pack "test_content_version": '
+                        'Invalid content_version '
                         '"v0.30.0" provided. Make sure that git repository is up '
                         'to date and contains that revision.')
         self.assertRaisesRegexp(ValueError, expected_msg, runner.pre_run)
@@ -798,11 +805,11 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         mock_process.communicate.return_value = ('', '')
         mock_popen.return_value = mock_process
 
-        runner = self._get_mock_runner_obj(pack='test', sandbox=False)
+        runner = self._get_mock_runner_obj(pack='test_content_version', sandbox=False)
         runner._enable_common_pack_libs = True
         runner.auth_token = mock.Mock()
         runner.auth_token.token = 'ponies'
-        runner.runner_parameters = {'content_version': 'v0.25.0'}
+        runner.runner_parameters = {'content_version': 'v0.3.0'}
         runner.entry_point = PRINT_VERSION_ACTION
         runner.pre_run()
         (_, _, _) = runner.run({'row_index': 4})
@@ -819,15 +826,15 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         # Verify that local module import correctly use git worktree directory
         mock_get_sandbox_virtualenv_path.return_value = None
 
-        runner = self._get_mock_runner_obj(pack='test', sandbox=False)
+        runner = self._get_mock_runner_obj(pack='test_content_version', sandbox=False)
         runner.entry_point = PRINT_VERSION_LOCAL_MODULE_ACTION
-        runner.runner_parameters = {'content_version': 'v0.24.0'}
+        runner.runner_parameters = {'content_version': 'v0.2.0'}
         runner.pre_run()
 
         (status, output, _) = runner.run({})
 
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertEqual(output['result'], 'v0.24.0')
+        self.assertEqual(output['result'], 'v0.2.0')
 
         # Verify local_module has been correctly loaded from git work tree directory
         expected_stdout = ("<module '?local_module'? from '?%s/actions/local_module.py'?>.*" %

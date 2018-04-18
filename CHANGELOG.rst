@@ -1,6 +1,28 @@
 Changelog
 =========
 
+2.7.1 - April 20, 2018
+----------------------
+
+Changed
+~~~~~~~
+
+* When creating a pack environment during the pack installation, we now pass ``--no-download`` flag
+  to the ``virtualenv`` binary. This way version of pip, wheel and distutils which is enforced by
+  virtualenv is used instead of downloading the latest stable versions from PyPi.
+
+  This results in more reproducible pack virtual environments and we also ensure pip 9.0 is used (
+  there are some known issues with pip 10.0).
+
+  If for some reason you want to revert to the old behavior, you can do that by passing
+  ``no_download=False`` parameter to the ``packs.setup_virtualenv`` action. #4085
+
+Fixed
+~~~~~
+
+* Fix ``st2 pack search`` and ``POST /api/v1/packs/index/search`` API endpoint so it doesn't
+  return internal server error when a single pack search term is provided. (bug fix) #4083
+
 2.7.0 - April 12, 2018
 ----------------------
 

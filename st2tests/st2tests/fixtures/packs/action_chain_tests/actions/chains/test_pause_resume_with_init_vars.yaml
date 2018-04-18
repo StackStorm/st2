@@ -6,6 +6,7 @@ chain:
         ref: core.local
         params:
             cmd: "while [ -e '{{tempfile}}' ]; do sleep 0.1; done"
+            timeout: 180
         publish:
             var1: "{{var1|upper}}"            
         on-success: task2
