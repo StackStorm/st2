@@ -187,13 +187,13 @@ if [ "${CREATE_VIRTUALENV}" = true ]; then
     if [ "${JUST_TESTS}" = false ]; then
         echo "Creating virtualenv in ${VIRTUALENV_DIR}..."
         mkdir -p ${VIRTUALENVS_DIR}
-        virtualenv --system-site-packages ${VIRTUALENV_DIR}
+        virtualenv --no-download --system-site-packages ${VIRTUALENV_DIR}
 
         # Activate the virtualenv
         activate_virtualenv
 
         # Make sure virtualenv is using latest pip version
-        ${VIRTUALENV_DIR}/bin/pip install --upgrade pip
+        ${VIRTUALENV_DIR}/bin/pip install --upgrade "pip>=9.0,<9.1"
     fi
 
     if [ ! -d "${VIRTUALENV_DIR}" ]; then
