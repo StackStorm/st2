@@ -17,6 +17,12 @@ Changed
   If for some reason you want to revert to the old behavior, you can do that by passing
   ``no_download=False`` parameter to the ``packs.setup_virtualenv`` action. #4085
 
+Fixed
+~~~~~
+
+* Fix ``st2 pack search`` and ``POST /api/v1/packs/index/search`` API endpoint so it doesn't
+  return internal server error when a single pack search term is provided. (bug fix) #4083
+
 2.7.0 - April 12, 2018
 ----------------------
 
