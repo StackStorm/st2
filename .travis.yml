@@ -40,17 +40,6 @@ services:
   - mongodb
   - rabbitmq
 
-# Let's enable rabbitmqadmin
-# See https://github.com/messagebus/lapine/wiki/Testing-on-Travis.
-before_script:
-  - git --version
-  - pip --version
-  - virtualenv --version
-  - sudo rabbitmq-plugins enable rabbitmq_management
-  - sudo wget http://guest:guest@localhost:15672/cli/rabbitmqadmin -O /usr/local/bin/rabbitmqadmin
-  - sudo chmod +x /usr/local/bin/rabbitmqadmin
-  - sudo service rabbitmq-server restart
-
 cache:
   pip: true
   directories:
@@ -67,6 +56,17 @@ install:
   - if [ "${TASK}" = 'compilepy3 ci-py3-unit' ]; then pip install tox; else make requirements; fi
   - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ]; then pip install codecov; fi
   - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ] || [ "${TASK}" = 'compilepy3 ci-py3-unit' ]; then sudo .circle/add-itest-user.sh; fi
+
+# Let's enable rabbitmqadmin
+# See https://github.com/messagebus/lapine/wiki/Testing-on-Travis.
+before_script:
+  - git --version
+  - pip --version
+  - virtualenv --version
+  - sudo rabbitmq-plugins enable rabbitmq_management
+  - sudo wget http://guest:guest@localhost:15672/cli/rabbitmqadmin -O /usr/local/bin/rabbitmqadmin
+  - sudo chmod +x /usr/local/bin/rabbitmqadmin
+  - sudo service rabbitmq-server restart
 
 script:
   - make ${TASK}
