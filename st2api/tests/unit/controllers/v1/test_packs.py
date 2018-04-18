@@ -180,8 +180,7 @@ class PacksControllerTestCase(FunctionalTest):
 
     @mock.patch.object(pack_service, 'fetch_pack_index',
                        mock.MagicMock(return_value=(PACK_INDEX, {})))
-    def test_search(self):
-
+    def test_search_with_query(self):
         test_scenarios = [
             {
                 'input': {'query': 'test'},
@@ -234,10 +233,25 @@ class PacksControllerTestCase(FunctionalTest):
                 'expected_result': []
             }
         ]
+
         for scenario in test_scenarios:
             resp = self.app.post_json('/v1/packs/index/search', scenario['input'])
             self.assertEqual(resp.status_int, scenario['expected_code'])
             self.assertEqual(resp.json, scenario['expected_result'])
+
+    @mock.patch.object(pack_service, 'get_pack_from_index',
+                       mock.MagicMock(return_value=PACK_INDEX['test']))
+    def test_search_with_pack_has_result(self):
+        resp = self.app.post_json('/v1/packs/index/search', {'pack': 'st2-dev'})
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, PACK_INDEX['test'])
+
+    @mock.patch.object(pack_service, 'get_pack_from_index',
+                       mock.MagicMock(return_value=None))
+    def test_search_with_pack_no_result(self):
+        resp = self.app.post_json('/v1/packs/index/search', {'pack': 'not-found'})
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, [])
 
     @mock.patch.object(pack_service, 'fetch_pack_index',
                        mock.MagicMock(return_value=(PACK_INDEX, {})))

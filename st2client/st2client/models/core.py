@@ -506,7 +506,7 @@ class PackResourceManager(ResourceManager):
         else:
             payload = {'pack': args.pack}
 
-            response = self.client.post(url, payload, **kwargs)
+        response = self.client.post(url, payload, **kwargs)
 
         if response.status_code != http_client.OK:
             if ignore_errors:
