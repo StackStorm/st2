@@ -23,6 +23,7 @@ from distutils.spawn import find_executable
 
 from st2common.constants.system import VERSION_STRING
 from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_LOG_LEVEL
+from st2common.metrics.metrics import get_available_drivers
 
 
 def do_register_opts(opts, group=None, ignore_errors=False):
@@ -391,11 +392,13 @@ def register_opts(ignore_errors=False):
     do_register_cli_opts(cli_opts, ignore_errors=ignore_errors)
 
     # Metrics Options stream options
+    available_metrics_drivers = get_available_drivers()
     metrics_opts = [
         cfg.BoolOpt('enable', default=False,
                     help='Enable metrics collection.'),
         cfg.StrOpt('driver', default='statsd',
-                   help='Driver type for metrics collection.'),
+                   help=('Authentication backend to use in a standalone mode. Available '
+                         'backends: %s.' % (', '.join(available_metrics_drivers)))),
         cfg.StrOpt('host', default='127.0.0.1',
                    help='Destination server to connect to if driver requires connection.'),
         cfg.IntOpt('port', default=8125,
