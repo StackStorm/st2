@@ -8,8 +8,8 @@ Changed
 ~~~~~~~
 
 * When creating a pack environment during the pack installation, we now pass ``--no-download`` flag
-  to the ``virtualenv`` binary. This way version of pip, wheel and distutils which is already
-  available on the system is used instead of downloading the latest stable versions from PyPi.
+  to the ``virtualenv`` binary. This way version of pip, wheel and distutils which is enforced by
+  virtualenv is used instead of downloading the latest stable versions from PyPi.
 
   This results in more reproducible pack virtual environments and we also ensure pip 9.0 is used (
   there are some known issues with pip 10.0).
