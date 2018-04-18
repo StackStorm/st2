@@ -28,6 +28,7 @@ from oslo_config import cfg
 
 from st2common.exceptions.plugins import IncompatiblePluginException
 from st2common import log as logging
+from st2common.util.file_system import get_file_list
 
 __all__ = [
     'register_plugin',
@@ -267,3 +268,21 @@ def load_meta_file(file_path):
 
     with open(file_path, 'r') as f:
         return PARSER_FUNCS[file_ext](f)
+
+
+def load_metrics_drivers():
+    base_path = cfg.CONF.system.base_path
+
+    file_list = get_file_list(base_path + '/metrics')
+
+    print file_list
+
+    for driver_file in file_list:
+        print driver_file
+        if 'setup.py' not in driver_file:
+            print 'removing non setup'
+            file_list.remove(driver_file)
+
+    print file_list
+
+    return file_list
