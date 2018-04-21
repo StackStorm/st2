@@ -4,6 +4,28 @@ Changelog
 in development
 --------------
 
+Changed
+~~~~~~~
+
+* When creating a pack environment during the pack installation, we now pass ``--no-download`` flag
+  to the ``virtualenv`` binary. This way version of pip, wheel and distutils which is enforced by
+  virtualenv is used instead of downloading the latest stable versions from PyPi.
+
+  This results in more reproducible pack virtual environments and we also ensure pip 9.0 is used (
+  there are some known issues with pip 10.0).
+
+  If for some reason you want to revert to the old behavior, you can do that by passing
+  ``no_download=False`` parameter to the ``packs.setup_virtualenv`` action. #4085
+
+Fixed
+~~~~~
+
+* Fix ``st2 pack search`` and ``POST /api/v1/packs/index/search`` API endpoint so it doesn't
+  return internal server error when a single pack search term is provided. (bug fix) #4083
+
+2.7.0 - April 12, 2018
+----------------------
+
 Added
 ~~~~~
 
@@ -13,14 +35,6 @@ Added
 * Add support for utf-8 / unicode characters in the pack config files. (improvement) #3980 #3989
 
   Contributed by @sumkire.
-* Add new ``--python3`` flag to ``st2 pack install`` CLI command and ``python3`` parameter to
-  ``packs.{install,setup_virtualenv}`` actions. When the value of this parameter is True, it
-  uses ``python3`` binary when creating virtual environment for that pack (based on the value of
-  ``actionrunner.python3_binary`` config option).
-
-  Note: For this feature to work, Python 3 needs to be installed on the system and ``virtualenv``
-  package installed on the system needs to support Python 3 (it needs to be a recent version).
-  (new feature) #4016 #3922
 * Added the ability of ``st2ctl`` to utilize environment variables from ``/etc/default/st2ctl``
   (for Ubuntu/Debian) and ``/etc/sysconfig/st2ctl`` (RHEL/CentOS). This allows
   deployments to override ``COMPONENTS`` and ``ST2_CONF`` in a global location
@@ -110,6 +124,11 @@ Fixed
   expressions and default values. (bug fix) #4050 #4050
 
   Reported by @rakeshrm.
+* Make sure ``observer`` system role also grants ``pack_search`` permission. (bug fix) #4063 #4064
+
+  Reported by @SURAJTHEGREAT.
+* Fix st2 webhook get -h which was asking for a name or id as opposed to the URL of the webhook.
+  Also, fix st2 webhook list to explicitly add a webhook column. (bugfix) #4048
 
 2.6.0 - January 19, 2018
 ------------------------

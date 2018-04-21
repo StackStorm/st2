@@ -160,7 +160,8 @@ class ActionChainRunnerPauseResumeTest(DbTestCase):
 
         # Wait until the liveaction is pausing.
         liveaction = self._wait_for_status(liveaction, action_constants.LIVEACTION_STATUS_PAUSING)
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSING)
+        extra_info = str(liveaction)
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSING, extra_info)
 
         # Delete the temporary file that the action chain is waiting on.
         os.remove(path)
@@ -168,7 +169,8 @@ class ActionChainRunnerPauseResumeTest(DbTestCase):
 
         # Wait until the liveaction is paused.
         liveaction = self._wait_for_status(liveaction, action_constants.LIVEACTION_STATUS_PAUSED)
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSED)
+        extra_info = str(liveaction)
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSED, extra_info)
 
         # Wait for non-blocking threads to complete. Ensure runner is not running.
         MockLiveActionPublisherNonBlocking.wait_all()
@@ -209,7 +211,8 @@ class ActionChainRunnerPauseResumeTest(DbTestCase):
 
         # Wait until the liveaction is pausing.
         liveaction = self._wait_for_status(liveaction, action_constants.LIVEACTION_STATUS_PAUSING)
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSING)
+        extra_info = str(liveaction)
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSING, extra_info)
 
         # Delete the temporary file that the action chain is waiting on.
         os.remove(path)
@@ -217,7 +220,8 @@ class ActionChainRunnerPauseResumeTest(DbTestCase):
 
         # Wait until the liveaction is paused.
         liveaction = self._wait_for_status(liveaction, action_constants.LIVEACTION_STATUS_PAUSED)
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSED)
+        extra_info = str(liveaction)
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSED, extra_info)
 
         # Wait for non-blocking threads to complete. Ensure runner is not running.
         MockLiveActionPublisherNonBlocking.wait_all()
@@ -260,7 +264,8 @@ class ActionChainRunnerPauseResumeTest(DbTestCase):
 
         # Wait until the liveaction is pausing.
         liveaction = self._wait_for_status(liveaction, action_constants.LIVEACTION_STATUS_PAUSING)
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSING)
+        extra_info = str(liveaction)
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSING, extra_info)
 
         # Delete the temporary file that the action chain is waiting on.
         os.remove(path)
@@ -268,7 +273,8 @@ class ActionChainRunnerPauseResumeTest(DbTestCase):
 
         # Wait until the liveaction is paused.
         liveaction = self._wait_for_status(liveaction, action_constants.LIVEACTION_STATUS_PAUSED)
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSED)
+        extra_info = str(liveaction)
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSED, extra_info)
 
         # Wait for non-blocking threads to complete. Ensure runner is not running.
         MockLiveActionPublisherNonBlocking.wait_all()
@@ -310,7 +316,8 @@ class ActionChainRunnerPauseResumeTest(DbTestCase):
 
         # Wait until the liveaction is pausing.
         liveaction = self._wait_for_status(liveaction, action_constants.LIVEACTION_STATUS_PAUSING)
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSING)
+        extra_info = str(liveaction)
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSING, extra_info)
 
         # Delete the temporary file that the action chain is waiting on.
         os.remove(path)
@@ -318,7 +325,8 @@ class ActionChainRunnerPauseResumeTest(DbTestCase):
 
         # Wait until the liveaction is paused.
         liveaction = self._wait_for_status(liveaction, action_constants.LIVEACTION_STATUS_PAUSED)
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSED)
+        extra_info = str(liveaction)
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSED, extra_info)
 
         # Wait for non-blocking threads to complete. Ensure runner is not running.
         MockLiveActionPublisherNonBlocking.wait_all()
@@ -373,14 +381,16 @@ class ActionChainRunnerPauseResumeTest(DbTestCase):
 
         # Wait until the liveaction is pausing.
         liveaction = self._wait_for_status(liveaction, action_constants.LIVEACTION_STATUS_PAUSING)
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSING)
+        extra_info = str(liveaction)
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSING, extra_info)
         self.assertEqual(len(execution.children), 1)
 
         # Wait until the subworkflow is pausing.
         task1_exec = ActionExecution.get_by_id(execution.children[0])
         task1_live = LiveAction.get_by_id(task1_exec.liveaction['id'])
         task1_live = self._wait_for_status(task1_live, action_constants.LIVEACTION_STATUS_PAUSING)
-        self.assertEqual(task1_live.status, action_constants.LIVEACTION_STATUS_PAUSING)
+        extra_info = str(task1_live)
+        self.assertEqual(task1_live.status, action_constants.LIVEACTION_STATUS_PAUSING, extra_info)
 
         # Delete the temporary file that the action chain is waiting on.
         os.remove(path)
@@ -388,14 +398,16 @@ class ActionChainRunnerPauseResumeTest(DbTestCase):
 
         # Wait until the liveaction is paused.
         liveaction = self._wait_for_status(liveaction, action_constants.LIVEACTION_STATUS_PAUSED)
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSED)
+        extra_info = str(liveaction)
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSED, extra_info)
         self.assertEqual(len(execution.children), 1)
 
         # Wait until the subworkflow is paused.
         task1_exec = ActionExecution.get_by_id(execution.children[0])
         task1_live = LiveAction.get_by_id(task1_exec.liveaction['id'])
         task1_live = self._wait_for_status(task1_live, action_constants.LIVEACTION_STATUS_PAUSED)
-        self.assertEqual(task1_live.status, action_constants.LIVEACTION_STATUS_PAUSED)
+        extra_info = str(task1_live)
+        self.assertEqual(task1_live.status, action_constants.LIVEACTION_STATUS_PAUSED, extra_info)
 
         # Wait for non-blocking threads to complete. Ensure runner is not running.
         MockLiveActionPublisherNonBlocking.wait_all()
@@ -460,7 +472,8 @@ class ActionChainRunnerPauseResumeTest(DbTestCase):
         task1_exec = ActionExecution.get_by_id(execution.children[0])
         task1_live = LiveAction.get_by_id(task1_exec.liveaction['id'])
         task1_live = self._wait_for_status(task1_live, action_constants.LIVEACTION_STATUS_PAUSING)
-        self.assertEqual(task1_live.status, action_constants.LIVEACTION_STATUS_PAUSING)
+        extra_info = str(task1_live)
+        self.assertEqual(task1_live.status, action_constants.LIVEACTION_STATUS_PAUSING, extra_info)
 
         # Delete the temporary file that the action chain is waiting on.
         os.remove(path)
@@ -470,11 +483,13 @@ class ActionChainRunnerPauseResumeTest(DbTestCase):
         task1_exec = ActionExecution.get_by_id(execution.children[0])
         task1_live = LiveAction.get_by_id(task1_exec.liveaction['id'])
         task1_live = self._wait_for_status(task1_live, action_constants.LIVEACTION_STATUS_PAUSED)
-        self.assertEqual(task1_live.status, action_constants.LIVEACTION_STATUS_PAUSED)
+        extra_info = str(task1_live)
+        self.assertEqual(task1_live.status, action_constants.LIVEACTION_STATUS_PAUSED, extra_info)
 
         # Wait until the parent liveaction is paused.
         liveaction = self._wait_for_status(liveaction, action_constants.LIVEACTION_STATUS_PAUSED)
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSED)
+        extra_info = str(liveaction)
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSED, extra_info)
         self.assertEqual(len(execution.children), 1)
 
         # Wait for non-blocking threads to complete. Ensure runner is not running.
@@ -553,7 +568,8 @@ class ActionChainRunnerPauseResumeTest(DbTestCase):
 
         # Wait until the liveaction is pausing.
         liveaction = self._wait_for_status(liveaction, action_constants.LIVEACTION_STATUS_PAUSING)
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSING)
+        extra_info = str(liveaction)
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSING, extra_info)
 
         # Delete the temporary file that the action chain is waiting on.
         os.remove(path)
@@ -561,7 +577,8 @@ class ActionChainRunnerPauseResumeTest(DbTestCase):
 
         # Wait until the liveaction is paused.
         liveaction = self._wait_for_status(liveaction, action_constants.LIVEACTION_STATUS_PAUSED)
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSED)
+        extra_info = str(liveaction)
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSED, extra_info)
 
         # Wait for non-blocking threads to complete. Ensure runner is not running.
         MockLiveActionPublisherNonBlocking.wait_all()
@@ -603,7 +620,8 @@ class ActionChainRunnerPauseResumeTest(DbTestCase):
 
         # Wait until the liveaction is pausing.
         liveaction = self._wait_for_status(liveaction, action_constants.LIVEACTION_STATUS_PAUSING)
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSING)
+        extra_info = str(liveaction)
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSING, extra_info)
 
         # Delete the temporary file that the action chain is waiting on.
         os.remove(path)
@@ -611,7 +629,8 @@ class ActionChainRunnerPauseResumeTest(DbTestCase):
 
         # Wait until the liveaction is paused.
         liveaction = self._wait_for_status(liveaction, action_constants.LIVEACTION_STATUS_PAUSED)
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSED)
+        extra_info = str(liveaction)
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSED, extra_info)
 
         # Wait for non-blocking threads to complete. Ensure runner is not running.
         MockLiveActionPublisherNonBlocking.wait_all()
@@ -653,7 +672,8 @@ class ActionChainRunnerPauseResumeTest(DbTestCase):
 
         # Wait until the liveaction is pausing.
         liveaction = self._wait_for_status(liveaction, action_constants.LIVEACTION_STATUS_PAUSING)
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSING)
+        extra_info = str(liveaction)
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSING, extra_info)
 
         # Delete the temporary file that the action chain is waiting on.
         os.remove(path)
@@ -661,7 +681,8 @@ class ActionChainRunnerPauseResumeTest(DbTestCase):
 
         # Wait until the liveaction is paused.
         liveaction = self._wait_for_status(liveaction, action_constants.LIVEACTION_STATUS_PAUSED)
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSED)
+        extra_info = str(liveaction)
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSED, extra_info)
 
         # Wait for non-blocking threads to complete. Ensure runner is not running.
         MockLiveActionPublisherNonBlocking.wait_all()
@@ -702,7 +723,8 @@ class ActionChainRunnerPauseResumeTest(DbTestCase):
 
         # Wait until the liveaction is pausing.
         liveaction = self._wait_for_status(liveaction, action_constants.LIVEACTION_STATUS_PAUSING)
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSING)
+        extra_info = str(liveaction)
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSING, extra_info)
 
         # Delete the temporary file that the action chain is waiting on.
         os.remove(path)
@@ -710,7 +732,8 @@ class ActionChainRunnerPauseResumeTest(DbTestCase):
 
         # Wait until the liveaction is paused.
         liveaction = self._wait_for_status(liveaction, action_constants.LIVEACTION_STATUS_PAUSED)
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSED)
+        extra_info = str(liveaction)
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSED, extra_info)
 
         # Wait for non-blocking threads to complete. Ensure runner is not running.
         MockLiveActionPublisherNonBlocking.wait_all()
@@ -753,7 +776,8 @@ class ActionChainRunnerPauseResumeTest(DbTestCase):
         # This workflow runs 'core.ask' so will pause on its own. We just need to
         # wait until the liveaction is pausing.
         liveaction = self._wait_for_status(liveaction, action_constants.LIVEACTION_STATUS_PAUSING)
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSING)
+        extra_info = str(liveaction)
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSING, extra_info)
 
         # Delete the temporary file that the action chain is waiting on.
         os.remove(path)
@@ -761,7 +785,8 @@ class ActionChainRunnerPauseResumeTest(DbTestCase):
 
         # Wait until the liveaction is paused.
         liveaction = self._wait_for_status(liveaction, action_constants.LIVEACTION_STATUS_PAUSED)
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSED)
+        extra_info = str(liveaction)
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSED, extra_info)
 
         # Wait for non-blocking threads to complete. Ensure runner is not running.
         MockLiveActionPublisherNonBlocking.wait_all()

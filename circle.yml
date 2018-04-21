@@ -147,7 +147,7 @@ jobs:
             export ST2_GITREV=${CIRCLE_BRANCH}
             .circle/buildenv_st2.sh
           working_directory: ~/st2-packages
-      # Verify that Docker environment is properle cleaned up and there is nothing left from the previous build
+      # Verify that Docker environment is properly cleaned up and there is nothing left from the previous build
       # See issue: https://discuss.circleci.com/t/no-space-left-on-device-while-creating-mongo/11532/13
       - run:
           name: Pre Docker cleanup
@@ -161,7 +161,7 @@ jobs:
             docker volume prune --force
           working_directory: ~/st2-packages
       - run:
-          # Workaround for CircleCI docker-compose limtation where volumes don't work
+          # Workaround for CircleCI docker-compose limitation where volumes don't work
           # See detailed explanation: https://circleci.com/docs/2.0/building-docker-images/#mounting-folders
           name: Copy st2-packages files to build containers
           command: |
@@ -206,7 +206,7 @@ jobs:
           root: packages
           paths:
             - .
-      # Verify that Docker environment is properle cleaned up, and there is nothing left for the next build
+      # Verify that Docker environment is properly cleaned up, and there is nothing left for the next build
       # See issue: https://discuss.circleci.com/t/no-space-left-on-device-while-creating-mongo/11532/13
       - run:
           name: Post Docker cleanup

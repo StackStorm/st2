@@ -15,8 +15,9 @@
 
 from __future__ import absolute_import
 
-from st2client.models import Webhook
 from st2client.commands import resource
+from st2client.formatters import table
+from st2client.models import Webhook
 
 
 class WebhookBranch(resource.ResourceBranch):
@@ -32,9 +33,27 @@ class WebhookBranch(resource.ResourceBranch):
 
 
 class WebhookListCommand(resource.ContentPackResourceListCommand):
-    display_attributes = ['type', 'pack', 'name', 'description', 'parameters']
+    display_attributes = ['url', 'type', 'description']
+
+    def run_and_print(self, args, **kwargs):
+        instances = self.run(args, **kwargs)
+
+        for instance in instances:
+            instance.url = instance.parameters['url']
+
+        instances = sorted(instances, key=lambda k: k.url)
+
+        if args.json or args.yaml:
+            self.print_output(instances, table.MultiColumnTable,
+                              attributes=args.attr, widths=args.width,
+                              json=args.json, yaml=args.yaml)
+        else:
+            self.print_output(instances, table.MultiColumnTable,
+                              attributes=args.attr, widths=args.width)
 
 
-class WebhookGetCommand(resource.ContentPackResourceGetCommand):
+class WebhookGetCommand(resource.ResourceGetCommand):
     display_attributes = ['all']
-    attribute_display_order = ['type', 'pack', 'name', 'description', 'parameters']
+    attribute_display_order = ['type', 'description']
+
+    pk_argument_name = 'url'
