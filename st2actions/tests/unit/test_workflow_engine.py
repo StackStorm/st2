@@ -127,14 +127,26 @@ class WorkflowEngineTest(st2tests.DbTestCase):
         self.assertEqual(wf_ex_db.status, wf_lib_states.RUNNING)
 
         expected_flow = {
-            'ready': [],
+            'staged': {},
             'tasks': {
                 'task1': 0
             },
             'sequence': [
                 {
+                    'id': 'task1',
                     'state': 'running',
-                    'id': 'task1'
+                    'ctx': 0
+                }
+            ],
+            'contexts': [
+                {
+                    'srcs': [],
+                    'value': {
+                        'msg1': 'Veni, vidi, vici.',
+                        'msg2': 'Resistance is futile!',
+                        'msg3': 'All your base are belong to us!',
+                        'who': 'Stanley'
+                    }
                 }
             ]
         }

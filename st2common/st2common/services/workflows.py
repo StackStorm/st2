@@ -16,10 +16,10 @@
 from __future__ import absolute_import
 
 from orchestra import conducting
-from orchestra.expressions import base as expr
 from orchestra.specs import loader as specs_loader
 from orchestra import states
 
+from st2common.constants import action as ac_const
 from st2common.exceptions import action as ac_exc
 from st2common import log as logging
 from st2common.models.db import liveaction as lv_db_models
@@ -72,7 +72,6 @@ def request(wf_def, ac_ex_db):
         graph=conductor.graph.serialize(),
         flow=conductor.flow.serialize(),
         inputs=conductor.inputs,
-        context=conductor.context,
         status=states.REQUESTED
     )
 
@@ -99,7 +98,7 @@ def request_task_execution(wf_ex_db, task_id, task_spec, task_ctx, st2_ctx):
         task_name=task_spec.name or task_id,
         task_id=task_id,
         task_spec=task_spec.serialize(),
-        incoming_context=task_ctx,
+        initial_context=task_ctx,
         status=states.REQUESTED
     )
 
@@ -112,18 +111,16 @@ def request_task_execution(wf_ex_db, task_id, task_spec, task_ctx, st2_ctx):
         'orchestra': {
             'workflow_execution_id': str(wf_ex_db.id),
             'task_execution_id': str(task_ex_db.id),
-            'task_name': task_spec.name,
+            'task_name': task_spec.name or task_id,
             'task_id': task_id
         }
     }
 
     # Render action execution parameters and setup action execution object.
-    task_params = expr.evaluate(task_spec.input, task_ctx)
-
     ac_ex_params = param_utils.render_live_params(
         runner_type_db.runner_parameters,
         action_db.parameters,
-        task_params,
+        getattr(task_spec, 'input', {}),
         ac_ex_ctx
     )
 
@@ -146,6 +143,13 @@ def request_task_execution(wf_ex_db, task_id, task_spec, task_ctx, st2_ctx):
 
 
 def handle_action_execution_completion(ac_ex_db):
+    # Check that the action execution is completed.
+    if ac_ex_db.status not in ac_const.LIVEACTION_COMPLETED_STATES:
+        raise Exception(
+            'Unable to handle completion of action execution. The action execution '
+            '"%s" is in "%s" state.' % (str(ac_ex_db.id), ac_ex_db.status)
+        )
+
     # Instantiate the workflow conductor.
     wf_ex_id = ac_ex_db.context['orchestra']['workflow_execution_id']
     wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
@@ -155,8 +159,7 @@ def handle_action_execution_completion(ac_ex_db):
         'graph': wf_ex_db.graph,
         'state': wf_ex_db.status,
         'flow': wf_ex_db.flow,
-        'inputs': wf_ex_db.inputs,
-        'context': wf_ex_db.context
+        'inputs': wf_ex_db.inputs
     }
 
     conductor = conducting.WorkflowConductor.deserialize(data)
@@ -168,19 +171,19 @@ def handle_action_execution_completion(ac_ex_db):
 
     if task_ex_db.status in states.COMPLETED_STATES:
         task_ex_db.end_timestamp = date_utils.get_datetime_utc_now()
-        task_ex_db.outgoing_context = task_ex_db.incoming_context
 
     task_ex_db = wf_db_access.TaskExecution.update(task_ex_db, publish=False)
 
     # Update task flow entry.
     task = {'id': task_ex_db.task_id, 'name': task_ex_db.task_name}
-    conductor.update_task_flow_entry(task_ex_db.task_id, ac_ex_db.status)
+    conductor.update_task_flow_entry(task_ex_db.task_id, ac_ex_db.status, result=ac_ex_db.result)
 
     # If workflow has completed, mark parent execution complete.
-    if conductor.state in states.COMPLETED_STATES:
+    if conductor.get_workflow_state() in states.COMPLETED_STATES:
         # Write the updated workflow state and task flow to the database.
-        wf_ex_db.status = conductor.state
         wf_ex_db.end_timestamp = date_utils.get_datetime_utc_now()
+        wf_ex_db.status = conductor.get_workflow_state()
+        wf_ex_db.outputs = conductor.get_workflow_output()
         wf_ex_db.flow = conductor.flow.serialize()
         wf_ex_db = wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
 
@@ -190,6 +193,7 @@ def handle_action_execution_completion(ac_ex_db):
 
         wf_lv_ac_db = ac_db_util.update_liveaction_status(
             status=wf_ex_db.status,
+            result=wf_ex_db.outputs,
             end_timestamp=wf_ex_db.end_timestamp,
             liveaction_db=wf_lv_ac_db)
 
@@ -211,7 +215,5 @@ def handle_action_execution_completion(ac_ex_db):
 
     # Request task execution for the root tasks.
     for task in next_tasks:
-        task_ctx = task_ex_db.outgoing_context
         st2_ctx = {'execution_id': wf_ex_db.action_execution}
-        task_spec = conductor.spec.tasks.get_task(task['name'])
-        request_task_execution(wf_ex_db, task['id'], task_spec, task_ctx, st2_ctx)
+        request_task_execution(wf_ex_db, task['id'], task['spec'], task['ctx'], st2_ctx)

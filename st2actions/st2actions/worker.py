@@ -159,7 +159,7 @@ class ActionExecutionDispatcher(MessageHandler):
         try:
             result = self.container.dispatch(liveaction_db)
             LOG.debug('Runner dispatch produced result: %s', result)
-            if not result:
+            if not result and not liveaction_db.action_is_workflow:
                 raise ActionRunnerException('Failed to execute action.')
         except:
             _, ex, tb = sys.exc_info()

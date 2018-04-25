@@ -5,7 +5,7 @@ runner_type: orchestra
 entry_point: workflows/orchestra-sequential.yaml
 enabled: true
 parameters:
-  who:
+  name:
     required: true
     type: string
     default: Lakshmi

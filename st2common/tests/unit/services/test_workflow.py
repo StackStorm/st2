@@ -15,7 +15,6 @@
 
 from __future__ import absolute_import
 
-import copy
 import mock
 import os
 
@@ -116,8 +115,7 @@ class WorkflowExecutionServiceTest(st2tests.DbTestCase):
             'graph': wf_ex_db.graph,
             'state': wf_ex_db.status,
             'flow': wf_ex_db.flow,
-            'inputs': wf_ex_db.inputs,
-            'context': wf_ex_db.context
+            'inputs': wf_ex_db.inputs
         }
 
         conductor = conducting.WorkflowConductor.deserialize(data)
@@ -126,7 +124,7 @@ class WorkflowExecutionServiceTest(st2tests.DbTestCase):
         for task in conductor.get_start_tasks():
             conductor.update_task_flow_entry(task['id'], wf_lib_states.RUNNING)
 
-        wf_ex_db.status = conductor.state
+        wf_ex_db.status = conductor.get_workflow_state()
         wf_ex_db.flow = conductor.flow.serialize()
         wf_ex_db = wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
 
@@ -181,15 +179,7 @@ class WorkflowExecutionServiceTest(st2tests.DbTestCase):
             'who': 'stan'
         }
 
-        expected_context = {
-            'who': 'stan',
-            'msg1': 'Veni, vidi, vici.',
-            'msg2': 'Resistance is futile!',
-            'msg3': 'All your base are belong to us!'
-        }
-
         self.assertDictEqual(wf_ex_db.inputs, expected_inputs)
-        self.assertDictEqual(wf_ex_db.context, expected_context)
 
     def test_request_bad_action(self):
         wf_meta = get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][0])
@@ -221,7 +211,7 @@ class WorkflowExecutionServiceTest(st2tests.DbTestCase):
         spec_module = specs_loader.get_spec_module(wf_ex_db.spec['catalog'])
         wf_spec = spec_module.WorkflowSpec.deserialize(wf_ex_db.spec)
         task_spec = wf_spec.tasks.get_task(task_id)
-        task_ctx = copy.deepcopy(wf_ex_db.context)
+        task_ctx = {'foo': 'bar'}
         st2_ctx = {'execution_id': wf_ex_db.action_execution}
         wf_svc.request_task_execution(wf_ex_db, task_id, task_spec, task_ctx, st2_ctx)
 
@@ -260,7 +250,7 @@ class WorkflowExecutionServiceTest(st2tests.DbTestCase):
         spec_module = specs_loader.get_spec_module(wf_ex_db.spec['catalog'])
         wf_spec = spec_module.WorkflowSpec.deserialize(wf_ex_db.spec)
         task_spec = wf_spec.tasks.get_task(task_id)
-        task_ctx = copy.deepcopy(wf_ex_db.context)
+        task_ctx = {'foo': 'bar'}
         st2_ctx = {'execution_id': wf_ex_db.action_execution}
 
         task_spec.action = 'mock.foobar'
@@ -292,7 +282,7 @@ class WorkflowExecutionServiceTest(st2tests.DbTestCase):
         spec_module = specs_loader.get_spec_module(wf_ex_db.spec['catalog'])
         wf_spec = spec_module.WorkflowSpec.deserialize(wf_ex_db.spec)
         task_spec = wf_spec.tasks.get_task(task_id)
-        task_ctx = copy.deepcopy(wf_ex_db.context)
+        task_ctx = {'foo': 'bar'}
         st2_ctx = {'execution_id': wf_ex_db.action_execution}
         wf_svc.request_task_execution(wf_ex_db, task_id, task_spec, task_ctx, st2_ctx)
 

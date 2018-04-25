@@ -67,7 +67,7 @@ class OrchestraRunner(runners.AsyncActionRunner):
 
         # Set return values.
         status = ac_const.LIVEACTION_STATUS_RUNNING
-        partial_results = {'tasks': []}
+        partial_results = {}
         ctx = self._construct_context(wf_ex_db)
 
         return (status, partial_results, ctx)

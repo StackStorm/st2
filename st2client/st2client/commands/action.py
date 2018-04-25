@@ -862,7 +862,7 @@ class ActionRunCommandMixin(object):
         elif context and 'mistral' in context:
             task_name_key = 'context.mistral.task_name'
         elif context and 'orchestra' in context:
-            task_name_key = 'context.orchestra.task.name'
+            task_name_key = 'context.orchestra.task_name'
         # Use LiveAction as the object so that the formatter lookup does not change.
         # AKA HACK!
         return models.action.LiveAction(**{

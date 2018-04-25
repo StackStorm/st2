@@ -15,7 +15,6 @@
 
 from __future__ import absolute_import
 
-import copy
 import kombu
 
 from orchestra import conducting
@@ -55,8 +54,7 @@ class WorkflowDispatcher(consumers.MessageHandler):
             'graph': wf_ex_db.graph,
             'state': wf_ex_db.status,
             'flow': wf_ex_db.flow,
-            'inputs': wf_ex_db.inputs,
-            'context': wf_ex_db.context
+            'inputs': wf_ex_db.inputs
         }
 
         conductor = conducting.WorkflowConductor.deserialize(data)
@@ -71,16 +69,14 @@ class WorkflowDispatcher(consumers.MessageHandler):
             conductor.update_task_flow_entry(task['id'], states.RUNNING)
 
         # Write the updated workflow state and task flow to the database.
-        wf_ex_db.status = conductor.state
+        wf_ex_db.status = conductor.get_workflow_state()
         wf_ex_db.flow = conductor.flow.serialize()
         wf_ex_db = wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
 
         # Request task execution for the root tasks.
         for task in root_tasks:
-            task_ctx = copy.deepcopy(wf_ex_db.context)
             st2_ctx = {'execution_id': wf_ex_db.action_execution}
-            task_spec = conductor.spec.tasks.get_task(task['name'])
-            wf_svc.request_task_execution(wf_ex_db, task['id'], task_spec, task_ctx, st2_ctx)
+            wf_svc.request_task_execution(wf_ex_db, task['id'], task['spec'], task['ctx'], st2_ctx)
 
 
 def get_engine():

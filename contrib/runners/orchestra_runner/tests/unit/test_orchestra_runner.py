@@ -127,20 +127,12 @@ class OrchestraRunnerTest(st2tests.DbTestCase):
         self.assertIn('tasks', wf_ex_db.flow)
         self.assertIn('sequence', wf_ex_db.flow)
 
-        # Check inputs and context.
+        # Check inputs.
         expected_inputs = {
             'who': 'Stanley'
         }
 
-        expected_context = {
-            'who': 'Stanley',
-            'msg1': 'Veni, vidi, vici.',
-            'msg2': 'Resistance is futile!',
-            'msg3': 'All your base are belong to us!'
-        }
-
         self.assertDictEqual(wf_ex_db.inputs, expected_inputs)
-        self.assertDictEqual(wf_ex_db.context, expected_context)
 
     def test_workflow_inspection_failure(self):
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][1])
