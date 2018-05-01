@@ -19,31 +19,11 @@ from functools import wraps
 from oslo_config import cfg
 
 from st2common.constants.metrics import METRICS_COUNTER_SUFFIX, METRICS_TIMER_SUFFIX
+from st2common.util.loader import get_plugin_instance
 
 
-BACKENDS_NAMESPACE = 'st2common.metrics.driver'
-
-
-def get_available_drivers():
-    """
-    Return names of the available / installed action runners.
-
-    :rtype: ``list`` of ``str``
-    """
-    from stevedore.extension import ExtensionManager
-
-    manager = ExtensionManager(namespace=BACKENDS_NAMESPACE, invoke_on_load=False)
-    return manager.names()
-
-
-def get_driver_instance(name):
-    """
-    Return a class instance for the provided runner name.
-    """
-    from stevedore.driver import DriverManager
-
-    manager = DriverManager(namespace=BACKENDS_NAMESPACE, name=name, invoke_on_load=False)
-    return manager.driver
+PLUGIN_NAMESPACE = 'st2common.metrics.driver'
+METRICS = get_plugin_instance(PLUGIN_NAMESPACE, cfg.CONF.metrics.driver)()
 
 
 class BaseMetricsDriver(object):

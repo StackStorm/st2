@@ -39,8 +39,8 @@ prompt-toolkit==1.0.15
 tooz==1.61.0
 zake==0.2.2
 routes==2.4.1
-statsd==3.2.2
-prometheus_client==0.1.1
 flex==6.12.0
 webob==1.7.4
 prance==0.9.0
+statsd==3.2.2
+prometheus_client==0.1.1

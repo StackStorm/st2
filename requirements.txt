@@ -26,7 +26,6 @@ oslo.utils<=3.33.0,>=3.15.0
 paramiko==2.4.1
 passlib==1.7.1
 prettytable
-prometheus_client==0.1.1
 prompt-toolkit==1.0.15
 psutil
 pyinotify==0.9.6
@@ -45,7 +44,6 @@ routes==2.4.1
 semver==2.7.9
 six==1.11.0
 sseclient==0.0.19
-statsd==3.2.2
 stevedore==1.28.0
 tooz==1.61.0
 unittest2
