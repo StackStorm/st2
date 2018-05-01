@@ -186,7 +186,7 @@ host = 127.0.0.1
 # Enable metrics collection.
 enable = False
 # Driver type for metrics collection.
-driver = statsd_driver
+driver = statsd
 # Destination port to connect to if driver requires connection.
 port = 8125
 
