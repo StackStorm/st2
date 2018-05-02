@@ -16,6 +16,7 @@ from __future__ import absolute_import
 from functools import wraps
 
 from oslo_config import cfg
+from oslo_config.cfg import NoSuchOptError
 from stevedore.exception import NoMatches, MultipleMatches
 
 from st2common.constants.metrics import METRICS_COUNTER_SUFFIX, METRICS_TIMER_SUFFIX
@@ -157,5 +158,5 @@ class CounterWithTimer(object):
 
 try:
     METRICS = get_plugin_instance(PLUGIN_NAMESPACE, cfg.CONF.metrics.driver)()
-except (NoMatches, MultipleMatches):
+except (NoMatches, MultipleMatches, NoSuchOptError):
     METRICS = BaseMetricsDriver()

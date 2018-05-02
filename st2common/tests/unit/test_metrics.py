@@ -22,6 +22,7 @@ from oslo_config import cfg
 from st2common.metrics import metrics
 from st2common.metrics.drivers.statsd_driver import StatsdDriver
 from st2common.constants.metrics import METRICS_COUNTER_SUFFIX, METRICS_TIMER_SUFFIX
+from st2common.util.date import get_datetime_utc_now
 
 __all__ = [
     'TestBaseMetricsDriver'
@@ -126,13 +127,13 @@ class TestCounterContextManager(unittest2.TestCase):
 
 
 class TestTimerContextManager(unittest2.TestCase):
-    @patch('st2common.metrics.metrics.datetime')
+    @patch('st2common.metrics.metrics.get_datetime_utc_now')
     @patch('st2common.metrics.metrics.METRICS')
     def test_time(self, metrics_patch, datetime_patch):
-        start_time = datetime.now()
+        start_time = get_datetime_utc_now()
         middle_time = start_time + timedelta(seconds=1)
         end_time = middle_time + timedelta(seconds=1)
-        datetime_patch.now.side_effect = [
+        datetime_patch.side_effect = [
             start_time,
             middle_time,
             middle_time,
@@ -166,18 +167,20 @@ class TestTimerContextManager(unittest2.TestCase):
 
 
 class TestCounterWithTimerContextManager(unittest2.TestCase):
-    @patch('st2common.metrics.metrics.datetime')
+    def setUp(self):
+        self.start_time = get_datetime_utc_now()
+        self.middle_time = self.start_time + timedelta(seconds=1)
+        self.end_time = self.middle_time + timedelta(seconds=1)
+
+    @patch('st2common.metrics.metrics.get_datetime_utc_now')
     @patch('st2common.metrics.metrics.METRICS')
     def test_time(self, metrics_patch, datetime_patch):
-        start_time = datetime.now()
-        middle_time = start_time + timedelta(seconds=1)
-        end_time = middle_time + timedelta(seconds=1)
-        datetime_patch.now.side_effect = [
-            start_time,
-            middle_time,
-            middle_time,
-            middle_time,
-            end_time
+        datetime_patch.side_effect = [
+            self.start_time,
+            self.middle_time,
+            self.middle_time,
+            self.middle_time,
+            self.end_time
         ]
         test_key = "test_key"
         with metrics.CounterWithTimer(test_key) as timer:
@@ -186,18 +189,18 @@ class TestCounterWithTimerContextManager(unittest2.TestCase):
             timer.send_time()
             metrics_patch.time.assert_called_with(
                 "%s%s" % (test_key, METRICS_TIMER_SUFFIX),
-                (end_time - middle_time).total_seconds()
+                (self.end_time - self.middle_time).total_seconds()
             )
             second_test_key = "lakshmi_has_a_nose"
             timer.send_time(second_test_key)
             metrics_patch.time.assert_called_with(
                 second_test_key,
-                (end_time - middle_time).total_seconds()
+                (self.end_time - self.middle_time).total_seconds()
             )
             time_delta = timer.get_time_delta()
             self.assertEquals(
                 time_delta.total_seconds(),
-                (end_time - middle_time).total_seconds()
+                (self.end_time - self.middle_time).total_seconds()
             )
             metrics_patch.inc_counter.assert_called_with(
                 "%s%s" % (test_key, METRICS_COUNTER_SUFFIX)
@@ -206,18 +209,18 @@ class TestCounterWithTimerContextManager(unittest2.TestCase):
         metrics_patch.dec_counter.assert_called_with("%s%s" % (test_key, METRICS_COUNTER_SUFFIX))
         metrics_patch.time.assert_called_with(
             "%s%s" % (test_key, METRICS_TIMER_SUFFIX),
-            (end_time - start_time).total_seconds()
+            (self.end_time - self.start_time).total_seconds()
         )
 
 
 class TestCounterWithTimerDecorator(unittest2.TestCase):
-    @patch('st2common.metrics.metrics.datetime')
+    @patch('st2common.metrics.metrics.get_datetime_utc_now')
     @patch('st2common.metrics.metrics.METRICS')
     def test_time(self, metrics_patch, datetime_patch):
-        start_time = datetime.now()
+        start_time = get_datetime_utc_now()
         middle_time = start_time + timedelta(seconds=1)
         end_time = middle_time + timedelta(seconds=1)
-        datetime_patch.now.side_effect = [
+        datetime_patch.side_effect = [
             start_time,
             middle_time,
             middle_time,
@@ -274,13 +277,13 @@ class TestCounterDecorator(unittest2.TestCase):
 
 
 class TestTimerDecorator(unittest2.TestCase):
-    @patch('st2common.metrics.metrics.datetime')
+    @patch('st2common.metrics.metrics.get_datetime_utc_now')
     @patch('st2common.metrics.metrics.METRICS')
     def test_time(self, metrics_patch, datetime_patch):
-        start_time = datetime.now()
+        start_time = get_datetime_utc_now()
         middle_time = start_time + timedelta(seconds=1)
         end_time = middle_time + timedelta(seconds=1)
-        datetime_patch.now.side_effect = [
+        datetime_patch.side_effect = [
             start_time,
             middle_time,
             middle_time,
