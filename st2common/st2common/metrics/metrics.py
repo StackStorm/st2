@@ -17,13 +17,13 @@ from datetime import datetime
 from functools import wraps
 
 from oslo_config import cfg
+from stevedore.exception import NoMatches, MultipleMatches
 
 from st2common.constants.metrics import METRICS_COUNTER_SUFFIX, METRICS_TIMER_SUFFIX
 from st2common.util.loader import get_plugin_instance
 
 
 PLUGIN_NAMESPACE = 'st2common.metrics.driver'
-METRICS = get_plugin_instance(PLUGIN_NAMESPACE, cfg.CONF.metrics.driver)()
 
 
 class BaseMetricsDriver(object):
@@ -153,3 +153,9 @@ class CounterWithTimer(object):
             with self as counter_with_timer:
                 return func(*args, metrics_counter_with_timer=counter_with_timer, **kw)
         return wrapper
+
+
+try:
+    METRICS = get_plugin_instance(PLUGIN_NAMESPACE, cfg.CONF.metrics.driver)()
+except (NoMatches, MultipleMatches):
+    METRICS = BaseMetricsDriver()
