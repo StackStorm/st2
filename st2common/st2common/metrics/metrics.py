@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from __future__ import absolute_import
-from datetime import datetime
 from functools import wraps
 
 from oslo_config import cfg
@@ -21,6 +20,7 @@ from stevedore.exception import NoMatches, MultipleMatches
 
 from st2common.constants.metrics import METRICS_COUNTER_SUFFIX, METRICS_TIMER_SUFFIX
 from st2common.util.loader import get_plugin_instance
+from st2common.util.date import get_datetime_utc_now
 
 
 PLUGIN_NAMESPACE = 'st2common.metrics.driver'
@@ -58,7 +58,7 @@ class Timer(object):
     def send_time(self, key=None):
         """ Send current time from start time.
         """
-        time_delta = datetime.now() - self._start_time
+        time_delta = get_datetime_utc_now() - self._start_time
 
         if key:
             assert isinstance(key, str)
@@ -69,10 +69,10 @@ class Timer(object):
     def get_time_delta(self):
         """ Get current time delta.
         """
-        return datetime.now() - self._start_time
+        return get_datetime_utc_now() - self._start_time
 
     def __enter__(self):
-        self._start_time = datetime.now()
+        self._start_time = get_datetime_utc_now()
         return self
 
     def __exit__(self, *args):
@@ -124,7 +124,7 @@ class CounterWithTimer(object):
     def send_time(self, key=None):
         """ Send current time from start time.
         """
-        time_delta = datetime.now() - self._start_time
+        time_delta = get_datetime_utc_now() - self._start_time
 
         if key:
             assert isinstance(key, str)
@@ -136,11 +136,11 @@ class CounterWithTimer(object):
     def get_time_delta(self):
         """ Get current time delta.
         """
-        return datetime.now() - self._start_time
+        return get_datetime_utc_now() - self._start_time
 
     def __enter__(self):
         self._metrics.inc_counter("%s%s" % (self.key, METRICS_COUNTER_SUFFIX))
-        self._start_time = datetime.now()
+        self._start_time = get_datetime_utc_now()
         return self
 
     def __exit__(self, *args):
