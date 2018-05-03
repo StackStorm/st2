@@ -1,6 +1,6 @@
 coverage
 pep8==1.7.0
-flake8==3.3.0
+flake8==3.5.0
 astroid==1.4.9
 pylint==1.6.5
 pylint-plugin-utils>=0.2.3,<0.3
