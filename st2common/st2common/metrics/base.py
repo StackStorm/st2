@@ -38,6 +38,8 @@ def format_metrics_key(action_db=None, liveaction_db=None, key=None):
     """
     assert (action_db or key or liveaction_db), """Must supply one of key, action_db, or
                                                  liveaction_db"""
+    suffix = ""
+
     if action_db:
         action_name = action_db.name
         action_pack = action_db.pack
