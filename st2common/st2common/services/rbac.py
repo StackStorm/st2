@@ -223,7 +223,8 @@ def assign_role_to_user(role_db, user_db, description=None, is_remote=False, sou
             raise e
 
         role_assignment_db = UserRoleAssignment.query(user=user_db.name, role=role_db.name,
-                                                      source=source, description=description)
+                                                      source=source,
+                                                      description=description).first()
 
     return role_assignment_db
 

@@ -269,6 +269,9 @@ class RBACServicesTestCase(CleanDbTestCase):
             ignore_already_exists_error=True)
 
         self.assertEqual(role_assignment_db_1, role_assignment_db_2)
+        self.assertEqual(role_assignment_db_1.id, role_assignment_db_2.id)
+        self.assertEqual(role_assignment_db_1.user, role_assignment_db_2.user)
+        self.assertEqual(role_assignment_db_1.role, role_assignment_db_2.role)
 
     def test_get_all_permission_grants_for_user(self):
         user_db = self.users['1_custom_role']
