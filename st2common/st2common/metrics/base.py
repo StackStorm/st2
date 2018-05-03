@@ -14,6 +14,8 @@
 # limitations under the License.
 from __future__ import absolute_import
 from functools import wraps
+import logging
+from six import string_types
 
 from oslo_config import cfg
 from oslo_config.cfg import NoSuchOptError
@@ -25,8 +27,23 @@ from st2common.util.date import get_datetime_utc_now
 from st2common.exceptions.plugins import PluginLoadError
 
 
+LOG = logging.getLogger(__name__)
+
 PLUGIN_NAMESPACE = 'st2common.metrics.driver'
 METRICS = None
+
+
+def format_metrics_key(action_db, key="action"):
+    """Return a string for usage as metrics key.
+    """
+    action_name = action_db.name
+    action_pack = action_db.pack
+
+    metrics_key = "st2.%s.%s" % (action_pack, action_name)
+
+    LOG.debug("Generated Metrics Key: %s", metrics_key)
+
+    return metrics_key
 
 
 class BaseMetricsDriver(object):
@@ -48,12 +65,18 @@ class BaseMetricsDriver(object):
         pass
 
 
+def check_key(key):
+    """Ensure key meets requirements.
+    """
+    assert isinstance(key, string_types), "Key not a string. Got %s" % type(key)
+    assert key, "Key cannot be empty string."
+
+
 class Timer(object):
     """ Timer context manager for easily sending timer statistics.
     """
     def __init__(self, key):
-        assert isinstance(key, str)
-        assert len(key) > 0
+        check_key(key)
         self.key = key
         self._metrics = get_driver()
         self._start_time = None
@@ -64,7 +87,7 @@ class Timer(object):
         time_delta = get_datetime_utc_now() - self._start_time
 
         if key:
-            assert isinstance(key, str)
+            check_key(key)
             self._metrics.time(key, time_delta.total_seconds())
         else:
             self._metrics.time(self.key, time_delta.total_seconds())
@@ -93,8 +116,7 @@ class Counter(object):
     """ Timer context manager for easily sending timer statistics.
     """
     def __init__(self, key):
-        assert isinstance(key, str)
-        assert key
+        check_key(key)
         self.key = key
         self._metrics = get_driver()
 
@@ -118,8 +140,7 @@ class CounterWithTimer(object):
     with builtin timer.
     """
     def __init__(self, key):
-        assert isinstance(key, str)
-        assert key
+        check_key(key)
         self.key = key
         self._metrics = get_driver()
         self._start_time = None
@@ -130,7 +151,7 @@ class CounterWithTimer(object):
         time_delta = get_datetime_utc_now() - self._start_time
 
         if key:
-            assert isinstance(key, str)
+            check_key(key)
             self._metrics.time(key, time_delta.total_seconds())
         else:
             self._metrics.time("%s%s" % (self.key, METRICS_TIMER_SUFFIX),
