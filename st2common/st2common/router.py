@@ -208,6 +208,8 @@ class Router(object):
         except KeyError:
             path_vars = match
 
+        path_vars = list(path_vars)
+
         path = path_vars.pop('_api_path')
         method = path_vars.pop('_api_method')
         endpoint = self.spec['paths'][path][method]
