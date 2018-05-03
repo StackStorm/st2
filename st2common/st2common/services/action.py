@@ -31,6 +31,7 @@ from st2common.services import trace as trace_service
 from st2common.util import date as date_utils
 from st2common.util import action_db as action_utils
 from st2common.util import schema as util_schema
+from st2common.metrics.metrics import METRICS, format_metrics_key
 
 
 __all__ = [
@@ -132,6 +133,12 @@ def create_request(liveaction):
                 trace_service.get_trace_component_for_action_execution(execution, liveaction)
             ])
 
+    METRICS.inc_counter(
+        format_metrics_key(
+            action_db=action_db,
+            key=liveaction.status
+        )
+    )
     return liveaction, execution
 
 

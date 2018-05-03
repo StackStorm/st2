@@ -33,13 +33,28 @@ PLUGIN_NAMESPACE = 'st2common.metrics.driver'
 METRICS = None
 
 
-def format_metrics_key(action_db, key="action"):
+def format_metrics_key(action_db=None, liveaction_db=None, key=None):
     """Return a string for usage as metrics key.
     """
-    action_name = action_db.name
-    action_pack = action_db.pack
+    assert (action_db or key or liveaction_db), """Must supply one of key, action_db, or
+                                                 liveaction_db"""
+    if action_db:
+        action_name = action_db.name
+        action_pack = action_db.pack
 
-    metrics_key = "st2.%s.%s" % (action_pack, action_name)
+        suffix = "%s.%s" % (action_pack, action_name)
+    elif liveaction_db:
+        action_name = liveaction_db.action
+        action_pack = liveaction_db.context.get('pack', 'nopack')
+
+        suffix = "%s.%s" % (action_pack, action_name)
+
+    if key and not suffix:
+        suffix = key
+    elif key and suffix:
+        suffix = "%s.%s" % (suffix, key)
+
+    metrics_key = "st2.%s" % (suffix)
 
     LOG.debug("Generated Metrics Key: %s", metrics_key)
 

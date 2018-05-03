@@ -30,6 +30,7 @@ from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.persistence.action import Action
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.runner import RunnerType
+from st2common.metrics.metrics import format_metrics_key, METRICS
 
 LOG = logging.getLogger(__name__)
 
@@ -192,6 +193,22 @@ def update_liveaction_status(status=None, result=None, context=None, end_timesta
         raise ValueError('Attempting to set status for LiveAction "%s" '
                          'to unknown status string. Unknown status is "%s"',
                          liveaction_db, status)
+
+    if liveaction_db.status:
+        METRICS.dec_counter(
+            format_metrics_key(
+                liveaction_db=liveaction_db,
+                key=liveaction_db.status
+            )
+        )
+
+    if status:
+        METRICS.inc_counter(
+            format_metrics_key(
+                liveaction_db=liveaction_db,
+                key=status
+            )
+        )
 
     extra = {'liveaction_db': liveaction_db}
     LOG.debug('Updating ActionExection: "%s" with status="%s"', liveaction_db.id, status,
