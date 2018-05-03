@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 from pymongo import MongoClient
 
 from st2tests.base import CleanDbTestCase
@@ -27,6 +28,7 @@ from st2common.persistence.rule import Rule
 from st2common.models.db.auth import UserDB
 from st2common.models.db.rbac import UserRoleAssignmentDB
 from st2common.models.db.rule import RuleDB
+from st2common.exceptions.db import StackStormDBObjectConflictError
 
 
 class RBACServicesTestCase(CleanDbTestCase):
@@ -246,6 +248,27 @@ class RBACServicesTestCase(CleanDbTestCase):
         self.assertItemsEqual(role_dbs, [])
         role_dbs = user_db.get_roles()
         self.assertItemsEqual(role_dbs, [])
+
+    def test_assign_role_to_user_ignore_already_exists_error(self):
+        user_db = UserDB(name='test-user-10')
+        user_db = User.add_or_update(user_db)
+
+        role_assignment_db_1 = rbac_services.assign_role_to_user(
+            role_db=self.roles['custom_role_1'], user_db=user_db,
+            source='assignments/%s_10.yaml' % user_db.name)
+
+        # 1. Without ignore errors
+        self.assertRaises(StackStormDBObjectConflictError, rbac_services.assign_role_to_user,
+            role_db=self.roles['custom_role_1'], user_db=user_db,
+            source='assignments/%s_10.yaml' % user_db.name)
+
+        # 2. With ignore errors
+        role_assignment_db_2 = rbac_services.assign_role_to_user(
+            role_db=self.roles['custom_role_1'], user_db=user_db,
+            source='assignments/%s_10.yaml' % user_db.name,
+            ignore_already_exists_error=True)
+
+        self.assertEqual(role_assignment_db_1, role_assignment_db_2)
 
     def test_get_all_permission_grants_for_user(self):
         user_db = self.users['1_custom_role']
