@@ -4,6 +4,19 @@ Changelog
 2.7.1 - April 20, 2018
 ----------------------
 
+Fixed
+~~~~~
+
+* Fix an issue (race condition) which would result in not all the remote LDAP groups being
+  synchronized with local RBAC roles if a user tried to authenticate with the same auth token
+  concurrently in a short time frame.
+
+  Note: This issue only affects users who utilize RBAC with remote LDAP groups to local RBAC
+  roles synchronization feature enabled. (bug fix) #4103 #4105
+
+2.7.1 - April 20, 2018
+----------------------
+
 Changed
 ~~~~~~~
 
