@@ -16,6 +16,7 @@
 import base64
 
 import mock
+import eventlet
 from oslo_config import cfg
 
 from st2tests.base import CleanDbTestCase
@@ -78,6 +79,10 @@ class HandlerTestCase(CleanDbTestCase):
         user_1_db = UserDB(name='auser')
         user_1_db = User.add_or_update(user_1_db)
         self.users['user_1'] = user_1_db
+
+        user_2_db = UserDB(name='buser')
+        user_2_db = User.add_or_update(user_2_db)
+        self.users['user_2'] = user_2_db
 
         # Insert mock local role assignments
         role_db = create_role(name='mock_local_role_1')
@@ -340,6 +345,28 @@ class HandlerTestCase(CleanDbTestCase):
         self.assertEqual(role_dbs[1], self.roles['mock_local_role_2'])
         self.assertEqual(role_dbs[2], self.roles['mock_role_3'])
         self.assertEqual(role_dbs[3], self.roles['mock_role_4'])
+
+    def test_group_to_role_sync_concurrent_auth(self):
+        # Verify that there is no race and group sync during concurrent auth works fine
+        # Enable group sync
+        cfg.CONF.set_override(group='rbac', name='sync_remote_groups', override=True)
+        cfg.CONF.set_override(group='rbac', name='sync_remote_groups', override=True)
+
+        user_db = self.users['user_2']
+        h = handlers.StandaloneAuthHandler()
+        request = {}
+
+        def handle_auth():
+            token = h.handle_auth(request, headers={}, remote_addr=None, remote_user=None,
+                                  authorization=('basic', DUMMY_CREDS))
+            self.assertEqual(token.user, 'auser')
+
+        thread_pool = eventlet.GreenPool(20)
+
+        for i in range(0, 20):
+            thread_pool.spawn(handle_auth)
+
+        thread_pool.waitall()
 
     @mock.patch.object(RBACRemoteGroupToRoleSyncer, 'sync',
                       mock.Mock(side_effect=Exception('throw')))
