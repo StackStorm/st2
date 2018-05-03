@@ -4,7 +4,7 @@ greenlet==0.4.13
 # Note: 0.20.0 removed select.poll() on which some of our code and libraries we
 # depend on rely
 eventlet==0.22.1
-gunicorn==19.7.1
+gunicorn==19.8.1
 kombu==4.1.0
 # Note: amqp is used by kombu
 amqp==2.2.2
@@ -14,7 +14,7 @@ six==1.11.0
 pyyaml>=3.12,<4.0
 requests[security]>=2.14.1,<2.15
 apscheduler==3.5.1
-gitpython==2.1.8
+gitpython==2.1.9
 jsonschema==2.6.0
 # Note: mongoengine v0.13.0 introduces memory usage regression so we can't
 # upgrade - https://github.com/StackStorm/st2/pull/3597
@@ -36,7 +36,7 @@ virtualenv==15.1.0
 sseclient==0.0.19
 python-editor==1.0.3
 prompt-toolkit==1.0.15
-tooz==1.61.0
+tooz==1.62.0
 zake==0.2.2
 routes==2.4.1
 flex==6.12.0
