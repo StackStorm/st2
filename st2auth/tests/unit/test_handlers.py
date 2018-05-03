@@ -352,7 +352,6 @@ class HandlerTestCase(CleanDbTestCase):
         cfg.CONF.set_override(group='rbac', name='sync_remote_groups', override=True)
         cfg.CONF.set_override(group='rbac', name='sync_remote_groups', override=True)
 
-        user_db = self.users['user_2']
         h = handlers.StandaloneAuthHandler()
         request = {}
 
