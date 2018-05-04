@@ -17,6 +17,7 @@ from oslo_config import cfg
 
 from st2common import config as st2cfg
 from st2common.constants.system import VERSION_STRING
+from st2common.constants.system import DEFAULT_CONFIG_FILE
 from st2common.constants.auth import DEFAULT_MODE
 from st2common.constants.auth import DEFAULT_BACKEND
 from st2common.constants.auth import VALID_MODES
@@ -24,7 +25,8 @@ from st2auth.backends import get_available_backends
 
 
 def parse_args(args=None):
-    cfg.CONF(args=args, version=VERSION_STRING)
+    cfg.CONF(args=args, version=VERSION_STRING,
+             default_config_files=[DEFAULT_CONFIG_FILE])
 
 
 def register_opts():
