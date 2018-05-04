@@ -456,7 +456,8 @@ class RBACRemoteGroupToRoleSyncer(object):
                 assignment_db = rbac_services.assign_role_to_user(role_db=role_db, user_db=user_db,
                                                                   description=description,
                                                                   is_remote=True,
-                                                                  source=mapping_db.source)
+                                                                  source=mapping_db.source,
+                                                                  ignore_already_exists_error=True)
                 assert assignment_db.is_remote is True
                 created_assignments_dbs.append(assignment_db)
 
