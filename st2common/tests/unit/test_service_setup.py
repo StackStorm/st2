@@ -121,13 +121,14 @@ class ServiceSetupTestCase(CleanFilesTestCase):
         register_exchanges()
         self.assertEqual(mock_declare.call_count, len(QUEUES))
 
-    @mock.patch('st2common.constants.system.DEFAULT_CONFIG_FILE', MOCK_DEFAULT_CONFIG_FILE_PATH)
-    @mock.patch('st2common.config.DEFAULT_CONFIG_FILE', MOCK_DEFAULT_CONFIG_FILE_PATH)
+    @mock.patch('st2common.constants.system.DEFAULT_CONFIG_FILE_PATH',
+                MOCK_DEFAULT_CONFIG_FILE_PATH)
+    @mock.patch('st2common.config.DEFAULT_CONFIG_FILE_PATH', MOCK_DEFAULT_CONFIG_FILE_PATH)
     def test_service_setup_default_st2_conf_config_is_used(self):
         st2common_config.get_logging_config_path = mock_get_logging_config_path
         cfg.CONF.reset()
 
-        # 1. DEFAULT_CONFIG_FILE config path should be used by default (/etc/st2/st2.conf)
+        # 1. DEFAULT_CONFIG_FILE_PATH config path should be used by default (/etc/st2/st2.conf)
         expected_msg = 'Failed to find some config files: %s' % (MOCK_DEFAULT_CONFIG_FILE_PATH)
         self.assertRaisesRegexp(ConfigFilesNotFoundError, expected_msg, service_setup.setup,
                                 service='api',
