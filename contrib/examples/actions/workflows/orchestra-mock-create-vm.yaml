@@ -1,0 +1,99 @@
+version: 1.0
+
+description: A sample workflow that demonstrates forks and join.
+
+input:
+  - vm_name
+  - cpu_cores
+  - memory_mb
+
+output:
+  vm_id: <% $.vm_id %>
+  ip: <% $.ip %>
+
+tasks:
+  register_dns:
+    action: core.local
+    input:
+      cmd: "sleep 1; printf 'Registering <% $.vm_name %>...'"
+    next:
+      - when: <% succeeded() %>
+        publish:
+          ip: "10.1.23.99"
+          status_message: "DNS for <% $.vm_name %> is registered."
+        do:
+          - configure_vm
+          - notify
+
+
+  create_vm:
+    action: core.local
+    input:
+      cmd: "printf 'vm1234'; sleep 6"
+    next:
+      - when: <% succeeded() %>
+        publish:
+          vm_id: <% result().stdout %>
+          status_message: "VM <% $.vm_name %> is created."
+        do:
+          - configure_vm
+          - notify
+
+
+  configure_vm:
+    join: all
+    action: core.noop
+    next:
+      - do:
+          - add_disks
+          - add_nics
+          - install_apps
+  add_disks:
+    action: core.local
+    input:
+      cmd: "sleep 1; printf 'disks created'"
+    next:
+      - when: <% succeeded() %>
+        do:
+          - finalize_config
+  add_nics:
+    action: core.local
+    input:
+      cmd: "sleep 1; printf 'nics created'"
+    next:
+      - when: <% succeeded() %>
+        do:
+          - finalize_config
+  install_apps:
+    action: core.local
+    input:
+      cmd: "sleep 1; printf 'apps installed'"
+    next:
+      - when: <% succeeded() %>
+        do:
+          - finalize_config
+  finalize_config:
+    join: all
+    action: core.noop
+    next:
+     - when: <% succeeded() %>
+       publish:
+         status_message: "VM <% $.vm_name %> is reconfigured."
+       do:
+         - close_request
+
+
+  close_request:
+    action: core.noop
+    next:
+      - when: <% succeeded() %>
+        publish:
+          status_message: "VM request is fulfilled."
+        do:
+          - notify
+
+
+  notify:
+    action: core.local
+    input:
+      cmd: "printf '<% $.status_message %>'"

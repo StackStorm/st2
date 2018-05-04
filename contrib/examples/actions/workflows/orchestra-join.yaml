@@ -1,0 +1,80 @@
+version: 1.0
+  
+description: A basic workflow that demonstrate branching and join.
+
+vars:
+  messages: null
+
+output:
+  messages:
+    - <% $.msg1 %>
+    - <% $.msg2 %>
+    - <% $.msg3 %>
+    - <% $.msg4 %>
+
+tasks:
+  task1:
+    action: core.noop
+    next:
+      - when: <% succeeded() %>
+        do: task2, task4, task6, task8
+
+  # branch 1
+  task2:
+    action: core.echo message="Fee fi"
+    next:
+      - when: <% succeeded() %>
+        publish: msg1=<% result().stdout %>
+        do: task3
+  task3:
+    action: core.echo message="fo fum"
+    next:
+      - when: <% succeeded() %>
+        publish:
+          msg1: <% $.msg1 %> <% result().stdout %>
+        do: task10
+
+  # branch 2
+  task4:
+    action: core.echo message="I smell the blood of an English man"
+    next:
+      - when: <% succeeded() %>
+        publish: msg2=<% result().stdout %>
+        do: task5
+  task5:
+    action: core.noop
+    next:
+      - when: <% succeeded() %>
+        do: task10
+
+  # branch 3
+  task6:
+    action: core.noop
+    next:
+      - when: <% succeeded() %>
+        do: task7
+  task7:
+    action: core.echo message="Be alive, or be he dead"
+    next:
+      - when: <% succeeded() %>
+        publish: msg3=<% result().stdout %>
+        do: task10
+
+  # branch 4
+  task8:
+    action: core.noop
+    next:
+      - when: <% succeeded() %>
+        do: task9
+  task9:
+    action: core.noop
+    next:
+      - when: <% succeeded() %>
+        publish: msg4="I'll grind his bones to make my bread"
+        do: task10
+
+
+  # converge branches
+  task10:
+    join: all
+    action: core.noop
