@@ -19,7 +19,7 @@ from st2common.services.rules import get_rules_given_trigger
 from st2common.services.triggers import get_trigger_db_by_ref
 from st2reactor.rules.enforcer import RuleEnforcer
 from st2reactor.rules.matcher import RulesMatcher
-from st2common.metrics.metrics import format_metrics_key, METRICS
+from st2common.metrics.base import format_metrics_key, get_driver
 
 LOG = logging.getLogger('st2reactor.rules.RulesEngine')
 
@@ -73,7 +73,7 @@ class RulesEngine(object):
         enforcers = []
         for matching_rule in matching_rules:
 
-            METRICS.inc_counter(
+            get_driver().inc_counter(
                 format_metrics_key(
                     key=matching_rule
                 )

@@ -30,7 +30,7 @@ from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.persistence.action import Action
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.runner import RunnerType
-from st2common.metrics.metrics import format_metrics_key, METRICS
+from st2common.metrics.base import format_metrics_key, get_driver
 
 LOG = logging.getLogger(__name__)
 
@@ -195,7 +195,7 @@ def update_liveaction_status(status=None, result=None, context=None, end_timesta
                          liveaction_db, status)
 
     if liveaction_db.status:
-        METRICS.dec_counter(
+        get_driver().dec_counter(
             format_metrics_key(
                 liveaction_db=liveaction_db,
                 key=liveaction_db.status
@@ -203,7 +203,7 @@ def update_liveaction_status(status=None, result=None, context=None, end_timesta
         )
 
     if status:
-        METRICS.inc_counter(
+        get_driver().inc_counter(
             format_metrics_key(
                 liveaction_db=liveaction_db,
                 key=status
