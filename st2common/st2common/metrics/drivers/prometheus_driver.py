@@ -14,7 +14,7 @@
 # limitations under the License.
 from prometheus_client import Histogram, Gauge
 
-from st2common.metrics.metrics import BaseMetricsDriver
+from st2common.metrics.base import BaseMetricsDriver
 
 
 class PrometheusDriver(BaseMetricsDriver):

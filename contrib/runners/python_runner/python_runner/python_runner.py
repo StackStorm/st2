@@ -53,7 +53,7 @@ from st2common.services.action import store_execution_output_data
 from st2common.runners.utils import make_read_and_store_stream_func
 
 from python_runner import python_action_wrapper
-from st2common.metrics.metrics import CounterWithTimer
+from st2common.metrics.base import CounterWithTimer
 
 from st2common.constants.metrics import PYTHON_RUNNER_EXECUTION, PYTHON_WRAPPER_EXECUTION
 

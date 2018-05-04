@@ -271,7 +271,7 @@ def get_available_plugins(namespace):
 
 
 def get_plugin_instance(namespace, name):
-    """Return a class instance for the provided plugin name and namespace.
+    """Return class for the provided plugin name and namespace.
     """
     from stevedore.driver import DriverManager
 

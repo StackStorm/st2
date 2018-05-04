@@ -16,7 +16,7 @@ from numbers import Number
 from oslo_config import cfg
 import statsd
 
-from st2common.metrics.metrics import BaseMetricsDriver
+from st2common.metrics.base import BaseMetricsDriver
 
 
 class StatsdDriver(BaseMetricsDriver):
