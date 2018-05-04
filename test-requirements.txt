@@ -1,5 +1,5 @@
 coverage
-pep8==1.7.0
+pep8==1.7.1
 flake8==3.5.0
 astroid==1.6.3
 pylint==1.8.4
@@ -14,14 +14,14 @@ sphinx>=1.7.2,<1.8
 sphinx-autobuild
 # nosetests enhancements
 rednose
-nose-timer
+nose-timer>=0.7.2,<0.8
 # splitting tests run on a separate CI machines
 nose-parallel
 # Required by st2client tests
 pyyaml<4.0,>=3.12
 RandomWords
 gunicorn==19.7.1
-psutil
+psutil==5.4.5
 webtest==2.0.25
 rstcheck>=3.3.0,<3.4
 pyrabbit
