@@ -66,7 +66,7 @@ class WorkflowDispatcher(consumers.MessageHandler):
         # Mark the starting tasks as running in the task flow.
         # The task should be marked before actual task execution.
         for task in root_tasks:
-            conductor.update_task_flow_entry(task['id'], states.RUNNING)
+            conductor.update_task_flow(task['id'], states.RUNNING)
 
         # Write the updated workflow state and task flow to the database.
         wf_ex_db.status = conductor.get_workflow_state()

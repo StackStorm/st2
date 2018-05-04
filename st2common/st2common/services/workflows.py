@@ -15,12 +15,15 @@
 
 from __future__ import absolute_import
 
+import retrying
+
 from orchestra import conducting
 from orchestra.specs import loader as specs_loader
 from orchestra import states
 
 from st2common.constants import action as ac_const
 from st2common.exceptions import action as ac_exc
+from st2common.exceptions import workflow as wf_exc
 from st2common import log as logging
 from st2common.models.db import liveaction as lv_db_models
 from st2common.models.db import workflow as wf_db_models
@@ -118,9 +121,9 @@ def request_task_execution(wf_ex_db, task_id, task_spec, task_ctx, st2_ctx):
 
     # Render action execution parameters and setup action execution object.
     ac_ex_params = param_utils.render_live_params(
-        runner_type_db.runner_parameters,
-        action_db.parameters,
-        getattr(task_spec, 'input', {}),
+        runner_type_db.runner_parameters or {},
+        action_db.parameters or {},
+        getattr(task_spec, 'input', None) or {},
         ac_ex_ctx
     )
 
@@ -150,8 +153,21 @@ def handle_action_execution_completion(ac_ex_db):
             '"%s" is in "%s" state.' % (str(ac_ex_db.id), ac_ex_db.status)
         )
 
-    # Instantiate the workflow conductor.
+    # Get related record identifiers.
     wf_ex_id = ac_ex_db.context['orchestra']['workflow_execution_id']
+    task_ex_id = ac_ex_db.context['orchestra']['task_execution_id']
+
+    # Update task execution if completed.
+    update_task_execution(task_ex_id, ac_ex_db.status, ac_ex_db.result)
+
+    # Request the next set of tasks if workflow execution is not complete.
+    request_next_tasks(task_ex_id)
+
+    # Update workflow execution if completed.
+    update_workflow_execution(wf_ex_id)
+
+
+def refresh_conductor(wf_ex_id):
     wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
 
     data = {
@@ -164,42 +180,34 @@ def handle_action_execution_completion(ac_ex_db):
 
     conductor = conducting.WorkflowConductor.deserialize(data)
 
-    # Update task status.
-    task_ex_id = ac_ex_db.context['orchestra']['task_execution_id']
-    task_ex_db = wf_db_access.TaskExecution.get_by_id(task_ex_id)
-    task_ex_db.status = ac_ex_db.status
+    return conductor, wf_ex_db
 
-    if task_ex_db.status in states.COMPLETED_STATES:
-        task_ex_db.end_timestamp = date_utils.get_datetime_utc_now()
 
-    task_ex_db = wf_db_access.TaskExecution.update(task_ex_db, publish=False)
-
-    # Update task flow entry.
-    task = {'id': task_ex_db.task_id, 'name': task_ex_db.task_name}
-    conductor.update_task_flow_entry(task_ex_db.task_id, ac_ex_db.status, result=ac_ex_db.result)
-
-    # If workflow has completed, mark parent execution complete.
-    if conductor.get_workflow_state() in states.COMPLETED_STATES:
-        # Write the updated workflow state and task flow to the database.
-        wf_ex_db.end_timestamp = date_utils.get_datetime_utc_now()
-        wf_ex_db.status = conductor.get_workflow_state()
-        wf_ex_db.outputs = conductor.get_workflow_output()
-        wf_ex_db.flow = conductor.flow.serialize()
-        wf_ex_db = wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
-
-        # Update the corresponding liveaction and action execution for the workflow.
-        wf_ac_ex_db = ex_db_access.ActionExecution.get_by_id(wf_ex_db.action_execution)
-        wf_lv_ac_db = ac_db_util.get_liveaction_by_id(wf_ac_ex_db.liveaction['id'])
-
-        wf_lv_ac_db = ac_db_util.update_liveaction_status(
-            status=wf_ex_db.status,
-            result=wf_ex_db.outputs,
-            end_timestamp=wf_ex_db.end_timestamp,
-            liveaction_db=wf_lv_ac_db)
-
-        wf_ac_ex_db = ex_svc.update_execution(wf_lv_ac_db)
-
+@retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
+def update_task_execution(task_ex_id, ac_ex_status, ac_ex_result):
+    # Return if action execution is not completed.
+    if ac_ex_status not in states.COMPLETED_STATES:
         return
+
+    # Update task execution if action execution is completed.
+    task_ex_db = wf_db_access.TaskExecution.get_by_id(task_ex_id)
+    task_ex_db.status = ac_ex_status
+    task_ex_db.result = ac_ex_result
+    task_ex_db.end_timestamp = date_utils.get_datetime_utc_now()
+    wf_db_access.TaskExecution.update(task_ex_db, publish=False)
+
+
+@retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
+def request_next_tasks(task_ex_id):
+    task_ex_db = wf_db_access.TaskExecution.get_by_id(task_ex_id)
+
+    # Return if task execution is not complete..
+    if task_ex_db.status not in states.COMPLETED_STATES:
+        return
+
+    # Update task flow if task execution is completed.
+    conductor, wf_ex_db = refresh_conductor(task_ex_db.workflow_execution)
+    conductor.update_task_flow(task_ex_db.task_id, task_ex_db.status, result=task_ex_db.result)
 
     # Identify the list of next set of tasks.
     next_tasks = conductor.get_next_tasks(task_ex_db.task_id)
@@ -207,9 +215,10 @@ def handle_action_execution_completion(ac_ex_db):
     # Mark the next tasks as running in the task flow.
     # The task should be marked before actual task execution.
     for task in next_tasks:
-        conductor.update_task_flow_entry(task['id'], states.RUNNING)
+        conductor.update_task_flow(task['id'], states.RUNNING)
 
     # Write the updated workflow state and task flow to the database.
+    wf_ex_db.status = conductor.get_workflow_state()
     wf_ex_db.flow = conductor.flow.serialize()
     wf_ex_db = wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
 
@@ -217,3 +226,31 @@ def handle_action_execution_completion(ac_ex_db):
     for task in next_tasks:
         st2_ctx = {'execution_id': wf_ex_db.action_execution}
         request_task_execution(wf_ex_db, task['id'], task['spec'], task['ctx'], st2_ctx)
+
+
+@retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
+def update_workflow_execution(wf_ex_id):
+    conductor, wf_ex_db = refresh_conductor(wf_ex_id)
+
+    # There is nothing to update if workflow execution is not complete.
+    if conductor.get_workflow_state() not in states.COMPLETED_STATES:
+        return
+
+    # Write the updated workflow state and task flow to the database.
+    wf_ex_db.end_timestamp = date_utils.get_datetime_utc_now()
+    wf_ex_db.status = conductor.get_workflow_state()
+    wf_ex_db.outputs = conductor.get_workflow_output()
+    wf_ex_db.flow = conductor.flow.serialize()
+    wf_ex_db = wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
+
+    # Update the corresponding liveaction and action execution for the workflow.
+    wf_ac_ex_db = ex_db_access.ActionExecution.get_by_id(wf_ex_db.action_execution)
+    wf_lv_ac_db = ac_db_util.get_liveaction_by_id(wf_ac_ex_db.liveaction['id'])
+
+    wf_lv_ac_db = ac_db_util.update_liveaction_status(
+        status=wf_ex_db.status,
+        result=wf_ex_db.outputs,
+        end_timestamp=wf_ex_db.end_timestamp,
+        liveaction_db=wf_lv_ac_db)
+
+    ex_svc.update_execution(wf_lv_ac_db)
