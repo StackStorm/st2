@@ -4,6 +4,12 @@ Changelog
 in development
 --------------
 
+Changed
+~~~~~~~
+
+* Update various Python dependencies to the latest stable versions (gunicorn, gitpython,
+  python-gnupg, tooz, flex). #4110
+
 Fixed
 ~~~~~
 
