@@ -22,7 +22,7 @@ mongoengine==0.12.0
 pymongo==3.6.1
 passlib==1.7.1
 lockfile==0.12.2
-python-gnupg==0.4.1
+python-gnupg==0.4.2
 jsonpath-rw==1.4.0
 pyinotify==0.9.6
 semver==2.7.9
@@ -39,6 +39,9 @@ prompt-toolkit==1.0.15
 tooz==1.62.0
 zake==0.2.2
 routes==2.4.1
-flex==6.12.0
+flex==6.13.1
 webob==1.7.4
 prance==0.9.0
+# test requirements below
+nose-timer>=0.7.2,<0.8
+psutil==5.4.5
