@@ -26,6 +26,19 @@ Fixed
 Changed
 ~~~~~~~
 
+* Update all the service and script entry points to use ``/etc/st2/st2.conf`` as a default value
+  for the config file location.
+
+  This way users don't need to explicitly provide ``--config-file`` CLI argument when running
+  various scripts (e.g. ``st2-track-result``, ``st2-apply-rbac-definitions``, etc.) and when they
+  just want to use a default config file. (improvement) #4111
+
+2.7.1 - April 20, 2018
+----------------------
+
+Changed
+~~~~~~~
+
 * When creating a pack environment during the pack installation, we now pass ``--no-download`` flag
   to the ``virtualenv`` binary. This way version of pip, wheel and distutils which is enforced by
   virtualenv is used instead of downloading the latest stable versions from PyPi.
