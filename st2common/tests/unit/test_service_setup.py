@@ -20,9 +20,13 @@ import tempfile
 import six
 import mock
 
+from oslo_config import cfg
+from oslo_config.cfg import ConfigFilesNotFoundError
+
 from st2common import service_setup
 from st2common.transport.bootstrap_utils import register_exchanges
 from st2common.transport.bootstrap_utils import QUEUES
+from st2common import config as st2common_config
 
 from st2tests.base import CleanFilesTestCase
 from st2tests import config
@@ -57,11 +61,15 @@ format=%(asctime)s %(levelname)s [-] %(message)s
 datefmt=
 """.strip()
 
+MOCK_DEFAULT_CONFIG_FILE_PATH = '/etc/st2/st2.conf-test-patched'
+
+
+def mock_get_logging_config_path():
+    return ''
+
 
 class ServiceSetupTestCase(CleanFilesTestCase):
     def test_no_logging_config_found(self):
-        def mock_get_logging_config_path():
-            return ''
 
         config.get_logging_config_path = mock_get_logging_config_path
 
@@ -112,3 +120,34 @@ class ServiceSetupTestCase(CleanFilesTestCase):
 
         register_exchanges()
         self.assertEqual(mock_declare.call_count, len(QUEUES))
+
+    @mock.patch('st2common.constants.system.DEFAULT_CONFIG_FILE', MOCK_DEFAULT_CONFIG_FILE_PATH)
+    @mock.patch('st2common.config.DEFAULT_CONFIG_FILE', MOCK_DEFAULT_CONFIG_FILE_PATH)
+    def test_service_setup_default_st2_conf_config_is_used(self):
+        st2common_config.get_logging_config_path = mock_get_logging_config_path
+        cfg.CONF.reset()
+
+        # 1. DEFAULT_CONFIG_FILE config path should be used by default (/etc/st2/st2.conf)
+        expected_msg = 'Failed to find some config files: %s' % (MOCK_DEFAULT_CONFIG_FILE_PATH)
+        self.assertRaisesRegexp(ConfigFilesNotFoundError, expected_msg, service_setup.setup,
+                                service='api',
+                                config=st2common_config,
+                                config_args=['--debug'],
+                                setup_db=False, register_mq_exchanges=False,
+                                register_signal_handlers=False,
+                                register_internal_trigger_types=False,
+                                run_migrations=False)
+
+        cfg.CONF.reset()
+
+        # 2. --config-file should still override default config file path option
+        config_file_path = '/etc/st2/config.override.test'
+        expected_msg = 'Failed to find some config files: %s' % (config_file_path)
+        self.assertRaisesRegexp(ConfigFilesNotFoundError, expected_msg, service_setup.setup,
+                                service='api',
+                                config=st2common_config,
+                                config_args=['--config-file', config_file_path],
+                                setup_db=False, register_mq_exchanges=False,
+                                register_signal_handlers=False,
+                                register_internal_trigger_types=False,
+                                run_migrations=False)
