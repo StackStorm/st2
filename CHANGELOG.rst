@@ -13,6 +13,25 @@ Added
 Changed
 ~~~~~~~
 
+* Update various Python dependencies to the latest stable versions (gunicorn, gitpython,
+  python-gnupg, tooz, flex). #4110
+
+Fixed
+~~~~~
+
+* Fix an issue (race condition) which would result in not all the remote LDAP groups being
+  synchronized with local RBAC roles if a user tried to authenticate with the same auth token
+  concurrently in a short time frame.
+
+  Note: This issue only affects users who utilize RBAC with remote LDAP groups to local RBAC
+  roles synchronization feature enabled. (bug fix) #4103 #4105
+
+2.7.1 - April 20, 2018
+----------------------
+
+Changed
+~~~~~~~
+
 * When creating a pack environment during the pack installation, we now pass ``--no-download`` flag
   to the ``virtualenv`` binary. This way version of pip, wheel and distutils which is enforced by
   virtualenv is used instead of downloading the latest stable versions from PyPi.
