@@ -54,7 +54,7 @@ class Timer(object):
         assert isinstance(key, str)
         assert len(key) > 0
         self.key = key
-        self._metrics = _METRICS
+        self._metrics = get_driver()
         self._start_time = None
 
     def send_time(self, key=None):
@@ -95,7 +95,7 @@ class Counter(object):
         assert isinstance(key, str)
         assert key
         self.key = key
-        self._metrics = _METRICS
+        self._metrics = get_driver()
 
     def __enter__(self):
         self._metrics.inc_counter(self.key)
@@ -120,7 +120,7 @@ class CounterWithTimer(object):
         assert isinstance(key, str)
         assert key
         self.key = key
-        self._metrics = _METRICS
+        self._metrics = get_driver()
         self._start_time = None
 
     def send_time(self, key=None):
@@ -171,4 +171,7 @@ def metrics_initialize():
 def get_driver():
     """Return metrics driver instance
     """
+    if not _METRICS:
+        return metrics_initialize()
+
     return _METRICS
