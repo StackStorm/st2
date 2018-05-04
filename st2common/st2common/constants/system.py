@@ -21,14 +21,14 @@ from st2common import __version__
 
 __all__ = [
     'VERSION_STRING',
-    'DEFAULT_CONFIG_FILE',
+    'DEFAULT_CONFIG_FILE_PATH',
 
     'API_URL_ENV_VARIABLE_NAME',
     'AUTH_TOKEN_ENV_VARIABLE_NAME',
 ]
 
 VERSION_STRING = 'StackStorm v%s' % (__version__)
-DEFAULT_CONFIG_FILE = os.environ.get('ST2_CONFIG_PATH', '/etc/st2/st2.conf')
+DEFAULT_CONFIG_FILE_PATH = os.environ.get('ST2_CONFIG_PATH', '/etc/st2/st2.conf')
 
 API_URL_ENV_VARIABLE_NAME = 'ST2_API_URL'
 AUTH_TOKEN_ENV_VARIABLE_NAME = 'ST2_AUTH_TOKEN'

@@ -22,7 +22,7 @@ from oslo_config import cfg
 from distutils.spawn import find_executable
 
 from st2common.constants.system import VERSION_STRING
-from st2common.constants.system import DEFAULT_CONFIG_FILE
+from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
 from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_LOG_LEVEL
 
 
@@ -395,4 +395,4 @@ def register_opts(ignore_errors=False):
 def parse_args(args=None):
     register_opts()
     cfg.CONF(args=args, version=VERSION_STRING,
-             default_config_files=[DEFAULT_CONFIG_FILE])
+             default_config_files=[DEFAULT_CONFIG_FILE_PATH])
