@@ -1,9 +1,9 @@
 coverage
 pep8==1.7.0
-flake8==3.3.0
-astroid==1.4.9
-pylint==1.6.5
-pylint-plugin-utils>=0.2.3,<0.3
+flake8==3.5.0
+astroid==1.6.3
+pylint==1.8.4
+pylint-plugin-utils>=0.2.6,<0.3
 bandit>=1.0.1,<1.1
 ipython<6.0.0
 mock==2.0.0
@@ -23,5 +23,5 @@ RandomWords
 gunicorn==19.7.1
 psutil
 webtest==2.0.25
-rstcheck>=3.1.0,<3.2
+rstcheck>=3.3.0,<3.4
 pyrabbit

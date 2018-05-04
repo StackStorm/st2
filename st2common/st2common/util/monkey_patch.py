@@ -61,7 +61,7 @@ def use_select_poll_workaround():
 
         if sys.version_info >= (3, 6, 5):
             # If we also don't patch selectors.select, it will fail with Python >= 3.6.5
-            import selectors
+            import selectors  # pylint: disable=import-error
 
             sys.modules['selectors'] = selectors
             selectors.select = sys.modules['select']
