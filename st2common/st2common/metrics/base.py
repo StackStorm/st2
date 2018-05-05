@@ -160,6 +160,7 @@ class CounterWithTimer(object):
 def metrics_initialize():
     """Initialize metrics constant
     """
+    global _METRICS
     try:
         _METRICS = get_plugin_instance(PLUGIN_NAMESPACE, cfg.CONF.metrics.driver)()
     except (NoMatches, MultipleMatches, NoSuchOptError):
