@@ -1,8 +1,8 @@
-[![StackStorm](https://github.com/stackstorm/st2/raw/master/stackstorm_logo.png)](http://www.stackstorm.com)
+[![StackStorm](https://github.com/stackstorm/st2/raw/master/stackstorm_logo.png)](https://www.stackstorm.com)
 
 **StackStorm** is a platform for integration and automation across services and tools, taking actions in response to events. Learn more at [www.stackstorm.com](http://www.stackstorm.com/product).
 
-[![Tests Build Status](https://travis-ci.org/StackStorm/st2.svg?branch=master)](https://travis-ci.org/StackStorm/st2) [![Packages Build Status](https://circleci.com/gh/StackStorm/st2/tree/master.svg?style=shield)](https://circleci.com/gh/StackStorm/st2) [![Codecov](https://codecov.io/github/StackStorm/st2/badge.svg?branch=master&service=github)](https://codecov.io/github/StackStorm/st2?branch=master) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/StackStorm/st2/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/StackStorm/st2/?branch=master) ![Python 2.7](https://img.shields.io/badge/python-2.7-blue.svg) [![Join our community Slack](https://stackstorm-community.herokuapp.com/badge.svg)](https://stackstorm.com/community-signup) [![IRC](https://img.shields.io/irc/%23stackstorm.png)](http://webchat.freenode.net/?channels=stackstorm)
+[![Tests Build Status](https://travis-ci.org/StackStorm/st2.svg?branch=master)](https://travis-ci.org/StackStorm/st2) [![Packages Build Status](https://circleci.com/gh/StackStorm/st2/tree/master.svg?style=shield)](https://circleci.com/gh/StackStorm/st2) [![Codecov](https://codecov.io/github/StackStorm/st2/badge.svg?branch=master&service=github)](https://codecov.io/github/StackStorm/st2?branch=master) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/StackStorm/st2/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/StackStorm/st2/?branch=master) ![Python 2.7](https://img.shields.io/badge/python-2.7-blue.svg) [![Join our community Slack](https://stackstorm-community.herokuapp.com/badge.svg)](https://stackstorm.com/community-signup) [![Forum](https://img.shields.io/discourse/https/forum.stackstorm.com/posts.svg)](https://forum.stackstorm.com/)
 
 ---
 
@@ -14,7 +14,8 @@
    curl -sSL https://stackstorm.com/packages/install.sh | bash -s -- --user=st2admin --password=Ch@ngeMe
    ```
 * Read the docs: [https://docs.stackstorm.com/index.html](https://docs.stackstorm.com/install/index.html)
-* Join `stackstorm-community` Slack to talk to the core team and like-minded automators: https://stackstorm.com/community-signup
+* Questions? Check out [forum.stackstorm.com](https://forum.stackstorm.com/)
+* Or join our [Slack community](https://stackstorm.com/community-signup)
 
 ## StackStorm Overview
 
@@ -60,14 +61,14 @@ StackStorm is new and under active development. We are opening it early to engag
 
 ## Documentation
 
-Additional documentation describing installation proceduces, action/rule/workflow authoring, and how to setup and use triggers/sensors can be found at [StackStorm Docs](http://docs.stackstorm.com).
+Additional documentation describing installation proceduces, action/rule/workflow authoring, and how to setup and use triggers/sensors can be found at [StackStorm Docs](https://docs.stackstorm.com).
 
 ## Hacking / Contributing
 
 To set up dev environment and run StackStorm from sources, follow [these instructions](https://docs.stackstorm.com/development/sources.html).
 
 For information on how to contribute, style guide, coding conventions and more,
-please visit the [Development section](http://docs.stackstorm.com/development/index.html)
+please visit the [Development section](https://docs.stackstorm.com/development/index.html)
 in our documentation.
 
 ## Copyright, License, and Contributors Agreement
