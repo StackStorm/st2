@@ -19,12 +19,14 @@ from oslo_config import cfg, types
 from st2common import config as st2cfg
 from st2common.constants.sensors import DEFAULT_PARTITION_LOADER
 from st2common.constants.system import VERSION_STRING
+from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
 
 CONF = cfg.CONF
 
 
 def parse_args(args=None):
-    CONF(args=args, version=VERSION_STRING)
+    cfg.CONF(args=args, version=VERSION_STRING,
+             default_config_files=[DEFAULT_CONFIG_FILE_PATH])
 
 
 def register_opts(ignore_errors=False):
