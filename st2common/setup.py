@@ -66,6 +66,7 @@ setup(
     entry_points={
         'st2common.metrics.driver': [
             'statsd = st2common.metrics.drivers.statsd_driver:StatsdDriver',
+            'noop = st2common.metrics.drivers.noop_driver:NoopDriver',
         ],
     }
 )

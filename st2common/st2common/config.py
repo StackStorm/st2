@@ -392,9 +392,7 @@ def register_opts(ignore_errors=False):
 
     # Metrics Options stream options
     metrics_opts = [
-        cfg.BoolOpt('enable', default=False,
-                    help='Enable metrics collection.'),
-        cfg.StrOpt('driver', default='statsd',
+        cfg.StrOpt('driver', default='noop',
                    help='Driver type for metrics collection.'),
         cfg.StrOpt('host', default='127.0.0.1',
                    help='Destination server to connect to if driver requires connection.'),

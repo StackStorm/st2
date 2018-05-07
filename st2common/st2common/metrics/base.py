@@ -162,7 +162,7 @@ def metrics_initialize():
     """
     global _METRICS
     try:
-        _METRICS = get_plugin_instance(PLUGIN_NAMESPACE, cfg.CONF.metrics.driver)()
+        _METRICS = get_plugin_instance(PLUGIN_NAMESPACE, cfg.CONF.metrics.driver)
     except (NoMatches, MultipleMatches, NoSuchOptError):
         _METRICS = BaseMetricsDriver()
 

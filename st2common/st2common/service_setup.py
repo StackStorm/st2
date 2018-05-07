@@ -127,8 +127,7 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
     if run_migrations:
         run_all_rbac_migrations()
 
-    if cfg.CONF.metrics.enable:
-        metrics_initialize()
+    metrics_initialize()
 
 
 def teardown():

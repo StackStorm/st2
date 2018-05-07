@@ -183,10 +183,8 @@ cluster_urls =  # comma separated list allowed here.
 [metrics]
 # Destination server to connect to if driver requires connection.
 host = 127.0.0.1
-# Enable metrics collection.
-enable = False
 # Driver type for metrics collection.
-driver = statsd
+driver = noop
 # Destination port to connect to if driver requires connection.
 port = 8125
 
