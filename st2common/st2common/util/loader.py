@@ -275,5 +275,5 @@ def get_plugin_instance(namespace, name):
     """
     from stevedore.driver import DriverManager
 
-    manager = DriverManager(namespace=namespace, name=name)
+    manager = DriverManager(namespace=namespace, name=name, invoke_on_load=True)
     return manager.driver

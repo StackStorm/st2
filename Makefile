@@ -275,6 +275,9 @@ requirements: virtualenv .sdist-requirements
 	# new version of requests) which we cant resolve at this moment
 	$(VIRTUALENV_DIR)/bin/pip install "prance==0.6.1"
 
+	# Install st2common to register metrics drivers
+	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py install)
+
 	# Some of the tests rely on submodule so we need to make sure submodules are check out
 	git submodule update --init --recursive
 
