@@ -19,6 +19,7 @@ Fixed
 
   Note: This issue only affects users who utilize RBAC with remote LDAP groups to local RBAC
   roles synchronization feature enabled. (bug fix) #4103 #4105
+* Throw if ``id`` CLI argument is not passed to the ``st2-track-result`` script. (bug fix) #4115
 
 2.7.1 - April 20, 2018
 ----------------------
