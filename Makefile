@@ -278,7 +278,6 @@ requirements: virtualenv .sdist-requirements
 	# Some of the tests rely on submodule so we need to make sure submodules are check out
 	git submodule update --init --recursive
 
-
 .PHONY: virtualenv
 	# Note: We always want to update virtualenv/bin/activate file to make sure
 	# PYTHONPATH is up to date and to avoid caching issues on Travis
