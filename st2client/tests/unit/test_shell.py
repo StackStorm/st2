@@ -60,6 +60,15 @@ class ShellTestCase(base.BaseCLITestCase):
         super(ShellTestCase, self).__init__(*args, **kwargs)
         self.shell = Shell()
 
+    def setUp(self):
+        super(ShellTestCase, self).setUp()
+
+        if six.PY3:
+            # In python --version outputs to stdout and in 2.x to stderr
+            self.version_output = self.stdout
+        else:
+            self.version_output = self.stderr
+
     def test_commands_usage_and_help_strings(self):
         # No command, should print out user friendly usage / help string
         self.assertEqual(self.shell.run([]), 2)
@@ -371,8 +380,8 @@ class ShellTestCase(base.BaseCLITestCase):
         shell = Shell()
         shell.parser.parse_args(args=['--version'])
 
-        self.stderr.seek(0)
-        stderr = self.stderr.read()
+        self.version_output.seek(0)
+        stderr = self.version_output.read()
         self.assertTrue('v2.8.0, on Python' in stderr)
 
     @mock.patch('sys.exit', mock.Mock())
@@ -383,10 +392,10 @@ class ShellTestCase(base.BaseCLITestCase):
         st2client.shell.PACKAGE_METADATA_FILE_PATH = package_metadata_path
 
         shell = Shell()
-        shell.parser.parse_args(args=['--version'])
+        shell.run(argv=['--version'])
 
-        self.stderr.seek(0)
-        stderr = self.stderr.read()
+        self.version_output.seek(0)
+        stderr = self.version_output.read()
         self.assertTrue('v2.8.0, on Python' in stderr)
 
     @mock.patch('sys.exit', mock.Mock())
@@ -398,8 +407,8 @@ class ShellTestCase(base.BaseCLITestCase):
         shell = Shell()
         shell.parser.parse_args(args=['--version'])
 
-        self.stderr.seek(0)
-        stderr = self.stderr.read()
+        self.version_output.seek(0)
+        stderr = self.version_output.read()
         self.assertTrue('v2.9dev, on Python' in stderr)
 
     @mock.patch('sys.exit', mock.Mock())
@@ -413,8 +422,8 @@ class ShellTestCase(base.BaseCLITestCase):
         shell = Shell()
         shell.parser.parse_args(args=['--version'])
 
-        self.stderr.seek(0)
-        stderr = self.stderr.read()
+        self.version_output.seek(0)
+        stderr = self.version_output.read()
         self.assertTrue('v2.9dev (abcdefg), on Python' in stderr)
 
     def _write_mock_package_metadata_file(self):
