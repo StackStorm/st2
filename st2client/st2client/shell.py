@@ -22,12 +22,14 @@ Command-line interface to StackStorm.
 from __future__ import print_function
 from __future__ import absolute_import
 
+import os
 import sys
 import argcomplete
 import argparse
 import logging
 
 import six
+from six.moves.configparser import ConfigParser
 
 from st2client import __version__
 from st2client import models
@@ -73,6 +75,40 @@ For example:
     %(prog)s --debug run core.local cmd=date
 """.strip()
 
+PACKAGE_METADATA_FILE_PATH = '/opt/stackstorm/st2/package.meta'
+
+
+def get_stackstorm_version():
+    """
+    Return StackStorm version including git commit revision if running a dev release and a file
+    with package metadata which includes git revision is available.
+
+    :rtype: ``str``
+    """
+    if 'dev' in __version__:
+        version = __version__
+
+        if not os.path.isfile(PACKAGE_METADATA_FILE_PATH):
+            return version
+
+        config = ConfigParser()
+
+        try:
+            config.read(PACKAGE_METADATA_FILE_PATH)
+        except Exception:
+            return version
+
+        try:
+            git_revision = config.get('server', 'git_sha')
+        except Exception:
+            return version
+
+        version = '%s (%s)' % (version, git_revision)
+    else:
+        version = __version__
+
+    return version
+
 
 class Shell(BaseCLIApp):
     LOG = LOGGER
@@ -93,10 +129,11 @@ class Shell(BaseCLIApp):
         self.parser.add_argument(
             '--version',
             action='version',
-            version='%(prog)s {version}, on Python {python_major}.{python_minor}'.format(
-                version=__version__,
-                python_major=sys.version_info.major,
-                python_minor=sys.version_info.minor))
+            version='%(prog)s {version}, on Python {python_major}.{python_minor}.{python_patch}'
+                    .format(version=get_stackstorm_version(),
+                            python_major=sys.version_info.major,
+                            python_minor=sys.version_info.minor,
+                            python_patch=sys.version_info.micro))
 
         self.parser.add_argument(
             '--url',

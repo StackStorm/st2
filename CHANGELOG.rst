@@ -4,6 +4,12 @@ Changelog
 in development
 --------------
 
+Added
+~~~~~
+
+* When running a dev (unstable) release include git revision hash in the output when using
+  ``st2 --version`` CLI command. (new feature) #4117
+
 Changed
 ~~~~~~~
 
