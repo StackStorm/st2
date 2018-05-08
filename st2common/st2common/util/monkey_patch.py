@@ -45,17 +45,35 @@ def monkey_patch():
     eventlet.monkey_patch(os=True, select=True, socket=True, thread=patch_thread, time=True)
 
 
-def use_select_poll_workaround():
+def use_select_poll_workaround(nose_only=True):
     """
-    Work around for some tests which injects original select module with select.poll()
-    available to sys.modules.
+    Work around for eventlet monkey patched code which relies on select.poll() functionality
+    which is blocking and not green / async.
+
+    Keep in mind that this was always the case in old eventlet versions, but v0.20.0 removed
+    select.poll() to avoid users shooting themselves in the foot and rely on blocking code.
+
+    This code inserts original blocking select.poll() into the sys.modules so it can be used
+    where needed.
+
+    Keep in mind that this code should only be uses in scenarios where blocking is not a problem.
+
+    For example:
+
+    1) Inside tests which rely on subprocess.poll() / select.poll().
+    2) Inside code which relies on 3rd party libraries which use select.poll() and are ran
+       inside a subprocess so blocking is not an issue (e.g. actions, sensors).
+
+    :param nose_only: True to only perform monkey patch when running tests under nose tests
+                      runner.
+    :type nose_only: ``bool``
     """
     import sys
     import subprocess
     import eventlet
 
     # Work around to get tests to pass with eventlet >= 0.20.0
-    if 'nose' in sys.modules.keys():
+    if not nose_only or (nose_only and'nose' in sys.modules.keys()):
         sys.modules['select'] = eventlet.patcher.original('select')
         subprocess.select = eventlet.patcher.original('select')
 
