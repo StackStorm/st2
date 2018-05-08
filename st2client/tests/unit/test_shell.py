@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 import time
 import datetime
@@ -25,6 +26,7 @@ import six
 import mock
 import unittest2
 
+import st2client
 from st2client.shell import Shell
 from st2client.client import Client
 from st2client.utils import httpclient
@@ -43,13 +45,29 @@ username = foo
 password = bar
 """
 
+MOCK_PACKAGE_METADATA = """
+[server]
+version = 2.8dev
+git_sha = abcdefg
+circle_build_url = https://circleci.com/gh/StackStorm/st2/7213
+"""
 
-class TestShell(base.BaseCLITestCase):
+
+class ShellTestCase(base.BaseCLITestCase):
     capture_output = True
 
     def __init__(self, *args, **kwargs):
-        super(TestShell, self).__init__(*args, **kwargs)
+        super(ShellTestCase, self).__init__(*args, **kwargs)
         self.shell = Shell()
+
+    def setUp(self):
+        super(ShellTestCase, self).setUp()
+
+        if six.PY3:
+            # In python --version outputs to stdout and in 2.x to stderr
+            self.version_output = self.stdout
+        else:
+            self.version_output = self.stderr
 
     def test_commands_usage_and_help_strings(self):
         # No command, should print out user friendly usage / help string
@@ -353,6 +371,68 @@ class TestShell(base.BaseCLITestCase):
             ['trigger', 'delete', 'abc']
         ]
         self._validate_parser(args_list)
+
+    @mock.patch('sys.exit', mock.Mock())
+    @mock.patch('st2client.shell.__version__', 'v2.8.0')
+    def test_get_version_no_package_metadata_file_stable_version(self):
+        # stable version, package metadata file doesn't exist on disk - no git revision should be
+        # included
+        shell = Shell()
+        shell.parser.parse_args(args=['--version'])
+
+        self.version_output.seek(0)
+        stderr = self.version_output.read()
+        self.assertTrue('v2.8.0, on Python' in stderr)
+
+    @mock.patch('sys.exit', mock.Mock())
+    @mock.patch('st2client.shell.__version__', 'v2.8.0')
+    def test_get_version_package_metadata_file_exists_stable_version(self):
+        # stable version, package metadata file exists on disk - no git revision should be included
+        package_metadata_path = self._write_mock_package_metadata_file()
+        st2client.shell.PACKAGE_METADATA_FILE_PATH = package_metadata_path
+
+        shell = Shell()
+        shell.run(argv=['--version'])
+
+        self.version_output.seek(0)
+        stderr = self.version_output.read()
+        self.assertTrue('v2.8.0, on Python' in stderr)
+
+    @mock.patch('sys.exit', mock.Mock())
+    @mock.patch('st2client.shell.__version__', 'v2.9dev')
+    @mock.patch('st2client.shell.PACKAGE_METADATA_FILE_PATH', '/tmp/doesnt/exist.1')
+    def test_get_version_no_package_metadata_file_dev_version(self):
+        # dev version, package metadata file doesn't exist on disk - no git revision should be
+        # included since package metadata file doesn't exist on disk
+        shell = Shell()
+        shell.parser.parse_args(args=['--version'])
+
+        self.version_output.seek(0)
+        stderr = self.version_output.read()
+        self.assertTrue('v2.9dev, on Python' in stderr)
+
+    @mock.patch('sys.exit', mock.Mock())
+    @mock.patch('st2client.shell.__version__', 'v2.9dev')
+    def test_get_version_package_metadata_file_exists_dev_version(self):
+        # dev version, package metadata file exists on disk - git revision should be included
+        # since package metadata file exists on disk and contains server.git_sha attribute
+        package_metadata_path = self._write_mock_package_metadata_file()
+        st2client.shell.PACKAGE_METADATA_FILE_PATH = package_metadata_path
+
+        shell = Shell()
+        shell.parser.parse_args(args=['--version'])
+
+        self.version_output.seek(0)
+        stderr = self.version_output.read()
+        self.assertTrue('v2.9dev (abcdefg), on Python' in stderr)
+
+    def _write_mock_package_metadata_file(self):
+        _, package_metadata_path = tempfile.mkstemp()
+
+        with open(package_metadata_path, 'w') as fp:
+            fp.write(MOCK_PACKAGE_METADATA)
+
+        return package_metadata_path
 
 
 class CLITokenCachingTestCase(unittest2.TestCase):
