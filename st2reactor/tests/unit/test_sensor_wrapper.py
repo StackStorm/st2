@@ -136,3 +136,11 @@ class SensorWrapperTestCase(unittest2.TestCase):
             self.assertTrue('line 5, in <module>' in str(e))
         else:
             self.fail('NameError not thrown')
+
+    def test_sensor_wrapper_poll_method_still_works(self):
+        # Verify that sensor wrapper correctly applied select.poll() eventlet workaround so code
+        # which relies on select.poll() such as subprocess.poll() still works
+        # Note: If workaround is not applied "AttributeError: 'module' object has no attribute
+        # 'poll'" will be thrown
+        import select
+        self.assertTrue(select.poll())
