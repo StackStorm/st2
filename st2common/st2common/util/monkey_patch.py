@@ -69,13 +69,18 @@ def use_select_poll_workaround(nose_only=True):
     :type nose_only: ``bool``
     """
     import sys
+    import select
     import subprocess
     import eventlet
 
     # Work around to get tests to pass with eventlet >= 0.20.0
     if not nose_only or (nose_only and'nose' in sys.modules.keys()):
-        sys.modules['select'] = eventlet.patcher.original('select')
-        subprocess.select = eventlet.patcher.original('select')
+        # Add back blocking poll() to eventlet monkeypatched select
+        original_poll = eventlet.patcher.original('select').poll
+        select.poll = original_poll
+
+        sys.modules['select'] = select
+        subprocess.select = select
 
         if sys.version_info >= (3, 6, 5):
             # If we also don't patch selectors.select, it will fail with Python >= 3.6.5
