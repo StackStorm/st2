@@ -13,23 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import six
-
 from tests.unit.controllers.v1.test_rules_rbac import BaseRuleControllerRBACTestCase
-
-http_client = six.moves.http_client
 
 __all__ = [
     'RuleViewsControllerRBACTestCase'
 ]
-
-FIXTURES_PACK = 'generic'
-TEST_FIXTURES = {
-    'runners': ['testrunner1.yaml'],
-    'actions': ['action1.yaml', 'local.yaml'],
-    'triggers': ['trigger1.yaml'],
-    'triggertypes': ['triggertype1.yaml']
-}
 
 
 class RuleViewsControllerRBACTestCase(BaseRuleControllerRBACTestCase):
