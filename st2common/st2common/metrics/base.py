@@ -22,6 +22,7 @@ from stevedore.exception import NoMatches, MultipleMatches
 from st2common.constants.metrics import METRICS_COUNTER_SUFFIX, METRICS_TIMER_SUFFIX
 from st2common.util.loader import get_plugin_instance
 from st2common.util.date import get_datetime_utc_now
+from st2common.exceptions.plugins import PluginLoadError
 
 
 PLUGIN_NAMESPACE = 'st2common.metrics.driver'
@@ -163,8 +164,8 @@ def metrics_initialize():
     global METRICS
     try:
         METRICS = get_plugin_instance(PLUGIN_NAMESPACE, cfg.CONF.metrics.driver)
-    except (NoMatches, MultipleMatches, NoSuchOptError):
-        METRICS = BaseMetricsDriver()
+    except (NoMatches, MultipleMatches, NoSuchOptError) as error:
+        raise PluginLoadError('Error loading metrics driver. Check configuration: %s', error)
 
     return METRICS
 

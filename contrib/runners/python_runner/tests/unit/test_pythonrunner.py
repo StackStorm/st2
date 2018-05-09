@@ -22,6 +22,11 @@ import sys
 import six
 import mock
 import unittest2
+
+from st2common.config import register_opts
+
+register_opts()
+
 from oslo_config import cfg
 
 from python_runner import python_runner

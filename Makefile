@@ -260,6 +260,9 @@ requirements: virtualenv .sdist-requirements
 	# Generate all requirements to support current CI pipeline.
 	$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv -s st2*/in-requirements.txt -f fixed-requirements.txt -o requirements.txt
 
+	# Install st2common package to load drivers defined in st2common setup.py
+	(cd st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop)
+
 	# Fix for Travis CI race
 	$(VIRTUALENV_DIR)/bin/pip install "six==1.11.0"
 

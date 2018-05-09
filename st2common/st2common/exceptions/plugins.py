@@ -17,5 +17,9 @@ from __future__ import absolute_import
 from st2common.exceptions import StackStormPluginException
 
 
+class PluginLoadError(StackStormPluginException):
+    pass
+
+
 class IncompatiblePluginException(StackStormPluginException):
     pass

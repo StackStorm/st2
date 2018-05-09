@@ -28,6 +28,10 @@ __all__ = [
     'TestBaseMetricsDriver'
 ]
 
+cfg.CONF.set_override('driver', 'noop', group='metrics')
+cfg.CONF.set_override('host', '127.0.0.1', group='metrics')
+cfg.CONF.set_override('port', 8080, group='metrics')
+
 
 class TestBaseMetricsDriver(unittest2.TestCase):
     _driver = None
@@ -117,7 +121,7 @@ class TestStatsDMetricsDriver(unittest2.TestCase):
 
 
 class TestCounterContextManager(unittest2.TestCase):
-    @patch('st2common.metrics.base._METRICS')
+    @patch('st2common.metrics.base.METRICS')
     def test_counter(self, metrics_patch):
         test_key = "test_key"
         with base.Counter(test_key):
@@ -128,7 +132,7 @@ class TestCounterContextManager(unittest2.TestCase):
 
 class TestTimerContextManager(unittest2.TestCase):
     @patch('st2common.metrics.base.get_datetime_utc_now')
-    @patch('st2common.metrics.base._METRICS')
+    @patch('st2common.metrics.base.METRICS')
     def test_time(self, metrics_patch, datetime_patch):
         start_time = get_datetime_utc_now()
         middle_time = start_time + timedelta(seconds=1)
@@ -173,7 +177,7 @@ class TestCounterWithTimerContextManager(unittest2.TestCase):
         self.end_time = self.middle_time + timedelta(seconds=1)
 
     @patch('st2common.metrics.base.get_datetime_utc_now')
-    @patch('st2common.metrics.base._METRICS')
+    @patch('st2common.metrics.base.METRICS')
     def test_time(self, metrics_patch, datetime_patch):
         datetime_patch.side_effect = [
             self.start_time,
@@ -215,7 +219,7 @@ class TestCounterWithTimerContextManager(unittest2.TestCase):
 
 class TestCounterWithTimerDecorator(unittest2.TestCase):
     @patch('st2common.metrics.base.get_datetime_utc_now')
-    @patch('st2common.metrics.base._METRICS')
+    @patch('st2common.metrics.base.METRICS')
     def test_time(self, metrics_patch, datetime_patch):
         start_time = get_datetime_utc_now()
         middle_time = start_time + timedelta(seconds=1)
@@ -264,7 +268,7 @@ class TestCounterWithTimerDecorator(unittest2.TestCase):
 
 
 class TestCounterDecorator(unittest2.TestCase):
-    @patch('st2common.metrics.base._METRICS')
+    @patch('st2common.metrics.base.METRICS')
     def test_counter(self, metrics_patch):
         test_key = "test_key"
 
@@ -278,7 +282,7 @@ class TestCounterDecorator(unittest2.TestCase):
 
 class TestTimerDecorator(unittest2.TestCase):
     @patch('st2common.metrics.base.get_datetime_utc_now')
-    @patch('st2common.metrics.base._METRICS')
+    @patch('st2common.metrics.base.METRICS')
     def test_time(self, metrics_patch, datetime_patch):
         start_time = get_datetime_utc_now()
         middle_time = start_time + timedelta(seconds=1)
