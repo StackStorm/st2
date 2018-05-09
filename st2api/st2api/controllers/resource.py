@@ -26,6 +26,7 @@ from six.moves import http_client
 from st2common import log as logging
 from st2common.models.system.common import ResourceReference
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.exceptions.rbac import ResourceAccessDeniedPermissionIsolationError
 from st2common.rbac import utils as rbac_utils
 from st2common.exceptions.rbac import AccessDeniedError
 from st2common.util import schema as util_schema
@@ -209,10 +210,12 @@ class ResourceController(object):
         from_model_kwargs = from_model_kwargs or {}
         from_model_kwargs.update(self.from_model_kwargs)
 
-        result = []
-        for instance in instances[offset:eop]:
-            item = self.model.from_model(instance, **from_model_kwargs)
-            result.append(item)
+        result = self.resources_model_filter(model=self.model,
+                                             instances=instances,
+                                             offset=offset,
+                                             eop=eop,
+                                             requester_user=requester_user,
+                                             **from_model_kwargs)
 
         resp = Response(json=result)
         resp.headers['X-Total-Count'] = str(instances.count())
@@ -221,6 +224,25 @@ class ResourceController(object):
             resp.headers['X-Limit'] = str(limit)
 
         return resp
+
+    def resources_model_filter(self, model, instances, requester_user=None, offset=0, eop=0,
+                              **from_model_kwargs):
+        """
+        Method which converts DB objects to API objects and performs any additional filtering.
+        """
+
+        result = []
+        for instance in instances[offset:eop]:
+            item = model.from_model(instance, **from_model_kwargs)
+            result.append(item)
+        return result
+
+    def resource_model_filter(self, model, instance, requester_user=None, **from_model_kwargs):
+        """
+        Method which converts DB object to API object and performs any additional filtering.
+        """
+        item = model.from_model(instance, **from_model_kwargs)
+        return item
 
     def _get_one_by_id(self, id, requester_user, permission_type, exclude_fields=None,
                        from_model_kwargs=None):
@@ -242,7 +264,17 @@ class ResourceController(object):
 
         from_model_kwargs = from_model_kwargs or {}
         from_model_kwargs.update(self.from_model_kwargs)
-        result = self.model.from_model(instance, **from_model_kwargs)
+
+        result = self.resource_model_filter(model=self.model, instance=instance,
+                                            requester_user=requester_user,
+                                            **from_model_kwargs)
+
+        if not result:
+            LOG.debug('Not returning the result because RBAC resource isolation is enabled and '
+                      'current user doesn\'t match the resource user')
+            raise ResourceAccessDeniedPermissionIsolationError(user_db=requester_user,
+                                                               resource_api_or_db=instance,
+                                                               permission_type=permission_type)
 
         return result
 
@@ -368,6 +400,61 @@ class ResourceController(object):
         return exclude_fields
 
 
+class BaseResourceIsolationControllerMixin(object):
+    """
+    Base API controller which isolates resources for users. Users can only see their own resources.
+
+    Exceptions include admin and system user which can view all the resources (also for other
+    users).
+    """
+
+    def resources_model_filter(self, model, instances, requester_user=None, offset=0, eop=0,
+                              **from_model_kwargs):
+        # RBAC or permission isolation is disabled, bail out
+        if not (cfg.CONF.rbac.enable and cfg.CONF.rbac.permission_isolation):
+            result = super(BaseResourceIsolationControllerMixin, self).resources_model_filter(
+                model=model, instances=instances, requester_user=requester_user,
+                offset=offset, eop=eop, **from_model_kwargs)
+
+            return result
+
+        result = []
+        for instance in instances[offset:eop]:
+            item = self.resource_model_filter(model=model, instance=instance,
+                                              requester_user=requester_user, **from_model_kwargs)
+
+            if not item:
+                continue
+
+            result.append(item)
+
+        return result
+
+    def resource_model_filter(self, model, instance, requester_user=None, **from_model_kwargs):
+        # RBAC or permission isolation is disabled, bail out
+        if not (cfg.CONF.rbac.enable and cfg.CONF.rbac.permission_isolation):
+            result = super(BaseResourceIsolationControllerMixin, self).resource_model_filter(
+                model=model, instance=instance, requester_user=requester_user,
+                **from_model_kwargs)
+
+            return result
+
+        user_is_admin = rbac_utils.user_is_admin(user_db=requester_user)
+        user_is_system_user = (requester_user.name == cfg.CONF.system_user.user)
+
+        item = model.from_model(instance, **from_model_kwargs)
+
+        # Admin users and system users can view all the resoruces
+        if user_is_admin or user_is_system_user:
+            return item
+
+        user = item.context.get('user', None)
+        if user and (user == requester_user.name):
+            return item
+
+        return None
+
+
 class ContentPackResourceController(ResourceController):
     include_reference = False
 
@@ -390,9 +477,21 @@ class ContentPackResourceController(ResourceController):
                                                               resource_db=instance,
                                                               permission_type=permission_type)
 
+        # Perform resource isolation check (if supported)
         from_model_kwargs = from_model_kwargs or {}
         from_model_kwargs.update(self.from_model_kwargs)
-        result = self.model.from_model(instance, **from_model_kwargs)
+
+        result = self.resource_model_filter(model=self.model, instance=instance,
+                                            requester_user=requester_user,
+                                            **from_model_kwargs)
+
+        if not result:
+            LOG.debug('Not returning the result because RBAC resource isolation is enabled and '
+                      'current user doesn\'t match the resource user')
+            raise ResourceAccessDeniedPermissionIsolationError(user_db=requester_user,
+                                                               resource_api_or_db=instance,
+                                                               permission_type=permission_type)
+
         if result and self.include_reference:
             pack = getattr(result, 'pack', None)
             name = getattr(result, 'name', None)

@@ -168,6 +168,16 @@ class BaseAPIControllerWithRBACTestCase(BaseFunctionalTest, CleanDbTestCase):
         user_1_db = User.add_or_update(user_1_db)
         self.users['no_permissions'] = user_1_db
 
+        # Insert special system user
+        user_2_db = UserDB(name='system_user')
+        user_2_db = User.add_or_update(user_2_db)
+        self.users['system_user'] = user_2_db
+
+        role_assignment_db = UserRoleAssignmentDB(
+            user=user_2_db.name, role=SystemRole.ADMIN,
+            source='assignments/%s.yaml' % user_2_db.name)
+        UserRoleAssignment.add_or_update(role_assignment_db)
+
     def tearDown(self):
         super(BaseAPIControllerWithRBACTestCase, self).tearDown()
 

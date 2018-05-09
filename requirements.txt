@@ -2,7 +2,7 @@
 apscheduler==3.5.1
 argcomplete
 bcrypt
-eventlet==0.22.1
+eventlet==0.23.0
 flex==6.13.1
 git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper
 git+https://github.com/StackStorm/python-mistralclient.git#egg=python-mistralclient
