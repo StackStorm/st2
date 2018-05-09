@@ -18,7 +18,8 @@ import six
 from mongoengine.queryset import Q
 
 from st2common import log as logging
-from st2api.controllers import resource
+from st2api.controllers.resource import BaseResourceIsolationControllerMixin
+from st2api.controllers.resource import ContentPackResourceController
 from st2common.models.api.rule import RuleViewAPI
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.action import Action
@@ -34,7 +35,7 @@ LOG = logging.getLogger(__name__)
 __all__ = ['RuleViewController']
 
 
-class RuleViewController(resource.ContentPackResourceController):
+class RuleViewController(BaseResourceIsolationControllerMixin, ContentPackResourceController):
     """
     Add some extras to a Rule object to make it easier for UI to render a rule. The additions
     do not necessarily belong in the Rule itself but are still valuable augmentations.
@@ -75,7 +76,8 @@ class RuleViewController(resource.ContentPackResourceController):
     access = Rule
     supported_filters = {
         'name': 'name',
-        'pack': 'pack'
+        'pack': 'pack',
+        'user': 'context.user'
     }
 
     query_options = {
@@ -85,11 +87,11 @@ class RuleViewController(resource.ContentPackResourceController):
     include_reference = True
 
     def get_all(self, sort=None, offset=0, limit=None, requester_user=None, **raw_filters):
-        rules = self._get_all(sort=sort,
-                              offset=offset,
-                              limit=limit,
-                              raw_filters=raw_filters,
-                              requester_user=requester_user)
+        rules = super(RuleViewController, self)._get_all(sort=sort,
+                                                         offset=offset,
+                                                         limit=limit,
+                                                         raw_filters=raw_filters,
+                                                         requester_user=requester_user)
         result = self._append_view_properties(rules.json)
         rules.json = result
         return rules

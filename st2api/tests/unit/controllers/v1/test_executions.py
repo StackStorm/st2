@@ -26,6 +26,7 @@ except ImportError:
     import json
 
 from six.moves import filter
+from six.moves import http_client
 
 from st2common.constants import action as action_constants
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
@@ -1138,6 +1139,20 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
 
 class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestCase,
                                               FunctionalTest):
+    def test_get_one_id_last_no_executions_in_the_database(self):
+        ActionExecution.query().delete()
+
+        resp = self.app.get('/v1/executions/last', expect_errors=True)
+        self.assertEqual(resp.status_int, http_client.BAD_REQUEST)
+        self.assertEqual(resp.json['faultstring'], 'No executions found in the database')
+
+    def test_get_output_id_last_no_executions_in_the_database(self):
+        ActionExecution.query().delete()
+
+        resp = self.app.get('/v1/executions/last/output', expect_errors=True)
+        self.assertEqual(resp.status_int, http_client.BAD_REQUEST)
+        self.assertEqual(resp.json['faultstring'], 'No executions found in the database')
+
     @unittest2.skipIf(six.PY3, 'Skipping under Python 3 (closed iterator read issue)')
     def test_get_output_running_execution(self):
         # Retrieve lister instance to avoid race with listener connection not being established

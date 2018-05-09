@@ -103,6 +103,13 @@ Added
   related methods on the SensorService class. (improvement) #3895 #4057 #4058
 
   Reported by @djh2020, @mxmader.
+* Add context field to rule model in which each rule has its own corresponding user. Besides, there
+  is a new RBAC configuration ``permission_isolation``. Whoever can only operate and observe their
+  own rules or executions except ``system_user`` and users with RBAC admin role when set to
+  ``True``. That means system_user has the most powerful permission to operate all resources
+  including rules or executions. (new feature) #4013
+
+  Contributed by Hanxi Liu (@apolloliu).
 
 Changed
 ~~~~~~~
