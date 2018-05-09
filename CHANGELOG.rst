@@ -4,6 +4,44 @@ Changelog
 in development
 --------------
 
+Added
+~~~~~
+
+* When running a dev (unstable) release include git revision hash in the output when using
+  ``st2 --version`` CLI command. (new feature) #4117
+
+Changed
+~~~~~~~
+
+* Update various Python dependencies to the latest stable versions (gunicorn, gitpython,
+  python-gnupg, tooz, flex). #4110
+
+Fixed
+~~~~~
+
+* Fix an issue (race condition) which would result in not all the remote LDAP groups being
+  synchronized with local RBAC roles if a user tried to authenticate with the same auth token
+  concurrently in a short time frame.
+
+  Note: This issue only affects users who utilize RBAC with remote LDAP groups to local RBAC
+  roles synchronization feature enabled. (bug fix) #4103 #4105
+
+2.7.1 - April 20, 2018
+----------------------
+
+Changed
+~~~~~~~
+
+* Update all the service and script entry points to use ``/etc/st2/st2.conf`` as a default value
+  for the config file location.
+
+  This way users don't need to explicitly provide ``--config-file`` CLI argument when running
+  various scripts (e.g. ``st2-track-result``, ``st2-apply-rbac-definitions``, etc.) and when they
+  just want to use a default config file. (improvement) #4111
+
+2.7.1 - April 20, 2018
+----------------------
+
 Changed
 ~~~~~~~
 

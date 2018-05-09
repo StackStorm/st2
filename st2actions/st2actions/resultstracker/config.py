@@ -18,13 +18,15 @@ from oslo_config import cfg
 
 from st2common import config as common_config
 from st2common.constants.system import VERSION_STRING
+from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
 common_config.register_opts()
 
 CONF = cfg.CONF
 
 
 def parse_args(args=None):
-    CONF(args=args, version=VERSION_STRING)
+    cfg.CONF(args=args, version=VERSION_STRING,
+             default_config_files=[DEFAULT_CONFIG_FILE_PATH])
 
 
 def register_opts():
