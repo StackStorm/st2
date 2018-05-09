@@ -3,6 +3,10 @@ import os
 import unittest2
 
 import mock
+import eventlet
+
+from st2common.util.monkey_patch import monkey_patch
+monkey_patch()
 
 import st2tests.config as tests_config
 from st2tests.base import TESTS_CONFIG_PATH
@@ -143,4 +147,7 @@ class SensorWrapperTestCase(unittest2.TestCase):
         # Note: If workaround is not applied "AttributeError: 'module' object has no attribute
         # 'poll'" will be thrown
         import select
+
+        self.assertTrue(eventlet.patcher.is_monkey_patched(select))
+        self.assertTrue(select != eventlet.patcher.original('select'))
         self.assertTrue(select.poll())
