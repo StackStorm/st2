@@ -84,6 +84,10 @@ class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
     trigger = me.StringField()
     criteria = stormbase.EscapedDictField()
     action = me.EmbeddedDocumentField(ActionExecutionSpecDB)
+    context = me.DictField(
+        default={},
+        help_text='Contextual info on the rule'
+    )
     enabled = me.BooleanField(required=True, default=True,
                               help_text=u'Flag indicating whether the rule is enabled.')
 
@@ -91,7 +95,8 @@ class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
         'indexes': [
             {'fields': ['enabled']},
             {'fields': ['action.ref']},
-            {'fields': ['trigger']}
+            {'fields': ['trigger']},
+            {'fields': ['context.user']},
         ] + stormbase.TagsMixin.get_indices() + stormbase.UIDFieldMixin.get_indexes()
     }
 

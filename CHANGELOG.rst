@@ -25,7 +25,20 @@ Fixed
 
   Note: This issue only affects users who utilize RBAC with remote LDAP groups to local RBAC
   roles synchronization feature enabled. (bug fix) #4103 #4105
+* Fix an issue with some sensors which rely on ``select.poll()`` (FileWatch, GithubSensor, etc.)
+  stopped working with StackStorm >= 2.7.0.
 
+  StackStorm v2.7.0 inadvertently introduced a change which broke a small set of
+  sensors which rely on ``select.poll()`` functionality. (bug fix)
+* Fixed pack config's not properly rendering Jinja expressions within lists.
+  (bugfix) #4121
+
+  Contributed by Nick Maludy (Encore Technologies).
+* Fixed pack config rendering error throw meaningful message when a Jinja syntax
+  error is encountered. (bugfix) #4123
+
+  Contributed by Nick Maludy (Encore Technologies).
+  
 2.7.1 - April 20, 2018
 ----------------------
 
@@ -98,6 +111,13 @@ Added
   related methods on the SensorService class. (improvement) #3895 #4057 #4058
 
   Reported by @djh2020, @mxmader.
+* Add context field to rule model in which each rule has its own corresponding user. Besides, there
+  is a new RBAC configuration ``permission_isolation``. Whoever can only operate and observe their
+  own rules or executions except ``system_user`` and users with RBAC admin role when set to
+  ``True``. That means system_user has the most powerful permission to operate all resources
+  including rules or executions. (new feature) #4013
+
+  Contributed by Hanxi Liu (@apolloliu).
 
 Changed
 ~~~~~~~

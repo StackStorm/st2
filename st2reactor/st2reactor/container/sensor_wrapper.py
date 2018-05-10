@@ -37,8 +37,9 @@ from st2reactor.sensor.base import Sensor
 from st2reactor.sensor.base import PollingSensor
 from st2reactor.sensor import config
 from st2common.services.datastore import SensorDatastoreService
-from st2common.util.monkey_patch import monkey_patch
 from st2common.validators.api.reactor import validate_trigger_payload
+from st2common.util.monkey_patch import monkey_patch
+from st2common.util.monkey_patch import use_select_poll_workaround
 
 __all__ = [
     'SensorWrapper',
@@ -46,6 +47,7 @@ __all__ = [
 ]
 
 monkey_patch()
+use_select_poll_workaround(nose_only=False)
 
 
 class SensorService(object):
