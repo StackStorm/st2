@@ -17,6 +17,12 @@ Changed
 
 * Update various Python dependencies to the latest stable versions (gunicorn, gitpython,
   python-gnupg, tooz, flex). #4110
+* Update all the service and script entry points to use ``/etc/st2/st2.conf`` as a default value
+  for the config file location.
+
+  This way users don't need to explicitly provide ``--config-file`` CLI argument when running
+  various scripts (e.g. ``st2-track-result``, ``st2-apply-rbac-definitions``, etc.) and when they
+  just want to use a default config file. (improvement) #4111
 
 Fixed
 ~~~~~
@@ -27,24 +33,22 @@ Fixed
 
   Note: This issue only affects users who utilize RBAC with remote LDAP groups to local RBAC
   roles synchronization feature enabled. (bug fix) #4103 #4105
+* Throw if ``id`` CLI argument is not passed to the ``st2-track-result`` script. (bug fix) #4115
 * Fix an issue with some sensors which rely on ``select.poll()`` (FileWatch, GithubSensor, etc.)
   stopped working with StackStorm >= 2.7.0.
 
-  StackStorm v2.7.0 inadvertently introduced a change which broke a small set of
-  sensors which rely on ``select.poll()`` functionality. (bug fix)
+  StackStorm v2.7.0 inadvertently introduced a change which broke a small set of sensors which
+  rely on ``select.poll()`` functionality. (bug fix) #4118
+* Fixed pack config's not properly rendering Jinja expressions within lists. (bugfix) #4121
 
-2.7.1 - April 20, 2018
-----------------------
+  Contributed by Nick Maludy (Encore Technologies).
+* Fixed pack config rendering error throw meaningful message when a Jinja syntax error is
+  encountered. (bugfix) #4123
+
+  Contributed by Nick Maludy (Encore Technologies).
 
 Changed
 ~~~~~~~
-
-* Update all the service and script entry points to use ``/etc/st2/st2.conf`` as a default value
-  for the config file location.
-
-  This way users don't need to explicitly provide ``--config-file`` CLI argument when running
-  various scripts (e.g. ``st2-track-result``, ``st2-apply-rbac-definitions``, etc.) and when they
-  just want to use a default config file. (improvement) #4111
 
 2.7.1 - April 20, 2018
 ----------------------
