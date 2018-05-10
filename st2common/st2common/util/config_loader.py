@@ -110,14 +110,34 @@ class ContentPackConfigLoader(object):
         """
         parent_keys = parent_keys or []
 
-        for config_item_key, config_item_value in six.iteritems(config):
-            schema_item = schema.get(config_item_key, {})
+        config_is_dict = isinstance(config, dict)
+        config_is_list = isinstance(config, list)
+        iterator = six.iteritems(config) if config_is_dict else enumerate(config)
+
+        # config_item_key - if config_is_dict then this is the key in the dictionary
+        #                   if config_is_list then this is the index of them item
+        # config_item_value - the value of the key/index for the current item
+        for config_item_key, config_item_value in iterator:
+            if config_is_dict:
+                # different schema for each key/value pair
+                schema_item = schema.get(config_item_key, {})
+            if config_is_list:
+                # same schema is shared between every item in the list
+                schema_item = schema
+
             is_dictionary = isinstance(config_item_value, dict)
+            is_list = isinstance(config_item_value, list)
 
             # Inspect nested object properties
             if is_dictionary:
-                parent_keys += [config_item_key]
+                parent_keys += [str(config_item_key)]
                 self._assign_dynamic_config_values(schema=schema_item.get('properties', {}),
+                                                   config=config[config_item_key],
+                                                   parent_keys=parent_keys)
+            # Inspect nested list items
+            elif is_list:
+                parent_keys += [str(config_item_key)]
+                self._assign_dynamic_config_values(schema=schema_item.get('items', {}),
                                                    config=config[config_item_key],
                                                    parent_keys=parent_keys)
             else:
@@ -125,7 +145,7 @@ class ContentPackConfigLoader(object):
 
                 if is_jinja_expression:
                     # Resolve / render the Jinja template expression
-                    full_config_item_key = '.'.join(parent_keys + [config_item_key])
+                    full_config_item_key = '.'.join(parent_keys + [str(config_item_key)])
                     value = self._get_datastore_value_for_expression(key=full_config_item_key,
                         value=config_item_value,
                         config_schema_item=schema_item)
@@ -188,8 +208,9 @@ class ContentPackConfigLoader(object):
             exc_class = type(e)
             original_msg = str(e)
             msg = ('Failed to render dynamic configuration value for key "%s" with value '
-                   '"%s" for pack "%s" config: %s ' % (key, value, self.pack_name, original_msg))
-            raise exc_class(msg)
+                   '"%s" for pack "%s" config: %s %s ' % (key, value, self.pack_name,
+                                                          exc_class, original_msg))
+            raise RuntimeError(msg)
 
         if value:
             # Deserialize the value
