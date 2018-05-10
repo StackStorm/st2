@@ -31,11 +31,12 @@ Fixed
 
   Note: This issue only affects users who utilize RBAC with remote LDAP groups to local RBAC
   roles synchronization feature enabled. (bug fix) #4103 #4105
+* Throw if ``id`` CLI argument is not passed to the ``st2-track-result`` script. (bug fix) #4115
 * Fix an issue with some sensors which rely on ``select.poll()`` (FileWatch, GithubSensor, etc.)
   stopped working with StackStorm >= 2.7.0.
 
-  StackStorm v2.7.0 inadvertently introduced a change which broke a small set of
-  sensors which rely on ``select.poll()`` functionality. (bug fix)
+  StackStorm v2.7.0 inadvertently introduced a change which broke a small set of sensors which
+  rely on ``select.poll()`` functionality. (bug fix) #4118
 * Fixed pack config's not properly rendering Jinja expressions within lists. (bugfix) #4121
 
   Contributed by Nick Maludy (Encore Technologies).
