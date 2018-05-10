@@ -36,3 +36,29 @@ def retry_on_exceptions(exc):
 
 class WorkflowDefinitionException(st2_exc.StackStormBaseException):
     pass
+
+
+class WorkflowExecutionNotFoundException(st2_exc.StackStormBaseException):
+
+    def __init__(self, ac_ex_id):
+        Exception.__init__(
+            self,
+            'Unable to identify any workflow execution that is '
+            'associated to action execution "%s".' % ac_ex_id
+        )
+
+
+class AmbiguousWorkflowExecutionException(st2_exc.StackStormBaseException):
+
+    def __init__(self, ac_ex_id):
+        Exception.__init__(
+            self,
+            'More than one workflow execution is associated '
+            'to action execution "%s".' % ac_ex_id
+        )
+
+
+class WorkflowExecutionAlreadyCompletedException(st2_exc.StackStormBaseException):
+
+    def __init__(self, wf_ex_id):
+        Exception.__init__(self, 'Workflow execution "%s" is already completed.' % wf_ex_id)

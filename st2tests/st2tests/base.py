@@ -79,6 +79,7 @@ __all__ = [
     'CleanFilesTestCase',
     'IntegrationTestCase',
     'RunnerTestCase',
+    'WorkflowTestCase',
 
     # Pack test classes
     'BaseSensorTestCase',
@@ -528,13 +529,28 @@ class WorkflowTestCase(DbTestCase):
 
         return wf_ex_db
 
+    def get_task_ex(self, task_id):
+        task_ex_dbs = wf_db_access.TaskExecution.query(task_id=task_id)
+        self.assertGreater(len(task_ex_dbs), 0)
+        return task_ex_dbs[0]
+
+    def get_action_exs(self, task_ex_id):
+        ac_ex_dbs = ex_db_access.ActionExecution.query(task_execution=task_ex_id)
+        self.assertGreater(len(ac_ex_dbs), 0)
+        return ac_ex_dbs
+
+    def get_action_ex(self, task_ex_id):
+        ac_ex_dbs = ex_db_access.ActionExecution.query(task_execution=task_ex_id)
+        self.assertEqual(len(ac_ex_dbs), 1)
+        return ac_ex_dbs[0]
+
     def run_workflow_step(self, wf_ex_db, task_id, ctx=None):
         spec_module = specs_loader.get_spec_module(wf_ex_db.spec['catalog'])
         wf_spec = spec_module.WorkflowSpec.deserialize(wf_ex_db.spec)
         task_spec = wf_spec.tasks.get_task(task_id)
         st2_ctx = {'execution_id': wf_ex_db.action_execution}
         task_ex_db = wf_svc.request_task_execution(wf_ex_db, task_id, task_spec, ctx or {}, st2_ctx)
-        ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(task_ex_db.id))[0]
+        ac_ex_db = self.get_action_ex(str(task_ex_db.id))
         self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         wf_svc.handle_action_execution_completion(ac_ex_db)
         task_ex_db = wf_db_access.TaskExecution.get_by_id(str(task_ex_db.id))
@@ -545,10 +561,9 @@ class WorkflowTestCase(DbTestCase):
         self.assertEqual(len(task_ex_dbs), 0)
 
     def assert_task_running(self, task_id):
-        task_ex_dbs = wf_db_access.TaskExecution.query(task_id=task_id)
-        self.assertGreater(len(task_ex_dbs), 0)
-        self.assertEqual(task_ex_dbs[0].task_id, task_id)
-        self.assertEqual(task_ex_dbs[0].status, wf_lib_states.RUNNING)
+        task_ex_db = self.get_task_ex(task_id)
+        self.assertEqual(task_ex_db.task_id, task_id)
+        self.assertEqual(task_ex_db.status, wf_lib_states.RUNNING)
 
     def assert_workflow_completed(self, wf_ex_id, state=None):
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)

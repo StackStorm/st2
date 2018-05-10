@@ -84,6 +84,36 @@ def request(wf_def, ac_ex_db):
     return wf_ex_db
 
 
+@retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
+def request_cancellation(ac_ex_db):
+    wf_ex_dbs = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))
+
+    if not wf_ex_dbs:
+        raise wf_exc.WorkflowExecutionNotFoundException(str(ac_ex_db.id))
+
+    if len(wf_ex_dbs) > 1:
+        raise wf_exc.AmbiguousWorkflowExecutionException(str(ac_ex_db.id))
+
+    wf_ex_db = wf_ex_dbs[0]
+
+    if wf_ex_db.status in states.COMPLETED_STATES:
+        raise wf_exc.WorkflowExecutionAlreadyCompletedException(str(wf_ex_db.id))
+
+    conductor = deserialize_conductor(wf_ex_db)
+
+    if conductor.get_workflow_state() in states.COMPLETED_STATES:
+        raise wf_exc.WorkflowExecutionAlreadyCompletedException(str(wf_ex_db.id))
+
+    conductor.set_workflow_state(states.CANCELED)
+
+    # Write the updated workflow state and task flow to the database.
+    wf_ex_db.status = conductor.get_workflow_state()
+    wf_ex_db.flow = conductor.flow.serialize()
+    wf_ex_db = wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
+
+    return wf_ex_db
+
+
 def request_task_execution(wf_ex_db, task_id, task_spec, task_ctx, st2_ctx):
     # Identify the action to execute.
     action_db = ac_db_util.get_action_by_ref(ref=task_spec.action)
@@ -167,9 +197,7 @@ def handle_action_execution_completion(ac_ex_db):
     update_workflow_execution(wf_ex_id)
 
 
-def refresh_conductor(wf_ex_id):
-    wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
-
+def deserialize_conductor(wf_ex_db):
     data = {
         'spec': wf_ex_db.spec,
         'graph': wf_ex_db.graph,
@@ -178,7 +206,12 @@ def refresh_conductor(wf_ex_id):
         'inputs': wf_ex_db.inputs
     }
 
-    conductor = conducting.WorkflowConductor.deserialize(data)
+    return conducting.WorkflowConductor.deserialize(data)
+
+
+def refresh_conductor(wf_ex_id):
+    wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
+    conductor = deserialize_conductor(wf_ex_db)
 
     return conductor, wf_ex_db
 

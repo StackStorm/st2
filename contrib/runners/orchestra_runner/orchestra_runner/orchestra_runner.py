@@ -72,6 +72,17 @@ class OrchestraRunner(runners.AsyncActionRunner):
 
         return (status, partial_results, ctx)
 
+    def cancel(self):
+        wf_svc.request_cancellation(self.execution)
+
+        status = ac_const.LIVEACTION_STATUS_CANCELING
+
+        return (
+            status,
+            self.liveaction.result,
+            self.liveaction.context
+        )
+
 
 def get_runner():
     return OrchestraRunner(str(uuid.uuid4()))

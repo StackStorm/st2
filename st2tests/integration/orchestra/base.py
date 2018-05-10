@@ -85,7 +85,7 @@ class TestWorkflowExecution(unittest2.TestCase):
 
         task_exs = [
             task_ex for task_ex in self._get_children(ex)
-            if (task_ex.context.get('mistral', {}).get('task_name', '') == task and
+            if (task_ex.context.get('orchestra', {}).get('task_name', '') == task and
                 task_ex.status == status)
         ]
 
