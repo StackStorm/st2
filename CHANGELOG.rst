@@ -15,6 +15,12 @@ Changed
 
 * Update various Python dependencies to the latest stable versions (gunicorn, gitpython,
   python-gnupg, tooz, flex). #4110
+* Update all the service and script entry points to use ``/etc/st2/st2.conf`` as a default value
+  for the config file location.
+
+  This way users don't need to explicitly provide ``--config-file`` CLI argument when running
+  various scripts (e.g. ``st2-track-result``, ``st2-apply-rbac-definitions``, etc.) and when they
+  just want to use a default config file. (improvement) #4111
 
 Fixed
 ~~~~~
@@ -30,27 +36,16 @@ Fixed
 
   StackStorm v2.7.0 inadvertently introduced a change which broke a small set of
   sensors which rely on ``select.poll()`` functionality. (bug fix)
-* Fixed pack config's not properly rendering Jinja expressions within lists.
-  (bugfix) #4121
+* Fixed pack config's not properly rendering Jinja expressions within lists. (bugfix) #4121
 
   Contributed by Nick Maludy (Encore Technologies).
-* Fixed pack config rendering error throw meaningful message when a Jinja syntax
-  error is encountered. (bugfix) #4123
+* Fixed pack config rendering error throw meaningful message when a Jinja syntax error is
+  encountered. (bugfix) #4123
 
   Contributed by Nick Maludy (Encore Technologies).
-  
-2.7.1 - April 20, 2018
-----------------------
 
 Changed
 ~~~~~~~
-
-* Update all the service and script entry points to use ``/etc/st2/st2.conf`` as a default value
-  for the config file location.
-
-  This way users don't need to explicitly provide ``--config-file`` CLI argument when running
-  various scripts (e.g. ``st2-track-result``, ``st2-apply-rbac-definitions``, etc.) and when they
-  just want to use a default config file. (improvement) #4111
 
 2.7.1 - April 20, 2018
 ----------------------
