@@ -372,7 +372,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
 
         # Renders fails on invalid syntax
         values = {
-            'level0_key':  '{{ this is some invalid Jinja }}'
+            'level0_key': '{{ this is some invalid Jinja }}'
         }
         config_db = ConfigDB(pack=pack_name, values=values)
         Config.add_or_update(config_db)
@@ -390,7 +390,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
 
         ####################
         # value in top level item
-        k1 = KeyValuePair.add_or_update(KeyValuePairDB(name='k1', value='v1'))
+        KeyValuePair.add_or_update(KeyValuePairDB(name='k1', value='v1'))
         values = {
             'level0_key': '{{st2kv.system.k1}}'
         }
@@ -407,9 +407,9 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         pack_name = 'dummy_pack_schema_with_nested_object_7'
         loader = ContentPackConfigLoader(pack_name=pack_name)
 
-        k1 = KeyValuePair.add_or_update(KeyValuePairDB(name='k0', value='v0'))
-        k1 = KeyValuePair.add_or_update(KeyValuePairDB(name='k1', value='v1'))
-        k1 = KeyValuePair.add_or_update(KeyValuePairDB(name='k2', value='v2'))
+        KeyValuePair.add_or_update(KeyValuePairDB(name='k0', value='v0'))
+        KeyValuePair.add_or_update(KeyValuePairDB(name='k1', value='v1'))
+        KeyValuePair.add_or_update(KeyValuePairDB(name='k2', value='v2'))
 
         ####################
         # values nested dictionaries
@@ -444,8 +444,8 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         pack_name = 'dummy_pack_schema_with_nested_object_7'
         loader = ContentPackConfigLoader(pack_name=pack_name)
 
-        k1 = KeyValuePair.add_or_update(KeyValuePairDB(name='k0', value='v0'))
-        k1 = KeyValuePair.add_or_update(KeyValuePairDB(name='k1', value='v1'))
+        KeyValuePair.add_or_update(KeyValuePairDB(name='k0', value='v0'))
+        KeyValuePair.add_or_update(KeyValuePairDB(name='k1', value='v1'))
 
         ####################
         # values in list
@@ -478,9 +478,9 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         pack_name = 'dummy_pack_schema_with_nested_object_8'
         loader = ContentPackConfigLoader(pack_name=pack_name)
 
-        k1 = KeyValuePair.add_or_update(KeyValuePairDB(name='k0', value='v0'))
-        k1 = KeyValuePair.add_or_update(KeyValuePairDB(name='k1', value='v1'))
-        k1 = KeyValuePair.add_or_update(KeyValuePairDB(name='k2', value='v2'))
+        KeyValuePair.add_or_update(KeyValuePairDB(name='k0', value='v0'))
+        KeyValuePair.add_or_update(KeyValuePairDB(name='k1', value='v1'))
+        KeyValuePair.add_or_update(KeyValuePairDB(name='k2', value='v2'))
 
         ####################
         # values in objects embedded in lists and nested lists
@@ -496,7 +496,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
                     '{{st2kv.system.k2}}',
                 ],
                 {
-                    'level1_key2':  [
+                    'level1_key2': [
                         '{{st2kv.system.k2}}',
                     ]
                 }
@@ -520,7 +520,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
                                       'v2',
                                   ],
                                   {
-                                      'level1_key2':  [
+                                      'level1_key2': [
                                           'v2',
                                       ]
                                   }
