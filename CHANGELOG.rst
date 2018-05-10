@@ -1,8 +1,27 @@
 Changelog
 =========
 
-2.7.1 - April 20, 2018
-----------------------
+2.7.2 - TBD
+-----------
+
+Changed
+~~~~~~~
+
+* Reduce load on LDAP server and cache user groups response in an in-memory cache when RBAC
+  remote LDAP group to local RBAC role synchronization feature is enabled.
+
+  Previously on authentication the code would hit LDAP server multiple times to retrieve user
+  groups. With this change, user LDAP groups are only retrieved once upon authentication and
+  cached and re-used in-memory by default for 120 seconds.
+
+  This reduces load on LDAP server and improves performance upon regular and concurrent user
+  authentication.
+
+  This functionality can be disabled by setting ``cache_user_groups_response`` LDAP
+  authentication backend kwarg to ``false``.
+
+  Note: This change only affects users which utilize RBAC with remote LDAP groups to local RBAC
+  roles synchronization feature enabled. (enterprise) (bug fix) #4103 #4105
 
 Fixed
 ~~~~~
@@ -11,8 +30,8 @@ Fixed
   synchronized with local RBAC roles if a user tried to authenticate with the same auth token
   concurrently in a short time frame.
 
-  Note: This issue only affects users who utilize RBAC with remote LDAP groups to local RBAC
-  roles synchronization feature enabled. (bug fix) #4103 #4105
+  Note: This issue only affects users which utilize RBAC with remote LDAP groups to local RBAC
+  roles synchronization feature enabled. (enterprise) (bug fix) #4103 #4105
 * Fix an issue with some sensors which rely on ``select.poll()`` (FileWatch, GithubSensor, etc.)
   stopped working with StackStorm >= 2.7.0.
 
