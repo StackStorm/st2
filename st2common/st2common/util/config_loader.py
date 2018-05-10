@@ -114,6 +114,9 @@ class ContentPackConfigLoader(object):
         config_is_list = isinstance(config, list)
         iterator = six.iteritems(config) if config_is_dict else enumerate(config)
 
+        # config_item_key - if config_is_dict then this is the key in the dictionary
+        #                   if config_is_list then this is the index of them item
+        # config_item_value - the value of the key/index for the current item
         for config_item_key, config_item_value in iterator:
             if config_is_dict:
                 # different schema for each key/value pair
