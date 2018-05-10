@@ -298,8 +298,9 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
 
         expected_msg = ('Failed to render dynamic configuration value for key "level0_key" with '
                         'value "{{st2kvXX.invalid}}" for pack ".*?" config: '
+                        '<class \'jinja2.exceptions.UndefinedError\'> '
                         '\'st2kvXX\' is undefined')
-        self.assertRaisesRegexp(Exception, expected_msg, loader.get_config)
+        self.assertRaisesRegexp(RuntimeError, expected_msg, loader.get_config)
         config_db.delete()
 
         # Renders fails on fist level item
@@ -313,8 +314,9 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
 
         expected_msg = ('Failed to render dynamic configuration value for key '
                         '"level0_object.level1_key" with value "{{st2kvXX.invalid}}"'
-                        ' for pack ".*?" config: \'st2kvXX\' is undefined')
-        self.assertRaisesRegexp(Exception, expected_msg, loader.get_config)
+                        ' for pack ".*?" config: <class \'jinja2.exceptions.UndefinedError\'>'
+                        ' \'st2kvXX\' is undefined')
+        self.assertRaisesRegexp(RuntimeError, expected_msg, loader.get_config)
         config_db.delete()
 
         # Renders fails on second level item
@@ -330,8 +332,9 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
 
         expected_msg = ('Failed to render dynamic configuration value for key '
                         '"level0_object.level1_object.level2_key" with value "{{st2kvXX.invalid}}"'
-                        ' for pack ".*?" config: \'st2kvXX\' is undefined')
-        self.assertRaisesRegexp(Exception, expected_msg, loader.get_config)
+                        ' for pack ".*?" config: <class \'jinja2.exceptions.UndefinedError\'>'
+                        ' \'st2kvXX\' is undefined')
+        self.assertRaisesRegexp(RuntimeError, expected_msg, loader.get_config)
         config_db.delete()
 
         # Renders fails on list item
@@ -346,8 +349,9 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
 
         expected_msg = ('Failed to render dynamic configuration value for key '
                         '"level0_object.1" with value "{{st2kvXX.invalid}}"'
-                        ' for pack ".*?" config: \'st2kvXX\' is undefined')
-        self.assertRaisesRegexp(Exception, expected_msg, loader.get_config)
+                        ' for pack ".*?" config: <class \'jinja2.exceptions.UndefinedError\'>'
+                        ' \'st2kvXX\' is undefined')
+        self.assertRaisesRegexp(RuntimeError, expected_msg, loader.get_config)
         config_db.delete()
 
         # Renders fails on nested object in list item
@@ -361,8 +365,23 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
 
         expected_msg = ('Failed to render dynamic configuration value for key '
                         '"level0_object.0.level2_key" with value "{{st2kvXX.invalid}}"'
-                        ' for pack ".*?" config: \'st2kvXX\' is undefined')
-        self.assertRaisesRegexp(Exception, expected_msg, loader.get_config)
+                        ' for pack ".*?" config: <class \'jinja2.exceptions.UndefinedError\'>'
+                        ' \'st2kvXX\' is undefined')
+        self.assertRaisesRegexp(RuntimeError, expected_msg, loader.get_config)
+        config_db.delete()
+
+        # Renders fails on invalid syntax
+        values = {
+            'level0_key':  '{{ this is some invalid Jinja }}'
+        }
+        config_db = ConfigDB(pack=pack_name, values=values)
+        Config.add_or_update(config_db)
+
+        expected_msg = ('Failed to render dynamic configuration value for key '
+                        '"level0_key" with value "{{ this is some invalid Jinja }}"'
+                        ' for pack ".*?" config: <class \'jinja2.exceptions.TemplateSyntaxError\'>'
+                        ' expected token \'end of print statement\', got \'Jinja\'')
+        self.assertRaisesRegexp(RuntimeError, expected_msg, loader.get_config)
         config_db.delete()
 
     def test_get_config_dynamic_config_item(self):
@@ -370,7 +389,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         loader = ContentPackConfigLoader(pack_name=pack_name)
 
         ####################
-        # top level item
+        # value in top level item
         k1 = KeyValuePair.add_or_update(KeyValuePairDB(name='k1', value='v1'))
         values = {
             'level0_key': '{{st2kv.system.k1}}'
@@ -388,11 +407,12 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         pack_name = 'dummy_pack_schema_with_nested_object_7'
         loader = ContentPackConfigLoader(pack_name=pack_name)
 
-        ####################
-        # top level item
         k1 = KeyValuePair.add_or_update(KeyValuePairDB(name='k0', value='v0'))
         k1 = KeyValuePair.add_or_update(KeyValuePairDB(name='k1', value='v1'))
         k1 = KeyValuePair.add_or_update(KeyValuePairDB(name='k2', value='v2'))
+
+        ####################
+        # values nested dictionaries
         values = {
             'level0_key': '{{st2kv.system.k0}}',
             'level0_object': {
@@ -424,10 +444,11 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         pack_name = 'dummy_pack_schema_with_nested_object_7'
         loader = ContentPackConfigLoader(pack_name=pack_name)
 
-        ####################
-        # top level item
         k1 = KeyValuePair.add_or_update(KeyValuePairDB(name='k0', value='v0'))
         k1 = KeyValuePair.add_or_update(KeyValuePairDB(name='k1', value='v1'))
+
+        ####################
+        # values in list
         values = {
             'level0_key': [
                 'a',
@@ -457,17 +478,23 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         pack_name = 'dummy_pack_schema_with_nested_object_8'
         loader = ContentPackConfigLoader(pack_name=pack_name)
 
-        ####################
-        # top level item
         k1 = KeyValuePair.add_or_update(KeyValuePairDB(name='k0', value='v0'))
         k1 = KeyValuePair.add_or_update(KeyValuePairDB(name='k1', value='v1'))
         k1 = KeyValuePair.add_or_update(KeyValuePairDB(name='k2', value='v2'))
+
+        ####################
+        # values in objects embedded in lists and nested lists
         values = {
             'level0_key': [
                 {
                     'level1_key0': '{{st2kv.system.k0}}'
                 },
                 '{{st2kv.system.k1}}',
+                [
+                    '{{st2kv.system.k0}}',
+                    '{{st2kv.system.k1}}',
+                    '{{st2kv.system.k2}}',
+                ],
                 {
                     'level1_key2':  [
                         '{{st2kv.system.k2}}',
@@ -487,6 +514,11 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
                                       'level1_key0': 'v0'
                                   },
                                   'v1',
+                                  [
+                                      'v0',
+                                      'v1',
+                                      'v2',
+                                  ],
                                   {
                                       'level1_key2':  [
                                           'v2',
