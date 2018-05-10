@@ -54,7 +54,6 @@ from st2common.runners.utils import make_read_and_store_stream_func
 
 from python_runner import python_action_wrapper
 
-
 __all__ = [
     'PythonRunner',
 
@@ -120,7 +119,7 @@ class PythonRunner(GitWorktreeActionRunner):
         if self._log_level == PYTHON_RUNNER_DEFAULT_LOG_LEVEL:
             self._log_level = cfg.CONF.actionrunner.python_runner_log_level
 
-    def run(self, action_parameters, **kwargs):
+    def run(self, action_parameters):
         LOG.debug('Running pythonrunner.')
         LOG.debug('Getting pack name.')
         pack = self.get_pack_ref()
@@ -250,20 +249,18 @@ class PythonRunner(GitWorktreeActionRunner):
 
         LOG.debug('Running command: PATH=%s PYTHONPATH=%s %s' % (env['PATH'], env['PYTHONPATH'],
                                                                  command_string))
-        exit_code, stdout, stderr, timed_out = run_command(
-            cmd=args,
-            stdin=stdin,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            shell=False,
-            env=env,
-            timeout=self._timeout,
-            read_stdout_func=read_and_store_stdout,
-            read_stderr_func=read_and_store_stderr,
-            read_stdout_buffer=stdout,
-            read_stderr_buffer=stderr,
-            stdin_value=stdin_params
-        )
+        exit_code, stdout, stderr, timed_out = run_command(cmd=args,
+                                                           stdin=stdin,
+                                                           stdout=subprocess.PIPE,
+                                                           stderr=subprocess.PIPE,
+                                                           shell=False,
+                                                           env=env,
+                                                           timeout=self._timeout,
+                                                           read_stdout_func=read_and_store_stdout,
+                                                           read_stderr_func=read_and_store_stderr,
+                                                           read_stdout_buffer=stdout,
+                                                           read_stderr_buffer=stderr,
+                                                           stdin_value=stdin_params)
         LOG.debug('Returning values: %s, %s, %s, %s', exit_code, stdout, stderr, timed_out)
         LOG.debug('Returning.')
         return self._get_output_values(exit_code, stdout, stderr, timed_out)

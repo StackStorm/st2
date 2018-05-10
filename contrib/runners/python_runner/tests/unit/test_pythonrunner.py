@@ -22,8 +22,8 @@ import sys
 import six
 import mock
 import unittest2
-
 from oslo_config import cfg
+
 from python_runner import python_runner
 from st2actions.container.base import RunnerContainer
 from st2common.runners.base_action import Action
