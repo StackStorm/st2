@@ -78,7 +78,7 @@ For example:
 
 NON_UTF8_LOCALE = """
 Locale %s with encoding %s which is not UTF-8 is used. This means that some functionality which
-relies on outputing unicode characters won't work.
+relies on outputting unicode characters won't work.
 
 You are encouraged to use UTF-8 locale by setting LC_ALL environment variable to en_US.UTF-8 or
 similar.
