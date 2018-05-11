@@ -1,0 +1,21 @@
+version: 1.0
+
+description: A sample workflow used to test the cascading cancellation of subworkflow action.
+
+input:
+  - tempfile
+  - message
+
+tasks:
+  task1:
+    action: examples.orchestra-test-cancel
+    input:
+      tempfile: <% $.tempfile %>
+      message: <% $.message %>
+    next:
+      - when: <% succeeded() %>
+        do: task2
+  task2:
+    action: core.local
+    input:
+      cmd: echo "<% $.message %>"

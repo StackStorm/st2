@@ -1,0 +1,7 @@
+version: 1.0
+
+description: A sample workflow that calls another subworkflow.
+
+tasks:
+  task1:
+    action: orchestra_tests.sequential who="Lakshmi"

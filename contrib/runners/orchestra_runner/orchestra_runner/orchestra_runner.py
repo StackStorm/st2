@@ -22,7 +22,10 @@ from orchestra import exceptions as wf_lib_exc
 
 from st2common.constants import action as ac_const
 from st2common import log as logging
+from st2common.persistence import execution as ex_db_access
+from st2common.persistence import liveaction as lv_db_access
 from st2common.runners import base as runners
+from st2common.services import action as ac_svc
 from st2common.services import workflows as wf_svc
 
 
@@ -73,9 +76,24 @@ class OrchestraRunner(runners.AsyncActionRunner):
         return (status, partial_results, ctx)
 
     def cancel(self):
+        # Cancel the target workflow.
         wf_svc.request_cancellation(self.execution)
 
-        status = ac_const.LIVEACTION_STATUS_CANCELING
+        # Request cancellation of tasks that are workflows and still running.
+        for child_ex_id in self.execution.children:
+            child_ex = ex_db_access.ActionExecution.get(id=child_ex_id)
+            if (child_ex.runner['name'] in ac_const.WORKFLOW_RUNNER_TYPES and
+                    child_ex.status in ac_const.LIVEACTION_CANCELABLE_STATES):
+                ac_svc.request_cancellation(
+                    lv_db_access.LiveAction.get(id=child_ex.liveaction['id']),
+                    self.context.get('user', None)
+                )
+
+        status = (
+            ac_const.LIVEACTION_STATUS_CANCELING
+            if ac_svc.is_children_active(self.liveaction.id)
+            else ac_const.LIVEACTION_STATUS_CANCELED
+        )
 
         return (
             status,
