@@ -27,6 +27,7 @@ import sys
 import argcomplete
 import argparse
 import logging
+import locale
 
 import six
 from six.moves.configparser import ConfigParser
@@ -73,6 +74,14 @@ For example:
     %(prog)s action list --pack=st2
     %(prog)s run core.local cmd=date
     %(prog)s --debug run core.local cmd=date
+""".strip()
+
+NON_UTF8_LOCALE = """
+Locale %s with encoding %s which is not UTF-8 is used. This means that some functionality which
+relies on outputing unicode characters won't work.
+
+You are encouraged to use UTF-8 locale by setting LC_ALL environment variable to en_US.UTF-8 or
+similar.
 """.strip()
 
 PACKAGE_METADATA_FILE_PATH = '/opt/stackstorm/st2/package.meta'
@@ -123,6 +132,7 @@ class Shell(BaseCLIApp):
         self.client = None
 
         # Set up the main parser.
+        self._check_locale_and_print_warning()
         self.parser = argparse.ArgumentParser(description=CLI_DESCRIPTION)
 
         # Set up general program options.
@@ -402,6 +412,21 @@ class Shell(BaseCLIApp):
 
             for name, value in six.iteritems(options):
                 print('%s = %s' % (name, value))
+
+    def _check_locale_and_print_warning(self):
+        """
+        Method which checks that unicode locale is used and prints a warning if it's not.
+        """
+        try:
+            default_locale = locale.getdefaultlocale()[0]
+            preferred_encoding = locale.getpreferredencoding()
+        except ValueError:
+            # Ignore unknown locale errors for now
+            return
+
+        if preferred_encoding and preferred_encoding.lower() != 'utf-8':
+            msg = NON_UTF8_LOCALE % (default_locale or 'unknown', preferred_encoding)
+            LOGGER.warn(msg)
 
 
 def setup_logging(argv):
