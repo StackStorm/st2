@@ -422,7 +422,8 @@ class Shell(BaseCLIApp):
             preferred_encoding = locale.getpreferredencoding()
         except ValueError:
             # Ignore unknown locale errors for now
-            return
+            default_locale = 'unknown'
+            preferred_encoding = 'unknown'
 
         if preferred_encoding and preferred_encoding.lower() != 'utf-8':
             msg = NON_UTF8_LOCALE % (default_locale or 'unknown', preferred_encoding)
