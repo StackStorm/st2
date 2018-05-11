@@ -132,7 +132,6 @@ class Shell(BaseCLIApp):
         self.client = None
 
         # Set up the main parser.
-        self._check_locale_and_print_warning()
         self.parser = argparse.ArgumentParser(description=CLI_DESCRIPTION)
 
         # Set up general program options.
@@ -368,6 +367,8 @@ class Shell(BaseCLIApp):
         # Parse config and store it in the config module
         config = self._parse_config_file(args=args)
         set_config(config=config)
+
+        self._check_locale_and_print_warning()
 
         # Setup client and run the command
         try:
