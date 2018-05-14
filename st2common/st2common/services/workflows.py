@@ -27,6 +27,7 @@ from st2common.exceptions import workflow as wf_exc
 from st2common import log as logging
 from st2common.models.db import liveaction as lv_db_models
 from st2common.models.db import workflow as wf_db_models
+from st2common.persistence import liveaction as lv_db_access
 from st2common.persistence import execution as ex_db_access
 from st2common.persistence import workflow as wf_db_access
 from st2common.services import action as ac_svc
@@ -110,6 +111,13 @@ def request_cancellation(ac_ex_db):
     wf_ex_db.status = conductor.get_workflow_state()
     wf_ex_db.flow = conductor.flow.serialize()
     wf_ex_db = wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
+
+    # Cascade the cancellation up to the root of the workflow.
+    root_ac_ex_db = ac_svc.get_root_execution(ac_ex_db)
+
+    if root_ac_ex_db != ac_ex_db and root_ac_ex_db.status not in ac_const.LIVEACTION_CANCEL_STATES:
+        root_lv_ac_db = lv_db_access.LiveAction.get(id=root_ac_ex_db.liveaction['id'])
+        ac_svc.request_cancellation(root_lv_ac_db, None)
 
     return wf_ex_db
 

@@ -98,7 +98,7 @@ class CancellationWiringTest(base.TestWorkflowExecution):
 
         # Launch the workflow. The workflow will wait for the temp file to be deleted.
         params = {'tempfile': path, 'message': 'foobar'}
-        action_ref = 'examples.orchestra-test-cancel-subworkflow-action'
+        action_ref = 'examples.orchestra-test-cancel-subworkflow'
         ex = self._execute_workflow(action_ref, params)
         task_exs = self._wait_for_task(ex, 'task1', ac_const.LIVEACTION_STATUS_RUNNING)
         subwf_ex = task_exs[0]
@@ -128,7 +128,7 @@ class CancellationWiringTest(base.TestWorkflowExecution):
 
         # Launch the workflow. The workflow will wait for the temp file to be deleted.
         params = {'tempfile': path, 'message': 'foobar'}
-        action_ref = 'examples.orchestra-test-cancel-subworkflow-action'
+        action_ref = 'examples.orchestra-test-cancel-subworkflow'
         ex = self._execute_workflow(action_ref, params)
         task_exs = self._wait_for_task(ex, 'task1', ac_const.LIVEACTION_STATUS_RUNNING)
         subwf_ex = task_exs[0]
@@ -140,8 +140,8 @@ class CancellationWiringTest(base.TestWorkflowExecution):
         # Assert subworkflow is canceling.
         subwf_ex = self._wait_for_state(subwf_ex, ac_const.LIVEACTION_STATUS_CANCELING)
 
-        # Assert main workflow is running. Main workflow will cancel when subworkflow is canceled.
-        ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_RUNNING)
+        # Assert main workflow is canceling.
+        ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_CANCELING)
 
         # Delete the temporary file.
         os.remove(path)
@@ -149,6 +149,42 @@ class CancellationWiringTest(base.TestWorkflowExecution):
 
         # Assert subworkflow is canceled.
         subwf_ex = self._wait_for_state(subwf_ex, ac_const.LIVEACTION_STATUS_CANCELED)
+
+        # Assert main workflow is canceled.
+        ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_CANCELED)
+
+    def test_cancellation_cascade_up_to_workflow_with_other_subworkflow(self):
+        # A temp file is created during test setup. Ensure the temp file exists.
+        path = self.temp_file_path
+        self.assertTrue(os.path.exists(path))
+
+        # Launch the workflow. The workflow will wait for the temp file to be deleted.
+        params = {'file1': path, 'file2': path}
+        action_ref = 'examples.orchestra-test-cancel-subworkflows'
+        ex = self._execute_workflow(action_ref, params)
+        task_exs = self._wait_for_task(ex, 'task1', ac_const.LIVEACTION_STATUS_RUNNING)
+        subwf_ex_1 = task_exs[0]
+        task_exs = self._wait_for_task(ex, 'task2', ac_const.LIVEACTION_STATUS_RUNNING)
+        subwf_ex_2 = task_exs[0]
+
+        # Cancel the workflow before the temp file is deleted. The workflow will be canceled
+        # but task1 will still be running to allow for graceful exit.
+        self.st2client.liveactions.delete(subwf_ex_1)
+
+        # Assert subworkflow is canceling.
+        subwf_ex_1 = self._wait_for_state(subwf_ex_1, ac_const.LIVEACTION_STATUS_CANCELING)
+
+        # Assert main workflow and the other subworkflow is canceling.
+        ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_CANCELING)
+        subwf_ex_2 = self._wait_for_state(subwf_ex_2, ac_const.LIVEACTION_STATUS_CANCELING)
+
+        # Delete the temporary file.
+        os.remove(path)
+        self.assertFalse(os.path.exists(path))
+
+        # Assert subworkflows are canceled.
+        subwf_ex_1 = self._wait_for_state(subwf_ex_1, ac_const.LIVEACTION_STATUS_CANCELED)
+        subwf_ex_2 = self._wait_for_state(subwf_ex_2, ac_const.LIVEACTION_STATUS_CANCELED)
 
         # Assert main workflow is canceled.
         ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_CANCELED)

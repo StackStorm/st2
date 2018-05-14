@@ -47,11 +47,13 @@ from st2tests.mocks import workflow as mock_wf_ex_xport
 TEST_FIXTURES = {
     'workflows': [
         'sequential.yaml',
-        'subworkflow.yaml'
+        'subworkflow.yaml',
+        'subworkflows.yaml'
     ],
     'actions': [
         'sequential.yaml',
-        'subworkflow.yaml'
+        'subworkflow.yaml',
+        'subworkflows.yaml'
     ]
 }
 
@@ -189,5 +191,61 @@ class OrchestraRunnerCancelTest(st2tests.DbTestCase):
         wf_svc.handle_action_execution_completion(tk_ac_ex_db)
 
         # Assert the main workflow is canceled.
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_CANCELED)
+
+    def test_cancel_subworkflow_cascade_up_to_workflow_with_other_subworkflows(self):
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][2])
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result)
+
+        # Identify the records for the subworkflow.
+        wf_ex_dbs = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))
+        self.assertEqual(len(wf_ex_dbs), 1)
+
+        tk_ex_dbs = wf_db_access.TaskExecution.query(workflow_execution=str(wf_ex_dbs[0].id))
+        self.assertEqual(len(tk_ex_dbs), 2)
+
+        tk1_ac_ex_dbs = ex_db_access.ActionExecution.query(task_execution=str(tk_ex_dbs[0].id))
+        self.assertEqual(len(tk1_ac_ex_dbs), 1)
+
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_dbs[0].liveaction['id'])
+        self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
+
+        tk2_ac_ex_dbs = ex_db_access.ActionExecution.query(task_execution=str(tk_ex_dbs[1].id))
+        self.assertEqual(len(tk2_ac_ex_dbs), 1)
+
+        tk2_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk2_ac_ex_dbs[0].liveaction['id'])
+        self.assertEqual(tk2_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
+
+        # Cancel the subworkflow which should cascade up to the root.
+        requester = cfg.CONF.system_user.user
+        tk1_lv_ac_db, tk1_ac_ex_db = ac_svc.request_cancellation(tk1_lv_ac_db, requester)
+        self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_CANCELING)
+
+        # Assert the main workflow is canceling.
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_CANCELING)
+
+        # Assert both subworkflows are canceled.
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(str(tk1_lv_ac_db.id))
+        self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_CANCELED)
+        tk2_lv_ac_db = lv_db_access.LiveAction.get_by_id(str(tk2_lv_ac_db.id))
+        self.assertEqual(tk2_lv_ac_db.status, ac_const.LIVEACTION_STATUS_CANCELED)
+
+        # Manually handle action execution completion for one of the tasks.
+        tk1_ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(tk1_ac_ex_db.id))
+        self.assertEqual(tk1_ac_ex_db.status, ac_const.LIVEACTION_STATUS_CANCELED)
+        wf_svc.handle_action_execution_completion(tk1_ac_ex_db)
+
+        # Manually handle action execution completion for the other task.
+        tk2_ac_ex_db = tk2_ac_ex_dbs[0]
+        tk2_ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(tk2_ac_ex_db.id))
+        self.assertEqual(tk2_ac_ex_db.status, ac_const.LIVEACTION_STATUS_CANCELED)
+        wf_svc.handle_action_execution_completion(tk2_ac_ex_db)
+
+        # Assert the main workflow is canceling.
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_CANCELED)

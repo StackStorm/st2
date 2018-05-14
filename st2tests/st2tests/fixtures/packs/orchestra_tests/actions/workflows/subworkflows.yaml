@@ -1,0 +1,9 @@
+version: 1.0
+
+description: A sample workflow that calls multiple subworkflows.
+
+tasks:
+  task1:
+    action: orchestra_tests.sequential who="Jack"
+  task2:
+    action: orchestra_tests.sequential who="Jill"
