@@ -82,7 +82,7 @@ relies on outputting unicode characters won't work.
 
 You are encouraged to use UTF-8 locale by setting LC_ALL environment variable to en_US.UTF-8 or
 similar.
-""".strip()
+""".strip().replace('\n', ' ')
 
 PACKAGE_METADATA_FILE_PATH = '/opt/stackstorm/st2/package.meta'
 
