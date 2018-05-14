@@ -41,8 +41,7 @@ class StatsdDriver(BaseMetricsDriver):
         assert isinstance(key, str)
         assert isinstance(amount, Number)
         self._counters[key] = self._counters.get(key, statsd.Counter(key))
-        counter = self._counters[key]
-        counter += amount
+        self._counters[key] += amount
 
     def dec_counter(self, key, amount=1):
         """ Decrement metric
@@ -50,5 +49,4 @@ class StatsdDriver(BaseMetricsDriver):
         assert isinstance(key, str)
         assert isinstance(amount, Number)
         self._counters[key] = self._counters.get(key, statsd.Counter(key))
-        counter = self._counters[key]
-        counter -= amount
+        self._counters[key] -= amount
