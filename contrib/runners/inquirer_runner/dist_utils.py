@@ -17,14 +17,51 @@
 from __future__ import absolute_import
 import os
 import re
+import sys
 
-from pip.req import parse_requirements
+from distutils.version import StrictVersion
+
+GET_PIP = 'curl https://bootstrap.pypa.io/get-pip.py | python'
+
+try:
+    import pip
+    from pip import __version__ as pip_version
+except ImportError as e:
+    print('Failed to import pip: %s' % (str(e)))
+    print('')
+    print('Download pip:\n%s' % (GET_PIP))
+    sys.exit(1)
+
+try:
+    # pip < 10.0
+    from pip.req import parse_requirements
+except ImportError:
+    # pip >= 10.0
+
+    try:
+        from pip._internal.req.req_file import parse_requirements
+    except ImportError as e:
+        print('Failed to import parse_requirements from pip: %s' % (str(e)))
+        print('Using pip: %s' % (str(pip_version)))
+        sys.exit(1)
 
 __all__ = [
+    'check_pip_version',
     'fetch_requirements',
     'apply_vagrant_workaround',
     'get_version_string',
+    'parse_version_string'
 ]
+
+
+def check_pip_version():
+    """
+    Ensure that a minimum supported version of pip is installed.
+    """
+    if StrictVersion(pip.__version__) < StrictVersion('6.0.0'):
+        print("Upgrade pip, your version `{0}' "
+              "is outdated:\n{1}".format(pip.__version__, GET_PIP))
+        sys.exit(1)
 
 
 def fetch_requirements(requirements_file_path):
@@ -63,4 +100,8 @@ def get_version_string(init_file):
         if version_match:
             return version_match.group(1)
 
-        raise RuntimeError('Unable to find version string.')
+        raise RuntimeError('Unable to find version string in %s.' % (init_file))
+
+
+# alias for get_version_string
+parse_version_string = get_version_string
