@@ -426,6 +426,33 @@ class ShellTestCase(base.BaseCLITestCase):
         stderr = self.version_output.read()
         self.assertTrue('v2.9dev (abcdefg), on Python' in stderr)
 
+    @mock.patch('locale.getdefaultlocale', mock.Mock(return_value=['en_US']))
+    @mock.patch('locale.getpreferredencoding', mock.Mock(return_value='iso'))
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(base.RESOURCES), 200, 'OK')))
+    @mock.patch('st2client.shell.LOGGER')
+    def test_non_unicode_encoding_locale_warning_is_printed(self, mock_logger):
+        shell = Shell()
+        shell.run(argv=['trigger', 'list'])
+
+        call_args = mock_logger.warn.call_args[0][0]
+        self.assertTrue('Locale en_US with encoding iso which is not UTF-8 is used.' in call_args)
+
+    @mock.patch('locale.getdefaultlocale', mock.Mock(side_effect=ValueError('bar')))
+    @mock.patch('locale.getpreferredencoding', mock.Mock(side_effect=ValueError('bar')))
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(base.RESOURCES), 200, 'OK')))
+    @mock.patch('st2client.shell.LOGGER')
+    def test_failed_to_get_locale_encoding_warning_is_printed(self, mock_logger):
+        shell = Shell()
+        shell.run(argv=['trigger', 'list'])
+
+        call_args = mock_logger.warn.call_args[0][0]
+        self.assertTrue('Locale unknown with encoding unknown which is not UTF-8 is used.' in
+                        call_args)
+
     def _write_mock_package_metadata_file(self):
         _, package_metadata_path = tempfile.mkstemp()
 
