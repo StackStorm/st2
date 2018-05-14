@@ -23,25 +23,32 @@ class StatsdDriver(BaseMetricsDriver):
     """ StatsD Implementation of the metrics driver
     """
     def __init__(self):
-        self._connection = statsd.StatsClient(cfg.CONF.metrics.host, cfg.CONF.metrics.port)
+        statsd.Connection.set_defaults(host=cfg.CONF.metrics.host, port=cfg.CONF.metrics.port)
+        self._counters = {}
+        self._timers = {}
 
     def time(self, key, time):
         """ Timer metric
         """
         assert isinstance(key, str)
         assert isinstance(time, Number)
-        self._connection.timing(key, time)
+        self._timers[key] = self._timers.get(key, statsd.Timer(''))
+        self._timers[key].send(key, time)
 
     def inc_counter(self, key, amount=1):
         """ Increment counter
         """
         assert isinstance(key, str)
         assert isinstance(amount, Number)
-        self._connection.incr(key, amount)
+        self._counters[key] = self._counters.get(key, statsd.Counter(key))
+        counter = self._counters[key]
+        counter += amount
 
     def dec_counter(self, key, amount=1):
         """ Decrement metric
         """
         assert isinstance(key, str)
         assert isinstance(amount, Number)
-        self._connection.decr(key, amount)
+        self._counters[key] = self._counters.get(key, statsd.Counter(key))
+        counter = self._counters[key]
+        counter -= amount
