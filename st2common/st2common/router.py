@@ -222,11 +222,11 @@ class Router(object):
         the middleware.
 
         Although some middleware may use parts of the API spec, it is safe to assume that if you're
-        looking for the particular spec property handler, it's most  likely a part of this method.
+        looking for the particular spec property handler, it's most likely a part of this method.
 
         At the time of writing, the only property being utilized by middleware was `x-log-result`.
         """
-        LOG.debug("Recieved call with WebOb: %s", req)
+        LOG.debug("Received call with WebOb: %s", req)
         endpoint, path_vars = self.match(req)
         LOG.debug("Parsed endpoint: %s", endpoint)
         LOG.debug("Parsed path_vars: %s", path_vars)
