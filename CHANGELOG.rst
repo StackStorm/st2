@@ -23,6 +23,8 @@ Changed
   This way users don't need to explicitly provide ``--config-file`` CLI argument when running
   various scripts (e.g. ``st2-track-result``, ``st2-apply-rbac-definitions``, etc.) and when they
   just want to use a default config file. (improvement) #4111
+* Update st2 CLI to print a warning if a non-unicode system locale which would prevent StackStorm
+  to function correctly in some scenarios is used. (improvement) #4127 #4120
 
 Fixed
 ~~~~~
