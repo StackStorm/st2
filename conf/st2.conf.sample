@@ -180,6 +180,14 @@ connection_retries = 10
 # URL of all the nodes in a messaging service cluster.
 cluster_urls =  # comma separated list allowed here.
 
+[metrics]
+# Destination server to connect to if driver requires connection.
+host = 127.0.0.1
+# Driver type for metrics collection.
+driver = noop
+# Destination port to connect to if driver requires connection.
+port = 8125
+
 [mistral]
 # URL Mistral uses to talk back to the API.If not provided it defaults to public API URL. Note: This needs to be a base URL without API version (e.g. http://127.0.0.1:9101)
 api_url = None

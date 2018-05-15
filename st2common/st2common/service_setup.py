@@ -38,6 +38,7 @@ from st2common.rbac.migrations import run_all as run_all_rbac_migrations
 # import costs
 from st2common.database_setup import db_setup
 from st2common.database_setup import db_teardown
+from st2common.metrics.base import metrics_initialize
 
 
 __all__ = [
@@ -125,6 +126,8 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
     # TODO: This is a "not so nice" workaround until we have a proper migration system in place
     if run_migrations:
         run_all_rbac_migrations()
+
+    metrics_initialize()
 
 
 def teardown():

@@ -13,13 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import
-from st2common.exceptions import StackStormPluginException
+METRICS_COUNTER_SUFFIX = "_counter"
+METRICS_TIMER_SUFFIX = "_timer"
 
+PYTHON_RUNNER_EXECUTION = "python_runner_execution"
+PYTHON_WRAPPER_EXECUTION = "python_wrapper_execution"
 
-class PluginLoadError(StackStormPluginException):
-    pass
-
-
-class IncompatiblePluginException(StackStormPluginException):
-    pass
+METRICS_REGISTER_RUNNER = "register_runner"

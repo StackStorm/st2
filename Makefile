@@ -270,6 +270,10 @@ requirements: virtualenv .sdist-requirements
 			$(VIRTUALENV_DIR)/bin/pip install $(PIP_OPTIONS) -r $$req ; \
 	done
 
+	# Install st2common package to load drivers defined in st2common setup.py
+	(cd st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop)
+
+
 	# Note: We install prance here and not as part of any component
 	# requirements.txt because it has a conflict with our dependency (requires
 	# new version of requests) which we cant resolve at this moment

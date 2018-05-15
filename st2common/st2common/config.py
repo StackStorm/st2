@@ -396,6 +396,17 @@ def register_opts(ignore_errors=False):
     cli_opts = [debug, profile, use_debugger]
     do_register_cli_opts(cli_opts, ignore_errors=ignore_errors)
 
+    # Metrics Options stream options
+    metrics_opts = [
+        cfg.StrOpt('driver', default='noop',
+                   help='Driver type for metrics collection.'),
+        cfg.StrOpt('host', default='127.0.0.1',
+                   help='Destination server to connect to if driver requires connection.'),
+        cfg.IntOpt('port', default=8125,
+                   help='Destination port to connect to if driver requires connection.'),
+    ]
+    do_register_opts(metrics_opts, group='metrics', ignore_errors=ignore_errors)
+
 
 def parse_args(args=None):
     register_opts()

@@ -259,3 +259,21 @@ def load_meta_file(file_path):
 
     with open(file_path, 'r') as f:
         return PARSER_FUNCS[file_ext](f)
+
+
+def get_available_plugins(namespace):
+    """Return names of the available / installed plugins for a given namespace.
+    """
+    from stevedore.extension import ExtensionManager
+
+    manager = ExtensionManager(namespace=namespace, invoke_on_load=False)
+    return manager.names()
+
+
+def get_plugin_instance(namespace, name):
+    """Return class instance for the provided plugin name and namespace.
+    """
+    from stevedore.driver import DriverManager
+
+    manager = DriverManager(namespace=namespace, name=name, invoke_on_load=True)
+    return manager.driver
