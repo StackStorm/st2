@@ -14,7 +14,9 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 from mongoengine.queryset.visitor import Q
+from mongoengine import NotUniqueError
 
 from st2common.rbac.types import PermissionType
 from st2common.rbac.types import ResourceType
@@ -27,6 +29,7 @@ from st2common.models.db.rbac import RoleDB
 from st2common.models.db.rbac import UserRoleAssignmentDB
 from st2common.models.db.rbac import PermissionGrantDB
 from st2common.models.db.rbac import GroupToRoleMappingDB
+from st2common.exceptions.db import StackStormDBObjectConflictError
 
 
 __all__ = [
@@ -186,7 +189,8 @@ def delete_role(name):
     return result
 
 
-def assign_role_to_user(role_db, user_db, description=None, is_remote=False, source=None):
+def assign_role_to_user(role_db, user_db, description=None, is_remote=False, source=None,
+                        ignore_already_exists_error=False):
     """
     Assign role to a user.
 
@@ -205,11 +209,22 @@ def assign_role_to_user(role_db, user_db, description=None, is_remote=False, sou
     :param source: Source from where this assignment comes from. For example, path of a file if
                    it's a local assignment or mapping or "API".
     :type source: ``str``
+
+    :param: ignore_already_exists_error: True to ignore error if an assignment already exists.
+    :type ignore_already_exists_error: ``bool``
     """
     role_assignment_db = UserRoleAssignmentDB(user=user_db.name, role=role_db.name, source=source,
                                               description=description, is_remote=is_remote)
 
-    role_assignment_db = UserRoleAssignment.add_or_update(role_assignment_db)
+    try:
+        role_assignment_db = UserRoleAssignment.add_or_update(role_assignment_db)
+    except (NotUniqueError, StackStormDBObjectConflictError) as e:
+        if not ignore_already_exists_error:
+            raise e
+
+        role_assignment_db = UserRoleAssignment.query(user=user_db.name, role=role_db.name,
+                                                      source=source,
+                                                      description=description).first()
 
     return role_assignment_db
 
