@@ -1,12 +1,12 @@
 # Don't edit this file. It's generated automatically!
 argcomplete
-jsonpath-rw==1.4.0
+jsonpath-rw>=1.3.0
 prettytable
-prompt-toolkit==1.0.15
+prompt-toolkit==1.0.7
 python-dateutil
-python-editor==1.0.3
+python-editor==1.0.1
 pytz
-pyyaml<4.0,>=3.12
-requests[security]<2.15,>=2.14.1
+pyyaml<4.0,>=3.11
+requests[security]>=2.14.1,<2.15
 six==1.11.0
-sseclient==0.0.19
+sseclient==0.0.12

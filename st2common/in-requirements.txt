@@ -27,5 +27,5 @@ routes
 flex
 webob
 jsonpath-rw
-statsd
+python-statsd
 prometheus_client
