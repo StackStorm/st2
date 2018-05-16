@@ -119,7 +119,7 @@ class RunnerContainer(object):
                                                               action_parameters=action_params)
             extra = {'runner': runner, 'parameters': resolved_action_params}
             LOG.debug('Performing run for runner: %s' % (runner.runner_id), extra=extra)
-            with CounterWithTimer(key=format_metrics_key(action_db)):
+            with CounterWithTimer(key=format_metrics_key(action_db, key='action')):
                 (status, result, context) = runner.run(action_params)
 
             try:

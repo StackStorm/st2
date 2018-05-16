@@ -198,7 +198,7 @@ def update_liveaction_status(status=None, result=None, context=None, end_timesta
         get_driver().dec_counter(
             format_metrics_key(
                 liveaction_db=liveaction_db,
-                key=liveaction_db.status
+                key='action.%s' % liveaction_db.status
             )
         )
 
@@ -206,7 +206,7 @@ def update_liveaction_status(status=None, result=None, context=None, end_timesta
         get_driver().inc_counter(
             format_metrics_key(
                 liveaction_db=liveaction_db,
-                key=status
+                key='action.%s' % status
             )
         )
 

@@ -75,7 +75,7 @@ class RulesEngine(object):
 
             get_driver().inc_counter(
                 format_metrics_key(
-                    key=matching_rule
+                    key='rule.%s' % matching_rule
                 )
             )
 

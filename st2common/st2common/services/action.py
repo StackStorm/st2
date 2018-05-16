@@ -136,7 +136,7 @@ def create_request(liveaction):
     get_driver().inc_counter(
         format_metrics_key(
             action_db=action_db,
-            key=liveaction.status
+            key='action.%s' % liveaction.status
         )
     )
     return liveaction, execution
