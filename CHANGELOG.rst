@@ -7,8 +7,8 @@ in development
 Added
 ~~~~~
 
-* Added metrics for collecting performance and health information about
-  the various ST2 services and functions.
+* Added metrics for collecting performance and health information about the various ST2 services
+  and functions. (new feature) #4004 #2974
 * When running a dev (unstable) release include git revision hash in the output when using
   ``st2 --version`` CLI command. (new feature) #4117
 
