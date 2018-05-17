@@ -7,8 +7,8 @@ in development
 Added
 ~~~~~
 
-* Added metrics for collecting performance and health information about
-  the various ST2 services and functions.
+* Added metrics for collecting performance and health information about the various ST2 services
+  and functions. (new feature) #4004 #2974
 * When running a dev (unstable) release include git revision hash in the output when using
   ``st2 --version`` CLI command. (new feature) #4117
 
@@ -29,18 +29,44 @@ Changed
 Fixed
 ~~~~~
 
+2.7.2 - May 16, 2018
+--------------------
+
+Changed
+~~~~~~~
+
+* Reduce load on LDAP server and cache user groups response in an in-memory cache when RBAC
+  remote LDAP group to local RBAC role synchronization feature is enabled.
+
+  Previously on authentication the code would hit LDAP server multiple times to retrieve user
+  groups. With this change, user LDAP groups are only retrieved once upon authentication and
+  cached and re-used in-memory by default for 120 seconds.
+
+  This reduces load on LDAP server and improves performance upon regular and concurrent user
+  authentication.
+
+  This functionality can be disabled by setting ``cache_user_groups_response`` LDAP
+  authentication backend kwarg to ``false``.
+
+  Note: This change only affects users which utilize RBAC with remote LDAP groups to local RBAC
+  roles synchronization feature enabled. (enterprise) (bug fix) #4103 #4105
+
+Fixed
+~~~~~
+
 * Fix an issue (race condition) which would result in not all the remote LDAP groups being
   synchronized with local RBAC roles if a user tried to authenticate with the same auth token
   concurrently in a short time frame.
 
-  Note: This issue only affects users who utilize RBAC with remote LDAP groups to local RBAC
-  roles synchronization feature enabled. (bug fix) #4103 #4105
-* Throw if ``id`` CLI argument is not passed to the ``st2-track-result`` script. (bug fix) #4115
+  Note: This issue only affects users which utilize RBAC with remote LDAP groups to local RBAC
+  roles synchronization feature enabled. (enterprise) (bug fix) #4103 #4105
 * Fix an issue with some sensors which rely on ``select.poll()`` (FileWatch, GithubSensor, etc.)
   stopped working with StackStorm >= 2.7.0.
 
   StackStorm v2.7.0 inadvertently introduced a change which broke a small set of sensors which
   rely on ``select.poll()`` functionality. (bug fix) #4118
+
+* Throw if ``id`` CLI argument is not passed to the ``st2-track-result`` script. (bug fix) #4115
 * Fixed pack config's not properly rendering Jinja expressions within lists. (bugfix) #4121
 
   Contributed by Nick Maludy (Encore Technologies).
@@ -48,9 +74,6 @@ Fixed
   encountered. (bugfix) #4123
 
   Contributed by Nick Maludy (Encore Technologies).
-
-Changed
-~~~~~~~
 
 2.7.1 - April 20, 2018
 ----------------------
