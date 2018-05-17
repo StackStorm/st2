@@ -31,7 +31,6 @@ from st2common.services import trace as trace_service
 from st2common.util import date as date_utils
 from st2common.util import action_db as action_utils
 from st2common.util import schema as util_schema
-from st2common.metrics.base import get_driver, format_metrics_key
 
 
 __all__ = [
@@ -62,6 +61,9 @@ def create_request(liveaction):
     :return: (liveaction, execution)
     :rtype: tuple
     """
+    # We import this here to avoid conflicts w/ runners that might import this
+    # file since the runners don't have the config context by default.
+    from st2common.metrics.base import get_driver, format_metrics_key
     # Use the user context from the parent action execution. Subtasks in a workflow
     # action can be invoked by a system user and so we want to use the user context
     # from the original workflow action.

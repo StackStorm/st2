@@ -23,6 +23,8 @@ import functools
 from subprocess import list2cmdline
 
 from eventlet.green import subprocess
+from st2common.config import parse_args
+parse_args()
 from oslo_config import cfg
 from six.moves import StringIO
 
