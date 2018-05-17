@@ -26,10 +26,9 @@ from st2common.util.loader import get_plugin_instance
 from st2common.util.date import get_datetime_utc_now
 from st2common.exceptions.plugins import PluginLoadError
 
-if not cfg.CONF.metrics.driver:
-    from st2common.config import parse_args
-    parse_args()
-
+if not hasattr(cfg.CONF, 'metrics'):
+    from st2common.config import register_opts
+    register_opts()
 
 LOG = logging.getLogger(__name__)
 
