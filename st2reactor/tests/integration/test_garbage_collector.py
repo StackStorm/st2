@@ -180,7 +180,7 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
         process = self._start_garbage_collector()
 
         # Give it some time to perform garbage collection and kill it
-        eventlet.sleep(5)
+        eventlet.sleep(8)
         process.send_signal(signal.SIGKILL)
         self.remove_process(process=process)
 
