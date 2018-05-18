@@ -127,11 +127,11 @@ class RuleFilter(object):
                 criteria_pattern=criteria_pattern,
                 criteria_context=payload_lookup.context
             )
-        except Exception:
+        except Exception as e:
             msg = ('Failed to render pattern value "%s" for key "%s"' % (criteria_pattern,
                                                                          criterion_k))
             LOG.exception(msg, extra=self._base_logger_context)
-            self._create_rule_enforcement(failure_reason=msg)
+            self._create_rule_enforcement(failure_reason=msg, exc=e)
 
             return (False, None, None)
 
@@ -142,10 +142,10 @@ class RuleFilter(object):
                 payload_value = matches[0] if len(matches) > 0 else matches
             else:
                 payload_value = None
-        except:
+        except Exception as e:
             msg = ('Failed transforming criteria key %s' % criterion_k)
             LOG.exception(msg, extra=self._base_logger_context)
-            self._create_rule_enforcement(failure_reason=msg)
+            self._create_rule_enforcement(failure_reason=msg, exc=e)
 
             return (False, None, None)
 
@@ -158,10 +158,10 @@ class RuleFilter(object):
                                  check_function=self._bool_criterion)
             else:
                 result = op_func(value=payload_value, criteria_pattern=criteria_pattern)
-        except:
-            msg = ('There might be a problem with the criteria in rule %s.' % self.rule)
+        except Exception as e:
+            msg = ('There might be a problem with the criteria in rule %s' % (self.rule.ref))
             LOG.exception(msg, extra=self._base_logger_context)
-            self._create_rule_enforcement(failure_reason=msg)
+            self._create_rule_enforcement(failure_reason=msg, exc=e)
 
             return (False, None, None)
 
@@ -223,15 +223,15 @@ class RuleFilter(object):
 
         return criteria_rendered
 
-    def _create_rule_enforcement(self, failure_reason):
+    def _create_rule_enforcement(self, failure_reason, exc):
         """
         Note: We also create RuleEnforcementDB for rules which failed to match due to an exception.
 
         Without that, only way for users to find out about those failes matches is by inspecting
         the logs.
         """
-        failure_reason = ('Failed to match rule "%s" against trigger instance "%s": %s' %
-                          (self.rule.ref, str(self.trigger_instance.id), failure_reason))
+        failure_reason = ('Failed to match rule "%s" against trigger instance "%s": %s: %s' %
+                          (self.rule.ref, str(self.trigger_instance.id), failure_reason, str(exc)))
         rule_spec = {'ref': self.rule.ref, 'id': str(self.rule.id), 'uid': self.rule.uid}
         enforcement_db = RuleEnforcementDB(trigger_instance_id=str(self.trigger_instance.id),
                                            rule=rule_spec,

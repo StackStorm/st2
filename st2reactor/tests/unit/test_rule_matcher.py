@@ -204,7 +204,8 @@ class RuleMatcherTestCase(CleanDbTestCase):
 
         expected_failure = ('Failed to match rule "yoyohoneysingh.st2.test.rule4" against trigger '
                             'instance "%s": Failed to render pattern value "t2_p_v" for key '
-                            '"trigger.k1"' % (str(trigger_instance.id)))
+                            '"trigger.k1": exception in _render_criteria_pattern' %
+                            (str(trigger_instance.id)))
         self.assertEqual(rule_enforcement_dbs[0].failure_reason, expected_failure)
         self.assertEqual(rule_enforcement_dbs[0].trigger_instance_id, str(trigger_instance.id))
         self.assertEqual(rule_enforcement_dbs[0].rule['id'], str(rule_4_db.id))
@@ -235,7 +236,8 @@ class RuleMatcherTestCase(CleanDbTestCase):
         self.assertEqual(len(rule_enforcement_dbs), 1)
 
         expected_failure = ('Failed to match rule "yoyohoneysingh.st2.test.rule4" against trigger '
-                            'instance "%s": Failed transforming criteria key trigger.k1' % (str(trigger_instance.id)))
+                            'instance "%s": Failed transforming criteria key trigger.k1: '
+                            'exception in get_value' % (str(trigger_instance.id)))
         self.assertEqual(rule_enforcement_dbs[0].failure_reason, expected_failure)
         self.assertEqual(rule_enforcement_dbs[0].trigger_instance_id, str(trigger_instance.id))
         self.assertEqual(rule_enforcement_dbs[0].rule['id'], str(rule_4_db.id))
@@ -267,7 +269,8 @@ class RuleMatcherTestCase(CleanDbTestCase):
 
         expected_failure = ('Failed to match rule "yoyohoneysingh.st2.test.rule4" against trigger '
                             'instance "%s": There might be a problem with the criteria in rule '
-                            'yoyohoneysingh.st2.test.rule4.' % (str(trigger_instance.id)))
+                            'yoyohoneysingh.st2.test.rule4: exception in equals' %
+                            (str(trigger_instance.id)))
         self.assertEqual(rule_enforcement_dbs[0].failure_reason, expected_failure)
         self.assertEqual(rule_enforcement_dbs[0].trigger_instance_id, str(trigger_instance.id))
         self.assertEqual(rule_enforcement_dbs[0].rule['id'], str(rule_4_db.id))
