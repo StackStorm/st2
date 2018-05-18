@@ -1,0 +1,21 @@
+version: 1.0
+
+description: A sample workflow used to test the pause feature.
+
+input:
+  - tempfile
+
+tasks:
+  task1:
+    action: core.local
+    input:
+      cmd: "while [ -e '<% $.tempfile %>' ]; do sleep 0.1; done"
+      timeout: 300
+    next:
+      - when: <% succeeded() %>
+        publish: var1="<% $.tempfile %> is deleted."
+        do: task2
+  task2:
+    action: core.local
+    input:
+      cmd: echo "<% $.var1 %>"

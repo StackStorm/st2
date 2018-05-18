@@ -27,6 +27,7 @@ from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.persistence.execution import ActionExecution
 from st2common.services import executions
+from st2common.services import workflows as wf_svc
 from st2common.transport.consumers import MessageHandler
 from st2common.transport.consumers import ActionsQueueConsumer
 from st2common.transport import utils as transport_utils
@@ -238,6 +239,12 @@ class ActionExecutionDispatcher(MessageHandler):
             extra['error'] = str(ex)
             LOG.info('Failed to resume action execution %s.' % (liveaction_db.id), extra=extra)
             raise
+
+        # Cascade the resume upstream if action execution is child of an orchestra workflow.
+        # The action service request_resume function is not used here because we do not want
+        # other peer subworkflows to be resumed.
+        if 'orchestra' in action_execution_db.context and 'parent' in action_execution_db.context:
+            wf_svc.handle_action_execution_resume(action_execution_db)
 
         return result
 

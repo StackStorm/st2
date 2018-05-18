@@ -22,6 +22,7 @@ from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
+from st2common.constants.action import LIVEACTION_STATUS_PAUSED
 from st2common.constants.action import LIVEACTION_FAILED_STATES
 from st2common.constants.action import LIVEACTION_COMPLETED_STATES
 from st2common.constants.triggers import INTERNAL_TRIGGER_TYPES
@@ -79,6 +80,10 @@ class Notifier(consumers.MessageHandler):
         execution_id = str(execution_db.id)
         extra = {'execution': execution_db}
         LOG.debug('Processing execution %s', execution_id, extra=extra)
+
+        if ('orchestra' in execution_db.context and
+                execution_db.status == LIVEACTION_STATUS_PAUSED):
+            wf_svc.handle_action_execution_pause(execution_db)
 
         if execution_db.status not in LIVEACTION_COMPLETED_STATES:
             LOG.debug('Skipping processing of execution %s since it\'s not in a completed state' %

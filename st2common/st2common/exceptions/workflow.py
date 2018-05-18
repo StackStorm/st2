@@ -58,7 +58,13 @@ class AmbiguousWorkflowExecutionException(st2_exc.StackStormBaseException):
         )
 
 
-class WorkflowExecutionAlreadyCompletedException(st2_exc.StackStormBaseException):
+class WorkflowExecutionIsCompletedException(st2_exc.StackStormBaseException):
 
     def __init__(self, wf_ex_id):
         Exception.__init__(self, 'Workflow execution "%s" is already completed.' % wf_ex_id)
+
+
+class WorkflowExecutionIsRunningException(st2_exc.StackStormBaseException):
+
+    def __init__(self, wf_ex_id):
+        Exception.__init__(self, 'Workflow execution "%s" is already active.' % wf_ex_id)

@@ -14,8 +14,12 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
+import os
 import retrying
+import shutil
 import six
+import tempfile
 import unittest2
 
 from st2client import client as st2
@@ -32,6 +36,21 @@ LIVEACTION_LAUNCHED_STATUSES = [
 
 def retry_on_exceptions(exc):
     return isinstance(exc, AssertionError)
+
+
+class WorkflowControlTestCaseMixin(object):
+
+    def _create_temp_file(self):
+        _, temp_file_path = tempfile.mkstemp()
+        os.chmod(temp_file_path, 0o755)     # nosec
+        return temp_file_path
+
+    def _delete_temp_file(self, temp_file_path):
+        if temp_file_path and os.path.exists(temp_file_path):
+            if os.path.isdir(temp_file_path):
+                shutil.rmtree(temp_file_path)
+            else:
+                os.remove(temp_file_path)
 
 
 class TestWorkflowExecution(unittest2.TestCase):

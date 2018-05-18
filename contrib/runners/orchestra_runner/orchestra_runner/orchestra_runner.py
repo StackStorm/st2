@@ -18,7 +18,8 @@ from __future__ import absolute_import
 import copy
 import uuid
 
-from orchestra import exceptions as wf_lib_exc
+from orchestra import exceptions as wf_exc
+from orchestra import states as wf_states
 
 from st2common.constants import action as ac_const
 from st2common import log as logging
@@ -59,7 +60,7 @@ class OrchestraRunner(runners.AsyncActionRunner):
         try:
             # Request workflow execution.
             wf_ex_db = wf_svc.request(wf_def, self.execution)
-        except wf_lib_exc.WorkflowInspectionError as e:
+        except wf_exc.WorkflowInspectionError as e:
             status = ac_const.LIVEACTION_STATUS_FAILED
             result = {'errors': e.args[1]}
             return (status, result, self.context)
@@ -74,6 +75,52 @@ class OrchestraRunner(runners.AsyncActionRunner):
         ctx = self._construct_context(wf_ex_db)
 
         return (status, partial_results, ctx)
+
+    def pause(self):
+        # Pause the target workflow.
+        wf_ex_db = wf_svc.request_pause(self.execution)
+
+        # Request pause of tasks that are workflows and still running.
+        for child_ex_id in self.execution.children:
+            child_ex = ex_db_access.ActionExecution.get(id=child_ex_id)
+            if (child_ex.runner['name'] in ac_const.WORKFLOW_RUNNER_TYPES and
+                    child_ex.status == ac_const.LIVEACTION_STATUS_RUNNING):
+                ac_svc.request_pause(
+                    lv_db_access.LiveAction.get(id=child_ex.liveaction['id']),
+                    self.context.get('user', None)
+                )
+
+        status = (
+            ac_const.LIVEACTION_STATUS_PAUSING
+            if wf_ex_db.status == wf_states.PAUSING or ac_svc.is_children_active(self.liveaction.id)
+            else ac_const.LIVEACTION_STATUS_PAUSED
+        )
+
+        return (
+            status,
+            self.liveaction.result,
+            self.liveaction.context
+        )
+
+    def resume(self):
+        # Resume the target workflow.
+        wf_svc.request_resume(self.execution)
+
+        # Request resume of tasks that are workflows and still running.
+        for child_ex_id in self.execution.children:
+            child_ex = ex_db_access.ActionExecution.get(id=child_ex_id)
+            if (child_ex.runner['name'] in ac_const.WORKFLOW_RUNNER_TYPES and
+                    child_ex.status == ac_const.LIVEACTION_STATUS_PAUSED):
+                ac_svc.request_resume(
+                    lv_db_access.LiveAction.get(id=child_ex.liveaction['id']),
+                    self.context.get('user', None)
+                )
+
+        return (
+            ac_const.LIVEACTION_STATUS_RUNNING,
+            self.liveaction.result,
+            self.liveaction.context
+        )
 
     def cancel(self):
         # Cancel the target workflow.

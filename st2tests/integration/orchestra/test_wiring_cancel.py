@@ -16,31 +16,27 @@
 from __future__ import absolute_import
 
 import os
-import shutil
-import tempfile
 
 from integration.orchestra import base
 
 from st2common.constants import action as ac_const
 
 
-class CancellationWiringTest(base.TestWorkflowExecution):
+class CancellationWiringTest(base.TestWorkflowExecution, base.WorkflowControlTestCaseMixin):
 
     temp_file_path = None
 
     def setUp(self):
         super(CancellationWiringTest, self).setUp()
 
-        # Create temporary directory used by the tests
-        _, self.temp_file_path = tempfile.mkstemp()
-        os.chmod(self.temp_file_path, 0o755)   # nosec
+        # Create temporary file used by the tests
+        self.temp_file_path = self._create_temp_file()
 
     def tearDown(self):
-        if self.temp_file_path and os.path.exists(self.temp_file_path):
-            if os.path.isdir(self.temp_file_path):
-                shutil.rmtree(self.temp_file_path)
-            else:
-                os.remove(self.temp_file_path)
+        # Delete temporary files.
+        self._delete_temp_file(self.temp_file_path)
+
+        super(CancellationWiringTest, self).tearDown()
 
     def test_cancellation(self):
         # A temp file is created during test setup. Ensure the temp file exists.

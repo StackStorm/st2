@@ -29,4 +29,4 @@ tasks:
   task3:
     action: core.echo
     input:
-        message: <% $who + ", " + $.msg3 %>
+        message: <% $who %>, <% $.msg3 %>
