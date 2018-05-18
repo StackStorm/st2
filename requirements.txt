@@ -32,6 +32,7 @@ prompt-toolkit==1.0.15
 psutil==5.4.5
 pyinotify==0.9.6
 pymongo==3.6.1
+pyrabbit
 python-dateutil
 python-editor==1.0.3
 python-gnupg==0.4.2
