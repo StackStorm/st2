@@ -53,7 +53,7 @@ before_install:
   - sudo pip install --upgrade "virtualenv==15.1.0"
 
 install:
-  - if [ "${TASK}" = 'compilepy3 ci-py3-unit' ]; then pip install "tox==3.0.0"; else make requirements; fi
+  - if [ "${TASK}" = 'compilepy3 ci-py3-unit' ]; then pip install "tox==3.0.0" && tox --version; else make requirements; fi
   - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ]; then pip install codecov; fi
   - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ] || [ "${TASK}" = 'compilepy3 ci-py3-unit' ]; then sudo .circle/add-itest-user.sh; fi
 
