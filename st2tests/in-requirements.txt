@@ -6,3 +6,4 @@ psutil
 webtest
 nose-timer
 rednose
+RandomWords
