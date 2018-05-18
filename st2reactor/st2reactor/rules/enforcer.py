@@ -97,7 +97,7 @@ class RuleEnforcer(object):
             extra['execution_db'] = execution_db
         except Exception as e:
             # Record the failure reason in the RuleEnforcement.
-            enforcement_db.failure_reason = e.message
+            enforcement_db.failure_reason = str(e)
             LOG.exception('Failed kicking off execution for rule %s.', self.rule, extra=extra)
         finally:
             self._update_enforcement(enforcement_db)
