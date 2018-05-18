@@ -232,8 +232,9 @@ class RuleFilter(object):
         """
         failure_reason = ('Failed to match rule "%s" against trigger instance "%s": %s' %
                           (self.rule.ref, str(self.trigger_instance.id), failure_reason))
+        rule_spec = {'ref': self.rule.ref, 'id': str(self.rule.id), 'uid': self.rule.uid}
         enforcement_db = RuleEnforcementDB(trigger_instance_id=str(self.trigger_instance.id),
-                                           rule=self.rule,
+                                           rule=rule_spec,
                                            failure_reason=failure_reason)
 
         try:
