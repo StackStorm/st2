@@ -11,6 +11,12 @@ Added
   and functions. (new feature) #4004 #2974
 * When running a dev (unstable) release include git revision hash in the output when using
   ``st2 --version`` CLI command. (new feature) #4117
+* Update rules engine to also create rule enforcement object when trigger instances fails to match
+  a rule during the rule matching / filtering phase due to an exception in the rule criteria (e.g.
+  invalid Jinja expression, etc.).
+
+  This change increases visibility into rules which didn't match due to an exception. Previously
+  this was only visible / reflected in the rules engine log file. (improvement) #4134
 
 Changed
 ~~~~~~~
