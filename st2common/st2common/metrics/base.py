@@ -36,30 +36,37 @@ PLUGIN_NAMESPACE = 'st2common.metrics.driver'
 METRICS = None
 
 
+def _format_metrics_key_for_action_db(action_db):
+    action_name = action_db.name
+    action_pack = action_db.pack
+    return '.%s.%s' % (action_pack, action_name)
+
+
+def _format_metrics_key_for_liveaction_db(liveaction_db):
+    action_name = liveaction_db.action
+    action_pack = liveaction_db.context.get('pack', 'unknown')
+    return '.%s.%s' % (action_pack, action_name)
+
+
 def format_metrics_key(action_db=None, liveaction_db=None, key=None):
     """Return a string for usage as metrics key.
     """
     assert (action_db or key or liveaction_db), """Must supply one of key, action_db, or
                                                  liveaction_db"""
-    suffix = ""
+    metrics_key_items = ['st2']
 
     if action_db:
-        action_name = action_db.name
-        action_pack = action_db.pack
+        metrics_key_items.append(_format_metrics_key_for_action_db(action_db))
 
-        suffix = "%s.%s" % (action_pack, action_name)
-    elif liveaction_db:
-        action_name = liveaction_db.action
-        action_pack = liveaction_db.context.get('pack', 'nopack')
+    if liveaction_db:
+        metrics_key_items.append(
+            _format_metrics_key_for_liveaction_db(liveaction_db)
+        )
 
-        suffix = "%s.%s" % (action_pack, action_name)
+    if key:
+        metrics_key_items.append('.%s' % key)
 
-    if key and not suffix:
-        suffix = key
-    elif key and suffix:
-        suffix = "%s.%s" % (suffix, key)
-
-    metrics_key = "st2.%s" % (suffix)
+    metrics_key = '.'.join(metrics_key_items)
 
     LOG.debug("Generated Metrics Key: %s", metrics_key)
 
@@ -95,10 +102,11 @@ def check_key(key):
 class Timer(object):
     """ Timer context manager for easily sending timer statistics.
     """
-    def __init__(self, key):
+    def __init__(self, key, include_parameter=False):
         check_key(key)
         self.key = key
         self._metrics = get_driver()
+        self._include_parameter = include_parameter
         self._start_time = None
 
     def send_time(self, key=None):
@@ -128,6 +136,8 @@ class Timer(object):
         @wraps(func)
         def wrapper(*args, **kw):
             with self as metrics_timer:
+                if self._include_parameter:
+                    kw['metrics_timer'] = metrics_timer
                 return func(*args, metrics_timer=metrics_timer, **kw)
         return wrapper
 
@@ -159,10 +169,11 @@ class CounterWithTimer(object):
     """ Timer and counter context manager for easily sending timer statistics
     with builtin timer.
     """
-    def __init__(self, key):
+    def __init__(self, key, include_parameter=False):
         check_key(key)
         self.key = key
         self._metrics = get_driver()
+        self._include_parameter = include_parameter
         self._start_time = None
 
     def send_time(self, key=None):
@@ -195,7 +206,9 @@ class CounterWithTimer(object):
         @wraps(func)
         def wrapper(*args, **kw):
             with self as counter_with_timer:
-                return func(*args, metrics_counter_with_timer=counter_with_timer, **kw)
+                if self._include_parameter:
+                    kw['metrics_counter_with_timer'] = counter_with_timer
+                return func(*args, **kw)
         return wrapper
 
 

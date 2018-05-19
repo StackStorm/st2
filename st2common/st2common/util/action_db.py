@@ -194,6 +194,8 @@ def update_liveaction_status(status=None, result=None, context=None, end_timesta
                          'to unknown status string. Unknown status is "%s"',
                          liveaction_db, status)
 
+    # If liveaction_db status is set then we need to decrement the counter
+    # because it is transitioning to a new state
     if liveaction_db.status:
         get_driver().dec_counter(
             format_metrics_key(
@@ -202,6 +204,8 @@ def update_liveaction_status(status=None, result=None, context=None, end_timesta
             )
         )
 
+    # If status is provided then we need to increment the timer because the action
+    # is transitioning into this new state
     if status:
         get_driver().inc_counter(
             format_metrics_key(

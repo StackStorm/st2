@@ -91,8 +91,7 @@ class RunnerContainer(object):
         return liveaction_db.result
 
     @CounterWithTimer(key="st2.action.executions")
-    def _do_run(self, runner, runnertype_db, action_db, liveaction_db,
-                metrics_counter_with_timer=None):
+    def _do_run(self, runner, runnertype_db, action_db, liveaction_db):
         # Create a temporary auth token which will be available
         # for the duration of the action execution.
         runner.auth_token = self._create_auth_token(context=runner.context, action_db=action_db,
@@ -119,7 +118,8 @@ class RunnerContainer(object):
                                                               action_parameters=action_params)
             extra = {'runner': runner, 'parameters': resolved_action_params}
             LOG.debug('Performing run for runner: %s' % (runner.runner_id), extra=extra)
-            with CounterWithTimer(key=format_metrics_key(action_db, key='action')):
+            with CounterWithTimer(key=format_metrics_key(
+                                  action_db=action_db, key='action')):
                 (status, result, context) = runner.run(action_params)
 
             try:
