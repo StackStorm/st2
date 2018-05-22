@@ -116,7 +116,7 @@ def construct_mongo_shell_query(mongo_query, collection_name, ordering, limit,
 
     # Include only fields (projection)
     if only_fields:
-        projection_items = ['%s: 1' % (field) for field in only_fields]
+        projection_items = ['\'%s\': 1' % (field) for field in only_fields]
         projection = ', '.join(projection_items)
         part = 'find({filter_predicate}, {{{projection}}})'.format(
             filter_predicate=filter_predicate, projection=projection)
