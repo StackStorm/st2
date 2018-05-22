@@ -21,7 +21,12 @@ from st2common.persistence.rule_enforcement import RuleEnforcement
 from st2common.util import isotime
 from st2common.rbac.types import PermissionType
 
-from st2api.controllers import resource
+from st2api.controllers.resource import ResourceController
+
+__all__ = [
+    'RuleEnforcementController',
+    'SUPPORTED_FILTERS'
+]
 
 
 http_client = six.moves.http_client
@@ -40,7 +45,7 @@ SUPPORTED_FILTERS = {
 }
 
 
-class RuleEnforcementController(resource.ResourceController):
+class RuleEnforcementController(ResourceController):
 
     model = RuleEnforcementAPI
     access = RuleEnforcement
