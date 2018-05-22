@@ -24,7 +24,7 @@ from st2common.exceptions.triggers import TriggerDoesNotExistException
 from st2api.controllers.resource import BaseResourceIsolationControllerMixin
 from st2api.controllers.resource import ContentPackResourceController
 from st2api.controllers.controller_transforms import transform_to_bool
-from st2api.controllers.v1.ruleviews import RuleViewController
+from st2api.controllers.v1.rule_views import RuleViewController
 from st2common.models.api.rule import RuleAPI
 from st2common.models.db.auth import UserDB
 from st2common.persistence.rule import Rule

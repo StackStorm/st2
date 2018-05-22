@@ -418,7 +418,7 @@ paths:
             $ref: '#/definitions/Error'
   /api/v1/actions/views/parameters/{action_id}:
     get:
-      operationId: st2api.controllers.v1.actionviews:parameters_view_controller.get_one
+      operationId: st2api.controllers.v1.action_views:parameters_view_controller.get_one
       description: |
         Get parameters for an action.
       parameters:
@@ -449,7 +449,7 @@ paths:
             $ref: '#/definitions/Error'
   /api/v1/actions/views/overview:
     get:
-      operationId: st2api.controllers.v1.actionviews:overview_controller.get_all
+      operationId: st2api.controllers.v1.action_views:overview_controller.get_all
       x-permissions: {{ PERMISSION_TYPE.ACTION_LIST }}
       description: Returns a list of all the actions with runner parameters included.
       parameters:
@@ -510,7 +510,7 @@ paths:
             $ref: '#/definitions/Error'
   /api/v1/actions/views/overview/{ref_or_id}:
     get:
-      operationId: st2api.controllers.v1.actionviews:overview_controller.get_one
+      operationId: st2api.controllers.v1.action_views:overview_controller.get_one
       description: |
         Get one action with runner parameters included.
       parameters:
@@ -539,7 +539,7 @@ paths:
             $ref: '#/definitions/Error'
   /api/v1/actions/views/entry_point/{ref_or_id}:
     get:
-      operationId: st2api.controllers.v1.actionviews:entry_point_controller.get_one
+      operationId: st2api.controllers.v1.action_views:entry_point_controller.get_one
       description: |
         Get code of the action's entry_point.
       parameters:
@@ -1301,7 +1301,7 @@ paths:
             $ref: '#/definitions/Error'
   /api/v1/executions/views/filters:
     get:
-      operationId: st2api.controllers.v1.executionviews:filters_controller.get_all
+      operationId: st2api.controllers.v1.execution_views:filters_controller.get_all
       x-permissions: {{ PERMISSION_TYPE.EXECUTION_VIEWS_FILTERS_LIST }}
       description: |
         Get a list of distinct values for the execution filters.
@@ -2686,7 +2686,7 @@ paths:
             $ref: '#/definitions/Error'
   /api/v1/rules/views:
     get:
-      operationId: st2api.controllers.v1.ruleviews:rule_view_controller.get_all
+      operationId: st2api.controllers.v1.rule_views:rule_view_controller.get_all
       x-permissions: {{ PERMISSION_TYPE.RULE_LIST }}
       description: Returns a list of all rules.
       parameters:
@@ -2756,7 +2756,7 @@ paths:
             $ref: '#/definitions/Error'
   /api/v1/rules/views/{ref_or_id}:
     get:
-      operationId: st2api.controllers.v1.ruleviews:rule_view_controller.get_one
+      operationId: st2api.controllers.v1.rule_views:rule_view_controller.get_one
       description: |
         Get one rule.
       parameters:
