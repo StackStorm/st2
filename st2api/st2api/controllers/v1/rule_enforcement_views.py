@@ -14,8 +14,10 @@
 # limitations under the License.
 
 from st2common.models.api.rule_enforcement import RuleEnforcementViewAPI
+from st2common.models.api.trigger import TriggerInstanceAPI
 from st2common.persistence.rule_enforcement import RuleEnforcement
 from st2common.persistence.execution import ActionExecution
+from st2common.persistence.trigger import TriggerInstance
 from st2api.controllers.v1.rule_enforcements import SUPPORTED_FILTERS
 from st2api.controllers.v1.rule_enforcements import QUERY_OPTIONS
 from st2api.controllers.v1.rule_enforcements import FILTER_TRANSFORM_FUNCTIONS
@@ -33,8 +35,10 @@ class RuleEnforcementViewController(ResourceController):
     API controller which adds some extra information to the rule enforcement object so it makes
     more efficient for UI and clients to render rule enforcement object.
 
-    Right now in case a trigger instance matched an execution and execution was triggered, it also
-    includes action input parameters for the trigger action.
+    Right now we include those fields:
+
+    * trigger_instance object for each rule enforcement object
+    * subset of an execution object in case execution was triggered
     """
 
     model = RuleEnforcementViewAPI
@@ -63,40 +67,59 @@ class RuleEnforcementViewController(ResourceController):
         return rule_enforcement_api
 
     def _append_view_properties(self, rule_enforcement_apis):
+        """
+        Method which appends corresponding execution (if available) and trigger instance object
+        properties.
+        """
+        trigger_instance_ids = set([])
         execution_ids = []
 
         for rule_enforcement_api in rule_enforcement_apis:
+            trigger_instance_ids.add(str(rule_enforcement_api['trigger_instance_id']))
+
             if rule_enforcement_api.get('execution_id', None):
                 execution_ids.append(rule_enforcement_api['execution_id'])
 
+        # 1. Retrieve corresponding execution objects
         # NOTE: Executions contain a lot of field and could contain a lot of data so we only
         # retrieve fields we need
         execution_dbs = ActionExecution.query(id__in=execution_ids,
                                               only_fields=['id', 'action.ref', 'parameters'])
-        execution_dbs_by_id = {}
 
+        execution_dbs_by_id = {}
         for execution_db in execution_dbs:
             execution_dbs_by_id[str(execution_db.id)] = execution_db
 
+        # 2. Retrieve corresponding trigger instance objects
+        trigger_instance_dbs = TriggerInstance.query(id__in=list(trigger_instance_ids))
+
+        trigger_instance_dbs_by_id = {}
+
+        for trigger_instance_db in trigger_instance_dbs:
+            trigger_instance_dbs_by_id[str(trigger_instance_db.id)] = trigger_instance_db
+
         # Ammend rule enforcement objects with additional data
         for rule_enforcement_api in rule_enforcement_apis:
+            rule_enforcement_api['trigger_instance'] = {}
             rule_enforcement_api['execution'] = {}
+
+            trigger_instance_id = rule_enforcement_api['trigger_instance_id']
             execution_id = rule_enforcement_api.get('execution_id', None)
 
-            if not execution_id:
-                continue
-
+            trigger_instance_db = trigger_instance_dbs_by_id.get(trigger_instance_id, None)
             execution_db = execution_dbs_by_id.get(execution_id, None)
 
-            if not execution_db:
-                continue
+            if trigger_instance_db:
+                trigger_instance_api = TriggerInstanceAPI.from_model(trigger_instance_db)
+                rule_enforcement_api['trigger_instance'] = trigger_instance_api
 
-            rule_enforcement_api['execution'] = {
-                'action': {
-                    'ref': execution_db['action']['ref']
-                },
-                'parameters': execution_db['parameters']
-            }
+            if execution_db:
+                rule_enforcement_api['execution'] = {
+                    'action': {
+                        'ref': execution_db['action']['ref']
+                    },
+                    'parameters': execution_db['parameters']
+                }
 
         return rule_enforcement_apis
 

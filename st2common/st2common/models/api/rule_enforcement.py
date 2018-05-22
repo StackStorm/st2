@@ -23,6 +23,7 @@ from st2common.models.api.base import BaseAPI
 from st2common.models.db.rule_enforcement import RuleEnforcementDB
 from st2common.models.db.rule_enforcement import RuleReferenceSpecDB
 from st2common.models.api.execution import ActionExecutionAPI
+from st2common.models.api.trigger import TriggerInstanceAPI
 from st2common.util import isotime
 
 __all__ = [
@@ -117,3 +118,6 @@ class RuleEnforcementViewAPI(RuleEnforcementAPI):
 
     # Update the schema to include additional execution properties
     schema['properties']['execution'] = copy.deepcopy(ActionExecutionAPI.schema)
+
+    # Update the schema to include additional trigger instance properties
+    schema['properties']['trigger_instance'] = copy.deepcopy(TriggerInstanceAPI.schema)
