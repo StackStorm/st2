@@ -14,11 +14,23 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
+import copy
+
 import six
 
 from st2common.models.api.base import BaseAPI
-from st2common.models.db.rule_enforcement import RuleEnforcementDB, RuleReferenceSpecDB
+from st2common.models.db.rule_enforcement import RuleEnforcementDB
+from st2common.models.db.rule_enforcement import RuleReferenceSpecDB
+from st2common.models.api.execution import ActionExecutionAPI
 from st2common.util import isotime
+
+__all__ = [
+    'RuleEnforcementAPI',
+    'RuleEnforcementViewAPI',
+
+    'RuleReferenceSpecDB'
+]
 
 
 class RuleReferenceSpec(BaseAPI):
@@ -97,3 +109,11 @@ class RuleEnforcementAPI(BaseAPI):
         doc['enforced_at'] = enforced_at
         attrs = {attr: value for attr, value in six.iteritems(doc) if value}
         return cls(**attrs)
+
+
+class RuleEnforcementViewAPI(RuleEnforcementAPI):
+    # Always deep-copy to avoid breaking the original.
+    schema = copy.deepcopy(RuleEnforcementAPI.schema)
+
+    # Update the schema to include additional execution properties
+    schema['properties']['execution'] = copy.deepcopy(ActionExecutionAPI.schema)
