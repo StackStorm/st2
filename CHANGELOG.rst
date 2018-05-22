@@ -17,6 +17,9 @@ Added
 
   This change increases visibility into rules which didn't match due to an exception. Previously
   this was only visible / reflected in the rules engine log file. (improvement) #4134
+* Add new ``GET /v1/ruleenforcements/views[/<enforcement id>]`` API endpoints which allow user to
+  retrieve RuleEnforcement objects with the corresponding TriggerInstance and Execution objects.
+  (new feature) #4134
 
 Changed
 ~~~~~~~
