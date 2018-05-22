@@ -25,7 +25,10 @@ from st2api.controllers.resource import ResourceController
 
 __all__ = [
     'RuleEnforcementController',
-    'SUPPORTED_FILTERS'
+
+    'SUPPORTED_FILTERS',
+    'QUERY_OPTIONS',
+    'FILTER_TRANSFORM_FUNCTIONS'
 ]
 
 
@@ -44,6 +47,16 @@ SUPPORTED_FILTERS = {
     'enforced_at_lt': 'enforced_at.lt'
 }
 
+QUERY_OPTIONS = {
+    'sort': ['-enforced_at', 'rule.ref']
+}
+
+FILTER_TRANSFORM_FUNCTIONS = {
+    'enforced_at': lambda value: isotime.parse(value=value),
+    'enforced_at_gt': lambda value: isotime.parse(value=value),
+    'enforced_at_lt': lambda value: isotime.parse(value=value)
+}
+
 
 class RuleEnforcementController(ResourceController):
 
@@ -51,16 +64,10 @@ class RuleEnforcementController(ResourceController):
     access = RuleEnforcement
 
     # ResourceController attributes
-    query_options = {
-        'sort': ['-enforced_at', 'rule.ref']
-    }
+    query_options = QUERY_OPTIONS
 
     supported_filters = SUPPORTED_FILTERS
-    filter_transform_functions = {
-        'enforced_at': lambda value: isotime.parse(value=value),
-        'enforced_at_gt': lambda value: isotime.parse(value=value),
-        'enforced_at_lt': lambda value: isotime.parse(value=value)
-    }
+    filter_transform_functions = FILTER_TRANSFORM_FUNCTIONS
 
     def get_all(self, sort=None, offset=0, limit=None, requester_user=None, **raw_filters):
         return super(RuleEnforcementController, self)._get_all(sort=sort,
