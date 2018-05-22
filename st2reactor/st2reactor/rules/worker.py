@@ -65,7 +65,7 @@ class TriggerInstanceDispatcher(consumers.StagedMessageHandler):
 
         get_driver().inc_counter(
             format_metrics_key(
-                key='trigger.%s' % trigger_instance.trigger
+                key='trigger.%s' % (trigger_instance.trigger)
             )
         )
 

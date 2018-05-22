@@ -200,7 +200,7 @@ class CounterWithTimer(object):
 
     def __exit__(self, *args):
         self.send_time()
-        self._metrics.dec_counter("%s_counter" % self.key)
+        self._metrics.dec_counter("%s_counter" % (self.key))
 
     def __call__(self, func):
         @wraps(func)
