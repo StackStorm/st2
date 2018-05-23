@@ -15,6 +15,7 @@
 
 from st2common.models.api.rule_enforcement import RuleEnforcementViewAPI
 from st2common.models.api.trigger import TriggerInstanceAPI
+from st2common.models.api.execution import ActionExecutionAPI
 from st2common.persistence.rule_enforcement import RuleEnforcement
 from st2common.persistence.execution import ActionExecution
 from st2common.persistence.trigger import TriggerInstance
@@ -83,8 +84,19 @@ class RuleEnforcementViewController(ResourceController):
         # 1. Retrieve corresponding execution objects
         # NOTE: Executions contain a lot of field and could contain a lot of data so we only
         # retrieve fields we need
+        only_fields = [
+            'id',
+
+            'action.ref',
+            'action.parameters',
+
+            'runner.name',
+            'runner.runner_parameters',
+
+            'parameters'
+        ]
         execution_dbs = ActionExecution.query(id__in=execution_ids,
-                                              only_fields=['id', 'action.ref', 'parameters'])
+                                              only_fields=only_fields)
 
         execution_dbs_by_id = {}
         for execution_db in execution_dbs:
@@ -114,12 +126,8 @@ class RuleEnforcementViewController(ResourceController):
                 rule_enforcement_api['trigger_instance'] = trigger_instance_api
 
             if execution_db:
-                rule_enforcement_api['execution'] = {
-                    'action': {
-                        'ref': execution_db['action']['ref']
-                    },
-                    'parameters': execution_db['parameters']
-                }
+                execution_api = ActionExecutionAPI.from_model(execution_db)
+                rule_enforcement_api['execution'] = execution_api
 
         return rule_enforcement_apis
 
