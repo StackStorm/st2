@@ -61,6 +61,9 @@ def create_request(liveaction):
     :return: (liveaction, execution)
     :rtype: tuple
     """
+    # We import this here to avoid conflicts w/ runners that might import this
+    # file since the runners don't have the config context by default.
+    from st2common.metrics.base import get_driver, format_metrics_key
     # Use the user context from the parent action execution. Subtasks in a workflow
     # action can be invoked by a system user and so we want to use the user context
     # from the original workflow action.
@@ -132,6 +135,12 @@ def create_request(liveaction):
                 trace_service.get_trace_component_for_action_execution(execution, liveaction)
             ])
 
+    get_driver().inc_counter(
+        format_metrics_key(
+            action_db=action_db,
+            key='action.%s' % (liveaction.status)
+        )
+    )
     return liveaction, execution
 
 
