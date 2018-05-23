@@ -124,7 +124,11 @@ def mask_secret_parameters(parameters, secret_parameters, result=None):
     :type parameters: ``dict`` or ``list`` or ``string``
 
     :param secret_parameters: Dict of parameter names which are secret.
-    :type secret_parameters: ``dict`` or ``list``
+                              The type must be the same type as ``parameters``
+                              (or at least behave in the same way),
+                              so that they can be traversed in the same way as
+                              recurse down into the structure.
+    :type secret_parameters: ``dict``
 
     :param result: Deep copy of parameters so that parameters is not modified
                    in place. Default = None, meaning this function will make a

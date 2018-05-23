@@ -367,7 +367,7 @@ class SecretUtilsTestCase(unittest2.TestCase):
     def test_mask_secret_parameters_flat(self):
         parameters = {
             'arg_required_no_default': 'test',
-            'arg_optional_no_type_secret': 'secret password'
+            'arg_optional_no_type_secret': None
         }
         result = secrets.mask_secret_parameters(parameters,
                                                 TEST_FLAT_SECRET_PARAMS)
