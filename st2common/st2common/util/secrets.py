@@ -64,28 +64,54 @@ def get_secret_parameters(parameters):
     :rtype ``list``
     """
 
-    # determine if this parameters set is an object definition
-    # if it is, then drill in and grab the properties from the object itself
+    secret_parameters = {}
     parameters_type = parameters.get('type')
+    iterator = None
     if parameters_type == 'object':
-        parameters = parameters.get('properties', {})
+        # if this is an object, then iterate over the properties within
+        # the object
+        # result = dict
+        iterator = six.iteritems(parameters.get('properties', {}))
     elif parameters_type == 'array':
-        parameters = parameters.get('items', {})
+        # if this is an array, then iterate over the items definition as a single
+        # property
+        # result = list
+        iterator = enumerate([parameters.get('items', {})])
+        secret_parameters = []
+    elif parameters_type in ['integer', 'number', 'boolean', 'null', 'string']:
+        # if this a "plain old datatype", then iterate over the properties set
+        # of the data type
+        # result = string (property type)
+        iterator = enumerate([parameters])
+    else:
+        # otherwise, assume we're in an object's properties definition
+        # this is the default case for the "root" level for schema specs.
+        # result = dict
+        iterator = six.iteritems(parameters)
 
     # iterate over all of the parameters recursively
-    secret_parameters = {}
-    for parameter, options in six.iteritems(parameters):
-        # if parameter is a dict or a list, then we need to recurse into them
+    for parameter, options in iterator:
+        if not isinstance(options, dict):
+            continue
+
         parameter_type = options.get('type')
-        if parameter_type == 'object':
-            sub_params = get_secret_parameters(options.get('properties', {}))
-            secret_parameters[parameter] = sub_params
-        elif parameter_type == 'array':
-            sub_params = get_secret_parameters(options.get('items', {}))
-            secret_parameters[parameter] = sub_params
+        if parameter_type in ['object', 'array']:
+            sub_params = get_secret_parameters(options)
+            if sub_params:
+                if isinstance(secret_parameters, list):
+                    secret_parameters.append(sub_params)
+                elif isinstance(secret_parameters, dict):
+                    secret_parameters[parameter] = sub_params
+                else:
+                    return sub_params
         elif options.get('secret', False):
             # if this parameter is secret, then add it our secret parameters
-            secret_parameters[parameter] = parameter_type
+            if isinstance(secret_parameters, list):
+                secret_parameters.append(parameter_type)
+            elif isinstance(secret_parameters, dict):
+                secret_parameters[parameter] = parameter_type
+            else:
+                return parameter_type
 
     return secret_parameters
 
@@ -101,6 +127,9 @@ def mask_secret_parameters(parameters, secret_parameters):
     :param secret_parameters: Dict of parameter names which are secret.
     :type secret_parameters: ``dict``
     """
+
+    # TODO fix this to work with deeply nested arrays / objects
+
     result = copy.deepcopy(parameters)
     for secret_param, secret_sub_params in six.iteritems(secret_parameters):
         if secret_param in result:
