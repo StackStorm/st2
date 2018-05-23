@@ -4,6 +4,9 @@ Changelog
 in development
 --------------
 
+2.6.1 - May 30, 2018
+--------------------
+
 Changed
 ~~~~~~~
 
