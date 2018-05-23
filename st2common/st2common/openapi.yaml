@@ -3314,34 +3314,6 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /api/v1/ruleenforcements/{id}:
-    get:
-      operationId: st2api.controllers.v1.rule_enforcements:rule_enforcements_controller.get_one
-      description: Return a specific rule enforcement based on id.
-      parameters:
-        - name: id
-          in: path
-          description: Entity id
-          type: string
-          required: true
-      x-parameters:
-        - name: user
-          in: context
-          x-as: requester_user
-          description: User performing the operation.
-      responses:
-        '200':
-          description: Rule Enforcements based on ref or id
-          schema:
-            $ref: '#/definitions/RuleEnforcementsList'
-          examples:
-            application/json:
-              ref: 'core.local'
-              # and stuff
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
   /api/v1/ruleenforcements/views:
     get:
       operationId: st2api.controllers.v1.rule_enforcement_views:rule_enforcement_view_controller.get_all
@@ -3414,6 +3386,34 @@ paths:
             type: array
             items:
               $ref: '#/definitions/RuleEnforcementsList'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/ruleenforcements/{id}:
+    get:
+      operationId: st2api.controllers.v1.rule_enforcements:rule_enforcements_controller.get_one
+      description: Return a specific rule enforcement based on id.
+      parameters:
+        - name: id
+          in: path
+          description: Entity id
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Rule Enforcements based on ref or id
+          schema:
+            $ref: '#/definitions/RuleEnforcementsList'
           examples:
             application/json:
               ref: 'core.local'
