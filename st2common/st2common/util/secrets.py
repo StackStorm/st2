@@ -116,33 +116,54 @@ def get_secret_parameters(parameters):
     return secret_parameters
 
 
-def mask_secret_parameters(parameters, secret_parameters):
+def mask_secret_parameters(parameters, secret_parameters, result=None):
     """
     Introspect the parameters dict and return a new dict with masked secret
     parameters.
-
     :param parameters: Parameters to process.
-    :type parameters: ``dict``
+    :type parameters: ``dict`` or ``list`` or ``string``
 
     :param secret_parameters: Dict of parameter names which are secret.
-    :type secret_parameters: ``dict``
+    :type secret_parameters: ``dict`` or ``list``
+
+    :param result: Deep copy of parameters so that parameters is not modified
+                   in place. Default = None, meaning this function will make a
+                   deep copy before starting.
+    :type result: ``dict`` or ``list`` or ``string``
     """
+    # how we iterate depends on what data type was passed in
+    iterator = None
+    is_dict = isinstance(secret_parameters, dict)
+    is_list = isinstance(secret_parameters, list)
+    if is_dict:
+        iterator = six.iteritems(secret_parameters)
+    elif is_list:
+        iterator = enumerate(secret_parameters)
+    else:
+        return MASKED_ATTRIBUTE_VALUE
 
-    # TODO fix this to work with deeply nested arrays / objects
+    # only create a deep copy of parameters on the first call
+    # all other recursive calls pass back referneces to this result object
+    # so we can reuse it, saving memory and CPU cycles
+    if not result:
+        result = copy.deepcopy(parameters)
 
-    result = copy.deepcopy(parameters)
-    for secret_param, secret_sub_params in six.iteritems(secret_parameters):
-        if secret_param in result:
-            if isinstance(result[secret_param], dict):
+    # iterate over the secret parameters
+    for secret_param, secret_sub_params in iterator:
+        if is_dict:
+            if secret_param in result:
                 result[secret_param] = mask_secret_parameters(parameters[secret_param],
-                                                              secret_sub_params)
-            elif isinstance(result[secret_param], list):
-                # we're assuming lists contain the same data type for every element
-                for idx, value in enumerate(result[secret_param]):
-                    result[secret_param][idx] = mask_secret_parameters(parameters[secret_param][idx],
-                                                                       secret_sub_params)
-            else:
-                result[secret_param] = MASKED_ATTRIBUTE_VALUE
+                                                              secret_sub_params,
+                                                              result=result[secret_param])
+        elif is_list:
+            # we're assuming lists contain the same data type for every element
+            for idx, value in enumerate(result):
+                result[idx] = mask_secret_parameters(parameters[idx],
+                                                     secret_sub_params,
+                                                     result=result[idx])
+        else:
+            result[secret_param] = MASKED_ATTRIBUTE_VALUE
+
     return result
 
 
