@@ -55,6 +55,11 @@ class RuleEnforcementViewsControllerTestCase(FunctionalTest):
         self.assertEqual(resp.json[0]['trigger_instance']['payload'], {'foo': 'bar', 'name': 'Joe'})
 
         self.assertEqual(resp.json[0]['execution']['action']['ref'], 'core.local')
+        self.assertEqual(resp.json[0]['execution']['action']['parameters'],
+                        {'sudo': {'immutable': True}})
+        self.assertEqual(resp.json[0]['execution']['runner']['name'], 'action-chain')
+        self.assertEqual(resp.json[0]['execution']['runner']['runner_parameters'],
+                        {'foo': {'type': 'string'}})
         self.assertEqual(resp.json[0]['execution']['parameters'], {'cmd': 'echo bar'})
 
         self.assertEqual(resp.json[1]['trigger_instance'], {})
@@ -77,4 +82,9 @@ class RuleEnforcementViewsControllerTestCase(FunctionalTest):
         self.assertEqual(resp.json['trigger_instance']['payload'], {'foo': 'bar', 'name': 'Joe'})
 
         self.assertEqual(resp.json['execution']['action']['ref'], 'core.local')
+        self.assertEqual(resp.json['execution']['action']['parameters'],
+                        {'sudo': {'immutable': True}})
+        self.assertEqual(resp.json['execution']['runner']['name'], 'action-chain')
+        self.assertEqual(resp.json['execution']['runner']['runner_parameters'],
+                        {'foo': {'type': 'string'}})
         self.assertEqual(resp.json['execution']['parameters'], {'cmd': 'echo bar'})

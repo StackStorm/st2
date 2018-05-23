@@ -33,6 +33,8 @@ runner:
   id: 54c6bb640640fd5211edef0b
   name: action-chain
   runner_module: action_chain_runner
-  runner_parameters: {}
+  runner_parameters:
+    foo:
+      type: "string"
 start_timestamp: '2014-09-01T00:00:01.000000Z'
 status: scheduled
