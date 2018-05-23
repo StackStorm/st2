@@ -14,6 +14,8 @@
 # limitations under the License.
 from __future__ import absolute_import
 from functools import wraps
+import logging
+from six import string_types
 
 from oslo_config import cfg
 from oslo_config.cfg import NoSuchOptError
@@ -24,9 +26,51 @@ from st2common.util.loader import get_plugin_instance
 from st2common.util.date import get_datetime_utc_now
 from st2common.exceptions.plugins import PluginLoadError
 
+if not hasattr(cfg.CONF, 'metrics'):
+    from st2common.config import register_opts
+    register_opts()
+
+LOG = logging.getLogger(__name__)
 
 PLUGIN_NAMESPACE = 'st2common.metrics.driver'
 METRICS = None
+
+
+def _format_metrics_key_for_action_db(action_db):
+    action_name = action_db.name
+    action_pack = action_db.pack
+    return '.%s.%s' % (action_pack, action_name)
+
+
+def _format_metrics_key_for_liveaction_db(liveaction_db):
+    action_name = liveaction_db.action
+    action_pack = liveaction_db.context.get('pack', 'unknown')
+    return '.%s.%s' % (action_pack, action_name)
+
+
+def format_metrics_key(action_db=None, liveaction_db=None, key=None):
+    """Return a string for usage as metrics key.
+    """
+    assert (action_db or key or liveaction_db), """Must supply one of key, action_db, or
+                                                 liveaction_db"""
+    metrics_key_items = ['st2']
+
+    if action_db:
+        metrics_key_items.append(_format_metrics_key_for_action_db(action_db))
+
+    if liveaction_db:
+        metrics_key_items.append(
+            _format_metrics_key_for_liveaction_db(liveaction_db)
+        )
+
+    if key:
+        metrics_key_items.append('.%s' % key)
+
+    metrics_key = '.'.join(metrics_key_items)
+
+    LOG.debug("Generated Metrics Key: %s", metrics_key)
+
+    return metrics_key
 
 
 class BaseMetricsDriver(object):
@@ -48,14 +92,21 @@ class BaseMetricsDriver(object):
         pass
 
 
+def check_key(key):
+    """Ensure key meets requirements.
+    """
+    assert isinstance(key, string_types), "Key not a string. Got %s" % type(key)
+    assert key, "Key cannot be empty string."
+
+
 class Timer(object):
     """ Timer context manager for easily sending timer statistics.
     """
-    def __init__(self, key):
-        assert isinstance(key, str)
-        assert len(key) > 0
+    def __init__(self, key, include_parameter=False):
+        check_key(key)
         self.key = key
         self._metrics = get_driver()
+        self._include_parameter = include_parameter
         self._start_time = None
 
     def send_time(self, key=None):
@@ -64,7 +115,7 @@ class Timer(object):
         time_delta = get_datetime_utc_now() - self._start_time
 
         if key:
-            assert isinstance(key, str)
+            check_key(key)
             self._metrics.time(key, time_delta.total_seconds())
         else:
             self._metrics.time(self.key, time_delta.total_seconds())
@@ -85,6 +136,8 @@ class Timer(object):
         @wraps(func)
         def wrapper(*args, **kw):
             with self as metrics_timer:
+                if self._include_parameter:
+                    kw['metrics_timer'] = metrics_timer
                 return func(*args, metrics_timer=metrics_timer, **kw)
         return wrapper
 
@@ -93,8 +146,7 @@ class Counter(object):
     """ Timer context manager for easily sending timer statistics.
     """
     def __init__(self, key):
-        assert isinstance(key, str)
-        assert key
+        check_key(key)
         self.key = key
         self._metrics = get_driver()
 
@@ -117,11 +169,11 @@ class CounterWithTimer(object):
     """ Timer and counter context manager for easily sending timer statistics
     with builtin timer.
     """
-    def __init__(self, key):
-        assert isinstance(key, str)
-        assert key
+    def __init__(self, key, include_parameter=False):
+        check_key(key)
         self.key = key
         self._metrics = get_driver()
+        self._include_parameter = include_parameter
         self._start_time = None
 
     def send_time(self, key=None):
@@ -130,7 +182,7 @@ class CounterWithTimer(object):
         time_delta = get_datetime_utc_now() - self._start_time
 
         if key:
-            assert isinstance(key, str)
+            check_key(key)
             self._metrics.time(key, time_delta.total_seconds())
         else:
             self._metrics.time("%s%s" % (self.key, METRICS_TIMER_SUFFIX),
@@ -148,13 +200,15 @@ class CounterWithTimer(object):
 
     def __exit__(self, *args):
         self.send_time()
-        self._metrics.dec_counter("%s_counter" % self.key)
+        self._metrics.dec_counter("%s_counter" % (self.key))
 
     def __call__(self, func):
         @wraps(func)
         def wrapper(*args, **kw):
             with self as counter_with_timer:
-                return func(*args, metrics_counter_with_timer=counter_with_timer, **kw)
+                if self._include_parameter:
+                    kw['metrics_counter_with_timer'] = counter_with_timer
+                return func(*args, **kw)
         return wrapper
 
 

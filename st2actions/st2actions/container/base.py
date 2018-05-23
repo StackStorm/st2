@@ -33,6 +33,7 @@ from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
 from st2common.util.action_db import (update_liveaction_status, get_liveaction_by_id)
 from st2common.util import param as param_utils
 from st2common.util.config_loader import ContentPackConfigLoader
+from st2common.metrics.base import CounterWithTimer, format_metrics_key
 
 from st2common.runners.base import get_runner
 from st2common.runners.base import AsyncActionRunner, PollingAsyncActionRunner
@@ -89,6 +90,7 @@ class RunnerContainer(object):
 
         return liveaction_db.result
 
+    @CounterWithTimer(key="st2.action.executions")
     def _do_run(self, runner, runnertype_db, action_db, liveaction_db):
         # Create a temporary auth token which will be available
         # for the duration of the action execution.
@@ -116,7 +118,9 @@ class RunnerContainer(object):
                                                               action_parameters=action_params)
             extra = {'runner': runner, 'parameters': resolved_action_params}
             LOG.debug('Performing run for runner: %s' % (runner.runner_id), extra=extra)
-            (status, result, context) = runner.run(action_params)
+            with CounterWithTimer(key=format_metrics_key(
+                                  action_db=action_db, key='action')):
+                (status, result, context) = runner.run(action_params)
 
             try:
                 result = json.loads(result)
