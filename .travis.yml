@@ -46,7 +46,7 @@ cache:
     - virtualenv/
     # NOTE: Caching .tox speeds up py3 build for 30-60 seconds, but causes issues when dependencies
     # are updated so it's disabled
-    - .tox/
+    #- .tox/
 
 before_install:
   # Work around for Travis timeout issues, see https://github.com/travis-ci/travis-ci/issues/9112

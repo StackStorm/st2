@@ -510,7 +510,7 @@ ci-py3-unit:
 	@echo
 	@echo "==================== ci-py3-unit ===================="
 	@echo
-	tox --recreate -e py36 -vv
+	tox -e py36 -vv
 
 .PHONY: .rst-check
 .rst-check:
