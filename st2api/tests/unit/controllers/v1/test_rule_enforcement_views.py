@@ -61,6 +61,7 @@ class RuleEnforcementViewsControllerTestCase(FunctionalTest):
         self.assertEqual(resp.json[0]['execution']['runner']['runner_parameters'],
                         {'foo': {'type': 'string'}})
         self.assertEqual(resp.json[0]['execution']['parameters'], {'cmd': 'echo bar'})
+        self.assertEqual(resp.json[0]['execution']['status'], 'scheduled')
 
         self.assertEqual(resp.json[1]['trigger_instance'], {})
         self.assertEqual(resp.json[1]['execution'], {})
@@ -88,3 +89,4 @@ class RuleEnforcementViewsControllerTestCase(FunctionalTest):
         self.assertEqual(resp.json['execution']['runner']['runner_parameters'],
                         {'foo': {'type': 'string'}})
         self.assertEqual(resp.json['execution']['parameters'], {'cmd': 'echo bar'})
+        self.assertEqual(resp.json['execution']['status'], 'scheduled')
