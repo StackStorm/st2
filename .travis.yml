@@ -44,6 +44,8 @@ cache:
   pip: true
   directories:
     - virtualenv/
+    # NOTE: Caching .tox speeds up py3 build for 30-60 seconds, but causes issues when dependencies
+    # are updated so it's disabled
     #- .tox/
 
 before_install:
