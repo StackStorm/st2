@@ -93,7 +93,8 @@ class RuleEnforcementViewController(ResourceController):
             'runner.name',
             'runner.runner_parameters',
 
-            'parameters'
+            'parameters',
+            'status'
         ]
         execution_dbs = ActionExecution.query(id__in=execution_ids,
                                               only_fields=only_fields)
