@@ -30,6 +30,7 @@ from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.persistence.action import Action
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.runner import RunnerType
+from st2common.metrics.base import format_metrics_key, get_driver
 
 LOG = logging.getLogger(__name__)
 
@@ -192,6 +193,26 @@ def update_liveaction_status(status=None, result=None, context=None, end_timesta
         raise ValueError('Attempting to set status for LiveAction "%s" '
                          'to unknown status string. Unknown status is "%s"',
                          liveaction_db, status)
+
+    # If liveaction_db status is set then we need to decrement the counter
+    # because it is transitioning to a new state
+    if liveaction_db.status:
+        get_driver().dec_counter(
+            format_metrics_key(
+                liveaction_db=liveaction_db,
+                key='action.%s' % liveaction_db.status
+            )
+        )
+
+    # If status is provided then we need to increment the timer because the action
+    # is transitioning into this new state
+    if status:
+        get_driver().inc_counter(
+            format_metrics_key(
+                liveaction_db=liveaction_db,
+                key='action.%s' % status
+            )
+        )
 
     extra = {'liveaction_db': liveaction_db}
     LOG.debug('Updating ActionExection: "%s" with status="%s"', liveaction_db.id, status,

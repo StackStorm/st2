@@ -249,7 +249,7 @@ class TestCounterWithTimerDecorator(unittest2.TestCase):
         ]
         test_key = "test_key"
 
-        @base.CounterWithTimer(test_key)
+        @base.CounterWithTimer(test_key, include_parameter=True)
         def _get_tested(metrics_counter_with_timer=None):
             self.assertTrue(isinstance(metrics_counter_with_timer._start_time, datetime))
             metrics_patch.time.assert_not_called()

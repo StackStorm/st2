@@ -26,6 +26,7 @@ from st2common.transport import utils as transport_utils
 import st2reactor.container.utils as container_utils
 from st2reactor.rules.engine import RulesEngine
 from st2common.transport.queues import RULESENGINE_WORK_QUEUE
+from st2common.metrics.base import format_metrics_key, get_driver
 
 
 LOG = logging.getLogger(__name__)
@@ -61,6 +62,12 @@ class TriggerInstanceDispatcher(consumers.StagedMessageHandler):
         trigger_instance, message = self._decompose_pre_ack_process_response(pre_ack_response)
         if not trigger_instance:
             raise ValueError('No trigger_instance provided for processing.')
+
+        get_driver().inc_counter(
+            format_metrics_key(
+                key='trigger.%s' % (trigger_instance.trigger)
+            )
+        )
 
         try:
             # Use trace_context from the message and if not found create a new context
