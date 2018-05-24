@@ -149,7 +149,7 @@ def mask_secret_parameters(parameters, secret_parameters, result=None):
     # only create a deep copy of parameters on the first call
     # all other recursive calls pass back referneces to this result object
     # so we can reuse it, saving memory and CPU cycles
-    if not result:
+    if result is None:
         result = copy.deepcopy(parameters)
 
     # iterate over the secret parameters
