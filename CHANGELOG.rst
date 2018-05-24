@@ -20,6 +20,10 @@ Added
 * Add new ``GET /v1/ruleenforcements/views[/<enforcement id>]`` API endpoints which allow user to
   retrieve RuleEnforcement objects with the corresponding TriggerInstance and Execution objects.
   (new feature) #4134
+* Add new ``status`` field to the ``RuleEnforcement`` model. This field can contain the following
+  values - ``succeeded`` (trigger instance matched a rule and action execution was triggered
+  successfully), ``failed`` (trigger instance matched a rule, but it didn't result in an action
+  execution due to Jinja rendering failure or other exception). (improvement) #4134
 
 Changed
 ~~~~~~~
