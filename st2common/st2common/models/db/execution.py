@@ -26,6 +26,7 @@ from st2common.util.secrets import get_secret_parameters
 from st2common.util.secrets import mask_inquiry_response
 from st2common.util.secrets import mask_secret_parameters
 from st2common.constants.types import ResourceType
+
 __all__ = [
     'ActionExecutionDB',
     'ActionExecutionOutputDB'

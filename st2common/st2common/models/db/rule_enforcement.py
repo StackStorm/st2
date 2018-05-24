@@ -14,12 +14,19 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import mongoengine as me
 
 from st2common.fields import ComplexDateTimeField
 from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
 from st2common.util import date as date_utils
+from st2common.constants.rule_enforcement import RULE_ENFORCEMENT_STATUS_SUCCEEDED
+
+__all__ = [
+    'RuleReferenceSpecDB',
+    'RuleEnforcementDB'
+]
 
 
 class RuleReferenceSpecDB(me.EmbeddedDocument):
@@ -52,6 +59,10 @@ class RuleEnforcementDB(stormbase.StormFoundationDB, stormbase.TagsMixin):
     enforced_at = ComplexDateTimeField(
         default=date_utils.get_datetime_utc_now,
         help_text='The timestamp when the rule enforcement happened.')
+    status = me.StringField(
+        required=True,
+        default=RULE_ENFORCEMENT_STATUS_SUCCEEDED,
+        help_text='Rule enforcement status.')
 
     meta = {
         'indexes': [
@@ -62,6 +73,7 @@ class RuleEnforcementDB(stormbase.StormFoundationDB, stormbase.TagsMixin):
             {'fields': ['enforced_at']},
             {'fields': ['-enforced_at']},
             {'fields': ['-enforced_at', 'rule.ref']},
+            {'fields': ['status']},
         ] + stormbase.TagsMixin.get_indices()
     }
 

@@ -155,7 +155,8 @@ class FixturesLoader(object):
     def __init__(self):
         self.meta_loader = MetaLoader()
 
-    def save_fixtures_to_db(self, fixtures_pack='generic', fixtures_dict=None):
+    def save_fixtures_to_db(self, fixtures_pack='generic', fixtures_dict=None,
+                            use_object_ids=False):
         """
         Loads fixtures specified in fixtures_dict into the database
         and returns DB models for the fixtures.
@@ -173,10 +174,17 @@ class FixturesLoader(object):
         :param fixtures_dict: Dictionary specifying the fixtures to load for each type.
         :type fixtures_dict: ``dict``
 
+        :param use_object_ids: Use object id primary key from fixture file (if available) when
+                              storing objects in the database. By default id in
+                              file is discarded / not used and a new random one
+                              is generated.
+        :type use_object_ids: ``bool``
+
         :rtype: ``dict``
         """
         if fixtures_dict is None:
             fixtures_dict = {}
+
         fixtures_pack_path = self._validate_fixtures_pack(fixtures_pack)
         self._validate_fixture_dict(fixtures_dict, allowed=ALLOWED_DB_FIXTURES)
 
@@ -196,6 +204,11 @@ class FixturesLoader(object):
                     self._get_fixture_file_path_abs(fixtures_pack_path, fixture_type, fixture))
                 api_model = API_MODEL(**fixture_dict)
                 db_model = API_MODEL.to_model(api_model)
+
+                # Make sure we also set and use object id if that functionality is used
+                if use_object_ids and 'id' in fixture_dict:
+                    db_model.id = fixture_dict['id']
+
                 db_model = PERSISTENCE_MODEL.add_or_update(db_model)
                 loaded_fixtures[fixture] = db_model
 

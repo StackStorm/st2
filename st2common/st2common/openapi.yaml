@@ -422,7 +422,7 @@ paths:
             $ref: '#/definitions/Error'
   /api/v1/actions/views/parameters/{action_id}:
     get:
-      operationId: st2api.controllers.v1.actionviews:parameters_view_controller.get_one
+      operationId: st2api.controllers.v1.action_views:parameters_view_controller.get_one
       description: |
         Get parameters for an action.
       parameters:
@@ -453,7 +453,7 @@ paths:
             $ref: '#/definitions/Error'
   /api/v1/actions/views/overview:
     get:
-      operationId: st2api.controllers.v1.actionviews:overview_controller.get_all
+      operationId: st2api.controllers.v1.action_views:overview_controller.get_all
       x-permissions: action_list
       description: Returns a list of all the actions with runner parameters included.
       parameters:
@@ -514,7 +514,7 @@ paths:
             $ref: '#/definitions/Error'
   /api/v1/actions/views/overview/{ref_or_id}:
     get:
-      operationId: st2api.controllers.v1.actionviews:overview_controller.get_one
+      operationId: st2api.controllers.v1.action_views:overview_controller.get_one
       description: |
         Get one action with runner parameters included.
       parameters:
@@ -543,7 +543,7 @@ paths:
             $ref: '#/definitions/Error'
   /api/v1/actions/views/entry_point/{ref_or_id}:
     get:
-      operationId: st2api.controllers.v1.actionviews:entry_point_controller.get_one
+      operationId: st2api.controllers.v1.action_views:entry_point_controller.get_one
       description: |
         Get code of the action's entry_point.
       parameters:
@@ -1305,7 +1305,7 @@ paths:
             $ref: '#/definitions/Error'
   /api/v1/executions/views/filters:
     get:
-      operationId: st2api.controllers.v1.executionviews:filters_controller.get_all
+      operationId: st2api.controllers.v1.execution_views:filters_controller.get_all
       x-permissions: execution_views_filters_list
       description: |
         Get a list of distinct values for the execution filters.
@@ -2690,7 +2690,7 @@ paths:
             $ref: '#/definitions/Error'
   /api/v1/rules/views:
     get:
-      operationId: st2api.controllers.v1.ruleviews:rule_view_controller.get_all
+      operationId: st2api.controllers.v1.rule_views:rule_view_controller.get_all
       x-permissions: rule_list
       description: Returns a list of all rules.
       parameters:
@@ -2760,7 +2760,7 @@ paths:
             $ref: '#/definitions/Error'
   /api/v1/rules/views/{ref_or_id}:
     get:
-      operationId: st2api.controllers.v1.ruleviews:rule_view_controller.get_one
+      operationId: st2api.controllers.v1.rule_views:rule_view_controller.get_one
       description: |
         Get one rule.
       parameters:
@@ -3314,6 +3314,86 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /api/v1/ruleenforcements/views:
+    get:
+      operationId: st2api.controllers.v1.rule_enforcement_views:rule_enforcement_view_controller.get_all
+      x-permissions: rule_enforcement_list
+      description: Returns a list of all the rule enforcements.
+      parameters:
+        - name: limit
+          in: query
+          description: List N most recent rule enforcements.
+          type: integer
+          default: 50
+        - name: offset
+          in: query
+          description: Number of rule enforcements to offset
+          type: integer
+          default: 0
+        - name: sort
+          in: query
+          description: Comma-separated list of fields to sort by
+          type: string
+        - name: id
+          in: query
+          description: Entity id filter
+          type: array
+          items:
+            type: string
+        - name: name
+          in: query
+          description: Entity name filter
+          type: array
+          items:
+            type: string
+        - name: execution
+          in: query
+          description: Execution to filter the list.
+          type: string
+        - name: rule_ref
+          in: query
+          description: Rule ref to filter the list.
+          type: string
+        - name: rule_id
+          in: query
+          description: Rule id to filter the list..
+          type: string
+        - name: trigger_instance
+          in: query
+          description: Trace instance id to filter the list.
+          type: string
+        - name: enforced_at_gt
+          in: query
+          description: |
+              Only return enforcements with enforced_at greater than the one provided. Use time in the format.
+          type: string
+          pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
+        - name: enforced_at_lt
+          in: query
+          description: |
+              Only return enforcements with enforced_at lower than the one provided. Use time in the format.
+          type: string
+          pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: List of rule enforcements
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/RuleEnforcementsList'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   /api/v1/ruleenforcements/{id}:
     get:
       operationId: st2api.controllers.v1.rule_enforcements:rule_enforcements_controller.get_one
@@ -3342,6 +3422,35 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /api/v1/ruleenforcements/views/{id}:
+    get:
+      operationId: st2api.controllers.v1.rule_enforcement_views:rule_enforcement_view_controller.get_one
+      description: Return a specific rule enforcement based on id.
+      parameters:
+        - name: id
+          in: path
+          description: Entity id
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Rule Enforcements based on ref or id
+          schema:
+            $ref: '#/definitions/RuleEnforcementsList'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
   /api/v1/timers:
     get:
       operationId: st2api.controllers.v1.timers:timers_controller.get_all

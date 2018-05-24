@@ -23,6 +23,8 @@ from st2common import log as logging
 from st2common.constants import action as action_constants
 from st2common.constants.trace import TRACE_CONTEXT
 from st2common.constants.rules import TRIGGER_PAYLOAD_PREFIX
+from st2common.constants.rule_enforcement import RULE_ENFORCEMENT_STATUS_SUCCEEDED
+from st2common.constants.rule_enforcement import RULE_ENFORCEMENT_STATUS_FAILED
 from st2common.models.api.trace import TraceContext
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.rule_enforcement import RuleEnforcementDB
@@ -94,10 +96,12 @@ class RuleEnforcer(object):
             execution_db = self._do_enforce()
             # pylint: disable=no-member
             enforcement_db.execution_id = str(execution_db.id)
+            enforcement_db.status = RULE_ENFORCEMENT_STATUS_SUCCEEDED
             extra['execution_db'] = execution_db
         except Exception as e:
             # Record the failure reason in the RuleEnforcement.
-            enforcement_db.failure_reason = e.message
+            enforcement_db.status = RULE_ENFORCEMENT_STATUS_FAILED
+            enforcement_db.failure_reason = str(e)
             LOG.exception('Failed kicking off execution for rule %s.', self.rule, extra=extra)
         finally:
             self._update_enforcement(enforcement_db)

@@ -44,7 +44,9 @@ cache:
   pip: true
   directories:
     - virtualenv/
-    - .tox/
+    # NOTE: Caching .tox speeds up py3 build for 30-60 seconds, but causes issues when dependencies
+    # are updated so it's disabled
+    #- .tox/
 
 before_install:
   # Work around for Travis timeout issues, see https://github.com/travis-ci/travis-ci/issues/9112
@@ -53,7 +55,7 @@ before_install:
   - sudo pip install --upgrade "virtualenv==15.1.0"
 
 install:
-  - if [ "${TASK}" = 'compilepy3 ci-py3-unit' ]; then pip install tox; else make requirements; fi
+  - if [ "${TASK}" = 'compilepy3 ci-py3-unit' ]; then pip install "tox==3.0.0"; else make requirements; fi
   - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ]; then pip install codecov; fi
   - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ] || [ "${TASK}" = 'compilepy3 ci-py3-unit' ]; then sudo .circle/add-itest-user.sh; fi
 

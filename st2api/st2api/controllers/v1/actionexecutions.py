@@ -27,8 +27,8 @@ from six.moves import http_client
 from st2api.controllers.base import BaseRestControllerMixin
 from st2api.controllers.resource import ResourceController
 from st2api.controllers.resource import BaseResourceIsolationControllerMixin
-from st2api.controllers.v1.executionviews import ExecutionViewsController
-from st2api.controllers.v1.executionviews import SUPPORTED_FILTERS
+from st2api.controllers.v1.execution_views import ExecutionViewsController
+from st2api.controllers.v1.execution_views import SUPPORTED_FILTERS
 from st2common import log as logging
 from st2common.constants import action as action_constants
 from st2common.exceptions import actionrunner as runner_exc

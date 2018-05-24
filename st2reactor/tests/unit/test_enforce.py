@@ -19,6 +19,8 @@ import mock
 
 from st2common.constants import action as action_constants
 from st2common.constants.keyvalue import FULL_SYSTEM_SCOPE
+from st2common.constants.rule_enforcement import RULE_ENFORCEMENT_STATUS_SUCCEEDED
+from st2common.constants.rule_enforcement import RULE_ENFORCEMENT_STATUS_FAILED
 from st2common.models.db.trigger import TriggerInstanceDB
 from st2common.models.db.execution import ActionExecutionDB
 from st2common.models.db.liveaction import LiveActionDB
@@ -146,6 +148,8 @@ class RuleEnforcerTestCase(BaseRuleEnforcerTestCase):
         self.assertTrue(RuleEnforcement.add_or_update.called)
         self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].rule.ref,
                          self.models['rules']['rule2.yaml'].ref)
+        self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].status,
+                         RULE_ENFORCEMENT_STATUS_SUCCEEDED)
 
     @mock.patch.object(action_service, 'request', mock.MagicMock(
         return_value=(MOCK_LIVEACTION, MOCK_EXECUTION)))
@@ -173,6 +177,8 @@ class RuleEnforcerTestCase(BaseRuleEnforcerTestCase):
         self.assertTrue(RuleEnforcement.add_or_update.called)
         self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].rule.ref,
                          self.models['rules']['rule_use_none_filter.yaml'].ref)
+        self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].status,
+                         RULE_ENFORCEMENT_STATUS_SUCCEEDED)
 
         # 2. Verify that None type from trigger instance is correctly serialized to
         # None when using "use_none" Jinja filter when invoking an action
@@ -195,6 +201,8 @@ class RuleEnforcerTestCase(BaseRuleEnforcerTestCase):
         self.assertTrue(RuleEnforcement.add_or_update.called)
         self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].rule.ref,
                          self.models['rules']['rule_use_none_filter.yaml'].ref)
+        self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].status,
+                         RULE_ENFORCEMENT_STATUS_SUCCEEDED)
 
         casts.CASTS['string'] = casts._cast_string
 
@@ -215,6 +223,8 @@ class RuleEnforcerTestCase(BaseRuleEnforcerTestCase):
         self.assertTrue(RuleEnforcement.add_or_update.called)
         self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].rule.ref,
                          self.models['rules']['rule_none_no_use_none_filter.yaml'].ref)
+        self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].status,
+                         RULE_ENFORCEMENT_STATUS_SUCCEEDED)
 
         casts.CASTS['string'] = casts._cast_string
 
@@ -228,6 +238,8 @@ class RuleEnforcerTestCase(BaseRuleEnforcerTestCase):
         self.assertTrue(RuleEnforcement.add_or_update.called)
         self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].failure_reason,
                          FAILURE_REASON)
+        self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].status,
+                         RULE_ENFORCEMENT_STATUS_FAILED)
 
     @mock.patch.object(action_service, 'request', mock.MagicMock(
         return_value=(MOCK_LIVEACTION, MOCK_EXECUTION)))
@@ -244,6 +256,8 @@ class RuleEnforcerTestCase(BaseRuleEnforcerTestCase):
         self.assertTrue(execution_db is not None)
         self.assertTrue(RuleEnforcement.add_or_update.called)
         self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].rule.ref, rule.ref)
+        self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].status,
+                         RULE_ENFORCEMENT_STATUS_SUCCEEDED)
 
         call_parameters = action_service.request.call_args[0][0].parameters
 
@@ -264,6 +278,8 @@ class RuleEnforcerTestCase(BaseRuleEnforcerTestCase):
         self.assertTrue(execution_db is not None)
         self.assertTrue(RuleEnforcement.add_or_update.called)
         self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].rule.ref, rule.ref)
+        self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].status,
+                         RULE_ENFORCEMENT_STATUS_SUCCEEDED)
 
         call_parameters = action_service.request.call_args[0][0].parameters
 
@@ -288,6 +304,8 @@ class RuleEnforcerTestCase(BaseRuleEnforcerTestCase):
         self.assertTrue(execution_db is None)
         self.assertTrue(RuleEnforcement.add_or_update.called)
         self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].rule.ref, rule.ref)
+        self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].status,
+                         RULE_ENFORCEMENT_STATUS_FAILED)
         self.assertFalse(action_service.request.called)
 
         self.assertTrue(action_service.create_request.called)

@@ -14,16 +14,26 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import six
+
 import json
 import re
 
+import six
+
 from st2common import log as logging
-import st2common.operators as criteria_operators
-from st2common.constants.rules import RULE_TYPE_BACKSTOP, MATCH_CRITERIA
+from st2common import operators as criteria_operators
+from st2common.constants.rules import RULE_TYPE_BACKSTOP
+from st2common.constants.rules import MATCH_CRITERIA
+from st2common.constants.rule_enforcement import RULE_ENFORCEMENT_STATUS_FAILED
+from st2common.models.db.rule_enforcement import RuleEnforcementDB
+from st2common.persistence.rule_enforcement import RuleEnforcement
 
 from st2common.util.payload import PayloadLookup
 from st2common.util.templating import render_template_with_system_context
+
+__all__ = [
+    'RuleFilter'
+]
 
 
 LOG = logging.getLogger('st2reactor.ruleenforcement.filter')
@@ -118,9 +128,12 @@ class RuleFilter(object):
                 criteria_pattern=criteria_pattern,
                 criteria_context=payload_lookup.context
             )
-        except Exception:
-            LOG.exception('Failed to render pattern value "%s" for key "%s"' %
-                          (criteria_pattern, criterion_k), extra=self._base_logger_context)
+        except Exception as e:
+            msg = ('Failed to render pattern value "%s" for key "%s"' % (criteria_pattern,
+                                                                         criterion_k))
+            LOG.exception(msg, extra=self._base_logger_context)
+            self._create_rule_enforcement(failure_reason=msg, exc=e)
+
             return (False, None, None)
 
         try:
@@ -130,9 +143,11 @@ class RuleFilter(object):
                 payload_value = matches[0] if len(matches) > 0 else matches
             else:
                 payload_value = None
-        except:
-            LOG.exception('Failed transforming criteria key %s', criterion_k,
-                          extra=self._base_logger_context)
+        except Exception as e:
+            msg = ('Failed transforming criteria key %s' % criterion_k)
+            LOG.exception(msg, extra=self._base_logger_context)
+            self._create_rule_enforcement(failure_reason=msg, exc=e)
+
             return (False, None, None)
 
         op_func = criteria_operators.get_operator(criteria_operator)
@@ -144,9 +159,11 @@ class RuleFilter(object):
                                  check_function=self._bool_criterion)
             else:
                 result = op_func(value=payload_value, criteria_pattern=criteria_pattern)
-        except:
-            LOG.exception('There might be a problem with the criteria in rule %s.', self.rule,
-                          extra=self._base_logger_context)
+        except Exception as e:
+            msg = ('There might be a problem with the criteria in rule %s' % (self.rule.ref))
+            LOG.exception(msg, extra=self._base_logger_context)
+            self._create_rule_enforcement(failure_reason=msg, exc=e)
+
             return (False, None, None)
 
         return result, payload_value, criteria_pattern
@@ -206,6 +223,29 @@ class RuleFilter(object):
         )
 
         return criteria_rendered
+
+    def _create_rule_enforcement(self, failure_reason, exc):
+        """
+        Note: We also create RuleEnforcementDB for rules which failed to match due to an exception.
+
+        Without that, only way for users to find out about those failes matches is by inspecting
+        the logs.
+        """
+        failure_reason = ('Failed to match rule "%s" against trigger instance "%s": %s: %s' %
+                          (self.rule.ref, str(self.trigger_instance.id), failure_reason, str(exc)))
+        rule_spec = {'ref': self.rule.ref, 'id': str(self.rule.id), 'uid': self.rule.uid}
+        enforcement_db = RuleEnforcementDB(trigger_instance_id=str(self.trigger_instance.id),
+                                           rule=rule_spec,
+                                           failure_reason=failure_reason,
+                                           status=RULE_ENFORCEMENT_STATUS_FAILED)
+
+        try:
+            RuleEnforcement.add_or_update(enforcement_db)
+        except:
+            extra = {'enforcement_db': enforcement_db}
+            LOG.exception('Failed writing enforcement model to db.', extra=extra)
+
+        return enforcement_db
 
 
 class SecondPassRuleFilter(RuleFilter):
