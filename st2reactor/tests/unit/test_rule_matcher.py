@@ -27,6 +27,7 @@ from st2common.util import date as date_utils
 import st2reactor.container.utils as container_utils
 from st2reactor.rules.matcher import RulesMatcher
 from st2common.persistence.rule_enforcement import RuleEnforcement
+from st2common.constants.rule_enforcement import RULE_ENFORCEMENT_STATUS_FAILED
 
 from st2tests.base import DbTestCase
 from st2tests.base import CleanDbTestCase
@@ -209,6 +210,7 @@ class RuleMatcherTestCase(CleanDbTestCase):
         self.assertEqual(rule_enforcement_dbs[0].failure_reason, expected_failure)
         self.assertEqual(rule_enforcement_dbs[0].trigger_instance_id, str(trigger_instance.id))
         self.assertEqual(rule_enforcement_dbs[0].rule['id'], str(rule_4_db.id))
+        self.assertEqual(rule_enforcement_dbs[0].status, RULE_ENFORCEMENT_STATUS_FAILED)
 
     @mock.patch('st2reactor.rules.filter.PayloadLookup.get_value',
                 mock.Mock(side_effect=Exception('exception in get_value')))
@@ -241,6 +243,7 @@ class RuleMatcherTestCase(CleanDbTestCase):
         self.assertEqual(rule_enforcement_dbs[0].failure_reason, expected_failure)
         self.assertEqual(rule_enforcement_dbs[0].trigger_instance_id, str(trigger_instance.id))
         self.assertEqual(rule_enforcement_dbs[0].rule['id'], str(rule_4_db.id))
+        self.assertEqual(rule_enforcement_dbs[0].status, RULE_ENFORCEMENT_STATUS_FAILED)
 
     @mock.patch('st2common.operators.get_operator',
                 mock.Mock(return_value=mock.Mock(side_effect=Exception('exception in equals'))))
@@ -274,6 +277,7 @@ class RuleMatcherTestCase(CleanDbTestCase):
         self.assertEqual(rule_enforcement_dbs[0].failure_reason, expected_failure)
         self.assertEqual(rule_enforcement_dbs[0].trigger_instance_id, str(trigger_instance.id))
         self.assertEqual(rule_enforcement_dbs[0].rule['id'], str(rule_4_db.id))
+        self.assertEqual(rule_enforcement_dbs[0].status, RULE_ENFORCEMENT_STATUS_FAILED)
 
     def _setup_sample_trigger(self, name):
         trigtype = TriggerTypeDB(name=name, pack='dummy_pack_1', payload_schema={},
