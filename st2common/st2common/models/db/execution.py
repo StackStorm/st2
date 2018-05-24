@@ -120,9 +120,14 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
                 # schema.
                 #
                 # To prevent leakage, we can just mask all response fields.
+                #
+                # Note: The 'string' type in secret_parameters doesn't matter,
+                #       it's just a placeholder to tell mask_secret_parameters()
+                #       that this parameter is indeed a secret parameter and to
+                #       mask it.
                 result['parameters']['response'] = mask_secret_parameters(
                     parameters=liveaction['parameters']['response'],
-                    secret_parameters=[p for p in liveaction['parameters']['response']]
+                    secret_parameters={p: 'string' for p in liveaction['parameters']['response']}
                 )
 
         # TODO(mierdin): This logic should be moved to the dedicated Inquiry

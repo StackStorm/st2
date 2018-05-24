@@ -42,6 +42,18 @@ Changed
 Fixed
 ~~~~~
 
+* Fixed a bug where secrets in pack configs weren't being masked. Recently we
+  introduced support for nested objects and arrays. Secret parameters within these
+  nested objects and arrays were not being masked. The fix involves us fully
+  traversing deeply nested objects and arrays and masking out any variables
+  marked as secret. This means we now support pack config JSON schemas with
+  ``type: object`` and its corresponding ``parameters: {}`` stanza, along with
+  ``type: array`` and its corresponding ``items: {}`` stanza. We still do NOT
+  support JSON schema combinations that includes the ``anyOf``, ``allOf``,
+  ``oneOf``, and ``not`` keywords. (bug fix) #4139
+
+  Contributed by Nick Maludy (Encore Technologies).
+
 2.7.2 - May 16, 2018
 --------------------
 

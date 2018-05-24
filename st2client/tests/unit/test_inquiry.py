@@ -32,6 +32,11 @@ LOG = logging.getLogger(__name__)
 def _randomize_inquiry_id(inquiry):
     newinquiry = copy.deepcopy(inquiry)
     newinquiry['id'] = str(uuid.uuid4())
+    # ID can't have '1440' in it, otherwise our `count()` fails
+    # when inspecting the inquiry list output for test:
+    # test_list_inquiries_limit()
+    while '1440' in newinquiry['id']:
+        newinquiry['id'] = str(uuid.uuid4())
     return newinquiry
 
 
