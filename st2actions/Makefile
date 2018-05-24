@@ -1,4 +1,4 @@
-# <<<< TO DEPRICATE
+# <<<< TO DEPRECATE
 SHELL := /bin/bash
 REPO_ROOT := ..
 OS := $(shell uname)
