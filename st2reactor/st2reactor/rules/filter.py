@@ -24,6 +24,7 @@ from st2common import log as logging
 from st2common import operators as criteria_operators
 from st2common.constants.rules import RULE_TYPE_BACKSTOP
 from st2common.constants.rules import MATCH_CRITERIA
+from st2common.constants.rule_enforcement import RULE_ENFORCEMENT_STATUS_FAILED
 from st2common.models.db.rule_enforcement import RuleEnforcementDB
 from st2common.persistence.rule_enforcement import RuleEnforcement
 
@@ -235,7 +236,8 @@ class RuleFilter(object):
         rule_spec = {'ref': self.rule.ref, 'id': str(self.rule.id), 'uid': self.rule.uid}
         enforcement_db = RuleEnforcementDB(trigger_instance_id=str(self.trigger_instance.id),
                                            rule=rule_spec,
-                                           failure_reason=failure_reason)
+                                           failure_reason=failure_reason,
+                                           status=RULE_ENFORCEMENT_STATUS_FAILED)
 
         try:
             RuleEnforcement.add_or_update(enforcement_db)

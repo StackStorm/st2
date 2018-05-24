@@ -24,6 +24,8 @@ from st2common.models.db.rule_enforcement import RuleEnforcementDB
 from st2common.models.db.rule_enforcement import RuleReferenceSpecDB
 from st2common.models.api.execution import ActionExecutionAPI
 from st2common.models.api.trigger import TriggerInstanceAPI
+from st2common.constants.rule_enforcement import RULE_ENFORCEMENT_STATUS_SUCCEEDED
+from st2common.constants.rule_enforcement import RULE_ENFORCEMENT_STATUSES
 from st2common.util import isotime
 
 __all__ = [
@@ -81,7 +83,12 @@ class RuleEnforcementAPI(BaseAPI):
                 'description': 'Timestamp when rule enforcement happened.',
                 'type': 'string',
                 'required': True
-            }
+            },
+            "status": {
+                "description": "Rule enforcement status.",
+                "type": "string",
+                "enum": RULE_ENFORCEMENT_STATUSES
+            },
         },
         'additionalProperties': False
     }
@@ -92,6 +99,7 @@ class RuleEnforcementAPI(BaseAPI):
         execution_id = getattr(rule_enforcement, 'execution_id', None)
         enforced_at = getattr(rule_enforcement, 'enforced_at', None)
         failure_reason = getattr(rule_enforcement, 'failure_reason', None)
+        status = getattr(rule_enforcement, 'status', RULE_ENFORCEMENT_STATUS_SUCCEEDED)
 
         rule_ref_model = dict(getattr(rule_enforcement, 'rule', {}))
         rule = RuleReferenceSpecDB(ref=rule_ref_model['ref'], id=rule_ref_model['id'],
@@ -101,7 +109,8 @@ class RuleEnforcementAPI(BaseAPI):
             enforced_at = isotime.parse(enforced_at)
 
         return cls.model(trigger_instance_id=trigger_instance_id, execution_id=execution_id,
-                         failure_reason=failure_reason, enforced_at=enforced_at, rule=rule)
+                         failure_reason=failure_reason, enforced_at=enforced_at, rule=rule,
+                         status=status)
 
     @classmethod
     def from_model(cls, model, mask_secrets=False):
