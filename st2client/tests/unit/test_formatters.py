@@ -149,6 +149,7 @@ class TestExecutionResultFormatter(unittest2.TestCase):
         if six.PY2:
             self.assertEqual(content, FIXTURES['results']['execution_unicode.txt'])
         else:
+            content = content.replace(r'\xE2\x80\xA1', r'\u2021')
             self.assertEqual(content, FIXTURES['results']['execution_unicode_py3.txt'])
 
     def test_execution_get_detail_in_json(self):

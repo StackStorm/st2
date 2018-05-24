@@ -24,7 +24,7 @@ from mongoengine import ValidationError
 #       StackStorm defined exceptions.
 
 from st2api.controllers import resource
-from st2api.controllers.v1.actionviews import ActionViewsController
+from st2api.controllers.v1.action_views import ActionViewsController
 from st2common import log as logging
 from st2common.constants.triggers import ACTION_FILE_WRITTEN_TRIGGER
 from st2common.exceptions.action import InvalidActionParameterException

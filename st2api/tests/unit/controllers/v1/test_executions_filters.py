@@ -30,7 +30,7 @@ from st2tests.fixtures import history_views
 from st2common.util import isotime
 from st2common.util import date as date_utils
 from st2api.controllers.v1.actionexecutions import ActionExecutionsController
-from st2api.controllers.v1.executionviews import FILTERS_WITH_VALID_NULL_VALUES
+from st2api.controllers.v1.execution_views import FILTERS_WITH_VALID_NULL_VALUES
 from st2common.persistence.execution import ActionExecution
 from st2common.models.api.execution import ActionExecutionAPI
 

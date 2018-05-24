@@ -47,3 +47,4 @@ nose-timer>=0.7.2,<0.8
 psutil==5.4.5
 python-statsd==2.1.0
 prometheus_client==0.1.1
+mock==2.0.0

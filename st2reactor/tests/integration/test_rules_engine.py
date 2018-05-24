@@ -20,7 +20,8 @@ import tempfile
 
 from eventlet.green import subprocess
 
-from st2common.constants.timer import TIMER_ENABLED_LOG_LINE, TIMER_DISABLED_LOG_LINE
+from st2common.constants.timer import TIMER_ENABLED_LOG_LINE
+from st2common.constants.timer import TIMER_DISABLED_LOG_LINE
 from st2tests.base import IntegrationTestCase
 from st2tests.base import CleanDbTestCase
 
@@ -65,7 +66,7 @@ class TimerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
             while lines < 100:
                 line = process.stdout.readline()
                 lines += 1
-                if TIMER_ENABLED_LOG_LINE in line:
+                if TIMER_ENABLED_LOG_LINE in line.decode('utf-8'):
                     self.assertTrue(True)
                     break
         finally:
@@ -82,7 +83,7 @@ class TimerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
             while lines < 100:
                 line = process.stdout.readline()
                 lines += 1
-                if TIMER_ENABLED_LOG_LINE in line:
+                if TIMER_ENABLED_LOG_LINE in line.decode('utf-8'):
                     self.assertTrue(True)
                     break
         finally:
@@ -99,7 +100,7 @@ class TimerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
             while lines < 100:
                 line = process.stdout.readline()
                 lines += 1
-                if TIMER_DISABLED_LOG_LINE in line:
+                if TIMER_DISABLED_LOG_LINE in line.decode('utf-8'):
                     self.assertTrue(True)
                     break
         finally:

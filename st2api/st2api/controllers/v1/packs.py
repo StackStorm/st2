@@ -314,7 +314,7 @@ class PacksIndexController():
 
 
 class PacksController(BasePacksController):
-    from st2api.controllers.v1.packviews import PackViewsController
+    from st2api.controllers.v1.pack_views import PackViewsController
 
     model = PackAPI
     access = Pack

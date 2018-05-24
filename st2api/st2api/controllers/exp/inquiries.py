@@ -21,7 +21,7 @@ import copy
 from six.moves import http_client
 from st2common.models.db.auth import UserDB
 from st2api.controllers.resource import ResourceController
-from st2api.controllers.v1.executionviews import SUPPORTED_FILTERS
+from st2api.controllers.v1.execution_views import SUPPORTED_FILTERS
 from st2common import log as logging
 from st2common.util import action_db as action_utils
 from st2common.util import schema as util_schema

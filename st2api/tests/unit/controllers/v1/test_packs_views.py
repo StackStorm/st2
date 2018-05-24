@@ -77,7 +77,7 @@ class PacksViewsControllerTestCase(FunctionalTest):
         resp = self.app.get('/v1/packs/views/files/doesntexist/pack.yaml', expect_errors=True)
         self.assertEqual(resp.status_int, http_client.NOT_FOUND)
 
-    @mock.patch('st2api.controllers.v1.packviews.MAX_FILE_SIZE', 1)
+    @mock.patch('st2api.controllers.v1.pack_views.MAX_FILE_SIZE', 1)
     def test_pack_file_file_larger_then_maximum_size(self):
         resp = self.app.get('/v1/packs/views/file/dummy_pack_1/pack.yaml', expect_errors=True)
         self.assertEqual(resp.status_int, http_client.BAD_REQUEST)
