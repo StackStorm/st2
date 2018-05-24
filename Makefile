@@ -364,34 +364,57 @@ virtualenv:
 	@echo
 	# Note: We pass --no-download flag to make sure version of pip which we install (9.0.1) is used
 	# instead of latest version being downloaded from PyPi
-	test -f $(VIRTUALENV_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) --no-site-packages $(VIRTUALENV_DIR) --no-download
+	# For OS X, we have to bootstrap install pip because otherwise it runs into
+	# SSLv1 errors when connecting to https://pypi.python.org/simple/ to
+	# download anything
+	@if [[ "$(OS)" == "Darwin" ]]; then \
+	    if [[ ! -f $(VIRTUALENV_DIR)/bin/activate ]]; then \
+	        virtualenv --python=$(PYTHON_VERSION) --no-site-packages --no-setuptools --never-download $(VIRTUALENV_DIR); \
+	        echo "Setup PYTHONPATH in bash activate script..."; \
+	        echo "Delete existing entries (if any)"; \
+	        sed -i'' -e '/_OLD_PYTHONPATHp/d' $(VIRTUALENV_DIR)/bin/activate; \
+	        sed -i'' -e '/PYTHONPATH=/d' $(VIRTUALENV_DIR)/bin/activate; \
+	        sed -i'' -e '/export PYTHONPATH/d' $(VIRTUALENV_DIR)/bin/activate; \
+	        echo '_OLD_PYTHONPATH=$$PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate; \
+	        echo "#echo 'PYTHONPATH=$$_OLD_PYTHONPATH:$(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_DIR)/bin/activate"; \
+	        echo 'PYTHONPATH=${ROOT_DIR}:$(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_DIR)/bin/activate; \
+	        echo 'export PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate; \
+	        touch $(VIRTUALENV_DIR)/bin/activate; \
+	        source $(VIRTUALENV_DIR)/bin/activate; \
+	        echo "Installing pip"; \
+	        curl --silent https://bootstrap.pypa.io/get-pip.py | python; \
+	        python -c 'import setuptools; print setuptools.__version__'; \
+	    fi; \
+	else \
+	    if [[ ! -f $(VIRTUALENV_DIR)/bin/activate ]]; then \
+	        virtualenv --python=$(PYTHON_VERSION) --no-site-packages --no-download $(VIRTUALENV_DIR); \
+	        echo "Setup PYTHONPATH in bash activate script..."; \
+	        echo "Delete existing entries (if any)"; \
+	        sed -i '/_OLD_PYTHONPATHp/d' $(VIRTUALENV_DIR)/bin/activate; \
+	        sed -i '/PYTHONPATH=/d' $(VIRTUALENV_DIR)/bin/activate; \
+	        sed -i '/export PYTHONPATH/d' $(VIRTUALENV_DIR)/bin/activate; \
+	        echo '_OLD_PYTHONPATH=$$PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate; \
+	        echo "#echo 'PYTHONPATH=$$_OLD_PYTHONPATH:$(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_DIR)/bin/activate"; \
+	        echo 'PYTHONPATH=${ROOT_DIR}:$(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_DIR)/bin/activate; \
+	        echo 'export PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate; \
+	        touch $(VIRTUALENV_DIR)/bin/activate; \
+	    fi; \
+	fi
 
-	# Setup PYTHONPATH in bash activate script...
-	# Delete existing entries (if any)
-	sed -i '/_OLD_PYTHONPATHp/d' $(VIRTUALENV_DIR)/bin/activate
-	sed -i '/PYTHONPATH=/d' $(VIRTUALENV_DIR)/bin/activate
-	sed -i '/export PYTHONPATH/d' $(VIRTUALENV_DIR)/bin/activate
-
-	echo '_OLD_PYTHONPATH=$$PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate
-	#echo 'PYTHONPATH=$$_OLD_PYTHONPATH:$(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_DIR)/bin/activate
-	echo 'PYTHONPATH=${ROOT_DIR}:$(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_DIR)/bin/activate
-	echo 'export PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate
-	touch $(VIRTUALENV_DIR)/bin/activate
-
-	# Setup PYTHONPATH in fish activate script...
-	#echo '' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#echo 'set -gx _OLD_PYTHONPATH $$PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#echo 'set -gx PYTHONPATH $$_OLD_PYTHONPATH $(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#echo 'functions -c deactivate old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#echo 'function deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#echo '  if test -n $$_OLD_PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#echo '    set -gx PYTHONPATH $$_OLD_PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#echo '    set -e _OLD_PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#echo '  end' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#echo '  old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#echo '  functions -e old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#echo 'end' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#touch $(VIRTUALENV_DIR)/bin/activate.fish
+	@# Setup PYTHONPATH in fish activate script...
+	@#echo '' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	@#echo 'set -gx _OLD_PYTHONPATH $$PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	@#echo 'set -gx PYTHONPATH $$_OLD_PYTHONPATH $(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	@#echo 'functions -c deactivate old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	@#echo 'function deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	@#echo '  if test -n $$_OLD_PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	@#echo '    set -gx PYTHONPATH $$_OLD_PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	@#echo '    set -e _OLD_PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	@#echo '  end' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	@#echo '  old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	@#echo '  functions -e old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	@#echo 'end' >> $(VIRTUALENV_DIR)/bin/activate.fish
+	@#touch $(VIRTUALENV_DIR)/bin/activate.fish
 
 .PHONY: tests
 tests: pytests
@@ -522,6 +545,7 @@ endif
 		echo "Done running tests in" $$component; \
 		echo "==========================================================="; \
 	done
+	@. $(VIRTUALENV_DIR)/bin/activate; coverage html
 
 .PHONY: .combine-integration-tests-coverage
 .combine-integration-tests-coverage: .run-integration-tests-coverage

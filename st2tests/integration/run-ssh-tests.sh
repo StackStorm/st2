@@ -64,7 +64,12 @@ function sshtest(){
     echo "Running SSH tests in a loop(count=$loop_count) ..."
     echo "Activating virtual environment..."
     # activate virtualenv to set PYTHONPATH
-    source ./virtualenv/bin/activate
+    if [[ "$(uname 2>/dev/null)" == "Darwin" ]]; then
+        VIRTUALENV_DIR=virtualenv-osx
+    else
+        VIRTUALENV_DIR=virtualenv
+    fi
+    source ./${VIRTUALENV_DIR}/bin/activate
 
     # Run SSH commands test.
     for i in `seq 1 ${loop_count}`; do

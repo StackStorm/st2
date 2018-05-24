@@ -37,6 +37,7 @@ addons:
       - mongodb-org-server
       - mongodb-org-shell
       - git
+      - realpath
 
 services:
   - mongodb

@@ -15,6 +15,7 @@
 
 from __future__ import absolute_import
 import os
+import platform
 import socket
 import sys
 
@@ -302,7 +303,8 @@ def register_opts(ignore_errors=False):
     default_python_bin_path = sys.executable
     default_python3_bin_path = find_executable('python3')
     base_dir = os.path.dirname(os.path.realpath(default_python_bin_path))
-    default_virtualenv_bin_path = os.path.join(base_dir, 'virtualenv')
+    virtualenv_dir_name = 'virtualenv-osx' if platform.system() == "Darwin" else 'virtualenv'
+    default_virtualenv_bin_path = os.path.join(base_dir, virtualenv_dir_name)
 
     action_runner_opts = [
         # Common runner options

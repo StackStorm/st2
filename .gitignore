@@ -24,6 +24,7 @@ develop-eggs
 .installed.cfg
 lib64
 virtualenv
+virtualenv-osx
 
 # Installer logs
 pip-log.txt
@@ -42,6 +43,7 @@ nosetests.xml
 .vscode
 *.sublime-project
 *.sublime-workspace
+.envrc
 
 # Editor Saves
 *~

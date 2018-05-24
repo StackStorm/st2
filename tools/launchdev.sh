@@ -1,5 +1,15 @@
 #!/usr/bin/env bash
 
+if [[ "$(uname 2>/dev/null)" == "Darwin" ]]; then
+    VIRTUALENV_DIR=virtualenv-osx
+else
+    VIRTUALENV_DIR=virtualenv
+fi
+
+ST2_REPO=$(realpath ${0%/*}/../)
+
+VENV=${ST2_REPO}/${VIRTUALENV_DIR}
+
 function usage() {
     echo "Usage: $0 [start|stop|restart|startclean] [-r runner_count] [-g] [-x] [-c] [-6] [-m]" >&2
 }
@@ -47,19 +57,9 @@ done
 
 function init(){
     ST2_BASE_DIR="/opt/stackstorm"
-    COMMAND_PATH=${0%/*}
-    CURRENT_DIR=`pwd`
     CURRENT_USER=`whoami`
     CURRENT_USER_GROUP=`id -gn`
 
-    if [[ (${COMMAND_PATH} == /*) ]] ;
-    then
-        ST2_REPO=${COMMAND_PATH}/..
-    else
-        ST2_REPO=${CURRENT_DIR}/${COMMAND_PATH}/..
-    fi
-
-    VENV=${ST2_REPO}/virtualenv
     PY=${VENV}/bin/python
     echo "Using virtualenv: ${VENV}"
     echo "Using python: ${PY}"
@@ -215,7 +215,7 @@ function st2start(){
     fi
 
     # activate virtualenv to set PYTHONPATH
-    source ./virtualenv/bin/activate
+    source ${VENV}/bin/activate
 
     # Kill existing st2 screens
     screen -wipe
@@ -236,10 +236,10 @@ function st2start(){
     if [ "${use_gunicorn}" = true ]; then
         echo '  using gunicorn to run st2-api...'
         export ST2_CONFIG_PATH=${ST2_CONF}
-        screen -d -m -S st2-api ./virtualenv/bin/gunicorn \
+        screen -d -m -S st2-api ${VENV}/bin/gunicorn \
             st2api.wsgi:application -k eventlet -b "$BINDING_ADDRESS:9101" --workers 1
     else
-        screen -d -m -S st2-api ./virtualenv/bin/python \
+        screen -d -m -S st2-api ${VENV}/bin/python \
             ./st2api/bin/st2api \
             --config-file $ST2_CONF
     fi
@@ -248,10 +248,10 @@ function st2start(){
     if [ "${use_gunicorn}" = true ]; then
         echo '  using gunicorn to run st2-stream'
         export ST2_CONFIG_PATH=${ST2_CONF}
-        screen -d -m -S st2-stream ./virtualenv/bin/gunicorn \
+        screen -d -m -S st2-stream ${VENV}/bin/gunicorn \
             st2stream.wsgi:application -k eventlet -b "$BINDING_ADDRESS:9102" --workers 1
     else
-        screen -d -m -S st2-stream ./virtualenv/bin/python \
+        screen -d -m -S st2-stream ${VENV}/bin/python \
             ./st2stream/bin/st2stream \
             --config-file $ST2_CONF
     fi
@@ -270,32 +270,32 @@ function st2start(){
         RUNNER_NAME=st2-actionrunner-$i
         RUNNER_SCREENS+=($RUNNER_NAME)
         echo '  starting '$RUNNER_NAME'...'
-        screen -d -m -S $RUNNER_NAME ./virtualenv/bin/python \
+        screen -d -m -S $RUNNER_NAME ${VENV}/bin/python \
             ./st2actions/bin/st2actionrunner \
             --config-file $ST2_CONF
     done
 
     # Run the sensor container server
     echo 'Starting screen session st2-sensorcontainer'
-    screen -d -m -S st2-sensorcontainer ./virtualenv/bin/python \
+    screen -d -m -S st2-sensorcontainer ${VENV}/bin/python \
         ./st2reactor/bin/st2sensorcontainer \
         --config-file $ST2_CONF
 
     # Run the rules engine server
     echo 'Starting screen session st2-rulesengine...'
-    screen -d -m -S st2-rulesengine ./virtualenv/bin/python \
+    screen -d -m -S st2-rulesengine ${VENV}/bin/python \
         ./st2reactor/bin/st2rulesengine \
         --config-file $ST2_CONF
 
     # Run the results tracker
     echo 'Starting screen session st2-resultstracker...'
-    screen -d -m -S st2-resultstracker ./virtualenv/bin/python \
+    screen -d -m -S st2-resultstracker ${VENV}/bin/python \
         ./st2actions/bin/st2resultstracker \
         --config-file $ST2_CONF
 
     # Run the actions notifier
     echo 'Starting screen session st2-notifier...'
-    screen -d -m -S st2-notifier ./virtualenv/bin/python \
+    screen -d -m -S st2-notifier ${VENV}/bin/python \
         ./st2actions/bin/st2notifier \
         --config-file $ST2_CONF
 
@@ -304,10 +304,10 @@ function st2start(){
     if [ "${use_gunicorn}" = true ]; then
         echo '  using gunicorn to run st2-auth...'
         export ST2_CONFIG_PATH=${ST2_CONF}
-        screen -d -m -S st2-auth ./virtualenv/bin/gunicorn \
+        screen -d -m -S st2-auth ${VENV}/bin/gunicorn \
             st2auth.wsgi:application -k eventlet -b "$BINDING_ADDRESS:9100" --workers 1
     else
-        screen -d -m -S st2-auth ./virtualenv/bin/python \
+        screen -d -m -S st2-auth ${VENV}/bin/python \
             ./st2auth/bin/st2auth \
             --config-file $ST2_CONF
     fi
@@ -318,7 +318,7 @@ function st2start(){
         sudo mkdir -p $EXPORTS_DIR
         sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $EXPORTS_DIR
         echo 'Starting screen session st2-exporter...'
-        screen -d -m -S st2-exporter ./virtualenv/bin/python \
+        screen -d -m -S st2-exporter ${VENV}/bin/python \
             ./st2exporter/bin/st2exporter \
             --config-file $ST2_CONF
     fi
@@ -373,7 +373,7 @@ function st2start(){
     if [ "$load_content" = true ]; then
         # Register contents
         echo 'Registering sensors, runners, actions, rules, aliases, and policies...'
-        ./virtualenv/bin/python \
+        ${VENV}/bin/python \
             ./st2common/bin/st2-register-content \
             --config-file $ST2_CONF --register-all
     fi
