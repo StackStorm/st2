@@ -81,16 +81,16 @@ class RunnerContainer(object):
                 'in an unsupported status of "%s".' % liveaction_db.status
             )
 
-        liveaction_db = funcs[liveaction_db.status](
-            runner=runner,
-            runnertype_db=runnertype_db,
-            action_db=action_db,
-            liveaction_db=liveaction_db
-        )
+        with CounterWithTimer(key="st2.action.executions"):
+            liveaction_db = funcs[liveaction_db.status](
+                runner=runner,
+                runnertype_db=runnertype_db,
+                action_db=action_db,
+                liveaction_db=liveaction_db
+            )
 
         return liveaction_db.result
 
-    @CounterWithTimer(key="st2.action.executions")
     def _do_run(self, runner, runnertype_db, action_db, liveaction_db):
         # Create a temporary auth token which will be available
         # for the duration of the action execution.

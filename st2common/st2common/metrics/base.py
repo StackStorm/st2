@@ -36,16 +36,25 @@ PLUGIN_NAMESPACE = 'st2common.metrics.driver'
 METRICS = None
 
 
+def _strip_pack(action, pack):
+    formatted_pack = "%s." % (pack)
+
+    if formatted_pack in action:
+        return action.strip(formatted_pack)
+
+    return action
+
+
 def _format_metrics_key_for_action_db(action_db):
-    action_name = action_db.name
     action_pack = action_db.pack
-    return '.%s.%s' % (action_pack, action_name)
+    action_name = _strip_pack(action_db.name, action_pack)
+    return [action_pack, action_name]
 
 
 def _format_metrics_key_for_liveaction_db(liveaction_db):
-    action_name = liveaction_db.action
     action_pack = liveaction_db.context.get('pack', 'unknown')
-    return '.%s.%s' % (action_pack, action_name)
+    action_name = _strip_pack(liveaction_db.action, action_pack)
+    return [action_pack, action_name]
 
 
 def format_metrics_key(action_db=None, liveaction_db=None, key=None):
@@ -56,15 +65,15 @@ def format_metrics_key(action_db=None, liveaction_db=None, key=None):
     metrics_key_items = ['st2']
 
     if action_db:
-        metrics_key_items.append(_format_metrics_key_for_action_db(action_db))
+        metrics_key_items.extend(_format_metrics_key_for_action_db(action_db))
 
     if liveaction_db:
-        metrics_key_items.append(
+        metrics_key_items.extend(
             _format_metrics_key_for_liveaction_db(liveaction_db)
         )
 
     if key:
-        metrics_key_items.append('.%s' % key)
+        metrics_key_items.append('%s' % key)
 
     metrics_key = '.'.join(metrics_key_items)
 
