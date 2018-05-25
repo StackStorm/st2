@@ -46,7 +46,7 @@ def _strip_pack(action, pack):
 
 
 def _format_metrics_key_for_action_db(action_db):
-    action_pack = action_db.pack
+    action_pack = action_db.pack if action_db.pack else 'unknown'
     action_name = _strip_pack(action_db.name, action_pack)
     return [action_pack, action_name]
 
