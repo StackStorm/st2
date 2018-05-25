@@ -52,7 +52,19 @@ before_install:
   # Work around for Travis timeout issues, see https://github.com/travis-ci/travis-ci/issues/9112
   - sudo apt-get update --option Acquire::Retries=100 --option Acquire::http::Timeout="60"
   - pip install --upgrade "pip>=9.0,<9.1"
-  - sudo pip install --upgrade "virtualenv==15.1.0"
+  - which virtualenv
+  - virtualenv --version
+  - which pip
+  - pip --version
+  - which python
+  - python --version
+  - sudo -H pip install --upgrade "virtualenv==15.1.0"
+  - which virtualenv
+  - virtualenv --version
+  - which pip
+  - pip --version
+  - which python
+  - python --version
 
 install:
   - if [ "${TASK}" = 'compilepy3 ci-py3-unit' ]; then pip install "tox==3.0.0"; else make requirements; fi
