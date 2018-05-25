@@ -2,4 +2,4 @@
 
 [run]
 include = st2*
-omit = *tests/*
+disable_warnings = include-ignored,module-not-imported
