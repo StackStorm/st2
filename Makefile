@@ -274,6 +274,7 @@ $(VIRTUALENV_DIR)/bin/activate:
 	# instead of latest version being downloaded from PyPi
 	test -f $(VIRTUALENV_DIR)/bin/activate || virtualenv --no-site-packages $(VIRTUALENV_DIR) --no-download
 
+	python --version
 	# Setup PYTHONPATH in bash activate script...
 	echo '' >> $(VIRTUALENV_DIR)/bin/activate
 	echo '_OLD_PYTHONPATH=$$PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate
