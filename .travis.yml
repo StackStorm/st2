@@ -65,6 +65,10 @@ before_install:
   - pip --version
   - which python
   - python --version
+  # Explicitly set path to python for virtualenv. In travis, virtualenv
+  # sometimes doesn't use travis virtualenv python (travis deploys latest 2.7 python in a virtualenv)
+  # but resorts to old versions of python 2.7
+  - PYTHON_BIN_PATH=$(which python)
 
 install:
   - if [ "${TASK}" = 'compilepy3 ci-py3-unit' ]; then pip install "tox==3.0.0"; else make requirements; fi
