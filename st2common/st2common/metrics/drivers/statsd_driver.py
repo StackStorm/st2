@@ -25,15 +25,14 @@ class StatsdDriver(BaseMetricsDriver):
     def __init__(self):
         statsd.Connection.set_defaults(host=cfg.CONF.metrics.host, port=cfg.CONF.metrics.port)
         self._counters = {}
-        self._timers = {}
+        self._timer = statsd.Timer('')
 
     def time(self, key, time):
         """ Timer metric
         """
         check_key(key)
         assert isinstance(time, Number)
-        self._timers[key] = self._timers.get(key, statsd.Timer(''))
-        self._timers[key].send(key, time)
+        self._timer.send(key, time)
 
     def inc_counter(self, key, amount=1):
         """ Increment counter
