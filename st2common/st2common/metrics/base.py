@@ -40,7 +40,7 @@ def _strip_pack(action, pack):
     formatted_pack = "%s." % (pack)
 
     if formatted_pack in action:
-        return action.strip(formatted_pack)
+        return action.replace(formatted_pack, '')
 
     return action
 

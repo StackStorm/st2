@@ -61,14 +61,16 @@ class TestStatsDMetricsDriver(unittest2.TestCase):
             port=cfg.CONF.metrics.port
         )
 
-    @patch('st2common.metrics.drivers.statsd_driver.statsd')
-    def test_time(self, statsd):
+    def test_time(self):
+        statsd = MagicMock()
+        self._driver._timer = statsd.Timer('')
         params = ('test', 10)
         self._driver.time(*params)
         statsd.Timer().send.assert_called_with(*params)
 
-    @patch('st2common.metrics.drivers.statsd_driver.statsd')
-    def test_time_with_float(self, statsd):
+    def test_time_with_float(self):
+        statsd = MagicMock()
+        self._driver._timer = statsd.Timer('')
         params = ('test', 10.5)
         self._driver.time(*params)
         statsd.Timer().send.assert_called_with(*params)
@@ -337,3 +339,55 @@ class TestTimerDecorator(unittest2.TestCase):
             test_key,
             (end_time - start_time).total_seconds()
         )
+
+
+class TestFormatMetrics(unittest2.TestCase):
+    def test_format_metrics_liveaction_db_without_key(self):
+        pack = 'test'
+        action = 'lakface'
+
+        liveaction_db = MagicMock()
+        liveaction_db.context = {'pack': pack}
+        liveaction_db.action = action
+
+        key = base.format_metrics_key(liveaction_db=liveaction_db)
+
+        self.assertEquals(key, "st2.%s.%s" % (pack, action))
+
+    def test_format_metrics_liveaction_db_with_key(self):
+        pack = 'test'
+        action = 'lakface'
+        test_key = 'meh'
+
+        liveaction_db = MagicMock()
+        liveaction_db.context = {'pack': pack}
+        liveaction_db.action = "%s.%s" % (pack, action)
+
+        key = base.format_metrics_key(liveaction_db=liveaction_db, key=test_key)
+
+        self.assertEquals(key, "st2.%s.%s.%s" % (pack, action, test_key))
+
+    def test_format_metrics_action_db_without_key(self):
+        pack = 'test'
+        action = 'lakface'
+
+        action_db = MagicMock()
+        action_db.pack = pack
+        action_db.name = action
+
+        key = base.format_metrics_key(action_db=action_db)
+
+        self.assertEquals(key, "st2.%s.%s" % (pack, action))
+
+    def test_format_metrics_action_db_with_key(self):
+        pack = 'test'
+        action = 'lakface'
+        test_key = 'meh'
+
+        action_db = MagicMock()
+        action_db.pack = pack
+        action_db.name = action
+
+        key = base.format_metrics_key(action_db=action_db, key=test_key)
+
+        self.assertEquals(key, "st2.%s.%s.%s" % (pack, action, test_key))
