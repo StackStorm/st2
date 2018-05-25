@@ -1,0 +1,35 @@
+version: 1.0
+  
+description: A basic workflow that fails on publish during task transition.
+
+input:
+  - name
+
+vars:
+  greeting: null
+
+output:
+  greeting: <% $.greeting %>
+
+tasks:
+  task1:
+    action: core.echo message=<% $.name %>
+    next:
+      - when: <% succeeded() %>
+        publish: greeting=<% result().value %>
+        do: task2
+  task2:
+    action: core.echo
+    input:
+      message: "All your base are belong to us!"
+    next:
+      - when: <% succeeded() %>
+        publish:
+          greeting: <% $.greeting %>, <% result().stdout %>
+        do:
+          - task3
+  task3:
+    action: core.echo message=<% $.greeting %>
+    next:
+      - when: <% succeeded() %>
+        publish: greeting=<% result().stdout %>

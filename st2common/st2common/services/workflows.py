@@ -15,6 +15,7 @@
 
 from __future__ import absolute_import
 
+import copy
 import retrying
 
 from orchestra import conducting
@@ -68,15 +69,21 @@ def request(wf_def, ac_ex_db):
 
     # Instantiate the workflow conductor.
     conductor = conducting.WorkflowConductor(wf_spec, **action_params)
+    conductor.set_workflow_state(states.REQUESTED)
+
+    # Serialize the conductor which initializes some internal values.
+    data = conductor.serialize()
 
     # Create a record for workflow execution.
     wf_ex_db = wf_db_models.WorkflowExecutionDB(
         action_execution=str(ac_ex_db.id),
-        spec=conductor.spec.serialize(),
-        graph=conductor.graph.serialize(),
-        flow=conductor.flow.serialize(),
-        inputs=conductor.inputs,
-        status=states.REQUESTED
+        spec=data['spec'],
+        graph=data['graph'],
+        flow=data['flow'],
+        input=data['input'],
+        output=data['output'],
+        errors=data['errors'],
+        status=data['state']
     )
 
     # Insert new record into the database and publish to the message bus.
@@ -331,7 +338,9 @@ def deserialize_conductor(wf_ex_db):
         'graph': wf_ex_db.graph,
         'state': wf_ex_db.status,
         'flow': wf_ex_db.flow,
-        'inputs': wf_ex_db.inputs
+        'input': wf_ex_db.input,
+        'output': wf_ex_db.output,
+        'errors': wf_ex_db.errors
     }
 
     return conducting.WorkflowConductor.deserialize(data)
@@ -371,11 +380,15 @@ def update_task_flow(task_ex_id, publish=True):
     conductor, wf_ex_db = refresh_conductor(task_ex_db.workflow_execution)
     conductor.update_task_flow(task_ex_db.task_id, task_ex_db.status, result=task_ex_db.result)
 
-    # Update workflow status and task flow.
-    wf_ex_db.status = conductor.get_workflow_state()
-    wf_ex_db.flow = conductor.flow.serialize()
+    # Update timestamp and output if workflow is completed.
+    if conductor.get_workflow_state() in states.COMPLETED_STATES:
+        wf_ex_db.end_timestamp = date_utils.get_datetime_utc_now()
+        wf_ex_db.output = conductor.get_workflow_output()
 
-    # Write update to the database.
+    # Update workflow status and task flow and write changes to database.
+    wf_ex_db.status = conductor.get_workflow_state()
+    wf_ex_db.errors = copy.deepcopy(conductor.errors)
+    wf_ex_db.flow = conductor.flow.serialize()
     wf_ex_db = wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
 
     # Return if workflow execution is not completed or paused.
@@ -386,9 +399,14 @@ def update_task_flow(task_ex_id, publish=True):
     wf_ac_ex_db = ex_db_access.ActionExecution.get_by_id(wf_ex_db.action_execution)
     wf_lv_ac_db = ac_db_util.get_liveaction_by_id(wf_ac_ex_db.liveaction['id'])
 
+    result = wf_ex_db.output or {}
+
+    if wf_ex_db.status in states.ABENDED_STATES:
+        result['errors'] = wf_ex_db.errors
+
     wf_lv_ac_db = ac_db_util.update_liveaction_status(
         status=wf_ex_db.status,
-        result=wf_ex_db.outputs,
+        result=result,
         end_timestamp=wf_ex_db.end_timestamp,
         liveaction_db=wf_lv_ac_db,
         publish=publish)
@@ -416,8 +434,14 @@ def request_next_tasks(task_ex_id):
     for task in next_tasks:
         conductor.update_task_flow(task['id'], states.RUNNING)
 
+    # Update timestamp and output if workflow is completed.
+    if conductor.get_workflow_state() in states.COMPLETED_STATES:
+        wf_ex_db.end_timestamp = date_utils.get_datetime_utc_now()
+        wf_ex_db.output = conductor.get_workflow_output()
+
     # Write the updated workflow state and task flow to the database.
     wf_ex_db.status = conductor.get_workflow_state()
+    wf_ex_db.errors = copy.deepcopy(conductor.errors)
     wf_ex_db.flow = conductor.flow.serialize()
     wf_ex_db = wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
 
@@ -438,22 +462,26 @@ def update_workflow_execution(wf_ex_id):
     # Update timestamp and output if workflow is completed.
     if conductor.get_workflow_state() in states.COMPLETED_STATES:
         wf_ex_db.end_timestamp = date_utils.get_datetime_utc_now()
-        wf_ex_db.outputs = conductor.get_workflow_output()
+        wf_ex_db.output = conductor.get_workflow_output()
 
-    # Update workflow status and task flow.
+    # Update workflow status and task flow and write changes to database.
     wf_ex_db.status = conductor.get_workflow_state()
+    wf_ex_db.errors = copy.deepcopy(conductor.errors)
     wf_ex_db.flow = conductor.flow.serialize()
-
-    # Write update to the database.
     wf_ex_db = wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
 
     # Update the corresponding liveaction and action execution for the workflow.
     wf_ac_ex_db = ex_db_access.ActionExecution.get_by_id(wf_ex_db.action_execution)
     wf_lv_ac_db = ac_db_util.get_liveaction_by_id(wf_ac_ex_db.liveaction['id'])
 
+    result = wf_ex_db.output or {}
+
+    if wf_ex_db.status in states.ABENDED_STATES:
+        result['errors'] = wf_ex_db.errors
+
     wf_lv_ac_db = ac_db_util.update_liveaction_status(
         status=wf_ex_db.status,
-        result=wf_ex_db.outputs,
+        result=result,
         end_timestamp=wf_ex_db.end_timestamp,
         liveaction_db=wf_lv_ac_db)
 
@@ -480,9 +508,8 @@ def resume_workflow_execution(wf_ex_id, task_ex_id):
     task_ex_db = wf_db_access.TaskExecution.get_by_id(task_ex_id)
     conductor.update_task_flow(task_ex_db.task_id, states.RUNNING)
 
-    # Update workflow status and task flow.
+    # Update workflow status and task flow and write changes to database.
     wf_ex_db.status = conductor.get_workflow_state()
+    wf_ex_db.errors = copy.deepcopy(conductor.errors)
     wf_ex_db.flow = conductor.flow.serialize()
-
-    # Write update to the database.
     wf_ex_db = wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)

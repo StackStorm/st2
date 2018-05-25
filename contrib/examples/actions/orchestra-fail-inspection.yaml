@@ -3,5 +3,5 @@ name: orchestra-fail-inspection
 description: A basic sequential workflow with syntax errors.
 pack: examples
 runner_type: orchestra
-entry_point: workflows/orchestra-fail-inspection.yaml
+entry_point: workflows/tests/orchestra-fail-inspection.yaml
 enabled: true

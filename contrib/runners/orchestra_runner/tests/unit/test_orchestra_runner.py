@@ -40,12 +40,10 @@ from st2tests.mocks import liveaction as mock_lv_ac_xport
 
 TEST_FIXTURES = {
     'workflows': [
-        'sequential.yaml',
-        'fail-inspection.yaml'
+        'sequential.yaml'
     ],
     'actions': [
-        'sequential.yaml',
-        'fail-inspection.yaml'
+        'sequential.yaml'
     ]
 }
 
@@ -127,24 +125,9 @@ class OrchestraRunnerTest(st2tests.DbTestCase):
         self.assertIn('tasks', wf_ex_db.flow)
         self.assertIn('sequence', wf_ex_db.flow)
 
-        # Check inputs.
-        expected_inputs = {
+        # Check input.
+        expected_input = {
             'who': 'Stanley'
         }
 
-        self.assertDictEqual(wf_ex_db.inputs, expected_inputs)
-
-    def test_workflow_inspection_failure(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][1])
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
-        lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
-        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-
-        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_FAILED)
-        self.assertIn('errors', lv_ac_db.result)
-        self.assertIn('expressions', lv_ac_db.result['errors'])
-        self.assertGreater(len(lv_ac_db.result['errors']['expressions']), 0)
-        self.assertIn('context', lv_ac_db.result['errors'])
-        self.assertGreater(len(lv_ac_db.result['errors']['context']), 0)
-        self.assertIn('syntax', lv_ac_db.result['errors'])
-        self.assertGreater(len(lv_ac_db.result['errors']['syntax']), 0)
+        self.assertDictEqual(wf_ex_db.input, expected_input)

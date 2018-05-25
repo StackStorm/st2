@@ -106,7 +106,7 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
         self.assertEqual(wf_ex_db.action_execution, str(ac_ex_db.id))
         self.assertEqual(wf_ex_db.status, wf_lib_states.REQUESTED)
 
-    def test_request_with_inputs(self):
+    def test_request_with_input(self):
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][0])
 
         # Manually create the liveaction and action execution objects without publishing.
@@ -128,12 +128,12 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
         self.assertEqual(wf_ex_db.action_execution, str(ac_ex_db.id))
         self.assertEqual(wf_ex_db.status, wf_lib_states.REQUESTED)
 
-        # Check inputs and context.
-        expected_inputs = {
+        # Check input and context.
+        expected_input = {
             'who': 'stan'
         }
 
-        self.assertDictEqual(wf_ex_db.inputs, expected_inputs)
+        self.assertDictEqual(wf_ex_db.input, expected_input)
 
     def test_request_bad_action(self):
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][0])

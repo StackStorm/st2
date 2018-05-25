@@ -1,0 +1,15 @@
+version: 1.0
+
+description: A basic workflow with error while evaluating output.
+
+vars:
+  msg1: "Veni, vidi, vici."
+  msg2: "Resistance is futile!"
+  msg3: "All your base are belong to us!"
+
+output:
+  messages: <% abs(4).value %>
+
+tasks:
+  task1:
+    action: core.echo message=<% $.msg1 %>

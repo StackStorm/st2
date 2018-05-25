@@ -40,9 +40,10 @@ class WorkflowExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionF
     spec = stormbase.EscapedDictField()
     graph = stormbase.EscapedDictField()
     flow = stormbase.EscapedDictField()
-    inputs = stormbase.EscapedDictField()
-    outputs = stormbase.EscapedDictField()
+    input = stormbase.EscapedDictField()
+    output = stormbase.EscapedDictField()
     status = me.StringField(required=True)
+    errors = stormbase.EscapedDynamicField()
     start_timestamp = db_field_types.ComplexDateTimeField(default=date_utils.get_datetime_utc_now)
     end_timestamp = db_field_types.ComplexDateTimeField()
 

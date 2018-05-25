@@ -1,0 +1,34 @@
+version: 1.0
+
+description: A basic sequential workflow with error(s) in publish.
+
+input:
+  - who
+
+vars:
+  msg1: "Veni, vidi, vici."
+  msg2: "Resistance is futile!"
+  msg3: "All your base are belong to us!"
+
+tasks:
+  task1:
+    action: core.echo
+    input:
+        message: <% $.msg1 %>
+    next:
+      - when: <% succeeded() %>
+        publish:
+          foobar: <% foobar() %>
+        do:
+          - task2
+  task2:
+    action: core.echo
+    input:
+        message: <% $.msg2 %>
+    next:
+      - when: <% succeeded() %>
+        do: task3
+  task3:
+    action: core.echo
+    input:
+        message: <% $who %>, <% $.msg3 %>

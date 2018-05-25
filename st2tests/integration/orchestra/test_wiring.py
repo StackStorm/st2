@@ -20,7 +20,7 @@ import eventlet
 from integration.orchestra import base
 from six.moves import range
 
-from st2common.constants import action as action_constants
+from st2common.constants import action as ac_const
 
 
 class WiringTest(base.TestWorkflowExecution):
@@ -34,5 +34,5 @@ class WiringTest(base.TestWorkflowExecution):
 
         for ex in exs:
             e = self._wait_for_completion(ex)
-            self.assertEqual(e.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+            self.assertEqual(e.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
             self.assertIn('vm_id', e.result)

@@ -1,0 +1,34 @@
+version: 1.0
+  
+description: A basic workflow with error while evaluating task transition.
+
+input:
+  - name
+
+vars:
+  greeting: null
+
+output:
+  greeting: <% $.greeting %>
+
+tasks:
+  task1:
+    action: core.echo message=<% $.name %>
+    next:
+      - when: <% succeeded() and result().value %>
+        publish: greeting=<% result().stdout %>
+        do: task2
+  task2:
+    action: core.echo
+    input:
+      message: "All your base are belong to us!"
+    next:
+      - when: <% succeeded() %>
+        publish:
+          greeting: <% $.greeting %>, <% result().stdout %>
+        do: task3
+  task3:
+    action: core.echo message=<% $.greeting %>
+    next:
+      - when: <% succeeded() %>
+        publish: greeting=<% result().stdout %>

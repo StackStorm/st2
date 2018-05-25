@@ -1,0 +1,12 @@
+---
+name: fail-task-action
+description: A basic workflow with error on action evaluation in one of the tasks.
+pack: orchestra_tests
+runner_type: orchestra
+entry_point: workflows/fail-task-action.yaml
+enabled: true
+parameters:
+  who:
+    required: true
+    type: string
+    default: Stanley

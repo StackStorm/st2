@@ -514,7 +514,9 @@ class WorkflowTestCase(DbTestCase):
             'graph': wf_ex_db.graph,
             'state': wf_ex_db.status,
             'flow': wf_ex_db.flow,
-            'inputs': wf_ex_db.inputs
+            'input': wf_ex_db.input,
+            'output': wf_ex_db.output,
+            'errors': wf_ex_db.errors
         }
 
         conductor = conducting.WorkflowConductor.deserialize(data)
