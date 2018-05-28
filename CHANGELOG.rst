@@ -24,6 +24,16 @@ Added
   values - ``succeeded`` (trigger instance matched a rule and action execution was triggered
   successfully), ``failed`` (trigger instance matched a rule, but it didn't result in an action
   execution due to Jinja rendering failure or other exception). (improvement) #4134
+* Add new ``--python3`` flag to ``st2 pack install`` CLI command and ``python3`` parameter to
+  ``packs.{install,setup_virtualenv}`` actions. When the value of this parameter is True, it
+  uses ``python3`` binary when creating virtual environment for that pack (based on the value of
+  ``actionrunner.python3_binary`` config option).
+
+  Note 1: For this feature to work, Python 3 needs to be installed on the system, ``virtualenv``
+  package installed on the system needs to support Python 3 (it needs to be a recent version) and
+  pack in question needs to support Python 3.
+
+  Note 2: This feature is experimental and opt-in. (new feature) #4016 #3922 #4149
 
 Changed
 ~~~~~~~
