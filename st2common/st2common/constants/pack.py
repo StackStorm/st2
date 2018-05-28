@@ -87,6 +87,12 @@ BASE_PACK_REQUIREMENTS = [
     'six>=1.9.0,<2.0'
 ]
 
+# Python requirements which are common to all the packs and need to be installed
+# for Python 3 pack virtual environments to work
+BASE_PACK_PYTHON3_REQUIREMENTS = [
+    'pyyaml>=3.12,<4.0'
+]
+
 # Name of the pack manifest file
 MANIFEST_FILE_NAME = 'pack.yaml'
 
