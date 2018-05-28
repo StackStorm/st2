@@ -218,23 +218,26 @@ class PythonRunner(GitWorktreeActionRunner):
         # If python3.? directory exists in pack virtualenv lib/ path it means Python 3 is used by
         # that virtual environment and we take that in to account when constructing PYTHONPATH
         pack_base_path = get_pack_base_path(pack_name=pack)
-        pack_actions_lib_paths = os.path.join(pack_base_path, 'actions/lib/')
-        pack_virtualenv_lib_path = os.path.join(virtualenv_path, 'lib')
 
-        virtualenv_directories = os.listdir(pack_virtualenv_lib_path)
-        virtualenv_directories = [dir_name for dir_name in virtualenv_directories if
-                                  fnmatch.fnmatch(dir_name, 'python3*')]
-        uses_python3 = bool(virtualenv_directories)
+        if virtualenv_path and os.path.isdir(virtualenv_path):
+            pack_actions_lib_paths = os.path.join(pack_base_path, 'actions/lib/')
+            pack_virtualenv_lib_path = os.path.join(virtualenv_path, 'lib')
 
-        if uses_python3:
-            # Add Python 3 lib/site-packages directory infrot of the system site packages
-            # This is important because we want Python 3 compatible libraries to be used from the
-            # pack virtual environment and not system ones
-            python3_site_packages_directory = os.path.join(pack_virtualenv_lib_path,
-                                                           virtualenv_directories[0],
-                                                           'site-packages')
-            sandbox_python_path = (python3_site_packages_directory + ':' + pack_actions_lib_paths +
-                                   ':' + sandbox_python_path)
+            virtualenv_directories = os.listdir(pack_virtualenv_lib_path)
+            virtualenv_directories = [dir_name for dir_name in virtualenv_directories if
+                                      fnmatch.fnmatch(dir_name, 'python3*')]
+            uses_python3 = bool(virtualenv_directories)
+
+            if uses_python3:
+                # Add Python 3 lib/site-packages directory infrot of the system site packages
+                # This is important because we want Python 3 compatible libraries to be used from
+                # the pack virtual environment and not system ones
+                python3_site_packages_directory = os.path.join(pack_virtualenv_lib_path,
+                                                               virtualenv_directories[0],
+                                                               'site-packages')
+                sandbox_python_path = (python3_site_packages_directory + ':' +
+                                       pack_actions_lib_paths +
+                                       ':' + sandbox_python_path)
 
         if self._enable_common_pack_libs and pack_common_libs_path:
             env['PYTHONPATH'] = pack_common_libs_path + ':' + sandbox_python_path
