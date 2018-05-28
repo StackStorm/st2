@@ -21,7 +21,6 @@ import sys
 import json
 import uuid
 import functools
-import fnmatch
 from subprocess import list2cmdline
 
 from eventlet.green import subprocess
@@ -47,7 +46,7 @@ from st2common.util.api import get_full_public_api_url
 from st2common.util.pack import get_pack_common_libs_path_for_pack_ref
 from st2common.content.utils import get_pack_base_path
 from st2common.util.sandboxing import get_sandbox_path
-from st2common.util.sandboxing import get_sandbox_python_path
+from st2common.util.sandboxing import get_sandbox_python_path_for_python_action
 from st2common.util.sandboxing import get_sandbox_python_binary_path
 from st2common.util.sandboxing import get_sandbox_virtualenv_path
 from st2common.util.shell import quote_unix
@@ -194,8 +193,10 @@ class PythonRunner(GitWorktreeActionRunner):
         env = os.environ.copy()
         env['PATH'] = get_sandbox_path(virtualenv_path=virtualenv_path)
 
-        sandbox_python_path = get_sandbox_python_path(inherit_from_parent=True,
-                                                      inherit_parent_virtualenv=True)
+        sandbox_python_path = get_sandbox_python_path_for_python_action(
+            pack=pack,
+            inherit_from_parent=True,
+            inherit_parent_virtualenv=True)
 
         if self._enable_common_pack_libs:
             try:
@@ -215,34 +216,10 @@ class PythonRunner(GitWorktreeActionRunner):
         if sandbox_python_path.startswith(':'):
             sandbox_python_path = sandbox_python_path[1:]
 
-        # If python3.? directory exists in pack virtualenv lib/ path it means Python 3 is used by
-        # that virtual environment and we take that in to account when constructing PYTHONPATH
-        pack_base_path = get_pack_base_path(pack_name=pack)
-
-        if virtualenv_path and os.path.isdir(virtualenv_path):
-            pack_actions_lib_paths = os.path.join(pack_base_path, 'actions/lib/')
-            pack_virtualenv_lib_path = os.path.join(virtualenv_path, 'lib')
-
-            virtualenv_directories = os.listdir(pack_virtualenv_lib_path)
-            virtualenv_directories = [dir_name for dir_name in virtualenv_directories if
-                                      fnmatch.fnmatch(dir_name, 'python3*')]
-            uses_python3 = bool(virtualenv_directories)
-
-            if uses_python3:
-                # Add Python 3 lib/site-packages directory infrot of the system site packages
-                # This is important because we want Python 3 compatible libraries to be used from
-                # the pack virtual environment and not system ones
-                python3_site_packages_directory = os.path.join(pack_virtualenv_lib_path,
-                                                               virtualenv_directories[0],
-                                                               'site-packages')
-                sandbox_python_path = (python3_site_packages_directory + ':' +
-                                       pack_actions_lib_paths +
-                                       ':' + sandbox_python_path)
-
         if self._enable_common_pack_libs and pack_common_libs_path:
-            env['PYTHONPATH'] = pack_common_libs_path + ':' + sandbox_python_path
-        else:
-            env['PYTHONPATH'] = sandbox_python_path
+            sandbox_python_path = pack_common_libs_path + ':' + sandbox_python_path
+
+        env['PYTHONPATH'] = sandbox_python_path
 
         # Include user provided environment variables (if any)
         user_env_vars = self._get_env_vars()
