@@ -201,7 +201,6 @@ class PythonRunner(GitWorktreeActionRunner):
                 pack_common_libs_path = self._get_pack_common_libs_path(pack_ref=pack)
             except Exception as e:
                 LOG.debug('Failed to retrieve pack common lib path: %s' % (str(e)))
-                print(e)
                 # There is no MongoDB connection available in Lambda and pack common lib
                 # functionality is not also mandatory for Lambda so we simply ignore those errors.
                 # Note: We should eventually refactor this code to make runner standalone and not
