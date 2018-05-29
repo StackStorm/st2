@@ -662,10 +662,13 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertTrue(expected_msg_5 in output['stderr'])
 
         # Verify messages are not duplicated
-        print('===')
-        print(output['stderr'])
-        print('===')
-        self.assertEqual(len(output['stderr'].strip().split('\n')), 5)
+        if 'No handlers could be found for logger' in output['stderr']:
+            # Tests on some CI services don't use correct logging config
+            expected_count = 6
+        else:
+            expected_count = 5
+
+        self.assertEqual(len(output['stderr'].strip().split('\n')), expected_count)
 
         # Only log messages with level info and above should be displayed
         runner = self._get_mock_runner_obj()
