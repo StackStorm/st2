@@ -72,8 +72,7 @@ before_install:
 
 install:
   - if [ "${TASK}" = 'compilepy3 ci-py3-unit' ]; then pip install "tox==3.0.0"; else PYTHON_BIN_PATH=$(which python) make requirements; fi
-  - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ]; then pip install codecov; fi
-  - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ] || [ "${TASK}" = 'compilepy3 ci-py3-unit' ]; then sudo .circle/add-itest-user.sh; fi
+  - if [ ${TASK} = 'ci-unit' ] || [ ${TASK} = 'ci-integration' ]; then pip install codecov; sudo .circle/add-itest-user.sh; fi
 
 # Let's enable rabbitmqadmin
 # See https://github.com/messagebus/lapine/wiki/Testing-on-Travis.
