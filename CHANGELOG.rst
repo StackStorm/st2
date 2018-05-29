@@ -24,6 +24,8 @@ Added
   values - ``succeeded`` (trigger instance matched a rule and action execution was triggered
   successfully), ``failed`` (trigger instance matched a rule, but it didn't result in an action
   execution due to Jinja rendering failure or other exception). (improvement) #4134
+* Add trigger type reference based filtering to the ``/v1/triggerinstances`` API endpoint - e.g.
+  ``/v1/triggerinstances?trigger_type=core.st2.webhook``. (new feature) #4151
 * Add new ``--python3`` flag to ``st2 pack install`` CLI command and ``python3`` parameter to
   ``packs.{install,setup_virtualenv}`` actions. When the value of this parameter is True, it
   uses ``python3`` binary when creating virtual environment for that pack (based on the value of

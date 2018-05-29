@@ -73,6 +73,22 @@ class TestTriggerController(FunctionalTest):
         resp = self.app.get('/v1/triggerinstances?timestamp_lt=%s' % (timestamp_middle))
         self.assertEqual(len(resp.json), 1)
 
+    def test_get_all_trigger_type_ref_filtering(self):
+        # 1. Invalid / inexistent trigger type ref
+        resp = self.app.get('/v1/triggerinstances?trigger_type=foo.bar.invalid')
+        self.assertEqual(resp.status_int, http_client.OK)
+        self.assertEqual(len(resp.json), 0)
+
+        # 2. Valid trigger type ref with corresponding trigger instances
+        resp = self.app.get('/v1/triggerinstances?trigger_type=dummy_pack_1.st2.test.triggertype0')
+        self.assertEqual(resp.status_int, http_client.OK)
+        self.assertEqual(len(resp.json), 1)
+
+        # 3. Valid trigger type ref with no corresponding trigger instances
+        resp = self.app.get('/v1/triggerinstances?trigger_type=dummy_pack_1.st2.test.triggertype3')
+        self.assertEqual(resp.status_int, http_client.OK)
+        self.assertEqual(len(resp.json), 0)
+
     def test_reemit_trigger_instance(self):
         resp = self.app.get('/v1/triggerinstances')
         self.assertEqual(resp.status_int, http_client.OK)
@@ -127,9 +143,17 @@ class TestTriggerController(FunctionalTest):
             'payload_schema': {'tp1': None, 'tp2': None, 'tp3': None},
             'parameters_schema': {'param1': {'type': 'object'}}
         }
+        TRIGGERTYPE_3 = {
+            'name': 'st2.test.triggertype3',
+            'pack': 'dummy_pack_1',
+            'description': 'test trigger',
+            'payload_schema': {'tp1': None, 'tp2': None, 'tp3': None},
+            'parameters_schema': {'param1': {'type': 'object'}}
+        }
         cls.app.post_json('/v1/triggertypes', TRIGGERTYPE_0, expect_errors=False)
         cls.app.post_json('/v1/triggertypes', TRIGGERTYPE_1, expect_errors=False)
         cls.app.post_json('/v1/triggertypes', TRIGGERTYPE_2, expect_errors=False)
+        cls.app.post_json('/v1/triggertypes', TRIGGERTYPE_3, expect_errors=False)
 
     @classmethod
     def _setupTriggers(cls):
