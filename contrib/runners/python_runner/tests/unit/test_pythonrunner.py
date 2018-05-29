@@ -662,7 +662,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertTrue(expected_msg_5 in output['stderr'])
 
         # Verify messages are not duplicated
-        self.assertEqual(len(output['stderr'].split('\n')), 6 + 1)
+        self.assertEqual(len(output['stderr'].strip().split('\n')), 5)
 
         # Only log messages with level info and above should be displayed
         runner = self._get_mock_runner_obj()
