@@ -181,7 +181,13 @@ class ResourceController(object):
             if k in ['id', 'name'] and isinstance(filter_value, list):
                 filters[k + '__in'] = filter_value
             else:
-                filters['__'.join(v.split('.'))] = filter_value
+                field_name_split = v.split('.')
+
+                # Make sure filter value is a list when using "in" filter
+                if field_name_split[-1] == 'in' and not isinstance(filter_value, (list, tuple)):
+                    filter_value = [filter_value]
+
+                filters['__'.join(field_name_split)] = filter_value
 
         if advanced_filters:
             for token in advanced_filters.split(' '):
