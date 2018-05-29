@@ -322,7 +322,7 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
         actual_cmd = mock_run_command.call_args_list[0][1]['cmd']
         actual_cmd = ' '.join(actual_cmd)
 
-        self.assertEqual(mock_run_command.call_count, 2)
+        self.assertEqual(mock_run_command.call_count, 3)
         self.assertTrue('-p /usr/bin/python3' in actual_cmd)
 
     def assertVirtulenvExists(self, virtualenv_dir):
