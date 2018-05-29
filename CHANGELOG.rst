@@ -24,6 +24,8 @@ Added
   values - ``succeeded`` (trigger instance matched a rule and action execution was triggered
   successfully), ``failed`` (trigger instance matched a rule, but it didn't result in an action
   execution due to Jinja rendering failure or other exception). (improvement) #4134
+* Add trigger type reference based filtering to the ``/v1/triggerinstances`` API endpoint - e.g.
+  ``/v1/triggerinstances?trigger_type=core.st2.webhook``. (new feature) #4151
 
 Changed
 ~~~~~~~
