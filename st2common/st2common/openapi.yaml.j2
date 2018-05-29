@@ -3914,6 +3914,10 @@ paths:
           description: Start timestamp greater than filter
           type: string
           pattern: {{ ISO8601_UTC_REGEX }}
+        - name: trigger_type
+          in: query
+          description: Trigger type filter
+          type: string
       x-parameters:
         - name: user
           in: context

@@ -359,10 +359,10 @@ class TriggerInstanceController(TriggerInstanceControllerMixin, resource.Resourc
         the lifecycle of TriggerInstances in the system.
     """
     supported_filters = {
-        'trigger': 'trigger',
         'timestamp_gt': 'occurrence_time.gt',
         'timestamp_lt': 'occurrence_time.lt',
-        'status': 'status'
+        'status': 'status',
+        'trigger': 'trigger.in'
     }
 
     filter_transform_functions = {
@@ -393,6 +393,21 @@ class TriggerInstanceController(TriggerInstanceControllerMixin, resource.Resourc
             Handles requests:
                 GET /triggerinstances/
         """
+        # If trigger_type filter is provided, filter based on the TriggerType via Trigger object
+        trigger_type_ref = raw_filters.get('trigger_type', None)
+
+        if trigger_type_ref:
+            # 1. Retrieve TriggerType object id which match this trigger_type ref
+            trigger_dbs = Trigger.query(type=trigger_type_ref,
+                                        only_fields=['ref', 'name', 'pack', 'type'])
+            trigger_refs = [trigger_db.ref for trigger_db in trigger_dbs]
+            raw_filters['trigger'] = trigger_refs
+
+        if trigger_type_ref and len(raw_filters.get('trigger', [])) == 0:
+            # Empty list means trigger_type_ref filter was provided, but we matched no Triggers so
+            # we should return back empty result
+            return []
+
         trigger_instances = self._get_trigger_instances(sort=sort,
                                                         offset=offset,
                                                         limit=limit,
