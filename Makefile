@@ -277,8 +277,8 @@ compilepy3:
 	@echo "Removing all coverage results directories"
 	@echo
 	rm -rf .coverage \
-	 .coverage-unit .coverage-unit-* \
-	 .coverage-integation .coverage-integration-* \
+	 .coverage-unit ".coverage-unit-*" \
+	 .coverage-integation ".coverage-integration-*" \
 	 .coverage-integration-mistal
 
 .PHONY: distclean
