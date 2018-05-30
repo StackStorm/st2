@@ -1194,7 +1194,14 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
 
 class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestCase,
                                               FunctionalTest):
+    @unittest2.skipIf(six.PY3, 'Skipping under Python 3 (closed iterator read issue)')
     def test_get_output_running_execution(self):
+        # Retrieve lister instance to avoid race with listener connection not being established
+        # early enough for tests to pass.
+        # NOTE: This only affects tests where listeners are not pre-initialized.
+        listener = get_listener(name='execution_output')
+        eventlet.sleep(1.0)
+
         # Test the execution output API endpoint for execution which is running (blocking)
         status = action_constants.LIVEACTION_STATUS_RUNNING
         timestamp = date_utils.get_datetime_utc_now()
@@ -1215,7 +1222,7 @@ class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestC
 
         # Insert mock output object
         output_db = ActionExecutionOutputDB(**output_params)
-        ActionExecutionOutput.add_or_update(output_db)
+        ActionExecutionOutput.add_or_update(output_db, publish=False)
 
         def insert_mock_data():
             output_params['data'] = 'stdout mid 1\n'
@@ -1230,7 +1237,7 @@ class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestC
             output_db = ActionExecutionOutputDB(**output_params)
             ActionExecutionOutput.add_or_update(output_db)
 
-            eventlet.sleep(2.5)
+            eventlet.sleep(1.0)
 
             # Transition execution to completed state so the connection closes
             action_execution_db.status = action_constants.LIVEACTION_STATUS_SUCCEEDED
@@ -1245,6 +1252,7 @@ class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestC
                             expect_errors=False)
         self.assertEqual(resp.status_int, 200)
         lines = resp.text.strip().split('\n')
+        lines = [line for line in lines if line.strip()]
         self.assertEqual(len(lines), 3)
         self.assertEqual(lines[0], 'stdout before start')
         self.assertEqual(lines[1], 'stdout mid 1')
@@ -1256,11 +1264,15 @@ class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestC
 
         self.assertEqual(resp.status_int, 200)
         lines = resp.text.strip().split('\n')
+        lines = [line for line in lines if line.strip()]
         self.assertEqual(len(lines), 3)
         self.assertEqual(lines[0], 'stdout before start')
         self.assertEqual(lines[1], 'stdout mid 1')
         self.assertEqual(lines[2], 'stdout pre finish 1')
 
+        listener.shutdown()
+
+    @unittest2.skipIf(six.PY3, 'Skipping under Python 3 (closed iterator read issue)')
     def test_get_output_finished_execution(self):
         # Test the execution output API endpoint for execution which has finished
         for status in action_constants.LIVEACTION_COMPLETED_STATES:
