@@ -16,7 +16,9 @@
 import copy
 import mock
 
+import six
 import eventlet
+import unittest2
 
 try:
     import simplejson as json
@@ -39,6 +41,7 @@ from st2common.transport.publishers import PoolPublisher
 from st2common.util import action_db as action_db_util
 from st2common.util import isotime
 from st2common.util import date as date_utils
+from st2common.stream.listener import get_listener
 import st2common.validators.api.action as action_validator
 from tests.base import BaseActionExecutionControllerTestCase
 from st2tests.api import SUPER_SECRET_PARAMETER
