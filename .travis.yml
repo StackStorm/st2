@@ -82,8 +82,6 @@ before_script:
   - sudo wget http://guest:guest@localhost:15672/cli/rabbitmqadmin -O /usr/local/bin/rabbitmqadmin
   - sudo chmod +x /usr/local/bin/rabbitmqadmin
   - sudo service rabbitmq-server restart
-  # - sudo cat /etc/sudoers.d/st2
-  - chmod 777 /home/travis/build/StackStorm/st2/st2tests/st2tests/fixtures/localrunner_pack/actions/text_gen.py
 
 script:
   - make ${TASK}
