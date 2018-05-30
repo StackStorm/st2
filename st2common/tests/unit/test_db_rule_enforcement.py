@@ -20,10 +20,17 @@ import mock
 from st2common.models.db.rule_enforcement import RuleEnforcementDB
 from st2common.persistence.rule_enforcement import RuleEnforcement
 from st2common.transport.publishers import PoolPublisher
+from st2common.constants.rule_enforcement import RULE_ENFORCEMENT_STATUS_SUCCEEDED
+from st2common.constants.rule_enforcement import RULE_ENFORCEMENT_STATUS_FAILED
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
+
 from st2tests import DbTestCase
 
 SKIP_DELETE = False
+
+__all__ = [
+    'RuleEnforcementModelTest'
+]
 
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
@@ -50,6 +57,57 @@ class RuleEnforcementModelTest(DbTestCase):
         except StackStormDBObjectNotFoundError:
             retrieved = None
         self.assertIsNone(retrieved, 'managed to retrieve after delete.')
+
+    def test_status_set_to_failed_for_objects_which_predate_status_field(self):
+        rule = {
+            'ref': 'foo_pack.foo_rule',
+            'uid': 'rule:foo_pack:foo_rule'
+        }
+
+        # 1. No status field explicitly set and no failure reason
+        enforcement_db = RuleEnforcementDB(trigger_instance_id=str(bson.ObjectId()),
+                                           rule=rule,
+                                           execution_id=str(bson.ObjectId()))
+        enforcement_db = RuleEnforcement.add_or_update(enforcement_db)
+
+        self.assertEqual(enforcement_db.status, RULE_ENFORCEMENT_STATUS_SUCCEEDED)
+
+        # 2. No status field, with failure reason, status should be set to failed
+        enforcement_db = RuleEnforcementDB(trigger_instance_id=str(bson.ObjectId()),
+                                           rule=rule,
+                                           execution_id=str(bson.ObjectId()),
+                                           failure_reason='so much fail')
+        enforcement_db = RuleEnforcement.add_or_update(enforcement_db)
+
+        self.assertEqual(enforcement_db.status, RULE_ENFORCEMENT_STATUS_FAILED)
+
+        # 3. Explcit status field - succeeded + failure reasun
+        enforcement_db = RuleEnforcementDB(trigger_instance_id=str(bson.ObjectId()),
+                                           rule=rule,
+                                           execution_id=str(bson.ObjectId()),
+                                           status=RULE_ENFORCEMENT_STATUS_SUCCEEDED,
+                                           failure_reason='so much fail')
+        enforcement_db = RuleEnforcement.add_or_update(enforcement_db)
+
+        self.assertEqual(enforcement_db.status, RULE_ENFORCEMENT_STATUS_FAILED)
+
+        # 4. Explcit status field - succeeded + no failure reasun
+        enforcement_db = RuleEnforcementDB(trigger_instance_id=str(bson.ObjectId()),
+                                           rule=rule,
+                                           execution_id=str(bson.ObjectId()),
+                                           status=RULE_ENFORCEMENT_STATUS_SUCCEEDED)
+        enforcement_db = RuleEnforcement.add_or_update(enforcement_db)
+
+        self.assertEqual(enforcement_db.status, RULE_ENFORCEMENT_STATUS_SUCCEEDED)
+
+        # 5. Explcit status field - failed + no failure reasun
+        enforcement_db = RuleEnforcementDB(trigger_instance_id=str(bson.ObjectId()),
+                                           rule=rule,
+                                           execution_id=str(bson.ObjectId()),
+                                           status=RULE_ENFORCEMENT_STATUS_FAILED)
+        enforcement_db = RuleEnforcement.add_or_update(enforcement_db)
+
+        self.assertEqual(enforcement_db.status, RULE_ENFORCEMENT_STATUS_FAILED)
 
     @staticmethod
     def _create_save_rule_enforcement():
