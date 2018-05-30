@@ -52,7 +52,7 @@ class SensorWatcherTestCase(IntegrationTestCase):
         while not done:
             eventlet.sleep(0.01)
             sw_queues = self._get_sensor_watcher_amqp_queues(queue_name='st2.sensor.watch.covfefe')
-            done = len(sw_queues) > 0 or (monotonic() - start() < 5)
+            done = len(sw_queues) > 0 or ((monotonic() - start) < 5)
 
         sensor_watcher.stop()
         sw_queues = self._get_sensor_watcher_amqp_queues(queue_name='st2.sensor.watch.covfefe')
