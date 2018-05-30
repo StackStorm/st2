@@ -22,7 +22,7 @@ matrix:
       python: 2.7
     - env: TASK="ci-checks ci-packs-tests"
       python: 2.7
-    - env: TASK=ci-st2client-py3-tests
+    - env: TASK="ci-st2client-py3-tests"
       python: 3.6
 addons:
   apt:
@@ -38,23 +38,50 @@ services:
   - mongodb
   - rabbitmq
 
-# Let's enable rabbitmqadmin
-# See https://github.com/messagebus/lapine/wiki/Testing-on-Travis.
-before_script:
-  - sudo rabbitmq-plugins enable rabbitmq_management
-  - sudo wget http://guest:guest@localhost:15672/cli/rabbitmqadmin -O /usr/local/bin/rabbitmqadmin
-  - sudo chmod +x /usr/local/bin/rabbitmqadmin
-  - sudo service rabbitmq-server restart
-
 cache:
   pip: true
   directories:
     - virtualenv/
-    - .tox/
+    # NOTE: Caching .tox speeds up py3 build for 30-60 seconds, but causes issues when dependencies
+    # are updated so it's disabled
+    #- .tox/
+
+before_install:
+  # Work around for Travis timeout issues, see https://github.com/travis-ci/travis-ci/issues/9112
+  - sudo apt-get update --option Acquire::Retries=100 --option Acquire::http::Timeout="60"
+  - pip install --upgrade "pip>=9.0,<9.1"
+  - which virtualenv
+  - virtualenv --version
+  - which pip
+  - pip --version
+  - which python
+  - python --version
+  - sudo -H pip install --upgrade "virtualenv==15.1.0"
+  - which virtualenv
+  - virtualenv --version
+  - which pip
+  - pip --version
+  - which python
+  - python --version
+  # Explicitly set path to python for virtualenv. In travis, virtualenv
+  # sometimes doesn't use travis virtualenv python (travis deploys latest 2.7 python in a virtualenv)
+  # but resorts to old versions of python 2.7
+  - PYTHON_BIN_PATH=$(which python)
 
 install:
-  - if [ ${TASK} = 'ci-st2client-py3-tests' ]; then pip install tox; else make requirements; fi
-  - if [ ${TASK} = 'ci-unit' ] || [ ${TASK} = 'ci-integration' ]; then pip install codecov; sudo .circle/add-itest-user.sh; fi
+  - if [ "${TASK}" = 'ci-st2client-py3-tests' ]; then pip install "tox==3.0.0"; else PYTHON_BIN_PATH=$(which python) make requirements; fi
+  - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ]; then pip install codecov; sudo .circle/add-itest-user.sh; fi
+
+# Let's enable rabbitmqadmin
+# See https://github.com/messagebus/lapine/wiki/Testing-on-Travis.
+before_script:
+  - git --version
+  - pip --version
+  - virtualenv --version
+  - sudo rabbitmq-plugins enable rabbitmq_management
+  - sudo wget http://guest:guest@localhost:15672/cli/rabbitmqadmin -O /usr/local/bin/rabbitmqadmin
+  - sudo chmod +x /usr/local/bin/rabbitmqadmin
+  - sudo service rabbitmq-server restart
 
 script:
   - make ${TASK}

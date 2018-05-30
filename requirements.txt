@@ -4,6 +4,8 @@ argcomplete
 bcrypt
 eventlet==0.19.0
 flex==6.11.1
+# cmd2 >= 0.9.0 requires Python >= 3.4
+cmd2==0.8.0
 git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper
 git+https://github.com/StackStorm/python-mistralclient.git@st2-2.6.0#egg=python-mistralclient
 git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2-auth-backend-flat-file

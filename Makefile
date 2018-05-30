@@ -2,7 +2,6 @@ ROOT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 SHELL := /bin/bash
 TOX_DIR := .tox
 VIRTUALENV_DIR ?= virtualenv
-
 BINARIES := bin
 
 # All components are prefixed by st2
@@ -35,6 +34,10 @@ NOSE_TIME := $(NOSE_TIME)
 
 ifdef NOSE_TIME
 	NOSE_OPTS := --rednose --immediate --with-parallel --with-timer
+endif
+
+ifndef PYTHON_BIN_PATH
+	PYTHON_BIN_PATH := /usr/bin/python2.7
 endif
 
 ifndef PIP_OPTIONS
@@ -245,7 +248,7 @@ requirements: virtualenv .sdist-requirements
 	@echo
 	@echo "==================== requirements ===================="
 	@echo
-	# Make sure we use latest version of pip
+	# Make sure we use latest version of pip which is < 10.0.0
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip>=9.0,<9.1"
 	$(VIRTUALENV_DIR)/bin/pip install virtualenv  # Required for packs.install in dev envs.
 
@@ -270,8 +273,13 @@ $(VIRTUALENV_DIR)/bin/activate:
 	@echo
 	@echo "==================== virtualenv ===================="
 	@echo
-	test -f $(VIRTUALENV_DIR)/bin/activate || virtualenv --no-site-packages $(VIRTUALENV_DIR)
+	# Note: We pass --no-download flag to make sure version of pip which we install (9.0.1) is used
+	# instead of latest version being downloaded from PyPi
+	test -f $(VIRTUALENV_DIR)/bin/activate || virtualenv --python=$(PYTHON_BIN_PATH) --no-site-packages $(VIRTUALENV_DIR) --no-download
 
+	$(VIRTUALENV_DIR)/bin/python --version
+	python --version
+	which python
 	# Setup PYTHONPATH in bash activate script...
 	echo '' >> $(VIRTUALENV_DIR)/bin/activate
 	echo '_OLD_PYTHONPATH=$$PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate
