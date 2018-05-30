@@ -668,7 +668,9 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         else:
             expected_count = 5
 
-        self.assertEqual(len(output['stderr'].strip().split('\n')), expected_count)
+        stderr = output['stderr'].strip().split('\n')
+        msg = ('Expected %s line, got %s - "%s"' % (expected_count, stderr, len(stderr)))
+        self.assertEqual(len(stderr), expected_count, msg)
 
         # Only log messages with level info and above should be displayed
         runner = self._get_mock_runner_obj()
