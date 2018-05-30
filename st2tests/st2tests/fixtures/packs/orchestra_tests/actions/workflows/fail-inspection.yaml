@@ -1,7 +1,10 @@
 version: 1.0
+
 description: A basic sequential workflow.
+
 vars:
-    macro: polo
+  - macro: polo
+
 tasks:
   task1:
     action: core.local cmd=<% $.foobar %>

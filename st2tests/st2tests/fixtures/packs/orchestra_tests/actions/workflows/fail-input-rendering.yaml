@@ -6,9 +6,9 @@ input:
   - who: <% abs(4).value %>
 
 vars:
-  msg1: "Veni, vidi, vici."
-  msg2: "Resistance is futile!"
-  msg3: "All your base are belong to us!"
+  - msg1: "Veni, vidi, vici."
+  - msg2: "Resistance is futile!"
+  - msg3: "All your base are belong to us!"
 
 tasks:
   task1:

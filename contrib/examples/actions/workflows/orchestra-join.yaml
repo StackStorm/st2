@@ -3,14 +3,14 @@ version: 1.0
 description: A basic workflow that demonstrate branching and join.
 
 vars:
-  messages: null
+  - messages: null
 
 output:
-  messages:
-    - <% $.msg1 %>
-    - <% $.msg2 %>
-    - <% $.msg3 %>
-    - <% $.msg4 %>
+  - messages:
+     - <% $.msg1 %>
+     - <% $.msg2 %>
+     - <% $.msg3 %>
+     - <% $.msg4 %>
 
 tasks:
   task1:
@@ -31,7 +31,7 @@ tasks:
     next:
       - when: <% succeeded() %>
         publish:
-          msg1: <% $.msg1 %> <% result().stdout %>
+          - msg1: <% $.msg1 %> <% result().stdout %>
         do: task10
 
   # branch 2

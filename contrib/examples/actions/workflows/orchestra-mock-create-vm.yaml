@@ -8,8 +8,8 @@ input:
   - memory_mb
 
 output:
-  vm_id: <% $.vm_id %>
-  ip: <% $.ip %>
+  - vm_id: <% $.vm_id %>
+  - ip: <% $.ip %>
 
 tasks:
   register_dns:
@@ -19,8 +19,8 @@ tasks:
     next:
       - when: <% succeeded() %>
         publish:
-          ip: "10.1.23.99"
-          status_message: "DNS for <% $.vm_name %> is registered."
+          - ip: "10.1.23.99"
+          - status_message: "DNS for <% $.vm_name %> is registered."
         do:
           - configure_vm
           - notify
@@ -33,8 +33,8 @@ tasks:
     next:
       - when: <% succeeded() %>
         publish:
-          vm_id: <% result().stdout %>
-          status_message: "VM <% $.vm_name %> is created."
+          - vm_id: <% result().stdout %>
+          - status_message: "VM <% $.vm_name %> is created."
         do:
           - configure_vm
           - notify
@@ -78,7 +78,7 @@ tasks:
     next:
      - when: <% succeeded() %>
        publish:
-         status_message: "VM <% $.vm_name %> is reconfigured."
+         - status_message: "VM <% $.vm_name %> is reconfigured."
        do:
          - close_request
 
@@ -88,7 +88,7 @@ tasks:
     next:
       - when: <% succeeded() %>
         publish:
-          status_message: "VM request is fulfilled."
+          - status_message: "VM request is fulfilled."
         do:
           - notify
 

@@ -1,0 +1,35 @@
+version: 1.0
+
+description: A basic workflow to demonstrate data flow options.
+
+input:
+  - a1
+  - b1: <% $.a1 %>
+
+vars:
+  - a2: <% $.b1 %>
+  - b2: <% $.a2 %>
+
+output:
+  - a5: <% $.b4 %>
+  - b5: <% $.a5 %>
+
+tasks:
+  task1:
+    action: core.echo
+    input:
+      message: <% $.b2 %>
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - a3: <% result().stdout %>
+          - b3: <% $.a3 %>
+        do: task2
+  task2:
+    action: core.echo message=<% $.b3 %>
+    next:
+      - when: <% succeeded() %>
+        publish: a4=<% result().stdout %> b4=<% $.a4 %>
+        do: task3
+  task3:
+    action: core.noop

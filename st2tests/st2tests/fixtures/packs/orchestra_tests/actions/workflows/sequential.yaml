@@ -6,9 +6,12 @@ input:
   - who
 
 vars:
-  msg1: "Veni, vidi, vici."
-  msg2: "Resistance is futile!"
-  msg3: "All your base are belong to us!"
+  - msg1: "Veni, vidi, vici."
+  - msg2: "Resistance is futile!"
+  - msg3: "All your base are belong to us!"
+
+output:
+  - msg: <% $.message %>
 
 tasks:
   task1:
@@ -29,4 +32,7 @@ tasks:
   task3:
     action: core.echo
     input:
-        message: <% $who %>, <% $.msg3 %>
+        message: <% $.who %>, <% $.msg3 %>
+    next:
+      - when: <% succeeded() %>
+        publish: message=<% result().stdout %>

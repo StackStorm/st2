@@ -6,9 +6,9 @@ input:
   - who
 
 vars:
-  msg1: "Veni, vidi, vici."
-  msg2: "Resistance is futile!"
-  msg3: "All your base are belong to us!"
+  - msg1: "Veni, vidi, vici."
+  - msg2: "Resistance is futile!"
+  - msg3: "All your base are belong to us!"
 
 tasks:
   task1:
@@ -18,7 +18,7 @@ tasks:
     next:
       - when: <% succeeded() %>
         publish:
-          foobar: <% foobar() %>
+          - foobar: <% foobar() %>
         do:
           - task2
   task2:

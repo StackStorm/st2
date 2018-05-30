@@ -6,10 +6,10 @@ input:
   - who
 
 vars:
-  var1: <% abs(4).value %>
-  msg1: "Veni, vidi, vici."
-  msg2: "Resistance is futile!"
-  msg3: "All your base are belong to us!"
+  - var1: <% abs(4).value %>
+  - msg1: "Veni, vidi, vici."
+  - msg2: "Resistance is futile!"
+  - msg3: "All your base are belong to us!"
 
 tasks:
   task1:

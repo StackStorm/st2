@@ -6,10 +6,10 @@ input:
   - name
 
 vars:
-  greeting: null
+  - greeting: null
 
 output:
-  greeting: <% abs(8).value %>
+  - greeting: <% abs(8).value %>
 
 tasks:
   task1:
@@ -25,7 +25,7 @@ tasks:
     next:
       - when: <% succeeded() %>
         publish:
-          greeting: <% $.greeting %>, <% result().stdout %>
+          - greeting: <% $.greeting %>, <% result().stdout %>
         do: task3
   task3:
     action: core.echo message=<% $.greeting %>

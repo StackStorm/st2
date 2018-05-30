@@ -46,10 +46,10 @@ from st2tests.mocks import workflow as mock_wf_ex_xport
 
 TEST_FIXTURES = {
     'workflows': [
-        'sequential.yaml'
+        'data-flow.yaml'
     ],
     'actions': [
-        'sequential.yaml'
+        'data-flow.yaml'
     ]
 }
 
@@ -104,46 +104,17 @@ class OrchestraRunnerTest(st2tests.DbTestCase):
     def get_runner_class(cls, runner_name):
         return runners.get_runner(runner_name, runner_name).__class__
 
-    def test_run_workflow(self):
+    def assert_data_flow(self, data):
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][0])
-        wf_input = {'who': 'Thanos'}
+        wf_input = {'a1': data}
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=wf_input)
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
 
         # Assert action execution is running.
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-
-        self.assertTrue(lv_ac_db.action_is_workflow)
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result)
-
-        wf_ex_dbs = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))
-        wf_ex_db = wf_ex_dbs[0]
-
-        # Check required attributes.
-        self.assertEqual(len(wf_ex_dbs), 1)
-        self.assertIsNotNone(wf_ex_db.id)
-        self.assertGreater(wf_ex_db.rev, 0)
-        self.assertEqual(wf_ex_db.action_execution, str(ac_ex_db.id))
+        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
         self.assertEqual(wf_ex_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
-
-        # Check context.
-        self.assertIn('workflow_execution', lv_ac_db.context)
-        self.assertEqual(lv_ac_db.context['workflow_execution'], str(wf_ex_db.id))
-
-        # Check graph.
-        self.assertIsNotNone(wf_ex_db.graph)
-        self.assertTrue(isinstance(wf_ex_db.graph, dict))
-        self.assertIn('nodes', wf_ex_db.graph)
-        self.assertIn('adjacency', wf_ex_db.graph)
-
-        # Check task flow.
-        self.assertIsNotNone(wf_ex_db.flow)
-        self.assertTrue(isinstance(wf_ex_db.flow, dict))
-        self.assertIn('tasks', wf_ex_db.flow)
-        self.assertIn('sequence', wf_ex_db.flow)
-
-        # Check input.
-        self.assertDictEqual(wf_ex_db.input, wf_input)
 
         # Assert task1 is already completed.
         query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task1'}
@@ -194,5 +165,8 @@ class OrchestraRunnerTest(st2tests.DbTestCase):
         self.assertEqual(wf_ex_db.status, wf_states.SUCCEEDED)
 
         # Check workflow output.
-        expected_output = {'msg': '%s, All your base are belong to us!' % wf_input['who']}
+        expected_output = {'a5': wf_input['a1'], 'b5': wf_input['a1']}
         self.assertDictEqual(wf_ex_db.output, expected_output)
+
+    def test_string(self):
+        self.assert_data_flow('xyz')
