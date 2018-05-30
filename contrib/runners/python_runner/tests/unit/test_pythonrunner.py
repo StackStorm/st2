@@ -661,16 +661,22 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertTrue(expected_msg_4 in output['stderr'])
         self.assertTrue(expected_msg_5 in output['stderr'])
 
-        # Verify messages are not duplicated
-        if 'No handlers could be found for logger' in output['stderr']:
-            # Tests on some CI services don't use correct logging config
-            expected_count = 6
-        else:
-            expected_count = 5
-
         stderr = output['stderr'].strip().split('\n')
-        msg = ('Expected %s line, got %s - "%s"' % (expected_count, stderr, len(stderr)))
-        self.assertEqual(len(stderr), expected_count, msg)
+        expected_count = 5
+
+        # Remove lines we don't care about
+        lines = []
+        for line in stderr:
+            if 'configuration option is not configured' in line:
+                continue
+
+            if 'No handlers could be found for logger' in line:
+                continue
+
+            lines.append(line)
+
+        msg = ('Expected %s lines, got %s - "%s"' % (expected_count, len(lines), str(lines)))
+        self.assertEqual(len(lines), expected_count, msg)
 
         # Only log messages with level info and above should be displayed
         runner = self._get_mock_runner_obj()
