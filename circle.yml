@@ -121,6 +121,7 @@ jobs:
       - ST2_PACKAGES: "st2"
       - ST2_CHECKOUT: 0
       - ST2_GITDIR: /tmp/st2
+      - ST2_GITREV: "v2.6"
       - BASH_ENV: ~/.buildenv
     steps:
       - checkout
@@ -139,7 +140,7 @@ jobs:
             set -x
             git clone ${ST2_PACKAGES_REPO} ~/st2-packages
             cd ~/st2-packages
-            git checkout ${CIRCLE_BRANCH} || true
+            git checkout ${ST2_GITREV} || true
       - run:
           name: Initialize packages Build Environment
           command: |
