@@ -83,6 +83,7 @@ before_script:
   - sudo chmod +x /usr/local/bin/rabbitmqadmin
   - sudo service rabbitmq-server restart
   # - sudo cat /etc/sudoers.d/st2
+  - chmod 777 /home/travis/build/StackStorm/st2/st2tests/st2tests/fixtures/localrunner_pack/actions/text_gen.py
 
 script:
   - make ${TASK}
