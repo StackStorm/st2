@@ -30,11 +30,9 @@ addons:
       - mongodb-upstart
       - sourceline: 'deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.4 multiverse'
         key_url: 'https://www.mongodb.org/static/pgp/server-3.4.asc'
-      - sourceline: 'ppa:git-core/ppa'
     packages:
       - mongodb-org-server
       - mongodb-org-shell
-      - git
 
 services:
   - mongodb
