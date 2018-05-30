@@ -70,6 +70,12 @@ class DbConnectionTest(DbTestCase):
         actual_message = mock_log.info.call_args_list[0][0][0]
         self.assertEqual(expected_message, actual_message)
 
+        # Check for helpful error messages if the connection is successful
+        expected_log_message = ('Successfully connected to database "st2" @ "localhost:27017" as '
+                                'user "user_st2".')
+        actual_log_message = mock_log.info.call_args_list[1][0][0]
+        self.assertEqual(expected_log_message, actual_log_message)
+
         # 2. Password provided as part of uri string (single host)
         db_host = 'mongodb://user_st22:pass_st22@127.0.0.2:5555'
         username = None
@@ -78,8 +84,13 @@ class DbConnectionTest(DbTestCase):
                  password=password)
 
         expected_message = 'Connecting to database "st2" @ "127.0.0.2:5555" as user "user_st22".'
-        actual_message = mock_log.info.call_args_list[1][0][0]
+        actual_message = mock_log.info.call_args_list[2][0][0]
         self.assertEqual(expected_message, actual_message)
+
+        expected_log_message = ('Successfully connected to database "st2" @ "127.0.0.2:5555" as '
+                                'user "user_st22".')
+        actual_log_message = mock_log.info.call_args_list[3][0][0]
+        self.assertEqual(expected_log_message, actual_log_message)
 
         # 3. Password provided as part of uri string (single host) - username
         # provided as argument has precedence
@@ -90,8 +101,13 @@ class DbConnectionTest(DbTestCase):
                  password=password)
 
         expected_message = 'Connecting to database "st2" @ "127.0.0.2:5555" as user "user_st23".'
-        actual_message = mock_log.info.call_args_list[2][0][0]
+        actual_message = mock_log.info.call_args_list[4][0][0]
         self.assertEqual(expected_message, actual_message)
+
+        expected_log_message = ('Successfully connected to database "st2" @ "127.0.0.2:5555" as '
+                                'user "user_st23".')
+        actual_log_message = mock_log.info.call_args_list[5][0][0]
+        self.assertEqual(expected_log_message, actual_log_message)
 
         # 4. Just host provided in the url string
         db_host = 'mongodb://127.0.0.2:5555'
@@ -101,8 +117,13 @@ class DbConnectionTest(DbTestCase):
                  password=password)
 
         expected_message = 'Connecting to database "st2" @ "127.0.0.2:5555" as user "user_st24".'
-        actual_message = mock_log.info.call_args_list[3][0][0]
+        actual_message = mock_log.info.call_args_list[6][0][0]
         self.assertEqual(expected_message, actual_message)
+
+        expected_log_message = ('Successfully connected to database "st2" @ "127.0.0.2:5555" as '
+                                'user "user_st24".')
+        actual_log_message = mock_log.info.call_args_list[7][0][0]
+        self.assertEqual(expected_log_message, actual_log_message)
 
         # 5. Multiple hosts specified as part of connection uri
         db_host = 'mongodb://user6:pass6@host1,host2,host3'
@@ -113,8 +134,14 @@ class DbConnectionTest(DbTestCase):
 
         expected_message = ('Connecting to database "st2" @ "host1:27017,host2:27017,host3:27017 '
                             '(replica set)" as user "user6".')
-        actual_message = mock_log.info.call_args_list[4][0][0]
+        actual_message = mock_log.info.call_args_list[8][0][0]
         self.assertEqual(expected_message, actual_message)
+
+        expected_log_message = ('Successfully connected to database "st2" @ '
+                                '"host1:27017,host2:27017,host3:27017 '
+                                '(replica set)" as user "user6".')
+        actual_log_message = mock_log.info.call_args_list[9][0][0]
+        self.assertEqual(expected_log_message, actual_log_message)
 
 
 class DbCleanupTest(DbTestCase):
