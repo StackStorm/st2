@@ -23,7 +23,7 @@ Added
 * Add new ``status`` field to the ``RuleEnforcement`` model. This field can contain the following
   values - ``succeeded`` (trigger instance matched a rule and action execution was triggered
   successfully), ``failed`` (trigger instance matched a rule, but it didn't result in an action
-  execution due to Jinja rendering failure or other exception). (improvement) #4134
+  execution due to Jinja rendering failure or other exception). (improvement) #4134 #4152
 * Add trigger type reference based filtering to the ``/v1/triggerinstances`` API endpoint - e.g.
   ``/v1/triggerinstances?trigger_type=core.st2.webhook``. (new feature) #4151
 * Add new ``--python3`` flag to ``st2 pack install`` CLI command and ``python3`` parameter to

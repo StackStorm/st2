@@ -22,6 +22,7 @@ from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
 from st2common.util import date as date_utils
 from st2common.constants.rule_enforcement import RULE_ENFORCEMENT_STATUS_SUCCEEDED
+from st2common.constants.rule_enforcement import RULE_ENFORCEMENT_STATUS_FAILED
 
 __all__ = [
     'RuleReferenceSpecDB',
@@ -76,6 +77,16 @@ class RuleEnforcementDB(stormbase.StormFoundationDB, stormbase.TagsMixin):
             {'fields': ['status']},
         ] + stormbase.TagsMixin.get_indices()
     }
+
+    def __init__(self, *args, **values):
+        super(RuleEnforcementDB, self).__init__(*args, **values)
+
+        # Set status to succeeded for old / existing RuleEnforcementDB which predate status field
+        status = getattr(self, 'status', None)
+        failure_reason = getattr(self, 'failure_reason', None)
+
+        if status in [None, RULE_ENFORCEMENT_STATUS_SUCCEEDED] and failure_reason:
+            self.status = RULE_ENFORCEMENT_STATUS_FAILED
 
     # NOTE: Note the following method is exposed so loggers in rbac resolvers can log objects
     # with a consistent get_uid interface.
