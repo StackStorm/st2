@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import json
+
 import sys
 import traceback
 
@@ -34,6 +34,7 @@ from st2common.util.action_db import (update_liveaction_status, get_liveaction_b
 from st2common.util import param as param_utils
 from st2common.util.config_loader import ContentPackConfigLoader
 from st2common.metrics.base import CounterWithTimer, format_metrics_key
+from st2common.util import jsonify
 
 from st2common.runners.base import get_runner
 from st2common.runners.base import AsyncActionRunner, PollingAsyncActionRunner
@@ -55,15 +56,15 @@ class RunnerContainer(object):
 
         liveaction_db.context['pack'] = action_db.pack
 
-        runnertype_db = get_runnertype_by_name(action_db.runner_type['name'])
+        runner_type_db = get_runnertype_by_name(action_db.runner_type['name'])
 
-        extra = {'liveaction_db': liveaction_db, 'runnertype_db': runnertype_db}
+        extra = {'liveaction_db': liveaction_db, 'runner_type_db': runner_type_db}
         LOG.info('Dispatching Action to a runner', extra=extra)
 
         # Get runner instance.
-        runner = self._get_runner(runnertype_db, action_db, liveaction_db)
+        runner = self._get_runner(runner_type_db, action_db, liveaction_db)
 
-        LOG.debug('Runner instance for RunnerType "%s" is: %s', runnertype_db.name, runner)
+        LOG.debug('Runner instance for RunnerType "%s" is: %s', runner_type_db.name, runner)
 
         # Process the request.
         funcs = {
@@ -82,28 +83,28 @@ class RunnerContainer(object):
             )
 
         with CounterWithTimer(key="st2.action.executions"):
-            liveaction_db = funcs[liveaction_db.status](
-                runner=runner,
-                runnertype_db=runnertype_db,
-                action_db=action_db,
-                liveaction_db=liveaction_db
-            )
+            liveaction_db = funcs[liveaction_db.status](runner)
 
         return liveaction_db.result
 
-    def _do_run(self, runner, runnertype_db, action_db, liveaction_db):
+    def _do_run(self, runner):
         # Create a temporary auth token which will be available
         # for the duration of the action execution.
-        runner.auth_token = self._create_auth_token(context=runner.context, action_db=action_db,
-                                                    liveaction_db=liveaction_db)
+        runner.auth_token = self._create_auth_token(
+            context=runner.context,
+            action_db=runner.action,
+            liveaction_db=runner.liveaction)
 
         try:
             # Finalized parameters are resolved and then rendered. This process could
             # fail. Handle the exception and report the error correctly.
             try:
                 runner_params, action_params = param_utils.render_final_params(
-                    runnertype_db.runner_parameters, action_db.parameters, liveaction_db.parameters,
-                    liveaction_db.context)
+                    runner.runner_type.runner_parameters,
+                    runner.action.parameters,
+                    runner.liveaction.parameters,
+                    runner.liveaction.context)
+
                 runner.runner_parameters = runner_params
             except ParamException as e:
                 raise actionrunner.ActionRunnerException(str(e))
@@ -112,25 +113,24 @@ class RunnerContainer(object):
             runner.pre_run()
 
             # Mask secret parameters in the log context
-            resolved_action_params = ResolvedActionParameters(action_db=action_db,
-                                                              runner_type_db=runnertype_db,
-                                                              runner_parameters=runner_params,
-                                                              action_parameters=action_params)
+            resolved_action_params = ResolvedActionParameters(
+                action_db=runner.action,
+                runner_type_db=runner.runner_type,
+                runner_parameters=runner_params,
+                action_parameters=action_params)
+
             extra = {'runner': runner, 'parameters': resolved_action_params}
             LOG.debug('Performing run for runner: %s' % (runner.runner_id), extra=extra)
-            with CounterWithTimer(key=format_metrics_key(
-                                  action_db=action_db, key='action')):
-                (status, result, context) = runner.run(action_params)
 
-            try:
-                result = json.loads(result)
-            except:
-                pass
+            with CounterWithTimer(key=format_metrics_key(action_db=runner.action, key='action')):
+                (status, result, context) = runner.run(action_params)
+                result = jsonify.try_loads(result)
 
             action_completed = status in action_constants.LIVEACTION_COMPLETED_STATES
+
             if (isinstance(runner, PollingAsyncActionRunner) and
                     runner.is_polling_enabled() and not action_completed):
-                queries.setup_query(liveaction_db.id, runnertype_db, context)
+                queries.setup_query(runner.liveaction.id, runner.runner_type, context)
         except:
             LOG.exception('Failed to run action.')
             _, ex, tb = sys.exc_info()
@@ -142,10 +142,10 @@ class RunnerContainer(object):
         finally:
             # Log action completion
             extra = {'result': result, 'status': status}
-            LOG.debug('Action "%s" completed.' % (action_db.name), extra=extra)
+            LOG.debug('Action "%s" completed.' % (runner.action.name), extra=extra)
 
             # Update the final status of liveaction and corresponding action execution.
-            liveaction_db = self._update_status(liveaction_db.id, status, result, context)
+            runner.liveaction = self._update_status(runner.liveaction.id, status, result, context)
 
             # Always clean-up the auth_token
             # This method should be called in the finally block to ensure post_run is not impacted.
@@ -154,12 +154,12 @@ class RunnerContainer(object):
         LOG.debug('Performing post_run for runner: %s', runner.runner_id)
         runner.post_run(status=status, result=result)
 
-        LOG.debug('Runner do_run result', extra={'result': liveaction_db.result})
-        LOG.audit('Liveaction completed', extra={'liveaction_db': liveaction_db})
+        LOG.debug('Runner do_run result', extra={'result': runner.liveaction.result})
+        LOG.audit('Liveaction completed', extra={'liveaction_db': runner.liveaction})
 
-        return liveaction_db
+        return runner.liveaction
 
-    def _do_cancel(self, runner, runnertype_db, action_db, liveaction_db):
+    def _do_cancel(self, runner):
         try:
             extra = {'runner': runner}
             LOG.debug('Performing cancel for runner: %s', (runner.runner_id), extra=extra)
@@ -168,24 +168,24 @@ class RunnerContainer(object):
             # Update the final status of liveaction and corresponding action execution.
             # The status is updated here because we want to keep the workflow running
             # as is if the cancel operation failed.
-            liveaction_db = self._update_status(liveaction_db.id, status, result, context)
+            runner.liveaction = self._update_status(runner.liveaction.id, status, result, context)
         except:
             _, ex, tb = sys.exc_info()
             # include the error message and traceback to try and provide some hints.
             result = {'error': str(ex), 'traceback': ''.join(traceback.format_tb(tb, 20))}
-            LOG.exception('Failed to cancel action %s.' % (liveaction_db.id), extra=result)
+            LOG.exception('Failed to cancel action %s.' % (runner.liveaction.id), extra=result)
         finally:
             # Always clean-up the auth_token
             # This method should be called in the finally block to ensure post_run is not impacted.
-            self._clean_up_auth_token(runner=runner, status=liveaction_db.status)
+            self._clean_up_auth_token(runner=runner, status=runner.liveaction.status)
 
         LOG.debug('Performing post_run for runner: %s', runner.runner_id)
         result = {'error': 'Execution canceled by user.'}
-        runner.post_run(status=liveaction_db.status, result=result)
+        runner.post_run(status=runner.liveaction.status, result=result)
 
-        return liveaction_db
+        return runner.liveaction
 
-    def _do_pause(self, runner, runnertype_db, action_db, liveaction_db):
+    def _do_pause(self, runner):
         try:
             extra = {'runner': runner}
             LOG.debug('Performing pause for runner: %s', (runner.runner_id), extra=extra)
@@ -195,56 +195,50 @@ class RunnerContainer(object):
             # include the error message and traceback to try and provide some hints.
             status = action_constants.LIVEACTION_STATUS_FAILED
             result = {'error': str(ex), 'traceback': ''.join(traceback.format_tb(tb, 20))}
-            context = liveaction_db.context
-            LOG.exception('Failed to pause action %s.' % (liveaction_db.id), extra=result)
+            context = runner.liveaction.context
+            LOG.exception('Failed to pause action %s.' % (runner.liveaction.id), extra=result)
         finally:
             # Update the final status of liveaction and corresponding action execution.
-            liveaction_db = self._update_status(liveaction_db.id, status, result, context)
+            runner.liveaction = self._update_status(runner.liveaction.id, status, result, context)
 
             # Always clean-up the auth_token
-            self._clean_up_auth_token(runner=runner, status=liveaction_db.status)
+            self._clean_up_auth_token(runner=runner, status=runner.liveaction.status)
 
-        return liveaction_db
+        return runner.liveaction
 
-    def _do_resume(self, runner, runnertype_db, action_db, liveaction_db):
+    def _do_resume(self, runner):
         try:
             extra = {'runner': runner}
             LOG.debug('Performing resume for runner: %s', (runner.runner_id), extra=extra)
-
             (status, result, context) = runner.resume()
-
-            try:
-                result = json.loads(result)
-            except:
-                pass
-
+            result = jsonify.try_loads(result)
             action_completed = status in action_constants.LIVEACTION_COMPLETED_STATES
 
             if (isinstance(runner, PollingAsyncActionRunner) and
                     runner.is_polling_enabled() and not action_completed):
-                queries.setup_query(liveaction_db.id, runnertype_db, context)
+                queries.setup_query(runner.liveaction.id, runner.runner_type, context)
         except:
             _, ex, tb = sys.exc_info()
             # include the error message and traceback to try and provide some hints.
             status = action_constants.LIVEACTION_STATUS_FAILED
             result = {'error': str(ex), 'traceback': ''.join(traceback.format_tb(tb, 20))}
-            context = liveaction_db.context
-            LOG.exception('Failed to resume action %s.' % (liveaction_db.id), extra=result)
+            context = runner.liveaction.context
+            LOG.exception('Failed to resume action %s.' % (runner.liveaction.id), extra=result)
         finally:
             # Update the final status of liveaction and corresponding action execution.
-            liveaction_db = self._update_status(liveaction_db.id, status, result, context)
+            runner.liveaction = self._update_status(runner.liveaction.id, status, result, context)
 
             # Always clean-up the auth_token
             # This method should be called in the finally block to ensure post_run is not impacted.
-            self._clean_up_auth_token(runner=runner, status=liveaction_db.status)
+            self._clean_up_auth_token(runner=runner, status=runner.liveaction.status)
 
         LOG.debug('Performing post_run for runner: %s', runner.runner_id)
         runner.post_run(status=status, result=result)
 
-        LOG.debug('Runner do_run result', extra={'result': liveaction_db.result})
-        LOG.audit('Liveaction completed', extra={'liveaction_db': liveaction_db})
+        LOG.debug('Runner do_run result', extra={'result': runner.liveaction.result})
+        LOG.audit('Liveaction completed', extra={'liveaction_db': runner.liveaction})
 
-        return liveaction_db
+        return runner.liveaction
 
     def _clean_up_auth_token(self, runner, status):
         """
@@ -327,28 +321,26 @@ class RunnerContainer(object):
         execution_id = context.get('re-run', {}).get('ref')
         return ActionExecution.get_by_id(execution_id) if execution_id else None
 
-    def _get_runner(self, runnertype_db, action_db, liveaction_db):
-        resolved_entry_point = self._get_entry_point_abs_path(action_db.pack,
-                                                              action_db.entry_point)
+    def _get_runner(self, runner_type_db, action_db, liveaction_db):
+        resolved_entry_point = self._get_entry_point_abs_path(action_db.pack, action_db.entry_point)
         context = getattr(liveaction_db, 'context', dict())
         user = context.get('user', cfg.CONF.system_user.user)
+        config = None
 
         # Note: Right now configs are only supported by the Python runner actions
-        if runnertype_db.runner_module == 'python_runner':
-            LOG.debug('Loading config for pack')
-
+        if runner_type_db.runner_module == 'python_runner':
+            LOG.debug('Loading config from pack for python runner.')
             config_loader = ContentPackConfigLoader(pack_name=action_db.pack, user=user)
             config = config_loader.get_config()
-        else:
-            config = None
 
-        runner = get_runner(package_name=runnertype_db.runner_package,
-                            module_name=runnertype_db.runner_module,
-                            config=config)
+        runner = get_runner(
+            package_name=runner_type_db.runner_package,
+            module_name=runner_type_db.runner_module,
+            config=config)
 
         # TODO: Pass those arguments to the constructor instead of late
         # assignment, late assignment is awful
-        runner.runner_type_db = runnertype_db
+        runner.runner_type = runner_type_db
         runner.action = action_db
         runner.action_name = action_db.name
         runner.liveaction = liveaction_db
