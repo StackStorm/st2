@@ -59,25 +59,18 @@ def _register_app_opts():
         cfg.StrOpt(
             'root', default='st2api.controllers.root.RootController',
             help='Action root controller'),
-        cfg.StrOpt(
-            'static_root', default=static_root),
-        cfg.StrOpt(
-            'template_path', default=template_path),
-        cfg.ListOpt(
-            'modules', default=['st2api']),
-        cfg.BoolOpt(
-            'debug', default=False),
-        cfg.BoolOpt(
-            'auth_enable', default=True),
-        cfg.DictOpt(
-            'errors', default={'__force_dict__': True})
+        cfg.StrOpt('static_root', default=static_root),
+        cfg.StrOpt('template_path', default=template_path),
+        cfg.ListOpt('modules', default=['st2api']),
+        cfg.BoolOpt('debug', default=False),
+        cfg.BoolOpt('auth_enable', default=True),
+        cfg.DictOpt('errors', default={'__force_dict__': True})
     ]
 
     CONF.register_opts(pecan_opts, group='api_pecan')
 
     logging_opts = [
-        cfg.BoolOpt(
-            'debug', default=False),
+        cfg.BoolOpt('debug', default=False),
         cfg.StrOpt(
             'logging', default='conf/logging.conf',
             help='location of the logging.conf file'),
