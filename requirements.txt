@@ -9,6 +9,7 @@ flex==6.13.1
 git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper
 git+https://github.com/StackStorm/python-mistralclient.git#egg=python-mistralclient
 git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2-auth-backend-flat-file
+git+ssh://git@github.com/StackStorm/orchestra.git#egg=orchestra
 gitpython==2.1.10
 greenlet==0.4.13
 gunicorn==19.8.1
