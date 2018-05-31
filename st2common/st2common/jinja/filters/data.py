@@ -14,8 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import json
 import yaml
+import six
 
 __all__ = [
     'from_json_string',
@@ -26,11 +28,11 @@ __all__ = [
 
 
 def from_json_string(value):
-    return json.loads(value)
+    return json.loads(six.text_type(value))
 
 
 def from_yaml_string(value):
-    return yaml.safe_load(value)
+    return yaml.safe_load(six.text_type(value))
 
 
 def to_json_string(value, indent=4, sort_keys=False, separators=(',', ':')):
