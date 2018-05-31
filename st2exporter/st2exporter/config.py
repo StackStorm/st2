@@ -17,11 +17,14 @@
 Configuration options registration and useful routines.
 """
 
+from __future__ import absolute_import
+
 from oslo_config import cfg
 
 import st2common.config as common_config
 from st2common.constants.system import VERSION_STRING
 from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
+
 common_config.register_opts()
 
 CONF = cfg.CONF
@@ -47,13 +50,17 @@ def _register_common_opts():
 
 def _register_app_opts():
     dump_opts = [
-        cfg.StrOpt('dump_dir', default='/opt/stackstorm/exports/',
-                   help='Directory to dump data to.')
+        cfg.StrOpt(
+            'dump_dir', default='/opt/stackstorm/exports/',
+            help='Directory to dump data to.')
     ]
+
     CONF.register_opts(dump_opts, group='exporter')
 
     logging_opts = [
-        cfg.StrOpt('logging', default='conf/logging.exporter.conf',
-                   help='location of the logging.exporter.conf file')
+        cfg.StrOpt(
+            'logging', default='conf/logging.exporter.conf',
+            help='location of the logging.exporter.conf file')
     ]
+
     CONF.register_opts(logging_opts, group='exporter')
