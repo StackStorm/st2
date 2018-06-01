@@ -33,5 +33,5 @@ class AsyncActionExecutionCallbackHandler(object):
 
     @staticmethod
     @abc.abstractmethod
-    def callback(url, context, status, result):
+    def callback(liveaction):
         raise NotImplementedError()
