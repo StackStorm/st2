@@ -619,6 +619,26 @@ endif
 .coverage-html: .coverage
 	. $(VIRTUALENV_DIR)/bin/activate; coverage html
 
+.PHONY: orchestra-itests
+orchestra-itests: requirements .orchestra-itests
+
+.PHONY: .orchestra-itests
+.orchestra-itests:
+	@echo
+	@echo "==================== Orchestra integration tests ===================="
+	@echo "The tests assume st2 is running on 127.0.0.1."
+	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v st2tests/integration/orchestra || exit 1;
+
+.PHONY: .orchestra-itests-coverage-html
+.orchestra-itests-coverage-html:
+	@echo
+	@echo "==================== Orchestra integration tests with coverage (HTML reports) ===================="
+	@echo "The tests assume st2 is running on 127.0.0.1."
+	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v --with-coverage \
+        --cover-inclusive --cover-html st2tests/integration/orchestra || exit 1;
+
 .PHONY: packs-tests
 packs-tests: requirements .packs-tests
 
@@ -751,6 +771,9 @@ ci-integration: .ci-prepare-integration .itests-coverage-html
 
 .PHONY: ci-mistral
 ci-mistral: .ci-prepare-integration .ci-prepare-mistral .mistral-itests-coverage-html
+
+.PHONY: ci-orchestra
+ci-orchestra: .ci-prepare-integration .orchestra-itests-coverage-html
 
 .PHONY: ci-packs-tests
 ci-packs-tests: .packs-tests
