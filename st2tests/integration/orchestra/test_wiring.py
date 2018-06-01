@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -40,7 +42,27 @@ class WiringTest(base.TestWorkflowExecution):
     def test_data_flow(self):
         wf_name = 'examples.orchestra-data-flow'
         wf_input = {'a1': 'fee fi fo fum'}
-        expected_output = {'output': {'a5': wf_input['a1'], 'b5': wf_input['a1']}}
+
+        expected_output = {'a5': wf_input['a1'], 'b5': wf_input['a1']}
+        expected_result = {'output': expected_output}
+
         ex = self._execute_workflow(wf_name, wf_input)
         ex = self._wait_for_completion(ex)
-        self.assertDictEqual(ex.result, expected_output)
+
+        self.assertDictEqual(ex.result, expected_result)
+
+    def test_data_flow_unicode(self):
+        wf_name = 'examples.orchestra-data-flow'
+        wf_input = {'a1': '床前明月光 疑是地上霜 舉頭望明月 低頭思故鄉'}
+
+        expected_output = {
+            'a5': wf_input['a1'].decode('utf-8'),
+            'b5': wf_input['a1'].decode('utf-8')
+        }
+
+        expected_result = {'output': expected_output}
+
+        ex = self._execute_workflow(wf_name, wf_input)
+        ex = self._wait_for_completion(ex)
+
+        self.assertDictEqual(ex.result, expected_result)

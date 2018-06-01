@@ -194,9 +194,16 @@ class OrchestraRunnerTest(st2tests.DbTestCase):
         self.assertEqual(wf_ex_db.status, wf_states.SUCCEEDED)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db.id))
+        self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
 
         # Check workflow output.
         expected_output = {'msg': '%s, All your base are belong to us!' % wf_input['who']}
-        expected_result = {'output': expected_output}
+
         self.assertDictEqual(wf_ex_db.output, expected_output)
+
+        # Check liveaction and action execution result.
+        expected_result = {'output': expected_output}
+
         self.assertDictEqual(lv_ac_db.result, expected_result)
+        self.assertDictEqual(ac_ex_db.result, expected_result)

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -165,12 +167,25 @@ class OrchestraRunnerTest(st2tests.DbTestCase):
         self.assertEqual(wf_ex_db.status, wf_states.SUCCEEDED)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db.id))
+        self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
 
         # Check workflow output.
-        expected_output = {'a5': wf_input['a1'], 'b5': wf_input['a1']}
-        expected_result = {'output': expected_output}
+        expected_output = {
+            'a5': wf_input['a1'].decode('utf-8'),
+            'b5': wf_input['a1'].decode('utf-8')
+        }
+
         self.assertDictEqual(wf_ex_db.output, expected_output)
+
+        # Check liveaction and action execution result.
+        expected_result = {'output': expected_output}
+
         self.assertDictEqual(lv_ac_db.result, expected_result)
+        self.assertDictEqual(ac_ex_db.result, expected_result)
 
     def test_string(self):
         self.assert_data_flow('xyz')
+
+    def test_unicode_string(self):
+        self.assert_data_flow('床前明月光 疑是地上霜 舉頭望明月 低頭思故鄉')
