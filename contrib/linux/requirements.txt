@@ -1,3 +1,2 @@
 # used by file watcher sensor
-pyinotify>=0.9.5,<=0.10
--e git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper
+inotify==0.2.9

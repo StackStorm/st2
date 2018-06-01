@@ -15,7 +15,6 @@ python-json-logger
 gitpython
 lockfile
 # needed by core "linux" pack - TODO: create virtualenv for linux pack on postinst
-pyinotify
-git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper
+inotify
 # required by pack_mgmt/setup_virtualenv.py#L135
 virtualenv

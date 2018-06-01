@@ -6,13 +6,13 @@ bcrypt
 cryptography==2.2.2
 eventlet==0.23.0
 flex==6.13.1
-git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper
 git+https://github.com/StackStorm/orchestra.git#egg=orchestra
 git+https://github.com/StackStorm/python-mistralclient.git#egg=python-mistralclient
 git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2-auth-backend-flat-file
 gitpython==2.1.10
 greenlet==0.4.13
 gunicorn==19.8.1
+inotify==0.2.9
 ipaddr
 jinja2
 jsonpath-rw==1.4.0
@@ -32,7 +32,6 @@ prettytable
 prometheus_client==0.1.1
 prompt-toolkit==1.0.15
 psutil==5.4.5
-pyinotify==0.9.6
 pymongo==3.6.1
 pyrabbit
 python-dateutil
