@@ -951,7 +951,7 @@ fatal: invalid reference: vinvalid
         liveaction_db = mock.Mock()
         liveaction_db.id = '123'
         liveaction_db.context = {'user': user}
-        runner = container._get_runner(runnertype_db=runnertype_db, action_db=action_db,
+        runner = container._get_runner(runner_type_db=runnertype_db, action_db=action_db,
                                        liveaction_db=liveaction_db)
         runner.execution = MOCK_EXECUTION
         runner.action = action_db

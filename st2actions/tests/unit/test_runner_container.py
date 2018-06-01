@@ -109,8 +109,8 @@ class RunnerContainerTest(DbTestCase):
         runnertype_db = RunnerContainerTest.runnertype_db
         runner = get_runner(runnertype_db.runner_module, runnertype_db.runner_module)
 
-        runner.runner_type_db = runnertype_db
-        runner.runner_type_db.enabled = False
+        runner.runner_type = runnertype_db
+        runner.runner_type.enabled = False
 
         expected_msg = 'Runner "test-runner-1" has been disabled by the administrator'
         self.assertRaisesRegexp(ValueError, expected_msg, runner.pre_run)

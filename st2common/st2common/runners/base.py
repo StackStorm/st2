@@ -29,9 +29,9 @@ from eventlet.green import subprocess
 from st2common import log as logging
 from st2common.constants import action as action_constants
 from st2common.constants import pack as pack_constants
-from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.content.utils import get_pack_directory
 from st2common.content.utils import get_pack_base_path
+from st2common.exceptions import actionrunner as exc
 from st2common.util import action_db as action_utils
 from st2common.util.loader import register_runner
 from st2common.util.loader import register_callback_module
@@ -78,7 +78,7 @@ def get_runner(package_name, module_name, config=None):
         msg = ('Failed to import runner module %s.%s' % (package_name, module_name))
         LOG.exception(msg)
 
-        raise ActionRunnerCreateError('%s\n\n%s' % (msg, str(e)))
+        raise exc.ActionRunnerCreateError('%s\n\n%s' % (msg, str(e)))
 
     LOG.debug('Instance of runner module: %s', module)
 
@@ -122,8 +122,7 @@ class ActionRunner(object):
         :type id: ``str``
         """
         self.runner_id = runner_id
-
-        self.runner_type_db = None
+        self.runner_type = None
         self.runner_parameters = None
         self.action = None
         self.action_name = None
@@ -140,11 +139,11 @@ class ActionRunner(object):
 
     def pre_run(self):
         # Handle runner "enabled" attribute
-        runner_enabled = getattr(self.runner_type_db, 'enabled', True)
-        runner_name = getattr(self.runner_type_db, 'name', 'unknown')
+        runner_enabled = getattr(self.runner_type, 'enabled', True)
+        runner_name = getattr(self.runner_type, 'name', 'unknown')
+
         if not runner_enabled:
-            msg = ('Runner "%s" has been disabled by the administrator' %
-                   (runner_name))
+            msg = 'Runner "%s" has been disabled by the administrator.' % runner_name
             raise ValueError(msg)
 
         runner_parameters = getattr(self, 'runner_parameters', {}) or {}
@@ -157,11 +156,11 @@ class ActionRunner(object):
         raise NotImplementedError()
 
     def pause(self):
-        runner_name = getattr(self.runner_type_db, 'name', 'unknown')
+        runner_name = getattr(self.runner_type, 'name', 'unknown')
         raise NotImplementedError('Pause is not supported for runner %s.' % runner_name)
 
     def resume(self):
-        runner_name = getattr(self.runner_type_db, 'name', 'unknown')
+        runner_name = getattr(self.runner_type, 'name', 'unknown')
         raise NotImplementedError('Resume is not supported for runner %s.' % runner_name)
 
     def cancel(self):
@@ -172,26 +171,10 @@ class ActionRunner(object):
         )
 
     def post_run(self, status, result):
-        # Handle callback (if specified)
-        callback = self.callback or {}
-
-        if callback and not (set(['url', 'source']) - set(callback.keys())):
-            callback_url = callback['url']
-            callback_module_name = callback['source']
-
-            try:
-                callback_module = register_callback_module(callback_module_name)
-            except:
-                LOG.exception('Failed importing callback module: %s', callback_module_name)
-
+        if self.callback and isinstance(self.callback, dict) and 'source' in self.callback:
+            callback_module = register_callback_module(self.callback['source'])
             callback_handler = callback_module.get_instance()
-
-            callback_handler.callback(
-                callback_url,
-                self.context,
-                status,
-                result
-            )
+            callback_handler.callback(self.liveaction)
 
     @deprecated
     def get_pack_name(self):

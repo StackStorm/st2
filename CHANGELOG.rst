@@ -40,6 +40,7 @@ Added
 Changed
 ~~~~~~~
 
+* Refactor the callback module for the post run in runner to be more generic. (improvement)
 * Update various Python dependencies to the latest stable versions (gunicorn, gitpython,
   python-gnupg, tooz, flex). #4110
 * Update all the service and script entry points to use ``/etc/st2/st2.conf`` as a default value

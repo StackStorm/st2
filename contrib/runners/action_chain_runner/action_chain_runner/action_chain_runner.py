@@ -331,7 +331,7 @@ class ActionChainRunner(ActionRunner):
     def resume(self):
         # Restore runner and action parameters since they are not provided on resume.
         runner_parameters, action_parameters = param_utils.render_final_params(
-            self.runner_type_db.runner_parameters,
+            self.runner_type.runner_parameters,
             self.action.parameters,
             self.liveaction.parameters,
             self.liveaction.context
