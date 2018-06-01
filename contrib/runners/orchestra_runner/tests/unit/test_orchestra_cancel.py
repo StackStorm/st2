@@ -44,19 +44,6 @@ from st2tests.mocks import liveaction as mock_lv_ac_xport
 from st2tests.mocks import workflow as mock_wf_ex_xport
 
 
-TEST_FIXTURES = {
-    'workflows': [
-        'sequential.yaml',
-        'subworkflow.yaml',
-        'subworkflows.yaml'
-    ],
-    'actions': [
-        'sequential.yaml',
-        'subworkflow.yaml',
-        'subworkflows.yaml'
-    ]
-}
-
 TEST_PACK = 'orchestra_tests'
 TEST_PACK_PATH = st2tests.fixturesloader.get_fixtures_packs_base_path() + '/' + TEST_PACK
 
@@ -112,7 +99,7 @@ class OrchestraRunnerCancelTest(st2tests.DbTestCase):
         ac_svc, 'is_children_active',
         mock.MagicMock(return_value=True))
     def test_cancel(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][0])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
@@ -124,7 +111,7 @@ class OrchestraRunnerCancelTest(st2tests.DbTestCase):
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_CANCELING)
 
     def test_cancel_workflow_cascade_down_to_subworkflow(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][1])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'subworkflow.yaml')
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
@@ -157,7 +144,7 @@ class OrchestraRunnerCancelTest(st2tests.DbTestCase):
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_CANCELED)
 
     def test_cancel_subworkflow_cascade_up_to_workflow(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][1])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'subworkflow.yaml')
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
@@ -195,7 +182,7 @@ class OrchestraRunnerCancelTest(st2tests.DbTestCase):
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_CANCELED)
 
     def test_cancel_subworkflow_cascade_up_to_workflow_with_other_subworkflows(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][2])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'subworkflows.yaml')
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))

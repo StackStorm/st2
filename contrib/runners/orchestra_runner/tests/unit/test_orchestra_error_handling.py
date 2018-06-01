@@ -44,33 +44,6 @@ from st2tests.mocks import liveaction as mock_lv_ac_xport
 from st2tests.mocks import workflow as mock_wf_ex_xport
 
 
-TEST_FIXTURES = {
-    'workflows': [
-        'fail-inspection.yaml',
-        'fail-input-rendering.yaml',
-        'fail-vars-rendering.yaml',
-        'fail-start-task-action.yaml',
-        'fail-start-task-input.yaml',
-        'fail-task-action.yaml',
-        'fail-task-input.yaml',
-        'fail-task-transition.yaml',
-        'fail-task-publish.yaml',
-        'fail-output-rendering.yaml'
-    ],
-    'actions': [
-        'fail-inspection.yaml',
-        'fail-input-rendering.yaml',
-        'fail-vars-rendering.yaml',
-        'fail-start-task-action.yaml',
-        'fail-start-task-input.yaml',
-        'fail-task-action.yaml',
-        'fail-task-input.yaml',
-        'fail-task-transition.yaml',
-        'fail-task-publish.yaml',
-        'fail-output-rendering.yaml'
-    ]
-}
-
 TEST_PACK = 'orchestra_tests'
 TEST_PACK_PATH = st2tests.fixturesloader.get_fixtures_packs_base_path() + '/' + TEST_PACK
 
@@ -126,7 +99,7 @@ class OrchestraErrorHandlingTest(st2tests.DbTestCase):
         return sorted(errors, key=lambda x: x.get('task_id', None))
 
     def test_fail_inspection(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][0])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'fail-inspection.yaml')
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
@@ -149,7 +122,7 @@ class OrchestraErrorHandlingTest(st2tests.DbTestCase):
 
         expected_result = {'output': None, 'errors': expected_errors}
 
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][1])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'fail-input-rendering.yaml')
 
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
@@ -178,7 +151,7 @@ class OrchestraErrorHandlingTest(st2tests.DbTestCase):
 
         expected_result = {'output': None, 'errors': expected_errors}
 
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][2])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'fail-vars-rendering.yaml')
 
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
@@ -208,7 +181,7 @@ class OrchestraErrorHandlingTest(st2tests.DbTestCase):
 
         expected_result = {'output': None, 'errors': expected_errors}
 
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][3])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'fail-start-task-action.yaml')
 
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
@@ -238,7 +211,7 @@ class OrchestraErrorHandlingTest(st2tests.DbTestCase):
 
         expected_result = {'output': None, 'errors': expected_errors}
 
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][4])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'fail-start-task-input.yaml')
 
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
@@ -268,7 +241,7 @@ class OrchestraErrorHandlingTest(st2tests.DbTestCase):
 
         expected_result = {'output': None, 'errors': expected_errors}
 
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][5])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'fail-task-action.yaml')
 
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
@@ -308,7 +281,7 @@ class OrchestraErrorHandlingTest(st2tests.DbTestCase):
 
         expected_result = {'output': None, 'errors': expected_errors}
 
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][6])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'fail-task-input.yaml')
 
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
@@ -350,7 +323,7 @@ class OrchestraErrorHandlingTest(st2tests.DbTestCase):
 
         expected_result = {'output': None, 'errors': expected_errors}
 
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][7])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'fail-task-transition.yaml')
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
 
@@ -390,7 +363,7 @@ class OrchestraErrorHandlingTest(st2tests.DbTestCase):
 
         expected_result = {'output': None, 'errors': expected_errors}
 
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][8])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'fail-task-publish.yaml')
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
 
@@ -428,7 +401,7 @@ class OrchestraErrorHandlingTest(st2tests.DbTestCase):
 
         expected_result = {'output': None, 'errors': expected_errors}
 
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][9])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'fail-output-rendering.yaml')
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
 

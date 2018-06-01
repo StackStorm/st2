@@ -46,19 +46,6 @@ from st2tests.mocks import liveaction as mock_lv_ac_xport
 from st2tests.mocks import workflow as mock_wf_ex_xport
 
 
-TEST_FIXTURES = {
-    'workflows': [
-        'sequential.yaml',
-        'subworkflow.yaml',
-        'subworkflows.yaml'
-    ],
-    'actions': [
-        'sequential.yaml',
-        'subworkflow.yaml',
-        'subworkflows.yaml'
-    ]
-}
-
 TEST_PACK = 'orchestra_tests'
 TEST_PACK_PATH = st2tests.fixturesloader.get_fixtures_packs_base_path() + '/' + TEST_PACK
 
@@ -114,7 +101,7 @@ class OrchestraRunnerPauseResumeTest(st2tests.DbTestCase):
         ac_svc, 'is_children_active',
         mock.MagicMock(return_value=False))
     def test_pause(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][0])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
@@ -128,7 +115,7 @@ class OrchestraRunnerPauseResumeTest(st2tests.DbTestCase):
         ac_svc, 'is_children_active',
         mock.MagicMock(return_value=True))
     def test_pause_with_active_children(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][0])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
@@ -139,7 +126,7 @@ class OrchestraRunnerPauseResumeTest(st2tests.DbTestCase):
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_PAUSING)
 
     def test_pause_subworkflow_not_cascade_up_to_workflow(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][1])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'subworkflow.yaml')
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
@@ -167,7 +154,7 @@ class OrchestraRunnerPauseResumeTest(st2tests.DbTestCase):
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
     def test_pause_workflow_cascade_down_to_subworkflow(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][1])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'subworkflow.yaml')
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
@@ -226,7 +213,7 @@ class OrchestraRunnerPauseResumeTest(st2tests.DbTestCase):
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_PAUSED)
 
     def test_pause_subworkflow_while_another_subworkflow_running(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][2])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'subworkflows.yaml')
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
@@ -306,7 +293,7 @@ class OrchestraRunnerPauseResumeTest(st2tests.DbTestCase):
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_PAUSED)
 
     def test_pause_subworkflow_while_another_subworkflow_completed(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][2])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'subworkflows.yaml')
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
@@ -389,7 +376,7 @@ class OrchestraRunnerPauseResumeTest(st2tests.DbTestCase):
         ac_svc, 'is_children_active',
         mock.MagicMock(return_value=False))
     def test_resume(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][0])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
@@ -426,7 +413,7 @@ class OrchestraRunnerPauseResumeTest(st2tests.DbTestCase):
         self.assertEqual(len(tk_ex_dbs), 2)
 
     def test_resume_cascade_to_subworkflow(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][1])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'subworkflow.yaml')
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
@@ -494,7 +481,7 @@ class OrchestraRunnerPauseResumeTest(st2tests.DbTestCase):
         self.assertEqual(tk_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
     def test_resume_from_subworkflow_when_parent_is_paused(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][2])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'subworkflows.yaml')
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
@@ -602,7 +589,7 @@ class OrchestraRunnerPauseResumeTest(st2tests.DbTestCase):
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
 
     def test_resume_from_subworkflow_when_parent_is_running(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][2])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'subworkflows.yaml')
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))

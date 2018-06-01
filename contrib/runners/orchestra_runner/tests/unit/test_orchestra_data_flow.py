@@ -46,15 +46,6 @@ from st2tests.mocks import liveaction as mock_lv_ac_xport
 from st2tests.mocks import workflow as mock_wf_ex_xport
 
 
-TEST_FIXTURES = {
-    'workflows': [
-        'data-flow.yaml'
-    ],
-    'actions': [
-        'data-flow.yaml'
-    ]
-}
-
 TEST_PACK = 'orchestra_tests'
 TEST_PACK_PATH = st2tests.fixturesloader.get_fixtures_packs_base_path() + '/' + TEST_PACK
 
@@ -107,7 +98,7 @@ class OrchestraRunnerTest(st2tests.DbTestCase):
         return runners.get_runner(runner_name, runner_name).__class__
 
     def assert_data_flow(self, data):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][0])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'data-flow.yaml')
         wf_input = {'a1': data}
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=wf_input)
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
