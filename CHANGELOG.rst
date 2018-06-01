@@ -66,6 +66,7 @@ Fixed
   ``oneOf``, and ``not`` keywords. (bug fix) #4139
 
   Contributed by Nick Maludy (Encore Technologies).
+* Style clean up to transport queues module and various config modules. (improvement)
 
 2.7.2 - May 16, 2018
 --------------------
