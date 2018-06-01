@@ -1,5 +1,13 @@
 ; http://nedbatchelder.com/code/coverage/config.html
 
 [run]
-include = st2*
+branch = True
+concurrency = eventlet
+include = st2*,contrib/runners/*
 disable_warnings = include-ignored,module-not-imported
+omit = */*/wsgi.py
+       */*/util/wsgi.py  ; st2common/st2common/util/wsgi.py
+       */setup.py
+       contrib/runners/*/setup.py
+       */dist_utils.py
+       contrib/runners/*/dist_utils.py
