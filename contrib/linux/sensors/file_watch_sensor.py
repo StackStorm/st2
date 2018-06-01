@@ -1,6 +1,6 @@
 import os
 
-from logshipper.tail import Tail
+from tail import Tail
 
 from st2reactor.sensor.base import Sensor
 
@@ -15,18 +15,15 @@ class FileWatchSensor(Sensor):
 
     def setup(self):
         self._tail = Tail(filenames=[])
-        self._tail.handler = self._handle_line
-        self._tail.should_run = True
+        self._tail.set_handler(self._handle_line)
 
     def run(self):
-        self._tail.run()
+        self._tail.start()
 
     def cleanup(self):
         if self._tail:
-            self._tail.should_run = False
-
             try:
-                self._tail.notifier.stop()
+                self._tail.stop()
             except Exception:
                 pass
 
@@ -42,7 +39,7 @@ class FileWatchSensor(Sensor):
         if not self._trigger:
             raise Exception('Trigger %s did not contain a ref.' % trigger)
 
-        self._tail.add_file(filename=file_path)
+        self._tail.add_file(filepath=file_path)
         self._logger.info('Added file "%s"' % (file_path))
 
     def update_trigger(self, trigger):
@@ -55,7 +52,7 @@ class FileWatchSensor(Sensor):
             self._logger.error('Received trigger type without "file_path" field.')
             return
 
-        self._tail.remove_file(filename=file_path)
+        self._tail.remove_file(filepath=file_path)
         self._trigger = None
 
         self._logger.info('Removed file "%s"' % (file_path))
