@@ -62,11 +62,11 @@ class OrchestraRunner(runners.AsyncActionRunner):
             wf_ex_db = wf_svc.request(wf_def, self.execution)
         except wf_exc.WorkflowInspectionError as e:
             status = ac_const.LIVEACTION_STATUS_FAILED
-            result = {'errors': e.args[1]}
+            result = {'errors': e.args[1], 'output': None}
             return (status, result, self.context)
         except Exception as e:
             status = ac_const.LIVEACTION_STATUS_FAILED
-            result = {'errors': str(e)}
+            result = {'errors': str(e), 'output': None}
             return (status, result, self.context)
 
         # Set return values.

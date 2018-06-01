@@ -399,7 +399,7 @@ def update_task_flow(task_ex_id, publish=True):
     wf_ac_ex_db = ex_db_access.ActionExecution.get_by_id(wf_ex_db.action_execution)
     wf_lv_ac_db = ac_db_util.get_liveaction_by_id(wf_ac_ex_db.liveaction['id'])
 
-    result = wf_ex_db.output or {}
+    result = {'output': wf_ex_db.output or None}
 
     if wf_ex_db.status in states.ABENDED_STATES:
         result['errors'] = wf_ex_db.errors
@@ -474,7 +474,7 @@ def update_workflow_execution(wf_ex_id):
     wf_ac_ex_db = ex_db_access.ActionExecution.get_by_id(wf_ex_db.action_execution)
     wf_lv_ac_db = ac_db_util.get_liveaction_by_id(wf_ac_ex_db.liveaction['id'])
 
-    result = wf_ex_db.output or {}
+    result = {'output': wf_ex_db.output or None}
 
     if wf_ex_db.status in states.ABENDED_STATES:
         result['errors'] = wf_ex_db.errors

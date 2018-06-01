@@ -147,7 +147,7 @@ class OrchestraErrorHandlingTest(st2tests.DbTestCase):
             }
         ]
 
-        expected_result = {'errors': expected_errors}
+        expected_result = {'output': None, 'errors': expected_errors}
 
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][1])
 
@@ -176,7 +176,7 @@ class OrchestraErrorHandlingTest(st2tests.DbTestCase):
             }
         ]
 
-        expected_result = {'errors': expected_errors}
+        expected_result = {'output': None, 'errors': expected_errors}
 
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][2])
 
@@ -206,7 +206,7 @@ class OrchestraErrorHandlingTest(st2tests.DbTestCase):
             }
         ]
 
-        expected_result = {'errors': expected_errors}
+        expected_result = {'output': None, 'errors': expected_errors}
 
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][3])
 
@@ -236,7 +236,7 @@ class OrchestraErrorHandlingTest(st2tests.DbTestCase):
             }
         ]
 
-        expected_result = {'errors': expected_errors}
+        expected_result = {'output': None, 'errors': expected_errors}
 
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][4])
 
@@ -266,7 +266,7 @@ class OrchestraErrorHandlingTest(st2tests.DbTestCase):
             }
         ]
 
-        expected_result = {'errors': expected_errors}
+        expected_result = {'output': None, 'errors': expected_errors}
 
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][5])
 
@@ -306,7 +306,7 @@ class OrchestraErrorHandlingTest(st2tests.DbTestCase):
             }
         ]
 
-        expected_result = {'errors': expected_errors}
+        expected_result = {'output': None, 'errors': expected_errors}
 
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][6])
 
@@ -348,7 +348,7 @@ class OrchestraErrorHandlingTest(st2tests.DbTestCase):
             }
         ]
 
-        expected_result = {'errors': expected_errors}
+        expected_result = {'output': None, 'errors': expected_errors}
 
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][7])
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
@@ -388,7 +388,7 @@ class OrchestraErrorHandlingTest(st2tests.DbTestCase):
             }
         ]
 
-        expected_result = {'errors': expected_errors}
+        expected_result = {'output': None, 'errors': expected_errors}
 
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][8])
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
@@ -426,7 +426,7 @@ class OrchestraErrorHandlingTest(st2tests.DbTestCase):
             }
         ]
 
-        expected_result = {'errors': expected_errors}
+        expected_result = {'output': None, 'errors': expected_errors}
 
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][9])
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])

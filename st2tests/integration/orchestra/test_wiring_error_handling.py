@@ -60,28 +60,28 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
         ex = self._execute_workflow('examples.orchestra-fail-inspection')
         ex = self._wait_for_completion(ex)
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
-        self.assertDictEqual(ex.result, {'errors': expected_errors})
+        self.assertDictEqual(ex.result, {'errors': expected_errors, 'output': None})
 
     def test_input_error(self):
         expected_errors = [{'message': 'Unknown function "#property#value"'}]
         ex = self._execute_workflow('examples.orchestra-fail-input-rendering')
         ex = self._wait_for_completion(ex)
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
-        self.assertDictEqual(ex.result, {'errors': expected_errors})
+        self.assertDictEqual(ex.result, {'errors': expected_errors, 'output': None})
 
     def test_vars_error(self):
         expected_errors = [{'message': 'Unknown function "#property#value"'}]
         ex = self._execute_workflow('examples.orchestra-fail-vars-rendering')
         ex = self._wait_for_completion(ex)
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
-        self.assertDictEqual(ex.result, {'errors': expected_errors})
+        self.assertDictEqual(ex.result, {'errors': expected_errors, 'output': None})
 
     def test_start_task_error(self):
         expected_errors = [{'message': 'Unknown function "#property#value"', 'task_id': 'task1'}]
         ex = self._execute_workflow('examples.orchestra-fail-start-task')
         ex = self._wait_for_completion(ex)
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
-        self.assertDictEqual(ex.result, {'errors': expected_errors})
+        self.assertDictEqual(ex.result, {'errors': expected_errors, 'output': None})
 
     def test_task_transition_error(self):
         expected_errors = [
@@ -98,7 +98,7 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
         ex = self._execute_workflow('examples.orchestra-fail-task-transition')
         ex = self._wait_for_completion(ex)
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
-        self.assertDictEqual(ex.result, {'errors': expected_errors})
+        self.assertDictEqual(ex.result, {'errors': expected_errors, 'output': None})
 
     def test_task_publish_error(self):
         expected_errors = [
@@ -115,11 +115,11 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
         ex = self._execute_workflow('examples.orchestra-fail-task-publish')
         ex = self._wait_for_completion(ex)
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
-        self.assertDictEqual(ex.result, {'errors': expected_errors})
+        self.assertDictEqual(ex.result, {'errors': expected_errors, 'output': None})
 
     def test_output_error(self):
         expected_errors = [{'message': 'Unknown function "#property#value"'}]
         ex = self._execute_workflow('examples.orchestra-fail-output-rendering')
         ex = self._wait_for_completion(ex)
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
-        self.assertDictEqual(ex.result, {'errors': expected_errors})
+        self.assertDictEqual(ex.result, {'errors': expected_errors, 'output': None})

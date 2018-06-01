@@ -35,12 +35,12 @@ class WiringTest(base.TestWorkflowExecution):
         for ex in exs:
             e = self._wait_for_completion(ex)
             self.assertEqual(e.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-            self.assertIn('vm_id', e.result)
+            self.assertIn('vm_id', e.result['output'])
 
     def test_data_flow(self):
         wf_name = 'examples.orchestra-data-flow'
         wf_input = {'a1': 'fee fi fo fum'}
-        expected_output = {'a5': wf_input['a1'], 'b5': wf_input['a1']}
+        expected_output = {'output': {'a5': wf_input['a1'], 'b5': wf_input['a1']}}
         ex = self._execute_workflow(wf_name, wf_input)
         ex = self._wait_for_completion(ex)
         self.assertDictEqual(ex.result, expected_output)

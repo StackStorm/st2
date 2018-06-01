@@ -85,7 +85,7 @@ class WorkflowDispatcher(consumers.MessageHandler):
             wf_ac_ex_db = ex_db_access.ActionExecution.get_by_id(wf_ex_db.action_execution)
             wf_lv_ac_db = ac_db_util.get_liveaction_by_id(wf_ac_ex_db.liveaction['id'])
 
-            result = wf_ex_db.output
+            result = {'output': wf_ex_db.output or None}
 
             if wf_ex_db.status in states.ABENDED_STATES:
                 result['errors'] = wf_ex_db.errors

@@ -163,10 +163,14 @@ class OrchestraRunnerTest(st2tests.DbTestCase):
         self.assertEqual(tk3_ex_db.status, wf_states.SUCCEEDED)
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
         self.assertEqual(wf_ex_db.status, wf_states.SUCCEEDED)
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
 
         # Check workflow output.
         expected_output = {'a5': wf_input['a1'], 'b5': wf_input['a1']}
+        expected_result = {'output': expected_output}
         self.assertDictEqual(wf_ex_db.output, expected_output)
+        self.assertDictEqual(lv_ac_db.result, expected_result)
 
     def test_string(self):
         self.assert_data_flow('xyz')
