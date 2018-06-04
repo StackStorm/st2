@@ -51,6 +51,8 @@ Changed
   just want to use a default config file. (improvement) #4111
 * Update st2 CLI to print a warning if a non-unicode system locale which would prevent StackStorm
   to function correctly in some scenarios is used. (improvement) #4127 #4120
+* Upgrade various internal Python library dependencies to the latest stable versions (kombu, amqp,
+  gitpython, pytz, semver, oslo.utils). (improvement) #4162
 
 Fixed
 ~~~~~
