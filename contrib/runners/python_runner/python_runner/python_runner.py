@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 import re
 import sys
@@ -45,7 +46,7 @@ from st2common.util.api import get_full_public_api_url
 from st2common.util.pack import get_pack_common_libs_path_for_pack_ref
 from st2common.content.utils import get_pack_base_path
 from st2common.util.sandboxing import get_sandbox_path
-from st2common.util.sandboxing import get_sandbox_python_path
+from st2common.util.sandboxing import get_sandbox_python_path_for_python_action
 from st2common.util.sandboxing import get_sandbox_python_binary_path
 from st2common.util.sandboxing import get_sandbox_virtualenv_path
 from st2common.util.shell import quote_unix
@@ -187,21 +188,21 @@ class PythonRunner(GitWorktreeActionRunner):
             # We only pass --log-level parameter if non default log level value is specified
             args.append('--log-level=%s' % (self._log_level))
 
-        # We need to ensure all the st2 dependencies are also available to the
-        # subprocess
+        # We need to ensure all the st2 dependencies are also available to the subprocess
         LOG.debug('Setting env.')
         env = os.environ.copy()
         env['PATH'] = get_sandbox_path(virtualenv_path=virtualenv_path)
 
-        sandbox_python_path = get_sandbox_python_path(inherit_from_parent=True,
-                                                      inherit_parent_virtualenv=True)
+        sandbox_python_path = get_sandbox_python_path_for_python_action(
+            pack=pack,
+            inherit_from_parent=True,
+            inherit_parent_virtualenv=True)
 
         if self._enable_common_pack_libs:
             try:
                 pack_common_libs_path = self._get_pack_common_libs_path(pack_ref=pack)
             except Exception as e:
                 LOG.debug('Failed to retrieve pack common lib path: %s' % (str(e)))
-                print(e)
                 # There is no MongoDB connection available in Lambda and pack common lib
                 # functionality is not also mandatory for Lambda so we simply ignore those errors.
                 # Note: We should eventually refactor this code to make runner standalone and not
@@ -216,9 +217,9 @@ class PythonRunner(GitWorktreeActionRunner):
             sandbox_python_path = sandbox_python_path[1:]
 
         if self._enable_common_pack_libs and pack_common_libs_path:
-            env['PYTHONPATH'] = pack_common_libs_path + ':' + sandbox_python_path
-        else:
-            env['PYTHONPATH'] = sandbox_python_path
+            sandbox_python_path = pack_common_libs_path + ':' + sandbox_python_path
+
+        env['PYTHONPATH'] = sandbox_python_path
 
         # Include user provided environment variables (if any)
         user_env_vars = self._get_env_vars()
