@@ -5,9 +5,9 @@ greenlet==0.4.13
 # depend on rely
 eventlet==0.23.0
 gunicorn==19.8.1
-kombu==4.1.0
+kombu==4.2.1
 # Note: amqp is used by kombu
-amqp==2.2.2
+amqp==2.3.2
 oslo.config>=1.12.1,<1.13
 oslo.utils<=3.33.0,>=3.15.0
 six==1.11.0
@@ -25,7 +25,8 @@ lockfile==0.12.2
 python-gnupg==0.4.2
 jsonpath-rw==1.4.0
 pyinotify==0.9.6
-semver==2.7.9
+semver==2.8.0
+pytz==2018.4
 stevedore==1.28.0
 paramiko==2.4.1
 networkx==1.11
