@@ -8,7 +8,10 @@ gunicorn==19.8.1
 kombu==4.2.1
 # Note: amqp is used by kombu
 amqp==2.3.2
-oslo.config>=6.2.1,<6.3
+# NOTE: Recent version substantially affect the performance and add big import time overhead
+# See https://github.com/StackStorm/st2/issues/4160#issuecomment-394386433 for
+details
+oslo.config>=1.12.1,<1.13
 oslo.utils>=3.36.2,<=3.37.0
 six==1.11.0
 pyyaml>=3.12,<4.0
