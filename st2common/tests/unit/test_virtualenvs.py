@@ -319,11 +319,19 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
                               include_setuptools=False, include_wheel=False,
                               use_python3=True)
 
+        self.assertEqual(mock_run_command.call_count, 3)
+
         actual_cmd = mock_run_command.call_args_list[0][1]['cmd']
         actual_cmd = ' '.join(actual_cmd)
-
-        self.assertEqual(mock_run_command.call_count, 2)
         self.assertTrue('-p /usr/bin/python3' in actual_cmd)
+
+        actual_cmd = mock_run_command.call_args_list[1][1]['cmd']
+        actual_cmd = ' '.join(actual_cmd)
+        self.assertTrue('pip install pyyaml' in actual_cmd)
+
+        actual_cmd = mock_run_command.call_args_list[2][1]['cmd']
+        actual_cmd = ' '.join(actual_cmd)
+        self.assertTrue('pip install' in actual_cmd)
 
     def assertVirtulenvExists(self, virtualenv_dir):
         self.assertTrue(os.path.exists(virtualenv_dir))
