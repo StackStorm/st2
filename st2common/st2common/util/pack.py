@@ -17,8 +17,6 @@ from __future__ import absolute_import
 import os
 import re
 
-import jsonschema
-
 from st2common.util import schema as util_schema
 from st2common.constants.pack import MANIFEST_FILE_NAME
 from st2common.constants.pack import PACK_REF_WHITELIST_REGEX
@@ -96,6 +94,9 @@ def validate_config_against_schema(config_schema, config_object, config_path,
     Validate provided config dictionary against the provided config schema
     dictionary.
     """
+    # NOTE: Lazy improt to avoid performance overhead of importing this module when it's not used
+    import jsonschema
+
     pack_name = pack_name or 'unknown'
 
     schema = util_schema.get_schema_for_resource_parameters(parameters_schema=config_schema,

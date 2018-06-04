@@ -32,7 +32,6 @@ from st2common.constants import pack as pack_constants
 from st2common.content.utils import get_pack_directory
 from st2common.content.utils import get_pack_base_path
 from st2common.exceptions import actionrunner as exc
-from st2common.util import action_db as action_utils
 from st2common.util.loader import register_runner
 from st2common.util.loader import register_callback_module
 from st2common.util.api import get_full_public_api_url
@@ -459,6 +458,9 @@ class ShellRunnerMixin(object):
         :return: (positional_args, named_args)
         :rtype: (``str``, ``dict``)
         """
+        # Lazy import to speed up import of this module
+        from st2common.util import action_db as action_utils
+
         # TODO: return list for positional args, command classes should escape it
         # and convert it to string
 
