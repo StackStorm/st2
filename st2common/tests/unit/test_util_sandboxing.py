@@ -37,6 +37,12 @@ class SandboxingUtilsTestCase(unittest.TestCase):
         cls.old_python_path = os.environ.get('PYTHONPATH', '')
         cls.old_real_prefix = sys.real_prefix
 
+    @classmethod
+    def tearDownClass(cls):
+        os.environ['PATH'] = cls.old_path
+        os.environ['PYTHONPATH'] = cls.old_python_path
+        sys.real_prefix = cls.old_real_prefix
+
     def test_get_sandbox_python_binary_path(self):
         # Non-system content pack, should use pack specific virtualenv binary
         result = get_sandbox_python_binary_path(pack='mapack')
