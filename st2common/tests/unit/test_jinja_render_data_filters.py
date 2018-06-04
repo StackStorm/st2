@@ -18,7 +18,9 @@ import json
 import unittest2
 import yaml
 
+from st2common.constants.keyvalue import FULL_SYSTEM_SCOPE
 from st2common.util import jinja as jinja_utils
+from st2common.services.keyvalues import KeyValueLookup
 
 
 class JinjaUtilsDataFilterTestCase(unittest2.TestCase):
@@ -34,6 +36,19 @@ class JinjaUtilsDataFilterTestCase(unittest2.TestCase):
         obj = eval(obj_str)
         self.assertDictEqual(obj, expected_obj)
 
+        # With KeyValueLookup object
+        env = jinja_utils.get_jinja_environment()
+        obj_json_str = '["a", "b", "c"]'
+        expected_obj = ['a', 'b', 'c']
+
+        template = '{{ k1 | from_json_string}}'
+
+        lookup = KeyValueLookup(scope=FULL_SYSTEM_SCOPE, key_prefix='a')
+        lookup._value_cache['a'] = obj_json_str
+        obj_str = env.from_string(template).render({'k1': lookup})
+        obj = eval(obj_str)
+        self.assertEqual(obj, expected_obj)
+
     def test_filter_from_yaml_string(self):
         env = jinja_utils.get_jinja_environment()
         expected_obj = {'a': 'b', 'c': {'d': 'e', 'f': 1, 'g': True}}
@@ -48,6 +63,22 @@ class JinjaUtilsDataFilterTestCase(unittest2.TestCase):
         obj_str = env.from_string(template).render({'k1': obj_yaml_str})
         obj = eval(obj_str)
         self.assertDictEqual(obj, expected_obj)
+
+        # With KeyValueLookup object
+        env = jinja_utils.get_jinja_environment()
+        obj_yaml_str = ("---\n"
+                        "- a\n"
+                        "- b\n"
+                        "- c\n")
+        expected_obj = ['a', 'b', 'c']
+
+        template = '{{ k1 | from_yaml_string }}'
+
+        lookup = KeyValueLookup(scope=FULL_SYSTEM_SCOPE, key_prefix='b')
+        lookup._value_cache['b'] = obj_yaml_str
+        obj_str = env.from_string(template).render({'k1': lookup})
+        obj = eval(obj_str)
+        self.assertEqual(obj, expected_obj)
 
     def test_filter_to_json_string(self):
         env = jinja_utils.get_jinja_environment()
