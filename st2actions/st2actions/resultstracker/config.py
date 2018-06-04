@@ -14,11 +14,13 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 from oslo_config import cfg
 
 from st2common import config as common_config
 from st2common.constants.system import VERSION_STRING
 from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
+
 common_config.register_opts()
 
 CONF = cfg.CONF
@@ -44,9 +46,11 @@ def _register_common_opts():
 
 def _register_results_tracker_opts():
     resultstracker_opts = [
-        cfg.StrOpt('logging', default='conf/logging.resultstracker.conf',
-                   help='Location of the logging configuration file.')
+        cfg.StrOpt(
+            'logging', default='conf/logging.resultstracker.conf',
+            help='Location of the logging configuration file.')
     ]
+
     CONF.register_opts(resultstracker_opts, group='resultstracker')
 
 
