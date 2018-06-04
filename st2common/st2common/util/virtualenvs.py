@@ -102,7 +102,7 @@ def setup_pack_virtualenv(pack_name, update=False, logger=None, include_pip=True
 
     # 3. Install base Python 3 requirements which are common to all the packs
     if use_python3:
-        logger.debug('Installing base Python 3requirements')
+        logger.debug('Installing base Python 3 requirements')
         for requirement in BASE_PACK_PYTHON3_REQUIREMENTS:
             install_requirement(virtualenv_path=virtualenv_path, requirement=requirement,
                                 proxy_config=proxy_config, logger=logger)
