@@ -130,8 +130,12 @@ configgen: requirements .configgen
 	echo "" >> conf/st2.conf.sample
 	. $(VIRTUALENV_DIR)/bin/activate; python ./tools/config_gen.py >> conf/st2.conf.sample;
 
+.PHONY: .install-pika
+.install-pika:
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade pika
+
 .PHONY: .pylint
-.pylint:
+.pylint: .install-pika
 	@echo
 	@echo "================== pylint ===================="
 	@echo
