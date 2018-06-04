@@ -193,12 +193,12 @@ jobs:
 #          working_directory: ~/st2-packages
       - run:
           name: Test the Packages
-          command: |
-            set -x
-            .circle/docker-compose2.sh test ${DISTRO}
-            # Once test container finishes we can copy logs directly from it
-            docker cp st2-packages-vol:/var/log/st2 ~/st2/packages/${DISTRO}/log/st2
+          command: .circle/docker-compose2.sh test ${DISTRO}
           working_directory: ~/st2-packages
+      - run:
+          when: always
+          name: Grab the st2 logs
+          command: docker cp st2-packages-vol:/var/log/st2 ~/st2/packages/${DISTRO}/log/st2
       - store_artifacts:
           path: ~/st2/packages
           destination: packages
