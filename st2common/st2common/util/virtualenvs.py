@@ -27,6 +27,7 @@ from oslo_config import cfg
 from st2common import log as logging
 from st2common.constants.pack import PACK_REF_WHITELIST_REGEX
 from st2common.constants.pack import BASE_PACK_REQUIREMENTS
+from st2common.constants.pack import BASE_PACK_PYTHON3_REQUIREMENTS
 from st2common.util.shell import run_command
 from st2common.util.shell import quote_unix
 from st2common.util.compat import to_ascii
@@ -99,7 +100,14 @@ def setup_pack_virtualenv(pack_name, update=False, logger=None, include_pip=True
         install_requirement(virtualenv_path=virtualenv_path, requirement=requirement,
                             proxy_config=proxy_config, logger=logger)
 
-    # 3. Install pack-specific requirements
+    # 3. Install base Python 3 requirements which are common to all the packs
+    if use_python3:
+        logger.debug('Installing base Python 3 requirements')
+        for requirement in BASE_PACK_PYTHON3_REQUIREMENTS:
+            install_requirement(virtualenv_path=virtualenv_path, requirement=requirement,
+                                proxy_config=proxy_config, logger=logger)
+
+    # 4. Install pack-specific requirements
     requirements_file_path = os.path.join(pack_path, 'requirements.txt')
     has_requirements = os.path.isfile(requirements_file_path)
 

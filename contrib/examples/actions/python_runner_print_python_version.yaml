@@ -1,0 +1,7 @@
+---
+name: python_runner_print_python_version
+runner_type: run-python
+description: Action which prints version if Python executable which is used.
+enabled: true
+entry_point: pythonactions/print_python_version.py
+parameters: {}
