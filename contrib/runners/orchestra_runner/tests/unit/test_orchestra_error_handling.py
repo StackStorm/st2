@@ -201,7 +201,7 @@ class OrchestraErrorHandlingTest(st2tests.DbTestCase):
         self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_FAILED)
         self.assertDictEqual(ac_ex_db.result, expected_result)
 
-    def test_fail_start_task_input(self):
+    def test_fail_start_task_input_expr_eval(self):
         expected_errors = [
             {
                 'message': 'Unknown function "#property#value"',
@@ -211,7 +211,8 @@ class OrchestraErrorHandlingTest(st2tests.DbTestCase):
 
         expected_result = {'output': None, 'errors': expected_errors}
 
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'fail-start-task-input.yaml')
+        wf_file = 'fail-start-task-input-expr-eval.yaml'
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, wf_file)
 
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
@@ -222,6 +223,40 @@ class OrchestraErrorHandlingTest(st2tests.DbTestCase):
         self.assertEqual(len(tk_ex_dbs), 0)
         self.assertEqual(wf_ex_db.status, wf_states.FAILED)
         self.assertListEqual(self.sort_wf_runtime_errors(wf_ex_db.errors), expected_errors)
+
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_FAILED)
+        self.assertDictEqual(lv_ac_db.result, expected_result)
+
+        ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db.id))
+        self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_FAILED)
+        self.assertDictEqual(ac_ex_db.result, expected_result)
+
+    def test_fail_start_task_input_value_type(self):
+        expected_errors = [
+            {
+                'message': 'Value "{u\'x\': u\'foobar\'}" must either '
+                           'be a string or None. Got "dict".',
+                'task_id': 'task1'
+            }
+        ]
+
+        expected_result = {'output': None, 'errors': expected_errors}
+
+        wf_file = 'fail-start-task-input-value-type.yaml'
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, wf_file)
+        wf_input = {'var1': {'x': 'foobar'}}
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=wf_input)
+        lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
+
+        # Assert workflow and task executions failed.
+        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
+        self.assertEqual(wf_ex_db.status, wf_states.FAILED)
+        self.assertListEqual(self.sort_wf_runtime_errors(wf_ex_db.errors), expected_errors)
+
+        tk_ex_db = wf_db_access.TaskExecution.query(workflow_execution=str(wf_ex_db.id))[0]
+        self.assertEqual(tk_ex_db.status, wf_states.FAILED)
+        self.assertDictEqual(tk_ex_db.result, {'errors': expected_errors})
 
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_FAILED)
@@ -271,7 +306,7 @@ class OrchestraErrorHandlingTest(st2tests.DbTestCase):
         self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_FAILED)
         self.assertDictEqual(ac_ex_db.result, expected_result)
 
-    def test_fail_next_task_input(self):
+    def test_fail_next_task_input_expr_eval(self):
         expected_errors = [
             {
                 'message': 'Unknown function "#property#value"',
@@ -281,7 +316,7 @@ class OrchestraErrorHandlingTest(st2tests.DbTestCase):
 
         expected_result = {'output': None, 'errors': expected_errors}
 
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'fail-task-input.yaml')
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'fail-task-input-expr-eval.yaml')
 
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
@@ -302,6 +337,51 @@ class OrchestraErrorHandlingTest(st2tests.DbTestCase):
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
         self.assertEqual(wf_ex_db.status, wf_states.FAILED)
         self.assertListEqual(self.sort_wf_runtime_errors(wf_ex_db.errors), expected_errors)
+
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_FAILED)
+        self.assertDictEqual(lv_ac_db.result, expected_result)
+
+        ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db.id))
+        self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_FAILED)
+        self.assertDictEqual(ac_ex_db.result, expected_result)
+
+    def test_fail_next_task_input_value_type(self):
+        expected_errors = [
+            {
+                'message': 'Value "{u\'x\': u\'foobar\'}" must either '
+                           'be a string or None. Got "dict".',
+                'task_id': 'task2'
+            }
+        ]
+
+        expected_result = {'output': None, 'errors': expected_errors}
+
+        wf_file = 'fail-task-input-value-type.yaml'
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, wf_file)
+        wf_input = {'var1': {'x': 'foobar'}}
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=wf_input)
+        lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
+
+        # Assert task1 is already completed and workflow execution is still running.
+        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
+        tk1_ex_db = wf_db_access.TaskExecution.query(workflow_execution=str(wf_ex_db.id))[0]
+        tk1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk1_ex_db.id))[0]
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction['id'])
+        self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(wf_ex_db.status, wf_states.RUNNING)
+
+        # Manually handle action execution completion for task1 which has an error in publish.
+        wf_svc.handle_action_execution_completion(tk1_ac_ex_db)
+
+        # Assert workflow execution and task2 execution failed.
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(str(wf_ex_db.id))
+        self.assertEqual(wf_ex_db.status, wf_states.FAILED)
+        self.assertListEqual(self.sort_wf_runtime_errors(wf_ex_db.errors), expected_errors)
+
+        tk2_ex_db = wf_db_access.TaskExecution.query(task_id='task2')[0]
+        self.assertEqual(tk2_ex_db.status, wf_states.FAILED)
+        self.assertDictEqual(tk2_ex_db.result, {'errors': expected_errors})
 
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_FAILED)

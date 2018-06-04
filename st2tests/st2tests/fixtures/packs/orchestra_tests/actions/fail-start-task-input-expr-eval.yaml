@@ -1,9 +1,9 @@
 ---
-name: fail-start-task-input
+name: fail-start-task-input-expr-eval
 description: A basic workflow with error on input evaluation in the starting task.
 pack: orchestra_tests
 runner_type: orchestra
-entry_point: workflows/fail-start-task-input.yaml
+entry_point: workflows/fail-start-task-input-expr-eval.yaml
 enabled: true
 parameters:
   who:

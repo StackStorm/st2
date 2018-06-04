@@ -1,6 +1,6 @@
 version: 1.0
 
-description: A basic workflow with error on input evaluation in the starting task.
+description: A basic workflow with error on input evaluation in one of the tasks.
 
 input:
   - who
@@ -12,16 +12,16 @@ vars:
 
 tasks:
   task1:
-    action: core.echo message=<% $.msg1.value %>
+    action: core.echo message=<% $.msg1 %>
     next:
       - when: <% succeeded() %>
         do: task2
   task2:
-    action: core.echo message=<% $.msg2 %>
+    action: core.echo message=<% $.msg2.value %>
     next:
       - when: <% succeeded() %>
         do: task3
   task3:
     action: core.echo
     input:
-        message: <% $who %>, <% $.msg3 %>
+        message: <% $.who %>, <% $.msg3 %>

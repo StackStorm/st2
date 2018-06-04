@@ -318,7 +318,7 @@ class PauseResumeWiringTest(base.TestWorkflowExecution, base.WorkflowControlTest
         # Expecting workflow and subworkflows are pausing.
         ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_RUNNING)
         tk1_ac_ex = self._wait_for_state(tk1_ac_ex, ac_const.LIVEACTION_STATUS_PAUSING)
-        tk2_ac_ex = self._wait_for_state(tk2_exs[0], ac_const.LIVEACTION_STATUS_PAUSING)
+        tk2_ac_ex = self._wait_for_state(tk2_ac_ex, ac_const.LIVEACTION_STATUS_PAUSING)
 
         # Delete the temporary files for the subworkflows.
         os.remove(path1)
@@ -335,7 +335,7 @@ class PauseResumeWiringTest(base.TestWorkflowExecution, base.WorkflowControlTest
         # Resume the subworkflow.
         tk1_ac_ex = self.st2client.liveactions.resume(tk1_ac_ex.id)
 
-        # The subworkflow will succeed while the other subworkflow is still running.
+        # The subworkflow will succeed while the other subworkflow is still paused.
         tk1_ac_ex = self._wait_for_state(tk1_ac_ex, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         tk2_ac_ex = self._wait_for_state(tk2_ac_ex, ac_const.LIVEACTION_STATUS_PAUSED)
         ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_PAUSED)
@@ -378,7 +378,7 @@ class PauseResumeWiringTest(base.TestWorkflowExecution, base.WorkflowControlTest
         # Expecting workflow and subworkflows are pausing.
         ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_RUNNING)
         tk1_ac_ex = self._wait_for_state(tk1_ac_ex, ac_const.LIVEACTION_STATUS_PAUSING)
-        tk2_ac_ex = self._wait_for_state(tk2_exs[0], ac_const.LIVEACTION_STATUS_PAUSING)
+        tk2_ac_ex = self._wait_for_state(tk2_ac_ex, ac_const.LIVEACTION_STATUS_PAUSING)
 
         # Delete the temporary files for the subworkflows.
         os.remove(path1)

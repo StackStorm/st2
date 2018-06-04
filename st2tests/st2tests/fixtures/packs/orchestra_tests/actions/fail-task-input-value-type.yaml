@@ -1,0 +1,11 @@
+---
+name: fail-task-input-value-type
+description: A basic workflow with error on passing value of wrong type to input in one of the tasks.
+pack: orchestra_tests
+runner_type: orchestra
+entry_point: workflows/fail-task-input-value-type.yaml
+enabled: true
+parameters:
+  var1:
+    required: true
+    type: object

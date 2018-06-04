@@ -1,0 +1,17 @@
+version: 1.0
+
+description: A basic workflow with error on passing value of wrong type to input in one of the tasks.
+
+input:
+  - var1
+
+tasks:
+  task1:
+    action: core.noop
+    next:
+      - when: <% succeeded() %>
+        do: task2
+  task2:
+    action: core.echo
+    input:
+        message: <% $.var1 %>

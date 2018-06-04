@@ -1,0 +1,12 @@
+version: 1.0
+
+description: A basic workflow with error on passing value of wrong type to input of the starting task.
+
+input:
+  - var1
+
+tasks:
+  task1:
+    action: core.echo
+    input:
+        message: <% $.var1 %>

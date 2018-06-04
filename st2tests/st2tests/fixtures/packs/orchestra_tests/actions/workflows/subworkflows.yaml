@@ -5,5 +5,14 @@ description: A sample workflow that calls multiple subworkflows.
 tasks:
   task1:
     action: orchestra_tests.sequential who="Jack"
+    next:
+      - when: <% succeeded() %>
+        do: task3
   task2:
     action: orchestra_tests.sequential who="Jill"
+    next:
+      - when: <% succeeded() %>
+        do: task3
+  task3:
+    join: all
+    action: core.echo message="Yahoo!"

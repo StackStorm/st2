@@ -423,7 +423,8 @@ class ActionRunCommandMixin(object):
                 instance.result = task_result
         # Otherwise include the result of the workflow execution.
         else:
-            options['attributes'].append('result')
+            if 'result' not in options['attributes']:
+                options['attributes'].append('result')
 
         # print root task
         self.print_output(instance, formatter, **options)
