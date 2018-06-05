@@ -13,6 +13,7 @@ oslo.config
 paramiko
 pyyaml
 pymongo
+cryptography
 python-keyczar
 requests
 retrying
