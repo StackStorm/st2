@@ -14,8 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-from unittest2 import TestCase
 
+import json
+
+from unittest2 import TestCase
 
 from st2common.util.crypto import AESKey
 from st2common.util.crypto import symmetric_encrypt
@@ -62,9 +64,23 @@ class CryptoUtilsKeyczarCompatibilityTestCase(TestCase):
     fully compatible with keyczar output format and also return keyczar based format.
     """
 
-    def test_reading_keyczar_file_format(self):
+    def test_key_generation_file_format_is_fully_keyczar_compatible(self):
         # Verify that the code can read and correctly parse keyczar formatted key files
-        pass
+        aes_key = AESKey.generate()
+        key_json = aes_key.__json__()
+        json_parsed = json.loads(key_json)
+
+        expected = {
+            'hmacKey': {
+                'hmacKeyString': aes_key.hmac_key_string,
+                'size': aes_key.hmac_key_size
+            },
+            'aesKeyString': aes_key.aes_key_string,
+            'mode': aes_key.mode,
+            'size': aes_key.size
+        }
+
+        self.assertEqual(json_parsed, expected)
 
     def test_symmetric_encrypt_decrypt_roundtrips_1(self):
         encrypt_keys = [
