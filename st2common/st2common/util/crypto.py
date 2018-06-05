@@ -143,62 +143,12 @@ def read_crypto_key(key_path):
     return aes_key
 
 
-def keyczar_symmetric_encrypt(encrypt_key, plaintext):
-    """
-    Encrypt the given message using the encrypt_key. Returns a UTF-8 str
-    ready to be stored in database. Note that we convert the hex notation
-    to a ASCII notation to produce a UTF-8 friendly string.
-
-    Also, this method will not return the same output on multiple invocations
-    of same method. The reason is that the Encrypt method uses a different
-    'Initialization Vector' per run and the IV is part of the output.
-
-    :param encrypt_key: Symmetric AES key to use for encryption.
-    :type encrypt_key: :class:`keyczar.keys.AESKey`
-
-    :param plaintext: Plaintext / message to be encrypted.
-    :type plaintext: ``str``
-
-    :rtype: ``str``
-    """
-    from keyczar.keys import AesKey as KeyczarAesKey
-    from keyczar.keys import HmacKey as KeyczarHmacKey
-    from keyczar.keyinfo import GetMode
-
-    encrypt_key = KeyczarAesKey(encrypt_key.aes_key_string,
-                                KeyczarHmacKey(encrypt_key.hmac_key_string,
-                                               encrypt_key.hmac_key_size),
-                                encrypt_key.size,
-                                GetMode(encrypt_key.mode))
-
-    return binascii.hexlify(encrypt_key.Encrypt(plaintext)).upper()
+def symmetric_encrypt(encrypt_key, plaintext):
+    return cryptography_symmetric_encrypt(encrypt_key=encrypt_key, plaintext=plaintext)
 
 
-def keyczar_symmetric_decrypt(decrypt_key, ciphertext):
-    """
-    Decrypt the given crypto text into plain text. Returns the original
-    string input. Note that we first convert the string to hex notation
-    and then decrypt. This is reverse of the encrypt operation.
-
-    :param decrypt_key: Symmetric AES key to use for decryption.
-    :type decrypt_key: :class:`keyczar.keys.AESKey`
-
-    :param crypto: Crypto text to be decrypted.
-    :type crypto: ``str``
-
-    :rtype: ``str``
-    """
-    from keyczar.keys import AesKey as KeyczarAesKey
-    from keyczar.keys import HmacKey as KeyczarHmacKey
-    from keyczar.keyinfo import GetMode
-
-    decrypt_key = KeyczarAesKey(decrypt_key.aes_key_string,
-                                KeyczarHmacKey(decrypt_key.hmac_key_string,
-                                               decrypt_key.hmac_key_size),
-                                decrypt_key.size,
-                                GetMode(decrypt_key.mode))
-
-    return decrypt_key.Decrypt(binascii.unhexlify(ciphertext))
+def symmetric_decrypt(decrypt_key, ciphertext):
+    return cryptography_symmetric_decrypt(decrypt_key=decrypt_key, ciphertext=ciphertext)
 
 
 def cryptography_symmetric_encrypt(encrypt_key, plaintext):
@@ -293,6 +243,68 @@ def cryptography_symmetric_decrypt(decrypt_key, ciphertext):
     # Unpad
     decrypted = pkcs5_unpad(decrypted)
     return decrypted
+
+###
+# NOTE: Those methods below are deprecated and only used for testing purposes
+##
+
+
+def keyczar_symmetric_encrypt(encrypt_key, plaintext):
+    """
+    Encrypt the given message using the encrypt_key. Returns a UTF-8 str
+    ready to be stored in database. Note that we convert the hex notation
+    to a ASCII notation to produce a UTF-8 friendly string.
+
+    Also, this method will not return the same output on multiple invocations
+    of same method. The reason is that the Encrypt method uses a different
+    'Initialization Vector' per run and the IV is part of the output.
+
+    :param encrypt_key: Symmetric AES key to use for encryption.
+    :type encrypt_key: :class:`keyczar.keys.AESKey`
+
+    :param plaintext: Plaintext / message to be encrypted.
+    :type plaintext: ``str``
+
+    :rtype: ``str``
+    """
+    from keyczar.keys import AesKey as KeyczarAesKey
+    from keyczar.keys import HmacKey as KeyczarHmacKey
+    from keyczar.keyinfo import GetMode
+
+    encrypt_key = KeyczarAesKey(encrypt_key.aes_key_string,
+                                KeyczarHmacKey(encrypt_key.hmac_key_string,
+                                               encrypt_key.hmac_key_size),
+                                encrypt_key.size,
+                                GetMode(encrypt_key.mode))
+
+    return binascii.hexlify(encrypt_key.Encrypt(plaintext)).upper()
+
+
+def keyczar_symmetric_decrypt(decrypt_key, ciphertext):
+    """
+    Decrypt the given crypto text into plain text. Returns the original
+    string input. Note that we first convert the string to hex notation
+    and then decrypt. This is reverse of the encrypt operation.
+
+    :param decrypt_key: Symmetric AES key to use for decryption.
+    :type decrypt_key: :class:`keyczar.keys.AESKey`
+
+    :param crypto: Crypto text to be decrypted.
+    :type crypto: ``str``
+
+    :rtype: ``str``
+    """
+    from keyczar.keys import AesKey as KeyczarAesKey
+    from keyczar.keys import HmacKey as KeyczarHmacKey
+    from keyczar.keyinfo import GetMode
+
+    decrypt_key = KeyczarAesKey(decrypt_key.aes_key_string,
+                                KeyczarHmacKey(decrypt_key.hmac_key_string,
+                                               decrypt_key.hmac_key_size),
+                                decrypt_key.size,
+                                GetMode(decrypt_key.mode))
+
+    return decrypt_key.Decrypt(binascii.unhexlify(ciphertext))
 
 
 def pkcs5_pad(data):
