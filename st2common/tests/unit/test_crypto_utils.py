@@ -20,10 +20,16 @@ from unittest2 import TestCase
 from st2common.util.crypto import AESKey
 from st2common.util.crypto import symmetric_encrypt
 from st2common.util.crypto import symmetric_decrypt
+from st2common.util.crypto import keyczar_symmetric_decrypt
+from st2common.util.crypto import keyczar_symmetric_encrypt
+from st2common.util.crypto import cryptography_symmetric_encrypt
+from st2common.util.crypto import cryptography_symmetric_decrypt
+
 from six.moves import range
 
 __all__ = [
-    'CryptoUtilsTestCase'
+    'CryptoUtilsTestCase',
+    'CryptoUtilsKeyczarCompatibilityTestCase'
 ]
 
 
@@ -48,3 +54,62 @@ class CryptoUtilsTestCase(TestCase):
             crypto = symmetric_encrypt(CryptoUtilsTestCase.test_crypto_key, original)
             self.assertTrue(crypto not in cryptos)
             cryptos.add(crypto)
+
+
+class CryptoUtilsKeyczarCompatibilityTestCase(TestCase):
+    """
+    Tests which verify that new cryptography based symmetric_encrypt and symmetric_decrypt are
+    fully compatible with keyczar output format and also return keyczar based format.
+    """
+
+    def test_reading_keyczar_file_format(self):
+        # Verify that the code can read and correctly parse keyczar formatted key files
+        pass
+
+    def test_symmetric_encrypt_decrypt_roundtrips_1(self):
+        encrypt_keys = [
+            AESKey.generate(),
+            AESKey.generate(),
+            AESKey.generate(),
+            AESKey.generate()
+        ]
+
+        # Verify all keys are unique
+        aes_key_strings = set()
+        hmac_key_strings = set()
+
+        for key in encrypt_keys:
+            aes_key_strings.add(key.aes_key_string)
+            hmac_key_strings.add(key.hmac_key_string)
+
+        self.assertEqual(len(aes_key_strings), 4)
+        self.assertEqual(len(hmac_key_strings), 4)
+
+        plaintext = 'hello world test dummy 8 9 5 1 bar2'
+
+        # Verify that round trips work and that cryptography based primitives are fully compatible
+        # with keyczar format
+
+        count = 0
+        for key in encrypt_keys:
+            data_enc_keyczar = keyczar_symmetric_encrypt(key, plaintext)
+            data_enc_cryptography = cryptography_symmetric_encrypt(key, plaintext)
+
+            self.assertNotEqual(data_enc_keyczar, data_enc_cryptography)
+
+            data_dec_keyczar_keyczar = keyczar_symmetric_decrypt(key, data_enc_keyczar)
+            data_dec_keyczar_cryptography = keyczar_symmetric_decrypt(key, data_enc_cryptography)
+
+            self.assertEqual(data_dec_keyczar_keyczar, plaintext)
+            self.assertEqual(data_dec_keyczar_cryptography, plaintext)
+
+            data_dec_cryptography_cryptography = cryptography_symmetric_decrypt(key,
+                data_enc_cryptography)
+            data_dec_cryptography_keyczar = cryptography_symmetric_decrypt(key, data_enc_keyczar)
+
+            self.assertEqual(data_dec_cryptography_cryptography, plaintext)
+            self.assertEqual(data_dec_cryptography_keyczar, plaintext)
+
+            count += 1
+
+        self.assertEqual(count, 4)
