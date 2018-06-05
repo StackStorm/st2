@@ -44,7 +44,7 @@ class WorkflowDispatcher(consumers.MessageHandler):
 
     def get_queue_consumer(self, connection, queues):
         # We want to use a special ActionsQueueConsumer which uses 2 dispatcher pools
-        return consumers.ActionsQueueConsumer(connection=connection, queues=queues, handler=self)
+        return consumers.QueueConsumer(connection=connection, queues=queues, handler=self)
 
     def process(self, wf_ex_db):
         # Refresh record from the database in case the request is in the queue for too long.
