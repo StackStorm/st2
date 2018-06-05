@@ -14,11 +14,13 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 from oslo_config import cfg
 
 import st2common.config as common_config
 from st2common.constants.system import VERSION_STRING
 from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
+
 common_config.register_opts()
 
 CONF = cfg.CONF
@@ -44,16 +46,22 @@ def _register_common_opts():
 
 def _register_rules_engine_opts():
     logging_opts = [
-        cfg.StrOpt('logging', default='conf/logging.rulesengine.conf',
-                   help='Location of the logging configuration file.')
+        cfg.StrOpt(
+            'logging', default='conf/logging.rulesengine.conf',
+            help='Location of the logging configuration file.')
     ]
+
     CONF.register_opts(logging_opts, group='rulesengine')
 
     timer_opts = [
-        cfg.StrOpt('local_timezone', default='America/Los_Angeles',
-                   help='Timezone pertaining to the location where st2 is run.'),
-        cfg.BoolOpt('enable', default=True, help='Specify to enable Timer.')
+        cfg.StrOpt(
+            'local_timezone', default='America/Los_Angeles',
+            help='Timezone pertaining to the location where st2 is run.'),
+        cfg.BoolOpt(
+            'enable', default=True,
+            help='Specify to enable Timer.')
     ]
+
     CONF.register_opts(timer_opts, group='timer')
 
 

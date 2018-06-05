@@ -17,6 +17,8 @@
 Configuration options registration and useful routines.
 """
 
+from __future__ import absolute_import
+
 import os
 
 from oslo_config import cfg
@@ -52,10 +54,11 @@ def _register_app_opts():
     # st2common config since they are also used outside st2api
     static_root = os.path.join(cfg.CONF.system.base_path, 'static')
     template_path = os.path.join(BASE_DIR, 'templates/')
+
     pecan_opts = [
-        cfg.StrOpt('root',
-                   default='st2api.controllers.root.RootController',
-                   help='Action root controller'),
+        cfg.StrOpt(
+            'root', default='st2api.controllers.root.RootController',
+            help='Action root controller'),
         cfg.StrOpt('static_root', default=static_root),
         cfg.StrOpt('template_path', default=template_path),
         cfg.ListOpt('modules', default=['st2api']),
@@ -63,14 +66,18 @@ def _register_app_opts():
         cfg.BoolOpt('auth_enable', default=True),
         cfg.DictOpt('errors', default={'__force_dict__': True})
     ]
+
     CONF.register_opts(pecan_opts, group='api_pecan')
 
     logging_opts = [
         cfg.BoolOpt('debug', default=False),
-        cfg.StrOpt('logging', default='conf/logging.conf',
-                   help='location of the logging.conf file'),
-        cfg.IntOpt('max_page_size', default=100,
-                   help=('Maximum limit (page size) argument which can be specified by the user '
-                         'in a query string.'))
+        cfg.StrOpt(
+            'logging', default='conf/logging.conf',
+            help='location of the logging.conf file'),
+        cfg.IntOpt(
+            'max_page_size', default=100,
+            help='Maximum limit (page size) argument which can be '
+                 'specified by the user in a query string.')
     ]
+
     CONF.register_opts(logging_opts, group='api')

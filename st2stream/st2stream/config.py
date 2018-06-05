@@ -17,6 +17,8 @@
 Configuration options registration and useful routines.
 """
 
+from __future__ import absolute_import
+
 import os
 
 from oslo_config import cfg
@@ -51,11 +53,18 @@ def _register_app_opts():
     # Note "allow_origin", "mask_secrets", "heartbeat" options are registered as part of st2common
     # config since they are also used outside st2stream
     api_opts = [
-        cfg.StrOpt('host', default='127.0.0.1', help='StackStorm stream API server host'),
-        cfg.IntOpt('port', default=9102, help='StackStorm API stream, server port'),
-        cfg.BoolOpt('debug', default=False,
-                    help='Specify to enable debug mode.'),
-        cfg.StrOpt('logging', default='conf/logging.conf',
-                   help='location of the logging.conf file')
+        cfg.StrOpt(
+            'host', default='127.0.0.1',
+            help='StackStorm stream API server host'),
+        cfg.IntOpt(
+            'port', default=9102,
+            help='StackStorm API stream, server port'),
+        cfg.BoolOpt(
+            'debug', default=False,
+            help='Specify to enable debug mode.'),
+        cfg.StrOpt(
+            'logging', default='conf/logging.conf',
+            help='location of the logging.conf file')
     ]
+
     CONF.register_opts(api_opts, group='stream')
