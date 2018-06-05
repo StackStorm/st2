@@ -15,8 +15,10 @@
 
 from __future__ import absolute_import
 
+import six
 import json
 
+import unittest2
 from unittest2 import TestCase
 
 from st2common.util.crypto import AESKey
@@ -82,6 +84,27 @@ class CryptoUtilsKeyczarCompatibilityTestCase(TestCase):
 
         self.assertEqual(json_parsed, expected)
 
+    def test_symmetric_encrypt_decrypt_cryptography(self):
+        key = AESKey.generate()
+        plaintexts = [
+            'a b c',
+            'ab',
+            'hello foo',
+            'hell',
+            'bar5'
+            'hello hello bar bar hello',
+            'a',
+            '',
+            'c'
+        ]
+
+        for plaintext in plaintexts:
+            encrypted = cryptography_symmetric_encrypt(key, plaintext)
+            decrypted = cryptography_symmetric_decrypt(key, encrypted)
+
+            self.assertEqual(decrypted, plaintext)
+
+    @unittest2.skipIf(six.PY3, 'keyczar doesn\'t work under Python 3')
     def test_symmetric_encrypt_decrypt_roundtrips_1(self):
         encrypt_keys = [
             AESKey.generate(),
