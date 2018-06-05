@@ -14,12 +14,17 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-from keyczar.keys import AesKey
 from unittest2 import TestCase
 
 
-import st2common.util.crypto as crypto_utils
+from st2common.util.crypto import AESKey
+from st2common.util.crypto import symmetric_encrypt
+from st2common.util.crypto import symmetric_decrypt
 from six.moves import range
+
+__all__ = [
+    'CryptoUtilsTestCase'
+]
 
 
 class CryptoUtilsTestCase(TestCase):
@@ -27,12 +32,12 @@ class CryptoUtilsTestCase(TestCase):
     @classmethod
     def setUpClass(cls):
         super(CryptoUtilsTestCase, cls).setUpClass()
-        CryptoUtilsTestCase.test_crypto_key = AesKey.Generate()
+        CryptoUtilsTestCase.test_crypto_key = AESKey.generate()
 
     def test_symmetric_encrypt_decrypt(self):
         original = 'secret'
-        crypto = crypto_utils.symmetric_encrypt(CryptoUtilsTestCase.test_crypto_key, original)
-        plain = crypto_utils.symmetric_decrypt(CryptoUtilsTestCase.test_crypto_key, crypto)
+        crypto = symmetric_encrypt(CryptoUtilsTestCase.test_crypto_key, original)
+        plain = symmetric_decrypt(CryptoUtilsTestCase.test_crypto_key, crypto)
         self.assertEqual(plain, original)
 
     def test_encrypt_output_is_diff_due_to_diff_IV(self):
@@ -40,7 +45,6 @@ class CryptoUtilsTestCase(TestCase):
         cryptos = set()
 
         for _ in range(0, 10000):
-            crypto = crypto_utils.symmetric_encrypt(CryptoUtilsTestCase.test_crypto_key,
-                                                    original)
+            crypto = symmetric_encrypt(CryptoUtilsTestCase.test_crypto_key, original)
             self.assertTrue(crypto not in cryptos)
             cryptos.add(crypto)
