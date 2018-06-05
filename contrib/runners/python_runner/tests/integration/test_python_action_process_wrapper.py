@@ -24,9 +24,12 @@ Examples of such modules include:
 * jinja2
 * kombu
 * mongoengine
+* oslo.config
 
 If the tests fail, look at the recent changes and analyze the import graph using the following
-command: "profimp "from st2common.runners import python_action_wrapper" --html > report.html"
+command:
+
+profimp "from python_runner.python_runner import python_action_wrapper" --html > report.html
 """
 
 from __future__ import absolute_import
