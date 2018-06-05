@@ -60,7 +60,9 @@ __all__ = [
 
     # NOTE: Keyczar functions are here for testing reasons - they are only used by tests
     'keyczar_symmetric_encrypt',
-    'keyczar_symmetric_decrypt'
+    'keyczar_symmetric_decrypt',
+
+    'AESKey'
 ]
 
 # Keyczar related constants
@@ -84,11 +86,34 @@ class AESKey(object):
         self.aes_key_string = aes_key_string
         self.hmac_key_string = hmac_key_string
         self.hmac_key_size = hmac_key_size
-        self.mode = mode
-        self.size = size
+        self.mode = mode.upper()
+        self.size = int(size)
 
         self.hmac_key_bytes = Base64WSDecode(self.hmac_key_string)
         self.aes_key_bytes = Base64WSDecode(self.aes_key_string)
+
+    @classmethod
+    def generate(self, key_size=256):
+        aes_key_bytes = os.urandom(key_size / 8)
+        aes_key_string = Base64WSEncode(aes_key_bytes)
+
+        hmac_key_bytes = os.urandom(key_size / 8)
+        hmac_key_string = Base64WSEncode(hmac_key_bytes)
+
+        return AESKey(aes_key_string=aes_key_string, hmac_key_string=hmac_key_string,
+                      hmac_key_size=key_size, mode='CBC', size=key_size)
+
+    def __json__(self):
+        data = {
+            'hmacKey': {
+                'hmacKeyString': self.hmac_key_string,
+                'size': self.hmac_key_size
+            },
+            'aesKeyString': self.aes_key_string,
+            'mode': self.mode.upper(),
+            'size': int(self.size)
+        }
+        return json.dumps(data)
 
     def __repr__(self):
         return ('<AESKey hmac_key_size=%s,mode=%s,size=%s>' % (self.hmac_key_size, self.mode,

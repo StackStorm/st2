@@ -19,7 +19,7 @@ import argparse
 import os
 import sys
 
-from keyczar.keys import AesKey
+from st2common.util.crypto import AESKey
 
 
 def main(key_path, force=False):
@@ -40,9 +40,11 @@ def main(key_path, force=False):
 
         print('WARNING: Rewriting existing key with new key!')
 
+    # Explicitly chose large key size
+    aes_key = AESKey.generate(key_size=256)
+
     with open(key_path, 'w') as key_file:
-        k = AesKey.Generate()
-        key_file.write(str(k))
+        key_file.write(aes_key.__json__())
         key_file.flush()
 
     msg = ('Key written to %s. ' % key_path + 'Secure the permissions so only StackStorm API ' +
