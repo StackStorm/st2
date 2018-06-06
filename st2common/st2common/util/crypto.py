@@ -103,10 +103,10 @@ class AESKey(object):
         if key_size < 128:
             raise ValueError('Unsafe key size: %s' % (key_size))
 
-        aes_key_bytes = os.urandom(key_size / 8)
+        aes_key_bytes = os.urandom(int(key_size / 8))
         aes_key_string = Base64WSEncode(aes_key_bytes)
 
-        hmac_key_bytes = os.urandom(key_size / 8)
+        hmac_key_bytes = os.urandom(int(key_size / 8))
         hmac_key_string = Base64WSEncode(hmac_key_bytes)
 
         return AESKey(aes_key_string=aes_key_string, hmac_key_string=hmac_key_string,
@@ -189,7 +189,10 @@ def cryptography_symmetric_encrypt(encrypt_key, plaintext):
 
     # NOTE: We don't care about actual Keyczar header value, we only care about the length (5
     # bytes) so we simply add 5 0's
-    header = '00000'
+    header = b'00000'
+
+    if isinstance(data, (six.text_type, six.string_types)):
+        data = data.encode('utf-8')
 
     ciphertext_bytes = encryptor.update(data) + encryptor.finalize()
     msg_bytes = header + iv_bytes + ciphertext_bytes
@@ -329,6 +332,10 @@ def pkcs5_unpad(data):
     """
     Unpad data padded using PKCS5.
     """
+    if isinstance(data, six.binary_type):
+        # Make sure we are operating with a string type
+        data = data.decode('utf-8')
+
     pad = ord(data[-1])
     data = data[:-pad]
     return data
@@ -349,7 +356,11 @@ def Base64WSEncode(s):
 
     NOTE: Taken from keyczar (Apache 2.0 license)
     """
-    return base64.urlsafe_b64encode(str(s)).replace("=", "")
+    if isinstance(s, six.text_type):
+        # Make sure input string is always converted to bytes (if not already)
+        s = s.encode('utf-8')
+
+    return base64.urlsafe_b64encode(s).decode('utf-8').replace("=", "")
 
 
 def Base64WSDecode(s):
