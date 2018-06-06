@@ -93,6 +93,16 @@ class CryptoUtilsKeyczarCompatibilityTestCase(TestCase):
         self.assertEqual(aes_key.mode, 'CBC')
         self.assertEqual(aes_key.size, 256)
 
+        key_path = os.path.join(KEY_FIXTURES_PATH, 'five.json')
+        aes_key = read_crypto_key(key_path=key_path)
+
+        self.assertEqual(aes_key.hmac_key_string, 'GCX2uMfOzp1JXYgqH8piEE4_mJOPXydH_fRHPDw9bkM')
+        self.assertEqual(aes_key.hmac_key_size, 256)
+
+        self.assertEqual(aes_key.aes_key_string, 'EeBcUcbH14tL0w_fF5siEw')
+        self.assertEqual(aes_key.mode, 'CBC')
+        self.assertEqual(aes_key.size, 128)
+
     def test_key_generation_file_format_is_fully_keyczar_compatible(self):
         # Verify that the code can read and correctly parse keyczar formatted key files
         aes_key = AESKey.generate()
