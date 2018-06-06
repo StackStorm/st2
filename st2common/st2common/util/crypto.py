@@ -83,9 +83,15 @@ class AESKey(object):
     size = None
 
     def __init__(self, aes_key_string, hmac_key_string, hmac_key_size, mode='CBC', size=128):
+        if mode not in 'CBC':
+            raise ValueError('Unsupported mode: %s' % (mode))
+
+        if size < 128:
+            raise ValueError('Unsafe key size: %s' % (size))
+
         self.aes_key_string = aes_key_string
         self.hmac_key_string = hmac_key_string
-        self.hmac_key_size = hmac_key_size
+        self.hmac_key_size = int(hmac_key_size)
         self.mode = mode.upper()
         self.size = int(size)
 
@@ -94,6 +100,9 @@ class AESKey(object):
 
     @classmethod
     def generate(self, key_size=256):
+        if key_size < 128:
+            raise ValueError('Unsafe key size: %s' % (key_size))
+
         aes_key_bytes = os.urandom(key_size / 8)
         aes_key_string = Base64WSEncode(aes_key_bytes)
 
