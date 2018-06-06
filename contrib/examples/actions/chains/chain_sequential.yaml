@@ -1,0 +1,24 @@
+chain:
+-
+  name: task1
+  ref: core.echo
+  params:
+    message: "{{ name }}"
+  publish:
+    greeting: "{{ task1.stdout }}"
+  on-success: task2
+-
+  name: task2
+  ref: core.echo
+  params:
+    message: "All your base are belong to us!"
+  publish:
+    greeting: "{{ greeting }}, {{ task2.stdout }}"
+  on-success: task3
+-
+  name: task3
+  ref: core.echo
+  params:
+    message: "{{ greeting }}"
+  publish:
+    greeting: "{{ task3.stdout }}"
