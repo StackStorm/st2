@@ -25,3 +25,4 @@ psutil==5.4.5
 webtest==2.0.25
 rstcheck>=3.3.0,<3.4
 pyrabbit
+python-keyczar

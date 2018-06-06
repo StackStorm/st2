@@ -14,7 +14,6 @@ paramiko
 pyyaml
 pymongo
 cryptography
-python-keyczar
 requests
 retrying
 semver
