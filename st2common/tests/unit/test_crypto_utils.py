@@ -15,13 +15,17 @@
 
 from __future__ import absolute_import
 
+import os
+
 import six
 import json
 
 import unittest2
 from unittest2 import TestCase
+from six.moves import range
 
 from st2common.util.crypto import AESKey
+from st2common.util.crypto import read_crypto_key
 from st2common.util.crypto import symmetric_encrypt
 from st2common.util.crypto import symmetric_decrypt
 from st2common.util.crypto import keyczar_symmetric_decrypt
@@ -29,12 +33,14 @@ from st2common.util.crypto import keyczar_symmetric_encrypt
 from st2common.util.crypto import cryptography_symmetric_encrypt
 from st2common.util.crypto import cryptography_symmetric_decrypt
 
-from six.moves import range
+from st2tests.fixturesloader import get_fixtures_base_path
 
 __all__ = [
     'CryptoUtilsTestCase',
     'CryptoUtilsKeyczarCompatibilityTestCase'
 ]
+
+KEY_FIXTURES_PATH = os.path.join(get_fixtures_base_path(), 'keyczar_keys/')
 
 
 class CryptoUtilsTestCase(TestCase):
@@ -65,6 +71,27 @@ class CryptoUtilsKeyczarCompatibilityTestCase(TestCase):
     Tests which verify that new cryptography based symmetric_encrypt and symmetric_decrypt are
     fully compatible with keyczar output format and also return keyczar based format.
     """
+
+    def test_loading_keys_from_keyczar_formatted_key_files(self):
+        key_path = os.path.join(KEY_FIXTURES_PATH, 'one.json')
+        aes_key = read_crypto_key(key_path=key_path)
+
+        self.assertEqual(aes_key.hmac_key_string, 'lgI9YdOKlIOtPQFdgB0B6zr0AZ6L2QJuFQg4gTu2dxc')
+        self.assertEqual(aes_key.hmac_key_size, 256)
+
+        self.assertEqual(aes_key.aes_key_string, 'vKmBE2YeQ9ATyovel7NDjdnbvOMcoU5uPtUVxWxWm58')
+        self.assertEqual(aes_key.mode, 'CBC')
+        self.assertEqual(aes_key.size, 256)
+
+        key_path = os.path.join(KEY_FIXTURES_PATH, 'two.json')
+        aes_key = read_crypto_key(key_path=key_path)
+
+        self.assertEqual(aes_key.hmac_key_string, '92ok9S5extxphADmUhObPSD5wugey8eTffoJ2CEg_2s')
+        self.assertEqual(aes_key.hmac_key_size, 256)
+
+        self.assertEqual(aes_key.aes_key_string, 'fU9hT9pm-b9hu3VyQACLXe2Z7xnaJMZrXiTltyLUzgs')
+        self.assertEqual(aes_key.mode, 'CBC')
+        self.assertEqual(aes_key.size, 256)
 
     def test_key_generation_file_format_is_fully_keyczar_compatible(self):
         # Verify that the code can read and correctly parse keyczar formatted key files
