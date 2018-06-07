@@ -56,3 +56,15 @@ class WiringTest(base.TestWorkflowExecution):
 
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         self.assertDictEqual(ex.result, expected_result)
+
+    def test_cycle(self):
+        wf_name = 'examples.orchestra-rollback-retry'
+
+        expected_output = None
+        expected_result = {'output': expected_output}
+
+        ex = self._execute_workflow(wf_name)
+        ex = self._wait_for_completion(ex)
+
+        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertDictEqual(ex.result, expected_result)
