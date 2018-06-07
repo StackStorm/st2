@@ -21,7 +21,6 @@ import sys
 
 import six
 import mock
-import unittest2
 from oslo_config import cfg
 
 from python_runner import python_runner
