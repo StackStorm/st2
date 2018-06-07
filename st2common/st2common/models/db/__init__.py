@@ -121,8 +121,8 @@ def _db_connect(db_name, db_host, db_port, username=None, password=None,
         # The ismaster command is cheap and does not require auth.
         connection.admin.command('ismaster')
     except ConnectionFailure as e:
-        LOG.error('Failed to connect to database "%s" @ "%s" as user "%s".' % (db_name,
-            host_string, str(username_string)))
+        LOG.error('Failed to connect to database "%s" @ "%s" as user "%s": %s' %
+                  (db_name, host_string, str(username_string), str(e)))
         raise e
 
     LOG.info('Successfully connected to database "%s" @ "%s" as user "%s".' % (
