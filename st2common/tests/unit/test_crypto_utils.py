@@ -19,11 +19,14 @@ import os
 
 import six
 import json
+import binascii
 
 import unittest2
 from unittest2 import TestCase
 from six.moves import range
+from cryptography.exceptions import InvalidSignature
 
+from st2common.util.crypto import KEYCZAR_HEADER_SIZE
 from st2common.util.crypto import AESKey
 from st2common.util.crypto import read_crypto_key
 from st2common.util.crypto import symmetric_encrypt
@@ -64,6 +67,52 @@ class CryptoUtilsTestCase(TestCase):
             crypto = symmetric_encrypt(CryptoUtilsTestCase.test_crypto_key, original)
             self.assertTrue(crypto not in cryptos)
             cryptos.add(crypto)
+
+    def test_decrypt_ciphertext_is_too_short(self):
+        aes_key = AESKey.generate()
+        plaintext = 'hello world ponies 1'
+        encrypted = cryptography_symmetric_encrypt(aes_key, plaintext)
+
+        # Verify original non manipulated value can be decrypted
+        decrypted = cryptography_symmetric_decrypt(aes_key, encrypted)
+        self.assertEqual(decrypted, plaintext)
+
+        # Corrupt / shortern the encrypted data
+        encrypted_malformed = binascii.unhexlify(encrypted)
+        header = encrypted_malformed[:KEYCZAR_HEADER_SIZE]
+        encrypted_malformed = encrypted_malformed[KEYCZAR_HEADER_SIZE:]
+
+        # Remove 40 bytes from ciphertext bytes
+        encrypted_malformed = encrypted_malformed[40:]
+
+        # Add back header
+        encrypted_malformed = header + encrypted_malformed
+        encrypted_malformed = binascii.hexlify(encrypted_malformed)
+
+        # Verify corrupted value results in an excpetion
+        expected_msg = 'Invalid or malformed ciphertext'
+        self.assertRaisesRegexp(ValueError, expected_msg, cryptography_symmetric_decrypt,
+                                aes_key, encrypted_malformed)
+
+    def test_exception_is_thrown_on_invalid_hmac_signature(self):
+        aes_key = AESKey.generate()
+        plaintext = 'hello world ponies 2'
+        encrypted = cryptography_symmetric_encrypt(aes_key, plaintext)
+
+        # Verify original non manipulated value can be decrypted
+        decrypted = cryptography_symmetric_decrypt(aes_key, encrypted)
+        self.assertEqual(decrypted, plaintext)
+
+        # Corrupt the HMAC signature (last part is the HMAC signature)
+        encrypted_malformed = binascii.unhexlify(encrypted)
+        encrypted_malformed = encrypted_malformed[:-3]
+        encrypted_malformed += b'abc'
+        encrypted_malformed = binascii.hexlify(encrypted_malformed)
+
+        # Verify corrupted value results in an excpetion
+        expected_msg = 'Signature did not match digest'
+        self.assertRaisesRegexp(InvalidSignature, expected_msg, cryptography_symmetric_decrypt,
+                                aes_key, encrypted_malformed)
 
 
 class CryptoUtilsKeyczarCompatibilityTestCase(TestCase):
