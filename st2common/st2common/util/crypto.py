@@ -51,6 +51,10 @@ from cryptography.hazmat.primitives import hmac
 from cryptography.hazmat.backends import default_backend
 
 __all__ = [
+    'KEYCZAR_HEADER_SIZE',
+    'KEYCZAR_AES_BLOCK_SIZE',
+    'KEYCZAR_HLEN',
+
     'read_crypto_key',
 
     'symmetric_encrypt',
@@ -96,11 +100,18 @@ class AESKey(object):
         self.mode = mode.upper()
         self.size = int(size)
 
+        # We also store bytes version of the key since bytes are needed by encrypt and decrypt
+        # methods
         self.hmac_key_bytes = Base64WSDecode(self.hmac_key_string)
         self.aes_key_bytes = Base64WSDecode(self.aes_key_string)
 
     @classmethod
     def generate(self, key_size=256):
+        """
+        Generate a new AES key with the corresponding HMAC key.
+
+        :rtype: :class:`AESKey`
+        """
         if key_size < 128:
             raise ValueError('Unsafe key size: %s' % (key_size))
 
@@ -114,6 +125,12 @@ class AESKey(object):
                       hmac_key_size=key_size, mode='CBC', size=key_size)
 
     def __json__(self):
+        """
+        Return JSON representation of this key which is fully compatible with keyczar JSON key
+        file format.
+
+        :rtype: ``str``
+        """
         data = {
             'hmacKey': {
                 'hmacKeyString': self.hmac_key_string,
@@ -132,23 +149,27 @@ class AESKey(object):
 
 def read_crypto_key(key_path):
     """
-    Return the crypto key given a path to key file.
+    Read crypto key from keyczar JSON key file format and return parsed AESKey object.
 
     :param key_path: Absolute path to file containing crypto key in Keyczar JSON format.
     :type key_path: ``str``
 
-    :rtype: ``dict``
+    :rtype: :class:`AESKey`
     """
     with open(key_path, 'r') as fp:
         content = fp.read()
 
     content = json.loads(content)
 
-    aes_key = AESKey(aes_key_string=content['aesKeyString'],
-                     hmac_key_string=content['hmacKey']['hmacKeyString'],
-                     hmac_key_size=content['hmacKey']['size'],
-                     mode=content['mode'].upper(),
-                     size=content['size'])
+    try:
+        aes_key = AESKey(aes_key_string=content['aesKeyString'],
+                         hmac_key_string=content['hmacKey']['hmacKeyString'],
+                         hmac_key_size=content['hmacKey']['size'],
+                         mode=content['mode'].upper(),
+                         size=content['size'])
+    except KeyError as e:
+        msg = 'Invalid or malformed key file "%s": %s' % (key_path, str(e))
+        raise KeyError(msg)
 
     return aes_key
 
@@ -165,12 +186,21 @@ def cryptography_symmetric_encrypt(encrypt_key, plaintext):
     """
     Encrypt the provided plaintext using AES encryption.
 
-    Note 1: This function returns format fully compatible with Keyczar.Encrypt method.
+    NOTE 1: This function return a string which is fully compatible with Keyczar.Encrypt() method.
 
-    Note 2: This function is loosely based on keyczar AESKey.Encrypt (Apache 2.0 license)
+    NOTE 2: This function is loosely based on keyczar AESKey.Encrypt() (Apache 2.0 license).
+
+    The final encrypted string value consists of:
+
+    [message bytes][HMAC signature bytes for the message] where message consists of
+    [keyczar header plaintext][IV bytes][ciphertext bytes]
+
+    NOTE: Header itself is unused, but it's added so the format is compatible with keyczar format.
 
     """
     assert isinstance(encrypt_key, AESKey), 'encrypt_key needs to be AESKey class instance'
+    assert isinstance(plaintext, (six.text_type, six.string_types, six.binary_type)), \
+        'plaintext needs to either be a string/unicode or bytes'
 
     aes_key_bytes = encrypt_key.aes_key_bytes
     hmac_key_bytes = encrypt_key.hmac_key_bytes
@@ -190,22 +220,23 @@ def cryptography_symmetric_encrypt(encrypt_key, plaintext):
 
     # NOTE: We don't care about actual Keyczar header value, we only care about the length (5
     # bytes) so we simply add 5 0's
-    header = b'00000'
+    header_bytes = b'00000'
 
     if isinstance(data, (six.text_type, six.string_types)):
+        # Convert data to bytes
         data = data.encode('utf-8')
 
     ciphertext_bytes = encryptor.update(data) + encryptor.finalize()
-    msg_bytes = header + iv_bytes + ciphertext_bytes
+    msg_bytes = header_bytes + iv_bytes + ciphertext_bytes
 
-    # Generate HMAC signature for message (header + IV + ciphertext)
+    # Generate HMAC signature for the message (header + IV + ciphertext)
     h = hmac.HMAC(hmac_key_bytes, hashes.SHA1(), backend=backend)
     h.update(msg_bytes)
     sig_bytes = h.finalize()
 
     result = msg_bytes + sig_bytes
 
-    # Convert resulting byte string to hex notation
+    # Convert resulting byte string to hex notation ASCII string
     result = binascii.hexlify(result).upper()
 
     return result
@@ -213,15 +244,18 @@ def cryptography_symmetric_encrypt(encrypt_key, plaintext):
 
 def cryptography_symmetric_decrypt(decrypt_key, ciphertext):
     """
-    Decrypt the provided ciphertext.
+    Decrypt the provided ciphertext which has been encrypted using symmetric_encrypt() method (it
+    assumes input is in hex notation as returned by binascii.hexlify).
 
     NOTE 1: This function assumes ciphertext has been encrypted using symmetric AES crypto from
     keyczar library. Underneath it uses crypto primitives from cryptography library which is Python
     3 compatible.
 
-    Note 2: This function is loosely based on keyczar AESKey.Decrypt (Apache 2.0 license)
+    NOTE 2: This function is loosely based on keyczar AESKey.Decrypt() (Apache 2.0 license).
     """
     assert isinstance(decrypt_key, AESKey), 'decrypt_key needs to be AESKey class instance'
+    assert isinstance(ciphertext, (six.text_type, six.string_types, six.binary_type)), \
+        'ciphertext needs to either be a string/unicode or bytes'
 
     aes_key_bytes = decrypt_key.aes_key_bytes
     hmac_key_bytes = decrypt_key.hmac_key_bytes
@@ -229,13 +263,14 @@ def cryptography_symmetric_decrypt(decrypt_key, ciphertext):
     assert isinstance(aes_key_bytes, six.binary_type)
     assert isinstance(hmac_key_bytes, six.binary_type)
 
+    # Convert from hex notation ASCII string to bytes
     ciphertext = binascii.unhexlify(ciphertext)
 
     data_bytes = ciphertext[KEYCZAR_HEADER_SIZE:]  # remove header
 
     # Verify ciphertext contains IV + HMAC signature
-    if len(data_bytes) < KEYCZAR_AES_BLOCK_SIZE + KEYCZAR_HLEN:
-        raise Exception('Invalid ciphertext (too short)')
+    if len(data_bytes) < (KEYCZAR_AES_BLOCK_SIZE + KEYCZAR_HLEN):
+        raise ValueError('Invalid or malformed ciphertext (too short)')
 
     iv_bytes = data_bytes[:KEYCZAR_AES_BLOCK_SIZE]  # first block is IV
     ciphertext_bytes = data_bytes[KEYCZAR_AES_BLOCK_SIZE:-KEYCZAR_HLEN]  # strip IV and signature
