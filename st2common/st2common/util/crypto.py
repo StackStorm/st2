@@ -14,15 +14,16 @@
 # limitations under the License.
 
 """
-Module for handling symmetric encryption and decryption of short values (mostly used for encrypted
-datastore values aka secrets).
+Module for handling symmetric encryption and decryption of short text values (mostly used for
+encrypted datastore values aka secrets).
 
-Note: In the past this module used and relied on keyczar, but since keyczar doesn't support Python
-3, we moved to cryptography.
+NOTE: In the past, this module used and relied on keyczar, but since keyczar doesn't support
+Python 3, we moved to cryptography library.
 
-symmetric_encrypt and symmetric_decrypt functions except values as returned by the AESKey.Encrypt
-and AESKey.Decrypt methods in keyczar. Those functions follow the same approach as keyczar methods,
-but they use and rely on primitives and methods from cryptography library.
+symmetric_encrypt and symmetric_decrypt functions except values as returned by the AESKey.Encrypt()
+and AESKey.Decrypt() methods in keyczar. Those functions follow the same approach (AES in CBC mode
+with SHA1 HMAC signature) as keyczar methods, but they use and rely on primitives and methods from
+the cryptography library.
 
 This was done to make the keyczar -> cryptography migration fully backward compatible.
 
