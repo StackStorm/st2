@@ -36,6 +36,7 @@ __all__ = [
 
 PACK_1_PATH = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_1')
 PACK_6_PATH = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_6')
+PACK_19_PATH = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_19')
 
 
 class ConfigsRegistrarTestCase(CleanDbTestCase):
@@ -89,7 +90,7 @@ class ConfigsRegistrarTestCase(CleanDbTestCase):
         self.assertEqual(len(pack_dbs), 1)
         self.assertEqual(len(config_dbs), 1)
 
-    def test_register_all_configs_with_config_schema_validation_validation_failure(self):
+    def test_register_all_configs_with_config_schema_validation_validation_failure_1(self):
         # Verify DB is empty
         pack_dbs = Pack.get_all()
         config_dbs = Config.get_all()
@@ -113,6 +114,37 @@ class ConfigsRegistrarTestCase(CleanDbTestCase):
         else:
             expected_msg = ('Failed validating attribute "regions" in config for pack '
                             '"dummy_pack_6" (.*?): 1000 is not of type u\'array\'')
+
+        self.assertRaisesRegexp(ValueError, expected_msg,
+                                registrar.register_from_packs,
+                                base_dirs=packs_base_paths)
+
+    def test_register_all_configs_with_config_schema_validation_validation_failure_2(self):
+        # Verify DB is empty
+        pack_dbs = Pack.get_all()
+        config_dbs = Config.get_all()
+
+        self.assertEqual(len(pack_dbs), 0)
+        self.assertEqual(len(config_dbs), 0)
+
+        registrar = ConfigsRegistrar(use_pack_cache=False, fail_on_failure=True,
+                                     validate_configs=True)
+        registrar._pack_loader.get_packs = mock.Mock()
+        registrar._pack_loader.get_packs.return_value = {'dummy_pack_19': PACK_19_PATH}
+
+        # Register ConfigSchema for pack
+        registrar._register_pack_db = mock.Mock()
+        registrar._register_pack(pack_name='dummy_pack_19', pack_dir=PACK_19_PATH)
+        packs_base_paths = content_utils.get_packs_base_paths()
+
+        if six.PY3:
+            expected_msg = ('Failed validating attribute "instances.0.alias" in config for pack '
+                            '"dummy_pack_19" (.*?): {\'not\': \'string\'} is not of type '
+                            '\'string\'')
+        else:
+            expected_msg = ('Failed validating attribute "instances.0.alias" in config for pack '
+                            '"dummy_pack_19" (.*?): {\'not\': \'string\'} is not of type '
+                            'u\'string\'')
 
         self.assertRaisesRegexp(ValueError, expected_msg,
                                 registrar.register_from_packs,
