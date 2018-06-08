@@ -17,12 +17,9 @@ from __future__ import absolute_import
 import uuid
 
 from st2common import log as logging
-from st2common.runners.base import ActionRunner
 from st2common.runners.base import ShellRunnerMixin
 from st2common.runners.base import get_metadata as get_runner_metadata
 from winrm_runner.winrm_base import WinRmBaseRunner
-
-import json  # todo: debug
 
 __all__ = [
     'WinRmPsScriptRunner',
@@ -53,7 +50,6 @@ class WinRmPsScriptRunner(WinRmBaseRunner, ShellRunnerMixin):
         # build a string from all of the named and positional arguments
         # this will be our full parameter list when executing the script
         ps_params = self.create_ps_params_string(positional_args, named_args)
-
 
         # the following wraps the script (from the file) in a script block ( {} )
         # executes it, passing in the parameters built above

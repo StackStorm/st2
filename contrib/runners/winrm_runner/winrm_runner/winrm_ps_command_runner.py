@@ -17,10 +17,8 @@ from __future__ import absolute_import
 import uuid
 
 from st2common import log as logging
-from st2common.runners.base import ActionRunner
 from st2common.runners.base import get_metadata as get_runner_metadata
 from winrm_runner.winrm_base import WinRmBaseRunner
-
 
 __all__ = [
     'WinRmPsCommandRunner',

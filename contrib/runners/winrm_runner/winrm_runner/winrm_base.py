@@ -113,12 +113,11 @@ class WinRmBaseRunner(ActionRunner):
         self._verify_ssl = self.runner_parameters.get(RUNNER_VERIFY_SSL, DEFAULT_VERIFY_SSL)
         self._server_cert_validation = "validate" if self._verify_ssl else "ignore"
 
-
+        # additional parameters
         self._cwd = self.runner_parameters.get(RUNNER_CWD, None)
         self._env = self.runner_parameters.get(RUNNER_ENV, {})
         self._env = self._env or {}
         self._kwarg_op = self.runner_parameters.get(RUNNER_KWARG_OP, DEFAULT_KWARG_OP)
-        self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, DEFAULT_TIMEOUT)
 
     def _create_session(self, action_parameters):
         # create the session
@@ -153,7 +152,7 @@ class WinRmBaseRunner(ActionRunner):
                     protocol._raw_get_command_output(shell_id, command_id)
                 stdout_buffer.append(stdout)
                 stderr_buffer.append(stderr)
-            except WinRMOperationTimeoutError as e:
+            except WinRMOperationTimeoutError:
                 # this is an expected error when waiting for a long-running process,
                 # just silently retry
                 pass
@@ -173,7 +172,7 @@ class WinRmBaseRunner(ActionRunner):
             rs.timeout = False
         except WinRMRunnerTimoutError as e:
             rs = e.response
-            rs.timeout  = True
+            rs.timeout = True
         # end stackstorm custom
         session.protocol.cleanup_command(shell_id, command_id)
         session.protocol.close_shell(shell_id)
@@ -255,7 +254,7 @@ class WinRmBaseRunner(ActionRunner):
         """
         Given a string and a replacement map, it returns the replaced string.
         Source = https://gist.github.com/bgusach/a967e0587d6e01e889fd1d776c5f3729
-        Reference = https://stackoverflow.com/questions/6116978/how-to-replace-multiple-substrings-of-a-string
+        Reference = https://stackoverflow.com/questions/6116978/how-to-replace-multiple-substrings-of-a-string  # noqa
         :param str string: string to execute replacements on
         :param dict replacements: replacement dictionary {value to find: value to replace}
         :rtype: str
@@ -275,6 +274,6 @@ class WinRmBaseRunner(ActionRunner):
     def create_ps_params_string(self, positional_args, named_args):
         ps_params_str = ""
         ps_params_str += " " .join([(k + " " + v) for k, v in six.iteritems(named_args)])
-        ps_params_str +=" "
+        ps_params_str += " "
         ps_params_str += " ".join(positional_args)
         return ps_params_str
