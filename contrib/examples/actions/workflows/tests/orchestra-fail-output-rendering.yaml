@@ -13,7 +13,7 @@ output:
 
 tasks:
   task1:
-    action: core.echo message=<% $.name %>
+    action: core.echo message=<% ctx().name %>
     next:
       - when: <% succeeded() %>
         publish: greeting=<% result().stdout %>
@@ -25,10 +25,10 @@ tasks:
     next:
       - when: <% succeeded() %>
         publish:
-          - greeting: <% $.greeting %>, <% result().stdout %>
+          - greeting: <% ctx("greeting") %>, <% result().stdout %>
         do: task3
   task3:
-    action: core.echo message=<% $.greeting %>
+    action: core.echo message=<% ctx('greeting') %>
     next:
       - when: <% succeeded() %>
         publish: greeting=<% result().stdout %>

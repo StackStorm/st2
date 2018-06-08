@@ -27,7 +27,7 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
             'context': [
                 {
                     'type': 'yaql',
-                    'expression': '<% $.foobar %>',
+                    'expression': '<% ctx().foobar %>',
                     'message': 'Variable "foobar" is referenced before assignment.',
                     'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.input',
                     'spec_path': 'tasks.task1.input',
@@ -50,7 +50,7 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
             ],
             'syntax': [
                 {
-                    'message': '[{\'cmd\': \'echo <% $.macro %>\'}] is not of type \'object\'',
+                    'message': '[{\'cmd\': \'echo <% ctx().macro %>\'}] is not of type \'object\'',
                     'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.input.type',
                     'spec_path': 'tasks.task2.input'
                 }

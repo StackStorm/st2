@@ -7,10 +7,10 @@ vars:
 
 output:
   - messages:
-     - <% $.msg1 %>
-     - <% $.msg2 %>
-     - <% $.msg3 %>
-     - <% $.msg4 %>
+     - <% ctx().msg1 %>
+     - <% ctx().msg2 %>
+     - <% ctx().msg3 %>
+     - <% ctx().msg4 %>
 
 tasks:
   task1:
@@ -31,7 +31,7 @@ tasks:
     next:
       - when: <% succeeded() %>
         publish:
-          - msg1: <% $.msg1 %> <% result().stdout %>
+          - msg1: <% ctx().msg1 %> <% result().stdout %>
         do: task10
 
   # branch 2

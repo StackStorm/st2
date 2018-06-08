@@ -12,4 +12,4 @@ output:
 
 tasks:
   task1:
-    action: core.echo message=<% $.msg1 %>
+    action: core.echo message=<% ctx().msg1 %>

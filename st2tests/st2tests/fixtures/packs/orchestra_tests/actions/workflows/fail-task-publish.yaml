@@ -14,7 +14,7 @@ tasks:
   task1:
     action: core.echo
     input:
-        message: <% $.msg1 %>
+        message: <% ctx().msg1 %>
     next:
       - when: <% succeeded() %>
         publish:
@@ -24,11 +24,11 @@ tasks:
   task2:
     action: core.echo
     input:
-        message: <% $.msg2 %>
+        message: <% ctx().msg2 %>
     next:
       - when: <% succeeded() %>
         do: task3
   task3:
     action: core.echo
     input:
-        message: <% $.who %>, <% $.msg3 %>
+        message: <% ctx().who %>, <% ctx().msg3 %>

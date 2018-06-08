@@ -10,7 +10,7 @@ vars:
 
 tasks:
   init:
-    action: core.local cmd="rm -rf <% $.file %>"
+    action: core.local cmd="rm -rf <% ctx().file %>"
     next:
       - when: <% succeeded() %>
         do: check, create
@@ -20,7 +20,7 @@ tasks:
     input:
       cmd: >
         echo 'Do something useful here.';
-        if [ ! -e <% $.file %> ]; then exit 1; fi
+        if [ ! -e <% ctx().file %> ]; then exit 1; fi
     next:
       - when: <% succeeded() %>
         do: delete
@@ -38,7 +38,7 @@ tasks:
         do: check
 
   create:
-    action: core.local cmd="sleep 3; touch <% $.file %>"
+    action: core.local cmd="sleep 3; touch <% ctx().file %>"
 
   delete:
-    action: core.local cmd="rm -f <% $.file %>"
+    action: core.local cmd="rm -f <% ctx().file %>"

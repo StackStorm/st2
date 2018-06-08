@@ -7,7 +7,7 @@ input:
 
 tasks:
   task1:
-    action: examples.orchestra-test-pause tempfile=<% $.tempfile %>
+    action: examples.orchestra-test-pause tempfile=<% ctx().tempfile %>
     next:
       - when: <% succeeded() %>
         do: task2

@@ -14,4 +14,4 @@ tasks:
   task2:
     action: core.echo
     input:
-        message: <% $.var1 %>
+        message: <% ctx().var1 %>

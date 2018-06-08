@@ -7,7 +7,7 @@ vars:
 
 tasks:
   task1:
-    action: core.local cmd=<% $.foobar %>
+    action: core.local cmd=<% ctx().foobar %>
     next:
       - when: <% succeeded() %>
         do:
@@ -15,7 +15,7 @@ tasks:
   task2:
     action: core.local
     input:
-        - cmd: echo <% $.macro %>
+        - cmd: echo <% ctx().macro %>
     next:
       - when: <% <% succeeded() %>
         do: task3

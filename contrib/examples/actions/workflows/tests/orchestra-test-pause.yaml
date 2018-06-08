@@ -9,13 +9,13 @@ tasks:
   task1:
     action: core.local
     input:
-      cmd: "while [ -e '<% $.tempfile %>' ]; do sleep 0.1; done"
+      cmd: "while [ -e '<% ctx().tempfile %>' ]; do sleep 0.1; done"
       timeout: 300
     next:
       - when: <% succeeded() %>
-        publish: var1="<% $.tempfile %> is deleted."
+        publish: var1="<% ctx().tempfile %> is deleted."
         do: task2
   task2:
     action: core.local
     input:
-      cmd: echo "<% $.var1 %>"
+      cmd: echo "<% ctx().var1 %>"

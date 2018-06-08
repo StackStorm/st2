@@ -10,8 +10,8 @@ tasks:
   task1:
     action: examples.orchestra-test-cancel
     input:
-      tempfile: <% $.tempfile %>
-      message: <% $.message %>
+      tempfile: <% ctx().tempfile %>
+      message: <% ctx().message %>
     next:
       - when: <% succeeded() %>
         do: task2

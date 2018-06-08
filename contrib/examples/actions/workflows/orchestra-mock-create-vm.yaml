@@ -8,19 +8,19 @@ input:
   - memory_mb
 
 output:
-  - vm_id: <% $.vm_id %>
-  - ip: <% $.ip %>
+  - vm_id: <% ctx().vm_id %>
+  - ip: <% ctx().ip %>
 
 tasks:
   register_dns:
     action: core.local
     input:
-      cmd: "sleep 1; printf 'Registering <% $.vm_name %>...'"
+      cmd: "sleep 1; printf 'Registering <% ctx().vm_name %>...'"
     next:
       - when: <% succeeded() %>
         publish:
           - ip: "10.1.23.99"
-          - status_message: "DNS for <% $.vm_name %> is registered."
+          - status_message: "DNS for <% ctx().vm_name %> is registered."
         do:
           - configure_vm
           - notify
@@ -34,7 +34,7 @@ tasks:
       - when: <% succeeded() %>
         publish:
           - vm_id: <% result().stdout %>
-          - status_message: "VM <% $.vm_name %> is created."
+          - status_message: "VM <% ctx().vm_name %> is created."
         do:
           - configure_vm
           - notify
@@ -78,7 +78,7 @@ tasks:
     next:
      - when: <% succeeded() %>
        publish:
-         - status_message: "VM <% $.vm_name %> is reconfigured."
+         - status_message: "VM <% ctx().vm_name %> is reconfigured."
        do:
          - close_request
 
@@ -96,4 +96,4 @@ tasks:
   notify:
     action: core.local
     input:
-      cmd: "printf '<% $.status_message %>'"
+      cmd: "printf '<% ctx().status_message %>'"
