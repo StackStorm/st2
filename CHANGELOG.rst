@@ -244,6 +244,10 @@ Fixed
   Reported by @SURAJTHEGREAT.
 * Fix st2 webhook get -h which was asking for a name or id as opposed to the URL of the webhook.
   Also, fix st2 webhook list to explicitly add a webhook column. (bugfix) #4048
+* Fix an issue with pack config validation code throwing a non-user friendly error message in case
+  config item of type array failed config schema validation. (bug fix) #4166 #4168
+
+  Reported by @NikosVlagoidis.
 
 2.6.0 - January 19, 2018
 ------------------------
