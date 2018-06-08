@@ -23,6 +23,8 @@ from st2common.runners.base import ActionRunner
 from st2common.util import jsonify
 from winrm import Session, Response
 from winrm.exceptions import WinRMOperationTimeoutError
+import re
+import six
 import time
 
 __all__ = [
@@ -34,6 +36,7 @@ LOG = logging.getLogger(__name__)
 RUNNER_CWD = 'cwd'
 RUNNER_ENV = 'env'
 RUNNER_HOST = "host"
+RUNNER_KWARG_OP = 'kwarg_op'
 RUNNER_PASSWORD = "password"
 RUNNER_PORT = "port"
 RUNNER_SCHEME = "scheme"
@@ -47,11 +50,31 @@ WINRM_HTTP_PORT = 5985
 # explicity made so that it does not equal SUCCESS so a failure is returned
 WINRM_TIMEOUT_EXIT_CODE = exit_code_constants.SUCCESS_EXIT_CODE - 1
 
+DEFAULT_KWARG_OP = "-"
 DEFAULT_PORT = WINRM_HTTPS_PORT
 DEFAULT_SCHEME = "https"
 DEFAULT_TIMEOUT = 60
 DEFAULT_TRANSPORT = "ntlm"
 DEFAULT_VERIFY_SSL = True
+
+# key = value in linux/bash to escape
+# value = powershell escaped equivalent
+#
+# Compiled list from the following sources:
+# https://ss64.com/ps/syntax-esc.html
+# https://www.techotopia.com/index.php/Windows_PowerShell_1.0_String_Quoting_and_Escape_Sequences#PowerShell_Special_Escape_Sequences
+PS_ESCAPE_SEQUENCES = {'\n': '`n',
+                       '\r': '`r',
+                       '\t': '`t',
+                       '\a': '`a',
+                       '\b': '`b',
+                       '\f': '`f',
+                       '\v': '`v',
+                       '"': '`"',
+                       '\'': '`\'',
+                       '`': '``',
+                       '\0': '`0',
+                       '$': '`$'}
 
 
 class WinRMRunnerTimoutError(Exception):
@@ -63,37 +86,49 @@ class WinRMRunnerTimoutError(Exception):
 class WinRmBaseRunner(ActionRunner):
     KEYS_TO_TRANSFORM = ['stdout', 'stderr']
 
-    def _create_session(self, action_parameters):
+    def pre_run(self):
+        super(WinRmBaseRunner, self).pre_run()
+
         # common connection parameters
-        host = self.runner_parameters[RUNNER_HOST]
-        username = self.runner_parameters[RUNNER_USERNAME]
-        password = self.runner_parameters[RUNNER_PASSWORD]
-        timeout = self.runner_parameters.get(RUNNER_TIMEOUT, DEFAULT_TIMEOUT)
-        read_timeout = timeout + 1  # read_timeout must be > operation_timeout
+        self._host = self.runner_parameters[RUNNER_HOST]
+        self._username = self.runner_parameters[RUNNER_USERNAME]
+        self._password = self.runner_parameters[RUNNER_PASSWORD]
+        self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, DEFAULT_TIMEOUT)
+        self._read_timeout = self._timeout + 1  # read_timeout must be > operation_timeout
 
         # default to https port 5986 over ntlm
-        port = self.runner_parameters.get(RUNNER_PORT, DEFAULT_PORT)
-        scheme = self.runner_parameters.get(RUNNER_SCHEME, DEFAULT_SCHEME)
-        transport = self.runner_parameters.get(RUNNER_TRANSPORT, DEFAULT_TRANSPORT)
+        self._port = self.runner_parameters.get(RUNNER_PORT, DEFAULT_PORT)
+        self._scheme = self.runner_parameters.get(RUNNER_SCHEME, DEFAULT_SCHEME)
+        self._transport = self.runner_parameters.get(RUNNER_TRANSPORT, DEFAULT_TRANSPORT)
 
         # if connecting to the HTTP port then we must use "http" as the scheme
         # in the URL
-        if port == WINRM_HTTP_PORT:
-            scheme = "http"
+        if self._port == WINRM_HTTP_PORT:
+            self._scheme = "http"
+
+        # construct the URL for connecting to WinRM on the host
+        self._winrm_url = '{}://{}:{}/wsman'.format(self._scheme, self._host, self._port)
 
         # default to verifying SSL certs
-        verify_ssl = self.runner_parameters.get(RUNNER_VERIFY_SSL, DEFAULT_VERIFY_SSL)
-        winrm_cert_validate = "validate" if verify_ssl else "ignore"
+        self._verify_ssl = self.runner_parameters.get(RUNNER_VERIFY_SSL, DEFAULT_VERIFY_SSL)
+        self._server_cert_validation = "validate" if self._verify_ssl else "ignore"
 
+
+        self._cwd = self.runner_parameters.get(RUNNER_CWD, None)
+        self._env = self.runner_parameters.get(RUNNER_ENV, {})
+        self._env = self._env or {}
+        self._kwarg_op = self.runner_parameters.get(RUNNER_KWARG_OP, DEFAULT_KWARG_OP)
+        self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, DEFAULT_TIMEOUT)
+
+    def _create_session(self, action_parameters):
         # create the session
-        winrm_url = '{}://{}:{}/wsman'.format(scheme, host, port)
-        LOG.info("Connecting via WinRM to url: {}".format(winrm_url))
-        session = Session(winrm_url,
-                          auth=(username, password),
-                          transport=transport,
-                          server_cert_validation=winrm_cert_validate,
-                          operation_timeout_sec=timeout,
-                          read_timeout_sec=read_timeout)
+        LOG.info("Connecting via WinRM to url: {}".format(self._winrm_url))
+        session = Session(self._winrm_url,
+                          auth=(self._username, self._password),
+                          transport=self._transport,
+                          server_cert_validation=self._server_cert_validation,
+                          operation_timeout_sec=self._timeout,
+                          read_timeout_sec=self._read_timeout)
         return session
 
     def _winrm_get_command_output(self, protocol, shell_id, command_id):
@@ -102,13 +137,12 @@ class WinRmBaseRunner(ActionRunner):
         stdout_buffer, stderr_buffer = [], []
         return_code = 0
         command_done = False
-        timeout = self.runner_parameters[RUNNER_TIMEOUT]
         start_time = time.time()
         while not command_done:
             # check if we need to timeout (StackStorm custom)
             current_time = time.time()
             elapsed_time = (current_time - start_time)
-            if timeout and (elapsed_time > timeout):
+            if self._timeout and (elapsed_time > self._timeout):
                 raise WinRMRunnerTimoutError(Response((b''.join(stdout_buffer),
                                                        b''.join(stderr_buffer),
                                                        WINRM_TIMEOUT_EXIT_CODE)))
@@ -133,10 +167,9 @@ class WinRmBaseRunner(ActionRunner):
         command_id = session.protocol.run_command(shell_id, command, args)
         # try/catch is for custom timeout handing (StackStorm custom)
         try:
-            stdout, stderr, return_code = self._winrm_get_command_output(session.protocol,
-                                                                         shell_id,
-                                                                         command_id)
-            rs = Response(stdout, stderr, return_code)
+            rs = Response(self._winrm_get_command_output(session.protocol,
+                                                         shell_id,
+                                                         command_id))
             rs.timeout = False
         except WinRMRunnerTimoutError as e:
             rs = e.response
@@ -161,13 +194,10 @@ class WinRmBaseRunner(ActionRunner):
         return rs
 
     def _run_ps(self, action_parameters, powershell):
-        env = self.runner_parameters.get(RUNNER_ENV, None)
-        cwd = self.runner_parameters.get(RUNNER_CWD, None)
-
         # connect
         session = self._create_session(action_parameters)
         # execute
-        response = self._winrm_run_ps(session, powershell, env=env, cwd=cwd)
+        response = self._winrm_run_ps(session, powershell, env=self._env, cwd=self._cwd)
         # create triplet from WinRM response
         return self._translate_response(response)
 
@@ -192,3 +222,59 @@ class WinRmBaseRunner(ActionRunner):
         # automatically convert result stdout/stderr from JSON strings to
         # objects so they can be used natively
         return (status, jsonify.json_loads(result, WinRmBaseRunner.KEYS_TO_TRANSFORM), None)
+
+    def transform_params_to_ps(self, positional_args, named_args):
+        for i, arg in enumerate(positional_args):
+            positional_args[i] = self._param_to_ps(arg)
+
+        for key, value in six.iteritems(named_args):
+            named_args[key] = self._param_to_ps(value)
+
+        return positional_args, named_args
+
+    def _param_to_ps(self, param):
+        ps_str = ""
+        if isinstance(param, six.string_types):
+            ps_str = '"' + self._multireplace(param, PS_ESCAPE_SEQUENCES) + '"'
+        elif isinstance(param, bool):
+            ps_str = "$true" if param else "$false"
+        elif isinstance(param, list):
+            ps_str = "@("
+            ps_str += ", ".join([self._param_to_ps(p) for p in param])
+            ps_str += ")"
+        elif isinstance(param, dict):
+            ps_str = "@{"
+            ps_str += "; ".join([(self._param_to_ps(k) + ' = ' + self._param_to_ps(v))
+                                 for k, v in six.iteritems(param)])
+            ps_str += "}"
+        else:
+            ps_str = str(param)
+        return ps_str
+
+    def _multireplace(self, string, replacements):
+        """
+        Given a string and a replacement map, it returns the replaced string.
+        Source = https://gist.github.com/bgusach/a967e0587d6e01e889fd1d776c5f3729
+        Reference = https://stackoverflow.com/questions/6116978/how-to-replace-multiple-substrings-of-a-string
+        :param str string: string to execute replacements on
+        :param dict replacements: replacement dictionary {value to find: value to replace}
+        :rtype: str
+        """
+        # Place longer ones first to keep shorter substrings from matching where
+        # the longer ones should take place
+        # For instance given the replacements {'ab': 'AB', 'abc': 'ABC'} against
+        # the string 'hey abc', it should produce 'hey ABC' and not 'hey ABc'
+        substrs = sorted(replacements, key=len, reverse=True)
+
+        # Create a big OR regex that matches any of the substrings to replace
+        regexp = re.compile('|'.join([re.escape(s) for s in substrs]))
+
+        # For each match, look up the new string in the replacements
+        return regexp.sub(lambda match: replacements[match.group(0)], string)
+
+    def create_ps_params_string(self, positional_args, named_args):
+        ps_params_str = ""
+        ps_params_str += " " .join([(k + " " + v) for k, v in six.iteritems(named_args)])
+        ps_params_str +=" "
+        ps_params_str += " ".join(positional_args)
+        return ps_params_str

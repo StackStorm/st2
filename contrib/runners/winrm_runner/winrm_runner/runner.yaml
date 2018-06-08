@@ -18,6 +18,10 @@
       description: A host where the command will be run
       required: true
       type: string
+    kwarg_op:
+      default: -
+      description: Operator to use in front of keyword args i.e. "-" or "/".
+      type: string
     password:
       description: Password used to log in.
       required: true
@@ -78,6 +82,10 @@
     host:
       description: A host where the command will be run
       required: true
+      type: string
+    kwarg_op:
+      default: -
+      description: Operator to use in front of keyword args i.e. "-" or "/".
       type: string
     password:
       description: Password used to log in.
