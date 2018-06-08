@@ -14,8 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 import re
+import collections
 
 from st2common.util import schema as util_schema
 from st2common.constants.pack import MANIFEST_FILE_NAME
@@ -109,7 +111,12 @@ def validate_config_against_schema(config_schema, config_object, config_path,
                                        allow_default_none=True)
     except jsonschema.ValidationError as e:
         attribute = getattr(e, 'path', [])
-        attribute = '.'.join(attribute)
+
+        if isinstance(attribute, (tuple, list, collections.Iterable)):
+            attribute = [str(item) for item in attribute]
+            attribute = '.'.join(attribute)
+        else:
+            attribute = str(attribute)
 
         msg = ('Failed validating attribute "%s" in config for pack "%s" (%s): %s' %
                (attribute, pack_name, config_path, str(e)))
