@@ -69,6 +69,7 @@ Fixed
 
   Contributed by Nick Maludy (Encore Technologies).
 * Style clean up to transport queues module and various config modules. (improvement)
+* Fixed CLI help for ``st2 action-alias match`` and ``execute``. (#4174).
 
 2.7.2 - May 16, 2018
 --------------------
