@@ -34,10 +34,10 @@ __all__ = [
 
 LOG = logging.getLogger(__name__)
 
-RUNNER_CWD = 'cwd'
-RUNNER_ENV = 'env'
+RUNNER_CWD = "cwd"
+RUNNER_ENV = "env"
 RUNNER_HOST = "host"
-RUNNER_KWARG_OP = 'kwarg_op'
+RUNNER_KWARG_OP = "kwarg_op"
 RUNNER_PASSWORD = "password"
 RUNNER_PORT = "port"
 RUNNER_SCHEME = "scheme"
@@ -58,7 +58,7 @@ DEFAULT_TIMEOUT = 60
 DEFAULT_TRANSPORT = "ntlm"
 DEFAULT_VERIFY_SSL = True
 
-RESULT_KEYS_TO_TRANSFORM = ['stdout', 'stderr']
+RESULT_KEYS_TO_TRANSFORM = ["stdout", "stderr"]
 
 # key = value in linux/bash to escape
 # value = powershell escaped equivalent
@@ -109,7 +109,7 @@ class WinRmBaseRunner(ActionRunner):
             self._scheme = "http"
 
         # construct the URL for connecting to WinRM on the host
-        self._winrm_url = '{}://{}:{}/wsman'.format(self._scheme, self._host, self._port)
+        self._winrm_url = "{}://{}:{}/wsman".format(self._scheme, self._host, self._port)
 
         # default to verifying SSL certs
         self._verify_ssl = self.runner_parameters.get(RUNNER_VERIFY_SSL, DEFAULT_VERIFY_SSL)
@@ -121,7 +121,7 @@ class WinRmBaseRunner(ActionRunner):
         self._env = self._env or {}
         self._kwarg_op = self.runner_parameters.get(RUNNER_KWARG_OP, DEFAULT_KWARG_OP)
 
-    def _create_session(self, action_parameters):
+    def _create_session(self):
         # create the session
         LOG.info("Connecting via WinRM to url: {}".format(self._winrm_url))
         session = Session(self._winrm_url,
@@ -162,7 +162,9 @@ class WinRmBaseRunner(ActionRunner):
 
     def _winrm_run_cmd(self, session, command, args=(), env=None, cwd=None):
         # NOTE: this is copied from pywinrm because it doesn't support
-        # passing env and working_directory from the Session.run_cmd
+        # passing env and working_directory from the Session.run_cmd.
+        # It also doesn't support timeouts. All of these things have been
+        # added
         shell_id = session.protocol.open_shell(env_vars=env,
                                                working_directory=cwd)
         command_id = session.protocol.run_command(shell_id, command, args)
@@ -194,9 +196,9 @@ class WinRmBaseRunner(ActionRunner):
             rs.std_err = session._clean_error_msg(rs.std_err)
         return rs
 
-    def _run_ps(self, action_parameters, powershell):
+    def _run_ps(self, powershell):
         # connect
-        session = self._create_session(action_parameters)
+        session = self._create_session()
         # execute
         response = self._winrm_run_ps(session, powershell, env=self._env, cwd=self._cwd)
         # create triplet from WinRM response

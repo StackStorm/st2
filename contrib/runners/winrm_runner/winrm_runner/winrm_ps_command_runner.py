@@ -37,7 +37,7 @@ class WinRmPsCommandRunner(WinRmBaseRunner):
         powershell_command = self.runner_parameters[RUNNER_COMMAND]
 
         # execute
-        return self._run_ps(action_parameters, powershell_command)
+        return self._run_ps(powershell_command)
 
 
 def get_runner():
