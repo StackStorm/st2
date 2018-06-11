@@ -15,6 +15,10 @@
 
 from __future__ import absolute_import
 
+import re
+import six
+import time
+
 from base64 import b64encode
 from st2common import log as logging
 from st2common.constants import action as action_constants
@@ -23,9 +27,6 @@ from st2common.runners.base import ActionRunner
 from st2common.util import jsonify
 from winrm import Session, Response
 from winrm.exceptions import WinRMOperationTimeoutError
-import re
-import six
-import time
 
 __all__ = [
     'WinRmBaseRunner',
@@ -57,6 +58,8 @@ DEFAULT_TIMEOUT = 60
 DEFAULT_TRANSPORT = "ntlm"
 DEFAULT_VERIFY_SSL = True
 
+RESULT_KEYS_TO_TRANSFORM = ['stdout', 'stderr']
+
 # key = value in linux/bash to escape
 # value = powershell escaped equivalent
 #
@@ -77,14 +80,13 @@ PS_ESCAPE_SEQUENCES = {'\n': '`n',
                        '$': '`$'}
 
 
-class WinRMRunnerTimoutError(Exception):
+class WinRmRunnerTimoutError(Exception):
 
     def __init__(self, response):
         self.response = response
 
 
 class WinRmBaseRunner(ActionRunner):
-    KEYS_TO_TRANSFORM = ['stdout', 'stderr']
 
     def pre_run(self):
         super(WinRmBaseRunner, self).pre_run()
@@ -142,7 +144,7 @@ class WinRmBaseRunner(ActionRunner):
             current_time = time.time()
             elapsed_time = (current_time - start_time)
             if self._timeout and (elapsed_time > self._timeout):
-                raise WinRMRunnerTimoutError(Response((b''.join(stdout_buffer),
+                raise WinRmRunnerTimoutError(Response((b''.join(stdout_buffer),
                                                        b''.join(stderr_buffer),
                                                        WINRM_TIMEOUT_EXIT_CODE)))
             # end stackstorm custom
@@ -170,7 +172,7 @@ class WinRmBaseRunner(ActionRunner):
                                                          shell_id,
                                                          command_id))
             rs.timeout = False
-        except WinRMRunnerTimoutError as e:
+        except WinRmRunnerTimoutError as e:
             rs = e.response
             rs.timeout = True
         # end stackstorm custom
@@ -220,7 +222,7 @@ class WinRmBaseRunner(ActionRunner):
 
         # automatically convert result stdout/stderr from JSON strings to
         # objects so they can be used natively
-        return (status, jsonify.json_loads(result, WinRmBaseRunner.KEYS_TO_TRANSFORM), None)
+        return (status, jsonify.json_loads(result, RESULT_KEYS_TO_TRANSFORM), None)
 
     def transform_params_to_ps(self, positional_args, named_args):
         for i, arg in enumerate(positional_args):

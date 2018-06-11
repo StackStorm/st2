@@ -19,7 +19,7 @@
       required: true
       type: string
     kwarg_op:
-      default: -
+      default: "-"
       description: Operator to use in front of keyword args i.e. "-" or "/".
       type: string
     password:
@@ -84,7 +84,7 @@
       required: true
       type: string
     kwarg_op:
-      default: -
+      default: "-"
       description: Operator to use in front of keyword args i.e. "-" or "/".
       type: string
     password:
