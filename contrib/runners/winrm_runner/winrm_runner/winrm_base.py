@@ -196,14 +196,6 @@ class WinRmBaseRunner(ActionRunner):
             rs.std_err = session._clean_error_msg(rs.std_err)
         return rs
 
-    def _run_ps(self, powershell):
-        # connect
-        session = self._create_session()
-        # execute
-        response = self._winrm_run_ps(session, powershell, env=self._env, cwd=self._cwd)
-        # create triplet from WinRM response
-        return self._translate_response(response)
-
     def _translate_response(self, response):
         # check exit status for errors
         succeeded = (response.status_code == exit_code_constants.SUCCESS_EXIT_CODE)
@@ -228,33 +220,13 @@ class WinRmBaseRunner(ActionRunner):
         # objects so they can be used natively
         return (status, jsonify.json_loads(result, RESULT_KEYS_TO_TRANSFORM), None)
 
-    def transform_params_to_ps(self, positional_args, named_args):
-        for i, arg in enumerate(positional_args):
-            positional_args[i] = self._param_to_ps(arg)
-
-        for key, value in six.iteritems(named_args):
-            named_args[key] = self._param_to_ps(value)
-
-        return positional_args, named_args
-
-    def _param_to_ps(self, param):
-        ps_str = ""
-        if isinstance(param, six.string_types):
-            ps_str = '"' + self._multireplace(param, PS_ESCAPE_SEQUENCES) + '"'
-        elif isinstance(param, bool):
-            ps_str = "$true" if param else "$false"
-        elif isinstance(param, list):
-            ps_str = "@("
-            ps_str += ", ".join([self._param_to_ps(p) for p in param])
-            ps_str += ")"
-        elif isinstance(param, dict):
-            ps_str = "@{"
-            ps_str += "; ".join([(self._param_to_ps(k) + ' = ' + self._param_to_ps(v))
-                                 for k, v in six.iteritems(param)])
-            ps_str += "}"
-        else:
-            ps_str = str(param)
-        return ps_str
+    def _run_ps(self, powershell):
+        # connect
+        session = self._create_session()
+        # execute
+        response = self._winrm_run_ps(session, powershell, env=self._env, cwd=self._cwd)
+        # create triplet from WinRM response
+        return self._translate_response(response)
 
     def _multireplace(self, string, replacements):
         """
@@ -276,6 +248,34 @@ class WinRmBaseRunner(ActionRunner):
 
         # For each match, look up the new string in the replacements
         return regexp.sub(lambda match: replacements[match.group(0)], string)
+
+    def _param_to_ps(self, param):
+        ps_str = ""
+        if isinstance(param, six.string_types):
+            ps_str = '"' + self._multireplace(param, PS_ESCAPE_SEQUENCES) + '"'
+        elif isinstance(param, bool):
+            ps_str = "$true" if param else "$false"
+        elif isinstance(param, list):
+            ps_str = "@("
+            ps_str += ", ".join([self._param_to_ps(p) for p in param])
+            ps_str += ")"
+        elif isinstance(param, dict):
+            ps_str = "@{"
+            ps_str += "; ".join([(self._param_to_ps(k) + ' = ' + self._param_to_ps(v))
+                                 for k, v in six.iteritems(param)])
+            ps_str += "}"
+        else:
+            ps_str = str(param)
+        return ps_str
+
+    def transform_params_to_ps(self, positional_args, named_args):
+        for i, arg in enumerate(positional_args):
+            positional_args[i] = self._param_to_ps(arg)
+
+        for key, value in six.iteritems(named_args):
+            named_args[key] = self._param_to_ps(value)
+
+        return positional_args, named_args
 
     def create_ps_params_string(self, positional_args, named_args):
         ps_params_str = ""

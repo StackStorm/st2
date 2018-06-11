@@ -15,6 +15,7 @@
 
 from __future__ import absolute_import
 
+import collections
 import time
 import mock
 from base64 import b64encode
@@ -25,6 +26,7 @@ from st2common.runners.base import ActionRunner
 from st2tests.base import RunnerTestCase
 from winrm_runner.winrm_base import WinRmBaseRunner, WinRmRunnerTimoutError
 from winrm_runner.winrm_base import WINRM_TIMEOUT_EXIT_CODE
+from winrm_runner.winrm_base import PS_ESCAPE_SEQUENCES
 from winrm_runner import winrm_ps_command_runner
 
 
@@ -420,6 +422,7 @@ class WinRmBaseTestCase(RunnerTestCase):
                                     'return_code': 123,
                                     'stdout': 'output1',
                                     'stderr': 'error1'},
+
                                    None))
 
     def test_translate_response_timeout(self):
@@ -434,3 +437,143 @@ class WinRmBaseTestCase(RunnerTestCase):
                                     'stdout': 'output1',
                                     'stderr': 'error1'},
                                    None))
+
+    def test_multireplace(self):
+        multireplace_map = {'a': 'x',
+                            'c': 'y',
+                            'aaa': 'z'}
+        result = self._runner._multireplace('aaaccaa', multireplace_map)
+        self.assertEquals(result, 'zyyxx')
+
+    def test_multireplace_powershell(self):
+        param_str = (
+            '\n'
+            '\r'
+            '\t'
+            '\a'
+            '\b'
+            '\f'
+            '\v'
+            '"'
+            '\''
+            '`'
+            '\0'
+            '$'
+        )
+        result = self._runner._multireplace(param_str, PS_ESCAPE_SEQUENCES)
+        self.assertEquals(result, (
+            '`n'
+            '`r'
+            '`t'
+            '`a'
+            '`b'
+            '`f'
+            '`v'
+            '`"'
+            '`\''
+            '``'
+            '`0'
+            '`$'
+        ))
+
+    def test_param_to_ps_string(self):
+        # test ascii
+        param_str = 'StackStorm 1234'
+        result = self._runner._param_to_ps(param_str)
+        self.assertEquals(result, '"StackStorm 1234"')
+
+        # test escaped
+        param_str = '\n\r\t'
+        result = self._runner._param_to_ps(param_str)
+        self.assertEquals(result, '"`n`r`t"')
+
+    def test_param_to_ps_bool(self):
+        # test True
+        result = self._runner._param_to_ps(True)
+        self.assertEquals(result, '$true')
+
+        # test False
+        result = self._runner._param_to_ps(False)
+        self.assertEquals(result, '$false')
+
+    def test_param_to_ps_integer(self):
+        result = self._runner._param_to_ps(9876)
+        self.assertEquals(result, '9876')
+
+        result = self._runner._param_to_ps(-765)
+        self.assertEquals(result, '-765')
+
+    def test_param_to_ps_float(self):
+        result = self._runner._param_to_ps(98.76)
+        self.assertEquals(result, '98.76')
+
+        result = self._runner._param_to_ps(-76.5)
+        self.assertEquals(result, '-76.5')
+
+    def test_param_to_ps_list(self):
+        input_list = ['StackStorm Test String',
+                      '`\0$',
+                      True,
+                      99]
+        result = self._runner._param_to_ps(input_list)
+        self.assertEquals(result, '@("StackStorm Test String", "```0`$", $true, 99)')
+
+    def test_param_to_ps_list_nested(self):
+        input_list = [['a'], ['b'], [['c']]]
+        result = self._runner._param_to_ps(input_list)
+        self.assertEquals(result, '@(@("a"), @("b"), @(@("c")))')
+
+    def test_param_to_ps_dict(self):
+        input_list = collections.OrderedDict(
+            [('str key', 'Value String'),
+             ('esc str\n', '\b\f\v"'),
+             (False, True),
+             (11, 99),
+             (18.3, 12.34)])
+        result = self._runner._param_to_ps(input_list)
+        expected_str = (
+            '@{"str key" = "Value String"; '
+            '"esc str`n" = "`b`f`v`\""; '
+            '$false = $true; '
+            '11 = 99; '
+            '18.3 = 12.34}'
+        )
+        self.assertEquals(result, expected_str)
+
+    def test_param_to_ps_dict_nexted(self):
+        input_list = collections.OrderedDict(
+            [('a', {'deep_a': 'value'}),
+             ('b', {'deep_b': {'deep_deep_b': 'value'}})])
+        result = self._runner._param_to_ps(input_list)
+        expected_str = (
+            '@{"a" = @{"deep_a" = "value"}; '
+            '"b" = @{"deep_b" = @{"deep_deep_b" = "value"}}}'
+        )
+        self.assertEquals(result, expected_str)
+
+    def test_param_to_ps_deep_nested_dict_outer(self):
+        ####
+        # dict as outer container
+        input_list = collections.OrderedDict(
+            [('a', [{'deep_a': 'value'},
+                    {'deep_b': ['a', 'b', 'c']}])])
+        result = self._runner._param_to_ps(input_list)
+        expected_str = (
+            '@{"a" = @(@{"deep_a" = "value"}, '
+            '@{"deep_b" = @("a", "b", "c")})}'
+        )
+        self.assertEquals(result, expected_str)
+
+    def test_param_to_ps_deep_nested_list_outer(self):
+        ####
+        # list as outer container
+        input_list = [{'deep_a': 'value'},
+                      {'deep_b': ['a', 'b', 'c']},
+                      {'deep_c': [{'x': 'y'}]}]
+        result = self._runner._param_to_ps(input_list)
+        expected_str = (
+            '@(@{"deep_a" = "value"}, '
+            '@{"deep_b" = @("a", "b", "c")}, '
+            '@{"deep_c" = @(@{"x" = "y"})})'
+        )
+        self.assertEquals(result, expected_str)
