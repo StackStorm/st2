@@ -258,10 +258,10 @@ requirements: virtualenv .sdist-requirements
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade "virtualenv==15.1.0" # Required for packs.install in dev envs.
 
 	# Generate all requirements to support current CI pipeline.
-	$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv -s st2*/in-requirements.txt -f fixed-requirements.txt -o requirements.txt
+	$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv -s st2*/in-requirements.txt contrib/runners/*/in-requirements.txt -f fixed-requirements.txt -o requirements.txt
 
 	# Generate finall requirements.txt file for each component
-	@for component in $(COMPONENTS); do\
+	@for component in $(COMPONENTS_WITH_RUNNERS); do\
 		echo "==========================================================="; \
 		echo "Generating requirements.txt for" $$component; \
 		echo "==========================================================="; \

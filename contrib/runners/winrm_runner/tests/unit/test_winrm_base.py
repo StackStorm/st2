@@ -328,3 +328,102 @@ class WinRmBaseTestCase(RunnerTestCase):
                                         env={'PATH': 'C:\\st2\\bin'},
                                         cwd='C:\\st2')
         mock_session._clean_error_msg.assert_called_with('error')
+
+    @mock.patch('winrm.Protocol')
+    def test_run_ps(self, mock_protocol_init):
+        mock_protocol = mock.MagicMock()
+        mock_protocol._raw_get_command_output.side_effect = [
+            ('output1', 'error1', 0, False),
+            ('output2', 'error2', 0, False),
+            ('output3', 'error3', 0, True)
+        ]
+        mock_protocol_init.return_value = mock_protocol
+
+        self._init_runner()
+        result = self._runner._run_ps("Get-Location")
+        self.assertEquals(result, ('succeeded',
+                                   {'failed': False,
+                                    'succeeded': True,
+                                    'return_code': 0,
+                                    'stdout': 'output1output2output3',
+                                    'stderr': 'error1error2error3'},
+                                   None))
+
+    @mock.patch('winrm.Protocol')
+    def test_run_ps_failed(self, mock_protocol_init):
+        mock_protocol = mock.MagicMock()
+        mock_protocol._raw_get_command_output.side_effect = [
+            ('output1', 'error1', 0, False),
+            ('output2', 'error2', 0, False),
+            ('output3', 'error3', 1, True)
+        ]
+        mock_protocol_init.return_value = mock_protocol
+
+        self._init_runner()
+        result = self._runner._run_ps("Get-Location")
+        self.assertEquals(result, ('failed',
+                                   {'failed': True,
+                                    'succeeded': False,
+                                    'return_code': 1,
+                                    'stdout': 'output1output2output3',
+                                    'stderr': 'error1error2error3'},
+                                   None))
+
+    @mock.patch('winrm.Protocol')
+    def test_run_ps_timeout(self, mock_protocol_init):
+        mock_protocol = mock.MagicMock()
+        def sleep_for_timeout_then_raise(*args, **kwargs):
+            time.sleep(2)
+            return ('output1', 'error1', 123, False)
+        mock_protocol._raw_get_command_output.side_effect = sleep_for_timeout_then_raise
+        mock_protocol_init.return_value = mock_protocol
+
+        self._init_runner()
+        self._runner._timeout = 1
+        result = self._runner._run_ps("Get-Location")
+        self.assertEquals(result, ('timeout',
+                                   {'failed': True,
+                                    'succeeded': False,
+                                    'return_code': -1,
+                                    'stdout': 'output1',
+                                    'stderr': 'error1'},
+                                   None))
+
+    def test_translate_response_success(self):
+        response = Response(('output1', 'error1', 0))
+        response.timeout = False
+
+        result = self._runner._translate_response(response)
+        self.assertEquals(result, ('succeeded',
+                                   {'failed': False,
+                                    'succeeded': True,
+                                    'return_code': 0,
+                                    'stdout': 'output1',
+                                    'stderr': 'error1'},
+                                   None))
+
+    def test_translate_response_failure(self):
+        response = Response(('output1', 'error1', 123))
+        response.timeout = False
+
+        result = self._runner._translate_response(response)
+        self.assertEquals(result, ('failed',
+                                   {'failed': True,
+                                    'succeeded': False,
+                                    'return_code': 123,
+                                    'stdout': 'output1',
+                                    'stderr': 'error1'},
+                                   None))
+
+    def test_translate_response_timeout(self):
+        response = Response(('output1', 'error1', 123))
+        response.timeout = True
+
+        result = self._runner._translate_response(response)
+        self.assertEquals(result, ('timeout',
+                                   {'failed': True,
+                                    'succeeded': False,
+                                    'return_code': -1,
+                                    'stdout': 'output1',
+                                    'stderr': 'error1'},
+                                   None))

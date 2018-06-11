@@ -208,8 +208,10 @@ class WinRmBaseRunner(ActionRunner):
         # check exit status for errors
         succeeded = (response.status_code == exit_code_constants.SUCCESS_EXIT_CODE)
         status = action_constants.LIVEACTION_STATUS_SUCCEEDED
+        status_code = response.status_code
         if response.timeout:
             status = action_constants.LIVEACTION_STATUS_TIMED_OUT
+            status_code = WINRM_TIMEOUT_EXIT_CODE
         elif not succeeded:
             status = action_constants.LIVEACTION_STATUS_FAILED
 
@@ -217,7 +219,7 @@ class WinRmBaseRunner(ActionRunner):
         result = {
             'failed': not succeeded,
             'succeeded': succeeded,
-            'return_code': response.status_code,
+            'return_code': status_code,
             'stdout': response.std_out,
             'stderr': response.std_err
         }
