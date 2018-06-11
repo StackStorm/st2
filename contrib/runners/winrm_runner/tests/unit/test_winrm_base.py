@@ -27,6 +27,7 @@ from winrm_runner.winrm_base import WinRmBaseRunner, WinRmRunnerTimoutError
 from winrm_runner.winrm_base import WINRM_TIMEOUT_EXIT_CODE
 from winrm_runner import winrm_ps_command_runner
 
+
 class WinRmBaseTestCase(RunnerTestCase):
 
     def setUp(self):
@@ -212,9 +213,11 @@ class WinRmBaseTestCase(RunnerTestCase):
         self._runner._timeout = 1
 
         mock_protocol = mock.MagicMock()
+
         def sleep_for_timeout(*args, **kwargs):
             time.sleep(2)
             return ('output1', 'error1', 123, False)
+
         mock_protocol._raw_get_command_output.side_effect = sleep_for_timeout
 
         with self.assertRaises(WinRmRunnerTimoutError) as cm:
@@ -230,9 +233,11 @@ class WinRmBaseTestCase(RunnerTestCase):
         self._runner._timeout = 1
 
         mock_protocol = mock.MagicMock()
+
         def sleep_for_timeout_then_raise(*args, **kwargs):
             time.sleep(2)
             raise WinRMOperationTimeoutError()
+
         mock_protocol._raw_get_command_output.side_effect = sleep_for_timeout_then_raise
 
         with self.assertRaises(WinRmRunnerTimoutError) as cm:
@@ -372,9 +377,11 @@ class WinRmBaseTestCase(RunnerTestCase):
     @mock.patch('winrm.Protocol')
     def test_run_ps_timeout(self, mock_protocol_init):
         mock_protocol = mock.MagicMock()
+
         def sleep_for_timeout_then_raise(*args, **kwargs):
             time.sleep(2)
             return ('output1', 'error1', 123, False)
+
         mock_protocol._raw_get_command_output.side_effect = sleep_for_timeout_then_raise
         mock_protocol_init.return_value = mock_protocol
 
