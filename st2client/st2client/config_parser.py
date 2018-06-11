@@ -19,6 +19,7 @@ Module for parsing CLI config file.
 
 from __future__ import absolute_import
 
+import logging
 import os
 
 from collections import defaultdict
@@ -120,6 +121,8 @@ for section, keys in six.iteritems(CONFIG_FILE_OPTIONS):
 
 
 class CLIConfigParser(object):
+    LOG = logging.getLogger(__name__)  # logger instance to use
+
     def __init__(self, config_file_path, validate_config_exists=True):
         if validate_config_exists and not os.path.isfile(config_file_path):
             raise ValueError('Config file "%s" doesn\'t exist')
@@ -137,6 +140,40 @@ class CLIConfigParser(object):
         if not os.path.isfile(self.config_file_path):
             # Config doesn't exist, return the default values
             return CONFIG_DEFAULT_VALUES
+
+        config_dir_path = os.path.dirname(self.config_file_path)
+
+        # Make sure the directory permissions == 0o770
+        if bool(os.stat(config_dir_path).st_mode & 0o777 ^ 0o770):
+            self.LOG.warn(
+                # TODO: Perfect place for an f-string
+                "The StackStorm configuration directory permissions are "
+                "insecure (too permissive)."
+                "\n\n"
+                "You can fix this by running:"
+                "\n\n"
+                "chmod 770 {config_dir}".format(config_dir=config_dir_path))
+
+        # Make sure the setgid bit is set on the directory
+        if not bool(os.stat(config_dir_path).st_mode & 0o2000):
+            self.LOG.info(
+                # TODO: Perfect place for an f-string
+                "The SGID bit is not set on the StackStorm configuration "
+                "directory."
+                "\n\n"
+                "You can fix this by running:"
+                "\n\n"
+                "chmod g+s {config_dir}".format(config_dir=config_dir_path))
+
+        # Make sure the file permissions == 0o660
+        if bool(os.stat(self.config_file_path).st_mode & 0o777 ^ 0o660):
+            self.LOG.warn(
+                # TODO: Another perfect place for an f-string
+                "The StackStorm configuration file permissions are insecure."
+                "\n\n"
+                "You can fix this by running:"
+                "\n\n"
+                "chmod 660 {config_file}".format(config_file=self.config_file_path))
 
         config = ConfigParser()
         with io.open(self.config_file_path, 'r', encoding='utf8') as fp:

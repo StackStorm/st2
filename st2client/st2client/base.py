@@ -225,7 +225,10 @@ class BaseCLIApp(object):
         :rtype: ``str``
         """
         if not os.path.isdir(ST2_CONFIG_DIRECTORY):
-            os.makedirs(ST2_CONFIG_DIRECTORY)
+            os.makedirs(ST2_CONFIG_DIRECTORY, mode=0o2770)
+            # os.makedirs straight up ignores the setgid bit, so we have to set
+            # it manually
+            os.chmod(ST2_CONFIG_DIRECTORY, 0o2770)
 
         cached_token_path = self._get_cached_token_path_for_user(username=username)
 
@@ -253,7 +256,7 @@ class BaseCLIApp(object):
         file_st_mode = oct(os.stat(cached_token_path).st_mode & 0o777)
         others_st_mode = int(file_st_mode[-1])
 
-        if others_st_mode >= 4:
+        if others_st_mode >= 2:
             # Every user has access to this file which is dangerous
             message = ('Permissions (%s) for cached token file "%s" are to permissive. Please '
                        'restrict the permissions and make sure only your own user can read '
@@ -290,7 +293,10 @@ class BaseCLIApp(object):
         :type token_obj: ``object``
         """
         if not os.path.isdir(ST2_CONFIG_DIRECTORY):
-            os.makedirs(ST2_CONFIG_DIRECTORY)
+            os.makedirs(ST2_CONFIG_DIRECTORY, mode=0o2770)
+            # os.makedirs straight up ignores the setgid bit, so we have to set
+            # it manually
+            os.chmod(ST2_CONFIG_DIRECTORY, 0o2770)
 
         username = token_obj.user
         cached_token_path = self._get_cached_token_path_for_user(username=username)
@@ -326,9 +332,10 @@ class BaseCLIApp(object):
         # open + chmod are two operations which means that during a short time frame (between
         # open and chmod) when file can potentially be read by other users if the default
         # permissions used during create allow that.
-        fd = os.open(cached_token_path, os.O_WRONLY | os.O_CREAT, 0o600)
+        fd = os.open(cached_token_path, os.O_WRONLY | os.O_CREAT, 0o660)
         with os.fdopen(fd, 'w') as fp:
             fp.write(data)
+        os.chmod(cached_token_path, 0o660)
 
         self.LOG.debug('Token has been cached in "%s"' % (cached_token_path))
         return True

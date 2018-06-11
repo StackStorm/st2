@@ -465,8 +465,12 @@ class ShellTestCase(base.BaseCLITestCase):
 class CLITokenCachingTestCase(unittest2.TestCase):
     def setUp(self):
         super(CLITokenCachingTestCase, self).setUp()
-        self._mock_config_directory_path = tempfile.mkdtemp()
+        self._mock_temp_dir_path = tempfile.mkdtemp()
+        self._mock_config_directory_path = os.path.join(self._mock_temp_dir_path, 'testconfig')
         self._mock_config_path = os.path.join(self._mock_config_directory_path, 'config')
+
+        os.makedirs(self._mock_config_directory_path)
+
         self._p1 = mock.patch('st2client.base.ST2_CONFIG_DIRECTORY',
                               self._mock_config_directory_path)
         self._p2 = mock.patch('st2client.base.ST2_CONFIG_PATH',
@@ -508,7 +512,7 @@ class CLITokenCachingTestCase(unittest2.TestCase):
             fp.write(json.dumps(data))
 
         # 1. Current user doesn't have read access to the config directory
-        os.chmod(self._mock_config_directory_path, 0000)
+        os.chmod(self._mock_config_directory_path, 0o000)
 
         shell.LOG = mock.Mock()
         result = shell._get_cached_auth_token(client=client, username=username,
@@ -524,7 +528,7 @@ class CLITokenCachingTestCase(unittest2.TestCase):
 
         # 2. Read access on the directory, but not on the cached token file
         os.chmod(self._mock_config_directory_path, 0o777)  # nosec
-        os.chmod(cached_token_path, 0000)
+        os.chmod(cached_token_path, 0o000)
 
         shell.LOG = mock.Mock()
         result = shell._get_cached_auth_token(client=client, username=username,
@@ -570,7 +574,7 @@ class CLITokenCachingTestCase(unittest2.TestCase):
             fp.write(json.dumps(data))
 
         # 1. Current user has no write access to the parent directory
-        os.chmod(self._mock_config_directory_path, 0000)
+        os.chmod(self._mock_config_directory_path, 0o000)
 
         shell.LOG = mock.Mock()
         shell._cache_auth_token(token_obj=token_db)
@@ -584,7 +588,7 @@ class CLITokenCachingTestCase(unittest2.TestCase):
 
         # 2. Current user has no write access to the cached token file
         os.chmod(self._mock_config_directory_path, 0o777)  # nosec
-        os.chmod(cached_token_path, 0000)
+        os.chmod(cached_token_path, 0o000)
 
         shell.LOG = mock.Mock()
         shell._cache_auth_token(token_obj=token_db)
