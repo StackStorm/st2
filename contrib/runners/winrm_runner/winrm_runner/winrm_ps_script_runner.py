@@ -44,9 +44,6 @@ class WinRmPsScriptRunner(WinRmBaseRunner, ShellRunnerMixin):
         positional_args, named_args = self._get_script_args(action_parameters)
         named_args = self._transform_named_args(named_args)
 
-        # convert the script parameters into powershell strings
-        positional_args, named_args = self.transform_params_to_ps(positional_args,
-                                                                  named_args)
         # build a string from all of the named and positional arguments
         # this will be our full parameter list when executing the script
         ps_params = self.create_ps_params_string(positional_args, named_args)

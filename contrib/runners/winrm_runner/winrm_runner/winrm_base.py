@@ -268,7 +268,7 @@ class WinRmBaseRunner(ActionRunner):
             ps_str = str(param)
         return ps_str
 
-    def transform_params_to_ps(self, positional_args, named_args):
+    def _transform_params_to_ps(self, positional_args, named_args):
         for i, arg in enumerate(positional_args):
             positional_args[i] = self._param_to_ps(arg)
 
@@ -278,6 +278,10 @@ class WinRmBaseRunner(ActionRunner):
         return positional_args, named_args
 
     def create_ps_params_string(self, positional_args, named_args):
+        # convert the script parameters into powershell strings
+        positional_args, named_args = self._transform_params_to_ps(positional_args,
+                                                                   named_args)
+        # concatenate them into a long string
         ps_params_str = ""
         ps_params_str += " " .join([(k + " " + v) for k, v in six.iteritems(named_args)])
         ps_params_str += " "

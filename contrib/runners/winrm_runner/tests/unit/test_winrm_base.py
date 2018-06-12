@@ -212,12 +212,12 @@ class WinRmBaseTestCase(RunnerTestCase):
         ]
 
     def test_get_command_output_timeout(self):
-        self._runner._timeout = 1
+        self._runner._timeout = 0.1
 
         mock_protocol = mock.MagicMock()
 
         def sleep_for_timeout(*args, **kwargs):
-            time.sleep(2)
+            time.sleep(0.2)
             return ('output1', 'error1', 123, False)
 
         mock_protocol._raw_get_command_output.side_effect = sleep_for_timeout
@@ -232,12 +232,12 @@ class WinRmBaseTestCase(RunnerTestCase):
         mock_protocol._raw_get_command_output.assert_called_with(567, 890)
 
     def test_get_command_output_operation_timeout(self):
-        self._runner._timeout = 1
+        self._runner._timeout = 0.1
 
         mock_protocol = mock.MagicMock()
 
         def sleep_for_timeout_then_raise(*args, **kwargs):
-            time.sleep(2)
+            time.sleep(0.2)
             raise WinRMOperationTimeoutError()
 
         mock_protocol._raw_get_command_output.side_effect = sleep_for_timeout_then_raise
@@ -379,16 +379,16 @@ class WinRmBaseTestCase(RunnerTestCase):
     @mock.patch('winrm.Protocol')
     def test_run_ps_timeout(self, mock_protocol_init):
         mock_protocol = mock.MagicMock()
+        self._init_runner()
+        self._runner._timeout = 0.1
 
         def sleep_for_timeout_then_raise(*args, **kwargs):
-            time.sleep(2)
+            time.sleep(0.2)
             return ('output1', 'error1', 123, False)
 
         mock_protocol._raw_get_command_output.side_effect = sleep_for_timeout_then_raise
         mock_protocol_init.return_value = mock_protocol
 
-        self._init_runner()
-        self._runner._timeout = 1
         result = self._runner._run_ps("Get-Location")
         self.assertEquals(result, ('timeout',
                                    {'failed': True,
@@ -554,10 +554,10 @@ class WinRmBaseTestCase(RunnerTestCase):
     def test_param_to_ps_deep_nested_dict_outer(self):
         ####
         # dict as outer container
-        input_list = collections.OrderedDict(
+        input_dict = collections.OrderedDict(
             [('a', [{'deep_a': 'value'},
                     {'deep_b': ['a', 'b', 'c']}])])
-        result = self._runner._param_to_ps(input_list)
+        result = self._runner._param_to_ps(input_dict)
         expected_str = (
             '@{"a" = @(@{"deep_a" = "value"}, '
             '@{"deep_b" = @("a", "b", "c")})}'
@@ -577,3 +577,35 @@ class WinRmBaseTestCase(RunnerTestCase):
             '@{"deep_c" = @(@{"x" = "y"})})'
         )
         self.assertEquals(result, expected_str)
+
+    def test_transform_params_to_ps(self):
+        positional_args = [1, 'a', '\n']
+        named_args = collections.OrderedDict(
+            [('a', 'value1'),
+             ('b', True),
+             ('c', ['x', 'y']),
+             ('d', {'z': 'w'})]
+        )
+
+        result_pos, result_named = self._runner._transform_params_to_ps(positional_args,
+                                                                        named_args)
+        self.assertEquals(result_pos, ['1', '"a"', '"`n"'])
+        self.assertEquals(result_named, collections.OrderedDict([
+            ('a', '"value1"'),
+            ('b', '$true'),
+            ('c', '@("x", "y")'),
+            ('d', '@{"z" = "w"}')]))
+
+    def test_create_ps_params_string(self):
+        positional_args = [1, 'a', '\n']
+        named_args = collections.OrderedDict(
+            [('-a', 'value1'),
+             ('-b', True),
+             ('-c', ['x', 'y']),
+             ('-d', {'z': 'w'})]
+        )
+
+        result = self._runner.create_ps_params_string(positional_args, named_args)
+
+        self.assertEquals(result,
+                          '-a "value1" -b $true -c @("x", "y") -d @{"z" = "w"} 1 "a" "`n"')
