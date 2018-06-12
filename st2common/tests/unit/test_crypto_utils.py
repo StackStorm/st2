@@ -121,6 +121,17 @@ class CryptoUtilsKeyczarCompatibilityTestCase(TestCase):
     fully compatible with keyczar output format and also return keyczar based format.
     """
 
+    def test_aes_key_class(self):
+        # 1. Unsupported mode
+        expected_msg = 'Unsupported mode: EBC'
+        self.assertRaisesRegexp(ValueError, expected_msg, AESKey, aes_key_string='a',
+                                hmac_key_string='b', hmac_key_size=128, mode='EBC')
+
+        # 2. AES key is too small
+        expected_msg = 'Unsafe key size: 64'
+        self.assertRaisesRegexp(ValueError, expected_msg, AESKey, aes_key_string='a',
+                                hmac_key_string='b', hmac_key_size=128, mode='CBC', size=64)
+
     def test_loading_keys_from_keyczar_formatted_key_files(self):
         key_path = os.path.join(KEY_FIXTURES_PATH, 'one.json')
         aes_key = read_crypto_key(key_path=key_path)
