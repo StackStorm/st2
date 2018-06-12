@@ -88,7 +88,7 @@ class AESKey(object):
     size = None
 
     def __init__(self, aes_key_string, hmac_key_string, hmac_key_size, mode='CBC', size=128):
-        if mode not in 'CBC':
+        if mode not in ['CBC']:
             raise ValueError('Unsupported mode: %s' % (mode))
 
         if size < 128:
