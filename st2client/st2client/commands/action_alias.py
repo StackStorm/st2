@@ -41,10 +41,10 @@ class ActionAliasBranch(resource.ResourceBranch):
 
         self.commands['match'] = ActionAliasMatchCommand(
             self.resource, self.app, self.subparsers,
-            add_help=False)
+            add_help=True)
         self.commands['execute'] = ActionAliasExecuteCommand(
             self.resource, self.app, self.subparsers,
-            add_help=False)
+            add_help=True)
 
 
 class ActionAliasListCommand(resource.ContentPackResourceListCommand):
@@ -69,10 +69,8 @@ class ActionAliasMatchCommand(resource.ResourceCommand):
 
         self.parser.add_argument('match_text',
                                  metavar='command',
-                                 help=help)
-        self.parser.add_argument('-h', '--help',
-                                 action='store_true', dest='help',
-                                 help='Print usage for the given action.')
+                                 help=('Get the list of %s that match the command text.' %
+                                       resource.get_display_name().lower()))
         self.parser.add_argument('-a', '--attr', nargs='+',
                                  default=self.display_attributes,
                                  help=('List of attributes to include in the '
@@ -108,10 +106,8 @@ class ActionAliasExecuteCommand(resource.ResourceCommand):
 
         self.parser.add_argument('command_text',
                                  metavar='command',
-                                 help=help)
-        self.parser.add_argument('-h', '--help',
-                                 action='store_true', dest='help',
-                                 help='Print usage for the given action.')
+                                 help=('Execute the command text by finding a matching %s.' %
+                                       resource.get_display_name().lower()))
         self.parser.add_argument('-u', '--user', type=str, default=None,
                                  help='User under which to run the action (admins only).')
 
