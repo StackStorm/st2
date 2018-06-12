@@ -197,14 +197,14 @@ class WinRmBaseTestCase(RunnerTestCase):
         self._runner._timeout = 0
         mock_protocol = mock.MagicMock()
         mock_protocol._raw_get_command_output.side_effect = [
-            ('output1', 'error1', 123, False),
-            ('output2', 'error2', 456, False),
-            ('output3', 'error3', 789, True)
+            (b'output1', b'error1', 123, False),
+            (b'output2', b'error2', 456, False),
+            (b'output3', b'error3', 789, True)
         ]
 
         result = self._runner._winrm_get_command_output(mock_protocol, 567, 890)
 
-        self.assertEquals(result, ('output1output2output3', 'error1error2error3', 789))
+        self.assertEquals(result, (b'output1output2output3', b'error1error2error3', 789))
         mock_protocol._raw_get_command_output.assert_has_calls = [
             mock.call(567, 890),
             mock.call(567, 890),
@@ -218,7 +218,7 @@ class WinRmBaseTestCase(RunnerTestCase):
 
         def sleep_for_timeout(*args, **kwargs):
             time.sleep(0.2)
-            return ('output1', 'error1', 123, False)
+            return (b'output1', b'error1', 123, False)
 
         mock_protocol._raw_get_command_output.side_effect = sleep_for_timeout
 
@@ -226,8 +226,8 @@ class WinRmBaseTestCase(RunnerTestCase):
             self._runner._winrm_get_command_output(mock_protocol, 567, 890)
 
         timeout_exception = cm.exception
-        self.assertEqual(timeout_exception.response.std_out, 'output1')
-        self.assertEqual(timeout_exception.response.std_err, 'error1')
+        self.assertEqual(timeout_exception.response.std_out, b'output1')
+        self.assertEqual(timeout_exception.response.std_err, b'error1')
         self.assertEqual(timeout_exception.response.status_code, WINRM_TIMEOUT_EXIT_CODE)
         mock_protocol._raw_get_command_output.assert_called_with(567, 890)
 
@@ -246,8 +246,8 @@ class WinRmBaseTestCase(RunnerTestCase):
             self._runner._winrm_get_command_output(mock_protocol, 567, 890)
 
         timeout_exception = cm.exception
-        self.assertEqual(timeout_exception.response.std_out, '')
-        self.assertEqual(timeout_exception.response.std_err, '')
+        self.assertEqual(timeout_exception.response.std_out, b'')
+        self.assertEqual(timeout_exception.response.std_err, b'')
         self.assertEqual(timeout_exception.response.status_code, WINRM_TIMEOUT_EXIT_CODE)
         mock_protocol._raw_get_command_output.assert_called_with(567, 890)
 
@@ -255,7 +255,7 @@ class WinRmBaseTestCase(RunnerTestCase):
         mock_protocol = mock.MagicMock()
         mock_protocol.open_shell.return_value = 123
         mock_protocol.run_command.return_value = 456
-        mock_protocol._raw_get_command_output.return_value = ('output', 'error', 9, True)
+        mock_protocol._raw_get_command_output.return_value = (b'output', b'error', 9, True)
         mock_session = mock.MagicMock(protocol=mock_protocol)
 
         self._init_runner()
@@ -263,7 +263,7 @@ class WinRmBaseTestCase(RunnerTestCase):
                                              args=['arg1', 'arg2'],
                                              env={'PATH': 'C:\\st2\\bin'},
                                              cwd='C:\\st2')
-        expected_response = Response(('output', 'error', 9))
+        expected_response = Response((b'output', b'error', 9))
         expected_response.timeout = False
 
         self.assertEquals(result.__dict__, expected_response.__dict__)
@@ -340,9 +340,9 @@ class WinRmBaseTestCase(RunnerTestCase):
     def test_run_cmd(self, mock_protocol_init):
         mock_protocol = mock.MagicMock()
         mock_protocol._raw_get_command_output.side_effect = [
-            ('output1', 'error1', 0, False),
-            ('output2', 'error2', 0, False),
-            ('output3', 'error3', 0, True)
+            (b'output1', b'error1', 0, False),
+            (b'output2', b'error2', 0, False),
+            (b'output3', b'error3', 0, True)
         ]
         mock_protocol_init.return_value = mock_protocol
 
@@ -352,17 +352,17 @@ class WinRmBaseTestCase(RunnerTestCase):
                                    {'failed': False,
                                     'succeeded': True,
                                     'return_code': 0,
-                                    'stdout': 'output1output2output3',
-                                    'stderr': 'error1error2error3'},
+                                    'stdout': b'output1output2output3',
+                                    'stderr': b'error1error2error3'},
                                    None))
 
     @mock.patch('winrm.Protocol')
     def test_run_cmd_failed(self, mock_protocol_init):
         mock_protocol = mock.MagicMock()
         mock_protocol._raw_get_command_output.side_effect = [
-            ('output1', 'error1', 0, False),
-            ('output2', 'error2', 0, False),
-            ('output3', 'error3', 1, True)
+            (b'output1', b'error1', 0, False),
+            (b'output2', b'error2', 0, False),
+            (b'output3', b'error3', 1, True)
         ]
         mock_protocol_init.return_value = mock_protocol
 
@@ -372,8 +372,8 @@ class WinRmBaseTestCase(RunnerTestCase):
                                    {'failed': True,
                                     'succeeded': False,
                                     'return_code': 1,
-                                    'stdout': 'output1output2output3',
-                                    'stderr': 'error1error2error3'},
+                                    'stdout': b'output1output2output3',
+                                    'stderr': b'error1error2error3'},
                                    None))
 
     @mock.patch('winrm.Protocol')
@@ -384,7 +384,7 @@ class WinRmBaseTestCase(RunnerTestCase):
 
         def sleep_for_timeout_then_raise(*args, **kwargs):
             time.sleep(0.2)
-            return ('output1', 'error1', 123, False)
+            return (b'output1', b'error1', 123, False)
 
         mock_protocol._raw_get_command_output.side_effect = sleep_for_timeout_then_raise
         mock_protocol_init.return_value = mock_protocol
@@ -394,17 +394,17 @@ class WinRmBaseTestCase(RunnerTestCase):
                                    {'failed': True,
                                     'succeeded': False,
                                     'return_code': -1,
-                                    'stdout': 'output1',
-                                    'stderr': 'error1'},
+                                    'stdout': b'output1',
+                                    'stderr': b'error1'},
                                    None))
 
     @mock.patch('winrm.Protocol')
     def test_run_ps(self, mock_protocol_init):
         mock_protocol = mock.MagicMock()
         mock_protocol._raw_get_command_output.side_effect = [
-            ('output1', 'error1', 0, False),
-            ('output2', 'error2', 0, False),
-            ('output3', 'error3', 0, True)
+            (b'output1', b'error1', 0, False),
+            (b'output2', b'error2', 0, False),
+            (b'output3', b'error3', 0, True)
         ]
         mock_protocol_init.return_value = mock_protocol
 
@@ -414,7 +414,7 @@ class WinRmBaseTestCase(RunnerTestCase):
                                    {'failed': False,
                                     'succeeded': True,
                                     'return_code': 0,
-                                    'stdout': 'output1output2output3',
+                                    'stdout': b'output1output2output3',
                                     'stderr': 'error1error2error3'},
                                    None))
 
@@ -422,9 +422,9 @@ class WinRmBaseTestCase(RunnerTestCase):
     def test_run_ps_failed(self, mock_protocol_init):
         mock_protocol = mock.MagicMock()
         mock_protocol._raw_get_command_output.side_effect = [
-            ('output1', 'error1', 0, False),
-            ('output2', 'error2', 0, False),
-            ('output3', 'error3', 1, True)
+            (b'output1', b'error1', 0, False),
+            (b'output2', b'error2', 0, False),
+            (b'output3', b'error3', 1, True)
         ]
         mock_protocol_init.return_value = mock_protocol
 
@@ -434,7 +434,7 @@ class WinRmBaseTestCase(RunnerTestCase):
                                    {'failed': True,
                                     'succeeded': False,
                                     'return_code': 1,
-                                    'stdout': 'output1output2output3',
+                                    'stdout': b'output1output2output3',
                                     'stderr': 'error1error2error3'},
                                    None))
 
@@ -446,7 +446,7 @@ class WinRmBaseTestCase(RunnerTestCase):
 
         def sleep_for_timeout_then_raise(*args, **kwargs):
             time.sleep(0.2)
-            return ('output1', 'error1', 123, False)
+            return (b'output1', b'error1', 123, False)
 
         mock_protocol._raw_get_command_output.side_effect = sleep_for_timeout_then_raise
         mock_protocol_init.return_value = mock_protocol
@@ -456,7 +456,7 @@ class WinRmBaseTestCase(RunnerTestCase):
                                    {'failed': True,
                                     'succeeded': False,
                                     'return_code': -1,
-                                    'stdout': 'output1',
+                                    'stdout': b'output1',
                                     'stderr': 'error1'},
                                    None))
 
