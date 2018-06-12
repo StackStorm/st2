@@ -48,6 +48,7 @@ setup(
     scripts=[],
     entry_points={
         'st2common.runners.runner': [
+            'winrm-cmd = winrm_runner.winrm_command_runner',
             'winrm-ps-cmd = winrm_runner.winrm_ps_command_runner',
             'winrm-ps-script = winrm_runner.winrm_ps_script_runner',
         ],
