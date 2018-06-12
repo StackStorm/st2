@@ -36,6 +36,15 @@ Added
   pack in question needs to support Python 3.
 
   Note 2: This feature is experimental and opt-in. (new feature) #4016 #3922 #4149
+* Added new runners: ``winrm-cmd``, ``winrm-ps-cmd`` and ``winrm-ps-script``.
+  The ``winrm-cmd`` runner executes Command Prompt commands remotely on Windows hosts using
+  the WinRM protocol. The ``winrm-ps-cmd`` and ``winrm-ps-script`` runners execute PowerShell
+  commands and scripts on remote Windows hosts using the WinRM protocol.
+  To accompany these new runners, there are two new actions ``core.winrm_cmd`` that
+  executes remote Command Prompt commands along with ``core.winrm_ps_cmd`` that
+  executes remote PowerShell commands. (new feature) #1636
+  
+  Contributed by Nick Maludy (Encore Technologies).
 
 Changed
 ~~~~~~~
@@ -53,6 +62,12 @@ Changed
   to function correctly in some scenarios is used. (improvement) #4127 #4120
 * Upgrade various internal Python library dependencies to the latest stable versions (kombu, amqp,
   gitpython, pytz, semver, oslo.utils). (improvement) #4162
+* Migrated runners to using the ``in-requirements.txt`` pattern for "components" in the build
+  system, so the ``Makefile`` correctly generates and installs runner dependencies during
+  testing and packaging. (improvement) (bugfix) #4169
+  
+  Contributed by Nick Maludy (Encore Technologies).
+  
 
 Fixed
 ~~~~~

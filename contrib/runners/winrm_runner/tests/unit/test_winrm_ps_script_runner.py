@@ -15,7 +15,6 @@
 
 from __future__ import absolute_import
 
-import collections
 import mock
 import os.path
 from st2common.runners.base import ActionRunner

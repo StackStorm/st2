@@ -220,6 +220,14 @@ class WinRmBaseRunner(ActionRunner):
         # objects so they can be used natively
         return (status, jsonify.json_loads(result, RESULT_KEYS_TO_TRANSFORM), None)
 
+    def _run_cmd(self, cmd):
+        # connect
+        session = self._create_session()
+        # execute
+        response = self._winrm_run_cmd(session, cmd, env=self._env, cwd=self._cwd)
+        # create triplet from WinRM response
+        return self._translate_response(response)
+
     def _run_ps(self, powershell):
         # connect
         session = self._create_session()

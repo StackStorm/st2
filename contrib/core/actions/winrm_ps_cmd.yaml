@@ -1,0 +1,12 @@
+
+---
+  name: "winrm_ps_cmd"
+  runner_type: "winrm-ps-cmd"
+  description: "Action to execute arbitrary Windows PowerShell command remotely via WinRM."
+  enabled: true
+  entry_point: ""
+  parameters:
+    cmd:
+      description: "Arbitrary Windows PowerShell command to be executed on the remote host."
+      type: "string"
+      required: true
