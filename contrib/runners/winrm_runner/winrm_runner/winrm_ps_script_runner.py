@@ -51,7 +51,7 @@ class WinRmPsScriptRunner(WinRmBaseRunner, ShellRunnerMixin):
         # the following wraps the script (from the file) in a script block ( {} )
         # executes it, passing in the parameters built above
         # https://docs.microsoft.com/en-us/powershell/scripting/core-powershell/console/powershell.exe-command-line-help
-        ps_script_and_params = "& { %s } %s" % (ps_script, ps_params)
+        ps_script_and_params = "& {%s} %s" % (ps_script, ps_params)
 
         # execute
         return self._run_ps(ps_script_and_params)

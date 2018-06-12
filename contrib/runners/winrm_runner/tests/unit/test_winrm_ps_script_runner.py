@@ -44,17 +44,13 @@ class WinRmPsScriptRunnerTestCase(RunnerTestCase):
     @mock.patch('winrm_runner.winrm_ps_script_runner.WinRmPsScriptRunner._run_ps')
     def test_run(self, mock_run_ps, mock_get_script_args):
         mock_run_ps.return_value = 'expected'
-        pos_args = [1, 'a']
-        named_args = collections.OrderedDict([
-            ("a", "z"),
-            ("b", True),
-            ("c", ["\r", "\n"]),
-            ("d", {"test": "value"})])
+        pos_args = [1, 'abc']
+        named_args = {"d": {"test": ["\r", True, 3]}}
         mock_get_script_args.return_value = (pos_args, named_args)
 
         self._runner.entry_point = POWERSHELL_SCRIPT_PATH
         self._runner.runner_parameters = {}
-        self._runner.kwarg_op = '-'
+        self._runner._kwarg_op = '-'
 
         result = self._runner.run({})
 
@@ -81,4 +77,5 @@ Write-Output "p_str = $p_str"
 Write-Output "p_array = $($p_array | ConvertTo-Json -Compress)"
 Write-Output "p_obj = $($p_obj | ConvertTo-Json -Compress)"
 Write-Output "p_pos0 = $p_pos0"
-Write-Output "p_pos1 = $p_pos1"} -a "z" -b $true -c @("`r", "`n") -d @{"test" = "value}''')
+Write-Output "p_pos1 = $p_pos1"
+} -d @{"test" = @("`r", $true, 3)} 1 "abc"''')
