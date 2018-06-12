@@ -178,9 +178,7 @@ class OrchestraRunnerTest(st2tests.DbTestCase):
         # Manually handle action execution completion.
         wf_svc.handle_action_execution_completion(tk3_ac_ex_db)
 
-        # Assert task3 succeeded and workflow is completed.
-        tk3_ex_db = wf_db_access.TaskExecution.get_by_id(tk3_ex_db.id)
-        self.assertEqual(tk3_ex_db.status, wf_states.SUCCEEDED)
+        # Assert workflow is completed.
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
         self.assertEqual(wf_ex_db.status, wf_states.SUCCEEDED)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
@@ -190,6 +188,82 @@ class OrchestraRunnerTest(st2tests.DbTestCase):
 
         # Check workflow output.
         expected_output = {'msg': '%s, All your base are belong to us!' % wf_input['who']}
+
+        self.assertDictEqual(wf_ex_db.output, expected_output)
+
+        # Check liveaction and action execution result.
+        expected_result = {'output': expected_output}
+
+        self.assertDictEqual(lv_ac_db.result, expected_result)
+        self.assertDictEqual(ac_ex_db.result, expected_result)
+
+    def test_run_workflow_with_action_less_tasks(self):
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'action-less-tasks.yaml')
+        wf_input = {'name': 'Thanos'}
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=wf_input)
+        lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
+
+        # Assert action execution is running.
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result)
+        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
+        self.assertEqual(wf_ex_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
+
+        # Assert task1 is already completed.
+        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task1'}
+        tk1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        tk1_ac_ex_dbs = ex_db_access.ActionExecution.query(task_execution=str(tk1_ex_db.id))
+        self.assertEqual(len(tk1_ac_ex_dbs), 0)
+        self.assertEqual(tk1_ex_db.status, wf_states.SUCCEEDED)
+
+        # Assert task2 is already completed.
+        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task2'}
+        tk2_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        tk2_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk2_ex_db.id))[0]
+        tk2_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk2_ac_ex_db.liveaction['id'])
+        self.assertEqual(tk2_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+
+        # Manually handle action execution completion.
+        wf_svc.handle_action_execution_completion(tk2_ac_ex_db)
+
+        # Assert task3 is already completed.
+        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task3'}
+        tk3_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        tk3_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk3_ex_db.id))[0]
+        tk3_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk3_ac_ex_db.liveaction['id'])
+        self.assertEqual(tk3_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+
+        # Manually handle action execution completion.
+        wf_svc.handle_action_execution_completion(tk3_ac_ex_db)
+
+        # Assert task4 is already completed.
+        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task4'}
+        tk4_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        tk4_ac_ex_dbs = ex_db_access.ActionExecution.query(task_execution=str(tk4_ex_db.id))
+        self.assertEqual(len(tk4_ac_ex_dbs), 0)
+        self.assertEqual(tk4_ex_db.status, wf_states.SUCCEEDED)
+
+        # Assert task5 is already completed.
+        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task5'}
+        tk5_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        tk5_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk5_ex_db.id))[0]
+        tk5_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk5_ac_ex_db.liveaction['id'])
+        self.assertEqual(tk5_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+
+        # Manually handle action execution completion.
+        wf_svc.handle_action_execution_completion(tk5_ac_ex_db)
+
+        # Assert workflow is completed.
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
+        self.assertEqual(wf_ex_db.status, wf_states.SUCCEEDED)
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db.id))
+        self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+
+        # Check workflow output.
+        expected_output = {'greeting': '%s, All your base are belong to us!' % wf_input['name']}
+        expected_output['greeting'] = expected_output['greeting'].upper()
 
         self.assertDictEqual(wf_ex_db.output, expected_output)
 

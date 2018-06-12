@@ -199,16 +199,6 @@ def request_cancellation(ac_ex_db):
 
 
 def request_task_execution(wf_ex_db, task_id, task_spec, task_ctx, st2_ctx):
-    # Identify the action to execute.
-    action_db = ac_db_util.get_action_by_ref(ref=task_spec.action)
-
-    if not action_db:
-        error = 'Unable to find action "%s".' % task_spec.action
-        raise ac_exc.InvalidActionReferencedException(error)
-
-    # Identify the runner for the action.
-    runner_type_db = ac_db_util.get_runnertype_by_name(action_db.runner_type['name'])
-
     # Create a record for task execution.
     task_ex_db = wf_db_models.TaskExecutionDB(
         workflow_execution=str(wf_ex_db.id),
@@ -223,6 +213,29 @@ def request_task_execution(wf_ex_db, task_id, task_spec, task_ctx, st2_ctx):
     task_ex_db = wf_db_access.TaskExecution.insert(task_ex_db, publish=False)
 
     try:
+        # Return here if no action is specified in task spec.
+        if task_spec.action is None:
+            # Set the task execution to running.
+            task_ex_db.status = states.RUNNING
+            task_ex_db = wf_db_access.TaskExecution.update(task_ex_db, publish=False)
+
+            # Fast forward task execution to completion.
+            update_task_execution(str(task_ex_db.id), states.SUCCEEDED)
+            update_task_flow(str(task_ex_db.id), publish=False)
+
+            # Refresh and return the task execution
+            return wf_db_access.TaskExecution.get_by_id(str(task_ex_db.id))
+
+        # Identify the action to execute.
+        action_db = ac_db_util.get_action_by_ref(ref=task_spec.action)
+
+        if not action_db:
+            error = 'Unable to find action "%s".' % task_spec.action
+            raise ac_exc.InvalidActionReferencedException(error)
+
+        # Identify the runner for the action.
+        runner_type_db = ac_db_util.get_runnertype_by_name(action_db.runner_type['name'])
+
         # Set context for the action execution.
         ac_ex_ctx = {
             'parent': st2_ctx,
@@ -253,7 +266,7 @@ def request_task_execution(wf_ex_db, task_id, task_spec, task_ctx, st2_ctx):
         # Request action execution.
         ac_svc.request(lv_ac_db)
 
-        # Sst the task execution to running.
+        # Set the task execution to running.
         task_ex_db.status = states.RUNNING
         task_ex_db = wf_db_access.TaskExecution.update(task_ex_db, publish=False)
     except Exception as e:
@@ -395,22 +408,44 @@ def request_next_tasks(task_ex_id):
     # Identify the list of next set of tasks.
     next_tasks = conductor.get_next_tasks(task_ex_db.task_id)
 
-    # Mark the next tasks as running in the task flow.
-    # The task should be marked before actual task execution.
+    # Mark the tasks as running in the task flow before actual task execution.
     for task in next_tasks:
         conductor.update_task_flow(task['id'], states.RUNNING)
 
     # Update workflow execution and related liveaction and action execution.
     update_execution_records(wf_ex_db, conductor)
 
-    # Request task execution for the root tasks.
-    for task in next_tasks:
-        try:
-            st2_ctx = {'execution_id': wf_ex_db.action_execution}
-            request_task_execution(wf_ex_db, task['id'], task['spec'], task['ctx'], st2_ctx)
-        except Exception as e:
-            fail_workflow_execution(str(wf_ex_db.id), e, task_id=task['id'])
-            break
+    # Iterate while there are next tasks identified for processing. In the case for
+    # task with no action execution defined, the task execution will complete
+    # immediately with a new set of tasks available.
+    while next_tasks:
+        # Mark the tasks as running in the task flow before actual task execution.
+        for task in next_tasks:
+            conductor.update_task_flow(task['id'], states.RUNNING)
+
+        # Update workflow execution and related liveaction and action execution.
+        update_execution_records(wf_ex_db, conductor)
+
+        # Request task execution for the tasks.
+        for task in next_tasks:
+            try:
+                task_id, task_spec, task_ctx = task['id'], task['spec'], task['ctx']
+                st2_ctx = {'execution_id': wf_ex_db.action_execution}
+                request_task_execution(wf_ex_db, task_id, task_spec, task_ctx, st2_ctx)
+            except Exception as e:
+                fail_workflow_execution(str(wf_ex_db.id), e, task_id=task['id'])
+                return
+
+        # Identify the next set of tasks to execute.
+        conductor, wf_ex_db = refresh_conductor(str(wf_ex_db.id))
+        next_tasks = conductor.get_next_tasks()
+
+        # Mark the tasks as running in the task flow before actual task execution.
+        for task in next_tasks:
+            conductor.update_task_flow(task['id'], states.RUNNING)
+
+        # Update workflow execution and related liveaction and action execution.
+        update_execution_records(wf_ex_db, conductor)
 
 
 @retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)

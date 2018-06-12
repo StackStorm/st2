@@ -68,3 +68,17 @@ class WiringTest(base.TestWorkflowExecution):
 
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         self.assertDictEqual(ex.result, expected_result)
+
+    def test_action_less(self):
+        wf_name = 'examples.orchestra-test-action-less-tasks'
+        wf_input = {'name': 'Thanos'}
+
+        message = 'Thanos, All your base are belong to us!'
+        expected_output = {'greeting': message.upper()}
+        expected_result = {'output': expected_output}
+
+        ex = self._execute_workflow(wf_name, wf_input)
+        ex = self._wait_for_completion(ex)
+
+        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertDictEqual(ex.result, expected_result)

@@ -69,14 +69,33 @@ class WorkflowDispatcher(consumers.MessageHandler):
         if wf_ex_db.status in states.COMPLETED_STATES:
             return
 
-        # Request task execution for the tasks.
-        for task in next_tasks:
-            try:
-                task_id, task_spec, task_ctx = task['id'], task['spec'], task['ctx']
-                st2_ctx = {'execution_id': wf_ex_db.action_execution}
-                wf_svc.request_task_execution(wf_ex_db, task_id, task_spec, task_ctx, st2_ctx)
-            except Exception as e:
-                wf_svc.fail_workflow_execution(str(wf_ex_db.id), e, task_id=task['id'])
+        # Iterate while there are next tasks identified for processing. In the case for
+        # task with no action execution defined, the task execution will complete
+        # immediately with a new set of tasks available.
+        while next_tasks:
+            # Request task execution for the tasks.
+            for task in next_tasks:
+                try:
+                    task_id, task_spec, task_ctx = task['id'], task['spec'], task['ctx']
+                    st2_ctx = {'execution_id': wf_ex_db.action_execution}
+                    wf_svc.request_task_execution(wf_ex_db, task_id, task_spec, task_ctx, st2_ctx)
+                except Exception as e:
+                    wf_svc.fail_workflow_execution(str(wf_ex_db.id), e, task_id=task['id'])
+                    return
+
+            # Identify the next set of tasks to execute.
+            conductor, wf_ex_db = wf_svc.refresh_conductor(str(wf_ex_db.id))
+            next_tasks = conductor.get_next_tasks()
+
+            # Mark the tasks as running in the task flow before actual task execution.
+            for task in next_tasks:
+                conductor.update_task_flow(task['id'], states.RUNNING)
+
+            # Update workflow execution and related liveaction and action execution.
+            wf_svc.update_execution_records(wf_ex_db, conductor)
+
+            # If workflow execution is no longer active, then stop processing here.
+            if wf_ex_db.status in states.COMPLETED_STATES:
                 break
 
 
