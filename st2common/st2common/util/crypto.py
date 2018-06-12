@@ -124,7 +124,7 @@ class AESKey(object):
         return AESKey(aes_key_string=aes_key_string, hmac_key_string=hmac_key_string,
                       hmac_key_size=key_size, mode='CBC', size=key_size)
 
-    def __json__(self):
+    def to_json(self):
         """
         Return JSON representation of this key which is fully compatible with keyczar JSON key
         file format.

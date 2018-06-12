@@ -155,7 +155,7 @@ class CryptoUtilsKeyczarCompatibilityTestCase(TestCase):
     def test_key_generation_file_format_is_fully_keyczar_compatible(self):
         # Verify that the code can read and correctly parse keyczar formatted key files
         aes_key = AESKey.generate()
-        key_json = aes_key.__json__()
+        key_json = aes_key.to_json()
         json_parsed = json.loads(key_json)
 
         expected = {

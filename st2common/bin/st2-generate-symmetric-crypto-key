@@ -44,7 +44,7 @@ def main(key_path, force=False):
     aes_key = AESKey.generate(key_size=256)
 
     with open(key_path, 'w') as key_file:
-        key_file.write(aes_key.__json__())
+        key_file.write(aes_key.to_json())
         key_file.flush()
 
     msg = ('Key written to %s. ' % key_path + 'Secure the permissions so only StackStorm API ' +
