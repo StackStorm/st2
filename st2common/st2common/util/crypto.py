@@ -308,7 +308,7 @@ def keyczar_symmetric_encrypt(encrypt_key, plaintext):
     'Initialization Vector' per run and the IV is part of the output.
 
     :param encrypt_key: Symmetric AES key to use for encryption.
-    :type encrypt_key: :class:`keyczar.keys.AESKey`
+    :type encrypt_key: :class:`AESKey`
 
     :param plaintext: Plaintext / message to be encrypted.
     :type plaintext: ``str``
