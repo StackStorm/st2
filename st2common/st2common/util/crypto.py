@@ -75,6 +75,13 @@ KEYCZAR_HEADER_SIZE = 5
 KEYCZAR_AES_BLOCK_SIZE = 16
 KEYCZAR_HLEN = sha1().digest_size
 
+# Minimum key size which can be used for symmetric crypto
+MINIMUM_AES_KEY_SIZE = 128
+
+DEFAULT_AES_KEY_SIZE = 256
+
+assert DEFAULT_AES_KEY_SIZE >= MINIMUM_AES_KEY_SIZE
+
 
 class AESKey(object):
     """
@@ -87,11 +94,12 @@ class AESKey(object):
     mode = None
     size = None
 
-    def __init__(self, aes_key_string, hmac_key_string, hmac_key_size, mode='CBC', size=128):
+    def __init__(self, aes_key_string, hmac_key_string, hmac_key_size, mode='CBC',
+                 size=DEFAULT_AES_KEY_SIZE):
         if mode not in ['CBC']:
             raise ValueError('Unsupported mode: %s' % (mode))
 
-        if size < 128:
+        if size < MINIMUM_AES_KEY_SIZE:
             raise ValueError('Unsafe key size: %s' % (size))
 
         self.aes_key_string = aes_key_string
@@ -106,13 +114,13 @@ class AESKey(object):
         self.aes_key_bytes = Base64WSDecode(self.aes_key_string)
 
     @classmethod
-    def generate(self, key_size=256):
+    def generate(self, key_size=DEFAULT_AES_KEY_SIZE):
         """
         Generate a new AES key with the corresponding HMAC key.
 
         :rtype: :class:`AESKey`
         """
-        if key_size < 128:
+        if key_size < MINIMUM_AES_KEY_SIZE:
             raise ValueError('Unsafe key size: %s' % (key_size))
 
         aes_key_bytes = os.urandom(int(key_size / 8))
