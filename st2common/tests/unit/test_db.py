@@ -15,9 +15,11 @@
 
 from __future__ import absolute_import
 import jsonschema
+
 import mock
 import mongoengine.connection
 from oslo_config import cfg
+from pymongo.errors import ConnectionFailure
 
 from st2common.constants.triggers import TRIGGER_INSTANCE_PROCESSED
 from st2common.models.system.common import ResourceReference
@@ -50,9 +52,9 @@ class DbConnectionTest(DbTestCase):
         expected_str = "host=['%s:%s']" % (cfg.CONF.database.host, cfg.CONF.database.port)
         self.assertTrue(expected_str in str(client), 'Not connected to desired host.')
 
-    @mock.patch('st2common.models.db.mongoengine', mock.Mock())
+    @mock.patch('st2common.models.db.mongoengine')
     @mock.patch('st2common.models.db.LOG')
-    def test_db_setup_connecting_info_logging(self, mock_log):
+    def test_db_setup_connecting_info_logging(self, mock_log, mock_mongoengine):
         # Verify that password is not included in the log message
         db_name = 'st2'
         db_port = '27017'
@@ -142,6 +144,29 @@ class DbConnectionTest(DbTestCase):
                                 '(replica set)" as user "user6".')
         actual_log_message = mock_log.info.call_args_list[9][0][0]
         self.assertEqual(expected_log_message, actual_log_message)
+
+        # 6. Check for error message when failing to establish a connection
+        mock_connect = mock.Mock()
+        mock_connect.admin.command = mock.Mock(side_effect=ConnectionFailure('Failed to connect'))
+        mock_mongoengine.connection.connect.return_value = mock_connect
+
+        db_host = 'mongodb://localhost:9797'
+        username = 'user_st2'
+        password = 'pass_st2'
+
+        expected_msg = 'Failed to connect'
+        self.assertRaisesRegexp(ConnectionFailure, expected_msg, db_setup,
+                                db_name=db_name, db_host=db_host, db_port=db_port,
+                                username=username, password=password)
+
+        expected_message = 'Connecting to database "st2" @ "localhost:9797" as user "user_st2".'
+        actual_message = mock_log.info.call_args_list[10][0][0]
+        self.assertEqual(expected_message, actual_message)
+
+        expected_message = ('Failed to connect to database "st2" @ "localhost:9797" as user '
+                            '"user_st2": Failed to connect')
+        actual_message = mock_log.error.call_args_list[0][0][0]
+        self.assertEqual(expected_message, actual_message)
 
 
 class DbCleanupTest(DbTestCase):
