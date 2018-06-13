@@ -408,12 +408,10 @@ def request_next_tasks(task_ex_id):
     # Identify the list of next set of tasks.
     next_tasks = conductor.get_next_tasks(task_ex_db.task_id)
 
-    # Mark the tasks as running in the task flow before actual task execution.
-    for task in next_tasks:
-        conductor.update_task_flow(task['id'], states.RUNNING)
-
-    # Update workflow execution and related liveaction and action execution.
-    update_execution_records(wf_ex_db, conductor)
+    # If there is no new tasks, update execution records to handle possible completion.
+    if not next_tasks:
+        # Update workflow execution and related liveaction and action execution.
+        update_execution_records(wf_ex_db, conductor)
 
     # Iterate while there are next tasks identified for processing. In the case for
     # task with no action execution defined, the task execution will complete
@@ -439,13 +437,6 @@ def request_next_tasks(task_ex_id):
         # Identify the next set of tasks to execute.
         conductor, wf_ex_db = refresh_conductor(str(wf_ex_db.id))
         next_tasks = conductor.get_next_tasks()
-
-        # Mark the tasks as running in the task flow before actual task execution.
-        for task in next_tasks:
-            conductor.update_task_flow(task['id'], states.RUNNING)
-
-        # Update workflow execution and related liveaction and action execution.
-        update_execution_records(wf_ex_db, conductor)
 
 
 @retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)

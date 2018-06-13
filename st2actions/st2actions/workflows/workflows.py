@@ -55,15 +55,13 @@ class WorkflowDispatcher(consumers.MessageHandler):
             # Set workflow to running state.
             conductor.set_workflow_state(states.RUNNING)
 
-            # Identify the next set of tasks to execute.
-            next_tasks = conductor.get_next_tasks()
+        # Identify the next set of tasks to execute.
+        next_tasks = conductor.get_next_tasks()
 
-            # Mark the tasks as running in the task flow before actual task execution.
-            for task in next_tasks:
-                conductor.update_task_flow(task['id'], states.RUNNING)
-
-        # Update workflow execution and related liveaction and action execution.
-        wf_svc.update_execution_records(wf_ex_db, conductor)
+        # If there is no new tasks, update execution records to handle possible completion.
+        if not next_tasks:
+            # Update workflow execution and related liveaction and action execution.
+            wf_svc.update_execution_records(wf_ex_db, conductor)
 
         # If workflow execution is no longer active, then stop processing here.
         if wf_ex_db.status in states.COMPLETED_STATES:
@@ -73,6 +71,17 @@ class WorkflowDispatcher(consumers.MessageHandler):
         # task with no action execution defined, the task execution will complete
         # immediately with a new set of tasks available.
         while next_tasks:
+            # Mark the tasks as running in the task flow before actual task execution.
+            for task in next_tasks:
+                conductor.update_task_flow(task['id'], states.RUNNING)
+
+            # Update workflow execution and related liveaction and action execution.
+            wf_svc.update_execution_records(wf_ex_db, conductor)
+
+            # If workflow execution is no longer active, then stop processing here.
+            if wf_ex_db.status in states.COMPLETED_STATES:
+                break
+
             # Request task execution for the tasks.
             for task in next_tasks:
                 try:
@@ -86,17 +95,6 @@ class WorkflowDispatcher(consumers.MessageHandler):
             # Identify the next set of tasks to execute.
             conductor, wf_ex_db = wf_svc.refresh_conductor(str(wf_ex_db.id))
             next_tasks = conductor.get_next_tasks()
-
-            # Mark the tasks as running in the task flow before actual task execution.
-            for task in next_tasks:
-                conductor.update_task_flow(task['id'], states.RUNNING)
-
-            # Update workflow execution and related liveaction and action execution.
-            wf_svc.update_execution_records(wf_ex_db, conductor)
-
-            # If workflow execution is no longer active, then stop processing here.
-            if wf_ex_db.status in states.COMPLETED_STATES:
-                break
 
 
 def get_engine():
