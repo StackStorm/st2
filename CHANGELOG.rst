@@ -53,7 +53,7 @@ Changed
   to function correctly in some scenarios is used. (improvement) #4127 #4120
 * Upgrade various internal Python library dependencies to the latest stable versions (kombu, amqp,
   gitpython, pytz, semver, oslo.utils). (improvement) #4162
-* Move from ``keyczar`` library to ``cryptography`` library for handling symmetric encription and
+* Move from ``keyczar`` library to ``cryptography`` library for handling symmetric encryption and
   decryption (secret datastore values).
 
   Note: This change is fully backward compatible since it just changes the underlying backend and
