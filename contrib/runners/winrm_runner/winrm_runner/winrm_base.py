@@ -263,7 +263,9 @@ class WinRmBaseRunner(ActionRunner):
 
     def _param_to_ps(self, param):
         ps_str = ""
-        if isinstance(param, six.string_types):
+        if param is None:
+            ps_str = "$null"
+        elif isinstance(param, six.string_types):
             ps_str = '"' + self._multireplace(param, PS_ESCAPE_SEQUENCES) + '"'
         elif isinstance(param, bool):
             ps_str = "$true" if param else "$false"
@@ -281,11 +283,13 @@ class WinRmBaseRunner(ActionRunner):
         return ps_str
 
     def _transform_params_to_ps(self, positional_args, named_args):
-        for i, arg in enumerate(positional_args):
-            positional_args[i] = self._param_to_ps(arg)
+        if positional_args:
+            for i, arg in enumerate(positional_args):
+                positional_args[i] = self._param_to_ps(arg)
 
-        for key, value in six.iteritems(named_args):
-            named_args[key] = self._param_to_ps(value)
+        if named_args:
+            for key, value in six.iteritems(named_args):
+                named_args[key] = self._param_to_ps(value)
 
         return positional_args, named_args
 
@@ -295,7 +299,9 @@ class WinRmBaseRunner(ActionRunner):
                                                                    named_args)
         # concatenate them into a long string
         ps_params_str = ""
-        ps_params_str += " " .join([(k + " " + v) for k, v in six.iteritems(named_args)])
-        ps_params_str += " "
-        ps_params_str += " ".join(positional_args)
+        if named_args:
+            ps_params_str += " " .join([(k + " " + v) for k, v in six.iteritems(named_args)])
+            ps_params_str += " "
+        if positional_args:
+            ps_params_str += " ".join(positional_args)
         return ps_params_str

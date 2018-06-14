@@ -538,6 +538,12 @@ class WinRmBaseTestCase(RunnerTestCase):
             '`$'
         ))
 
+    def test_param_to_ps_none(self):
+        # test None/null
+        param = None
+        result = self._runner._param_to_ps(param)
+        self.assertEquals(result, '$null')
+
     def test_param_to_ps_string(self):
         # test ascii
         param_str = 'StackStorm 1234'
@@ -658,6 +664,15 @@ class WinRmBaseTestCase(RunnerTestCase):
             ('c', '@("x", "y")'),
             ('d', '@{"z" = "w"}')]))
 
+    def test_transform_params_to_ps_none(self):
+        positional_args = None
+        named_args = None
+
+        result_pos, result_named = self._runner._transform_params_to_ps(positional_args,
+                                                                        named_args)
+        self.assertEquals(result_pos, None)
+        self.assertEquals(result_named, None)
+
     def test_create_ps_params_string(self):
         positional_args = [1, 'a', '\n']
         named_args = collections.OrderedDict(
@@ -671,3 +686,10 @@ class WinRmBaseTestCase(RunnerTestCase):
 
         self.assertEquals(result,
                           '-a "value1" -b $true -c @("x", "y") -d @{"z" = "w"} 1 "a" "`n"')
+
+    def test_create_ps_params_string_none(self):
+        positional_args = None
+        named_args = None
+
+        result = self._runner.create_ps_params_string(positional_args, named_args)
+        self.assertEquals(result, "")
