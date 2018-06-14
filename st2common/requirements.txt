@@ -1,5 +1,6 @@
 # Don't edit this file. It's generated automatically!
 apscheduler==3.5.1
+cryptography==2.2.2
 eventlet==0.23.0
 flex==6.13.1
 greenlet==0.4.13
@@ -15,7 +16,6 @@ paramiko==2.4.1
 prometheus_client==0.1.1
 pymongo==3.6.1
 python-dateutil
-python-keyczar==0.716
 python-statsd==2.1.0
 pyyaml<4.0,>=3.12
 requests[security]<2.15,>=2.14.1

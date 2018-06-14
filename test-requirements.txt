@@ -25,3 +25,8 @@ psutil==5.4.5
 webtest==2.0.25
 rstcheck>=3.3.0,<3.4
 pyrabbit
+# Since StackStorm v2.8.0 we now use cryptography instead of keyczar, but we still have some tests
+# which utilize keyczar and ensure new cryptography code is fully compatible with keyczar code
+# (those tests only run under Python 2.7 since keyczar doesn't support Python 3.x).
+# See https://github.com/StackStorm/st2/pull/4165
+python-keyczar

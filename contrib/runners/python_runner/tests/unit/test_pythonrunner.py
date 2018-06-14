@@ -21,7 +21,6 @@ import sys
 
 import six
 import mock
-import unittest2
 from oslo_config import cfg
 
 from python_runner import python_runner
@@ -200,7 +199,6 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertTrue(output is not None)
         self.assertEqual(output['result'], [1, 2])
 
-    @unittest2.skipIf(six.PY3, 'keyczar doesn\'t work under Python 3')
     def test_simple_action_config_value_provided_overriden_in_datastore(self):
         pack = 'dummy_pack_5'
         user = 'joe'

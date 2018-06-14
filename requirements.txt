@@ -3,6 +3,7 @@ RandomWords
 apscheduler==3.5.1
 argcomplete
 bcrypt
+cryptography==2.2.2
 eventlet==0.23.0
 flex==6.13.1
 git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper
@@ -37,7 +38,6 @@ python-dateutil
 python-editor==1.0.3
 python-gnupg==0.4.2
 python-json-logger
-python-keyczar==0.716
 python-statsd==2.1.0
 pytz==2018.4
 pywinrm==0.3.0

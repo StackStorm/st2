@@ -155,7 +155,7 @@ action_executions_output_ttl = 7
 collection_interval = 600
 
 [keyvalue]
-# Location of the symmetric encryption key for encrypting values in kvstore. This key should be in JSON and should've been generated using keyczar.
+# Location of the symmetric encryption key for encrypting values in kvstore. This key should be in JSON and should've been generated using st2-generate-symmetric-crypto-key tool.
 encryption_key_path = 
 # Allow encryption of values in key value stored qualified as "secret".
 enable_encryption = True

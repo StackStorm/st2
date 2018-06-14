@@ -25,6 +25,7 @@ import mongoengine
 from mongoengine.queryset import visitor
 from pymongo import uri_parser
 from pymongo.errors import OperationFailure
+from pymongo.errors import ConnectionFailure
 
 from st2common import log as logging
 from st2common.util import isotime
@@ -112,6 +113,18 @@ def _db_connect(db_name, db_host, db_port, username=None, password=None,
                                                 port=db_port, tz_aware=True,
                                                 username=username, password=password,
                                                 **ssl_kwargs)
+
+    # NOTE: Since pymongo 3.0, connect() method is lazy and not blocking (always returns success)
+    # so we need to issue a command / query to check if connection has been
+    # successfuly established.
+    # See http://api.mongodb.com/python/current/api/pymongo/mongo_client.html for details
+    try:
+        # The ismaster command is cheap and does not require auth
+        connection.admin.command('ismaster')
+    except ConnectionFailure as e:
+        LOG.error('Failed to connect to database "%s" @ "%s" as user "%s": %s' %
+                  (db_name, host_string, str(username_string), str(e)))
+        raise e
 
     LOG.info('Successfully connected to database "%s" @ "%s" as user "%s".' % (
         db_name, host_string, str(username_string)))

@@ -273,7 +273,8 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt(
             'encryption_key_path', default='',
             help='Location of the symmetric encryption key for encrypting values in kvstore. '
-                 'This key should be in JSON and should\'ve been generated using keyczar.')
+                 'This key should be in JSON and should\'ve been generated using '
+                 'st2-generate-symmetric-crypto-key tool.')
     ]
 
     do_register_opts(keyvalue_opts, group='keyvalue')
