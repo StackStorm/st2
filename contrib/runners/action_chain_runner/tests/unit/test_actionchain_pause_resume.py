@@ -125,6 +125,8 @@ class ActionChainRunnerPauseResumeTest(DbTestCase):
             if liveaction.status != status:
                 eventlet.sleep(interval)
                 continue
+            else:
+                break
 
         return liveaction
 
