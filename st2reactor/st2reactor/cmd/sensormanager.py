@@ -14,8 +14,11 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 import sys
+
+from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.logging.misc import get_logger_name_for_module
@@ -50,8 +53,15 @@ def _teardown():
 def main():
     try:
         _setup()
+
+        if cfg.CONF.sensorcontainer.single_sensor_mode and not cfg.CONF.sensor_ref:
+            raise ValueError('--sensor-ref argument must be provided when running in single '
+                             'sensor mode')
+
         sensors_partitioner = get_sensors_partitioner()
-        container_manager = SensorContainerManager(sensors_partitioner=sensors_partitioner)
+        single_sensor_mode = cfg.CONF.sensorcontainer.single_sensor_mode
+        container_manager = SensorContainerManager(sensors_partitioner=sensors_partitioner,
+                                                   single_sensor_mode=single_sensor_mode)
         return container_manager.run_sensors()
     except SystemExit as exit_code:
         return exit_code
