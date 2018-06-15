@@ -64,9 +64,9 @@ def _register_sensor_container_opts(ignore_errors=False):
             help='Provider of sensor node partition config.')
     ]
 
-    # Other options
     st2cfg.do_register_opts(partition_opts, group='sensorcontainer', ignore_errors=ignore_errors)
 
+    # Other options
     other_opts = [
         cfg.BoolOpt(
             'single_sensor_mode', default=False,
