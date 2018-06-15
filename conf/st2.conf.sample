@@ -312,12 +312,6 @@ ssh_key_file = /home/stanley/.ssh/stanley_rsa
 # Default system user.
 user = stanley
 
-[timer]
-# Specify to enable Timer.
-enable = True
-# Timezone pertaining to the location where st2 is run.
-local_timezone = America/Los_Angeles
-
 [webui]
 # Base https URL to access st2 Web UI. This is used to construct history URLs that are sent out when chatops is used to kick off executions.
 webui_base_url = https://localhost
