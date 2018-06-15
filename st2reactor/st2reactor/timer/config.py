@@ -21,8 +21,6 @@ import st2common.config as common_config
 from st2common.constants.system import VERSION_STRING
 from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
 
-common_config.register_opts()
-
 CONF = cfg.CONF
 
 
