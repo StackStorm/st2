@@ -41,16 +41,19 @@ PROVIDERS = {
 
 def get_sensors_partitioner():
     if cfg.CONF.sensor_ref:
+        LOG.info('Running in single sensor mode, using a single sensor partitioner...')
         return SingleSensorPartitioner(sensor_ref=cfg.CONF.sensor_ref)
+
     partition_provider_config = copy.copy(cfg.CONF.sensorcontainer.partition_provider)
     partition_provider = partition_provider_config.pop('name')
     sensor_node_name = cfg.CONF.sensorcontainer.sensor_node_name
 
     provider = PROVIDERS.get(partition_provider.lower(), None)
-    LOG.info('Using partitioner %s with sensornode %s.', partition_provider, sensor_node_name)
     if not provider:
-        raise SensorPartitionerNotSupportedException(
-            'Partition provider %s not found.' % partition_provider)
+        raise SensorPartitionerNotSupportedException('Partition provider %s not found.' %
+                                                     (partition_provider))
+
+    LOG.info('Using partitioner %s with sensornode %s.', partition_provider, sensor_node_name)
 
     # pass in extra config with no analysis
     return provider(sensor_node_name=sensor_node_name, **partition_provider_config)
