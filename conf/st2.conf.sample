@@ -156,7 +156,7 @@ collection_interval = 600
 
 [keyvalue]
 # Location of the symmetric encryption key for encrypting values in kvstore. This key should be in JSON and should've been generated using st2-generate-symmetric-crypto-key tool.
-encryption_key_path = 
+encryption_key_path =
 # Allow encryption of values in key value stored qualified as "secret".
 enable_encryption = True
 
@@ -311,6 +311,14 @@ base_path = /opt/stackstorm
 ssh_key_file = /home/stanley/.ssh/stanley_rsa
 # Default system user.
 user = stanley
+
+# Old config group is timer and you can specify the exact same settings in [timer] section
+[timersengine]
+# Specify to enable Timer
+enable = True
+# Timezone pertaining to the location where st2 is run.
+local_tz = America/Los_Angeles
+logging = st2reactor/conf/logging.timersengine.conf
 
 [webui]
 # Base https URL to access st2 Web UI. This is used to construct history URLs that are sent out when chatops is used to kick off executions.

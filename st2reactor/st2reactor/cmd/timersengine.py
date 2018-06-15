@@ -55,8 +55,9 @@ def _run_worker():
 
     try:
         timer_thread = None
-        if cfg.CONF.timer.enable:
-            timer = St2Timer(local_timezone=cfg.CONF.timer.local_timezone)
+        if cfg.CONF.timer.enable or cfg.CONF.timersengine.enable:
+            local_tz = cfg.CONF.timer.local_timezone or cfg.CONF.timersengine.local_timezone
+            timer = St2Timer(local_timezone=local_tz)
             timer_thread = eventlet.spawn(_kickoff_timer, timer)
             LOG.info(TIMER_ENABLED_LOG_LINE)
             return timer_thread.wait()
