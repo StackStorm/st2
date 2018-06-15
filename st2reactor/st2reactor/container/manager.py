@@ -65,9 +65,13 @@ class SensorContainerManager(object):
 
         LOG.info('(PID:%s) SensorContainer started.', os.getpid())
         self._setup_sigterm_handler()
-        self._spin_container_and_wait(sensors_to_run)
+
+        exit_code = self._spin_container_and_wait(sensors_to_run)
+        return exit_code
 
     def _spin_container_and_wait(self, sensors):
+        exit_code = 0
+
         try:
             self._sensor_container = ProcessSensorContainer(
                 sensors=sensors,
@@ -90,7 +94,9 @@ class SensorContainerManager(object):
             eventlet.kill(self._container_thread)
             self._container_thread = None
 
-            return 0
+            return exit_code
+
+        return exit_code
 
     def _setup_sigterm_handler(self):
 
