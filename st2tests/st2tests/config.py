@@ -295,7 +295,12 @@ def _register_sensor_container_opts():
         cfg.StrOpt(
             'sensor-ref',
             help='Only run sensor with the provided reference. Value is of the form '
-                 '<pack>.<sensor-name> (e.g. linux.FileWatchSensor).')
+                 '<pack>.<sensor-name> (e.g. linux.FileWatchSensor).'),
+        cfg.BoolOpt(
+            'single-sensor-mode', default=False,
+            help='Run in a single sensor mode where parent process exits when a sensor crashes / '
+                 'dies. This is useful in environments where partitioning, sensor process life '
+                 'cycle and failover is handled by a 3rd party service such as kubernetes.')
     ]
 
     _register_cli_opts(cli_opts)
