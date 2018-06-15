@@ -17,18 +17,13 @@ from __future__ import absolute_import
 import os
 import sys
 
-import eventlet
-from oslo_config import cfg
-
 from st2common import log as logging
-from st2common.constants.timer import TIMER_ENABLED_LOG_LINE, TIMER_DISABLED_LOG_LINE
 from st2common.logging.misc import get_logger_name_for_module
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
 from st2common.util.monkey_patch import monkey_patch
 from st2reactor.rules import config
 from st2reactor.rules import worker
-from st2reactor.timer.base import St2Timer
 
 monkey_patch()
 

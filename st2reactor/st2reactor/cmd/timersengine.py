@@ -27,11 +27,11 @@ from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
 from st2common.util.monkey_patch import monkey_patch
 from st2reactor.timer import config
+from st2reactor.timer.base import St2Timer
 
 monkey_patch()
 
 LOGGER_NAME = get_logger_name_for_module(sys.modules[__name__])
-print(LOGGER_NAME)
 LOG = logging.getLogger(LOGGER_NAME)
 
 
