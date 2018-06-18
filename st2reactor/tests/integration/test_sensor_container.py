@@ -82,7 +82,10 @@ class SensorContainerTestCase(IntegrationTestCase):
 
         # Create virtualenv for examples pack
         virtualenv_path = '/tmp/virtualenvs/examples'
-        cmd = ['virtualenv', '--system-site-packages', virtualenv_path]
+
+        run_command(cmd=['rm', '-rf', virtualenv_path])
+
+        cmd = ['virtualenv', '--system-site-packages', '--python', PYTHON_BINARY, virtualenv_path]
         run_command(cmd=cmd)
 
     def test_child_processes_are_killed_on_sigint(self):
@@ -97,7 +100,7 @@ class SensorContainerTestCase(IntegrationTestCase):
         # Verify container process and children sensor / wrapper processes are running
         pp = psutil.Process(process.pid)
         children_pp = pp.children()
-        self.assertEqual(pp.cmdline()[1:], DEFAULT_CMD)
+        self.assertEqual(pp.cmdline()[1:], DEFAULT_CMD[1:])
         self.assertEqual(len(children_pp), 1)
 
         # Send SIGINT
@@ -122,7 +125,7 @@ class SensorContainerTestCase(IntegrationTestCase):
         # Verify container process and children sensor / wrapper processes are running
         pp = psutil.Process(process.pid)
         children_pp = pp.children()
-        self.assertEqual(pp.cmdline()[1:], DEFAULT_CMD)
+        self.assertEqual(pp.cmdline()[1:], DEFAULT_CMD[1:])
         self.assertEqual(len(children_pp), 1)
 
         # Send SIGTERM
@@ -147,7 +150,7 @@ class SensorContainerTestCase(IntegrationTestCase):
         # Verify container process and children sensor / wrapper processes are running
         pp = psutil.Process(process.pid)
         children_pp = pp.children()
-        self.assertEqual(pp.cmdline()[1:], DEFAULT_CMD)
+        self.assertEqual(pp.cmdline()[1:], DEFAULT_CMD[1:])
         self.assertEqual(len(children_pp), 1)
 
         # Send SIGKILL
@@ -164,7 +167,7 @@ class SensorContainerTestCase(IntegrationTestCase):
 
     def test_single_sensor_mode(self):
         # 1. --sensor-ref not provided
-        cmd = [BINARY, '--config-file', ST2_CONFIG_PATH, '--single-sensor-mode']
+        cmd = [PYTHON_BINARY, BINARY, '--config-file', ST2_CONFIG_PATH, '--single-sensor-mode']
 
         process = self._start_sensor_container(cmd=cmd)
         pp = psutil.Process(process.pid)

@@ -14,7 +14,9 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
+import sys
 import signal
 import datetime
 
@@ -43,14 +45,20 @@ __all__ = [
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 ST2_CONFIG_PATH = os.path.join(BASE_DIR, '../../../conf/st2.tests.conf')
 ST2_CONFIG_PATH = os.path.abspath(ST2_CONFIG_PATH)
+
 INQUIRY_CONFIG_PATH = os.path.join(BASE_DIR, '../../../conf/st2.tests2.conf')
 INQUIRY_CONFIG_PATH = os.path.abspath(INQUIRY_CONFIG_PATH)
+
+PYTHON_BINARY = sys.executable
+
 BINARY = os.path.join(BASE_DIR, '../../../st2reactor/bin/st2garbagecollector')
 BINARY = os.path.abspath(BINARY)
-CMD = [BINARY, '--config-file', ST2_CONFIG_PATH]
-CMD_INQUIRY = [BINARY, '--config-file', INQUIRY_CONFIG_PATH]
+
+CMD = [PYTHON_BINARY, BINARY, '--config-file', ST2_CONFIG_PATH]
+CMD_INQUIRY = [PYTHON_BINARY, BINARY, '--config-file', INQUIRY_CONFIG_PATH]
 
 TEST_FIXTURES = {
     'runners': ['inquirer.yaml'],
