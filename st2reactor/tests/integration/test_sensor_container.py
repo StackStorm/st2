@@ -35,14 +35,20 @@ __all__ = [
 ]
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 ST2_CONFIG_PATH = os.path.join(BASE_DIR, '../../../conf/st2.tests.conf')
 ST2_CONFIG_PATH = os.path.abspath(ST2_CONFIG_PATH)
+
 BINARY = os.path.join(BASE_DIR, '../../../st2reactor/bin/st2sensorcontainer')
 BINARY = os.path.abspath(BINARY)
-CMD = [BINARY, '--config-file', ST2_CONFIG_PATH, '--sensor-ref=examples.SamplePollingSensor']
+
+PACKS_BASE_PATH = os.path.join(BASE_DIR, '../../../contrib')
+
+DEFAULT_CMD = [BINARY, '--config-file', ST2_CONFIG_PATH,
+               '--sensor-ref=examples.SamplePollingSensor']
 
 
-@unittest2.skipIf(True, 'Skipped until we improve integration tests setup')
+#@unittest2.skipIf(True, 'Skipped until we improve integration tests setup')
 class SensorContainerTestCase(IntegrationTestCase):
     """
     Note: For those tests MongoDB must be running, virtualenv must exist for
@@ -54,7 +60,6 @@ class SensorContainerTestCase(IntegrationTestCase):
     @classmethod
     def setUpClass(cls):
         super(SensorContainerTestCase, cls).setUpClass()
-        return
 
         st2tests.config.parse_args()
 
@@ -65,10 +70,10 @@ class SensorContainerTestCase(IntegrationTestCase):
             username=username, password=password, ensure_indexes=False)
 
         # Register sensors
-        register_sensors(packs_base_paths=['/opt/stackstorm/packs'], use_pack_cache=False)
+        register_sensors(packs_base_paths=[PACKS_BASE_PATH], use_pack_cache=False)
 
         # Create virtualenv for examples pack
-        virtualenv_path = '/opt/stackstorm/virtualenvs/examples'
+        virtualenv_path = '/tmp/virtualenvs/examples'
         cmd = ['virtualenv', '--system-site-packages', virtualenv_path]
         run_command(cmd=cmd)
 
@@ -84,7 +89,7 @@ class SensorContainerTestCase(IntegrationTestCase):
         # Verify container process and children sensor / wrapper processes are running
         pp = psutil.Process(process.pid)
         children_pp = pp.children()
-        self.assertEqual(pp.cmdline()[1:], CMD)
+        self.assertEqual(pp.cmdline()[1:], DEFAULT_CMD)
         self.assertEqual(len(children_pp), 1)
 
         # Send SIGINT
@@ -109,7 +114,7 @@ class SensorContainerTestCase(IntegrationTestCase):
         # Verify container process and children sensor / wrapper processes are running
         pp = psutil.Process(process.pid)
         children_pp = pp.children()
-        self.assertEqual(pp.cmdline()[1:], CMD)
+        self.assertEqual(pp.cmdline()[1:], DEFAULT_CMD)
         self.assertEqual(len(children_pp), 1)
 
         # Send SIGTERM
@@ -134,7 +139,7 @@ class SensorContainerTestCase(IntegrationTestCase):
         # Verify container process and children sensor / wrapper processes are running
         pp = psutil.Process(process.pid)
         children_pp = pp.children()
-        self.assertEqual(pp.cmdline()[1:], CMD)
+        self.assertEqual(pp.cmdline()[1:], DEFAULT_CMD)
         self.assertEqual(len(children_pp), 1)
 
         # Send SIGKILL
@@ -149,8 +154,46 @@ class SensorContainerTestCase(IntegrationTestCase):
 
         self.remove_process(process=process)
 
-    def _start_sensor_container(self):
-        process = subprocess.Popen(CMD, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+    def test_single_sensor_mode(self):
+        # 1. --sensor-ref not provided
+        cmd = [BINARY, '--config-file', ST2_CONFIG_PATH, '--single-sensor-mode']
+
+        process = self._start_sensor_container(cmd=cmd)
+        pp = psutil.Process(process.pid)
+
+        # Give it some time to start up
+        eventlet.sleep(3)
+
+        stdout = process.stdout.read()
+        self.assertTrue(('--sensor-ref argument must be provided when running in single sensor '
+                         'mode') in stdout)
+        self.assertProcessExited(proc=pp)
+        self.remove_process(process=process)
+
+        # 2. sensor ref provided
+        cmd = [BINARY, '--config-file', ST2_CONFIG_PATH, '--single-sensor-mode',
+               '--sensor-ref=examples.SampleSensorExit']
+
+        process = self._start_sensor_container(cmd=cmd)
+        pp = psutil.Process(process.pid)
+
+        # Give it some time to start up
+        eventlet.sleep(8)
+
+        # Container should exit and not respawn a sensor in single sensor mode
+        stdout = process.stdout.read()
+
+        self.assertTrue('Process for sensor examples.SampleSensorExit has exited with code 110')
+        self.assertTrue('Not respawning a sensor since running in single sensor mode')
+        self.assertTrue('Process container quit with exit_code 110.')
+
+        eventlet.sleep(2)
+        self.assertProcessExited(proc=pp)
+
+        self.remove_process(process=process)
+
+    def _start_sensor_container(self, cmd=DEFAULT_CMD):
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                    shell=False, preexec_fn=os.setsid)
         self.add_process(process=process)
         return process
