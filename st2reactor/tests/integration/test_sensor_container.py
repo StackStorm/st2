@@ -164,8 +164,8 @@ class SensorContainerTestCase(IntegrationTestCase):
         eventlet.sleep(4)
 
         stdout = process.stdout.read()
-        self.assertTrue(('--sensor-ref argument must be provided when running in single sensor '
-                         'mode') in stdout)
+        self.assertTrue((b'--sensor-ref argument must be provided when running in single sensor '
+                         b'mode') in stdout)
         self.assertProcessExited(proc=pp)
         self.remove_process(process=process)
 
@@ -182,9 +182,9 @@ class SensorContainerTestCase(IntegrationTestCase):
         # Container should exit and not respawn a sensor in single sensor mode
         stdout = process.stdout.read()
 
-        self.assertTrue('Process for sensor examples.SampleSensorExit has exited with code 110')
-        self.assertTrue('Not respawning a sensor since running in single sensor mode')
-        self.assertTrue('Process container quit with exit_code 110.')
+        self.assertTrue(b'Process for sensor examples.SampleSensorExit has exited with code 110')
+        self.assertTrue(b'Not respawning a sensor since running in single sensor mode')
+        self.assertTrue(b'Process container quit with exit_code 110.')
 
         eventlet.sleep(2)
         self.assertProcessExited(proc=pp)
