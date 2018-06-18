@@ -14,7 +14,9 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
+import sys
 import signal
 
 import psutil
@@ -38,13 +40,20 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ST2_CONFIG_PATH = os.path.join(BASE_DIR, '../../../conf/st2.tests.conf')
 ST2_CONFIG_PATH = os.path.abspath(ST2_CONFIG_PATH)
 
+PYTHON_BINARY = sys.executable
+
 BINARY = os.path.join(BASE_DIR, '../../../st2reactor/bin/st2sensorcontainer')
 BINARY = os.path.abspath(BINARY)
 
 PACKS_BASE_PATH = os.path.join(BASE_DIR, '../../../contrib')
 
-DEFAULT_CMD = [BINARY, '--config-file', ST2_CONFIG_PATH,
-               '--sensor-ref=examples.SamplePollingSensor']
+DEFAULT_CMD = [
+    PYTHON_BINARY,
+    BINARY,
+    '--config-file',
+    ST2_CONFIG_PATH,
+    '--sensor-ref=examples.SamplePollingSensor'
+]
 
 
 # @unittest2.skipIf(True, 'Skipped until we improve integration tests setup')
