@@ -133,7 +133,7 @@ class SensorContainerTestCase(IntegrationTestCase):
         process = self._start_sensor_container()
 
         # Give it some time to start up
-        eventlet.sleep(3)
+        eventlet.sleep(4)
 
         # Verify container process and children sensor / wrapper processes are running
         pp = psutil.Process(process.pid)
@@ -161,7 +161,7 @@ class SensorContainerTestCase(IntegrationTestCase):
         pp = psutil.Process(process.pid)
 
         # Give it some time to start up
-        eventlet.sleep(3)
+        eventlet.sleep(4)
 
         stdout = process.stdout.read()
         self.assertTrue(('--sensor-ref argument must be provided when running in single sensor '
