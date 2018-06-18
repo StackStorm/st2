@@ -15,10 +15,10 @@
 
 import datetime
 import os
-import Queue
 
 import eventlet
 import mock
+from six.moves import queue
 
 from st2common.models.api.execution import ActionExecutionAPI
 from st2common.util import isotime
@@ -48,7 +48,7 @@ class TestDumper(EventletTestCase):
         execution_apis.append(ActionExecutionAPI(**execution))
 
     def get_queue(self):
-        executions_queue = Queue.Queue()
+        executions_queue = queue.Queue()
 
         for execution in self.execution_apis:
             executions_queue.put(execution)
@@ -88,7 +88,7 @@ class TestDumper(EventletTestCase):
 
     @mock.patch.object(os.path, 'exists', mock.MagicMock(return_value=True))
     def test_write_to_disk_empty_queue(self):
-        dumper = Dumper(queue=Queue.Queue(),
+        dumper = Dumper(queue=queue.Queue(),
                         export_dir='/tmp',
                         file_prefix='st2-stuff-', file_format='json')
         # We just make sure this doesn't blow up.

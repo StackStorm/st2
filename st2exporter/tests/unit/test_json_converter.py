@@ -36,7 +36,7 @@ class TestJsonConverter(unittest2.TestCase):
                                                     fixtures_dict=DESCENDANTS_FIXTURES)
 
     def test_convert(self):
-        executions_list = self.loaded_fixtures['executions'].values()
+        executions_list = list(self.loaded_fixtures['executions'].values())
         converter = JsonConverter()
         converted_doc = converter.convert(executions_list)
         self.assertTrue(type(converted_doc), 'string')

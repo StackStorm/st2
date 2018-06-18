@@ -14,9 +14,9 @@
 # limitations under the License.
 
 import os
-import Queue
 
 import eventlet
+from six.moves import queue
 
 from st2common import log as logging
 from st2exporter.exporter.file_writer import TextFileWriter
@@ -94,7 +94,7 @@ class Dumper(object):
         for _ in range(self._batch_size):
             try:
                 item = self._queue.get(block=False)
-            except Queue.Empty:
+            except queue.Empty:
                 break
             else:
                 executions_to_write.append(item)
