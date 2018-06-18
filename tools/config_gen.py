@@ -34,6 +34,7 @@ CONFIGS = ['st2actions.config',
            'st2exporter.config',
            'st2reactor.rules.config',
            'st2reactor.sensor.config',
+           'st2reactor.timer.config',
            'st2reactor.garbage_collector.config']
 
 SKIP_GROUPS = ['api_pecan', 'rbac', 'results_tracker']
