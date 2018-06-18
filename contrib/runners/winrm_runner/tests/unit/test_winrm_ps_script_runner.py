@@ -40,7 +40,7 @@ class WinRmPsScriptRunnerTestCase(RunnerTestCase):
         self.assertEquals(runner.runner_id, 'abcdef')
 
     @mock.patch('winrm_runner.winrm_ps_script_runner.WinRmPsScriptRunner._get_script_args')
-    @mock.patch('winrm_runner.winrm_ps_script_runner.WinRmPsScriptRunner._run_ps')
+    @mock.patch('winrm_runner.winrm_ps_script_runner.WinRmPsScriptRunner.run_ps')
     def test_run(self, mock_run_ps, mock_get_script_args):
         mock_run_ps.return_value = 'expected'
         pos_args = [1, 'abc']

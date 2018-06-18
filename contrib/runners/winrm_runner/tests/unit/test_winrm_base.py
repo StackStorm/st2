@@ -347,7 +347,7 @@ class WinRmBaseTestCase(RunnerTestCase):
         mock_protocol_init.return_value = mock_protocol
 
         self._init_runner()
-        result = self._runner._run_cmd("ipconfig /all")
+        result = self._runner.run_cmd("ipconfig /all")
         self.assertEquals(result, ('succeeded',
                                    {'failed': False,
                                     'succeeded': True,
@@ -367,7 +367,7 @@ class WinRmBaseTestCase(RunnerTestCase):
         mock_protocol_init.return_value = mock_protocol
 
         self._init_runner()
-        result = self._runner._run_cmd("ipconfig /all")
+        result = self._runner.run_cmd("ipconfig /all")
         self.assertEquals(result, ('failed',
                                    {'failed': True,
                                     'succeeded': False,
@@ -389,7 +389,7 @@ class WinRmBaseTestCase(RunnerTestCase):
         mock_protocol._raw_get_command_output.side_effect = sleep_for_timeout_then_raise
         mock_protocol_init.return_value = mock_protocol
 
-        result = self._runner._run_cmd("ipconfig /all")
+        result = self._runner.run_cmd("ipconfig /all")
         self.assertEquals(result, ('timeout',
                                    {'failed': True,
                                     'succeeded': False,
@@ -409,7 +409,7 @@ class WinRmBaseTestCase(RunnerTestCase):
         mock_protocol_init.return_value = mock_protocol
 
         self._init_runner()
-        result = self._runner._run_ps("Get-Location")
+        result = self._runner.run_ps("Get-Location")
         self.assertEquals(result, ('succeeded',
                                    {'failed': False,
                                     'succeeded': True,
@@ -429,7 +429,7 @@ class WinRmBaseTestCase(RunnerTestCase):
         mock_protocol_init.return_value = mock_protocol
 
         self._init_runner()
-        result = self._runner._run_ps("Get-Location")
+        result = self._runner.run_ps("Get-Location")
         self.assertEquals(result, ('failed',
                                    {'failed': True,
                                     'succeeded': False,
@@ -451,7 +451,7 @@ class WinRmBaseTestCase(RunnerTestCase):
         mock_protocol._raw_get_command_output.side_effect = sleep_for_timeout_then_raise
         mock_protocol_init.return_value = mock_protocol
 
-        result = self._runner._run_ps("Get-Location")
+        result = self._runner.run_ps("Get-Location")
         self.assertEquals(result, ('timeout',
                                    {'failed': True,
                                     'succeeded': False,

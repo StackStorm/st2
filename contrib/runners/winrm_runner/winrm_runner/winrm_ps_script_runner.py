@@ -54,7 +54,7 @@ class WinRmPsScriptRunner(WinRmBaseRunner, ShellRunnerMixin):
         ps_script_and_params = "& {%s} %s" % (ps_script, ps_params)
 
         # execute
-        return self._run_ps(ps_script_and_params)
+        return self.run_ps(ps_script_and_params)
 
 
 def get_runner():
