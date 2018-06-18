@@ -317,8 +317,8 @@ user = stanley
 # Specify to enable Timer
 enable = True
 # Timezone pertaining to the location where st2 is run.
-local_tz = America/Los_Angeles
-logging = st2reactor/conf/logging.timersengine.conf
+local_timezone = America/Los_Angeles
+logging = conf/logging.timersengine.conf
 
 [webui]
 # Base https URL to access st2 Web UI. This is used to construct history URLs that are sent out when chatops is used to kick off executions.
