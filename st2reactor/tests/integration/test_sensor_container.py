@@ -16,7 +16,6 @@
 from __future__ import absolute_import
 import os
 import signal
-import unittest2
 
 import psutil
 import eventlet
@@ -48,7 +47,7 @@ DEFAULT_CMD = [BINARY, '--config-file', ST2_CONFIG_PATH,
                '--sensor-ref=examples.SamplePollingSensor']
 
 
-#@unittest2.skipIf(True, 'Skipped until we improve integration tests setup')
+# @unittest2.skipIf(True, 'Skipped until we improve integration tests setup')
 class SensorContainerTestCase(IntegrationTestCase):
     """
     Note: For those tests MongoDB must be running, virtualenv must exist for
