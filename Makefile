@@ -704,14 +704,14 @@ ci: ci-checks ci-unit ci-integration ci-mistral ci-packs-tests
 ci-checks: compile .generated-files-check .pylint .flake8 .bandit .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check
 
 .PHONY: ci-py3-unit
-ci-py3-unit: .ci-prepare-integration
+ci-py3-unit:
 	@echo
 	@echo "==================== ci-py3-unit ===================="
 	@echo
 	tox -e py36-unit -vv
 
 .PHONY: ci-py3-integration
-ci-py3-integration: .ci-prepare-integration
+ci-py3-integration:
 	@echo
 	@echo "==================== ci-py3-integration ===================="
 	@echo

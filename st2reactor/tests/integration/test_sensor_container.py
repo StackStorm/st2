@@ -80,7 +80,7 @@ class SensorContainerTestCase(IntegrationTestCase):
         process = self._start_sensor_container()
 
         # Give it some time to start up
-        eventlet.sleep(3)
+        eventlet.sleep(5)
 
         # Assert process has started and is running
         self.assertProcessIsRunning(process=process)
@@ -96,7 +96,7 @@ class SensorContainerTestCase(IntegrationTestCase):
 
         # SIGINT causes graceful shutdown so give it some time to gracefuly shut down the sensor
         # child processes
-        eventlet.sleep(PROCESS_EXIT_TIMEOUT + 1)
+        eventlet.sleep(PROCESS_EXIT_TIMEOUT + 2)
 
         # Verify parent and children processes have exited
         self.assertProcessExited(proc=pp)
