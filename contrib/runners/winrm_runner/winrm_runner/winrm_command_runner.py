@@ -37,7 +37,7 @@ class WinRmCommandRunner(WinRmBaseRunner):
         cmd_command = self.runner_parameters[RUNNER_COMMAND]
 
         # execute
-        return self._run_cmd(cmd_command)
+        return self.run_cmd(cmd_command)
 
 
 def get_runner():

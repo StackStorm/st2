@@ -34,7 +34,7 @@ class WinRmPsCommandRunnerTestCase(RunnerTestCase):
         self.assertIsInstance(runner, ActionRunner)
         self.assertEquals(runner.runner_id, 'abcdef')
 
-    @mock.patch('winrm_runner.winrm_ps_command_runner.WinRmPsCommandRunner._run_ps')
+    @mock.patch('winrm_runner.winrm_ps_command_runner.WinRmPsCommandRunner.run_ps')
     def test_run(self, mock_run_ps):
         mock_run_ps.return_value = 'expected'
 
