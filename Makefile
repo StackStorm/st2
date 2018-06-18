@@ -1,7 +1,14 @@
 ROOT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 SHELL := /bin/bash
 TOX_DIR := .tox
-VIRTUALENV_DIR ?= virtualenv
+OS := $(shell uname)
+# We separate the OSX X and Linux virtualenvs so we can run in a Docker
+# container (st2devbox) while doing things on our host Mac machine
+ifeq ($(OS),Darwin)
+	VIRTUALENV_DIR ?= virtualenv-osx
+else
+	VIRTUALENV_DIR ?= virtualenv
+endif
 PYTHON_VERSION = python2.7
 
 BINARIES := bin
@@ -10,8 +17,9 @@ BINARIES := bin
 COMPONENTS := $(wildcard st2*)
 COMPONENTS_RUNNERS := $(wildcard contrib/runners/*)
 
-COMPONENTS_WITH_RUNNERS := $(wildcard st2*)
-COMPONENTS_WITH_RUNNERS += $(wildcard contrib/runners/*)
+COMPONENTS_WITH_RUNNERS := $(wildcard st2*) $(COMPONENTS_RUNNERS)
+
+COMPONENTS_TEST_DIRS := $(wildcard st2*/tests) $(wildcard contrib/runners/*/tests)
 
 # Components that implement a component-controlled test-runner. These components provide an
 # in-component Makefile. (Temporary fix until I can generalize the pecan unittest setup. -mar)
@@ -19,12 +27,20 @@ COMPONENTS_WITH_RUNNERS += $(wildcard contrib/runners/*)
 COMPONENT_SPECIFIC_TESTS := st2tests st2client.egg-info
 
 # nasty hack to get a space into a variable
+colon := :
+comma := ,
+dot := .
+slash := /
 space_char :=
 space_char +=
-comma := ,
 COMPONENT_PYTHONPATH = $(subst $(space_char),:,$(realpath $(COMPONENTS_WITH_RUNNERS)))
 COMPONENTS_TEST := $(foreach component,$(filter-out $(COMPONENT_SPECIFIC_TESTS),$(COMPONENTS_WITH_RUNNERS)),$(component))
-COMPONENTS_TEST_COMMA := $(subst $(space_char),$(comma),$(COMPONENTS_TEST))
+COMPONENTS_TEST_COMMA := $(subst $(slash),$(dot),$(subst $(space_char),$(comma),$(COMPONENTS_TEST)))
+COMPONENTS_TEST_MODULES := $(subst $(slash),$(dot),$(COMPONENTS_TEST_DIRS))
+COMPONENTS_TEST_MODULES_COMMA := $(subst $(space_char),$(comma),$(COMPONENTS_TEST_MODULES))
+
+COVERAGE_GLOBS := .coverage.unit.* .coverage.integration.* .coverage.mistral.*
+COVERAGE_GLOBS_QUOTED := $(foreach glob,$(COVERAGE_GLOBS),'$(glob)')
 
 PYTHON_TARGET := 2.7
 
@@ -33,6 +49,8 @@ PIP_OPTIONS := $(ST2_PIP_OPTIONS)
 
 NOSE_OPTS := --rednose --immediate --with-parallel
 NOSE_TIME := $(NOSE_TIME)
+NOSE_COVERAGE_FLAGS := --with-coverage --cover-branches --cover-erase
+NOSE_COVERAGE_PACKAGES := --cover-package=$(COMPONENTS_TEST_COMMA)
 
 ifdef NOSE_TIME
 	NOSE_OPTS := --rednose --immediate --with-parallel --with-timer
@@ -42,18 +60,49 @@ ifndef PIP_OPTIONS
 	PIP_OPTIONS :=
 endif
 
+ifneq ($(INCLUDE_TESTS_IN_COVERAGE),)
+	NOSE_COVERAGE_FLAGS += --cover-tests
+	NOSE_COVERAGE_PACKAGES := $(NOSE_COVERAGE_PACKAGES),$(COMPONENTS_TEST_MODULES_COMMA)
+endif
+
 .PHONY: all
 all: requirements configgen check tests
+
+.PHONY: .coverage_globs
+.coverage_globs:
+	@for coverage_result in $$( \
+		for coverage_glob in $(COVERAGE_GLOBS_QUOTED); do \
+			compgen -G $${coverage_glob}; \
+		done; \
+	); do \
+		echo $${coverage_result}; \
+	done
 
 # Target for debugging Makefile variable assembly
 .PHONY: play
 play:
+	@echo COVERAGE_GLOBS=$(COVERAGE_GLOBS_QUOTED)
+	@echo
 	@echo COMPONENTS=$(COMPONENTS)
+	@echo
 	@echo COMPONENTS_WITH_RUNNERS=$(COMPONENTS_WITH_RUNNERS)
+	@echo
 	@echo COMPONENTS_TEST=$(COMPONENTS_TEST)
+	@echo
 	@echo COMPONENTS_TEST_COMMA=$(COMPONENTS_TEST_COMMA)
+	@echo
+	@echo COMPONENTS_TEST_DIRS=$(COMPONENTS_TEST_DIRS)
+	@echo
+	@echo COMPONENTS_TEST_MODULES=$(COMPONENTS_TEST_MODULES)
+	@echo
+	@echo COMPONENTS_TEST_MODULES_COMMA=$(COMPONENTS_TEST_MODULES_COMMA)
+	@echo
 	@echo COMPONENT_PYTHONPATH=$(COMPONENT_PYTHONPATH)
-
+	@echo
+	@echo NOSE_COVERAGE_FLAGS=$(NOSE_COVERAGE_FLAGS)
+	@echo
+	@echo NOSE_COVERAGE_PACKAGES=$(NOSE_COVERAGE_PACKAGES)
+	@echo
 
 .PHONY: check
 check: requirements flake8 checklogs
@@ -241,6 +290,14 @@ compilepy3:
 	@sudo rabbitmqctl reset
 	@sudo rabbitmqctl start_app
 
+.PHONY: .cleancoverage
+.cleancoverage:
+	@echo "==================== cleancoverage ===================="
+	@echo "Removing all coverage results directories"
+	@echo
+	rm -rf .coverage $(COVERAGE_GLOBS) \
+		.coverage.unit .coverage.integration .coverage.mistral
+
 .PHONY: distclean
 distclean: clean
 	@echo
@@ -254,6 +311,7 @@ requirements: virtualenv .sdist-requirements
 	@echo "==================== requirements ===================="
 	@echo
 	# Make sure we use latest version of pip which is < 10.0.0
+	$(VIRTUALENV_DIR)/bin/pip --version
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip>=9.0,<9.1"
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade "virtualenv==15.1.0" # Required for packs.install in dev envs.
 
@@ -356,25 +414,64 @@ unit-tests: requirements .unit-tests
 	@for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
+		echo "-----------------------------------------------------------"; \
+		. $(VIRTUALENV_DIR)/bin/activate; \
+		    nosetests $(NOSE_OPTS) -s -v \
+		    $$component/tests/unit || exit 1; \
+		echo "-----------------------------------------------------------"; \
+		echo "Done running tests in" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v $$component/tests/unit || exit 1; \
 	done
 
-.PHONY: .unit-tests-coverage-html
-.unit-tests-coverage-html:
+.PHONY: .run-unit-tests-coverage
+ifneq ($(INCLUDE_TESTS_IN_COVERAGE),)
+.run-unit-tests-coverage: NOSE_COVERAGE_PACKAGES := $(NOSE_COVERAGE_PACKAGES),tests.unit
+endif
+.run-unit-tests-coverage:
 	@echo
-	@echo "==================== unit tests with coverage (HTML reports) ===================="
+	@echo "==================== unit tests with coverage  ===================="
 	@echo
 	@echo "----- Dropping st2-test db -----"
 	@mongo st2-test --eval "db.dropDatabase();"
-	@for component in $(COMPONENTS_TEST); do\
+	for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
+		echo "-----------------------------------------------------------"; \
+		. $(VIRTUALENV_DIR)/bin/activate; \
+		    COVERAGE_FILE=.coverage.unit.$$(echo $$component | tr '/' '.') \
+		    nosetests $(NOSE_OPTS) -s -v $(NOSE_COVERAGE_FLAGS) \
+		    $(NOSE_COVERAGE_PACKAGES) \
+		    $$component/tests/unit || exit 1; \
+		echo "-----------------------------------------------------------"; \
+		echo "Done running tests in" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v --with-coverage \
-			--cover-inclusive --cover-html \
-			--cover-package=$(COMPONENTS_TEST_COMMA) $$component/tests/unit || exit 1; \
 	done
+
+.PHONY: .combine-unit-tests-coverage
+.combine-unit-tests-coverage: .run-unit-tests-coverage
+	. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.unit \
+	    coverage combine .coverage.unit.*
+
+.coverage.unit:
+	@compgen -G '.coverage.unit.*' && \
+		for coverage_result in $$(compgen -G '.coverage.unit.*'); do \
+			echo "Combining data from $${coverage_result}"; \
+			. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.unit \
+			coverage combine $${coverage_result}; \
+		done \
+	|| \
+		echo "Running unit tests"; \
+		make .combine-unit-tests-coverage
+
+.PHONY: .report-unit-tests-coverage
+.report-unit-tests-coverage: .coverage.unit
+	. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.unit \
+	    coverage report
+
+.PHONY: .unit-tests-coverage-html
+.unit-tests-coverage-html: .coverage.unit
+	. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.unit \
+	    coverage html
 
 .PHONY: itests
 itests: requirements .itests
@@ -389,25 +486,67 @@ itests: requirements .itests
 	@for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
+		echo "-----------------------------------------------------------"; \
+		. $(VIRTUALENV_DIR)/bin/activate; \
+		    nosetests $(NOSE_OPTS) -s -v \
+		    $$component/tests/integration || exit 1; \
+		echo "-----------------------------------------------------------"; \
+		echo "Done running tests in" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v $$component/tests/integration || exit 1; \
 	done
 
-.PHONY: .itests-coverage-html
-.itests-coverage-html:
+.PHONY: .run-integration-tests-coverage
+ifneq ($(INCLUDE_TESTS_IN_COVERAGE),)
+.run-integration-tests-coverage: NOSE_COVERAGE_PACKAGES := $(NOSE_COVERAGE_PACKAGES),tests.integration
+endif
+.run-integration-tests-coverage:
 	@echo
-	@echo "================ integration tests with coverage (HTML reports) ================"
+	@echo "================ integration tests with coverage ================"
 	@echo
 	@echo "----- Dropping st2-test db -----"
 	@mongo st2-test --eval "db.dropDatabase();"
 	@for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
+		echo "-----------------------------------------------------------"; \
+		. $(VIRTUALENV_DIR)/bin/activate; \
+		    COVERAGE_FILE=.coverage.integration.$$(echo $$component | tr '/' '.') \
+		    nosetests $(NOSE_OPTS) -s -v $(NOSE_COVERAGE_FLAGS) \
+		    $(NOSE_COVERAGE_PACKAGES) \
+		    $$component/tests/integration || exit 1; \
+		echo "-----------------------------------------------------------"; \
+		echo "Done running tests in" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v --with-coverage \
-			--cover-inclusive --cover-html \
-			--cover-package=$(COMPONENTS_TEST_COMMA) $$component/tests/integration || exit 1; \
 	done
+
+.PHONY: .combine-integration-tests-coverage
+.combine-integration-tests-coverage: .run-integration-tests-coverage
+	. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.integration \
+	    coverage combine .coverage.integration.*
+
+.coverage.integration:
+	@compgen -G '.coverage.integration.*' && \
+		for coverage_result in $$(compgen -G '.coverage.integration.*'); do \
+			echo "Combining data from $${coverage_result}"; \
+			. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.integration \
+			coverage combine $${coverage_result}; \
+		done \
+	|| \
+		echo "Running integration tests"; \
+		make .combine-integration-tests-coverage
+
+.PHONY: .report-integration-tests-coverage
+.report-integration-tests-coverage: .coverage.integration
+	@. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.integration \
+	    coverage report
+
+.PHONY: .integration-tests-coverage-html
+.integration-tests-coverage-html: .coverage.integration
+	@. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.integration \
+	    coverage html
+
+.PHONY: .itests-coverage-html
+.itests-coverage-html: .integration-tests-coverage-html
 
 .PHONY: mistral-itests
 mistral-itests: requirements .mistral-itests
@@ -420,14 +559,65 @@ mistral-itests: requirements .mistral-itests
 	@echo
 	. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v st2tests/integration/mistral || exit 1;
 
-.PHONY: .mistral-itests-coverage-html
-.mistral-itests-coverage-html:
+.PHONY: .run-mistral-itests-coverage
+ifneq ($(INCLUDE_TESTS_IN_COVERAGE),)
+.run-mistral-itests-coverage: NOSE_COVERAGE_PACKAGES := $(NOSE_COVERAGE_PACKAGES),st2tests.mistral.integration
+endif
+.run-mistral-itests-coverage:
 	@echo
-	@echo "==================== MISTRAL integration tests with coverage (HTML reports) ===================="
+	@echo "==================== MISTRAL integration tests with coverage ===================="
 	@echo "The tests assume both st2 and mistral are running on 127.0.0.1."
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v --with-coverage \
-		--cover-inclusive --cover-html st2tests/integration/mistral || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; \
+	    COVERAGE_FILE=.coverage.mistral.integration \
+	    nosetests $(NOSE_OPTS) -s -v $(NOSE_COVERAGE_FLAGS) \
+	    $(NOSE_COVERAGE_PACKAGES) \
+		st2tests/integration/mistral || exit 1;
+
+.coverage.mistral.integration:
+	if [ ! -e .coverage.mistral.integration ]; then \
+		make .run-mistral-itests-coverage; \
+	fi
+
+.PHONY: .mistral-itests-coverage-html
+.mistral-itests-coverage-html: .coverage.mistral.integration
+	. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.mistral.integration coverage html
+
+.PHONY: .coverage-combine
+.coverage-combine: .run-unit-tests-coverage .run-integration-tests-coverage .run-mistral-itests-coverage
+	. $(VIRTUALENV_DIR)/bin/activate; coverage combine $(COVERAGE_GLOBS)
+
+# This is a real target, but we need to do our own make trickery in case some
+# but not all of the prerequisites are available
+.coverage:
+	@NUM_COVERAGE_RESULTS=0; \
+	for coverage_result in $$( \
+		for coverage_glob in $(COVERAGE_GLOBS_QUOTED); do \
+			compgen -G $${coverage_glob}; \
+		done; \
+	); do \
+		NUM_COVERAGE_RESULTS=$$(( NUM_COVERAGE_RESULTS+1 )); \
+		echo "Combining $${coverage_result}: $$NUM_COVERAGE_RESULTS"; \
+		. $(VIRTUALENV_DIR)/bin/activate; coverage combine $${coverage_result}; \
+	done; \
+	if [ $${NUM_COVERAGE_RESULTS} -eq 0 ]; then \
+		make .coverage-combine; \
+	fi
+
+# @for coverage_result in $(COVERAGE_GLOBS); do \
+# 	[ -e $${coverage_result} ] || echo "$${coverage_result} does not exist." && continue; \
+# 	echo "Combining data from $${coverage_result}"; \
+# 	. $(VIRTUALENV_DIR)/bin/activate; coverage combine $${coverage_result}; \
+# done || \
+# (echo "Running .coverage-combine"; make .coverage-combine)
+
+.PHONY: .coverage-report
+.coverage-report: .coverage
+	. $(VIRTUALENV_DIR)/bin/activate; coverage report
+
+.PHONY: .coverage-html
+.coverage-html: .coverage
+	. $(VIRTUALENV_DIR)/bin/activate; coverage html
 
 .PHONY: packs-tests
 packs-tests: requirements .packs-tests
