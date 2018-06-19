@@ -14,7 +14,9 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
+import sys
 import glob
 
 from st2tests.base import IntegrationTestCase
@@ -27,7 +29,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SCRIPT_PATH = os.path.join(BASE_DIR, '../../bin/st2-register-content')
 SCRIPT_PATH = os.path.abspath(SCRIPT_PATH)
 
-BASE_CMD_ARGS = [SCRIPT_PATH, '--config-file=conf/st2.tests.conf', '-v']
+BASE_CMD_ARGS = [sys.executable, SCRIPT_PATH, '--config-file=conf/st2.tests.conf', '-v']
 BASE_REGISTER_ACTIONS_CMD_ARGS = BASE_CMD_ARGS + ['--register-actions']
 
 PACKS_PATH = get_fixtures_packs_base_path()
