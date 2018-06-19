@@ -115,7 +115,7 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
         # dir as packs_base_paths
         cmd = [SCRIPT_PATH, '--config-file=conf/st2.tests1.conf', '-v', '--register-sensors']
         exit_code, _, stderr = run_command(cmd=cmd)
-        self.assertTrue('Registered 0 sensors.' in stderr)
+        self.assertTrue('Registered 0 sensors.' in stderr, 'Actual stderr: %s' % (stderr))
         self.assertEqual(exit_code, 0)
 
         cmd = [SCRIPT_PATH, '--config-file=conf/st2.tests1.conf', '-v', '--register-all',
@@ -131,7 +131,7 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
         cmd = BASE_CMD_ARGS + ['--register-all', '--register-setup-virtualenvs',
                                '--register-no-fail-on-failure']
         exit_code, stdout, stderr = run_command(cmd=cmd)
-        self.assertTrue('Registering actions' in stderr)
+        self.assertTrue('Registering actions' in stderr, 'Actual stderr: %s' % (stderr))
         self.assertTrue('Registering rules' in stderr)
         self.assertTrue('Setup virtualenv for %s pack(s)' % (PACKS_COUNT) in stderr)
         self.assertEqual(exit_code, 0)
