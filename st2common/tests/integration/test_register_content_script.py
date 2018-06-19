@@ -113,13 +113,14 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
 
         # Note: We want to use a different config which sets fixtures/packs_1/
         # dir as packs_base_paths
-        cmd = [SCRIPT_PATH, '--config-file=conf/st2.tests1.conf', '-v', '--register-sensors']
+        cmd = [sys.executable, SCRIPT_PATH, '--config-file=conf/st2.tests1.conf', '-v',
+               '--register-sensors']
         exit_code, _, stderr = run_command(cmd=cmd)
         self.assertTrue('Registered 0 sensors.' in stderr, 'Actual stderr: %s' % (stderr))
         self.assertEqual(exit_code, 0)
 
-        cmd = [SCRIPT_PATH, '--config-file=conf/st2.tests1.conf', '-v', '--register-all',
-               '--register-no-fail-on-failure']
+        cmd = [sys.executable, SCRIPT_PATH, '--config-file=conf/st2.tests1.conf', '-v',
+               '--register-all', '--register-no-fail-on-failure']
         exit_code, _, stderr = run_command(cmd=cmd)
         self.assertTrue('Registered 0 actions.' in stderr)
         self.assertTrue('Registered 0 sensors.' in stderr)
