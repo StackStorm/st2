@@ -45,11 +45,12 @@ def format(gen):
     for pack in gen:
         if not pack:
             # Note: gunicorn wsgi handler expect bytes, not unicode
-            yield six.binary_type('\n')
+            yield six.binary_type(b'\n')
         else:
             (event, body) = pack
             # Note: gunicorn wsgi handler expect bytes, not unicode
-            yield six.binary_type(message % (event, json_encode(body, indent=None)))
+            yield six.binary_type((message % (event, json_encode(body,
+                                                                 indent=None))).encode('utf-8'))
 
 
 class StreamController(object):

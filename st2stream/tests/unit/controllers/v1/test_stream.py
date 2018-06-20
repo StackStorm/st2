@@ -29,7 +29,8 @@ from st2common.persistence.action import Action, RunnerType
 import st2common.stream.listener
 from st2stream.controllers.v1 import stream
 from st2tests.api import SUPER_SECRET_PARAMETER
-from base import FunctionalTest
+
+from .base import FunctionalTest
 
 
 RUNNER_TYPE_1 = {
@@ -138,6 +139,7 @@ class TestStreamController(FunctionalTest):
         message = None
 
         for message in resp._app_iter:
+            message = message.decode('utf-8')
             if message != '\n':
                 break
             process(LiveActionDB(**LIVE_ACTION_1), META())
@@ -165,7 +167,7 @@ class TestStreamController(FunctionalTest):
             received_messages_data = ''
             for index, message in enumerate(resp._app_iter):
                 if message.strip():
-                    received_messages_data += message
+                    received_messages_data += message.decode('utf-8')
 
                 # Dispatch some mock events
                 if index == 0:
