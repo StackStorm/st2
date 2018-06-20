@@ -1,0 +1,12 @@
+---
+name: fail-vars-rendering
+description: A basic workflow with error while evaluating vars.
+pack: orchestra_tests
+runner_type: orchestra
+entry_point: workflows/fail-vars-rendering.yaml
+enabled: true
+parameters:
+  who:
+    required: true
+    type: string
+    default: Stanley

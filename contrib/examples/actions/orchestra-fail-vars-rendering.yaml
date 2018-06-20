@@ -1,0 +1,11 @@
+---
+name: orchestra-fail-vars-rendering
+description: A basic workflow with error while evaluating vars.
+runner_type: orchestra
+entry_point: workflows/tests/orchestra-fail-vars-rendering.yaml
+enabled: true
+parameters:
+  name:
+    required: true
+    type: string
+    default: Lakshmi

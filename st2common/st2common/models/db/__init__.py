@@ -517,14 +517,8 @@ class MongoDBAccess(object):
 
 class ChangeRevisionMongoDBAccess(MongoDBAccess):
 
-    def get(self, *args, **kwargs):
-        instance = super(ChangeRevisionMongoDBAccess, self).get(*args, **kwargs)
-        instance._original_rev = instance.rev
-        return instance
-
     def insert(self, instance):
         instance = self.model.objects.insert(instance)
-        instance._original_rev = instance.rev
 
         return self._undo_dict_field_escape(instance)
 
@@ -538,12 +532,12 @@ class ChangeRevisionMongoDBAccess(MongoDBAccess):
         return self.save(instance)
 
     def save(self, instance):
-        if not hasattr(instance, '_original_rev'):
+        if not hasattr(instance, 'id') or not instance.id:
             return self.insert(instance)
         else:
             try:
-                save_condition = {'id': instance.id, 'rev': instance._original_rev}
-                instance.rev = instance._original_rev + 1
+                save_condition = {'id': instance.id, 'rev': instance.rev}
+                instance.rev = instance.rev + 1
                 instance.save(save_condition=save_condition)
             except mongoengine.SaveConditionError:
                 raise db_exc.StackStormDBObjectWriteConflictError(instance)

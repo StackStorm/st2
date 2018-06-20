@@ -124,9 +124,15 @@ LIVEACTION_FAILED_STATES = [
     LIVEACTION_STATUS_ABANDONED
 ]
 
+LIVEACTION_CANCEL_STATES = [
+    LIVEACTION_STATUS_CANCELING,
+    LIVEACTION_STATUS_CANCELED
+]
+
 WORKFLOW_RUNNER_TYPES = [
     'action-chain',
     'mistral-v2',
+    'orchestra'
 ]
 
 # Linux's limit for param size

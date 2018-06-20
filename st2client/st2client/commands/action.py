@@ -421,6 +421,10 @@ class ActionRunCommandMixin(object):
                 options['attributes'].insert(status_index + 1, 'result_task')
                 options['attributes'].insert(status_index + 2, 'result')
                 instance.result = task_result
+        # Otherwise include the result of the workflow execution.
+        else:
+            if 'result' not in options['attributes']:
+                options['attributes'].append('result')
 
         # print root task
         self.print_output(instance, formatter, **options)
@@ -862,7 +866,7 @@ class ActionRunCommandMixin(object):
         elif context and 'mistral' in context:
             task_name_key = 'context.mistral.task_name'
         elif context and 'orchestra' in context:
-            task_name_key = 'context.orchestra.task.name'
+            task_name_key = 'context.orchestra.task_name'
         # Use LiveAction as the object so that the formatter lookup does not change.
         # AKA HACK!
         return models.action.LiveAction(**{

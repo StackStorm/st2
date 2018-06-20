@@ -1,0 +1,6 @@
+---
+name: orchestra-rollback-retry
+description: A workflow demonstrating how to rollback and retry.
+runner_type: orchestra
+entry_point: workflows/orchestra-rollback-retry.yaml
+enabled: true

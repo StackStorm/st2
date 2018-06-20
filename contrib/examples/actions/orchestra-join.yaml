@@ -1,0 +1,6 @@
+---
+name: orchestra-join
+description: A basic workflow that demonstrate branching and join.
+runner_type: orchestra
+entry_point: workflows/orchestra-join.yaml
+enabled: true
