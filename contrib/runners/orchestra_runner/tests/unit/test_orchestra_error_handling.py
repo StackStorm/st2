@@ -16,6 +16,7 @@
 from __future__ import absolute_import
 
 import mock
+import six
 
 from orchestra import states as wf_states
 
@@ -233,10 +234,14 @@ class OrchestraErrorHandlingTest(st2tests.DbTestCase):
         self.assertDictEqual(ac_ex_db.result, expected_result)
 
     def test_fail_start_task_input_value_type(self):
+        if six.PY3:
+            msg = 'Value "{\'x\': \'foobar\'}" must either be a string or None. Got "dict".'
+        else:
+            msg = 'Value "{u\'x\': u\'foobar\'}" must either be a string or None. Got "dict".'
+
         expected_errors = [
             {
-                'message': 'Value "{u\'x\': u\'foobar\'}" must either '
-                           'be a string or None. Got "dict".',
+                'message': msg,
                 'task_id': 'task1'
             }
         ]
@@ -347,10 +352,14 @@ class OrchestraErrorHandlingTest(st2tests.DbTestCase):
         self.assertDictEqual(ac_ex_db.result, expected_result)
 
     def test_fail_next_task_input_value_type(self):
+        if six.PY3:
+            msg = 'Value "{\'x\': \'foobar\'}" must either be a string or None. Got "dict".'
+        else:
+            msg = 'Value "{u\'x\': u\'foobar\'}" must either be a string or None. Got "dict".'
+
         expected_errors = [
             {
-                'message': 'Value "{u\'x\': u\'foobar\'}" must either '
-                           'be a string or None. Got "dict".',
+                'message': msg,
                 'task_id': 'task2'
             }
         ]
@@ -394,8 +403,10 @@ class OrchestraErrorHandlingTest(st2tests.DbTestCase):
     def test_fail_task_transition(self):
         expected_errors = [
             {
-                'message': 'Unable to resolve key \'foobar\' in expression '
-                           '\'<% succeeded() and result().foobar %>\' from context.',
+                'message': (
+                    "Unable to resolve key 'foobar' in expression "
+                    "'<% succeeded() and result().foobar %>' from context."
+                ),
                 'task_transition_id': 'task2__0',
                 'task_id': 'task1'
             }

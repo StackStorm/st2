@@ -18,6 +18,7 @@
 from __future__ import absolute_import
 
 import mock
+import six
 
 from orchestra import states as wf_states
 
@@ -163,8 +164,8 @@ class OrchestraRunnerTest(st2tests.DbTestCase):
 
         # Check workflow output.
         expected_output = {
-            'a5': wf_input['a1'].decode('utf-8'),
-            'b5': wf_input['a1'].decode('utf-8')
+            'a5': wf_input['a1'] if six.PY3 else wf_input['a1'].decode('utf-8'),
+            'b5': wf_input['a1'] if six.PY3 else wf_input['a1'].decode('utf-8')
         }
 
         self.assertDictEqual(wf_ex_db.output, expected_output)
