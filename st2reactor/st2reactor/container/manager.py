@@ -27,19 +27,27 @@ from st2common.models.system.common import ResourceReference
 
 LOG = logging.getLogger(__name__)
 
+__all__ = [
+    'SensorContainerManager'
+]
+
 
 class SensorContainerManager(object):
 
-    def __init__(self, sensors_partitioner):
+    def __init__(self, sensors_partitioner, single_sensor_mode=False):
+        if not sensors_partitioner:
+            raise ValueError('sensors_partitioner should be non-None.')
+
+        self._sensors_partitioner = sensors_partitioner
+        self._single_sensor_mode = single_sensor_mode
+
         self._sensor_container = None
+        self._container_thread = None
+
         self._sensors_watcher = SensorWatcher(create_handler=self._handle_create_sensor,
                                               update_handler=self._handle_update_sensor,
                                               delete_handler=self._handle_delete_sensor,
                                               queue_suffix='sensor_container')
-        self._container_thread = None
-        if not sensors_partitioner:
-            raise ValueError('sensors_partitioner should be non-None.')
-        self._sensors_partitioner = sensors_partitioner
 
     def run_sensors(self):
         """
@@ -57,14 +65,22 @@ class SensorContainerManager(object):
 
         LOG.info('(PID:%s) SensorContainer started.', os.getpid())
         self._setup_sigterm_handler()
-        self._spin_container_and_wait(sensors_to_run)
+
+        exit_code = self._spin_container_and_wait(sensors_to_run)
+        return exit_code
 
     def _spin_container_and_wait(self, sensors):
+        exit_code = 0
+
         try:
-            self._sensor_container = ProcessSensorContainer(sensors=sensors)
+            self._sensor_container = ProcessSensorContainer(
+                sensors=sensors,
+                single_sensor_mode=self._single_sensor_mode)
             self._container_thread = eventlet.spawn(self._sensor_container.run)
+
             LOG.debug('Starting sensor CUD watcher...')
             self._sensors_watcher.start()
+
             exit_code = self._container_thread.wait()
             LOG.error('Process container quit with exit_code %d.', exit_code)
             LOG.error('(PID:%s) SensorContainer stopped.', os.getpid())
@@ -78,7 +94,9 @@ class SensorContainerManager(object):
             eventlet.kill(self._container_thread)
             self._container_thread = None
 
-            return 0
+            return exit_code
+
+        return exit_code
 
     def _setup_sigterm_handler(self):
 

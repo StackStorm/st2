@@ -13,9 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__all__ = ['SCHEDULER_ENABLED_LOG_LINE', 'SCHEDULER_DISABLED_LOG_LINE']
+__all__ = [
+    'SCHEDULER_ENABLED_LOG_LINE',
+    'SCHEDULER_DISABLED_LOG_LINE'
+]
 
 
 # Integration tests look for these loglines to validate scheduler enable/disable
-SCHEDULER_ENABLED_LOG_LINE = 'Scheduler is enabled.'
-SCHEDULER_DISABLED_LOG_LINE = 'Scheduler is disabled.'
+SCHEDULER_ENABLED_LOG_LINE = b'Scheduler is enabled.'
+SCHEDULER_DISABLED_LOG_LINE = b'Scheduler is disabled.'

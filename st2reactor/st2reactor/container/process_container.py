@@ -77,7 +77,7 @@ class ProcessSensorContainer(object):
     Sensor container which runs sensors in a separate process.
     """
 
-    def __init__(self, sensors, poll_interval=5, dispatcher=None):
+    def __init__(self, sensors, poll_interval=5, single_sensor_mode=False, dispatcher=None):
         """
         :param sensors: A list of sensor dicts.
         :type sensors: ``list`` of ``dict``
@@ -86,6 +86,12 @@ class ProcessSensorContainer(object):
         :type poll_interval: ``float``
         """
         self._poll_interval = poll_interval
+        self._single_sensor_mode = single_sensor_mode
+
+        if self._single_sensor_mode:
+            # For more immediate feedback we use lower poll interval when running in single sensor
+            # mode
+            self._poll_interval = 1
 
         self._sensors = {}  # maps sensor_id -> sensor object
         self._processes = {}  # maps sensor_id -> sensor process
@@ -95,6 +101,7 @@ class ProcessSensorContainer(object):
         self._dispatcher = dispatcher
 
         self._stopped = False
+        self._exit_code = None  # exit code with which this process should exit
 
         sensors = sensors or []
         for sensor_obj in sensors:
@@ -144,8 +151,10 @@ class ProcessSensorContainer(object):
             return FAILURE_EXIT_CODE
 
         self._stopped = True
-        LOG.error('Process container quit. It shouldn\'t.')
-        return SUCCESS_EXIT_CODE
+        LOG.error('Process container stopped.')
+
+        exit_code = self._exit_code or SUCCESS_EXIT_CODE
+        return exit_code
 
     def _poll_sensors_for_results(self, sensor_ids):
         """
@@ -389,6 +398,15 @@ class ProcessSensorContainer(object):
         Method for respawning a sensor which died with a non-zero exit code.
         """
         extra = {'sensor_id': sensor_id, 'sensor': sensor}
+
+        if self._single_sensor_mode:
+            # In single sensor mode we want to exit immediately on failure
+            LOG.info('Not respawning a sensor since running in single sensor mode',
+                    extra=extra)
+
+            self._stopped = True
+            self._exit_code = exit_code
+            return
 
         if self._stopped:
             LOG.debug('Stopped, not respawning a dead sensor', extra=extra)
