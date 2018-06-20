@@ -1,0 +1,14 @@
+---
+name: orchestra-test-cancel-subworkflows
+description: A sample workflow used to test the cascading cancel of multiple subworkflows.
+pack: examples
+runner_type: orchestra
+entry_point: workflows/tests/orchestra-test-cancel-subworkflows.yaml
+enabled: true
+parameters:
+    file1:
+        type: string
+        required: true
+    file2:
+        type: string
+        required: true

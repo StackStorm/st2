@@ -1,0 +1,11 @@
+---
+name: orchestra-fail-task-transition
+description: A basic workflow with error while evaluating task transition.
+runner_type: orchestra
+entry_point: workflows/tests/orchestra-fail-task-transition.yaml
+enabled: true
+parameters:
+  name:
+    required: true
+    type: string
+    default: Lakshmi

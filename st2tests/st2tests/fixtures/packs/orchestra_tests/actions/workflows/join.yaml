@@ -1,0 +1,44 @@
+version: 1.0
+
+description: A basic workflow that demonstrate branching and join.
+
+tasks:
+  task1:
+    action: core.noop
+    next:
+      - when: <% succeeded() %>
+        do: task2, task4
+
+  # branch 1
+  task2:
+    action: core.noop
+    next:
+      - when: <% succeeded() %>
+        do: task3
+  task3:
+    action: core.noop
+    next:
+      - when: <% succeeded() %>
+        do: task6
+
+  # branch 2
+  task4:
+    action: core.noop
+    next:
+      - when: <% succeeded() %>
+        do: task5
+  task5:
+    action: core.noop
+    next:
+      - when: <% succeeded() %>
+        do: task6
+
+  # converge branch 1 and 2
+  task6:
+    join: all
+    action: core.noop
+    next:
+      - when: <% succeeded() %>
+        do: task7
+  task7:
+    action: core.noop

@@ -1,0 +1,1 @@
+git+https://github.com/StackStorm/orchestra.git#egg=orchestra

@@ -1,0 +1,16 @@
+---
+name: chain-sequential
+description: A basic sequential workflow.
+runner_type: action-chain
+entry_point: chains/chain_sequential.yaml
+enabled: true
+parameters:
+  name:
+    required: true
+    type: string
+    default: Lakshmi
+  skip_notify:
+    default:
+      - task1
+      - task2
+      - task3

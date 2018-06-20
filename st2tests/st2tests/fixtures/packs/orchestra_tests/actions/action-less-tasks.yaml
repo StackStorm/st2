@@ -1,0 +1,12 @@
+---
+name: action-less-tasks
+description: A basic sequential workflow.
+pack: orchestra_tests
+runner_type: orchestra
+entry_point: workflows/action-less-tasks.yaml
+enabled: true
+parameters:
+  name:
+    required: true
+    type: string
+    default: Stanley

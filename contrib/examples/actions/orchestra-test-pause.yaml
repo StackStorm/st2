@@ -1,0 +1,11 @@
+---
+name: orchestra-test-pause
+description: A sample workflow used to test the pause feature.
+pack: examples
+runner_type: orchestra
+entry_point: workflows/tests/orchestra-test-pause.yaml
+enabled: true
+parameters:
+    tempfile:
+        type: string
+        required: true
