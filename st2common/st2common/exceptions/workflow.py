@@ -14,8 +14,57 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-from st2common.exceptions import StackStormBaseException
+
+from st2common import exceptions as st2_exc
+from st2common.exceptions import db as db_exc
+from st2common import log as logging
 
 
-class WorkflowDefinitionException(StackStormBaseException):
+LOG = logging.getLogger(__name__)
+
+
+def retry_on_exceptions(exc):
+    LOG.warning('Determining if exception %s should be retried.', type(exc))
+
+    retrying = isinstance(exc, db_exc.StackStormDBObjectWriteConflictError)
+
+    if retrying:
+        LOG.warning('Retrying operation due to database write conflict.')
+
+    return retrying
+
+
+class WorkflowDefinitionException(st2_exc.StackStormBaseException):
     pass
+
+
+class WorkflowExecutionNotFoundException(st2_exc.StackStormBaseException):
+
+    def __init__(self, ac_ex_id):
+        Exception.__init__(
+            self,
+            'Unable to identify any workflow execution that is '
+            'associated to action execution "%s".' % ac_ex_id
+        )
+
+
+class AmbiguousWorkflowExecutionException(st2_exc.StackStormBaseException):
+
+    def __init__(self, ac_ex_id):
+        Exception.__init__(
+            self,
+            'More than one workflow execution is associated '
+            'to action execution "%s".' % ac_ex_id
+        )
+
+
+class WorkflowExecutionIsCompletedException(st2_exc.StackStormBaseException):
+
+    def __init__(self, wf_ex_id):
+        Exception.__init__(self, 'Workflow execution "%s" is already completed.' % wf_ex_id)
+
+
+class WorkflowExecutionIsRunningException(st2_exc.StackStormBaseException):
+
+    def __init__(self, wf_ex_id):
+        Exception.__init__(self, 'Workflow execution "%s" is already active.' % wf_ex_id)

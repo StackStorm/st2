@@ -1,0 +1,7 @@
+---
+name: fail-inspection
+description: A basic sequential workflow with syntax errors.
+pack: orchestra_tests
+runner_type: orchestra
+entry_point: workflows/fail-inspection.yaml
+enabled: true

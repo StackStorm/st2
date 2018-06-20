@@ -1,0 +1,16 @@
+---
+name: orchestra-mock-create-vm
+description: A sample workflow that demonstrates forks and join.
+runner_type: orchestra
+entry_point: workflows/orchestra-mock-create-vm.yaml
+enabled: true
+parameters:
+  cpu_cores:
+    default: 1
+    type: integer
+  memory_mb:
+    default: 1024
+    type: integer
+  vm_name:
+    required: true
+    type: string

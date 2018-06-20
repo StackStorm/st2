@@ -1,0 +1,7 @@
+---
+name: subworkflows
+description: A sample workflow that calls multiple subworkflows.
+pack: orchestra_tests
+runner_type: orchestra
+entry_point: workflows/subworkflows.yaml
+enabled: true

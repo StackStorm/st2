@@ -270,18 +270,24 @@ class RunnerContainer(object):
         """
         liveaction_db = get_liveaction_by_id(liveaction_id)
 
-        state_changed = (liveaction_db.status != status)
+        state_changed = (
+            liveaction_db.status != status and
+            liveaction_db.status not in action_constants.LIVEACTION_COMPLETED_STATES
+        )
 
         if status in action_constants.LIVEACTION_COMPLETED_STATES:
             end_timestamp = date_utils.get_datetime_utc_now()
         else:
             end_timestamp = None
 
-        liveaction_db = update_liveaction_status(status=status,
-                                                 result=result,
-                                                 context=context,
-                                                 end_timestamp=end_timestamp,
-                                                 liveaction_db=liveaction_db)
+        liveaction_db = update_liveaction_status(
+            status=status if state_changed else liveaction_db.status,
+            result=result,
+            context=context,
+            end_timestamp=end_timestamp,
+            liveaction_db=liveaction_db
+        )
+
         return (liveaction_db, state_changed)
 
     def _update_status(self, liveaction_id, status, result, context):

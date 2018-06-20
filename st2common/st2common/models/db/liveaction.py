@@ -37,6 +37,8 @@ PACK_SEPARATOR = '.'
 
 
 class LiveActionDB(stormbase.StormFoundationDB):
+    workflow_execution = me.StringField()
+    task_execution = me.StringField()
     # TODO: Can status be an enum at the Mongo layer?
     status = me.StringField(
         required=True,
@@ -77,6 +79,8 @@ class LiveActionDB(stormbase.StormFoundationDB):
             {'fields': ['action']},
             {'fields': ['status']},
             {'fields': ['context.trigger_instance.id']},
+            {'fields': ['workflow_execution']},
+            {'fields': ['task_execution']}
         ]
     }
 
