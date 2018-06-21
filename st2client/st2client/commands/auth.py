@@ -18,7 +18,6 @@ from __future__ import absolute_import
 import getpass
 import json
 import logging
-import os
 
 import requests
 from six.moves.configparser import ConfigParser
