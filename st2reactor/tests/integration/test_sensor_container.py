@@ -14,9 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
+import sys
 import signal
-import unittest2
 
 import psutil
 import eventlet
@@ -35,14 +36,27 @@ __all__ = [
 ]
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 ST2_CONFIG_PATH = os.path.join(BASE_DIR, '../../../conf/st2.tests.conf')
 ST2_CONFIG_PATH = os.path.abspath(ST2_CONFIG_PATH)
+
+PYTHON_BINARY = sys.executable
+
 BINARY = os.path.join(BASE_DIR, '../../../st2reactor/bin/st2sensorcontainer')
 BINARY = os.path.abspath(BINARY)
-CMD = [BINARY, '--config-file', ST2_CONFIG_PATH, '--sensor-ref=examples.SamplePollingSensor']
+
+PACKS_BASE_PATH = os.path.join(BASE_DIR, '../../../contrib')
+
+DEFAULT_CMD = [
+    PYTHON_BINARY,
+    BINARY,
+    '--config-file',
+    ST2_CONFIG_PATH,
+    '--sensor-ref=examples.SamplePollingSensor'
+]
 
 
-@unittest2.skipIf(True, 'Skipped until we improve integration tests setup')
+# @unittest2.skipIf(True, 'Skipped until we improve integration tests setup')
 class SensorContainerTestCase(IntegrationTestCase):
     """
     Note: For those tests MongoDB must be running, virtualenv must exist for
@@ -54,7 +68,6 @@ class SensorContainerTestCase(IntegrationTestCase):
     @classmethod
     def setUpClass(cls):
         super(SensorContainerTestCase, cls).setUpClass()
-        return
 
         st2tests.config.parse_args()
 
@@ -65,18 +78,21 @@ class SensorContainerTestCase(IntegrationTestCase):
             username=username, password=password, ensure_indexes=False)
 
         # Register sensors
-        register_sensors(packs_base_paths=['/opt/stackstorm/packs'], use_pack_cache=False)
+        register_sensors(packs_base_paths=[PACKS_BASE_PATH], use_pack_cache=False)
 
         # Create virtualenv for examples pack
-        virtualenv_path = '/opt/stackstorm/virtualenvs/examples'
-        cmd = ['virtualenv', '--system-site-packages', virtualenv_path]
+        virtualenv_path = '/tmp/virtualenvs/examples'
+
+        run_command(cmd=['rm', '-rf', virtualenv_path])
+
+        cmd = ['virtualenv', '--system-site-packages', '--python', PYTHON_BINARY, virtualenv_path]
         run_command(cmd=cmd)
 
     def test_child_processes_are_killed_on_sigint(self):
         process = self._start_sensor_container()
 
         # Give it some time to start up
-        eventlet.sleep(3)
+        eventlet.sleep(5)
 
         # Assert process has started and is running
         self.assertProcessIsRunning(process=process)
@@ -84,7 +100,7 @@ class SensorContainerTestCase(IntegrationTestCase):
         # Verify container process and children sensor / wrapper processes are running
         pp = psutil.Process(process.pid)
         children_pp = pp.children()
-        self.assertEqual(pp.cmdline()[1:], CMD)
+        self.assertEqual(pp.cmdline()[1:], DEFAULT_CMD[1:])
         self.assertEqual(len(children_pp), 1)
 
         # Send SIGINT
@@ -92,7 +108,7 @@ class SensorContainerTestCase(IntegrationTestCase):
 
         # SIGINT causes graceful shutdown so give it some time to gracefuly shut down the sensor
         # child processes
-        eventlet.sleep(PROCESS_EXIT_TIMEOUT + 1)
+        eventlet.sleep(PROCESS_EXIT_TIMEOUT + 2)
 
         # Verify parent and children processes have exited
         self.assertProcessExited(proc=pp)
@@ -109,7 +125,7 @@ class SensorContainerTestCase(IntegrationTestCase):
         # Verify container process and children sensor / wrapper processes are running
         pp = psutil.Process(process.pid)
         children_pp = pp.children()
-        self.assertEqual(pp.cmdline()[1:], CMD)
+        self.assertEqual(pp.cmdline()[1:], DEFAULT_CMD[1:])
         self.assertEqual(len(children_pp), 1)
 
         # Send SIGTERM
@@ -129,12 +145,12 @@ class SensorContainerTestCase(IntegrationTestCase):
         process = self._start_sensor_container()
 
         # Give it some time to start up
-        eventlet.sleep(3)
+        eventlet.sleep(4)
 
         # Verify container process and children sensor / wrapper processes are running
         pp = psutil.Process(process.pid)
         children_pp = pp.children()
-        self.assertEqual(pp.cmdline()[1:], CMD)
+        self.assertEqual(pp.cmdline()[1:], DEFAULT_CMD[1:])
         self.assertEqual(len(children_pp), 1)
 
         # Send SIGKILL
@@ -149,8 +165,46 @@ class SensorContainerTestCase(IntegrationTestCase):
 
         self.remove_process(process=process)
 
-    def _start_sensor_container(self):
-        process = subprocess.Popen(CMD, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+    def test_single_sensor_mode(self):
+        # 1. --sensor-ref not provided
+        cmd = [PYTHON_BINARY, BINARY, '--config-file', ST2_CONFIG_PATH, '--single-sensor-mode']
+
+        process = self._start_sensor_container(cmd=cmd)
+        pp = psutil.Process(process.pid)
+
+        # Give it some time to start up
+        eventlet.sleep(4)
+
+        stdout = process.stdout.read()
+        self.assertTrue((b'--sensor-ref argument must be provided when running in single sensor '
+                         b'mode') in stdout)
+        self.assertProcessExited(proc=pp)
+        self.remove_process(process=process)
+
+        # 2. sensor ref provided
+        cmd = [BINARY, '--config-file', ST2_CONFIG_PATH, '--single-sensor-mode',
+               '--sensor-ref=examples.SampleSensorExit']
+
+        process = self._start_sensor_container(cmd=cmd)
+        pp = psutil.Process(process.pid)
+
+        # Give it some time to start up
+        eventlet.sleep(8)
+
+        # Container should exit and not respawn a sensor in single sensor mode
+        stdout = process.stdout.read()
+
+        self.assertTrue(b'Process for sensor examples.SampleSensorExit has exited with code 110')
+        self.assertTrue(b'Not respawning a sensor since running in single sensor mode')
+        self.assertTrue(b'Process container quit with exit_code 110.')
+
+        eventlet.sleep(2)
+        self.assertProcessExited(proc=pp)
+
+        self.remove_process(process=process)
+
+    def _start_sensor_container(self, cmd=DEFAULT_CMD):
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                    shell=False, preexec_fn=os.setsid)
         self.add_process(process=process)
         return process

@@ -90,7 +90,7 @@ class TestExportWorker(DbTestCase):
 
     @mock.patch.object(os.path, 'exists', mock.MagicMock(return_value=True))
     def test_process(self):
-        some_execution = self.saved_executions.values()[5]
+        some_execution = list(self.saved_executions.values())[5]
         exec_exporter = ExecutionsExporter(None, None)
         self.assertEqual(exec_exporter.pending_executions.qsize(), 0)
         exec_exporter.process(some_execution)

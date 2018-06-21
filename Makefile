@@ -728,7 +728,14 @@ ci-py3-unit:
 	@echo
 	@echo "==================== ci-py3-unit ===================="
 	@echo
-	tox -e py36 -vv
+	tox -e py36-unit -vv
+
+.PHONY: ci-py3-integration
+ci-py3-integration:
+	@echo
+	@echo "==================== ci-py3-integration ===================="
+	@echo
+	tox -e py36-integration -vv
 
 .PHONY: .rst-check
 .rst-check:

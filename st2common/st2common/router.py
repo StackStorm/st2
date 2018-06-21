@@ -370,6 +370,11 @@ class Router(object):
                     detail = 'Failed to parse request body: %s' % str(e)
                     raise exc.HTTPBadRequest(detail=detail)
 
+                # Special case for Python 3
+                if six.PY3 and content_type == 'text/plain' and isinstance(data, six.binary_type):
+                    # Convert bytes to text type (string / unicode)
+                    data = data.decode('utf-8')
+
                 try:
                     CustomValidator(schema, resolver=self.spec_resolver).validate(data)
                 except (jsonschema.ValidationError, ValueError) as e:

@@ -13,9 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import Queue
-
 import eventlet
+from six.moves import queue
 from kombu import Connection
 from oslo_config import cfg
 
@@ -47,7 +46,7 @@ class ExecutionsExporter(consumers.MessageHandler):
 
     def __init__(self, connection, queues):
         super(ExecutionsExporter, self).__init__(connection, queues)
-        self.pending_executions = Queue.Queue()
+        self.pending_executions = queue.Queue()
         self._dumper = Dumper(queue=self.pending_executions,
                               export_dir=cfg.CONF.exporter.dump_dir)
         self._consumer_thread = None
