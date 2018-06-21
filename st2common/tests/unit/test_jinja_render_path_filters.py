@@ -33,7 +33,7 @@ class JinjaUtilsPathFilterTestCase(unittest2.TestCase):
         self.assertEqual(actual, 'dir')
 
         actual = env.from_string(template).render({'k1': '/some/path/to/dir/'})
-        self.assertEqual(actual, 'dir')
+        self.assertEqual(actual, '')
 
     def test_dirname(self):
         env = jinja_utils.get_jinja_environment()
@@ -46,4 +46,4 @@ class JinjaUtilsPathFilterTestCase(unittest2.TestCase):
         self.assertEqual(actual, '/some/path/to')
 
         actual = env.from_string(template).render({'k1': '/some/path/to/dir/'})
-        self.assertEqual(actual, '/some/path/to')
+        self.assertEqual(actual, '/some/path/to/dir')
