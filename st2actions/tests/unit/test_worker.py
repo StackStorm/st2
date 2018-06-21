@@ -106,7 +106,7 @@ class WorkerTestCase(DbTestCase):
             self.assertTrue(os.path.isfile(temp_file))
 
             # Launch the action execution in a separate thread.
-            params = {'cmd': 'while [ -e \'%s\' ]; do sleep 0.1; done' % temp_file}
+            params = {'cmd': 'while [ -e %s ]; do sleep 0.1; done' % temp_file}
             liveaction_db = self._get_liveaction_model(WorkerTestCase.local_action_db, params)
             liveaction_db = LiveAction.add_or_update(liveaction_db)
             executions.create_execution_object(liveaction_db)
