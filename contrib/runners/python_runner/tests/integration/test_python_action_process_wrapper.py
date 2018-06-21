@@ -47,7 +47,7 @@ __all__ = [
 ]
 
 # Maximum limit for the process wrapper script execution time (in seconds)
-WRAPPER_PROCESS_RUN_TIME_UPPER_LIMIT = 0.30
+WRAPPER_PROCESS_RUN_TIME_UPPER_LIMIT = 0.31
 
 ASSERTION_ERROR_MESSAGE = ("""
 Python wrapper process script took more than %s seconds to execute (%s). This most likely means

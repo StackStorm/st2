@@ -14,7 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
+import six
 import mock
+import unittest2
 
 from bson.errors import InvalidStringData
 from oslo_config import cfg
@@ -296,6 +299,7 @@ class RunnerContainerTest(DbTestCase):
             liveaction_db
         )
 
+    @unittest2.skipIf(six.PY3, 'non-utf8 works fine in MongoDB under Python 3')
     @mock.patch.object(LocalShellCommandRunner, 'run', mock.MagicMock(
         return_value=(action_constants.LIVEACTION_STATUS_SUCCEEDED, NON_UTF8_RESULT, None)))
     @mock.patch('st2common.runners.base.register_runner',
