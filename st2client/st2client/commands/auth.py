@@ -18,6 +18,7 @@ from __future__ import absolute_import
 import getpass
 import json
 import logging
+import os
 
 import requests
 from six.moves.configparser import ConfigParser
@@ -138,8 +139,12 @@ class LoginCommand(resource.ResourceCommand):
             # Remove any existing password from config
             config.remove_option('credentials', 'password')
 
+        config_existed = os.path.exists(config_file)
         with open(config_file, 'w') as cfg_file_out:
             config.write(cfg_file_out)
+        # If we created the config file, correct the permissions
+        if not config_existed:
+            os.chmod(config_file, 0o660)
 
         return manager
 
