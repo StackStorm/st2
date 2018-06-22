@@ -365,7 +365,7 @@ class Shell(BaseCLIApp):
             return 3
 
         # Parse config and store it in the config module
-        config = self._parse_config_file(args=args)
+        config = self._parse_config_file(args=args, validate_config_permissions=False)
         set_config(config=config)
 
         self._check_locale_and_print_warning()

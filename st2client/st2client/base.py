@@ -153,24 +153,28 @@ class BaseCLIApp(object):
 
         return client
 
-    def _get_config_file_options(self, args):
+    def _get_config_file_options(self, args, validate_config_permissions=True):
         """
         Parse the config and return kwargs which can be passed to the Client
         constructor.
 
         :rtype: ``dict``
         """
-        rc_options = self._parse_config_file(args=args)
+        rc_options = self._parse_config_file(
+            args=args, validate_config_permissions=validate_config_permissions)
         result = {}
         for kwarg_name, (section, option) in six.iteritems(CONFIG_OPTION_TO_CLIENT_KWARGS_MAP):
             result[kwarg_name] = rc_options.get(section, {}).get(option, None)
 
         return result
 
-    def _parse_config_file(self, args):
+    def _parse_config_file(self, args, validate_config_permissions=True):
         config_file_path = self._get_config_file_path(args=args)
 
-        parser = CLIConfigParser(config_file_path=config_file_path, validate_config_exists=False)
+        parser = CLIConfigParser(config_file_path=config_file_path,
+                                 validate_config_exists=False,
+                                 validate_config_permissions=validate_config_permissions,
+                                 log=self.LOG)
         result = parser.parse()
         return result
 
@@ -258,10 +262,14 @@ class BaseCLIApp(object):
 
         if others_st_mode >= 2:
             # Every user has access to this file which is dangerous
-            message = ('Permissions (%s) for cached token file "%s" are to permissive. Please '
+            message = ('Permissions (%s) for cached token file "%s" are too permissive. Please '
                        'restrict the permissions and make sure only your own user can read '
-                       'from the file' % (file_st_mode, cached_token_path))
-            self.LOG.warn(message)
+                       'from or write to the file.'
+                       '\n\n'
+                       'You can fix this by running:'
+                       '\n\n'
+                       '    chmod o-rw %s')
+            self.LOG.warn(message % (file_st_mode, cached_token_path, cached_token_path))
 
         with open(cached_token_path) as fp:
             data = fp.read()
@@ -356,7 +364,7 @@ class BaseCLIApp(object):
         return result
 
     def _print_config(self, args):
-        config = self._parse_config_file(args=args)
+        config = self._parse_config_file(args=args, validate_config_permissions=False)
 
         for section, options in six.iteritems(config):
             print('[%s]' % (section))

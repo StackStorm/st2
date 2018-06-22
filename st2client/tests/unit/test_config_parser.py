@@ -123,7 +123,7 @@ class CLIConfigParserTestCase(unittest2.TestCase):
                 "\n\n"
                 "You can fix this by running:"
                 "\n\n"
-                "chmod g+s {config_dir}".format(config_dir=TEMP_CONFIG_DIR),
+                "    chmod g+s {config_dir}\n".format(config_dir=TEMP_CONFIG_DIR),
                 parser.LOG.info.call_args_list[0][0][0])
 
             self.assertEqual(parser.LOG.warn.call_count, 2)
@@ -133,7 +133,7 @@ class CLIConfigParserTestCase(unittest2.TestCase):
                 "\n\n"
                 "You can fix this by running:"
                 "\n\n"
-                "chmod 770 {config_dir}".format(config_dir=TEMP_CONFIG_DIR),
+                "    chmod 770 {config_dir}\n".format(config_dir=TEMP_CONFIG_DIR),
                 parser.LOG.warn.call_args_list[0][0][0])
 
             self.assertEqual(
@@ -141,8 +141,58 @@ class CLIConfigParserTestCase(unittest2.TestCase):
                 "\n\n"
                 "You can fix this by running:"
                 "\n\n"
-                "chmod 660 {config_file}".format(config_file=TEMP_FILE_PATH),
+                "    chmod 660 {config_file}\n".format(config_file=TEMP_FILE_PATH),
                 parser.LOG.warn.call_args_list[1][0][0])
+
+            # Make sure we left the file alone
+            self.assertTrue(os.path.exists(TEMP_FILE_PATH))
+            self.assertEqual(os.stat(TEMP_FILE_PATH).st_mode & 0o777, 0o664)
+
+            self.assertTrue(os.path.exists(TEMP_CONFIG_DIR))
+            self.assertEqual(os.stat(TEMP_CONFIG_DIR).st_mode & 0o7777, 0o0755)
+        finally:
+            if os.path.exists(TEMP_FILE_PATH):
+                os.remove(TEMP_FILE_PATH)
+                self.assertFalse(os.path.exists(TEMP_FILE_PATH))
+
+            if os.path.exists(TEMP_CONFIG_DIR):
+                os.removedirs(TEMP_CONFIG_DIR)
+                self.assertFalse(os.path.exists(TEMP_FILE_PATH))
+
+    def test_disable_permissions_warnings(self):
+        TEMP_FILE_PATH = os.path.join('st2config', '.st2', 'config')
+        TEMP_CONFIG_DIR = os.path.dirname(TEMP_FILE_PATH)
+
+        if os.path.exists(TEMP_FILE_PATH):
+            os.remove(TEMP_FILE_PATH)
+        self.assertFalse(os.path.exists(TEMP_FILE_PATH))
+
+        if os.path.exists(TEMP_CONFIG_DIR):
+            os.removedirs(TEMP_CONFIG_DIR)
+        self.assertFalse(os.path.exists(TEMP_CONFIG_DIR))
+
+        try:
+            # Setup the config directory
+            os.makedirs(TEMP_CONFIG_DIR)
+            os.chmod(TEMP_CONFIG_DIR, 0o0755)
+
+            self.assertNotEqual(os.stat(TEMP_CONFIG_DIR).st_mode & 0o7777, 0o0770)
+
+            # Setup the config file
+            shutil.copyfile(CONFIG_FILE_PATH_FULL, TEMP_FILE_PATH)
+            os.chmod(TEMP_FILE_PATH, 0o664)
+
+            self.assertNotEqual(os.stat(TEMP_FILE_PATH).st_mode & 0o777, 0o770)
+
+            parser = CLIConfigParser(config_file_path=TEMP_FILE_PATH,
+                                     validate_config_exists=True,
+                                     validate_config_permissions=False)
+            parser.LOG = mock.Mock()
+
+            result = parser.parse()  # noqa F841
+
+            self.assertEqual(parser.LOG.info.call_count, 0)
+            self.assertEqual(parser.LOG.warn.call_count, 0)
 
             # Make sure we left the file alone
             self.assertTrue(os.path.exists(TEMP_FILE_PATH))

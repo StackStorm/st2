@@ -20,8 +20,10 @@ import time
 import datetime
 import json
 import logging
+import shutil
 import tempfile
 
+import requests
 import six
 import mock
 import unittest2
@@ -461,6 +463,34 @@ class ShellTestCase(base.BaseCLITestCase):
 
         return package_metadata_path
 
+    @mock.patch.object(
+        requests, 'get',
+        mock.MagicMock(return_value=base.FakeResponse("{}", 200, 'OK')))
+    def test_dont_warn_multiple_times(self):
+        mock_temp_dir_path = tempfile.mkdtemp()
+        mock_config_dir_path = os.path.join(mock_temp_dir_path, 'testconfig')
+        mock_config_path = os.path.join(mock_config_dir_path, 'config')
+
+        # Make the temporary config directory
+        os.makedirs(mock_config_dir_path)
+
+        old_perms = os.stat(mock_config_dir_path).st_mode
+        new_perms = old_perms | 0o7
+        os.chmod(mock_config_dir_path, new_perms)
+
+        # Make the temporary config file
+        shutil.copyfile(CONFIG_FILE_PATH_FULL, mock_config_path)
+        os.chmod(mock_config_path, 0o777)  # nosec
+
+        shell = Shell()
+        shell.LOG = mock.Mock()
+
+        # Test without token.
+        shell.run(['--config-file', mock_config_path, 'action', 'list'])
+
+        self.assertEqual(shell.LOG.warn.call_count, 2)
+        self.assertEqual(shell.LOG.info.call_count, 1)
+
 
 class CLITokenCachingTestCase(unittest2.TestCase):
     def setUp(self):
@@ -553,7 +583,7 @@ class CLITokenCachingTestCase(unittest2.TestCase):
         self.assertEqual(shell.LOG.warn.call_count, 1)
         log_message = shell.LOG.warn.call_args[0][0]
 
-        expected_msg = ('Permissions .*? for cached token file .*? are to permissive')
+        expected_msg = ('Permissions .*? for cached token file .*? are too permissive.*')
         self.assertRegexpMatches(log_message, expected_msg)
 
     def test_cache_auth_token_invalid_permissions(self):

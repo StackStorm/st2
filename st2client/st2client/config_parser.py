@@ -121,13 +121,18 @@ for section, keys in six.iteritems(CONFIG_FILE_OPTIONS):
 
 
 class CLIConfigParser(object):
-    LOG = logging.getLogger(__name__)  # logger instance to use
-
-    def __init__(self, config_file_path, validate_config_exists=True):
+    def __init__(self, config_file_path, validate_config_exists=True,
+                 validate_config_permissions=True, log=None):
         if validate_config_exists and not os.path.isfile(config_file_path):
             raise ValueError('Config file "%s" doesn\'t exist')
 
+        if log is None:
+            log = logging.getLogger(__name__)
+            logging.basicConfig()
+
         self.config_file_path = config_file_path
+        self.validate_config_permissions = validate_config_permissions
+        self.LOG = log
 
     def parse(self):
         """
@@ -143,37 +148,38 @@ class CLIConfigParser(object):
 
         config_dir_path = os.path.dirname(self.config_file_path)
 
-        # Make sure the directory permissions == 0o770
-        if bool(os.stat(config_dir_path).st_mode & 0o777 ^ 0o770):
-            self.LOG.warn(
-                # TODO: Perfect place for an f-string
-                "The StackStorm configuration directory permissions are "
-                "insecure (too permissive)."
-                "\n\n"
-                "You can fix this by running:"
-                "\n\n"
-                "chmod 770 {config_dir}".format(config_dir=config_dir_path))
+        if self.validate_config_permissions:
+            # Make sure the directory permissions == 0o770
+            if bool(os.stat(config_dir_path).st_mode & 0o777 ^ 0o770):
+                self.LOG.warn(
+                    # TODO: Perfect place for an f-string
+                    "The StackStorm configuration directory permissions are "
+                    "insecure (too permissive)."
+                    "\n\n"
+                    "You can fix this by running:"
+                    "\n\n"
+                    "    chmod 770 {config_dir}\n".format(config_dir=config_dir_path))
 
-        # Make sure the setgid bit is set on the directory
-        if not bool(os.stat(config_dir_path).st_mode & 0o2000):
-            self.LOG.info(
-                # TODO: Perfect place for an f-string
-                "The SGID bit is not set on the StackStorm configuration "
-                "directory."
-                "\n\n"
-                "You can fix this by running:"
-                "\n\n"
-                "chmod g+s {config_dir}".format(config_dir=config_dir_path))
+            # Make sure the setgid bit is set on the directory
+            if not bool(os.stat(config_dir_path).st_mode & 0o2000):
+                self.LOG.info(
+                    # TODO: Perfect place for an f-string
+                    "The SGID bit is not set on the StackStorm configuration "
+                    "directory."
+                    "\n\n"
+                    "You can fix this by running:"
+                    "\n\n"
+                    "    chmod g+s {config_dir}\n".format(config_dir=config_dir_path))
 
-        # Make sure the file permissions == 0o660
-        if bool(os.stat(self.config_file_path).st_mode & 0o777 ^ 0o660):
-            self.LOG.warn(
-                # TODO: Another perfect place for an f-string
-                "The StackStorm configuration file permissions are insecure."
-                "\n\n"
-                "You can fix this by running:"
-                "\n\n"
-                "chmod 660 {config_file}".format(config_file=self.config_file_path))
+            # Make sure the file permissions == 0o660
+            if bool(os.stat(self.config_file_path).st_mode & 0o777 ^ 0o660):
+                self.LOG.warn(
+                    # TODO: Another perfect place for an f-string
+                    "The StackStorm configuration file permissions are insecure."
+                    "\n\n"
+                    "You can fix this by running:"
+                    "\n\n"
+                    "    chmod 660 {config_file}\n".format(config_file=self.config_file_path))
 
         config = ConfigParser()
         with io.open(self.config_file_path, 'r', encoding='utf8') as fp:
