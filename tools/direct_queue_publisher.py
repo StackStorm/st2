@@ -18,7 +18,7 @@
 from __future__ import absolute_import
 import argparse
 
-import pika
+import pika  # pylint: disable=import-error
 
 
 def main(queue, payload):
