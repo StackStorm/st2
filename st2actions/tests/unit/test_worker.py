@@ -126,7 +126,8 @@ class WorkerTestCase(DbTestCase):
 
             # Verify that _running_liveactions is empty and the liveaction is abandoned.
             self.assertEqual(len(action_worker._running_liveactions), 0)
-            self.assertEqual(liveaction_db.status, action_constants.LIVEACTION_STATUS_ABANDONED)
+            self.assertEqual(liveaction_db.status, action_constants.LIVEACTION_STATUS_ABANDONED,
+                             str(liveaction_db))
 
         # Make sure the temporary file has been deleted.
         self.assertFalse(os.path.isfile(temp_file))

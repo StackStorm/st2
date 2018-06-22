@@ -49,6 +49,8 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
     # Only the diff between the liveaction type and what is replicated
     # in the ActionExecutionDB object.
     liveaction = stormbase.EscapedDictField(required=True)
+    workflow_execution = me.StringField()
+    task_execution = me.StringField()
     status = me.StringField(
         required=True,
         help_text='The current status of the liveaction.')
@@ -87,7 +89,9 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
             {'fields': ['trigger_type.name']},
             {'fields': ['trigger_instance.id']},
             {'fields': ['context.user']},
-            {'fields': ['-start_timestamp', 'action.ref', 'status']}
+            {'fields': ['-start_timestamp', 'action.ref', 'status']},
+            {'fields': ['workflow_execution']},
+            {'fields': ['task_execution']}
         ]
     }
 

@@ -1,0 +1,6 @@
+---
+name: orchestra-fail-input-rendering
+description: A basic workflow with error while evaluating input.
+runner_type: orchestra
+entry_point: workflows/tests/orchestra-fail-input-rendering.yaml
+enabled: true

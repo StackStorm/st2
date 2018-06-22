@@ -1,0 +1,10 @@
+---
+name: orchestra-data-flow
+description: A basic workflow to demonstrate data flow options.
+runner_type: orchestra
+entry_point: workflows/orchestra-data-flow.yaml
+enabled: true
+parameters:
+  a1:
+    required: true
+    type: string

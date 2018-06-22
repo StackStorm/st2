@@ -30,6 +30,8 @@ from st2common.transport.liveaction import LIVEACTION_XCHG, LIVEACTION_STATUS_MG
 from st2common.transport.reactor import SENSOR_CUD_XCHG
 from st2common.transport.reactor import TRIGGER_CUD_XCHG, TRIGGER_INSTANCE_XCHG
 from st2common.transport import reactor
+from st2common.transport.workflow import WORKFLOW_EXECUTION_XCHG
+from st2common.transport.workflow import WORKFLOW_EXECUTION_STATUS_MGMT_XCHG
 from st2common.transport.queues import ACTIONSCHEDULER_REQUEST_QUEUE
 from st2common.transport.queues import ACTIONRUNNER_WORK_QUEUE
 from st2common.transport.queues import ACTIONRUNNER_CANCEL_QUEUE
@@ -40,6 +42,8 @@ from st2common.transport.queues import STREAM_ANNOUNCEMENT_WORK_QUEUE
 from st2common.transport.queues import STREAM_EXECUTION_ALL_WORK_QUEUE
 from st2common.transport.queues import STREAM_LIVEACTION_WORK_QUEUE
 from st2common.transport.queues import STREAM_EXECUTION_OUTPUT_QUEUE
+from st2common.transport.queues import WORKFLOW_EXECUTION_WORK_QUEUE
+from st2common.transport.queues import WORKFLOW_EXECUTION_RESUME_QUEUE
 
 LOG = logging.getLogger('st2common.transport.bootstrap')
 
@@ -59,7 +63,9 @@ EXCHANGES = [
     LIVEACTION_STATUS_MGMT_XCHG,
     TRIGGER_CUD_XCHG,
     TRIGGER_INSTANCE_XCHG,
-    SENSOR_CUD_XCHG
+    SENSOR_CUD_XCHG,
+    WORKFLOW_EXECUTION_XCHG,
+    WORKFLOW_EXECUTION_STATUS_MGMT_XCHG
 ]
 
 # List of queues which are pre-declared on service startup.
@@ -77,6 +83,9 @@ QUEUES = [
     STREAM_EXECUTION_ALL_WORK_QUEUE,
     STREAM_LIVEACTION_WORK_QUEUE,
     STREAM_EXECUTION_OUTPUT_QUEUE,
+
+    WORKFLOW_EXECUTION_WORK_QUEUE,
+    WORKFLOW_EXECUTION_RESUME_QUEUE,
 
     # Those queues are dynamically / late created on some class init but we still need to
     # pre-declare them for redis Kombu backend to work.

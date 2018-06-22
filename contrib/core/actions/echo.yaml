@@ -1,0 +1,24 @@
+---
+description: Action that executes the Linux echo command on the localhost.
+runner_type: "local-shell-cmd"
+enabled: true
+entry_point: ''
+name: echo
+parameters:
+  message:
+    description: The message that the command will echo.
+    type: string
+    required: true
+  cmd:
+    description: Arbitrary Linux command to be executed on the local host.
+    required: true
+    type: string
+    default: 'echo "{{message}}"'
+    immutable: true
+  kwarg_op:
+    immutable: true
+  sudo:
+    default: false
+    immutable: true
+  sudo_password:
+    immutable: true

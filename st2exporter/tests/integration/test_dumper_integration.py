@@ -15,10 +15,11 @@
 
 import datetime
 import os
-import Queue
 
 import mock
 import six
+
+from six.moves import queue
 
 from st2common.models.api.execution import ActionExecutionAPI
 from st2common.persistence.marker import DumperMarker
@@ -47,7 +48,7 @@ class TestDumper(DbTestCase):
         execution_apis.append(ActionExecutionAPI(**execution))
 
     def get_queue(self):
-        executions_queue = Queue.Queue()
+        executions_queue = queue.Queue()
 
         for execution in self.execution_apis:
             executions_queue.put(execution)

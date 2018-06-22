@@ -256,6 +256,12 @@ function st2start(){
             --config-file $ST2_CONF
     fi
 
+    # Run the workflow engine server
+    echo 'Starting screen session st2-workflow'
+    screen -d -m -S st2-workflow ./virtualenv/bin/python \
+        ./st2actions/bin/st2workflowengine \
+        --config-file $ST2_CONF
+
     # Start a screen for every runner
     echo 'Starting screen sessions for st2-actionrunner(s)...'
     RUNNER_SCREENS=()
@@ -341,6 +347,7 @@ function st2start(){
     # Check whether screen sessions are started
     SCREENS=(
         "st2-api"
+        "st2-workflow"
         "${RUNNER_SCREENS[@]}"
         "st2-sensorcontainer"
         "st2-rulesengine"

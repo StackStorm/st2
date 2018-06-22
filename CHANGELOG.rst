@@ -36,7 +36,11 @@ Added
   pack in question needs to support Python 3.
 
   Note 2: This feature is experimental and opt-in. (new feature) #4016 #3922 #4149
-* Added new runners: ``winrm-cmd``, ``winrm-ps-cmd`` and ``winrm-ps-script``.
+* Add two new Jinja filters - ``basename`` (``os.path.basename``) and ``dirname``
+  (``os.path.dirname``). #4184
+
+  Contributed by Florian Reisinger (@reisingerf).
+* Add new runners: ``winrm-cmd``, ``winrm-ps-cmd`` and ``winrm-ps-script``.
   The ``winrm-cmd`` runner executes Command Prompt commands remotely on Windows hosts using
   the WinRM protocol. The ``winrm-ps-cmd`` and ``winrm-ps-script`` runners execute PowerShell
   commands and scripts on remote Windows hosts using the WinRM protocol.

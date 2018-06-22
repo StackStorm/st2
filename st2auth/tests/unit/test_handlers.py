@@ -245,7 +245,7 @@ class HandlerTestCase(CleanDbTestCase):
         h = handlers.StandaloneAuthHandler()
         request = MockRequest(60)
 
-        authorization = ('Basic', base64.b64encode('username:password:password'))
+        authorization = ('Basic', base64.b64encode(b'username:password:password'))
         token = h.handle_auth(
             request, headers={}, remote_addr=None,
             remote_user=None, authorization=authorization)

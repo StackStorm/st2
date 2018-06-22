@@ -1,0 +1,11 @@
+---
+name: orchestra-test-action-less-tasks
+description: A basic sequential workflow.
+runner_type: orchestra
+entry_point: workflows/tests/orchestra-test-action-less-tasks.yaml
+enabled: true
+parameters:
+  name:
+    required: true
+    type: string
+    default: Lakshmi

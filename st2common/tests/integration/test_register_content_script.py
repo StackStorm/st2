@@ -14,7 +14,9 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
+import sys
 import glob
 
 from st2tests.base import IntegrationTestCase
@@ -27,7 +29,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SCRIPT_PATH = os.path.join(BASE_DIR, '../../bin/st2-register-content')
 SCRIPT_PATH = os.path.abspath(SCRIPT_PATH)
 
-BASE_CMD_ARGS = [SCRIPT_PATH, '--config-file=conf/st2.tests.conf', '-v']
+BASE_CMD_ARGS = [sys.executable, SCRIPT_PATH, '--config-file=conf/st2.tests.conf', '-v']
 BASE_REGISTER_ACTIONS_CMD_ARGS = BASE_CMD_ARGS + ['--register-actions']
 
 PACKS_PATH = get_fixtures_packs_base_path()
@@ -111,13 +113,14 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
 
         # Note: We want to use a different config which sets fixtures/packs_1/
         # dir as packs_base_paths
-        cmd = [SCRIPT_PATH, '--config-file=conf/st2.tests1.conf', '-v', '--register-sensors']
+        cmd = [sys.executable, SCRIPT_PATH, '--config-file=conf/st2.tests1.conf', '-v',
+               '--register-sensors']
         exit_code, _, stderr = run_command(cmd=cmd)
-        self.assertTrue('Registered 0 sensors.' in stderr)
+        self.assertTrue('Registered 0 sensors.' in stderr, 'Actual stderr: %s' % (stderr))
         self.assertEqual(exit_code, 0)
 
-        cmd = [SCRIPT_PATH, '--config-file=conf/st2.tests1.conf', '-v', '--register-all',
-               '--register-no-fail-on-failure']
+        cmd = [sys.executable, SCRIPT_PATH, '--config-file=conf/st2.tests1.conf', '-v',
+               '--register-all', '--register-no-fail-on-failure']
         exit_code, _, stderr = run_command(cmd=cmd)
         self.assertTrue('Registered 0 actions.' in stderr)
         self.assertTrue('Registered 0 sensors.' in stderr)
@@ -129,7 +132,7 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
         cmd = BASE_CMD_ARGS + ['--register-all', '--register-setup-virtualenvs',
                                '--register-no-fail-on-failure']
         exit_code, stdout, stderr = run_command(cmd=cmd)
-        self.assertTrue('Registering actions' in stderr)
+        self.assertTrue('Registering actions' in stderr, 'Actual stderr: %s' % (stderr))
         self.assertTrue('Registering rules' in stderr)
         self.assertTrue('Setup virtualenv for %s pack(s)' % (PACKS_COUNT) in stderr)
         self.assertEqual(exit_code, 0)
