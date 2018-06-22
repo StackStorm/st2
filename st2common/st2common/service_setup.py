@@ -20,6 +20,7 @@ This module contains common service setup and teardown code.
 from __future__ import absolute_import
 
 import os
+import sys
 import traceback
 
 from oslo_config import cfg
@@ -80,6 +81,9 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
         config.parse_args(config_args)
     else:
         config.parse_args()
+
+    version = '%s.%s.%s' % (sys.version_info[0], sys.version_info[1], sys.version_info[2])
+    LOG.debug('Using Python: %s (%s)' % (version, sys.executable))
 
     config_file_paths = cfg.CONF.config_file
     config_file_paths = [os.path.abspath(path) for path in config_file_paths]
