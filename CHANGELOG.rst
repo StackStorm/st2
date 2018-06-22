@@ -36,6 +36,10 @@ Added
   pack in question needs to support Python 3.
 
   Note 2: This feature is experimental and opt-in. (new feature) #4016 #3922 #4149
+* Add two new Jinja filters - ``basename`` (``os.path.basename``) and ``dirname``
+  (``os.path.dirname``). #4184
+
+  Contributed by Florian Reisinger (@reisingerf).
 
 Changed
 ~~~~~~~

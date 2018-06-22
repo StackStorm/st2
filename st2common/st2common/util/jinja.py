@@ -62,6 +62,7 @@ def get_filters():
     from st2common.jinja.filters import version
     from st2common.jinja.filters import json_escape
     from st2common.jinja.filters import jsonpath_query
+    from st2common.jinja.filters import path
 
     # IMPORTANT NOTE - these filters were recently duplicated in st2mistral so that
     # they are also available in Mistral workflows. Please ensure any additions you
@@ -94,7 +95,10 @@ def get_filters():
         'use_none': use_none,
 
         'json_escape': json_escape.json_escape,
-        'jsonpath_query': jsonpath_query.jsonpath_query
+        'jsonpath_query': jsonpath_query.jsonpath_query,
+
+        'basename': path.basename,
+        'dirname': path.dirname
     }
 
 

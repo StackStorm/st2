@@ -14,6 +14,8 @@
 # limitations under the License.
 
 import base64
+
+import six
 from six.moves import http_client
 from oslo_config import cfg
 
@@ -117,7 +119,7 @@ class ProxyAuthHandler(AuthHandlerBase):
                                                     ttl=ttl)
             except TTLTooLargeException as e:
                 abort_request(status_code=http_client.BAD_REQUEST,
-                              message=e.message)
+                              message=str(e))
             return token
 
         LOG.audit('Access denied to anonymous user.', extra=extra)
@@ -154,13 +156,19 @@ class StandaloneAuthHandler(AuthHandlerBase):
             abort_request()
             return
 
-        split = auth_value.split(':', 1)
+        split = auth_value.split(b':', 1)
         if len(split) != 2:
             LOG.audit('Invalid authorization header', extra=extra)
             abort_request()
             return
 
         username, password = split
+
+        if six.PY3 and isinstance(username, six.binary_type):
+            username = username.decode('utf-8')
+
+        if six.PY3 and isinstance(password, six.binary_type):
+            password = password.decode('utf-8')
 
         result = self._auth_backend.authenticate(username=username, password=password)
 
