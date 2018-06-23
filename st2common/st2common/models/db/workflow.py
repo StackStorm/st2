@@ -40,6 +40,7 @@ class WorkflowExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionF
     spec = stormbase.EscapedDictField()
     graph = stormbase.EscapedDictField()
     flow = stormbase.EscapedDictField()
+    context = stormbase.EscapedDictField()
     input = stormbase.EscapedDictField()
     output = stormbase.EscapedDictField()
     status = me.StringField(required=True)

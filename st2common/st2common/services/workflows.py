@@ -19,6 +19,7 @@ import copy
 import retrying
 
 from orchestra import conducting
+from orchestra import exceptions as orchestra_exc
 from orchestra.specs import loader as specs_loader
 from orchestra import states
 
@@ -41,13 +42,47 @@ from st2common.util import param as param_utils
 LOG = logging.getLogger(__name__)
 
 
-def request(wf_def, ac_ex_db):
+# Temporary workaround on context inspection errors relating to the st2 context.
+def inspect(wf_spec):
+    errors = {}
+
+    syntax_errors = sorted(wf_spec.inspect_syntax(), key=lambda e: e['schema_path'])
+
+    if syntax_errors:
+        errors['syntax'] = syntax_errors
+
+    semantic_errors = sorted(wf_spec.inspect_semantics(), key=lambda e: e['schema_path'])
+
+    if semantic_errors:
+        errors['semantics'] = semantic_errors
+
+    expr_errors = sorted(wf_spec.inspect_expressions(), key=lambda e: e['schema_path'])
+
+    if expr_errors:
+        errors['expressions'] = expr_errors
+
+    parent_ctx = {
+        'ctx': ['st2'],
+        'spec_path': '.',
+        'schema_path': '.'
+    }
+
+    ctx_errors, _ = wf_spec.inspect_context(parent=parent_ctx)
+
+    if ctx_errors:
+        errors['context'] = ctx_errors
+
+    if errors:
+        raise orchestra_exc.WorkflowInspectionError(errors)
+
+
+def request(wf_def, ac_ex_db, st2_ctx):
     # Load workflow definition into workflow spec model.
     spec_module = specs_loader.get_spec_module('native')
     wf_spec = spec_module.instantiate(wf_def)
 
     # Inspect the workflow spec.
-    wf_spec.inspect(raise_exception=True)
+    inspect(wf_spec)
 
     # Identify the action to execute.
     action_db = ac_db_util.get_action_by_ref(ref=ac_ex_db.action['ref'])
@@ -68,7 +103,10 @@ def request(wf_def, ac_ex_db):
     )
 
     # Instantiate the workflow conductor.
-    conductor = conducting.WorkflowConductor(wf_spec, **action_params)
+    conductor_params = {'inputs': action_params, 'context': st2_ctx}
+    conductor = conducting.WorkflowConductor(wf_spec, **conductor_params)
+
+    # Set the initial workflow state to requested.
     conductor.set_workflow_state(states.REQUESTED)
 
     # Serialize the conductor which initializes some internal values.
@@ -80,6 +118,7 @@ def request(wf_def, ac_ex_db):
         spec=data['spec'],
         graph=data['graph'],
         flow=data['flow'],
+        context=data['context'],
         input=data['input'],
         output=data['output'],
         errors=data['errors'],
@@ -356,6 +395,7 @@ def deserialize_conductor(wf_ex_db):
         'graph': wf_ex_db.graph,
         'state': wf_ex_db.status,
         'flow': wf_ex_db.flow,
+        'context': wf_ex_db.context,
         'input': wf_ex_db.input,
         'output': wf_ex_db.output,
         'errors': wf_ex_db.errors
