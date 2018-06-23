@@ -244,7 +244,7 @@ def request_task_execution(wf_ex_db, task_id, task_spec, task_ctx, st2_ctx):
         task_name=task_spec.name or task_id,
         task_id=task_id,
         task_spec=task_spec.serialize(),
-        initial_context=task_ctx,
+        context=task_ctx,
         status=states.REQUESTED
     )
 
