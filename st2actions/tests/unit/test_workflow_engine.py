@@ -126,6 +126,11 @@ class WorkflowEngineTest(st2tests.DbTestCase):
         self.assertGreater(wf_ex_db.rev, 1)
         self.assertEqual(wf_ex_db.status, wf_lib_states.RUNNING)
 
+        expected_st2_ctx = {
+            'action_execution_id': wf_ex_db.action_execution,
+            'api_url': 'http://127.0.0.1/v1'
+        }
+
         expected_flow = {
             'staged': {},
             'tasks': {
@@ -142,6 +147,7 @@ class WorkflowEngineTest(st2tests.DbTestCase):
                 {
                     'srcs': [],
                     'value': {
+                        'st2': expected_st2_ctx,
                         'msg1': 'Veni, vidi, vici.',
                         'msg2': 'Resistance is futile!',
                         'msg3': 'All your base are belong to us!',

@@ -40,6 +40,7 @@ class WorkflowExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionF
     spec = stormbase.EscapedDictField()
     graph = stormbase.EscapedDictField()
     flow = stormbase.EscapedDictField()
+    context = stormbase.EscapedDictField()
     input = stormbase.EscapedDictField()
     output = stormbase.EscapedDictField()
     status = me.StringField(required=True)
@@ -61,11 +62,11 @@ class TaskExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionField
     task_name = me.StringField(required=True)
     task_id = me.StringField(required=True)
     task_spec = stormbase.EscapedDictField()
+    context = stormbase.EscapedDictField()
+    result = stormbase.EscapedDictField()
     status = me.StringField(required=True)
     start_timestamp = db_field_types.ComplexDateTimeField(default=date_utils.get_datetime_utc_now)
     end_timestamp = db_field_types.ComplexDateTimeField()
-    initial_context = stormbase.EscapedDictField()
-    result = stormbase.EscapedDictField()
 
     meta = {
         'indexes': [

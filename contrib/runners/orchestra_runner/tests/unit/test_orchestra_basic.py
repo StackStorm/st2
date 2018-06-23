@@ -117,9 +117,23 @@ class OrchestraRunnerTest(st2tests.DbTestCase):
         self.assertEqual(wf_ex_db.action_execution, str(ac_ex_db.id))
         self.assertEqual(wf_ex_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
-        # Check context.
-        self.assertIn('workflow_execution', lv_ac_db.context)
-        self.assertEqual(lv_ac_db.context['workflow_execution'], str(wf_ex_db.id))
+        # Check context in the workflow execution.
+        expected_wf_ex_ctx = {
+            'st2': {
+                'action_execution_id': str(ac_ex_db.id),
+                'api_url': 'http://127.0.0.1/v1'
+            }
+        }
+
+        self.assertDictEqual(wf_ex_db.context, expected_wf_ex_ctx)
+
+        # Check context in the liveaction.
+        expected_lv_ac_ctx = {
+            'workflow_execution': str(wf_ex_db.id),
+            'pack': 'orchestra_tests'
+        }
+
+        self.assertDictEqual(lv_ac_db.context, expected_lv_ac_ctx)
 
         # Check graph.
         self.assertIsNotNone(wf_ex_db.graph)

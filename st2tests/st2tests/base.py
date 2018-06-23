@@ -62,6 +62,7 @@ import st2common.models.db.policy as policy_model
 from st2common.persistence import execution as ex_db_access
 from st2common.persistence import workflow as wf_db_access
 from st2common.services import workflows as wf_svc
+from st2common.util import api as api_util
 from st2common.util import loader
 import st2tests.config
 
@@ -508,12 +509,26 @@ class WorkflowTestCase(DbTestCase):
         with open(abs_wf_def_path, 'r') as def_file:
             return def_file.read()
 
+    def mock_st2_context(self, ac_ex_db, context=None):
+        st2_ctx = {
+            'st2': {
+                'api_url': api_util.get_full_public_api_url(),
+                'action_execution_id': str(ac_ex_db.id)
+            }
+        }
+
+        if context:
+            st2_ctx['parent'] = context
+
+        return st2_ctx
+
     def prep_wf_ex(self, wf_ex_db):
         data = {
             'spec': wf_ex_db.spec,
             'graph': wf_ex_db.graph,
             'state': wf_ex_db.status,
             'flow': wf_ex_db.flow,
+            'context': wf_ex_db.context,
             'input': wf_ex_db.input,
             'output': wf_ex_db.output,
             'errors': wf_ex_db.errors
