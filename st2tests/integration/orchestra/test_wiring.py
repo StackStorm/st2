@@ -82,3 +82,15 @@ class WiringTest(base.TestWorkflowExecution):
 
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         self.assertDictEqual(ex.result, expected_result)
+
+    def test_st2_runtime_context(self):
+        wf_name = 'examples.orchestra-st2-ctx'
+
+        ex = self._execute_workflow(wf_name)
+        ex = self._wait_for_completion(ex)
+
+        expected_output = {'callback': 'http://127.0.0.1:9101/v1/executions/%s' % str(ex.id)}
+        expected_result = {'output': expected_output}
+
+        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertDictEqual(ex.result, expected_result)

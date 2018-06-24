@@ -93,7 +93,8 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
 
         # Request the workflow execution.
         wf_def = self.get_wf_def(TEST_PACK_PATH, wf_meta)
-        wf_ex_db = wf_svc.request(wf_def, ac_ex_db)
+        st2_ctx = self.mock_st2_context(ac_ex_db)
+        wf_ex_db = wf_svc.request(wf_def, ac_ex_db, st2_ctx)
 
         # Check workflow execution is saved to the database.
         wf_ex_dbs = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))
@@ -115,7 +116,8 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
 
         # Request the workflow execution.
         wf_def = self.get_wf_def(TEST_PACK_PATH, wf_meta)
-        wf_ex_db = wf_svc.request(wf_def, ac_ex_db)
+        st2_ctx = self.mock_st2_context(ac_ex_db)
+        wf_ex_db = wf_svc.request(wf_def, ac_ex_db, st2_ctx)
 
         # Check workflow execution is saved to the database.
         wf_ex_dbs = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))
@@ -146,7 +148,8 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
             ac_exc.InvalidActionReferencedException,
             wf_svc.request,
             self.get_wf_def(TEST_PACK_PATH, wf_meta),
-            ac_ex_db
+            ac_ex_db,
+            self.mock_st2_context(ac_ex_db)
         )
 
     def test_request_task_execution(self):
@@ -158,7 +161,8 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
 
         # Request the workflow execution.
         wf_def = self.get_wf_def(TEST_PACK_PATH, wf_meta)
-        wf_ex_db = wf_svc.request(wf_def, ac_ex_db)
+        st2_ctx = self.mock_st2_context(ac_ex_db)
+        wf_ex_db = wf_svc.request(wf_def, ac_ex_db, st2_ctx)
 
         # Manually request task execution.
         task_id = 'task1'
@@ -197,7 +201,8 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
 
         # Request the workflow execution.
         wf_def = self.get_wf_def(TEST_PACK_PATH, wf_meta)
-        wf_ex_db = wf_svc.request(wf_def, ac_ex_db)
+        st2_ctx = self.mock_st2_context(ac_ex_db)
+        wf_ex_db = wf_svc.request(wf_def, ac_ex_db, st2_ctx)
 
         # Manually request task execution.
         task_id = 'task1'
@@ -228,7 +233,8 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
 
         # Request and pre-process the workflow execution.
         wf_def = self.get_wf_def(TEST_PACK_PATH, wf_meta)
-        wf_ex_db = wf_svc.request(wf_def, ac_ex_db)
+        st2_ctx = self.mock_st2_context(ac_ex_db)
+        wf_ex_db = wf_svc.request(wf_def, ac_ex_db, st2_ctx)
         wf_ex_db = self.prep_wf_ex(wf_ex_db)
 
         # Manually request task execution.

@@ -28,6 +28,7 @@ from st2common.persistence import liveaction as lv_db_access
 from st2common.runners import base as runners
 from st2common.services import action as ac_svc
 from st2common.services import workflows as wf_svc
+from st2common.util import api as api_util
 
 
 __all__ = [
@@ -53,13 +54,27 @@ class OrchestraRunner(runners.AsyncActionRunner):
 
         return ctx
 
+    def _construct_st2_context(self):
+        st2_ctx = {
+            'st2': {
+                'api_url': api_util.get_full_public_api_url(),
+                'action_execution_id': str(self.execution.id)
+            }
+        }
+
+        if self.execution.context:
+            st2_ctx['parent'] = self.execution.context
+
+        return st2_ctx
+
     def run(self, action_parameters):
         # Read workflow definition from file.
         wf_def = self.get_workflow_definition(self.entry_point)
 
         try:
             # Request workflow execution.
-            wf_ex_db = wf_svc.request(wf_def, self.execution)
+            st2_ctx = self._construct_st2_context()
+            wf_ex_db = wf_svc.request(wf_def, self.execution, st2_ctx)
         except wf_exc.WorkflowInspectionError as e:
             status = ac_const.LIVEACTION_STATUS_FAILED
             result = {'errors': e.args[1], 'output': None}
