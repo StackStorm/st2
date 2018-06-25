@@ -121,7 +121,8 @@ class OrchestraRunnerTest(st2tests.DbTestCase):
         expected_wf_ex_ctx = {
             'st2': {
                 'action_execution_id': str(ac_ex_db.id),
-                'api_url': 'http://127.0.0.1/v1'
+                'api_url': 'http://127.0.0.1/v1',
+                'user': 'stanley'
             }
         }
 
