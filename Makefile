@@ -667,6 +667,35 @@ runners-tests: requirements .runners-tests
 		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v $$component/tests/unit || exit 1; \
 	done
 
+.PHONY: runners-itests
+runners-itests: requirements .runners-itests
+
+.PHONY: .runners-itests
+.runners-itests:
+	@echo
+	@echo "==================== runners-itests ===================="
+	@echo
+	@echo "----- Dropping st2-test db -----"
+	@for component in $(COMPONENTS_RUNNERS); do\
+		echo "==========================================================="; \
+		echo "Running tests in" $$component; \
+		echo "==========================================================="; \
+		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v $$component/tests/integration || exit 1; \
+	done
+
+.PHONY: .runners-itests-coverage-html
+.runners-itests-coverage-html:
+	@echo
+	@echo "============== runners-itests-coverage-html =============="
+	@echo
+	@echo "The tests assume st2 is running on 127.0.0.1."
+	@for component in $(COMPONENTS_RUNNERS); do\
+		echo "==========================================================="; \
+		echo "Running tests in" $$component; \
+		echo "==========================================================="; \
+		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v --with-coverage \
+			--cover-inclusive --cover-html $$component/tests/integration || exit 1; \
+	done
 
 .PHONY: cli
 cli:
@@ -731,7 +760,10 @@ ci-py3-unit:
 	tox -e py36-unit -vv
 
 .PHONY: ci-py3-integration
-ci-py3-integration:
+ci-py3-integration: requirements .ci-prepare-integration .ci-py3-integration
+
+.PHONY: .ci-py3-integration
+.ci-py3-integration:
 	@echo
 	@echo "==================== ci-py3-integration ===================="
 	@echo
@@ -770,7 +802,10 @@ ci-unit: .unit-tests-coverage-html
 	sudo -E ./scripts/travis/prepare-integration.sh
 
 .PHONY: ci-integration
-ci-integration: .ci-prepare-integration .itests-coverage-html
+ci-integration: .ci-prepare-integration .itests-coverage-html .runners-itests-coverage-html .orchestra-itests-coverage-html
+
+.PHONY: ci-runners
+ci-runners: .ci-prepare-integration .runners-itests-coverage-html
 
 .PHONY: .ci-prepare-mistral
 .ci-prepare-mistral:
