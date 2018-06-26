@@ -94,7 +94,7 @@ class PackConfigsController(ResourceController, BaseRestControllerMixin):
 
         return self._get_one_by_pack_ref(pack_ref=pack_ref, from_model_kwargs=from_model_kwargs)
 
-    def put(self, pack_uninstall_request, pack_ref, requester_user, show_secrets=False):
+    def put(self, pack_config_content, pack_ref, requester_user, show_secrets=False):
         """
             Create a new config for a pack.
 
@@ -103,7 +103,7 @@ class PackConfigsController(ResourceController, BaseRestControllerMixin):
         """
 
         try:
-            config_api = ConfigAPI(pack=pack_ref, values=vars(pack_uninstall_request))
+            config_api = ConfigAPI(pack=pack_ref, values=vars(pack_config_content))
             config_api.validate(validate_against_schema=True)
         except jsonschema.ValidationError as e:
             raise ValueValidationException(str(e))
