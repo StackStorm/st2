@@ -30,10 +30,14 @@ pip-log.txt
 
 # Unit test / coverage reports
 .coverage
+.coverage.integration.*
+.coverage.integration
+.coverage.unit
 cover
 coverage*.xml
 .tox
 nosetests.xml
+htmlcov
 
 # Mr Developer
 .idea
