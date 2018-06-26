@@ -18,6 +18,8 @@ from __future__ import absolute_import
 import copy
 import uuid
 
+from oslo_config import cfg
+
 from orchestra import exceptions as wf_exc
 from orchestra import states as wf_states
 
@@ -58,7 +60,8 @@ class OrchestraRunner(runners.AsyncActionRunner):
         st2_ctx = {
             'st2': {
                 'api_url': api_util.get_full_public_api_url(),
-                'action_execution_id': str(self.execution.id)
+                'action_execution_id': str(self.execution.id),
+                'user': self.execution.context.get('user', cfg.CONF.system_user.user)
             }
         }
 

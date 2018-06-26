@@ -8,7 +8,7 @@ info:
   version: "1.0.0"
   title: StackStorm API
   description: |
-
+    
     ## Welcome
 
     Welcome to the StackStorm API Reference documentation! You can use the StackStorm API to integrate StackStorm with 3rd-party systems and custom applications. Example integrations include writing your own self-service user portal, or integrating with other orchestration systems.
@@ -197,7 +197,7 @@ info:
     Join our [Slack Community](https://stackstorm.com/community-signup) to get help from the engineering team and fellow users. You can also create issues against the main [StackStorm GitHub repo](https://github.com/StackStorm/st2/issues), or the [st2apidocs repo](https://github.com/StackStorm/st2apidocs) for documentation-specific issues.
 
     We also recommend reviewing the main [StackStorm documentation](https://docs.stackstorm.com/).
-
+    
 
 paths:
   /api/v1/:
@@ -1421,7 +1421,7 @@ paths:
   /api/v1/keys:
     get:
       operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.get_all
-      x-permissions:
+      x-permissions: 
       description: Returns a list of all key value pairs.
       parameters:
         - name: prefix
@@ -3082,7 +3082,7 @@ paths:
     get:
       operationId: st2api.controllers.v1.auth:api_key_controller.get_all
       x-permissions: api_key_list
-      description: Returns a list of all actions.
+      description: Returns a list of all apikeys.
       parameters:
         - name: show_secrets
           in: query
@@ -3121,7 +3121,7 @@ paths:
     post:
       operationId: st2api.controllers.v1.auth:api_key_controller.post
       description: |
-        Create a new action.
+        Create a new apikey.
       parameters:
         - name: api_key_api
           in: body
@@ -3150,7 +3150,7 @@ paths:
     get:
       operationId: st2api.controllers.v1.auth:api_key_controller.get_one
       description: |
-        Get one action.
+        Get one apikey.
       parameters:
         - name: api_key_id_or_key
           in: path
@@ -3182,7 +3182,7 @@ paths:
     put:
       operationId: st2api.controllers.v1.auth:api_key_controller.put
       description: |
-        Update an action.
+        Update an apikey.
       parameters:
         - name: api_key_id_or_key
           in: path
@@ -3215,7 +3215,7 @@ paths:
     delete:
       operationId: st2api.controllers.v1.auth:api_key_controller.delete
       description: |
-        Delete an action.
+        Delete an apikey.
       parameters:
         - name: api_key_id_or_key
           in: path
