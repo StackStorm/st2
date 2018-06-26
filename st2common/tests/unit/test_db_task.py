@@ -37,7 +37,7 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         initial.task_id = 't1'
         initial.task_spec = {'tasks': {'t1': 'some task'}}
         initial.status = 'requested'
-        initial.initial_context = {'var1': 'foobar'}
+        initial.context = {'var1': 'foobar'}
 
         # Test create
         created = wf_db_access.TaskExecution.add_or_update(initial)
@@ -53,7 +53,7 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         self.assertEqual(created.status, retrieved.status)
         self.assertIsNotNone(created.start_timestamp)
         self.assertIsNone(created.end_timestamp)
-        self.assertDictEqual(created.initial_context, retrieved.initial_context)
+        self.assertDictEqual(created.context, retrieved.context)
 
         # Test update
         status = 'running'
@@ -68,7 +68,7 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         self.assertEqual(updated.status, retrieved.status)
         self.assertIsNotNone(updated.start_timestamp)
         self.assertIsNone(updated.end_timestamp)
-        self.assertDictEqual(updated.initial_context, retrieved.initial_context)
+        self.assertDictEqual(updated.context, retrieved.context)
 
         # Test add or update
         retrieved.result = {'output': 'fubar'}
@@ -85,7 +85,7 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         self.assertEqual(updated.status, retrieved.status)
         self.assertIsNotNone(updated.start_timestamp)
         self.assertIsNotNone(updated.end_timestamp)
-        self.assertDictEqual(updated.initial_context, retrieved.initial_context)
+        self.assertDictEqual(updated.context, retrieved.context)
         self.assertDictEqual(updated.result, retrieved.result)
 
         # Test delete
@@ -104,7 +104,7 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         initial.task_id = 't1'
         initial.task_spec = {'tasks': {'t1': 'some task'}}
         initial.status = 'requested'
-        initial.initial_context = {'var1': 'foobar'}
+        initial.context = {'var1': 'foobar'}
 
         # Prep record
         created = wf_db_access.TaskExecution.add_or_update(initial)
@@ -128,7 +128,7 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         self.assertEqual(updated.status, retrieved1.status)
         self.assertIsNotNone(updated.start_timestamp)
         self.assertIsNone(updated.end_timestamp)
-        self.assertDictEqual(updated.initial_context, retrieved1.initial_context)
+        self.assertDictEqual(updated.context, retrieved1.context)
 
         # Test update on instance 2, expect race error
         self.assertRaises(
