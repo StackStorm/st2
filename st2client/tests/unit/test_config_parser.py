@@ -119,29 +119,17 @@ class CLIConfigParserTestCase(unittest2.TestCase):
             self.assertEqual(parser.LOG.info.call_count, 1)
 
             self.assertEqual(
-                "The SGID bit is not set on the StackStorm configuration directory."
-                "\n\n"
-                "You can fix this by running:"
-                "\n\n"
-                "    chmod g+s {config_dir}\n".format(config_dir=TEMP_CONFIG_DIR),
+                "The SGID bit is not set on the StackStorm configuration directory.",
                 parser.LOG.info.call_args_list[0][0][0])
 
             self.assertEqual(parser.LOG.warn.call_count, 2)
             self.assertEqual(
                 "The StackStorm configuration directory permissions are insecure "
-                "(too permissive)."
-                "\n\n"
-                "You can fix this by running:"
-                "\n\n"
-                "    chmod 770 {config_dir}\n".format(config_dir=TEMP_CONFIG_DIR),
+                "(too permissive): others have access.",
                 parser.LOG.warn.call_args_list[0][0][0])
 
             self.assertEqual(
-                "The StackStorm configuration file permissions are insecure."
-                "\n\n"
-                "You can fix this by running:"
-                "\n\n"
-                "    chmod 660 {config_file}\n".format(config_file=TEMP_FILE_PATH),
+                "The StackStorm configuration file permissions are insecure: others have access.",
                 parser.LOG.warn.call_args_list[1][0][0])
 
             # Make sure we left the file alone

@@ -493,12 +493,13 @@ class ShellTestCase(base.BaseCLITestCase):
             shell.LOG.warn.call_args_list[0][0][0][:63],
             'The StackStorm configuration directory permissions are insecure')
         self.assertEqual(
-            shell.LOG.warn.call_args_list[1][0][0][:59],
-            'The StackStorm configuration file permissions are insecure.')
+            shell.LOG.warn.call_args_list[1][0][0][:58],
+            'The StackStorm configuration file permissions are insecure')
 
         self.assertEqual(shell.LOG.info.call_count, 2)
         self.assertEqual(
-            shell.LOG.info.call_args_list[0][0][0][:19], "The SGID bit is not")
+            shell.LOG.info.call_args_list[0][0][0], "The SGID bit is not "
+            "set on the StackStorm configuration directory.")
 
         self.assertEqual(
             shell.LOG.info.call_args_list[1][0][0], 'Skipping parsing CLI config')
