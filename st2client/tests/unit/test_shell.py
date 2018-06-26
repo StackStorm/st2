@@ -489,7 +489,19 @@ class ShellTestCase(base.BaseCLITestCase):
         shell.run(['--config-file', mock_config_path, 'action', 'list'])
 
         self.assertEqual(shell.LOG.warn.call_count, 2)
-        self.assertEqual(shell.LOG.info.call_count, 1)
+        self.assertEqual(
+            shell.LOG.warn.call_args_list[0][0][0][:63],
+            'The StackStorm configuration directory permissions are insecure')
+        self.assertEqual(
+            shell.LOG.warn.call_args_list[1][0][0][:59],
+            'The StackStorm configuration file permissions are insecure.')
+
+        self.assertEqual(shell.LOG.info.call_count, 2)
+        self.assertEqual(
+            shell.LOG.info.call_args_list[0][0][0][:19], "The SGID bit is not")
+
+        self.assertEqual(
+            shell.LOG.info.call_args_list[1][0][0], 'Skipping parsing CLI config')
 
 
 class CLITokenCachingTestCase(unittest2.TestCase):
