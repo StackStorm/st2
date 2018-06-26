@@ -46,7 +46,7 @@ Changed
 ~~~~~~~
 
 * Update st2 CLI to create the configuration directory and file, and authentication tokens with
-  secure permissions (eg: readable only to owner)
+  secure permissions (eg: readable only to owner) #4173
 * Refactor the callback module for the post run in runner to be more generic. (improvement)
 * Update various Python dependencies to the latest stable versions (gunicorn, gitpython,
   python-gnupg, tooz, flex). #4110
