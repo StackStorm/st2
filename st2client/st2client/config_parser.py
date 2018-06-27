@@ -150,7 +150,7 @@ class CLIConfigParser(object):
 
         if self.validate_config_permissions:
             # Make sure the directory permissions == 0o770
-            if bool(os.stat(config_dir_path).st_mode & 0o777 ^ 0o770):
+            if bool(os.stat(config_dir_path).st_mode & 0o7):
                 self.LOG.warn(
                     "The StackStorm configuration directory permissions are "
                     "insecure (too permissive): others have access.")
@@ -162,7 +162,7 @@ class CLIConfigParser(object):
                     "directory.")
 
             # Make sure the file permissions == 0o660
-            if bool(os.stat(self.config_file_path).st_mode & 0o667 ^ 0o660):
+            if bool(os.stat(self.config_file_path).st_mode & 0o7):
                 self.LOG.warn(
                     "The StackStorm configuration file permissions are "
                     "insecure: others have access.")
