@@ -60,7 +60,9 @@ class TestLoginBase(base.BaseCLITestCase):
     """
 
     DOTST2_PATH = os.path.expanduser('~/.st2/')
-    CONFIG_FILE = tempfile.mkstemp(suffix='st2.conf')
+    CONFIG_FILE_NAME = 'st2.conf'
+    PARENT_DIR = 'testconfig'
+    TMP_DIR = tempfile.mkdtemp()
     CONFIG_CONTENTS = """
     [credentials]
     username = olduser
@@ -78,8 +80,15 @@ class TestLoginBase(base.BaseCLITestCase):
         self.parser.add_argument('--api-key', dest='api_key')
         self.shell = shell.Shell()
 
+        self.CONFIG_DIR = os.path.join(self.TMP_DIR, self.PARENT_DIR)
+        self.CONFIG_FILE = os.path.join(self.CONFIG_DIR, self.CONFIG_FILE_NAME)
+
     def setUp(self):
         super(TestLoginBase, self).setUp()
+
+        if not os.path.isdir(self.CONFIG_DIR):
+            os.makedirs(self.CONFIG_DIR)
+            os.chmod(self.CONFIG_DIR, 0o2770)
 
         # Remove any existing config file
         if os.path.isfile(self.CONFIG_FILE):
@@ -88,6 +97,8 @@ class TestLoginBase(base.BaseCLITestCase):
         with open(self.CONFIG_FILE, 'w') as cfg:
             for line in self.CONFIG_CONTENTS.split('\n'):
                 cfg.write('%s\n' % line.strip())
+
+        os.chmod(self.CONFIG_FILE, 0o660)
 
     def tearDown(self):
         super(TestLoginBase, self).tearDown()
@@ -99,10 +110,13 @@ class TestLoginBase(base.BaseCLITestCase):
         for file in [f for f in os.listdir(self.DOTST2_PATH) if 'token-' in f]:
             os.remove(self.DOTST2_PATH + file)
 
+        # Clean up config directory
+        os.rmdir(self.CONFIG_DIR)
+
 
 class TestLoginPasswordAndConfig(TestLoginBase):
 
-    CONFIG_FILE = '/tmp/logintest.cfg'
+    CONFIG_FILE_NAME = 'logintest.cfg'
 
     TOKEN = {
         'user': 'st2admin',
@@ -141,7 +155,7 @@ class TestLoginPasswordAndConfig(TestLoginBase):
 
 class TestLoginIntPwdAndConfig(TestLoginBase):
 
-    CONFIG_FILE = '/tmp/logintest.cfg'
+    CONFIG_FILE_NAME = 'logintest.cfg'
 
     TOKEN = {
         'user': 'st2admin',
@@ -175,6 +189,9 @@ class TestLoginIntPwdAndConfig(TestLoginBase):
         }
         requests.post.assert_called_with('http://127.0.0.1:9100/tokens', '{}', **expected_kwargs)
 
+        # Check file permissions
+        self.assertEqual(os.stat(self.CONFIG_FILE).st_mode & 0o777, 0o660)
+
         with open(self.CONFIG_FILE, 'r') as config_file:
             for line in config_file.readlines():
                 # Make sure certain values are not present
@@ -203,7 +220,7 @@ class TestLoginIntPwdAndConfig(TestLoginBase):
 
 class TestLoginWritePwdOkay(TestLoginBase):
 
-    CONFIG_FILE = '/tmp/logintest.cfg'
+    CONFIG_FILE_NAME = 'logintest.cfg'
 
     TOKEN = {
         'user': 'st2admin',
@@ -244,7 +261,7 @@ class TestLoginWritePwdOkay(TestLoginBase):
 
 class TestLoginUncaughtException(TestLoginBase):
 
-    CONFIG_FILE = '/tmp/logintest.cfg'
+    CONFIG_FILE_NAME = 'logintest.cfg'
 
     TOKEN = {
         'user': 'st2admin',

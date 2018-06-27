@@ -153,24 +153,28 @@ class BaseCLIApp(object):
 
         return client
 
-    def _get_config_file_options(self, args):
+    def _get_config_file_options(self, args, validate_config_permissions=True):
         """
         Parse the config and return kwargs which can be passed to the Client
         constructor.
 
         :rtype: ``dict``
         """
-        rc_options = self._parse_config_file(args=args)
+        rc_options = self._parse_config_file(
+            args=args, validate_config_permissions=validate_config_permissions)
         result = {}
         for kwarg_name, (section, option) in six.iteritems(CONFIG_OPTION_TO_CLIENT_KWARGS_MAP):
             result[kwarg_name] = rc_options.get(section, {}).get(option, None)
 
         return result
 
-    def _parse_config_file(self, args):
+    def _parse_config_file(self, args, validate_config_permissions=True):
         config_file_path = self._get_config_file_path(args=args)
 
-        parser = CLIConfigParser(config_file_path=config_file_path, validate_config_exists=False)
+        parser = CLIConfigParser(config_file_path=config_file_path,
+                                 validate_config_exists=False,
+                                 validate_config_permissions=validate_config_permissions,
+                                 log=self.LOG)
         result = parser.parse()
         return result
 
@@ -225,7 +229,10 @@ class BaseCLIApp(object):
         :rtype: ``str``
         """
         if not os.path.isdir(ST2_CONFIG_DIRECTORY):
-            os.makedirs(ST2_CONFIG_DIRECTORY)
+            os.makedirs(ST2_CONFIG_DIRECTORY, mode=0o2770)
+            # os.makedirs straight up ignores the setgid bit, so we have to set
+            # it manually
+            os.chmod(ST2_CONFIG_DIRECTORY, 0o2770)
 
         cached_token_path = self._get_cached_token_path_for_user(username=username)
 
@@ -253,11 +260,11 @@ class BaseCLIApp(object):
         file_st_mode = oct(os.stat(cached_token_path).st_mode & 0o777)
         others_st_mode = int(file_st_mode[-1])
 
-        if others_st_mode >= 4:
+        if others_st_mode >= 2:
             # Every user has access to this file which is dangerous
-            message = ('Permissions (%s) for cached token file "%s" are to permissive. Please '
+            message = ('Permissions (%s) for cached token file "%s" are too permissive. Please '
                        'restrict the permissions and make sure only your own user can read '
-                       'from the file' % (file_st_mode, cached_token_path))
+                       'from or write to the file.' % (file_st_mode, cached_token_path))
             self.LOG.warn(message)
 
         with open(cached_token_path) as fp:
@@ -290,7 +297,10 @@ class BaseCLIApp(object):
         :type token_obj: ``object``
         """
         if not os.path.isdir(ST2_CONFIG_DIRECTORY):
-            os.makedirs(ST2_CONFIG_DIRECTORY)
+            os.makedirs(ST2_CONFIG_DIRECTORY, mode=0o2770)
+            # os.makedirs straight up ignores the setgid bit, so we have to set
+            # it manually
+            os.chmod(ST2_CONFIG_DIRECTORY, 0o2770)
 
         username = token_obj.user
         cached_token_path = self._get_cached_token_path_for_user(username=username)
@@ -326,9 +336,10 @@ class BaseCLIApp(object):
         # open + chmod are two operations which means that during a short time frame (between
         # open and chmod) when file can potentially be read by other users if the default
         # permissions used during create allow that.
-        fd = os.open(cached_token_path, os.O_WRONLY | os.O_CREAT, 0o600)
+        fd = os.open(cached_token_path, os.O_WRONLY | os.O_CREAT, 0o660)
         with os.fdopen(fd, 'w') as fp:
             fp.write(data)
+        os.chmod(cached_token_path, 0o660)
 
         self.LOG.debug('Token has been cached in "%s"' % (cached_token_path))
         return True
@@ -349,7 +360,7 @@ class BaseCLIApp(object):
         return result
 
     def _print_config(self, args):
-        config = self._parse_config_file(args=args)
+        config = self._parse_config_file(args=args, validate_config_permissions=False)
 
         for section, options in six.iteritems(config):
             print('[%s]' % (section))
