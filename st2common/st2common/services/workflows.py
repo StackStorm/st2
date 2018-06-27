@@ -327,6 +327,12 @@ def request_task_execution(wf_ex_db, task_id, task_spec, task_ctx, st2_ctx):
             parameters=ac_ex_params
         )
 
+        # Set the task execution to running first otherwise a race can occur
+        # where the action execution finishes first and the completion handler
+        # conflicts with this status update.
+        task_ex_db.status = states.RUNNING
+        task_ex_db = wf_db_access.TaskExecution.update(task_ex_db, publish=False)
+
         # Request action execution.
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
 
@@ -336,10 +342,6 @@ def request_task_execution(wf_ex_db, task_id, task_spec, task_ctx, st2_ctx):
             str(ac_ex_db.id),
             task_id
         )
-
-        # Set the task execution to running.
-        task_ex_db.status = states.RUNNING
-        task_ex_db = wf_db_access.TaskExecution.update(task_ex_db, publish=False)
     except Exception as e:
         LOG.exception('[%s] Failed task execution for task "%s".', wf_ac_ex_id, task_id)
         result = {'errors': [{'message': str(e), 'task_id': task_ex_db.task_id}]}
