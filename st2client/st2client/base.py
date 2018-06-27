@@ -264,12 +264,8 @@ class BaseCLIApp(object):
             # Every user has access to this file which is dangerous
             message = ('Permissions (%s) for cached token file "%s" are too permissive. Please '
                        'restrict the permissions and make sure only your own user can read '
-                       'from or write to the file.'
-                       '\n\n'
-                       'You can fix this by running:'
-                       '\n\n'
-                       '    chmod o-rw %s')
-            self.LOG.warn(message % (file_st_mode, cached_token_path, cached_token_path))
+                       'from or write to the file.' % (file_st_mode, cached_token_path))
+            self.LOG.warn(message)
 
         with open(cached_token_path) as fp:
             data = fp.read()
