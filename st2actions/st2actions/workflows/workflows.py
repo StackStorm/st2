@@ -47,6 +47,10 @@ class WorkflowDispatcher(consumers.MessageHandler):
         return consumers.QueueConsumer(connection=connection, queues=queues, handler=self)
 
     def process(self, wf_ex_db):
+        wf_ac_ex_id = wf_ex_db.action_execution
+
+        LOG.info('[%s] Processing request for workflow execution.', wf_ac_ex_id)
+
         # Refresh record from the database in case the request is in the queue for too long.
         conductor, wf_ex_db = wf_svc.refresh_conductor(str(wf_ex_db.id))
 
@@ -60,11 +64,15 @@ class WorkflowDispatcher(consumers.MessageHandler):
 
         # If there is no new tasks, update execution records to handle possible completion.
         if not next_tasks:
+            LOG.info('[%s] No next tasks identified for workflow execution.', wf_ac_ex_id)
+
             # Update workflow execution and related liveaction and action execution.
             wf_svc.update_execution_records(wf_ex_db, conductor)
 
         # If workflow execution is no longer active, then stop processing here.
         if wf_ex_db.status in states.COMPLETED_STATES:
+            wf_status = wf_ex_db.status
+            LOG.info('[%s] Workflow execution is in completed state "%s".', wf_ac_ex_id, wf_status)
             return
 
         # Iterate while there are next tasks identified for processing. In the case for
@@ -73,6 +81,7 @@ class WorkflowDispatcher(consumers.MessageHandler):
         while next_tasks:
             # Mark the tasks as running in the task flow before actual task execution.
             for task in next_tasks:
+                LOG.info('[%s] Mark task "%s" as running.', wf_ac_ex_id, task['id'])
                 conductor.update_task_flow(task['id'], states.RUNNING)
 
             # Update workflow execution and related liveaction and action execution.
@@ -80,19 +89,28 @@ class WorkflowDispatcher(consumers.MessageHandler):
 
             # If workflow execution is no longer active, then stop processing here.
             if wf_ex_db.status in states.COMPLETED_STATES:
+                LOG.info(
+                    '[%s] Workflow execution is in completed state "%s".',
+                    wf_ac_ex_id,
+                    wf_ex_db.status
+                )
+
                 break
 
             # Request task execution for the tasks.
             for task in next_tasks:
                 try:
+                    LOG.info('[%s] Requesting execution for task "%s".', wf_ac_ex_id, task['id'])
                     task_id, task_spec, task_ctx = task['id'], task['spec'], task['ctx']
                     st2_ctx = {'execution_id': wf_ex_db.action_execution}
                     wf_svc.request_task_execution(wf_ex_db, task_id, task_spec, task_ctx, st2_ctx)
                 except Exception as e:
+                    LOG.exception('[%s] Failed task execution for "%s".', wf_ac_ex_id, task['id'])
                     wf_svc.fail_workflow_execution(str(wf_ex_db.id), e, task_id=task['id'])
                     return
 
             # Identify the next set of tasks to execute.
+            LOG.info('[%s] Identifying more tasks for workflow execution.', wf_ac_ex_id)
             conductor, wf_ex_db = wf_svc.refresh_conductor(str(wf_ex_db.id))
             next_tasks = conductor.get_next_tasks()
 
