@@ -35,13 +35,17 @@ def st2kv_(context, key, decrypt=False):
 
     try:
         username = context['__vars']['st2']['user']
-        user = auth_db_access.User.get(username)
     except KeyError:
         raise KeyError('Could not get user from context.')
 
+    try:
+        user_db = auth_db_access.User.get(username)
+    except Exception as e:
+        raise Exception('Failed to retrieve User object for user "%s" % (username)' % (str(e)))
+
     LOG.debug('ST2KV Decrypt: %s', decrypt)
 
-    kvp = kvp_util.get_key(key=key, user=user, decrypt=decrypt)
+    kvp = kvp_util.get_key(key=key, user_db=user_db, decrypt=decrypt)
 
     if not kvp:
         raise exc.ExpressionEvaluationException(
