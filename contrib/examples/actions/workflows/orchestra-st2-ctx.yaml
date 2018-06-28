@@ -1,0 +1,10 @@
+version: 1.0
+
+description: A sample workflow demonstrating use of st2 runtime context.
+
+output:
+  - callback: <% ctx(st2).api_url %>/executions/<% ctx(st2).action_execution_id %>
+
+tasks:
+  task1:
+    action: core.noop
