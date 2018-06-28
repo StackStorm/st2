@@ -67,7 +67,8 @@ def get_datastore_full_scope(scope):
 def _derive_scope_and_key(key, user, scope=None):
     if scope is not None:
         return scope, key
-    elif key.startswith('system.'):
+
+    if key.startswith('system.'):
         return FULL_SYSTEM_SCOPE, key[key.index('.') + 1:]
 
     return FULL_USER_SCOPE, '%s:%s' % (user, key)
@@ -78,13 +79,14 @@ def get_key(key=None, user=None, scope=None, decrypt=False):
     """
     if not isinstance(key, six.string_types):
         raise TypeError('Given key is not typeof string.')
+
     if not isinstance(decrypt, bool):
         raise TypeError('Decrypt parameter is not typeof bool.')
 
     if not user:
         user = UserDB(cfg.CONF.system_user.user)
 
-    scope, key_id = _derive_scope_and_key(key, user, scope)
+    scope, key_id = _derive_scope_and_key(key, user.name, scope)
 
     scope = get_datastore_full_scope(scope)
 

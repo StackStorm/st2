@@ -22,6 +22,7 @@ from st2common.constants.keyvalue import (FULL_SYSTEM_SCOPE, FULL_USER_SCOPE, US
                                           ALL_SCOPE, DATASTORE_PARENT_SCOPE,
                                           DATASTORE_SCOPE_SEPARATOR)
 from st2common.exceptions.rbac import AccessDeniedError
+from st2common.models.db import auth as auth_db
 
 
 USER = 'stanley'
@@ -141,7 +142,7 @@ class TestKeyValueUtil(unittest2.TestCase):
         KeyValuePair.get_by_scope_and_name().value = value
         deseralize_key_value.return_value = value
 
-        result = kv_utl.get_key(key=key, user=USER, decrypt=decrypt)
+        result = kv_utl.get_key(key=key, user=auth_db.UserDB(name=USER), decrypt=decrypt)
 
         self.assertEqual(result, value)
         KeyValuePair.get_by_scope_and_name.assert_called_with(
