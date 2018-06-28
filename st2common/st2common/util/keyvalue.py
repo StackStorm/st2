@@ -31,7 +31,8 @@ from st2common.models.db.auth import UserDB
 from st2common.exceptions.rbac import AccessDeniedError
 
 __all__ = [
-    'get_datastore_full_scope'
+    'get_datastore_full_scope',
+    'get_key'
 ]
 
 LOG = logging.getLogger(__name__)
@@ -43,7 +44,7 @@ def _validate_scope(scope):
         raise ValueError(msg)
 
 
-def _validate_decrypt_query_parameter(decrypt, scope, is_admin, user):
+def _validate_decrypt_query_parameter(decrypt, scope, is_admin, user_db):
     """
     Validate that the provider user is either admin or requesting to decrypt value for
     themselves.
@@ -51,7 +52,7 @@ def _validate_decrypt_query_parameter(decrypt, scope, is_admin, user):
     is_user_scope = (scope == USER_SCOPE or scope == FULL_USER_SCOPE)
     if decrypt and (not is_user_scope and not is_admin):
         msg = 'Decrypt option requires administrator access'
-        raise AccessDeniedError(message=msg, user_db=user)
+        raise AccessDeniedError(message=msg, user_db=user_db)
 
 
 def get_datastore_full_scope(scope):
@@ -65,6 +66,13 @@ def get_datastore_full_scope(scope):
 
 
 def _derive_scope_and_key(key, user, scope=None):
+    """
+    :param user: Name of the user.
+    :type user: ``str``
+    """
+    if user and not isinstance(user, six.string_types):
+        raise TypeError('"user" needs to be a string')
+
     if scope is not None:
         return scope, key
 
@@ -74,8 +82,9 @@ def _derive_scope_and_key(key, user, scope=None):
     return FULL_USER_SCOPE, '%s:%s' % (user, key)
 
 
-def get_key(key=None, user=None, scope=None, decrypt=False):
-    """Retrieve key from KVP store
+def get_key(key=None, user_db=None, scope=None, decrypt=False):
+    """
+    Retrieve key from KVP store
     """
     if not isinstance(key, six.string_types):
         raise TypeError('Given key is not typeof string.')
@@ -83,22 +92,22 @@ def get_key(key=None, user=None, scope=None, decrypt=False):
     if not isinstance(decrypt, bool):
         raise TypeError('Decrypt parameter is not typeof bool.')
 
-    if not user:
-        user = UserDB(cfg.CONF.system_user.user)
+    if not user_db:
+        # Use system user
+        user_db = UserDB(cfg.CONF.system_user.user)
 
-    scope, key_id = _derive_scope_and_key(key, user.name, scope)
-
+    scope, key_id = _derive_scope_and_key(key=key, user=user_db.name, scope=scope)
     scope = get_datastore_full_scope(scope)
 
     LOG.debug('get_key scope: %s', scope)
 
     _validate_scope(scope=scope)
 
-    is_admin = rbac_utils.user_is_admin(user_db=user)
+    is_admin = rbac_utils.user_is_admin(user_db=user_db)
 
     # User needs to be either admin or requesting item for itself
     _validate_decrypt_query_parameter(decrypt=decrypt, scope=scope, is_admin=is_admin,
-                                      user=user)
+                                      user_db=user_db)
 
     value = KeyValuePair.get_by_scope_and_name(scope, key_id)
 

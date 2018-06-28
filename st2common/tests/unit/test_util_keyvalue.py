@@ -142,7 +142,7 @@ class TestKeyValueUtil(unittest2.TestCase):
         KeyValuePair.get_by_scope_and_name().value = value
         deseralize_key_value.return_value = value
 
-        result = kv_utl.get_key(key=key, user=auth_db.UserDB(name=USER), decrypt=decrypt)
+        result = kv_utl.get_key(key=key, user_db=auth_db.UserDB(name=USER), decrypt=decrypt)
 
         self.assertEqual(result, value)
         KeyValuePair.get_by_scope_and_name.assert_called_with(
