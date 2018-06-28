@@ -73,8 +73,10 @@ def fetch_requirements(requirements_file_path):
     links = []
     reqs = []
     for req in parse_requirements(requirements_file_path, session=False):
-        if req.link:
-            links.append(str(req.link))
+        # Note: req.url was used before 9.0.0 and req.link is used in all the recent versions
+        link = getattr(req, 'link', getattr(req, 'url', None))
+        if link:
+            links.append(str(link))
         reqs.append(str(req.req))
     return (reqs, links)
 
