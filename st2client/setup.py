@@ -53,12 +53,17 @@ setup(
         'Programming Language :: Python :: 2.7'
     ],
     install_requires=[
-        'jsonpath-rw>=1.3.0',
+        'argcomplete',
+        'jsonpath-rw>=1.4.0',
         'prettytable',
+        'prompt-toolkit==1.0.15',
         'python-dateutil',
-        'pyyaml<4.0,>=3.11',
+        'python-editor==1.0.3',
+        'pytz==2018.4',
+        'pyyaml<4.0,>=3.12',
         'requests[security]<2.15,>=2.14.1',
-        'six==1.11.0'
+        'six==1.11.0',
+        'sseclient==0.0.19'
     ],
     dependency_links=[],
     test_suite=ST2_COMPONENT,
