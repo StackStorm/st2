@@ -54,13 +54,15 @@ __all__ = [
 ]
 
 
-def check_pip_version():
+def check_pip_version(min_version='6.0.0'):
     """
     Ensure that a minimum supported version of pip is installed.
     """
-    if StrictVersion(pip.__version__) < StrictVersion('6.0.0'):
-        print("Upgrade pip, your version `{0}' "
-              "is outdated:\n{1}".format(pip.__version__, GET_PIP))
+    if StrictVersion(pip.__version__) < StrictVersion(min_version):
+        print("Upgrade pip, your version '{0}' "
+              "is outdated. Minimum required version is '{1}':\n{2}".format(pip.__version__,
+                                                                            min_version,
+                                                                            GET_PIP))
         sys.exit(1)
 
 
