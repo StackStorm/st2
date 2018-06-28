@@ -77,6 +77,9 @@ def inspect(wf_spec):
 
 
 def request(wf_def, ac_ex_db, st2_ctx):
+    wf_ac_ex_id = str(ac_ex_db.id)
+    LOG.info('[%s] Processing action execution request for workflow.', wf_ac_ex_id)
+
     # Load workflow definition into workflow spec model.
     spec_module = specs_loader.get_spec_module('native')
     wf_spec = spec_module.instantiate(wf_def)
@@ -127,12 +130,16 @@ def request(wf_def, ac_ex_db, st2_ctx):
 
     # Insert new record into the database and publish to the message bus.
     wf_ex_db = wf_db_access.WorkflowExecution.insert(wf_ex_db, publish=True)
+    LOG.info('[%s] Workflow execution "%s" created.', wf_ac_ex_id, str(wf_ex_db.id))
 
     return wf_ex_db
 
 
 @retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
 def request_pause(ac_ex_db):
+    wf_ac_ex_id = str(ac_ex_db.id)
+    LOG.info('[%s] Processing pause request for workflow.', wf_ac_ex_id)
+
     wf_ex_dbs = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))
 
     if not wf_ex_dbs:
@@ -158,11 +165,16 @@ def request_pause(ac_ex_db):
     wf_ex_db.flow = conductor.flow.serialize()
     wf_ex_db = wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
 
+    LOG.info('[%s] Completed processing pause request for workflow.', wf_ac_ex_id)
+
     return wf_ex_db
 
 
 @retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
 def request_resume(ac_ex_db):
+    wf_ac_ex_id = str(ac_ex_db.id)
+    LOG.info('[%s] Processing resume request for workflow.', wf_ac_ex_id)
+
     wf_ex_dbs = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))
 
     if not wf_ex_dbs:
@@ -197,11 +209,16 @@ def request_resume(ac_ex_db):
     # Publish state change.
     wf_db_access.WorkflowExecution.publish_status(wf_ex_db)
 
+    LOG.info('[%s] Completed processing resume request for workflow.', wf_ac_ex_id)
+
     return wf_ex_db
 
 
 @retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
 def request_cancellation(ac_ex_db):
+    wf_ac_ex_id = str(ac_ex_db.id)
+    LOG.info('[%s] Processing cancelation request for workflow.', wf_ac_ex_id)
+
     wf_ex_dbs = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))
 
     if not wf_ex_dbs:
@@ -231,13 +248,19 @@ def request_cancellation(ac_ex_db):
     root_ac_ex_db = ac_svc.get_root_execution(ac_ex_db)
 
     if root_ac_ex_db != ac_ex_db and root_ac_ex_db.status not in ac_const.LIVEACTION_CANCEL_STATES:
+        LOG.info('[%s] Cascading cancelation request to parent workflow.', wf_ac_ex_id)
         root_lv_ac_db = lv_db_access.LiveAction.get(id=root_ac_ex_db.liveaction['id'])
         ac_svc.request_cancellation(root_lv_ac_db, None)
+
+    LOG.info('[%s] Completed processing cancelation request for workflow.', wf_ac_ex_id)
 
     return wf_ex_db
 
 
 def request_task_execution(wf_ex_db, task_id, task_spec, task_ctx, st2_ctx):
+    wf_ac_ex_id = wf_ex_db.action_execution
+    LOG.info('[%s] Processing task execution request for "%s".', wf_ac_ex_id, task_id)
+
     # Create a record for task execution.
     task_ex_db = wf_db_models.TaskExecutionDB(
         workflow_execution=str(wf_ex_db.id),
@@ -250,6 +273,8 @@ def request_task_execution(wf_ex_db, task_id, task_spec, task_ctx, st2_ctx):
 
     # Insert new record into the database.
     task_ex_db = wf_db_access.TaskExecution.insert(task_ex_db, publish=False)
+    task_ex_id = str(task_ex_db.id)
+    LOG.info('[%s] Task execution "%s" created for task "%s".', wf_ac_ex_id, task_ex_id, task_id)
 
     try:
         # Return here if no action is specified in task spec.
@@ -302,13 +327,23 @@ def request_task_execution(wf_ex_db, task_id, task_spec, task_ctx, st2_ctx):
             parameters=ac_ex_params
         )
 
-        # Request action execution.
-        ac_svc.request(lv_ac_db)
-
-        # Set the task execution to running.
+        # Set the task execution to running first otherwise a race can occur
+        # where the action execution finishes first and the completion handler
+        # conflicts with this status update.
         task_ex_db.status = states.RUNNING
         task_ex_db = wf_db_access.TaskExecution.update(task_ex_db, publish=False)
+
+        # Request action execution.
+        lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
+
+        LOG.info(
+            '[%s] Action execution "%s" requested for task "%s".',
+            wf_ac_ex_id,
+            str(ac_ex_db.id),
+            task_id
+        )
     except Exception as e:
+        LOG.exception('[%s] Failed task execution for task "%s".', wf_ac_ex_id, task_id)
         result = {'errors': [{'message': str(e), 'task_id': task_ex_db.task_id}]}
         update_task_execution(str(task_ex_db.id), states.FAILED, result)
         raise e
@@ -325,7 +360,19 @@ def handle_action_execution_pause(ac_ex_db):
         )
 
     # Get related record identifiers.
+    wf_ex_id = ac_ex_db.context['orchestra']['workflow_execution_id']
     task_ex_id = ac_ex_db.context['orchestra']['task_execution_id']
+
+    # Get execution records for logging purposes.
+    wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
+    task_ex_db = wf_db_access.TaskExecution.get_by_id(task_ex_id)
+
+    LOG.info(
+        '[%s] Handling pause of action execution "%s" for task "%s".',
+        wf_ex_db.action_execution,
+        str(ac_ex_db.id),
+        task_ex_db.task_id
+    )
 
     # Updat task execution
     update_task_execution(task_ex_id, ac_ex_db.status)
@@ -341,8 +388,20 @@ def handle_action_execution_resume(ac_ex_db):
             '%s is not an orchestra workflow task.' % str(ac_ex_db.id)
         )
 
+    # Get related record identifiers.
     wf_ex_id = ac_ex_db.context['orchestra']['workflow_execution_id']
     task_ex_id = ac_ex_db.context['orchestra']['task_execution_id']
+
+    # Get execution records for logging purposes.
+    wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
+    task_ex_db = wf_db_access.TaskExecution.get_by_id(task_ex_id)
+
+    LOG.info(
+        '[%s] Handling resume of action execution "%s" for task "%s".',
+        wf_ex_db.action_execution,
+        str(ac_ex_db.id),
+        task_ex_db.task_id
+    )
 
     # Updat task execution to running.
     resume_task_execution(task_ex_id)
@@ -378,6 +437,17 @@ def handle_action_execution_completion(ac_ex_db):
     # Get related record identifiers.
     wf_ex_id = ac_ex_db.context['orchestra']['workflow_execution_id']
     task_ex_id = ac_ex_db.context['orchestra']['task_execution_id']
+
+    # Get execution records for logging purposes.
+    wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
+    task_ex_db = wf_db_access.TaskExecution.get_by_id(task_ex_id)
+
+    LOG.info(
+        '[%s] Handling completion of action execution "%s" for task "%s".',
+        wf_ex_db.action_execution,
+        str(ac_ex_db.id),
+        task_ex_db.task_id
+    )
 
     # Update task execution if completed.
     update_task_execution(task_ex_id, ac_ex_db.status, ac_ex_db.result)
@@ -543,6 +613,9 @@ def fail_workflow_execution(wf_ex_id, exception, task_id=None):
 def update_execution_records(wf_ex_db, conductor, update_lv_ac_on_states=None,
                              pub_wf_ex=False, pub_lv_ac=True, pub_ac_ex=True):
 
+    wf_ac_ex_id = wf_ex_db.action_execution
+    wf_old_status = wf_ex_db.status
+
     # Update timestamp and output if workflow is completed.
     if conductor.get_workflow_state() in states.COMPLETED_STATES:
         wf_ex_db.end_timestamp = date_utils.get_datetime_utc_now()
@@ -553,6 +626,15 @@ def update_execution_records(wf_ex_db, conductor, update_lv_ac_on_states=None,
     wf_ex_db.errors = copy.deepcopy(conductor.errors)
     wf_ex_db.flow = conductor.flow.serialize()
     wf_ex_db = wf_db_access.WorkflowExecution.update(wf_ex_db, publish=pub_wf_ex)
+
+    # Add log entry if status changed.
+    if wf_old_status != wf_ex_db.status:
+        LOG.info(
+            '[%s] Updated workflow execution from state "%s" to "%s".',
+            wf_ac_ex_id,
+            wf_old_status,
+            wf_ex_db.status
+        )
 
     # Return if workflow execution status is not specified in update_lv_ac_on_states.
     if isinstance(update_lv_ac_on_states, list) and wf_ex_db.status not in update_lv_ac_on_states:
@@ -567,6 +649,13 @@ def update_execution_records(wf_ex_db, conductor, update_lv_ac_on_states=None,
 
     if wf_ex_db.status in states.ABENDED_STATES:
         result['errors'] = wf_ex_db.errors
+
+        for wf_ex_error in wf_ex_db.errors:
+            LOG.error(
+                '[%s] Workflow execution completed with errors.',
+                wf_ac_ex_id,
+                extra=wf_ex_error
+            )
 
     # Sync update with corresponding liveaction and action execution.
     wf_lv_ac_db = ac_db_util.update_liveaction_status(

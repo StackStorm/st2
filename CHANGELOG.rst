@@ -7,6 +7,7 @@ in development
 Added
 ~~~~~
 
+* Orchestra - new StackStorm-native workflow engine. This is currently in **beta**. (new feature)
 * Added metrics for collecting performance and health information about the various ST2 services
   and functions. (new feature) #4004 #2974
 * When running a dev (unstable) release include git revision hash in the output when using
@@ -53,6 +54,8 @@ Added
 Changed
 ~~~~~~~
 
+* Update st2 CLI to create the configuration directory and file, and authentication tokens with
+  secure permissions (eg: readable only to owner) #4173
 * Refactor the callback module for the post run in runner to be more generic. (improvement)
 * Update various Python dependencies to the latest stable versions (gunicorn, gitpython,
   python-gnupg, tooz, flex). #4110

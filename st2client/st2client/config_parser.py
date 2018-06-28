@@ -19,6 +19,7 @@ Module for parsing CLI config file.
 
 from __future__ import absolute_import
 
+import logging
 import os
 
 from collections import defaultdict
@@ -120,11 +121,18 @@ for section, keys in six.iteritems(CONFIG_FILE_OPTIONS):
 
 
 class CLIConfigParser(object):
-    def __init__(self, config_file_path, validate_config_exists=True):
+    def __init__(self, config_file_path, validate_config_exists=True,
+                 validate_config_permissions=True, log=None):
         if validate_config_exists and not os.path.isfile(config_file_path):
             raise ValueError('Config file "%s" doesn\'t exist')
 
+        if log is None:
+            log = logging.getLogger(__name__)
+            logging.basicConfig()
+
         self.config_file_path = config_file_path
+        self.validate_config_permissions = validate_config_permissions
+        self.LOG = log
 
     def parse(self):
         """
@@ -137,6 +145,27 @@ class CLIConfigParser(object):
         if not os.path.isfile(self.config_file_path):
             # Config doesn't exist, return the default values
             return CONFIG_DEFAULT_VALUES
+
+        config_dir_path = os.path.dirname(self.config_file_path)
+
+        if self.validate_config_permissions:
+            # Make sure the directory permissions == 0o770
+            if bool(os.stat(config_dir_path).st_mode & 0o7):
+                self.LOG.warn(
+                    "The StackStorm configuration directory permissions are "
+                    "insecure (too permissive): others have access.")
+
+            # Make sure the setgid bit is set on the directory
+            if not bool(os.stat(config_dir_path).st_mode & 0o2000):
+                self.LOG.info(
+                    "The SGID bit is not set on the StackStorm configuration "
+                    "directory.")
+
+            # Make sure the file permissions == 0o660
+            if bool(os.stat(self.config_file_path).st_mode & 0o7):
+                self.LOG.warn(
+                    "The StackStorm configuration file permissions are "
+                    "insecure: others have access.")
 
         config = ConfigParser()
         with io.open(self.config_file_path, 'r', encoding='utf8') as fp:

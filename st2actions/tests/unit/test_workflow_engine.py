@@ -128,7 +128,8 @@ class WorkflowEngineTest(st2tests.DbTestCase):
 
         expected_st2_ctx = {
             'action_execution_id': wf_ex_db.action_execution,
-            'api_url': 'http://127.0.0.1/v1'
+            'api_url': 'http://127.0.0.1/v1',
+            'user': 'stanley'
         }
 
         expected_flow = {

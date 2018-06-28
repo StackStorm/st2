@@ -49,5 +49,8 @@ setup(
         'st2common.runners.runner': [
             'orchestra = orchestra_runner.orchestra_runner',
         ],
+        'orchestra.expressions.functions': [
+            'st2kv = functions.st2kv:st2kv_',
+        ],
     }
 )
