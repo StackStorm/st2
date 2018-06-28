@@ -46,7 +46,7 @@ DEFAULT_API_VERSION = 'v1'
 
 
 class Client(object):
-    def __init__(self, base_url=None, auth_url=None, api_url=None, stream_url=None,
+    def __init__(self, base_url=None, auth_url=None, api_url=None, exp_url=None, stream_url=None,
                  api_version=None, cacert=None, debug=False, token=None, api_key=None):
         # Get CLI options. If not given, then try to get it from the environment.
         self.endpoints = dict()
@@ -59,7 +59,11 @@ class Client(object):
 
         api_version = api_version or os.environ.get('ST2_API_VERSION', DEFAULT_API_VERSION)
 
-        self.endpoints['exp'] = '%s:%s/%s' % (self.endpoints['base'], DEFAULT_API_PORT, 'exp')
+        if exp_url:
+            self.endpoints['exp'] = exp_url
+        else:
+            self.endpoints['exp'] = os.environ.get(
+                'ST2_EXP_URL', '%s:%s/%s' % (self.endpoints['base'], DEFAULT_API_PORT, 'exp'))
 
         if api_url:
             self.endpoints['api'] = api_url

@@ -32,6 +32,7 @@ class TestClientEndpoints(unittest2.TestCase):
         for var in [
             'ST2_BASE_URL',
             'ST2_API_URL',
+            'ST2_EXP_URL',
             'ST2_STREAM_URL',
             'ST2_DATASTORE_URL',
             'ST2_AUTH_TOKEN'
@@ -53,94 +54,113 @@ class TestClientEndpoints(unittest2.TestCase):
     def test_default(self):
         base_url = 'http://127.0.0.1'
         api_url = 'http://127.0.0.1:9101/v1'
+        exp_url = 'http://127.0.0.1:9101/exp'
         stream_url = 'http://127.0.0.1:9102/v1'
 
         client = Client()
         endpoints = client.endpoints
         self.assertEqual(endpoints['base'], base_url)
         self.assertEqual(endpoints['api'], api_url)
+        self.assertEqual(endpoints['exp'], exp_url)
         self.assertEqual(endpoints['stream'], stream_url)
 
     def test_env(self):
         base_url = 'http://www.stackstorm.com'
         api_url = 'http://www.st2.com:9101/v1'
+        exp_url = 'http://www.st2.com:9101/exp'
         stream_url = 'http://www.st2.com:9102/v1'
 
         os.environ['ST2_BASE_URL'] = base_url
         os.environ['ST2_API_URL'] = api_url
+        os.environ['ST2_EXP_URL'] = exp_url
         os.environ['ST2_STREAM_URL'] = stream_url
         self.assertEqual(os.environ.get('ST2_BASE_URL'), base_url)
         self.assertEqual(os.environ.get('ST2_API_URL'), api_url)
+        self.assertEqual(os.environ.get('ST2_EXP_URL'), exp_url)
         self.assertEqual(os.environ.get('ST2_STREAM_URL'), stream_url)
 
         client = Client()
         endpoints = client.endpoints
         self.assertEqual(endpoints['base'], base_url)
         self.assertEqual(endpoints['api'], api_url)
+        self.assertEqual(endpoints['exp'], exp_url)
         self.assertEqual(endpoints['stream'], stream_url)
 
     def test_env_base_only(self):
         base_url = 'http://www.stackstorm.com'
         api_url = 'http://www.stackstorm.com:9101/v1'
+        exp_url = 'http://www.stackstorm.com:9101/exp'
         stream_url = 'http://www.stackstorm.com:9102/v1'
 
         os.environ['ST2_BASE_URL'] = base_url
         self.assertEqual(os.environ.get('ST2_BASE_URL'), base_url)
         self.assertEqual(os.environ.get('ST2_API_URL'), None)
+        self.assertEqual(os.environ.get('ST2_EXP_URL'), None)
         self.assertEqual(os.environ.get('ST2_STREAM_URL'), None)
 
         client = Client()
         endpoints = client.endpoints
         self.assertEqual(endpoints['base'], base_url)
         self.assertEqual(endpoints['api'], api_url)
+        self.assertEqual(endpoints['exp'], exp_url)
         self.assertEqual(endpoints['stream'], stream_url)
 
     def test_args(self):
         base_url = 'http://www.stackstorm.com'
         api_url = 'http://www.st2.com:9101/v1'
+        exp_url = 'http://www.st2.com:9101/exp'
         stream_url = 'http://www.st2.com:9102/v1'
 
-        client = Client(base_url=base_url, api_url=api_url, stream_url=stream_url)
+        client = Client(base_url=base_url, api_url=api_url, exp_url=exp_url, stream_url=stream_url)
         endpoints = client.endpoints
         self.assertEqual(endpoints['base'], base_url)
         self.assertEqual(endpoints['api'], api_url)
+        self.assertEqual(endpoints['exp'], exp_url)
         self.assertEqual(endpoints['stream'], stream_url)
 
     def test_cacert_arg(self):
         # Valid value, boolean True
         base_url = 'http://www.stackstorm.com'
         api_url = 'http://www.st2.com:9101/v1'
+        exp_url = 'http://www.st2.com:9101/exp'
         stream_url = 'http://www.st2.com:9102/v1'
 
-        client = Client(base_url=base_url, api_url=api_url, stream_url=stream_url, cacert=True)
+        client = Client(base_url=base_url, api_url=api_url, exp_url=exp_url,
+                        stream_url=stream_url, cacert=True)
         self.assertEqual(client.cacert, True)
 
         # Valid value, boolean False
         base_url = 'http://www.stackstorm.com'
         api_url = 'http://www.st2.com:9101/v1'
+        exp_url = 'http://www.st2.com:9101/exp'
         stream_url = 'http://www.st2.com:9102/v1'
 
-        client = Client(base_url=base_url, api_url=api_url, stream_url=stream_url, cacert=False)
+        client = Client(base_url=base_url, api_url=api_url, exp_url=exp_url,
+                        stream_url=stream_url, cacert=False)
         self.assertEqual(client.cacert, False)
 
         # Valid value, existing path to a CA bundle
         cacert = os.path.abspath(__file__)
-        client = Client(base_url=base_url, api_url=api_url, stream_url=stream_url, cacert=cacert)
+        client = Client(base_url=base_url, api_url=api_url, exp_url=exp_url,
+                        stream_url=stream_url, cacert=cacert)
         self.assertEqual(client.cacert, cacert)
 
         # Invalid value, path to the bundle doesn't exist
         cacert = os.path.abspath(__file__)
         expected_msg = 'CA cert file "doesntexist" does not exist'
         self.assertRaisesRegexp(ValueError, expected_msg, Client, base_url=base_url,
-                                api_url=api_url, stream_url=stream_url, cacert='doesntexist')
+                                api_url=api_url, exp_url=exp_url, stream_url=stream_url,
+                                cacert='doesntexist')
 
     def test_args_base_only(self):
         base_url = 'http://www.stackstorm.com'
         api_url = 'http://www.stackstorm.com:9101/v1'
+        exp_url = 'http://www.stackstorm.com:9101/exp'
         stream_url = 'http://www.stackstorm.com:9102/v1'
 
         client = Client(base_url=base_url)
         endpoints = client.endpoints
         self.assertEqual(endpoints['base'], base_url)
         self.assertEqual(endpoints['api'], api_url)
+        self.assertEqual(endpoints['exp'], exp_url)
         self.assertEqual(endpoints['stream'], stream_url)
