@@ -99,7 +99,9 @@ def get_key(key=None, user_db=None, scope=None, decrypt=False):
     scope, key_id = _derive_scope_and_key(key=key, user=user_db.name, scope=scope)
     scope = get_datastore_full_scope(scope)
 
-    LOG.debug('get_key scope: %s', scope)
+    LOG.debug('get_key key_id: %s, scope: %s, user: %s, decrypt: %s' % (key_id, scope,
+                                                                        str(user_db.name),
+                                                                        decrypt))
 
     _validate_scope(scope=scope)
 
