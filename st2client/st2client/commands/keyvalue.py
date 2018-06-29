@@ -148,7 +148,7 @@ class KeyValuePairGetCommand(resource.ResourceGetCommand):
 
 
 class KeyValuePairSetCommand(resource.ResourceCommand):
-    display_attributes = ['name', 'value', 'expire_timestamp']
+    display_attributes = ['name', 'value', 'scope', 'expire_timestamp']
 
     def __init__(self, resource, *args, **kwargs):
         super(KeyValuePairSetCommand, self).__init__(

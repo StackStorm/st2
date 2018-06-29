@@ -463,6 +463,7 @@ class ShellTestCase(base.BaseCLITestCase):
 
         return package_metadata_path
 
+    @unittest2.skipIf(True, 'skipping until checks are re-enabled')
     @mock.patch.object(
         requests, 'get',
         mock.MagicMock(return_value=base.FakeResponse("{}", 200, 'OK')))
