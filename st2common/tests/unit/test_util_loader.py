@@ -58,42 +58,6 @@ class PluginLoaderTestCase(unittest2.TestCase):
     @mock.patch.object(
         imp,
         'load_source',
-        mock.MagicMock(return_value=MOCK_RUNNER_MODULE)
-    )
-    def test_register_runner(self):
-        runner = loader.register_runner(MOCK_RUNNER_NAME, MOCK_RUNNER_NAME)
-
-        self.assertIsNotNone(runner)
-        self.assertEqual(MOCK_RUNNER_NAME, runner.__name__)
-        self.assertIn(MOCK_RUNNER_NAME, loader.RUNNER_MODULES_CACHE)
-        self.assertEqual(runner, loader.RUNNER_MODULES_CACHE[MOCK_RUNNER_NAME][MOCK_RUNNER_NAME])
-
-    @mock.patch.object(
-        imp,
-        'load_source',
-        mock.MagicMock(return_value=MOCK_RUNNER_MODULE)
-    )
-    def test_register_runner_again(self):
-        runner1 = loader.register_runner(MOCK_RUNNER_NAME, MOCK_RUNNER_NAME)
-
-        self.assertEqual(1, imp.load_source.call_count)
-        self.assertIsNotNone(runner1)
-        self.assertEqual(MOCK_RUNNER_NAME, runner1.__name__)
-        self.assertIn(MOCK_RUNNER_NAME, loader.RUNNER_MODULES_CACHE)
-        self.assertEqual(runner1, loader.RUNNER_MODULES_CACHE[MOCK_RUNNER_NAME][MOCK_RUNNER_NAME])
-
-        runner2 = loader.register_runner(MOCK_RUNNER_NAME, MOCK_RUNNER_NAME)
-
-        self.assertEqual(1, imp.load_source.call_count)
-        self.assertEqual(runner1, runner2)
-        self.assertIsNotNone(runner2)
-        self.assertEqual(MOCK_RUNNER_NAME, runner2.__name__)
-        self.assertIn(MOCK_RUNNER_NAME, loader.RUNNER_MODULES_CACHE)
-        self.assertEqual(runner2, loader.RUNNER_MODULES_CACHE[MOCK_RUNNER_NAME][MOCK_RUNNER_NAME])
-
-    @mock.patch.object(
-        imp,
-        'load_source',
         mock.MagicMock(return_value=MOCK_QUERIER_MODULE)
     )
     def test_register_query_module(self):

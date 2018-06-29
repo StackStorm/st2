@@ -28,12 +28,12 @@ from eventlet.green import subprocess
 
 from st2common import log as logging
 from st2common.constants import action as action_constants
+from st2common.constants import runners as runner_constants
 from st2common.constants import pack as pack_constants
 from st2common.content.utils import get_pack_directory
 from st2common.content.utils import get_pack_base_path
 from st2common.exceptions import actionrunner as exc
-from st2common.util.loader import register_runner
-from st2common.util.loader import register_callback_module
+from st2common.util.loader import register_callback_module, get_plugin_instance
 from st2common.util.api import get_full_public_api_url
 from st2common.util.deprecation import deprecated
 from st2common.util.green.shell import run_command
@@ -59,22 +59,18 @@ RUNNER_CONTENT_VERSION = 'content_version'
 RUNNER_DEBUG = 'debug'
 
 
-def get_runner(package_name, module_name, config=None):
+def get_runner(name, config=None):
     """
     Load the module and return an instance of the runner.
     """
-
-    if not package_name:
-        # Backward compatibility for Pre 2.7.0 where package name always equaled module name
-        package_name = module_name
-
-    LOG.debug('Runner loading Python module: %s.%s', package_name, module_name)
+    LOG.debug('Runner loading Python module: %s', name)
 
     try:
-        # TODO: Explore modifying this to support register_plugin
-        module = register_runner(package_name=package_name, module_name=module_name)
+        module = get_plugin_instance(runner_constants.RUNNER_NAMESPACE, name, invoke_on_load=False)
     except Exception as e:
-        msg = ('Failed to import runner module %s.%s' % (package_name, module_name))
+        msg = ('Failed to find runner %s - This functionality was changed'
+               'in StackStorm 2.9. You will need to run st2ctl reinstall-runners'
+               'if you are upgrading from <= Stackstorm 2.8.' % (name))
         LOG.exception(msg)
 
         raise exc.ActionRunnerCreateError('%s\n\n%s' % (msg, str(e)))

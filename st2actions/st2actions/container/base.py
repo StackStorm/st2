@@ -340,8 +340,7 @@ class RunnerContainer(object):
             config = config_loader.get_config()
 
         runner = get_runner(
-            package_name=runner_type_db.runner_package,
-            module_name=runner_type_db.runner_module,
+            name=runner_type_db.name,
             config=config)
 
         # TODO: Pass those arguments to the constructor instead of late

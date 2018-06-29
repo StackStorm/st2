@@ -82,3 +82,5 @@ COMMON_ACTION_ENV_VARIABLES = [
     'ST2_ACTION_API_URL',
     'ST2_ACTION_AUTH_TOKEN'
 ]
+
+RUNNER_NAMESPACE = "st2common.runners.runner"
