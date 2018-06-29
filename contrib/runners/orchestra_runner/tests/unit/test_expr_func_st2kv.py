@@ -23,7 +23,7 @@ import st2tests
 import st2tests.config as tests_config
 tests_config.parse_args()
 
-from functions import st2kv
+from orchestra_functions import st2kv
 from orchestra import exceptions as exc
 
 from st2common.constants import keyvalue as kvp_const
