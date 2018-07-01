@@ -6,7 +6,9 @@ in development
 
 Added
 ~~~~~
-
+* Add new ``?tags``, query params to ``/v1/actions`` API endpoint. These query parameter allow
+  users to filter out actions to receive based on the tag name . By default, when no
+  filter values are provided, all actions are returned. (new feature) #4219
 * Orchestra - new StackStorm-native workflow engine. This is currently in **beta**. (new feature)
 * Added metrics for collecting performance and health information about the various ST2 services
   and functions. (new feature) #4004 #2974
