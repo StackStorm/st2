@@ -4,6 +4,17 @@ Changelog
 in development
 --------------
 
+Changed
+~~~~~~~
+
+* ``st2 key list`` command now defaults to ``all`` scope aka displaying all (system and user
+  scoped) datastore values). If you only want to display system scoped values (old behavior)
+  you can do that by passing ``--scope=system`` argument to the ``st2 key list`` command
+  (``st2 key list --scope=system``). #4221
+
+in development
+--------------
+
 Added
 ~~~~~
 
