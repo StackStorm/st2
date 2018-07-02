@@ -31,7 +31,7 @@ from st2client.utils.date import format_isodate_for_user_timezone
 
 LOG = logging.getLogger(__name__)
 
-DEFAULT_SCOPE = 'system'
+DEFAULT_SCOPE = 'all'
 
 
 class KeyValuePairBranch(resource.ResourceBranch):
@@ -84,7 +84,7 @@ class KeyValuePairListCommand(resource.ResourceTableCommand):
                                                    'the provided prefix.'))
         self.parser.add_argument('--decrypt', action='store_true',
                                  help='Decrypt secrets and displays plain text.')
-        self.parser.add_argument('-s', '--scope', default='system', dest='scope',
+        self.parser.add_argument('-s', '--scope', default=DEFAULT_SCOPE, dest='scope',
                                  help='Scope item is under. Example: "user".')
         self.parser.add_argument('-u', '--user', dest='user', default=None,
                                  help='User for user scoped items (admin only).')
