@@ -347,14 +347,14 @@ class Router(object):
             elif source == 'request':
                 kw[argument_name] = getattr(req, name)
             elif source == 'body':
-                # Note: We also want to perform validation if no body is explicitly provided - in a
-                # lot of POST, PUT scenarios, body is mandatory
-                if not req.body:
-                    req.body = b'{}'
-
                 content_type = req.headers.get('Content-Type', 'application/json')
                 content_type = parse_content_type_header(content_type=content_type)[0]
                 schema = param['schema']
+
+                # Note: We also want to perform validation if no body is explicitly provided - in a
+                # lot of POST, PUT scenarios, body is mandatory
+                if not req.body and content_type == 'application/json':
+                    req.body = b'{}'
 
                 try:
                     if content_type == 'application/json':
