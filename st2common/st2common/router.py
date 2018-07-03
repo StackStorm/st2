@@ -357,7 +357,6 @@ class Router(object):
                     req.body = b'{}'
 
                 try:
-
                     if content_type == 'application/json':
                         data = req.json
                     elif content_type == 'text/plain':
