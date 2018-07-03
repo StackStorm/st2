@@ -39,7 +39,7 @@ ARGUMENTS = {
 
 def load_spec(module_name, spec_file):
     spec_string = generate_spec(module_name, spec_file)
-    spec = yaml.load(spec_string)
+    spec = yaml.safe_load(spec_string)
     return spec
 
 
