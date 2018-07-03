@@ -4129,11 +4129,11 @@ paths:
             $ref: '#/definitions/TokenRequest'
       x-parameters:
         - name: remote_addr
-          in: environ
+          in: header
           description: source of the request
           type: string
         - name: remote_user
-          in: environ
+          in: header
           description: set externally to indicate user identity in case of proxy auth
           type: string
       responses:
