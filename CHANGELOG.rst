@@ -4,6 +4,12 @@ Changelog
 in development
 --------------
 
+* Fix ``proxy`` st2auth authentication mode which has been inadvertently broken when we moved to
+  OpenAPI for the API layer. (bug fix) #4224
+
+in development
+--------------
+
 Added
 ~~~~~
 
