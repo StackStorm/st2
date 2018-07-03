@@ -19,7 +19,7 @@ from st2client import models
 from st2common.constants import action as ac_const
 
 
-class TestST2KV(base.TestWorkflowExecution):
+class DatastoreFunctionTest(base.TestWorkflowExecution):
     @classmethod
     def set_kvp(cls, name, value, scope='system', secret=False):
         kvp = models.KeyValuePair(
