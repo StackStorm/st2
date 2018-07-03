@@ -1,5 +1,4 @@
 # Don't edit this file. It's generated automatically!
-git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper
 argcomplete
 jsonpath-rw==1.4.0
 prettytable
