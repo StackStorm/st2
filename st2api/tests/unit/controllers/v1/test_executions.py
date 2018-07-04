@@ -414,6 +414,32 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         resp = self.app.get('/v1/executions/100', expect_errors=True)
         self.assertEqual(resp.status_int, 404)
 
+    def test_get_all_include_attributes_filter(self):
+        # 1. Invalid field
+        resp = self.app.get('/v1/executions?include_attributes=invalid', expect_errors=True)
+
+        expected_msg = ('Invalid or unsupported include attribute specified: '
+                        'Cannot resolve field "invalid"')
+        self.assertEqual(resp.status_int, 400)
+        self.assertEqual(resp.json['faultstring'], expected_msg)
+
+        # NOTE: start_timestamp attribute is always included since we sort on it
+
+        # 2. Valid field (single)
+        resp = self.app.get('/v1/executions?include_attributes=id')
+        self.assertEqual(len(resp.json), 5)
+        self.assertEqual(len(resp.json[0].keys()), 2)
+        self.assertTrue('id' in resp.json[0])
+        self.assertTrue('start_timestamp' in resp.json[0])
+
+        # 3. Valid field (single)
+        resp = self.app.get('/v1/executions?include_attributes=id,status')
+        self.assertEqual(len(resp.json), 5)
+        self.assertEqual(len(resp.json[0].keys()), 3)
+        self.assertTrue('id' in resp.json[0])
+        self.assertTrue('start_timestamp' in resp.json[0])
+        self.assertTrue('status' in resp.json[0])
+
     def test_post_delete(self):
         post_resp = self._do_post(LIVE_ACTION_1)
         self.assertEqual(post_resp.status_int, 201)
