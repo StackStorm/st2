@@ -433,8 +433,8 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         self.assertTrue('start_timestamp' in resp.json[0])
 
         # 3. Valid field (single)
-        resp = self.app.get('/v1/executions?include_attributes=id,status')
-        self.assertEqual(len(resp.json), 5)
+        resp = self.app.get('/v1/executions?include_attributes=id,status&limit=1')
+        self.assertEqual(len(resp.json), 2)
         self.assertEqual(len(resp.json[0].keys()), 3)
         self.assertTrue('id' in resp.json[0])
         self.assertTrue('start_timestamp' in resp.json[0])
