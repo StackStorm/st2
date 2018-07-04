@@ -728,7 +728,8 @@ class ActionExecutionsController(BaseResourceIsolationControllerMixin,
 
         limit = int(limit)
 
-        LOG.debug('Retrieving all action executions with filters=%s', raw_filters)
+        LOG.debug('Retrieving all action executions with filters=%s,exclude_fields=%s,'
+                  'include_fields=%s', raw_filters, exclude_fields, include_fields)
         return super(ActionExecutionsController, self)._get_all(exclude_fields=exclude_fields,
                                                                 include_fields=include_fields,
                                                                 from_model_kwargs=from_model_kwargs,
