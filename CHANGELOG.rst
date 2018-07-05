@@ -4,6 +4,10 @@ Changelog
 in development
 --------------
 
+
+2.8.0 - July 05, 2018
+---------------------
+
 Added
 ~~~~~
 * Add new ``?tags``, query params to ``/v1/actions`` API endpoint. These query parameter allow
