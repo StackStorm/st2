@@ -288,6 +288,10 @@ paths:
           in: query
           description: Action pack name filter
           type: string
+        - name: tags
+          in: query
+          description: Action tags name filter
+          type: string
       x-parameters:
         - name: user
           in: context

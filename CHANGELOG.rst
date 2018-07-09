@@ -4,7 +4,14 @@ Changelog
 in development
 --------------
 
-2.8.0 - July 05, 2018
+Added
+~~~~~
+
+* Add new ``?tags``, query param filter to the ``/v1/actions`` API endpoint. This query parameter
+  allows users to filter out actions based on the tag name . By default, when no filter values are
+  provided, all actions are returned. (new feature) #4219
+
+2.8.0 - July 10, 2018
 ---------------------
 
 Added
