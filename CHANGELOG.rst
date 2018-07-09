@@ -94,6 +94,8 @@ Fixed
   Contributed by Nick Maludy (Encore Technologies).
 * Style clean up to transport queues module and various config modules. (improvement)
 * Fixed CLI help for ``st2 action-alias match`` and ``execute``. (#4174).
+* Fix regression in ``?include_attributes`` query param filter in the ``/v1/executions`` API
+  endpoint. (bug fix) #4226
 
 2.7.2 - May 16, 2018
 --------------------
