@@ -17,7 +17,6 @@ Added
 Added
 ~~~~~
 
-  filter values are provided, all actions are returned. (new feature) #4219
 * Orchestra - new StackStorm-native workflow engine. This is currently in **beta**. (new feature)
 * Added metrics for collecting performance and health information about the various ST2 services
   and functions. (new feature) #4004 #2974
