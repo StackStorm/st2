@@ -1,0 +1,17 @@
+---
+name: "winrm_powershell_env"
+description: "Action that sets an environment variable then prints it out. This also demonstrates returning JSON data from PowerShell and being able to utilize it as an object via stdout."
+enabled: true
+runner_type: "winrm-ps-cmd"
+parameters:
+  env_var_name:
+    type: string
+    default: "ST2_WINRM_ENV_TEST"
+  cmd:
+    type: string
+    default: "Get-Item Env:{{ env_var_name }} | ConvertTo-Json -Depth 1 -Compress"
+    immutable: true
+  env:
+    type: object
+    default:
+      "{{ env_var_name }}": "This is a test"
