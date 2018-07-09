@@ -23,8 +23,6 @@ from setuptools import find_packages
 from dist_utils import fetch_requirements
 from dist_utils import apply_vagrant_workaround
 
-from st2common import __version__
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 REQUIREMENTS_FILE = os.path.join(BASE_DIR, 'requirements.txt')
 
@@ -33,7 +31,7 @@ install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
 apply_vagrant_workaround()
 setup(
     name='stackstorm-runner-winrm',
-    version=__version__,
+    version='2.8.0',
     description=('WinRM shell command and PowerShell script action runner for'
                  ' the StackStorm event-driven automation platform'),
     author='StackStorm',
