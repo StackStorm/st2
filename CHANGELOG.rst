@@ -7,6 +7,16 @@ in development
 Added
 ~~~~~
 
+* Add new runners: ``winrm-cmd``, ``winrm-ps-cmd`` and ``winrm-ps-script``.
+  The ``winrm-cmd`` runner executes Command Prompt commands remotely on Windows hosts using the
+  WinRM protocol. The ``winrm-ps-cmd`` and ``winrm-ps-script`` runners execute PowerShell commands
+  and scripts on remote Windows hosts using the WinRM protocol.
+  
+  To accompany these new runners, there are two new actions ``core.winrm_cmd`` that executes remote
+  Command Prompt commands along with ``core.winrm_ps_cmd`` that executes remote PowerShell commands.
+  (new feature) #1636
+  
+  Contributed by Nick Maludy (Encore Technologies).
 * Add new ``?tags``, query param filter to the ``/v1/actions`` API endpoint. This query parameter
   allows users to filter out actions based on the tag name . By default, when no filter values are
   provided, all actions are returned. (new feature) #4219
@@ -58,15 +68,6 @@ Added
   (``os.path.dirname``). #4184
 
   Contributed by Florian Reisinger (@reisingerf).
-* Add new runners: ``winrm-cmd``, ``winrm-ps-cmd`` and ``winrm-ps-script``.
-  The ``winrm-cmd`` runner executes Command Prompt commands remotely on Windows hosts using
-  the WinRM protocol. The ``winrm-ps-cmd`` and ``winrm-ps-script`` runners execute PowerShell
-  commands and scripts on remote Windows hosts using the WinRM protocol.
-  To accompany these new runners, there are two new actions ``core.winrm_cmd`` that
-  executes remote Command Prompt commands along with ``core.winrm_ps_cmd`` that
-  executes remote PowerShell commands. (new feature) #1636
-  
-  Contributed by Nick Maludy (Encore Technologies).
 
 Changed
 ~~~~~~~
