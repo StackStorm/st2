@@ -98,7 +98,7 @@ Changed
   Note: This change is fully backward compatible since it just changes the underlying backend and
   implementation details. The same underlying encryption algorithm is used (AES256 in CBC mode
   with HMAC signature). (improvement) #4165
-  
+
 Fixed
 ~~~~~
 
