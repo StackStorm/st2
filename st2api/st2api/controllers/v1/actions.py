@@ -60,7 +60,8 @@ class ActionsController(resource.ContentPackResourceController):
     access = Action
     supported_filters = {
         'name': 'name',
-        'pack': 'pack'
+        'pack': 'pack',
+        'tags': 'name'
     }
 
     query_options = {
