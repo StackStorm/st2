@@ -10,6 +10,13 @@ Added
 * Add new ``?tags``, query param filter to the ``/v1/actions`` API endpoint. This query parameter
   allows users to filter out actions based on the tag name . By default, when no filter values are
   provided, all actions are returned. (new feature) #4219
+  
+Changed
+~~~~~~~
+
+* Update ``st2client/setup.py`` file to dynamically load requirements from
+  ``st2client/requirements.txt`` file. The code works with pip >= 6.0.0, although using pip 9.0.0
+  or higher is strongly recommended. (improvement) #4209
 
 2.8.0 - July 10, 2018
 ---------------------

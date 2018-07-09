@@ -1,6 +1,7 @@
 # Don't edit this file. It's generated automatically!
 argcomplete
 jsonpath-rw==1.4.0
+jsonschema==2.6.0
 prettytable
 prompt-toolkit==1.0.15
 python-dateutil

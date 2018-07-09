@@ -87,5 +87,5 @@ class GetInstalled(Action):
 
     def _parse_yaml_file(self, file_path):
         with open(file_path) as data_file:
-            details = yaml.load(data_file)
+            details = yaml.safe_load(data_file)
         return details
