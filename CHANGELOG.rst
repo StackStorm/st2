@@ -27,6 +27,11 @@ Changed
 * Update ``st2client/setup.py`` file to dynamically load requirements from
   ``st2client/requirements.txt`` file. The code works with pip >= 6.0.0, although using pip 9.0.0
   or higher is strongly recommended. (improvement) #4209
+* Migrated runners to using the ``in-requirements.txt`` pattern for "components" in the build
+  system, so the ``Makefile`` correctly generates and installs runner dependencies during
+  testing and packaging. (improvement) (bugfix) #4169
+  
+  Contributed by Nick Maludy (Encore Technologies).
 
 2.8.0 - July 10, 2018
 ---------------------
@@ -93,13 +98,7 @@ Changed
   Note: This change is fully backward compatible since it just changes the underlying backend and
   implementation details. The same underlying encryption algorithm is used (AES256 in CBC mode
   with HMAC signature). (improvement) #4165
-* Migrated runners to using the ``in-requirements.txt`` pattern for "components" in the build
-  system, so the ``Makefile`` correctly generates and installs runner dependencies during
-  testing and packaging. (improvement) (bugfix) #4169
   
-  Contributed by Nick Maludy (Encore Technologies).
-  
-
 Fixed
 ~~~~~
 
