@@ -4,14 +4,19 @@ Changelog
 in development
 --------------
 
+Added
+~~~~~
 
-2.8.0 - July 05, 2018
+* Add new ``?tags``, query param filter to the ``/v1/actions`` API endpoint. This query parameter
+  allows users to filter out actions based on the tag name . By default, when no filter values are
+  provided, all actions are returned. (new feature) #4219
+
+2.8.0 - July 10, 2018
 ---------------------
 
 Added
 ~~~~~
-* Add new ``?tags``, query params to ``/v1/actions`` API endpoint. These query parameter allow
-  users to filter out actions to receive based on the tag name . By default, when no
+
   filter values are provided, all actions are returned. (new feature) #4219
 * Orchestra - new StackStorm-native workflow engine. This is currently in **beta**. (new feature)
 * Added metrics for collecting performance and health information about the various ST2 services
