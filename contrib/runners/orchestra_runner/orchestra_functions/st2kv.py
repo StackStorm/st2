@@ -43,8 +43,6 @@ def st2kv_(context, key, decrypt=False):
     except Exception as e:
         raise Exception('Failed to retrieve User object for user "%s" % (username)' % (str(e)))
 
-    LOG.debug('ST2KV Decrypt: %s', decrypt)
-
     kvp = kvp_util.get_key(key=key, user_db=user_db, decrypt=decrypt)
 
     if not kvp:
