@@ -550,6 +550,7 @@ TEST_SECRET_NESTED_ARRAYS_SECRET_PARAMS = {
 
 ################################################################################
 
+
 class SecretUtilsTestCase(unittest2.TestCase):
 
     def test_get_secret_parameters_flat(self):
@@ -978,7 +979,7 @@ class SecretUtilsTestCase(unittest2.TestCase):
         self.assertEqual(expected, result)
 
     def test_mask_secret_parameters_secret_root_array(self):
-        parameters =  [
+        parameters = [
             "abc",
             123,
             True
