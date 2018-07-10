@@ -319,9 +319,34 @@ TEST_NESTED_ARRAY_WITH_OBJECT_SECRET_PARAMS = {
     ]
 }
 
+################################################################################
+
+TEST_SECRET_ARRAY_SCHEMA = {
+    'arg_secret_array': {
+        'description': 'Mirror',
+        'type': 'array',
+        'secret': True,
+    }
+}
+
+TEST_SECRET_ARRAY_SECRET_PARAMS = {
+    'arg_secret_array': 'array'
+}
 
 ################################################################################
 
+TEST_SECRET_OBJECT_SCHEMA = {
+    'arg_secret_object': {
+        'type': 'object',
+        'secret': True,
+    }
+}
+
+TEST_SECRET_OBJECT_SECRET_PARAMS = {
+    'arg_secret_object': 'object'
+}
+
+################################################################################
 
 class SecretUtilsTestCase(unittest2.TestCase):
 
@@ -361,8 +386,15 @@ class SecretUtilsTestCase(unittest2.TestCase):
         result = secrets.get_secret_parameters(TEST_NESTED_ARRAY_WITH_OBJECT_SCHEMA)
         self.assertEqual(TEST_NESTED_ARRAY_WITH_OBJECT_SECRET_PARAMS, result)
 
+    def test_get_secret_parameters_secret_array(self):
+        result = secrets.get_secret_parameters(TEST_SECRET_ARRAY_SCHEMA)
+        self.assertEqual(TEST_SECRET_ARRAY_SECRET_PARAMS, result)
+
+    def test_get_secret_parameters_secret_object(self):
+        result = secrets.get_secret_parameters(TEST_SECRET_OBJECT_SCHEMA)
+        self.assertEqual(TEST_SECRET_OBJECT_SECRET_PARAMS, result)
+
     ############################################################################
-    # TODO unit tests for mask_secret_parameters
 
     def test_mask_secret_parameters_flat(self):
         parameters = {
@@ -667,5 +699,41 @@ class SecretUtilsTestCase(unittest2.TestCase):
                     'arg_nested_secret': MASKED_ATTRIBUTE_VALUE
                 }
             ]
+        }
+        self.assertEqual(expected, result)
+
+    def test_mask_secret_array(self):
+        parameters = {
+            'arg_secret_array': [
+                "abc",
+                123,
+                True
+            ]
+        }
+        result = secrets.mask_secret_parameters(parameters,
+                                                TEST_SECRET_ARRAY_SECRET_PARAMS)
+        expected = {
+            'arg_secret_array': MASKED_ATTRIBUTE_VALUE
+        }
+        self.assertEqual(expected, result)
+
+    def test_mask_secret_object(self):
+        parameters = {
+            'arg_secret_object':
+            {
+                "abc": 123,
+                "key": "value",
+                "bool": True,
+                "array": ["x", "y", "z"],
+                "obj":
+                {
+                    "x": "deep"
+                }
+            }
+        }
+        result = secrets.mask_secret_parameters(parameters,
+                                                TEST_SECRET_OBJECT_SECRET_PARAMS)
+        expected = {
+            'arg_secret_object': MASKED_ATTRIBUTE_VALUE
         }
         self.assertEqual(expected, result)

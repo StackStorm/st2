@@ -5,6 +5,15 @@ in development
 --------------
 
 
+  
+Fixed
+~~~~~
+
+* Fixed a bug where ``secret: true`` was not applying to full object and array trees. (bugfix) #4234
+  Reported by @jjm
+
+  Contributed by Nick Maludy (Encore Technologies).
+  
 2.8.0 - July 10, 2018
 ---------------------
 

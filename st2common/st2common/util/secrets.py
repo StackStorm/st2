@@ -95,7 +95,15 @@ def get_secret_parameters(parameters):
             continue
 
         parameter_type = options.get('type')
-        if parameter_type in ['object', 'array']:
+        if options.get('secret', False):
+            # if this parameter is secret, then add it our secret parameters
+            if isinstance(secret_parameters, list):
+                secret_parameters.append(parameter_type)
+            elif isinstance(secret_parameters, dict):
+                secret_parameters[parameter] = parameter_type
+            else:
+                return parameter_type
+        elif parameter_type in ['object', 'array']:
             sub_params = get_secret_parameters(options)
             if sub_params:
                 if isinstance(secret_parameters, list):
@@ -104,14 +112,6 @@ def get_secret_parameters(parameters):
                     secret_parameters[parameter] = sub_params
                 else:
                     return sub_params
-        elif options.get('secret', False):
-            # if this parameter is secret, then add it our secret parameters
-            if isinstance(secret_parameters, list):
-                secret_parameters.append(parameter_type)
-            elif isinstance(secret_parameters, dict):
-                secret_parameters[parameter] = parameter_type
-            else:
-                return parameter_type
 
     return secret_parameters
 
