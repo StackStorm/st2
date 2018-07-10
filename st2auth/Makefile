@@ -1,7 +1,12 @@
 # <<<< TO DEPRICATE
 SHELL := /bin/bash
 REPO_ROOT := ..
-VIRTUALENV_DIR=virtualenv
+OS := $(shell uname)
+ifeq ($(OS),Darwin)
+	VIRTUALENV_DIR ?= virtualenv-osx
+else
+	VIRTUALENV_DIR ?= virtualenv
+endif
 RPM_ROOT=~/rpmbuild
 RPM_SOURCES_DIR := $(RPM_ROOT)/SOURCES/
 RPM_SPECS_DIR := $(RPM_ROOT)/SPECS/

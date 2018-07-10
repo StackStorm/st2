@@ -27,7 +27,7 @@ passlib==1.7.1
 lockfile==0.12.2
 python-gnupg==0.4.2
 jsonpath-rw==1.4.0
-pyinotify==0.9.6
+inotify==0.2.9
 semver==2.8.0
 pytz==2018.4
 stevedore==1.28.0
