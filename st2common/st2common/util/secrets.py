@@ -96,7 +96,13 @@ def get_secret_parameters(parameters):
 
         parameter_type = options.get('type')
         if options.get('secret', False):
-            # if this parameter is secret, then add it our secret parameters
+            # If this parameter is secret, then add it our secret parameters
+            #
+            # **This causes the _full_ object / array tree to be secret.**
+            #
+            # **Important** that we do this check first, so in case this parameter
+            # is an `object` or `array`, and the user wants the full thing
+            # to be secret, that it is marked as secret.
             if isinstance(secret_parameters, list):
                 secret_parameters.append(parameter_type)
             elif isinstance(secret_parameters, dict):
@@ -104,6 +110,8 @@ def get_secret_parameters(parameters):
             else:
                 return parameter_type
         elif parameter_type in ['object', 'array']:
+            # otherwise recursively dive into the `object`/`array` and
+            # find individual parameters marked as secret
             sub_params = get_secret_parameters(options)
             if sub_params:
                 if isinstance(secret_parameters, list):
