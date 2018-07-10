@@ -145,6 +145,32 @@ TEST_ROOT_ARRAY_SECRET_PARAMS = [
 
 ################################################################################
 
+TEST_ROOT_OBJECT_SCHEMA = {
+    'description': 'root',
+    'type': 'object',
+    'properties': {
+        'arg_level_one': {
+            'description': 'down',
+            'type': 'object',
+            'properties': {
+                'secret_field_in_object': {
+                    'type': 'string',
+                    'secret': True
+                }
+            }
+        }
+    }
+}
+
+TEST_ROOT_OBJECT_SECRET_PARAMS = {
+    'arg_level_one':
+    {
+        'secret_field_in_object': 'string'
+    }
+}
+
+################################################################################
+
 TEST_NESTED_ARRAYS_SCHEMA = {
     'arg_optional_array': {
         'description': 'Mirror',
@@ -346,6 +372,182 @@ TEST_SECRET_OBJECT_SECRET_PARAMS = {
     'arg_secret_object': 'object'
 }
 
+
+################################################################################
+
+TEST_SECRET_ROOT_ARRAY_SCHEMA = {
+    'description': 'secret array',
+    'type': 'array',
+    'secret': True,
+    'items': {
+        'description': 'down',
+        'type': 'object',
+        'properties': {
+            'secret_field_in_object': {
+                'type': 'string',
+                'secret': True
+            }
+        }
+    }
+}
+
+TEST_SECRET_ROOT_ARRAY_SECRET_PARAMS = 'array'
+
+################################################################################
+
+TEST_SECRET_ROOT_OBJECT_SCHEMA = {
+    'description': 'secret object',
+    'type': 'object',
+    'secret': True,
+    'proeprteis': {
+        'arg_level_one': {
+            'description': 'down',
+            'type': 'object',
+            'properties': {
+                'secret_field_in_object': {
+                    'type': 'string',
+                    'secret': True
+                }
+            }
+        }
+    }
+}
+
+TEST_SECRET_ROOT_OBJECT_SECRET_PARAMS = 'object'
+
+################################################################################
+
+TEST_SECRET_NESTED_OBJECTS_SCHEMA = {
+    'arg_object': {
+        'description': 'Mirror',
+        'type': 'object',
+        'properties': {
+            'arg_nested_object': {
+                'description': 'Mirror mirror',
+                'type': 'object',
+                'secret': True,
+                'properties': {
+                    'arg_double_nested_secret': {
+                        'description': 'Deep, deep down',
+                        'type': 'string',
+                        'secret': True
+                    }
+                }
+            },
+            'arg_nested_secret': {
+                'description': 'Deep down',
+                'type': 'string',
+                'secret': True
+            }
+        }
+    },
+    'arg_secret_object': {
+        'description': 'Mirror',
+        'type': 'object',
+        'secret': True,
+        'properties': {
+            'arg_nested_object': {
+                'description': 'Mirror mirror',
+                'type': 'object',
+                'secret': True,
+                'properties': {
+                    'arg_double_nested_secret': {
+                        'description': 'Deep, deep down',
+                        'type': 'string',
+                        'secret': True
+                    }
+                }
+            },
+            'arg_nested_secret': {
+                'description': 'Deep down',
+                'type': 'string',
+                'secret': True
+            }
+        }
+    }
+}
+
+TEST_SECRET_NESTED_OBJECTS_SECRET_PARAMS = {
+    'arg_object': {
+        'arg_nested_secret': 'string',
+        'arg_nested_object': 'object'
+    },
+    'arg_secret_object': 'object'
+}
+
+
+################################################################################
+
+TEST_SECRET_NESTED_ARRAYS_SCHEMA = {
+    'arg_optional_array': {
+        'description': 'Mirror',
+        'type': 'array',
+        'secret': True,
+        'items': {
+            'description': 'Deep down',
+            'type': 'string'
+        }
+    },
+    'arg_optional_double_array': {
+        'description': 'Mirror',
+        'type': 'array',
+        'secret': True,
+        'items': {
+            'type': 'array',
+            'items': {
+                'description': 'Deep down',
+                'type': 'string',
+            }
+        }
+    },
+    'arg_optional_tripple_array': {
+        'description': 'Mirror',
+        'type': 'array',
+        'items': {
+            'type': 'array',
+            'secret': True,
+            'items': {
+                'type': 'array',
+                'items': {
+                    'description': 'Deep down',
+                    'type': 'string',
+                }
+            }
+        }
+    },
+    'arg_optional_quad_array': {
+        'description': 'Mirror',
+        'type': 'array',
+        'items': {
+            'type': 'array',
+            'items': {
+                'type': 'array',
+                'secret': True,
+                'items': {
+                    'type': 'array',
+                    'items': {
+                        'description': 'Deep down',
+                        'type': 'string',
+                    }
+                }
+            }
+        }
+    }
+}
+
+TEST_SECRET_NESTED_ARRAYS_SECRET_PARAMS = {
+    'arg_optional_array': 'array',
+    'arg_optional_double_array': 'array',
+    'arg_optional_tripple_array': [
+        'array'
+    ],
+    'arg_optional_quad_array': [
+        [
+            'array'
+        ]
+    ]
+}
+
 ################################################################################
 
 class SecretUtilsTestCase(unittest2.TestCase):
@@ -370,6 +572,10 @@ class SecretUtilsTestCase(unittest2.TestCase):
         result = secrets.get_secret_parameters(TEST_ROOT_ARRAY_SCHEMA)
         self.assertEqual(TEST_ROOT_ARRAY_SECRET_PARAMS, result)
 
+    def test_get_secret_parameters_root_object(self):
+        result = secrets.get_secret_parameters(TEST_ROOT_OBJECT_SCHEMA)
+        self.assertEqual(TEST_ROOT_OBJECT_SECRET_PARAMS, result)
+
     def test_get_secret_parameters_nested_arrays(self):
         result = secrets.get_secret_parameters(TEST_NESTED_ARRAYS_SCHEMA)
         self.assertEqual(TEST_NESTED_ARRAYS_SECRET_PARAMS, result)
@@ -393,6 +599,22 @@ class SecretUtilsTestCase(unittest2.TestCase):
     def test_get_secret_parameters_secret_object(self):
         result = secrets.get_secret_parameters(TEST_SECRET_OBJECT_SCHEMA)
         self.assertEqual(TEST_SECRET_OBJECT_SECRET_PARAMS, result)
+
+    def test_get_secret_parameters_secret_root_array(self):
+        result = secrets.get_secret_parameters(TEST_SECRET_ROOT_ARRAY_SCHEMA)
+        self.assertEqual(TEST_SECRET_ROOT_ARRAY_SECRET_PARAMS, result)
+
+    def test_get_secret_parameters_secret_root_object(self):
+        result = secrets.get_secret_parameters(TEST_SECRET_ROOT_OBJECT_SCHEMA)
+        self.assertEqual(TEST_SECRET_ROOT_OBJECT_SECRET_PARAMS, result)
+
+    def test_get_secret_parameters_secret_nested_arrays(self):
+        result = secrets.get_secret_parameters(TEST_SECRET_NESTED_ARRAYS_SCHEMA)
+        self.assertEqual(TEST_SECRET_NESTED_ARRAYS_SECRET_PARAMS, result)
+
+    def test_get_secret_parameters_secret_nested_objects(self):
+        result = secrets.get_secret_parameters(TEST_SECRET_NESTED_OBJECTS_SCHEMA)
+        self.assertEqual(TEST_SECRET_NESTED_OBJECTS_SECRET_PARAMS, result)
 
     ############################################################################
 
@@ -489,6 +711,23 @@ class SecretUtilsTestCase(unittest2.TestCase):
                 'secret_field_in_object': MASKED_ATTRIBUTE_VALUE
             }
         ]
+        self.assertEqual(expected, result)
+
+    def test_mask_secret_parameters_root_object(self):
+        parameters = {
+            'arg_level_one':
+            {
+                'secret_field_in_object': 'Secret $tr!ng'
+            }
+        }
+
+        result = secrets.mask_secret_parameters(parameters, TEST_ROOT_OBJECT_SECRET_PARAMS)
+        expected = {
+            'arg_level_one':
+            {
+                'secret_field_in_object': MASKED_ATTRIBUTE_VALUE
+            }
+        }
         self.assertEqual(expected, result)
 
     def test_mask_secret_parameters_nested_arrays(self):
@@ -702,7 +941,7 @@ class SecretUtilsTestCase(unittest2.TestCase):
         }
         self.assertEqual(expected, result)
 
-    def test_mask_secret_array(self):
+    def test_mask_secret_parameters_secret_array(self):
         parameters = {
             'arg_secret_array': [
                 "abc",
@@ -717,7 +956,7 @@ class SecretUtilsTestCase(unittest2.TestCase):
         }
         self.assertEqual(expected, result)
 
-    def test_mask_secret_object(self):
+    def test_mask_secret_parameters_secret_object(self):
         parameters = {
             'arg_secret_object':
             {
@@ -735,5 +974,125 @@ class SecretUtilsTestCase(unittest2.TestCase):
                                                 TEST_SECRET_OBJECT_SECRET_PARAMS)
         expected = {
             'arg_secret_object': MASKED_ATTRIBUTE_VALUE
+        }
+        self.assertEqual(expected, result)
+
+    def test_mask_secret_parameters_secret_root_array(self):
+        parameters =  [
+            "abc",
+            123,
+            True
+        ]
+        result = secrets.mask_secret_parameters(parameters,
+                                                TEST_SECRET_ROOT_ARRAY_SECRET_PARAMS)
+        expected = MASKED_ATTRIBUTE_VALUE
+        self.assertEqual(expected, result)
+
+    def test_mask_secret_parameters_secret_root_object(self):
+        parameters = {
+            'arg_level_one':
+            {
+                'secret_field_in_object': 'Secret $tr!ng'
+            }
+        }
+        result = secrets.mask_secret_parameters(parameters,
+                                                TEST_SECRET_ROOT_OBJECT_SECRET_PARAMS)
+        expected = MASKED_ATTRIBUTE_VALUE
+        self.assertEqual(expected, result)
+
+    def test_mask_secret_parameters_secret_nested_arrays(self):
+        parameters = {
+            'arg_optional_array': [
+                'secret 1',
+                'secret 2',
+                'secret 3',
+            ],
+            'arg_optional_double_array': [
+                [
+                    'secret 4',
+                    'secret 5',
+                    'secret 6',
+                ],
+                [
+                    'secret 7',
+                    'secret 8',
+                    'secret 9',
+                ]
+            ],
+            'arg_optional_tripple_array': [
+                [
+                    [
+                        'secret 10',
+                        'secret 11'
+                    ],
+                    [
+                        'secret 12',
+                        'secret 13',
+                        'secret 14'
+                    ]
+                ],
+                [
+                    [
+                        'secret 15',
+                        'secret 16'
+                    ]
+                ]
+            ],
+            'arg_optional_quad_array': [
+                [
+                    [
+                        [
+                            'secret 17',
+                            'secret 18'
+                        ],
+                        [
+                            'secret 19'
+                        ]
+                    ]
+                ]
+            ]
+        }
+
+        result = secrets.mask_secret_parameters(parameters,
+                                                TEST_SECRET_NESTED_ARRAYS_SECRET_PARAMS)
+
+        expected = {
+            'arg_optional_array': MASKED_ATTRIBUTE_VALUE,
+            'arg_optional_double_array': MASKED_ATTRIBUTE_VALUE,
+            'arg_optional_tripple_array': [
+                MASKED_ATTRIBUTE_VALUE,
+                MASKED_ATTRIBUTE_VALUE,
+            ],
+            'arg_optional_quad_array': [
+                [
+                    MASKED_ATTRIBUTE_VALUE,
+                ]
+            ]
+        }
+        self.assertEqual(expected, result)
+
+    def test_mask_secret_parameters_secret_nested_objects(self):
+        parameters = {
+            'arg_object': {
+                'arg_nested_secret': 'nested Secret',
+                'arg_nested_object': {
+                    'arg_double_nested_secret': 'double nested $ecret',
+                }
+            },
+            'arg_secret_object': {
+                'arg_nested_secret': 'secret data',
+                'arg_nested_object': {
+                    'arg_double_nested_secret': 'double nested $ecret',
+                }
+            }
+        }
+        result = secrets.mask_secret_parameters(parameters,
+                                                TEST_SECRET_NESTED_OBJECTS_SECRET_PARAMS)
+        expected = {
+            'arg_object': {
+                'arg_nested_secret': MASKED_ATTRIBUTE_VALUE,
+                'arg_nested_object': MASKED_ATTRIBUTE_VALUE,
+            },
+            'arg_secret_object': MASKED_ATTRIBUTE_VALUE,
         }
         self.assertEqual(expected, result)
