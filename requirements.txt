@@ -41,6 +41,7 @@ python-gnupg==0.4.2
 python-json-logger
 python-statsd==2.1.0
 pytz==2018.4
+pywinrm==0.3.0
 pyyaml<4.0,>=3.12
 rednose
 requests[security]<2.15,>=2.14.1

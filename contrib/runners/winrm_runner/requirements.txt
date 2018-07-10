@@ -1,2 +1,2 @@
 # Don't edit this file. It's generated automatically!
-
+pywinrm==0.3.0
