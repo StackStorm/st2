@@ -66,6 +66,17 @@ def get_secret_parameters(parameters):
 
     secret_parameters = {}
     parameters_type = parameters.get('type')
+    # If the parameter itself is secret, then skip all processing below it
+    # and return the type of this parameter.
+    #
+    # **This causes the _full_ object / array tree to be secret (no children will be shown).**
+    #
+    # **Important** that we do this check first, so in case this parameter
+    # is an `object` or `array`, and the user wants the full thing
+    # to be secret, that it is marked as secret.
+    if parameters.get('secret', False):
+        return parameters_type
+
     iterator = None
     if parameters_type == 'object':
         # if this is an object, then iterate over the properties within
@@ -98,7 +109,8 @@ def get_secret_parameters(parameters):
         if options.get('secret', False):
             # If this parameter is secret, then add it our secret parameters
             #
-            # **This causes the _full_ object / array tree to be secret.**
+            # **This causes the _full_ object / array tree to be secret
+            #   (no children will be shown)**
             #
             # **Important** that we do this check first, so in case this parameter
             # is an `object` or `array`, and the user wants the full thing
