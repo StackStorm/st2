@@ -1,11 +1,9 @@
 Changelog
 =========
 
-in development
---------------
+2.8.1 - TBD
+-----------
 
-
-  
 Fixed
 ~~~~~
 
