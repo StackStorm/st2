@@ -12,7 +12,6 @@ git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2-
 gitpython==2.1.10
 greenlet==0.4.13
 gunicorn==19.8.1
-inotify==0.2.9
 ipaddr
 jinja2
 jsonpath-rw==1.4.0
@@ -52,6 +51,8 @@ sseclient==0.0.19
 stevedore==1.28.0
 tooz==1.62.0
 unittest2
+# TODO: Move this to into the StackStorm organization
+git+https://github.com/blag/watchdog3.git#python2.7-support
 webob==1.7.4
 webtest
 zake==0.2.2

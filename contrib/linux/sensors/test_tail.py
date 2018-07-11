@@ -15,60 +15,24 @@
 
 import logging
 import os
-import shutil
-import sys
 import tempfile
-import unittest
+import time
+import unittest2
 
-try:
-    from StringIO import StringIO  # Python 2
-except ImportError:
-    from io import StringIO  # Python 3
-
-import eventlet
-import inotify
-
-from .tail import Tail
+from tail import Tail
 
 LOG = logging.getLogger(__name__)
 
 
-# https://stackoverflow.com/a/30716207
-class ReplaceStdErr(object):
-    """Context manager that replaces stderr with a StringIO object"""
-    def __init__(self):
-        self.original_stderr = sys.stderr
-
-    def __enter__(self):
-        sys.stderr = StringIO()
-
-    def __exit__(self, type, value, traceback):
-        sys.stderr = self.original_stderr
-
-
-class TailTestCase(unittest.TestCase):
+class TailTestCase(unittest2.TestCase):
 
     def test_nonexisting_file(self):
-        messages = []
-
-        def message_handler(file_path, line):
-            LOG.debug('event generated file_path: %s, line: %s', file_path, line)
-            messages.append({'file_path': file_path, 'message': line})
-
         path = os.path.join('/', 'tmp', 'tail_test_case', 'this_file_should_never_exist')
 
         self.assertFalse(os.path.exists(path))
 
-        tail = Tail(path)
-        tail.set_handler(message_handler)
-        thread = tail.start()
-
-        with self.assertRaises(inotify.calls.InotifyError) as e:
-            with ReplaceStdErr():
-                LOG.debug("Waiting for thread to finish")
-                thread.wait()  # give thread a chance to error out
-
-            self.assertEqual(e.exception.message, "Call failed (should not be -1): (-1) ERRNO=(0)")
+        with self.assertRaises(OSError):
+            Tail(filenames=path)
 
     def test_preexisting_file(self):
         messages = []
@@ -81,17 +45,18 @@ class TailTestCase(unittest.TestCase):
             f.write(b"test123\n")
             f.flush()
 
-            tail = Tail(f.name)
-            tail.set_handler(message_handler)
+            tail = Tail(handler=message_handler, filenames=[])
+
+            tail.add_file(f.name)
+
             tail.start()
-            eventlet.sleep(0.01)  # give thread a chance to open the file
 
             f.write(b"second line\n")
             f.flush()
-            eventlet.sleep(0.01)  # give thread a chance to read the line
+
+            time.sleep(1)
 
             tail.stop()
-            eventlet.sleep(0.01)  # give thread a chance to close the line
 
         self.assertEqual(len(messages), 1)
         self.assertEqual(messages[0]["file_path"], f.name)
@@ -110,23 +75,21 @@ class TailTestCase(unittest.TestCase):
 
             self.assertEqual(len(messages), 0)
 
-            tail = Tail(f.name)
+            tail = Tail(filenames=f.name)
             tail.set_handler(message_handler)
             tail.start()
-            eventlet.sleep(0.01)  # give thread a chance to open the file
 
             f.write(b"second line")
             f.flush()
-            eventlet.sleep(0.01)  # give thread a chance to read the line
 
             self.assertEqual(len(messages), 0)
 
             f.write(b"\n")
             f.flush()
-            eventlet.sleep(0.01)  # give thread a chance to read the line
+
+            time.sleep(1)
 
             tail.stop()
-            eventlet.sleep(0.01)  # give thread a chance to close the line
 
         self.assertEqual(len(messages), 1)
         self.assertEqual(messages[0]["file_path"], f.name)
@@ -145,14 +108,14 @@ class TailTestCase(unittest.TestCase):
 
             self.assertEqual(len(messages), 0)
 
-            tail = Tail(f.name)
+            tail = Tail(filenames=f.name)
             tail.set_handler(message_handler)
             tail.start()
-            eventlet.sleep(0.01)  # give thread a chance to open the file
 
             f.write(b"second line\nthird ")
             f.flush()
-            eventlet.sleep(0.01)  # give thread a chance to read the line
+
+            time.sleep(1)
 
             self.assertEqual(len(messages), 1)
             self.assertEqual(messages[0]["file_path"], f.name)
@@ -160,10 +123,10 @@ class TailTestCase(unittest.TestCase):
 
             f.write(b"line\n")
             f.flush()
-            eventlet.sleep(0.01)  # give thread a chance to read the line
+
+            time.sleep(1)
 
             tail.stop()
-            eventlet.sleep(0.01)  # give thread a chance to close the line
 
         self.assertEqual(len(messages), 2)
         self.assertEqual(messages[0]["file_path"], f.name)
@@ -184,21 +147,22 @@ class TailTestCase(unittest.TestCase):
 
             self.assertEqual(len(messages), 0)
 
-            tail = Tail(f.name)
+            tail = Tail(filenames=f.name)
             tail.set_handler(message_handler)
             tail.start()
-            eventlet.sleep(0.01)  # give thread a chance to open the file
 
             f.write(b"second line\nthird")
             f.flush()
-            eventlet.sleep(0.01)  # give thread a chance to read the line
+
+            time.sleep(1)
 
             self.assertEqual(len(messages), 1)
             self.assertEqual(messages[0]["file_path"], f.name)
             self.assertEqual(messages[0]["message"], "second line")
 
             tail.stop()
-            eventlet.sleep(0.01)  # give thread a chance to close the line
+
+        time.sleep(1)
 
         self.assertEqual(len(messages), 2)
         self.assertEqual(messages[0]["file_path"], f.name)
@@ -206,41 +170,6 @@ class TailTestCase(unittest.TestCase):
         self.assertEqual(messages[1]["file_path"], f.name)
         self.assertEqual(messages[1]["message"], "third")
 
-    def test_wildcard(self):
-        messages = []
 
-        def message_handler(file_path, line):
-            LOG.debug('event generated file_path: %s, line: %s', file_path, line)
-            messages.append({'file_path': file_path, 'message': line})
-
-        try:
-            path = tempfile.mkdtemp()
-            tail = Tail(os.path.join(path, "*.log"))
-            tail.set_handler(message_handler)
-            tail.start()
-            eventlet.sleep(0.01)  # give thread a chance to open the file
-
-            LOG.debug("about to write line 1")
-            with open(os.path.join(path, "test.log"), 'w') as f:
-                f.write("line 1\n")
-
-            eventlet.sleep(0.01)  # give thread a chance to read the line
-            self.assertEqual(len(messages), 1)
-            self.assertEqual(messages[0]["message"], "line 1")
-
-            LOG.debug("about to write line 2")
-            with open(os.path.join(path, "test.log"), 'a') as f:
-                f.write("line 2\n")
-
-            eventlet.sleep(0.01)  # give thread a chance to read the line
-            self.assertEqual(len(messages), 2)
-            self.assertEqual(messages[0]["file_path"], os.path.join(path, "test.log"))
-            self.assertEqual(messages[0]["message"], "line 1")
-            self.assertEqual(messages[1]["file_path"], os.path.join(path, "test.log"))
-            self.assertEqual(messages[1]["message"], "line 2")
-
-            tail.stop()
-            eventlet.sleep(0.1)  # give thread a chance to close the line
-
-        finally:
-            shutil.rmtree(path)
+if __name__ == '__main__':
+    unittest2.main()

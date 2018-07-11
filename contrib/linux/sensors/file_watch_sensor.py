@@ -14,7 +14,7 @@ class FileWatchSensor(Sensor):
         self._tail = None
 
     def setup(self):
-        self._tail = Tail(filenames=[])
+        self._tail = Tail()
         self._tail.set_handler(self._handle_line)
 
     def run(self):
@@ -35,11 +35,12 @@ class FileWatchSensor(Sensor):
             return
 
         self._trigger = trigger.get('ref', None)
+        seek_to_end = trigger.get('seek_to_end', True)
 
         if not self._trigger:
             raise Exception('Trigger %s did not contain a ref.' % trigger)
 
-        self._tail.add_file(filepath=file_path)
+        self._tail.add_file(filepath=file_path, seek_to_end=seek_to_end)
         self._logger.info('Added file "%s"' % (file_path))
 
     def update_trigger(self, trigger):
