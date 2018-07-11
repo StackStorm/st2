@@ -447,7 +447,6 @@ class ActionRunCommandMixin(object):
 
         if args.tail:
             # Start tailing new execution
-            print('Tailing execution "%s"' % (str(execution.id)))
             execution_manager = self.manager
             stream_manager = self.app.client.managers['Stream']
             ActionExecutionTailCommand.tail_execution(execution=execution,
@@ -1480,6 +1479,8 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
         # we don't need to do any other checks to determine if executions represents a workflow
         # action
         parent_execution_id = execution_id  # noqa
+
+        print('Tailing execution %s' % (execution_id))
 
         # Execution has already finished
         if execution.status in LIVEACTION_COMPLETED_STATES:
