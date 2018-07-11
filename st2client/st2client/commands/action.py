@@ -1502,6 +1502,12 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
                 task_name = context['task_name']
                 task_parent_execution_id = context['parent_execution_id']
 
+                # Bail out on top level parent execution finishing
+                if task_execution_id == parent_execution_id and status in LIVEACTION_COMPLETED_STATES:
+                    print('')
+                    print('Execution %s has completed (status=%s).' % (task_execution_id, status))
+                    break
+
                 # An execution is considered a child execution if it has parent execution id
                 is_child_execution = bool(task_parent_execution_id)
 
@@ -1521,14 +1527,14 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
                         continue
                 else:
                     if status == LIVEACTION_STATUS_RUNNING:
-                        print('Execution %s has started.' % (execution_id))
+                        print('Execution %s has started.' % (task_execution_id))
                         print('')
                         continue
                     elif status in LIVEACTION_COMPLETED_STATES:
                         # Bail out once parent execution has finished
                         print('')
-                        print('Execution %s has completed (status=%s).' % (execution_id, status))
-                        break
+                        print('Execution %s has completed (status=%s).' % (task_execution_id, status))
+                        continue
                     else:
                         # We don't care about other execution events
                         continue
