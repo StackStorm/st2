@@ -46,6 +46,16 @@ Changed
   Previously we would fall back to a very unfriendly default of 20 columns for a total terminal
   width. This would cause every table column to wrap and make output impossible / hard to read.
   (improvement) #4242
+* Removed dependency on pyinotify from FileWatchSensor, which now supports major operating
+  systems/backends:
+
+  - Linux (inotify, polling)
+  - OS X (FSEvents, kqueue, polling)
+  - BSD (kqueue)
+  - Windows (ReadDirectoryChangesW, polling)
+
+  As a result, the FileWatchSensor may move to the contributed core pack (it is currently in the
+  contributed linux pack). (improvement) #3785 #3934
 
 Fixed
 ~~~~~
