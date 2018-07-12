@@ -1,2 +1,3 @@
 # Don't edit this file. It's generated automatically!
 git+https://github.com/StackStorm/orchestra.git#egg=orchestra
+st2common
