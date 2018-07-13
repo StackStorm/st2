@@ -22,54 +22,59 @@ import sys
 
 from st2client.utils.color import format_status
 
+DEFAULT_TERMINAL_SIZE_COLUMNS = 150
+
 __all__ = [
-    'get_terminal_size'
+    'DEFAULT_TERMINAL_SIZE_COLUMNS',
+
+    'get_terminal_size_columns'
 ]
 
 
-def get_terminal_size(default=(80, 150)):
+def get_terminal_size_columns(default=DEFAULT_TERMINAL_SIZE_COLUMNS):
     """
-    Try to retrieve a default terminal size using various system specific approaches.
+    Try to retrieve COLUMNS value of terminal size using various system specific approaches.
 
     If terminal size can't be retrieved, default value is returned.
 
-    NOTE 1: LINES and COLUMNS environment variables are checked first, if those values are not set /
-    available, other methods are tried.
+    NOTE 1: COLUMNS environment variable is checked first, if the value is not set / available,
+            other methods are tried.
 
-    NOTE 2: This method requires both environment variables to be specified together.
-
-    :return: (lines, cols)
+    :rtype: ``int``
+    :return: columns
     """
-    # 1. Try LINES and COLUMNS environment variables first like in upstream Python 3 method -
+    # 1. Try COLUMNS environment variable first like in upstream Python 3 method -
     # https://github.com/python/cpython/blob/master/Lib/shutil.py#L1203
     # This way it's consistent with upstream implementation. In the past, our implementation
     # checked those variables at the end as a fall back.
     try:
-        lines = os.environ['LINES']
         columns = os.environ['COLUMNS']
 
-        return lines, columns
+        return int(columns)
+    except (KeyError, ValueError):
+        pass
 
     def ioctl_GWINSZ(fd):
         import fcntl
         import termios
+        # Return a tuple (lines, columns)
         return struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))
 
     # 2. try stdin, stdout, stderr
     for fd in (0, 1, 2):
         try:
-            return ioctl_GWINSZ(fd)
-        except:
+            return ioctl_GWINSZ(fd)[1]
+        except Exception:
             pass
 
     # 3. try os.ctermid()
     try:
         fd = os.open(os.ctermid(), os.O_RDONLY)
         try:
-            return ioctl_GWINSZ(fd)
+            return ioctl_GWINSZ(fd)[1]
         finally:
             os.close(fd)
-    except:
+    except Exception:
         pass
 
     # 4. try `stty size`
@@ -80,8 +85,8 @@ def get_terminal_size(default=(80, 150)):
                                    stderr=open(os.devnull, 'w'))
         result = process.communicate()
         if process.returncode == 0:
-            return tuple(int(x) for x in result[0].split())
-    except:
+            return tuple(int(x) for x in result[0].split())[1]
+    except Exception:
         pass
 
     # try environment variables
@@ -90,7 +95,7 @@ def get_terminal_size(default=(80, 150)):
     except:
         pass
 
-    # 5. return default value
+    # 5. return default fallback value
     return default
 
 

@@ -27,7 +27,7 @@ from six.moves import range
 
 from st2client import formatters
 from st2client.utils import strutil
-from st2client.utils.terminal import get_terminal_size
+from st2client.utils.terminal import get_terminal_size_columns
 
 
 LOG = logging.getLogger(__name__)
@@ -65,7 +65,7 @@ class MultiColumnTable(formatters.Formatter):
 
         if not widths and attributes:
             # Dynamically calculate column size based on the terminal size
-            lines, cols = get_terminal_size()
+            cols = get_terminal_size_columns()
 
             if attributes[0] == 'id':
                 # consume iterator and save as entries so collection is accessible later.
