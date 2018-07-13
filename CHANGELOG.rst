@@ -36,10 +36,10 @@ Changed
 
   Contributed by Nick Maludy (Encore Technologies).
 * Update ``st2`` CLI to use a more sensible default terminal size for table formatting purposes if
-  we are unable to retrieve a terminal size using various system-specific approaches.
+  we are unable to retrieve terminal size using various system-specific approaches.
 
   Previously we would fall back to a very unfriendly default of 20 columns for a total terminal
-  width which would cause every table column to wrap and make output impossible / hard to read.
+  width. This would cause every table column to wrap and make output impossible / hard to read.
   (improvement) #4242
 
 Fixed
