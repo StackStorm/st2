@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 import struct
 import subprocess
@@ -30,6 +31,16 @@ def get_terminal_size(default=(80, 20)):
     """
     :return: (lines, cols)
     """
+    # Allow user to force terminal size using a environment variables
+    # E.g. ST2_CLI_FORCE_TERMINAL_SIZE=80,200 # lines, columns
+    force_terminal_size = os.environ.get('ST2_CLI_FORCE_TERMINAL_SIZE', None)
+    if force_terminal_size:
+        split = force_terminal_size.split(',')
+        lines = split[0]
+        columns = split[1] if len(split) >= 2 else default[1]
+
+        return lines, columns
+
     def ioctl_GWINSZ(fd):
         import fcntl
         import termios
