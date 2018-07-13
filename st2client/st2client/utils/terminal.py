@@ -29,6 +29,15 @@ __all__ = [
 
 def get_terminal_size(default=(80, 150)):
     """
+    Try to retrieve a default terminal size using various system specific approaches.
+
+    If terminal size can't be retrieved, default value is returned.
+
+    NOTE 1: LINES and COLUMNS environment variables are checked first, if those values are not set /
+    available, other methods are tried.
+
+    NOTE 2: This method requires both environment variables to be specified together.
+
     :return: (lines, cols)
     """
     # Allow user to force terminal size using a environment variables
