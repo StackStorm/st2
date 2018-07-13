@@ -10,7 +10,7 @@
 
 * Install Get yourself a clean 64-bit Linux box that fits the [system requirements](https://docs.stackstorm.com/install/system_requirements.html). Run the installer script:
 
-   ```
+   ```bash
    curl -sSL https://stackstorm.com/packages/install.sh | bash -s -- --user=st2admin --password=Ch@ngeMe
    ```
 * Read the docs: [https://docs.stackstorm.com/index.html](https://docs.stackstorm.com/install/index.html)
