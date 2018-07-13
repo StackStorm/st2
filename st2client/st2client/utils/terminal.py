@@ -22,35 +22,49 @@ import sys
 
 from st2client.utils.color import format_status
 
+DEFAULT_TERMINAL_SIZE_LINES = 80
+DEFAULT_TERMINAL_SIZE_COLUMNS = 150
+
 __all__ = [
     'get_terminal_size'
 ]
 
 
-def get_terminal_size(default=(80, 150)):
+def get_terminal_size(default=(DEFAULT_TERMINAL_SIZE_LINES, DEFAULT_TERMINAL_SIZE_COLUMNS)):
     """
+    Try to retrieve a default terminal size using various system specific approaches.
+
+    If terminal size can't be retrieved, default value is returned.
+
+    NOTE: LINES and COLUMNS environment variables are checked first, if those values are not set /
+    available, other methods are tried.
+
     :return: (lines, cols)
     """
-    # Allow user to force terminal size using a environment variables
-    # E.g. ST2_CLI_FORCE_TERMINAL_SIZE=80,200 # lines, columns
-    force_terminal_size = os.environ.get('ST2_CLI_FORCE_TERMINAL_SIZE', None)
-    if force_terminal_size:
-        split = force_terminal_size.split(',')
-        lines = int(split[0])
-        columns = int(split[1] if len(split) >= 2 else default[1])
+    # Try LINES and COLUMNS environment variables first like in upstream Python 3 method -
+    # https://github.com/python/cpython/blob/master/Lib/shutil.py#L1203
+    # This way it's consistent with upstream implementation. In the past, our implementation
+    # checked those variables at the end as a fall back.
+    try:
+        lines = os.environ['LINES']
+        columns = os.environ['COLUMNS']
 
-        return lines, columns
+        return int(lines), int(columns)
+    except:
+        pass
 
     def ioctl_GWINSZ(fd):
         import fcntl
         import termios
         return struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))
+
     # try stdin, stdout, stderr
     for fd in (0, 1, 2):
         try:
             return ioctl_GWINSZ(fd)
         except:
             pass
+
     # try os.ctermid()
     try:
         fd = os.open(os.ctermid(), os.O_RDONLY)
@@ -60,6 +74,7 @@ def get_terminal_size(default=(80, 150)):
             os.close(fd)
     except:
         pass
+
     # try `stty size`
     try:
         process = subprocess.Popen(['stty', 'size'],
@@ -71,12 +86,8 @@ def get_terminal_size(default=(80, 150)):
             return tuple(int(x) for x in result[0].split())
     except:
         pass
-    # try environment variables
-    try:
-        return tuple(int(os.getenv(var)) for var in ('LINES', 'COLUMNS'))
-    except:
-        pass
-    #  return default.
+
+    # return default value
     return default
 
 
