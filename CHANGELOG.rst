@@ -11,16 +11,16 @@ Added
   The ``winrm-cmd`` runner executes Command Prompt commands remotely on Windows hosts using the
   WinRM protocol. The ``winrm-ps-cmd`` and ``winrm-ps-script`` runners execute PowerShell commands
   and scripts on remote Windows hosts using the WinRM protocol.
-  
+
   To accompany these new runners, there are two new actions ``core.winrm_cmd`` that executes remote
   Command Prompt commands along with ``core.winrm_ps_cmd`` that executes remote PowerShell commands.
   (new feature) #1636
-  
+
   Contributed by Nick Maludy (Encore Technologies).
 * Add new ``?tags``, query param filter to the ``/v1/actions`` API endpoint. This query parameter
   allows users to filter out actions based on the tag name . By default, when no filter values are
   provided, all actions are returned. (new feature) #4219
-  
+
 Changed
 ~~~~~~~
 
@@ -30,10 +30,9 @@ Changed
 * Migrated runners to using the ``in-requirements.txt`` pattern for "components" in the build
   system, so the ``Makefile`` correctly generates and installs runner dependencies during
   testing and packaging. (improvement) (bugfix) #4169
-  
+
   Contributed by Nick Maludy (Encore Technologies).
 
-  
 Fixed
 ~~~~~
 
@@ -41,7 +40,7 @@ Fixed
   Reported by @jjm
 
   Contributed by Nick Maludy (Encore Technologies).
-  
+
 2.8.0 - July 10, 2018
 ---------------------
 
