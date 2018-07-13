@@ -40,13 +40,13 @@ def get_terminal_size(default=(80, 150)):
 
     :return: (lines, cols)
     """
-    # Allow user to force terminal size using a environment variables
-    # E.g. ST2_CLI_FORCE_TERMINAL_SIZE=80,200 # lines, columns
-    force_terminal_size = os.environ.get('ST2_CLI_FORCE_TERMINAL_SIZE', None)
-    if force_terminal_size:
-        split = force_terminal_size.split(',')
-        lines = int(split[0])
-        columns = int(split[1] if len(split) >= 2 else default[1])
+    # 1. Try LINES and COLUMNS environment variables first like in upstream Python 3 method -
+    # https://github.com/python/cpython/blob/master/Lib/shutil.py#L1203
+    # This way it's consistent with upstream implementation. In the past, our implementation
+    # checked those variables at the end as a fall back.
+    try:
+        lines = os.environ['LINES']
+        columns = os.environ['COLUMNS']
 
         return lines, columns
 
@@ -54,13 +54,15 @@ def get_terminal_size(default=(80, 150)):
         import fcntl
         import termios
         return struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))
-    # try stdin, stdout, stderr
+
+    # 2. try stdin, stdout, stderr
     for fd in (0, 1, 2):
         try:
             return ioctl_GWINSZ(fd)
         except:
             pass
-    # try os.ctermid()
+
+    # 3. try os.ctermid()
     try:
         fd = os.open(os.ctermid(), os.O_RDONLY)
         try:
@@ -69,7 +71,8 @@ def get_terminal_size(default=(80, 150)):
             os.close(fd)
     except:
         pass
-    # try `stty size`
+
+    # 4. try `stty size`
     try:
         process = subprocess.Popen(['stty', 'size'],
                                    shell=False,
@@ -80,12 +83,14 @@ def get_terminal_size(default=(80, 150)):
             return tuple(int(x) for x in result[0].split())
     except:
         pass
+
     # try environment variables
     try:
         return tuple(int(os.getenv(var)) for var in ('LINES', 'COLUMNS'))
     except:
         pass
-    #  return default.
+
+    # 5. return default value
     return default
 
 
