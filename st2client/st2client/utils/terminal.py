@@ -36,8 +36,10 @@ def get_terminal_size(default=(DEFAULT_TERMINAL_SIZE_LINES, DEFAULT_TERMINAL_SIZ
 
     If terminal size can't be retrieved, default value is returned.
 
-    NOTE: LINES and COLUMNS environment variables are checked first, if those values are not set /
+    NOTE 1: LINES and COLUMNS environment variables are checked first, if those values are not set /
     available, other methods are tried.
+
+    NOTE 2: This method requires both environment variables to be specified together.
 
     :return: (lines, cols)
     """
