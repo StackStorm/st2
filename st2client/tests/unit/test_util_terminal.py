@@ -20,9 +20,8 @@ import os
 import unittest2
 import mock
 
-from st2client.utils.terminal import DEFAULT_TERMINAL_SIZE_LINES
 from st2client.utils.terminal import DEFAULT_TERMINAL_SIZE_COLUMNS
-from st2client.utils.terminal import get_terminal_size
+from st2client.utils.terminal import get_terminal_size_columns
 
 __all__ = [
     'TerminalUtilsTestCase'
@@ -31,12 +30,16 @@ __all__ = [
 
 class TerminalUtilsTestCase(unittest2.TestCase):
     @mock.patch.dict(os.environ, {'LINES': '111', 'COLUMNS': '222'})
-    def test_get_terminal_size_lines_columns_environment_variable_have_precedence(self):
-        # Verify that LINES and COLUMNS environment variables have precedence over other approaches
-        lines, columns = get_terminal_size()
+    def test_get_terminal_size_columns_columns_environment_variable_has_precedence(self):
+        # Verify that COLUMNS environment variables has precedence over other approaches
+        columns = get_terminal_size_columns()
 
-        self.assertEqual(lines, 111)
         self.assertEqual(columns, 222)
+
+    @mock.patch('struct.unpack', mock.Mock(return_value=(333, 444)))
+    def test_get_terminal_size_columns_stdout_is_used(self):
+        columns = get_terminal_size_columns()
+        self.assertEqual(columns, 444)
 
     @mock.patch('struct.unpack', mock.Mock(side_effect=Exception('a')))
     @mock.patch('subprocess.Popen')
@@ -49,14 +52,12 @@ class TerminalUtilsTestCase(unittest2.TestCase):
 
         mock_popen.return_value = mock_process
 
-        lines, columns = get_terminal_size()
-        self.assertEqual(lines, 555)
+        columns = get_terminal_size_columns()
         self.assertEqual(columns, 666)
 
     @mock.patch('struct.unpack', mock.Mock(side_effect=Exception('a')))
     @mock.patch('subprocess.Popen', mock.Mock(side_effect=Exception('b')))
     def test_get_terminal_size_default_values_are_used(self):
-        lines, columns = get_terminal_size()
+        columns = get_terminal_size_columns()
 
-        self.assertEqual(lines, DEFAULT_TERMINAL_SIZE_LINES)
         self.assertEqual(columns, DEFAULT_TERMINAL_SIZE_COLUMNS)

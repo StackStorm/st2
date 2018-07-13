@@ -20,14 +20,14 @@ Added
 * Add new ``?tags``, query param filter to the ``/v1/actions`` API endpoint. This query parameter
   allows users to filter out actions based on the tag name . By default, when no filter values are
   provided, all actions are returned. (new feature) #4219
-* Update ``st2`` CLI to it inspect ``LINES`` and ``COLUMNS`` environment variables first when
-  determining the terminal size. Previously those environment variables were checked second last
-  (after trying to retrieve terminal size using various OS specific methods and before falling back
-  to the default values).
+* Update ``st2`` CLI to inspect ``COLUMNS`` environment variable first when determining the
+  terminal size. Previously this environment variable was checked second last (after trying to
+  retrieve terminal size using various OS specific methods and before falling back to the default
+  value).
 
-  This approach is more performant and allows user to easily overwrite the default values or values
-  returned by the operating system checks - e.g. by running
-  ``LINES=80 COLUMNS=200 st2 action list``. (improvement) #4242
+  This approach is more performant and allows user to easily overwrite the default value or value
+  returned by the operating system checks - e.g. by running ``COLUMNS=200 st2 action list``.
+  (improvement) #4242
 
 Changed
 ~~~~~~~
