@@ -43,7 +43,7 @@ def get_terminal_size(default=(DEFAULT_TERMINAL_SIZE_LINES, DEFAULT_TERMINAL_SIZ
 
     :return: (lines, cols)
     """
-    # Try LINES and COLUMNS environment variables first like in upstream Python 3 method -
+    # 1. Try LINES and COLUMNS environment variables first like in upstream Python 3 method -
     # https://github.com/python/cpython/blob/master/Lib/shutil.py#L1203
     # This way it's consistent with upstream implementation. In the past, our implementation
     # checked those variables at the end as a fall back.
@@ -60,14 +60,14 @@ def get_terminal_size(default=(DEFAULT_TERMINAL_SIZE_LINES, DEFAULT_TERMINAL_SIZ
         import termios
         return struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))
 
-    # try stdin, stdout, stderr
+    # 2. try stdin, stdout, stderr
     for fd in (0, 1, 2):
         try:
             return ioctl_GWINSZ(fd)
         except:
             pass
 
-    # try os.ctermid()
+    # 3. try os.ctermid()
     try:
         fd = os.open(os.ctermid(), os.O_RDONLY)
         try:
@@ -77,7 +77,7 @@ def get_terminal_size(default=(DEFAULT_TERMINAL_SIZE_LINES, DEFAULT_TERMINAL_SIZ
     except:
         pass
 
-    # try `stty size`
+    # 4. try `stty size`
     try:
         process = subprocess.Popen(['stty', 'size'],
                                    shell=False,
@@ -89,7 +89,7 @@ def get_terminal_size(default=(DEFAULT_TERMINAL_SIZE_LINES, DEFAULT_TERMINAL_SIZ
     except:
         pass
 
-    # return default value
+    # 5. return default value
     return default
 
 
