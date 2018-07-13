@@ -36,8 +36,8 @@ def get_terminal_size(default=(80, 150)):
     force_terminal_size = os.environ.get('ST2_CLI_FORCE_TERMINAL_SIZE', None)
     if force_terminal_size:
         split = force_terminal_size.split(',')
-        lines = split[0]
-        columns = split[1] if len(split) >= 2 else default[1]
+        lines = int(split[0])
+        columns = int(split[1] if len(split) >= 2 else default[1])
 
         return lines, columns
 
