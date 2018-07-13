@@ -27,7 +27,7 @@ __all__ = [
 ]
 
 
-def get_terminal_size(default=(80, 200)):
+def get_terminal_size(default=(80, 150)):
     """
     :return: (lines, cols)
     """
