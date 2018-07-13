@@ -11,7 +11,7 @@ Fixed
   Reported by @jjm
 
   Contributed by Nick Maludy (Encore Technologies).
-  
+
 2.8.0 - July 10, 2018
 ---------------------
 
