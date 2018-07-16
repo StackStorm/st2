@@ -22,7 +22,7 @@ import sys
 
 from st2client.utils.color import format_status
 
-DEFAULT_TERMINAL_SIZE_COLUMNS = 150
+DEFAULT_TERMINAL_SIZE_COLUMNS = 190
 
 __all__ = [
     'DEFAULT_TERMINAL_SIZE_COLUMNS',
