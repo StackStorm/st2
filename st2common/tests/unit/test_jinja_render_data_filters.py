@@ -96,5 +96,5 @@ class JinjaUtilsDataFilterTestCase(unittest2.TestCase):
 
         template = '{{k1 | to_yaml_string}}'
         obj_yaml_str = env.from_string(template).render({'k1': obj})
-        actual_obj = yaml.load(obj_yaml_str)
+        actual_obj = yaml.safe_load(obj_yaml_str)
         self.assertDictEqual(obj, actual_obj)

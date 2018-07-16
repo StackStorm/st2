@@ -1,9 +1,41 @@
 Changelog
 =========
 
-in development
---------------
+2.8.1 - TBD
+-----------
 
+Added
+-----
+
+* Update ``st2`` CLI to inspect ``COLUMNS`` environment variable first when determining the
+  terminal size. Previously this environment variable was checked second last (after trying to
+  retrieve terminal size using various OS specific methods and before falling back to the default
+  value).
+
+  This approach is more performant and allows user to easily overwrite the default value or value
+  returned by the operating system checks - e.g. by running ``COLUMNS=200 st2 action list``.
+  (improvement) #4242
+
+Changed
+-------
+
+* Update ``st2client/setup.py`` file to dynamically load requirements from
+  ``st2client/requirements.txt`` file. The code works with pip >= 6.0.0, although using pip 9.0.0
+  or higher is strongly recommended. (improvement) #4209
+* Update ``st2`` CLI to use a more sensible default terminal size for table formatting purposes if
+  we are unable to retrieve terminal size using various system-specific approaches.
+
+  Previously we would fall back to a very unfriendly default of 20 columns for a total terminal
+  width. This would cause every table column to wrap and make output impossible / hard to read.
+  (improvement) #4242
+
+Fixed
+~~~~~
+
+* Fixed a bug where ``secret: true`` was not applying to full object and array trees. (bugfix) #4234
+  Reported by @jjm
+
+  Contributed by Nick Maludy (Encore Technologies).
 
 2.8.0 - July 10, 2018
 ---------------------
