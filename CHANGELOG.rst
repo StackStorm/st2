@@ -36,6 +36,9 @@ Fixed
   Reported by @jjm
 
   Contributed by Nick Maludy (Encore Technologies).
+* Mark ``password`` `http-runner`` parameter as a secret. (bug fix) #4245
+
+  Reported by @daniel-mckenna
 
 2.8.0 - July 10, 2018
 ---------------------
