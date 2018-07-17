@@ -17,7 +17,7 @@ Added
   (improvement) #4242
 
 Changed
--------
+~~~~~~~
 
 * Update ``st2client/setup.py`` file to dynamically load requirements from
   ``st2client/requirements.txt`` file. The code works with pip >= 6.0.0, although using pip 9.0.0
@@ -36,7 +36,7 @@ Fixed
   Reported by @jjm
 
   Contributed by Nick Maludy (Encore Technologies).
-* Mark ``password`` `http-runner`` parameter as a secret. (bug fix) #4245
+* Mark ``password`` ``http-runner`` parameter as a secret. (bug fix) #4245
 
   Reported by @daniel-mckenna
 
