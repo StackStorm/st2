@@ -20,6 +20,19 @@ Added
 * Add new ``?tags``, query param filter to the ``/v1/actions`` API endpoint. This query parameter
   allows users to filter out actions based on the tag name . By default, when no filter values are
   provided, all actions are returned. (new feature) #4219
+
+Changed
+~~~~~~~
+
+Fixed
+~~~~~
+
+2.8.1 - July 18, 2018
+---------------------
+
+Added
+-----
+
 * Update ``st2`` CLI to inspect ``COLUMNS`` environment variable first when determining the
   terminal size. Previously this environment variable was checked second last (after trying to
   retrieve terminal size using various OS specific methods and before falling back to the default
@@ -30,16 +43,11 @@ Added
   (improvement) #4242
 
 Changed
-~~~~~~~
+-------
 
 * Update ``st2client/setup.py`` file to dynamically load requirements from
   ``st2client/requirements.txt`` file. The code works with pip >= 6.0.0, although using pip 9.0.0
   or higher is strongly recommended. (improvement) #4209
-* Migrated runners to using the ``in-requirements.txt`` pattern for "components" in the build
-  system, so the ``Makefile`` correctly generates and installs runner dependencies during
-  testing and packaging. (improvement) (bugfix) #4169
-
-  Contributed by Nick Maludy (Encore Technologies).
 * Update ``st2`` CLI to use a more sensible default terminal size for table formatting purposes if
   we are unable to retrieve terminal size using various system-specific approaches.
 
@@ -54,6 +62,9 @@ Fixed
   Reported by @jjm
 
   Contributed by Nick Maludy (Encore Technologies).
+* Mark ``password`` ``http-runner`` parameter as a secret. (bug fix) #4245
+
+  Reported by @daniel-mckenna
 
 2.8.0 - July 10, 2018
 ---------------------
