@@ -31,7 +31,7 @@ Fixed
 ---------------------
 
 Added
------
+~~~~~
 
 * Update ``st2`` CLI to inspect ``COLUMNS`` environment variable first when determining the
   terminal size. Previously this environment variable was checked second last (after trying to
