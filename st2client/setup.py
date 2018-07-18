@@ -18,19 +18,20 @@ import os.path
 
 from setuptools import setup, find_packages
 
-# Note: We should re-enable usage of dist_utils once we ensure
-# that we install new version of virtualenv which ships with
-# pip >= 6.1 in all the environments
-# from dist_utils import fetch_requirements
-# from dist_utils import apply_vagrant_workaround
+from dist_utils import check_pip_version
+from dist_utils import fetch_requirements
+from dist_utils import apply_vagrant_workaround
+
 from st2client import __version__
+
+check_pip_version()
 
 ST2_COMPONENT = 'st2client'
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 REQUIREMENTS_FILE = os.path.join(BASE_DIR, 'requirements.txt')
 
-# install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
-# apply_vagrant_workaround()
+install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
+apply_vagrant_workaround()
 
 setup(
     name=ST2_COMPONENT,
@@ -52,15 +53,8 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7'
     ],
-    install_requires=[
-        'jsonpath-rw>=1.3.0',
-        'prettytable',
-        'python-dateutil',
-        'pyyaml<4.0,>=3.11',
-        'requests[security]<2.15,>=2.14.1',
-        'six==1.11.0'
-    ],
-    dependency_links=[],
+    install_requires=install_reqs,
+    dependency_links=dep_links,
     test_suite=ST2_COMPONENT,
     zip_safe=False,
     include_package_data=True,

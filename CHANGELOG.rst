@@ -7,6 +7,71 @@ in development
 Added
 ~~~~~
 
+* Add new runners: ``winrm-cmd``, ``winrm-ps-cmd`` and ``winrm-ps-script``.
+  The ``winrm-cmd`` runner executes Command Prompt commands remotely on Windows hosts using the
+  WinRM protocol. The ``winrm-ps-cmd`` and ``winrm-ps-script`` runners execute PowerShell commands
+  and scripts on remote Windows hosts using the WinRM protocol.
+
+  To accompany these new runners, there are two new actions ``core.winrm_cmd`` that executes remote
+  Command Prompt commands along with ``core.winrm_ps_cmd`` that executes remote PowerShell commands.
+  (new feature) #1636
+
+  Contributed by Nick Maludy (Encore Technologies).
+* Add new ``?tags``, query param filter to the ``/v1/actions`` API endpoint. This query parameter
+  allows users to filter out actions based on the tag name . By default, when no filter values are
+  provided, all actions are returned. (new feature) #4219
+
+Changed
+~~~~~~~
+
+Fixed
+~~~~~
+
+2.8.1 - July 18, 2018
+---------------------
+
+Added
+~~~~~
+
+* Update ``st2`` CLI to inspect ``COLUMNS`` environment variable first when determining the
+  terminal size. Previously this environment variable was checked second last (after trying to
+  retrieve terminal size using various OS specific methods and before falling back to the default
+  value).
+
+  This approach is more performant and allows user to easily overwrite the default value or value
+  returned by the operating system checks - e.g. by running ``COLUMNS=200 st2 action list``.
+  (improvement) #4242
+
+Changed
+~~~~~~~
+
+* Update ``st2client/setup.py`` file to dynamically load requirements from
+  ``st2client/requirements.txt`` file. The code works with pip >= 6.0.0, although using pip 9.0.0
+  or higher is strongly recommended. (improvement) #4209
+* Update ``st2`` CLI to use a more sensible default terminal size for table formatting purposes if
+  we are unable to retrieve terminal size using various system-specific approaches.
+
+  Previously we would fall back to a very unfriendly default of 20 columns for a total terminal
+  width. This would cause every table column to wrap and make output impossible / hard to read.
+  (improvement) #4242
+
+Fixed
+~~~~~
+
+* Fixed a bug where ``secret: true`` was not applying to full object and array trees. (bugfix) #4234
+  Reported by @jjm
+
+  Contributed by Nick Maludy (Encore Technologies).
+* Mark ``password`` ``http-runner`` parameter as a secret. (bug fix) #4245
+
+  Reported by @daniel-mckenna
+
+2.8.0 - July 10, 2018
+---------------------
+
+Added
+~~~~~
+
 * Orchestra - new StackStorm-native workflow engine. This is currently in **beta**. (new feature)
 * Added metrics for collecting performance and health information about the various ST2 services
   and functions. (new feature) #4004 #2974
@@ -83,6 +148,8 @@ Fixed
   Contributed by Nick Maludy (Encore Technologies).
 * Style clean up to transport queues module and various config modules. (improvement)
 * Fixed CLI help for ``st2 action-alias match`` and ``execute``. (#4174).
+* Fix regression in ``?include_attributes`` query param filter in the ``/v1/executions`` API
+  endpoint. (bug fix) #4226
 
 2.7.2 - May 16, 2018
 --------------------

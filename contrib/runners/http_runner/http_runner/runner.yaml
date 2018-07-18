@@ -24,6 +24,7 @@
     password:
       description: Password required by basic authentication.
       type: string
+      secret: true
     url:
       description: URL to the HTTP endpoint.
       required: true

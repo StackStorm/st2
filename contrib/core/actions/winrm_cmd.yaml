@@ -1,0 +1,12 @@
+
+---
+  name: "winrm_cmd"
+  runner_type: "winrm-cmd"
+  description: "Action to execute arbitrary Windows Command Prompt command remotely via WinRM."
+  enabled: true
+  entry_point: ""
+  parameters:
+    cmd:
+      description: "Arbitrary Windows Command Prompt command to be executed on the remote host."
+      type: "string"
+      required: true

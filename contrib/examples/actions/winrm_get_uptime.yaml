@@ -1,0 +1,6 @@
+---
+name: "winrm_get_uptime"
+description: "Action that returns Windows host's uptime using WinRM."
+enabled: true
+entry_point: "windows/get_uptime.ps1"
+runner_type: "winrm-ps-script"
