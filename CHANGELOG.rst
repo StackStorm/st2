@@ -24,6 +24,11 @@ Added
 Changed
 ~~~~~~~
 
+* ``st2 key list`` command now defaults to ``--scope=all`` aka displaying all the datastore values
+  (system and current user scoped) . If you only want to display system scoped values (old behavior)
+  you can do that by passing ``--scope=system`` argument to the ``st2 key list`` command
+  (``st2 key list --scope=system``). (improvement) #4221
+
 Fixed
 ~~~~~
 
@@ -48,6 +53,11 @@ Changed
 * Update ``st2client/setup.py`` file to dynamically load requirements from
   ``st2client/requirements.txt`` file. The code works with pip >= 6.0.0, although using pip 9.0.0
   or higher is strongly recommended. (improvement) #4209
+* Migrated runners to using the ``in-requirements.txt`` pattern for "components" in the build
+  system, so the ``Makefile`` correctly generates and installs runner dependencies during
+  testing and packaging. (improvement) (bugfix) #4169
+  
+  Contributed by Nick Maludy (Encore Technologies).
 * Update ``st2`` CLI to use a more sensible default terminal size for table formatting purposes if
   we are unable to retrieve terminal size using various system-specific approaches.
 
