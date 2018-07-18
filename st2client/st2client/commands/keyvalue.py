@@ -31,7 +31,9 @@ from st2client.utils.date import format_isodate_for_user_timezone
 
 LOG = logging.getLogger(__name__)
 
-DEFAULT_SCOPE = 'all'
+DEFAULT_LIST_SCOPE = 'all'
+DEFAULT_GET_SCOPE = 'system'
+DEFAULT_CUD_SCOPE = 'system'
 
 
 class KeyValuePairBranch(resource.ResourceBranch):
@@ -84,7 +86,7 @@ class KeyValuePairListCommand(resource.ResourceTableCommand):
                                                    'the provided prefix.'))
         self.parser.add_argument('--decrypt', action='store_true',
                                  help='Decrypt secrets and displays plain text.')
-        self.parser.add_argument('-s', '--scope', default=DEFAULT_SCOPE, dest='scope',
+        self.parser.add_argument('-s', '--scope', default=DEFAULT_LIST_SCOPE, dest='scope',
                                  help='Scope item is under. Example: "user".')
         self.parser.add_argument('-u', '--user', dest='user', default=None,
                                  help='User for user scoped items (admin only).')
@@ -101,7 +103,7 @@ class KeyValuePairListCommand(resource.ResourceTableCommand):
 
         decrypt = getattr(args, 'decrypt', False)
         kwargs['params'] = {'decrypt': str(decrypt).lower()}
-        scope = getattr(args, 'scope', DEFAULT_SCOPE)
+        scope = getattr(args, 'scope', DEFAULT_LIST_SCOPE)
         kwargs['params']['scope'] = scope
         if args.user:
             kwargs['params']['user'] = args.user
@@ -134,14 +136,14 @@ class KeyValuePairGetCommand(resource.ResourceGetCommand):
         super(KeyValuePairGetCommand, self).__init__(kv_resource, *args, **kwargs)
         self.parser.add_argument('-d', '--decrypt', action='store_true',
                                  help='Decrypt secret if encrypted and show plain text.')
-        self.parser.add_argument('-s', '--scope', default=DEFAULT_SCOPE, dest='scope',
+        self.parser.add_argument('-s', '--scope', default=DEFAULT_GET_SCOPE, dest='scope',
                                  help='Scope item is under. Example: "user".')
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         resource_name = getattr(args, self.pk_argument_name, None)
         decrypt = getattr(args, 'decrypt', False)
-        scope = getattr(args, 'scope', DEFAULT_SCOPE)
+        scope = getattr(args, 'scope', DEFAULT_GET_SCOPE)
         kwargs['params'] = {'decrypt': str(decrypt).lower()}
         kwargs['params']['scope'] = scope
         return self.get_resource_by_id(id=resource_name, **kwargs)
@@ -166,7 +168,7 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
         self.parser.add_argument('-e', '--encrypt', dest='secret',
                                  action='store_true',
                                  help='Encrypt value before saving.')
-        self.parser.add_argument('-s', '--scope', dest='scope', default=DEFAULT_SCOPE,
+        self.parser.add_argument('-s', '--scope', dest='scope', default=DEFAULT_CUD_SCOPE,
                                  help='Specify the scope under which you want ' +
                                       'to place the item.')
         self.parser.add_argument('-u', '--user', dest='user', default=None,
@@ -202,7 +204,7 @@ class KeyValuePairDeleteCommand(resource.ResourceDeleteCommand):
     def __init__(self, resource, *args, **kwargs):
         super(KeyValuePairDeleteCommand, self).__init__(resource, *args, **kwargs)
 
-        self.parser.add_argument('-s', '--scope', dest='scope', default=DEFAULT_SCOPE,
+        self.parser.add_argument('-s', '--scope', dest='scope', default=DEFAULT_CUD_SCOPE,
                                  help='Specify the scope under which you want ' +
                                       'to place the item.')
         self.parser.add_argument('-u', '--user', dest='user', default=None,
@@ -211,7 +213,7 @@ class KeyValuePairDeleteCommand(resource.ResourceDeleteCommand):
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         resource_id = getattr(args, self.pk_argument_name, None)
-        scope = getattr(args, 'scope', DEFAULT_SCOPE)
+        scope = getattr(args, 'scope', DEFAULT_CUD_SCOPE)
         kwargs['params'] = {}
         kwargs['params']['scope'] = scope
         kwargs['params']['user'] = args.user
@@ -304,7 +306,7 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
             value = item['value']
 
             # parse optional KeyValuePair properties
-            scope = item.get('scope', DEFAULT_SCOPE)
+            scope = item.get('scope', DEFAULT_CUD_SCOPE)
             user = item.get('user', None)
             secret = item.get('secret', False)
             ttl = item.get('ttl', None)
