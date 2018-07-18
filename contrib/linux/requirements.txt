@@ -1,3 +1,3 @@
 # used by file watcher sensor
-git+https://github.com/blag/watchdog3.git#python2.7-support
+git+https://github.com/blag/watchdog3.git#for-stackstorm
 pathtools3>=0.2.0

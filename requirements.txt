@@ -52,7 +52,7 @@ stevedore==1.28.0
 tooz==1.62.0
 unittest2
 # TODO: Move this to into the StackStorm organization
-git+https://github.com/blag/watchdog3.git#python2.7-support
+git+https://github.com/blag/watchdog3.git#for-stackstorm
 webob==1.7.4
 webtest
 zake==0.2.2
