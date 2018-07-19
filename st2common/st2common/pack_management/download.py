@@ -44,7 +44,10 @@ from st2common.util.versioning import complex_semver_match
 from st2common.util.versioning import get_stackstorm_version
 
 __all__ = [
-    'download_pack'
+    'download_pack',
+
+    'get_repo_url',
+    'eval_repo_url'
 ]
 
 LOG = logging.getLogger(__name__)

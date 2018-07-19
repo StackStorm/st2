@@ -31,7 +31,8 @@ from gitdb.exc import BadName
 from st2common.services import packs as pack_service
 from st2tests.base import BaseActionTestCase
 
-import pack_mgmt.download
+import st2common.pack_management.download
+from st2common.pack_management.download import eval_repo_url
 from pack_mgmt.download import DownloadGitRepoAction
 
 PACK_INDEX = {
@@ -218,7 +219,7 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
 
         self.assertEqual(result, {'test': 'Success.'})
 
-    @mock.patch.object(DownloadGitRepoAction, '_get_valid_versions_for_repo',
+    @mock.patch.object(st2common.pack_management.download, 'get_valid_versions_for_repo',
                        mock.Mock(return_value=['1.0.0', '2.0.0']))
     def test_run_pack_download_invalid_version(self):
         self.repo_instance.commit.side_effect = lambda ref: None
@@ -234,69 +235,69 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         action = self.get_action_instance()
 
         # Version is satisfied
-        pack_mgmt.download.CURRENT_STACKSTROM_VERSION = '2.0.0'
+        st2common.pack_management.download.CURRENT_STACKSTROM_VERSION = '2.0.0'
 
         result = action.run(packs=['test3'], abs_repo_base=self.repo_base)
         self.assertEqual(result['test3'], 'Success.')
 
         # Pack requires a version which is not satisfied by current StackStorm version
-        pack_mgmt.download.CURRENT_STACKSTROM_VERSION = '2.2.0'
+        st2common.pack_management.download.CURRENT_STACKSTROM_VERSION = '2.2.0'
         expected_msg = ('Pack "test3" requires StackStorm ">=1.6.0, <2.2.0", but '
                         'current version is "2.2.0"')
         self.assertRaisesRegexp(ValueError, expected_msg, action.run, packs=['test3'],
                                 abs_repo_base=self.repo_base)
 
-        pack_mgmt.download.CURRENT_STACKSTROM_VERSION = '2.3.0'
+        st2common.pack_management.download.CURRENT_STACKSTROM_VERSION = '2.3.0'
         expected_msg = ('Pack "test3" requires StackStorm ">=1.6.0, <2.2.0", but '
                         'current version is "2.3.0"')
         self.assertRaisesRegexp(ValueError, expected_msg, action.run, packs=['test3'],
                                 abs_repo_base=self.repo_base)
 
-        pack_mgmt.download.CURRENT_STACKSTROM_VERSION = '1.5.9'
+        st2common.pack_management.download.CURRENT_STACKSTROM_VERSION = '1.5.9'
         expected_msg = ('Pack "test3" requires StackStorm ">=1.6.0, <2.2.0", but '
                         'current version is "1.5.9"')
         self.assertRaisesRegexp(ValueError, expected_msg, action.run, packs=['test3'],
                                 abs_repo_base=self.repo_base)
 
-        pack_mgmt.download.CURRENT_STACKSTROM_VERSION = '1.5.0'
+        st2common.pack_management.download.CURRENT_STACKSTROM_VERSION = '1.5.0'
         expected_msg = ('Pack "test3" requires StackStorm ">=1.6.0, <2.2.0", but '
                         'current version is "1.5.0"')
         self.assertRaisesRegexp(ValueError, expected_msg, action.run, packs=['test3'],
                                 abs_repo_base=self.repo_base)
 
         # Version is not met, but force=true parameter is provided
-        pack_mgmt.download.CURRENT_STACKSTROM_VERSION = '1.5.0'
+        st2common.pack_management.download.CURRENT_STACKSTROM_VERSION = '1.5.0'
         result = action.run(packs=['test3'], abs_repo_base=self.repo_base, force=True)
         self.assertEqual(result['test3'], 'Success.')
 
     def test_resolve_urls(self):
-        url = DownloadGitRepoAction._eval_repo_url(
+        url = eval_repo_url(
             "https://github.com/StackStorm-Exchange/stackstorm-test")
         self.assertEqual(url, "https://github.com/StackStorm-Exchange/stackstorm-test")
 
-        url = DownloadGitRepoAction._eval_repo_url(
+        url = eval_repo_url(
             "https://github.com/StackStorm-Exchange/stackstorm-test.git")
         self.assertEqual(url, "https://github.com/StackStorm-Exchange/stackstorm-test.git")
 
-        url = DownloadGitRepoAction._eval_repo_url("StackStorm-Exchange/stackstorm-test")
+        url = eval_repo_url("StackStorm-Exchange/stackstorm-test")
         self.assertEqual(url, "https://github.com/StackStorm-Exchange/stackstorm-test")
 
-        url = DownloadGitRepoAction._eval_repo_url("git://StackStorm-Exchange/stackstorm-test")
+        url = eval_repo_url("git://StackStorm-Exchange/stackstorm-test")
         self.assertEqual(url, "git://StackStorm-Exchange/stackstorm-test")
 
-        url = DownloadGitRepoAction._eval_repo_url("git://StackStorm-Exchange/stackstorm-test.git")
+        url = eval_repo_url("git://StackStorm-Exchange/stackstorm-test.git")
         self.assertEqual(url, "git://StackStorm-Exchange/stackstorm-test.git")
 
-        url = DownloadGitRepoAction._eval_repo_url("git@github.com:foo/bar.git")
+        url = eval_repo_url("git@github.com:foo/bar.git")
         self.assertEqual(url, "git@github.com:foo/bar.git")
 
-        url = DownloadGitRepoAction._eval_repo_url("file:///home/vagrant/stackstorm-test")
+        url = eval_repo_url("file:///home/vagrant/stackstorm-test")
         self.assertEqual(url, "file:///home/vagrant/stackstorm-test")
 
-        url = DownloadGitRepoAction._eval_repo_url('ssh://<user@host>/AutomationStackStorm')
+        url = eval_repo_url('ssh://<user@host>/AutomationStackStorm')
         self.assertEqual(url, 'ssh://<user@host>/AutomationStackStorm')
 
-        url = DownloadGitRepoAction._eval_repo_url('ssh://joe@local/AutomationStackStorm')
+        url = eval_repo_url('ssh://joe@local/AutomationStackStorm')
         self.assertEqual(url, 'ssh://joe@local/AutomationStackStorm')
 
     def test_run_pack_download_edge_cases(self):
