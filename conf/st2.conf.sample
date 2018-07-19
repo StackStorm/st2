@@ -257,6 +257,8 @@ draft = http://json-schema.org/draft-04/schema#
 [sensorcontainer]
 # Provider of sensor node partition config.
 partition_provider = {'name': 'default'}
+# Run in a single sensor mode where parent process exits when a sensor crashes / dies. This is useful in environments where partitioning, sensor process life cycle and failover is handled by a 3rd party service such as kubernetes.
+single_sensor_mode = False
 # location of the logging.conf file
 logging = conf/logging.sensorcontainer.conf
 # name of the sensor node.
@@ -327,4 +329,8 @@ logging = conf/logging.timersengine.conf
 [webui]
 # Base https URL to access st2 Web UI. This is used to construct history URLs that are sent out when chatops is used to kick off executions.
 webui_base_url = https://localhost
+
+[workflow_engine]
+# Location of the logging configuration file.
+logging = conf/logging.workflowengine.conf
 

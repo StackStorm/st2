@@ -1,0 +1,7 @@
+---
+name: orchestra-examples
+pack: examples
+description: Run a workflow that runs other workflows. Orcheseption.
+runner_type: orchestra
+entry_point: workflows/orchestra-examples.yaml
+enabled: true

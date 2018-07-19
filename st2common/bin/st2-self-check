@@ -133,6 +133,15 @@ else
     echo "OK!"
 fi
 
+echo -n "Attempting Example examples.orchestra-examples..."
+st2 run examples.orchestra-examples | grep "status" | grep -q "succeeded"
+if [ $? -ne 0 ]; then
+    echo -e "ERROR!"
+    ((ERRORS++))
+else
+    echo "OK!"
+fi
+
 if [ $ERRORS -ne 0 ]; then
     echo "SELF CHECK FAILED!"
     echo "st2-self-check failed.  See above.  Also check the execution list for details."

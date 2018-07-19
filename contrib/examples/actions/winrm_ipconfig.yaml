@@ -1,0 +1,10 @@
+---
+name: "winrm_get_ipconfig"
+description: "Action that returns Windows host's IP config information."
+enabled: true
+runner_type: "winrm-cmd"
+parameters:
+  cmd:
+    type: string
+    default: "ipconfig /all"
+    immutable: true

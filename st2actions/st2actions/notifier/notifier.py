@@ -22,6 +22,7 @@ from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
+from st2common.constants.action import LIVEACTION_STATUS_PAUSED
 from st2common.constants.action import LIVEACTION_FAILED_STATES
 from st2common.constants.action import LIVEACTION_COMPLETED_STATES
 from st2common.constants.triggers import INTERNAL_TRIGGER_TYPES
@@ -34,6 +35,7 @@ from st2common import policies
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.execution import ActionExecution
 from st2common.services import trace as trace_service
+from st2common.services import workflows as wf_svc
 from st2common.transport import consumers
 from st2common.transport import utils as transport_utils
 from st2common.transport.reactor import TriggerDispatcher
@@ -79,6 +81,10 @@ class Notifier(consumers.MessageHandler):
         extra = {'execution': execution_db}
         LOG.debug('Processing execution %s', execution_id, extra=extra)
 
+        if ('orchestra' in execution_db.context and
+                execution_db.status == LIVEACTION_STATUS_PAUSED):
+            wf_svc.handle_action_execution_pause(execution_db)
+
         if execution_db.status not in LIVEACTION_COMPLETED_STATES:
             LOG.debug('Skipping processing of execution %s since it\'s not in a completed state' %
                       (execution_id), extra=extra)
@@ -92,6 +98,9 @@ class Notifier(consumers.MessageHandler):
             self._post_notify_triggers(liveaction_db=liveaction_db, execution_db=execution_db)
 
         self._post_generic_trigger(liveaction_db=liveaction_db, execution_db=execution_db)
+
+        if 'orchestra' in liveaction_db.context:
+            wf_svc.handle_action_execution_completion(execution_db)
 
     def _get_execution_for_liveaction(self, liveaction):
         execution = ActionExecution.get(liveaction__id=str(liveaction.id))

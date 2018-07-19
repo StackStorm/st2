@@ -288,6 +288,10 @@ paths:
           in: query
           description: Action pack name filter
           type: string
+        - name: tags
+          in: query
+          description: Action tags name filter
+          type: string
       x-parameters:
         - name: user
           in: context
@@ -1486,7 +1490,7 @@ paths:
     get:
       operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.get_one
       description: |
-        Get a specific key vale pair based on key_name.
+        Get a specific key value pair based on key_name.
       parameters:
         - name: name
           in: path
@@ -1987,7 +1991,7 @@ paths:
           description: Pack ref to create config.
           type: string
           required: true
-        - name: pack_uninstall_request
+        - name: pack_config_content
           in: body
           description: Pack config content
           schema:
@@ -3082,7 +3086,7 @@ paths:
     get:
       operationId: st2api.controllers.v1.auth:api_key_controller.get_all
       x-permissions: api_key_list
-      description: Returns a list of all actions.
+      description: Returns a list of all apikeys.
       parameters:
         - name: show_secrets
           in: query
@@ -3121,7 +3125,7 @@ paths:
     post:
       operationId: st2api.controllers.v1.auth:api_key_controller.post
       description: |
-        Create a new action.
+        Create a new apikey.
       parameters:
         - name: api_key_api
           in: body
@@ -3150,7 +3154,7 @@ paths:
     get:
       operationId: st2api.controllers.v1.auth:api_key_controller.get_one
       description: |
-        Get one action.
+        Get one apikey.
       parameters:
         - name: api_key_id_or_key
           in: path
@@ -3182,7 +3186,7 @@ paths:
     put:
       operationId: st2api.controllers.v1.auth:api_key_controller.put
       description: |
-        Update an action.
+        Update an apikey.
       parameters:
         - name: api_key_id_or_key
           in: path
@@ -3215,7 +3219,7 @@ paths:
     delete:
       operationId: st2api.controllers.v1.auth:api_key_controller.delete
       description: |
-        Delete an action.
+        Delete an apikey.
       parameters:
         - name: api_key_id_or_key
           in: path
@@ -4501,6 +4505,10 @@ definitions:
         $ref: '#/definitions/RunnerType'
       liveaction:
         $ref: '#/definitions/LiveAction'
+      task_execution:
+        type: string
+      workflow_execution:
+        type: string
       status:
         description: The current status of the action execution.
         type: string

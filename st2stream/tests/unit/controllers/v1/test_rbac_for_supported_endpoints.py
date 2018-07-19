@@ -19,7 +19,7 @@ from st2common.persistence.rbac import UserRoleAssignment
 from st2common.models.db.rbac import UserRoleAssignmentDB
 from st2common.rbac.types import PermissionType
 
-from base import APIControllerWithRBACTestCase
+from .base import APIControllerWithRBACTestCase
 
 http_client = six.moves.http_client
 

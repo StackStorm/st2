@@ -244,7 +244,7 @@ class DebugInfoCollector(object):
 
             # Prepend temp_dir_path to OUTPUT_PATHS
             output_paths = {}
-            for key, path in OUTPUT_PATHS.iteritems():
+            for key, path in six.iteritems(OUTPUT_PATHS):
                 output_paths[key] = os.path.join(self._temp_dir_path, path)
 
             # 2. Moves all the files to the temporary directory
@@ -489,7 +489,12 @@ class DebugInfoCollector(object):
         :return: Formatted filename.
         :rtype: ``str``
         """
-        return cmd.translate(None, """ !@#$%^&*()[]{};:,./<>?\|`~=+"'""")
+        if six.PY3:
+            cmd = cmd.translate(cmd.maketrans('', '', """ !@#$%^&*()[]{};:,./<>?\|`~=+"'"""))
+        else:
+            cmd = cmd.translate(None, """ !@#$%^&*()[]{};:,./<>?\|`~=+"'""")
+
+        return cmd
 
     @staticmethod
     def get_system_information():

@@ -1,0 +1,34 @@
+version: 1.0
+  
+description: A basic workflow with error while evaluating output.
+
+input:
+  - name
+
+vars:
+  - greeting: null
+
+output:
+  - greeting: <% abs(8).value %>
+
+tasks:
+  task1:
+    action: core.echo message=<% ctx().name %>
+    next:
+      - when: <% succeeded() %>
+        publish: greeting=<% result().stdout %>
+        do: task2
+  task2:
+    action: core.echo
+    input:
+      message: "All your base are belong to us!"
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - greeting: <% ctx("greeting") %>, <% result().stdout %>
+        do: task3
+  task3:
+    action: core.echo message=<% ctx('greeting') %>
+    next:
+      - when: <% succeeded() %>
+        publish: greeting=<% result().stdout %>

@@ -59,8 +59,8 @@ class SSHCommandTimeoutError(Exception):
         self.timeout = timeout
         self.stdout = stdout
         self.stderr = stderr
-        message = 'Command didn\'t finish in %s seconds' % (timeout)
-        super(SSHCommandTimeoutError, self).__init__(message)
+        self.message = 'Command didn\'t finish in %s seconds' % (timeout)
+        super(SSHCommandTimeoutError, self).__init__(self.message)
 
     def __repr__(self):
         return ('<SSHCommandTimeoutError: cmd="%s",timeout=%s)>' %
@@ -476,6 +476,10 @@ class ParamikoSSHClient(object):
 
         if chan.recv_ready():
             data = chan.recv(self.CHUNK_SIZE)
+
+            if six.PY3 and isinstance(data, six.text_type):
+                data = data.encode('utf-8')
+
             out += data
 
             while data:
@@ -485,6 +489,10 @@ class ParamikoSSHClient(object):
                     break
 
                 data = chan.recv(self.CHUNK_SIZE)
+
+                if six.PY3 and isinstance(data, six.text_type):
+                    data = data.encode('utf-8')
+
                 out += data
 
         stdout.write(self._get_decoded_data(out))
@@ -514,6 +522,10 @@ class ParamikoSSHClient(object):
 
         if chan.recv_stderr_ready():
             data = chan.recv_stderr(self.CHUNK_SIZE)
+
+            if six.PY3 and isinstance(data, six.text_type):
+                data = data.encode('utf-8')
+
             out += data
 
             while data:
@@ -523,6 +535,10 @@ class ParamikoSSHClient(object):
                     break
 
                 data = chan.recv_stderr(self.CHUNK_SIZE)
+
+                if six.PY3 and isinstance(data, six.text_type):
+                    data = data.encode('utf-8')
+
                 out += data
 
         stderr.write(self._get_decoded_data(out))

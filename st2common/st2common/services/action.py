@@ -342,23 +342,41 @@ def request_resume(liveaction, requester):
 def get_root_liveaction(liveaction_db):
     """Recursively ascends until the root liveaction is found
 
-    Useful for finding an original parent workflow. Pass in
-    any LiveActionDB instance, and this function will eventually
-    return the top-most liveaction, even if the two are one and
-    the same
+    Useful for finding an original parent workflow. Pass in any LiveActionDB instance,
+    and this function will eventually return the top-most liveaction, even if the two
+    are one and the same.
 
-    :param liveaction_db: The LiveActionDB instance for which to find
-                          the root parent
+    :param liveaction_db: The LiveActionDB instance for which to find the root parent.
     :rtype: LiveActionDB
     """
 
-    parent = liveaction_db.context.get("parent")
-    if parent:
-        parent_execution = ActionExecution.get(id=parent['execution_id'])
-        parent_liveaction = LiveAction.get(id=parent_execution.liveaction['id'])
-        return get_root_liveaction(parent_liveaction)
-    else:
+    parent = liveaction_db.context.get('parent')
+
+    if not parent:
         return liveaction_db
+
+    parent_execution = ActionExecution.get(id=parent['execution_id'])
+    parent_liveaction = LiveAction.get(id=parent_execution.liveaction['id'])
+    return get_root_liveaction(parent_liveaction)
+
+
+def get_root_execution(ac_ex_db):
+    """Recursively ascends until the root action execution is found
+
+    Useful for finding an original parent workflow. Pass in any ActionExecutionDB instance,
+    and this function will eventually return the top-most action execution, even if the two
+    are one and the same.
+
+    :param ac_ex_db: The ActionExecutionDB instance for which to find the root parent.
+    :rtype: ActionExecutionDB
+    """
+
+    if not ac_ex_db.parent:
+        return ac_ex_db
+
+    parent_ac_ex_db = ActionExecution.get(id=ac_ex_db.parent)
+
+    return get_root_execution(parent_ac_ex_db)
 
 
 def store_execution_output_data(execution_db, action_db, data, output_type='output',

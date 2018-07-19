@@ -1,0 +1,7 @@
+---
+name: join
+description: A basic workflow that demonstrate branching and join.
+pack: orchestra_tests
+runner_type: orchestra
+entry_point: workflows/join.yaml
+enabled: true
