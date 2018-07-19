@@ -75,7 +75,12 @@ def download_pack(pack, abs_repo_base='/opt/stackstorm/packs', verify_ssl=True, 
     """
     proxy_config = proxy_config or {}
 
-    pack_url, pack_version = get_repo_url(pack, proxy_config=proxy_config)
+    try:
+        pack_url, pack_version = get_repo_url(pack, proxy_config=proxy_config)
+    except Exception as e:
+        # Pack not found or similar
+        result = [None, pack, (False, str(e))]
+        return result
 
     result = [pack_url, None, None]
 
