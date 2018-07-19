@@ -102,7 +102,7 @@ def download_pack(pack, abs_repo_base='/opt/stackstorm/packs', verify_ssl=True, 
                        ref=pack_version)
 
             pack_ref = get_pack_ref(pack_dir=abs_local_path)
-            result[0] = pack_ref
+            result[1] = pack_ref
 
             # 2. Verify that the pack version if compatible with current StackStorm version
             if not force:
