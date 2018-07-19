@@ -120,47 +120,6 @@ def download_pack(pack, abs_repo_base='/opt/stackstorm/packs', verify_ssl=True, 
     return tuple(result)
 
 
-def get_repo_url(pack, proxy_config=None):
-    """
-     Retrieve pack repo url.
-
-     :rtype: ``str``
-
-     :return: (repo_url, version)
-     :rtype: tuple
-     """
-    pack_and_version = pack.split(PACK_VERSION_SEPARATOR)
-    name_or_url = pack_and_version[0]
-    version = pack_and_version[1] if len(pack_and_version) > 1 else None
-
-    if len(name_or_url.split('/')) == 1:
-        pack = get_pack_from_index(name_or_url, proxy_config=proxy_config)
-
-        if not pack:
-            raise Exception('No record of the "%s" pack in the index.' % (name_or_url))
-
-        return (pack['repo_url'], version)
-    else:
-        return (eval_repo_url(name_or_url), version)
-
-
-def eval_repo_url(repo_url):
-    """
-    Allow passing short GitHub style URLs.
-    """
-    if not repo_url:
-        raise Exception('No valid repo_url provided or could be inferred.')
-
-    if repo_url.startswith("file://"):
-        return repo_url
-    else:
-        if len(repo_url.split('/')) == 2 and 'git@' not in repo_url:
-            url = 'https://github.com/{}'.format(repo_url)
-        else:
-            url = repo_url
-        return url
-
-
 def clone_repo(temp_dir, repo_url, verify_ssl=True, ref='master'):
     # Switch to non-interactive mode
     os.environ['GIT_TERMINAL_PROMPT'] = '0'
@@ -295,6 +254,46 @@ def cleanup_repo(abs_local_path):
 
 
 # Utility functions
+def get_repo_url(pack, proxy_config=None):
+    """
+    Retrieve pack repo url.
+
+    :rtype: ``str``
+
+    :return: (repo_url, version)
+    :rtype: tuple
+    """
+    pack_and_version = pack.split(PACK_VERSION_SEPARATOR)
+    name_or_url = pack_and_version[0]
+    version = pack_and_version[1] if len(pack_and_version) > 1 else None
+
+    if len(name_or_url.split('/')) == 1:
+        pack = get_pack_from_index(name_or_url, proxy_config=proxy_config)
+
+        if not pack:
+            raise Exception('No record of the "%s" pack in the index.' % (name_or_url))
+
+        return (pack['repo_url'], version)
+    else:
+        return (eval_repo_url(name_or_url), version)
+
+
+def eval_repo_url(repo_url):
+    """
+    Allow passing short GitHub style URLs.
+    """
+    if not repo_url:
+        raise Exception('No valid repo_url provided or could be inferred.')
+
+    if repo_url.startswith("file://"):
+        return repo_url
+    else:
+        if len(repo_url.split('/')) == 2 and 'git@' not in repo_url:
+            url = 'https://github.com/{}'.format(repo_url)
+        else:
+            url = repo_url
+        return url
+
 
 def is_desired_pack(abs_pack_path, pack_name):
     # path has to exist.
