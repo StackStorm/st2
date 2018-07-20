@@ -28,6 +28,9 @@ Changed
   (system and current user scoped) . If you only want to display system scoped values (old behavior)
   you can do that by passing ``--scope=system`` argument to the ``st2 key list`` command
   (``st2 key list --scope=system``). (improvement) #4221
+* The orchestra conductor implemented event based state machines to manage state transition of
+  workflow execution. Interfaces to set workflow state and update task on action execution
+  completion have changed and calls to those interfaces are changed accordingly. (improvement)
 
 Fixed
 ~~~~~
