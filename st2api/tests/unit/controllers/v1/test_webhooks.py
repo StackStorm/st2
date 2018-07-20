@@ -169,7 +169,12 @@ class TestWebhooksController(FunctionalTest):
         else:
             data = {'form': ['test']}
 
-        self.app.post('/v1/webhooks/git', data, headers={'St2-Trace-Tag': 'tag1'})
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'St2-Trace-Tag': 'tag1'
+        }
+
+        self.app.post('/v1/webhooks/git', data, headers=headers)
         self.assertEqual(dispatch_mock.call_args[1]['payload']['headers']['Content-Type'],
                         'application/x-www-form-urlencoded')
         self.assertEqual(dispatch_mock.call_args[1]['payload']['body'], data)
