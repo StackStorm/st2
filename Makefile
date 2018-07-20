@@ -13,11 +13,11 @@ PYTHON_VERSION = python2.7
 
 BINARIES := bin
 
-# All components are prefixed by st2
-COMPONENTS := $(wildcard st2*)
+# All components are prefixed by st2 and not .egg-info.
+COMPONENTS := $(shell ls -a | grep ^st2 | grep -v .egg-info)
 COMPONENTS_RUNNERS := $(wildcard contrib/runners/*)
 
-COMPONENTS_WITH_RUNNERS := $(wildcard st2*) $(COMPONENTS_RUNNERS)
+COMPONENTS_WITH_RUNNERS := $(COMPONENTS) $(COMPONENTS_RUNNERS)
 
 COMPONENTS_TEST_DIRS := $(wildcard st2*/tests) $(wildcard contrib/runners/*/tests)
 
