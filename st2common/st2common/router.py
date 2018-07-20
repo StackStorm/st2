@@ -43,12 +43,6 @@ from st2common.util.http import parse_content_type_header
 
 LOG = logging.getLogger(__name__)
 
-# API enpoints which accept Content-Type other than application/json
-NON_JSON_API_ENDPOINTS = [
-    'mistral_validation_controller',
-    'webhooks_controller'
-]
-
 
 def op_resolver(op_id):
     module_name, func_name = op_id.split(':', 1)
@@ -363,16 +357,10 @@ class Router(object):
                 # All ouf our API endpoints except /exp/validation/mistral expect application/json
                 # so we explicitly set it to that if not provided (set to text/plain by the base
                 # http server) and if it's not /exp/validation/mistral API endpoint
-                if not self.is_gunicorn and content_type != 'application/json':
+                if not self.is_gunicorn and content_type == 'text/plain':
                     operation_id = endpoint['operationId']
 
-                    is_blacklisted = False
-                    for blacklisted_operation_id in NON_JSON_API_ENDPOINTS:
-                        if blacklisted_operation_id in operation_id:
-                            is_blacklisted = True
-                            break
-
-                    if not is_blacklisted:
+                    if 'mistral_validation_controller' not in operation_id:
                         content_type = 'application/json'
 
                 # Note: We also want to perform validation if no body is explicitly provided - in a
