@@ -61,7 +61,8 @@ def setup_app(config={}):
                      run_migrations=False,
                      config_args=config.get('config_args', None))
 
-    router = Router(debug=cfg.CONF.stream.debug, auth=cfg.CONF.auth.enable)
+    router = Router(debug=cfg.CONF.stream.debug, auth=cfg.CONF.auth.enable,
+                    is_gunicorn=is_gunicorn)
 
     spec = spec_loader.load_spec('st2common', 'openapi.yaml.j2')
     transforms = {
