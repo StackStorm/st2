@@ -396,10 +396,10 @@ tests: pytests
 pytests: compile requirements .flake8 .pylint .pytests-coverage
 
 .PHONY: .pytests
-.pytests: compile .configgen .generate-api-spec .unit-tests .itests clean
+.pytests: compile .configgen .generate-api-spec .unit-tests clean
 
 .PHONY: .pytests-coverage
-.pytests-coverage: .unit-tests-coverage-html .itests-coverage-html clean
+.pytests-coverage: .unit-tests-coverage-html clean
 
 .PHONY: unit-tests
 unit-tests: requirements .unit-tests
