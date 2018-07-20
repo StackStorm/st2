@@ -17,6 +17,7 @@ from __future__ import absolute_import
 
 import kombu
 
+from orchestra import events
 from orchestra import states
 
 from st2common import log as logging
@@ -57,7 +58,7 @@ class WorkflowDispatcher(consumers.MessageHandler):
         # Continue if workflow is still active.
         if conductor.get_workflow_state() not in states.COMPLETED_STATES:
             # Set workflow to running state.
-            conductor.set_workflow_state(states.RUNNING)
+            conductor.request_workflow_state(states.RUNNING)
 
         # Identify the next set of tasks to execute.
         next_tasks = conductor.get_next_tasks()
@@ -82,7 +83,8 @@ class WorkflowDispatcher(consumers.MessageHandler):
             # Mark the tasks as running in the task flow before actual task execution.
             for task in next_tasks:
                 LOG.info('[%s] Mark task "%s" as running.', wf_ac_ex_id, task['id'])
-                conductor.update_task_flow(task['id'], states.RUNNING)
+                ac_ex_event = events.ActionExecutionEvent(states.RUNNING)
+                conductor.update_task_flow(task['id'], ac_ex_event)
 
             # Update workflow execution and related liveaction and action execution.
             wf_svc.update_execution_records(wf_ex_db, conductor)
