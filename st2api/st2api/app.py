@@ -56,7 +56,8 @@ def setup_app(config={}):
     # Additional pre-run time checks
     validate_rbac_is_correctly_configured()
 
-    router = Router(debug=cfg.CONF.api.debug, auth=cfg.CONF.auth.enable)
+    router = Router(debug=cfg.CONF.api.debug, auth=cfg.CONF.auth.enable,
+                    is_gunicorn=is_gunicorn)
 
     spec = spec_loader.load_spec('st2common', 'openapi.yaml.j2')
     transforms = {
