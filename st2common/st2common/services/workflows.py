@@ -19,6 +19,7 @@ import copy
 import retrying
 
 from orchestra import conducting
+from orchestra import events
 from orchestra import exceptions as orchestra_exc
 from orchestra.specs import loader as specs_loader
 from orchestra import states
@@ -110,7 +111,7 @@ def request(wf_def, ac_ex_db, st2_ctx):
     conductor = conducting.WorkflowConductor(wf_spec, **conductor_params)
 
     # Set the initial workflow state to requested.
-    conductor.set_workflow_state(states.REQUESTED)
+    conductor.request_workflow_state(states.REQUESTED)
 
     # Serialize the conductor which initializes some internal values.
     data = conductor.serialize()
@@ -158,7 +159,7 @@ def request_pause(ac_ex_db):
     if conductor.get_workflow_state() in states.COMPLETED_STATES:
         raise wf_exc.WorkflowExecutionIsCompletedException(str(wf_ex_db.id))
 
-    conductor.set_workflow_state(states.PAUSED)
+    conductor.request_workflow_state(states.PAUSED)
 
     # Write the updated workflow state and task flow to the database.
     wf_ex_db.status = conductor.get_workflow_state()
@@ -199,7 +200,7 @@ def request_resume(ac_ex_db):
     if conductor.get_workflow_state() in states.RUNNING_STATES:
         raise wf_exc.WorkflowExecutionIsRunningException(str(wf_ex_db.id))
 
-    conductor.set_workflow_state(states.RESUMING)
+    conductor.request_workflow_state(states.RESUMING)
 
     # Write the updated workflow state and task flow to the database.
     wf_ex_db.status = conductor.get_workflow_state()
@@ -237,7 +238,7 @@ def request_cancellation(ac_ex_db):
     if conductor.get_workflow_state() in states.COMPLETED_STATES:
         raise wf_exc.WorkflowExecutionIsCompletedException(str(wf_ex_db.id))
 
-    conductor.set_workflow_state(states.CANCELED)
+    conductor.request_workflow_state(states.CANCELED)
 
     # Write the updated workflow state and task flow to the database.
     wf_ex_db.status = conductor.get_workflow_state()
@@ -491,7 +492,8 @@ def update_task_flow(task_ex_id, publish=True):
 
     # Update task flow if task execution is completed or paused.
     conductor, wf_ex_db = refresh_conductor(task_ex_db.workflow_execution)
-    conductor.update_task_flow(task_ex_db.task_id, task_ex_db.status, result=task_ex_db.result)
+    ac_ex_event = events.ActionExecutionEvent(task_ex_db.status, result=task_ex_db.result)
+    conductor.update_task_flow(task_ex_db.task_id, ac_ex_event)
 
     # Update workflow execution and related liveaction and action execution.
     update_execution_records(
@@ -513,7 +515,8 @@ def request_next_tasks(task_ex_id):
 
     # Update task flow if task execution is completed.
     conductor, wf_ex_db = refresh_conductor(task_ex_db.workflow_execution)
-    conductor.update_task_flow(task_ex_db.task_id, task_ex_db.status, result=task_ex_db.result)
+    ac_ex_event = events.ActionExecutionEvent(task_ex_db.status, result=task_ex_db.result)
+    conductor.update_task_flow(task_ex_db.task_id, ac_ex_event)
 
     # Identify the list of next set of tasks.
     next_tasks = conductor.get_next_tasks(task_ex_db.task_id)
@@ -529,7 +532,8 @@ def request_next_tasks(task_ex_id):
     while next_tasks:
         # Mark the tasks as running in the task flow before actual task execution.
         for task in next_tasks:
-            conductor.update_task_flow(task['id'], states.RUNNING)
+            ac_ex_event = events.ActionExecutionEvent(states.RUNNING)
+            conductor.update_task_flow(task['id'], ac_ex_event)
 
         # Update workflow execution and related liveaction and action execution.
         update_execution_records(wf_ex_db, conductor)
@@ -588,11 +592,12 @@ def update_workflow_execution(wf_ex_id):
 def resume_workflow_execution(wf_ex_id, task_ex_id):
     # Update workflow execution to running.
     conductor, wf_ex_db = refresh_conductor(wf_ex_id)
-    conductor.set_workflow_state(states.RUNNING)
+    conductor.request_workflow_state(states.RUNNING)
 
     # Update task execution in task flow to running.
     task_ex_db = wf_db_access.TaskExecution.get_by_id(task_ex_id)
-    conductor.update_task_flow(task_ex_db.task_id, states.RUNNING)
+    ac_ex_event = events.ActionExecutionEvent(states.RUNNING)
+    conductor.update_task_flow(task_ex_db.task_id, ac_ex_event)
 
     # Update workflow execution and related liveaction and action execution.
     update_execution_records(wf_ex_db, conductor)
@@ -603,7 +608,7 @@ def fail_workflow_execution(wf_ex_id, exception, task_id=None):
     conductor, wf_ex_db = refresh_conductor(wf_ex_id)
 
     # Set workflow execution status to failed and record error.
-    conductor.set_workflow_state(states.FAILED)
+    conductor.request_workflow_state(states.FAILED)
     conductor.log_error(str(exception), task_id=task_id)
 
     # Update workflow execution and related liveaction and action execution.
