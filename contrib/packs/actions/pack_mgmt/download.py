@@ -19,7 +19,7 @@ import os
 import six
 
 from st2common.runners.base_action import Action
-from st2common.pack_management.download import download_pack
+from st2common.util.pack_management import download_pack
 
 __all__ = [
     'DownloadGitRepoAction'

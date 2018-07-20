@@ -21,7 +21,7 @@ from oslo_config import cfg
 from st2common import config
 from st2common import log as logging
 from st2common.script_setup import setup as common_setup
-from st2common.pack_management.download import download_pack
+from st2common.util.pack_management import download_pack
 from st2common.util.virtualenvs import setup_pack_virtualenv
 
 __all__ = [

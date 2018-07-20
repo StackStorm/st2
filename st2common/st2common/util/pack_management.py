@@ -15,7 +15,7 @@
 # limitations under the License.
 
 """
-Module containing pack download and install related functions.
+Module containing pack management related functions.
 """
 
 from __future__ import absolute_import
