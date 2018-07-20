@@ -34,6 +34,7 @@ from unittest2 import TestCase
 import unittest2
 
 from orchestra import conducting
+from orchestra import events
 from orchestra.specs import loader as specs_loader
 from orchestra import states as wf_lib_states
 
@@ -535,10 +536,11 @@ class WorkflowTestCase(DbTestCase):
         }
 
         conductor = conducting.WorkflowConductor.deserialize(data)
-        conductor.set_workflow_state(wf_lib_states.RUNNING)
+        conductor.request_workflow_state(wf_lib_states.RUNNING)
 
         for task in conductor.get_start_tasks():
-            conductor.update_task_flow(task['id'], wf_lib_states.RUNNING)
+            ac_ex_event = events.ActionExecutionEvent(wf_lib_states.RUNNING)
+            conductor.update_task_flow(task['id'], ac_ex_event)
 
         wf_ex_db.status = conductor.get_workflow_state()
         wf_ex_db.flow = conductor.flow.serialize()
