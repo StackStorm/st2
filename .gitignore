@@ -24,6 +24,7 @@ develop-eggs
 .installed.cfg
 lib64
 virtualenv
+virtualenv-py3
 
 # Installer logs
 pip-log.txt
