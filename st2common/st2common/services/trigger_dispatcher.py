@@ -80,7 +80,8 @@ class TriggerDispatcherService(object):
         is_valid = True
 
         try:
-            validate_trigger_payload(trigger_type_ref=trigger, payload=payload)
+            validate_trigger_payload(trigger_type_ref=trigger, payload=payload,
+                                     throw_on_inexistent_trigger=True)
         except (ValidationError, Exception) as e:
             is_valid = False
             self._logger.warn('Failed to validate payload (%s) for trigger "%s": %s' %

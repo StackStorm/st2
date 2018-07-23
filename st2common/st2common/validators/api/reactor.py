@@ -109,7 +109,7 @@ def validate_trigger_parameters(trigger_type_ref, parameters):
     return cleaned
 
 
-def validate_trigger_payload(trigger_type_ref, payload):
+def validate_trigger_payload(trigger_type_ref, payload, throw_on_inexistent_trigger=False):
     """
     This function validates trigger payload parameters for system and user-defined triggers.
 
@@ -132,6 +132,11 @@ def validate_trigger_payload(trigger_type_ref, payload):
         trigger_type_db = triggers.get_trigger_type_db(trigger_type_ref)
         if not trigger_type_db:
             # Trigger doesn't exist in the database
+            if throw_on_inexistent_trigger:
+                msg = ('Trigger type with reference "%s" doesn\'t exist in the database' %
+                       (trigger_type_ref))
+                raise ValueError(msg)
+
             return None
 
         payload_schema = getattr(trigger_type_db, 'payload_schema', {})
