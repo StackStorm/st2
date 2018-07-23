@@ -55,7 +55,7 @@ def setup_app(config={}):
     # Additional pre-run time checks
     validate_auth_backend_is_correctly_configured()
 
-    router = Router(debug=cfg.CONF.auth.debug)
+    router = Router(debug=cfg.CONF.auth.debug, is_gunicorn=is_gunicorn)
 
     spec = spec_loader.load_spec('st2common', 'openapi.yaml.j2')
     transforms = {

@@ -146,9 +146,10 @@ class Response(webob.Response):
 
 
 class Router(object):
-    def __init__(self, arguments=None, debug=False, auth=True):
+    def __init__(self, arguments=None, debug=False, auth=True, is_gunicorn=True):
         self.debug = debug
         self.auth = auth
+        self.is_gunicorn = is_gunicorn
 
         self.arguments = arguments or {}
 
@@ -350,6 +351,17 @@ class Router(object):
                 content_type = req.headers.get('Content-Type', 'application/json')
                 content_type = parse_content_type_header(content_type=content_type)[0]
                 schema = param['schema']
+
+                # NOTE: HACK: Workaround for eventlet wsgi server which sets Content-Type to
+                # text/plain if Content-Type is not provided in the request.
+                # All ouf our API endpoints except /exp/validation/mistral expect application/json
+                # so we explicitly set it to that if not provided (set to text/plain by the base
+                # http server) and if it's not /exp/validation/mistral API endpoint
+                if not self.is_gunicorn and content_type == 'text/plain':
+                    operation_id = endpoint['operationId']
+
+                    if 'mistral_validation_controller' not in operation_id:
+                        content_type = 'application/json'
 
                 # Note: We also want to perform validation if no body is explicitly provided - in a
                 # lot of POST, PUT scenarios, body is mandatory
