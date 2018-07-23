@@ -146,7 +146,8 @@ class WebhooksController(object):
             self._trigger_dispatcher_service.dispatch_with_context(trigger=trigger,
                    payload=payload,
                    trace_context=trace_context,
-                   validate_payload=validate_payload)
+                   validate_payload=validate_payload,
+                   throw_on_validation_error=True)
         else:
             if not self._is_valid_hook(hook):
                 self._log_request('Invalid hook.', headers, body)
@@ -163,7 +164,8 @@ class WebhooksController(object):
                 self._trigger_dispatcher_service.dispatch_with_context(trigger=trigger,
                    payload=payload,
                    trace_context=trace_context,
-                   validate_payload=validate_payload)
+                   validate_payload=validate_payload,
+                   throw_on_validation_error=True)
 
         return Response(json=body, status=http_client.ACCEPTED)
 

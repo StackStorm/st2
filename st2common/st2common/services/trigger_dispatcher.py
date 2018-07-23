@@ -55,7 +55,7 @@ class TriggerDispatcherService(object):
         self.dispatch_with_context(trigger, payload=payload, trace_context=trace_context)
 
     def dispatch_with_context(self, trigger, payload=None, trace_context=None,
-                              validate_payload=None):
+                              validate_payload=None, throw_on_validation_error=False):
         """
         Method which dispatches the trigger.
 
@@ -70,6 +70,10 @@ class TriggerDispatcherService(object):
 
         :param validate_payload: True to validate trigger payload against the trigger schema.
         :type validate_payload: ``boolean``
+
+        :param throw_on_validation_error: True to throw on validation error (if validate_payload is
+                                          True) instead of logging the error.
+        :type throw_on_validation_error: ``boolean``
         """
         if validate_payload is None:
             # If not provided, use a default value from the config
@@ -90,8 +94,13 @@ class TriggerDispatcherService(object):
         # If validation is disabled, still dispatch a trigger even if it failed validation
         # This condition prevents unexpected restriction.
         if not is_valid and validate_payload:
-            self._logger.warn('Trigger payload validation failed and validation is enabled, not '
-                              'dispatching a trigger "%s" (%s)' % (trigger, str(payload)))
+            msg = ('Trigger payload validation failed and validation is enabled, not '
+                   'dispatching a trigger "%s" (%s): %s' % (trigger, str(payload), str(e)))
+
+            if throw_on_validation_error:
+                raise ValueError(msg)
+
+            self._logger.warn(msg)
             return None
 
         self._logger.debug('Dispatching trigger %s with payload %s.', trigger, payload)
