@@ -30,7 +30,7 @@ from st2common.persistence.db_init import db_setup_with_retry
 from st2common.util import loader
 from st2common.util.config_loader import ContentPackConfigLoader
 from st2common.services.triggerwatcher import TriggerWatcher
-from st2common.services.trigger_dispatcher import BaseTriggerDispatcherService
+from st2common.services.trigger_dispatcher import TriggerDispatcherService
 from st2reactor.sensor.base import Sensor
 from st2reactor.sensor.base import PollingSensor
 from st2reactor.sensor import config
@@ -47,17 +47,17 @@ monkey_patch()
 use_select_poll_workaround(nose_only=False)
 
 
-class SensorService(BaseTriggerDispatcherService):
+class SensorService(object):
     """
     Instance of this class is passed to the sensor instance and exposes "public"
     methods which can be called by the sensor.
     """
 
     def __init__(self, sensor_wrapper):
-        super(SensorService, self).__init__(logger=sensor_wrapper._logger)
-
         self._sensor_wrapper = sensor_wrapper
         self._logger = self._sensor_wrapper._logger
+
+        self._trigger_dispatcher_service = TriggerDispatcherService(logger=sensor_wrapper._logger)
         self._datastore_service = SensorDatastoreService(
             logger=self._logger,
             pack_name=self._sensor_wrapper._pack,
@@ -93,8 +93,8 @@ class SensorService(BaseTriggerDispatcherService):
 
     def dispatch(self, trigger, payload=None, trace_tag=None):
         # Provided by the parent BaseTriggerDispatcherService class
-        return super(SensorService, self).dispatch(trigger=trigger, payload=payload,
-                                                   trace_tag=trace_tag)
+        return self._trigger_dispatcher_service.dispatch(trigger=trigger, payload=payload,
+                                                         trace_tag=trace_tag)
 
     def dispatch_with_context(self, trigger, payload=None, trace_context=None):
         """
@@ -110,8 +110,9 @@ class SensorService(BaseTriggerDispatcherService):
         :type trace_context: ``st2common.api.models.api.trace.TraceContext``
         """
         # Provided by the parent BaseTriggerDispatcherService class
-        return super(SensorService, self).dispatch_with_context(trigger=trigger, payload=payload,
-                                                                trace_context=trace_context)
+        return self._trigger_dispatcher_service.dispatch_with_context(trigger=trigger,
+                                                                      payload=payload,
+                                                                      trace_context=trace_context)
 
     ##################################
     # Methods for datastore management
