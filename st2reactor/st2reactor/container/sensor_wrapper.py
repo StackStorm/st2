@@ -54,7 +54,7 @@ class SensorService(BaseTriggerDispatcherService):
     """
 
     def __init__(self, sensor_wrapper):
-        super(BaseTriggerDispatcherService, self).__init__(logger=self._sensor_wrapper._logger)
+        super(SensorService, self).__init__(logger=sensor_wrapper._logger)
 
         self._sensor_wrapper = sensor_wrapper
         self._logger = self._sensor_wrapper._logger
