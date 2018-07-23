@@ -21,23 +21,20 @@ import argparse
 import traceback
 
 from oslo_config import cfg
-from jsonschema import ValidationError
 
 from st2common import log as logging
 from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.logging.misc import set_log_level_for_all_loggers
-from st2common.models.api.trace import TraceContext
 from st2common.models.api.trigger import TriggerAPI
 from st2common.persistence.db_init import db_setup_with_retry
-from st2common.transport.reactor import TriggerDispatcher
 from st2common.util import loader
 from st2common.util.config_loader import ContentPackConfigLoader
 from st2common.services.triggerwatcher import TriggerWatcher
+from st2common.services.trigger_dispatcher import BaseTriggerDispatcherService
 from st2reactor.sensor.base import Sensor
 from st2reactor.sensor.base import PollingSensor
 from st2reactor.sensor import config
 from st2common.services.datastore import SensorDatastoreService
-from st2common.validators.api.reactor import validate_trigger_payload
 from st2common.util.monkey_patch import monkey_patch
 from st2common.util.monkey_patch import use_select_poll_workaround
 
@@ -50,16 +47,17 @@ monkey_patch()
 use_select_poll_workaround(nose_only=False)
 
 
-class SensorService(object):
+class SensorService(BaseTriggerDispatcherService):
     """
     Instance of this class is passed to the sensor instance and exposes "public"
     methods which can be called by the sensor.
     """
 
     def __init__(self, sensor_wrapper):
+        super(BaseTriggerDispatcherService, self).__init__(logger=self._sensor_wrapper._logger)
+
         self._sensor_wrapper = sensor_wrapper
         self._logger = self._sensor_wrapper._logger
-        self._dispatcher = TriggerDispatcher(self._logger)
         self._datastore_service = SensorDatastoreService(
             logger=self._logger,
             pack_name=self._sensor_wrapper._pack,
@@ -94,22 +92,9 @@ class SensorService(object):
     ##################################
 
     def dispatch(self, trigger, payload=None, trace_tag=None):
-        """
-        Method which dispatches the trigger.
-
-        :param trigger: Full name / reference of the trigger.
-        :type trigger: ``str``
-
-        :param payload: Trigger payload.
-        :type payload: ``dict``
-
-        :param trace_tag: Tracer to track the triggerinstance.
-        :type trace_tags: ``str``
-        """
-        # empty strings
-        trace_context = TraceContext(trace_tag=trace_tag) if trace_tag else None
-        self._logger.debug('Added trace_context %s to trigger %s.', trace_context, trigger)
-        self.dispatch_with_context(trigger, payload=payload, trace_context=trace_context)
+        # Provided by the parent BaseTriggerDispatcherService class
+        return super(SensorService, self).dispatch(trigger=trigger, payload=payload,
+                                                   trace_tag=trace_tag)
 
     def dispatch_with_context(self, trigger, payload=None, trace_context=None):
         """
@@ -124,24 +109,9 @@ class SensorService(object):
         :param trace_context: Trace context to associate with Trigger.
         :type trace_context: ``st2common.api.models.api.trace.TraceContext``
         """
-        # This means specified payload is complied with trigger_type schema, or not.
-        is_valid = True
-        try:
-            validate_trigger_payload(trigger_type_ref=trigger, payload=payload)
-        except (ValidationError, Exception) as e:
-            is_valid = False
-            self._logger.warn('Failed to validate payload (%s) for trigger "%s": %s' %
-                              (str(payload), trigger, str(e)))
-
-        # If validation is disabled, still dispatch a trigger even if it failed validation
-        # This condition prevents unexpected restriction.
-        if not is_valid and cfg.CONF.system.validate_trigger_payload:
-            self._logger.warn('Trigger payload validation failed and validation is enabled, not '
-                              'dispatching a trigger "%s" (%s)' % (trigger, str(payload)))
-            return None
-
-        self._logger.debug('Dispatching trigger %s with payload %s.', trigger, payload)
-        self._dispatcher.dispatch(trigger, payload=payload, trace_context=trace_context)
+        # Provided by the parent BaseTriggerDispatcherService class
+        return super(SensorService, self).dispatch_with_context(trigger=trigger, payload=payload,
+                                                                trace_context=trace_context)
 
     ##################################
     # Methods for datastore management
