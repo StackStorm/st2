@@ -16,10 +16,6 @@
 from __future__ import absolute_import
 
 from st2common.runners.base_action import Action
-from st2common.database_setup import db_setup
-from st2common.database_setup import db_teardown
-from st2common.transport.bootstrap_utils import register_exchanges_with_retry
-from st2common.services.trigger_dispatcher import BaseTriggerDispatcherService
 
 __all__ = [
     'InjectTriggerAction'
@@ -37,13 +33,12 @@ class InjectTriggerAction(Action):
     def run(self, trigger, payload=None, trace_tag=None):
         payload = payload or {}
 
-        # 1. Establish connection to the database
-        db_setup()
-        register_exchanges_with_retry()
+        datastore_service = self.action_service.datastore_service
+        client = datastore_service._get_api_client()
 
-        # 2. Dispatch the trigger
-        try:
-            service = BaseTriggerDispatcherService(logger=self.logger)
-            return service.dispatch(trigger=trigger, payload=payload, trace_tag=trace_tag)
-        finally:
-            db_teardown()
+        # Dispatch the trigger using the API
+        self.logger.debug('Injecting trigger "%s" with payload="%s"' % (trigger, str(payload)))
+        result = client.webhooks.post_generic_webhook(trigger=trigger, payload=payload,
+                                                      trace_tag=trace_tag)
+
+        return result
