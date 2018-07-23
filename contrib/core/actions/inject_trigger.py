@@ -30,6 +30,10 @@ class InjectTriggerAction(Action):
         client = datastore_service.get_api_client()
 
         # Dispatch the trigger using the /webhooks/st2 API endpoint
+        # NOTE: Webhooks API endpoint is asynchronous so we don't know if the actual injection
+        # results in a TriggerInstanceDB database object creation or not. The object is created
+        # inside rulesengine service and could fail due to the user providing an invalid trigger
+        # reference or similar.
         self.logger.debug('Injecting trigger "%s" with payload="%s"' % (trigger, str(payload)))
         result = client.webhooks.post_generic_webhook(trigger=trigger, payload=payload,
                                                       trace_tag=trace_tag)
