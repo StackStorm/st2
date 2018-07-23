@@ -40,7 +40,8 @@ class SensorServiceTestCase(unittest2.TestCase):
 
         self.sensor_service = SensorService(mock.MagicMock())
         self.sensor_service._trigger_dispatcher_service._dispatcher = mock.Mock()
-        self.sensor_service._trigger_dispatcher_service._dispatcher.dispatch = mock.MagicMock(side_effect=side_effect)
+        self.sensor_service._trigger_dispatcher_service._dispatcher.dispatch = \
+            mock.MagicMock(side_effect=side_effect)
         self._dispatched_count = 0
 
         # Previously, cfg.CONF.system.validate_trigger_payload was set to False explicitly
