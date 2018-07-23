@@ -23,20 +23,13 @@ __all__ = [
 
 
 class InjectTriggerAction(Action):
-    """
-    NOTE: Server where this action run needs to have access to the database.
-
-    That's always the case right now, but if this assertion changes in the future, we should move
-    to utilizing the API for dispatching a trigger.
-    """
-
     def run(self, trigger, payload=None, trace_tag=None):
         payload = payload or {}
 
         datastore_service = self.action_service.datastore_service
         client = datastore_service.get_api_client()
 
-        # Dispatch the trigger using the API
+        # Dispatch the trigger using the /webhooks/st2 API endpoint
         self.logger.debug('Injecting trigger "%s" with payload="%s"' % (trigger, str(payload)))
         result = client.webhooks.post_generic_webhook(trigger=trigger, payload=payload,
                                                       trace_tag=trace_tag)
