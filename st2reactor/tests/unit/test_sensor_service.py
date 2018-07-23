@@ -39,8 +39,8 @@ class SensorServiceTestCase(unittest2.TestCase):
             self._dispatched_count += 1
 
         self.sensor_service = SensorService(mock.MagicMock())
-        self.sensor_service._dispatcher = mock.Mock()
-        self.sensor_service._dispatcher.dispatch = mock.MagicMock(side_effect=side_effect)
+        self.sensor_service._trigger_dispatcher_service._dispatcher = mock.Mock()
+        self.sensor_service._trigger_dispatcher_service._dispatcher.dispatch = mock.MagicMock(side_effect=side_effect)
         self._dispatched_count = 0
 
         # Previously, cfg.CONF.system.validate_trigger_payload was set to False explicitly
@@ -203,11 +203,11 @@ class SensorServiceTestCase(unittest2.TestCase):
 
     @mock.patch('st2common.services.triggers.get_trigger_type_db',
                 mock.MagicMock(return_value=None))
-    def test_dispatch_trigger__type_not_in_db_should_still_dispatch(self):
+    def test_dispatch_trigger_type_not_in_db_should_not_dispatch(self):
         cfg.CONF.system.validate_trigger_payload = True
 
         self.sensor_service.dispatch('not-in-database-ref', {})
-        self.assertEqual(self._dispatched_count, 1)
+        self.assertEqual(self._dispatched_count, 0)
 
     def test_datastore_methods(self):
         self.sensor_service._datastore_service = mock.Mock()
