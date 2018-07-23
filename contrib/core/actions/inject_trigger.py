@@ -34,7 +34,7 @@ class InjectTriggerAction(Action):
         payload = payload or {}
 
         datastore_service = self.action_service.datastore_service
-        client = datastore_service._get_api_client()
+        client = datastore_service.get_api_client()
 
         # Dispatch the trigger using the API
         self.logger.debug('Injecting trigger "%s" with payload="%s"' % (trigger, str(payload)))
