@@ -8,7 +8,7 @@ fi
 
 # Note: MongoDB 2.4 and 2.6 don't work with ramdisk since they don't work with
 # small files and require at least 3 GB of space
-if [ ${MONGODB} = '2.4.9' ] || [ ${MONGODB} = '2.6.12' ]; then
+if [ "${MONGODB_VERSION}" = '2.4.9' ] || [ "${MONGODB_VERSION}" = '2.6.12' ]; then
     DATA_DIR=/tmp/mongodbdata
 else
     DATA_DIR=/mnt/ramdisk/mongodb
@@ -33,9 +33,9 @@ echo "Starting MongoDB v${MONGODB_VERSION}"
 # Note: We use --notablescan option to detected missing indexes early. When this
 # option is enabled, queries which result in table scan (which usually means a
 # missing index or a bad query) are not allowed and result in a failed test.
+#--wiredTigerStatisticsLogDelaySecs 0 --noIndexBuildRetry --noscripting --notablescan \
 ${MONGODB_DIR}/bin/mongod --nojournal --journalCommitInterval 500 --syncdelay 0 \
     --wiredTigerStatisticsLogDelaySecs 0 --noIndexBuildRetry --noscripting \
-    #--wiredTigerStatisticsLogDelaySecs 0 --noIndexBuildRetry --noscripting --notablescan \
     --dbpath ${DATA_DIR} --bind_ip 127.0.0.1 &> /tmp/mongodb.log &
 MONGODB_PID=$!
 
