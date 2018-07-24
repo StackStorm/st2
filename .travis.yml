@@ -40,7 +40,6 @@ addons:
       - git
 
 services:
-  - mongodb
   - rabbitmq
 
 cache:
