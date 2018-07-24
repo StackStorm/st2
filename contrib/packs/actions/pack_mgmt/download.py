@@ -82,7 +82,7 @@ class DownloadGitRepoAction(Action):
         if self.proxy_ca_bundle_path and not os.environ.get('proxy_ca_bundle_path', None):
             os.environ['no_proxy'] = self.no_proxy
 
-    def run(self, packs, abs_repo_base, verifyssl=True, force=False, deploy_key=None):
+    def run(self, packs, abs_repo_base, verifyssl=True, force=False, deploykey=None):
         result = {}
 
         for pack in packs:
@@ -107,7 +107,7 @@ class DownloadGitRepoAction(Action):
                     abs_local_path = os.path.join(user_home, temp_dir_name)
                     self._clone_repo(temp_dir=abs_local_path, repo_url=pack_url,
                                      verifyssl=verifyssl, ref=pack_version,
-                                     deploy_key=deploy_key)
+                                     deploykey=deploykey)
 
                     pack_ref = self._get_pack_ref(abs_local_path)
 
@@ -122,7 +122,7 @@ class DownloadGitRepoAction(Action):
         return self._validate_result(result=result, repo_url=pack_url)
 
     @staticmethod
-    def _clone_repo(temp_dir, repo_url, verifyssl=True, ref='master', deploy_key=None):
+    def _clone_repo(temp_dir, repo_url, verifyssl=True, ref='master', deploykey=None):
         # Switch to non-interactive mode
         os.environ['GIT_TERMINAL_PROMPT'] = '0'
         os.environ['GIT_ASKPASS'] = '/bin/echo'
@@ -134,8 +134,8 @@ class DownloadGitRepoAction(Action):
         # Clone the repo from git; we don't use shallow copying
         # because we want the user to work with the repo in the
         # future.
-        if deploy_key:
-            ssh_cmd = ' ssh -i {} '.format(deploy_key)
+        if deploykey:
+            ssh_cmd = ' ssh -i %s ' % deploykey
             git_instance = Git()
             with git_instance.custom_environment(GIT_SSH_COMMAND=ssh_cmd):
                 repo = Repo.clone_from(repo_url, temp_dir)
