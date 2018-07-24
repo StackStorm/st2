@@ -81,7 +81,7 @@ class TriggerDispatcherService(object):
 
         # Indicates if the provided trigger payload complies with the trigger schema (if one is
         # defined)
-        is_valid = True
+        is_valid = False
 
         try:
             validate_trigger_payload(trigger_type_ref=trigger, payload=payload,
@@ -90,6 +90,8 @@ class TriggerDispatcherService(object):
             is_valid = False
             self._logger.warn('Failed to validate payload (%s) for trigger "%s": %s' %
                               (str(payload), trigger, str(e)))
+        else:
+            is_valid = True
 
         # If validation is disabled, still dispatch a trigger even if it failed validation
         # This condition prevents unexpected restriction.
