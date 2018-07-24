@@ -82,7 +82,8 @@ before_cache:
   - if [ ${TRAVIS_PULL_REQUEST} = 'false' ]; then rm -rf virtualenv/; fi
 
 after_success:
-  - if [ ${TASK} = 'ci-unit' ] || [ ${TASK} = 'ci-integration' ]; then codecov; fi
+  # NOTE: We only generate and submit coverage report for master and version branches
+  - if [ ${TASK} = 'ci-unit' ] || [ ${TASK} = 'ci-integration' ] && [ ${TRAVIS_PULL_REQUEST} = 'false' ]; then codecov; fi
 
 # https://docs.travis-ci.com/user/notifications/#Webhooks-Delivery-Format
 #notifications:
