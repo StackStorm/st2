@@ -201,10 +201,7 @@ class BaseDbTestCase(BaseTestCase):
             cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
             username=username, password=password, ensure_indexes=False)
 
-        # NOTE: In older MongoDB versions you needed to drop all the collections prior to dropping
-        # the database - that's not needed anymore with the wiredtiger engine
-        # cls._drop_collections()
-
+        cls._drop_collections()
         cls.db_connection.drop_database(cfg.CONF.database.db_name)
 
         # Explicity ensure indexes after we re-create the DB otherwise ensure_indexes could failure
@@ -214,9 +211,7 @@ class BaseDbTestCase(BaseTestCase):
 
     @classmethod
     def _drop_db(cls):
-        # NOTE: In older MongoDB versions you needed to drop all the collections prior to dropping
-        # the database - that's not needed anymore with the wiredtiger engine
-        # cls._drop_collections()
+        cls._drop_collections()
 
         if cls.db_connection is not None:
             cls.db_connection.drop_database(cfg.CONF.database.db_name)
@@ -226,12 +221,17 @@ class BaseDbTestCase(BaseTestCase):
 
     @classmethod
     def _drop_collections(cls):
-        # XXX: Explicitly drop all the collection. Otherwise, artifacts are left over in
+        # XXX: Explicitly drop all the collections. Otherwise, artifacts are left over in
         # subsequent tests.
         # See: https://github.com/MongoEngine/mongoengine/issues/566
         # See: https://github.com/MongoEngine/mongoengine/issues/565
-        for model in ALL_MODELS:
-            model.drop_collection()
+
+        # NOTE: In older MongoDB versions you needed to drop all the collections prior to dropping
+        # the database - that's not needed anymore with the WiredTiger engine
+
+        # for model in ALL_MODELS:
+        #     model.drop_collection()
+        return
 
 
 class DbTestCase(BaseDbTestCase):
