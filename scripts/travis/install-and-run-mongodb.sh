@@ -34,7 +34,8 @@ echo "Starting MongoDB v${MONGODB_VERSION}"
 # option is enabled, queries which result in table scan (which usually means a
 # missing index or a bad query) are not allowed and result in a failed test.
 ${MONGODB_DIR}/bin/mongod --nojournal --journalCommitInterval 500 --syncdelay 0 \
-    --wiredTigerStatisticsLogDelaySecs 0 --noIndexBuildRetry --noscripting --notablescan \
+    --wiredTigerStatisticsLogDelaySecs 0 --noIndexBuildRetry --noscripting \
+    #--wiredTigerStatisticsLogDelaySecs 0 --noIndexBuildRetry --noscripting --notablescan \
     --dbpath ${DATA_DIR} --bind_ip 127.0.0.1 &> /tmp/mongodb.log &
 MONGODB_PID=$!
 
