@@ -50,18 +50,6 @@ PIP_OPTIONS := $(ST2_PIP_OPTIONS)
 NOSE_OPTS := --rednose --immediate --with-parallel
 NOSE_TIME := $(NOSE_TIME)
 
-TRAVIS_PULL_REQUEST := $(TRAVIS_PULL_REQUEST)
-
-# NOTE: We only run coverage on master and version branches and not on pull requests since
-# it has a big performance overhead and is very slow.
-ifdef TRAVIS_PULL_REQUEST
-	NOSE_COVERAGE_FLAGS := --with-coverage --cover-branches --cover-erase
-	NOSE_COVERAGE_PACKAGES := --cover-package=$(COMPONENTS_TEST_COMMA)
-else
-	NOSE_COVERAGE_FLAGS = ""
-	NOSE_COVERAGE_PACKAGES = ""
-endif
-
 ifdef NOSE_TIME
 	NOSE_OPTS := --rednose --immediate --with-parallel --with-timer
 endif
@@ -70,9 +58,18 @@ ifndef PIP_OPTIONS
 	PIP_OPTIONS :=
 endif
 
-ifneq ($(INCLUDE_TESTS_IN_COVERAGE),)
-	NOSE_COVERAGE_FLAGS += --cover-tests
-	NOSE_COVERAGE_PACKAGES := $(NOSE_COVERAGE_PACKAGES),$(COMPONENTS_TEST_MODULES_COMMA)
+# NOTE: We only run coverage on master and version branches and not on pull requests since
+# it has a big performance overhead and is very slow.
+TRAVIS_PULL_REQUEST := $(TRAVIS_PULL_REQUEST)
+
+ifeq ($(TRAVIS_PULL_REQUEST),false)
+	NOSE_COVERAGE_FLAGS := --with-coverage --cover-branches --cover-erase
+	NOSE_COVERAGE_PACKAGES := --cover-package=$(COMPONENTS_TEST_COMMA)
+
+	ifneq ($(INCLUDE_TESTS_IN_COVERAGE),)
+		NOSE_COVERAGE_FLAGS += --cover-tests
+		NOSE_COVERAGE_PACKAGES := $(NOSE_COVERAGE_PACKAGES),$(COMPONENTS_TEST_MODULES_COMMA)
+	endif
 endif
 
 .PHONY: all
@@ -435,7 +432,9 @@ unit-tests: requirements .unit-tests
 
 .PHONY: .run-unit-tests-coverage
 ifneq ($(INCLUDE_TESTS_IN_COVERAGE),)
-.run-unit-tests-coverage: NOSE_COVERAGE_PACKAGES := $(NOSE_COVERAGE_PACKAGES),tests.unit
+	ifneq ($(NOSE_COVERAGE_FLAGS),)
+		.run-unit-tests-coverage: NOSE_COVERAGE_PACKAGES := $(NOSE_COVERAGE_PACKAGES),tests.unit
+	endif
 endif
 .run-unit-tests-coverage:
 	@echo
@@ -448,10 +447,9 @@ endif
 		echo "Running tests in" $$component; \
 		echo "-----------------------------------------------------------"; \
 		. $(VIRTUALENV_DIR)/bin/activate; \
-		    COVERAGE_FILE=.coverage.unit.$$(echo $$component | tr '/' '.') \
-		    nosetests $(NOSE_OPTS) -s -v $(NOSE_COVERAGE_FLAGS) \
-		    $(NOSE_COVERAGE_PACKAGES) \
-		    $$component/tests/unit || exit 1; \
+			COVERAGE_FILE=.coverage.unit.$$(echo $$component | tr '/' '.') \
+			nosetests $(NOSE_OPTS) -s -v $(NOSE_COVERAGE_FLAGS) $(NOSE_COVERAGE_PACKAGES) \
+			$$component/tests/unit || exit 1; \
 		echo "-----------------------------------------------------------"; \
 		echo "Done running tests in" $$component; \
 		echo "==========================================================="; \
@@ -507,7 +505,9 @@ itests: requirements .itests
 
 .PHONY: .run-integration-tests-coverage
 ifneq ($(INCLUDE_TESTS_IN_COVERAGE),)
-.run-integration-tests-coverage: NOSE_COVERAGE_PACKAGES := $(NOSE_COVERAGE_PACKAGES),tests.integration
+	ifneq ($(NOSE_COVERAGE_FLAGS),)
+		.run-integration-tests-coverage: NOSE_COVERAGE_PACKAGES := $(NOSE_COVERAGE_PACKAGES),tests.integration
+	endif
 endif
 .run-integration-tests-coverage:
 	@echo
