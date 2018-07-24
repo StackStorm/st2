@@ -458,29 +458,36 @@ endif
 
 .PHONY: .combine-unit-tests-coverage
 .combine-unit-tests-coverage: .run-unit-tests-coverage
-	. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.unit \
-	    coverage combine .coverage.unit.*
+	@if [ -n "$(NOSE_COVERAGE_FLAGS)" ]; then \
+	    . $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.unit \
+	        coverage combine .coverage.unit.*; \
+	fi
 
 .coverage.unit:
-	@compgen -G '.coverage.unit.*' && \
+	@if compgen -G '.coverage.unit.*'; then \
 		for coverage_result in $$(compgen -G '.coverage.unit.*'); do \
 			echo "Combining data from $${coverage_result}"; \
 			. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.unit \
 			coverage combine $${coverage_result}; \
-		done \
-	|| \
+		done; \
+	else \
 		echo "Running unit tests"; \
-		make .combine-unit-tests-coverage
+		make .combine-unit-tests-coverage; \
+	fi
 
 .PHONY: .report-unit-tests-coverage
 .report-unit-tests-coverage: .coverage.unit
-	. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.unit \
-	    coverage report
+	@if [ -n "$(NOSE_COVERAGE_FLAGS)" ]; then \
+	    . $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.unit \
+	        coverage report; \
+	fi
 
 .PHONY: .unit-tests-coverage-html
 .unit-tests-coverage-html: .coverage.unit
-	. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.unit \
-	    coverage html
+	@if [ -n "$(NOSE_COVERAGE_FLAGS)" ]; then \
+	    . $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.unit \
+	        coverage html; \
+	fi
 
 .PHONY: itests
 itests: requirements .itests
@@ -530,29 +537,36 @@ endif
 
 .PHONY: .combine-integration-tests-coverage
 .combine-integration-tests-coverage: .run-integration-tests-coverage
-	. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.integration \
-	    coverage combine .coverage.integration.*
+	@if [ -n "$(NOSE_COVERAGE_FLAGS)" ]; then \
+	    . $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.integration \
+	        coverage combine .coverage.integration.*; \
+	fi
 
 .coverage.integration:
-	@compgen -G '.coverage.integration.*' && \
+	@if compgen -G '.coverage.integration.*'; then \
 		for coverage_result in $$(compgen -G '.coverage.integration.*'); do \
 			echo "Combining data from $${coverage_result}"; \
 			. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.integration \
 			coverage combine $${coverage_result}; \
-		done \
-	|| \
+		done; \
+	else \
 		echo "Running integration tests"; \
-		make .combine-integration-tests-coverage
+		make .combine-integration-tests-coverage; \
+	fi
 
 .PHONY: .report-integration-tests-coverage
 .report-integration-tests-coverage: .coverage.integration
-	@. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.integration \
-	    coverage report
+	@if [ -n "$(NOSE_COVERAGE_FLAGS)" ]; then \
+	    . $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.integration \
+	        coverage report; \
+	fi
 
 .PHONY: .integration-tests-coverage-html
 .integration-tests-coverage-html: .coverage.integration
-	@. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.integration \
-	    coverage html
+	@if [ -n "$(NOSE_COVERAGE_FLAGS)" ]; then \
+	    . $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.integration \
+	        coverage html; \
+	fi
 
 .PHONY: .itests-coverage-html
 .itests-coverage-html: .integration-tests-coverage-html
