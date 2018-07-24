@@ -22,7 +22,6 @@ import re
 
 import six
 from git.repo import Repo
-from git.cmd import Git
 from gitdb.exc import BadName, BadObject
 from lockfile import LockFile
 
@@ -130,17 +129,16 @@ class DownloadGitRepoAction(Action):
         # Disable SSL cert checking if explictly asked
         if not verifyssl:
             os.environ['GIT_SSL_NO_VERIFY'] = 'true'
+        
+        # Set ssh command if given a deploy key
+        if deploykey:
+            ssh_cmd = ' ssh -i %s ' % deploykey
+            os.environ['GIT_SSH_COMMAND'] = ssh_cmd
 
         # Clone the repo from git; we don't use shallow copying
         # because we want the user to work with the repo in the
-        # future.
-        if deploykey:
-            ssh_cmd = ' ssh -i %s ' % deploykey
-            git_instance = Git()
-            with git_instance.custom_environment(GIT_SSH_COMMAND=ssh_cmd):
-                repo = Repo.clone_from(repo_url, temp_dir)
-        else:
-            repo = Repo.clone_from(repo_url, temp_dir)
+        # future.                
+        repo = Repo.clone_from(repo_url, temp_dir)
         active_branch = repo.active_branch
 
         use_branch = False
