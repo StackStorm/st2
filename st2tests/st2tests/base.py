@@ -176,6 +176,7 @@ class EventletTestCase(TestCase):
 
 
 class BaseDbTestCase(BaseTestCase):
+    ensure_indexes = False
 
     # Set to True to enable printing of all the log messages to the console
     DISPLAY_LOG_MESSAGES = False
@@ -238,7 +239,6 @@ class DbTestCase(BaseDbTestCase):
     current_result = None
     register_packs = False
     register_pack_configs = False
-    ensure_indexes = False
 
     @classmethod
     def setUpClass(cls):
