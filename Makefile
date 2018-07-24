@@ -61,17 +61,21 @@ endif
 # NOTE: We only run coverage on master and version branches and not on pull requests since
 # it has a big performance overhead and is very slow.
 ifeq ($(TRAVIS_PULL_REQUEST),false)
+	ENABLE_COVERAGE := yes
+endif
+
+ifdef ENABLE_COVERAGE
 	NOSE_COVERAGE_FLAGS := --with-coverage --cover-branches --cover-erase
 	NOSE_COVERAGE_PACKAGES := --cover-package=$(COMPONENTS_TEST_COMMA)
-
-	ifneq ($(INCLUDE_TESTS_IN_COVERAGE),)
-		NOSE_COVERAGE_FLAGS += --cover-tests
-		NOSE_COVERAGE_PACKAGES := $(NOSE_COVERAGE_PACKAGES),$(COMPONENTS_TEST_MODULES_COMMA)
-	endif
 else
-	# If we aren't running test coverage, don't try to include tests in coverage
-	# results
 	INCLUDE_TESTS_IN_COVERAGE :=
+endif
+
+# If we aren't running test coverage, don't try to include tests in coverage
+# results
+ifdef INCLUDE_TESTS_IN_COVERAGE
+	NOSE_COVERAGE_FLAGS += --cover-tests
+	NOSE_COVERAGE_PACKAGES := $(NOSE_COVERAGE_PACKAGES),$(COMPONENTS_TEST_MODULES_COMMA)
 endif
 
 .PHONY: all
@@ -108,9 +112,15 @@ play:
 	@echo
 	@echo COMPONENT_PYTHONPATH=$(COMPONENT_PYTHONPATH)
 	@echo
+	@echo TRAVIS_PULL_REQUEST=$(TRAVIS_PULL_REQUEST)
+	@echo
+	@echo ENABLE_COVERAGE=$(ENABLE_COVERAGE)
+	@echo
 	@echo NOSE_COVERAGE_FLAGS=$(NOSE_COVERAGE_FLAGS)
 	@echo
 	@echo NOSE_COVERAGE_PACKAGES=$(NOSE_COVERAGE_PACKAGES)
+	@echo
+	@echo INCLUDE_TESTS_IN_COVERAGE=$(INCLUDE_TESTS_IN_COVERAGE)
 	@echo
 
 .PHONY: check
@@ -433,7 +443,7 @@ unit-tests: requirements .unit-tests
 	done
 
 .PHONY: .run-unit-tests-coverage
-ifneq ($(INCLUDE_TESTS_IN_COVERAGE),)
+ifdef INCLUDE_TESTS_IN_COVERAGE
 .run-unit-tests-coverage: NOSE_COVERAGE_PACKAGES := $(NOSE_COVERAGE_PACKAGES),tests.unit
 endif
 .run-unit-tests-coverage:
@@ -512,7 +522,7 @@ itests: requirements .itests
 	done
 
 .PHONY: .run-integration-tests-coverage
-ifneq ($(INCLUDE_TESTS_IN_COVERAGE),)
+ifdef INCLUDE_TESTS_IN_COVERAGE
 .run-integration-tests-coverage: NOSE_COVERAGE_PACKAGES := $(NOSE_COVERAGE_PACKAGES),tests.integration
 endif
 .run-integration-tests-coverage:
@@ -583,7 +593,7 @@ mistral-itests: requirements .mistral-itests
 	. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v st2tests/integration/mistral || exit 1;
 
 .PHONY: .run-mistral-itests-coverage
-ifneq ($(INCLUDE_TESTS_IN_COVERAGE),)
+ifdef INCLUDE_TESTS_IN_COVERAGE
 .run-mistral-itests-coverage: NOSE_COVERAGE_PACKAGES := $(NOSE_COVERAGE_PACKAGES),st2tests.mistral.integration
 endif
 .run-mistral-itests-coverage:
