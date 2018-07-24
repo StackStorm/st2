@@ -94,7 +94,8 @@ class SensorService(object):
     def dispatch(self, trigger, payload=None, trace_tag=None):
         # Provided by the parent BaseTriggerDispatcherService class
         return self._trigger_dispatcher_service.dispatch(trigger=trigger, payload=payload,
-                                                         trace_tag=trace_tag)
+                                                         trace_tag=trace_tag,
+                                                         throw_on_validation_error=False)
 
     def dispatch_with_context(self, trigger, payload=None, trace_context=None):
         """
@@ -111,8 +112,9 @@ class SensorService(object):
         """
         # Provided by the parent BaseTriggerDispatcherService class
         return self._trigger_dispatcher_service.dispatch_with_context(trigger=trigger,
-                                                                      payload=payload,
-                                                                      trace_context=trace_context)
+            payload=payload,
+            trace_context=trace_context,
+            throw_on_validation_error=False)
 
     ##################################
     # Methods for datastore management

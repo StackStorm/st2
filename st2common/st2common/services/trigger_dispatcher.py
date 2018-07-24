@@ -36,7 +36,7 @@ class TriggerDispatcherService(object):
         self._logger = logger
         self._dispatcher = TriggerDispatcher(self._logger)
 
-    def dispatch(self, trigger, payload=None, trace_tag=None):
+    def dispatch(self, trigger, payload=None, trace_tag=None, throw_on_validation_error=False):
         """
         Method which dispatches the trigger.
 
@@ -48,11 +48,16 @@ class TriggerDispatcherService(object):
 
         :param trace_tag: Tracer to track the triggerinstance.
         :type trace_tags: ``str``
+
+        :param throw_on_validation_error: True to throw on validation error (if validate_payload is
+                                          True) instead of logging the error.
+        :type throw_on_validation_error: ``boolean``
         """
         # empty strings
         trace_context = TraceContext(trace_tag=trace_tag) if trace_tag else None
         self._logger.debug('Added trace_context %s to trigger %s.', trace_context, trigger)
-        self.dispatch_with_context(trigger, payload=payload, trace_context=trace_context)
+        return self.dispatch_with_context(trigger, payload=payload, trace_context=trace_context,
+                                          throw_on_validation_error=throw_on_validation_error)
 
     def dispatch_with_context(self, trigger, payload=None, trace_context=None,
                               throw_on_validation_error=False):
@@ -72,8 +77,6 @@ class TriggerDispatcherService(object):
                                           True) instead of logging the error.
         :type throw_on_validation_error: ``boolean``
         """
-        validate_payload = cfg.CONF.system.validate_trigger_payload
-
         # Indicates if the provided trigger payload complies with the trigger schema (if one is
         # defined)
         is_valid = False
@@ -90,7 +93,7 @@ class TriggerDispatcherService(object):
 
         # If validation is disabled, still dispatch a trigger even if it failed validation
         # This condition prevents unexpected restriction.
-        if not is_valid and validate_payload:
+        if not is_valid and cfg.CONF.system.validate_trigger_payload:
             msg = ('Trigger payload validation failed and validation is enabled, not '
                    'dispatching a trigger "%s" (%s): %s' % (trigger, str(payload), str(e)))
 
@@ -101,4 +104,4 @@ class TriggerDispatcherService(object):
             return None
 
         self._logger.debug('Dispatching trigger %s with payload %s.', trigger, payload)
-        self._dispatcher.dispatch(trigger, payload=payload, trace_context=trace_context)
+        return self._dispatcher.dispatch(trigger, payload=payload, trace_context=trace_context)
