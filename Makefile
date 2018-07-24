@@ -49,8 +49,18 @@ PIP_OPTIONS := $(ST2_PIP_OPTIONS)
 
 NOSE_OPTS := --rednose --immediate --with-parallel
 NOSE_TIME := $(NOSE_TIME)
-NOSE_COVERAGE_FLAGS := --with-coverage --cover-branches --cover-erase
-NOSE_COVERAGE_PACKAGES := --cover-package=$(COMPONENTS_TEST_COMMA)
+
+TRAVIS_PULL_REQUEST := $(TRAVIS_PULL_REQUEST)
+
+# NOTE: We only run coverage on master and version branches and not on pull requests since
+# it has a big performance overhead and is very slow.
+ifdef TRAVIS_PULL_REQUEST
+	NOSE_COVERAGE_FLAGS := --with-coverage --cover-branches --cover-erase
+	NOSE_COVERAGE_PACKAGES := --cover-package=$(COMPONENTS_TEST_COMMA)
+else
+	NOSE_COVERAGE_FLAGS = ""
+	NOSE_COVERAGE_PACKAGES = ""
+endif
 
 ifdef NOSE_TIME
 	NOSE_OPTS := --rednose --immediate --with-parallel --with-timer
