@@ -55,7 +55,7 @@ class TriggerDispatcherService(object):
         self.dispatch_with_context(trigger, payload=payload, trace_context=trace_context)
 
     def dispatch_with_context(self, trigger, payload=None, trace_context=None,
-                              validate_payload=None, throw_on_validation_error=False):
+                              throw_on_validation_error=False):
         """
         Method which dispatches the trigger.
 
@@ -68,16 +68,11 @@ class TriggerDispatcherService(object):
         :param trace_context: Trace context to associate with Trigger.
         :type trace_context: ``st2common.api.models.api.trace.TraceContext``
 
-        :param validate_payload: True to validate trigger payload against the trigger schema.
-        :type validate_payload: ``boolean``
-
         :param throw_on_validation_error: True to throw on validation error (if validate_payload is
                                           True) instead of logging the error.
         :type throw_on_validation_error: ``boolean``
         """
-        if validate_payload is None:
-            # If not provided, use a default value from the config
-            validate_payload = cfg.CONF.system.validate_trigger_payload
+        validate_payload = cfg.CONF.system.validate_trigger_payload
 
         # Indicates if the provided trigger payload complies with the trigger schema (if one is
         # defined)
