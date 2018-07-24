@@ -25,6 +25,10 @@ echo "Downloading MongoDB ${MONGODB_VERSION} from ${DOWNLOAD_URL}"
 wget -q ${DOWNLOAD_URL} -O /tmp/mongodb.tgz
 tar -xvf /tmp/mongodb.tgz -C ${MONGODB_DIR} --strip=1
 
+# Symlink latest mongodb shell
+sudo ln -sf ${MONGODB_PID}/bin/mongo /usr/local/bin/mongo
+sudo ln -sf ${MONGODB_PID}/bin/mongo /usr/bin/mongo
+
 echo "Starting MongoDB v${MONGODB_VERSION}"
 # Note: We use --notablescan option to detected missing indexes early. When this
 # option is enabled, queries which result in table scan (which usually means a
