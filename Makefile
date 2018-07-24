@@ -60,8 +60,6 @@ endif
 
 # NOTE: We only run coverage on master and version branches and not on pull requests since
 # it has a big performance overhead and is very slow.
-TRAVIS_PULL_REQUEST := $(TRAVIS_PULL_REQUEST)
-
 ifeq ($(TRAVIS_PULL_REQUEST),false)
 	NOSE_COVERAGE_FLAGS := --with-coverage --cover-branches --cover-erase
 	NOSE_COVERAGE_PACKAGES := --cover-package=$(COMPONENTS_TEST_COMMA)
@@ -70,6 +68,10 @@ ifeq ($(TRAVIS_PULL_REQUEST),false)
 		NOSE_COVERAGE_FLAGS += --cover-tests
 		NOSE_COVERAGE_PACKAGES := $(NOSE_COVERAGE_PACKAGES),$(COMPONENTS_TEST_MODULES_COMMA)
 	endif
+else
+	# If we aren't running test coverage, don't try to include tests in coverage
+	# results
+	INCLUDE_TESTS_IN_COVERAGE :=
 endif
 
 .PHONY: all
@@ -189,7 +191,7 @@ generate-api-spec: requirements .generate-api-spec
 	echo "# Edit st2common/st2common/openapi.yaml.j2 and then run" >> st2common/st2common/openapi.yaml
 	echo "# make .generate-api-spec" >> st2common/st2common/openapi.yaml
 	echo "# to generate the final spec file" >> st2common/st2common/openapi.yaml
-	. virtualenv/bin/activate; st2common/bin/st2-generate-api-spec --config-file conf/st2.dev.conf >> st2common/st2common/openapi.yaml
+	. $(VIRTUALENV_DIR)/bin/activate; st2common/bin/st2-generate-api-spec --config-file conf/st2.dev.conf >> st2common/st2common/openapi.yaml
 
 .PHONY: circle-lint-api-spec
 circle-lint-api-spec:
@@ -238,13 +240,13 @@ clean: .cleanpycs
 compile:
 	@echo "======================= compile ========================"
 	@echo "------- Compile all .py files (syntax check test - Python 2) ------"
-	@if python -c 'import compileall,re; compileall.compile_dir(".", rx=re.compile(r"/virtualenv|.tox"), quiet=True)' | grep .; then exit 1; else exit 0; fi
+	@if python -c 'import compileall,re; compileall.compile_dir(".", rx=re.compile(r"/virtualenv|virtualenv-osx|.tox"), quiet=True)' | grep .; then exit 1; else exit 0; fi
 
 .PHONY: compilepy3
 compilepy3:
 	@echo "======================= compile ========================"
 	@echo "------- Compile all .py files (syntax check test - Python 3) ------"
-	@if python3 -c 'import compileall,re; compileall.compile_dir(".", rx=re.compile(r"/virtualenv|.tox|./st2tests/st2tests/fixtures/packs/test"), quiet=True)' | grep .; then exit 1; else exit 0; fi
+	@if python3 -c 'import compileall,re; compileall.compile_dir(".", rx=re.compile(r"/virtualenv|virtualenv-osx|.tox|./st2tests/st2tests/fixtures/packs/test"), quiet=True)' | grep .; then exit 1; else exit 0; fi
 
 .PHONY: .cleanpycs
 .cleanpycs:
@@ -323,14 +325,14 @@ requirements: virtualenv .sdist-requirements
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade "virtualenv==15.1.0" # Required for packs.install in dev envs.
 
 	# Generate all requirements to support current CI pipeline.
-	$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv -s st2*/in-requirements.txt contrib/runners/*/in-requirements.txt -f fixed-requirements.txt -o requirements.txt
+	$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s st2*/in-requirements.txt contrib/runners/*/in-requirements.txt -f fixed-requirements.txt -o requirements.txt
 
 	# Generate finall requirements.txt file for each component
 	@for component in $(COMPONENTS_WITH_RUNNERS); do\
 		echo "==========================================================="; \
 		echo "Generating requirements.txt for" $$component; \
 		echo "==========================================================="; \
-		$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv -s $$component/in-requirements.txt -f fixed-requirements.txt -o $$component/requirements.txt; \
+		$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s $$component/in-requirements.txt -f fixed-requirements.txt -o $$component/requirements.txt; \
 	done
 
 	# Fix for Travis CI race
@@ -432,9 +434,7 @@ unit-tests: requirements .unit-tests
 
 .PHONY: .run-unit-tests-coverage
 ifneq ($(INCLUDE_TESTS_IN_COVERAGE),)
-	ifneq ($(NOSE_COVERAGE_FLAGS),)
-		.run-unit-tests-coverage: NOSE_COVERAGE_PACKAGES := $(NOSE_COVERAGE_PACKAGES),tests.unit
-	endif
+.run-unit-tests-coverage: NOSE_COVERAGE_PACKAGES := $(NOSE_COVERAGE_PACKAGES),tests.unit
 endif
 .run-unit-tests-coverage:
 	@echo
@@ -447,9 +447,10 @@ endif
 		echo "Running tests in" $$component; \
 		echo "-----------------------------------------------------------"; \
 		. $(VIRTUALENV_DIR)/bin/activate; \
-			COVERAGE_FILE=.coverage.unit.$$(echo $$component | tr '/' '.') \
-			nosetests $(NOSE_OPTS) -s -v $(NOSE_COVERAGE_FLAGS) $(NOSE_COVERAGE_PACKAGES) \
-			$$component/tests/unit || exit 1; \
+		    COVERAGE_FILE=.coverage.unit.$$(echo $$component | tr '/' '.') \
+		    nosetests $(NOSE_OPTS) -s -v $(NOSE_COVERAGE_FLAGS) \
+		    $(NOSE_COVERAGE_PACKAGES) \
+		    $$component/tests/unit || exit 1; \
 		echo "-----------------------------------------------------------"; \
 		echo "Done running tests in" $$component; \
 		echo "==========================================================="; \
@@ -457,29 +458,36 @@ endif
 
 .PHONY: .combine-unit-tests-coverage
 .combine-unit-tests-coverage: .run-unit-tests-coverage
-	. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.unit \
-	    coverage combine .coverage.unit.*
+	@if [ -n "$(NOSE_COVERAGE_FLAGS)" ]; then \
+	    . $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.unit \
+	        coverage combine .coverage.unit.*; \
+	fi
 
 .coverage.unit:
-	@compgen -G '.coverage.unit.*' && \
+	@if compgen -G '.coverage.unit.*'; then \
 		for coverage_result in $$(compgen -G '.coverage.unit.*'); do \
 			echo "Combining data from $${coverage_result}"; \
 			. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.unit \
 			coverage combine $${coverage_result}; \
-		done \
-	|| \
+		done; \
+	else \
 		echo "Running unit tests"; \
-		make .combine-unit-tests-coverage
+		make .combine-unit-tests-coverage; \
+	fi
 
 .PHONY: .report-unit-tests-coverage
 .report-unit-tests-coverage: .coverage.unit
-	. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.unit \
-	    coverage report
+	@if [ -n "$(NOSE_COVERAGE_FLAGS)" ]; then \
+	    . $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.unit \
+	        coverage report; \
+	fi
 
 .PHONY: .unit-tests-coverage-html
 .unit-tests-coverage-html: .coverage.unit
-	. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.unit \
-	    coverage html
+	@if [ -n "$(NOSE_COVERAGE_FLAGS)" ]; then \
+	    . $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.unit \
+	        coverage html; \
+	fi
 
 .PHONY: itests
 itests: requirements .itests
@@ -505,9 +513,7 @@ itests: requirements .itests
 
 .PHONY: .run-integration-tests-coverage
 ifneq ($(INCLUDE_TESTS_IN_COVERAGE),)
-	ifneq ($(NOSE_COVERAGE_FLAGS),)
-		.run-integration-tests-coverage: NOSE_COVERAGE_PACKAGES := $(NOSE_COVERAGE_PACKAGES),tests.integration
-	endif
+.run-integration-tests-coverage: NOSE_COVERAGE_PACKAGES := $(NOSE_COVERAGE_PACKAGES),tests.integration
 endif
 .run-integration-tests-coverage:
 	@echo
@@ -531,29 +537,36 @@ endif
 
 .PHONY: .combine-integration-tests-coverage
 .combine-integration-tests-coverage: .run-integration-tests-coverage
-	. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.integration \
-	    coverage combine .coverage.integration.*
+	@if [ -n "$(NOSE_COVERAGE_FLAGS)" ]; then \
+	    . $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.integration \
+	        coverage combine .coverage.integration.*; \
+	fi
 
 .coverage.integration:
-	@compgen -G '.coverage.integration.*' && \
+	@if compgen -G '.coverage.integration.*'; then \
 		for coverage_result in $$(compgen -G '.coverage.integration.*'); do \
 			echo "Combining data from $${coverage_result}"; \
 			. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.integration \
 			coverage combine $${coverage_result}; \
-		done \
-	|| \
+		done; \
+	else \
 		echo "Running integration tests"; \
-		make .combine-integration-tests-coverage
+		make .combine-integration-tests-coverage; \
+	fi
 
 .PHONY: .report-integration-tests-coverage
 .report-integration-tests-coverage: .coverage.integration
-	@. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.integration \
-	    coverage report
+	@if [ -n "$(NOSE_COVERAGE_FLAGS)" ]; then \
+	    . $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.integration \
+	        coverage report; \
+	fi
 
 .PHONY: .integration-tests-coverage-html
 .integration-tests-coverage-html: .coverage.integration
-	@. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.integration \
-	    coverage html
+	@if [ -n "$(NOSE_COVERAGE_FLAGS)" ]; then \
+	    . $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.integration \
+	        coverage html; \
+	fi
 
 .PHONY: .itests-coverage-html
 .itests-coverage-html: .integration-tests-coverage-html
