@@ -176,6 +176,8 @@ class EventletTestCase(TestCase):
 
 
 class BaseDbTestCase(BaseTestCase):
+    # True to ensure indexes before db_setup is called - NOTE: This is only
+    # needed with older MongoDB versions
     ensure_indexes = False
 
     # Set to True to enable printing of all the log messages to the console
@@ -200,7 +202,7 @@ class BaseDbTestCase(BaseTestCase):
 
         # NOTE: In older MongoDB versions you needed to drop all the collections prior to dropping
         # the database - that's not needed anymore with the wiredtiger engine
-        #cls._drop_collections()
+        # cls._drop_collections()
 
         cls.db_connection.drop_database(cfg.CONF.database.db_name)
 
@@ -211,9 +213,13 @@ class BaseDbTestCase(BaseTestCase):
 
     @classmethod
     def _drop_db(cls):
-        cls._drop_collections()
+        # NOTE: In older MongoDB versions you needed to drop all the collections prior to dropping
+        # the database - that's not needed anymore with the wiredtiger engine
+        # cls._drop_collections()
+
         if cls.db_connection is not None:
             cls.db_connection.drop_database(cfg.CONF.database.db_name)
+
         db_teardown()
         cls.db_connection = None
 
