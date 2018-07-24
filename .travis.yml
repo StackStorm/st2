@@ -61,8 +61,8 @@ install:
   - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ]; then pip install codecov; fi
   - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ] || [ "${TASK}" = 'compilepy3 ci-py3-unit' ] || [ "${TASK}" = 'ci-py3-integration' ]; then sudo .circle/add-itest-user.sh; fi
   # Note: We use ramdisk for better performance
-  - if [ ${TASK} = 'ci-unit' ] || [ ${TASK} = 'ci-integration' ] || [ ${TASK} = 'ci-py3-integration' ]; then sudo -E ./scripts/travis/create-and-mount-ramdisk.sh; fi
-  - if [ ${TASK} = 'ci-unit' ] || [ ${TASK} = 'ci-integration' ] || [ ${TASK} = 'ci-py3-integration' ]; then ./scripts/travis/install-and-run-mongodb.sh; fi
+  - sudo -E ./scripts/travis/create-and-mount-ramdisk.sh
+  - ./scripts/travis/install-and-run-mongodb.sh
 
 # Let's enable rabbitmqadmin
 # See https://github.com/messagebus/lapine/wiki/Testing-on-Travis.
