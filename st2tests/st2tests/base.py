@@ -196,12 +196,17 @@ class BaseDbTestCase(BaseTestCase):
         cls.db_connection = db_setup(
             cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
             username=username, password=password, ensure_indexes=False)
-        cls._drop_collections()
+
+        # NOTE: In older MongoDB versions you needed to drop all the collections prior to dropping
+        # the database - that's not needed anymore with the wiredtiger engine
+        #cls._drop_collections()
+
         cls.db_connection.drop_database(cfg.CONF.database.db_name)
 
         # Explicity ensure indexes after we re-create the DB otherwise ensure_indexes could failure
         # inside db_setup if test inserted invalid data
-        db_ensure_indexes()
+        if cls.ensure_indexes:
+            db_ensure_indexes()
 
     @classmethod
     def _drop_db(cls):
@@ -217,7 +222,6 @@ class BaseDbTestCase(BaseTestCase):
         # subsequent tests.
         # See: https://github.com/MongoEngine/mongoengine/issues/566
         # See: https://github.com/MongoEngine/mongoengine/issues/565
-        global ALL_MODELS
         for model in ALL_MODELS:
             model.drop_collection()
 
@@ -234,6 +238,7 @@ class DbTestCase(BaseDbTestCase):
     current_result = None
     register_packs = False
     register_pack_configs = False
+    ensure_indexes = False
 
     @classmethod
     def setUpClass(cls):
