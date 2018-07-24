@@ -41,7 +41,7 @@ TRACE_TAG_HEADER = 'St2-Trace-Tag'
 
 class HooksHolder(object):
     """
-    Maintains a hook to Trigger mapping.
+    Maintains a hook to TriggerDB mapping.
     """
     def __init__(self):
         self._triggers_by_hook = {}
@@ -158,8 +158,10 @@ class WebhooksController(object):
 
             payload['headers'] = headers
             payload['body'] = body
+
             # Dispatch trigger instance for each of the trigger found
-            for trigger in triggers:
+            for trigger_db in triggers:
+                trigger = trigger_db['ref']
                 self._trigger_dispatcher_service.dispatch_with_context(trigger=trigger,
                    payload=payload,
                    trace_context=trace_context,
