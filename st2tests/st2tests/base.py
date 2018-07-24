@@ -176,8 +176,9 @@ class EventletTestCase(TestCase):
 
 
 class BaseDbTestCase(BaseTestCase):
-    # True to ensure indexes before db_setup is called - NOTE: This is only
-    # needed with older MongoDB versions
+    # True to synchronously ensure indexes after db_setup is called - NOTE: This is only needed
+    # with older MongoDB versions. With recent versions this is not needed for the tests anymore
+    # and offers significant test speeds ups.
     ensure_indexes = False
 
     # Set to True to enable printing of all the log messages to the console
