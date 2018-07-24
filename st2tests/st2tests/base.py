@@ -14,6 +14,8 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+from __future__ import print_function
+
 try:
     import simplejson as json
 except ImportError:
@@ -204,9 +206,16 @@ class BaseDbTestCase(BaseTestCase):
         cls._drop_collections()
         cls.db_connection.drop_database(cfg.CONF.database.db_name)
 
-        # Explicity ensure indexes after we re-create the DB otherwise ensure_indexes could failure
-        # inside db_setup if test inserted invalid data
+        # Explicitly ensure indexes after we re-create the DB otherwise ensure_indexes could failure
+        # inside db_setup if test inserted invalid data.
+        # NOTE: This is only needed in distributed scenarios (production deployments) where
+        # multiple services can start up at the same time and race conditions are possible.
         if cls.ensure_indexes:
+            msg = ('Ensuring indexes for all the models, this could significantly slow down the '
+                  'tests')
+            print('#' * len(msg), file=sys.stderr)
+            print(msg, file=sys.stderr)
+            print('#' * len(msg), file=sys.stderr)
             db_ensure_indexes()
 
     @classmethod
