@@ -476,7 +476,7 @@ class AsyncRequest(Resource):
 
 class PackResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
-    def install(self, packs, force=False, python3=False, deploykey=None, **kwargs):
+    def install(self, packs, force=False, python3=False, deploykey='', **kwargs):
         url = '/%s/install' % (self.resource.get_url_path_name())
         payload = {
             'packs': packs,
