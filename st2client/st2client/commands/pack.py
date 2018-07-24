@@ -193,6 +193,10 @@ class PackInstallCommand(PackAsyncCommand):
                                  action='store_true',
                                  default=False,
                                  help='Force pack installation.')
+        self.parser.add_argument('--deploykey',
+                                 action='store_true',
+                                 default=False,
+                                 help='Absolute path to a private repo\'s deploy key.')
 
     def run(self, args, **kwargs):
         self._get_content_counts_for_pack(args, **kwargs)
