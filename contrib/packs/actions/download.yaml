@@ -22,7 +22,7 @@
       description: "Set to True to force install the pack and skip StackStorm version compatibility check"
       required: false
       default: false
-    deploy_key:
+    deploykey:
       type: "string"
       description: "Path to a deploy key for the git repo"
       required: false
