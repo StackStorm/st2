@@ -104,6 +104,9 @@ class PackInstallController(ActionExecutionsControllerMixin):
         if pack_install_request.force:
             parameters['force'] = True
 
+        if pack_install_request.deploykey:
+            parameters['deploykey'] = pack_install_request.deploykey
+
         if not requester_user:
             requester_user = UserDB(cfg.CONF.system_user.user)
 
