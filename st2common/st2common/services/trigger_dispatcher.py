@@ -77,31 +77,26 @@ class TriggerDispatcherService(object):
                                           True) instead of logging the error.
         :type throw_on_validation_error: ``boolean``
         """
-        # Indicates if the provided trigger payload complies with the trigger schema (if one is
-        # defined)
-        is_valid = False
-
+        # Note: We perform validation even if it's disabled in the config so we can at least warn
+        # the user if validation fals (but not throw if it's disabled)
         try:
             validate_trigger_payload(trigger_type_ref=trigger, payload=payload,
                                      throw_on_inexistent_trigger=True)
-        except (ValidationError, Exception) as e:
-            is_valid = False
+        except (ValidationError, ValueError, Exception) as e:
             self._logger.warn('Failed to validate payload (%s) for trigger "%s": %s' %
                               (str(payload), trigger, str(e)))
-        else:
-            is_valid = True
 
-        # If validation is disabled, still dispatch a trigger even if it failed validation
-        # This condition prevents unexpected restriction.
-        if not is_valid and cfg.CONF.system.validate_trigger_payload:
-            msg = ('Trigger payload validation failed and validation is enabled, not '
-                   'dispatching a trigger "%s" (%s): %s' % (trigger, str(payload), str(e)))
+            # If validation is disabled, still dispatch a trigger even if it failed validation
+            # This condition prevents unexpected restriction.
+            if cfg.CONF.system.validate_trigger_payload:
+                msg = ('Trigger payload validation failed and validation is enabled, not '
+                       'dispatching a trigger "%s" (%s): %s' % (trigger, str(payload), str(e)))
 
-            if throw_on_validation_error:
-                raise ValueError(msg)
+                if throw_on_validation_error:
+                    raise ValueError(msg)
 
-            self._logger.warn(msg)
-            return None
+                self._logger.warn(msg)
+                return None
 
         self._logger.debug('Dispatching trigger %s with payload %s.', trigger, payload)
         return self._dispatcher.dispatch(trigger, payload=payload, trace_context=trace_context)
