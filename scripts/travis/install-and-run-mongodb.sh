@@ -25,9 +25,11 @@ echo "Downloading MongoDB ${MONGODB_VERSION} from ${DOWNLOAD_URL}"
 wget -q ${DOWNLOAD_URL} -O /tmp/mongodb.tgz
 tar -xvf /tmp/mongodb.tgz -C ${MONGODB_DIR} --strip=1
 
+echo "Symlinking mongo shell binary to /usr/local/bin"
+
 # Symlink latest mongodb shell
-sudo ln -sf ${MONGODB_PID}/bin/mongo /usr/local/bin/mongo
-sudo ln -sf ${MONGODB_PID}/bin/mongo /usr/bin/mongo
+sudo ln -sf ${MONGODB_DIR}/bin/mongo /usr/local/bin/mongo
+sudo ln -sf ${MONGODB_DIR}/bin/mongo /usr/bin/mongo
 
 echo "Starting MongoDB v${MONGODB_VERSION}"
 # Note: We use --notablescan option to detected missing indexes early. When this
