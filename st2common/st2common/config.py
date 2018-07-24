@@ -97,11 +97,11 @@ def register_opts(ignore_errors=False):
             'base_path', default='/opt/stackstorm',
             help='Base path to all st2 artifacts.'),
         cfg.BoolOpt(
-            'validate_trigger_parameters', default=False,
+            'validate_trigger_parameters', default=True,
             help='True to validate parameters for non-system trigger types when creating'
-                 'a rule. By default, only parameters for system triggers are validated'),
+                 'a rule. By default, only parameters for system triggers are validated.'),
         cfg.BoolOpt(
-            'validate_trigger_payload', default=False,
+            'validate_trigger_payload', default=True,
             help='True to validate payload for non-system trigger types when dispatching a trigger '
                  'inside the sensor. By default, only payload for system triggers is validated.')
     ]

@@ -301,10 +301,10 @@ facility = local7
 [system]
 # Enable debug mode.
 debug = False
-# True to validate parameters for non-system trigger types when creatinga rule. By default, only parameters for system triggers are validated
-validate_trigger_parameters = False
+# True to validate parameters for non-system trigger types when creatinga rule. By default, only parameters for system triggers are validated.
+validate_trigger_parameters = True
 # True to validate payload for non-system trigger types when dispatching a trigger inside the sensor. By default, only payload for system triggers is validated.
-validate_trigger_payload = False
+validate_trigger_payload = True
 # Base path to all st2 artifacts.
 base_path = /opt/stackstorm
 
