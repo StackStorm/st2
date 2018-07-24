@@ -6,7 +6,14 @@ if [ ! "${MONGODB_VERSION}" ]; then
     exit 2
 fi
 
-DATA_DIR=/tmp/mongodbdata
+# Note: MongoDB 2.4 and 2.6 don't work with ramdisk since they don't work with
+# small files and require at least 3 GB of space
+if [ ${MONGODB} = '2.4.9' ] || [ ${MONGODB} = '2.6.12' ]; then
+    DATA_DIR=/tmp/mongodbdata
+else
+    DATA_DIR=/mnt/ramdisk/mongodb
+fi
+
 MONGODB_DIR=/tmp/mongodb
 
 mkdir -p ${DATA_DIR}
@@ -33,7 +40,7 @@ sleep 5
 if ps -p ${MONGODB_PID} > /dev/null; then
     echo "MongoDB successfuly started"
     tail -30 /tmp/mongodb.log
-    exit 9
+    exit 0
 else
     echo "Failed to start MongoDB"
     tail -30 /tmp/mongodb.log
