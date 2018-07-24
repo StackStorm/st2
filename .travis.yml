@@ -67,6 +67,7 @@ install:
 # Let's enable rabbitmqadmin
 # See https://github.com/messagebus/lapine/wiki/Testing-on-Travis.
 before_script:
+  - mongo --version
   - git --version
   - pip --version
   - virtualenv --version
