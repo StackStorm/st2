@@ -14,6 +14,7 @@ else
     DATA_DIR=/mnt/ramdisk/mongodb
 fi
 
+DATA_DIR=/tmp/mongodbdata
 MONGODB_DIR=/tmp/mongodb
 
 mkdir -p ${DATA_DIR}
