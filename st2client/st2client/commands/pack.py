@@ -194,8 +194,7 @@ class PackInstallCommand(PackAsyncCommand):
                                  default=False,
                                  help='Force pack installation.')
         self.parser.add_argument('--deploykey',
-                                 action='store_true',
-                                 default=False,
+                                 dest='deploykey',
                                  help='Absolute path to a private repo\'s deploy key.')
 
     def run(self, args, **kwargs):
