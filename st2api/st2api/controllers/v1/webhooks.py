@@ -115,7 +115,7 @@ class WebhooksController(object):
         # For demonstration purpose return 1st
         return triggers[0]
 
-    def post(self, hook, webhook_body_api, headers, requester_user, validate_payload=False):
+    def post(self, hook, webhook_body_api, headers, requester_user):
         body = webhook_body_api.data
 
         permission_type = PermissionType.WEBHOOK_SEND
@@ -146,7 +146,6 @@ class WebhooksController(object):
             self._trigger_dispatcher_service.dispatch_with_context(trigger=trigger,
                    payload=payload,
                    trace_context=trace_context,
-                   validate_payload=validate_payload,
                    throw_on_validation_error=True)
         else:
             if not self._is_valid_hook(hook):
@@ -164,7 +163,6 @@ class WebhooksController(object):
                 self._trigger_dispatcher_service.dispatch_with_context(trigger=trigger,
                    payload=payload,
                    trace_context=trace_context,
-                   validate_payload=validate_payload,
                    throw_on_validation_error=True)
 
         return Response(json=body, status=http_client.ACCEPTED)

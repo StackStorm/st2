@@ -4028,12 +4028,6 @@ paths:
           description: Webhook payload
           schema:
             $ref: '#/definitions/WebhookBody'
-        - name: validate_payload
-          in: query
-          description: True to validate trigger payload against payload schema.
-          type: boolean
-          default: false
-          required: false
       x-parameters:
         - name: headers
           in: request
