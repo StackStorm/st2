@@ -176,6 +176,10 @@ class EventletTestCase(TestCase):
 
 
 class BaseDbTestCase(BaseTestCase):
+    # True to synchronously ensure indexes after db_setup is called - NOTE: This is only needed
+    # with older MongoDB versions. With recent versions this is not needed for the tests anymore
+    # and offers significant test speeds ups.
+    ensure_indexes = False
 
     # Set to True to enable printing of all the log messages to the console
     DISPLAY_LOG_MESSAGES = False
@@ -196,18 +200,27 @@ class BaseDbTestCase(BaseTestCase):
         cls.db_connection = db_setup(
             cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
             username=username, password=password, ensure_indexes=False)
-        cls._drop_collections()
+
+        # NOTE: In older MongoDB versions you needed to drop all the collections prior to dropping
+        # the database - that's not needed anymore with the wiredtiger engine
+        # cls._drop_collections()
+
         cls.db_connection.drop_database(cfg.CONF.database.db_name)
 
         # Explicity ensure indexes after we re-create the DB otherwise ensure_indexes could failure
         # inside db_setup if test inserted invalid data
-        db_ensure_indexes()
+        if cls.ensure_indexes:
+            db_ensure_indexes()
 
     @classmethod
     def _drop_db(cls):
-        cls._drop_collections()
+        # NOTE: In older MongoDB versions you needed to drop all the collections prior to dropping
+        # the database - that's not needed anymore with the wiredtiger engine
+        # cls._drop_collections()
+
         if cls.db_connection is not None:
             cls.db_connection.drop_database(cfg.CONF.database.db_name)
+
         db_teardown()
         cls.db_connection = None
 
@@ -217,7 +230,6 @@ class BaseDbTestCase(BaseTestCase):
         # subsequent tests.
         # See: https://github.com/MongoEngine/mongoengine/issues/566
         # See: https://github.com/MongoEngine/mongoengine/issues/565
-        global ALL_MODELS
         for model in ALL_MODELS:
             model.drop_collection()
 
