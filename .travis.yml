@@ -12,6 +12,7 @@ branches:
 env:
   global:
     - CACHE_NAME=JOB1
+    - MONGODB_VERSION=3.4.16
 matrix:
   include:
     - env: TASK=ci-unit NODE_INDEX=0 NODE_TOTAL=2
@@ -29,13 +30,13 @@ matrix:
 addons:
   apt:
     sources:
-      - mongodb-upstart
-      - sourceline: 'deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.4 multiverse'
-        key_url: 'https://www.mongodb.org/static/pgp/server-3.4.asc'
+     #- mongodb-upstart
+     #- sourceline: 'deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.4 multiverse'
+     #  key_url: 'https://www.mongodb.org/static/pgp/server-3.4.asc'
       - sourceline: 'ppa:git-core/ppa'
     packages:
-      - mongodb-org-server
-      - mongodb-org-shell
+      #- mongodb-org-server
+      #- mongodb-org-shell
       - git
 
 services:
@@ -60,6 +61,9 @@ install:
   - if [ "${TASK}" = 'compilepy3 ci-py3-unit' ] || [ "${TASK}" = 'ci-py3-integration' ]; then pip install "tox==3.0.0"; else make requirements; fi
   - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ]; then pip install codecov; fi
   - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ] || [ "${TASK}" = 'compilepy3 ci-py3-unit' ] || [ "${TASK}" = 'ci-py3-integration' ]; then sudo .circle/add-itest-user.sh; fi
+  # Note: We use ramdisk for better performance
+  - if [ ${TASK} = 'ci-unit' ] || [ ${TASK} = 'ci-integration' ] || [ ${TASK} = 'ci-py3-integration' ]; then sudo -E ./scripts/travis/create-and-mount-ramdisk.sh; fi
+  - if [ ${TASK} = 'ci-unit' ] || [ ${TASK} = 'ci-integration' ] || [ ${TASK} = 'ci-py3-integration' ]; then ./scripts/travis/install-and-run-mongodb.sh; fi
 
 # Let's enable rabbitmqadmin
 # See https://github.com/messagebus/lapine/wiki/Testing-on-Travis.
