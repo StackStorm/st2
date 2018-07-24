@@ -199,7 +199,8 @@ class PackInstallCommand(PackAsyncCommand):
 
     def run(self, args, **kwargs):
         self._get_content_counts_for_pack(args, **kwargs)
-        return self.manager.install(args.packs, python3=args.python3, force=args.force, **kwargs)
+        return self.manager.install(args.packs, python3=args.python3, force=args.force,
+                                    deploykey=args.deploykey, **kwargs)
 
     def _get_content_counts_for_pack(self, args, **kwargs):
         # Global content list, excluding "tests"
