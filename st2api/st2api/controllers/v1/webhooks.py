@@ -161,7 +161,7 @@ class WebhooksController(object):
 
             # Dispatch trigger instance for each of the trigger found
             for trigger_db in triggers:
-                trigger = trigger_db['ref']
+                trigger = trigger_db['type']
                 self._trigger_dispatcher_service.dispatch_with_context(trigger=trigger,
                    payload=payload,
                    trace_context=trace_context,
