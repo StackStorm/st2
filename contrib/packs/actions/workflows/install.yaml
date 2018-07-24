@@ -6,6 +6,7 @@
       parameters:
         packs: "{{packs}}"
         force: "{{force}}"
+        deploykey: "{{deploykey}}"
       on-success: "make a prerun"
     -
       name: "make a prerun"
