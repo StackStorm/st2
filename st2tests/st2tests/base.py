@@ -219,8 +219,9 @@ class BaseDbTestCase(BaseTestCase):
             db_ensure_indexes()
 
     @classmethod
-    def _drop_db(cls):
-        cls._drop_collections()
+    def _drop_db(cls):        # NOTE: In older MongoDB versions you needed to drop all the collections prior to dropping
+        # the database - that's not needed anymore with the wiredtiger engine
+        # cls._drop_collections()
 
         if cls.db_connection is not None:
             cls.db_connection.drop_database(cfg.CONF.database.db_name)
