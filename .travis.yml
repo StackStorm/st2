@@ -15,6 +15,9 @@ env:
     # NOTE: We only enable coverage for master builds and not pull requests
     # since it has huge performance overhead (etests are 50% or so slower)
     - ENABLE_COVERAGE=$([ "${TRAVIS_PULL_REQUEST}" = "false" ] && echo "yes" || echo "no")
+    # We need to explicitly specify terminal width otherwise some CLI tests fail on container
+    # environments where small terminal size is used.
+    - COLUMNS=120
 matrix:
   include:
     # NOTE: We combine builds because Travis offers a maximum of 5 concurrent
