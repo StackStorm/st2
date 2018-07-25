@@ -14,8 +14,7 @@ env:
     - CACHE_NAME=JOB1
     # NOTE: We only enable coverage for master builds and not pull requests
     # since it has huge performance overhead (etests are 50% or so slower)
-    #- ENABLE_COVERAGE=$([ "${TRAVIS_PULL_REQUEST}" = "false" ] && echo "yes" || echo "no")
-    - ENABLE_COVERAGE=yes
+    - ENABLE_COVERAGE=$([ "${TRAVIS_PULL_REQUEST}" = "false" ] && echo "yes" || echo "no")
 matrix:
   include:
     - env: TASK=ci-unit NODE_INDEX=0 NODE_TOTAL=2
