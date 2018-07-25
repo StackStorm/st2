@@ -216,8 +216,8 @@ class BaseDbTestCase(BaseTestCase):
         # multiple services can start up at the same time and race conditions are possible.
         if cls.ensure_indexes:
             if len(cls.ensure_indexes_models) == 0 or len(cls.ensure_indexes_models) > 1:
-                msg = ('Ensuring indexes for all the models, this could significantly slow down the '
-                      'tests')
+                msg = ('Ensuring indexes for all the models, this could significantly slow down '
+                       'the tests')
                 print('#' * len(msg), file=sys.stderr)
                 print(msg, file=sys.stderr)
                 print('#' * len(msg), file=sys.stderr)
