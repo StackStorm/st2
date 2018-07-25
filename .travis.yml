@@ -87,6 +87,11 @@ before_script:
 
 script:
   - make ${TASK}
+  # NOTE: We only generate and submit coverage report for master and version branches
+  # NOTE: We put this here and not after_success so build is marked as failed if this step fails
+  # See https://docs.travis-ci.com/user/customizing-the-build/#breaking-the-build
+  # https://github.com/travis-ci/travis-ci/issues/758#issuecomment-266756853
+  - if [ ${TASK} = 'ci-unit' ] || [ ${TASK} = 'ci-integration' ] && [ "${ENABLE_COVERAGE}" = 'yes' ]; then ./scripts/travis/scripts/travis/submit-codecov-coverage.sh; fi
 
 # Don't store cache for target PR branch (typically `master`), because it will be re-used for opened PRs
 # See: https://docs.travis-ci.com/user/caching/#Pull-request-builds-and-caches
@@ -95,5 +100,3 @@ before_cache:
   - if [ ${TRAVIS_PULL_REQUEST} = 'false' ]; then rm -rf virtualenv/; fi
 
 after_success:
-  # NOTE: We only generate and submit coverage report for master and version branches
-  - if [ ${TASK} = 'ci-unit' ] || [ ${TASK} = 'ci-integration' ] && [ "${ENABLE_COVERAGE}" = 'yes' ]; then ./scripts/travis/scripts/travis/submit-codecov-coverage.sh; fi
