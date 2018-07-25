@@ -49,7 +49,6 @@ class TerminalUtilsTestCase(unittest2.TestCase):
 
     @mock.patch('struct.unpack', mock.Mock(side_effect=Exception('a')))
     @mock.patch('subprocess.Popen')
-    @mock.patch.dict(os.environ, {'a': '1'})
     def test_get_terminal_size_subprocess_popen_is_used(self, mock_popen):
         mock_communicate = mock.Mock(return_value=['555 666'])
 
@@ -64,7 +63,6 @@ class TerminalUtilsTestCase(unittest2.TestCase):
 
     @mock.patch('struct.unpack', mock.Mock(side_effect=Exception('a')))
     @mock.patch('subprocess.Popen', mock.Mock(side_effect=Exception('b')))
-    @mock.patch.dict(os.environ, {})
     def test_get_terminal_size_default_values_are_used(self):
         columns = get_terminal_size_columns()
 
