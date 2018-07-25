@@ -68,7 +68,7 @@ before_install:
 install:
   - if [ "${TASK}" = 'compilepy3 ci-py3-unit' ] || [ "${TASK}" = 'ci-py3-integration' ]; then pip install "tox==3.0.0"; else make requirements; fi
   # NOTE: We need eventlet installed so coverage can be correctly combined. This is needed because we are covering code which utilizes eventlet.
-  # Without eventlet being available to to coverage command it will fail with "Couldn't trace with concurrency=eventlet, the module isn't installed."
+  # Without eventlet being available to the coverage command it will fail with "Couldn't trace with concurrency=eventlet, the module isn't installed."
   - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ] && [ "${ENABLE_COVERAGE}" = 'yes' ]; then pip install eventlet ; pip install -e "git+https://github.com/Kami/codecov-python.git@better_error_output#egg=codecov"; fi
   - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ] || [ "${TASK}" = 'compilepy3 ci-py3-unit' ] || [ "${TASK}" = 'ci-py3-integration' ]; then sudo .circle/add-itest-user.sh; fi
 
