@@ -60,11 +60,7 @@ endif
 
 # NOTE: We only run coverage on master and version branches and not on pull requests since
 # it has a big performance overhead and is very slow.
-ifeq ($(TRAVIS_PULL_REQUEST),false)
-	ENABLE_COVERAGE := yes
-endif
-
-ifdef ENABLE_COVERAGE
+ifeq ($(ENABLE_COVERAGE),yes)
 	NOSE_COVERAGE_FLAGS := --with-coverage --cover-branches --cover-erase
 	NOSE_COVERAGE_PACKAGES := --cover-package=$(COMPONENTS_TEST_COMMA)
 else
