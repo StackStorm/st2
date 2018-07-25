@@ -12,20 +12,29 @@ branches:
 env:
   global:
     - CACHE_NAME=JOB1
+    # NOTE: We only enable coverage for master builds and not pull requests
+    # since it has huge performance overhead (etests are 50% or so slower)
+    - ENABLE_COVERAGE=$([ "${TRAVIS_PULL_REQUEST}" = "false" ] && echo "yes" || echo "no")
 matrix:
   include:
     - env: TASK=ci-unit NODE_INDEX=0 NODE_TOTAL=2
       python: 2.7
+      name: "Unit Tests (Python 2.7) - 1"
     - env: TASK=ci-unit NODE_INDEX=1 NODE_TOTAL=2
       python: 2.7
+      name: "Unit Tests (Python 2.7) - 2"
     - env: TASK=ci-integration
       python: 2.7
+      name: "Integration Tests (Python 2.7)"
     - env: TASK="ci-checks ci-packs-tests"
       python: 2.7
+      name: "Lint Checks, Packs Tests (Python 2.7)"
     - env: TASK="compilepy3 ci-py3-unit" CACHE_NAME=py3
       python: 3.6
+      name: "Unit Tests (Python 3.6)"
     - env: TASK="ci-py3-integration" CACHE_NAME=py3
       python: 3.6
+      name: "Integration Tests (Python 3.6)"
 addons:
   apt:
     sources:
@@ -58,12 +67,15 @@ before_install:
 
 install:
   - if [ "${TASK}" = 'compilepy3 ci-py3-unit' ] || [ "${TASK}" = 'ci-py3-integration' ]; then pip install "tox==3.0.0"; else make requirements; fi
-  - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ]; then pip install codecov; fi
+  # NOTE: We need eventlet installed so coverage can be correctly combined. This is needed because we are covering code which utilizes eventlet.
+  # Without eventlet being available to the coverage command it will fail with "Couldn't trace with concurrency=eventlet, the module isn't installed."
+  - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ] && [ "${ENABLE_COVERAGE}" = 'yes' ]; then pip install eventlet ; pip install -e "git+https://github.com/Kami/codecov-python.git@better_error_output#egg=codecov"; fi
   - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ] || [ "${TASK}" = 'compilepy3 ci-py3-unit' ] || [ "${TASK}" = 'ci-py3-integration' ]; then sudo .circle/add-itest-user.sh; fi
 
 # Let's enable rabbitmqadmin
 # See https://github.com/messagebus/lapine/wiki/Testing-on-Travis.
 before_script:
+  - "echo ENABLE_COVERAGE=${ENABLE_COVERAGE}"
   - git --version
   - pip --version
   - virtualenv --version
@@ -82,11 +94,5 @@ before_cache:
   - if [ ${TRAVIS_PULL_REQUEST} = 'false' ]; then rm -rf virtualenv/; fi
 
 after_success:
-  - if [ ${TASK} = 'ci-unit' ] || [ ${TASK} = 'ci-integration' ]; then codecov; fi
-
-# https://docs.travis-ci.com/user/notifications/#Webhooks-Delivery-Format
-#notifications:
-#  webhooks:
-#    #- https://ci-webhooks.stackstorm.net/webhooks/build/events
-#    # See: webhook.site/#/06fde88c-1610-4c85-ba4e-d9bcacfefe4c
-#    - http://webhook.site/06fde88c-1610-4c85-ba4e-d9bcacfefe4c
+  # NOTE: We only generate and submit coverage report for master and version branches
+  - if [ ${TASK} = 'ci-unit' ] || [ ${TASK} = 'ci-integration' ] && [ "${ENABLE_COVERAGE}" = 'yes' ]; then codecov; fi
