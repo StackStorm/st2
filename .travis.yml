@@ -58,8 +58,10 @@ services:
   - rabbitmq
 
 cache:
-  pip: true
   directories:
+    # NOTE: If using a custom "install" step aka overriding "install" step, "cache.pip: true" doesn't work
+    # and directory needs to be explicitly added to the cache.
+    # See https://github.com/travis-ci/travis-ci/issues/3239, https://github.com/oppia/oppia/pull/5281 for details.
     - $HOME/.cache/pip
     - virtualenv/
     # NOTE: Caching .tox speeds up py3 build for 30-60 seconds, but causes issues when dependencies
