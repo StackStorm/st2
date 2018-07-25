@@ -73,6 +73,9 @@ install:
 # Let's enable rabbitmqadmin
 # See https://github.com/messagebus/lapine/wiki/Testing-on-Travis.
 before_script:
+  # Use a custom mongod.conf which uses various speed optimizations
+  - sudo cp scripts/travis/mongod.conf /etc/mongod.conf
+  - sudo service mongodb restart
   - git --version
   - pip --version
   - virtualenv --version
