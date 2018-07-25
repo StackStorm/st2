@@ -1,9 +1,9 @@
 # Don't edit this file. It's generated automatically!
--e git+https://github.com/StackStorm/orchestra.git@master#egg=orchestra
 apscheduler==3.5.1
 cryptography==2.2.2
 eventlet==0.23.0
 flex==6.13.1
+git+https://github.com/StackStorm/orchestra.git@master#egg=orchestra
 greenlet==0.4.13
 ipaddr
 jinja2
