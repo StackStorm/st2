@@ -15,6 +15,10 @@ env:
     # NOTE: We only enable coverage for master builds and not pull requests
     # since it has huge performance overhead (etests are 50% or so slower)
     - ENABLE_COVERAGE=$([ "${TRAVIS_PULL_REQUEST}" = "false" ] && echo "yes" || echo "no")
+    # We need to explicitly specify terminal width otherwise some CLI tests fail on container
+    # environments where small terminal size is used.
+    - COLUMNS=120
+    - PYLINT_CONCURRENCY: 2
 matrix:
   include:
     # NOTE: We combine builds because Travis offers a maximum of 5 concurrent
@@ -101,7 +105,7 @@ script:
   # NOTE: We put this here and not after_success so build is marked as failed if this step fails
   # See https://docs.travis-ci.com/user/customizing-the-build/#breaking-the-build
   # https://github.com/travis-ci/travis-ci/issues/758#issuecomment-266756853
-  - if [ ${TASK} = 'ci-unit' ] || [ ${TASK} = 'ci-integration' ] && [ "${ENABLE_COVERAGE}" = 'yes' ]; then ./scripts/travis/scripts/travis/submit-codecov-coverage.sh; fi
+  - if [ ${TASK} = 'ci-unit' ] || [ ${TASK} = 'ci-integration' ] && [ "${ENABLE_COVERAGE}" = 'yes' ]; then ./scripts/travis/submit-codecov-coverage.sh; fi
 
 # Don't store cache for target PR branch (typically `master`), because it will be re-used for opened PRs
 # See: https://docs.travis-ci.com/user/caching/#Pull-request-builds-and-caches
