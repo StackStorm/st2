@@ -22,4 +22,4 @@ pip install eventlet
 pip install -e "git+https://github.com/StackStorm/codecov-python.git@better_error_output#egg=codecov"
 
 # 2. Combine coverage report and submit coverage report to codecovs.io
-codecov
+codecov --required
