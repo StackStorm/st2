@@ -84,10 +84,3 @@ before_cache:
 after_success:
   # NOTE: We only generate and submit coverage report for master and version branches
   - if [ ${TASK} = 'ci-unit' ] || [ ${TASK} = 'ci-integration' ] && [ ${TRAVIS_PULL_REQUEST} = 'false' ]; then codecov; fi
-
-# https://docs.travis-ci.com/user/notifications/#Webhooks-Delivery-Format
-#notifications:
-#  webhooks:
-#    #- https://ci-webhooks.stackstorm.net/webhooks/build/events
-#    # See: webhook.site/#/06fde88c-1610-4c85-ba4e-d9bcacfefe4c
-#    - http://webhook.site/06fde88c-1610-4c85-ba4e-d9bcacfefe4c
