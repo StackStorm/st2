@@ -62,6 +62,10 @@ INDEX_CLEANUP_MODEL_NAMES_BLACKLIST = [
     'PermissionGrantDB'
 ]
 
+# Reference to DB model classes used for db_ensure_indexes
+# NOTE: This variable is populated lazily inside get_model_classes()
+MODEL_CLASSES = None
+
 
 def get_model_classes():
     """
@@ -69,13 +73,19 @@ def get_model_classes():
 
     :rtype: ``list``
     """
+    global MODEL_CLASSES
+
+    if MODEL_CLASSES:
+        return MODEL_CLASSES
+
     result = []
     for module_name in MODEL_MODULE_NAMES:
         module = importlib.import_module(module_name)
         model_classes = getattr(module, 'MODELS', [])
         result.extend(model_classes)
 
-    return result
+    MODEL_CLASSES = result
+    return MODEL_CLASSES
 
 
 def _db_connect(db_name, db_host, db_port, username=None, password=None,
@@ -150,7 +160,7 @@ def db_setup(db_name, db_host, db_port, username=None, password=None, ensure_ind
     return connection
 
 
-def db_ensure_indexes():
+def db_ensure_indexes(model_classes=None):
     """
     This function ensures that indexes for all the models have been created and the
     extra indexes cleaned up.
@@ -160,9 +170,15 @@ def db_ensure_indexes():
 
     Note #2: This method blocks until all the index have been created (indexes
     are created in real-time and not in background).
+
+    :param model_classes: DB model classes to ensure indexes for. If not specified, indexes are
+                          ensured for all the models.
+    :type model_classes: ``list``
     """
     LOG.debug('Ensuring database indexes...')
-    model_classes = get_model_classes()
+
+    if not model_classes:
+        model_classes = get_model_classes()
 
     for model_class in model_classes:
         class_name = model_class.__name__
