@@ -96,4 +96,4 @@ before_cache:
 
 after_success:
   # NOTE: We only generate and submit coverage report for master and version branches
-  - if [ ${TASK} = 'ci-unit' ] || [ ${TASK} = 'ci-integration' ] && [ "${ENABLE_COVERAGE}" = 'yes' ]; then ./scripts/travis/scripts/travis/submit-codecov-coverage.sh ; fi
+  - if [ ${TASK} = 'ci-unit' ] || [ ${TASK} = 'ci-integration' ] && [ "${ENABLE_COVERAGE}" = 'yes' ]; then ./scripts/travis/scripts/travis/submit-codecov-coverage.sh; fi
