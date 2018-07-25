@@ -42,6 +42,8 @@ COMPONENTS_TEST_MODULES_COMMA := $(subst $(space_char),$(comma),$(COMPONENTS_TES
 COVERAGE_GLOBS := .coverage.unit.* .coverage.integration.* .coverage.mistral.*
 COVERAGE_GLOBS_QUOTED := $(foreach glob,$(COVERAGE_GLOBS),'$(glob)')
 
+COMPONENTS_TEST = "st2debug"
+
 PYTHON_TARGET := 2.7
 
 REQUIREMENTS := test-requirements.txt requirements.txt
