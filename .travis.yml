@@ -67,7 +67,7 @@ before_install:
 
 install:
   - if [ "${TASK}" = 'compilepy3 ci-py3-unit' ] || [ "${TASK}" = 'ci-py3-integration' ]; then pip install "tox==3.0.0"; else make requirements; fi
-  - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ] && [ "${ENABLE_COVERAGE}" = 'yes' ]; then pip install -e "https://github.com/Kami/codecov-python.git@better_error_output#egg=codecov"; fi
+  - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ] && [ "${ENABLE_COVERAGE}" = 'yes' ]; then pip install -e "git+https://github.com/Kami/codecov-python.git@better_error_output#egg=codecov"; fi
   - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ] || [ "${TASK}" = 'compilepy3 ci-py3-unit' ] || [ "${TASK}" = 'ci-py3-integration' ]; then sudo .circle/add-itest-user.sh; fi
 
 # Let's enable rabbitmqadmin
