@@ -16,16 +16,22 @@ matrix:
   include:
     - env: TASK=ci-unit NODE_INDEX=0 NODE_TOTAL=2
       python: 2.7
+      name: "Unit Tests (Python 2.7) - 1"
     - env: TASK=ci-unit NODE_INDEX=1 NODE_TOTAL=2
       python: 2.7
+      name: "Unit Tests (Python 2.7) - 2"
     - env: TASK=ci-integration
       python: 2.7
+      name: "Integration Tests (Python 2.7)"
     - env: TASK="ci-checks ci-packs-tests"
       python: 2.7
+      name: "Lint Checks, Packs Tests (Python 2.7)"
     - env: TASK="compilepy3 ci-py3-unit" CACHE_NAME=py3
       python: 3.6
+      name: "Unit Tests (Python 3.6)"
     - env: TASK="ci-py3-integration" CACHE_NAME=py3
       python: 3.6
+      name: "Integration Tests (Python 3.6)"
 addons:
   apt:
     sources:
