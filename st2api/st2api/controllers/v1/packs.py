@@ -104,7 +104,7 @@ class PackInstallController(ActionExecutionsControllerMixin):
         if pack_install_request.force:
             parameters['force'] = True
 
-        if deploykey in pack_install_request:
+        if 'deploykey' in pack_install_request:
             parameters['deploykey'] = pack_install_request.deploykey
 
         if not requester_user:
