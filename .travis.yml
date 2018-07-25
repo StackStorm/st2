@@ -101,7 +101,7 @@ script:
   # NOTE: We put this here and not after_success so build is marked as failed if this step fails
   # See https://docs.travis-ci.com/user/customizing-the-build/#breaking-the-build
   # https://github.com/travis-ci/travis-ci/issues/758#issuecomment-266756853
-  - if [ ${TASK} = 'ci-unit' ] || [ ${TASK} = 'ci-integration' ] && [ "${ENABLE_COVERAGE}" = 'yes' ]; then ./scripts/travis/scripts/travis/submit-codecov-coverage.sh; fi
+  - if [ ${TASK} = 'ci-unit' ] || [ ${TASK} = 'ci-integration' ] && [ "${ENABLE_COVERAGE}" = 'yes' ]; then ./scripts/travis/submit-codecov-coverage.sh; fi
 
 # Don't store cache for target PR branch (typically `master`), because it will be re-used for opened PRs
 # See: https://docs.travis-ci.com/user/caching/#Pull-request-builds-and-caches
