@@ -1,7 +1,7 @@
 # Used old infrastructure, needed for integration tests:
 # http://docs.travis-ci.com/user/workers/standard-infrastructure/
-sudo: required
-dist: precise
+sudo: false
+dist: trusty
 language: python
 
 branches:
@@ -27,18 +27,28 @@ matrix:
     #  python: 2.7
     #  name: "Unit Tests (Python 2.7) - 2"
     - env: TASK=ci-unit
+      sudo: false
+      distro: trusty
       python: 2.7
       name: "Unit Tests (Python 2.7)"
     - env: TASK=ci-integration
+      sudo: required
+      distro: precise
       python: 2.7
       name: "Integration Tests (Python 2.7)"
     - env: TASK="ci-checks ci-packs-tests"
+      sudo: false
+      distro: trusty
       python: 2.7
       name: "Lint Checks, Packs Tests (Python 2.7)"
     - env: TASK="compilepy3 ci-py3-unit" CACHE_NAME=py3
+      sudo: false
+      distro: trusty
       python: 3.6
       name: "Unit Tests (Python 3.6)"
     - env: TASK="ci-py3-integration" CACHE_NAME=py3
+      sudo: required
+      distro: precise
       python: 3.6
       name: "Integration Tests (Python 3.6)"
 addons:
@@ -71,27 +81,27 @@ cache:
 
 before_install:
   # Work around for Travis timeout issues, see https://github.com/travis-ci/travis-ci/issues/9112
-  - sudo apt-get update --option Acquire::Retries=100 --option Acquire::http::Timeout="60"
+  #- sudo apt-get update --option Acquire::Retries=100 --option Acquire::http::Timeout="60"
   - pip install --upgrade "pip>=9.0,<9.1"
-  - sudo pip install --upgrade "virtualenv==15.1.0"
+  - pip install --upgrade "virtualenv==15.1.0"
 
 install:
   - if [ "${TASK}" = 'compilepy3 ci-py3-unit' ] || [ "${TASK}" = 'ci-py3-integration' ]; then pip install "tox==3.0.0"; else make requirements; fi
-  - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ] || [ "${TASK}" = 'compilepy3 ci-py3-unit' ] || [ "${TASK}" = 'ci-py3-integration' ]; then sudo .circle/add-itest-user.sh; fi
+  - if [ "${TASK}" = 'ci-integration' ] || [ "${TASK}" = 'compilepy3 ci-py3-unit' ] || [ "${TASK}" = 'ci-py3-integration' ]; then sudo .circle/add-itest-user.sh; fi
 
 # Let's enable rabbitmqadmin
 # See https://github.com/messagebus/lapine/wiki/Testing-on-Travis.
 before_script:
   # Use a custom mongod.conf which uses various speed optimizations
-  - sudo cp scripts/travis/mongod.conf /etc/mongod.conf
-  - sudo service mongod restart ; sleep 5
+  #- sudo cp scripts/travis/mongod.conf /etc/mongod.conf
+  #- sudo service mongod restart ; sleep 5
   - git --version
   - pip --version
   - virtualenv --version
-  - sudo rabbitmq-plugins enable rabbitmq_management
-  - sudo wget http://guest:guest@localhost:15672/cli/rabbitmqadmin -O /usr/local/bin/rabbitmqadmin
-  - sudo chmod +x /usr/local/bin/rabbitmqadmin
-  - sudo service rabbitmq-server restart
+    #- sudo rabbitmq-plugins enable rabbitmq_management
+    #- sudo wget http://guest:guest@localhost:15672/cli/rabbitmqadmin -O /usr/local/bin/rabbitmqadmin
+    #- sudo chmod +x /usr/local/bin/rabbitmqadmin
+    #- sudo service rabbitmq-server restart
   # Print out various environment variables info
   - make play
 
