@@ -58,6 +58,7 @@ services:
   - rabbitmq
 
 cache:
+  pip: true
   directories:
     # NOTE: If using a custom "install" step aka overriding "install" step, "cache.pip: true" doesn't work
     # and directory needs to be explicitly added to the cache.
