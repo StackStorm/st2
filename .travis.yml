@@ -17,12 +17,18 @@ env:
     - ENABLE_COVERAGE=$([ "${TRAVIS_PULL_REQUEST}" = "false" ] && echo "yes" || echo "no")
 matrix:
   include:
-    - env: TASK=ci-unit NODE_INDEX=0 NODE_TOTAL=2
+    # NOTE: We combine builds because Travis offers a maximum of 5 concurrent
+    # builds and having 6 tasks / builds means 1 tasks will need to wait for one
+    # of the other 5 tasks to finish before it can start
+    #- env: TASK=ci-unit NODE_INDEX=0 NODE_TOTAL=2
+    #  python: 2.7
+    #  name: "Unit Tests (Python 2.7) - 1"
+    #- env: TASK=ci-unit NODE_INDEX=1 NODE_TOTAL=2
+    #  python: 2.7
+    #  name: "Unit Tests (Python 2.7) - 2"
+    - env: TASK=ci-unit
       python: 2.7
-      name: "Unit Tests (Python 2.7) - 1"
-    - env: TASK=ci-unit NODE_INDEX=1 NODE_TOTAL=2
-      python: 2.7
-      name: "Unit Tests (Python 2.7) - 2"
+      name: "Unit Tests (Python 2.7)"
     - env: TASK=ci-integration
       python: 2.7
       name: "Integration Tests (Python 2.7)"
@@ -54,6 +60,10 @@ services:
 cache:
   pip: true
   directories:
+    # NOTE: If using a custom "install" step aka overriding "install" step, "cache.pip: true" doesn't work
+    # and directory needs to be explicitly added to the cache.
+    # See https://github.com/travis-ci/travis-ci/issues/3239, https://github.com/oppia/oppia/pull/5281 for details.
+    - $HOME/.cache/pip
     - virtualenv/
     # NOTE: Caching .tox speeds up py3 build for 30-60 seconds, but causes issues when dependencies
     # are updated so it's disabled
@@ -67,15 +77,14 @@ before_install:
 
 install:
   - if [ "${TASK}" = 'compilepy3 ci-py3-unit' ] || [ "${TASK}" = 'ci-py3-integration' ]; then pip install "tox==3.0.0"; else make requirements; fi
-  # NOTE: We need eventlet installed so coverage can be correctly combined. This is needed because we are covering code which utilizes eventlet.
-  # Without eventlet being available to the coverage command it will fail with "Couldn't trace with concurrency=eventlet, the module isn't installed."
-  - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ] && [ "${ENABLE_COVERAGE}" = 'yes' ]; then pip install eventlet ; pip install -e "git+https://github.com/Kami/codecov-python.git@better_error_output#egg=codecov"; fi
   - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ] || [ "${TASK}" = 'compilepy3 ci-py3-unit' ] || [ "${TASK}" = 'ci-py3-integration' ]; then sudo .circle/add-itest-user.sh; fi
 
 # Let's enable rabbitmqadmin
 # See https://github.com/messagebus/lapine/wiki/Testing-on-Travis.
 before_script:
-  - "echo ENABLE_COVERAGE=${ENABLE_COVERAGE}"
+  # Use a custom mongod.conf which uses various speed optimizations
+  - sudo cp scripts/travis/mongod.conf /etc/mongod.conf
+  - sudo service mongod restart ; sleep 5
   - git --version
   - pip --version
   - virtualenv --version
@@ -83,16 +92,19 @@ before_script:
   - sudo wget http://guest:guest@localhost:15672/cli/rabbitmqadmin -O /usr/local/bin/rabbitmqadmin
   - sudo chmod +x /usr/local/bin/rabbitmqadmin
   - sudo service rabbitmq-server restart
+  # Print out various environment variables info
+  - make play
 
 script:
   - make ${TASK}
+  # NOTE: We only generate and submit coverage report for master and version branches
+  # NOTE: We put this here and not after_success so build is marked as failed if this step fails
+  # See https://docs.travis-ci.com/user/customizing-the-build/#breaking-the-build
+  # https://github.com/travis-ci/travis-ci/issues/758#issuecomment-266756853
+  - if [ ${TASK} = 'ci-unit' ] || [ ${TASK} = 'ci-integration' ] && [ "${ENABLE_COVERAGE}" = 'yes' ]; then ./scripts/travis/scripts/travis/submit-codecov-coverage.sh; fi
 
 # Don't store cache for target PR branch (typically `master`), because it will be re-used for opened PRs
 # See: https://docs.travis-ci.com/user/caching/#Pull-request-builds-and-caches
 # Alternative: use strict pip pinning, including git-based pip packages
 before_cache:
   - if [ ${TRAVIS_PULL_REQUEST} = 'false' ]; then rm -rf virtualenv/; fi
-
-after_success:
-  # NOTE: We only generate and submit coverage report for master and version branches
-  - if [ ${TASK} = 'ci-unit' ] || [ ${TASK} = 'ci-integration' ] && [ "${ENABLE_COVERAGE}" = 'yes' ]; then codecov; fi
