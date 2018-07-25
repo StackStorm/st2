@@ -50,8 +50,6 @@ PIP_OPTIONS := $(ST2_PIP_OPTIONS)
 NOSE_OPTS := --rednose --immediate --with-parallel
 NOSE_TIME := $(NOSE_TIME)
 
-COMPONENTS_TEST = "st2debug"
-
 ifdef NOSE_TIME
 	NOSE_OPTS := --rednose --immediate --with-parallel --with-timer
 endif
