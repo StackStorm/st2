@@ -17,12 +17,18 @@ env:
     - ENABLE_COVERAGE=$([ "${TRAVIS_PULL_REQUEST}" = "false" ] && echo "yes" || echo "no")
 matrix:
   include:
-    - env: TASK=ci-unit NODE_INDEX=0 NODE_TOTAL=2
+    # NOTE: We combine builds because Travis offers a maximum of 5 concurrent
+    # builds and having 6 tasks / builds means 1 tasks will need to wait for one
+    # of the other 5 tasks to finish before it can start
+    #- env: TASK=ci-unit NODE_INDEX=0 NODE_TOTAL=2
+    #  python: 2.7
+    #  name: "Unit Tests (Python 2.7) - 1"
+    #- env: TASK=ci-unit NODE_INDEX=1 NODE_TOTAL=2
+    #  python: 2.7
+    #  name: "Unit Tests (Python 2.7) - 2"
+    - env: TASK=ci-unit
       python: 2.7
-      name: "Unit Tests (Python 2.7) - 1"
-    - env: TASK=ci-unit NODE_INDEX=1 NODE_TOTAL=2
-      python: 2.7
-      name: "Unit Tests (Python 2.7) - 2"
+      name: "Unit Tests (Python 2.7)"
     - env: TASK=ci-integration
       python: 2.7
       name: "Integration Tests (Python 2.7)"
