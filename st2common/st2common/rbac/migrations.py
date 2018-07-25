@@ -48,6 +48,6 @@ def insert_system_roles():
 
         try:
             role_db.save()
-        except (StackStormDBObjectConflictError, NotUniqueError) as e:
+        except (StackStormDBObjectConflictError, NotUniqueError):
             # Role already exists error is not fatal
             pass
