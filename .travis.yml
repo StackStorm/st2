@@ -73,7 +73,6 @@ install:
 # Let's enable rabbitmqadmin
 # See https://github.com/messagebus/lapine/wiki/Testing-on-Travis.
 before_script:
-  - "echo ENABLE_COVERAGE=${ENABLE_COVERAGE}"
   - git --version
   - pip --version
   - virtualenv --version
@@ -81,6 +80,8 @@ before_script:
   - sudo wget http://guest:guest@localhost:15672/cli/rabbitmqadmin -O /usr/local/bin/rabbitmqadmin
   - sudo chmod +x /usr/local/bin/rabbitmqadmin
   - sudo service rabbitmq-server restart
+  # Print out various environment variables info
+  - make play
 
 script:
   - make ${TASK}
