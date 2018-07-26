@@ -260,7 +260,7 @@ class ActionRunCommandMixin(object):
             return
 
         execution = self.run(args, **kwargs)
-        if args.async:
+        if args.action_async:
             self.print_output('To get the results, execute:\n st2 execution get %s' %
                               (execution.id), six.text_type)
             self.print_output('\nTo view output in real-time, execute:\n st2 execution '
@@ -459,7 +459,7 @@ class ActionRunCommandMixin(object):
             print('')
             return execution
 
-        if not args.async:
+        if not args.action_async:
             while execution.status in pending_statuses:
                 time.sleep(self.poll_interval)
                 if not args.json and not args.yaml:
@@ -950,7 +950,7 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
                                      help='Existing trace id for this execution.',
                                      dest='trace_id', required=False)
             self.parser.add_argument('-a', '--async',
-                                     action='store_true', dest='async',
+                                     action='store_true', dest='action_async',
                                      help='Do not wait for action to finish.')
             self.parser.add_argument('-e', '--inherit-env',
                                      action='store_true', dest='inherit_env',
@@ -962,9 +962,9 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
                                      help='User under which to run the action (admins only).')
 
         if self.name == 'run':
-            self.parser.set_defaults(async=False)
+            self.parser.set_defaults(action_async=False)
         else:
-            self.parser.set_defaults(async=True)
+            self.parser.set_defaults(action_async=True)
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
@@ -1286,7 +1286,7 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
                                       'for with-items tasks is rerun. If no reset, only failed '
                                       ' iterations are rerun.')
         self.parser.add_argument('-a', '--async',
-                                 action='store_true', dest='async',
+                                 action='store_true', dest='action_async',
                                  help='Do not wait for action to finish.')
         self.parser.add_argument('-e', '--inherit-env',
                                  action='store_true', dest='inherit_env',

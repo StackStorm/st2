@@ -52,6 +52,13 @@ Changed
   way to find out about this failure would be to inspect the ``st2rulesengine`` service logs.
   (improvement) #4231
 
+Deprecated
+~~~~~~~~~~
+
+* The CloudSlang runner is now deprecated. In StackStorm 3.1 it will be removed from the core StackStorm codebase.
+  The runner code will be moved to a separate repository, and no longer maintained by the core StackStorm team.
+  Users will still be able to install and use this runner, but it will require additional steps to install.
+
 Fixed
 ~~~~~
 

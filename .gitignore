@@ -33,6 +33,7 @@ pip-log.txt
 .coverage
 .coverage.integration.*
 .coverage.integration
+.coverage.unit.*
 .coverage.unit
 cover
 coverage*.xml
