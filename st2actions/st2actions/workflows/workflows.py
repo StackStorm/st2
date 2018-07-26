@@ -21,6 +21,7 @@ from orquesta import events
 from orquesta import states
 
 from st2common import log as logging
+from st2common.models.db import execution as ex_db_models
 from st2common.models.db import workflow as wf_db_models
 from st2common.services import workflows as wf_svc
 from st2common.transport import consumers
@@ -37,17 +38,29 @@ WORKFLOW_EXECUTION_QUEUES = [
 ]
 
 
-class WorkflowDispatcher(consumers.MessageHandler):
-    message_type = wf_db_models.WorkflowExecutionDB
+class WorkflowExecutionHandler(consumers.VariableMessageHandler):
 
     def __init__(self, connection, queues):
-        super(WorkflowDispatcher, self).__init__(connection, queues)
+        super(WorkflowExecutionHandler, self).__init__(connection, queues)
+
+        self.message_types = {
+            wf_db_models.WorkflowExecutionDB: self.handle_workflow_execution,
+            ex_db_models.ActionExecutionDB: self.handle_action_execution
+        }
 
     def get_queue_consumer(self, connection, queues):
         # We want to use a special ActionsQueueConsumer which uses 2 dispatcher pools
-        return consumers.QueueConsumer(connection=connection, queues=queues, handler=self)
+        return consumers.VariableMessageQueueConsumer(
+            connection=connection,
+            queues=queues,
+            handler=self
+        )
 
-    def process(self, wf_ex_db):
+    def process(self, message):
+        handler_function = self.message_types.get(type(message))
+        handler_function(message)
+
+    def handle_workflow_execution(self, wf_ex_db):
         wf_ac_ex_id = wf_ex_db.action_execution
 
         LOG.info('[%s] Processing request for workflow execution.', wf_ac_ex_id)
@@ -116,7 +129,10 @@ class WorkflowDispatcher(consumers.MessageHandler):
             conductor, wf_ex_db = wf_svc.refresh_conductor(str(wf_ex_db.id))
             next_tasks = conductor.get_next_tasks()
 
+    def handle_action_execution(self, ac_ex_db):
+        pass
+
 
 def get_engine():
     with kombu.Connection(txpt_utils.get_messaging_urls()) as conn:
-        return WorkflowDispatcher(conn, WORKFLOW_EXECUTION_QUEUES)
+        return WorkflowExecutionHandler(conn, WORKFLOW_EXECUTION_QUEUES)
