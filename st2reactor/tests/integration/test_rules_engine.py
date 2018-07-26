@@ -60,6 +60,8 @@ class TimerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
 
     def test_timer_enable_implicit(self):
         process = None
+        seen_line = False
+
         try:
             process = self._start_rules_engine(cmd=self.cmd)
             lines = 0
@@ -67,16 +69,22 @@ class TimerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
                 line = process.stdout.readline()
                 lines += 1
                 if TIMER_ENABLED_LOG_LINE in line.decode('utf-8'):
-                    self.assertTrue(True)
+                    seen_line = True
                     break
         finally:
             if process:
                 process.send_signal(signal.SIGKILL)
                 self.remove_process(process=process)
+
+        if not seen_line:
+            raise AssertionError('Didn\'t see "%s" log line in timer output' %
+                                 (TIMER_ENABLED_LOG_LINE))
 
     def test_timer_enable_explicit(self):
         self._append_to_cfg_file(cfg_path=self.cfg_path, content='\n[timer]\nenable = True')
         process = None
+        seen_line = False
+
         try:
             process = self._start_rules_engine(cmd=self.cmd)
             lines = 0
@@ -84,16 +92,22 @@ class TimerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
                 line = process.stdout.readline()
                 lines += 1
                 if TIMER_ENABLED_LOG_LINE in line.decode('utf-8'):
-                    self.assertTrue(True)
+                    seen_line = True
                     break
         finally:
             if process:
                 process.send_signal(signal.SIGKILL)
                 self.remove_process(process=process)
 
+        if not seen_line:
+            raise AssertionError('Didn\'t see "%s" log line in timer output' %
+                                 (TIMER_ENABLED_LOG_LINE))
+
     def test_timer_disable_explicit(self):
         self._append_to_cfg_file(cfg_path=self.cfg_path, content='\n[timer]\nenable = False')
         process = None
+        seen_line = False
+
         try:
             process = self._start_rules_engine(cmd=self.cmd)
             lines = 0
@@ -101,12 +115,16 @@ class TimerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
                 line = process.stdout.readline()
                 lines += 1
                 if TIMER_DISABLED_LOG_LINE in line.decode('utf-8'):
-                    self.assertTrue(True)
+                    seen_line = True
                     break
         finally:
             if process:
                 process.send_signal(signal.SIGKILL)
                 self.remove_process(process=process)
+
+        if not seen_line:
+            raise AssertionError('Didn\'t see "%s" log line in timer output' %
+                                 (TIMER_DISABLED_LOG_LINE))
 
     def _start_rules_engine(self, cmd):
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
