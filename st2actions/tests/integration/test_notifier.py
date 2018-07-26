@@ -45,7 +45,7 @@ CMD = [BINARY, '--config-file']
 ON_TRAVIS = os.environ.get('TRAVIS', 'none').lower() == 'true'
 
 
-@unittest2.skipIf(ON_TRAVIS and six.PY3, 'Doesn\'t work on Travis')
+#@unittest2.skipIf(ON_TRAVIS and six.PY3, 'Doesn\'t work on Travis')
 class SchedulerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
     def setUp(self):
         super(SchedulerEnableDisableTestCase, self).setUp()
@@ -85,6 +85,8 @@ class SchedulerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
                 self.remove_process(process=process)
 
         if not seen_line:
+            print(process.stdout.read())
+            print(process.stderr.read())
             raise AssertionError('Didn\'t see "%s" log line in scheduler output' %
                                  (SCHEDULER_ENABLED_LOG_LINE))
 
