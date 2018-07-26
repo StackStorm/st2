@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 
 from __future__ import absolute_import
+
 import os
 import signal
 import tempfile
@@ -20,6 +21,8 @@ import tempfile
 from eventlet.green import subprocess
 
 from st2common.constants.scheduler import SCHEDULER_ENABLED_LOG_LINE, SCHEDULER_DISABLED_LOG_LINE
+from st2common.util.shell import kill_process
+
 from st2tests.base import IntegrationTestCase
 from st2tests.base import CleanDbTestCase
 
@@ -37,12 +40,9 @@ CMD = [BINARY, '--config-file']
 
 
 class SchedulerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
-    @classmethod
-    def setUpClass(cls):
-        super(SchedulerEnableDisableTestCase, cls).setUpClass()
-
     def setUp(self):
         super(SchedulerEnableDisableTestCase, self).setUp()
+
         config_text = open(ST2_CONFIG_PATH).read()
         self.cfg_fd, self.cfg_path = tempfile.mkstemp()
         with open(self.cfg_path, 'w') as f:
@@ -52,9 +52,9 @@ class SchedulerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
         self.cmd.append(self.cfg_path)
 
     def tearDown(self):
+        super(SchedulerEnableDisableTestCase, self).tearDown()
         self.cmd = None
         self._remove_tempfile(self.cfg_fd, self.cfg_path)
-        super(SchedulerEnableDisableTestCase, self).tearDown()
 
     def test_scheduler_enable_implicit(self):
         process = None
@@ -69,7 +69,7 @@ class SchedulerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
                     break
         finally:
             if process:
-                process.send_signal(signal.SIGKILL)
+                kill_process(process)
                 self.remove_process(process=process)
 
     def test_scheduler_enable_explicit(self):
@@ -86,7 +86,7 @@ class SchedulerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
                     break
         finally:
             if process:
-                process.send_signal(signal.SIGKILL)
+                kill_process(process)
                 self.remove_process(process=process)
 
     def test_scheduler_disable_explicit(self):
