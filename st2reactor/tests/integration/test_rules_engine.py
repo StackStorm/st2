@@ -17,6 +17,7 @@ from __future__ import absolute_import
 
 import os
 import sys
+import errno
 import signal
 import tempfile
 
@@ -47,7 +48,11 @@ class TimerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
         super(TimerEnableDisableTestCase, self).setUp()
 
         # Create logs/ directory otherwise the tests will fail
-        os.makedir(LOGS_DIR)
+        try:
+            os.mkdir(LOGS_DIR)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise e
 
         config_text = open(ST2_CONFIG_PATH).read()
         self.cfg_fd, self.cfg_path = tempfile.mkstemp()
