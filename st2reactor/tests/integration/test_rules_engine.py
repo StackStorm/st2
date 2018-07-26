@@ -67,11 +67,11 @@ class TimerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
             process = self._start_rules_engine(cmd=self.cmd)
             lines = 0
             while lines < 100:
-                line = process.stdout.readline()
+                line = process.stdout.readline().decode('utf-8')
                 lines += 1
                 sys.stdout.write(line)
 
-                if TIMER_ENABLED_LOG_LINE in line.decode('utf-8'):
+                if TIMER_ENABLED_LOG_LINE in line:
                     seen_line = True
                     break
         finally:
@@ -92,11 +92,11 @@ class TimerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
             process = self._start_rules_engine(cmd=self.cmd)
             lines = 0
             while lines < 100:
-                line = process.stdout.readline()
+                line = process.stdout.readline().decode('utf-8')
                 lines += 1
                 sys.stdout.write(line)
 
-                if TIMER_ENABLED_LOG_LINE in line.decode('utf-8'):
+                if TIMER_ENABLED_LOG_LINE in line:
                     seen_line = True
                     break
         finally:
@@ -117,11 +117,11 @@ class TimerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
             process = self._start_rules_engine(cmd=self.cmd)
             lines = 0
             while lines < 100:
-                line = process.stdout.readline()
+                line = process.stdout.readline().decode('utf-8')
                 lines += 1
                 sys.stdout.write(line)
 
-                if TIMER_DISABLED_LOG_LINE in line.decode('utf-8'):
+                if TIMER_DISABLED_LOG_LINE in line:
                     seen_line = True
                     break
         finally:

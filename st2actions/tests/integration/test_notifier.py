@@ -21,7 +21,8 @@ import tempfile
 
 from eventlet.green import subprocess
 
-from st2common.constants.scheduler import SCHEDULER_ENABLED_LOG_LINE, SCHEDULER_DISABLED_LOG_LINE
+from st2common.constants.scheduler import SCHEDULER_ENABLED_LOG_LINE
+from st2common.constants.scheduler import SCHEDULER_DISABLED_LOG_LINE
 from st2common.util.shell import kill_process
 
 from st2tests.base import IntegrationTestCase
@@ -68,7 +69,7 @@ class SchedulerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
             lines = 0
 
             while lines < 100:
-                line = process.stdout.readline()
+                line = process.stdout.readline().decode('utf-8')
                 lines += 1
                 sys.stdout.write(line)
 
@@ -94,7 +95,7 @@ class SchedulerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
             lines = 0
 
             while lines < 100:
-                line = process.stdout.readline()
+                line = process.stdout.readline().decode('utf-8')
                 lines += 1
                 sys.stdout.write(line)
 
@@ -120,7 +121,7 @@ class SchedulerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
             lines = 0
 
             while lines < 100:
-                line = process.stdout.readline()
+                line = process.stdout.readline().decode('utf-8')
                 lines += 1
                 sys.stdout.write(line)
 
