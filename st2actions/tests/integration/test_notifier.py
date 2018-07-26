@@ -17,7 +17,6 @@ from __future__ import absolute_import
 import os
 import sys
 import signal
-import errno
 import tempfile
 
 from eventlet.green import subprocess
@@ -46,13 +45,6 @@ LOGS_DIR = os.path.abspath(os.path.join(BASE_DIR, '../../../logs'))
 class SchedulerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
     def setUp(self):
         super(SchedulerEnableDisableTestCase, self).setUp()
-
-        # Create logs/ directory otherwise the tests will fail
-        try:
-            os.mkdir(LOGS_DIR)
-        except OSError as e:
-            if e.errno != errno.EEXIST:
-                raise e
 
         config_text = open(ST2_CONFIG_PATH).read()
         self.cfg_fd, self.cfg_path = tempfile.mkstemp()
