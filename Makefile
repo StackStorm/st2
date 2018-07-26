@@ -52,13 +52,12 @@ ifndef PYLINT_CONCURRENCY
 endif
 
 NOSE_OPTS := --rednose --immediate --with-parallel
-NOSE_TIME := $(NOSE_TIME)
 
 ifndef NOSE_TIME
-	NOSE_TIME := 1
+	NOSE_TIME := yes
 endif
 
-ifdef NOSE_TIME
+ifeq ($(NOSE_TIME),yes)
 	NOSE_OPTS := --rednose --immediate --with-parallel --with-timer
 endif
 

@@ -19,6 +19,7 @@ env:
     # environments where small terminal size is used.
     - COLUMNS=120
     - PYLINT_CONCURRENCY=2
+    - NOSE_TIME=no
 matrix:
   include:
     # NOTE: We combine builds because Travis offers a maximum of 5 concurrent
