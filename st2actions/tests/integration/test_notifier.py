@@ -58,6 +58,8 @@ class SchedulerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
 
     def test_scheduler_enable_implicit(self):
         process = None
+        seen_line = False
+
         try:
             process = self._start_notifier(cmd=self.cmd)
             lines = 0
@@ -65,12 +67,16 @@ class SchedulerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
                 line = process.stdout.readline()
                 lines += 1
                 if SCHEDULER_ENABLED_LOG_LINE in line:
-                    self.assertTrue(True)
+                    seen_line = True
                     break
         finally:
             if process:
                 kill_process(process)
                 self.remove_process(process=process)
+
+        if not seen_line:
+            raise AssertionError('Didn\'t see "%s" log line in scheduler output' %
+                                 (SCHEDULER_ENABLED_LOG_LINE))
 
     def test_scheduler_enable_explicit(self):
         self._append_to_cfg_file(cfg_path=self.cfg_path, content='\n[scheduler]\nenable = True')
@@ -82,16 +88,22 @@ class SchedulerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
                 line = process.stdout.readline()
                 lines += 1
                 if SCHEDULER_ENABLED_LOG_LINE in line:
-                    self.assertTrue(True)
+                    seen_line = True
                     break
         finally:
             if process:
                 kill_process(process)
                 self.remove_process(process=process)
 
+        if not seen_line:
+            raise AssertionError('Didn\'t see "%s" log line in scheduler output' %
+                                 (SCHEDULER_DISABLED_LOG_LINE))
+
     def test_scheduler_disable_explicit(self):
         self._append_to_cfg_file(cfg_path=self.cfg_path, content='\n[scheduler]\nenable = False')
         process = None
+        seen_line = False
+
         try:
             process = self._start_notifier(cmd=self.cmd)
             lines = 0
@@ -99,12 +111,16 @@ class SchedulerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
                 line = process.stdout.readline()
                 lines += 1
                 if SCHEDULER_DISABLED_LOG_LINE in line:
-                    self.assertTrue(True)
+                    seen_line = True
                     break
         finally:
             if process:
                 process.send_signal(signal.SIGKILL)
                 self.remove_process(process=process)
+
+        if not seen_line:
+            raise AssertionError('Didn\'t see "%s" log line in scheduler output' %
+                                 (SCHEDULER_DISABLED_LOG_LINE))
 
     def _start_notifier(self, cmd):
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
