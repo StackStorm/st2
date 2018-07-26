@@ -47,17 +47,19 @@ PYTHON_TARGET := 2.7
 REQUIREMENTS := test-requirements.txt requirements.txt
 PIP_OPTIONS := $(ST2_PIP_OPTIONS)
 
-PYLINT_CONCURRENCY := $(PYLINT_CONCURRENCY)
-
 ifndef PYLINT_CONCURRENCY
 	PYLINT_CONCURRENCY := 1
 endif
 
 NOSE_OPTS := --rednose --immediate --with-parallel
-NOSE_TIME := $(NOSE_TIME)
 
-ifdef NOSE_TIME
+ifndef NOSE_TIME
+	NOSE_TIME := yes
+endif
+
+ifeq ($(NOSE_TIME),yes)
 	NOSE_OPTS := --rednose --immediate --with-parallel --with-timer
+	NOSE_WITH_TIMER := 1
 endif
 
 ifndef PIP_OPTIONS
@@ -116,6 +118,8 @@ play:
 	@echo
 	@echo TRAVIS_PULL_REQUEST=$(TRAVIS_PULL_REQUEST)
 	@echo
+	@echo NOSE_OPTS=$(NOSE_OPTS)
+	@echo
 	@echo ENABLE_COVERAGE=$(ENABLE_COVERAGE)
 	@echo
 	@echo NOSE_COVERAGE_FLAGS=$(NOSE_COVERAGE_FLAGS)
@@ -171,15 +175,15 @@ configgen: requirements .configgen
 		$(VIRTUALENV_DIR)/bin/pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models --load-plugins=pylint_plugins.db_models $$component/*.py || exit 1; \
 	done
 	# Lint Python pack management actions
-	$(VIRTUALENV_DIR)/bin/pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models contrib/packs/actions/*.py || exit 1;
-	$(VIRTUALENV_DIR)/bin/pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models contrib/packs/actions/*/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models contrib/packs/actions/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models contrib/packs/actions/*/*.py || exit 1;
 	# Lint other packs
-	$(VIRTUALENV_DIR)/bin/pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models contrib/linux/*/*.py || exit 1;
-	$(VIRTUALENV_DIR)/bin/pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models contrib/chatops/*/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models contrib/linux/*/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models contrib/chatops/*/*.py || exit 1;
 	# Lint Python scripts
-	$(VIRTUALENV_DIR)/bin/pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models scripts/*.py || exit 1;
-	$(VIRTUALENV_DIR)/bin/pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models tools/*.py || exit 1;
-	$(VIRTUALENV_DIR)/bin/pylint -E --rcfile=./lint-configs/python/.pylintrc pylint_plugins/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models scripts/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models tools/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc pylint_plugins/*.py || exit 1;
 
 .PHONY: lint-api-spec
 lint-api-spec: requirements .lint-api-spec
@@ -792,7 +796,7 @@ ci-py3-unit:
 	@echo
 	@echo "==================== ci-py3-unit ===================="
 	@echo
-	tox -e py36-unit -vv
+	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-unit -vv
 
 .PHONY: ci-py3-integration
 ci-py3-integration: requirements .ci-prepare-integration .ci-py3-integration
@@ -802,7 +806,7 @@ ci-py3-integration: requirements .ci-prepare-integration .ci-py3-integration
 	@echo
 	@echo "==================== ci-py3-integration ===================="
 	@echo
-	tox -e py36-integration -vv
+	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-integration -vv
 
 .PHONY: .rst-check
 .rst-check:

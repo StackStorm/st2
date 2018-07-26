@@ -20,5 +20,5 @@ __all__ = [
 
 
 # Integration tests look for these loglines to validate scheduler enable/disable
-SCHEDULER_ENABLED_LOG_LINE = b'Scheduler is enabled.'
-SCHEDULER_DISABLED_LOG_LINE = b'Scheduler is disabled.'
+SCHEDULER_ENABLED_LOG_LINE = 'Scheduler is enabled.'
+SCHEDULER_DISABLED_LOG_LINE = 'Scheduler is disabled.'
