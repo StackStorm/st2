@@ -18,9 +18,7 @@ import os
 import sys
 import signal
 import tempfile
-import unittest2
 
-import six
 from eventlet.green import subprocess
 
 from st2common.constants.scheduler import SCHEDULER_ENABLED_LOG_LINE
@@ -38,14 +36,12 @@ __all__ = [
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ST2_CONFIG_PATH = os.path.join(BASE_DIR, '../../../conf/st2.tests.conf')
 ST2_CONFIG_PATH = os.path.abspath(ST2_CONFIG_PATH)
+PYTHON_BINARY = sys.executable
 BINARY = os.path.join(BASE_DIR, '../../../st2actions/bin/st2notifier')
 BINARY = os.path.abspath(BINARY)
-CMD = [BINARY, '--config-file']
-
-ON_TRAVIS = os.environ.get('TRAVIS', 'none').lower() == 'true'
+CMD = [PYTHON_BINARY, BINARY, '--config-file']
 
 
-#@unittest2.skipIf(ON_TRAVIS and six.PY3, 'Doesn\'t work on Travis')
 class SchedulerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
     def setUp(self):
         super(SchedulerEnableDisableTestCase, self).setUp()
