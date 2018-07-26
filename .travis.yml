@@ -18,7 +18,7 @@ env:
     # We need to explicitly specify terminal width otherwise some CLI tests fail on container
     # environments where small terminal size is used.
     - COLUMNS=120
-    - PYLINT_CONCURRENCY: 2
+    - PYLINT_CONCURRENCY=2
 matrix:
   include:
     # NOTE: We combine builds because Travis offers a maximum of 5 concurrent
