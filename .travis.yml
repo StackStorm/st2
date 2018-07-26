@@ -19,6 +19,7 @@ env:
     # environments where small terminal size is used.
     - COLUMNS=120
     - PYLINT_CONCURRENCY=2
+    # We disable nose timer since it adds 1-2 minutes of overhead to each test job
     - NOSE_TIME=no
 matrix:
   include:

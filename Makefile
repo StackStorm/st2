@@ -59,6 +59,7 @@ endif
 
 ifeq ($(NOSE_TIME),yes)
 	NOSE_OPTS := --rednose --immediate --with-parallel --with-timer
+	NOSE_WITH_TIMER := 1
 endif
 
 ifndef PIP_OPTIONS
@@ -782,7 +783,7 @@ ci-py3-unit:
 	@echo
 	@echo "==================== ci-py3-unit ===================="
 	@echo
-	tox -e py36-unit -vv
+	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-unit -vv
 
 .PHONY: ci-py3-integration
 ci-py3-integration: requirements .ci-prepare-integration .ci-py3-integration
@@ -792,7 +793,7 @@ ci-py3-integration: requirements .ci-prepare-integration .ci-py3-integration
 	@echo
 	@echo "==================== ci-py3-integration ===================="
 	@echo
-	tox -e py36-integration -vv
+	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-integration -vv
 
 .PHONY: .rst-check
 .rst-check:
