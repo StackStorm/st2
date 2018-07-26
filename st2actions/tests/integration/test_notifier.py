@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 
 import os
+import sys
 import signal
 import tempfile
 
@@ -63,9 +64,12 @@ class SchedulerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
         try:
             process = self._start_notifier(cmd=self.cmd)
             lines = 0
+
             while lines < 100:
                 line = process.stdout.readline()
                 lines += 1
+                sys.stdout.write(line)
+
                 if SCHEDULER_ENABLED_LOG_LINE in line:
                     seen_line = True
                     break
@@ -81,12 +85,17 @@ class SchedulerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
     def test_scheduler_enable_explicit(self):
         self._append_to_cfg_file(cfg_path=self.cfg_path, content='\n[scheduler]\nenable = True')
         process = None
+        seen_line = False
+
         try:
             process = self._start_notifier(cmd=self.cmd)
             lines = 0
+
             while lines < 100:
                 line = process.stdout.readline()
                 lines += 1
+                sys.stdout.write(line)
+
                 if SCHEDULER_ENABLED_LOG_LINE in line:
                     seen_line = True
                     break
@@ -107,9 +116,12 @@ class SchedulerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
         try:
             process = self._start_notifier(cmd=self.cmd)
             lines = 0
+
             while lines < 100:
                 line = process.stdout.readline()
                 lines += 1
+                sys.stdout.write(line)
+
                 if SCHEDULER_DISABLED_LOG_LINE in line:
                     seen_line = True
                     break

@@ -68,6 +68,8 @@ class TimerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
             while lines < 100:
                 line = process.stdout.readline()
                 lines += 1
+                sys.stdout.write(line)
+
                 if TIMER_ENABLED_LOG_LINE in line.decode('utf-8'):
                     seen_line = True
                     break
@@ -91,6 +93,8 @@ class TimerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
             while lines < 100:
                 line = process.stdout.readline()
                 lines += 1
+                sys.stdout.write(line)
+
                 if TIMER_ENABLED_LOG_LINE in line.decode('utf-8'):
                     seen_line = True
                     break
@@ -114,6 +118,8 @@ class TimerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
             while lines < 100:
                 line = process.stdout.readline()
                 lines += 1
+                sys.stdout.write(line)
+
                 if TIMER_DISABLED_LOG_LINE in line.decode('utf-8'):
                     seen_line = True
                     break
