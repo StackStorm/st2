@@ -39,10 +39,15 @@ BINARY = os.path.join(BASE_DIR, '../../../st2actions/bin/st2notifier')
 BINARY = os.path.abspath(BINARY)
 CMD = [BINARY, '--config-file']
 
+LOGS_DIR = os.path.abspath(os.path.join(BASE_DIR, '../../../logs'))
+
 
 class SchedulerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
     def setUp(self):
         super(SchedulerEnableDisableTestCase, self).setUp()
+
+        # Create logs/ directory otherwise the tests will fail
+        os.makedir(LOGS_DIR)
 
         config_text = open(ST2_CONFIG_PATH).read()
         self.cfg_fd, self.cfg_path = tempfile.mkstemp()
