@@ -54,6 +54,10 @@ endif
 NOSE_OPTS := --rednose --immediate --with-parallel
 NOSE_TIME := $(NOSE_TIME)
 
+ifndef NOSE_TIME
+	NOSE_TIME := 1
+endif
+
 ifdef NOSE_TIME
 	NOSE_OPTS := --rednose --immediate --with-parallel --with-timer
 endif
