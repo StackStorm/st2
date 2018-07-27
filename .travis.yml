@@ -27,25 +27,23 @@ matrix:
     # NOTE: We combine builds because Travis offers a maximum of 5 concurrent
     # builds and having 6 tasks / builds means 1 tasks will need to wait for one
     # of the other 5 tasks to finish before it can start
-    #- env: TASK=ci-unit NODE_INDEX=0 NODE_TOTAL=2
-    #  python: 2.7
-    #  name: "Unit Tests (Python 2.7) - 1"
-    #- env: TASK=ci-unit NODE_INDEX=1 NODE_TOTAL=2
-    #  python: 2.7
-    #  name: "Unit Tests (Python 2.7) - 2"
-    - env: TASK=ci-unit TASK_THRESHOLD=840 # 14 minutes
+    # NOTE: Thresholds only apply to the make target and not to the whole build
+    # job which also includes "make requirements" and other steps
+    # "make requirements" can take substantially lower if the cache is purged
+    # and this would cause too many intermediate failures / false positives
+    - env: TASK=ci-unit TASK_THRESHOLD=640 # 10.8 minutes
       python: 2.7
       name: "Unit Tests (Python 2.7)"
-    - env: TASK=ci-integration TASK_THRESHOLD=940 # 15.8 minutes
+    - env: TASK=ci-integration TASK_THRESHOLD=670 # 11.1 minutes
       python: 2.7
       name: "Integration Tests (Python 2.7)"
-    - env: TASK="ci-checks ci-packs-tests" TASK_THRESHOLD=480 # 8 minutes
+    - env: TASK="ci-checks ci-packs-tests" TASK_THRESHOLD=210 # 3.5 minutes
       python: 2.7
       name: "Lint Checks, Packs Tests (Python 2.7)"
-    - env: TASK="compilepy3 ci-py3-unit" CACHE_NAME=py3 TASK_THRESHOLD=910 # 14.5 minutes
+    - env: TASK="compilepy3 ci-py3-unit" CACHE_NAME=py3 TASK_THRESHOLD=685 # 11.4 minutes
       python: 3.6
       name: "Unit Tests (Python 3.6)"
-    - env: TASK="ci-py3-integration" CACHE_NAME=py3 TASK_THRESHOLD=600 # 10 minutes
+    - env: TASK="ci-py3-integration" CACHE_NAME=py3 TASK_THRESHOLD=310 # 5.1 minutes
       python: 3.6
       name: "Integration Tests (Python 3.6)"
 addons:
