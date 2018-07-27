@@ -31,19 +31,19 @@ matrix:
     # job which also includes "make requirements" and other steps
     # "make requirements" can take substantially lower if the cache is purged
     # and this would cause too many intermediate failures / false positives
-    - env: TASK=ci-unit TASK_THRESHOLD=640 # 10.8 minutes
+    - env: TASK=ci-unit COMMAND_THRESHOLD=640 # 10.8 minutes
       python: 2.7
       name: "Unit Tests (Python 2.7)"
-    - env: TASK=ci-integration TASK_THRESHOLD=670 # 11.1 minutes
+    - env: TASK=ci-integration COMMAND_THRESHOLD=670 # 11.1 minutes
       python: 2.7
       name: "Integration Tests (Python 2.7)"
-    - env: TASK="ci-checks ci-packs-tests" TASK_THRESHOLD=210 # 3.5 minutes
+    - env: TASK="ci-checks ci-packs-tests" COMMAND_THRESHOLD=210 # 3.5 minutes
       python: 2.7
       name: "Lint Checks, Packs Tests (Python 2.7)"
-    - env: TASK="compilepy3 ci-py3-unit" CACHE_NAME=py3 TASK_THRESHOLD=685 # 11.4 minutes
+    - env: TASK="compilepy3 ci-py3-unit" CACHE_NAME=py3 COMMAND_THRESHOLD=685 # 11.4 minutes
       python: 3.6
       name: "Unit Tests (Python 3.6)"
-    - env: TASK="ci-py3-integration" CACHE_NAME=py3 TASK_THRESHOLD=310 # 5.1 minutes
+    - env: TASK="ci-py3-integration" CACHE_NAME=py3 COMMAND_THRESHOLD=310 # 5.1 minutes
       python: 3.6
       name: "Integration Tests (Python 3.6)"
 addons:
@@ -103,7 +103,7 @@ before_script:
 script:
   # NOTE: We enable code coverage and per test timing information on master so build can take twice
   # as long as PR builds
-  - if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then TASK_THRESHOLD=$(expr ${TASK_THRESHOLD} \* 2); fi; ./scripts/travis/time-command.sh "make ${TASK}" ${TASK_THRESHOLD}
+  - if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then COMMAND_THRESHOLD=$(expr ${COMMAND_THRESHOLD} \* 2); fi; ./scripts/travis/time-command.sh "make ${TASK}" ${COMMAND_THRESHOLD}
   # NOTE: We only generate and submit coverage report for master and version branches
   # NOTE: We put this here and not after_success so build is marked as failed if this step fails
   # See https://docs.travis-ci.com/user/customizing-the-build/#breaking-the-build

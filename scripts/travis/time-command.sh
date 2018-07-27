@@ -25,12 +25,12 @@ GREEN=`tput setaf 2`
 RESET=`tput sgr0`
 
 BASH_COMMAND_STRING=$1
-TASK_THRESHOLD=$2
+COMMAND_THRESHOLD=$2
 
 START_TS=$(date +%s)
 
 # Run the actual task
-echo "Running ${BASH_COMMAND_STRING} (TASK_THRESHOLD=${TASK_THRESHOLD}s)"
+echo "Running ${BASH_COMMAND_STRING} (COMMAND_THRESHOLD=${COMMAND_THRESHOLD}s)"
 
 eval "${BASH_COMMAND_STRING}"
 EXIT_CODE=$?
@@ -41,11 +41,11 @@ END_TS=$(date +%s)
 DURATION=$(expr ${END_TS} - ${START_TS})
 
 echo ""
-echo "Command \"${BASH_COMMAND_STRING}\" duration: ${DURATION}s (TASK_THRESHOLD=${TASK_THRESHOLD}s)"
+echo "Command \"${BASH_COMMAND_STRING}\" duration: ${DURATION}s (COMMAND_THRESHOLD=${COMMAND_THRESHOLD}s)"
 echo ""
 
-if [ "${TASK_THRESHOLD}" ] && [ ${TASK_THRESHOLD} -lt ${DURATION} ]; then
-    >&2  echo "${RED}Command ${RED_ON_WHITE}${BASH_COMMAND_STRING}${RESET}${RED} took longer than ${RED_ON_WHITE}${TASK_THRESHOLD}${RESET}${RED} seconds, failing the build."
+if [ "${COMMAND_THRESHOLD}" ] && [ ${COMMAND_THRESHOLD} -lt ${DURATION} ]; then
+    >&2  echo "${RED}Command ${RED_ON_WHITE}${BASH_COMMAND_STRING}${RESET}${RED} took longer than ${RED_ON_WHITE}${COMMAND_THRESHOLD}${RESET}${RED} seconds, failing the build."
     >&2  echo "This likely means that a regression has been introduced in the code / tests which significantly slows things down."
     >&2  echo "If you think it's an intermediate error, re-run the tests."
     >&2  echo "If you think it's a legitimate duration increase, bump the threshold in .travis.yml.${RESET}"
