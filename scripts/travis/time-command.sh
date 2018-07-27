@@ -39,7 +39,7 @@ END_TS=$(date +%s)
 DURATION=$(expr ${END_TS} - ${START_TS})
 
 echo ""
-echo "Command \"${BASH_COMMAND_STRING}\" duration: ${DURATION}"
+echo "Command \"${BASH_COMMAND_STRING}\" duration: ${DURATION}s (TASK_THRESHOLD=${TASK_THRESHOLD}s)"
 echo ""
 
 if [ "${TASK_THRESHOLD}" ] && [ ${TASK_THRESHOLD} -lt ${DURATION} ]; then
