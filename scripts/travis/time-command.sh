@@ -30,6 +30,8 @@ TASK_THRESHOLD=$2
 START_TS=$(date +%s)
 
 # Run the actual task
+echo "Running ${BASH_COMMAND_STRING} (TASK_THRESHOLD=${TASK_THRESHOLD}s)"
+
 eval "${BASH_COMMAND_STRING}"
 EXIT_CODE=$?
 echo ${EXIT_CODE}
