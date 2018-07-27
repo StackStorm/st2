@@ -33,19 +33,19 @@ matrix:
     #- env: TASK=ci-unit NODE_INDEX=1 NODE_TOTAL=2
     #  python: 2.7
     #  name: "Unit Tests (Python 2.7) - 2"
-    - env: TASK=ci-unit
+    - env: TASK=ci-unit TASK_THRESHOLD=840 # 14 minutes
       python: 2.7
       name: "Unit Tests (Python 2.7)"
-    - env: TASK=ci-integration
+    - env: TASK=ci-integration TASK_THRESHOLD=900 # 15 minutes
       python: 2.7
       name: "Integration Tests (Python 2.7)"
-    - env: TASK="ci-checks ci-packs-tests"
+    - env: TASK="ci-checks ci-packs-tests" TASK_THRESHOLD=390 # 6.5 minutes
       python: 2.7
       name: "Lint Checks, Packs Tests (Python 2.7)"
-    - env: TASK="compilepy3 ci-py3-unit" CACHE_NAME=py3
+    - env: TASK="compilepy3 ci-py3-unit" CACHE_NAME=py3 TASK_THRESHOLD=840 # 14 minutes
       python: 3.6
       name: "Unit Tests (Python 3.6)"
-    - env: TASK="ci-py3-integration" CACHE_NAME=py3
+    - env: TASK="ci-py3-integration" CACHE_NAME=py3 TASK_THRESHOLD=450 # 7.5 minutes
       python: 3.6
       name: "Integration Tests (Python 3.6)"
 addons:
@@ -103,7 +103,9 @@ before_script:
   - make play
 
 script:
-  - make ${TASK}
+  # NOTE: We enable code coverage and per test timing information on master so build can take twice
+  # as long as PR builds
+  - if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then TASK_THRESHOLD=$(expr ${TASK_THRESHOLD} \* 2); fi; ./scripts/travis/time-command.sh "make ${TASK}" ${TASK_THRESHOLD}
   # NOTE: We only generate and submit coverage report for master and version branches
   # NOTE: We put this here and not after_success so build is marked as failed if this step fails
   # See https://docs.travis-ci.com/user/customizing-the-build/#breaking-the-build
