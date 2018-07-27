@@ -31,19 +31,19 @@ matrix:
     # job which also includes "make requirements" and other steps
     # "make requirements" can take substantially lower if the cache is purged
     # and this would cause too many intermediate failures / false positives
-    - env: TASK=ci-unit CACHE_NAME=py2 COMMAND_THRESHOLD=640 # 10.8 minutes
+    - env: TASK=ci-unit CACHE_NAME=py2 COMMAND_THRESHOLD=640
       python: 2.7
       name: "Unit Tests (Python 2.7)"
-    - env: TASK=ci-integration CACHE_NAME=py2 COMMAND_THRESHOLD=670 # 11.1 minutes
+    - env: TASK=ci-integration CACHE_NAME=py2 COMMAND_THRESHOLD=670
       python: 2.7
       name: "Integration Tests (Python 2.7)"
-    - env: TASK="ci-checks ci-packs-tests" CACHE_NAME=py2 COMMAND_THRESHOLD=210 # 3.5 minutes
+    - env: TASK="ci-checks ci-packs-tests" CACHE_NAME=py2 COMMAND_THRESHOLD=210
       python: 2.7
       name: "Lint Checks, Packs Tests (Python 2.7)"
-    - env: TASK="compilepy3 ci-py3-unit" CACHE_NAME=py3 COMMAND_THRESHOLD=685 # 11.4 minutes
+    - env: TASK="compilepy3 ci-py3-unit" CACHE_NAME=py3 COMMAND_THRESHOLD=750
       python: 3.6
       name: "Unit Tests (Python 3.6)"
-    - env: TASK="ci-py3-integration" CACHE_NAME=py3 COMMAND_THRESHOLD=310 # 5.1 minutes
+    - env: TASK="ci-py3-integration" CACHE_NAME=py3 COMMAND_THRESHOLD=430
       python: 3.6
       name: "Integration Tests (Python 3.6)"
 addons:
