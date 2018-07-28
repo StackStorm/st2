@@ -18,11 +18,11 @@ from __future__ import absolute_import
 import copy
 import retrying
 
-from orchestra import conducting
-from orchestra import events
-from orchestra import exceptions as orchestra_exc
-from orchestra.specs import loader as specs_loader
-from orchestra import states
+from orquesta import conducting
+from orquesta import events
+from orquesta import exceptions as orquesta_exc
+from orquesta.specs import loader as specs_loader
+from orquesta import states
 
 from st2common.constants import action as ac_const
 from st2common.exceptions import action as ac_exc
@@ -74,7 +74,7 @@ def inspect(wf_spec):
         errors['context'] = ctx_errors
 
     if errors:
-        raise orchestra_exc.WorkflowInspectionError(errors)
+        raise orquesta_exc.WorkflowInspectionError(errors)
 
 
 def request(wf_def, ac_ex_db, st2_ctx):
@@ -304,7 +304,7 @@ def request_task_execution(wf_ex_db, task_id, task_spec, task_ctx, st2_ctx):
         # Set context for the action execution.
         ac_ex_ctx = {
             'parent': st2_ctx,
-            'orchestra': {
+            'orquesta': {
                 'workflow_execution_id': str(wf_ex_db.id),
                 'task_execution_id': str(task_ex_db.id),
                 'task_name': task_spec.name or task_id,
@@ -361,8 +361,8 @@ def handle_action_execution_pause(ac_ex_db):
         )
 
     # Get related record identifiers.
-    wf_ex_id = ac_ex_db.context['orchestra']['workflow_execution_id']
-    task_ex_id = ac_ex_db.context['orchestra']['task_execution_id']
+    wf_ex_id = ac_ex_db.context['orquesta']['workflow_execution_id']
+    task_ex_id = ac_ex_db.context['orquesta']['task_execution_id']
 
     # Get execution records for logging purposes.
     wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
@@ -383,15 +383,15 @@ def handle_action_execution_pause(ac_ex_db):
 
 
 def handle_action_execution_resume(ac_ex_db):
-    if 'orchestra' not in ac_ex_db.context:
+    if 'orquesta' not in ac_ex_db.context:
         raise Exception(
             'Unable to handle resume of action execution. The action execution '
-            '%s is not an orchestra workflow task.' % str(ac_ex_db.id)
+            '%s is not an orquesta workflow task.' % str(ac_ex_db.id)
         )
 
     # Get related record identifiers.
-    wf_ex_id = ac_ex_db.context['orchestra']['workflow_execution_id']
-    task_ex_id = ac_ex_db.context['orchestra']['task_execution_id']
+    wf_ex_id = ac_ex_db.context['orquesta']['workflow_execution_id']
+    task_ex_id = ac_ex_db.context['orquesta']['task_execution_id']
 
     # Get execution records for logging purposes.
     wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
@@ -423,7 +423,7 @@ def handle_action_execution_resume(ac_ex_db):
                 publish=False)
 
         # If there are grand parents, handle the resume of the parent action execution.
-        if 'orchestra' in parent_ac_ex_db.context and 'parent' in parent_ac_ex_db.context:
+        if 'orquesta' in parent_ac_ex_db.context and 'parent' in parent_ac_ex_db.context:
             handle_action_execution_resume(parent_ac_ex_db)
 
 
@@ -436,8 +436,8 @@ def handle_action_execution_completion(ac_ex_db):
         )
 
     # Get related record identifiers.
-    wf_ex_id = ac_ex_db.context['orchestra']['workflow_execution_id']
-    task_ex_id = ac_ex_db.context['orchestra']['task_execution_id']
+    wf_ex_id = ac_ex_db.context['orquesta']['workflow_execution_id']
+    task_ex_id = ac_ex_db.context['orquesta']['task_execution_id']
 
     # Get execution records for logging purposes.
     wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)

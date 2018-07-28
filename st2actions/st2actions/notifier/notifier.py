@@ -81,7 +81,7 @@ class Notifier(consumers.MessageHandler):
         extra = {'execution': execution_db}
         LOG.debug('Processing execution %s', execution_id, extra=extra)
 
-        if ('orchestra' in execution_db.context and
+        if ('orquesta' in execution_db.context and
                 execution_db.status == LIVEACTION_STATUS_PAUSED):
             wf_svc.handle_action_execution_pause(execution_db)
 
@@ -99,7 +99,7 @@ class Notifier(consumers.MessageHandler):
 
         self._post_generic_trigger(liveaction_db=liveaction_db, execution_db=execution_db)
 
-        if 'orchestra' in liveaction_db.context:
+        if 'orquesta' in liveaction_db.context:
             wf_svc.handle_action_execution_completion(execution_db)
 
     def _get_execution_for_liveaction(self, liveaction):

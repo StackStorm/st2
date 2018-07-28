@@ -28,7 +28,7 @@ Changed
   (system and current user scoped) . If you only want to display system scoped values (old behavior)
   you can do that by passing ``--scope=system`` argument to the ``st2 key list`` command
   (``st2 key list --scope=system``). (improvement) #4221
-* The orchestra conductor implemented event based state machines to manage state transition of
+* The orquesta conductor implemented event based state machines to manage state transition of
   workflow execution. Interfaces to set workflow state and update task on action execution
   completion have changed and calls to those interfaces are changed accordingly. (improvement)
 
@@ -92,7 +92,7 @@ Fixed
 Added
 ~~~~~
 
-* Orchestra - new StackStorm-native workflow engine. This is currently in **beta**. (new feature)
+* Orquesta - new StackStorm-native workflow engine. This is currently in **beta**. (new feature)
 * Added metrics for collecting performance and health information about the various ST2 services
   and functions. (new feature) #4004 #2974
 * When running a dev (unstable) release include git revision hash in the output when using

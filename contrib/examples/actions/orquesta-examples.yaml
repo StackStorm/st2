@@ -1,0 +1,7 @@
+---
+name: orquesta-examples
+pack: examples
+description: Run a workflow that runs other workflows. Orcheseption.
+runner_type: orquesta
+entry_point: workflows/orquesta-examples.yaml
+enabled: true
