@@ -170,6 +170,7 @@ class DbConnectionTest(DbTestCase):
 
 
 class DbCleanupTest(DbTestCase):
+    ensure_indexes = True
 
     def test_cleanup(self):
         """

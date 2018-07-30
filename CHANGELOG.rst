@@ -44,6 +44,13 @@ Changed
   workflow execution. Interfaces to set workflow state and update task on action execution
   completion have changed and calls to those interfaces are changed accordingly. (improvement)
 
+Deprecated
+~~~~~~~~~~
+
+* The CloudSlang runner is now deprecated. In StackStorm 3.1 it will be removed from the core StackStorm codebase.
+  The runner code will be moved to a separate repository, and no longer maintained by the core StackStorm team.
+  Users will still be able to install and use this runner, but it will require additional steps to install.
+
 Fixed
 ~~~~~
 
