@@ -72,3 +72,8 @@ install_runners
 
 # start dev environment in screens
 ./tools/launchdev.sh start -x
+
+# This script runs as root on Travis which means other processes which don't run
+# as root can't write to logs/ directory and tests fail
+chmod 777 logs/
+chmod 777 logs/*

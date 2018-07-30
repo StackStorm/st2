@@ -35,10 +35,10 @@ from oslo_config import cfg
 from unittest2 import TestCase
 import unittest2
 
-from orchestra import conducting
-from orchestra import events
-from orchestra.specs import loader as specs_loader
-from orchestra import states as wf_lib_states
+from orquesta import conducting
+from orquesta import events
+from orquesta.specs import loader as specs_loader
+from orquesta import states as wf_lib_states
 
 from st2common.util.api import get_full_public_api_url
 from st2common.constants import action as ac_const
@@ -183,6 +183,10 @@ class BaseDbTestCase(BaseTestCase):
     # and offers significant test speeds ups.
     ensure_indexes = False
 
+    # A list of models to ensure indexes for when ensure_indexes is True. If not specified, it
+    # defaults to all the models
+    ensure_indexes_models = []
+
     # Set to True to enable printing of all the log messages to the console
     DISPLAY_LOG_MESSAGES = False
 
@@ -211,12 +215,14 @@ class BaseDbTestCase(BaseTestCase):
         # NOTE: This is only needed in distributed scenarios (production deployments) where
         # multiple services can start up at the same time and race conditions are possible.
         if cls.ensure_indexes:
-            msg = ('Ensuring indexes for all the models, this could significantly slow down the '
-                  'tests')
-            print('#' * len(msg), file=sys.stderr)
-            print(msg, file=sys.stderr)
-            print('#' * len(msg), file=sys.stderr)
-            db_ensure_indexes()
+            if len(cls.ensure_indexes_models) == 0 or len(cls.ensure_indexes_models) > 1:
+                msg = ('Ensuring indexes for all the models, this could significantly slow down '
+                       'the tests')
+                print('#' * len(msg), file=sys.stderr)
+                print(msg, file=sys.stderr)
+                print('#' * len(msg), file=sys.stderr)
+
+            db_ensure_indexes(cls.ensure_indexes_models)
 
     @classmethod
     def _drop_db(cls):

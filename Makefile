@@ -47,11 +47,19 @@ PYTHON_TARGET := 2.7
 REQUIREMENTS := test-requirements.txt requirements.txt
 PIP_OPTIONS := $(ST2_PIP_OPTIONS)
 
-NOSE_OPTS := --rednose --immediate --with-parallel
-NOSE_TIME := $(NOSE_TIME)
+ifndef PYLINT_CONCURRENCY
+	PYLINT_CONCURRENCY := 1
+endif
 
-ifdef NOSE_TIME
+NOSE_OPTS := --rednose --immediate --with-parallel
+
+ifndef NOSE_TIME
+	NOSE_TIME := yes
+endif
+
+ifeq ($(NOSE_TIME),yes)
 	NOSE_OPTS := --rednose --immediate --with-parallel --with-timer
+	NOSE_WITH_TIMER := 1
 endif
 
 ifndef PIP_OPTIONS
@@ -110,6 +118,8 @@ play:
 	@echo
 	@echo TRAVIS_PULL_REQUEST=$(TRAVIS_PULL_REQUEST)
 	@echo
+	@echo NOSE_OPTS=$(NOSE_OPTS)
+	@echo
 	@echo ENABLE_COVERAGE=$(ENABLE_COVERAGE)
 	@echo
 	@echo NOSE_COVERAGE_FLAGS=$(NOSE_COVERAGE_FLAGS)
@@ -151,29 +161,16 @@ configgen: requirements .configgen
 	@echo "================== pylint ===================="
 	@echo
 	# Lint st2 components
-	@for component in $(COMPONENTS); do\
-		echo "==========================================================="; \
-		echo "Running pylint on" $$component; \
-		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models --load-plugins=pylint_plugins.db_models $$component/$$component || exit 1; \
-	done
-	# Lint runner modules and packages
-	@for component in $(COMPONENTS_RUNNERS); do\
-		echo "==========================================================="; \
-		echo "Running pylint on" $$component; \
-		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models --load-plugins=pylint_plugins.db_models $$component/*.py || exit 1; \
-	done
 	# Lint Python pack management actions
-	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models contrib/packs/actions/*.py || exit 1;
-	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models contrib/packs/actions/*/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models contrib/packs/actions/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models contrib/packs/actions/*/*.py || exit 1;
 	# Lint other packs
-	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models contrib/linux/*/*.py || exit 1;
-	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models contrib/chatops/*/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models contrib/linux/*/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models contrib/chatops/*/*.py || exit 1;
 	# Lint Python scripts
-	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models scripts/*.py || exit 1;
-	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models tools/*.py || exit 1;
-	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./lint-configs/python/.pylintrc pylint_plugins/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models scripts/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models tools/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc pylint_plugins/*.py || exit 1;
 
 .PHONY: lint-api-spec
 lint-api-spec: requirements .lint-api-spec
@@ -648,25 +645,25 @@ endif
 .coverage-html: .coverage
 	. $(VIRTUALENV_DIR)/bin/activate; coverage html
 
-.PHONY: orchestra-itests
-orchestra-itests: requirements .orchestra-itests
+.PHONY: orquesta-itests
+orquesta-itests: requirements .orquesta-itests
 
-.PHONY: .orchestra-itests
-.orchestra-itests:
+.PHONY: .orquesta-itests
+.orquesta-itests:
 	@echo
-	@echo "==================== Orchestra integration tests ===================="
+	@echo "==================== Orquesta integration tests ===================="
 	@echo "The tests assume st2 is running on 127.0.0.1."
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v st2tests/integration/orchestra || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v st2tests/integration/orquesta || exit 1;
 
-.PHONY: .orchestra-itests-coverage-html
-.orchestra-itests-coverage-html:
+.PHONY: .orquesta-itests-coverage-html
+.orquesta-itests-coverage-html:
 	@echo
-	@echo "==================== Orchestra integration tests with coverage (HTML reports) ===================="
+	@echo "==================== Orquesta integration tests with coverage (HTML reports) ===================="
 	@echo "The tests assume st2 is running on 127.0.0.1."
 	@echo
 	. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v --with-coverage \
-        --cover-inclusive --cover-html st2tests/integration/orchestra || exit 1;
+        --cover-inclusive --cover-html st2tests/integration/orquesta || exit 1;
 
 .PHONY: packs-tests
 packs-tests: requirements .packs-tests
@@ -786,7 +783,7 @@ ci-py3-unit:
 	@echo
 	@echo "==================== ci-py3-unit ===================="
 	@echo
-	tox -e py36-unit -vv
+	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-unit -vv
 
 .PHONY: ci-py3-integration
 ci-py3-integration: requirements .ci-prepare-integration .ci-py3-integration
@@ -796,7 +793,7 @@ ci-py3-integration: requirements .ci-prepare-integration .ci-py3-integration
 	@echo
 	@echo "==================== ci-py3-integration ===================="
 	@echo
-	tox -e py36-integration -vv
+	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-integration -vv
 
 .PHONY: .rst-check
 .rst-check:
@@ -831,7 +828,7 @@ ci-unit: .unit-tests-coverage-html
 	sudo -E ./scripts/travis/prepare-integration.sh
 
 .PHONY: ci-integration
-ci-integration: .ci-prepare-integration .itests-coverage-html .runners-itests-coverage-html .orchestra-itests-coverage-html
+ci-integration: .ci-prepare-integration .itests-coverage-html .runners-itests-coverage-html .orquesta-itests-coverage-html
 
 .PHONY: ci-runners
 ci-runners: .ci-prepare-integration .runners-itests-coverage-html
@@ -843,8 +840,8 @@ ci-runners: .ci-prepare-integration .runners-itests-coverage-html
 .PHONY: ci-mistral
 ci-mistral: .ci-prepare-integration .ci-prepare-mistral .mistral-itests-coverage-html
 
-.PHONY: ci-orchestra
-ci-orchestra: .ci-prepare-integration .orchestra-itests-coverage-html
+.PHONY: ci-orquesta
+ci-orquesta: .ci-prepare-integration .orquesta-itests-coverage-html
 
 .PHONY: ci-packs-tests
 ci-packs-tests: .packs-tests

@@ -22,6 +22,7 @@ from st2common.persistence.rbac import Role
 from st2common.persistence.rbac import PermissionGrant
 from st2common.persistence.rbac import GroupToRoleMapping
 from st2common.models.db.auth import UserDB
+from st2common.models.db.rbac import UserRoleAssignmentDB
 from st2common.models.api.rbac import RoleDefinitionFileFormatAPI
 from st2common.models.api.rbac import UserRoleAssignmentFileFormatAPI
 from st2common.services.rbac import get_roles_for_user
@@ -39,6 +40,11 @@ __all__ = [
 
 
 class BaseRBACDefinitionsDBSyncerTestCase(CleanDbTestCase):
+    ensure_indexes = True
+    ensure_indexes_models = [
+        UserRoleAssignmentDB
+    ]
+
     def setUp(self):
         super(BaseRBACDefinitionsDBSyncerTestCase, self).setUp()
 

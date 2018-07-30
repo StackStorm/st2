@@ -132,7 +132,7 @@ LIVEACTION_CANCEL_STATES = [
 WORKFLOW_RUNNER_TYPES = [
     'action-chain',
     'mistral-v2',
-    'orchestra'
+    'orquesta'
 ]
 
 # Linux's limit for param size
