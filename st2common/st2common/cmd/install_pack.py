@@ -68,7 +68,7 @@ def main(argv):
         success = result[2][0]
 
         if success:
-            LOG.info('Successfuly installed pack "%s"' % (pack))
+            LOG.info('Successfully installed pack "%s"' % (pack))
         else:
             error = result[2][1]
             LOG.error('Failed to install pack "%s": %s' % (pack, error))
@@ -79,6 +79,6 @@ def main(argv):
         setup_pack_virtualenv(pack_name=pack, update=False, logger=LOG,
                               proxy_config=proxy_config, use_python3=False,
                               no_download=True)
-        LOG.info('Successfuly set up virtualenv for pack "%s"' % (pack))
+        LOG.info('Successfully set up virtualenv for pack "%s"' % (pack))
 
     return 0
