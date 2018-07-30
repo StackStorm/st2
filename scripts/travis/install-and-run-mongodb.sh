@@ -46,7 +46,7 @@ MONGODB_PID=$!
 sleep 5
 
 if ps -p ${MONGODB_PID} > /dev/null; then
-    echo "MongoDB successfuly started"
+    echo "MongoDB successfully started"
     tail -30 /tmp/mongodb.log
     exit 0
 else

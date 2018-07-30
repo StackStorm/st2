@@ -76,5 +76,5 @@ def main():
         print('Failed to validate pack config.\n%s' % str(e))
         return FAILURE_EXIT_CODE
 
-    print('Config "%s" successfuly validated against schema in %s.' % (config_path, schema_path))
+    print('Config "%s" successfully validated against schema in %s.' % (config_path, schema_path))
     return SUCCESS_EXIT_CODE
