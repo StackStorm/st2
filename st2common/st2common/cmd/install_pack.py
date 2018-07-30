@@ -65,22 +65,20 @@ def main(argv):
         result = download_pack(pack=pack, verify_ssl=verify_ssl, force=force,
                                proxy_config=proxy_config, force_permissions=True)
 
-        # Raw pack name excluding the version
-        pack_name = result[1]
         success = result[2][0]
 
         if success:
-            LOG.info('Successfully installed pack "%s"' % (pack_name))
+            LOG.info('Successfuly installed pack "%s"' % (pack))
         else:
             error = result[2][1]
-            LOG.error('Failed to install pack "%s": %s' % (pack_name, error))
+            LOG.error('Failed to install pack "%s": %s' % (pack, error))
             sys.exit(2)
 
         # 2. Setup pack virtual environment
-        LOG.info('Setting up virtualenv for pack "%s"' % (pack_name))
-        setup_pack_virtualenv(pack_name=pack_name, update=False, logger=LOG,
+        LOG.info('Setting up virtualenv for pack "%s"' % (pack))
+        setup_pack_virtualenv(pack_name=pack, update=False, logger=LOG,
                               proxy_config=proxy_config, use_python3=False,
                               no_download=True)
-        LOG.info('Successfully set up virtualenv for pack "%s"' % (pack_name))
+        LOG.info('Successfuly set up virtualenv for pack "%s"' % (pack))
 
     return 0
