@@ -23,6 +23,7 @@ import yaml
 
 from oslo_config import cfg
 
+from st2common.config import do_register_cli_opts
 from st2common.constants.system import VERSION_STRING
 from st2common.constants.exit_codes import SUCCESS_EXIT_CODE
 from st2common.constants.exit_codes import FAILURE_EXIT_CODE
@@ -50,8 +51,7 @@ def _register_cli_opts():
                    help='Path to the config file to validate.'),
     ]
 
-    for opt in cli_opts:
-        cfg.CONF.register_cli_opt(opt)
+    do_register_cli_opts(cli_opts)
 
 
 def main():
