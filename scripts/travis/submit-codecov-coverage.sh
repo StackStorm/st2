@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -13,12 +14,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__all__ = [
-    'SCHEDULER_ENABLED_LOG_LINE',
-    'SCHEDULER_DISABLED_LOG_LINE'
-]
+if [ ${TRAVIS_TEST_RESULT} -eq 0 ]; then
+    # 1. Install codecov dependencies
+    # NOTE: We need eventlet installed so coverage can be correctly combined. This is needed because we are covering code which utilizes eventlet.
+    # Without eventlet being available to the coverage command it will fail with "Couldn't trace with concurrency=eventlet, the module isn't installed."
+    pip install eventlet
+    pip install -e "git+https://github.com/StackStorm/codecov-python.git@better_error_output#egg=codecov"
 
-
-# Integration tests look for these loglines to validate scheduler enable/disable
-SCHEDULER_ENABLED_LOG_LINE = 'Scheduler is enabled.'
-SCHEDULER_DISABLED_LOG_LINE = 'Scheduler is disabled.'
+    # 2. Combine coverage report and submit coverage report to codecovs.io
+    codecov --required
+    exit $?
+else
+    echo "Build has failed, not submitting coverage"
+    exit 0
+fi
