@@ -240,10 +240,10 @@ class ActionExecutionDispatcher(MessageHandler):
             LOG.info('Failed to resume action execution %s.' % (liveaction_db.id), extra=extra)
             raise
 
-        # Cascade the resume upstream if action execution is child of an orchestra workflow.
+        # Cascade the resume upstream if action execution is child of an orquesta workflow.
         # The action service request_resume function is not used here because we do not want
         # other peer subworkflows to be resumed.
-        if 'orchestra' in action_execution_db.context and 'parent' in action_execution_db.context:
+        if 'orquesta' in action_execution_db.context and 'parent' in action_execution_db.context:
             wf_svc.handle_action_execution_resume(action_execution_db)
 
         return result

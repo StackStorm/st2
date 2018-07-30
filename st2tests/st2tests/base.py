@@ -35,10 +35,10 @@ from oslo_config import cfg
 from unittest2 import TestCase
 import unittest2
 
-from orchestra import conducting
-from orchestra import events
-from orchestra.specs import loader as specs_loader
-from orchestra import states as wf_lib_states
+from orquesta import conducting
+from orquesta import events
+from orquesta.specs import loader as specs_loader
+from orquesta import states as wf_lib_states
 
 from st2common.util.api import get_full_public_api_url
 from st2common.constants import action as ac_const
