@@ -47,7 +47,9 @@ __all__ = [
     'download_pack',
 
     'get_repo_url',
-    'eval_repo_url'
+    'eval_repo_url',
+
+    'get_and_set_proxy_config'
 ]
 
 LOG = logging.getLogger(__name__)
@@ -379,3 +381,36 @@ def get_pack_ref(pack_dir):
     pack_ref = get_pack_ref_from_metadata(metadata=metadata,
                                           pack_directory_name=None)
     return pack_ref
+
+
+def get_and_set_proxy_config():
+    https_proxy = os.environ.get('https_proxy', None)
+    http_proxy = os.environ.get('http_proxy', None)
+    proxy_ca_bundle_path = os.environ.get('proxy_ca_bundle_path', None)
+    no_proxy = os.environ.get('no_proxy', None)
+
+    proxy_config = {}
+
+    if http_proxy or https_proxy:
+        LOG.debug('Using proxy %s', http_proxy if http_proxy else https_proxy)
+
+        proxy_config = {
+            'https_proxy': https_proxy,
+            'http_proxy': http_proxy,
+            'proxy_ca_bundle_path': proxy_ca_bundle_path,
+            'no_proxy': no_proxy
+        }
+
+    if https_proxy and not os.environ.get('https_proxy', None):
+        os.environ['https_proxy'] = https_proxy
+
+    if http_proxy and not os.environ.get('http_proxy', None):
+        os.environ['http_proxy'] = http_proxy
+
+    if no_proxy and not os.environ.get('no_proxy', None):
+        os.environ['no_proxy'] = no_proxy
+
+    if proxy_ca_bundle_path and not os.environ.get('proxy_ca_bundle_path', None):
+        os.environ['no_proxy'] = no_proxy
+
+    return proxy_config

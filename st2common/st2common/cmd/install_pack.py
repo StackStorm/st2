@@ -20,8 +20,10 @@ from oslo_config import cfg
 
 from st2common import config
 from st2common import log as logging
+from st2common.config import do_register_cli_opts
 from st2common.script_setup import setup as common_setup
 from st2common.util.pack_management import download_pack
+from st2common.util.pack_management import get_and_set_proxy_config
 from st2common.util.virtualenvs import setup_pack_virtualenv
 
 __all__ = [
@@ -29,15 +31,6 @@ __all__ = [
 ]
 
 LOG = logging.getLogger(__name__)
-
-
-def _do_register_cli_opts(opts, ignore_errors=False):
-    for opt in opts:
-        try:
-            cfg.CONF.register_cli_opt(opt)
-        except:
-            if not ignore_errors:
-                raise
 
 
 def _register_cli_opts():
@@ -51,40 +44,7 @@ def _register_cli_opts():
                     help='True to force pack installation and ignore install '
                          'lock file if it exists.'),
     ]
-    _do_register_cli_opts(cli_opts)
-
-
-def get_and_set_proxy_config():
-    https_proxy = os.environ.get('https_proxy', None)
-    http_proxy = os.environ.get('http_proxy', None)
-    proxy_ca_bundle_path = os.environ.get('proxy_ca_bundle_path', None)
-    no_proxy = os.environ.get('no_proxy', None)
-
-    proxy_config = {}
-
-    if http_proxy or https_proxy:
-        LOG.debug('Using proxy %s', http_proxy if http_proxy else https_proxy)
-
-        proxy_config = {
-            'https_proxy': https_proxy,
-            'http_proxy': http_proxy,
-            'proxy_ca_bundle_path': proxy_ca_bundle_path,
-            'no_proxy': no_proxy
-        }
-
-    if https_proxy and not os.environ.get('https_proxy', None):
-        os.environ['https_proxy'] = https_proxy
-
-    if http_proxy and not os.environ.get('http_proxy', None):
-        os.environ['http_proxy'] = http_proxy
-
-    if no_proxy and not os.environ.get('no_proxy', None):
-        os.environ['no_proxy'] = no_proxy
-
-    if proxy_ca_bundle_path and not os.environ.get('proxy_ca_bundle_path', None):
-        os.environ['no_proxy'] = no_proxy
-
-    return proxy_config
+    do_register_cli_opts(cli_opts)
 
 
 def main(argv):
