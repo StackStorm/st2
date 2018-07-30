@@ -1,0 +1,11 @@
+---
+name: orquesta-fail-start-task
+description: A basic workflow with error in the rendering of the starting task.
+runner_type: orquesta
+entry_point: workflows/tests/orquesta-fail-start-task.yaml
+enabled: true
+parameters:
+  name:
+    required: true
+    type: string
+    default: Lakshmi

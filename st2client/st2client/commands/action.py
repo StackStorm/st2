@@ -96,7 +96,7 @@ ENV_VARS_BLACKLIST = [
 WORKFLOW_RUNNER_TYPES = [
     'action-chain',
     'mistral-v2',
-    'orchestra'
+    'orquesta'
 ]
 
 
@@ -865,8 +865,8 @@ class ActionRunCommandMixin(object):
             task_name_key = 'context.chain.name'
         elif context and 'mistral' in context:
             task_name_key = 'context.mistral.task_name'
-        elif context and 'orchestra' in context:
-            task_name_key = 'context.orchestra.task_name'
+        elif context and 'orquesta' in context:
+            task_name_key = 'context.orquesta.task_name'
         # Use LiveAction as the object so that the formatter lookup does not change.
         # AKA HACK!
         return models.action.LiveAction(**{
