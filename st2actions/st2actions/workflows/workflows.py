@@ -17,8 +17,8 @@ from __future__ import absolute_import
 
 import kombu
 
-from orchestra import events
-from orchestra import states
+from orquesta import events
+from orquesta import states
 
 from st2common import log as logging
 from st2common.models.db import workflow as wf_db_models
