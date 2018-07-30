@@ -1,6 +1,0 @@
----
-name: orchestra-st2-ctx
-description: A sample workflow demonstrating use of st2 runtime context.
-runner_type: orchestra
-entry_point: workflows/orchestra-st2-ctx.yaml
-enabled: true
