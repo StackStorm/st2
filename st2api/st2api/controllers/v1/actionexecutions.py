@@ -335,6 +335,8 @@ class ActionExecutionOutputController(ActionExecutionsControllerMixin, ResourceC
                 event = 'st2.execution.output__create'
                 result = 'event: %s\ndata: %s\n\n' % (event, json_encode(data, indent=None))
                 return result
+            else:
+                raise ValueError('Unsupported format: %s' % (output_format))
 
         def existing_output_iter():
             # Consume and return all of the existing lines
@@ -390,8 +392,6 @@ class ActionExecutionOutputController(ActionExecutionsControllerMixin, ResourceC
             if existing_only:
                 # Only return existing output produced by now and return immediately. Don't wait
                 # for execution to finish
-                print('laaaaa')
-                print(existing_only)
                 app_iter = existing_output_iter()
             else:
                 app_iter = itertools.chain(existing_output_iter(), new_output_iter())
