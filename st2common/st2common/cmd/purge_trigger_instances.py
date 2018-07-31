@@ -29,22 +29,18 @@ from oslo_config import cfg
 
 from st2common import config
 from st2common import log as logging
+from st2common.config import do_register_cli_opts
 from st2common.script_setup import setup as common_setup
 from st2common.script_setup import teardown as common_teardown
 from st2common.constants.exit_codes import SUCCESS_EXIT_CODE
 from st2common.constants.exit_codes import FAILURE_EXIT_CODE
 from st2common.garbage_collection.trigger_instances import purge_trigger_instances
 
+__all__ = [
+    'main'
+]
+
 LOG = logging.getLogger(__name__)
-
-
-def _do_register_cli_opts(opts, ignore_errors=False):
-    for opt in opts:
-        try:
-            cfg.CONF.register_cli_opt(opt)
-        except:
-            if not ignore_errors:
-                raise
 
 
 def _register_cli_opts():
@@ -54,7 +50,7 @@ def _register_cli_opts():
                    'this UTC timestamp. ' +
                    'Example value: 2015-03-13T19:01:27.255542Z')
     ]
-    _do_register_cli_opts(cli_opts)
+    do_register_cli_opts(cli_opts)
 
 
 def main():
