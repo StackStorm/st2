@@ -1160,10 +1160,26 @@ paths:
           required: true
         - name: output_type
           in: query
-          description: Type of output to retrieve. If not provided, all output type is returned.
-          type: array
-          items:
-            type: string
+          description: Type of output to retrieve (stdout, stderr). If not provided, all output type is returned.
+          type: enum
+          enum:
+            - "all"
+            - "stdout"
+            - "stderr"
+          default: all
+        - name: output_format
+          in: query
+          description: Output format. "raw" for raw output and "event_source" for EventSource format (new line delimited JSON).
+          type: enum
+          enum:
+            - "raw"
+            - "event_source"
+        default: raw
+        - name: existing_only
+          in: query
+          description: True for the endpoint to only return the existing output and return immediately. If False and execution is still running, the API endpoint will block until the execution finishes and return new output as it arrives.
+          type: boolean
+          default: false
       x-parameters:
         - name: user
           in: context

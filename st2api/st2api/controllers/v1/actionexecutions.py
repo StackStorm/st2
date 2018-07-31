@@ -54,6 +54,7 @@ from st2common.util import isotime
 from st2common.util import action_db as action_utils
 from st2common.util import param as param_utils
 from st2common.util.jsonify import try_loads
+from st2common.util.jsonify import json_encode
 from st2common.rbac.types import PermissionType
 from st2common.rbac import utils as rbac_utils
 from st2common.rbac.utils import assert_user_has_resource_db_permission
@@ -303,7 +304,8 @@ class ActionExecutionOutputController(ActionExecutionsControllerMixin, ResourceC
         action_constants.LIVEACTION_STATUS_RESUMING
     ]
 
-    def get_one(self, id, output_type=None, requester_user=None):
+    def get_one(self, id, output_type='all', output_format='raw', existing_only=False,
+                requester_user=None):
         # Special case for id == "last"
         if id == 'last':
             execution_db = ActionExecution.query().order_by('-id').limit(1).first()
@@ -321,6 +323,19 @@ class ActionExecutionOutputController(ActionExecutionsControllerMixin, ResourceC
         if output_type and output_type != 'all':
             query_filters['output_type'] = output_type
 
+        def format_output_object(output_db_or_api):
+            if output_format == 'raw':
+                return output_db_or_api.data
+            elif output_format == 'event_source':
+                if not isinstance(output_db_or_api, ActionExecutionOutputAPI):
+                    data = ActionExecutionOutputAPI.from_model(output_db_or_api)
+                else:
+                    data = output_db_or_api
+
+                event = 'st2.execution.output__create'
+                result = 'event: %s\ndata: %s\n\n' % (event, json_encode(data, indent=None))
+                return result
+
         def existing_output_iter():
             # Consume and return all of the existing lines
             # pylint: disable=no-member
@@ -328,7 +343,8 @@ class ActionExecutionOutputController(ActionExecutionsControllerMixin, ResourceC
 
             # Note: We return all at once instead of yield line by line to avoid multiple socket
             # writes and to achieve better performance
-            output = ''.join([output_db.data for output_db in output_dbs])
+            output = [format_output_object(output_db) for output_db in output_dbs]
+            output = ''.join(output)
             yield six.binary_type(output.encode('utf-8'))
 
         def new_output_iter():
@@ -354,10 +370,12 @@ class ActionExecutionOutputController(ActionExecutionsControllerMixin, ResourceC
                         # Note: gunicorn wsgi handler expect bytes, not unicode
                         # pylint: disable=no-member
                         if isinstance(model_api, ActionExecutionOutputAPI):
-                            if output_type and model_api.output_type != output_type:
+                            if output_type and output_type != 'all' and \
+                               model_api.output_type != output_type:
                                 continue
 
-                            yield six.binary_type(model_api.data.encode('utf-8'))
+                            output = format_output_object(model_api).encode('utf-8')
+                            yield six.binary_type(output)
                         elif isinstance(model_api, ActionExecutionAPI):
                             if model_api.status in self.CLOSE_STREAM_LIVEACTION_STATES:
                                 yield six.binary_type('')
@@ -369,7 +387,15 @@ class ActionExecutionOutputController(ActionExecutionsControllerMixin, ResourceC
             return gen
 
         def make_response():
-            app_iter = itertools.chain(existing_output_iter(), new_output_iter())
+            if existing_only:
+                # Only return existing output produced by now and return immediately. Don't wait
+                # for execution to finish
+                print('laaaaa')
+                print(existing_only)
+                app_iter = existing_output_iter()
+            else:
+                app_iter = itertools.chain(existing_output_iter(), new_output_iter())
+
             res = Response(content_type='text/plain', app_iter=app_iter)
             return res
 
