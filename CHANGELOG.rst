@@ -20,6 +20,18 @@ Added
 * Add new ``?tags``, query param filter to the ``/v1/actions`` API endpoint. This query parameter
   allows users to filter out actions based on the tag name . By default, when no filter values are
   provided, all actions are returned. (new feature) #4219
+* Add a new standalone standalone ``st2-pack-install`` CLI command. This command installs a pack
+  (and sets up the pack virtual environment) on the server where it runs. It doesn't register the
+  content. It only depends on the Python, git and pip binary and ``st2common`` Python package to be
+  installed on the system where it runs. It doesn't depend on the database (MongoDB) and message
+  bus (RabbitMQ).
+
+  It's primary meant to be used in scenarios where the content (packs) are baked into the base
+  container / VM image which is deployed to the cluster.
+
+  Keep in mind that the content itself still needs to be registered with StackStorm at some later
+  point when access to RabbitMQ and MongoDB is available by running
+  ``st2ctl reload --register-all``. (new feature) #3912 #4256
 
 Changed
 ~~~~~~~
@@ -66,7 +78,7 @@ Changed
 * Migrated runners to using the ``in-requirements.txt`` pattern for "components" in the build
   system, so the ``Makefile`` correctly generates and installs runner dependencies during
   testing and packaging. (improvement) (bugfix) #4169
-  
+
   Contributed by Nick Maludy (Encore Technologies).
 * Update ``st2`` CLI to use a more sensible default terminal size for table formatting purposes if
   we are unable to retrieve terminal size using various system-specific approaches.
