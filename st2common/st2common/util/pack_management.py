@@ -49,6 +49,9 @@ __all__ = [
     'get_repo_url',
     'eval_repo_url',
 
+    'apply_pack_owner_group',
+    'apply_pack_permissions',
+
     'get_and_set_proxy_config'
 ]
 
@@ -59,7 +62,7 @@ CURRENT_STACKSTROM_VERSION = get_stackstorm_version()
 
 
 def download_pack(pack, abs_repo_base='/opt/stackstorm/packs', verify_ssl=True, force=False,
-                  proxy_config=None, force_permissions=True, logger=LOG):
+                  proxy_config=None, force_owner_group=True, force_permissions=True, logger=LOG):
     """
     Download the pack and move it to /opt/stackstorm/packs.
 
@@ -68,6 +71,10 @@ def download_pack(pack, abs_repo_base='/opt/stackstorm/packs', verify_ssl=True, 
 
     :param pack: Pack name.
     :rtype pack: ``str``
+
+    :param force_owner_group: Set owner group of the pack directory to the value defined in the
+                              config.
+    :type force_owner_group: ``bool``
 
     :param force_permissions: True to force 770 permission on all the pack content.
     :type force_permissions: ``bool``
@@ -121,6 +128,7 @@ def download_pack(pack, abs_repo_base='/opt/stackstorm/packs', verify_ssl=True, 
             # 3. Move pack to the final location
             move_result = move_pack(abs_repo_base=abs_repo_base, pack_name=pack_ref,
                                     abs_local_path=abs_local_path,
+                                    force_owner_group=force_owner_group,
                                     force_permissions=force_permissions,
                                     logger=logger)
             result[2] = move_result
@@ -199,7 +207,8 @@ def clone_repo(temp_dir, repo_url, verify_ssl=True, ref='master'):
     return temp_dir
 
 
-def move_pack(abs_repo_base, pack_name, abs_local_path, force_permissions=True, logger=LOG):
+def move_pack(abs_repo_base, pack_name, abs_local_path, force_owner_group=True,
+             force_permissions=True, logger=LOG):
     """
     Move pack directory into the final location.
     """
@@ -225,8 +234,14 @@ def move_pack(abs_repo_base, pack_name, abs_local_path, force_permissions=True, 
         shutil.move(abs_local_path, dest_pack_path)
 
         # post move fix all permissions
+        if force_owner_group:
+            # 1. switch owner group to configured group
+            apply_pack_owner_group(pack_path=dest_pack_path)
+
         if force_permissions:
+            # 2. Setup the right permissions and group ownership
             apply_pack_permissions(pack_path=dest_pack_path)
+
         message = 'Success.'
     elif message:
         message = 'Failure : %s' % message
@@ -234,17 +249,31 @@ def move_pack(abs_repo_base, pack_name, abs_local_path, force_permissions=True, 
     return (desired, message)
 
 
+def apply_pack_owner_group(pack_path):
+    """
+    Switch owner group of the pack / virtualenv directory to the configured
+    group.
+
+    NOTE: This requires sudo access.
+    """
+    pack_group = utils.get_pack_group()
+
+    if pack_group:
+        LOG.debug('Changing owner group of "%s" directory to %s' % (pack_path, pack_group))
+        exit_code, _, stderr, _ = shell.run_command(['sudo', 'chgrp', '-R', pack_group, pack_path])
+
+        if exit_code != 0:
+            # Non fatal, but we still log it
+            LOG.debug('Failed to change owner group on directory "%s" to "%s": %s' %
+                      (pack_path, pack_group, stderr))
+
+    return True
+
+
 def apply_pack_permissions(pack_path):
     """
     Recursively apply permission 770 to pack and its contents.
     """
-    # 1. switch owner group to configured group
-    pack_group = utils.get_pack_group()
-
-    if pack_group:
-        shell.run_command(['sudo', 'chgrp', '-R', pack_group, pack_path])
-
-    # 2. Setup the right permissions and group ownership
     # These mask is same as mode = 775
     mode = stat.S_IRWXU | stat.S_IRWXG | stat.S_IROTH | stat.S_IXOTH
     os.chmod(pack_path, mode)

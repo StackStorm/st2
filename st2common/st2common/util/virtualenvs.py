@@ -31,6 +31,7 @@ from st2common.constants.pack import BASE_PACK_PYTHON3_REQUIREMENTS
 from st2common.util.shell import run_command
 from st2common.util.shell import quote_unix
 from st2common.util.compat import to_ascii
+from st2common.util.pack_management import apply_pack_owner_group
 from st2common.content.utils import get_packs_base_paths
 from st2common.content.utils import get_pack_directory
 
@@ -43,7 +44,7 @@ LOG = logging.getLogger(__name__)
 
 def setup_pack_virtualenv(pack_name, update=False, logger=None, include_pip=True,
                           include_setuptools=True, include_wheel=True, proxy_config=None,
-                          use_python3=False, no_download=True):
+                          use_python3=False, no_download=True, force_owner_group=True):
 
     """
     Setup virtual environment for the provided pack.
@@ -120,6 +121,10 @@ def setup_pack_virtualenv(pack_name, update=False, logger=None, include_pip=True
                              logger=logger)
     else:
         logger.debug('No pack specific requirements found')
+
+    # 5. Set the owner group
+    if force_owner_group:
+        apply_pack_owner_group(pack_path=virtualenv_path)
 
     action = 'updated' if update else 'created'
     logger.debug('Virtualenv for pack "%s" successfully %s in "%s"' %
