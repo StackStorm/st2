@@ -295,11 +295,6 @@ class ActionExecutionOutputController(ActionExecutionsControllerMixin, ResourceC
     }
     exclude_fields = []
 
-    CLOSE_STREAM_LIVEACTION_STATES = action_constants.LIVEACTION_COMPLETED_STATES + [
-        action_constants.LIVEACTION_STATUS_PAUSING,
-        action_constants.LIVEACTION_STATUS_RESUMING
-    ]
-
     def get_one(self, id, output_type='all', output_format='raw', existing_only=False,
                 requester_user=None):
         # Special case for id == "last"
