@@ -1160,13 +1160,6 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
 
 class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestCase,
                                               FunctionalTest):
-    def test_get_one_id_last_no_executions_in_the_database(self):
-        ActionExecution.query().delete()
-
-        resp = self.app.get('/v1/executions/last', expect_errors=True)
-        self.assertEqual(resp.status_int, http_client.BAD_REQUEST)
-        self.assertEqual(resp.json['faultstring'], 'No executions found in the database')
-
     def test_get_output_id_last_no_executions_in_the_database(self):
         ActionExecution.query().delete()
 
