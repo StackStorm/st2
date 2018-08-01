@@ -92,7 +92,7 @@ class ActionExecutionOutputStreamController(ResourceController):
 
         def new_output_iter():
             def noop_gen():
-                yield six.binary_type('')
+                yield six.binary_type(''.encode('utf-8'))
 
             # Bail out if execution has already completed / been paused
             if execution_db.status in self.CLOSE_STREAM_LIVEACTION_STATES:
@@ -121,7 +121,7 @@ class ActionExecutionOutputStreamController(ResourceController):
                             yield six.binary_type(output)
                         elif isinstance(model_api, ActionExecutionAPI):
                             if model_api.status in self.CLOSE_STREAM_LIVEACTION_STATES:
-                                yield six.binary_type('')
+                                yield six.binary_type(''.encode('utf-8'))
                                 break
                         else:
                             LOG.debug('Unrecognized message type: %s' % (model_api))
