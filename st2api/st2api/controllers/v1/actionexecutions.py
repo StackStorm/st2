@@ -396,7 +396,16 @@ class ActionExecutionOutputController(ActionExecutionsControllerMixin, ResourceC
             else:
                 app_iter = itertools.chain(existing_output_iter(), new_output_iter())
 
-            res = Response(content_type='text/plain', app_iter=app_iter)
+            if output_type == 'event_source':
+                headers = {
+                    'Cache-Control': 'no-cache'
+                }
+                content_type = 'text/event-stream'
+            else:
+                headers = {}
+                content_type = 'text/plain'
+
+            res = Response(content_type=content_type, headers=headers, app_iter=app_iter)
             return res
 
         res = make_response()
