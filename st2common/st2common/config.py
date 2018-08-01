@@ -25,6 +25,13 @@ from st2common.constants.system import VERSION_STRING
 from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
 from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_LOG_LEVEL
 
+__all__ = [
+    'do_register_opts',
+    'do_register_cli_opts',
+
+    'parse_args'
+]
+
 
 def do_register_opts(opts, group=None, ignore_errors=False):
     try:
