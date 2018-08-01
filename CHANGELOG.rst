@@ -32,6 +32,15 @@ Added
   Keep in mind that the content itself still needs to be registered with StackStorm at some later
   point when access to RabbitMQ and MongoDB is available by running
   ``st2ctl reload --register-all``. (new feature) #3912 #4256
+* Add new ``/v1/stream/executions/<id>/output[?output_type=all|stdout|stderr]`` stream API
+  endpoint.
+
+  This API endpoint returns event source compatible response format.
+
+  For running executions it returns any output produced so far and any new output as it's produced.
+  Once the execution finishes, the connection is automatically closed.
+
+  For completed executions it returns all the output produced by the execution. (new feature)
 
 Changed
 ~~~~~~~
