@@ -1157,7 +1157,7 @@ paths:
         - name: output_type
           in: query
           description: Type of output to retrieve (stdout, stderr). If not provided, all output type is returned.
-          type: enum
+          type: string
           enum:
             - "all"
             - "stdout"
@@ -1166,7 +1166,7 @@ paths:
         - name: output_format
           in: query
           description: Output format. "raw" for raw output and "event_source" for EventSource format (new line delimited JSON).
-          type: enum
+          type: string
           enum:
             - "raw"
             - "event_source"
