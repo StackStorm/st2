@@ -126,7 +126,7 @@ def _db_connect(db_name, db_host, db_port, username=None, password=None,
 
     # NOTE: Since pymongo 3.0, connect() method is lazy and not blocking (always returns success)
     # so we need to issue a command / query to check if connection has been
-    # successfuly established.
+    # successfully established.
     # See http://api.mongodb.com/python/current/api/pymongo/mongo_client.html for details
     try:
         # The ismaster command is cheap and does not require auth
