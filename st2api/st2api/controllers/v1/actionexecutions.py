@@ -17,7 +17,6 @@ import copy
 import re
 import sys
 import traceback
-import itertools
 
 import six
 import jsonschema
@@ -39,7 +38,6 @@ from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.action import LiveActionCreateAPI
 from st2common.models.api.base import cast_argument_value
 from st2common.models.api.execution import ActionExecutionAPI
-from st2common.models.api.execution import ActionExecutionOutputAPI
 from st2common.models.db.auth import UserDB
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
@@ -54,12 +52,10 @@ from st2common.util import isotime
 from st2common.util import action_db as action_utils
 from st2common.util import param as param_utils
 from st2common.util.jsonify import try_loads
-from st2common.util.jsonify import json_encode
 from st2common.rbac.types import PermissionType
 from st2common.rbac import utils as rbac_utils
 from st2common.rbac.utils import assert_user_has_resource_db_permission
 from st2common.rbac.utils import assert_user_is_admin_if_user_query_param_is_provided
-from st2common.stream.listener import get_listener
 
 __all__ = [
     'ActionExecutionsController'
@@ -323,89 +319,17 @@ class ActionExecutionOutputController(ActionExecutionsControllerMixin, ResourceC
         if output_type and output_type != 'all':
             query_filters['output_type'] = output_type
 
-        def format_output_object(output_db_or_api):
-            if output_format == 'raw':
-                return output_db_or_api.data
-            elif output_format == 'event_source':
-                if not isinstance(output_db_or_api, ActionExecutionOutputAPI):
-                    data = ActionExecutionOutputAPI.from_model(output_db_or_api)
-                else:
-                    data = output_db_or_api
-
-                event = 'st2.execution.output__create'
-                result = 'event: %s\ndata: %s\n\n' % (event, json_encode(data, indent=None))
-                return result
-            else:
-                raise ValueError('Unsupported format: %s' % (output_format))
-
         def existing_output_iter():
             # Consume and return all of the existing lines
             # pylint: disable=no-member
             output_dbs = ActionExecutionOutput.query(execution_id=execution_id, **query_filters)
 
-            # Note: We return all at once instead of yield line by line to avoid multiple socket
-            # writes and to achieve better performance
-            output = [format_output_object(output_db) for output_db in output_dbs]
-            output = ''.join(output)
+            output = ''.join([output_db.data for output_db in output_dbs])
             yield six.binary_type(output.encode('utf-8'))
 
-        def new_output_iter():
-            def noop_gen():
-                yield six.binary_type('')
-
-            # Bail out if execution has already completed / been paused
-            if execution_db.status in self.CLOSE_STREAM_LIVEACTION_STATES:
-                return noop_gen()
-
-            # Wait for and return any new line which may come in
-            execution_ids = [execution_id]
-            listener = get_listener(name='execution_output')  # pylint: disable=no-member
-            gen = listener.generator(execution_ids=execution_ids)
-
-            def format(gen):
-                for pack in gen:
-                    if not pack:
-                        continue
-                    else:
-                        (_, model_api) = pack
-
-                        # Note: gunicorn wsgi handler expect bytes, not unicode
-                        # pylint: disable=no-member
-                        if isinstance(model_api, ActionExecutionOutputAPI):
-                            if output_type and output_type != 'all' and \
-                               model_api.output_type != output_type:
-                                continue
-
-                            output = format_output_object(model_api).encode('utf-8')
-                            yield six.binary_type(output)
-                        elif isinstance(model_api, ActionExecutionAPI):
-                            if model_api.status in self.CLOSE_STREAM_LIVEACTION_STATES:
-                                yield six.binary_type('')
-                                break
-                        else:
-                            LOG.debug('Unrecognized message type: %s' % (model_api))
-
-            gen = format(gen)
-            return gen
-
         def make_response():
-            if existing_only:
-                # Only return existing output produced by now and return immediately. Don't wait
-                # for execution to finish
-                app_iter = existing_output_iter()
-            else:
-                app_iter = itertools.chain(existing_output_iter(), new_output_iter())
-
-            if output_type == 'event_source':
-                headers = {
-                    'Cache-Control': 'no-cache'
-                }
-                content_type = 'text/event-stream'
-            else:
-                headers = {}
-                content_type = 'text/plain'
-
-            res = Response(content_type=content_type, headers=headers, app_iter=app_iter)
+            app_iter = existing_output_iter()
+            res = Response(content_type='text/plain', app_iter=app_iter)
             return res
 
         res = make_response()
