@@ -20,9 +20,11 @@ import kombu
 from orquesta import events
 from orquesta import states
 
+from st2common.constants import action as ac_const
 from st2common import log as logging
 from st2common.models.db import execution as ex_db_models
 from st2common.models.db import workflow as wf_db_models
+from st2common.persistence import workflow as wf_db_access
 from st2common.services import workflows as wf_svc
 from st2common.transport import consumers
 from st2common.transport import queues
@@ -34,7 +36,8 @@ LOG = logging.getLogger(__name__)
 
 WORKFLOW_EXECUTION_QUEUES = [
     queues.WORKFLOW_EXECUTION_WORK_QUEUE,
-    queues.WORKFLOW_EXECUTION_RESUME_QUEUE
+    queues.WORKFLOW_EXECUTION_RESUME_QUEUE,
+    queues.WORKFLOW_ACTION_EXECUTION_UPDATE_QUEUE
 ]
 
 
@@ -130,7 +133,34 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
             next_tasks = conductor.get_next_tasks()
 
     def handle_action_execution(self, ac_ex_db):
-        pass
+        # Exit if action execution is not  executed under an orquesta workflow.
+        if 'orquesta' not in ac_ex_db.context:
+            return
+
+        # Process pause request on the action execution.
+        if ac_ex_db.status == ac_const.LIVEACTION_STATUS_PAUSED:
+            wf_svc.handle_action_execution_pause(ac_ex_db)
+
+        # Get related record identifiers.
+        wf_ex_id = ac_ex_db.context['orquesta']['workflow_execution_id']
+        task_ex_id = ac_ex_db.context['orquesta']['task_execution_id']
+
+        # Get execution records for logging purposes.
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
+        task_ex_db = wf_db_access.TaskExecution.get_by_id(task_ex_id)
+
+        # Exit if action execution has not completed yet.
+        if ac_ex_db.status not in ac_const.LIVEACTION_COMPLETED_STATES:
+            extra = {'execution': ac_ex_db}
+            msg = '[%s] Skip action execution "%s" because state "%s" is not in a completed state.'
+            msg = msg % (wf_ex_db.action_execution, str(ac_ex_db.id), ac_ex_db.status)
+            LOG.debug(msg, extra=extra)
+            return
+
+        # TODO: Apply post run policies.
+
+        # Process completion of the action execution.
+        wf_svc.handle_action_execution_completion(ac_ex_db)
 
 
 def get_engine():
