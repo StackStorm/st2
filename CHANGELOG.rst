@@ -43,6 +43,15 @@ Changed
 * The orquesta conductor implemented event based state machines to manage state transition of
   workflow execution. Interfaces to set workflow state and update task on action execution
   completion have changed and calls to those interfaces are changed accordingly. (improvement)
+* Change ``GET /v1/executions/<id>/output`` API endpoint so it never blocks and returns data
+  produced so far for running executions. Behavior for completed executions is the same and didn't
+  change - all data produced by the execution is returned in the raw format.
+
+  The streaming (block until execution has finished for running executions) behavior has been moved
+  to the new ``/stream/v1/executions/<id>/output`` API endpoint.
+
+  This way we are not mixing non-streaming (short lived) and streaming (long lived) connections
+  inside a single service (st2api). (improvement)
 
 Deprecated
 ~~~~~~~~~~
