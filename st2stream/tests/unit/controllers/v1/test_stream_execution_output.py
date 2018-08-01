@@ -15,8 +15,6 @@
 
 import json
 
-import six
-import unittest2
 import eventlet
 
 from six.moves import http_client
@@ -45,7 +43,6 @@ class ActionExecutionOutputStreamControllerTestCase(FunctionalTest):
         self.assertEqual(resp.status_int, http_client.BAD_REQUEST)
         self.assertEqual(resp.json['faultstring'], 'No executions found in the database')
 
-    @unittest2.skipIf(six.PY3, 'Skipping under Python 3 (closed iterator read issue)')
     def test_get_output_running_execution(self):
         # Retrieve lister instance to avoid race with listener connection not being established
         # early enough for tests to pass.
@@ -122,7 +119,6 @@ class ActionExecutionOutputStreamControllerTestCase(FunctionalTest):
 
         listener.shutdown()
 
-    @unittest2.skipIf(six.PY3, 'Skipping under Python 3 (closed iterator read issue)')
     def test_get_output_finished_execution(self):
         # Test the execution output API endpoint for execution which has finished
         for status in action_constants.LIVEACTION_COMPLETED_STATES:
