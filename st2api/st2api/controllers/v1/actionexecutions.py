@@ -17,7 +17,6 @@ import copy
 import re
 import sys
 import traceback
-import itertools
 
 import six
 import jsonschema
@@ -39,7 +38,6 @@ from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.action import LiveActionCreateAPI
 from st2common.models.api.base import cast_argument_value
 from st2common.models.api.execution import ActionExecutionAPI
-from st2common.models.api.execution import ActionExecutionOutputAPI
 from st2common.models.db.auth import UserDB
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
@@ -58,7 +56,6 @@ from st2common.rbac.types import PermissionType
 from st2common.rbac import utils as rbac_utils
 from st2common.rbac.utils import assert_user_has_resource_db_permission
 from st2common.rbac.utils import assert_user_is_admin_if_user_query_param_is_provided
-from st2common.stream.listener import get_listener
 
 __all__ = [
     'ActionExecutionsController'
@@ -298,12 +295,8 @@ class ActionExecutionOutputController(ActionExecutionsControllerMixin, ResourceC
     }
     exclude_fields = []
 
-    CLOSE_STREAM_LIVEACTION_STATES = action_constants.LIVEACTION_COMPLETED_STATES + [
-        action_constants.LIVEACTION_STATUS_PAUSING,
-        action_constants.LIVEACTION_STATUS_RESUMING
-    ]
-
-    def get_one(self, id, output_type=None, requester_user=None):
+    def get_one(self, id, output_type='all', output_format='raw', existing_only=False,
+                requester_user=None):
         # Special case for id == "last"
         if id == 'last':
             execution_db = ActionExecution.query().order_by('-id').limit(1).first()
@@ -326,50 +319,11 @@ class ActionExecutionOutputController(ActionExecutionsControllerMixin, ResourceC
             # pylint: disable=no-member
             output_dbs = ActionExecutionOutput.query(execution_id=execution_id, **query_filters)
 
-            # Note: We return all at once instead of yield line by line to avoid multiple socket
-            # writes and to achieve better performance
             output = ''.join([output_db.data for output_db in output_dbs])
             yield six.binary_type(output.encode('utf-8'))
 
-        def new_output_iter():
-            def noop_gen():
-                yield six.binary_type('')
-
-            # Bail out if execution has already completed / been paused
-            if execution_db.status in self.CLOSE_STREAM_LIVEACTION_STATES:
-                return noop_gen()
-
-            # Wait for and return any new line which may come in
-            execution_ids = [execution_id]
-            listener = get_listener(name='execution_output')  # pylint: disable=no-member
-            gen = listener.generator(execution_ids=execution_ids)
-
-            def format(gen):
-                for pack in gen:
-                    if not pack:
-                        continue
-                    else:
-                        (_, model_api) = pack
-
-                        # Note: gunicorn wsgi handler expect bytes, not unicode
-                        # pylint: disable=no-member
-                        if isinstance(model_api, ActionExecutionOutputAPI):
-                            if output_type and model_api.output_type != output_type:
-                                continue
-
-                            yield six.binary_type(model_api.data.encode('utf-8'))
-                        elif isinstance(model_api, ActionExecutionAPI):
-                            if model_api.status in self.CLOSE_STREAM_LIVEACTION_STATES:
-                                yield six.binary_type('')
-                                break
-                        else:
-                            LOG.debug('Unrecognized message type: %s' % (model_api))
-
-            gen = format(gen)
-            return gen
-
         def make_response():
-            app_iter = itertools.chain(existing_output_iter(), new_output_iter())
+            app_iter = existing_output_iter()
             res = Response(content_type='text/plain', app_iter=app_iter)
             return res
 

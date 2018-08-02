@@ -1145,7 +1145,6 @@ paths:
     get:
       operationId: st2api.controllers.v1.actionexecutions:action_execution_output_controller.get_one
       x-log-result: false
-      x-is-stream-endpoint: true
       description: |
         Retrieve execution output.
       parameters:
@@ -1156,10 +1155,13 @@ paths:
           required: true
         - name: output_type
           in: query
-          description: Type of output to retrieve. If not provided, all output type is returned.
-          type: array
-          items:
-            type: string
+          description: Type of output to retrieve (stdout, stderr). If not provided, all output type is returned.
+          type: string
+          enum:
+            - "all"
+            - "stdout"
+            - "stderr"
+          default: all
       x-parameters:
         - name: user
           in: context
@@ -4231,7 +4233,39 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-
+  /stream/v1/executions/{id}/output:
+    get:
+      operationId: st2stream.controllers.v1.executions:action_execution_output_controller.get_one
+      x-permissions: {{ PERMISSION_TYPE.STREAM_VIEW }}
+      description: |
+        Action execution output event stream endpoint.
+      parameters:
+        - name: id
+          in: path
+          description: Execution id
+          type: string
+          required: true
+        - name: output_type
+          in: query
+          description: Type of output to retrieve (stdout, stderr). If not provided, all output type is returned.
+          type: string
+          enum:
+            - "all"
+            - "stdout"
+            - "stderr"
+          default: all
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: EventSource compatible stream of events
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
 
 definitions:
   Action:
