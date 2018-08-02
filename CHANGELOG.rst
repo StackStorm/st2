@@ -32,6 +32,15 @@ Added
   Keep in mind that the content itself still needs to be registered with StackStorm at some later
   point when access to RabbitMQ and MongoDB is available by running
   ``st2ctl reload --register-all``. (new feature) #3912 #4256
+* Add new ``/v1/stream/executions/<id>/output[?output_type=all|stdout|stderr]`` stream API
+  endpoint.
+
+  This API endpoint returns event source compatible response format.
+
+  For running executions it returns any output produced so far and any new output as it's produced.
+  Once the execution finishes, the connection is automatically closed.
+
+  For completed executions it returns all the output produced by the execution. (new feature)
 * Add new ``core.inject_trigger`` action for injecting a trigger instance into the system.
 
   Keep in mind that the trigger which is to be injected must be registered and exist in the system.
@@ -47,6 +56,15 @@ Changed
 * The orquesta conductor implemented event based state machines to manage state transition of
   workflow execution. Interfaces to set workflow state and update task on action execution
   completion have changed and calls to those interfaces are changed accordingly. (improvement)
+* Change ``GET /v1/executions/<id>/output`` API endpoint so it never blocks and returns data
+  produced so far for running executions. Behavior for completed executions is the same and didn't
+  change - all data produced by the execution is returned in the raw format.
+
+  The streaming (block until execution has finished for running executions) behavior has been moved
+  to the new ``/stream/v1/executions/<id>/output`` API endpoint.
+
+  This way we are not mixing non-streaming (short lived) and streaming (long lived) connections
+  inside a single service (st2api). (improvement)
 * Trigger parameters and payload schema validation is now enabled by default
   (``system.validate_trigger_parameters`` and ``system.validate_trigger_payload`` config options
   now default to ``True``).
