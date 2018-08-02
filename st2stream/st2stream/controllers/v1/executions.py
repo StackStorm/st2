@@ -36,6 +36,10 @@ __all__ = [
 
 LOG = logging.getLogger(__name__)
 
+# Event which is returned when no more data will be produced on this stream endpoint before closing
+# the connection.
+NO_MORE_DATA_EVENT = 'event: EOF\ndata: \'\'\n\n'
+
 
 class ActionExecutionOutputStreamController(ResourceController):
     model = ActionExecutionAPI
@@ -92,7 +96,7 @@ class ActionExecutionOutputStreamController(ResourceController):
 
         def new_output_iter():
             def noop_gen():
-                yield six.binary_type(''.encode('utf-8'))
+                yield six.binary_type(NO_MORE_DATA_EVENT.encode('utf-8'))
 
             # Bail out if execution has already completed / been paused
             if execution_db.status in self.CLOSE_STREAM_LIVEACTION_STATES:
@@ -121,7 +125,7 @@ class ActionExecutionOutputStreamController(ResourceController):
                             yield six.binary_type(output)
                         elif isinstance(model_api, ActionExecutionAPI):
                             if model_api.status in self.CLOSE_STREAM_LIVEACTION_STATES:
-                                yield six.binary_type(''.encode('utf-8'))
+                                yield six.binary_type(NO_MORE_DATA_EVENT.encode('utf-8'))
                                 break
                         else:
                             LOG.debug('Unrecognized message type: %s' % (model_api))
