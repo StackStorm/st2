@@ -49,24 +49,46 @@ ST2_WEBHOOK = {
     }
 }
 
-# 1. Trigger which references a system webhook trigger type
-DUMMY_TRIGGER = TriggerDB(name='pr-merged', pack='git')
-DUMMY_TRIGGER.type = list(WEBHOOK_TRIGGER_TYPES.keys())[0]
+WEBHOOK_DATA = {
+    'value_str': 'test string 1',
+    'value_int': 987654,
+}
 
-DUMMY_TRIGGER_API = TriggerAPI.from_model(DUMMY_TRIGGER)
+# 1. Trigger which references a system webhook trigger type
+DUMMY_TRIGGER_DB = TriggerDB(name='pr-merged', pack='git')
+DUMMY_TRIGGER_DB.type = list(WEBHOOK_TRIGGER_TYPES.keys())[0]
+
+
+DUMMY_TRIGGER_API = TriggerAPI.from_model(DUMMY_TRIGGER_DB)
+DUMMY_TRIGGER_DICT = vars(DUMMY_TRIGGER_API)
 
 # 2. Custom TriggerType object
 DUMMY_TRIGGER_TYPE_DB = TriggerTypeDB(name='pr-merged', pack='git')
 DUMMY_TRIGGER_TYPE_DB.payload_schema = {
     'type': 'object',
     'properties': {
-        'value_str': {
-            'type': 'string',
-            'required': True
-        },
-        'value_int': {
-            'type': 'integer',
-            'required': True
+        'body': {
+            'properties': {
+                'value_str': {
+                    'type': 'string',
+                    'required': True
+                },
+                'value_int': {
+                    'type': 'integer',
+                    'required': True
+                }
+            }
+        }
+    }
+}
+
+# 2. Custom TriggerType object
+DUMMY_TRIGGER_TYPE_DB_2 = TriggerTypeDB(name='pr-merged', pack='git')
+DUMMY_TRIGGER_TYPE_DB_2.payload_schema = {
+    'type': 'object',
+    'properties': {
+        'body': {
+            'type': 'array'
         }
     }
 }
@@ -83,18 +105,18 @@ class TestWebhooksController(FunctionalTest):
     @mock.patch.object(WebhooksController, '_is_valid_hook', mock.MagicMock(
         return_value=True))
     @mock.patch.object(HooksHolder, 'get_all', mock.MagicMock(
-        return_value=[vars(DUMMY_TRIGGER)]))
+        return_value=[DUMMY_TRIGGER_DICT]))
     def test_get_all(self):
         get_resp = self.app.get('/v1/webhooks', expect_errors=False)
         self.assertEqual(get_resp.status_int, http_client.OK)
-        self.assertEqual(get_resp.json, [vars(DUMMY_TRIGGER)])
+        self.assertEqual(get_resp.json, [DUMMY_TRIGGER_DICT])
 
     @mock.patch.object(TriggerInstancePublisher, 'publish_trigger', mock.MagicMock(
         return_value=True))
     @mock.patch.object(WebhooksController, '_is_valid_hook', mock.MagicMock(
         return_value=True))
     @mock.patch.object(HooksHolder, 'get_triggers_for_hook', mock.MagicMock(
-        return_value=[DUMMY_TRIGGER]))
+        return_value=[DUMMY_TRIGGER_DICT]))
     @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
     def test_post(self, dispatch_mock):
         post_resp = self.__do_post('git', WEBHOOK_1, expect_errors=False)
@@ -106,7 +128,7 @@ class TestWebhooksController(FunctionalTest):
     @mock.patch.object(WebhooksController, '_is_valid_hook', mock.MagicMock(
         return_value=True))
     @mock.patch.object(HooksHolder, 'get_triggers_for_hook', mock.MagicMock(
-        return_value=[DUMMY_TRIGGER]))
+        return_value=[DUMMY_TRIGGER_DICT]))
     @mock.patch('st2common.services.triggers.get_trigger_type_db', mock.MagicMock(
         return_value=DUMMY_TRIGGER_TYPE_DB))
     @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
@@ -176,7 +198,7 @@ class TestWebhooksController(FunctionalTest):
     @mock.patch.object(WebhooksController, '_is_valid_hook', mock.MagicMock(
         return_value=True))
     @mock.patch.object(HooksHolder, 'get_triggers_for_hook', mock.MagicMock(
-        return_value=[DUMMY_TRIGGER]))
+        return_value=[DUMMY_TRIGGER_DICT]))
     @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
     def test_json_request_body(self, dispatch_mock):
         # 1. Send JSON using application/json content type
@@ -213,7 +235,7 @@ class TestWebhooksController(FunctionalTest):
     @mock.patch.object(WebhooksController, '_is_valid_hook', mock.MagicMock(
         return_value=True))
     @mock.patch.object(HooksHolder, 'get_triggers_for_hook', mock.MagicMock(
-        return_value=[DUMMY_TRIGGER]))
+        return_value=[DUMMY_TRIGGER_DICT]))
     @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
     def test_form_encoded_request_body(self, dispatch_mock):
         # Send request body as form urlencoded data
@@ -248,9 +270,9 @@ class TestWebhooksController(FunctionalTest):
     @mock.patch.object(WebhooksController, '_is_valid_hook', mock.MagicMock(
         return_value=True))
     @mock.patch.object(HooksHolder, 'get_triggers_for_hook', mock.MagicMock(
-        return_value=[DUMMY_TRIGGER]))
+        return_value=[DUMMY_TRIGGER_DICT]))
     @mock.patch('st2common.services.triggers.get_trigger_type_db', mock.MagicMock(
-        return_value=DUMMY_TRIGGER_TYPE_DB))
+        return_value=DUMMY_TRIGGER_TYPE_DB_2))
     @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
     def test_custom_webhook_array_input_type(self, _):
         post_resp = self.__do_post('sample', [{'foo': 'bar'}])

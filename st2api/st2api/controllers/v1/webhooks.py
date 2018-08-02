@@ -185,6 +185,7 @@ class WebhooksController(object):
         return TraceContext(trace_tag=trace_tag)
 
     def add_trigger(self, trigger):
+        # NOTE: trigger is a dictionary
         # Note: Permission checking for creating and deleting a webhook is done during rule
         # creation
         url = self._get_normalized_url(trigger)
