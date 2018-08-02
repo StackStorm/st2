@@ -124,15 +124,20 @@ def validate_trigger_payload(trigger_type_ref, payload, throw_on_inexistent_trig
     if not trigger_type_ref:
         return None
 
+    # NOTE: Due to the awful code in some other places we also need to support a scenario where
+    # this variable is a dictionary and contains various TriggerDB object attributes.
     if isinstance(trigger_type_ref, dict):
-        trigger_db = triggers.get_trigger_db_by_ref_or_dict(trigger_type_ref)
+        if trigger_type_ref.get('type', None):
+            trigger_type_ref = trigger_type_ref['type']
+        else:
+            trigger_db = triggers.get_trigger_db_by_ref_or_dict(trigger_type_ref)
 
-        if not trigger_db:
-            # Corresponding TriggerDB not found, likely a corrupted database,
-            # skip the validation.
-            return None
+            if not trigger_db:
+                # Corresponding TriggerDB not found, likely a corrupted database, skip the
+                # validation.
+                return None
 
-        trigger_type_ref = trigger_db.type
+            trigger_type_ref = trigger_db.type
 
     is_system_trigger = trigger_type_ref in SYSTEM_TRIGGER_TYPES
     if is_system_trigger:
