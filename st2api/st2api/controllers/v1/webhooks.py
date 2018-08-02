@@ -160,9 +160,10 @@ class WebhooksController(object):
             payload['body'] = body
 
             # Dispatch trigger instance for each of the trigger found
-            for trigger_db in triggers:
-                trigger = trigger_db['type']
-                self._trigger_dispatcher_service.dispatch_with_context(trigger=trigger,
+            for trigger_dict in triggers:
+                # TODO: Instead of dispatching the whole dict we should just
+                # dispatch TriggerDB.ref or similar
+                self._trigger_dispatcher_service.dispatch_with_context(trigger=trigger_dict,
                    payload=payload,
                    trace_context=trace_context,
                    throw_on_validation_error=True)
