@@ -67,6 +67,38 @@ server {
     proxy_set_header Host $host;
   }
 
+    location @streamError {
+    add_header Content-Type text/event-stream;
+    return 200 "retry: 1000\n\n";
+  }
+
+  # For backward compatibility reasons, rewrite requests from "/api/stream"
+  # to "/stream/v1/stream" and "/api/v1/stream" to "/stream/v1/stream"
+  rewrite ^/api/stream/?$ /stream/v1/stream break;
+  rewrite ^/api/(v\d)/stream/?$ /stream/$1/stream break;
+  location /stream/ {
+    error_page 502 = @streamError;
+
+    rewrite ^/stream/(.*)  /$1 break;
+
+    proxy_pass            https://st2/stream/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
+
+    # Disable buffering and chunked encoding.
+    # In the stream case we want to receive the whole payload at once, we don't
+    # want multiple chunks.
+    proxy_set_header Connection '';
+    chunked_transfer_encoding off;
+    proxy_buffering off;
+    proxy_cache off;
+  }
+
   location /auth/ {
     rewrite ^/auth/(.*)  /auth/$1 break;
 
