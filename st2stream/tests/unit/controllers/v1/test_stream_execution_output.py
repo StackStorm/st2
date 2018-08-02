@@ -101,10 +101,11 @@ class ActionExecutionOutputStreamControllerTestCase(FunctionalTest):
         self.assertEqual(resp.status_int, 200)
 
         events = self._parse_response(resp.text)
-        self.assertEqual(len(events), 3)
-        self.assertEqual(events[0]['data'], 'stdout before start\n')
-        self.assertEqual(events[1]['data'], 'stdout mid 1\n')
-        self.assertEqual(events[2]['data'], 'stdout pre finish 1\n')
+        self.assertEqual(len(events), 4)
+        self.assertEqual(events[0][1]['data'], 'stdout before start\n')
+        self.assertEqual(events[1][1]['data'], 'stdout mid 1\n')
+        self.assertEqual(events[2][1]['data'], 'stdout pre finish 1\n')
+        self.assertEqual(events[3][0], 'EOF')
 
         # Once the execution is in completed state, existing output should be returned immediately
         resp = self.app.get('/v1/executions/%s/output' % (str(action_execution_db.id)),
@@ -112,10 +113,11 @@ class ActionExecutionOutputStreamControllerTestCase(FunctionalTest):
         self.assertEqual(resp.status_int, 200)
 
         events = self._parse_response(resp.text)
-        self.assertEqual(len(events), 3)
-        self.assertEqual(events[0]['data'], 'stdout before start\n')
-        self.assertEqual(events[1]['data'], 'stdout mid 1\n')
-        self.assertEqual(events[2]['data'], 'stdout pre finish 1\n')
+        self.assertEqual(len(events), 4)
+        self.assertEqual(events[0][1]['data'], 'stdout before start\n')
+        self.assertEqual(events[1][1]['data'], 'stdout mid 1\n')
+        self.assertEqual(events[2][1]['data'], 'stdout pre finish 1\n')
+        self.assertEqual(events[3][0], 'EOF')
 
         listener.shutdown()
 
@@ -156,16 +158,18 @@ class ActionExecutionOutputStreamControllerTestCase(FunctionalTest):
             self.assertEqual(resp.status_int, 200)
 
             events = self._parse_response(resp.text)
-            self.assertEqual(len(events), 10)
-            self.assertEqual(events[0]['data'], 'stdout 1\n')
-            self.assertEqual(events[9]['data'], 'stderr 14\n')
+            self.assertEqual(len(events), 11)
+            self.assertEqual(events[0][1]['data'], 'stdout 1\n')
+            self.assertEqual(events[9][1]['data'], 'stderr 14\n')
+            self.assertEqual(events[10][0], 'EOF')
 
             # Verify "last" short-hand id works
             resp = self.app.get('/v1/executions/last/output', expect_errors=False)
             self.assertEqual(resp.status_int, 200)
 
             events = self._parse_response(resp.text)
-            self.assertEqual(len(events), 10)
+            self.assertEqual(len(events), 11)
+            self.assertEqual(events[10][0], 'EOF')
 
     def _parse_response(self, response):
         """
@@ -174,15 +178,13 @@ class ActionExecutionOutputStreamControllerTestCase(FunctionalTest):
         events = []
 
         lines = response.strip().split('\n')
-        for line in lines:
+        for index, line in enumerate(lines):
             if 'data:' in line:
+                e_line = lines[index - 1]
+                event_name = e_line[e_line.find('event: ') + len('event:'):].strip()
                 event_data = line[line.find('data: ') + len('data :'):].strip()
 
-                if len(event_data.strip("'")) == 0:
-                    # Skip EOF events:
-                    continue
-
-                event = json.loads(event_data)
-                events.append(event)
+                event_data = json.loads(event_data) if len(event_data) > 2 else {}
+                events.append((event_name, event_data))
 
         return events
