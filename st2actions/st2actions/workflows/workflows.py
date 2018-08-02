@@ -24,7 +24,9 @@ from st2common.constants import action as ac_const
 from st2common import log as logging
 from st2common.models.db import execution as ex_db_models
 from st2common.models.db import workflow as wf_db_models
+from st2common.persistence import liveaction as lv_db_access
 from st2common.persistence import workflow as wf_db_access
+from st2common.services import policies as pc_svc
 from st2common.services import workflows as wf_svc
 from st2common.transport import consumers
 from st2common.transport import queues
@@ -141,13 +143,9 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
         if ac_ex_db.status == ac_const.LIVEACTION_STATUS_PAUSED:
             wf_svc.handle_action_execution_pause(ac_ex_db)
 
-        # Get related record identifiers.
-        wf_ex_id = ac_ex_db.context['orquesta']['workflow_execution_id']
-        task_ex_id = ac_ex_db.context['orquesta']['task_execution_id']
-
         # Get execution records for logging purposes.
+        wf_ex_id = ac_ex_db.context['orquesta']['workflow_execution_id']
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
-        task_ex_db = wf_db_access.TaskExecution.get_by_id(task_ex_id)
 
         # Exit if action execution has not completed yet.
         if ac_ex_db.status not in ac_const.LIVEACTION_COMPLETED_STATES:
@@ -157,7 +155,9 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
             LOG.debug(msg, extra=extra)
             return
 
-        # TODO: Apply post run policies.
+        # Apply post run policies.
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(ac_ex_db.liveaction['id'])
+        pc_svc.apply_post_run_policies(lv_ac_db)
 
         # Process completion of the action execution.
         wf_svc.handle_action_execution_completion(ac_ex_db)

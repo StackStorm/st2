@@ -29,10 +29,9 @@ from st2common.models.api.trace import TraceContext
 from st2common.models.db.execution import ActionExecutionDB
 from st2common.persistence.action import Action
 from st2common.persistence.liveaction import LiveAction
-from st2common.persistence.policy import Policy
-from st2common import policies
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.execution import ActionExecution
+from st2common.services import policies as policy_service
 from st2common.services import trace as trace_service
 from st2common.transport import consumers
 from st2common.transport import utils as transport_utils
@@ -77,21 +76,21 @@ class Notifier(consumers.MessageHandler):
     def process(self, execution_db):
         execution_id = str(execution_db.id)
         extra = {'execution': execution_db}
-        LOG.debug('Processing execution %s', execution_id, extra=extra)
-
-        # If the action execution is executed under an orquesta workflow, state changes
-        # for the action execution will be handled by the workflow engine.
-        if 'orquesta' in execution_db.context:
-            return
+        LOG.debug('Processing action execution "%s".', execution_id, extra=extra)
 
         if execution_db.status not in LIVEACTION_COMPLETED_STATES:
-            LOG.debug('Skipping processing of execution %s since it\'s not in a completed state' %
-                      (execution_id), extra=extra)
+            msg = 'Skip action execution "%s" because state "%s" is not in a completed state.'
+            LOG.debug(msg % (str(execution_db.id), execution_db.status), extra=extra)
             return
 
-        liveaction_id = execution_db.liveaction['id']
-        liveaction_db = LiveAction.get_by_id(liveaction_id)
-        self._apply_post_run_policies(liveaction_db=liveaction_db)
+        # Get the corresponding liveaction record.
+        liveaction_db = LiveAction.get_by_id(execution_db.liveaction['id'])
+
+        # If the action execution is executed under an orquesta workflow, policies for the
+        # action execution will be applied by the workflow engine. A policy may affect the
+        # final state of the action execution thereby impacting the state of the workflow.
+        if 'orquesta' not in execution_db.context:
+            policy_service.apply_post_run_policies(liveaction_db)
 
         if liveaction_db.notify is not None:
             self._post_notify_triggers(liveaction_db=liveaction_db, execution_db=execution_db)
@@ -253,25 +252,6 @@ class Notifier(consumers.MessageHandler):
                   ACTION_TRIGGER_TYPE['name'], liveaction_db.id, payload, trace_context)
         self._trigger_dispatcher.dispatch(self._action_trigger, payload=payload,
                                           trace_context=trace_context)
-
-    def _apply_post_run_policies(self, liveaction_db):
-        # Apply policies defined for the action.
-        policy_dbs = Policy.query(resource_ref=liveaction_db.action, enabled=True)
-        LOG.debug('Applying %s post_run policies' % (len(policy_dbs)))
-
-        for policy_db in policy_dbs:
-            driver = policies.get_driver(policy_db.ref,
-                                         policy_db.policy_type,
-                                         **policy_db.parameters)
-
-            try:
-                LOG.debug('Applying post_run policy "%s" (%s) for liveaction %s' %
-                          (policy_db.ref, policy_db.policy_type, str(liveaction_db.id)))
-                liveaction_db = driver.apply_after(liveaction_db)
-            except:
-                LOG.exception('An exception occurred while applying policy "%s".', policy_db.ref)
-
-        return liveaction_db
 
     def _get_runner_ref(self, action_ref):
         """
