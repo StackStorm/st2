@@ -177,6 +177,11 @@ class ActionExecutionOutputStreamControllerTestCase(FunctionalTest):
         for line in lines:
             if 'data:' in line:
                 event_data = line[line.find('data: ') + len('data :'):].strip()
+
+                if len(event_data.strip("'")) == 0:
+                    # Skip EOF events:
+                    continue
+
                 event = json.loads(event_data)
                 events.append(event)
 
