@@ -53,7 +53,7 @@ class PoolPublisher(object):
                     'exchange': exchange,
                     'routing_key': routing_key,
                     'serializer': 'pickle',
-                    'content_encoding': 'utf-8' 
+                    'content_encoding': 'utf-8'
                 }
                 retry_wrapper.ensured(connection=connection,
                                       obj=producer,
