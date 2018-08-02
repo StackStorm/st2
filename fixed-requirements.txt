@@ -1,10 +1,10 @@
 # Packages versions fixed for the whole st2 stack
 # Note: greenlet is used by eventlet
-greenlet==0.4.13
+greenlet==0.4.14
 # Note: 0.20.0 removed select.poll() on which some of our code and libraries we
 # depend on rely
 eventlet==0.23.0
-gunicorn==19.8.1
+gunicorn==19.9.0
 kombu==4.2.1
 # Note: amqp is used by kombu
 amqp==2.3.2
@@ -25,12 +25,12 @@ mongoengine==0.12.0
 pymongo==3.6.1
 passlib==1.7.1
 lockfile==0.12.2
-python-gnupg==0.4.2
+python-gnupg==0.4.3
 jsonpath-rw==1.4.0
 pyinotify==0.9.6
-semver==2.8.0
-pytz==2018.4
-stevedore==1.28.0
+semver==2.8.1
+pytz==2018.5
+stevedore==1.29.0
 paramiko==2.4.1
 networkx==1.11
 python-keyczar==0.716
@@ -49,8 +49,8 @@ webob==1.7.4
 prance==0.9.0
 pywinrm==0.3.0
 # test requirements below
-nose-timer>=0.7.2,<0.8
-psutil==5.4.5
+nose-timer==0.7.3
+psutil==5.4.6
 python-statsd==2.1.0
 prometheus_client==0.1.1
 mock==2.0.0
