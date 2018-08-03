@@ -61,6 +61,8 @@ Changed
 
   This way we are not mixing non-streaming (short lived) and streaming (long lived) connections
   inside a single service (st2api). (improvement)
+* Upgrade ``mongoengine`` (0.15.3) and ``pymongo`` (3.7.1) to the latest stable version. Those
+  changes will allow us to support MongoDB 3.6 in the near future. (improvement) #4292
 
 Deprecated
 ~~~~~~~~~~
