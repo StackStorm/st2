@@ -15,7 +15,7 @@ networkx==1.11
 oslo.config<1.13,>=1.12.1
 paramiko==2.4.1
 prometheus_client==0.1.1
-pymongo==3.6.1
+pymongo==3.7.1
 python-dateutil
 python-statsd==2.1.0
 pyyaml<4.0,>=3.12
