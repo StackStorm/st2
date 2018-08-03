@@ -33,6 +33,7 @@ from st2common.models.system.common import ResourceReference
 from st2common.persistence.execution import ActionExecution
 from st2common.services import policies as policy_service
 from st2common.services import trace as trace_service
+from st2common.services import workflows as workflow_service
 from st2common.transport import consumers
 from st2common.transport import utils as transport_utils
 from st2common.transport.reactor import TriggerDispatcher
@@ -89,7 +90,7 @@ class Notifier(consumers.MessageHandler):
         # If the action execution is executed under an orquesta workflow, policies for the
         # action execution will be applied by the workflow engine. A policy may affect the
         # final state of the action execution thereby impacting the state of the workflow.
-        if 'orquesta' not in execution_db.context:
+        if not workflow_service.is_action_execution_under_workflow_context(execution_db):
             policy_service.apply_post_run_policies(liveaction_db)
 
         if liveaction_db.notify is not None:
