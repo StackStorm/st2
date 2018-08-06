@@ -100,6 +100,7 @@ before_script:
   # Use a custom mongod.conf which uses various speed optimizations
   - sudo cp scripts/travis/mongod.conf /etc/mongod.conf
   - sudo service mongod restart ; sleep 7
+  - sudo service mongod status
   - mongod --version
   - git --version
   - pip --version
