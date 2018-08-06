@@ -54,7 +54,9 @@ class SensorTypeDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
 
     meta = {
         'indexes': [
+            {'fields': ['name']},
             {'fields': ['enabled']},
+            {'fields': ['trigger_types']},
         ] + stormbase.UIDFieldMixin.get_indexes()
     }
 

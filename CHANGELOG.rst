@@ -20,6 +20,27 @@ Added
 * Add new ``?tags``, query param filter to the ``/v1/actions`` API endpoint. This query parameter
   allows users to filter out actions based on the tag name . By default, when no filter values are
   provided, all actions are returned. (new feature) #4219
+* Add a new standalone standalone ``st2-pack-install`` CLI command. This command installs a pack
+  (and sets up the pack virtual environment) on the server where it runs. It doesn't register the
+  content. It only depends on the Python, git and pip binary and ``st2common`` Python package to be
+  installed on the system where it runs. It doesn't depend on the database (MongoDB) and message
+  bus (RabbitMQ).
+
+  It's primary meant to be used in scenarios where the content (packs) are baked into the base
+  container / VM image which is deployed to the cluster.
+
+  Keep in mind that the content itself still needs to be registered with StackStorm at some later
+  point when access to RabbitMQ and MongoDB is available by running
+  ``st2ctl reload --register-all``. (new feature) #3912 #4256
+* Add new ``/v1/stream/executions/<id>/output[?output_type=all|stdout|stderr]`` stream API
+  endpoint.
+
+  This API endpoint returns event source compatible response format.
+
+  For running executions it returns any output produced so far and any new output as it's produced.
+  Once the execution finishes, the connection is automatically closed.
+
+  For completed executions it returns all the output produced by the execution. (new feature)
 
 Changed
 ~~~~~~~
@@ -28,9 +49,20 @@ Changed
   (system and current user scoped) . If you only want to display system scoped values (old behavior)
   you can do that by passing ``--scope=system`` argument to the ``st2 key list`` command
   (``st2 key list --scope=system``). (improvement) #4221
-* The orchestra conductor implemented event based state machines to manage state transition of
+* The orquesta conductor implemented event based state machines to manage state transition of
   workflow execution. Interfaces to set workflow state and update task on action execution
   completion have changed and calls to those interfaces are changed accordingly. (improvement)
+* Change ``GET /v1/executions/<id>/output`` API endpoint so it never blocks and returns data
+  produced so far for running executions. Behavior for completed executions is the same and didn't
+  change - all data produced by the execution is returned in the raw format.
+
+  The streaming (block until execution has finished for running executions) behavior has been moved
+  to the new ``/stream/v1/executions/<id>/output`` API endpoint.
+
+  This way we are not mixing non-streaming (short lived) and streaming (long lived) connections
+  inside a single service (st2api). (improvement)
+* Upgrade ``mongoengine`` (0.15.3) and ``pymongo`` (3.7.1) to the latest stable version. Those
+  changes will allow us to support MongoDB 3.6 in the near future. (improvement) #4292
 
 Deprecated
 ~~~~~~~~~~
@@ -66,7 +98,7 @@ Changed
 * Migrated runners to using the ``in-requirements.txt`` pattern for "components" in the build
   system, so the ``Makefile`` correctly generates and installs runner dependencies during
   testing and packaging. (improvement) (bugfix) #4169
-  
+
   Contributed by Nick Maludy (Encore Technologies).
 * Update ``st2`` CLI to use a more sensible default terminal size for table formatting purposes if
   we are unable to retrieve terminal size using various system-specific approaches.
@@ -92,7 +124,7 @@ Fixed
 Added
 ~~~~~
 
-* Orchestra - new StackStorm-native workflow engine. This is currently in **beta**. (new feature)
+* Orquesta - new StackStorm-native workflow engine. This is currently in **beta**. (new feature)
 * Added metrics for collecting performance and health information about the various ST2 services
   and functions. (new feature) #4004 #2974
 * When running a dev (unstable) release include git revision hash in the output when using

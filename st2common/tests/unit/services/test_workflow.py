@@ -17,8 +17,8 @@ from __future__ import absolute_import
 
 import mock
 
-from orchestra.specs import loader as specs_loader
-from orchestra import states as wf_lib_states
+from orquesta.specs import loader as specs_loader
+from orquesta import states as wf_lib_states
 
 import st2tests
 
@@ -45,7 +45,7 @@ TEST_FIXTURES = {
     ]
 }
 
-TEST_PACK = 'orchestra_tests'
+TEST_PACK = 'orquesta_tests'
 TEST_PACK_PATH = st2tests.fixturesloader.get_fixtures_packs_base_path() + '/' + TEST_PACK
 
 PACKS = [

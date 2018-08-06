@@ -33,7 +33,8 @@ BASE_CMD_ARGS = [sys.executable, SCRIPT_PATH, '--config-file=conf/st2.tests.conf
 BASE_REGISTER_ACTIONS_CMD_ARGS = BASE_CMD_ARGS + ['--register-actions']
 
 PACKS_PATH = get_fixtures_packs_base_path()
-PACKS_COUNT = len(glob.glob('%s/*/pack.yaml' % (PACKS_PATH))) - 1
+PACKS_COUNT = len(glob.glob('%s/*/pack.yaml' % (PACKS_PATH)))
+assert(PACKS_COUNT >= 2)
 
 
 class ContentRegisterScriptTestCase(IntegrationTestCase):
@@ -129,12 +130,18 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
 
     def test_register_all_and_register_setup_virtualenvs(self):
         # Verify that --register-all works in combinations with --register-setup-virtualenvs
-        cmd = BASE_CMD_ARGS + ['--register-all', '--register-setup-virtualenvs',
-                               '--register-no-fail-on-failure']
+        # Single pack
+        pack_dir = os.path.join(get_fixtures_packs_base_path(), 'dummy_pack_1')
+        cmd = BASE_CMD_ARGS + [
+            '--register-pack=%s' % (pack_dir),
+            '--register-all',
+            '--register-setup-virtualenvs',
+            '--register-no-fail-on-failure'
+        ]
         exit_code, stdout, stderr = run_command(cmd=cmd)
         self.assertTrue('Registering actions' in stderr, 'Actual stderr: %s' % (stderr))
         self.assertTrue('Registering rules' in stderr)
-        self.assertTrue('Setup virtualenv for %s pack(s)' % (PACKS_COUNT) in stderr)
+        self.assertTrue('Setup virtualenv for %s pack(s)' % ('1') in stderr)
         self.assertEqual(exit_code, 0)
 
     def test_register_setup_virtualenvs(self):
@@ -147,10 +154,4 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
 
         self.assertTrue('Setting up virtualenv for pack "dummy_pack_1"' in stderr)
         self.assertTrue('Setup virtualenv for 1 pack(s)' in stderr)
-        self.assertEqual(exit_code, 0)
-
-        # All packs
-        cmd = BASE_CMD_ARGS + ['--register-setup-virtualenvs', '--register-no-fail-on-failure']
-        exit_code, stdout, stderr = run_command(cmd=cmd)
-        self.assertTrue('Setup virtualenv for %s pack(s)' % (PACKS_COUNT) in stderr)
         self.assertEqual(exit_code, 0)
