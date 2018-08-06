@@ -23,6 +23,7 @@ mock==2.0.0
 mongoengine==0.12.0
 networkx==1.11
 nose
+nose-parallel==0.2.1
 nose-timer==0.7.3
 oslo.config<1.13,>=1.12.1
 oslo.utils<=3.37.0,>=3.36.2

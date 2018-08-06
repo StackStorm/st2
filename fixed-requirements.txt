@@ -50,6 +50,7 @@ prance==0.9.0
 pywinrm==0.3.0
 # test requirements below
 nose-timer==0.7.3
+nose-parallel==0.2.1
 psutil==5.4.6
 python-statsd==2.1.0
 prometheus_client==0.1.1
