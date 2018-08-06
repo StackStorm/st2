@@ -34,20 +34,20 @@ matrix:
     - env: TASK=ci-unit CACHE_NAME=py2 COMMAND_THRESHOLD=700
       python: 2.7
       name: "Unit Tests (Python 2.7 MongoDB 3.4)"
-    - env: TASK=ci-unit CACHE_NAME=py2 COMMAND_THRESHOLD=700
-      python: 2.7
-      name: "Unit Tests (Python 2.7 MongoDB 3.6)"
-      addons:
-        apt:
-          sources:
-            - mongodb-upstart
-            - sourceline: 'deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.6 multiverse'
-              key_url: 'https://www.mongodb.org/static/pgp/server-3.6.asc'
-            - sourceline: 'ppa:git-core/ppa'
-          packages:
-            - mongodb-org-server
-            - mongodb-org-shell
-            - git
+    #- env: TASK=ci-unit CACHE_NAME=py2 COMMAND_THRESHOLD=700
+      #python: 2.7
+      #name: "Unit Tests (Python 2.7 MongoDB 3.6)"
+      #addons:
+      #  apt:
+      #    sources:
+      #      - mongodb-upstart
+      #      - sourceline: 'deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.6 multiverse'
+      #        key_url: 'https://www.mongodb.org/static/pgp/server-3.6.asc'
+      #      - sourceline: 'ppa:git-core/ppa'
+      #    packages:
+      #      - mongodb-org-server
+      #      - mongodb-org-shell
+      #      - git
     - env: TASK=ci-integration CACHE_NAME=py2 COMMAND_THRESHOLD=700
       python: 2.7
       name: "Integration Tests (Python 2.7)"
