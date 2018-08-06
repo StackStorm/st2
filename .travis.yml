@@ -102,7 +102,7 @@ before_script:
   # Use a custom mongod.conf which uses various speed optimizations
   - sudo cp scripts/travis/mongod.conf /etc/mongod.conf
   # Clean up any old MongoDB 3.4 data files laying around and make sure mongodb user can write to it
-  - sudo rm -rf /var/lib/mongodb ; sudo mkdir /var/lib/mongodb ; sudo chown -R mongodb:mongodb /var/lib/mongodb
+  - sudo rm -rf /var/lib/mongodb ; sudo mkdir /var/lib/mongodb ; sudo mkdir /var/lib/mongodb/journal ; sudo chown -R mongodb:mongodb /var/lib/mongodb
   - sudo service mongod restart ; sleep 5
   - sudo service mongod status
   - tail -30 /var/log/mongodb/mongod.log
