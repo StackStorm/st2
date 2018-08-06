@@ -101,10 +101,10 @@ install:
 before_script:
   # Use a custom mongod.conf which uses various speed optimizations
   - sudo cp scripts/travis/mongod.conf /etc/mongod.conf
-  - sudo service mongod restart ; sleep 7
+  - sudo service mongod restart ; sleep 5
   - sudo service mongod status
+  - tail -30 /var/log/mongodb/mongod.log
   - mongod --version
-  - cat /var/log/mongodb/mongod.log
   - git --version
   - pip --version
   - virtualenv --version
