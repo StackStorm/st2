@@ -343,10 +343,11 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
                 self.assertTrue('elapsed_seconds' in body[i])
 
     def test_get_all_invalid_offset_too_large(self):
-        resp = self.app.get('/v1/executions?offset=2147483648&limit=1', expect_errors=True)
+        offset = '2141564789454123457895412237483648'
+        resp = self.app.get('/v1/executions?offset=%s&limit=1' % (offset), expect_errors=True)
         self.assertEqual(resp.status_int, 400)
         self.assertEqual(resp.json['faultstring'],
-                         u'Offset "2147483648" specified is more than 32-bit int')
+                         u'Offset "%s" specified is more than 32-bit int' % (offset))
 
     def test_get_query(self):
         actionexecution_1_id = self._get_actionexecution_id(self._do_post(LIVE_ACTION_1))
