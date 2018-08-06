@@ -100,6 +100,7 @@ before_script:
   - sudo service mongod restart ; sleep 7
   - sudo service mongod status
   - mongod --version
+  - cat /var/log/mongodb/mongod.log
   - git --version
   - pip --version
   - virtualenv --version
