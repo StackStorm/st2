@@ -2,7 +2,10 @@
 eventlet
 jsonschema
 kombu
-mongoengine
+# Our fork contains a fix / revert of a change which was introduced in v0.13.0
+# and introduces a large regression in memory usage
+# See https://github.com/MongoEngine/mongoengine/pull/1833
+git+https://github.com/StackStorm/mongoengine.git@stackstorm_patched#egg=mongoengine
 pymongo
 oslo.config
 oslo.utils
