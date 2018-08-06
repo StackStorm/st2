@@ -30,7 +30,7 @@ matrix:
     - env: TASK=ci-unit
       python: 2.7
       name: "Unit Tests (Python 2.7 MongoDB 3.4)"
-    - env: TASK=ci-unit MONGODB=36
+    - env: TASK=ci-unit
       python: 2.7
       name: "Unit Tests (Python 2.7 MongoDB 3.6)"
       addons:
@@ -59,7 +59,6 @@ matrix:
 addons:
   apt:
     sources:
-      - mongodb-upstart
       - sourceline: 'deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.4 multiverse'
         key_url: 'https://www.mongodb.org/static/pgp/server-3.4.asc'
       - sourceline: 'ppa:git-core/ppa'
@@ -69,7 +68,6 @@ addons:
       - git
 
 services:
-  - mongodb
   - rabbitmq
 
 cache:
