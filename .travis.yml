@@ -27,15 +27,23 @@ matrix:
     # NOTE: We combine builds because Travis offers a maximum of 5 concurrent
     # builds and having 6 tasks / builds means 1 tasks will need to wait for one
     # of the other 5 tasks to finish before it can start
-    #- env: TASK=ci-unit NODE_INDEX=0 NODE_TOTAL=2
-    #  python: 2.7
-    #  name: "Unit Tests (Python 2.7) - 1"
-    #- env: TASK=ci-unit NODE_INDEX=1 NODE_TOTAL=2
-    #  python: 2.7
-    #  name: "Unit Tests (Python 2.7) - 2"
     - env: TASK=ci-unit
       python: 2.7
-      name: "Unit Tests (Python 2.7)"
+      name: "Unit Tests (Python 2.7 MongoDB 3.4)"
+    - env: TASK=ci-unit MONGODB=36
+      python: 2.7
+      name: "Unit Tests (Python 2.7 MongoDB 3.6)"
+    addons:
+      apt:
+        sources:
+          - mongodb-upstart
+          - sourceline: 'deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.6 multiverse'
+            key_url: 'https://www.mongodb.org/static/pgp/server-3.6.asc'
+          - sourceline: 'ppa:git-core/ppa'
+        packages:
+          - mongodb-org-server
+          - mongodb-org-shell
+          - git
     - env: TASK=ci-integration
       python: 2.7
       name: "Integration Tests (Python 2.7)"
