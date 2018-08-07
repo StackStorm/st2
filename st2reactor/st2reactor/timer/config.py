@@ -31,7 +31,7 @@ def parse_args(args=None):
 
 def register_opts():
     _register_common_opts()
-    _register_rules_engine_opts()
+    _register_timers_engine_opts()
 
 
 def get_logging_config_path():
@@ -42,7 +42,7 @@ def _register_common_opts():
     common_config.register_opts()
 
 
-def _register_rules_engine_opts():
+def _register_timers_engine_opts():
     # We want backward compatibility with configuration. So register logging configuration options
     # under ``timer`` section as well as ``timersengine``.
     logging_opts = [
