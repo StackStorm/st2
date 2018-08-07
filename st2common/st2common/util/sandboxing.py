@@ -151,14 +151,14 @@ def get_sandbox_python_path_for_python_action(pack, inherit_from_parent=True,
         uses_python3 = False
 
     if uses_python3:
-        # Add Python 3 lib directory infront of the PYTHONPATH. This way we avoid issues with
-        # module trying to use packages / modules from Python 2.7 site-packages directory over
-        # Python 3 one
+        # Add Python 3 lib directory (lib/python3.x) in front of the PYTHONPATH. This way we avoid
+        # issues with scripts trying to use packages / modules from Python 2.7 site-packages
+        # directory instead of the versions from Python 3 stdlib.
         python3_lib_directory = os.path.join(pack_virtualenv_lib_path, virtualenv_directories[0])
 
-        # Add Python 3 lib/site-packages directory infront of the system site packages
-        # This is important because we want Python 3 compatible libraries to be used from
-        # the pack virtual environment and not system ones
+        # Add Python 3 site-packages directory (lib/python3.x/site-packages) in front of the Python
+        # 2.7 system site-packages This is important because we want Python 3 compatible libraries
+        # to be used from the pack virtual environment and not system ones.
         python3_site_packages_directory = os.path.join(pack_virtualenv_lib_path,
                                                        virtualenv_directories[0],
                                                        'site-packages')
