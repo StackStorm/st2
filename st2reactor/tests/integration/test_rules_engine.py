@@ -36,7 +36,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ST2_CONFIG_PATH = os.path.join(BASE_DIR, '../../../conf/st2.tests.conf')
 ST2_CONFIG_PATH = os.path.abspath(ST2_CONFIG_PATH)
 PYTHON_BINARY = sys.executable
-BINARY = os.path.join(BASE_DIR, '../../../st2reactor/bin/st2rulesengine')
+BINARY = os.path.join(BASE_DIR, '../../../st2reactor/bin/st2timersengine')
 BINARY = os.path.abspath(BINARY)
 CMD = [PYTHON_BINARY, BINARY, '--config-file']
 
