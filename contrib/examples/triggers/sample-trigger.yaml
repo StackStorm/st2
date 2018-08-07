@@ -4,7 +4,12 @@ description: Sample trigger
 payload_schema:
   type: "object"
   properties:
+    value:
+      type: "string"
+      required: true
     executed_at:
       type: "string"
       format: "date-time"
       default: "2014-07-30 05:04:24.578325"
+      required: true
+  additionalProperties: false
