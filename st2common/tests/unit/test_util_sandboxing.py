@@ -141,13 +141,16 @@ class SandboxingUtilsTestCase(unittest.TestCase):
                                                                 inherit_parent_virtualenv=False)
 
         split = python_path.strip(':').split(':')
-        self.assertEqual(len(split), 2)
+        self.assertEqual(len(split), 3)
 
-        # First entry should be python3 site-packages dir from venv
-        self.assertTrue('virtualenvs/dummy_pack/lib/python3.6/site-packages' in split[0])
+        # First entry should be lib/python3 dir from venv
+        self.assertTrue('virtualenvs/dummy_pack/lib/python3.6' in split[0])
 
-        # Second entry should be actions/lib dir from pack root directory
-        self.assertTrue('packs/dummy_pack/actions/lib/' in split[1])
+        # Second entry should be python3 site-packages dir from venv
+        self.assertTrue('virtualenvs/dummy_pack/lib/python3.6/site-packages' in split[1])
+
+        # Third entry should be actions/lib dir from pack root directory
+        self.assertTrue('packs/dummy_pack/actions/lib/' in split[2])
 
         # Inherit python path from current process
         # Mock the current process python path
@@ -156,7 +159,8 @@ class SandboxingUtilsTestCase(unittest.TestCase):
         python_path = get_sandbox_python_path_for_python_action(pack='dummy_pack',
                                                                 inherit_from_parent=True,
                                                                 inherit_parent_virtualenv=False)
-        expected = ('/tmp/virtualenvs/dummy_pack/lib/python3.6/site-packages:'
+        expected = ('/tmp/virtualenvs/dummy_pack/lib/python3.6:'
+                    '/tmp/virtualenvs/dummy_pack/lib/python3.6/site-packages:'
                     '/tmp/packs/dummy_pack/actions/lib/::/data/test1:/data/test2')
         self.assertEqual(python_path, expected)
 
@@ -174,7 +178,8 @@ class SandboxingUtilsTestCase(unittest.TestCase):
                                                                 inherit_from_parent=True,
                                                                 inherit_parent_virtualenv=True)
 
-        expected = ('/tmp/virtualenvs/dummy_pack/lib/python3.6/site-packages:'
+        expected = ('/tmp/virtualenvs/dummy_pack/lib/python3.6:'
+                    '/tmp/virtualenvs/dummy_pack/lib/python3.6/site-packages:'
                     '/tmp/packs/dummy_pack/actions/lib/::/data/test1:/data/test2:'
                     '%s/virtualenvtest' % (sys.prefix))
         self.assertEqual(python_path, expected)
