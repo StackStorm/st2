@@ -141,6 +141,24 @@ class ActionsQueueConsumer(QueueConsumer):
         self._actions_dispatcher.shutdown()
 
 
+class VariableMessageQueueConsumer(QueueConsumer):
+    """
+    Used by ``VariableMessageHandler`` to processes multiple message types.
+    """
+
+    def process(self, body, message):
+        try:
+            if not self._handler.message_types.get(type(body)):
+                raise TypeError('Received an unexpected type "%s" for payload.' % type(body))
+
+            self._dispatcher.dispatch(self._process_message, body)
+        except:
+            LOG.exception('%s failed to process message: %s', self.__class__.__name__, body)
+        finally:
+            # At this point we will always ack a message.
+            message.ack()
+
+
 @six.add_metaclass(abc.ABCMeta)
 class MessageHandler(object):
     message_type = None
@@ -197,3 +215,13 @@ class StagedMessageHandler(MessageHandler):
 
     def get_queue_consumer(self, connection, queues):
         return StagedQueueConsumer(connection=connection, queues=queues, handler=self)
+
+
+@six.add_metaclass(abc.ABCMeta)
+class VariableMessageHandler(MessageHandler):
+    """
+    VariableMessageHandler processes multiple message types.
+    """
+
+    def get_queue_consumer(self, connection, queues):
+        return VariableMessageQueueConsumer(connection=connection, queues=queues, handler=self)
