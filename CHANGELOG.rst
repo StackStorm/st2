@@ -74,6 +74,10 @@ Deprecated
 Fixed
 ~~~~~
 
+* Fix an issue with ``AttributeError: module 'enum' has no attribute 'IntFlag'`` error which would
+  appear when using Python 3 for a particular pack virtual environment and running on RHEL /
+  CentOS. (bug fix) #4297
+
 2.8.1 - July 18, 2018
 ---------------------
 
