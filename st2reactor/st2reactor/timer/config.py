@@ -60,10 +60,11 @@ def _register_timers_engine_opts():
             help='Timezone pertaining to the location where st2 is run.'),
         cfg.BoolOpt(
             'enable', default=True,
-            help='Specify to enable Timer.')
+            help='Specify to enable timer service.')
     ]
 
     CONF.register_opts(timer_opts, group='timer')
+    CONF.register_opts(timer_opts, group='timersengine')
     CONF.register_opts(logging_opts, group='timersengine')
 
 
