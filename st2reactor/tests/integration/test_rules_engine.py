@@ -28,7 +28,7 @@ from st2tests.base import IntegrationTestCase
 from st2tests.base import CleanDbTestCase
 
 __all__ = [
-    'TimerEnableDisableTestCase'
+    'TimersEngineServiceEnableDisableTestCase'
 ]
 
 
@@ -36,14 +36,14 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ST2_CONFIG_PATH = os.path.join(BASE_DIR, '../../../conf/st2.tests.conf')
 ST2_CONFIG_PATH = os.path.abspath(ST2_CONFIG_PATH)
 PYTHON_BINARY = sys.executable
-BINARY = os.path.join(BASE_DIR, '../../../st2reactor/bin/st2rulesengine')
+BINARY = os.path.join(BASE_DIR, '../../../st2reactor/bin/st2timersengine')
 BINARY = os.path.abspath(BINARY)
 CMD = [PYTHON_BINARY, BINARY, '--config-file']
 
 
-class TimerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
+class TimersEngineServiceEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
     def setUp(self):
-        super(TimerEnableDisableTestCase, self).setUp()
+        super(TimersEngineServiceEnableDisableTestCase, self).setUp()
 
         config_text = open(ST2_CONFIG_PATH).read()
         self.cfg_fd, self.cfg_path = tempfile.mkstemp()
@@ -56,14 +56,14 @@ class TimerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
     def tearDown(self):
         self.cmd = None
         self._remove_tempfile(self.cfg_fd, self.cfg_path)
-        super(TimerEnableDisableTestCase, self).tearDown()
+        super(TimersEngineServiceEnableDisableTestCase, self).tearDown()
 
     def test_timer_enable_implicit(self):
         process = None
         seen_line = False
 
         try:
-            process = self._start_rules_engine(cmd=self.cmd)
+            process = self._start_times_engine(cmd=self.cmd)
             lines = 0
             while lines < 100:
                 line = process.stdout.readline().decode('utf-8')
@@ -83,12 +83,13 @@ class TimerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
                                  (TIMER_ENABLED_LOG_LINE))
 
     def test_timer_enable_explicit(self):
-        self._append_to_cfg_file(cfg_path=self.cfg_path, content='\n[timer]\nenable = True')
+        self._append_to_cfg_file(cfg_path=self.cfg_path,
+                                 content='\n[timersengine]\nenable = True\n[timer]\nenable = True')
         process = None
         seen_line = False
 
         try:
-            process = self._start_rules_engine(cmd=self.cmd)
+            process = self._start_times_engine(cmd=self.cmd)
             lines = 0
             while lines < 100:
                 line = process.stdout.readline().decode('utf-8')
@@ -108,12 +109,13 @@ class TimerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
                                  (TIMER_ENABLED_LOG_LINE))
 
     def test_timer_disable_explicit(self):
-        self._append_to_cfg_file(cfg_path=self.cfg_path, content='\n[timer]\nenable = False')
+        self._append_to_cfg_file(cfg_path=self.cfg_path,
+            content='\n[timersengine]\nenable = False\n[timer]\nenable = False')
         process = None
         seen_line = False
 
         try:
-            process = self._start_rules_engine(cmd=self.cmd)
+            process = self._start_times_engine(cmd=self.cmd)
             lines = 0
             while lines < 100:
                 line = process.stdout.readline().decode('utf-8')
@@ -132,7 +134,7 @@ class TimerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
             raise AssertionError('Didn\'t see "%s" log line in timer output' %
                                  (TIMER_DISABLED_LOG_LINE))
 
-    def _start_rules_engine(self, cmd):
+    def _start_times_engine(self, cmd):
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                    shell=False, preexec_fn=os.setsid)
         self.add_process(process=process)
