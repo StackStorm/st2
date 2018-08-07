@@ -21,8 +21,6 @@ import st2common.config as common_config
 from st2common.constants.system import VERSION_STRING
 from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
 
-common_config.register_opts()
-
 CONF = cfg.CONF
 
 
@@ -33,25 +31,41 @@ def parse_args(args=None):
 
 def register_opts():
     _register_common_opts()
-    _register_rules_engine_opts()
+    _register_timers_engine_opts()
 
 
 def get_logging_config_path():
-    return cfg.CONF.rulesengine.logging
+    return cfg.CONF.timersengine.logging
 
 
 def _register_common_opts():
     common_config.register_opts()
 
 
-def _register_rules_engine_opts():
+def _register_timers_engine_opts():
+    # We want backward compatibility with configuration. So register logging configuration options
+    # under ``timer`` section as well as ``timersengine``.
     logging_opts = [
         cfg.StrOpt(
-            'logging', default='conf/logging.rulesengine.conf',
+            'logging', default='conf/logging.timersengine.conf',
             help='Location of the logging configuration file.')
     ]
 
-    CONF.register_opts(logging_opts, group='rulesengine')
+    CONF.register_opts(logging_opts, group='timer')
+    CONF.register_opts(logging_opts, group='timersengine')
+
+    timer_opts = [
+        cfg.StrOpt(
+            'local_timezone', default='America/Los_Angeles',
+            help='Timezone pertaining to the location where st2 is run.'),
+        cfg.BoolOpt(
+            'enable', default=True,
+            help='Specify to enable timer service.')
+    ]
+
+    CONF.register_opts(timer_opts, group='timer')
+    CONF.register_opts(timer_opts, group='timersengine')
+    CONF.register_opts(logging_opts, group='timersengine')
 
 
 register_opts()
