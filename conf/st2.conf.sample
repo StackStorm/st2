@@ -315,10 +315,20 @@ ssh_key_file = /home/stanley/.ssh/stanley_rsa
 user = stanley
 
 [timer]
-# Specify to enable Timer.
+# Specify to enable timer service.
 enable = True
 # Timezone pertaining to the location where st2 is run.
 local_timezone = America/Los_Angeles
+# Location of the logging configuration file.
+logging = conf/logging.timersengine.conf
+
+[timersengine]
+# Specify to enable timer service.
+enable = True
+# Timezone pertaining to the location where st2 is run.
+local_timezone = America/Los_Angeles
+# Location of the logging configuration file.
+logging = conf/logging.timersengine.conf
 
 [webui]
 # Base https URL to access st2 Web UI. This is used to construct history URLs that are sent out when chatops is used to kick off executions.

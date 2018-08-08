@@ -27,6 +27,8 @@ tests_config.parse_args()
 
 from tests.unit import base
 
+from st2actions.notifier import notifier
+from st2actions.workflows import workflows
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar
 from st2common.constants import action as ac_const
@@ -36,6 +38,7 @@ from st2common.persistence import liveaction as lv_db_access
 from st2common.persistence import workflow as wf_db_access
 from st2common.runners import base as runners
 from st2common.services import action as ac_svc
+from st2common.services import policies as pc_svc
 from st2common.services import workflows as wf_svc
 from st2common.transport import liveaction as lv_ac_xport
 from st2common.transport import workflow as wf_ex_xport
@@ -101,6 +104,9 @@ class OrquestaRunnerTest(st2tests.DbTestCase):
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=wf_input)
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
 
+        # The main action execution for this workflow is not under the context of another workflow.
+        self.assertFalse(wf_svc.is_action_execution_under_workflow_context(ac_ex_db))
+
         # Assert action execution is running.
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
 
@@ -157,6 +163,7 @@ class OrquestaRunnerTest(st2tests.DbTestCase):
         tk1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk1_ex_db.id))[0]
         tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction['id'])
         self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertTrue(wf_svc.is_action_execution_under_workflow_context(tk1_ac_ex_db))
 
         # Manually handle action execution completion.
         wf_svc.handle_action_execution_completion(tk1_ac_ex_db)
@@ -173,6 +180,7 @@ class OrquestaRunnerTest(st2tests.DbTestCase):
         tk2_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk2_ex_db.id))[0]
         tk2_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk2_ac_ex_db.liveaction['id'])
         self.assertEqual(tk2_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertTrue(wf_svc.is_action_execution_under_workflow_context(tk2_ac_ex_db))
 
         # Manually handle action execution completion.
         wf_svc.handle_action_execution_completion(tk2_ac_ex_db)
@@ -189,6 +197,7 @@ class OrquestaRunnerTest(st2tests.DbTestCase):
         tk3_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk3_ex_db.id))[0]
         tk3_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk3_ac_ex_db.liveaction['id'])
         self.assertEqual(tk3_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertTrue(wf_svc.is_action_execution_under_workflow_context(tk3_ac_ex_db))
 
         # Manually handle action execution completion.
         wf_svc.handle_action_execution_completion(tk3_ac_ex_db)
@@ -287,3 +296,81 @@ class OrquestaRunnerTest(st2tests.DbTestCase):
 
         self.assertDictEqual(lv_ac_db.result, expected_result)
         self.assertDictEqual(ac_ex_db.result, expected_result)
+
+    @mock.patch.object(
+        pc_svc, 'apply_post_run_policies',
+        mock.MagicMock(return_value=None))
+    def test_handle_action_execution_completion(self):
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'subworkflow.yaml')
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result)
+
+        # Identify the records for the main workflow.
+        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
+        tk_ex_dbs = wf_db_access.TaskExecution.query(workflow_execution=str(wf_ex_db.id))
+        self.assertEqual(len(tk_ex_dbs), 1)
+
+        # Identify the records for the tasks.
+        t1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk_ex_dbs[0].id))[0]
+        t1_wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(t1_ac_ex_db.id))[0]
+        self.assertEqual(t1_ac_ex_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
+        self.assertEqual(t1_wf_ex_db.status, wf_states.RUNNING)
+
+        # Manually notify action execution completion for the tasks.
+        # Assert policies are not applied in the notifier.
+        t1_t1_ex_db = wf_db_access.TaskExecution.query(workflow_execution=str(t1_wf_ex_db.id))[0]
+        t1_t1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t1_t1_ex_db.id))[0]
+        notifier.get_notifier().process(t1_t1_ac_ex_db)
+        self.assertFalse(pc_svc.apply_post_run_policies.called)
+        t1_tk_ex_dbs = wf_db_access.TaskExecution.query(workflow_execution=str(t1_wf_ex_db.id))
+        self.assertEqual(len(t1_tk_ex_dbs), 1)
+        workflows.get_engine().process(t1_t1_ac_ex_db)
+        self.assertTrue(pc_svc.apply_post_run_policies.called)
+        pc_svc.apply_post_run_policies.reset_mock()
+
+        t1_t2_ex_db = wf_db_access.TaskExecution.query(workflow_execution=str(t1_wf_ex_db.id))[1]
+        t1_t2_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t1_t2_ex_db.id))[0]
+        notifier.get_notifier().process(t1_t2_ac_ex_db)
+        self.assertFalse(pc_svc.apply_post_run_policies.called)
+        t1_tk_ex_dbs = wf_db_access.TaskExecution.query(workflow_execution=str(t1_wf_ex_db.id))
+        self.assertEqual(len(t1_tk_ex_dbs), 2)
+        workflows.get_engine().process(t1_t2_ac_ex_db)
+        self.assertTrue(pc_svc.apply_post_run_policies.called)
+        pc_svc.apply_post_run_policies.reset_mock()
+
+        t1_t3_ex_db = wf_db_access.TaskExecution.query(workflow_execution=str(t1_wf_ex_db.id))[2]
+        t1_t3_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t1_t3_ex_db.id))[0]
+        notifier.get_notifier().process(t1_t3_ac_ex_db)
+        self.assertFalse(pc_svc.apply_post_run_policies.called)
+        t1_tk_ex_dbs = wf_db_access.TaskExecution.query(workflow_execution=str(t1_wf_ex_db.id))
+        self.assertEqual(len(t1_tk_ex_dbs), 3)
+        workflows.get_engine().process(t1_t3_ac_ex_db)
+        self.assertTrue(pc_svc.apply_post_run_policies.called)
+        pc_svc.apply_post_run_policies.reset_mock()
+
+        t1_ac_ex_db = ex_db_access.ActionExecution.get_by_id(t1_ac_ex_db.id)
+        notifier.get_notifier().process(t1_ac_ex_db)
+        self.assertFalse(pc_svc.apply_post_run_policies.called)
+        tk_ex_dbs = wf_db_access.TaskExecution.query(workflow_execution=str(wf_ex_db.id))
+        self.assertEqual(len(tk_ex_dbs), 1)
+        workflows.get_engine().process(t1_ac_ex_db)
+        self.assertTrue(pc_svc.apply_post_run_policies.called)
+        pc_svc.apply_post_run_policies.reset_mock()
+
+        t2_ex_db_qry = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task2'}
+        t2_ex_db = wf_db_access.TaskExecution.query(**t2_ex_db_qry)[0]
+        t2_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t2_ex_db.id))[0]
+        self.assertEqual(t2_ac_ex_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        notifier.get_notifier().process(t2_ac_ex_db)
+        self.assertFalse(pc_svc.apply_post_run_policies.called)
+        tk_ex_dbs = wf_db_access.TaskExecution.query(workflow_execution=str(wf_ex_db.id))
+        self.assertEqual(len(tk_ex_dbs), 2)
+        workflows.get_engine().process(t2_ac_ex_db)
+        self.assertTrue(pc_svc.apply_post_run_policies.called)
+        pc_svc.apply_post_run_policies.reset_mock()
+
+        # Assert the main workflow is completed.
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
