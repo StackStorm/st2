@@ -28,14 +28,12 @@ class InjectTriggerActionTestCase(BaseActionTestCase):
     action_cls = InjectTriggerAction
 
     @mock.patch('st2common.services.datastore.BaseDatastoreService.get_api_client')
-    def test_inject_trigger(self, mock_get_api_client):
+    def test_inject_trigger_only_trigger_no_payload(self, mock_get_api_client):
         mock_api_client = mock.Mock()
-
         mock_get_api_client.return_value = mock_api_client
 
         action = self.get_action_instance()
 
-        # 1. Empty payload
         action.run(trigger='dummy_pack.trigger1')
         mock_api_client.webhooks.post_generic_webhook.assert_called_with(
             trigger='dummy_pack.trigger1',
@@ -45,7 +43,13 @@ class InjectTriggerActionTestCase(BaseActionTestCase):
 
         mock_api_client.webhooks.post_generic_webhook.reset()
 
-        # 2. With payload
+    @mock.patch('st2common.services.datastore.BaseDatastoreService.get_api_client')
+    def test_inject_trigger_trigger_and_payload(self, mock_get_api_client):
+        mock_api_client = mock.Mock()
+        mock_get_api_client.return_value = mock_api_client
+
+        action = self.get_action_instance()
+
         action.run(trigger='dummy_pack.trigger2', payload={'foo': 'bar'})
 
         mock_api_client.webhooks.post_generic_webhook.assert_called_with(
@@ -56,7 +60,13 @@ class InjectTriggerActionTestCase(BaseActionTestCase):
 
         mock_api_client.webhooks.post_generic_webhook.reset()
 
-        # 3. With payload and trace tag
+    @mock.patch('st2common.services.datastore.BaseDatastoreService.get_api_client')
+    def test_inject_trigger_trigger_payload_trace_tag(self, mock_get_api_client):
+        mock_api_client = mock.Mock()
+        mock_get_api_client.return_value = mock_api_client
+
+        action = self.get_action_instance()
+
         action.run(trigger='dummy_pack.trigger3', payload={'foo': 'bar'}, trace_tag='Tag1')
 
         mock_api_client.webhooks.post_generic_webhook.assert_called_with(
