@@ -7,7 +7,7 @@ prompt-toolkit==1.0.15
 python-dateutil
 python-editor==1.0.3
 pytz==2018.5
-pyyaml<4.0,>=3.12
+pyyaml==3.13
 requests[security]<2.15,>=2.14.1
 six==1.11.0
 sseclient==0.0.19
