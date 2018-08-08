@@ -44,7 +44,7 @@ class DatastoreServiceTestCase(DbTestCase):
         self._datastore_service = BaseDatastoreService(logger=mock.Mock(),
                                                        pack_name='core',
                                                        class_name='TestSensor')
-        self._datastore_service._get_api_client = mock.Mock()
+        self._datastore_service.get_api_client = mock.Mock()
 
     def test_datastore_operations_list_values(self):
         # Verify prefix filtering
@@ -181,4 +181,4 @@ class DatastoreServiceTestCase(DbTestCase):
     def _set_mock_api_client(self, mock_api_client):
         mock_method = mock.Mock()
         mock_method.return_value = mock_api_client
-        self._datastore_service._get_api_client = mock_method
+        self._datastore_service.get_api_client = mock_method

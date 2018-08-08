@@ -41,6 +41,10 @@ Added
   Once the execution finishes, the connection is automatically closed.
 
   For completed executions it returns all the output produced by the execution. (new feature)
+* Add new ``core.inject_trigger`` action for injecting a trigger instance into the system.
+
+  Keep in mind that the trigger which is to be injected must be registered and exist in the system.
+  (new feature) #4231 #4259
 
 Changed
 ~~~~~~~
@@ -63,6 +67,22 @@ Changed
   inside a single service (st2api). (improvement)
 * Upgrade ``mongoengine`` (0.15.3) and ``pymongo`` (3.7.1) to the latest stable version. Those
   changes will allow us to support MongoDB 3.6 in the near future. (improvement) #4292
+* Trigger parameters and payload schema validation is now enabled by default
+  (``system.validate_trigger_parameters`` and ``system.validate_trigger_payload`` config options
+  now default to ``True``).
+
+  This means that trigger parameters are now validated against the ``parameters_schema`` defined on
+  the trigger type when creating a rule and trigger payload is validated against ``payload_schema``
+  when dispatching a trigger via the sensor or via the webhooks API endpoint.
+
+  This provides a much safer and user-friendly default value. Previously we didn't validate trigger
+  payload for custom (non-system) triggers when dispatching a trigger via webhook which meant that
+  webhooks API endpoint would silently accept an invalid trigger (e.g. referenced trigger doesn't
+  exist in the database or the payload doesn't validate against the ``payload_schema``), but
+  ``TriggerInstanceDB`` object would never be created because creation failed inside the
+  ``st2rulesengine`` service. This would make such issues very hard to troubleshoot because only
+  way to find out about this failure would be to inspect the ``st2rulesengine`` service logs.
+  (improvement) #4231
 
 Deprecated
 ~~~~~~~~~~

@@ -287,13 +287,6 @@ class TestRuleController(FunctionalTest):
         self.assertTrue(expected_msg_1 in post_resp.json['faultstring'])
         self.assertTrue(expected_msg_2 in post_resp.json['faultstring'])
 
-    def test_post_invalid_custom_trigger_param_trigger_param_validation_disabled_default_cfg(self):
-        """Test validation does NOT take place with the default configuration.
-        """
-
-        post_resp = self.__do_post(TestRuleController.RULE_11)
-        self.assertEqual(post_resp.status_int, http_client.CREATED)
-
     def test_post_invalid_custom_trigger_parameter_trigger_param_validation_disabled(self):
         # Invalid custom trigger parameter (invalid type) and non-system trigger parameter
         # validation is disabled - trigger creation should succeed

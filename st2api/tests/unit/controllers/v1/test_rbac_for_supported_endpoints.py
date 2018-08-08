@@ -26,7 +26,7 @@ from st2common.models.db.rbac import UserRoleAssignmentDB
 
 from st2tests.fixturesloader import FixturesLoader
 from tests.base import APIControllerWithRBACTestCase
-from tests.unit.controllers.v1.test_webhooks import DUMMY_TRIGGER
+from tests.unit.controllers.v1.test_webhooks import DUMMY_TRIGGER_DICT
 
 http_client = six.moves.http_client
 
@@ -126,7 +126,7 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
         UserRoleAssignment.add_or_update(self.role_assignment_db_model)
 
     @mock.patch.object(HooksHolder, 'get_triggers_for_hook', mock.MagicMock(
-        return_value=[vars(DUMMY_TRIGGER)]))
+        return_value=[DUMMY_TRIGGER_DICT]))
     def test_api_endpoints_behind_rbac_wall(self):
         #  alias_model = self.models['aliases']['alias1.yaml']
         sensor_model = self.models['sensors']['sensor1.yaml']

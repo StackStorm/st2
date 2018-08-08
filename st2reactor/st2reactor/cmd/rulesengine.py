@@ -34,7 +34,7 @@ LOG = logging.getLogger(LOGGER_NAME)
 
 def _setup():
     common_setup(service='rulesengine', config=config, setup_db=True, register_mq_exchanges=True,
-                 register_signal_handlers=True)
+                 register_signal_handlers=True, register_internal_trigger_types=True)
 
 
 def _teardown():
