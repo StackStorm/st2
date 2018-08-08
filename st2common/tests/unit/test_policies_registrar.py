@@ -104,6 +104,14 @@ class PoliciesRegistrarTestCase(CleanDbTestCase):
                     'threshold': 1,
                     'attributes': ['friend']
                 }
+            },
+            'sequential.retry_on_failure': {
+                'pack': 'orquesta_tests',
+                'type': 'action.retry',
+                'parameters': {
+                    'retry_on': 'failure',
+                    'max_retry_count': 1
+                }
             }
         }
 
