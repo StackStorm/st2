@@ -17,7 +17,7 @@ six==1.11.0
 pyyaml>=3.12,<4.0
 requests[security]<2.15,>=2.14.1
 apscheduler==3.5.1
-gitpython==2.1.10
+gitpython==2.1.11
 jsonschema==2.6.0
 pymongo==3.7.1
 passlib==1.7.1
