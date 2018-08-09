@@ -86,7 +86,7 @@ class ActionsController(resource.ContentPackResourceController):
 
         if include_attributes:
             # Note: Those fields need to be always included for API model to work
-            include_attributes += ['name', 'pack', 'runner_type']
+            include_attributes += ['name', 'pack']
 
         return super(ActionsController, self)._get_all(exclude_fields=exclude_fields,
                                                        include_fields=include_attributes,
