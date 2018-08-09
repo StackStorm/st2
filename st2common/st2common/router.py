@@ -511,11 +511,12 @@ class Router(object):
             resp = Response(json=resp)
 
         # Process the response removing attributes based on the exclude_attribute and
-        # include_attributes query param filter
+        # include_attributes query param filter values (if specified)
         include_attributes = kw.get('include_attributes', None)
         exclude_attributes = kw.get('exclude_attributes', None)
         if resp.json:
-            data = self._process_response(data=resp.json, include_attributes=include_attributes,
+            data = self._process_response(data=resp.json,
+                                          include_attributes=include_attributes,
                                           exclude_attributes=exclude_attributes)
             resp.json = data
 
@@ -580,10 +581,19 @@ class Router(object):
         :param data: Response data.
         :type: data: ``list`` or ``dict``
         """
-        #  Common case - those filters are not provided
+        #  Common case - filters are not provided
         if not include_attributes and not exclude_attributes:
             return data
 
+        # NOTE: include_attributes and exclude_attributes are mutually exclusive
+        if include_attributes and exclude_attributes:
+            msg = ('exclude_attributes and exclude_attributes arguments are mutually exclusive. '
+                   'You need to provide either one or another, but not both.')
+            raise ValueError(msg)
+
+        # NOTE: Since those parameters are mutually exclusive we could perform more efficient
+        # filtering when just exclude_attributes is provided. Instead of creating a new dict, we
+        # could just manipulate (delete) from the existing one.
         def process_item(item):
             result = {}
             for name, value in six.iteritems(item):
@@ -606,8 +616,7 @@ class Router(object):
                 result.append(item)
         elif isinstance(data, dict):
             # get_one response
-            item = process_item(item)
-            result = item
+            result = process_item(item)
         else:
             raise ValueError('Unsupported type: %s' % (type(data)))
 
