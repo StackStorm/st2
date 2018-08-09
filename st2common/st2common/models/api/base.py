@@ -35,7 +35,7 @@ LOG = logging.getLogger(__name__)
 @six.add_metaclass(abc.ABCMeta)
 class BaseAPI(object):
     schema = abc.abstractproperty
-    include_attributes = ['name', 'pack']
+    include_attributes = None
     exclude_attributes = None
 
     def __init__(self, include_attributes=None, exclude_attributes=None, **attrs):
