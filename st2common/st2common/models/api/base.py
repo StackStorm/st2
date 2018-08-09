@@ -35,14 +35,9 @@ LOG = logging.getLogger(__name__)
 @six.add_metaclass(abc.ABCMeta)
 class BaseAPI(object):
     schema = abc.abstractproperty
-    include_attributes = None
-    exclude_attributes = None
 
-    def __init__(self, include_attributes=None, exclude_attributes=None, **attrs):
-        self.include_attributes = include_attributes
-        self.exclude_attributes = exclude_attributes
-
-        for key, value in attrs.items():
+    def __init__(self, **kw):
+        for key, value in kw.items():
             setattr(self, key, value)
 
     def __repr__(self):
@@ -58,27 +53,7 @@ class BaseAPI(object):
         return "%s[%s]" % (name, attrs)
 
     def __json__(self):
-        # Handle include and exclude attributes before returning the JSON response
-        attrs = vars(self)
-
-        include_attributes = self.include_attributes
-        exclude_attributes = self.exclude_attributes
-
-        # Common scenario - include and exclude attributes not provided
-        if not include_attributes and exclude_attributes:
-            return attrs
-
-        result = {}
-        for name, value in six.iteritems(attrs):
-            if include_attributes and name not in include_attributes:
-                continue
-
-            if exclude_attributes and name in exclude_attributes:
-                continue
-
-            result[name] = value
-
-        return result
+        return vars(self)
 
     def validate(self):
         """
@@ -92,9 +67,6 @@ class BaseAPI(object):
 
         schema = getattr(self, 'schema', {})
         attributes = vars(self)
-
-        del attributes['include_attributes']
-        del attributes['exclude_attributes']
 
         cleaned = util_schema.validate(instance=attributes, schema=schema,
                                        cls=util_schema.CustomValidator, use_default=True,
@@ -116,8 +88,7 @@ class BaseAPI(object):
         return doc
 
     @classmethod
-    def from_model(cls, model, mask_secrets=False, include_attributes=None,
-                   exclude_attributes=None):
+    def from_model(cls, model, mask_secrets=False):
         """
         Create API model class instance for the provided DB model instance.
 
@@ -130,8 +101,7 @@ class BaseAPI(object):
         doc = cls._from_model(model=model, mask_secrets=mask_secrets)
         attrs = {attr: value for attr, value in six.iteritems(doc) if value is not None}
 
-        return cls(include_attributes=include_attributes, exclude_attributes=exclude_attributes,
-                   **attrs)
+        return cls(**attrs)
 
     @classmethod
     def to_model(cls, doc):
