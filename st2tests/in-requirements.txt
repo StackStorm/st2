@@ -5,6 +5,7 @@ nose
 psutil
 webtest
 nose-timer
+nose-parallel
 rednose
 RandomWords
 pyrabbit

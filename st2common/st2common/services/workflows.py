@@ -43,6 +43,12 @@ from st2common.util import param as param_utils
 LOG = logging.getLogger(__name__)
 
 
+def is_action_execution_under_workflow_context(ac_ex_db):
+    # The action execution is executed under the context of a workflow
+    # if it contains the orquesta key in its context dictionary.
+    return 'orquesta' in ac_ex_db.context
+
+
 # Temporary workaround on context inspection errors relating to the st2 context.
 def inspect(wf_spec):
     errors = {}

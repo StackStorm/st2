@@ -545,6 +545,42 @@ class ConfigManager(ResourceManager):
         return instance
 
 
+class WebhookManager(ResourceManager):
+    def __init__(self, resource, endpoint, cacert=None, debug=False):
+        self.resource = resource
+        self.debug = debug
+        self.client = httpclient.HTTPClient(root=endpoint, cacert=cacert, debug=debug)
+
+    @add_auth_token_to_kwargs_from_env
+    def post_generic_webhook(self, trigger, payload=None, trace_tag=None, **kwargs):
+        url = '/webhooks/st2'
+
+        headers = {}
+        data = {
+            'trigger': trigger,
+            'payload': payload or {}
+        }
+
+        if trace_tag:
+            headers['St2-Trace-Tag'] = trace_tag
+
+        response = self.client.post(url, data=data, headers=headers, **kwargs)
+
+        if response.status_code != http_client.OK:
+            self.handle_error(response)
+
+        return response.json()
+
+    @add_auth_token_to_kwargs_from_env
+    def match(self, instance, **kwargs):
+        url = '/%s/match' % self.resource.get_url_path_name()
+        response = self.client.post(url, instance.serialize(), **kwargs)
+        if response.status_code != http_client.OK:
+            self.handle_error(response)
+        match = response.json()
+        return (self.resource.deserialize(match['actionalias']), match['representation'])
+
+
 class StreamManager(object):
     def __init__(self, endpoint, cacert, debug):
         self._url = httpclient.get_url_without_trailing_slash(endpoint) + '/stream'

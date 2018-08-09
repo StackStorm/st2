@@ -1,7 +1,7 @@
 #!/usr/bin/env bash  
 
 if [ "${TASK}" = 'compilepy3 ci-py3-unit' ] || [ "${TASK}" = 'ci-py3-integration' ]; then
-    pip install "tox==3.1.2"
+    pip install "tox==3.1.3"
 
     # NOTE: We create the environment and install the dependencies first. This
     # means that the subsequent tox build / test command has a stable run time

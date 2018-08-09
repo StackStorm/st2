@@ -101,3 +101,43 @@ class StagedQueueConsumerTest(DbTestCase):
         mock_message = mock.MagicMock()
         handler._queue_consumer.process(payload, mock_message)
         self.assertTrue(mock_message.ack.called)
+
+
+class FakeVariableMessageHandler(consumers.VariableMessageHandler):
+
+    def __init__(self, connection, queues):
+        super(FakeVariableMessageHandler, self).__init__(connection, queues)
+
+        self.message_types = {
+            FakeModelDB: self.handle_fake_model
+        }
+
+    def process(self, message):
+        handler_function = self.message_types.get(type(message))
+        handler_function(message)
+
+    def handle_fake_model(self, fk_db):
+        pass
+
+
+def get_variable_messages_handler():
+    return FakeVariableMessageHandler(mock.MagicMock(), [FAKE_WORK_Q])
+
+
+class VariableMessageQueueConsumerTest(DbTestCase):
+
+    @mock.patch.object(FakeVariableMessageHandler, 'handle_fake_model', mock.MagicMock())
+    def test_process_message(self):
+        payload = FakeModelDB()
+        handler = get_variable_messages_handler()
+        handler._queue_consumer._process_message(payload)
+        FakeVariableMessageHandler.handle_fake_model.assert_called_once_with(payload)
+
+    @mock.patch.object(FakeVariableMessageHandler, 'process', mock.MagicMock())
+    def test_process_message_wrong_payload_type(self):
+        payload = 100
+        handler = get_variable_messages_handler()
+        mock_message = mock.MagicMock()
+        handler._queue_consumer.process(payload, mock_message)
+        self.assertTrue(mock_message.ack.called)
+        self.assertFalse(FakeVariableMessageHandler.process.called)

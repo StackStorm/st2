@@ -109,11 +109,11 @@ def validate_trigger_parameters(trigger_type_ref, parameters):
     return cleaned
 
 
-def validate_trigger_payload(trigger_type_ref, payload):
+def validate_trigger_payload(trigger_type_ref, payload, throw_on_inexistent_trigger=False):
     """
     This function validates trigger payload parameters for system and user-defined triggers.
 
-    :param trigger_type_ref: Reference of a trigger type.
+    :param trigger_type_ref: Reference of a trigger type or a trigger dictionary object.
     :type trigger_type_ref: ``str``
 
     :param payload: Trigger payload.
@@ -124,6 +124,21 @@ def validate_trigger_payload(trigger_type_ref, payload):
     if not trigger_type_ref:
         return None
 
+    # NOTE: Due to the awful code in some other places we also need to support a scenario where
+    # this variable is a dictionary and contains various TriggerDB object attributes.
+    if isinstance(trigger_type_ref, dict):
+        if trigger_type_ref.get('type', None):
+            trigger_type_ref = trigger_type_ref['type']
+        else:
+            trigger_db = triggers.get_trigger_db_by_ref_or_dict(trigger_type_ref)
+
+            if not trigger_db:
+                # Corresponding TriggerDB not found, likely a corrupted database, skip the
+                # validation.
+                return None
+
+            trigger_type_ref = trigger_db.type
+
     is_system_trigger = trigger_type_ref in SYSTEM_TRIGGER_TYPES
     if is_system_trigger:
         # System trigger
@@ -132,6 +147,11 @@ def validate_trigger_payload(trigger_type_ref, payload):
         trigger_type_db = triggers.get_trigger_type_db(trigger_type_ref)
         if not trigger_type_db:
             # Trigger doesn't exist in the database
+            if throw_on_inexistent_trigger:
+                msg = ('Trigger type with reference "%s" doesn\'t exist in the database' %
+                       (trigger_type_ref))
+                raise ValueError(msg)
+
             return None
 
         payload_schema = getattr(trigger_type_db, 'payload_schema', {})

@@ -30,6 +30,7 @@ from st2client.models.core import InquiryResourceManager
 from st2client.models.core import TriggerInstanceResourceManager
 from st2client.models.core import PackResourceManager
 from st2client.models.core import ConfigManager
+from st2client.models.core import WebhookManager
 from st2client.models.core import StreamManager
 from st2client.models.core import add_auth_token_to_kwargs_from_env
 
@@ -149,7 +150,7 @@ class Client(object):
             models.TriggerInstance, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['KeyValuePair'] = ResourceManager(
             models.KeyValuePair, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
-        self.managers['Webhook'] = ResourceManager(
+        self.managers['Webhook'] = WebhookManager(
             models.Webhook, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Timer'] = ResourceManager(
             models.Timer, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
@@ -246,3 +247,7 @@ class Client(object):
     @property
     def ruleenforcements(self):
         return self.managers['RuleEnforcement']
+
+    @property
+    def webhooks(self):
+        return self.managers['Webhook']

@@ -234,7 +234,18 @@ WEBHOOKS_PARAMETERS_SCHEMA = {
 
 
 WEBHOOKS_PAYLOAD_SCHEMA = {
-    'type': 'object'
+    'type': 'object',
+    'properties': {
+        'headers': {
+            'type': 'object'
+        },
+        'body': {
+            'anyOf': [
+                {'type': 'array'},
+                {'type': 'object'},
+            ]
+        }
+    }
 }
 
 WEBHOOK_TRIGGER_TYPES = {
