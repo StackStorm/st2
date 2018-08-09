@@ -134,6 +134,11 @@ class ResourceController(object):
         include_fields = include_fields or []
         query_options = query_options if query_options else self.query_options
 
+        if exclude_fields and include_fields:
+            msg = ('exclude_fields and include_fields arguments are mutually exclusive. '
+                   'You need to provide either one or another, but not both.')
+            raise ValueError(msg)
+
         # TODO: Why do we use comma delimited string, user can just specify
         # multiple values using ?sort=foo&sort=bar and we get a list back
         sort = sort.split(',') if sort else []
@@ -201,11 +206,6 @@ class ResourceController(object):
                     filters['__'.join(path)] = v
                 except LookUpError as e:
                     raise ValueError(str(e))
-
-        if exclude_fields and include_fields:
-            msg = ('exclude_fields and include_fields arguments are mutually exclusive. '
-                   'You need to provide either one or another, but not both.')
-            raise ValueError(msg)
 
         instances = self.access.query(exclude_fields=exclude_fields, only_fields=include_fields,
                                       **filters)
