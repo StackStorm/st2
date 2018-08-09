@@ -510,6 +510,15 @@ class Router(object):
         if not hasattr(resp, '__call__'):
             resp = Response(json=resp)
 
+        # Process the response removing attributes based on the exclude_attribute and
+        # include_attributes query param filter
+        include_attributes = kw.get('include_attributes', None)
+        exclude_attributes = kw.get('exclude_attributes', None)
+        if resp.json:
+            data = self._process_response(data=resp.json, include_attributes=include_attributes,
+                                          exclude_attributes=exclude_attributes)
+            resp.json = data
+
         responses = endpoint.get('responses', {})
         response_spec = responses.get(str(resp.status_code), None)
         default_response_spec = responses.get('default', None)
@@ -562,3 +571,44 @@ class Router(object):
             raise e
 
         return instance
+
+    def _process_response(self, data, include_attributes=None, exclude_attributes=None):
+        """
+        Process controller response data such as removing attributes based on the values of
+        exclude_attributes and include_attributes query param filters and similar.
+
+        :param data: Response data.
+        :type: data: ``list`` or ``dict``
+        """
+        #  Common case - those filters are not provided
+        if not include_attributes and not exclude_attributes:
+            return data
+
+        def process_item(item):
+            result = {}
+            for name, value in six.iteritems(item):
+                if include_attributes and name not in include_attributes:
+                    continue
+
+                if exclude_attributes and name in exclude_attributes:
+                    continue
+
+                result[name] = value
+
+            return result
+
+        result = None
+        if isinstance(data, (list, tuple)):
+            # get_all response
+            result = []
+            for item in data:
+                item = process_item(item)
+                result.append(item)
+        elif isinstance(data, dict):
+            # get_one response
+            item = process_item(item)
+            result = item
+        else:
+            raise ValueError('Unsupported type: %s' % (type(data)))
+
+        return result
