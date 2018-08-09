@@ -2,8 +2,8 @@ coverage
 pep8==1.7.1
 flake8==3.5.0
 astroid==1.6.4
-pylint==1.8.4
-pylint-plugin-utils>=0.2.6,<0.3
+pylint==1.9.3
+pylint-plugin-utils>=0.4
 bandit==1.4.0
 ipython<6.0.0
 mock==2.0.0
@@ -16,7 +16,7 @@ sphinx-autobuild
 rednose
 nose-timer>=0.7.2,<0.8
 # splitting tests run on a separate CI machines
-nose-parallel
+nose-parallel==0.2.1
 # Required by st2client tests
 pyyaml<4.0,>=3.12
 RandomWords
