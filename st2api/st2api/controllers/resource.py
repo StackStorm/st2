@@ -239,7 +239,9 @@ class ResourceController(object):
 
         result = []
         for instance in instances[offset:eop]:
-            item = model.from_model(instance, **from_model_kwargs)
+            item = self.resource_model_filter(model=model, instance=instance,
+                                              requester_user=requester_user,
+                                              **from_model_kwargs)
             result.append(item)
         return result
 
