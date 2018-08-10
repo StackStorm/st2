@@ -87,10 +87,9 @@ class ResourceController(object):
     # Default kwargs passed to "APIClass.from_model" method
     from_model_kwargs = {}
 
-    # Maximum value of limit which can be specified by user
-    @property
-    def max_limit(self):
-        return cfg.CONF.api.max_page_size
+    # Mandatory attributes which always need to be specified / provided when using
+    # ?include_attributes query param filter
+    mandatory_include_fields = []
 
     # Default number of items returned per page if no limit is explicitly provided
     default_limit = 100
@@ -100,8 +99,7 @@ class ResourceController(object):
     }
 
     # A list of optional transformation functions for user provided filter values
-    filter_transform_functions = {
-    }
+    filter_transform_functions = {}
 
     # A list of attributes which can be specified using ?exclude_attributes filter
     # If not provided, no validation is performed.
@@ -121,6 +119,11 @@ class ResourceController(object):
 
         self.get_one_db_method = self._get_by_name_or_id
 
+    # Maximum value of limit which can be specified by user
+    @property
+    def max_limit(self):
+        return cfg.CONF.api.max_page_size
+
     def _get_all(self, exclude_fields=None, include_fields=None, advanced_filters=None,
                  sort=None, offset=0, limit=None, query_options=None,
                  from_model_kwargs=None, raw_filters=None, requester_user=None):
@@ -138,6 +141,10 @@ class ResourceController(object):
             msg = ('exclude_fields and include_fields arguments are mutually exclusive. '
                    'You need to provide either one or another, but not both.')
             raise ValueError(msg)
+
+        if include_fields:
+            include_fields += self.mandatory_include_fields
+            include_fields = list(set(include_fields))
 
         # TODO: Why do we use comma delimited string, user can just specify
         # multiple values using ?sort=foo&sort=bar and we get a list back
@@ -464,6 +471,9 @@ class BaseResourceIsolationControllerMixin(object):
 
 
 class ContentPackResourceController(ResourceController):
+    # name and pack are mandatory because they compromise primary key - reference (<pack>.<name>)
+    mandatory_include_fields = ['pack', 'name']
+
     def __init__(self):
         super(ContentPackResourceController, self).__init__()
         self.get_one_db_method = self._get_by_ref_or_id
