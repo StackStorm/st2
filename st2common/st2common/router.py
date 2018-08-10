@@ -514,7 +514,9 @@ class Router(object):
         # include_attributes query param filter values (if specified)
         include_attributes = kw.get('include_attributes', None)
         exclude_attributes = kw.get('exclude_attributes', None)
-        if resp.body and include_attributes or exclude_attributes:
+        has_include_or_exclude_attributes = bool(include_attributes) or bool(exclude_attributes)
+
+        if resp.body and has_include_or_exclude_attributes:
             # NOTE: We need to check for response.body attribute since resp.json
             # throws if JSON response is not available
             data = self._process_response(data=resp.json,
@@ -535,7 +537,9 @@ class Router(object):
 
         response_spec = response_spec or default_response_spec
 
-        if response_spec and 'schema' in response_spec:
+        if response_spec and 'schema' in response_spec and not has_include_or_exclude_attributes:
+            # NOTE: We don't perform response validation when include or exclude attributes are
+            # provided because this means partial response which likely won't pass the validation
             LOG.debug('Using response spec "%s" for endpoint %s and status code %s' %
                      (response_spec_name, endpoint['operationId'], resp.status_code))
 
