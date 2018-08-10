@@ -63,12 +63,6 @@ class PolicyTypeController(resource.ResourceController):
                                                           permission_type=permission_type)
 
         result = self.model.from_model(instance)
-
-        if result and self.include_reference:
-            resource_type = getattr(result, 'resource_type', None)
-            name = getattr(result, 'name', None)
-            result.ref = PolicyTypeReference(resource_type=resource_type, name=name).ref
-
         return result
 
     def _get_all(self, exclude_fields=None, sort=None, offset=0, limit=None, query_options=None,
@@ -82,14 +76,6 @@ class PolicyTypeController(resource.ResourceController):
                                                           from_model_kwargs=from_model_kwargs,
                                                           raw_filters=raw_filters,
                                                           requester_user=requester_user)
-
-        if self.include_reference:
-            result = resp.json
-            for item in result:
-                resource_type = item.get('resource_type', None)
-                name = item.get('name', None)
-                item['ref'] = PolicyTypeReference(resource_type=resource_type, name=name).ref
-            resp.json = result
 
         return resp
 
