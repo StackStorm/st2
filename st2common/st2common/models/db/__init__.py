@@ -351,7 +351,7 @@ class MongoDBAccess(object):
         if only_fields:
             try:
                 instances = instances.only(*only_fields)
-            except mongoengine.errors.LookUpError as e:
+            except (mongoengine.errors.LookUpError, AttributeError) as e:
                 msg = ('Invalid or unsupported include attribute specified: %s' % str(e))
                 raise ValueError(msg)
 
@@ -405,7 +405,7 @@ class MongoDBAccess(object):
         if only_fields:
             try:
                 result = result.only(*only_fields)
-            except mongoengine.errors.LookUpError as e:
+            except (mongoengine.errors.LookUpError, AttributeError) as e:
                 msg = ('Invalid or unsupported include attribute specified: %s' % str(e))
                 raise ValueError(msg)
 
