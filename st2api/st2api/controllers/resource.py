@@ -90,7 +90,7 @@ class ResourceController(object):
 
     # Mandatory attributes which always need to be specified / provided when using
     # ?include_attributes query param filter
-    mandatory_include_fields = []
+    mandatory_include_fields = ['id']
 
     # Default number of items returned per page if no limit is explicitly provided
     default_limit = 100
