@@ -514,7 +514,9 @@ class Router(object):
         # include_attributes query param filter values (if specified)
         include_attributes = kw.get('include_attributes', None)
         exclude_attributes = kw.get('exclude_attributes', None)
-        if resp.json:
+        if resp.body and include_attributes or exclude_attributes:
+            # NOTE: We need to check for response.body attribute since resp.json
+            # throws if JSON response is not available
             data = self._process_response(data=resp.json,
                                           include_attributes=include_attributes,
                                           exclude_attributes=exclude_attributes)
