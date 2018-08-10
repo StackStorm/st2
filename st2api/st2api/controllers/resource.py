@@ -15,6 +15,7 @@
 
 # pylint: disable=no-member
 
+import re
 import abc
 import copy
 
@@ -142,9 +143,7 @@ class ResourceController(object):
                    'You need to provide either one or another, but not both.')
             raise ValueError(msg)
 
-        if include_fields:
-            include_fields += self.mandatory_include_fields
-            include_fields = list(set(include_fields))
+        include_fields = self._validate_include_fields(include_fields=include_fields)
 
         # TODO: Why do we use comma delimited string, user can just specify
         # multiple values using ?sort=foo&sort=bar and we get a list back
@@ -409,10 +408,29 @@ class ResourceController(object):
 
         for field in exclude_fields:
             if field not in self.valid_exclude_attributes:
-                msg = 'Invalid or unsupported exclude attribute specified: %s' % (field)
+                msg = ('Invalid or unsupported exclude attribute specified: %s' % (field))
                 raise ValueError(msg)
 
         return exclude_fields
+
+    def _validate_include_fields(self, include_fields):
+        """
+        Validate that provided include fields are valid.
+        """
+        if not include_fields:
+            return include_fields
+
+        for field in include_fields:
+            # NOTE: We don't allow . and other special characters in the field name
+            if not re.match('^\w+$', field):
+                msg = ('Invalid include field "%s" specified. Valid characters are a-zA-Z0-9-_' %
+                       (field))
+                raise ValueError(msg)
+
+        include_fields += self.mandatory_include_fields
+        include_fields = list(set(include_fields))
+
+        return include_fields
 
 
 class BaseResourceIsolationControllerMixin(object):
