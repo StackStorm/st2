@@ -88,6 +88,13 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         'trigger_instance'
     ]
 
+    # Those two attributes are mandatory so we can correctly determine and mask secret execution
+    # parameters
+    mandatory_include_fields = [
+        'action.parameters',
+        'runner.runner_parameters'
+    ]
+
     def _handle_schedule_execution(self, liveaction_api, requester_user, context_string=None,
                                    show_secrets=False):
         """
