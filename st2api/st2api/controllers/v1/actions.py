@@ -73,8 +73,6 @@ class ActionsController(resource.ContentPackResourceController):
         'notify'
     ]
 
-    include_reference = True
-
     def __init__(self, *args, **kwargs):
         super(ActionsController, self).__init__(*args, **kwargs)
         self._trigger_dispatcher = TriggerDispatcher(LOG)

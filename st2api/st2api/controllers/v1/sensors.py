@@ -50,8 +50,6 @@ class SensorTypeController(resource.ContentPackResourceController):
         'sort': ['pack', 'name']
     }
 
-    include_reference = True
-
     def get_all(self, sort=None, offset=0, limit=None, requester_user=None, **raw_filters):
         return super(SensorTypeController, self)._get_all(sort=sort,
                                                           offset=offset,

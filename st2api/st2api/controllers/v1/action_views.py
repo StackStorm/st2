@@ -106,8 +106,6 @@ class OverviewController(resource.ContentPackResourceController):
         'sort': ['pack', 'name']
     }
 
-    include_reference = True
-
     def get_one(self, ref_or_id, requester_user):
         """
             List action by id.

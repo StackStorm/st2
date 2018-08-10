@@ -464,8 +464,6 @@ class BaseResourceIsolationControllerMixin(object):
 
 
 class ContentPackResourceController(ResourceController):
-    include_reference = False
-
     def __init__(self):
         super(ContentPackResourceController, self).__init__()
         self.get_one_db_method = self._get_by_ref_or_id
@@ -500,11 +498,6 @@ class ContentPackResourceController(ResourceController):
                                                                resource_api_or_db=instance,
                                                                permission_type=permission_type)
 
-        if result and self.include_reference:
-            pack = getattr(result, 'pack', None)
-            name = getattr(result, 'name', None)
-            result.ref = ResourceReference(pack=pack, name=name).ref
-
         return Response(json=result)
 
     def _get_all(self, exclude_fields=None, include_fields=None,
@@ -520,14 +513,6 @@ class ContentPackResourceController(ResourceController):
                                     from_model_kwargs=from_model_kwargs,
                                     raw_filters=raw_filters,
                                     requester_user=requester_user)
-
-        if self.include_reference:
-            result = resp.json
-            for item in result:
-                pack = item.get('pack', None)
-                name = item.get('name', None)
-                item['ref'] = ResourceReference(pack=pack, name=name).ref
-            resp.json = result
 
         return resp
 

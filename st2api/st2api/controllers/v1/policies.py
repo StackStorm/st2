@@ -44,8 +44,6 @@ class PolicyTypeController(resource.ResourceController):
         'sort': ['resource_type', 'name']
     }
 
-    include_reference = False
-
     def get_one(self, ref_or_id, requester_user):
         return self._get_one(ref_or_id, requester_user=requester_user)
 
