@@ -365,8 +365,8 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
         resp = self.app.get('/v1/actions?exclude_attributes=parameters')
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 2, '/v1/actions did not return all actions.')
-        self.assertEqual(resp.json[0]['parameters'], {})
-        self.assertEqual(resp.json[1]['parameters'], {})
+        self.assertTrue('parameters' not in resp.json[0])
+        self.assertTrue('parameters' not in resp.json[1])
 
         self.__do_delete(action_1_id)
         self.__do_delete(action_2_id)
@@ -396,15 +396,25 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
         # Valid include attribute
         resp = self.app.get('/v1/actions?include_attributes=name')
         self.assertEqual(resp.status_int, 200)
+
+        # NOTE: Name + pack are always included
         self.assertEqual(len(resp.json), 2, '/v1/actions did not return all actions.')
-        self.assertFalse(resp.json[0]['entry_point'])
-        self.assertFalse(resp.json[1]['entry_point'])
+        self.assertEqual(len(resp.json[0].keys()), 2)
+        self.assertEqual(len(resp.json[1].keys()), 2)
+        self.assertTrue('name' in resp.json[0])
+        self.assertTrue('pack' in resp.json[0])
 
         # Valid include attribute
         resp = self.app.get('/v1/actions?include_attributes=entry_point')
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 2, '/v1/actions did not return all actions.')
+
+        # NOTE: Name + pack are always included
+        self.assertEqual(len(resp.json[0].keys()), 3)
+        self.assertEqual(len(resp.json[1].keys()), 3)
         self.assertTrue(resp.json[0]['entry_point'])
+        self.assertTrue('name' in resp.json[0])
+        self.assertTrue('pack' in resp.json[0])
         self.assertTrue(resp.json[1]['entry_point'])
 
         self.__do_delete(action_1_id)
