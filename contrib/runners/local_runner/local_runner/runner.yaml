@@ -18,7 +18,7 @@
       type: object
     kwarg_op:
       default: --
-      description: Operator to use in front of keyword args i.e. "--" or "-".
+      description: Operator to use in front of keyword args i.e. ``--`` or ``-``.
       type: string
     sudo:
       default: false
@@ -61,7 +61,7 @@
       type: object
     kwarg_op:
       default: --
-      description: Operator to use in front of keyword args i.e. "--" or "-".
+      description: Operator to use in front of keyword args i.e. ``--`` or ``-``.
       type: string
     sudo:
       default: false
