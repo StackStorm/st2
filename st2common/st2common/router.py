@@ -583,15 +583,19 @@ class Router(object):
         :param data: Response data.
         :type: data: ``list`` or ``dict``
         """
-        #  Common case - filters are not provided
-        if not include_attributes and not exclude_attributes:
-            return data
-
         # NOTE: include_attributes and exclude_attributes are mutually exclusive
         if include_attributes and exclude_attributes:
             msg = ('exclude_attributes and exclude_attributes arguments are mutually exclusive. '
                    'You need to provide either one or another, but not both.')
             raise ValueError(msg)
+
+        #  Common case - filters are not provided
+        if not include_attributes and not exclude_attributes:
+            return data
+
+        # Skip processing of error responses
+        if isinstance(data, dict) and data.get('faultstring', None):
+            return data
 
         # NOTE: Since those parameters are mutually exclusive we could perform more efficient
         # filtering when just exclude_attributes is provided. Instead of creating a new dict, we
