@@ -139,6 +139,10 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
         if 'orquesta' not in ac_ex_db.context:
             return
 
+        # Process pending request on the action execution.
+        if ac_ex_db.status == ac_const.LIVEACTION_STATUS_PENDING:
+            wf_svc.handle_action_execution_pending(ac_ex_db)
+
         # Process pause request on the action execution.
         if ac_ex_db.status == ac_const.LIVEACTION_STATUS_PAUSED:
             wf_svc.handle_action_execution_pause(ac_ex_db)

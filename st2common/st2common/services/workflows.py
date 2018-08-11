@@ -358,6 +358,36 @@ def request_task_execution(wf_ex_db, task_id, task_spec, task_ctx, st2_ctx):
     return task_ex_db
 
 
+def handle_action_execution_pending(ac_ex_db):
+    # Check that the action execution is paused.
+    if ac_ex_db.status != ac_const.LIVEACTION_STATUS_PENDING:
+        raise Exception(
+            'Unable to handle pending of action execution. The action execution '
+            '"%s" is in "%s" state.' % (str(ac_ex_db.id), ac_ex_db.status)
+        )
+
+    # Get related record identifiers.
+    wf_ex_id = ac_ex_db.context['orquesta']['workflow_execution_id']
+    task_ex_id = ac_ex_db.context['orquesta']['task_execution_id']
+
+    # Get execution records for logging purposes.
+    wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
+    task_ex_db = wf_db_access.TaskExecution.get_by_id(task_ex_id)
+
+    LOG.info(
+        '[%s] Handling pending of action execution "%s" for task "%s".',
+        wf_ex_db.action_execution,
+        str(ac_ex_db.id),
+        task_ex_db.task_id
+    )
+
+    # Updat task execution
+    update_task_execution(task_ex_id, ac_ex_db.status)
+
+    # Update task flow in the workflow execution.
+    update_task_flow(task_ex_id, publish=False)
+
+
 def handle_action_execution_pause(ac_ex_db):
     # Check that the action execution is paused.
     if ac_ex_db.status != ac_const.LIVEACTION_STATUS_PAUSED:
@@ -493,7 +523,7 @@ def update_task_flow(task_ex_id, publish=True):
     task_ex_db = wf_db_access.TaskExecution.get_by_id(task_ex_id)
 
     # Return if task execution is not completed or paused.
-    if task_ex_db.status not in states.COMPLETED_STATES + [states.PAUSED]:
+    if task_ex_db.status not in states.COMPLETED_STATES + [states.PAUSED, states.PENDING]:
         return
 
     # Update task flow if task execution is completed or paused.
@@ -505,7 +535,7 @@ def update_task_flow(task_ex_id, publish=True):
     update_execution_records(
         wf_ex_db,
         conductor,
-        update_lv_ac_on_states=(states.COMPLETED_STATES + [states.PAUSED]),
+        update_lv_ac_on_states=(states.COMPLETED_STATES + [states.PAUSED, states.PENDING]),
         pub_lv_ac=publish,
         pub_ac_ex=publish
     )
@@ -561,7 +591,7 @@ def request_next_tasks(task_ex_id):
 
 @retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
 def update_task_execution(task_ex_id, ac_ex_status, ac_ex_result=None):
-    if ac_ex_status not in states.COMPLETED_STATES + [states.PAUSED]:
+    if ac_ex_status not in states.COMPLETED_STATES + [states.PAUSED, states.PENDING]:
         return
 
     task_ex_db = wf_db_access.TaskExecution.get_by_id(task_ex_id)

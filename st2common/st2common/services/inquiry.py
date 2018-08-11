@@ -28,6 +28,7 @@ from st2common import log as logging
 from st2common.rbac import utils as rbac_utils
 from st2common.services import action as action_service
 from st2common.services import executions as execution_service
+from st2common.services import workflows as workflow_service
 from st2common.util import action_db as action_utils
 from st2common.util import schema as schema_utils
 from st2common.util import system_info as sys_info_utils
@@ -142,7 +143,15 @@ def respond(inquiry, response, requester=None):
     if liveaction_db.context.get('parent'):
         LOG.debug('Resuming workflow parent(s) for inquiry "%s".' % str(inquiry.id))
 
-        resume_target = action_service.get_root_liveaction(liveaction_db)
+        # For action execution under Action Chain and Mistral workflows, request the entire
+        # workflow to resume. Orquesta handles resume differently and so does not require root
+        # to resume. Orquesta allows for specifc branches to resume while other is paused. When
+        # there is no other paused branches, the conductor will resume the rest of the workflow.
+        resume_target = (
+            action_service.get_parent_liveaction(liveaction_db)
+            if workflow_service.is_action_execution_under_workflow_context(liveaction_db)
+            else action_service.get_root_liveaction(liveaction_db)
+        )
 
         if resume_target.status in action_constants.LIVEACTION_PAUSE_STATES:
             action_service.request_resume(resume_target, requester)

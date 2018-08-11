@@ -14,16 +14,17 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import mock
 
 from inquirer_runner import inquirer_runner
-from st2common.constants.action import LIVEACTION_STATUS_PENDING
-from st2common.constants.pack import SYSTEM_PACK_NAME
-from st2common.persistence.execution import ActionExecution
+from st2common.constants import action as action_constants
+from st2common.constants import pack as pack_constants
+from st2common.persistence import execution as ex_db_access
 from st2common.services import action as action_service
-from st2common.transport import reactor
+from st2common.transport import reactor as reactor_transport
 from st2common.util import action_db as action_utils
-from st2tests.base import RunnerTestCase
+from st2tests import base as st2tests
 
 
 mock_exc_get = mock.Mock()
@@ -54,11 +55,10 @@ runner_params = {
 }
 
 
-@mock.patch('inquirer_runner.inquirer_runner.TriggerDispatcher', mock_trigger_dispatcher)
 @mock.patch.object(
-    reactor,
+    reactor_transport,
     'TriggerDispatcher',
-    mock_action_utils)
+    mock_trigger_dispatcher)
 @mock.patch.object(
     action_utils,
     'get_liveaction_by_id',
@@ -72,10 +72,10 @@ runner_params = {
     'get_root_liveaction',
     mock_get_root)
 @mock.patch.object(
-    ActionExecution,
+    ex_db_access.ActionExecution,
     'get',
     mock.MagicMock(return_value=mock_exc_get))
-class InquiryTestCase(RunnerTestCase):
+class InquiryTestCase(st2tests.RunnerTestCase):
 
     def tearDown(self):
         mock_trigger_dispatcher.reset_mock()
@@ -100,7 +100,7 @@ class InquiryTestCase(RunnerTestCase):
             "parent": test_parent.id
         }
         (status, output, _) = runner.run({})
-        self.assertEqual(status, LIVEACTION_STATUS_PENDING)
+        self.assertEqual(status, action_constants.LIVEACTION_STATUS_PENDING)
         self.assertEqual(
             output,
             {
@@ -138,7 +138,7 @@ class InquiryTestCase(RunnerTestCase):
             "parent": None
         }
         (status, output, _) = runner.run({})
-        self.assertEqual(status, LIVEACTION_STATUS_PENDING)
+        self.assertEqual(status, action_constants.LIVEACTION_STATUS_PENDING)
         self.assertEqual(
             output,
             {
@@ -160,7 +160,7 @@ class InquiryTestCase(RunnerTestCase):
 
     def _get_mock_action_obj(self):
         action = mock.Mock()
-        action.pack = SYSTEM_PACK_NAME
+        action.pack = pack_constants.SYSTEM_PACK_NAME
         action.users = []
         action.roles = []
         return action
