@@ -80,7 +80,8 @@ class RuleEnforcementViewController(ResourceController):
         execution_ids = []
 
         for rule_enforcement_api in rule_enforcement_apis:
-            trigger_instance_ids.add(str(rule_enforcement_api['trigger_instance_id']))
+            if rule_enforcement_api.get('trigger_instance_id', None):
+                trigger_instance_ids.add(str(rule_enforcement_api['trigger_instance_id']))
 
             if rule_enforcement_api.get('execution_id', None):
                 execution_ids.append(rule_enforcement_api['execution_id'])
@@ -120,7 +121,7 @@ class RuleEnforcementViewController(ResourceController):
             rule_enforcement_api['trigger_instance'] = {}
             rule_enforcement_api['execution'] = {}
 
-            trigger_instance_id = rule_enforcement_api['trigger_instance_id']
+            trigger_instance_id = rule_enforcement_api.get('trigger_instance_id', None)
             execution_id = rule_enforcement_api.get('execution_id', None)
 
             trigger_instance_db = trigger_instance_dbs_by_id.get(trigger_instance_id, None)
