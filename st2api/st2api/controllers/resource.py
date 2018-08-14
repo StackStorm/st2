@@ -420,6 +420,7 @@ class ResourceController(object):
         if not include_fields:
             return include_fields
 
+        result = copy.copy(include_fields)
         for field in self.mandatory_include_fields:
             # Don't add mandatory field if user already requested the whole dict object (e.g. user
             # requests action and action.parameters is a mandatory field)
@@ -427,10 +428,10 @@ class ResourceController(object):
             if partial_field in include_fields:
                 continue
 
-            include_fields.append(field)
-        include_fields = list(set(include_fields))
+            result.append(field)
+        result = list(set(result))
 
-        return include_fields
+        return result
 
 
 class BaseResourceIsolationControllerMixin(object):
