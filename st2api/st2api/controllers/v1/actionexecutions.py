@@ -84,7 +84,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
 
     # Those two attributes are mandatory so we can correctly determine and mask secret execution
     # parameters
-    mandatory_include_fields = [
+    mandatory_include_fields_retrieve = [
         'action.parameters',
         'runner.runner_parameters'
     ]

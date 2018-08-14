@@ -106,8 +106,6 @@ class OverviewController(resource.ContentPackResourceController):
         'sort': ['pack', 'name']
     }
 
-    mandatory_include_fields = ['pack', 'name']
-
     def get_one(self, ref_or_id, requester_user):
         """
             List action by id.

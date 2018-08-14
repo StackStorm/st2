@@ -56,9 +56,23 @@ LOG = logging.getLogger(__name__)
 
 
 def op_resolver(op_id):
+    """
+    Return controller class instance and controller method callbacle for the provided operation id.
+
+    :rtype: ``tuple``
+    """
     module_name, func_name = op_id.split(':', 1)
+    controller_name = func_name.split('.')[0]
+
     __import__(module_name)
     module = sys.modules[module_name]
+
+    controller_instance = getattr(module, controller_name)
+    method_callable = functools.reduce(getattr, func_name.split('.'), module)
+
+    return controller_instance, method_callable
+    print('xxx')
+    print(controller_instance)
     return functools.reduce(getattr, func_name.split('.'), module)
 
 
@@ -91,7 +105,7 @@ def extend_with_default(validator_class):
 def extend_with_additional_check(validator_class):
     def set_additional_check(validator, properties, instance, schema):
         ref = schema.get("x-additional-check")
-        func = op_resolver(ref)
+        _, func = op_resolver(ref)
         for error in func(validator, properties, instance, schema):
             yield error
 
@@ -270,7 +284,7 @@ class Router(object):
                             token = None
 
                         if token:
-                            auth_func = op_resolver(definition['x-operationId'])
+                            _, auth_func = op_resolver(definition['x-operationId'])
                             auth_resp = auth_func(token)
 
                             # Include information on how user authenticated inside the context
@@ -418,7 +432,7 @@ class Router(object):
 
                     if 'x-api-model' in schema:
                         input_type = schema.get('type', [])
-                        Model = op_resolver(schema['x-api-model'])
+                        _, Model = op_resolver(schema['x-api-model'])
 
                         if input_type and not isinstance(input_type, (list, tuple)):
                             input_type = [input_type]
@@ -490,7 +504,7 @@ class Router(object):
 
         # Call the controller
         try:
-            func = op_resolver(endpoint['operationId'])
+            controller_instance, func = op_resolver(endpoint['operationId'])
         except Exception as e:
             LOG.exception('Failed to load controller for operation "%s": %s' %
                           (endpoint['operationId'], str(e)))
@@ -510,6 +524,8 @@ class Router(object):
         if not hasattr(resp, '__call__'):
             resp = Response(json=resp)
 
+        operation_id = endpoint['operationId']
+
         # Process the response removing attributes based on the exclude_attribute and
         # include_attributes query param filter values (if specified)
         include_attributes = kw.get('include_attributes', None)
@@ -517,9 +533,12 @@ class Router(object):
         has_include_or_exclude_attributes = bool(include_attributes) or bool(exclude_attributes)
 
         if resp.body and has_include_or_exclude_attributes:
-            # NOTE: We need to check for response.body attribute since resp.json
-            # throws if JSON response is not available
+            # NOTE: We need to check for response.body attribute since resp.json throws if JSON
+            # response is not available
+            mandatory_include_fields = getattr(controller_instance,
+                                               'mandatory_include_fields_response', [])
             data = self._process_response(data=resp.json,
+                                          mandatory_include_fields=mandatory_include_fields,
                                           include_attributes=include_attributes,
                                           exclude_attributes=exclude_attributes)
             resp.json = data
@@ -579,7 +598,8 @@ class Router(object):
 
         return instance
 
-    def _process_response(self, data, include_attributes=None, exclude_attributes=None):
+    def _process_response(self, data, mandatory_include_fields=None, include_attributes=None,
+                          exclude_attributes=None):
         """
         Process controller response data such as removing attributes based on the values of
         exclude_attributes and include_attributes query param filters and similar.
@@ -587,6 +607,7 @@ class Router(object):
         :param data: Response data.
         :type: data: ``list`` or ``dict``
         """
+        mandatory_include_fields = mandatory_include_fields or []
         include_attributes = include_attributes or []
         exclude_attributes = exclude_attributes or []
 
@@ -607,6 +628,9 @@ class Router(object):
         # We only care about the first part of the field name since deep filtering happens inside
         # MongoDB
         cleaned_include_attributes = [attribute.split('.')[0] for attribute in include_attributes]
+
+        # Add in mandatory fields which always need to be present in the response (primary keys)
+        cleaned_include_attributes += mandatory_include_fields
         cleaned_exclude_attributes = [attribute.split('.')[0] for attribute in exclude_attributes]
 
         # NOTE: Since those parameters are mutually exclusive we could perform more efficient

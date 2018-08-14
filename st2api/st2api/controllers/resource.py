@@ -91,7 +91,11 @@ class ResourceController(object):
     # ?include_attributes filter. Those attributes need to be included because a lot of code
     # depends on compound references and primary keys. In addition to that, it's needed for secrets
     # masking to work, etc.
-    mandatory_include_fields = ['id']
+    mandatory_include_fields_retrieve = ['id']
+
+    # A list of fields which are always included in the response when ?include_attributes filter is
+    # used. Those are things such as primary keys and similar.
+    mandatory_include_fields_response = ['id']
 
     # Default number of items returned per page if no limit is explicitly provided
     default_limit = 100
@@ -423,7 +427,7 @@ class ResourceController(object):
             return include_fields
 
         result = copy.copy(include_fields)
-        for field in self.mandatory_include_fields:
+        for field in self.mandatory_include_fields_retrieve:
             # Don't add mandatory field if user already requested the whole dict object (e.g. user
             # requests action and action.parameters is a mandatory field)
             partial_field = field.split('.')[0]
@@ -493,7 +497,11 @@ class BaseResourceIsolationControllerMixin(object):
 
 class ContentPackResourceController(ResourceController):
     # name and pack are mandatory because they compromise primary key - reference (<pack>.<name>)
-    mandatory_include_fields = ['pack', 'name']
+    mandatory_include_fields_retrieve = ['pack', 'name']
+
+    # A list of fields which are always included in the response. Those are things such as primary
+    # keys and similar
+    mandatory_include_fields_response = ['id', 'ref']
 
     def __init__(self):
         super(ContentPackResourceController, self).__init__()

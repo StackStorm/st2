@@ -91,7 +91,7 @@ class APIControllerWithIncludeAndExcludeFilterTestCase(object):
         self.assertRegexpMatches(resp.json['faultstring'], expected_msg)
 
     def test_get_all_include_attributes_filter(self):
-        mandatory_include_fields = self.controller_cls.mandatory_include_fields
+        mandatory_include_fields = self.controller_cls.mandatory_include_fields_response
 
         # Create any resources needed by those tests (if not already created inside setUp /
         # setUpClass)

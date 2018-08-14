@@ -36,7 +36,7 @@ class PolicyTypeController(resource.ResourceController):
     model = PolicyTypeAPI
     access = PolicyType
 
-    mandatory_include_fields = ['id', 'name', 'resource_type']
+    mandatory_include_fields_retrieve = ['id', 'name', 'resource_type']
 
     supported_filters = {
         'resource_type': 'resource_type'
