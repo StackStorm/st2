@@ -14,7 +14,9 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
+import re
 import sys
 import collections
 
@@ -23,7 +25,8 @@ import six
 __all__ = [
     'prefix_dict_keys',
     'compare_path_file_name',
-    'lowercase_value'
+    'lowercase_value',
+    'get_field_name_from_mongoengine_error'
 ]
 
 
@@ -149,3 +152,19 @@ def lowercase_value(value):
         result = value
 
     return result
+
+
+def get_field_name_from_mongoengine_error(exc):
+    """
+    Try to extract field name from mongoengine error.
+
+    If field name is unable to be extracted, original exception is returned instead.
+    """
+    msg = str(exc)
+
+    match = re.match("Cannot resolve field \"(.+?)\"", msg)
+
+    if match:
+        return match.groups()[0]
+
+    return msg
