@@ -279,6 +279,7 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
     get_all_path = '/v1/actions'
     controller_cls = ActionsController
     include_attribute_field_name = 'entry_point'
+    exclude_attribute_field_name = 'parameters'
 
     register_packs = True
 
@@ -619,4 +620,3 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
 
     def __do_delete(self, action_id, expect_errors=False):
         return self.app.delete('/v1/actions/%s' % action_id, expect_errors=expect_errors)
-
