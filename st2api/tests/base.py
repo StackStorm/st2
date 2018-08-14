@@ -65,9 +65,9 @@ class APIControllerWithIncludeAndExcludeFilterTestCase(object):
         url = self.get_all_path + '?include_attributes=id&exclude_attributes=id'
         resp = self.app.get(url, expect_errors=True)
         self.assertEqual(resp.status_int, 400)
-        expected_msg = ('exclude_fields and include_fields arguments are mutually exclusive. '
+        expected_msg = ('exclude.*? and include.*? arguments are mutually exclusive. '
                         'You need to provide either one or another, but not both.')
-        self.assertEqual(resp.json['faultstring'], expected_msg)
+        self.assertRegexpMatches(resp.json['faultstring'], expected_msg)
 
     def test_get_all_invalid_exclude_and_include_parameter(self):
         # 1. Invalid exclude_attributes field

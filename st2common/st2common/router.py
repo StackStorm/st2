@@ -589,7 +589,7 @@ class Router(object):
         """
         # NOTE: include_attributes and exclude_attributes are mutually exclusive
         if include_attributes and exclude_attributes:
-            msg = ('exclude_attributes and exclude_attributes arguments are mutually exclusive. '
+            msg = ('exclude_attributes and include_attributes arguments are mutually exclusive. '
                    'You need to provide either one or another, but not both.')
             raise ValueError(msg)
 
