@@ -583,6 +583,19 @@ paths:
       description: |
           Get list of action-aliases.
       parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
         - name: name
           in: query
           description: Entity name filter
@@ -1344,9 +1357,22 @@ paths:
       x-permissions: inquiry_list
       description: Returns a list of all inquiries
       parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
         - name: limit
           in: query
-          description: Number of executions to get
+          description: Number of inquiries to get
           type: integer
           default: 20
       x-parameters:
@@ -1598,6 +1624,19 @@ paths:
       x-permissions: pack_list
       description: Get list of installed packs.
       parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
         - name: limit
           in: query
           description: Number of packs to get
@@ -2103,6 +2142,19 @@ paths:
       x-permissions: policy_type_list
       description: Returns a list of all the policy types.
       parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
         - name: resource_type
           in: query
           description: Policy type resource type
@@ -2188,6 +2240,19 @@ paths:
       description: |
         List of policies
       parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
         - name: pack
           in: query
           description: Policies pack
@@ -3246,6 +3311,19 @@ paths:
       x-permissions: rule_enforcement_list
       description: Returns a list of all the rule enforcements.
       parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
         - name: limit
           in: query
           description: List N most recent rule enforcements.
@@ -3326,6 +3404,19 @@ paths:
       x-permissions: rule_enforcement_list
       description: Returns a list of all the rule enforcements.
       parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
         - name: limit
           in: query
           description: List N most recent rule enforcements.
@@ -3516,6 +3607,19 @@ paths:
       x-permissions: trace_list
       description: Returns a list of all the traces.
       parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
         - name: limit
           in: query
           description: Number of traces to get
@@ -3621,6 +3725,19 @@ paths:
       operationId: st2api.controllers.v1.triggers:triggertype_controller.get_all
       description: Returns a list of all trigger types.
       parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
         - name: limit
           in: query
           description: Number of trigger types to get
@@ -3884,6 +4001,19 @@ paths:
       operationId: st2api.controllers.v1.triggers:triggerinstance_controller.get_all
       description: Returns a list of all trigger instances.
       parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
         - name: limit
           in: query
           description: Number of trigger instances to get
