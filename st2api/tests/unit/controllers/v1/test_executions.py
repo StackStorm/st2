@@ -44,7 +44,9 @@ import st2common.validators.api.action as action_validator
 from tests.base import BaseActionExecutionControllerTestCase
 from st2tests.api import SUPER_SECRET_PARAMETER
 from st2tests.api import ANOTHER_SUPER_SECRET_PARAMETER
-from tests import FunctionalTest
+
+from tests.base import FunctionalTest
+from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
 
 __all__ = [
     'ActionExecutionControllerTestCase',
@@ -241,11 +243,13 @@ TEST_FIXTURES = {
 
 @mock.patch.object(content_utils, 'get_pack_base_path', mock.MagicMock(return_value='/tmp/test'))
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
-class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, FunctionalTest):
+class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, FunctionalTest,
+                                        APIControllerWithIncludeAndExcludeFilterTestCase):
     get_all_path = '/v1/executions'
     controller_cls = ActionExecutionsController
     include_attribute_field_name = 'status'
-    exclude_attribute_field_name = 'start_timestamp'
+    exclude_attribute_field_name = 'status'
+    test_exact_object_count = False
 
     @classmethod
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
@@ -1136,6 +1140,11 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
 
         resp = json.loads(get_resp.body)
         self.assertEqual(resp['result']['response']['secondfactor'], "supersecretvalue")
+
+    def _insert_mock_models(self):
+        execution_1_id = self._get_actionexecution_id(self._do_post(LIVE_ACTION_1))
+        execution_2_id = self._get_actionexecution_id(self._do_post(LIVE_ACTION_2))
+        return [execution_1_id, execution_2_id]
 
 
 class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestCase,

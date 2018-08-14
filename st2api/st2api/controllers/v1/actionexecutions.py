@@ -82,12 +82,6 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
     model = ActionExecutionAPI
     access = ActionExecution
 
-    # A list of attributes which can be specified using ?exclude_attributes filter
-    valid_exclude_attributes = [
-        'result',
-        'trigger_instance'
-    ]
-
     # Those two attributes are mandatory so we can correctly determine and mask secret execution
     # parameters
     mandatory_include_fields = [
@@ -270,8 +264,8 @@ class ActionExecutionChildrenController(BaseActionExecutionNestedController):
 
 
 class ActionExecutionAttributeController(BaseActionExecutionNestedController):
-    valid_exclude_attributes = ['action__pack', 'action__uid'] + \
-        ActionExecutionsControllerMixin.valid_exclude_attributes
+    #valid_exclude_attributes = ['action__pack', 'action__uid'] + \
+    #    ActionExecutionsControllerMixin.valid_exclude_attributes
 
     def get(self, id, attribute, requester_user):
         """
