@@ -15,7 +15,6 @@
 
 # pylint: disable=no-member
 
-import re
 import abc
 import copy
 
@@ -420,13 +419,6 @@ class ResourceController(object):
         """
         if not include_fields:
             return include_fields
-
-        for field in include_fields:
-            # NOTE: We don't allow . and other special characters in the field name
-            if not re.match('^\w+$', field):
-                msg = ('Invalid include field "%s" specified. Valid characters are a-zA-Z0-9-_' %
-                       (field))
-                #raise ValueError(msg)
 
         for field in self.mandatory_include_fields:
             # Don't add mandatory field if user already requested the whole dict object (e.g. user
