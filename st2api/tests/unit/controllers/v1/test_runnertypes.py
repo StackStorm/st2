@@ -13,18 +13,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from tests import FunctionalTest
+from st2api.controllers.v1.runnertypes import RunnerTypesController
+
+from tests.base import FunctionalTest
+from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
+
+__all__ = [
+    'RunnerTypesControllerTestCase'
+]
 
 
-class TestRunnerTypesController(FunctionalTest):
+class RunnerTypesControllerTestCase(FunctionalTest,
+                                    APIControllerWithIncludeAndExcludeFilterTestCase):
+    get_all_path = '/v1/runnertypes'
+    controller_cls = RunnerTypesController
+    include_attribute_field_name = 'runner_package'
+    exclude_attribute_field_name = 'runner_module'
+    test_exact_object_count = False  # runners are registered dynamically in base test class
 
     def test_get_one(self):
         resp = self.app.get('/v1/runnertypes')
         self.assertEqual(resp.status_int, 200)
         self.assertTrue(len(resp.json) > 0, '/v1/runnertypes did not return correct runnertypes.')
-        runnertype_id = TestRunnerTypesController.__get_runnertype_id(resp.json[0])
+        runnertype_id = RunnerTypesControllerTestCase.__get_runnertype_id(resp.json[0])
         resp = self.app.get('/v1/runnertypes/%s' % runnertype_id)
-        retrieved_id = TestRunnerTypesController.__get_runnertype_id(resp.json)
+        retrieved_id = RunnerTypesControllerTestCase.__get_runnertype_id(resp.json)
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(retrieved_id, runnertype_id,
                          '/v1/runnertypes returned incorrect runnertype.')

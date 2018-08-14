@@ -61,6 +61,10 @@ class APIControllerWithIncludeAndExcludeFilterTestCase(object):
     # Name of the model field to filter on
     exclude_attribute_field_name = None
 
+    # True to assert that the object count in the response matches count returned by
+    # _get_model_instance method method
+    test_exact_object_count = True
+
     def test_get_all_exclude_attributes_and_include_attributes_are_mutually_exclusive(self):
         url = self.get_all_path + '?include_attributes=id&exclude_attributes=id'
         resp = self.app.get(url, expect_errors=True)
@@ -99,7 +103,10 @@ class APIControllerWithIncludeAndExcludeFilterTestCase(object):
 
         self.assertEqual(resp.status_int, 200)
         self.assertTrue(len(resp.json) >= 1)
-        self.assertEqual(len(resp.json), len(object_ids))
+
+        if self.test_exact_object_count:
+            self.assertEqual(len(resp.json), len(object_ids))
+
         self.assertEqual(len(resp.json[0].keys()), len(mandatory_include_fields))
 
         # Verify all mandatory fields are include
@@ -114,7 +121,10 @@ class APIControllerWithIncludeAndExcludeFilterTestCase(object):
 
         self.assertEqual(resp.status_int, 200)
         self.assertTrue(len(resp.json) >= 1)
-        self.assertEqual(len(resp.json), len(object_ids))
+
+        if self.test_exact_object_count:
+            self.assertEqual(len(resp.json), len(object_ids))
+
         self.assertEqual(len(resp.json[0].keys()), len(mandatory_include_fields) + 1)
 
         for field in [include_field] + mandatory_include_fields:
@@ -136,7 +146,10 @@ class APIControllerWithIncludeAndExcludeFilterTestCase(object):
 
         self.assertEqual(resp.status_int, 200)
         self.assertTrue(len(resp.json) >= 1)
-        self.assertEqual(len(resp.json), len(object_ids))
+
+        if self.test_exact_object_count:
+            self.assertEqual(len(resp.json), len(object_ids))
+
         self.assertTrue(exclude_attribute in resp.json[0])
 
         # 2. Verify attribute is excluded when filter is provided
@@ -146,7 +159,10 @@ class APIControllerWithIncludeAndExcludeFilterTestCase(object):
 
         self.assertEqual(resp.status_int, 200)
         self.assertTrue(len(resp.json) >= 1)
-        self.assertEqual(len(resp.json), len(object_ids))
+
+        if self.test_exact_object_count:
+            self.assertEqual(len(resp.json), len(object_ids))
+
         self.assertFalse(exclude_attribute in resp.json[0])
 
         self._delete_mock_models(object_ids)
