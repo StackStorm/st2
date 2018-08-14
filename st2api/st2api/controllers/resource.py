@@ -87,8 +87,10 @@ class ResourceController(object):
     # Default kwargs passed to "APIClass.from_model" method
     from_model_kwargs = {}
 
-    # Mandatory attributes which always need to be specified / provided when using
-    # ?include_attributes query param filter
+    # Mandatory model attributes which are always retrieved from the database when using
+    # ?include_attributes filter. Those attributes need to be included because a lot of code
+    # depends on compound references and primary keys. In addition to that, it's needed for secrets
+    # masking to work, etc.
     mandatory_include_fields = ['id']
 
     # Default number of items returned per page if no limit is explicitly provided
