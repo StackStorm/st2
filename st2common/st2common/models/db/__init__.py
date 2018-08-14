@@ -400,7 +400,11 @@ class MongoDBAccess(object):
         result = self.model.objects(*args, **filters)
 
         if exclude_fields:
-            result = result.exclude(*exclude_fields)
+            try:
+                result = result.exclude(*exclude_fields)
+            except (mongoengine.errors.LookUpError, AttributeError) as e:
+                msg = ('Invalid or unsupported exclude attribute specified: %s' % str(e))
+                raise ValueError(msg)
 
         if only_fields:
             try:
