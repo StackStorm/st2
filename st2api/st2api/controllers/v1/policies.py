@@ -36,6 +36,8 @@ class PolicyTypeController(resource.ResourceController):
     model = PolicyTypeAPI
     access = PolicyType
 
+    mandatory_include_fields = ['id', 'name', 'resource_type']
+
     supported_filters = {
         'resource_type': 'resource_type'
     }
@@ -47,8 +49,11 @@ class PolicyTypeController(resource.ResourceController):
     def get_one(self, ref_or_id, requester_user):
         return self._get_one(ref_or_id, requester_user=requester_user)
 
-    def get_all(self, sort=None, offset=0, limit=None, requester_user=None, **raw_filters):
-        return self._get_all(sort=sort,
+    def get_all(self, exclude_attributes=None, include_attributes=None, sort=None, offset=0,
+                limit=None, requester_user=None, **raw_filters):
+        return self._get_all(exclude_fields=exclude_attributes,
+                             include_fields=include_attributes,
+                             sort=sort,
                              offset=offset,
                              limit=limit,
                              raw_filters=raw_filters,
@@ -65,10 +70,12 @@ class PolicyTypeController(resource.ResourceController):
         result = self.model.from_model(instance)
         return result
 
-    def _get_all(self, exclude_fields=None, sort=None, offset=0, limit=None, query_options=None,
-                 from_model_kwargs=None, raw_filters=None, requester_user=None):
+    def _get_all(self, exclude_fields=None, include_fields=None, sort=None, offset=0, limit=None,
+                 query_options=None, from_model_kwargs=None, raw_filters=None,
+                 requester_user=None):
 
         resp = super(PolicyTypeController, self)._get_all(exclude_fields=exclude_fields,
+                                                          include_fields=include_fields,
                                                           sort=sort,
                                                           offset=offset,
                                                           limit=limit,
@@ -123,8 +130,11 @@ class PolicyController(resource.ContentPackResourceController):
         'sort': ['pack', 'name']
     }
 
-    def get_all(self, sort=None, offset=0, limit=None, requester_user=None, **raw_filters):
-        return self._get_all(sort=sort,
+    def get_all(self, exclude_attributes=None, include_attributes=None, sort=None, offset=0,
+                limit=None, requester_user=None, **raw_filters):
+        return self._get_all(exclude_fields=exclude_attributes,
+                             include_fields=include_attributes,
+                             sort=sort,
                              offset=offset,
                              limit=limit,
                              raw_filters=raw_filters,
