@@ -227,6 +227,18 @@ LIVE_ACTION_INQUIRY = {
         }
     }
 }
+LIVE_ACTION_WITH_SECRET_PARAM = {
+    'parameters': {
+        # action params
+        'a': 'param a',
+        'd': 'secretpassword1',
+
+        # runner params
+        'password': 'secretpassword2',
+        'hosts': 'localhost'
+    },
+    'action': 'sixpack.st2.dummy.action1'
+}
 
 # Do not add parameters to this. There are tests that will test first without params,
 # then make a copy with params.
@@ -1140,6 +1152,40 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
 
         resp = json.loads(get_resp.body)
         self.assertEqual(resp['result']['response']['secondfactor'], "supersecretvalue")
+
+    def test_get_include_attributes_and_secret_parameters(self):
+        # Verify that secret parameters are correctly masked when using ?include_attributes filter
+        self._do_post(LIVE_ACTION_WITH_SECRET_PARAM)
+
+        responses = [
+            self.app.get('/v1/actionexecutions?limit=1&include_attributes=parameters'),
+            self.app.get('/v1/actionexecutions?limit=1&include_attributes=parameters,action'),
+            self.app.get('/v1/actionexecutions?limit=1&include_attributes=parameters,runner'),
+            self.app.get('/v1/actionexecutions?limit=1&include_attributes=parameters,action,runner')
+        ]
+
+        for resp in responses:
+            self.assertTrue('parameters' in resp.json[0])
+            self.assertEqual(resp.json[0]['parameters']['a'], 'param a')
+            self.assertEqual(resp.json[0]['parameters']['d'], MASKED_ATTRIBUTE_VALUE)
+            self.assertEqual(resp.json[0]['parameters']['password'], MASKED_ATTRIBUTE_VALUE)
+            self.assertEqual(resp.json[0]['parameters']['hosts'], 'localhost')
+
+        # NOTE: We don't allow exclusion of attributes such as "action" and "runner" because
+        # that would break secrets masking
+        responses = [
+            self.app.get('/v1/actionexecutions?limit=1&exclude_attributes=action',
+                         expect_errors=True),
+            self.app.get('/v1/actionexecutions?limit=1&exclude_attributes=runner',
+                         expect_errors=True),
+            self.app.get('/v1/actionexecutions?limit=1&exclude_attributes=action,runner',
+                         expect_errors=True),
+        ]
+
+        for resp in responses:
+            self.assertEqual(resp.status_int, 400)
+            self.assertTrue('Invalid or unsupported exclude attribute specified:' in
+                            resp.json['faultstring'])
 
     def _insert_mock_models(self):
         execution_1_id = self._get_actionexecution_id(self._do_post(LIVE_ACTION_1))

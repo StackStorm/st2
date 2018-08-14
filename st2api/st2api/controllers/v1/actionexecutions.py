@@ -89,6 +89,15 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         'runner.runner_parameters'
     ]
 
+    # A list of attributes which can be specified using ?exclude_attributes filter
+    # NOTE: Allowing user to exclude attribute such as action and runner would break secrets
+    # masking
+    valid_exclude_attributes = [
+        'result',
+        'trigger_instance',
+        'status'
+    ]
+
     def _handle_schedule_execution(self, liveaction_api, requester_user, context_string=None,
                                    show_secrets=False):
         """
@@ -264,6 +273,9 @@ class ActionExecutionChildrenController(BaseActionExecutionNestedController):
 
 
 class ActionExecutionAttributeController(BaseActionExecutionNestedController):
+    valid_exclude_attributes = ['action__pack', 'action__uid'] + \
+        ActionExecutionsControllerMixin.valid_exclude_attributes
+
     def get(self, id, attribute, requester_user):
         """
         Retrieve a particular attribute for the provided action execution.
