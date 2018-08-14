@@ -68,9 +68,12 @@ class RuleController(BaseResourceIsolationControllerMixin, ContentPackResourceCo
         'sort': ['pack', 'name']
     }
 
-    def get_all(self, sort=None, offset=0, limit=None, requester_user=None, **raw_filters):
+    def get_all(self, exclude_attributes=None, include_attributes=None, sort=None, offset=0,
+                limit=None, requester_user=None, **raw_filters):
         from_model_kwargs = {'ignore_missing_trigger': True}
-        return super(RuleController, self)._get_all(from_model_kwargs=from_model_kwargs,
+        return super(RuleController, self)._get_all(exclude_fields=exclude_attributes,
+                                                    include_fields=include_attributes,
+                                                    from_model_kwargs=from_model_kwargs,
                                                     sort=sort,
                                                     offset=offset,
                                                     limit=limit,
