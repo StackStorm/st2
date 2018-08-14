@@ -68,6 +68,8 @@ class RuleController(BaseResourceIsolationControllerMixin, ContentPackResourceCo
         'sort': ['pack', 'name']
     }
 
+    mandatory_include_fields = ['pack', 'name', 'trigger']
+
     def get_all(self, exclude_attributes=None, include_attributes=None, sort=None, offset=0,
                 limit=None, requester_user=None, **raw_filters):
         from_model_kwargs = {'ignore_missing_trigger': True}
