@@ -143,6 +143,7 @@ class ResourceController(object):
                    'You need to provide either one or another, but not both.')
             raise ValueError(msg)
 
+        exclude_fields = self._validate_exclude_fields(exclude_fields=exclude_fields)
         include_fields = self._validate_include_fields(include_fields=include_fields)
 
         # TODO: Why do we use comma delimited string, user can just specify

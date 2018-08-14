@@ -478,8 +478,6 @@ class ActionExecutionsController(BaseResourceIsolationControllerMixin,
         :param exclude_attributes: List of attributes to exclude from the object.
         :type exclude_attributes: ``list``
         """
-        exclude_fields = self._validate_exclude_fields(exclude_fields=exclude_attributes)
-
         # Use a custom sort order when filtering on a timestamp so we return a correct result as
         # expected by the user
         query_options = None
@@ -491,7 +489,7 @@ class ActionExecutionsController(BaseResourceIsolationControllerMixin,
         from_model_kwargs = {
             'mask_secrets': self._get_mask_secrets(requester_user, show_secrets=show_secrets)
         }
-        return self._get_action_executions(exclude_fields=exclude_fields,
+        return self._get_action_executions(exclude_fields=exclude_attributes,
                                            include_fields=include_attributes,
                                            from_model_kwargs=from_model_kwargs,
                                            sort=sort,
