@@ -154,12 +154,18 @@ class APIControllerWithIncludeAndExcludeFilterTestCase(object):
     def _insert_mock_models(self):
         """
         Insert mock models used for get all filter tests.
+
+        If the test class inserts mock models inside setUp / setUpClass method, this function
+        should just return the ids of inserted models.
         """
         return []
 
     def _delete_mock_models(self, object_ids):
         """
         Delete mock models / objects used by get all filter tests.
+
+        If the test class inserts mock models inside setUp / setUpClass method, this method should
+        be overridden and made a no-op.
         """
         for object_id in object_ids:
             self._do_delete(object_id)
