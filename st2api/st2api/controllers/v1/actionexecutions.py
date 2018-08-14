@@ -287,7 +287,15 @@ class ActionExecutionAttributeController(BaseActionExecutionNestedController):
         :rtype: ``dict``
         """
         fields = [attribute, 'action__pack', 'action__uid']
-        fields = self._validate_exclude_fields(fields)
+
+        try:
+            fields = self._validate_exclude_fields(fields)
+        except ValueError:
+            valid_attributes = ', '.join(ActionExecutionsControllerMixin.valid_exclude_attributes)
+            msg = ('Invalid attribute "%s" specified. Valid attributes are: %s' %
+                   (attribute, valid_attributes))
+            raise ValueError(msg)
+
         action_exec_db = self.access.impl.model.objects.filter(id=id).only(*fields).get()
 
         permission_type = PermissionType.EXECUTION_VIEW
