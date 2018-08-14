@@ -426,9 +426,16 @@ class ResourceController(object):
             if not re.match('^\w+$', field):
                 msg = ('Invalid include field "%s" specified. Valid characters are a-zA-Z0-9-_' %
                        (field))
-                raise ValueError(msg)
+                #raise ValueError(msg)
 
-        include_fields += self.mandatory_include_fields
+        for field in self.mandatory_include_fields:
+            # Don't add mandatory field if user already requested the whole dict object (e.g. user
+            # requests action and action.parameters is a mandatory field)
+            partial_field = field.split('.')[0]
+            if partial_field in include_fields:
+                continue
+
+            include_fields.append(field)
         include_fields = list(set(include_fields))
 
         return include_fields

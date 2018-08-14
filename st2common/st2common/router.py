@@ -587,6 +587,9 @@ class Router(object):
         :param data: Response data.
         :type: data: ``list`` or ``dict``
         """
+        include_attributes = include_attributes or []
+        exclude_attributes = exclude_attributes or []
+
         # NOTE: include_attributes and exclude_attributes are mutually exclusive
         if include_attributes and exclude_attributes:
             msg = ('exclude_attributes and include_attributes arguments are mutually exclusive. '
@@ -601,16 +604,21 @@ class Router(object):
         if isinstance(data, dict) and data.get('faultstring', None):
             return data
 
+        # We only care about the first part of the field name since deep filtering happens inside
+        # MongoDB
+        cleaned_include_attributes = [attribute.split('.')[0] for attribute in include_attributes]
+        cleaned_exclude_attributes = [attribute.split('.')[0] for attribute in exclude_attributes]
+
         # NOTE: Since those parameters are mutually exclusive we could perform more efficient
         # filtering when just exclude_attributes is provided. Instead of creating a new dict, we
         # could just manipulate (delete) from the existing one.
         def process_item(item):
             result = {}
             for name, value in six.iteritems(item):
-                if include_attributes and name not in include_attributes:
+                if include_attributes and name not in cleaned_include_attributes:
                     continue
 
-                if exclude_attributes and name in exclude_attributes:
+                if exclude_attributes and name in cleaned_exclude_attributes:
                     continue
 
                 result[name] = value
