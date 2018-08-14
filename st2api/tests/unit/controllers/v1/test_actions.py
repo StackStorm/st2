@@ -31,10 +31,12 @@ from st2common.persistence.action import Action
 import st2common.validators.api.action as action_validator
 from st2common.constants.pack import SYSTEM_PACK_NAME
 from st2common.persistence.pack import Pack
+from st2api.controllers.v1.actions import ActionsController
 from st2tests.fixturesloader import get_fixtures_packs_base_path
 from st2tests.base import CleanFilesTestCase
 
-from tests import FunctionalTest
+from tests.base import FunctionalTest
+from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
 
 # ACTION_1: Good action definition.
 ACTION_1 = {
@@ -272,8 +274,14 @@ ACTION_WITH_NOTIFY = {
 }
 
 
-class TestActionController(FunctionalTest, CleanFilesTestCase):
+class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExcludeFilterTestCase,
+                                CleanFilesTestCase):
+    get_all_path = '/v1/actions'
+    controller_cls = ActionsController
+    include_attribute_field_name = 'entry_point'
+
     register_packs = True
+
     to_delete_files = [
         os.path.join(get_fixtures_packs_base_path(), 'dummy_pack_1/actions/filea.txt')
     ]
@@ -350,75 +358,13 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
-    def test_get_all_exclude_attributes(self):
-        action_1_id = self.__get_action_id(self.__do_post(ACTION_1))
-        action_2_id = self.__get_action_id(self.__do_post(ACTION_2))
-
-        # Invalid exclude attribute
-        resp = self.app.get('/v1/actions?exclude_attributes=invalid',
-                            expect_errors=True)
-        self.assertEqual(resp.status_int, 400)
-        self.assertEqual(resp.json['faultstring'],
-                         'Invalid or unsupported exclude attribute specified: invalid')
-
-        # Valid exclude attribute
-        resp = self.app.get('/v1/actions?exclude_attributes=parameters')
-        self.assertEqual(resp.status_int, 200)
-        self.assertEqual(len(resp.json), 2, '/v1/actions did not return all actions.')
-        self.assertTrue('parameters' not in resp.json[0])
-        self.assertTrue('parameters' not in resp.json[1])
-
-        self.__do_delete(action_1_id)
-        self.__do_delete(action_2_id)
+    def test_get_all_include_attributes_filter(self):
+        return super(ActionsControllerTestCase, self).test_get_all_include_attributes_filter()
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
-    def test_get_all_include_attributes(self):
-        action_1_id = self.__get_action_id(self.__do_post(ACTION_1))
-        action_2_id = self.__get_action_id(self.__do_post(ACTION_2))
-
-        # Invalid include attribute
-        resp = self.app.get('/v1/actions?include_attributes=invalid',
-                            expect_errors=True)
-        self.assertEqual(resp.status_int, 400)
-        self.assertTrue('Invalid or unsupported include attribute specified' in
-                        resp.json['faultstring'])
-
-        # include_attributes and exclude_attributes are mutually exclusive
-        url = '/v1/actions?include_attributes=parameters&exclude_attributes=parameters'
-        resp = self.app.get(url,
-                            expect_errors=True)
-        self.assertEqual(resp.status_int, 400)
-        expected_msg = ('exclude_fields and include_fields arguments are mutually exclusive. '
-                        'You need to provide either one or another, but not both.')
-        self.assertEqual(resp.json['faultstring'], expected_msg)
-
-        # Valid include attribute
-        resp = self.app.get('/v1/actions?include_attributes=name')
-        self.assertEqual(resp.status_int, 200)
-
-        # NOTE: Name + pack are always included
-        self.assertEqual(len(resp.json), 2, '/v1/actions did not return all actions.')
-        self.assertEqual(len(resp.json[0].keys()), 2)
-        self.assertEqual(len(resp.json[1].keys()), 2)
-        self.assertTrue('name' in resp.json[0])
-        self.assertTrue('pack' in resp.json[0])
-
-        # Valid include attribute
-        resp = self.app.get('/v1/actions?include_attributes=entry_point')
-        self.assertEqual(resp.status_int, 200)
-        self.assertEqual(len(resp.json), 2, '/v1/actions did not return all actions.')
-
-        # NOTE: Name + pack are always included
-        self.assertEqual(len(resp.json[0].keys()), 3)
-        self.assertEqual(len(resp.json[1].keys()), 3)
-        self.assertTrue(resp.json[0]['entry_point'])
-        self.assertTrue('name' in resp.json[0])
-        self.assertTrue('pack' in resp.json[0])
-        self.assertTrue(resp.json[1]['entry_point'])
-
-        self.__do_delete(action_1_id)
-        self.__do_delete(action_2_id)
+    def test_get_all_exclude_attributes_filter(self):
+        return super(ActionsControllerTestCase, self).test_get_all_include_attributes_filter()
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
@@ -645,6 +591,15 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
         del_resp = self.__do_delete(action_id, expect_errors=True)
         self.assertEqual(del_resp.status_int, 400)
 
+    def _insert_mock_models(self):
+        action_1_id = self.__get_action_id(self.__do_post(ACTION_1))
+        action_2_id = self.__get_action_id(self.__do_post(ACTION_2))
+
+        return [action_1_id, action_2_id]
+
+    def _do_delete(self, action_id, expect_errors=False):
+        return self.__do_delete(action_id=action_id, expect_errors=expect_errors)
+
     @staticmethod
     def __get_action_id(resp):
         return resp.json['id']
@@ -664,3 +619,4 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
 
     def __do_delete(self, action_id, expect_errors=False):
         return self.app.delete('/v1/actions/%s' % action_id, expect_errors=expect_errors)
+
