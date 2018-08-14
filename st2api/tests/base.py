@@ -111,7 +111,7 @@ class APIControllerWithIncludeAndExcludeFilterTestCase(object):
 
         # Verify all mandatory fields are include
         for field in mandatory_include_fields:
-            self.assertTrue(field in resp.json[0])
+            self.assertResponseObjectContainsField(resp.json[0], field)
 
         # Valid include attribute - not a mandatory field
         include_field = self.include_attribute_field_name
@@ -128,7 +128,7 @@ class APIControllerWithIncludeAndExcludeFilterTestCase(object):
         self.assertEqual(len(resp.json[0].keys()), len(mandatory_include_fields) + 1)
 
         for field in [include_field] + mandatory_include_fields:
-            self.assertTrue(field in resp.json[0])
+            self.assertResponseObjectContainsField(resp.json[0], field)
 
         # Delete mock resources
         self._delete_mock_models(object_ids)
@@ -166,6 +166,17 @@ class APIControllerWithIncludeAndExcludeFilterTestCase(object):
         self.assertFalse(exclude_attribute in resp.json[0])
 
         self._delete_mock_models(object_ids)
+
+    def assertResponseObjectContainsField(self, resp_item, field):
+        # Handle "." and nested fields
+        if '.' in field:
+            split = field.split('.')
+
+            for field_part in split:
+                self.assertTrue(field_part in resp_item)
+                resp_item = resp_item[field_part]
+        else:
+            self.assertTrue(field in resp_item)
 
     def _insert_mock_models(self):
         """
