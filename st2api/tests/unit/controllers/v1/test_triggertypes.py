@@ -14,7 +14,11 @@
 # limitations under the License.
 
 import six
-from tests import FunctionalTest
+
+from st2api.controllers.v1.triggers import TriggerTypeController
+
+from tests.base import FunctionalTest
+from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
 
 http_client = six.moves.http_client
 
@@ -40,7 +44,12 @@ TRIGGER_2 = {
 }
 
 
-class TestTriggerTypeController(FunctionalTest):
+class TriggerTypeControllerTestCase(FunctionalTest,
+                                    APIControllerWithIncludeAndExcludeFilterTestCase):
+    get_all_path = '/v1/triggertypes'
+    controller_cls = TriggerTypeController
+    include_attribute_field_name = 'payload_schema'
+    exclude_attribute_field_name = 'parameters_schema'
 
     @classmethod
     def setUpClass(cls):
@@ -54,7 +63,7 @@ class TestTriggerTypeController(FunctionalTest):
         # the DB cleanup. This is the unfortunate story of why these two lines in this
         # exact order are needed. There are perhaps other ways to fix the problem
         # however this is the most localized solution for now.
-        super(TestTriggerTypeController, cls).setUpClass()
+        super(TriggerTypeControllerTestCase, cls).setUpClass()
         cls._establish_connection_and_re_create_db()
 
     def test_get_all(self):
@@ -130,6 +139,15 @@ class TestTriggerTypeController(FunctionalTest):
         post_resp = self.__do_post(TRIGGER_1)
         del_resp = self.__do_delete(self.__get_trigger_id(post_resp))
         self.assertEqual(del_resp.status_int, http_client.NO_CONTENT)
+
+    def _insert_mock_models(self):
+        trigger_1_id = self.__get_trigger_id(self.__do_post(TRIGGER_0))
+        trigger_2_id = self.__get_trigger_id(self.__do_post(TRIGGER_1))
+
+        return [trigger_1_id, trigger_2_id]
+
+    def _do_delete(self, trigger_id):
+        return self.__do_delete(trigger_id=trigger_id)
 
     @staticmethod
     def __get_trigger_id(resp):
