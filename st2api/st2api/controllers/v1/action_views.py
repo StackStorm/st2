@@ -106,6 +106,8 @@ class OverviewController(resource.ContentPackResourceController):
         'sort': ['pack', 'name']
     }
 
+    mandatory_include_fields = ['pack', 'name']
+
     def get_one(self, ref_or_id, requester_user):
         """
             List action by id.
@@ -121,14 +123,17 @@ class OverviewController(resource.ContentPackResourceController):
         resp.json = result
         return resp
 
-    def get_all(self, sort=None, offset=0, limit=None, requester_user=None, **raw_filters):
+    def get_all(self, exclude_attributes=None, include_attributes=None, sort=None, offset=0,
+                limit=None, requester_user=None, **raw_filters):
         """
             List all actions.
 
             Handles requests:
                 GET /actions/views/overview
         """
-        resp = super(OverviewController, self)._get_all(sort=sort,
+        resp = super(OverviewController, self)._get_all(exclude_fields=exclude_attributes,
+                                                        include_fields=include_attributes,
+                                                        sort=sort,
                                                         offset=offset,
                                                         limit=limit,
                                                         raw_filters=raw_filters,
