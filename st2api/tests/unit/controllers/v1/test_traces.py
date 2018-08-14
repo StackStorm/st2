@@ -13,8 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from st2api.controllers.v1.traces import TracesController
 from st2tests.fixturesloader import FixturesLoader
-from tests import FunctionalTest
+
+from tests.base import FunctionalTest
+from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
 
 FIXTURES_PACK = 'traces'
 
@@ -27,7 +30,12 @@ TEST_MODELS = {
 }
 
 
-class TestTraces(FunctionalTest):
+class TracesControllerTestCase(FunctionalTest,
+                               APIControllerWithIncludeAndExcludeFilterTestCase):
+    get_all_path = '/v1/traces'
+    controller_cls = TracesController
+    include_attribute_field_name = 'trace_tag'
+    exclude_attribute_field_name = 'start_timestamp'
 
     models = None
     trace1 = None
@@ -36,7 +44,7 @@ class TestTraces(FunctionalTest):
 
     @classmethod
     def setUpClass(cls):
-        super(TestTraces, cls).setUpClass()
+        super(TracesControllerTestCase, cls).setUpClass()
         cls.models = FixturesLoader().save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
                                                           fixtures_dict=TEST_MODELS)
         cls.trace1 = cls.models['traces']['trace_empty.yaml']
@@ -140,3 +148,10 @@ class TestTraces(FunctionalTest):
                          '/v1/traces?trigger_instance=x did not return correct trace.')
         self.assertEqual(resp.json[0]['trace_tag'], self.trace3['trace_tag'],
                          'Correct trace not returned.')
+
+    def _insert_mock_models(self):
+        trace_ids = [trace['id'] for trace in self.models['traces'].values()]
+        return trace_ids
+
+    def _delete_mock_models(self, object_ids):
+        pass
