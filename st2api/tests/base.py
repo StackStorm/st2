@@ -74,9 +74,9 @@ class APIControllerWithIncludeAndExcludeFilterTestCase(object):
         url = self.get_all_path + '?exclude_attributes=invalid_field'
         resp = self.app.get(url, expect_errors=True)
 
-        expected_msg = ('Invalid or unsupported exclude attribute specified: invalid_field')
+        expected_msg = ('Invalid or unsupported exclude attribute specified: .*invalid_field.*')
         self.assertEqual(resp.status_int, 400)
-        self.assertEqual(resp.json['faultstring'], expected_msg)
+        self.assertRegexpMatches(resp.json['faultstring'], expected_msg)
 
         # 2. Invalid include_attributes field
         url = self.get_all_path + '?include_attributes=invalid_field'
