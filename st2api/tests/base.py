@@ -172,9 +172,12 @@ class APIControllerWithIncludeAndExcludeFilterTestCase(object):
         if '.' in field:
             split = field.split('.')
 
-            for field_part in split:
+            for index, field_part in enumerate(split):
                 self.assertTrue(field_part in resp_item)
                 resp_item = resp_item[field_part]
+
+            # Additional safety check
+            self.assertEqual(index, len(split) - 1)
         else:
             self.assertTrue(field in resp_item)
 

@@ -264,9 +264,6 @@ class ActionExecutionChildrenController(BaseActionExecutionNestedController):
 
 
 class ActionExecutionAttributeController(BaseActionExecutionNestedController):
-    #valid_exclude_attributes = ['action__pack', 'action__uid'] + \
-    #    ActionExecutionsControllerMixin.valid_exclude_attributes
-
     def get(self, id, attribute, requester_user):
         """
         Retrieve a particular attribute for the provided action execution.
