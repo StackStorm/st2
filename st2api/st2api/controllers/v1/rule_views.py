@@ -84,8 +84,13 @@ class RuleViewController(BaseResourceIsolationControllerMixin, ContentPackResour
         'sort': ['pack', 'name']
     }
 
-    def get_all(self, sort=None, offset=0, limit=None, requester_user=None, **raw_filters):
-        rules = super(RuleViewController, self)._get_all(sort=sort,
+    mandatory_include_fields = ['pack', 'name', 'trigger', 'action']
+
+    def get_all(self, exclude_attributes=None, include_attributes=None, sort=None, offset=0,
+                limit=None, requester_user=None, **raw_filters):
+        rules = super(RuleViewController, self)._get_all(exclude_fields=exclude_attributes,
+                                                         include_fields=include_attributes,
+                                                         sort=sort,
                                                          offset=offset,
                                                          limit=limit,
                                                          raw_filters=raw_filters,
