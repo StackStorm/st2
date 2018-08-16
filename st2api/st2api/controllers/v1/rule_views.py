@@ -84,7 +84,7 @@ class RuleViewController(BaseResourceIsolationControllerMixin, ContentPackResour
         'sort': ['pack', 'name']
     }
 
-    mandatory_include_fields_response = ['pack', 'name', 'trigger']
+    mandatory_include_fields_retrieve = ['pack', 'name', 'trigger']
 
     def get_all(self, exclude_attributes=None, include_attributes=None, sort=None, offset=0,
                 limit=None, requester_user=None, **raw_filters):
