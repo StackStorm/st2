@@ -66,41 +66,47 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
         handler_function(message)
 
     def handle_workflow_execution(self, wf_ex_db):
+        iteration = 0
         wf_ac_ex_id = wf_ex_db.action_execution
-
         LOG.info('[%s] Processing request for workflow execution.', wf_ac_ex_id)
 
         # Refresh record from the database in case the request is in the queue for too long.
         conductor, wf_ex_db = wf_svc.refresh_conductor(str(wf_ex_db.id))
 
-        # Continue if workflow is still active.
+        # Continue if workflow is still active and set workflow to running state.
         if conductor.get_workflow_state() not in states.COMPLETED_STATES:
-            # Set workflow to running state.
+            LOG.info('[%s] Requesting conductor to start running workflow execution.', wf_ac_ex_id)
             conductor.request_workflow_state(states.RUNNING)
 
         # Identify the next set of tasks to execute.
+        msg = '[%s] Identifying next set (%s) of tasks for workflow execution in state "%s".'
+        LOG.info(msg, wf_ac_ex_id, str(iteration), conductor.get_workflow_state())
+        LOG.debug('[%s] %s', wf_ac_ex_id, conductor.serialize())
         next_tasks = conductor.get_next_tasks()
 
         # If there is no new tasks, update execution records to handle possible completion.
         if not next_tasks:
-            LOG.info('[%s] No next tasks identified for workflow execution.', wf_ac_ex_id)
-
             # Update workflow execution and related liveaction and action execution.
+            LOG.info('[%s] No tasks identified to execute next.', wf_ac_ex_id)
             wf_svc.update_execution_records(wf_ex_db, conductor)
 
         # If workflow execution is no longer active, then stop processing here.
         if wf_ex_db.status in states.COMPLETED_STATES:
-            wf_status = wf_ex_db.status
-            LOG.info('[%s] Workflow execution is in completed state "%s".', wf_ac_ex_id, wf_status)
+            msg = '[%s] Workflow execution is in completed state "%s".'
+            LOG.info(msg, wf_ac_ex_id, wf_ex_db.status)
             return
 
         # Iterate while there are next tasks identified for processing. In the case for
         # task with no action execution defined, the task execution will complete
         # immediately with a new set of tasks available.
         while next_tasks:
+            msg = '[%s] Identified the following set of tasks to execute next: %s'
+            LOG.info(msg, wf_ac_ex_id, ', '.join([task['id'] for task in next_tasks]))
+
             # Mark the tasks as running in the task flow before actual task execution.
             for task in next_tasks:
-                LOG.info('[%s] Mark task "%s" as running.', wf_ac_ex_id, task['id'])
+                msg = '[%s] Mark task "%s" in conductor as running.'
+                LOG.info(msg, wf_ac_ex_id, task['id'])
                 ac_ex_event = events.ActionExecutionEvent(states.RUNNING)
                 conductor.update_task_flow(task['id'], ac_ex_event)
 
@@ -109,12 +115,8 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
 
             # If workflow execution is no longer active, then stop processing here.
             if wf_ex_db.status in states.COMPLETED_STATES:
-                LOG.info(
-                    '[%s] Workflow execution is in completed state "%s".',
-                    wf_ac_ex_id,
-                    wf_ex_db.status
-                )
-
+                msg = '[%s] Workflow execution is in completed state "%s".'
+                LOG.info(msg, wf_ac_ex_id, wf_ex_db.status)
                 break
 
             # Request task execution for the tasks.
@@ -130,33 +132,59 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
                     return
 
             # Identify the next set of tasks to execute.
-            LOG.info('[%s] Identifying more tasks for workflow execution.', wf_ac_ex_id)
+            iteration += 1
             conductor, wf_ex_db = wf_svc.refresh_conductor(str(wf_ex_db.id))
+            msg = '[%s] Identifying next set (%s) of tasks for workflow execution in state "%s".'
+            LOG.info(msg, wf_ac_ex_id, str(iteration), conductor.get_workflow_state())
+            LOG.debug('[%s] %s', wf_ac_ex_id, conductor.serialize())
             next_tasks = conductor.get_next_tasks()
+
+            if not next_tasks:
+                LOG.info('[%s] No tasks identified to execute next.', wf_ac_ex_id)
 
     def handle_action_execution(self, ac_ex_db):
         # Exit if action execution is not  executed under an orquesta workflow.
         if 'orquesta' not in ac_ex_db.context:
             return
 
+        # Get related record identifiers.
+        wf_ex_id = ac_ex_db.context['orquesta']['workflow_execution_id']
+        task_ex_id = ac_ex_db.context['orquesta']['task_execution_id']
+
+        # Get execution records for logging purposes.
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
+        task_ex_db = wf_db_access.TaskExecution.get_by_id(task_ex_id)
+
+        wf_ac_ex_id = wf_ex_db.action_execution
+        msg = '[%s] Action execution "%s" for task "%s" is updated and in "%s" state.'
+        LOG.info(msg, wf_ac_ex_id, str(ac_ex_db.id), task_ex_db.task_id, ac_ex_db.status)
+
+        # Skip if task execution is already in completed state.
+        if task_ex_db.status in states.COMPLETED_STATES:
+            LOG.info(
+                '[%s] Action execution "%s" for task "%s" is not processed because '
+                'task execution "%s" is already in completed state "%s".',
+                wf_ac_ex_id,
+                str(ac_ex_db.id),
+                task_ex_db.task_id,
+                str(task_ex_db.id),
+                task_ex_db.status
+            )
+
+            return
+
         # Process pending request on the action execution.
         if ac_ex_db.status == ac_const.LIVEACTION_STATUS_PENDING:
             wf_svc.handle_action_execution_pending(ac_ex_db)
+            return
 
         # Process pause request on the action execution.
         if ac_ex_db.status == ac_const.LIVEACTION_STATUS_PAUSED:
             wf_svc.handle_action_execution_pause(ac_ex_db)
-
-        # Get execution records for logging purposes.
-        wf_ex_id = ac_ex_db.context['orquesta']['workflow_execution_id']
-        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
+            return
 
         # Exit if action execution has not completed yet.
         if ac_ex_db.status not in ac_const.LIVEACTION_COMPLETED_STATES:
-            extra = {'execution': ac_ex_db}
-            msg = '[%s] Skip action execution "%s" because state "%s" is not in a completed state.'
-            msg = msg % (wf_ex_db.action_execution, str(ac_ex_db.id), ac_ex_db.status)
-            LOG.debug(msg, extra=extra)
             return
 
         # Apply post run policies.
