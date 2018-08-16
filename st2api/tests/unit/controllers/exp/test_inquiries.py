@@ -22,8 +22,11 @@ from oslo_config import cfg
 from st2common import log as logging
 from six.moves import http_client
 from st2common.transport.publishers import PoolPublisher
+from st2api.controllers.exp.inquiries import InquiriesController
 import st2common.validators.api.action as action_validator
+
 from tests.base import BaseInquiryControllerTestCase
+from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
 
 
 LOG = logging.getLogger(__name__)
@@ -153,7 +156,12 @@ RESPONSE_MULTIPLE = {
 
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
-class InquiryControllerTestCase(BaseInquiryControllerTestCase):
+class InquiryControllerTestCase(BaseInquiryControllerTestCase,
+                                APIControllerWithIncludeAndExcludeFilterTestCase):
+    get_all_path = '/exp/inquiries'
+    controller_cls = InquiriesController
+    include_attribute_field_name = 'ttl'
+    exclude_attribute_field_name = 'ttl'
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
@@ -403,3 +411,15 @@ class InquiryControllerTestCase(BaseInquiryControllerTestCase):
 
         # Clean up
         cfg.CONF.system_user.user = old_user
+
+    def test_get_all_invalid_exclude_and_include_parameter(self):
+        pass
+
+    def _insert_mock_models(self):
+        id_1 = self._do_create_inquiry(INQUIRY_1, RESULT_DEFAULT).json['id']
+        id_2 = self._do_create_inquiry(INQUIRY_1, RESULT_DEFAULT).json['id']
+
+        return [id_1, id_2]
+
+    def _do_delete(self, rule_id):
+        pass
