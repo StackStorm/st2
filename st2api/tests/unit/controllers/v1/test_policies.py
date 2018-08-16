@@ -20,8 +20,17 @@ from six.moves import http_client
 from st2common.models.api.policy import PolicyTypeAPI, PolicyAPI
 from st2common.persistence.policy import PolicyType, Policy
 from st2common.transport.publishers import PoolPublisher
+from st2api.controllers.v1.policies import PolicyTypeController
+from st2api.controllers.v1.policies import PolicyController
 from st2tests.fixturesloader import FixturesLoader
-from tests import FunctionalTest
+
+from tests.base import FunctionalTest
+from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
+
+__all__ = [
+    'PolicyTypeControllerTestCase',
+    'PolicyControllerTestCase'
+]
 
 
 TEST_FIXTURES = {
@@ -40,16 +49,25 @@ LOADER = FixturesLoader()
 FIXTURES = LOADER.load_fixtures(fixtures_pack=PACK, fixtures_dict=TEST_FIXTURES)
 
 
-class PolicyTypeControllerTest(FunctionalTest):
+class PolicyTypeControllerTestCase(FunctionalTest,
+                               APIControllerWithIncludeAndExcludeFilterTestCase):
+    get_all_path = '/v1/policytypes'
+    controller_cls = PolicyTypeController
+    include_attribute_field_name = 'module'
+    exclude_attribute_field_name = 'parameters'
+
     base_url = '/v1/policytypes'
 
     @classmethod
     def setUpClass(cls):
-        super(PolicyTypeControllerTest, cls).setUpClass()
+        super(PolicyTypeControllerTestCase, cls).setUpClass()
+
+        cls.policy_type_dbs = []
 
         for _, fixture in six.iteritems(FIXTURES['policytypes']):
             instance = PolicyTypeAPI(**fixture)
-            PolicyType.add_or_update(PolicyTypeAPI.to_model(instance))
+            policy_type_db = PolicyType.add_or_update(PolicyTypeAPI.to_model(instance))
+            cls.policy_type_dbs.append(policy_type_db)
 
     def test_policy_type_get_all(self):
         resp = self.__do_get_all()
@@ -100,6 +118,16 @@ class PolicyTypeControllerTest(FunctionalTest):
         resp = self.__do_get_one('1')
         self.assertEqual(resp.status_int, 404)
 
+    def _insert_mock_models(self):
+        result = []
+        for policy_type_db in self.policy_type_dbs:
+            result.append(policy_type_db.id)
+
+        return result
+
+    def _delete_mock_models(self, object_ids):
+        pass
+
     @staticmethod
     def __get_obj_id(resp, idx=-1):
         return resp.json['id'] if idx < 0 else resp.json[idx]['id']
@@ -112,20 +140,29 @@ class PolicyTypeControllerTest(FunctionalTest):
         return self.app.get('%s/%s' % (self.base_url, id), expect_errors=True)
 
 
-class PolicyControllerTest(FunctionalTest):
+class PolicyControllerTestCase(FunctionalTest,
+                               APIControllerWithIncludeAndExcludeFilterTestCase):
+    get_all_path = '/v1/policies'
+    controller_cls = PolicyController
+    include_attribute_field_name = 'policy_type'
+    exclude_attribute_field_name = 'parameters'
+
     base_url = '/v1/policies'
 
     @classmethod
     def setUpClass(cls):
-        super(PolicyControllerTest, cls).setUpClass()
+        super(PolicyControllerTestCase, cls).setUpClass()
 
         for _, fixture in six.iteritems(FIXTURES['policytypes']):
             instance = PolicyTypeAPI(**fixture)
             PolicyType.add_or_update(PolicyTypeAPI.to_model(instance))
 
+        cls.policy_dbs = []
+
         for _, fixture in six.iteritems(FIXTURES['policies']):
             instance = PolicyAPI(**fixture)
-            Policy.add_or_update(PolicyAPI.to_model(instance))
+            policy_db = Policy.add_or_update(PolicyAPI.to_model(instance))
+            cls.policy_dbs.append(policy_db)
 
     def test_get_all(self):
         resp = self.__do_get_all()
@@ -244,6 +281,16 @@ class PolicyControllerTest(FunctionalTest):
 
         # Clean up manually since API won't delete object in sys pack.
         Policy.delete(Policy.get_by_id(self.__get_obj_id(post_resp)))
+
+    def _insert_mock_models(self):
+        result = []
+        for policy_db in self.policy_dbs:
+            result.append(policy_db.id)
+
+        return result
+
+    def _delete_mock_models(self, object_ids):
+        pass
 
     @staticmethod
     def __create_instance():
