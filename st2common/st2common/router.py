@@ -630,7 +630,7 @@ class Router(object):
             return data
 
         # We only care about the first part of the field name since deep filtering happens inside
-        # MongoDB
+        # MongoDB. Deep filtering here would also be quite expensive and waste of CPU cycles.
         cleaned_include_attributes = [attribute.split('.')[0] for attribute in include_attributes]
 
         # Add in mandatory fields which always need to be present in the response (primary keys)
