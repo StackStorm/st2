@@ -4,6 +4,15 @@
   enabled: true
   name: python-script
   runner_module: python_runner
+  output_schema:
+    result:
+      type: object
+    stderr:
+      type: string
+      required: false
+    stdout:
+      type: string
+      required: false
   runner_parameters:
     debug:
       description: Enable runner debug mode.

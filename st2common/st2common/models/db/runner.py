@@ -60,6 +60,8 @@ class RunnerTypeDB(stormbase.StormBaseDB, stormbase.UIDFieldMixin):
         help_text='The python module that implements the action runner for this type.')
     runner_parameters = me.DictField(
         help_text='The specification for parameters for the action runner.')
+    output_schema = me.DictField(
+        help_text='The schema for runner output.')
     query_module = me.StringField(
         required=False,
         help_text='The python module that implements the query module for this runner.')
