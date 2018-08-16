@@ -532,7 +532,11 @@ class Router(object):
         exclude_attributes = kw.get('exclude_attributes', None)
         has_include_or_exclude_attributes = bool(include_attributes) or bool(exclude_attributes)
 
-        if resp.body and has_include_or_exclude_attributes:
+        # NOTE: We do NOT want to process stream controller response
+        is_streamming_controller = endpoint.get('x-is-streaming-endpoint',
+                                                bool('st2stream' in operation_id))
+
+        if not is_streamming_controller and resp.body and has_include_or_exclude_attributes:
             # NOTE: We need to check for response.body attribute since resp.json throws if JSON
             # response is not available
             mandatory_include_fields = getattr(controller_instance,

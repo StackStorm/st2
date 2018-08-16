@@ -4333,6 +4333,7 @@ paths:
   /stream/v1/stream:
     get:
       operationId: st2stream.controllers.v1.stream:stream_controller.get_all
+      x-is-streaming-endpoint: true
       x-permissions: stream_view
       description: |
         Event stream endpoint.
@@ -4377,6 +4378,7 @@ paths:
   /stream/v1/executions/{id}/output:
     get:
       operationId: st2stream.controllers.v1.executions:action_execution_output_controller.get_one
+      x-is-streaming-endpoint: true
       x-permissions: stream_view
       description: |
         Action execution output event stream endpoint.
