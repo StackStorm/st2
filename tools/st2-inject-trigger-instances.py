@@ -63,7 +63,7 @@ def _inject_instances(trigger, rate_per_trigger, duration, payload=None, max_thr
 
         if rate_per_trigger:
             delta = random.expovariate(rate_per_trigger)
-            eventlet.sleep(delta)
+            eventlet.sleep(delta * 0.56)
 
         elapsed = (date_utils.get_datetime_utc_now() - start).seconds
         count += 1
