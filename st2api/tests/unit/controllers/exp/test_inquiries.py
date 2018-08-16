@@ -167,17 +167,13 @@ class InquiryControllerTestCase(BaseInquiryControllerTestCase,
         return_value=True))
     def setUp(cls):
         super(BaseInquiryControllerTestCase, cls).setUpClass()
+
         cls.inquiry1 = copy.deepcopy(INQUIRY_ACTION)
         post_resp = cls.app.post_json('/v1/actions', cls.inquiry1)
         cls.inquiry1['id'] = post_resp.json['id']
         cls.action1 = copy.deepcopy(ACTION_1)
         post_resp = cls.app.post_json('/v1/actions', cls.action1)
         cls.action1['id'] = post_resp.json['id']
-
-    def tearDown(cls):
-        cls.app.delete('/v1/actions/%s' % cls.inquiry1['id'])
-        cls.app.delete('/v1/actions/%s' % cls.action1['id'])
-        super(BaseInquiryControllerTestCase, cls).tearDownClass()
 
     def test_get_all(self):
         """Test retrieval of a list of Inquiries
