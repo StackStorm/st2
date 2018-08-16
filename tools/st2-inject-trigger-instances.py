@@ -49,7 +49,9 @@ def do_register_cli_opts(opts, ignore_errors=False):
                 raise
 
 
-def _inject_instances(trigger, rate_per_trigger, duration, payload={}):
+def _inject_instances(trigger, rate_per_trigger, duration, payload=None, max_throughput=False):
+    payload = payload or {}
+
     start = date_utils.get_datetime_utc_now()
     elapsed = 0.0
     count = 0
@@ -58,12 +60,27 @@ def _inject_instances(trigger, rate_per_trigger, duration, payload={}):
     while elapsed < duration:
         # print('Dispatching trigger %s at time %s', trigger, date_utils.get_datetime_utc_now())
         dispatcher.dispatch(trigger, payload)
-        delta = random.expovariate(rate_per_trigger)
-        eventlet.sleep(delta)
-        elapsed = (date_utils.get_datetime_utc_now() - start).seconds / 60.0
+
+        if rate_per_trigger:
+            delta = random.expovariate(rate_per_trigger)
+            eventlet.sleep(delta)
+
+        elapsed = (date_utils.get_datetime_utc_now() - start).seconds
         count += 1
 
-    print('%s: Emitted %d triggers in %d seconds' % (trigger, count, elapsed))
+    actual_rate = (count / elapsed)
+
+    print('%s: Emitted %d triggers in %d seconds (actual rate=%s triggers / second)' %
+          (trigger, count, elapsed, actual_rate))
+
+    # NOTE: Due the way this script works (allows user to specify a rate, actual rate will always
+    # be a bit lower than the requested one)
+    if rate_per_trigger and (actual_rate < (rate_per_trigger * 0.60)):
+        print('')
+        print('Warning, requested rate was %s triggers / second, but only achieved %s '
+              'triggers / second' % (rate_per_trigger, actual_rate))
+        print('Too increase the throuput you will likely need to run multiple instances of '
+              'this script in parallel.')
 
 
 def main():
@@ -79,8 +96,11 @@ def main():
                     'trigger.'),
         cfg.StrOpt('schema_file', default=None,
                    help='Path to schema file defining trigger and payload.'),
-        cfg.IntOpt('duration', default=1,
-                   help='Duration of stress test in minutes.')
+        cfg.IntOpt('duration', default=60,
+                   help='Duration of stress test in seconds.'),
+        cfg.BoolOpt('max-throughput', default=False,
+                   help='If True, "rate" argument will be ignored and this script will try to '
+                   'saturize the CPU and achieve max utilization.')
     ]
     do_register_cli_opts(cli_opts)
     config.parse_args()
@@ -103,13 +123,18 @@ def main():
     rate = cfg.CONF.rate
     rate_per_trigger = int(rate / len(triggers))
     duration = cfg.CONF.duration
+    max_throughput = cfg.CONF.max_throughput
+
+    if max_throughput:
+        rate = 0
+        rate_per_trigger = 0
 
     dispatcher_pool = eventlet.GreenPool(len(triggers))
 
     for trigger in triggers:
         payload = trigger_payload_schema.get(trigger, {})
         dispatcher_pool.spawn(_inject_instances, trigger, rate_per_trigger, duration,
-                              payload=payload)
+                              payload=payload, max_throughput=max_throughput)
         eventlet.sleep(random.uniform(0, 1))
     dispatcher_pool.waitall()
 
