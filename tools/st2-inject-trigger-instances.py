@@ -75,9 +75,9 @@ def _inject_instances(trigger, rate_per_trigger, duration, payload=None, max_thr
     print('%s: Emitted %d triggers in %d seconds (actual rate=%s triggers / second)' %
           (trigger, count, elapsed, actual_rate))
 
-    # NOTE: Due the way this script works (allows user to specify a rate, actual rate will always
-    # be a bit lower than the requested one)
-    if rate_per_trigger and (actual_rate < rate_per_trigger):
+    # NOTE: Due to the overhead of dispatcher.dispatch call, we allow for 10% of deviation from
+    # requested rate before warning
+    if rate_per_trigger and (actual_rate < (rate_per_trigger * 0.9)):
         print('')
         print('Warning, requested rate was %s triggers / second, but only achieved %s '
               'triggers / second' % (rate_per_trigger, actual_rate))
