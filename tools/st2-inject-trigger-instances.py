@@ -62,6 +62,8 @@ def _inject_instances(trigger, rate_per_trigger, duration, payload=None, max_thr
         dispatcher.dispatch(trigger, payload)
 
         if rate_per_trigger:
+            # NOTE: We decrease sleep delay for 56% to take into account overhead / delay because
+            # of the call to dispatchet.dispatch method.
             delta = random.expovariate(rate_per_trigger)
             eventlet.sleep(delta * 0.56)
 
@@ -75,7 +77,7 @@ def _inject_instances(trigger, rate_per_trigger, duration, payload=None, max_thr
 
     # NOTE: Due the way this script works (allows user to specify a rate, actual rate will always
     # be a bit lower than the requested one)
-    if rate_per_trigger and (actual_rate < (rate_per_trigger * 0.60)):
+    if rate_per_trigger and (actual_rate < rate_per_trigger):
         print('')
         print('Warning, requested rate was %s triggers / second, but only achieved %s '
               'triggers / second' % (rate_per_trigger, actual_rate))
