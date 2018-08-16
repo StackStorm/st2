@@ -68,7 +68,7 @@ def _inject_instances(trigger, rate_per_trigger, duration, payload=None, max_thr
         elapsed = (date_utils.get_datetime_utc_now() - start).seconds
         count += 1
 
-    actual_rate = (count / elapsed)
+    actual_rate = int(count / elapsed)
 
     print('%s: Emitted %d triggers in %d seconds (actual rate=%s triggers / second)' %
           (trigger, count, elapsed, actual_rate))
