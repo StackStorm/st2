@@ -1157,32 +1157,50 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         # Verify that secret parameters are correctly masked when using ?include_attributes filter
         self._do_post(LIVE_ACTION_WITH_SECRET_PARAM)
 
-        responses = [
-            self.app.get('/v1/actionexecutions?limit=1&include_attributes=parameters'),
-            self.app.get('/v1/actionexecutions?limit=1&include_attributes=parameters,action'),
-            self.app.get('/v1/actionexecutions?limit=1&include_attributes=parameters,runner'),
-            self.app.get('/v1/actionexecutions?limit=1&include_attributes=parameters,action,runner')
+        urls = [
+            '/v1/actionexecutions?include_attributes=parameters',
+            '/v1/actionexecutions?include_attributes=parameters,action',
+            '/v1/actionexecutions?include_attributes=parameters,runner',
+            '/v1/actionexecutions?include_attributes=parameters,action,runner'
         ]
 
-        for resp in responses:
+        for url in urls:
+            resp = self.app.get(url + '&limit=1')
+
             self.assertTrue('parameters' in resp.json[0])
             self.assertEqual(resp.json[0]['parameters']['a'], 'param a')
             self.assertEqual(resp.json[0]['parameters']['d'], MASKED_ATTRIBUTE_VALUE)
             self.assertEqual(resp.json[0]['parameters']['password'], MASKED_ATTRIBUTE_VALUE)
             self.assertEqual(resp.json[0]['parameters']['hosts'], 'localhost')
 
-        # NOTE: We don't allow exclusion of attributes such as "action" and "runner" because
-        # that would break secrets masking
-        responses = [
-            self.app.get('/v1/actionexecutions?limit=1&exclude_attributes=action',
-                         expect_errors=True),
-            self.app.get('/v1/actionexecutions?limit=1&exclude_attributes=runner',
-                         expect_errors=True),
-            self.app.get('/v1/actionexecutions?limit=1&exclude_attributes=action,runner',
-                         expect_errors=True),
+        # With ?show_secrets=True
+        urls = [
+            ('/v1/actionexecutions?&include_attributes=parameters'),
+            ('/v1/actionexecutions?include_attributes=parameters,action'),
+            ('/v1/actionexecutions?include_attributes=parameters,runner'),
+            ('/v1/actionexecutions?include_attributes=parameters,action,runner')
         ]
 
-        for resp in responses:
+        for url in urls:
+            resp = self.app.get(url + '&limit=1&show_secrets=True')
+
+            self.assertTrue('parameters' in resp.json[0])
+            self.assertEqual(resp.json[0]['parameters']['a'], 'param a')
+            self.assertEqual(resp.json[0]['parameters']['d'], 'secretpassword1')
+            self.assertEqual(resp.json[0]['parameters']['password'], 'secretpassword2')
+            self.assertEqual(resp.json[0]['parameters']['hosts'], 'localhost')
+
+        # NOTE: We don't allow exclusion of attributes such as "action" and "runner" because
+        # that would break secrets masking
+        urls = [
+            '/v1/actionexecutions?limit=1&exclude_attributes=action',
+            '/v1/actionexecutions?limit=1&exclude_attributes=runner',
+            '/v1/actionexecutions?limit=1&exclude_attributes=action,runner',
+        ]
+
+        for url in urls:
+            resp = self.app.get(url + '&limit=1', expect_errors=True)
+
             self.assertEqual(resp.status_int, 400)
             self.assertTrue('Invalid or unsupported exclude attribute specified:' in
                             resp.json['faultstring'])
