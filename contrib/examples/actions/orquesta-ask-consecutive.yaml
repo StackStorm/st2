@@ -1,0 +1,6 @@
+---
+name: orquesta-ask-consecutive
+description: A basic workflow that demonstrates consecutive inquiries.
+runner_type: orquesta
+entry_point: workflows/orquesta-ask-consecutive.yaml
+enabled: true

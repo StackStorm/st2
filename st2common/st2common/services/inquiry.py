@@ -25,6 +25,7 @@ from st2common.models.db import auth as auth_db_models
 from st2common.constants import action as action_constants
 from st2common.exceptions import inquiry as inquiry_exceptions
 from st2common import log as logging
+from st2common.persistence import liveaction as lv_db_access
 from st2common.rbac import utils as rbac_utils
 from st2common.services import action as action_service
 from st2common.services import executions as execution_service
@@ -117,31 +118,14 @@ def respond(inquiry, response, requester=None):
     if not requester:
         requester = cfg.CONF.system_user.user
 
-    # Mark liveaction and execution success and update result with the inquiry response.
-    LOG.debug('Updating response for inquiry "%s".' % str(inquiry.id))
+    # Retrieve the liveaction from the database.
+    liveaction_db = lv_db_access.LiveAction.get_by_id(inquiry.liveaction.get('id'))
 
-    result = copy.deepcopy(inquiry.result)
-    result['response'] = response
-
-    liveaction_db = action_utils.update_liveaction_status(
-        status=action_constants.LIVEACTION_STATUS_SUCCEEDED,
-        end_timestamp=date_utils.get_datetime_utc_now(),
-        runner_info=sys_info_utils.get_process_info(),
-        result=result,
-        liveaction_id=inquiry.liveaction.get('id')
-    )
-
-    execution_service.update_execution(liveaction_db)
-
-    # Invoke inquiry post run to trigger a callback to parent workflow.
-    LOG.debug('Invoking post run for inquiry "%s".' % str(inquiry.id))
-    runner_container = container.get_runner_container()
-    action_db = action_utils.get_action_by_ref(liveaction_db.action)
-    runnertype_db = action_utils.get_runnertype_by_name(action_db.runner_type['name'])
-    runner = runner_container._get_runner(runnertype_db, action_db, liveaction_db)
-    runner.post_run(status=action_constants.LIVEACTION_STATUS_SUCCEEDED, result=result)
-
-    # Resume the parent workflow.
+    # Resume the parent workflow first. If the action execution for the inquiry is updated first,
+    # it triggers handling of the action execution completion which will interact with the paused
+    # parent workflow. The resuming logic that is executed here will then race with the completion
+    # of the inquiry action execution, which will randomly result in the parent workflow stuck in
+    # paused state.
     if liveaction_db.context.get('parent'):
         LOG.debug('Resuming workflow parent(s) for inquiry "%s".' % str(inquiry.id))
 
@@ -157,5 +141,30 @@ def respond(inquiry, response, requester=None):
 
         if resume_target.status in action_constants.LIVEACTION_PAUSE_STATES:
             action_service.request_resume(resume_target, requester)
+
+    # Succeed the liveaction and update result with the inquiry response.
+    LOG.debug('Updating response for inquiry "%s".' % str(inquiry.id))
+
+    result = copy.deepcopy(inquiry.result)
+    result['response'] = response
+
+    liveaction_db = action_utils.update_liveaction_status(
+        status=action_constants.LIVEACTION_STATUS_SUCCEEDED,
+        end_timestamp=date_utils.get_datetime_utc_now(),
+        runner_info=sys_info_utils.get_process_info(),
+        result=result,
+        liveaction_id=str(liveaction_db.id)
+    )
+
+    # Sync the liveaction with the corresponding action execution.
+    execution_service.update_execution(liveaction_db)
+
+    # Invoke inquiry post run to trigger a callback to parent workflow.
+    LOG.debug('Invoking post run for inquiry "%s".' % str(inquiry.id))
+    runner_container = container.get_runner_container()
+    action_db = action_utils.get_action_by_ref(liveaction_db.action)
+    runnertype_db = action_utils.get_runnertype_by_name(action_db.runner_type['name'])
+    runner = runner_container._get_runner(runnertype_db, action_db, liveaction_db)
+    runner.post_run(status=action_constants.LIVEACTION_STATUS_SUCCEEDED, result=result)
 
     return liveaction_db
