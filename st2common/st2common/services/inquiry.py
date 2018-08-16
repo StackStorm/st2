@@ -30,6 +30,7 @@ from st2common.services import action as action_service
 from st2common.services import executions as execution_service
 from st2common.services import workflows as workflow_service
 from st2common.util import action_db as action_utils
+from st2common.util import date as date_utils
 from st2common.util import schema as schema_utils
 from st2common.util import system_info as sys_info_utils
 
@@ -124,6 +125,7 @@ def respond(inquiry, response, requester=None):
 
     liveaction_db = action_utils.update_liveaction_status(
         status=action_constants.LIVEACTION_STATUS_SUCCEEDED,
+        end_timestamp=date_utils.get_datetime_utc_now(),
         runner_info=sys_info_utils.get_process_info(),
         result=result,
         liveaction_id=inquiry.liveaction.get('id')
