@@ -48,7 +48,8 @@ INQUIRY_RUNNER = 'inquirer'
 
 
 class InquiriesController(ResourceController):
-    """API controller for Inquiries
+    """
+    API controller for Inquiries
     """
 
     supported_filters = copy.deepcopy(SUPPORTED_FILTERS)
@@ -66,9 +67,14 @@ class InquiriesController(ResourceController):
                 GET /inquiries/
         """
 
+        # NOTE: This controller retrieves execution objects and returns a new model composed of
+        # execution.result fields and that's why we pass empty value for include_fields and
+        # exclude_fields.
+        # We only need to retrieve "id" and "result" from database and perform actual field
+        # filtering before returning the response.
         raw_inquiries = super(InquiriesController, self)._get_all(
-            exclude_fields=exclude_attributes,
-            include_fields=include_attributes,
+            exclude_fields=[],
+            include_fields=['id', 'result'],
             limit=limit,
             raw_filters={
                 'status': action_constants.LIVEACTION_STATUS_PENDING,
