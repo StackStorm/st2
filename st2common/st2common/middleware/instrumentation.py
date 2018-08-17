@@ -41,6 +41,9 @@ class RequestInstrumentationMiddleware(object):
 
         metrics_driver = get_driver()
 
+        key = 'st2.%s.requests.total' % (self._service_name)
+        metrics_driver.inc_counter(key)
+
         key = 'st2.%s.requests.method.%s' % (self._service_name, request.method)
         metrics_driver.inc_counter(key)
 
