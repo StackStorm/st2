@@ -13,17 +13,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from st2common import log as logging
 from st2common.metrics.base import BaseMetricsDriver
 
 __all__ = [
-    'NoopDriver'
+    'EchoDriver'
 ]
 
+LOG = logging.getLogger(__name__)
 
-class NoopDriver(BaseMetricsDriver):
+
+class EchoDriver(BaseMetricsDriver):
     """
-    Dummy implementation of BaseMetricsDriver
+    Driver which logs / LOG.debugs out each metrics operation which would have been performed.
     """
 
-    def __init__(self, *_args, **_kwargs):
-        pass
+    def time(self, key, time):
+        LOG.debug('[metrics] time(key=%s, time=%s)' % (key, time))
+
+    def inc_counter(self, key, amount=1):
+        LOG.debug('[metrics] counter.incr(%s, %s)' % (key, amount))
+
+    def decr_counter(self, key, amount=1):
+        LOG.debug('[metrics] counter.decr(%s, %s)' % (key, amount))
+
+    def set_gauge(self, key, value):
+        LOG.debug('[metrics] set_gauge(%s, %s)' % (key, value))
+
+    def inc_gauge(self, key, amount=1):
+        LOG.debug('[metrics] gauge.incr(%s, %s)' % (key, amount))
+
+    def decr_gauge(self, key, amount=1):
+        LOG.debug('[metrics] gauge.decr(%s, %s)' % (key, amount))
