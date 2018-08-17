@@ -26,8 +26,10 @@ __all__ = [
 
 
 class PrometheusDriver(BaseMetricsDriver):
-    """ Base class for driver implementations for metric collection
     """
+    Base class for driver implementations for metric collection
+    """
+
     def __init__(self):
         pass
 
@@ -57,7 +59,6 @@ class PrometheusDriver(BaseMetricsDriver):
             key
         )
         prometheus_counter.dec(amount)
-
 
     def set_gauge(self, key, value):
         """
