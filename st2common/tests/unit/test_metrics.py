@@ -168,7 +168,7 @@ class TestStatsDMetricsDriver(unittest2.TestCase):
         params = ('key1',)
         mock_gauge = MagicMock()
         statsd.Gauge().decrement.side_effect = mock_gauge
-        self._driver.incr_gauge(*params)
+        self._driver.decr_gauge(*params)
         mock_gauge.assert_called_once_with(None, 1)
 
         params = ('key2', 100)
