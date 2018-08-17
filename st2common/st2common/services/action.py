@@ -442,7 +442,7 @@ def is_children_active(liveaction_id):
 
     inactive_statuses = (
         action_constants.LIVEACTION_COMPLETED_STATES +
-        [action_constants.LIVEACTION_STATUS_PAUSED]
+        [action_constants.LIVEACTION_STATUS_PAUSED, action_constants.LIVEACTION_STATUS_PENDING]
     )
 
     completed = [

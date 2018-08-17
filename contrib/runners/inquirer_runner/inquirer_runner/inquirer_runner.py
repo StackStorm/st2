@@ -105,8 +105,6 @@ class Inquirer(runners.ActionRunner):
         return (action_constants.LIVEACTION_STATUS_PENDING, result, None)
 
     def post_run(self, status, result):
-        super(Inquirer, self).post_run(status, result)
-
         # If the action execution goes into pending state at the onstart of the inquiry,
         # then paused the parent/root workflow in the post run. Previously, the pause request
         # is made in the run method, but because the liveaction hasn't update to pending status
@@ -125,6 +123,9 @@ class Inquirer(runners.ActionRunner):
             if pause_parent:
                 root_liveaction = action_service.get_root_liveaction(self.liveaction)
                 action_service.request_pause(root_liveaction, self.context.get('user', None))
+
+        # Invoke post run of parent for common post run related work.
+        super(Inquirer, self).post_run(status, result)
 
 
 def get_runner():
