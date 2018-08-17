@@ -25,7 +25,11 @@ from st2common.constants.metrics import METRICS_COUNTER_SUFFIX, METRICS_TIMER_SU
 from st2common.util.date import get_datetime_utc_now
 
 __all__ = [
-    'TestBaseMetricsDriver'
+    'TestBaseMetricsDriver',
+    'TestStatsDMetricsDriver',
+    'TestCounterContextManager',
+    'TestTimerContextManager',
+    'TestCounterWithTimerContextManager'
 ]
 
 cfg.CONF.set_override('driver', 'noop', group='metrics')
@@ -136,6 +140,42 @@ class TestStatsDMetricsDriver(unittest2.TestCase):
         params = ('test', '1')
         with self.assertRaises(AssertionError):
             self._driver.dec_counter(*params)
+
+    @patch('st2common.metrics.drivers.statsd_driver.statsd')
+    def test_set_gauge_success(self, statsd):
+        params = ('key', 100)
+        mock_gauge = MagicMock()
+        statsd.Gauge().send.side_effect = mock_gauge
+        self._driver.set_gauge(*params)
+        mock_gauge.assert_called_once_with(None, params[1])
+
+    @patch('st2common.metrics.drivers.statsd_driver.statsd')
+    def test_incr_gauge_success(self, statsd):
+        params = ('key1',)
+        mock_gauge = MagicMock()
+        statsd.Gauge().increment.side_effect = mock_gauge
+        self._driver.incr_gauge(*params)
+        mock_gauge.assert_called_once_with(None, 1)
+
+        params = ('key2', 100)
+        mock_gauge = MagicMock()
+        statsd.Gauge().increment.side_effect = mock_gauge
+        self._driver.incr_gauge(*params)
+        mock_gauge.assert_called_once_with(None, params[1])
+
+    @patch('st2common.metrics.drivers.statsd_driver.statsd')
+    def test_decr_gauge_success(self, statsd):
+        params = ('key1',)
+        mock_gauge = MagicMock()
+        statsd.Gauge().decrement.side_effect = mock_gauge
+        self._driver.incr_gauge(*params)
+        mock_gauge.assert_called_once_with(None, 1)
+
+        params = ('key2', 100)
+        mock_gauge = MagicMock()
+        statsd.Gauge().decrement.side_effect = mock_gauge
+        self._driver.decr_gauge(*params)
+        mock_gauge.assert_called_once_with(None, params[1])
 
 
 class TestCounterContextManager(unittest2.TestCase):
