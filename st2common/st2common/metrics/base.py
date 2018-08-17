@@ -26,6 +26,18 @@ from st2common.util.loader import get_plugin_instance
 from st2common.util.date import get_datetime_utc_now
 from st2common.exceptions.plugins import PluginLoadError
 
+__all__ = [
+    'BaseMetricsDriver',
+
+    'Timer',
+    'Counter',
+    'CounterWithTimer',
+
+    'metrics_initialize',
+    'get_driver',
+    'check_key'
+]
+
 if not hasattr(cfg.CONF, 'metrics'):
     from st2common.config import register_opts
     register_opts()
