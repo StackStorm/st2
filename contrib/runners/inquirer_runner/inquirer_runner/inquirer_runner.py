@@ -94,17 +94,6 @@ class Inquirer(runners.ActionRunner):
 
         self.trigger_dispatcher.dispatch(trigger_ref, trigger_payload)
 
-        # For action execution under Action Chain and Mistral workflows, request the entire
-        # workflow to pause. Orquesta handles pause differently and so does not require parent
-        # to pause. Orquesta allows for other branches to keep running. When there is no other
-        # active branches, the conductor will see there is only the pending task and will know
-        # to pause the workflow.
-        if (liveaction_db.context.get("parent") and
-                not workflow_service.is_action_execution_under_workflow_context(liveaction_db)):
-            # Get the root liveaction and request that it pauses
-            root_liveaction = action_service.get_root_liveaction(liveaction_db)
-            action_service.request_pause(root_liveaction, self.context.get('user', None))
-
         result = {
             "schema": self.schema,
             "roles": self.roles_param,
@@ -114,6 +103,28 @@ class Inquirer(runners.ActionRunner):
         }
 
         return (action_constants.LIVEACTION_STATUS_PENDING, result, None)
+
+    def post_run(self, status, result):
+        super(Inquirer, self).post_run(status, result)
+
+        # If the action execution goes into pending state at the onstart of the inquiry,
+        # then paused the parent/root workflow in the post run. Previously, the pause request
+        # is made in the run method, but because the liveaction hasn't update to pending status
+        # yet, there is a race condition where the pause request is mishandled.
+        if status == action_constants.LIVEACTION_STATUS_PENDING:
+            pause_parent = (
+                self.liveaction.context.get("parent") and
+                not workflow_service.is_action_execution_under_workflow_context(self.liveaction)
+            )
+
+            # For action execution under Action Chain and Mistral workflows, request the entire
+            # workflow to pause. Orquesta handles pause differently and so does not require parent
+            # to pause. Orquesta allows for other branches to keep running. When there is no other
+            # active branches, the conductor will see there is only the pending task and will know
+            # to pause the workflow.
+            if pause_parent:
+                root_liveaction = action_service.get_root_liveaction(self.liveaction)
+                action_service.request_pause(root_liveaction, self.context.get('user', None))
 
 
 def get_runner():

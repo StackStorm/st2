@@ -90,16 +90,16 @@ class InquiryTestCase(st2tests.RunnerTestCase):
 
     def test_simple_inquiry(self):
         runner = inquirer_runner.get_runner()
-        runner.context = {
-            'user': test_user
-        }
+        runner.context = {'user': test_user}
         runner.action = self._get_mock_action_obj()
         runner.runner_parameters = runner_params
         runner.pre_run()
-        mock_inquiry_liveaction_db.context = {
-            "parent": test_parent.id
-        }
+
+        mock_inquiry_liveaction_db.context = {'parent': test_parent.id}
+        runner.liveaction = mock_inquiry_liveaction_db
+
         (status, output, _) = runner.run({})
+
         self.assertEqual(status, action_constants.LIVEACTION_STATUS_PENDING)
         self.assertEqual(
             output,
@@ -111,6 +111,7 @@ class InquiryTestCase(st2tests.RunnerTestCase):
                 'ttl': 1440
             }
         )
+
         mock_trigger_dispatcher.return_value.dispatch.assert_called_once_with(
             'core.st2.generic.inquiry',
             {
@@ -118,10 +119,10 @@ class InquiryTestCase(st2tests.RunnerTestCase):
                 'route': "developers"
             }
         )
-        mock_request_pause.assert_called_once_with(
-            test_parent,
-            test_user
-        )
+
+        runner.post_run(action_constants.LIVEACTION_STATUS_PENDING, {})
+
+        mock_request_pause.assert_called_once_with(test_parent, test_user)
 
     def test_inquiry_no_parent(self):
         """Should behave like a regular execution, but without requesting a pause
