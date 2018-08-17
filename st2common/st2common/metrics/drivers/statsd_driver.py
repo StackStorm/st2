@@ -12,15 +12,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from numbers import Number
-from oslo_config import cfg
-import statsd
 
-from st2common.metrics.base import BaseMetricsDriver, check_key
+from numbers import Number
+
+import statsd
+from oslo_config import cfg
+
+from st2common.metrics.base import BaseMetricsDriver
+from st2common.metrics.base import check_key
+
+__all__ = [
+    'StatsdDriver'
+]
 
 
 class StatsdDriver(BaseMetricsDriver):
-    """ StatsD Implementation of the metrics driver
+    """
+    StatsD Implementation of the metrics driver
     """
     def __init__(self):
         statsd.Connection.set_defaults(host=cfg.CONF.metrics.host, port=cfg.CONF.metrics.port)
@@ -49,3 +57,33 @@ class StatsdDriver(BaseMetricsDriver):
         assert isinstance(amount, Number)
         self._counters[key] = self._counters.get(key, statsd.Counter(key))
         self._counters[key] -= amount
+
+    def set_gauge(self, key, value):
+        """
+        Set gauge value.
+        """
+        check_key(key)
+        assert isinstance(value, Number)
+
+        gauge = statsd.Gauge(key)
+        gauge.send(None, value)
+
+    def incr_gauge(self, key, amount=1):
+        """
+        Increment gauge value.
+        """
+        check_key(key)
+        assert isinstance(amount, Number)
+
+        gauge = statsd.Gauge(key)
+        gauge.increment(None, amount)
+
+    def decr_gauge(self, key, amount=1):
+        """
+        Decrement gauge value.
+        """
+        check_key(key)
+        assert isinstance(amount, Number)
+
+        gauge = statsd.Gauge(key)
+        gauge.decrement(None, amount)

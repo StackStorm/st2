@@ -96,20 +96,43 @@ def format_metrics_key(action_db=None, liveaction_db=None, key=None):
 
 
 class BaseMetricsDriver(object):
-    """ Base class for driver implementations for metric collection
     """
+    Base class for driver implementations for metric collection
+    """
+
     def time(self, key, time):
-        """ Timer metric
+        """
+        Timer metric
         """
         pass
 
     def inc_counter(self, key, amount=1):
-        """ Increment counter
+        """
+        Increment counter
         """
         pass
 
     def dec_counter(self, key, amount=1):
-        """ Decrement metric
+        """
+        Decrement metric
+        """
+        pass
+
+    def set_gauge(self, key, value):
+        """
+        Set gauge value.
+        """
+        pass
+
+    def incr_gauge(self, key, amount=1):
+        """
+        Increment gauge value.
+        """
+        pass
+
+    def decr_gauge(self, key, amount=1):
+        """
+        Decrement gauge value.
         """
         pass
 
@@ -122,7 +145,8 @@ def check_key(key):
 
 
 class Timer(object):
-    """ Timer context manager for easily sending timer statistics.
+    """
+    Timer context manager for easily sending timer statistics.
     """
     def __init__(self, key, include_parameter=False):
         check_key(key)
@@ -165,7 +189,8 @@ class Timer(object):
 
 
 class Counter(object):
-    """ Timer context manager for easily sending timer statistics.
+    """
+    Counter context manager for easily sending counter statistics.
     """
     def __init__(self, key):
         check_key(key)
