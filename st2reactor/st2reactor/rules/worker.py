@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 from kombu import Connection
 
 from st2common import log as logging
@@ -26,6 +27,8 @@ from st2common.transport import utils as transport_utils
 import st2reactor.container.utils as container_utils
 from st2reactor.rules.engine import RulesEngine
 from st2common.transport.queues import RULESENGINE_WORK_QUEUE
+from st2common.metrics.base import CounterWithTimer
+from st2common.metrics.base import Timer
 from st2common.metrics.base import format_metrics_key, get_driver
 
 
@@ -87,7 +90,11 @@ class TriggerInstanceDispatcher(consumers.StagedMessageHandler):
 
             container_utils.update_trigger_instance_status(
                 trigger_instance, trigger_constants.TRIGGER_INSTANCE_PROCESSING)
-            self.rules_engine.handle_trigger_instance(trigger_instance)
+
+            with CounterWithTimer(key="st2.rules.processing"):
+                with Timer(key='st2.rules.processing.trigger_instance.%s' % (trigger_instance.id)):
+                    self.rules_engine.handle_trigger_instance(trigger_instance)
+
             container_utils.update_trigger_instance_status(
                 trigger_instance, trigger_constants.TRIGGER_INSTANCE_PROCESSED)
         except:

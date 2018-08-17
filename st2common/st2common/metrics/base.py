@@ -58,7 +58,8 @@ def _format_metrics_key_for_liveaction_db(liveaction_db):
 
 
 def format_metrics_key(action_db=None, liveaction_db=None, key=None):
-    """Return a string for usage as metrics key.
+    """
+    Return a string for usage as metrics key.
     """
     assert (action_db or key or liveaction_db), """Must supply one of key, action_db, or
                                                  liveaction_db"""

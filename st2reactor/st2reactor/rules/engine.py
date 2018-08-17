@@ -23,6 +23,10 @@ from st2common.metrics.base import format_metrics_key, get_driver
 
 LOG = logging.getLogger('st2reactor.rules.RulesEngine')
 
+__all__ = [
+    'RulesEngine'
+]
+
 
 class RulesEngine(object):
     def handle_trigger_instance(self, trigger_instance):
@@ -72,7 +76,6 @@ class RulesEngine(object):
         """
         enforcers = []
         for matching_rule in matching_rules:
-
             get_driver().inc_counter(
                 format_metrics_key(
                     key='rule.%s' % matching_rule
