@@ -34,7 +34,7 @@ from st2common.util.action_db import (update_liveaction_status, get_liveaction_b
 from st2common.util import param as param_utils
 from st2common.util.config_loader import ContentPackConfigLoader
 from st2common.metrics.base import CounterWithTimer
-from st2common.util import jsonify
+from st2common.util import jsonify, schema
 
 from st2common.runners.base import get_runner
 from st2common.runners.base import AsyncActionRunner, PollingAsyncActionRunner
@@ -126,6 +126,17 @@ class RunnerContainer(object):
                 with CounterWithTimer(key='action.%s.executions' % (runner.action.ref)):
                     (status, result, context) = runner.run(action_params)
                     result = jsonify.try_loads(result)
+
+            try:
+                LOG.debug('Validating runner output: %s', runner.runner_type.output_schema)
+                runner_schema = {
+                    "type": "object",
+                    "properties": runner.runner_type.output_schema,
+                    "additionalProperties": False
+                }
+                schema.validate(result, runner_schema, cls=schema.get_validator('custom'))
+            except AttributeError:
+                LOG.debug('No output schema')
 
             action_completed = status in action_constants.LIVEACTION_COMPLETED_STATES
 

@@ -6,13 +6,19 @@
   runner_module: python_runner
   output_schema:
     result:
-      type: object
+      anyOf:
+        - type: object
+        - type: string
+        - type: integer
     stderr:
       type: string
-      required: false
+      required: true
     stdout:
       type: string
-      required: false
+      required: true
+    exit_code:
+      type: integer
+      required: true
   runner_parameters:
     debug:
       description: Enable runner debug mode.
