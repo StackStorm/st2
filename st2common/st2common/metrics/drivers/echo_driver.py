@@ -34,7 +34,7 @@ class EchoDriver(BaseMetricsDriver):
     def inc_counter(self, key, amount=1):
         LOG.debug('[metrics] counter.incr(%s, %s)' % (key, amount))
 
-    def decr_counter(self, key, amount=1):
+    def dec_counter(self, key, amount=1):
         LOG.debug('[metrics] counter.decr(%s, %s)' % (key, amount))
 
     def set_gauge(self, key, value):
@@ -43,5 +43,5 @@ class EchoDriver(BaseMetricsDriver):
     def inc_gauge(self, key, amount=1):
         LOG.debug('[metrics] gauge.incr(%s, %s)' % (key, amount))
 
-    def decr_gauge(self, key, amount=1):
+    def dec_gauge(self, key, amount=1):
         LOG.debug('[metrics] gauge.decr(%s, %s)' % (key, amount))
