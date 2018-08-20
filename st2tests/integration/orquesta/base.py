@@ -85,8 +85,8 @@ class TestWorkflowExecution(unittest2.TestCase):
         except:
             if ex.status in action_constants.LIVEACTION_COMPLETED_STATES:
                 raise Exception(
-                    'Execution is in completed state and does not '
-                    'match expected state(s).'
+                    'Execution is in completed state "%s" and '
+                    'does not match expected state(s).' % ex.status
                 )
             else:
                 raise
@@ -110,12 +110,22 @@ class TestWorkflowExecution(unittest2.TestCase):
 
         try:
             self.assertEqual(len(task_exs), num_task_exs)
+        except:
+            if ex.status in action_constants.LIVEACTION_COMPLETED_STATES:
+                raise Exception(
+                    'Execution is in completed state and does not '
+                    'match expected number of tasks.'
+                )
+            else:
+                raise
+
+        try:
             self.assertTrue(all([task_ex.status == status for task_ex in task_exs]))
         except:
             if ex.status in action_constants.LIVEACTION_COMPLETED_STATES:
                 raise Exception(
                     'Execution is in completed state and does not '
-                    'match expected task.'
+                    'match expected task state(s).'
                 )
             else:
                 raise

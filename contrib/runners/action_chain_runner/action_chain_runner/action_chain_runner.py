@@ -568,6 +568,12 @@ class ActionChainRunner(ActionRunner):
                         chain_status = action_constants.LIVEACTION_STATUS_PAUSED
                         self._save_vars()
                         action_node = None
+                    elif liveaction.status == action_constants.LIVEACTION_STATUS_PENDING:
+                        LOG.info('Chain execution (%s) paused because task "%s" is pending.',
+                                 self.liveaction_id, action_node.name)
+                        chain_status = action_constants.LIVEACTION_STATUS_PAUSED
+                        self._save_vars()
+                        action_node = None
                     elif liveaction.status in action_constants.LIVEACTION_FAILED_STATES:
                         chain_status = action_constants.LIVEACTION_STATUS_FAILED
                         action_node = self.chain_holder.get_next_node(
@@ -735,7 +741,8 @@ class ActionChainRunner(ActionRunner):
 
         while (wait_for_completion and liveaction.status not in (
                 action_constants.LIVEACTION_COMPLETED_STATES +
-                [action_constants.LIVEACTION_STATUS_PAUSED])):
+                [action_constants.LIVEACTION_STATUS_PAUSED,
+                 action_constants.LIVEACTION_STATUS_PENDING])):
             eventlet.sleep(sleep_delay)
             liveaction = action_db_util.get_liveaction_by_id(liveaction.id)
 
