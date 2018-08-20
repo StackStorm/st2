@@ -63,7 +63,7 @@ def create_request(liveaction):
     """
     # We import this here to avoid conflicts w/ runners that might import this
     # file since the runners don't have the config context by default.
-    from st2common.metrics.base import get_driver, format_metrics_key
+    from st2common.metrics.base import get_driver
 
     # Use the user context from the parent action execution. Subtasks in a workflow
     # action can be invoked by a system user and so we want to use the user context
@@ -136,7 +136,7 @@ def create_request(liveaction):
                 trace_service.get_trace_component_for_action_execution(execution, liveaction)
             ])
 
-    get_driver().inc_counter(format_metrics_key(key='action.executions.%s' % (liveaction.status)))
+    get_driver().inc_counter('st2.action.executions.%s' % (liveaction.status))
 
     return liveaction, execution
 

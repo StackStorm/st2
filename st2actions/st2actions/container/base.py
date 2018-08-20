@@ -33,7 +33,7 @@ from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
 from st2common.util.action_db import (update_liveaction_status, get_liveaction_by_id)
 from st2common.util import param as param_utils
 from st2common.util.config_loader import ContentPackConfigLoader
-from st2common.metrics.base import CounterWithTimer, format_metrics_key
+from st2common.metrics.base import CounterWithTimer
 from st2common.util import jsonify
 
 from st2common.runners.base import get_runner
@@ -122,9 +122,8 @@ class RunnerContainer(object):
             extra = {'runner': runner, 'parameters': resolved_action_params}
             LOG.debug('Performing run for runner: %s' % (runner.runner_id), extra=extra)
 
-            with CounterWithTimer(key=format_metrics_key('action.executions')):
-                with CounterWithTimer(key=format_metrics_key('action.%s.executions' %
-                                      (runner.action.ref))):
+            with CounterWithTimer(key=('st2.action.executions')):
+                with CounterWithTimer(key=('st2.action.%s.executions' % (runner.action.ref))):
                     (status, result, context) = runner.run(action_params)
                     result = jsonify.try_loads(result)
 

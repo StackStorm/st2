@@ -29,7 +29,7 @@ from st2reactor.rules.engine import RulesEngine
 from st2common.transport.queues import RULESENGINE_WORK_QUEUE
 from st2common.metrics.base import CounterWithTimer
 from st2common.metrics.base import Timer
-from st2common.metrics.base import format_metrics_key, get_driver
+from st2common.metrics.base import get_driver
 
 
 LOG = logging.getLogger(__name__)
@@ -65,11 +65,7 @@ class TriggerInstanceDispatcher(consumers.StagedMessageHandler):
         if not trigger_instance:
             raise ValueError('No trigger_instance provided for processing.')
 
-        get_driver().inc_counter(
-            format_metrics_key(
-                key='trigger.%s.processed' % (trigger_instance.trigger)
-            )
-        )
+        get_driver().inc_counter('st2.trigger.%s.processed' % (trigger_instance.trigger))
 
         try:
             # Use trace_context from the message and if not found create a new context
@@ -90,7 +86,7 @@ class TriggerInstanceDispatcher(consumers.StagedMessageHandler):
             container_utils.update_trigger_instance_status(
                 trigger_instance, trigger_constants.TRIGGER_INSTANCE_PROCESSING)
 
-            with CounterWithTimer(key=format_metrics_key(key='rule.processed')):
+            with CounterWithTimer(key='st2.rule.processed'):
                 with Timer(key='st2.trigger_instance.%s.processed' % (trigger_instance.id)):
                     self.rules_engine.handle_trigger_instance(trigger_instance)
 
