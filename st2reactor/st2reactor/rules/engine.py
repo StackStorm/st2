@@ -74,13 +74,12 @@ class RulesEngine(object):
         This method is trigger_instance specific therefore if creation of 1 RuleEnforcer
         fails it is likely that all wil be broken.
         """
+        metrics_driver = get_driver()
+
         enforcers = []
         for matching_rule in matching_rules:
-            get_driver().inc_counter(
-                format_metrics_key(
-                    key='rule.%s' % matching_rule
-                )
-            )
+            driver.inc_counter(format_metrics_key('rule.matched'))
+            driver.inc_counter(format_metrics_key(key='rule.%s.matched' % (matching_rule.ref)))
 
             enforcers.append(RuleEnforcer(trigger_instance, matching_rule))
         return enforcers

@@ -122,9 +122,11 @@ class RunnerContainer(object):
             extra = {'runner': runner, 'parameters': resolved_action_params}
             LOG.debug('Performing run for runner: %s' % (runner.runner_id), extra=extra)
 
-            with CounterWithTimer(key=format_metrics_key(action_db=runner.action, key='action')):
-                (status, result, context) = runner.run(action_params)
-                result = jsonify.try_loads(result)
+            with CounterWithTimer(key=format_metrics_key('action.executions')):
+                with CounterWithTimer(key=format_metrics_key('action.%s.executions' %
+                                      (runner.action.ref))):
+                    (status, result, context) = runner.run(action_params)
+                    result = jsonify.try_loads(result)
 
             action_completed = status in action_constants.LIVEACTION_COMPLETED_STATES
 

@@ -61,14 +61,13 @@ class TriggerInstanceDispatcher(consumers.StagedMessageHandler):
         return self._compose_pre_ack_process_response(trigger_instance, message)
 
     def process(self, pre_ack_response):
-
         trigger_instance, message = self._decompose_pre_ack_process_response(pre_ack_response)
         if not trigger_instance:
             raise ValueError('No trigger_instance provided for processing.')
 
         get_driver().inc_counter(
             format_metrics_key(
-                key='trigger.%s' % (trigger_instance.trigger)
+                key='trigger.%s.processed' % (trigger_instance.trigger)
             )
         )
 
@@ -91,8 +90,8 @@ class TriggerInstanceDispatcher(consumers.StagedMessageHandler):
             container_utils.update_trigger_instance_status(
                 trigger_instance, trigger_constants.TRIGGER_INSTANCE_PROCESSING)
 
-            with CounterWithTimer(key="st2.rule.processed"):
-                with Timer(key='st2.rule.processed.trigger_instance.%s' % (trigger_instance.id)):
+            with CounterWithTimer(key=format_metrics_key('rule.processed')):
+                with Timer(key='st2.trigger_instance.%s.processed' % (trigger_instance.id)):
                     self.rules_engine.handle_trigger_instance(trigger_instance)
 
             container_utils.update_trigger_instance_status(
