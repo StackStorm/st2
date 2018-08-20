@@ -150,31 +150,31 @@ class TestStatsDMetricsDriver(unittest2.TestCase):
         mock_gauge.assert_called_once_with(None, params[1])
 
     @patch('st2common.metrics.drivers.statsd_driver.statsd')
-    def test_incr_gauge_success(self, statsd):
+    def test_inc_gauge_success(self, statsd):
         params = ('key1',)
         mock_gauge = MagicMock()
         statsd.Gauge().increment.side_effect = mock_gauge
-        self._driver.incr_gauge(*params)
+        self._driver.inc_gauge(*params)
         mock_gauge.assert_called_once_with(None, 1)
 
         params = ('key2', 100)
         mock_gauge = MagicMock()
         statsd.Gauge().increment.side_effect = mock_gauge
-        self._driver.incr_gauge(*params)
+        self._driver.inc_gauge(*params)
         mock_gauge.assert_called_once_with(None, params[1])
 
     @patch('st2common.metrics.drivers.statsd_driver.statsd')
-    def test_decr_gauge_success(self, statsd):
+    def test_dec_gauge_success(self, statsd):
         params = ('key1',)
         mock_gauge = MagicMock()
         statsd.Gauge().decrement.side_effect = mock_gauge
-        self._driver.decr_gauge(*params)
+        self._driver.dec_gauge(*params)
         mock_gauge.assert_called_once_with(None, 1)
 
         params = ('key2', 100)
         mock_gauge = MagicMock()
         statsd.Gauge().decrement.side_effect = mock_gauge
-        self._driver.decr_gauge(*params)
+        self._driver.dec_gauge(*params)
         mock_gauge.assert_called_once_with(None, params[1])
 
 

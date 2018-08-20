@@ -70,7 +70,7 @@ class PrometheusDriver(BaseMetricsDriver):
         gauge = Gauge(key)
         gauge.set(value)
 
-    def incr_gauge(self, key, amount=1):
+    def inc_gauge(self, key, amount=1):
         """
         Increment gauge value.
         """
@@ -80,7 +80,7 @@ class PrometheusDriver(BaseMetricsDriver):
         gauge = Gauge(key)
         gauge.incr(amount)
 
-    def decr_gauge(self, key, amount=1):
+    def dec_gauge(self, key, amount=1):
         """
         Decrement gauge value.
         """

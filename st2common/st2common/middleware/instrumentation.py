@@ -76,8 +76,8 @@ class ResponseInstrumentationMiddleware(object):
             status_code = int(status.split(' ')[0])
 
             metrics_driver = get_driver()
-            metrics_driver.incr_gauge('st2.%s.response.status.%s' % (self._service_name,
-                                                                     status_code))
+            metrics_driver.inc_counter('st2.%s.response.status.%s' % (self._service_name,
+                                                                      status_code))
 
             return start_response(status, headers, exc_info)
 

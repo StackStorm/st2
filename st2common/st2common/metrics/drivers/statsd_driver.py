@@ -68,7 +68,7 @@ class StatsdDriver(BaseMetricsDriver):
         gauge = statsd.Gauge(key)
         gauge.send(None, value)
 
-    def incr_gauge(self, key, amount=1):
+    def inc_gauge(self, key, amount=1):
         """
         Increment gauge value.
         """
@@ -78,7 +78,7 @@ class StatsdDriver(BaseMetricsDriver):
         gauge = statsd.Gauge(key)
         gauge.increment(None, amount)
 
-    def decr_gauge(self, key, amount=1):
+    def dec_gauge(self, key, amount=1):
         """
         Decrement gauge value.
         """

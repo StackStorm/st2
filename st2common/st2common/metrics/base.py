@@ -124,13 +124,13 @@ class BaseMetricsDriver(object):
         """
         pass
 
-    def incr_gauge(self, key, amount=1):
+    def inc_gauge(self, key, amount=1):
         """
         Increment gauge value.
         """
         pass
 
-    def decr_gauge(self, key, amount=1):
+    def dec_gauge(self, key, amount=1):
         """
         Decrement gauge value.
         """
