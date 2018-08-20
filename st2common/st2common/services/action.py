@@ -136,7 +136,7 @@ def create_request(liveaction):
                 trace_service.get_trace_component_for_action_execution(execution, liveaction)
             ])
 
-    get_driver().inc_counter(format_metrics_key('action.executions.%s' % (liveaction.status)))
+    get_driver().inc_counter(format_metrics_key(key='action.executions.%s' % (liveaction.status)))
 
     return liveaction, execution
 

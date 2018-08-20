@@ -90,7 +90,7 @@ class TriggerInstanceDispatcher(consumers.StagedMessageHandler):
             container_utils.update_trigger_instance_status(
                 trigger_instance, trigger_constants.TRIGGER_INSTANCE_PROCESSING)
 
-            with CounterWithTimer(key=format_metrics_key('rule.processed')):
+            with CounterWithTimer(key=format_metrics_key(key='rule.processed')):
                 with Timer(key='st2.trigger_instance.%s.processed' % (trigger_instance.id)):
                     self.rules_engine.handle_trigger_instance(trigger_instance)
 
