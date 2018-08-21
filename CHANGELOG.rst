@@ -83,6 +83,8 @@ Changed
   ``st2rulesengine`` service. This would make such issues very hard to troubleshoot because only
   way to find out about this failure would be to inspect the ``st2rulesengine`` service logs.
   (improvement) #4231
+* Improve code metric instrumentation and instrument code and various services with more metrics. 
+  improvement) #4310
 
 Fixed
 ~~~~~
