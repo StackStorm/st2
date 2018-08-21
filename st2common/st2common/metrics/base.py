@@ -205,9 +205,6 @@ class Counter(object):
         self._metrics.inc_counter(self.key)
         return self
 
-    def __exit__(self, *args):
-        self._metrics.dec_counter(self.key)
-
     def __call__(self, func):
         @wraps(func)
         def wrapper(*args, **kw):
@@ -255,7 +252,6 @@ class CounterWithTimer(object):
 
     def __exit__(self, *args):
         self.send_time()
-        self._metrics.dec_counter("%s_counter" % (self.key))
 
     def __call__(self, func):
         @wraps(func)
