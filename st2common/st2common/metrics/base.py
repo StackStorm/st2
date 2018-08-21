@@ -150,15 +150,17 @@ class Timer(object):
     """
     def __init__(self, key, include_parameter=False):
         check_key(key)
+
         self.key = key
         self._metrics = get_driver()
         self._include_parameter = include_parameter
         self._start_time = None
 
     def send_time(self, key=None):
-        """ Send current time from start time.
         """
-        time_delta = get_datetime_utc_now() - self._start_time
+        Send current time from start time.
+        """
+        time_delta = self.get_time_delta()
 
         if key:
             check_key(key)
@@ -167,8 +169,10 @@ class Timer(object):
             self._metrics.time(self.key, time_delta.total_seconds())
 
     def get_time_delta(self):
-        """ Get current time delta.
         """
+        Get current time delta.
+        """
+
         return get_datetime_utc_now() - self._start_time
 
     def __enter__(self):
@@ -213,9 +217,11 @@ class Counter(object):
 
 
 class CounterWithTimer(object):
-    """ Timer and counter context manager for easily sending timer statistics
+    """
+    Timer and counter context manager for easily sending counter statistics
     with builtin timer.
     """
+
     def __init__(self, key, include_parameter=False):
         check_key(key)
         self.key = key
@@ -224,9 +230,10 @@ class CounterWithTimer(object):
         self._start_time = None
 
     def send_time(self, key=None):
-        """ Send current time from start time.
         """
-        time_delta = get_datetime_utc_now() - self._start_time
+        Send current time from start time.
+        """
+        time_delta = self.get_time_delta()
 
         if key:
             check_key(key)
@@ -236,7 +243,8 @@ class CounterWithTimer(object):
                                time_delta.total_seconds())
 
     def get_time_delta(self):
-        """ Get current time delta.
+        """
+        Get current time delta.
         """
         return get_datetime_utc_now() - self._start_time
 
