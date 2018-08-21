@@ -13,9 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-METRICS_COUNTER_SUFFIX = "_counter"
-METRICS_TIMER_SUFFIX = "_timer"
-
 PYTHON_RUNNER_EXECUTION = "python_runner_execution"
 PYTHON_WRAPPER_EXECUTION = "python_wrapper_execution"
 

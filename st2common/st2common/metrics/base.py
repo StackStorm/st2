@@ -21,7 +21,6 @@ from oslo_config import cfg
 from oslo_config.cfg import NoSuchOptError
 from stevedore.exception import NoMatches, MultipleMatches
 
-from st2common.constants.metrics import METRICS_COUNTER_SUFFIX, METRICS_TIMER_SUFFIX
 from st2common.util.loader import get_plugin_instance
 from st2common.util.date import get_datetime_utc_now
 from st2common.exceptions.plugins import PluginLoadError
@@ -236,8 +235,7 @@ class CounterWithTimer(object):
             check_key(key)
             self._metrics.time(key, time_delta.total_seconds())
         else:
-            self._metrics.time("%s%s" % (self.key, METRICS_TIMER_SUFFIX),
-                               time_delta.total_seconds())
+            self._metrics.time(self.key, time_delta.total_seconds())
 
     def get_time_delta(self):
         """
@@ -246,7 +244,7 @@ class CounterWithTimer(object):
         return get_datetime_utc_now() - self._start_time
 
     def __enter__(self):
-        self._metrics.inc_counter("%s%s" % (self.key, METRICS_COUNTER_SUFFIX))
+        self._metrics.inc_counter(self.key)
         self._start_time = get_datetime_utc_now()
         return self
 
