@@ -204,6 +204,9 @@ class Counter(object):
         self._metrics.inc_counter(self.key)
         return self
 
+    def __exit__(self, *args):
+        pass
+
     def __call__(self, func):
         @wraps(func)
         def wrapper(*args, **kw):

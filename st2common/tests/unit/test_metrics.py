@@ -21,7 +21,6 @@ from oslo_config import cfg
 
 from st2common.metrics import base
 from st2common.metrics.drivers.statsd_driver import StatsdDriver
-from st2common.constants.metrics import METRICS_COUNTER_SUFFIX, METRICS_TIMER_SUFFIX
 from st2common.util.date import get_datetime_utc_now
 
 __all__ = [
@@ -185,7 +184,6 @@ class TestCounterContextManager(unittest2.TestCase):
         with base.Counter(test_key):
             metrics_patch.inc_counter.assert_called_with(test_key)
             metrics_patch.dec_counter.assert_not_called()
-        metrics_patch.dec_counter.assert_called_with(test_key)
 
 
 class TestTimerContextManager(unittest2.TestCase):
@@ -249,8 +247,7 @@ class TestCounterWithTimerContextManager(unittest2.TestCase):
             self.assertTrue(isinstance(timer._start_time, datetime))
             metrics_patch.time.assert_not_called()
             timer.send_time()
-            metrics_patch.time.assert_called_with(
-                "%s%s" % (test_key, METRICS_TIMER_SUFFIX),
+            metrics_patch.time.assert_called_with(test_key,
                 (self.end_time - self.middle_time).total_seconds()
             )
             second_test_key = "lakshmi_has_a_nose"
@@ -264,13 +261,10 @@ class TestCounterWithTimerContextManager(unittest2.TestCase):
                 time_delta.total_seconds(),
                 (self.end_time - self.middle_time).total_seconds()
             )
-            metrics_patch.inc_counter.assert_called_with(
-                "%s%s" % (test_key, METRICS_COUNTER_SUFFIX)
-            )
+            metrics_patch.inc_counter.assert_called_with(test_key)
             metrics_patch.dec_counter.assert_not_called()
-        metrics_patch.dec_counter.assert_called_with("%s%s" % (test_key, METRICS_COUNTER_SUFFIX))
         metrics_patch.time.assert_called_with(
-            "%s%s" % (test_key, METRICS_TIMER_SUFFIX),
+            test_key,
             (self.end_time - self.start_time).total_seconds()
         )
 
@@ -296,8 +290,7 @@ class TestCounterWithTimerDecorator(unittest2.TestCase):
             self.assertTrue(isinstance(metrics_counter_with_timer._start_time, datetime))
             metrics_patch.time.assert_not_called()
             metrics_counter_with_timer.send_time()
-            metrics_patch.time.assert_called_with(
-                "%s%s" % (test_key, METRICS_TIMER_SUFFIX),
+            metrics_patch.time.assert_called_with(test_key,
                 (end_time - middle_time).total_seconds()
             )
             second_test_key = "lakshmi_has_a_nose"
@@ -311,16 +304,12 @@ class TestCounterWithTimerDecorator(unittest2.TestCase):
                 time_delta.total_seconds(),
                 (end_time - middle_time).total_seconds()
             )
-            metrics_patch.inc_counter.assert_called_with(
-                "%s%s" % (test_key, METRICS_COUNTER_SUFFIX)
-            )
+            metrics_patch.inc_counter.assert_called_with(test_key)
             metrics_patch.dec_counter.assert_not_called()
 
         _get_tested()
 
-        metrics_patch.dec_counter.assert_called_with("%s%s" % (test_key, METRICS_COUNTER_SUFFIX))
-        metrics_patch.time.assert_called_with(
-            "%s%s" % (test_key, METRICS_TIMER_SUFFIX),
+        metrics_patch.time.assert_called_with(test_key,
             (end_time - start_time).total_seconds()
         )
 
@@ -335,7 +324,6 @@ class TestCounterDecorator(unittest2.TestCase):
             metrics_patch.inc_counter.assert_called_with(test_key)
             metrics_patch.dec_counter.assert_not_called()
         _get_tested()
-        metrics_patch.dec_counter.assert_called_with(test_key)
 
 
 class TestTimerDecorator(unittest2.TestCase):
