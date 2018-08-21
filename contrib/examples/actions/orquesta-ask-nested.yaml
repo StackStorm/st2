@@ -1,0 +1,6 @@
+---
+name: orquesta-ask-nested
+description: A basic workflow that demonstrates inquiry nested in a subworkflow.
+runner_type: orquesta
+entry_point: workflows/orquesta-ask-nested.yaml
+enabled: true
