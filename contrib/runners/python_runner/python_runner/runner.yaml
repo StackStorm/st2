@@ -7,9 +7,13 @@
   output_schema:
     result:
       anyOf:
-        - type: object
-        - type: string
-        - type: integer
+        - type: "object"
+        - type: "string"
+        - type: "integer"
+        - type: "number"
+        - type: "boolean"
+        - type: "array"
+        - type: "null"
     stderr:
       type: string
       required: true

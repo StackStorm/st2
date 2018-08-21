@@ -17,6 +17,7 @@ from __future__ import absolute_import
 
 import sys
 import traceback
+import copy
 
 from oslo_config import cfg
 
@@ -127,16 +128,24 @@ class RunnerContainer(object):
                     (status, result, context) = runner.run(action_params)
                     result = jsonify.try_loads(result)
 
-            try:
-                LOG.debug('Validating runner output: %s', runner.runner_type.output_schema)
-                runner_schema = {
+            LOG.debug('Validating runner output: %s', runner.runner_type.output_schema)
+            runner_schema = {
+                "type": "object",
+                "properties": runner.runner_type.output_schema,
+                "additionalProperties": False
+            }
+            schema.validate(result, runner_schema, cls=schema.get_validator('custom'))
+
+            if runner.action.output_schema:
+                output_schema = copy.deepcopy(runner.runner_type.output_schema)
+                output_schema.update(runner.action.output_schema)
+                action_schema = {
                     "type": "object",
-                    "properties": runner.runner_type.output_schema,
+                    "properties": output_schema,
                     "additionalProperties": False
                 }
-                schema.validate(result, runner_schema, cls=schema.get_validator('custom'))
-            except AttributeError:
-                LOG.debug('No output schema')
+                LOG.debug('Validating action output: %s', action_schema)
+                schema.validate(result, action_schema, cls=schema.get_validator('custom'))
 
             action_completed = status in action_constants.LIVEACTION_COMPLETED_STATES
 

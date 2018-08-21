@@ -38,4 +38,12 @@
         CA bundle which comes from Mozilla. Verification using a custom CA bundle
         is not yet supported. Set to False to skip verification.
       type: boolean
-
+  output_schema:
+    status_code:
+      type: integer
+    body:
+      type: object
+    parsed:
+      type: object
+    headers:
+      type: object

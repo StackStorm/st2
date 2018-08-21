@@ -35,6 +35,17 @@
       description: Action timeout in seconds. Action will get killed if it doesn't
         finish in timeout seconds.
       type: integer
+  output_schema:
+    succeeded:
+      type: "boolean"
+    failed:
+      type: "boolean"
+    return_code:
+      type: "integer"
+    stderr:
+      type: "string"
+    stdout:
+      type: "string"
 - aliases:
   - run-local-script
   description: A runner to execute local actions as a fixed user.
@@ -78,3 +89,14 @@
       description: Action timeout in seconds. Action will get killed if it doesn't
         finish in timeout seconds.
       type: integer
+  output_schema:
+    succeeded:
+      type: "boolean"
+    failed:
+      type: "boolean"
+    return_code:
+      type: "integer"
+    stderr:
+      type: "string"
+    stdout:
+      type: "string"
