@@ -5,7 +5,3 @@ description: Simple action chain to test context is preserved during pause and r
 runner_type: action-chain
 entry_point: chains/test_pause_resume_context_result.yaml
 enabled: true
-parameters:
-    tempfile:
-        type: string
-        required: true
