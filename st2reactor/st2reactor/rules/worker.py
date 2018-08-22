@@ -65,7 +65,7 @@ class TriggerInstanceDispatcher(consumers.StagedMessageHandler):
         if not trigger_instance:
             raise ValueError('No trigger_instance provided for processing.')
 
-        get_driver().inc_counter('st2.trigger.%s.processed' % (trigger_instance.trigger))
+        get_driver().inc_counter('trigger.%s.processed' % (trigger_instance.trigger))
 
         try:
             # Use trace_context from the message and if not found create a new context
@@ -86,8 +86,8 @@ class TriggerInstanceDispatcher(consumers.StagedMessageHandler):
             container_utils.update_trigger_instance_status(
                 trigger_instance, trigger_constants.TRIGGER_INSTANCE_PROCESSING)
 
-            with CounterWithTimer(key='st2.rule.processed'):
-                with Timer(key='st2.triggerinstance.%s.processed' % (trigger_instance.id)):
+            with CounterWithTimer(key='rule.processed'):
+                with Timer(key='triggerinstance.%s.processed' % (trigger_instance.id)):
                     self.rules_engine.handle_trigger_instance(trigger_instance)
 
             container_utils.update_trigger_instance_status(

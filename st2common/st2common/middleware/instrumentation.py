@@ -41,18 +41,18 @@ class RequestInstrumentationMiddleware(object):
 
         metrics_driver = get_driver()
 
-        key = 'st2.%s.request.total' % (self._service_name)
+        key = '%s.request.total' % (self._service_name)
         metrics_driver.inc_counter(key)
 
-        key = 'st2.%s.request.method.%s' % (self._service_name, request.method)
+        key = '%s.request.method.%s' % (self._service_name, request.method)
         metrics_driver.inc_counter(key)
 
         path = request.path.replace('/', '_')
-        key = 'st2.%s.request.path.%s' % (self._service_name, path)
+        key = '%s.request.path.%s' % (self._service_name, path)
         metrics_driver.inc_counter(key)
 
         # Track and time current number of processing requests
-        key = 'st2.%s.request' % (self._service_name)
+        key = '%s.request' % (self._service_name)
         with CounterWithTimer(key=key):
             return self.app(environ, start_response)
 
@@ -76,8 +76,8 @@ class ResponseInstrumentationMiddleware(object):
             status_code = int(status.split(' ')[0])
 
             metrics_driver = get_driver()
-            metrics_driver.inc_counter('st2.%s.response.status.%s' % (self._service_name,
-                                                                      status_code))
+            metrics_driver.inc_counter('%s.response.status.%s' % (self._service_name,
+                                                                  status_code))
 
             return start_response(status, headers, exc_info)
 

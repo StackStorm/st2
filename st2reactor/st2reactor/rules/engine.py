@@ -78,8 +78,8 @@ class RulesEngine(object):
 
         enforcers = []
         for matching_rule in matching_rules:
-            metrics_driver.inc_counter('st2.rule.matched')
-            metrics_driver.inc_counter('st2.rule.%s.matched' % (matching_rule.ref))
+            metrics_driver.inc_counter('rule.matched')
+            metrics_driver.inc_counter('rule.%s.matched' % (matching_rule.ref))
 
             enforcers.append(RuleEnforcer(trigger_instance, matching_rule))
         return enforcers

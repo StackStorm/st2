@@ -82,7 +82,7 @@ class RunnerContainer(object):
                 'in an unsupported status of "%s".' % liveaction_db.status
             )
 
-        with CounterWithTimer(key="st2.action.executions"):
+        with CounterWithTimer(key="action.executions"):
             liveaction_db = funcs[liveaction_db.status](runner)
 
         return liveaction_db.result
@@ -122,8 +122,8 @@ class RunnerContainer(object):
             extra = {'runner': runner, 'parameters': resolved_action_params}
             LOG.debug('Performing run for runner: %s' % (runner.runner_id), extra=extra)
 
-            with CounterWithTimer(key=('st2.action.executions')):
-                with CounterWithTimer(key=('st2.action.%s.executions' % (runner.action.ref))):
+            with CounterWithTimer(key='action.executions'):
+                with CounterWithTimer(key='action.%s.executions' % (runner.action.ref)):
                     (status, result, context) = runner.run(action_params)
                     result = jsonify.try_loads(result)
 

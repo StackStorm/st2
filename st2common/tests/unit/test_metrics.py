@@ -20,6 +20,7 @@ from mock import patch, MagicMock
 from oslo_config import cfg
 
 from st2common.metrics import base
+from st2common.metrics.utils import get_full_key_name
 from st2common.metrics.drivers.statsd_driver import StatsdDriver
 from st2common.util.date import get_datetime_utc_now
 
@@ -57,6 +58,8 @@ class TestStatsDMetricsDriver(unittest2.TestCase):
 
     @patch('st2common.metrics.drivers.statsd_driver.statsd')
     def setUp(self, statsd):
+        cfg.CONF.set_override(name='prefix', group='metrics', override=None)
+
         self._driver = StatsdDriver()
 
         statsd.Connection.set_defaults.assert_called_once_with(
@@ -69,14 +72,14 @@ class TestStatsDMetricsDriver(unittest2.TestCase):
         self._driver._timer = statsd.Timer('')
         params = ('test', 10)
         self._driver.time(*params)
-        statsd.Timer().send.assert_called_with(*params)
+        statsd.Timer().send.assert_called_with('st2.test', 10)
 
     def test_time_with_float(self):
         statsd = MagicMock()
         self._driver._timer = statsd.Timer('')
         params = ('test', 10.5)
         self._driver.time(*params)
-        statsd.Timer().send.assert_called_with(*params)
+        statsd.Timer().send.assert_called_with('st2.test', 10.5)
 
     def test_time_with_invalid_key(self):
         params = (2, 2)
@@ -175,6 +178,24 @@ class TestStatsDMetricsDriver(unittest2.TestCase):
         statsd.Gauge().decrement.side_effect = mock_gauge
         self._driver.dec_gauge(*params)
         mock_gauge.assert_called_once_with(None, params[1])
+
+    def test_get_full_key_name(self):
+        # No prefix specified in the config
+        cfg.CONF.set_override(name='prefix', group='metrics', override=None)
+
+        result = get_full_key_name('api.requests')
+        self.assertEqual(result, 'st2.api.requests')
+
+        # Prefix is defined in the config
+        cfg.CONF.set_override(name='prefix', group='metrics', override='staging')
+
+        result = get_full_key_name('api.requests')
+        self.assertEqual(result, 'st2.staging.api.requests')
+
+        cfg.CONF.set_override(name='prefix', group='metrics', override='prod')
+
+        result = get_full_key_name('api.requests')
+        self.assertEqual(result, 'st2.prod.api.requests')
 
 
 class TestCounterContextManager(unittest2.TestCase):
