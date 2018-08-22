@@ -538,6 +538,10 @@ def register_opts(ignore_errors=False):
         cfg.IntOpt(
             'port', default=8125,
             help='Destination port to connect to if driver requires connection.'),
+        cfg.StrOpt(
+            'prefix', default=None,
+            help='Prefix for all the metrics name. Comes handy when you want to submit metrics '
+                 'from various environment to the same backend instance.')
     ]
 
     do_register_opts(metrics_opts, group='metrics', ignore_errors=ignore_errors)
