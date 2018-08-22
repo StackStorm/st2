@@ -202,7 +202,7 @@ def update_liveaction_status(status=None, result=None, context=None, end_timesta
     # If status is provided then we need to increment the timer because the action
     # is transitioning into this new state
     if status:
-        get_driver().dec_counter('action.executions.%s' % (status))
+        get_driver().inc_counter('action.executions.%s' % (status))
 
     extra = {'liveaction_db': liveaction_db}
     LOG.debug('Updating ActionExection: "%s" with status="%s"', liveaction_db.id, status,
