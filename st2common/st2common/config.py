@@ -540,8 +540,9 @@ def register_opts(ignore_errors=False):
             help='Destination port to connect to if driver requires connection.'),
         cfg.StrOpt(
             'prefix', default=None,
-            help='Prefix for all the metrics name. Comes handy when you want to submit metrics '
-                 'from various environment to the same backend instance.')
+            help='Optional prefix which is prepended to all the metric names. Comes handy when '
+                 'you want to submit metrics from various environment to the same metric'
+                 'backend instance.')
     ]
 
     do_register_opts(metrics_opts, group='metrics', ignore_errors=ignore_errors)

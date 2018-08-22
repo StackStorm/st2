@@ -16,11 +16,11 @@
 from numbers import Number
 
 import statsd
-import six
 from oslo_config import cfg
 
 from st2common.metrics.base import BaseMetricsDriver
-from st2common.metrics.base import check_key
+from st2common.metrics.utils import check_key
+from st2common.metrics.utils import get_full_key_name
 
 __all__ = [
     'StatsdDriver'
@@ -34,21 +34,6 @@ class StatsdDriver(BaseMetricsDriver):
     def __init__(self):
         statsd.Connection.set_defaults(host=cfg.CONF.metrics.host, port=cfg.CONF.metrics.port)
 
-        original_send = statsd.Connection.send
-
-        def send_with_prefix(self, data, *args, **kwargs):
-            # If defined, include (set) prefix for each metric key (name)
-            if not cfg.CONF.metrics.prefix:
-                return original_send(self, data, *args, **kwargs)
-
-            data_with_prefix = {}
-            for key, value in six.iteritems(data):
-                key = '%s.%s' % (cfg.CONF.metrics.prefix, key)
-                data_with_prefix[key] = value
-
-            original_send(self, data_with_prefix, *args, **kwargs)
-        statsd.Connection.send = send_with_prefix
-
         self._counters = {}
         self._timer = statsd.Timer('')
 
@@ -59,6 +44,7 @@ class StatsdDriver(BaseMetricsDriver):
         check_key(key)
         assert isinstance(time, Number)
 
+        key = get_full_key_name(key)
         self._timer.send(key, time)
 
     def inc_counter(self, key, amount=1):
@@ -67,6 +53,8 @@ class StatsdDriver(BaseMetricsDriver):
         """
         check_key(key)
         assert isinstance(amount, Number)
+
+        key = get_full_key_name(key)
         self._counters[key] = self._counters.get(key, statsd.Counter(key))
         self._counters[key] += amount
 
@@ -77,6 +65,7 @@ class StatsdDriver(BaseMetricsDriver):
         check_key(key)
         assert isinstance(amount, Number)
 
+        key = get_full_key_name(key)
         self._counters[key] = self._counters.get(key, statsd.Counter(key))
         self._counters[key] -= amount
 
@@ -87,6 +76,7 @@ class StatsdDriver(BaseMetricsDriver):
         check_key(key)
         assert isinstance(value, Number)
 
+        key = get_full_key_name(key)
         gauge = statsd.Gauge(key)
         gauge.send(None, value)
 
@@ -97,6 +87,7 @@ class StatsdDriver(BaseMetricsDriver):
         check_key(key)
         assert isinstance(amount, Number)
 
+        key = get_full_key_name(key)
         gauge = statsd.Gauge(key)
         gauge.increment(None, amount)
 
@@ -107,5 +98,6 @@ class StatsdDriver(BaseMetricsDriver):
         check_key(key)
         assert isinstance(amount, Number)
 
+        key = get_full_key_name(key)
         gauge = statsd.Gauge(key)
         gauge.decrement(None, amount)

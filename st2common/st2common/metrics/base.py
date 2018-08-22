@@ -18,11 +18,11 @@ from __future__ import absolute_import
 from functools import wraps
 import logging
 
-from six import string_types
 from oslo_config import cfg
 from oslo_config.cfg import NoSuchOptError
 from stevedore.exception import NoMatches, MultipleMatches
 
+from st2common.metrics.utils import check_key
 from st2common.util.loader import get_plugin_instance
 from st2common.util.date import get_datetime_utc_now
 from st2common.exceptions.plugins import PluginLoadError
@@ -35,9 +35,7 @@ __all__ = [
     'CounterWithTimer',
 
     'metrics_initialize',
-    'get_driver',
-
-    'check_key'
+    'get_driver'
 ]
 
 if not hasattr(cfg.CONF, 'metrics'):
@@ -93,13 +91,6 @@ class BaseMetricsDriver(object):
         Decrement gauge value.
         """
         pass
-
-
-def check_key(key):
-    """Ensure key meets requirements.
-    """
-    assert isinstance(key, string_types), "Key not a string. Got %s" % type(key)
-    assert key, "Key cannot be empty string."
 
 
 class Timer(object):
@@ -224,9 +215,11 @@ class CounterWithTimer(object):
 
 
 def metrics_initialize():
-    """Initialize metrics constant
+    """
+    Initialize metrics constant
     """
     global METRICS
+
     try:
         METRICS = get_plugin_instance(PLUGIN_NAMESPACE, cfg.CONF.metrics.driver)
     except (NoMatches, MultipleMatches, NoSuchOptError) as error:
@@ -236,7 +229,8 @@ def metrics_initialize():
 
 
 def get_driver():
-    """Return metrics driver instance
+    """
+    Return metrics driver instance
     """
     if not METRICS:
         return metrics_initialize()
