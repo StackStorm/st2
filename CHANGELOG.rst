@@ -83,8 +83,12 @@ Changed
   ``st2rulesengine`` service. This would make such issues very hard to troubleshoot because only
   way to find out about this failure would be to inspect the ``st2rulesengine`` service logs.
   (improvement) #4231
-* Improve code metric instrumentation and instrument code and various services with more metrics. 
-  improvement) #4310
+* Improve code metric instrumentation and instrument code and various services with more metrics.
+  (improvement) #4310
+* Add new ``metrics.prefix`` config option. With this option user can specify an optional prefix
+  which is prepended to each metric key (name). This comes handy in scenarios where user wants to
+  submit metrics from multiple environments / deployments (e.g. testing, staging, dev) to the same
+  backend instance. (improvement) #4310
 
 Fixed
 ~~~~~
