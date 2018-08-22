@@ -541,7 +541,7 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt(
             'prefix', default=None,
             help='Optional prefix which is prepended to all the metric names. Comes handy when '
-                 'you want to submit metrics from various environment to the same metric'
+                 'you want to submit metrics from various environment to the same metric '
                  'backend instance.')
     ]
 
