@@ -13,10 +13,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-METRICS_COUNTER_SUFFIX = "_counter"
-METRICS_TIMER_SUFFIX = "_timer"
+import six
+from oslo_config import cfg
 
-PYTHON_RUNNER_EXECUTION = "python_runner_execution"
-PYTHON_WRAPPER_EXECUTION = "python_wrapper_execution"
+__all__ = [
+    'get_full_key_name',
+    'check_key'
+]
 
-METRICS_REGISTER_RUNNER = "register_runner"
+
+def get_full_key_name(key):
+    """
+    Return full metric key name, taking into account optional  prefix which can be specified in the
+    config.
+    """
+    parts = ['st2']
+
+    if cfg.CONF.metrics.prefix:
+        parts.append(cfg.CONF.metrics.prefix)
+
+    parts.append(key)
+
+    return '.'.join(parts)
+
+
+def check_key(key):
+    """
+    Ensure key meets requirements.
+    """
+    assert isinstance(key, six.string_types), "Key not a string. Got %s" % type(key)
+    assert key, "Key cannot be empty string."

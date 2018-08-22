@@ -183,6 +183,8 @@ cluster_urls =  # comma separated list allowed here.
 [metrics]
 # Destination server to connect to if driver requires connection.
 host = 127.0.0.1
+# Optional prefix which is prepended to all the metric names. Comes handy when you want to submit metrics from various environment to the same metric backend instance.
+prefix = None
 # Driver type for metrics collection.
 driver = noop
 # Destination port to connect to if driver requires connection.

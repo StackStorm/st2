@@ -22,6 +22,8 @@ from st2common.middleware.error_handling import ErrorHandlingMiddleware
 from st2common.middleware.cors import CorsMiddleware
 from st2common.middleware.request_id import RequestIDMiddleware
 from st2common.middleware.logging import LoggingMiddleware
+from st2common.middleware.instrumentation import RequestInstrumentationMiddleware
+from st2common.middleware.instrumentation import ResponseInstrumentationMiddleware
 from st2common.router import Router
 from st2common.util.monkey_patch import monkey_patch
 from st2common.constants.system import VERSION_STRING
@@ -75,6 +77,8 @@ def setup_app(config={}):
     app = ErrorHandlingMiddleware(app)
     app = CorsMiddleware(app)
     app = LoggingMiddleware(app, router)
+    app = ResponseInstrumentationMiddleware(app, service_name='api')
     app = RequestIDMiddleware(app)
+    app = RequestInstrumentationMiddleware(app, service_name='api')
 
     return app

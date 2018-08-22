@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 from kombu import Connection
 
 from st2common import log as logging
@@ -26,7 +27,9 @@ from st2common.transport import utils as transport_utils
 import st2reactor.container.utils as container_utils
 from st2reactor.rules.engine import RulesEngine
 from st2common.transport.queues import RULESENGINE_WORK_QUEUE
-from st2common.metrics.base import format_metrics_key, get_driver
+from st2common.metrics.base import CounterWithTimer
+from st2common.metrics.base import Timer
+from st2common.metrics.base import get_driver
 
 
 LOG = logging.getLogger(__name__)
@@ -58,16 +61,11 @@ class TriggerInstanceDispatcher(consumers.StagedMessageHandler):
         return self._compose_pre_ack_process_response(trigger_instance, message)
 
     def process(self, pre_ack_response):
-
         trigger_instance, message = self._decompose_pre_ack_process_response(pre_ack_response)
         if not trigger_instance:
             raise ValueError('No trigger_instance provided for processing.')
 
-        get_driver().inc_counter(
-            format_metrics_key(
-                key='trigger.%s' % (trigger_instance.trigger)
-            )
-        )
+        get_driver().inc_counter('trigger.%s.processed' % (trigger_instance.trigger))
 
         try:
             # Use trace_context from the message and if not found create a new context
@@ -87,7 +85,11 @@ class TriggerInstanceDispatcher(consumers.StagedMessageHandler):
 
             container_utils.update_trigger_instance_status(
                 trigger_instance, trigger_constants.TRIGGER_INSTANCE_PROCESSING)
-            self.rules_engine.handle_trigger_instance(trigger_instance)
+
+            with CounterWithTimer(key='rule.processed'):
+                with Timer(key='triggerinstance.%s.processed' % (trigger_instance.id)):
+                    self.rules_engine.handle_trigger_instance(trigger_instance)
+
             container_utils.update_trigger_instance_status(
                 trigger_instance, trigger_constants.TRIGGER_INSTANCE_PROCESSED)
         except:
