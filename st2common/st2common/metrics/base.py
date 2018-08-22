@@ -47,53 +47,6 @@ PLUGIN_NAMESPACE = 'st2common.metrics.driver'
 METRICS = None
 
 
-def _strip_pack(action, pack):
-    formatted_pack = "%s." % (pack)
-
-    if formatted_pack in action:
-        return action.replace(formatted_pack, '')
-
-    return action
-
-
-def _format_metrics_key_for_action_db(action_db):
-    action_pack = action_db.pack if action_db.pack else 'unknown'
-    action_name = _strip_pack(action_db.name, action_pack)
-    return [action_pack, action_name]
-
-
-def _format_metrics_key_for_liveaction_db(liveaction_db):
-    action_pack = liveaction_db.context.get('pack', 'unknown')
-    action_name = _strip_pack(liveaction_db.action, action_pack)
-    return [action_pack, action_name]
-
-
-def format_metrics_key(action_db=None, liveaction_db=None, key=None):
-    """
-    Return a string for usage as metrics key.
-    """
-    assert (action_db or key or liveaction_db), """Must supply one of key, action_db, or
-                                                 liveaction_db"""
-    metrics_key_items = ['st2']
-
-    if action_db:
-        metrics_key_items.extend(_format_metrics_key_for_action_db(action_db))
-
-    if liveaction_db:
-        metrics_key_items.extend(
-            _format_metrics_key_for_liveaction_db(liveaction_db)
-        )
-
-    if key:
-        metrics_key_items.append('%s' % key)
-
-    metrics_key = '.'.join(metrics_key_items)
-
-    LOG.debug("Generated Metrics Key: %s", metrics_key)
-
-    return metrics_key
-
-
 class BaseMetricsDriver(object):
     """
     Base class for driver implementations for metric collection
