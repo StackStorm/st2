@@ -12,11 +12,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from __future__ import absolute_import
+
 from functools import wraps
 import logging
-from six import string_types
 
+from six import string_types
 from oslo_config import cfg
 from oslo_config.cfg import NoSuchOptError
 from stevedore.exception import NoMatches, MultipleMatches
@@ -34,6 +36,7 @@ __all__ = [
 
     'metrics_initialize',
     'get_driver',
+
     'check_key'
 ]
 
@@ -44,6 +47,9 @@ if not hasattr(cfg.CONF, 'metrics'):
 LOG = logging.getLogger(__name__)
 
 PLUGIN_NAMESPACE = 'st2common.metrics.driver'
+
+# Stores reference to the metrics driver class instance.
+# NOTE: This value is populated lazily on the first get_driver() function call
 METRICS = None
 
 
