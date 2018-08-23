@@ -42,8 +42,15 @@
     status_code:
       type: integer
     body:
-      type: object
+      anyOf:
+        - type: "object"
+        - type: "string"
+        - type: "integer"
+        - type: "number"
+        - type: "boolean"
+        - type: "array"
+        - type: "null"
     parsed:
-      type: object
+      type: boolean
     headers:
       type: object

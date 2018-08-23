@@ -17,5 +17,5 @@
       minLength: 1
       type: string
   output_schema:
-    output:
-      type: "object"
+    unmodeled:
+      type: boolean

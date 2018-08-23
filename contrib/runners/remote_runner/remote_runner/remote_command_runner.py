@@ -49,6 +49,7 @@ class ParamikoRemoteCommandRunner(BaseParallelSSHRunner):
         command = remote_action.get_full_command_string()
         return self._parallel_ssh_client.run(command, timeout=remote_action.get_timeout())
 
+
     def _get_remote_action(self, action_paramaters):
         # remote script actions with entry_point don't make sense, user probably wanted to use
         # "remote-shell-script" action

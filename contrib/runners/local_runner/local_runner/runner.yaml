@@ -37,15 +37,15 @@
       type: integer
   output_schema:
     succeeded:
-      type: "boolean"
+      type: boolean
     failed:
-      type: "boolean"
+      type: boolean
     return_code:
-      type: "integer"
+      type: integer
     stderr:
-      type: "string"
+      type: string
     stdout:
-      type: "string"
+      type: string
 - aliases:
   - run-local-script
   description: A runner to execute local actions as a fixed user.
@@ -91,12 +91,12 @@
       type: integer
   output_schema:
     succeeded:
-      type: "boolean"
+      type: boolean
     failed:
-      type: "boolean"
+      type: boolean
     return_code:
-      type: "integer"
+      type: integer
     stderr:
-      type: "string"
+      type: string
     stdout:
-      type: "string"
+      type: string

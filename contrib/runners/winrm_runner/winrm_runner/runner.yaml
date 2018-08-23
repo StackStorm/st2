@@ -66,6 +66,9 @@
         CA bundle which comes from Mozilla. Verification using a custom CA bundle
         is not yet supported. Set to False to skip verification.
       type: boolean
+  output_schema:
+    unmodeled:
+      type: boolean
 - description: A remote execution runner that executes PowerShell commands via WinRM on a remote host
   enabled: true
   name: winrm-ps-cmd
@@ -134,6 +137,9 @@
         CA bundle which comes from Mozilla. Verification using a custom CA bundle
         is not yet supported. Set to False to skip verification.
       type: boolean
+  output_schema:
+    unmodeled:
+      type: boolean
 - description: A remote execution runner that executes PowerShell script via WinRM on a set of remote hosts
   enabled: true
   name: winrm-ps-script
@@ -198,4 +204,7 @@
       description: Certificate for HTTPS request is verified by default using requests
         CA bundle which comes from Mozilla. Verification using a custom CA bundle
         is not yet supported. Set to False to skip verification.
+      type: boolean
+  output_schema:
+    unmodeled:
       type: boolean

@@ -64,6 +64,7 @@ class AnnouncementRunner(ActionRunner):
         result = {
             "output": action_parameters
         }
+        result.update(action_parameters)
 
         return (LIVEACTION_STATUS_SUCCEEDED, result, None)
 

@@ -129,11 +129,26 @@ class RunnerContainer(object):
                     result = jsonify.try_loads(result)
 
             LOG.debug('Validating runner output: %s', runner.runner_type.output_schema)
-            runner_schema = {
-                "type": "object",
-                "properties": runner.runner_type.output_schema,
-                "additionalProperties": False
-            }
+
+            if runner.runner_type.output_schema.get('unmodeled'):
+                runner.runner_type.output_schema.pop('unmodeled')
+                LOG.warn(
+                """Deprecation Notice: This runner has previously had unmodeled
+                output. In StackStorm 3.1 the output will be placed under the
+                `output` key."""
+                )
+                runner_schema = {
+                    "type": "object",
+                    "properties": runner.runner_type.output_schema,
+                    "additionalProperties": True
+                }
+            else:
+                runner_schema = {
+                    "type": "object",
+                    "properties": runner.runner_type.output_schema,
+                    "additionalProperties": False
+                }
+
             schema.validate(result, runner_schema, cls=schema.get_validator('custom'))
 
             if runner.action.output_schema:

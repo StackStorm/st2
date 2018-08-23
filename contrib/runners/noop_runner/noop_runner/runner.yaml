@@ -4,4 +4,8 @@
   name: noop
   runner_module: noop_runner
   runner_parameters: {}
-
+  output_schema:
+    stdout:
+      type: string
+    stderr:
+      type: string

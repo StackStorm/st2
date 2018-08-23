@@ -85,6 +85,9 @@
         config is used.
       required: false
       type: string
+  output_schema:
+    unmodeled:
+      type: boolean
 - aliases:
   - run-remote-script
   description: A remote execution runner that executes actions as a fixed system user.
@@ -168,3 +171,6 @@
         config is used.
       required: false
       type: string
+  output_schema:
+    unmodeled:
+      type: boolean
