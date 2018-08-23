@@ -49,11 +49,11 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
     def __init__(self, connection, queues):
         super(WorkflowExecutionHandler, self).__init__(connection, queues)
 
-        def handle_workflow_execution_with_instrumentation(self, wf_ex_db):
+        def handle_workflow_execution_with_instrumentation(wf_ex_db):
             with CounterWithTimer(key='orquesta.workflow.executions'):
                 return self.handle_workflow_execution(wf_ex_db=wf_ex_db)
 
-        def handle_action_execution_with_instrumentation(self, ac_ex_db):
+        def handle_action_execution_with_instrumentation(ac_ex_db):
             with CounterWithTimer(key='orquesta.action.executions'):
                 return self.handle_action_execution(ac_ex_db=ac_ex_db)
 
