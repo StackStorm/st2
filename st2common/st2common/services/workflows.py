@@ -49,35 +49,8 @@ def is_action_execution_under_workflow_context(ac_ex_db):
     return 'orquesta' in ac_ex_db.context
 
 
-# Temporary workaround on context inspection errors relating to the st2 context.
-def inspect(wf_spec):
-    errors = {}
-
-    syntax_errors = sorted(wf_spec.inspect_syntax(), key=lambda e: e['schema_path'])
-
-    if syntax_errors:
-        errors['syntax'] = syntax_errors
-
-    semantic_errors = sorted(wf_spec.inspect_semantics(), key=lambda e: e['schema_path'])
-
-    if semantic_errors:
-        errors['semantics'] = semantic_errors
-
-    expr_errors = sorted(wf_spec.inspect_expressions(), key=lambda e: e['schema_path'])
-
-    if expr_errors:
-        errors['expressions'] = expr_errors
-
-    parent_ctx = {
-        'ctx': ['st2'],
-        'spec_path': '.',
-        'schema_path': '.'
-    }
-
-    ctx_errors, _ = wf_spec.inspect_context(parent=parent_ctx)
-
-    if ctx_errors:
-        errors['context'] = ctx_errors
+def inspect(wf_spec, st2_ctx):
+    errors = wf_spec.inspect(app_ctx=st2_ctx, raise_exception=False)
 
     if errors:
         raise orquesta_exc.WorkflowInspectionError(errors)
@@ -92,7 +65,7 @@ def request(wf_def, ac_ex_db, st2_ctx):
     wf_spec = spec_module.instantiate(wf_def)
 
     # Inspect the workflow spec.
-    inspect(wf_spec)
+    inspect(wf_spec, st2_ctx)
 
     # Identify the action to execute.
     action_db = ac_db_util.get_action_by_ref(ref=ac_ex_db.action['ref'])
