@@ -31,6 +31,7 @@ from st2common.services import workflows as wf_svc
 from st2common.transport import consumers
 from st2common.transport import queues
 from st2common.transport import utils as txpt_utils
+from st2common.metrics.base import CounterWithTimer
 
 
 LOG = logging.getLogger(__name__)
@@ -48,9 +49,17 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
     def __init__(self, connection, queues):
         super(WorkflowExecutionHandler, self).__init__(connection, queues)
 
+        def handle_workflow_execution_with_instrumentation(self, wf_ex_db):
+            with CounterWithTimer(key='orquesta.workflow.executions'):
+                return self.handle_workflow_execution(wf_ex_db=wf_ex_db)
+
+        def handle_action_execution_with_instrumentation(self, ac_ex_db):
+            with CounterWithTimer(key='orquesta.action.executions'):
+                return self.handle_action_execution(ac_ex_db=ac_ex_db)
+
         self.message_types = {
-            wf_db_models.WorkflowExecutionDB: self.handle_workflow_execution,
-            ex_db_models.ActionExecutionDB: self.handle_action_execution
+            wf_db_models.WorkflowExecutionDB: handle_workflow_execution_with_instrumentation,
+            ex_db_models.ActionExecutionDB: handle_action_execution_with_instrumentation
         }
 
     def get_queue_consumer(self, connection, queues):
