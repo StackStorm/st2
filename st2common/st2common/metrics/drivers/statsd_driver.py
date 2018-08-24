@@ -32,7 +32,8 @@ class StatsdDriver(BaseMetricsDriver):
     StatsD Implementation of the metrics driver
     """
     def __init__(self):
-        statsd.Connection.set_defaults(host=cfg.CONF.metrics.host, port=cfg.CONF.metrics.port)
+        statsd.Connection.set_defaults(host=cfg.CONF.metrics.host, port=cfg.CONF.metrics.port,
+                                       sample_rate=cfg.CONF.metrics.sample_rate)
 
         self._counters = {}
         self._timer = statsd.Timer('')
