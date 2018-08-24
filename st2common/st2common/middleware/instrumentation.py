@@ -18,7 +18,8 @@ __all__ = [
     'ResponseInstrumentationMiddleware'
 ]
 
-from st2common.router import Request
+from webob import Request
+
 from st2common.metrics.base import CounterWithTimer
 from st2common.metrics.base import get_driver
 
@@ -40,6 +41,10 @@ class RequestInstrumentationMiddleware(object):
         request = Request(environ)
 
         metrics_driver = get_driver()
+
+        if request.content_length:
+            key = '%s.request.size' % (self._service_name)
+            metrics_driver.set_gauge(key, int(request.content_length))
 
         key = '%s.request.total' % (self._service_name)
         metrics_driver.inc_counter(key)
@@ -78,6 +83,11 @@ class ResponseInstrumentationMiddleware(object):
             metrics_driver = get_driver()
             metrics_driver.inc_counter('%s.response.status.%s' % (self._service_name,
                                                                   status_code))
+
+            content_length = dict(headers).get('Content-Length', None)
+            if content_length:
+                key = '%s.response.size' % (self._service_name)
+                metrics_driver.set_gauge(key, int(content_length))
 
             return start_response(status, headers, exc_info)
 
