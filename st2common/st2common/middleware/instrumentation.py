@@ -56,6 +56,19 @@ class RequestInstrumentationMiddleware(object):
         key = '%s.request.path.%s' % (self._service_name, path)
         metrics_driver.inc_counter(key)
 
+        if self._service_name == 'stream':
+            # For stream service, we also record current number of open connections.
+            # Due to the way stream service works, we need to utilize eventlet posthook to
+            # correctly set the counter when the connection is closed / full response is returned.
+            # See http://eventlet.net/doc/modules/wsgi.html#non-standard-extension-to-support-post-
+            # hooks for details
+            metrics_driver.inc_gauge('stream.connections', 1)
+
+            def hook(env):
+                metrics_driver.dec_gauge('stream.connections', 1)
+
+            environ['eventlet.posthooks'].append((hook, (), {}))
+
         # Track and time current number of processing requests
         key = '%s.request' % (self._service_name)
         with CounterWithTimer(key=key):
