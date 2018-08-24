@@ -54,6 +54,13 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
                     'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.input.type',
                     'spec_path': 'tasks.task2.input'
                 }
+            ],
+            'contents': [
+                {
+                    'message': 'The action "std.noop" is not registered in the database.',
+                    'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.action',
+                    'spec_path': 'tasks.task3.action'
+                }
             ]
         }
 
@@ -120,6 +127,40 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
     def test_output_error(self):
         expected_errors = [{'message': 'Unknown function "#property#value"'}]
         ex = self._execute_workflow('examples.orquesta-fail-output-rendering')
+        ex = self._wait_for_completion(ex)
+        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
+        self.assertDictEqual(ex.result, {'errors': expected_errors, 'output': None})
+
+    def test_task_content_errors(self):
+        expected_errors = {
+            'contents': [
+                {
+                    'message': 'The action reference "echo" is not formatted correctly.',
+                    'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.action',
+                    'spec_path': 'tasks.task1.action'
+                },
+                {
+                    'message': 'The action "core.echoz" is not registered in the database.',
+                    'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.action',
+                    'spec_path': 'tasks.task2.action'
+                },
+                {
+                    'message': 'Action "core.echo" is missing required input "message".',
+                    'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.input',
+                    'spec_path': 'tasks.task3.input'
+                },
+                {
+                    'message': 'Action "core.echo" has unexpected input "messages".',
+                    'schema_path': (
+                        'properties.tasks.patternProperties.^\w+$.properties.input.'
+                        'patternProperties.^\w+$'
+                    ),
+                    'spec_path': 'tasks.task3.input.messages'
+                }
+            ]
+        }
+
+        ex = self._execute_workflow('examples.orquesta-fail-inspection-task-contents')
         ex = self._wait_for_completion(ex)
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
         self.assertDictEqual(ex.result, {'errors': expected_errors, 'output': None})
