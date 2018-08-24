@@ -53,7 +53,6 @@ __all__ = [
 
 LOG = logging.getLogger(__name__)
 
-ACTION_SENSOR_ENABLED = cfg.CONF.action_sensor.enable
 # XXX: Fix this nasty positional dependency.
 ACTION_TRIGGER_TYPE = INTERNAL_TRIGGER_TYPES['action'][0]
 NOTIFY_TRIGGER_TYPE = INTERNAL_TRIGGER_TYPES['action'][1]
@@ -227,7 +226,7 @@ class Notifier(consumers.MessageHandler):
         return None
 
     def _post_generic_trigger(self, liveaction_db=None, execution_db=None):
-        if not ACTION_SENSOR_ENABLED:
+        if not cfg.CONF.action_sensor.enable:
             LOG.debug('Action trigger is disabled, skipping trigger dispatch...')
             return
 
