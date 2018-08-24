@@ -79,22 +79,18 @@ class Notifier(consumers.MessageHandler):
         extra = {'execution': execution_db}
         LOG.debug('Processing action execution "%s".', execution_id, extra=extra)
 
-        if execution_db.status not in LIVEACTION_COMPLETED_STATES:
-            msg = 'Skip action execution "%s" because state "%s" is not in a completed state.'
-            LOG.debug(msg % (str(execution_db.id), execution_db.status), extra=extra)
-            return
-
         # Get the corresponding liveaction record.
         liveaction_db = LiveAction.get_by_id(execution_db.liveaction['id'])
 
-        # If the action execution is executed under an orquesta workflow, policies for the
-        # action execution will be applied by the workflow engine. A policy may affect the
-        # final state of the action execution thereby impacting the state of the workflow.
-        if not workflow_service.is_action_execution_under_workflow_context(execution_db):
-            policy_service.apply_post_run_policies(liveaction_db)
+        if execution_db.status in LIVEACTION_COMPLETED_STATES:
+            # If the action execution is executed under an orquesta workflow, policies for the
+            # action execution will be applied by the workflow engine. A policy may affect the
+            # final state of the action execution thereby impacting the state of the workflow.
+            if not workflow_service.is_action_execution_under_workflow_context(execution_db):
+                policy_service.apply_post_run_policies(liveaction_db)
 
-        if liveaction_db.notify is not None:
-            self._post_notify_triggers(liveaction_db=liveaction_db, execution_db=execution_db)
+            if liveaction_db.notify is not None:
+                self._post_notify_triggers(liveaction_db=liveaction_db, execution_db=execution_db)
 
         self._post_generic_trigger(liveaction_db=liveaction_db, execution_db=execution_db)
 
@@ -234,6 +230,14 @@ class Notifier(consumers.MessageHandler):
         if not ACTION_SENSOR_ENABLED:
             LOG.debug('Action trigger is disabled, skipping trigger dispatch...')
             return
+
+        target_statuses = cfg.CONF.action_sensor.emit_when
+        if not target_statuses:
+            if execution_db.status not in LIVEACTION_COMPLETED_STATES:
+                return
+        else:
+            if execution_db.status not in target_statuses:
+                return
 
         execution_id = str(execution_db.id)
         payload = {'execution_id': execution_id,
