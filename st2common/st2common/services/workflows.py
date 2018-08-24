@@ -53,7 +53,7 @@ def is_action_execution_under_workflow_context(ac_ex_db):
     return 'orquesta' in ac_ex_db.context
 
 
-def inspect(wf_spec, st2_ctx):
+def inspect(wf_spec, st2_ctx, raise_exception=True):
     errors = wf_spec.inspect(app_ctx=st2_ctx, raise_exception=False)
 
     content_errors = sorted(inspect_task_contents(wf_spec), key=lambda e: e['schema_path'])
@@ -61,8 +61,10 @@ def inspect(wf_spec, st2_ctx):
     if content_errors:
         errors['contents'] = content_errors
 
-    if errors:
+    if errors and raise_exception:
         raise orquesta_exc.WorkflowInspectionError(errors)
+
+    return errors
 
 
 def inspect_task_contents(wf_spec):
@@ -151,7 +153,7 @@ def request(wf_def, ac_ex_db, st2_ctx):
     wf_spec = spec_module.instantiate(wf_def)
 
     # Inspect the workflow spec.
-    inspect(wf_spec, st2_ctx)
+    inspect(wf_spec, st2_ctx, raise_exception=True)
 
     # Identify the action to execute.
     action_db = action_utils.get_action_by_ref(ref=ac_ex_db.action['ref'])
