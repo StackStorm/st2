@@ -3,6 +3,9 @@
   name: winrm-cmd
   runner_package: winrm_runner
   runner_module: winrm_command_runner
+  output_schema:
+    unmodeled:
+      type: boolean
   runner_parameters:
     cmd:
       description: Arbitrary Command Prompt command to be executed on the remote host.
@@ -66,14 +69,14 @@
         CA bundle which comes from Mozilla. Verification using a custom CA bundle
         is not yet supported. Set to False to skip verification.
       type: boolean
-  output_schema:
-    unmodeled:
-      type: boolean
 - description: A remote execution runner that executes PowerShell commands via WinRM on a remote host
   enabled: true
   name: winrm-ps-cmd
   runner_package: winrm_runner
   runner_module: winrm_ps_command_runner
+  output_schema:
+    unmodeled:
+      type: boolean
   runner_parameters:
     cmd:
       description: Arbitrary PowerShell command to be executed on the remote host.
@@ -137,14 +140,14 @@
         CA bundle which comes from Mozilla. Verification using a custom CA bundle
         is not yet supported. Set to False to skip verification.
       type: boolean
-  output_schema:
-    unmodeled:
-      type: boolean
 - description: A remote execution runner that executes PowerShell script via WinRM on a set of remote hosts
   enabled: true
   name: winrm-ps-script
   runner_package: winrm_runner
   runner_module: winrm_ps_script_runner
+  output_schema:
+    unmodeled:
+      type: boolean
   runner_parameters:
     cwd:
       description: Working directory where the command will be executed in
@@ -204,7 +207,4 @@
       description: Certificate for HTTPS request is verified by default using requests
         CA bundle which comes from Mozilla. Verification using a custom CA bundle
         is not yet supported. Set to False to skip verification.
-      type: boolean
-  output_schema:
-    unmodeled:
       type: boolean

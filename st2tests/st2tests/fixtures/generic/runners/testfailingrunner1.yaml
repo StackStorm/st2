@@ -9,3 +9,6 @@ runner_parameters:
     description: Foo str param.
     immutable: true
     type: boolean
+output_schema:
+  unmodeled:
+    type: boolean

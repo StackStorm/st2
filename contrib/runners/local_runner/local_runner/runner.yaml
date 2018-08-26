@@ -43,9 +43,23 @@
     return_code:
       type: integer
     stderr:
-      type: string
+      anyOf:
+        - type: "object"
+        - type: "string"
+        - type: "integer"
+        - type: "number"
+        - type: "boolean"
+        - type: "array"
+        - type: "null"
     stdout:
-      type: string
+      anyOf:
+        - type: "object"
+        - type: "string"
+        - type: "integer"
+        - type: "number"
+        - type: "boolean"
+        - type: "array"
+        - type: "null"
 - aliases:
   - run-local-script
   description: A runner to execute local actions as a fixed user.
@@ -97,6 +111,20 @@
     return_code:
       type: integer
     stderr:
-      type: string
+      anyOf:
+        - type: "object"
+        - type: "string"
+        - type: "integer"
+        - type: "number"
+        - type: "boolean"
+        - type: "array"
+        - type: "null"
     stdout:
-      type: string
+      anyOf:
+        - type: "object"
+        - type: "string"
+        - type: "integer"
+        - type: "number"
+        - type: "boolean"
+        - type: "array"
+        - type: "null"

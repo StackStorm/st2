@@ -36,7 +36,8 @@ RUNNER1 = {
         "list": {"type": "array"},
         "str": {"type": "string"}
     },
-    "name": "mock-runner1"
+    "name": "mock-runner1",
+    "output_schema": {"unmodeled": {"type": "boolean"}}
 }
 
 ACTION1 = {
@@ -52,7 +53,8 @@ ACTION1 = {
 RUNNER2 = {
     "enabled": True,
     "runner_parameters": {},
-    "name": "mock-runner2"
+    "name": "mock-runner2",
+    "output_schema": {"unmodeled": {"type": "boolean"}}
 }
 
 ACTION2 = {
@@ -75,7 +77,7 @@ ACTION2 = {
 LIVE_ACTION = {
     'action': 'mockety.mock',
     'status': 'complete',
-    'result': 'non-empty'
+    'result': {'stdout': 'non-empty'}
 }
 
 

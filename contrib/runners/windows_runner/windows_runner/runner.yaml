@@ -30,9 +30,23 @@
       type: string
   output_schema:
     stdout:
-      type: string
+      anyOf:
+        - type: "object"
+        - type: "string"
+        - type: "integer"
+        - type: "number"
+        - type: "boolean"
+        - type: "array"
+        - type: "null"
     stderr:
-      type: string
+      anyOf:
+        - type: "object"
+        - type: "string"
+        - type: "integer"
+        - type: "number"
+        - type: "boolean"
+        - type: "array"
+        - type: "null"
     return_code:
       type: integer
     succeeded:
@@ -74,9 +88,23 @@
       type: string
   output_schema:
     stdout:
-      type: string
+      anyOf:
+        - type: "object"
+        - type: "string"
+        - type: "integer"
+        - type: "number"
+        - type: "boolean"
+        - type: "array"
+        - type: "null"
     stderr:
-      type: string
+      anyOf:
+        - type: "object"
+        - type: "string"
+        - type: "integer"
+        - type: "number"
+        - type: "boolean"
+        - type: "array"
+        - type: "null"
     return_code:
       type: integer
     succeeded:

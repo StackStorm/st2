@@ -31,3 +31,6 @@ runner_parameters:
     default: defaultfoo
     description: Foo str param.
     type: string
+output_schema:
+  unmodeled:
+    type: boolean

@@ -6,6 +6,26 @@
   runner_parameters: {}
   output_schema:
     stdout:
-      type: string
+      anyOf:
+        - type: "object"
+        - type: "string"
+        - type: "integer"
+        - type: "number"
+        - type: "boolean"
+        - type: "array"
+        - type: "null"
     stderr:
-      type: string
+      anyOf:
+        - type: "object"
+        - type: "string"
+        - type: "integer"
+        - type: "number"
+        - type: "boolean"
+        - type: "array"
+        - type: "null"
+    failed:
+      type: boolean
+    succeeded:
+      type: boolean
+    return_code:
+      type: integer

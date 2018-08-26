@@ -6,7 +6,9 @@
   runner_module: orquesta_runner
   output_schema:
     errors:
-      type: "array"
+      anyOf:
+        - type: "object"
+        - type: "array"
     output:
       anyOf:
         - type: "object"

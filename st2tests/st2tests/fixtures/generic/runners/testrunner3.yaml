@@ -12,3 +12,6 @@ runner_parameters:
     required: true
   k3:
     type: string
+output_schema:
+  unmodeled:
+    type: boolean

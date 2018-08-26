@@ -133,13 +133,11 @@ class RunnerContainer(object):
             if runner.runner_type.output_schema.get('unmodeled'):
                 runner.runner_type.output_schema.pop('unmodeled')
                 LOG.warn(
-                """Deprecation Notice: This runner has previously had unmodeled
-                output. In StackStorm 3.1 the output will be placed under the
-                `output` key."""
+                    """Deprecation Notice: This runner has previously had unmodeled
+                    output. In StackStorm 3.1 the output will be placed under the
+                    `output` key."""
                 )
                 runner_schema = {
-                    "type": "object",
-                    "properties": runner.runner_type.output_schema,
                     "additionalProperties": True
                 }
             else:
@@ -148,6 +146,8 @@ class RunnerContainer(object):
                     "properties": runner.runner_type.output_schema,
                     "additionalProperties": False
                 }
+
+            LOG.info("Action Result: %s", result)
 
             schema.validate(result, runner_schema, cls=schema.get_validator('custom'))
 
