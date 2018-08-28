@@ -645,7 +645,7 @@ class WorkflowManager(object):
         response.raise_for_status()
 
     def inspect(self, definition, **kwargs):
-        url = '/inspection'
+        url = '/inspect'
 
         if not isinstance(definition, six.string_types):
             raise TypeError('Workflow definition is not type of string.')

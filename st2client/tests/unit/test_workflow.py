@@ -76,7 +76,7 @@ class WorkflowCommandTestCase(st2cli_tests.BaseCLITestCase):
             self.assertEqual(retcode, 0)
 
             httpclient.HTTPClient.post_raw.assert_called_with(
-                '/inspection',
+                '/inspect',
                 MOCK_WF_DEF,
                 headers={'content-type': 'text/plain'}
             )
@@ -109,7 +109,7 @@ class WorkflowCommandTestCase(st2cli_tests.BaseCLITestCase):
         self.assertEqual(retcode, 0)
 
         httpclient.HTTPClient.post_raw.assert_called_with(
-            '/inspection',
+            '/inspect',
             MOCK_WF_DEF,
             headers={'content-type': 'text/plain'}
         )

@@ -48,7 +48,7 @@ class WorkflowInspectionControllerTest(st2api_tests.FunctionalTest, st2tests.Wor
 
     def _do_post(self, wf_def, expect_errors=False):
         return self.app.post(
-            '/v1/workflows/inspection',
+            '/v1/workflows/inspect',
             wf_def,
             expect_errors=expect_errors,
             content_type='text/plain'
