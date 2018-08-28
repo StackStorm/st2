@@ -105,7 +105,7 @@ class WorkflowInspectionCommand(commands.Command):
             raise TypeError('The inspection result is not type of dict: %s' % errors)
 
         if not errors:
-            print 'No errors found in workflow definition.'
+            print('No errors found in workflow definition.')
             return
 
         print(yaml.safe_dump(errors, default_flow_style=False, allow_unicode=True))
