@@ -43,6 +43,8 @@ class WorkflowInspectionController(object):
         return st2_ctx
 
     def post(self, wf_def):
+        LOG.info('DATA @ METHOD: %s' % wf_def)
+
         # Load workflow definition into workflow spec model.
         spec_module = specs_loader.get_spec_module('native')
         wf_spec = spec_module.instantiate(wf_def)
