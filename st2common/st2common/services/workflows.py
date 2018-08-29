@@ -53,13 +53,42 @@ def is_action_execution_under_workflow_context(ac_ex_db):
     return 'orquesta' in ac_ex_db.context
 
 
+def format_inspection_result(result):
+    errors = []
+
+    categories = {
+        'contents': 'content',
+        'context': 'context',
+        'expressions': 'expression',
+        'semantics': 'semantic',
+        'syntax': 'syntax'
+    }
+
+    # For context and expression errors, rename the attribute from type to language.
+    for category in ['context', 'expressions']:
+        for entry in result.get(category, []):
+            entry['language'] = entry['type']
+            del entry['type']
+
+    # For all categories, put the category value in the type attribute.
+    for category, entries in six.iteritems(result):
+        for entry in entries:
+            entry['type'] = categories[category]
+            errors.append(entry)
+
+    return errors
+
+
 def inspect(wf_spec, st2_ctx, raise_exception=True):
-    errors = wf_spec.inspect(app_ctx=st2_ctx, raise_exception=False)
+    # Inspect workflow definition.
+    result = wf_spec.inspect(app_ctx=st2_ctx, raise_exception=False)
+    errors = format_inspection_result(result)
 
-    content_errors = sorted(inspect_task_contents(wf_spec), key=lambda e: e['schema_path'])
+    # Inspect st2 specific contents.
+    errors += inspect_task_contents(wf_spec)
 
-    if content_errors:
-        errors['contents'] = content_errors
+    # Sort the list of errors by type and path.
+    errors = sorted(errors, key=lambda e: (e['type'], e['schema_path']))
 
     if errors and raise_exception:
         raise orquesta_exc.WorkflowInspectionError(errors)
@@ -92,6 +121,7 @@ def inspect_task_contents(wf_spec):
         # Check that the format of the action is a valid resource reference.
         if not sys_models.ResourceReference.is_resource_reference(action_ref):
             entry = {
+                'type': 'content',
                 'message': 'The action reference "%s" is not formatted correctly.' % action_ref,
                 'spec_path': action_spec_path,
                 'schema_path': action_schema_path
@@ -103,6 +133,7 @@ def inspect_task_contents(wf_spec):
         # Check that the action is registered in the database.
         if not action_utils.get_action_by_ref(ref=action_ref):
             entry = {
+                'type': 'content',
                 'message': 'The action "%s" is not registered in the database.' % action_ref,
                 'spec_path': action_spec_path,
                 'schema_path': action_schema_path
@@ -123,6 +154,7 @@ def inspect_task_contents(wf_spec):
             message = 'Action "%s" is missing required input "%s".' % (action_ref, param)
 
             entry = {
+                'type': 'content',
                 'message': message,
                 'spec_path': action_input_spec_path,
                 'schema_path': action_input_schema_path
@@ -134,6 +166,7 @@ def inspect_task_contents(wf_spec):
             message = 'Action "%s" has unexpected input "%s".' % (action_ref, param)
 
             entry = {
+                'type': 'content',
                 'message': message,
                 'spec_path': action_input_spec_path + '.' + param,
                 'schema_path': action_input_schema_path + '.patternProperties.^\\w+$'

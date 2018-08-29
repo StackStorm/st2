@@ -59,57 +59,53 @@ class WorkflowInspectionControllerTest(st2api_tests.FunctionalTest, st2tests.Wor
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, wf_file)
         wf_def = self.get_wf_def(TEST_PACK_PATH, wf_meta)
 
-        expected_errors = {}
+        expected_errors = []
         response = self._do_post(wf_def, expect_errors=False)
         self.assertEqual(http_client.OK, response.status_int)
-        self.assertDictEqual(response.json, expected_errors)
+        self.assertListEqual(response.json, expected_errors)
 
     def test_inspection_return_errors(self):
         wf_file = 'fail-inspection.yaml'
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, wf_file)
         wf_def = self.get_wf_def(TEST_PACK_PATH, wf_meta)
 
-        expected_errors = {
-            'context': [
-                {
-                    'type': 'yaql',
-                    'expression': '<% ctx().foobar %>',
-                    'message': 'Variable "foobar" is referenced before assignment.',
-                    'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.input',
-                    'spec_path': 'tasks.task1.input',
-                }
-            ],
-            'expressions': [
-                {
-                    'type': 'yaql',
-                    'expression': '<% <% succeeded() %>',
-                    'message': (
-                        'Parse error: unexpected \'<\' at '
-                        'position 0 of expression \'<% succeeded()\''
-                    ),
-                    'schema_path': (
-                        'properties.tasks.patternProperties.^\w+$.'
-                        'properties.next.items.properties.when'
-                    ),
-                    'spec_path': 'tasks.task2.next[0].when'
-                }
-            ],
-            'syntax': [
-                {
-                    'message': '[{\'cmd\': \'echo <% ctx().macro %>\'}] is not of type \'object\'',
-                    'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.input.type',
-                    'spec_path': 'tasks.task2.input'
-                }
-            ],
-            'contents': [
-                {
-                    'message': 'The action "std.noop" is not registered in the database.',
-                    'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.action',
-                    'spec_path': 'tasks.task3.action'
-                }
-            ]
-        }
+        expected_errors = [
+            {
+                'type': 'content',
+                'message': 'The action "std.noop" is not registered in the database.',
+                'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.action',
+                'spec_path': 'tasks.task3.action'
+            },
+            {
+                'type': 'context',
+                'language': 'yaql',
+                'expression': '<% ctx().foobar %>',
+                'message': 'Variable "foobar" is referenced before assignment.',
+                'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.input',
+                'spec_path': 'tasks.task1.input',
+            },
+            {
+                'type': 'expression',
+                'language': 'yaql',
+                'expression': '<% <% succeeded() %>',
+                'message': (
+                    'Parse error: unexpected \'<\' at '
+                    'position 0 of expression \'<% succeeded()\''
+                ),
+                'schema_path': (
+                    'properties.tasks.patternProperties.^\w+$.'
+                    'properties.next.items.properties.when'
+                ),
+                'spec_path': 'tasks.task2.next[0].when'
+            },
+            {
+                'type': 'syntax',
+                'message': '[{\'cmd\': \'echo <% ctx().macro %>\'}] is not of type \'object\'',
+                'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.input.type',
+                'spec_path': 'tasks.task2.input'
+            }
+        ]
 
         response = self._do_post(wf_def, expect_errors=False)
         self.assertEqual(http_client.OK, response.status_int)
-        self.assertDictEqual(response.json, expected_errors)
+        self.assertListEqual(response.json, expected_errors)

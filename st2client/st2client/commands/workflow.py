@@ -101,8 +101,8 @@ class WorkflowInspectionCommand(commands.Command):
     def run_and_print(self, args, **kwargs):
         errors = self.run(args, **kwargs)
 
-        if not isinstance(errors, dict):
-            raise TypeError('The inspection result is not type of dict: %s' % errors)
+        if not isinstance(errors, list):
+            raise TypeError('The inspection result is not type of list: %s' % errors)
 
         if not errors:
             print('No errors found in workflow definition.')

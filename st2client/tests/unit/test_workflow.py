@@ -48,7 +48,7 @@ tasks:
     action: core.echo message="Hello, World!"
 """
 
-MOCK_RESULT = {}
+MOCK_RESULT = []
 
 
 def get_by_ref(**kwargs):
