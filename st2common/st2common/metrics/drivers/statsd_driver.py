@@ -35,9 +35,6 @@ class StatsdDriver(BaseMetricsDriver):
         statsd.Connection.set_defaults(host=cfg.CONF.metrics.host, port=cfg.CONF.metrics.port,
                                        sample_rate=cfg.CONF.metrics.sample_rate)
 
-        self._counters = {}
-        self._timer = statsd.Timer('')
-
     def time(self, key, time):
         """
         Timer metric
@@ -46,7 +43,8 @@ class StatsdDriver(BaseMetricsDriver):
         assert isinstance(time, Number)
 
         key = get_full_key_name(key)
-        self._timer.send(key, time)
+        timer = statsd.Timer('')
+        timer.send(key, time)
 
     def inc_counter(self, key, amount=1):
         """
@@ -56,8 +54,9 @@ class StatsdDriver(BaseMetricsDriver):
         assert isinstance(amount, Number)
 
         key = get_full_key_name(key)
-        self._counters[key] = self._counters.get(key, statsd.Counter(key))
-        self._counters[key] += amount
+
+        counter = statsd.Counter(key)
+        counter.increment(delta=amount)
 
     def dec_counter(self, key, amount=1):
         """
@@ -67,8 +66,8 @@ class StatsdDriver(BaseMetricsDriver):
         assert isinstance(amount, Number)
 
         key = get_full_key_name(key)
-        self._counters[key] = self._counters.get(key, statsd.Counter(key))
-        self._counters[key] -= amount
+        counter = statsd.Counter(key)
+        counter.decrement(delta=amount)
 
     def set_gauge(self, key, value):
         """
