@@ -69,7 +69,7 @@ class RequestInstrumentationMiddleware(object):
 
             start_time = get_datetime_utc_now()
 
-            def hook(env):
+            def update_metrics_hook(env):
                 # Hook which is called at the very end after all the response has been sent and
                 # connection closed
                 time_delta = (get_datetime_utc_now() - start_time)
@@ -81,7 +81,9 @@ class RequestInstrumentationMiddleware(object):
                 # Decrease "current number of connections" gauge
                 metrics_driver.dec_gauge('stream.connections', 1)
 
-            environ['eventlet.posthooks'].append((hook, (), {}))
+            # NOTE: Some tests mock environ and there 'eventlet.posthooks' key is not available
+            if 'eventlet.posthooks' in environ:
+                environ['eventlet.posthooks'].append((update_metrics_hook, (), {}))
 
             return self.app(environ, start_response)
         else:
