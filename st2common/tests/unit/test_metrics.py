@@ -64,7 +64,8 @@ class TestStatsDMetricsDriver(unittest2.TestCase):
 
         statsd.Connection.set_defaults.assert_called_once_with(
             host=cfg.CONF.metrics.host,
-            port=cfg.CONF.metrics.port
+            port=cfg.CONF.metrics.port,
+            sample_rate=1.0
         )
 
     def test_time(self):
