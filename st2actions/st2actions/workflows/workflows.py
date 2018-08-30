@@ -54,6 +54,10 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
                 return self.handle_workflow_execution(wf_ex_db=wf_ex_db)
 
         def handle_action_execution_with_instrumentation(ac_ex_db):
+            # Ignore non orquesta workflow executions
+            if 'orquesta' not in ac_ex_db.context:
+                return
+
             with CounterWithTimer(key='orquesta.action.executions'):
                 return self.handle_action_execution(ac_ex_db=ac_ex_db)
 
