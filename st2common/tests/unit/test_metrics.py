@@ -68,16 +68,18 @@ class TestStatsDMetricsDriver(unittest2.TestCase):
             sample_rate=1.0
         )
 
-    def test_time(self):
-        statsd = MagicMock()
-        self._driver._timer = statsd.Timer('')
+    @patch('st2common.metrics.drivers.statsd_driver.statsd')
+    def test_time(self, statsd):
+        mock_timer = MagicMock()
+        statsd.Timer('').send.side_effect = mock_timer
         params = ('test', 10)
         self._driver.time(*params)
-        statsd.Timer().send.assert_called_with('st2.test', 10)
+        statsd.Timer('').send.assert_called_with('st2.test', 10)
 
-    def test_time_with_float(self):
-        statsd = MagicMock()
-        self._driver._timer = statsd.Timer('')
+    @patch('st2common.metrics.drivers.statsd_driver.statsd')
+    def test_time_with_float(self, statsd):
+        mock_timer = MagicMock()
+        statsd.Timer('').send.side_effect = mock_timer
         params = ('test', 10.5)
         self._driver.time(*params)
         statsd.Timer().send.assert_called_with('st2.test', 10.5)
@@ -96,17 +98,17 @@ class TestStatsDMetricsDriver(unittest2.TestCase):
     def test_inc_counter_with_default_amount(self, statsd):
         key = 'test'
         mock_counter = MagicMock()
-        statsd.Counter(key).__iadd__.side_effect = mock_counter
+        statsd.Counter(key).increment.side_effect = mock_counter
         self._driver.inc_counter(key)
-        mock_counter.assert_called_once_with(1)
+        mock_counter.assert_called_once_with(delta=1)
 
     @patch('st2common.metrics.drivers.statsd_driver.statsd')
     def test_inc_counter_with_amount(self, statsd):
         params = ('test', 2)
         mock_counter = MagicMock()
-        statsd.Counter(params[0]).__iadd__.side_effect = mock_counter
+        statsd.Counter(params[0]).increment.side_effect = mock_counter
         self._driver.inc_counter(*params)
-        mock_counter.assert_called_once_with(params[1])
+        mock_counter.assert_called_once_with(delta=params[1])
 
     def test_inc_timer_with_invalid_key(self):
         params = (2, 2)
@@ -122,17 +124,17 @@ class TestStatsDMetricsDriver(unittest2.TestCase):
     def test_dec_timer_with_default_amount(self, statsd):
         key = 'test'
         mock_counter = MagicMock()
-        statsd.Counter().__isub__.side_effect = mock_counter
+        statsd.Counter().decrement.side_effect = mock_counter
         self._driver.dec_counter(key)
-        mock_counter.assert_called_once_with(1)
+        mock_counter.assert_called_once_with(delta=1)
 
     @patch('st2common.metrics.drivers.statsd_driver.statsd')
     def test_dec_timer_with_amount(self, statsd):
         params = ('test', 2)
         mock_counter = MagicMock()
-        statsd.Counter().__isub__.side_effect = mock_counter
+        statsd.Counter().decrement.side_effect = mock_counter
         self._driver.dec_counter(*params)
-        mock_counter.assert_called_once_with(params[1])
+        mock_counter.assert_called_once_with(delta=params[1])
 
     def test_dec_timer_with_invalid_key(self):
         params = (2, 2)
