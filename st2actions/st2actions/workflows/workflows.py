@@ -161,7 +161,7 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
 
     def handle_action_execution(self, ac_ex_db):
         # Exit if action execution is not  executed under an orquesta workflow.
-        if not self._is_orquesta_execution(ac_ex_db=ac_ex_db)
+        if not self._is_orquesta_execution(ac_ex_db=ac_ex_db):
             return
 
         # Get related record identifiers.
