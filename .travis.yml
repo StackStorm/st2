@@ -62,12 +62,8 @@ matrix:
 addons:
   apt:
     sources:
-      - sourceline: 'deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.4 multiverse'
-        key_url: 'https://www.mongodb.org/static/pgp/server-3.4.asc'
       - sourceline: 'ppa:git-core/ppa'
     packages:
-      - mongodb-org-server
-      - mongodb-org-shell
       - git
 
 services:
@@ -98,6 +94,11 @@ install:
 # Let's enable rabbitmqadmin
 # See https://github.com/messagebus/lapine/wiki/Testing-on-Travis.
 before_script:
+  # key_url no longer works for APT addon
+  - curl https://www.mongodb.org/static/pgp/server-3.4.asc | sudo apt-key add -
+  - echo "deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.4 multiverse" | sudo tee -a /etc/apt/sources.list
+  - sudo apt-get update -qq
+  - sudo apt-get install mongodb-org-server mongodb-org-shell-y
   # Use a custom mongod.conf which uses various speed optimizations
   - sudo cp scripts/travis/mongod.conf /etc/mongod.conf
   # Clean up any old MongoDB 3.4 data files laying around and make sure mongodb user can write to it
