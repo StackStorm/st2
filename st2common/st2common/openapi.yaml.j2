@@ -4080,6 +4080,47 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /api/v1/workflows/inspect:
+    post:
+      operationId: st2api.controllers.v1.workflow_inspection:workflow_inspection_controller.post
+      description: Inspect workflow definition (support orquesta workflow only).
+      parameters:
+        - name: wf_def
+          in: body
+          description: Workflow definition in YAML
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of inspection errors separated by categories.
+          schema:
+            $ref: '#/definitions/WorkflowInspectionErrors'
+          examples:
+            application/json:
+              - type: "content"
+                message: "The action \"std.noop\" is not registered in the database."
+                schema_path: "properties.tasks.patternProperties.^\\w+$.properties.action"
+                spec_path: "tasks.task3.action"
+              - type: "context"
+                language: "yaql"
+                expression: "<% ctx().foobar %>"
+                message: "Variable \"foobar\" is referenced before assignment."
+                schema_path: "properties.tasks.patternProperties.^\\w+$.properties.input"
+                spec_path: "tasks.task1.input"
+              - type: "expression"
+                language: "yaql"
+                expression: "<% <% succeeded() %>"
+                message: "Parse error: unexpected '<' at position 0 of expression '<% succeeded()'"
+                schema_path: "properties.tasks.patternProperties.^\\w+$.properties.next.items.properties.when"
+                spec_path: "tasks.task2.next[0].when"
+              - type: "syntax"
+                message: "[{'cmd': 'echo <% ctx().macro %>'}] is not of type 'object'"
+                schema_path: "properties.tasks.patternProperties.^\\w+$.properties.input.type"
+                spec_path: "tasks.task2.input"
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
 
   /api/exp/validation/mistral:
     post:
@@ -5076,6 +5117,26 @@ definitions:
       enabled:
         type: boolean
         default: True
+
+  WorkflowInspectionError:
+    type: object
+    properties:
+      type:
+        type: string
+      language:
+        type: string
+      expression:
+        type: string
+      message:
+        type: string
+      schema_path:
+        type: string
+      spec_path:
+        type: string
+  WorkflowInspectionErrors:
+    type: array
+    items:
+      $ref: '#/definitions/WorkflowInspectionError'
 
   ValidationError:
     type: object
