@@ -67,8 +67,9 @@ def format_inspection_result(result):
     # For context and expression errors, rename the attribute from type to language.
     for category in ['context', 'expressions']:
         for entry in result.get(category, []):
-            entry['language'] = entry['type']
-            del entry['type']
+            if 'language' not in entry:
+                entry['language'] = entry['type']
+                del entry['type']
 
     # For all categories, put the category value in the type attribute.
     for category, entries in six.iteritems(result):
