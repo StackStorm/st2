@@ -54,7 +54,6 @@ class StatsdDriver(BaseMetricsDriver):
         assert isinstance(amount, Number)
 
         key = get_full_key_name(key)
-
         counter = statsd.Counter(key)
         counter.increment(delta=amount)
 
