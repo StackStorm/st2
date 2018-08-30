@@ -1,10 +1,10 @@
 # Don't edit this file. It's generated automatically!
 RandomWords
-apscheduler==3.5.3
+apscheduler==3.5.1
 argcomplete
 bcrypt
-cryptography==2.3.1
-eventlet==0.24.1
+cryptography==2.3.0
+eventlet==0.23.0
 flex==6.13.2
 git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper
 git+https://github.com/StackStorm/mongoengine.git@stackstorm_patched#egg=mongoengine
@@ -32,7 +32,7 @@ passlib==1.7.1
 prettytable
 prometheus_client==0.1.1
 prompt-toolkit==1.0.15
-psutil==5.4.7
+psutil==5.4.6
 pyinotify==0.9.6
 pymongo==3.7.1
 pyrabbit
@@ -54,6 +54,6 @@ sseclient==0.0.19
 stevedore==1.29.0
 tooz==1.62.0
 unittest2
-webob==1.8.2
+webob==1.7.4
 webtest
 zake==0.2.2
