@@ -75,7 +75,11 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
         )
 
     def process(self, message):
-        handler_function = self.message_types.get(type(message))
+        handler_function = self.message_types.get(type(message), None)
+        if not handler_function:
+            raise ValueError('Handler function for message type "%s" is not defined' %
+                             (type(message)))
+
         handler_function(message)
 
     def handle_workflow_execution(self, wf_ex_db):
