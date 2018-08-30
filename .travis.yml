@@ -59,12 +59,6 @@ matrix:
     - env: TASK="ci-py3-integration" CACHE_NAME=py3 COMMAND_THRESHOLD=310
       python: 3.6
       name: "Integration Tests (Python 3.6)"
-addons:
-  apt:
-    sources:
-      - sourceline: 'ppa:git-core/ppa'
-    packages:
-      - git
 
 services:
   - rabbitmq
@@ -95,10 +89,12 @@ install:
 # See https://github.com/messagebus/lapine/wiki/Testing-on-Travis.
 before_script:
   # key_url no longer works for APT addon
+  # 1. Install MongoDB 3.4 and latest version of git
+  - sudo add-apt-repository ppa:git-core/ppa
   - curl https://www.mongodb.org/static/pgp/server-3.4.asc | sudo apt-key add -
   - echo "deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.4 multiverse" | sudo tee -a /etc/apt/sources.list
   - sudo apt-get update -qq
-  - sudo apt-get install mongodb-org-server mongodb-org-shell -y
+  - sudo apt-get install mongodb-org-server mongodb-org-shell git -y
   # Use a custom mongod.conf which uses various speed optimizations
   - sudo cp scripts/travis/mongod.conf /etc/mongod.conf
   # Clean up any old MongoDB 3.4 data files laying around and make sure mongodb user can write to it
