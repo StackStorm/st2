@@ -19,7 +19,7 @@ import json
 from oslo_config import cfg
 from six.moves import http_client
 
-from st2api.controllers import resource
+from st2api.controllers.resource import ResourceController
 from st2api.controllers.v1 import execution_views
 from st2common.constants import action as action_constants
 from st2common.exceptions import db as db_exceptions

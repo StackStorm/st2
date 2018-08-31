@@ -18,8 +18,6 @@ import json
 import mock
 import uuid
 
-from six.moves import http_client
-
 from oslo_config import cfg
 from six.moves import http_client
 
@@ -30,13 +28,6 @@ from st2common import log as logging
 import st2common.validators.api.action as action_validator
 from st2common.models.db import liveaction as lv_db_models
 from st2common.services import action as action_service
-from st2common.transport import publishers
-from st2common.validators.api import action as action_validator
-
-from st2common.models.db import liveaction as lv_db_models
-from st2common.services import action as action_service
-from st2common.transport import publishers
-from st2common.validators.api import action as action_validator
 
 from tests.base import BaseInquiryControllerTestCase
 from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
@@ -171,6 +162,7 @@ ROOT_LIVEACTION_DB = lv_db_models.LiveActionDB(
     status=action_constants.LIVEACTION_STATUS_PAUSED
 )
 
+
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
 class InquiryControllerTestCase(BaseInquiryControllerTestCase,
                                 APIControllerWithIncludeAndExcludeFilterTestCase):
@@ -179,16 +171,13 @@ class InquiryControllerTestCase(BaseInquiryControllerTestCase,
     include_attribute_field_name = 'ttl'
     exclude_attribute_field_name = 'ttl'
 
-@mock.patch.object(publishers.PoolPublisher, 'publish', mock.MagicMock())
-class InquiryControllerTestCase(api_tests_base.BaseInquiryControllerTestCase):
-
     @mock.patch.object(
         action_validator,
         'validate_action',
         mock.MagicMock(return_value=True))
     def setUp(cls):
         super(BaseInquiryControllerTestCase, cls).setUpClass()
-        
+
         cls.inquiry1 = copy.deepcopy(INQUIRY_ACTION)
         post_resp = cls.app.post_json('/v1/actions', cls.inquiry1)
         cls.inquiry1['id'] = post_resp.json['id']
