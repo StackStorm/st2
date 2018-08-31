@@ -213,7 +213,7 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
 
     def _is_orquesta_execution(self, ac_ex_db):
         """
-        Return True if particular execution object represents an orquesta workflow, False
+        Return True if particular execution object represents a task in orquesta workflow, False
         otherwise.
         """
         return ('orquesta' in ac_ex_db.context)
