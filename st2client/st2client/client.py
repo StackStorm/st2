@@ -32,6 +32,7 @@ from st2client.models.core import PackResourceManager
 from st2client.models.core import ConfigManager
 from st2client.models.core import WebhookManager
 from st2client.models.core import StreamManager
+from st2client.models.core import WorkflowManager
 from st2client.models.core import add_auth_token_to_kwargs_from_env
 
 
@@ -160,6 +161,8 @@ class Client(object):
             models.RuleEnforcement, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Stream'] = StreamManager(
             self.endpoints['stream'], cacert=self.cacert, debug=self.debug)
+        self.managers['Workflow'] = WorkflowManager(
+            self.endpoints['api'], cacert=self.cacert, debug=self.debug)
 
         # RBAC
         self.managers['Role'] = ResourceManager(
@@ -251,3 +254,7 @@ class Client(object):
     @property
     def webhooks(self):
         return self.managers['Webhook']
+
+    @property
+    def workflows(self):
+        return self.managers['Workflow']

@@ -619,3 +619,45 @@ class StreamManager(object):
                 continue
 
             yield json.loads(message.data)
+
+
+class WorkflowManager(object):
+    def __init__(self, endpoint, cacert, debug):
+        self.debug = debug
+        self.cacert = cacert
+        self.endpoint = endpoint + '/workflows'
+        self.client = httpclient.HTTPClient(root=self.endpoint, cacert=cacert, debug=debug)
+
+    @staticmethod
+    def handle_error(response):
+        try:
+            content = response.json()
+            fault = content.get('faultstring', '') if content else ''
+
+            if fault:
+                response.reason += '\nMESSAGE: %s' % fault
+        except Exception as e:
+            response.reason += (
+                '\nUnable to retrieve detailed message '
+                'from the HTTP response. %s\n' % str(e)
+            )
+
+        response.raise_for_status()
+
+    def inspect(self, definition, **kwargs):
+        url = '/inspect'
+
+        if not isinstance(definition, six.string_types):
+            raise TypeError('Workflow definition is not type of string.')
+
+        if 'headers' not in kwargs:
+            kwargs['headers'] = {}
+
+        kwargs['headers']['content-type'] = 'text/plain'
+
+        response = self.client.post_raw(url, definition, **kwargs)
+
+        if response.status_code != http_client.OK:
+            self.handle_error(response)
+
+        return response.json()
