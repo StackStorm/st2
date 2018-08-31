@@ -17,10 +17,12 @@ from __future__ import absolute_import
 
 import copy
 import retrying
+import six
 
 from orquesta import conducting
 from orquesta import events
 from orquesta import exceptions as orquesta_exc
+from orquesta.expressions import base as expressions
 from orquesta.specs import loader as specs_loader
 from orquesta import states
 
@@ -30,12 +32,14 @@ from st2common.exceptions import workflow as wf_exc
 from st2common import log as logging
 from st2common.models.db import liveaction as lv_db_models
 from st2common.models.db import workflow as wf_db_models
+from st2common.models.system import common as sys_models
+from st2common.models.utils import action_param_utils
 from st2common.persistence import liveaction as lv_db_access
 from st2common.persistence import execution as ex_db_access
 from st2common.persistence import workflow as wf_db_access
 from st2common.services import action as ac_svc
 from st2common.services import executions as ex_svc
-from st2common.util import action_db as ac_db_util
+from st2common.util import action_db as action_utils
 from st2common.util import date as date_utils
 from st2common.util import param as param_utils
 
@@ -49,38 +53,129 @@ def is_action_execution_under_workflow_context(ac_ex_db):
     return 'orquesta' in ac_ex_db.context
 
 
-# Temporary workaround on context inspection errors relating to the st2 context.
-def inspect(wf_spec):
-    errors = {}
+def format_inspection_result(result):
+    errors = []
 
-    syntax_errors = sorted(wf_spec.inspect_syntax(), key=lambda e: e['schema_path'])
-
-    if syntax_errors:
-        errors['syntax'] = syntax_errors
-
-    semantic_errors = sorted(wf_spec.inspect_semantics(), key=lambda e: e['schema_path'])
-
-    if semantic_errors:
-        errors['semantics'] = semantic_errors
-
-    expr_errors = sorted(wf_spec.inspect_expressions(), key=lambda e: e['schema_path'])
-
-    if expr_errors:
-        errors['expressions'] = expr_errors
-
-    parent_ctx = {
-        'ctx': ['st2'],
-        'spec_path': '.',
-        'schema_path': '.'
+    categories = {
+        'contents': 'content',
+        'context': 'context',
+        'expressions': 'expression',
+        'semantics': 'semantic',
+        'syntax': 'syntax'
     }
 
-    ctx_errors, _ = wf_spec.inspect_context(parent=parent_ctx)
+    # For context and expression errors, rename the attribute from type to language.
+    for category in ['context', 'expressions']:
+        for entry in result.get(category, []):
+            if 'language' not in entry:
+                entry['language'] = entry['type']
+                del entry['type']
 
-    if ctx_errors:
-        errors['context'] = ctx_errors
+    # For all categories, put the category value in the type attribute.
+    for category, entries in six.iteritems(result):
+        for entry in entries:
+            entry['type'] = categories[category]
+            errors.append(entry)
 
-    if errors:
+    return errors
+
+
+def inspect(wf_spec, st2_ctx, raise_exception=True):
+    # Inspect workflow definition.
+    result = wf_spec.inspect(app_ctx=st2_ctx, raise_exception=False)
+    errors = format_inspection_result(result)
+
+    # Inspect st2 specific contents.
+    errors += inspect_task_contents(wf_spec)
+
+    # Sort the list of errors by type and path.
+    errors = sorted(errors, key=lambda e: (e['type'], e['schema_path']))
+
+    if errors and raise_exception:
         raise orquesta_exc.WorkflowInspectionError(errors)
+
+    return errors
+
+
+def inspect_task_contents(wf_spec):
+    result = []
+    spec_path = 'tasks'
+    schema_path = 'properties.tasks.patternProperties.^\\w+$'
+    action_schema_path = schema_path + '.properties.action'
+    action_input_schema_path = schema_path + '.properties.input'
+
+    def is_action_an_expression(action):
+        if isinstance(action, six.string_types):
+            for name, evaluator in six.iteritems(expressions.get_evaluators()):
+                if evaluator.has_expressions(action):
+                    return True
+
+    for task_name, task_spec in six.iteritems(wf_spec.tasks):
+        action_ref = getattr(task_spec, 'action', None)
+        action_spec_path = spec_path + '.' + task_name + '.action'
+        action_input_spec_path = spec_path + '.' + task_name + '.input'
+
+        # Move on if action is empty or an expression.
+        if not action_ref or is_action_an_expression(action_ref):
+            continue
+
+        # Check that the format of the action is a valid resource reference.
+        if not sys_models.ResourceReference.is_resource_reference(action_ref):
+            entry = {
+                'type': 'content',
+                'message': 'The action reference "%s" is not formatted correctly.' % action_ref,
+                'spec_path': action_spec_path,
+                'schema_path': action_schema_path
+            }
+
+            result.append(entry)
+            continue
+
+        # Check that the action is registered in the database.
+        if not action_utils.get_action_by_ref(ref=action_ref):
+            entry = {
+                'type': 'content',
+                'message': 'The action "%s" is not registered in the database.' % action_ref,
+                'spec_path': action_spec_path,
+                'schema_path': action_schema_path
+            }
+
+            result.append(entry)
+            continue
+
+        # Check the action parameters.
+        params = getattr(task_spec, 'input', None) or {}
+
+        if params and not isinstance(params, dict):
+            continue
+
+        requires, unexpected = action_param_utils.validate_action_parameters(action_ref, params)
+
+        for param in requires:
+            message = 'Action "%s" is missing required input "%s".' % (action_ref, param)
+
+            entry = {
+                'type': 'content',
+                'message': message,
+                'spec_path': action_input_spec_path,
+                'schema_path': action_input_schema_path
+            }
+
+            result.append(entry)
+
+        for param in unexpected:
+            message = 'Action "%s" has unexpected input "%s".' % (action_ref, param)
+
+            entry = {
+                'type': 'content',
+                'message': message,
+                'spec_path': action_input_spec_path + '.' + param,
+                'schema_path': action_input_schema_path + '.patternProperties.^\\w+$'
+            }
+
+            result.append(entry)
+
+    return result
 
 
 def request(wf_def, ac_ex_db, st2_ctx):
@@ -92,17 +187,17 @@ def request(wf_def, ac_ex_db, st2_ctx):
     wf_spec = spec_module.instantiate(wf_def)
 
     # Inspect the workflow spec.
-    inspect(wf_spec)
+    inspect(wf_spec, st2_ctx, raise_exception=True)
 
     # Identify the action to execute.
-    action_db = ac_db_util.get_action_by_ref(ref=ac_ex_db.action['ref'])
+    action_db = action_utils.get_action_by_ref(ref=ac_ex_db.action['ref'])
 
     if not action_db:
         error = 'Unable to find action "%s".' % ac_ex_db.action['ref']
         raise ac_exc.InvalidActionReferencedException(error)
 
     # Identify the runner for the action.
-    runner_type_db = ac_db_util.get_runnertype_by_name(action_db.runner_type['name'])
+    runner_type_db = action_utils.get_runnertype_by_name(action_db.runner_type['name'])
 
     # Render action execution parameters.
     runner_params, action_params = param_utils.render_final_params(
@@ -298,14 +393,14 @@ def request_task_execution(wf_ex_db, task_id, task_spec, task_ctx, st2_ctx):
             return wf_db_access.TaskExecution.get_by_id(str(task_ex_db.id))
 
         # Identify the action to execute.
-        action_db = ac_db_util.get_action_by_ref(ref=task_spec.action)
+        action_db = action_utils.get_action_by_ref(ref=task_spec.action)
 
         if not action_db:
             error = 'Unable to find action "%s".' % task_spec.action
             raise ac_exc.InvalidActionReferencedException(error)
 
         # Identify the runner for the action.
-        runner_type_db = ac_db_util.get_runnertype_by_name(action_db.runner_type['name'])
+        runner_type_db = action_utils.get_runnertype_by_name(action_db.runner_type['name'])
 
         # Set context for the action execution.
         ac_ex_ctx = {
@@ -441,7 +536,7 @@ def handle_action_execution_resume(ac_ex_db):
         parent_ac_ex_db = ex_db_access.ActionExecution.get_by_id(parent_ac_ex_id)
 
         if parent_ac_ex_db.status == ac_const.LIVEACTION_STATUS_PAUSED:
-            ac_db_util.update_liveaction_status(
+            action_utils.update_liveaction_status(
                 liveaction_id=parent_ac_ex_db.liveaction['id'],
                 status=ac_const.LIVEACTION_STATUS_RUNNING,
                 publish=False)
@@ -706,7 +801,7 @@ def update_execution_records(wf_ex_db, conductor, update_lv_ac_on_states=None,
 
     # Update the corresponding liveaction and action execution for the workflow.
     wf_ac_ex_db = ex_db_access.ActionExecution.get_by_id(wf_ex_db.action_execution)
-    wf_lv_ac_db = ac_db_util.get_liveaction_by_id(wf_ac_ex_db.liveaction['id'])
+    wf_lv_ac_db = action_utils.get_liveaction_by_id(wf_ac_ex_db.liveaction['id'])
 
     # Gather result for liveaction and action execution.
     result = {'output': wf_ex_db.output or None}
@@ -731,7 +826,7 @@ def update_execution_records(wf_ex_db, conductor, update_lv_ac_on_states=None,
         msg = '[%s] Workflow action execution status change %s be published.'
         LOG.debug(msg, wf_ac_ex_id, 'will' if pub_ac_ex else 'will not')
 
-    wf_lv_ac_db = ac_db_util.update_liveaction_status(
+    wf_lv_ac_db = action_utils.update_liveaction_status(
         status=wf_ex_db.status,
         result=result,
         end_timestamp=wf_ex_db.end_timestamp,

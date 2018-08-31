@@ -100,6 +100,43 @@ class OrquestaErrorHandlingTest(st2tests.DbTestCase):
         return sorted(errors, key=lambda x: x.get('task_id', None))
 
     def test_fail_inspection(self):
+        expected_errors = [
+            {
+                'type': 'content',
+                'message': 'The action "std.noop" is not registered in the database.',
+                'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.action',
+                'spec_path': 'tasks.task3.action'
+            },
+            {
+                'type': 'context',
+                'language': 'yaql',
+                'expression': '<% ctx().foobar %>',
+                'message': 'Variable "foobar" is referenced before assignment.',
+                'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.input',
+                'spec_path': 'tasks.task1.input',
+            },
+            {
+                'type': 'expression',
+                'language': 'yaql',
+                'expression': '<% <% succeeded() %>',
+                'message': (
+                    'Parse error: unexpected \'<\' at '
+                    'position 0 of expression \'<% succeeded()\''
+                ),
+                'schema_path': (
+                    'properties.tasks.patternProperties.^\w+$.'
+                    'properties.next.items.properties.when'
+                ),
+                'spec_path': 'tasks.task2.next[0].when'
+            },
+            {
+                'type': 'syntax',
+                'message': '[{\'cmd\': \'echo <% ctx().macro %>\'}] is not of type \'object\'',
+                'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.input.type',
+                'spec_path': 'tasks.task2.input'
+            }
+        ]
+
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'fail-inspection.yaml')
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
@@ -107,12 +144,7 @@ class OrquestaErrorHandlingTest(st2tests.DbTestCase):
 
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_FAILED)
         self.assertIn('errors', lv_ac_db.result)
-        self.assertIn('expressions', lv_ac_db.result['errors'])
-        self.assertGreater(len(lv_ac_db.result['errors']['expressions']), 0)
-        self.assertIn('context', lv_ac_db.result['errors'])
-        self.assertGreater(len(lv_ac_db.result['errors']['context']), 0)
-        self.assertIn('syntax', lv_ac_db.result['errors'])
-        self.assertGreater(len(lv_ac_db.result['errors']['syntax']), 0)
+        self.assertListEqual(lv_ac_db.result['errors'], expected_errors)
 
     def test_fail_input_rendering(self):
         expected_errors = [
