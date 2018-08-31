@@ -82,7 +82,7 @@ def main():
     except SystemExit as exit_code:
         sys.exit(exit_code)
     except:
-        LOG.exception('(PID=%s) RulesEngine quit due to exception.', os.getpid())
+        LOG.exception('(PID=%s) TimerEngine quit due to exception.', os.getpid())
         return 1
     finally:
         _teardown()

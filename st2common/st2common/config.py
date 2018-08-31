@@ -538,6 +538,17 @@ def register_opts(ignore_errors=False):
         cfg.IntOpt(
             'port', default=8125,
             help='Destination port to connect to if driver requires connection.'),
+        cfg.StrOpt(
+            'prefix', default=None,
+            help='Optional prefix which is prepended to all the metric names. Comes handy when '
+                 'you want to submit metrics from various environment to the same metric '
+                 'backend instance.'),
+        cfg.FloatOpt(
+            'sample_rate', default=1,
+            help='Randomly sample and only send metrics for X% of metric operations to the '
+                 'backend. Default value of 1 means no sampling is done and all the metrics are '
+                 'sent to the backend. E.g. 0.1 would mean 10% of operations are sampled.')
+
     ]
 
     do_register_opts(metrics_opts, group='metrics', ignore_errors=ignore_errors)

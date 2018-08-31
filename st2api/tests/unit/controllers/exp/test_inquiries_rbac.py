@@ -13,29 +13,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 import mock
+
 from six.moves import http_client
 
-import st2common.validators.api.action as action_validator
-from st2common.models.db.auth import UserDB
-from st2common.persistence.auth import User
-from st2common.models.db.rbac import RoleDB
-from st2common.models.db.rbac import UserRoleAssignmentDB
-from st2common.persistence.rbac import UserRoleAssignment
-from st2common.persistence.rbac import Role
-from st2common.transport.publishers import PoolPublisher
-from tests.base import APIControllerWithRBACTestCase
-from st2common.rbac.types import ResourceType
-from tests.base import BaseInquiryControllerTestCase
-from st2tests.fixturesloader import FixturesLoader
+from st2common.models.db import auth as auth_db_models
+from st2common.models.db import rbac as rbac_db_models
+from st2common.persistence import auth as auth_db_access
+from st2common.persistence import rbac as rbac_db_access
+from st2common.rbac import types as rbac_types
+from st2common.services import action as action_service
+from st2common.transport import publishers
+from st2common.validators.api import action as action_validator
+from st2tests import fixturesloader
 
-from st2common.rbac.types import PermissionType
-from st2common.persistence.rbac import PermissionGrant
-from st2common.models.db.rbac import PermissionGrantDB
-
-from tests.unit.controllers.exp.test_inquiries import SCHEMA_DEFAULT
+from tests import base as api_tests_base
+from tests.unit.controllers.exp import test_inquiries
 
 
+SCHEMA_DEFAULT = copy.deepcopy(test_inquiries.SCHEMA_DEFAULT)
 FIXTURES_PACK = 'generic'
 TEST_FIXTURES = {
     'runners': ['inquirer.yaml', 'actionchain.yaml'],
@@ -43,50 +40,54 @@ TEST_FIXTURES = {
 }
 
 
-@mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
-class InquiryRBACControllerTestCase(APIControllerWithRBACTestCase,
-                                    BaseInquiryControllerTestCase):
+@mock.patch.object(publishers.PoolPublisher, 'publish', mock.MagicMock())
+class InquiryRBACControllerTestCase(api_tests_base.APIControllerWithRBACTestCase,
+                                    api_tests_base.BaseInquiryControllerTestCase):
 
-    fixtures_loader = FixturesLoader()
+    fixtures_loader = fixturesloader.FixturesLoader()
 
-    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
-        return_value=True))
+    @mock.patch.object(
+        action_validator,
+        'validate_action',
+        mock.MagicMock(return_value=True))
     def setUp(self):
         super(InquiryRBACControllerTestCase, self).setUp()
 
-        self.fixtures_loader.save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
-                                                 fixtures_dict=TEST_FIXTURES)
+        self.fixtures_loader.save_fixtures_to_db(
+            fixtures_pack=FIXTURES_PACK,
+            fixtures_dict=TEST_FIXTURES
+        )
 
         # Insert mock users, roles and assignments
         assignments = {
             "user_get_db": {
                 "roles": ["role_get"],
-                "permissions": [PermissionType.INQUIRY_VIEW],
-                "resource_type": ResourceType.INQUIRY,
+                "permissions": [rbac_types.PermissionType.INQUIRY_VIEW],
+                "resource_type": rbac_types.ResourceType.INQUIRY,
                 "resource_uid": 'inquiry'
             },
             "user_list_db": {
                 "roles": ["role_list"],
-                "permissions": [PermissionType.INQUIRY_LIST],
-                "resource_type": ResourceType.INQUIRY,
+                "permissions": [rbac_types.PermissionType.INQUIRY_LIST],
+                "resource_type": rbac_types.ResourceType.INQUIRY,
                 "resource_uid": 'inquiry'
             },
             "user_respond_db": {
                 "roles": ["role_respond"],
-                "permissions": [PermissionType.INQUIRY_RESPOND],
-                "resource_type": ResourceType.INQUIRY,
+                "permissions": [rbac_types.PermissionType.INQUIRY_RESPOND],
+                "resource_type": rbac_types.ResourceType.INQUIRY,
                 "resource_uid": 'inquiry'
             },
             "user_respond_paramtest": {
                 "roles": ["role_respond_2"],
-                "permissions": [PermissionType.INQUIRY_RESPOND],
-                "resource_type": ResourceType.INQUIRY,
+                "permissions": [rbac_types.PermissionType.INQUIRY_RESPOND],
+                "resource_type": rbac_types.ResourceType.INQUIRY,
                 "resource_uid": 'inquiry'
             },
             "user_respond_inherit": {
                 "roles": ["role_inherit"],
-                "permissions": [PermissionType.ACTION_EXECUTE],
-                "resource_type": ResourceType.ACTION,
+                "permissions": [rbac_types.PermissionType.ACTION_EXECUTE],
+                "resource_type": rbac_types.ResourceType.ACTION,
                 "resource_uid": 'action:wolfpack:inquiry-workflow'
             }
 
@@ -94,35 +95,35 @@ class InquiryRBACControllerTestCase(APIControllerWithRBACTestCase,
 
         # Create users
         for user in assignments.keys():
-            user_db = UserDB(name=user)
-            user_db = User.add_or_update(user_db)
+            user_db = auth_db_models.UserDB(name=user)
+            user_db = auth_db_access.User.add_or_update(user_db)
             self.users[user] = user_db
 
         # Create grants and assign to roles
         for assignment_details in assignments.values():
 
-            grant_db = PermissionGrantDB(
+            grant_db = rbac_db_models.PermissionGrantDB(
                 permission_types=assignment_details["permissions"],
                 resource_uid=assignment_details["resource_uid"],
                 resource_type=assignment_details["resource_type"]
             )
-            grant_db = PermissionGrant.add_or_update(grant_db)
+            grant_db = rbac_db_access.PermissionGrant.add_or_update(grant_db)
             permission_grants = [str(grant_db.id)]
 
             for role in assignment_details["roles"]:
-                role_db = RoleDB(name=role, permission_grants=permission_grants)
-                Role.add_or_update(role_db)
+                role_db = rbac_db_models.RoleDB(name=role, permission_grants=permission_grants)
+                rbac_db_access.Role.add_or_update(role_db)
 
         # Assign users to roles
         for user_name, assignment_details in assignments.items():
             user_db = self.users[user_name]
 
             for role in assignment_details['roles']:
-                role_assignment_db = UserRoleAssignmentDB(
+                role_assignment_db = rbac_db_models.UserRoleAssignmentDB(
                     user=user_db.name,
                     role=role,
                     source='assignments/%s.yaml' % user_db.name)
-                UserRoleAssignment.add_or_update(role_assignment_db)
+                rbac_db_access.UserRoleAssignment.add_or_update(role_assignment_db)
 
         # Create Inquiry
         data = {
@@ -238,7 +239,7 @@ class InquiryRBACControllerTestCase(APIControllerWithRBACTestCase,
         """Test API with RBAC inquiry 'respond' permissions
         """
 
-        response = {"continue": True}
+        response = {'continue': True}
 
         # User with list permissions should not succeed
         self.use_user(self.users['user_list_db'])
@@ -256,7 +257,7 @@ class InquiryRBACControllerTestCase(APIControllerWithRBACTestCase,
         These are permissions enforced by the PUT endpoint itself,
         based on the "roles" inquirer parameter
         """
-        response = {"continue": True}
+        response = {'continue': True}
 
         # user_respond_paramtest has the INQUIRY_RESPOND permission,
         # but does not belong to a role that is in the "roles" parameter
@@ -270,8 +271,11 @@ class InquiryRBACControllerTestCase(APIControllerWithRBACTestCase,
         resp = self._do_respond(self.inquiry_id, response)
         self.assertEqual(resp.status_int, http_client.OK)
 
-    @mock.patch('st2api.controllers.exp.inquiries.action_service')
-    def test_inquiry_roles_inherit(self, mock_action_service):
+    @mock.patch.object(
+        action_service,
+        'request_pause',
+        mock.MagicMock(return_value=None))
+    def test_inquiry_roles_inherit(self):
         """Tests action_execute -> inquiry_respond permission inheritance
 
         Mocked out action_service because, since this inquiry has a parent,
@@ -282,5 +286,5 @@ class InquiryRBACControllerTestCase(APIControllerWithRBACTestCase,
         # yet, since they are permitted to execute a workflow that contains an inquiry,
         # the user is still allowed to respond to that inquiry.
         self.use_user(self.users['user_respond_inherit'])
-        resp = self._do_respond(self.inquiry_inherit_id, {"continue": True})
+        resp = self._do_respond(self.inquiry_inherit_id, {'continue': True})
         self.assertEqual(resp.status_int, http_client.OK)

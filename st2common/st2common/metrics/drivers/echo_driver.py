@@ -12,37 +12,36 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from prometheus_client import Histogram, Gauge
 
+from st2common import log as logging
 from st2common.metrics.base import BaseMetricsDriver
 
+__all__ = [
+    'EchoDriver'
+]
 
-class PrometheusDriver(BaseMetricsDriver):
-    """ Base class for driver implementations for metric collection
+LOG = logging.getLogger(__name__)
+
+
+class EchoDriver(BaseMetricsDriver):
     """
-    def __init__(self):
-        pass
+    Driver which logs / LOG.debugs out each metrics operation which would have been performed.
+    """
 
     def time(self, key, time):
-        """ Timer metric
-        """
-        prometheus_histogram = Histogram(  # pylint: disable=no-value-for-parameter
-            key
-        )
-        prometheus_histogram.observe(time)
+        LOG.debug('[metrics] time(key=%s, time=%s)' % (key, time))
 
     def inc_counter(self, key, amount=1):
-        """ Increment counter
-        """
-        prometheus_counter = Gauge(  # pylint: disable=no-value-for-parameter
-            key
-        )
-        prometheus_counter.inc(amount)
+        LOG.debug('[metrics] counter.incr(%s, %s)' % (key, amount))
 
     def dec_counter(self, key, amount=1):
-        """ Decrement metric
-        """
-        prometheus_counter = Gauge(  # pylint: disable=no-value-for-parameter
-            key
-        )
-        prometheus_counter.dec(amount)
+        LOG.debug('[metrics] counter.decr(%s, %s)' % (key, amount))
+
+    def set_gauge(self, key, value):
+        LOG.debug('[metrics] set_gauge(%s, %s)' % (key, value))
+
+    def inc_gauge(self, key, amount=1):
+        LOG.debug('[metrics] gauge.incr(%s, %s)' % (key, amount))
+
+    def dec_gauge(self, key, amount=1):
+        LOG.debug('[metrics] gauge.decr(%s, %s)' % (key, amount))

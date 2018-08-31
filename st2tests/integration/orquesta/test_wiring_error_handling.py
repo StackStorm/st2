@@ -23,39 +23,42 @@ from st2common.constants import action as ac_const
 class ErrorHandlingTest(base.TestWorkflowExecution):
 
     def test_inspection_error(self):
-        expected_errors = {
-            'context': [
-                {
-                    'type': 'yaql',
-                    'expression': '<% ctx().foobar %>',
-                    'message': 'Variable "foobar" is referenced before assignment.',
-                    'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.input',
-                    'spec_path': 'tasks.task1.input',
-                }
-            ],
-            'expressions': [
-                {
-                    'type': 'yaql',
-                    'expression': '<% <% succeeded() %>',
-                    'message': (
-                        'Parse error: unexpected \'<\' at '
-                        'position 0 of expression \'<% succeeded()\''
-                    ),
-                    'schema_path': (
-                        'properties.tasks.patternProperties.^\w+$.'
-                        'properties.next.items.properties.when'
-                    ),
-                    'spec_path': 'tasks.task2.next[0].when'
-                }
-            ],
-            'syntax': [
-                {
-                    'message': '[{\'cmd\': \'echo <% ctx().macro %>\'}] is not of type \'object\'',
-                    'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.input.type',
-                    'spec_path': 'tasks.task2.input'
-                }
-            ]
-        }
+        expected_errors = [
+            {
+                'type': 'content',
+                'message': 'The action "std.noop" is not registered in the database.',
+                'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.action',
+                'spec_path': 'tasks.task3.action'
+            },
+            {
+                'type': 'context',
+                'language': 'yaql',
+                'expression': '<% ctx().foobar %>',
+                'message': 'Variable "foobar" is referenced before assignment.',
+                'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.input',
+                'spec_path': 'tasks.task1.input',
+            },
+            {
+                'type': 'expression',
+                'language': 'yaql',
+                'expression': '<% <% succeeded() %>',
+                'message': (
+                    'Parse error: unexpected \'<\' at '
+                    'position 0 of expression \'<% succeeded()\''
+                ),
+                'schema_path': (
+                    'properties.tasks.patternProperties.^\w+$.'
+                    'properties.next.items.properties.when'
+                ),
+                'spec_path': 'tasks.task2.next[0].when'
+            },
+            {
+                'type': 'syntax',
+                'message': '[{\'cmd\': \'echo <% ctx().macro %>\'}] is not of type \'object\'',
+                'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.input.type',
+                'spec_path': 'tasks.task2.input'
+            }
+        ]
 
         ex = self._execute_workflow('examples.orquesta-fail-inspection')
         ex = self._wait_for_completion(ex)
@@ -120,6 +123,42 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
     def test_output_error(self):
         expected_errors = [{'message': 'Unknown function "#property#value"'}]
         ex = self._execute_workflow('examples.orquesta-fail-output-rendering')
+        ex = self._wait_for_completion(ex)
+        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
+        self.assertDictEqual(ex.result, {'errors': expected_errors, 'output': None})
+
+    def test_task_content_errors(self):
+        expected_errors = [
+            {
+                'type': 'content',
+                'message': 'The action reference "echo" is not formatted correctly.',
+                'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.action',
+                'spec_path': 'tasks.task1.action'
+            },
+            {
+                'type': 'content',
+                'message': 'The action "core.echoz" is not registered in the database.',
+                'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.action',
+                'spec_path': 'tasks.task2.action'
+            },
+            {
+                'type': 'content',
+                'message': 'Action "core.echo" is missing required input "message".',
+                'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.input',
+                'spec_path': 'tasks.task3.input'
+            },
+            {
+                'type': 'content',
+                'message': 'Action "core.echo" has unexpected input "messages".',
+                'schema_path': (
+                    'properties.tasks.patternProperties.^\w+$.properties.input.'
+                    'patternProperties.^\w+$'
+                ),
+                'spec_path': 'tasks.task3.input.messages'
+            }
+        ]
+
+        ex = self._execute_workflow('examples.orquesta-fail-inspection-task-contents')
         ex = self._wait_for_completion(ex)
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
         self.assertDictEqual(ex.result, {'errors': expected_errors, 'output': None})
