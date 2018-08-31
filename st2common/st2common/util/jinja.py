@@ -54,15 +54,15 @@ def use_none(value):
 
 def get_filters():
     # Lazy / late import to avoid long module import times
-    from st2common.jinja.filters import crypto
-    from st2common.jinja.filters import data
-    from st2common.jinja.filters import regex
-    from st2common.jinja.filters import complex_type
-    from st2common.jinja.filters import time
-    from st2common.jinja.filters import version
-    from st2common.jinja.filters import json_escape
-    from st2common.jinja.filters import jsonpath_query
-    from st2common.jinja.filters import path
+    from st2common.expressions.functions import crypto
+    from st2common.expressions.functions import data
+    from st2common.expressions.functions import regex
+    from st2common.expressions.functions import complex_type
+    from st2common.expressions.functions import time
+    from st2common.expressions.functions import version
+    from st2common.expressions.functions import json_escape
+    from st2common.expressions.functions import jsonpath_query
+    from st2common.expressions.functions import path
 
     # IMPORTANT NOTE - these filters were recently duplicated in st2mistral so that
     # they are also available in Mistral workflows. Please ensure any additions you
