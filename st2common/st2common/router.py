@@ -365,13 +365,15 @@ class Router(object):
 
                 # NOTE: HACK: Workaround for eventlet wsgi server which sets Content-Type to
                 # text/plain if Content-Type is not provided in the request.
-                # All ouf our API endpoints except /exp/validation/mistral expect application/json
-                # so we explicitly set it to that if not provided (set to text/plain by the base
-                # http server) and if it's not /exp/validation/mistral API endpoint
+                # All ouf our API endpoints except /v1/workflows/inspection and
+                # /exp/validation/mistral expect application/json so we explicitly set it to that
+                # if not provided (set to text/plain by the base http server) and if it's not
+                # /v1/workflows/inspection and /exp/validation/mistral API endpoints.
                 if not self.is_gunicorn and content_type == 'text/plain':
                     operation_id = endpoint['operationId']
 
-                    if 'mistral_validation_controller' not in operation_id:
+                    if ('workflow_inspection_controller' not in operation_id and
+                            'mistral_validation_controller' not in operation_id):
                         content_type = 'application/json'
 
                 # Note: We also want to perform validation if no body is explicitly provided - in a
