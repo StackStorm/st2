@@ -17,6 +17,7 @@ from __future__ import absolute_import
 
 import mock
 
+from orquesta import exceptions as orquesta_exc
 from orquesta.specs import loader as specs_loader
 from orquesta import states as wf_lib_states
 
@@ -35,15 +36,6 @@ from st2common.transport import liveaction as lv_ac_xport
 from st2common.transport import publishers
 from st2tests.mocks import liveaction as mock_lv_ac_xport
 
-
-TEST_FIXTURES = {
-    'workflows': [
-        'sequential.yaml'
-    ],
-    'actions': [
-        'sequential.yaml'
-    ]
-}
 
 TEST_PACK = 'orquesta_tests'
 TEST_PACK_PATH = st2tests.fixturesloader.get_fixtures_packs_base_path() + '/' + TEST_PACK
@@ -85,7 +77,7 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
             actions_registrar.register_from_pack(pack)
 
     def test_request(self):
-        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][0])
+        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
 
         # Manually create the liveaction and action execution objects without publishing.
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
@@ -108,7 +100,7 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
         self.assertEqual(wf_ex_db.status, wf_lib_states.REQUESTED)
 
     def test_request_with_input(self):
-        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][0])
+        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
 
         # Manually create the liveaction and action execution objects without publishing.
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters={'who': 'stan'})
@@ -138,7 +130,7 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
         self.assertDictEqual(wf_ex_db.input, expected_input)
 
     def test_request_bad_action(self):
-        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][0])
+        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
 
         # Manually create the action execution object with the bad action.
         ac_ex_db = ex_db_models.ActionExecutionDB(action={'ref': 'mock.foobar'})
@@ -152,8 +144,74 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
             self.mock_st2_context(ac_ex_db)
         )
 
+    def test_request_wf_def_with_bad_action_ref(self):
+        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, 'fail-inspection-action-ref.yaml')
+
+        # Manually create the liveaction and action execution objects without publishing.
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        lv_ac_db, ac_ex_db = ac_svc.create_request(lv_ac_db)
+
+        # Exception is expected on request of workflow execution.
+        self.assertRaises(
+            orquesta_exc.WorkflowInspectionError,
+            wf_svc.request,
+            self.get_wf_def(TEST_PACK_PATH, wf_meta),
+            ac_ex_db,
+            self.mock_st2_context(ac_ex_db)
+        )
+
+    def test_request_wf_def_with_unregistered_action(self):
+        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, 'fail-inspection-action-db.yaml')
+
+        # Manually create the liveaction and action execution objects without publishing.
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        lv_ac_db, ac_ex_db = ac_svc.create_request(lv_ac_db)
+
+        # Exception is expected on request of workflow execution.
+        self.assertRaises(
+            orquesta_exc.WorkflowInspectionError,
+            wf_svc.request,
+            self.get_wf_def(TEST_PACK_PATH, wf_meta),
+            ac_ex_db,
+            self.mock_st2_context(ac_ex_db)
+        )
+
+    def test_request_wf_def_with_missing_required_action_param(self):
+        wf_name = 'fail-inspection-missing-required-action-param'
+        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, wf_name + '.yaml')
+
+        # Manually create the liveaction and action execution objects without publishing.
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        lv_ac_db, ac_ex_db = ac_svc.create_request(lv_ac_db)
+
+        # Exception is expected on request of workflow execution.
+        self.assertRaises(
+            orquesta_exc.WorkflowInspectionError,
+            wf_svc.request,
+            self.get_wf_def(TEST_PACK_PATH, wf_meta),
+            ac_ex_db,
+            self.mock_st2_context(ac_ex_db)
+        )
+
+    def test_request_wf_def_with_unexpected_action_param(self):
+        wf_name = 'fail-inspection-unexpected-action-param'
+        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, wf_name + '.yaml')
+
+        # Manually create the liveaction and action execution objects without publishing.
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        lv_ac_db, ac_ex_db = ac_svc.create_request(lv_ac_db)
+
+        # Exception is expected on request of workflow execution.
+        self.assertRaises(
+            orquesta_exc.WorkflowInspectionError,
+            wf_svc.request,
+            self.get_wf_def(TEST_PACK_PATH, wf_meta),
+            ac_ex_db,
+            self.mock_st2_context(ac_ex_db)
+        )
+
     def test_request_task_execution(self):
-        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][0])
+        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
 
         # Manually create the liveaction and action execution objects without publishing.
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
@@ -193,7 +251,7 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
         self.assertEqual(len(ac_ex_dbs), 1)
 
     def test_request_task_execution_bad_action(self):
-        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][0])
+        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
 
         # Manually create the liveaction and action execution objects without publishing.
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
@@ -225,7 +283,7 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
         )
 
     def test_handle_action_execution_completion(self):
-        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][0])
+        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
 
         # Manually create the liveaction and action execution objects without publishing.
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
