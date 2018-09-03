@@ -90,6 +90,9 @@ Changed
   which is prepended to each metric key (name). This comes handy in scenarios where user wants to
   submit metrics from multiple environments / deployments (e.g. testing, staging, dev) to the same
   backend instance. (improvement) #4310
+* Improve ``st2 execution tail`` CLI command so it also supports Orquesta workflows and arbitrarily
+  nested workflows. Also fix the command so it doesn't include data from other unrelated running
+  executions. (improvement) #4328
 
 Fixed
 ~~~~~
