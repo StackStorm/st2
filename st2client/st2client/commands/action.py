@@ -1563,6 +1563,10 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
             result['parent_execution_id'] = context.get('parent', {}).get('execution_id', None)
             result['execution_id'] = event['id']
             result['task_name'] = context.get('mistral', {}).get('task_name', 'unknown')
+        elif 'orquesta' in context:
+            result['parent_execution_id'] = context.get('parent', {}).get('execution_id', None)
+            result['execution_id'] = event['id']
+            result['task_name'] = context.get('orquesta', {}).get('task_name', 'unknown')
         else:
             # Action chain workflow
             result['parent_execution_id'] = context.get('parent', {}).get('execution_id', None)
