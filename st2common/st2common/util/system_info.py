@@ -14,8 +14,11 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 import socket
+
+import psutil
 
 __all__ = [
     'get_host_info',
@@ -31,8 +34,23 @@ def get_host_info():
 
 
 def get_process_info():
+    try:
+        p = psutil.Process(os.getpid())
+        name = p.name()
+    except Exception:
+        name = 'unknown'
+
     process_info = {
         'hostname': socket.gethostname(),
         'pid': os.getpid()
     }
+
+    try:
+        p = psutil.Process(os.getpid())
+        name = p.name()
+    except Exception:
+        pass
+    else:
+        process_info['name'] = name
+
     return process_info
