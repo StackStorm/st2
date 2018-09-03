@@ -1,0 +1,11 @@
+---
+name: orquesta-fail-inspection-task-contents
+description: A basic sequential workflow with inspection error(s).
+runner_type: orquesta
+entry_point: workflows/tests/orquesta-fail-inspection-task-contents.yaml
+enabled: true
+parameters:
+  name:
+    required: true
+    type: string
+    default: Lakshmi

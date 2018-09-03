@@ -97,6 +97,8 @@ Fixed
 * Fix an issue with ``AttributeError: module 'enum' has no attribute 'IntFlag'`` error which would
   appear when using Python 3 for a particular pack virtual environment and running on RHEL /
   CentOS. (bug fix) #4297
+* Fix a bug with action runner throwing an exception and failing to run an action if there was an
+  empty pack config inside ``/opt/stackstorm/configs/``. (bug fix) #4325
 
 Deprecated
 ~~~~~~~~~~
@@ -105,6 +107,10 @@ Deprecated
   StackStorm codebase. The runner code will be moved to a separate repository, and no longer
   maintained by the core StackStorm team. Users will still be able to install and use this runner,
   but it will require additional steps to install.
+* The ``winexe``-based Windows runners are now deprecated. They will be removed in StackStorm 3.1.
+  They have been replaced by ``pywinrm``-based Windows runners. See
+  https://docs.stackstorm.com/latest/reference/runners.html#winrm-command-runner-winrm-cmd
+  for more on using these new runners.
 
 2.8.1 - July 18, 2018
 ---------------------

@@ -54,6 +54,10 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
                 return self.handle_workflow_execution(wf_ex_db=wf_ex_db)
 
         def handle_action_execution_with_instrumentation(ac_ex_db):
+            # Ignore non orquesta workflow executions
+            if not self._is_orquesta_execution(ac_ex_db=ac_ex_db):
+                return
+
             with CounterWithTimer(key='orquesta.action.executions'):
                 return self.handle_action_execution(ac_ex_db=ac_ex_db)
 
@@ -71,7 +75,11 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
         )
 
     def process(self, message):
-        handler_function = self.message_types.get(type(message))
+        handler_function = self.message_types.get(type(message), None)
+        if not handler_function:
+            raise ValueError('Handler function for message type "%s" is not defined' %
+                             (type(message)))
+
         handler_function(message)
 
     def handle_workflow_execution(self, wf_ex_db):
@@ -153,7 +161,7 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
 
     def handle_action_execution(self, ac_ex_db):
         # Exit if action execution is not  executed under an orquesta workflow.
-        if 'orquesta' not in ac_ex_db.context:
+        if not self._is_orquesta_execution(ac_ex_db=ac_ex_db):
             return
 
         # Get related record identifiers.
@@ -202,6 +210,13 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
 
         # Process completion of the action execution.
         wf_svc.handle_action_execution_completion(ac_ex_db)
+
+    def _is_orquesta_execution(self, ac_ex_db):
+        """
+        Return True if particular execution object represents a task in orquesta workflow, False
+        otherwise.
+        """
+        return ('orquesta' in ac_ex_db.context)
 
 
 def get_engine():
