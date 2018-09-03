@@ -605,3 +605,46 @@ Execution idfoo4 has completed (status=succeeded).
 
         self.assertEqual(stdout, expected_result)
         self.assertEqual(stderr, '')
+
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(MOCK_LIVEACTION_4_RUNNING),
+                                                     200, 'OK')))
+    @mock.patch('st2client.client.StreamManager', autospec=True)
+    def test_tail_child_execution_directly(self, mock_stream_manager):
+        argv = ['execution', 'tail', 'idfoo4']
+
+        MOCK_EVENTS = [
+            # Child task 2 started running
+            MOCK_LIVEACTION_4_CHILD_2_RUNNING,
+
+            # Output produced by child task
+            MOCK_LIVEACTION_4_CHILD_2_OUTPUT_1,
+
+            # Child task 2 finished
+            MOCK_LIVEACTION_4_CHILD_2_TIMED_OUT
+        ]
+
+        mock_cls = mock.Mock()
+        mock_cls.listen = mock.Mock()
+        mock_listen_generator = mock.Mock()
+        mock_listen_generator.return_value = MOCK_EVENTS
+        mock_cls.listen.side_effect = mock_listen_generator
+        mock_stream_manager.return_value = mock_cls
+
+        self.assertEqual(self.shell.run(argv), 0)
+        self.assertEqual(mock_listen_generator.call_count, 1)
+
+        stdout = self.stdout.getvalue()
+        stderr = self.stderr.getvalue()
+
+        expected_result = """
+Child execution (task=task_2) idmistralchild2 has started.
+
+line mistral 100
+
+Child execution (task=task_2) idmistralchild2 has finished (status=timeout).
+""".lstrip()
+
+        self.assertEqual(stdout, expected_result)
+        self.assertEqual(stderr, '')
