@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import mimetypes
 
 import six
@@ -191,13 +192,19 @@ class EntryPointController(resource.ContentPackResourceController):
         with open(abs_path, 'rb') as file:
             content = file.read()
 
-        # Special case if /etc/mime.types doesn't contain entry for yaml
-        if abs_path.endswith('.yaml') or abs_path.endswith('.yml'):
-            content_type = 'application/x-yaml'
-        else:
-            try:
-                content_type = mimetypes.guess_type(abs_path)[0] or 'text/plain'
-            except Exception:
+        try:
+            content_type = mimetypes.guess_type(abs_path)[0]
+        except Exception:
+            content_type = None
+
+        # Special case if /etc/mime.types doesn't contain entry for yaml, py
+        if not content_type:
+            _, extension = os.path.splitext(abs_path)
+            if extension in ['.yaml', '.yml']:
+                content_type = 'application/x-yaml'
+            elif extension in ['.py']:
+                content_type = 'application/x-python'
+            else:
                 content_type = 'text/plain'
 
         response = Response()
