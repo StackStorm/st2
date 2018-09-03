@@ -13,8 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from mongoengine import ValidationError
+import mimetypes
+
 import six
+from mongoengine import ValidationError
 
 from st2api.controllers import resource
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
@@ -27,6 +29,7 @@ from st2common.persistence.runner import RunnerType
 from st2common.rbac.types import PermissionType
 from st2common.rbac import utils as rbac_utils
 from st2common.router import abort
+from st2common.router import Response
 
 __all__ = [
     'OverviewController',
@@ -185,10 +188,22 @@ class EntryPointController(resource.ContentPackResourceController):
             raise StackStormDBObjectNotFoundError('Action ref_or_id=%s has no entry_point to output'
                                                   % ref_or_id)
 
-        with open(abs_path) as file:
+        with open(abs_path, 'rb') as file:
             content = file.read()
 
-        return content
+        # Special case if /etc/mime.types doesn't contain entry for yaml
+        if abs_path.endswith('.yaml') or abs_path.endswith('.yml'):
+            content_type = 'application/x-yaml'
+        else:
+            try:
+                content_type = mimetypes.guess_type(abs_path)[0] or 'text/plain'
+            except Exception:
+                content_type = 'text/plain'
+
+        response = Response()
+        response.headers['Content-Type'] = content_type
+        response.body = content
+        return response
 
 
 class ActionViewsController(object):
