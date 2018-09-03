@@ -102,6 +102,8 @@ Fixed
 * Fix an issue with ``AttributeError: module 'enum' has no attribute 'IntFlag'`` error which would
   appear when using Python 3 for a particular pack virtual environment and running on RHEL /
   CentOS. (bug fix) #4297
+* Fix a bug with action runner throwing an exception and failing to run an action if there was an
+  empty pack config inside ``/opt/stackstorm/configs/``. (bug fix) #4325
 
 Deprecated
 ~~~~~~~~~~

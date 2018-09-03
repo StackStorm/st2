@@ -528,3 +528,13 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
                           })
 
         config_db.delete()
+
+    def test_empty_config_object_in_the_database(self):
+        pack_name = 'dummy_pack_empty_config'
+
+        config_db = ConfigDB(pack=pack_name)
+        config_db = Config.add_or_update(config_db)
+
+        loader = ContentPackConfigLoader(pack_name=pack_name)
+        config = loader.get_config()
+        self.assertEqual(config, {})
