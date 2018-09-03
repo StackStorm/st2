@@ -25,6 +25,7 @@ import calendar
 import time
 import six
 import sys
+import sets
 
 from os.path import join as pjoin
 
@@ -448,7 +449,7 @@ class ActionRunCommandMixin(object):
         if args.tail:
             # Start tailing new execution
             print('Tailing execution "%s"' % (str(execution.id)))
-            execution_manager = self.manager
+            execution_manager = self.app.client.managers['LiveAction']
             stream_manager = self.app.client.managers['Stream']
             ActionExecutionTailCommand.tail_execution(execution=execution,
                                                       execution_manager=execution_manager,
@@ -1489,13 +1490,27 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
             print('Execution %s has completed (status=%s).' % (execution_id, execution.status))
             return
 
-        events = ['st2.execution__update', 'st2.execution.output__create']
+        # We keep track of all the workflow executions which could contain children
+        # For simplicity, we simply keep track of all the execution ids which belong to a
+        # particular workflow
+        workflow_execution_ids = sets.Set([parent_execution_id])
 
+        # Retrieve parent execution object so we can keep track of any existing children
+        # executions (only applies to already running executions)
+        filters = {
+            'params': {
+                'include_attributes': 'id,children'
+            }
+        }
+        execution = execution_manager.get_by_id(id=execution_id, **filters)
+        children_execution_ids = getattr(execution, 'children', [])
+        workflow_execution_ids.update(children_execution_ids)
+
+        events = ['st2.execution__update', 'st2.execution.output__create']
         for event in stream_manager.listen(events, **kwargs):
             status = event.get('status', None)
             is_execution_event = status is not None
 
-            # NOTE: Right now only a single level deep / nested workflows are supported
             if is_execution_event:
                 context = cls.get_normalized_context_execution_task_event(event=event)
                 task_execution_id = context['execution_id']
@@ -1504,6 +1519,16 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
 
                 # An execution is considered a child execution if it has parent execution id
                 is_child_execution = bool(task_parent_execution_id)
+
+                # Ignore executions which are not part of the execution we are tailing
+                if is_child_execution:
+                    if task_parent_execution_id not in workflow_execution_ids:
+                        continue
+                else:
+                    if task_execution_id not in workflow_execution_ids:
+                        continue
+
+                workflow_execution_ids.add(task_execution_id)
 
                 if is_child_execution:
                     if status == LIVEACTION_STATUS_RUNNING:
@@ -1520,7 +1545,7 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
                         # We don't care about other child events so we simply skip then
                         continue
                 else:
-                    if status == LIVEACTION_STATUS_RUNNING:
+                    if status == LIVEACTION_STATUS_RUNNING and not event.get('children', []):
                         print('Execution %s has started.' % (execution_id))
                         print('')
                         continue
@@ -1532,6 +1557,11 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
                     else:
                         # We don't care about other execution events
                         continue
+
+            # Ignore executions which don't belong to the one we are tailing
+            event_execution_id = event['execution_id']
+            if event_execution_id not in workflow_execution_ids:
+                continue
 
             # Filter on output_type if provided
             event_output_type = event.get('output_type', None)
