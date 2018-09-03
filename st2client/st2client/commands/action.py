@@ -1477,6 +1477,9 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
                        include_metadata=False, **kwargs):
         execution_id = str(execution.id)
 
+        # Indicates if the execution we are tailing is a child execution in a workflow
+        is_tailing_execution_child_execution = bool(getattr(execution, 'parent', None))
+
         # Note: For non-workflow actions child_execution_id always matches parent_execution_id so
         # we don't need to do any other checks to determine if executions represents a workflow
         # action
@@ -1521,7 +1524,7 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
                 is_child_execution = bool(task_parent_execution_id)
 
                 # Ignore executions which are not part of the execution we are tailing
-                if is_child_execution:
+                if is_child_execution and not is_tailing_execution_child_execution:
                     if task_parent_execution_id not in workflow_execution_ids:
                         continue
                 else:
@@ -1540,7 +1543,11 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
                         print('')
                         print('Child execution (task=%s) %s has finished (status=%s).' %
                               (task_name, task_execution_id, status))
-                        continue
+
+                        if is_tailing_execution_child_execution:
+                            break
+                        else:
+                            continue
                     else:
                         # We don't care about other child events so we simply skip then
                         continue
