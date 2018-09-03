@@ -547,8 +547,11 @@ def register_opts(ignore_errors=False):
             'sample_rate', default=1,
             help='Randomly sample and only send metrics for X% of metric operations to the '
                  'backend. Default value of 1 means no sampling is done and all the metrics are '
-                 'sent to the backend. E.g. 0.1 would mean 10% of operations are sampled.')
-
+                 'sent to the backend. E.g. 0.1 would mean 10% of operations are sampled.'),
+        cfg.BoolOpt(
+            'report_process_metrics', default=False,
+            help='True to periodically report process level metrics (CPU, memory, IO) for each '
+                 'StackStorm service process.'),
     ]
 
     do_register_opts(metrics_opts, group='metrics', ignore_errors=ignore_errors)
