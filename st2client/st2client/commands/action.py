@@ -25,7 +25,6 @@ import calendar
 import time
 import six
 import sys
-import sets
 
 from os.path import join as pjoin
 
@@ -1496,7 +1495,7 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
         # We keep track of all the workflow executions which could contain children
         # For simplicity, we simply keep track of all the execution ids which belong to a
         # particular workflow
-        workflow_execution_ids = sets.Set([parent_execution_id])
+        workflow_execution_ids = set([parent_execution_id])
 
         # Retrieve parent execution object so we can keep track of any existing children
         # executions (only applies to already running executions)
