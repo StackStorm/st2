@@ -84,7 +84,7 @@ class OrquestaRunner(runners.AsyncActionRunner):
             return (status, result, self.context)
         except Exception as e:
             status = ac_const.LIVEACTION_STATUS_FAILED
-            result = {'errors': str(e), 'output': None}
+            result = {'errors': [{'message': str(e)}], 'output': None}
             return (status, result, self.context)
 
         # Set return values.
