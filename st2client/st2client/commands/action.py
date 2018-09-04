@@ -1481,14 +1481,17 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
         has_parent_attribute = bool(getattr(execution, 'parent', None))
         has_parent_execution_id = bool(context['parent_execution_id'])
 
-        is_tailing_execution_child_execution = has_parent_attribute or has_parent_execution_id
+        is_tailing_execution_child_execution = bool(has_parent_attribute or
+                                                    has_parent_execution_id)
 
         # Note: For non-workflow actions child_execution_id always matches parent_execution_id so
         # we don't need to do any other checks to determine if executions represents a workflow
-        # action
+        # action.
         parent_execution_id = execution_id  # noqa
 
-        # Execution has already finished
+        # Execution has already finished show existing output.
+        # NOTE: This doesn't recurse down into child executions if user is tailing a workflow
+        # execution
         if execution.status in LIVEACTION_COMPLETED_STATES:
             output = execution_manager.get_output(execution_id=execution_id,
                                                   output_type=output_type)
@@ -1496,19 +1499,20 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
             print('Execution %s has completed (status=%s).' % (execution_id, execution.status))
             return
 
-        # We keep track of all the workflow executions which could contain children
+        # We keep track of all the workflow executions which could contain children.
         # For simplicity, we simply keep track of all the execution ids which belong to a
-        # particular workflow
+        # particular workflow.
         workflow_execution_ids = set([parent_execution_id])
 
         # Retrieve parent execution object so we can keep track of any existing children
-        # executions (only applies to already running executions)
+        # executions (only applies to already running executions).
         filters = {
             'params': {
                 'include_attributes': 'id,children'
             }
         }
         execution = execution_manager.get_by_id(id=execution_id, **filters)
+
         children_execution_ids = getattr(execution, 'children', [])
         workflow_execution_ids.update(children_execution_ids)
 
@@ -1548,6 +1552,7 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
                               (task_name, task_execution_id, status))
 
                         if is_tailing_execution_child_execution:
+                            # User is tailing a child execution inside a workflow, stop the command.
                             break
                         else:
                             continue
@@ -1555,6 +1560,8 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
                         # We don't care about other child events so we simply skip then
                         continue
                 else:
+                    # NOTE: In some situations execution update event with "running" status is
+                    # dispatched twice so we ignore any duplicated events
                     if status == LIVEACTION_STATUS_RUNNING and not event.get('children', []):
                         print('Execution %s has started.' % (execution_id))
                         print('')
@@ -1568,7 +1575,7 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
                         # We don't care about other execution events
                         continue
 
-            # Ignore executions which don't belong to the one we are tailing
+            # Ignore events for executions which don't belong to the one we are tailing
             event_execution_id = event['execution_id']
             if event_execution_id not in workflow_execution_ids:
                 continue
