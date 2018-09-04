@@ -29,6 +29,7 @@ from pymongo.errors import ConnectionFailure
 
 from st2common import log as logging
 from st2common.util import isotime
+from st2common.util.misc import get_field_name_from_mongoengine_error
 from st2common.models.db import stormbase
 from st2common.models.utils.profiling import log_query_and_profile_data_for_queryset
 from st2common.exceptions import db as db_exc
@@ -351,7 +352,7 @@ class MongoDBAccess(object):
         if only_fields:
             try:
                 instances = instances.only(*only_fields)
-            except mongoengine.errors.LookUpError as e:
+            except (mongoengine.errors.LookUpError, AttributeError) as e:
                 msg = ('Invalid or unsupported include attribute specified: %s' % str(e))
                 raise ValueError(msg)
 
@@ -400,13 +401,19 @@ class MongoDBAccess(object):
         result = self.model.objects(*args, **filters)
 
         if exclude_fields:
-            result = result.exclude(*exclude_fields)
+            try:
+                result = result.exclude(*exclude_fields)
+            except (mongoengine.errors.LookUpError, AttributeError) as e:
+                field = get_field_name_from_mongoengine_error(e)
+                msg = ('Invalid or unsupported exclude attribute specified: %s' % field)
+                raise ValueError(msg)
 
         if only_fields:
             try:
                 result = result.only(*only_fields)
-            except mongoengine.errors.LookUpError as e:
-                msg = ('Invalid or unsupported include attribute specified: %s' % str(e))
+            except (mongoengine.errors.LookUpError, AttributeError) as e:
+                field = get_field_name_from_mongoengine_error(e)
+                msg = ('Invalid or unsupported include attribute specified: %s' % field)
                 raise ValueError(msg)
 
         if no_dereference:

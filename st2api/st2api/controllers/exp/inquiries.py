@@ -19,7 +19,7 @@ import json
 from oslo_config import cfg
 from six.moves import http_client
 
-from st2api.controllers import resource
+from st2api.controllers.resource import ResourceController
 from st2api.controllers.v1 import execution_views
 from st2common.constants import action as action_constants
 from st2common.exceptions import db as db_exceptions
@@ -42,8 +42,9 @@ LOG = logging.getLogger(__name__)
 INQUIRY_RUNNER = 'inquirer'
 
 
-class InquiriesController(resource.ResourceController):
-    """API controller for Inquiries
+class InquiriesController(ResourceController):
+    """
+    API controller for Inquiries
     """
 
     supported_filters = copy.deepcopy(execution_views.SUPPORTED_FILTERS)
@@ -53,14 +54,22 @@ class InquiriesController(resource.ResourceController):
     model = inqy_api_models.InquiryAPI
     access = ex_db_access.ActionExecution
 
-    def get_all(self, requester_user=None, limit=None, **raw_filters):
+    def get_all(self, exclude_attributes=None, include_attributes=None, requester_user=None,
+                limit=None, **raw_filters):
         """Retrieve multiple Inquiries
 
             Handles requests:
                 GET /inquiries/
         """
 
+        # NOTE: This controller retrieves execution objects and returns a new model composed of
+        # execution.result fields and that's why we pass empty value for include_fields and
+        # exclude_fields.
+        # We only need to retrieve "id" and "result" from database and perform actual field
+        # filtering before returning the response.
         raw_inquiries = super(InquiriesController, self)._get_all(
+            exclude_fields=[],
+            include_fields=['id', 'result'],
             limit=limit,
             raw_filters={
                 'status': action_constants.LIVEACTION_STATUS_PENDING,

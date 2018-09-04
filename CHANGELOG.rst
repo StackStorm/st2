@@ -45,6 +45,11 @@ Added
 
   Keep in mind that the trigger which is to be injected must be registered and exist in the system.
   (new feature) #4231 #4259
+* Add support for ``?include_attributes`` query param filter to all the content pack resource
+  get all (list) API endpoints (actions, rules, trigger, executions, etc.). With this query
+  parameter user can control which API model attributes (fields) to receive in the response. In
+  situations where user is only interested in a subset of the model attributes, this allows for a
+  significantly reduced response size and for a better performance. (new feature) (improvement) #4300
 
 Changed
 ~~~~~~~
@@ -110,6 +115,10 @@ Deprecated
   StackStorm codebase. The runner code will be moved to a separate repository, and no longer
   maintained by the core StackStorm team. Users will still be able to install and use this runner,
   but it will require additional steps to install.
+* The ``winexe``-based Windows runners are now deprecated. They will be removed in StackStorm 3.1.
+  They have been replaced by ``pywinrm``-based Windows runners. See
+  https://docs.stackstorm.com/latest/reference/runners.html#winrm-command-runner-winrm-cmd
+  for more on using these new runners.
 
 2.8.1 - July 18, 2018
 ---------------------
