@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import os
+import codecs
 import mimetypes
 
 import six
@@ -190,8 +191,12 @@ class EntryPointController(resource.ContentPackResourceController):
             raise StackStormDBObjectNotFoundError('Action ref_or_id=%s has no entry_point to output'
                                                   % ref_or_id)
 
-        with open(abs_path, 'rb') as file:
-            content = file.read()
+        with codecs.open(abs_path, 'r') as fp:
+            content = fp.read()
+
+        # Ensure content is utf-8
+        if isinstance(content, six.binary_type):
+            content = content.decode('utf-8')
 
         try:
             content_type = mimetypes.guess_type(abs_path)[0]
@@ -210,7 +215,7 @@ class EntryPointController(resource.ContentPackResourceController):
 
         response = Response()
         response.headers['Content-Type'] = content_type
-        response.body = content
+        response.text = content
         return response
 
 

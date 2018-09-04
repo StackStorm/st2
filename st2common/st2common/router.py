@@ -573,7 +573,7 @@ class Router(object):
 
                 response_type = response_spec['schema'].get('type', 'json')
                 if response_type == 'string':
-                    validator.validate(resp.body)
+                    validator.validate(resp.text)
                 else:
                     validator.validate(resp.json)
             except (jsonschema.ValidationError, ValueError):
