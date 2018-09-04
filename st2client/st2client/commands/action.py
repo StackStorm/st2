@@ -1477,7 +1477,11 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
         execution_id = str(execution.id)
 
         # Indicates if the execution we are tailing is a child execution in a workflow
-        is_tailing_execution_child_execution = bool(getattr(execution, 'parent', None))
+        context = cls.get_normalized_context_execution_task_event(execution.__dict__)
+        has_parent_attribute = bool(getattr(execution, 'parent', None))
+        has_parent_execution_id = bool(context['parent_execution_id'])
+
+        is_tailing_execution_child_execution = has_parent_attribute or has_parent_execution_id
 
         # Note: For non-workflow actions child_execution_id always matches parent_execution_id so
         # we don't need to do any other checks to determine if executions represents a workflow
@@ -1514,7 +1518,7 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
             is_execution_event = status is not None
 
             if is_execution_event:
-                context = cls.get_normalized_context_execution_task_event(event=event)
+                context = cls.get_normalized_context_execution_task_event(event)
                 task_execution_id = context['execution_id']
                 task_name = context['task_name']
                 task_parent_execution_id = context['parent_execution_id']
@@ -1583,8 +1587,7 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
     @classmethod
     def get_normalized_context_execution_task_event(cls, event):
         """
-        Return a dictionary with normalized context attributes for Action-Chain and Mistral
-        workflows.
+        Return a dictionary with normalized context attributes for execution event or object.
         """
         context = event.get('context', {})
 
