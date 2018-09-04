@@ -18,18 +18,19 @@ import json
 import mock
 import uuid
 
+from oslo_config import cfg
 from six.moves import http_client
 
-from oslo_config import cfg
-
+from st2common.transport.publishers import PoolPublisher
+from st2api.controllers.exp.inquiries import InquiriesController
 from st2common.constants import action as action_constants
 from st2common import log as logging
+import st2common.validators.api.action as action_validator
 from st2common.models.db import liveaction as lv_db_models
 from st2common.services import action as action_service
-from st2common.transport import publishers
-from st2common.validators.api import action as action_validator
-from tests import base as api_tests_base
 
+from tests.base import BaseInquiryControllerTestCase
+from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
 
 LOG = logging.getLogger(__name__)
 
@@ -156,33 +157,33 @@ RESPONSE_MULTIPLE = {
     "paradox": True
 }
 
-
 ROOT_LIVEACTION_DB = lv_db_models.LiveActionDB(
     id=uuid.uuid4().hex,
     status=action_constants.LIVEACTION_STATUS_PAUSED
 )
 
 
-@mock.patch.object(publishers.PoolPublisher, 'publish', mock.MagicMock())
-class InquiryControllerTestCase(api_tests_base.BaseInquiryControllerTestCase):
+@mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
+class InquiryControllerTestCase(BaseInquiryControllerTestCase,
+                                APIControllerWithIncludeAndExcludeFilterTestCase):
+    get_all_path = '/exp/inquiries'
+    controller_cls = InquiriesController
+    include_attribute_field_name = 'ttl'
+    exclude_attribute_field_name = 'ttl'
 
     @mock.patch.object(
         action_validator,
         'validate_action',
         mock.MagicMock(return_value=True))
     def setUp(cls):
-        super(InquiryControllerTestCase, cls).setUpClass()
+        super(BaseInquiryControllerTestCase, cls).setUpClass()
+
         cls.inquiry1 = copy.deepcopy(INQUIRY_ACTION)
         post_resp = cls.app.post_json('/v1/actions', cls.inquiry1)
         cls.inquiry1['id'] = post_resp.json['id']
         cls.action1 = copy.deepcopy(ACTION_1)
         post_resp = cls.app.post_json('/v1/actions', cls.action1)
         cls.action1['id'] = post_resp.json['id']
-
-    def tearDown(cls):
-        cls.app.delete('/v1/actions/%s' % cls.inquiry1['id'])
-        cls.app.delete('/v1/actions/%s' % cls.action1['id'])
-        super(InquiryControllerTestCase, cls).tearDownClass()
 
     def test_get_all(self):
         """Test retrieval of a list of Inquiries
@@ -419,3 +420,15 @@ class InquiryControllerTestCase(api_tests_base.BaseInquiryControllerTestCase):
 
         # Clean up
         cfg.CONF.system_user.user = old_user
+
+    def test_get_all_invalid_exclude_and_include_parameter(self):
+        pass
+
+    def _insert_mock_models(self):
+        id_1 = self._do_create_inquiry(INQUIRY_1, RESULT_DEFAULT).json['id']
+        id_2 = self._do_create_inquiry(INQUIRY_1, RESULT_DEFAULT).json['id']
+
+        return [id_1, id_2]
+
+    def _do_delete(self, rule_id):
+        pass

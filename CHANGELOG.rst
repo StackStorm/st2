@@ -45,6 +45,11 @@ Added
 
   Keep in mind that the trigger which is to be injected must be registered and exist in the system.
   (new feature) #4231 #4259
+* Add support for ``?include_attributes`` query param filter to all the content pack resource
+  get all (list) API endpoints (actions, rules, trigger, executions, etc.). With this query
+  parameter user can control which API model attributes (fields) to receive in the response. In
+  situations where user is only interested in a subset of the model attributes, this allows for a
+  significantly reduced response size and for a better performance. (new feature) (improvement) #4300
 
 Changed
 ~~~~~~~
