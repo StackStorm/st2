@@ -608,7 +608,7 @@ Execution idfoo4 has completed (status=succeeded).
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(MOCK_LIVEACTION_4_RUNNING),
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(MOCK_LIVEACTION_4_CHILD_2_RUNNING),
                                                      200, 'OK')))
     @mock.patch('st2client.client.StreamManager', autospec=True)
     def test_tail_child_execution_directly(self, mock_stream_manager):
@@ -620,6 +620,13 @@ Execution idfoo4 has completed (status=succeeded).
 
             # Output produced by child task
             MOCK_LIVEACTION_4_CHILD_2_OUTPUT_1,
+
+            # Other executions should not interfere
+            # Child task 1 started running
+            MOCK_LIVEACTION_3_CHILD_1_RUNNING,
+
+            # Child task 1 finished (sub workflow)
+            MOCK_LIVEACTION_4_CHILD_1_SUCCEEDED,
 
             # Child task 2 finished
             MOCK_LIVEACTION_4_CHILD_2_TIMED_OUT
