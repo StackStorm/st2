@@ -22,20 +22,28 @@ from st2common.transport.publishers import PoolPublisher
 from st2common.persistence.trigger import TriggerInstance
 from st2common.models.db.trigger import TriggerInstanceDB
 from st2common.util import date as date_utils
-from tests import FunctionalTest
+from st2api.controllers.v1.triggers import TriggerInstanceController
+
+from tests.base import FunctionalTest
+from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
 
 http_client = six.moves.http_client
 
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
-class TestTriggerController(FunctionalTest):
+class TriggerInstanceTestCase(FunctionalTest,
+                              APIControllerWithIncludeAndExcludeFilterTestCase):
+    get_all_path = '/v1/triggerinstances'
+    controller_cls = TriggerInstanceController
+    include_attribute_field_name = 'trigger'
+    exclude_attribute_field_name = 'payload'
 
     @classmethod
     def setUpClass(cls):
-        super(TestTriggerController, cls).setUpClass()
+        super(TriggerInstanceTestCase, cls).setUpClass()
         cls._setupTriggerTypes()
         cls._setupTriggers()
-        cls._setupTriggerInstances()
+        cls._setupTriggerInstance()
 
     def test_get_all(self):
         resp = self.app.get('/v1/triggerinstances')
@@ -188,8 +196,15 @@ class TestTriggerController(FunctionalTest):
         cls.app.post_json('/v1/triggers', TRIGGER_1, expect_errors=False)
         cls.app.post_json('/v1/triggers', TRIGGER_2, expect_errors=False)
 
+    def _insert_mock_models(self):
+        return [self.triggerinstance_1['id'], self.triggerinstance_2['id'],
+                self.triggerinstance_3['id']]
+
+    def _delete_mock_models(self, object_ids):
+        return None
+
     @classmethod
-    def _setupTriggerInstances(cls):
+    def _setupTriggerInstance(cls):
         cls.triggerinstance_count = 0
         cls.triggerinstance_1 = cls._create_trigger_instance(
             trigger_ref='dummy_pack_1.st2.test.trigger0',

@@ -82,10 +82,20 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
     model = ActionExecutionAPI
     access = ActionExecution
 
+    # Those two attributes are mandatory so we can correctly determine and mask secret execution
+    # parameters
+    mandatory_include_fields_retrieve = [
+        'action.parameters',
+        'runner.runner_parameters'
+    ]
+
     # A list of attributes which can be specified using ?exclude_attributes filter
+    # NOTE: Allowing user to exclude attribute such as action and runner would break secrets
+    # masking
     valid_exclude_attributes = [
         'result',
-        'trigger_instance'
+        'trigger_instance',
+        'status'
     ]
 
     def _handle_schedule_execution(self, liveaction_api, requester_user, context_string=None,
@@ -277,7 +287,15 @@ class ActionExecutionAttributeController(BaseActionExecutionNestedController):
         :rtype: ``dict``
         """
         fields = [attribute, 'action__pack', 'action__uid']
-        fields = self._validate_exclude_fields(fields)
+
+        try:
+            fields = self._validate_exclude_fields(fields)
+        except ValueError:
+            valid_attributes = ', '.join(ActionExecutionsControllerMixin.valid_exclude_attributes)
+            msg = ('Invalid attribute "%s" specified. Valid attributes are: %s' %
+                   (attribute, valid_attributes))
+            raise ValueError(msg)
+
         action_exec_db = self.access.impl.model.objects.filter(id=id).only(*fields).get()
 
         permission_type = PermissionType.EXECUTION_VIEW
@@ -471,8 +489,6 @@ class ActionExecutionsController(BaseResourceIsolationControllerMixin,
         :param exclude_attributes: List of attributes to exclude from the object.
         :type exclude_attributes: ``list``
         """
-        exclude_fields = self._validate_exclude_fields(exclude_fields=exclude_attributes)
-
         # Use a custom sort order when filtering on a timestamp so we return a correct result as
         # expected by the user
         query_options = None
@@ -484,7 +500,7 @@ class ActionExecutionsController(BaseResourceIsolationControllerMixin,
         from_model_kwargs = {
             'mask_secrets': self._get_mask_secrets(requester_user, show_secrets=show_secrets)
         }
-        return self._get_action_executions(exclude_fields=exclude_fields,
+        return self._get_action_executions(exclude_fields=exclude_attributes,
                                            include_fields=include_attributes,
                                            from_model_kwargs=from_model_kwargs,
                                            sort=sort,
