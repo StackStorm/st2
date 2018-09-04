@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import sys
 
 
 TYPE_TABLE = {
@@ -20,11 +21,13 @@ TYPE_TABLE = {
     list: 'array',
     int: 'integer',
     str: 'string',
-    unicode: 'string',
     float: 'number',
     bool: 'boolean',
     type(None): 'null',
 }
+
+if sys.version_info[0] < 3:
+    TYPE_TABLE[unicode] = 'string'
 
 
 def _dict_to_schema(item):

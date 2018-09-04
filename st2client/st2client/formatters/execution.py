@@ -87,7 +87,9 @@ class ExecutionResult(formatters.Formatter):
                 output += ('\n' if output else '') + '%s: %s' % \
                     (DisplayColors.colorize(attr, DisplayColors.BLUE), value)
 
-            if not entry.get('action', {}).get('output_schema') and kwargs['with_schema']:
+            output_schema = entry.get('action', {}).get('output_schema')
+
+            if not output_schema and kwargs.get('with_schema'):
                 rendered_schema = {
                     'output_schema': schema.render_output_schema_from_output(entry['result'])
                 }
@@ -99,7 +101,7 @@ class ExecutionResult(formatters.Formatter):
                     "\n\n"
                     "%s" % rendered_schema
                 )
-            elif not entry.get('action', {}).get('output_schema'):
+            elif not output_schema:
                 output += (
                     "\n\n** This action does not have an output_schema. "
                     "Run again with --with-schema to see a suggested schema."
