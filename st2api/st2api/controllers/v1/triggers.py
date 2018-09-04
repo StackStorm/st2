@@ -53,10 +53,11 @@ class TriggerTypeController(resource.ContentPackResourceController):
         'sort': ['pack', 'name']
     }
 
-    include_reference = True
-
-    def get_all(self, sort=None, offset=0, limit=None, requester_user=None, **raw_filters):
-        return self._get_all(sort=sort,
+    def get_all(self, exclude_attributes=None, include_attributes=None, sort=None, offset=0,
+                limit=None, requester_user=None, **raw_filters):
+        return self._get_all(exclude_fields=exclude_attributes,
+                             include_fields=include_attributes,
+                             sort=sort,
                              offset=offset,
                              limit=limit,
                              raw_filters=raw_filters,
@@ -386,7 +387,8 @@ class TriggerInstanceController(TriggerInstanceControllerMixin, resource.Resourc
         """
         return self._get_one_by_id(instance_id, permission_type=None, requester_user=None)
 
-    def get_all(self, sort=None, offset=0, limit=None, requester_user=None, **raw_filters):
+    def get_all(self, exclude_attributes=None, include_attributes=None, sort=None, offset=0,
+                limit=None, requester_user=None, **raw_filters):
         """
             List all triggerinstances.
 
@@ -408,22 +410,26 @@ class TriggerInstanceController(TriggerInstanceControllerMixin, resource.Resourc
             # we should return back empty result
             return []
 
-        trigger_instances = self._get_trigger_instances(sort=sort,
+        trigger_instances = self._get_trigger_instances(exclude_fields=exclude_attributes,
+                                                        include_fields=include_attributes,
+                                                        sort=sort,
                                                         offset=offset,
                                                         limit=limit,
                                                         raw_filters=raw_filters,
                                                         requester_user=requester_user)
         return trigger_instances
 
-    def _get_trigger_instances(self, sort=None, offset=0, limit=None, raw_filters=None,
-                               requester_user=None):
+    def _get_trigger_instances(self, exclude_fields=None, include_fields=None, sort=None, offset=0,
+                               limit=None, raw_filters=None, requester_user=None):
         if limit is None:
             limit = self.default_limit
 
         limit = int(limit)
 
         LOG.debug('Retrieving all trigger instances with filters=%s', raw_filters)
-        return super(TriggerInstanceController, self)._get_all(sort=sort,
+        return super(TriggerInstanceController, self)._get_all(exclude_fields=exclude_fields,
+                                                               include_fields=include_fields,
+                                                               sort=sort,
                                                                offset=offset,
                                                                limit=limit,
                                                                raw_filters=raw_filters,

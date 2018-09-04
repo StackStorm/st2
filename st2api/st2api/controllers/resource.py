@@ -87,10 +87,15 @@ class ResourceController(object):
     # Default kwargs passed to "APIClass.from_model" method
     from_model_kwargs = {}
 
-    # Maximum value of limit which can be specified by user
-    @property
-    def max_limit(self):
-        return cfg.CONF.api.max_page_size
+    # Mandatory model attributes which are always retrieved from the database when using
+    # ?include_attributes filter. Those attributes need to be included because a lot of code
+    # depends on compound references and primary keys. In addition to that, it's needed for secrets
+    # masking to work, etc.
+    mandatory_include_fields_retrieve = ['id']
+
+    # A list of fields which are always included in the response when ?include_attributes filter is
+    # used. Those are things such as primary keys and similar.
+    mandatory_include_fields_response = ['id']
 
     # Default number of items returned per page if no limit is explicitly provided
     default_limit = 100
@@ -100,8 +105,7 @@ class ResourceController(object):
     }
 
     # A list of optional transformation functions for user provided filter values
-    filter_transform_functions = {
-    }
+    filter_transform_functions = {}
 
     # A list of attributes which can be specified using ?exclude_attributes filter
     # If not provided, no validation is performed.
@@ -121,6 +125,11 @@ class ResourceController(object):
 
         self.get_one_db_method = self._get_by_name_or_id
 
+    # Maximum value of limit which can be specified by user
+    @property
+    def max_limit(self):
+        return cfg.CONF.api.max_page_size
+
     def _get_all(self, exclude_fields=None, include_fields=None, advanced_filters=None,
                  sort=None, offset=0, limit=None, query_options=None,
                  from_model_kwargs=None, raw_filters=None, requester_user=None):
@@ -133,6 +142,14 @@ class ResourceController(object):
         exclude_fields = exclude_fields or []
         include_fields = include_fields or []
         query_options = query_options if query_options else self.query_options
+
+        if exclude_fields and include_fields:
+            msg = ('exclude_fields and include_fields arguments are mutually exclusive. '
+                   'You need to provide either one or another, but not both.')
+            raise ValueError(msg)
+
+        exclude_fields = self._validate_exclude_fields(exclude_fields=exclude_fields)
+        include_fields = self._validate_include_fields(include_fields=include_fields)
 
         # TODO: Why do we use comma delimited string, user can just specify
         # multiple values using ?sort=foo&sort=bar and we get a list back
@@ -202,11 +219,6 @@ class ResourceController(object):
                 except LookUpError as e:
                     raise ValueError(str(e))
 
-        if exclude_fields and include_fields:
-            msg = ('exclude_fields and include_fields arguments are mutually exclusive. '
-                   'You need to provide either one or another, but not both.')
-            raise ValueError(msg)
-
         instances = self.access.query(exclude_fields=exclude_fields, only_fields=include_fields,
                                       **filters)
         if limit == 1:
@@ -239,7 +251,9 @@ class ResourceController(object):
 
         result = []
         for instance in instances[offset:eop]:
-            item = model.from_model(instance, **from_model_kwargs)
+            item = self.resource_model_filter(model=model, instance=instance,
+                                              requester_user=requester_user,
+                                              **from_model_kwargs)
             result.append(item)
         return result
 
@@ -400,10 +414,30 @@ class ResourceController(object):
 
         for field in exclude_fields:
             if field not in self.valid_exclude_attributes:
-                msg = 'Invalid or unsupported exclude attribute specified: %s' % (field)
+                msg = ('Invalid or unsupported exclude attribute specified: %s' % (field))
                 raise ValueError(msg)
 
         return exclude_fields
+
+    def _validate_include_fields(self, include_fields):
+        """
+        Validate that provided include fields are valid.
+        """
+        if not include_fields:
+            return include_fields
+
+        result = copy.copy(include_fields)
+        for field in self.mandatory_include_fields_retrieve:
+            # Don't add mandatory field if user already requested the whole dict object (e.g. user
+            # requests action and action.parameters is a mandatory field)
+            partial_field = field.split('.')[0]
+            if partial_field in include_fields:
+                continue
+
+            result.append(field)
+        result = list(set(result))
+
+        return result
 
 
 class BaseResourceIsolationControllerMixin(object):
@@ -462,7 +496,12 @@ class BaseResourceIsolationControllerMixin(object):
 
 
 class ContentPackResourceController(ResourceController):
-    include_reference = False
+    # name and pack are mandatory because they compromise primary key - reference (<pack>.<name>)
+    mandatory_include_fields_retrieve = ['pack', 'name']
+
+    # A list of fields which are always included in the response. Those are things such as primary
+    # keys and similar
+    mandatory_include_fields_response = ['id', 'ref']
 
     def __init__(self):
         super(ContentPackResourceController, self).__init__()
@@ -498,11 +537,6 @@ class ContentPackResourceController(ResourceController):
                                                                resource_api_or_db=instance,
                                                                permission_type=permission_type)
 
-        if result and self.include_reference:
-            pack = getattr(result, 'pack', None)
-            name = getattr(result, 'name', None)
-            result.ref = ResourceReference(pack=pack, name=name).ref
-
         return Response(json=result)
 
     def _get_all(self, exclude_fields=None, include_fields=None,
@@ -518,14 +552,6 @@ class ContentPackResourceController(ResourceController):
                                     from_model_kwargs=from_model_kwargs,
                                     raw_filters=raw_filters,
                                     requester_user=requester_user)
-
-        if self.include_reference:
-            result = resp.json
-            for item in result:
-                pack = item.get('pack', None)
-                name = item.get('name', None)
-                item['ref'] = ResourceReference(pack=pack, name=name).ref
-            resp.json = result
 
         return resp
 

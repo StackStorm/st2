@@ -583,6 +583,19 @@ paths:
       description: |
           Get list of action-aliases.
       parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
         - name: name
           in: query
           description: Entity name filter
@@ -1344,9 +1357,22 @@ paths:
       x-permissions: inquiry_list
       description: Returns a list of all inquiries
       parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
         - name: limit
           in: query
-          description: Number of executions to get
+          description: Number of inquiries to get
           type: integer
           default: 20
       x-parameters:
@@ -1598,6 +1624,19 @@ paths:
       x-permissions: pack_list
       description: Get list of installed packs.
       parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
         - name: limit
           in: query
           description: Number of packs to get
@@ -2103,6 +2142,19 @@ paths:
       x-permissions: policy_type_list
       description: Returns a list of all the policy types.
       parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
         - name: resource_type
           in: query
           description: Policy type resource type
@@ -2188,6 +2240,19 @@ paths:
       description: |
         List of policies
       parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
         - name: pack
           in: query
           description: Policies pack
@@ -2976,6 +3041,13 @@ paths:
           items:
             type: string
           required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
+          required: false
         - name: limit
           in: query
           description: Number of entities to get
@@ -3246,6 +3318,19 @@ paths:
       x-permissions: rule_enforcement_list
       description: Returns a list of all the rule enforcements.
       parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
         - name: limit
           in: query
           description: List N most recent rule enforcements.
@@ -3326,6 +3411,19 @@ paths:
       x-permissions: rule_enforcement_list
       description: Returns a list of all the rule enforcements.
       parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
         - name: limit
           in: query
           description: List N most recent rule enforcements.
@@ -3516,6 +3614,19 @@ paths:
       x-permissions: trace_list
       description: Returns a list of all the traces.
       parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
         - name: limit
           in: query
           description: Number of traces to get
@@ -3621,6 +3732,19 @@ paths:
       operationId: st2api.controllers.v1.triggers:triggertype_controller.get_all
       description: Returns a list of all trigger types.
       parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
         - name: limit
           in: query
           description: Number of trigger types to get
@@ -3884,6 +4008,19 @@ paths:
       operationId: st2api.controllers.v1.triggers:triggerinstance_controller.get_all
       description: Returns a list of all trigger instances.
       parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
         - name: limit
           in: query
           description: Number of trigger instances to get
@@ -4084,6 +4221,47 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /api/v1/workflows/inspect:
+    post:
+      operationId: st2api.controllers.v1.workflow_inspection:workflow_inspection_controller.post
+      description: Inspect workflow definition (support orquesta workflow only).
+      parameters:
+        - name: wf_def
+          in: body
+          description: Workflow definition in YAML
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of inspection errors separated by categories.
+          schema:
+            $ref: '#/definitions/WorkflowInspectionErrors'
+          examples:
+            application/json:
+              - type: "content"
+                message: "The action \"std.noop\" is not registered in the database."
+                schema_path: "properties.tasks.patternProperties.^\\w+$.properties.action"
+                spec_path: "tasks.task3.action"
+              - type: "context"
+                language: "yaql"
+                expression: "<% ctx().foobar %>"
+                message: "Variable \"foobar\" is referenced before assignment."
+                schema_path: "properties.tasks.patternProperties.^\\w+$.properties.input"
+                spec_path: "tasks.task1.input"
+              - type: "expression"
+                language: "yaql"
+                expression: "<% <% succeeded() %>"
+                message: "Parse error: unexpected '<' at position 0 of expression '<% succeeded()'"
+                schema_path: "properties.tasks.patternProperties.^\\w+$.properties.next.items.properties.when"
+                spec_path: "tasks.task2.next[0].when"
+              - type: "syntax"
+                message: "[{'cmd': 'echo <% ctx().macro %>'}] is not of type 'object'"
+                schema_path: "properties.tasks.patternProperties.^\\w+$.properties.input.type"
+                spec_path: "tasks.task2.input"
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
 
   /api/exp/validation/mistral:
     post:
@@ -4196,6 +4374,7 @@ paths:
   /stream/v1/stream:
     get:
       operationId: st2stream.controllers.v1.stream:stream_controller.get_all
+      x-is-streaming-endpoint: true
       x-permissions: stream_view
       description: |
         Event stream endpoint.
@@ -4240,6 +4419,7 @@ paths:
   /stream/v1/executions/{id}/output:
     get:
       operationId: st2stream.controllers.v1.executions:action_execution_output_controller.get_one
+      x-is-streaming-endpoint: true
       x-permissions: stream_view
       description: |
         Action execution output event stream endpoint.
@@ -5080,6 +5260,26 @@ definitions:
       enabled:
         type: boolean
         default: True
+
+  WorkflowInspectionError:
+    type: object
+    properties:
+      type:
+        type: string
+      language:
+        type: string
+      expression:
+        type: string
+      message:
+        type: string
+      schema_path:
+        type: string
+      spec_path:
+        type: string
+  WorkflowInspectionErrors:
+    type: array
+    items:
+      $ref: '#/definitions/WorkflowInspectionError'
 
   ValidationError:
     type: object

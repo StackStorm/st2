@@ -183,6 +183,8 @@ connection_retries = 10
 cluster_urls =  # comma separated list allowed here.
 
 [metrics]
+# Randomly sample and only send metrics for X% of metric operations to the backend. Default value of 1 means no sampling is done and all the metrics are sent to the backend. E.g. 0.1 would mean 10% of operations are sampled.
+sample_rate = 1
 # Destination server to connect to if driver requires connection.
 host = 127.0.0.1
 # Optional prefix which is prepended to all the metric names. Comes handy when you want to submit metrics from various environment to the same metric backend instance.

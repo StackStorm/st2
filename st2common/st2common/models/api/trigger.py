@@ -190,7 +190,10 @@ class TriggerInstanceAPI(BaseAPI):
     @classmethod
     def from_model(cls, model, mask_secrets=False):
         instance = cls._from_model(model, mask_secrets=mask_secrets)
-        instance['occurrence_time'] = isotime.format(instance['occurrence_time'], offset=False)
+
+        if instance.get('occurrence_time', None):
+            instance['occurrence_time'] = isotime.format(instance['occurrence_time'], offset=False)
+
         return cls(**instance)
 
     @classmethod
