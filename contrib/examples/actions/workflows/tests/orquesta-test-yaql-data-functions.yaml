@@ -1,0 +1,17 @@
+version: 1.0
+
+description: A basic workflow testing data related functions.
+
+vars:
+  - data_json_str_1: '{"foo": "bar"}'
+
+tasks:
+  task1:
+    action: core.noop
+
+output:
+  - data_json_str_1: <% ctx(data_json_str_1) %>
+  - data_json_obj_1: <% from_json_string(ctx(data_json_str_1)) %>
+  - data_yaml_str_1: <% to_yaml_string(ctx(data_json_obj_1)) %>
+  - data_json_obj_2: <% from_yaml_string(ctx(data_yaml_str_1)) %>
+  - data_json_str_2: <% to_json_string(ctx(data_json_obj_2)) %>

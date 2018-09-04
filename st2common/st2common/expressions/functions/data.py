@@ -16,8 +16,9 @@
 from __future__ import absolute_import
 
 import json
-import yaml
+import mongoengine
 import six
+import yaml
 
 __all__ = [
     'from_json_string',
@@ -35,11 +36,31 @@ def from_yaml_string(value):
     return yaml.safe_load(six.text_type(value))
 
 
-def to_json_string(value, indent=4, sort_keys=False, separators=(',', ':')):
-    return json.dumps(value, indent=indent, separators=separators,
-                      sort_keys=sort_keys)
+def to_json_string(value, indent=None, sort_keys=False, separators=(',', ': ')):
+    options = {}
+
+    if indent is not None:
+        options['indent'] = indent
+
+    if sort_keys is not None:
+        options['sort_keys'] = sort_keys
+
+    if separators is not None:
+        options['separators'] = separators
+
+    return json.dumps(value, **options)
 
 
-def to_yaml_string(value, indent=4, allow_unicode=True):
-    return yaml.safe_dump(value, indent=indent, allow_unicode=allow_unicode,
-                          default_flow_style=False)
+def to_yaml_string(value, indent=None, allow_unicode=True):
+    if isinstance(value, mongoengine.base.datastructures.BaseDict):
+        value = dict(value)
+
+    options = {'default_flow_style': False}
+
+    if indent is not None:
+        options['indent'] = indent
+
+    if allow_unicode is not None:
+        options['allow_unicode'] = allow_unicode
+
+    return yaml.safe_dump(value, **options)
