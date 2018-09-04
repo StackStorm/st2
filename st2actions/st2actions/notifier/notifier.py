@@ -230,15 +230,21 @@ class Notifier(consumers.MessageHandler):
             LOG.debug('Action trigger is disabled, skipping trigger dispatch...')
             return
 
+        execution_id = str(execution_db.id)
+        extra = {'execution': execution_db}
+
         target_statuses = cfg.CONF.action_sensor.emit_when
         if not target_statuses:
             if execution_db.status not in LIVEACTION_COMPLETED_STATES:
+                msg = 'Skip action execution "%s" because state "%s" is not in a completed state.'
+                LOG.debug(msg % (execution_id, execution_db.status), extra=extra)
                 return
         else:
             if execution_db.status not in target_statuses:
+                msg = 'Skip action execution "%s" because state "%s" is not in %s'
+                LOG.debug(msg % (execution_id, execution_db.status, target_statuses), extra=extra)
                 return
 
-        execution_id = str(execution_db.id)
         payload = {'execution_id': execution_id,
                    'status': liveaction_db.status,
                    'start_timestamp': str(liveaction_db.start_timestamp),
