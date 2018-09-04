@@ -8,3 +8,5 @@ result:
   stderr: ''
   stdout: "‡"
   succeeded: true
+
+** This action does not have an output_schema. Run again with --with-schema to see a suggested schema.

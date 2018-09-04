@@ -25,12 +25,23 @@ from st2client import formatters
 from st2client.utils import jsutil
 from st2client.utils import strutil
 from st2client.utils.color import DisplayColors
+from st2client.utils import schema
 import six
 
 
 LOG = logging.getLogger(__name__)
 
 PLATFORM_MAXINT = 2 ** (struct.Struct('i').size * 8 - 1) - 1
+
+
+def _print_bordered(text):
+    lines = text.split('\n')
+    width = max(len(s) for s in lines) + 2
+    res = ['\n+' + '-' * width + '+']
+    for s in lines:
+        res.append('| ' + (s + ' ' * width)[:width - 2] + ' |')
+    res.append('+' + '-' * width + '+')
+    return '\n'.join(res)
 
 
 class ExecutionResult(formatters.Formatter):
@@ -75,6 +86,24 @@ class ExecutionResult(formatters.Formatter):
 
                 output += ('\n' if output else '') + '%s: %s' % \
                     (DisplayColors.colorize(attr, DisplayColors.BLUE), value)
+
+            if not entry.get('action', {}).get('output_schema') and kwargs['with_schema']:
+                rendered_schema = {
+                    'output_schema': schema.render_output_schema_from_output(entry['result'])
+                }
+
+                rendered_schema = yaml.safe_dump(rendered_schema, default_flow_style=False)
+                output += _print_bordered(
+                    "This action does not have an output schema defined. Based "
+                    "on the action output the following inferred schema was built:"
+                    "\n\n"
+                    "%s" % rendered_schema
+                )
+            elif not entry.get('action', {}).get('output_schema'):
+                output += (
+                    "\n\n** This action does not have an output_schema. "
+                    "Run again with --with-schema to see a suggested schema."
+                )
 
         if six.PY3:
             return strutil.unescape(str(output))

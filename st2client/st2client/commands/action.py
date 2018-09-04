@@ -26,8 +26,6 @@ import time
 import six
 import sys
 
-import yaml
-
 from os.path import join as pjoin
 
 from six.moves import range
@@ -42,7 +40,6 @@ from st2client.utils import jsutil
 from st2client.utils.date import format_isodate_for_user_timezone
 from st2client.utils.date import parse as parse_isotime
 from st2client.utils.color import format_status
-from st2client.utils import schema
 
 LOG = logging.getLogger(__name__)
 
@@ -280,6 +277,10 @@ class ActionRunCommandMixin(object):
 
         # Display options
         task_list_arg_grp = root_arg_grp.add_argument_group()
+        task_list_arg_grp.add_argument('--with-schema',
+                                 default=False, action='store_true',
+                                 help=('Show schema_ouput suggestion with action.'))
+
         task_list_arg_grp.add_argument('--raw', action='store_true',
                                        help='Raw output, don\'t show sub-tasks for workflows.')
         task_list_arg_grp.add_argument('--show-tasks', action='store_true',
@@ -322,15 +323,6 @@ class ActionRunCommandMixin(object):
 
         return root_arg_grp
 
-    def _print_bordered(self, text):
-        lines = text.split('\n')
-        width = max(len(s) for s in lines) + 2
-        res = ['+' + '-' * width + '+']
-        for s in lines:
-            res.append('| ' + (s + ' ' * width)[:width-2] + ' |')
-        res.append('+' + '-' * width + '+')
-        print '\n'.join(res)
-
     def _print_execution_details(self, execution, args, **kwargs):
         """
         Print the execution detail to stdout.
@@ -346,24 +338,6 @@ class ActionRunCommandMixin(object):
         detail = getattr(args, 'detail', False)
         key = getattr(args, 'key', None)
         attr = getattr(args, 'attr', [])
-
-        rendered_schema = schema.render_output_schema_from_output(
-            execution.result
-        )
-
-        rendered_schema = {
-            'output_schema': rendered_schema
-        }
-
-        rendered_schema = yaml.safe_dump(rendered_schema, default_flow_style=False)
-
-        if not execution.action['output_schema']:
-            self._print_bordered(
-                "This action does not have an output schema defined. Based "
-                "on the action output the following inferred schema was built:"
-                "\n\n"
-                "%s" % rendered_schema
-            )
 
         if show_tasks and not is_workflow_action:
             raise ValueError('--show-tasks option can only be used with workflow actions')
@@ -386,6 +360,7 @@ class ActionRunCommandMixin(object):
                 options = {'attributes': attr}
 
             options['json'] = args.json
+            options['with_schema'] = args.with_schema
             options['attribute_transform_functions'] = self.attribute_transform_functions
             self.print_output(instance, formatter, **options)
 

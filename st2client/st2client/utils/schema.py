@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from types import NoneType
 
 
 TYPE_TABLE = {
@@ -24,7 +23,7 @@ TYPE_TABLE = {
     unicode: 'string',
     float: 'number',
     bool: 'boolean',
-    NoneType: 'null',
+    type(None): 'null',
 }
 
 
@@ -42,7 +41,6 @@ def _dict_to_schema(item):
             }
 
     return schema
-
 
 
 def render_output_schema_from_output(output):

@@ -59,6 +59,7 @@ FIXTURES_MANIFEST = {
 FIXTURES = loader.load_fixtures(fixtures_dict=FIXTURES_MANIFEST)
 EXECUTION = FIXTURES['executions']['execution.json']
 UNICODE = FIXTURES['executions']['execution_unicode.json']
+OUTPUT_SCHEMA = FIXTURES['executions']['execution_with_schema.json']
 NEWLINE = FIXTURES['executions']['execution_with_stack_trace.json']
 HAS_CARRIAGE_RETURN = FIXTURES['executions']['execution_result_has_carriage_return.json']
 
