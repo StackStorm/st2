@@ -54,7 +54,7 @@ def use_none(value):
 
 def get_filters():
     # Lazy / late import to avoid long module import times
-    from st2common.expressions.functions import crypto
+    from st2common.expressions.functions import datastore
     from st2common.expressions.functions import data
     from st2common.expressions.functions import regex
     from st2common.expressions.functions import time
@@ -65,7 +65,7 @@ def get_filters():
     # they are also available in Mistral workflows. Please ensure any additions you
     # make here are also made there so that feature parity is maintained.
     return {
-        'decrypt_kv': crypto.decrypt_kv,
+        'decrypt_kv': datastore.decrypt_kv,
 
         'from_json_string': data.from_json_string,
         'from_yaml_string': data.from_yaml_string,
