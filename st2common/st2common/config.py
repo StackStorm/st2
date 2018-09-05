@@ -388,6 +388,10 @@ def register_opts(ignore_errors=False):
         cfg.BoolOpt(
             'enable', default=True,
             help='Whether to enable or disable the ability to post a trigger on action.'),
+        cfg.ListOpt(
+            'emit_when', default=[],
+            help='List of execution statuses that a trigger will be emitted. '
+                 'If not specified, it defaults to action completion.'),
     ]
 
     do_register_opts(action_sensor_opts, group='action_sensor')
