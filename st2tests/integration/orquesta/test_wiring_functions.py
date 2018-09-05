@@ -17,8 +17,6 @@ from __future__ import absolute_import
 
 from integration.orquesta import base
 
-from st2common.constants import action as ac_const
-
 
 class FunctionsWiringTest(base.TestWorkflowExecution):
 
@@ -36,11 +34,7 @@ class FunctionsWiringTest(base.TestWorkflowExecution):
 
         expected_result = {'output': expected_output}
 
-        ex = self._execute_workflow(wf_name)
-        ex = self._wait_for_completion(ex)
-
-        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-        self.assertDictEqual(ex.result, expected_result)
+        self._execute_workflow(wf_name, execute_async=False, expected_result=expected_result)
 
     def test_data_functions_in_jinja(self):
         wf_name = 'examples.orquesta-test-jinja-data-functions'
@@ -57,11 +51,7 @@ class FunctionsWiringTest(base.TestWorkflowExecution):
 
         expected_result = {'output': expected_output}
 
-        ex = self._execute_workflow(wf_name)
-        ex = self._wait_for_completion(ex)
-
-        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-        self.assertDictEqual(ex.result, expected_result)
+        self._execute_workflow(wf_name, execute_async=False, expected_result=expected_result)
 
     def test_regex_functions_in_yaql(self):
         wf_name = 'examples.orquesta-test-yaql-regex-functions'
@@ -75,11 +65,7 @@ class FunctionsWiringTest(base.TestWorkflowExecution):
 
         expected_result = {'output': expected_output}
 
-        ex = self._execute_workflow(wf_name)
-        ex = self._wait_for_completion(ex)
-
-        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-        self.assertDictEqual(ex.result, expected_result)
+        self._execute_workflow(wf_name, execute_async=False, expected_result=expected_result)
 
     def test_regex_functions_in_jinja(self):
         wf_name = 'examples.orquesta-test-jinja-regex-functions'
@@ -93,11 +79,7 @@ class FunctionsWiringTest(base.TestWorkflowExecution):
 
         expected_result = {'output': expected_output}
 
-        ex = self._execute_workflow(wf_name)
-        ex = self._wait_for_completion(ex)
-
-        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-        self.assertDictEqual(ex.result, expected_result)
+        self._execute_workflow(wf_name, execute_async=False, expected_result=expected_result)
 
     def test_version_functions_in_yaql(self):
         wf_name = 'examples.orquesta-test-yaql-version-functions'
@@ -118,11 +100,7 @@ class FunctionsWiringTest(base.TestWorkflowExecution):
 
         expected_result = {'output': expected_output}
 
-        ex = self._execute_workflow(wf_name)
-        ex = self._wait_for_completion(ex)
-
-        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-        self.assertDictEqual(ex.result, expected_result)
+        self._execute_workflow(wf_name, execute_async=False, expected_result=expected_result)
 
     def test_version_functions_in_jinja(self):
         wf_name = 'examples.orquesta-test-jinja-version-functions'
@@ -143,8 +121,4 @@ class FunctionsWiringTest(base.TestWorkflowExecution):
 
         expected_result = {'output': expected_output}
 
-        ex = self._execute_workflow(wf_name)
-        ex = self._wait_for_completion(ex)
-
-        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-        self.assertDictEqual(ex.result, expected_result)
+        self._execute_workflow(wf_name, execute_async=False, expected_result=expected_result)

@@ -90,8 +90,9 @@ class OrquestaFunctionTest(st2tests.DbTestCase):
         for pack in PACKS:
             actions_registrar.register_from_pack(pack)
 
-    def test_data_functions_in_yaql(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'yaql-data-functions.yaml')
+    def _execute_workflow(self, wf_name, expected_output):
+        wf_file = wf_name + '.yaml'
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, wf_file)
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
 
@@ -120,7 +121,15 @@ class OrquestaFunctionTest(st2tests.DbTestCase):
         ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db.id))
         self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
 
-        # Check workflow output.
+        # Check workflow output, liveaction result, and action execution result.
+        expected_result = {'output': expected_output}
+        self.assertDictEqual(wf_ex_db.output, expected_output)
+        self.assertDictEqual(lv_ac_db.result, expected_result)
+        self.assertDictEqual(ac_ex_db.result, expected_result)
+
+    def test_data_functions_in_yaql(self):
+        wf_name = 'yaql-data-functions'
+
         expected_output = {
             'data_json_str_1': '{"foo": {"bar": "foobar"}}',
             'data_json_str_2': '{"foo": {"bar": "foobar"}}',
@@ -130,45 +139,11 @@ class OrquestaFunctionTest(st2tests.DbTestCase):
             'data_query_1': ['foobar']
         }
 
-        self.assertDictEqual(wf_ex_db.output, expected_output)
-
-        # Check liveaction and action execution result.
-        expected_result = {'output': expected_output}
-
-        self.assertDictEqual(lv_ac_db.result, expected_result)
-        self.assertDictEqual(ac_ex_db.result, expected_result)
+        self._execute_workflow(wf_name, expected_output)
 
     def test_data_functions_in_jinja(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'jinja-data-functions.yaml')
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
-        lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
+        wf_name = 'jinja-data-functions'
 
-        # Assert action execution is running.
-        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result)
-        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
-        self.assertEqual(wf_ex_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
-
-        # Assert task1 is already completed.
-        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task1'}
-        tk1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        tk1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk1_ex_db.id))[0]
-        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction['id'])
-        self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(wf_svc.is_action_execution_under_workflow_context(tk1_ac_ex_db))
-
-        # Manually handle action execution completion.
-        wf_svc.handle_action_execution_completion(tk1_ac_ex_db)
-
-        # Assert workflow is completed.
-        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.SUCCEEDED)
-        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-        ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db.id))
-        self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-
-        # Check workflow output.
         expected_output = {
             'data_json_str_1': '{"foo": {"bar": "foobar"}}',
             'data_json_str_2': '{"foo": {"bar": "foobar"}}',
@@ -179,45 +154,11 @@ class OrquestaFunctionTest(st2tests.DbTestCase):
             'data_pipe_str_1': '{"foo": {"bar": "foobar"}}'
         }
 
-        self.assertDictEqual(wf_ex_db.output, expected_output)
-
-        # Check liveaction and action execution result.
-        expected_result = {'output': expected_output}
-
-        self.assertDictEqual(lv_ac_db.result, expected_result)
-        self.assertDictEqual(ac_ex_db.result, expected_result)
+        self._execute_workflow(wf_name, expected_output)
 
     def test_regex_functions_in_yaql(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'yaql-regex-functions.yaml')
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
-        lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
+        wf_name = 'yaql-regex-functions'
 
-        # Assert action execution is running.
-        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result)
-        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
-        self.assertEqual(wf_ex_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
-
-        # Assert task1 is already completed.
-        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task1'}
-        tk1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        tk1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk1_ex_db.id))[0]
-        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction['id'])
-        self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(wf_svc.is_action_execution_under_workflow_context(tk1_ac_ex_db))
-
-        # Manually handle action execution completion.
-        wf_svc.handle_action_execution_completion(tk1_ac_ex_db)
-
-        # Assert workflow is completed.
-        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.SUCCEEDED)
-        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-        ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db.id))
-        self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-
-        # Check workflow output.
         expected_output = {
             'match': True,
             'replace': 'wxyz',
@@ -225,45 +166,11 @@ class OrquestaFunctionTest(st2tests.DbTestCase):
             'substring': '668 Infinite Dr'
         }
 
-        self.assertDictEqual(wf_ex_db.output, expected_output)
-
-        # Check liveaction and action execution result.
-        expected_result = {'output': expected_output}
-
-        self.assertDictEqual(lv_ac_db.result, expected_result)
-        self.assertDictEqual(ac_ex_db.result, expected_result)
+        self._execute_workflow(wf_name, expected_output)
 
     def test_regex_functions_in_jinja(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'jinja-regex-functions.yaml')
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
-        lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
+        wf_name = 'jinja-regex-functions'
 
-        # Assert action execution is running.
-        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result)
-        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
-        self.assertEqual(wf_ex_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
-
-        # Assert task1 is already completed.
-        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task1'}
-        tk1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        tk1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk1_ex_db.id))[0]
-        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction['id'])
-        self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(wf_svc.is_action_execution_under_workflow_context(tk1_ac_ex_db))
-
-        # Manually handle action execution completion.
-        wf_svc.handle_action_execution_completion(tk1_ac_ex_db)
-
-        # Assert workflow is completed.
-        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.SUCCEEDED)
-        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-        ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db.id))
-        self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-
-        # Check workflow output.
         expected_output = {
             'match': True,
             'replace': 'wxyz',
@@ -271,45 +178,11 @@ class OrquestaFunctionTest(st2tests.DbTestCase):
             'substring': '668 Infinite Dr'
         }
 
-        self.assertDictEqual(wf_ex_db.output, expected_output)
-
-        # Check liveaction and action execution result.
-        expected_result = {'output': expected_output}
-
-        self.assertDictEqual(lv_ac_db.result, expected_result)
-        self.assertDictEqual(ac_ex_db.result, expected_result)
+        self._execute_workflow(wf_name, expected_output)
 
     def test_version_functions_in_yaql(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'yaql-version-functions.yaml')
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
-        lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
+        wf_name = 'yaql-version-functions'
 
-        # Assert action execution is running.
-        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result)
-        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
-        self.assertEqual(wf_ex_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
-
-        # Assert task1 is already completed.
-        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task1'}
-        tk1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        tk1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk1_ex_db.id))[0]
-        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction['id'])
-        self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(wf_svc.is_action_execution_under_workflow_context(tk1_ac_ex_db))
-
-        # Manually handle action execution completion.
-        wf_svc.handle_action_execution_completion(tk1_ac_ex_db)
-
-        # Assert workflow is completed.
-        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.SUCCEEDED)
-        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-        ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db.id))
-        self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-
-        # Check workflow output.
         expected_output = {
             'compare_equal': 0,
             'compare_more_than': -1,
@@ -324,45 +197,11 @@ class OrquestaFunctionTest(st2tests.DbTestCase):
             'strip_patch': '0.10'
         }
 
-        self.assertDictEqual(wf_ex_db.output, expected_output)
-
-        # Check liveaction and action execution result.
-        expected_result = {'output': expected_output}
-
-        self.assertDictEqual(lv_ac_db.result, expected_result)
-        self.assertDictEqual(ac_ex_db.result, expected_result)
+        self._execute_workflow(wf_name, expected_output)
 
     def test_version_functions_in_jinja(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'jinja-version-functions.yaml')
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
-        lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
+        wf_name = 'jinja-version-functions'
 
-        # Assert action execution is running.
-        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result)
-        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
-        self.assertEqual(wf_ex_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
-
-        # Assert task1 is already completed.
-        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task1'}
-        tk1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        tk1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk1_ex_db.id))[0]
-        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction['id'])
-        self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(wf_svc.is_action_execution_under_workflow_context(tk1_ac_ex_db))
-
-        # Manually handle action execution completion.
-        wf_svc.handle_action_execution_completion(tk1_ac_ex_db)
-
-        # Assert workflow is completed.
-        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.SUCCEEDED)
-        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-        ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db.id))
-        self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-
-        # Check workflow output.
         expected_output = {
             'compare_equal': 0,
             'compare_more_than': -1,
@@ -377,10 +216,4 @@ class OrquestaFunctionTest(st2tests.DbTestCase):
             'strip_patch': '0.10'
         }
 
-        self.assertDictEqual(wf_ex_db.output, expected_output)
-
-        # Check liveaction and action execution result.
-        expected_result = {'output': expected_output}
-
-        self.assertDictEqual(lv_ac_db.result, expected_result)
-        self.assertDictEqual(ac_ex_db.result, expected_result)
+        self._execute_workflow(wf_name, expected_output)
