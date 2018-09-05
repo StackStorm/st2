@@ -81,6 +81,28 @@ class FunctionsWiringTest(base.TestWorkflowExecution):
 
         self._execute_workflow(wf_name, execute_async=False, expected_result=expected_result)
 
+    def test_time_functions_in_yaql(self):
+        wf_name = 'examples.orquesta-test-yaql-time-functions'
+
+        expected_output = {
+            'time': '3h25m45s'
+        }
+
+        expected_result = {'output': expected_output}
+
+        self._execute_workflow(wf_name, execute_async=False, expected_result=expected_result)
+
+    def test_time_functions_in_jinja(self):
+        wf_name = 'examples.orquesta-test-jinja-time-functions'
+
+        expected_output = {
+            'time': '3h25m45s'
+        }
+
+        expected_result = {'output': expected_output}
+
+        self._execute_workflow(wf_name, execute_async=False, expected_result=expected_result)
+
     def test_version_functions_in_yaql(self):
         wf_name = 'examples.orquesta-test-yaql-version-functions'
 

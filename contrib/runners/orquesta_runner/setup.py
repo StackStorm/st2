@@ -61,6 +61,8 @@ setup(
             'regex_replace = st2common.expressions.functions.regex:regex_replace',
             'regex_search = st2common.expressions.functions.regex:regex_search',
             'regex_substring = st2common.expressions.functions.regex:regex_substring',
+            ('to_human_time_from_seconds = '
+                'st2common.expressions.functions.time:to_human_time_from_seconds'),
             'to_json_string = st2common.expressions.functions.data:to_json_string',
             'to_yaml_string = st2common.expressions.functions.data:to_yaml_string',
             'version_compare = st2common.expressions.functions.version:version_compare',

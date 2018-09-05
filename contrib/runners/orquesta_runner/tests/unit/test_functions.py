@@ -180,6 +180,24 @@ class OrquestaFunctionTest(st2tests.DbTestCase):
 
         self._execute_workflow(wf_name, expected_output)
 
+    def test_time_functions_in_yaql(self):
+        wf_name = 'yaql-time-functions'
+
+        expected_output = {
+            'time': '3h25m45s'
+        }
+
+        self._execute_workflow(wf_name, expected_output)
+
+    def test_time_functions_in_jinja(self):
+        wf_name = 'jinja-time-functions'
+
+        expected_output = {
+            'time': '3h25m45s'
+        }
+
+        self._execute_workflow(wf_name, expected_output)
+
     def test_version_functions_in_yaql(self):
         wf_name = 'yaql-version-functions'
 
