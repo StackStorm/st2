@@ -17,5 +17,5 @@
   output_schema:
     stdout:
       type: "string"
-    stdout:
+    stderr:
       type: "string"
