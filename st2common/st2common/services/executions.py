@@ -29,8 +29,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-from oslo_config import cfg
+
 import six
+from oslo_config import cfg
+from bson.objectid import ObjectId
 
 from st2common import log as logging
 from st2common.util import date as date_utils
@@ -138,18 +140,16 @@ def create_execution_object(liveaction, action_db=None, runnertype_db=None, publ
     attrs['log'] = [_create_execution_log_entry(liveaction['status'])]
 
     execution = ActionExecutionDB(**attrs)
-    execution = ActionExecution.add_or_update(execution, publish=False)
-
-    # Update the web_url field in execution. Unfortunately, we need
-    # the execution id for constructing the URL which we only get
-    # after the model is written to disk.
+    # TODO: Do 100% research this is fully safe and unique in distributed setups
+    execution.id = ObjectId()
     execution.web_url = _get_web_url_for_execution(str(execution.id))
     execution = ActionExecution.add_or_update(execution, publish=publish)
 
     if parent:
         if str(execution.id) not in parent.children:
-            parent.children.append(str(execution.id))
-            ActionExecution.add_or_update(parent)
+            values = {}
+            values['push__children'] = str(execution.id)
+            ActionExecution.update(parent, **values)
 
     return execution
 
