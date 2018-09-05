@@ -204,7 +204,6 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         liveaction_db, actionexecution_db = action_service.create_request(liveaction=liveaction_db,
             action_db=action_db,
             runnertype_db=runnertype_db)
-        liveaction_db = LiveAction.add_or_update(liveaction_db, publish=False)
 
         _, actionexecution_db = action_service.publish_request(liveaction_db, actionexecution_db)
         mask_secrets = self._get_mask_secrets(requester_user, show_secrets=show_secrets)

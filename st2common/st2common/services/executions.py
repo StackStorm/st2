@@ -145,11 +145,10 @@ def create_execution_object(liveaction, action_db=None, runnertype_db=None, publ
     execution.web_url = _get_web_url_for_execution(str(execution.id))
     execution = ActionExecution.add_or_update(execution, publish=publish)
 
-    if parent:
-        if str(execution.id) not in parent.children:
-            values = {}
-            values['push__children'] = str(execution.id)
-            ActionExecution.update(parent, **values)
+    if parent and str(execution.id) not in parent.children:
+        values = {}
+        values['push__children'] = str(execution.id)
+        ActionExecution.update(parent, **values)
 
     return execution
 
