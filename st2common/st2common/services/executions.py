@@ -99,14 +99,17 @@ def _create_execution_log_entry(status):
     }
 
 
-def create_execution_object(liveaction, publish=True):
-    action_db = action_utils.get_action_by_ref(liveaction.action)
-    runner = RunnerType.get_by_name(action_db.runner_type['name'])
+def create_execution_object(liveaction, action_db=None, runnertype_db=None, publish=True):
+    if not action_db:
+        action_db = action_utils.get_action_by_ref(liveaction.action)
+
+    if not runnertype_db:
+        runnertype_db = RunnerType.get_by_name(action_db.runner_type['name'])
 
     attrs = {
         'action': vars(ActionAPI.from_model(action_db)),
         'parameters': liveaction['parameters'],
-        'runner': vars(RunnerTypeAPI.from_model(runner))
+        'runner': vars(RunnerTypeAPI.from_model(runnertype_db))
     }
     attrs.update(_decompose_liveaction(liveaction))
 

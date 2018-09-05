@@ -104,7 +104,6 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         :param liveaction: LiveActionAPI object.
         :type liveaction: :class:`LiveActionAPI`
         """
-
         if not requester_user:
             requester_user = UserDB(cfg.CONF.system_user.user)
 
@@ -113,7 +112,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         action_db = action_utils.get_action_by_ref(action_ref)
 
         if not action_db:
-            message = 'Action "%s" cannot be found.' % action_ref
+            message = 'Action "%s" cannot be found.' % (action_ref)
             LOG.warning(message)
             abort(http_client.BAD_REQUEST, message)
 
@@ -132,7 +131,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
                                             user=user,
                                             context_string=context_string,
                                             show_secrets=show_secrets,
-                                            pack=action_db.pack)
+                                            action_db=action_db)
         except ValueError as e:
             LOG.exception('Unable to execute action.')
             abort(http_client.BAD_REQUEST, str(e))
@@ -147,19 +146,15 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
             LOG.exception('Unable to execute action. Unexpected error encountered.')
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
 
-    def _schedule_execution(self,
-                            liveaction,
-                            requester_user,
-                            user=None,
-                            context_string=None,
-                            show_secrets=False,
-                            pack=None):
+    def _schedule_execution(self, liveaction, requester_user, action_db, user=None,
+                            context_string=None, show_secrets=False):
         # Initialize execution context if it does not exist.
         if not hasattr(liveaction, 'context'):
             liveaction.context = dict()
 
         liveaction.context['user'] = user
-        liveaction.context['pack'] = pack
+        liveaction.context['pack'] = action_db.pack
+
         LOG.debug('User is: %s' % liveaction.context['user'])
 
         # Retrieve other st2 context from request header.
@@ -181,7 +176,6 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
 
         # Schedule the action execution.
         liveaction_db = LiveActionAPI.to_model(liveaction)
-        action_db = action_utils.get_action_by_ref(liveaction_db.action)
         runnertype_db = action_utils.get_runnertype_by_name(action_db.runner_type['name'])
 
         try:
@@ -189,9 +183,11 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
                 runnertype_db.runner_parameters, action_db.parameters, liveaction_db.parameters,
                 liveaction_db.context)
         except param_exc.ParamException:
-
             # We still need to create a request, so liveaction_db is assigned an ID
-            liveaction_db, actionexecution_db = action_service.create_request(liveaction_db)
+            liveaction_db, actionexecution_db = action_service.create_request(
+                liveaction=liveaction_db,
+                action_db=action_db,
+                runnertype_db=runnertype_db)
 
             # By this point the execution is already in the DB therefore need to mark it failed.
             _, e, tb = sys.exc_info()
@@ -205,7 +201,9 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
 
         # The request should be created after the above call to render_live_params
         # so any templates in live parameters have a chance to render.
-        liveaction_db, actionexecution_db = action_service.create_request(liveaction_db)
+        liveaction_db, actionexecution_db = action_service.create_request(liveaction=liveaction_db,
+            action_db=action_db,
+            runnertype_db=runnertype_db)
         liveaction_db = LiveAction.add_or_update(liveaction_db, publish=False)
 
         _, actionexecution_db = action_service.publish_request(liveaction_db, actionexecution_db)
