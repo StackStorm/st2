@@ -63,6 +63,42 @@ class FunctionsWiringTest(base.TestWorkflowExecution):
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         self.assertDictEqual(ex.result, expected_result)
 
+    def test_regex_functions_in_yaql(self):
+        wf_name = 'examples.orquesta-test-yaql-regex-functions'
+
+        expected_output = {
+            'match': True,
+            'replace': 'wxyz',
+            'search': True,
+            'substring': '668 Infinite Dr'
+        }
+
+        expected_result = {'output': expected_output}
+
+        ex = self._execute_workflow(wf_name)
+        ex = self._wait_for_completion(ex)
+
+        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertDictEqual(ex.result, expected_result)
+
+    def test_regex_functions_in_jinja(self):
+        wf_name = 'examples.orquesta-test-jinja-regex-functions'
+
+        expected_output = {
+            'match': True,
+            'replace': 'wxyz',
+            'search': True,
+            'substring': '668 Infinite Dr'
+        }
+
+        expected_result = {'output': expected_output}
+
+        ex = self._execute_workflow(wf_name)
+        ex = self._wait_for_completion(ex)
+
+        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertDictEqual(ex.result, expected_result)
+
     def test_version_functions_in_yaql(self):
         wf_name = 'examples.orquesta-test-yaql-version-functions'
 
