@@ -53,6 +53,8 @@ setup(
         ],
         'orquesta.expressions.functions': [
             'st2kv = orquesta_functions.st2kv:st2kv_',
+            'basename = st2common.expressions.functions.path:basename',
+            'dirname = st2common.expressions.functions.path:dirname',
             'from_json_string = st2common.expressions.functions.data:from_json_string',
             'from_yaml_string = st2common.expressions.functions.data:from_yaml_string',
             'json_escape = st2common.expressions.functions.data:json_escape',

@@ -156,6 +156,26 @@ class OrquestaFunctionTest(st2tests.DbTestCase):
 
         self._execute_workflow(wf_name, expected_output)
 
+    def test_path_functions_in_yaql(self):
+        wf_name = 'yaql-path-functions'
+
+        expected_output = {
+            'basename': 'file.txt',
+            'dirname': '/path/to/some'
+        }
+
+        self._execute_workflow(wf_name, expected_output)
+
+    def test_path_functions_in_jinja(self):
+        wf_name = 'jinja-path-functions'
+
+        expected_output = {
+            'basename': 'file.txt',
+            'dirname': '/path/to/some'
+        }
+
+        self._execute_workflow(wf_name, expected_output)
+
     def test_regex_functions_in_yaql(self):
         wf_name = 'yaql-regex-functions'
 

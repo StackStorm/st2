@@ -53,6 +53,30 @@ class FunctionsWiringTest(base.TestWorkflowExecution):
 
         self._execute_workflow(wf_name, execute_async=False, expected_result=expected_result)
 
+    def test_path_functions_in_yaql(self):
+        wf_name = 'examples.orquesta-test-yaql-path-functions'
+
+        expected_output = {
+            'basename': 'file.txt',
+            'dirname': '/path/to/some'
+        }
+
+        expected_result = {'output': expected_output}
+
+        self._execute_workflow(wf_name, execute_async=False, expected_result=expected_result)
+
+    def test_path_functions_in_jinja(self):
+        wf_name = 'examples.orquesta-test-jinja-path-functions'
+
+        expected_output = {
+            'basename': 'file.txt',
+            'dirname': '/path/to/some'
+        }
+
+        expected_result = {'output': expected_output}
+
+        self._execute_workflow(wf_name, execute_async=False, expected_result=expected_result)
+
     def test_regex_functions_in_yaql(self):
         wf_name = 'examples.orquesta-test-yaql-regex-functions'
 
