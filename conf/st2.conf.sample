@@ -4,8 +4,8 @@
 [action_sensor]
 # Whether to enable or disable the ability to post a trigger on action.
 enable = True
-# List of execution statuses that a trigger will be emitted. If not specified, it defaults to action completion.
-emit_when =  # comma separated list allowed here.
+# List of execution statuses for which a trigger will be emitted. 
+emit_when = succeeded,failed,timeout,canceled,abandoned # comma separated list allowed here.
 
 [actionrunner]
 # Internal pool size for dispatcher used by regular actions.
