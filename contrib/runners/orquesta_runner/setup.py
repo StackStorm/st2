@@ -58,7 +58,16 @@ setup(
             'json_escape = st2common.expressions.functions.data:json_escape',
             'jsonpath_query = st2common.expressions.functions.data:jsonpath_query',
             'to_json_string = st2common.expressions.functions.data:to_json_string',
-            'to_yaml_string = st2common.expressions.functions.data:to_yaml_string'
+            'to_yaml_string = st2common.expressions.functions.data:to_yaml_string',
+            'version_compare = st2common.expressions.functions.version:version_compare',
+            'version_more_than = st2common.expressions.functions.version:version_more_than',
+            'version_less_than = st2common.expressions.functions.version:version_less_than',
+            'version_equal = st2common.expressions.functions.version:version_equal',
+            'version_match = st2common.expressions.functions.version:version_match',
+            'version_bump_major = st2common.expressions.functions.version:version_bump_major',
+            'version_bump_minor = st2common.expressions.functions.version:version_bump_minor',
+            'version_bump_patch = st2common.expressions.functions.version:version_bump_patch',
+            'version_strip_patch = st2common.expressions.functions.version:version_strip_patch'
         ],
     }
 )

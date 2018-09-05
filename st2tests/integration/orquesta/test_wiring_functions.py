@@ -62,3 +62,53 @@ class FunctionsWiringTest(base.TestWorkflowExecution):
 
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         self.assertDictEqual(ex.result, expected_result)
+
+    def test_version_functions_in_yaql(self):
+        wf_name = 'examples.orquesta-test-yaql-version-functions'
+
+        expected_output = {
+            'compare_equal': 0,
+            'compare_more_than': -1,
+            'compare_less_than': 1,
+            'equal': True,
+            'more_than': False,
+            'less_than': False,
+            'match': True,
+            'bump_major': '1.0.0',
+            'bump_minor': '0.11.0',
+            'bump_patch': '0.10.1',
+            'strip_patch': '0.10'
+        }
+
+        expected_result = {'output': expected_output}
+
+        ex = self._execute_workflow(wf_name)
+        ex = self._wait_for_completion(ex)
+
+        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertDictEqual(ex.result, expected_result)
+
+    def test_version_functions_in_jinja(self):
+        wf_name = 'examples.orquesta-test-jinja-version-functions'
+
+        expected_output = {
+            'compare_equal': 0,
+            'compare_more_than': -1,
+            'compare_less_than': 1,
+            'equal': True,
+            'more_than': False,
+            'less_than': False,
+            'match': True,
+            'bump_major': '1.0.0',
+            'bump_minor': '0.11.0',
+            'bump_patch': '0.10.1',
+            'strip_patch': '0.10'
+        }
+
+        expected_result = {'output': expected_output}
+
+        ex = self._execute_workflow(wf_name)
+        ex = self._wait_for_completion(ex)
+
+        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertDictEqual(ex.result, expected_result)
