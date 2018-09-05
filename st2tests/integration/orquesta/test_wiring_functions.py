@@ -26,11 +26,12 @@ class FunctionsWiringTest(base.TestWorkflowExecution):
         wf_name = 'examples.orquesta-test-yaql-data-functions'
 
         expected_output = {
-            'data_json_str_1': '{"foo": "bar"}',
-            'data_json_str_2': '{"foo": "bar"}',
-            'data_json_obj_1': {'foo': 'bar'},
-            'data_json_obj_2': {'foo': 'bar'},
-            'data_yaml_str_1': 'foo: bar\n'
+            'data_json_str_1': '{"foo": {"bar": "foobar"}}',
+            'data_json_str_2': '{"foo": {"bar": "foobar"}}',
+            'data_json_obj_1': {'foo': {'bar': 'foobar'}},
+            'data_json_obj_2': {'foo': {'bar': 'foobar'}},
+            'data_yaml_str_1': 'foo:\n  bar: foobar\n',
+            'data_query_1': ['foobar']
         }
 
         expected_result = {'output': expected_output}
@@ -45,12 +46,13 @@ class FunctionsWiringTest(base.TestWorkflowExecution):
         wf_name = 'examples.orquesta-test-jinja-data-functions'
 
         expected_output = {
-            'data_json_str_1': '{"foo": "bar"}',
-            'data_json_str_2': '{"foo": "bar"}',
-            'data_json_obj_1': {'foo': 'bar'},
-            'data_json_obj_2': {'foo': 'bar'},
-            'data_yaml_str_1': 'foo: bar\n',
-            'data_pipe_str_1': '{"foo": "bar"}'
+            'data_json_str_1': '{"foo": {"bar": "foobar"}}',
+            'data_json_str_2': '{"foo": {"bar": "foobar"}}',
+            'data_json_obj_1': {'foo': {'bar': 'foobar'}},
+            'data_json_obj_2': {'foo': {'bar': 'foobar'}},
+            'data_yaml_str_1': 'foo:\n  bar: foobar\n',
+            'data_query_1': ['foobar'],
+            'data_pipe_str_1': '{"foo": {"bar": "foobar"}}'
         }
 
         expected_result = {'output': expected_output}

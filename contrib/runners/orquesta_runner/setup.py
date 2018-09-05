@@ -55,6 +55,8 @@ setup(
             'st2kv = orquesta_functions.st2kv:st2kv_',
             'from_json_string = st2common.expressions.functions.data:from_json_string',
             'from_yaml_string = st2common.expressions.functions.data:from_yaml_string',
+            'json_escape = st2common.expressions.functions.data:json_escape',
+            'jsonpath_query = st2common.expressions.functions.data:jsonpath_query',
             'to_json_string = st2common.expressions.functions.data:to_json_string',
             'to_yaml_string = st2common.expressions.functions.data:to_yaml_string'
         ],
