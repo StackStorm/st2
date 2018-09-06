@@ -25,5 +25,6 @@ routes==2.4.1
 semver==2.8.1
 six==1.11.0
 tooz==1.62.0
+ujson==1.35
 webob==1.7.4
 zake==0.2.2

@@ -14,7 +14,8 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import copy
+
+import ujson
 import six
 from six.moves import zip
 
@@ -52,7 +53,8 @@ def _translate_chars(field, translation):
         newkey = oldkey
 
         for t_k, t_v in six.iteritems(translation):
-            newkey = newkey.replace(t_k, t_v)
+            if t_k in newkey:
+                newkey = newkey.replace(t_k, t_v)
 
         if newkey != oldkey:
             work_field[newkey] = value
@@ -71,14 +73,20 @@ def _translate_chars(field, translation):
 def escape_chars(field):
     # TODO: This is slow on large dicts, figure out if we can safely manipulate original value
     # instead of creating the copy
-    value = copy.deepcopy(field)
+    if not isinstance(field, dict):
+        return field
+
+    value = ujson.loads(ujson.dumps(field))
     return _translate_chars(value, ESCAPE_TRANSLATION)
 
 
 def unescape_chars(field):
     # TODO: This is slow on large dicts, figure out if we can safely manipulate original value
     # instead of creating the copy
-    value = copy.deepcopy(field)
+    if not isinstance(field, dict):
+        return field
+
+    value = ujson.loads(ujson.dumps(field))
     translated = _translate_chars(value, UNESCAPE_TRANSLATION)
     translated = _translate_chars(value, RULE_CRITERIA_UNESCAPE_TRANSLATION)
     return translated
