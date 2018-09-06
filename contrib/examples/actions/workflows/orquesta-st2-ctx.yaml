@@ -1,4 +1,4 @@
-version: 1.0
+version: "1.0"
 
 description: A sample workflow demonstrating use of st2 runtime context.
 

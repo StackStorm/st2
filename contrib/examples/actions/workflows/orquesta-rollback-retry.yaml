@@ -1,4 +1,4 @@
-version: 1.0
+version: "1.0"
   
 description: >
   A sample workflow that demonstrates how to handle rollback and retry on error. In this example,
