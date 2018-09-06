@@ -139,6 +139,7 @@ def create_execution_object(liveaction, action_db=None, runnertype_db=None, publ
 
     attrs['log'] = [_create_execution_log_entry(liveaction['status'])]
 
+    # TODO: This object initialization takes 20-30or so ms
     execution = ActionExecutionDB(**attrs)
     # TODO: Do 100% research this is fully safe and unique in distributed setups
     execution.id = ObjectId()
@@ -154,15 +155,15 @@ def create_execution_object(liveaction, action_db=None, runnertype_db=None, publ
 
 
 def _get_parent_execution(child_liveaction_db):
-    parent_context = child_liveaction_db.context.get('parent', None)
+    parent_execution_id = child_liveaction_db.context.get('parent', {}).get('execution_id', None)
 
-    if parent_context:
-        parent_id = parent_context['execution_id']
+    if parent_execution_id:
         try:
-            return ActionExecution.get_by_id(parent_id)
+            return ActionExecution.get_by_id(parent_execution_id)
         except:
-            LOG.exception('No valid execution object found in db for id: %s' % parent_id)
+            LOG.exception('No valid execution object found in db for id: %s' % parent_execution_id)
             return None
+
     return None
 
 
