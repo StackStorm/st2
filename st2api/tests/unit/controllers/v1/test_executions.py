@@ -1208,13 +1208,30 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
     def test_get_single_attribute_success(self):
         exec_id = self.app.get('/v1/actionexecutions?limit=1').json[0]['id']
 
+        resp = self.app.get('/v1/executions/%s/attribute/status' % (exec_id))
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, 'requested')
+
         resp = self.app.get('/v1/executions/%s/attribute/result' % (exec_id))
-        self.assertEqual(resp.json, {})
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, None)
 
         resp = self.app.get('/v1/executions/%s/attribute/trigger_instance' % (exec_id))
-        self.assertEqual(resp.json, {})
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, None)
 
-    def test_get_single_attribute_failure_invalud_attribute(self):
+        data = {}
+        data['status'] = action_constants.LIVEACTION_STATUS_SUCCEEDED
+        data['result'] = {'foo': 'bar'}
+
+        resp = self.app.put_json('/v1/executions/%s' % (exec_id), data)
+        self.assertEqual(resp.status_int, 200)
+
+        resp = self.app.get('/v1/executions/%s/attribute/result' % (exec_id))
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, data['result'])
+
+    def test_get_single_attribute_failure_invalid_attribute(self):
         exec_id = self.app.get('/v1/actionexecutions?limit=1').json[0]['id']
 
         resp = self.app.get('/v1/executions/%s/attribute/start_timestamp' % (exec_id),
