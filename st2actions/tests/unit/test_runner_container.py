@@ -299,26 +299,6 @@ class RunnerContainerTest(DbTestCase):
             liveaction_db
         )
 
-    @unittest2.skipIf(six.PY3, 'non-utf8 works fine in MongoDB under Python 3')
-    @mock.patch.object(LocalShellCommandRunner, 'run', mock.MagicMock(
-        return_value=(action_constants.LIVEACTION_STATUS_SUCCEEDED, NON_UTF8_RESULT, None)))
-    @mock.patch('st2common.runners.base.register_runner',
-                mock.MagicMock(return_value=local_shell_command_runner))
-    def test_dispatch_non_utf8_result(self):
-        runner_container = get_runner_container()
-        params = {
-            'cmd': "python -c 'print \"\\x82\"'"
-        }
-        liveaction_db = self._get_liveaction_model(RunnerContainerTest.local_action_db, params)
-        liveaction_db = LiveAction.add_or_update(liveaction_db)
-        executions.create_execution_object(liveaction_db)
-
-        try:
-            runner_container.dispatch(liveaction_db)
-            self.fail('Mongo won\'t handle non UTF-8 strings. Should have failed.')
-        except InvalidStringData:
-            pass
-
     def test_dispatch_runner_failure(self):
         runner_container = get_runner_container()
         params = {
