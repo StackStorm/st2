@@ -163,7 +163,7 @@ class Access(object):
         return model_object
 
     @classmethod
-    def add_or_update(cls, model_object, publish=True, dispatch_trigger=True,
+    def add_or_update(cls, model_object, publish=True, dispatch_trigger=True, validate=True,
                       log_not_unique_error_as_debug=False):
         # Late import to avoid very expensive in-direct import (~1 second) when this function
         # is not called / used
@@ -171,7 +171,7 @@ class Access(object):
 
         pre_persist_id = model_object.id
         try:
-            model_object = cls._get_impl().add_or_update(model_object)
+            model_object = cls._get_impl().add_or_update(model_object, validate=validate)
         except NotUniqueError as e:
             if log_not_unique_error_as_debug:
                 LOG.debug('Conflict while trying to save in DB: %s.', str(e))

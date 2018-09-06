@@ -438,8 +438,8 @@ class MongoDBAccess(object):
         instance = self.model.objects.insert(instance)
         return self._undo_dict_field_escape(instance)
 
-    def add_or_update(self, instance):
-        instance.save()
+    def add_or_update(self, instance, validate=True):
+        instance.save(validate=validate)
         return self._undo_dict_field_escape(instance)
 
     def update(self, instance, **kwargs):
