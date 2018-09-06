@@ -73,11 +73,12 @@ def _translate_chars(field, translation):
 
 
 def escape_chars(field):
-    # TODO: This is slow on large dicts, figure out if we can safely manipulate original value
-    # instead of creating the copy
     if not isinstance(field, dict):
         return field
 
+    # NOTE: ujson round trip is up to 10 times faster on larger dicts compared
+    # to copy.deepcopy, but it has some edge cases with non-standard types such
+    # as datetimes - those are serialized as unix epoch values
     try:
         value = ujson.loads(ujson.dumps(field))
     except (OverflowError, ValueError):
@@ -89,11 +90,12 @@ def escape_chars(field):
 
 
 def unescape_chars(field):
-    # TODO: This is slow on large dicts, figure out if we can safely manipulate original value
-    # instead of creating the copy
     if not isinstance(field, dict):
         return field
 
+    # NOTE: ujson round trip is up to 10 times faster on larger dicts compared
+    # to copy.deepcopy, but it has some edge cases with non-standard types such
+    # as datetimes - those are serialized as unix epoch values
     try:
         value = ujson.loads(ujson.dumps(field))
     except (OverflowError, ValueError):
