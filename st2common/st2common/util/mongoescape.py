@@ -15,6 +15,8 @@
 
 from __future__ import absolute_import
 
+import copy
+
 import ujson
 import six
 from six.moves import zip
@@ -76,7 +78,13 @@ def escape_chars(field):
     if not isinstance(field, dict):
         return field
 
-    value = ujson.loads(ujson.dumps(field))
+    try:
+        value = ujson.loads(ujson.dumps(field))
+    except (OverflowError, ValueError):
+        # NOTE: ujson doesn't support 5 or 6 bytes utf-8 sequences which we use
+        # in our tests so we fall back to deep copy
+        value = copy.deepcopy(field)
+
     return _translate_chars(value, ESCAPE_TRANSLATION)
 
 
@@ -86,7 +94,13 @@ def unescape_chars(field):
     if not isinstance(field, dict):
         return field
 
-    value = ujson.loads(ujson.dumps(field))
+    try:
+        value = ujson.loads(ujson.dumps(field))
+    except (OverflowError, ValueError):
+        # NOTE: ujson doesn't support 5 or 6 bytes utf-8 sequences which we use
+        # in our tests so we fall back to deep copy
+        value = copy.deepcopy(field)
+
     translated = _translate_chars(value, UNESCAPE_TRANSLATION)
     translated = _translate_chars(value, RULE_CRITERIA_UNESCAPE_TRANSLATION)
     return translated
