@@ -71,7 +71,10 @@ Changed
   This way we are not mixing non-streaming (short lived) and streaming (long lived) connections
   inside a single service (st2api). (improvement)
 * Upgrade ``mongoengine`` (0.15.3) and ``pymongo`` (3.7.1) to the latest stable version. Those
-  changes will allow us to support MongoDB 3.6 in the near future. (improvement) #4292
+  changes will allow us to support MongoDB 3.6 in the near future.
+
+  New version of ``mongoengine`` should also offer better performance when inserting and updating
+  larger database objects (e.g. executions). (improvement) #4292
 * Trigger parameters and payload schema validation is now enabled by default
   (``system.validate_trigger_parameters`` and ``system.validate_trigger_payload`` config options
   now default to ``True``).
