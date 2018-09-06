@@ -439,7 +439,7 @@ class MongoDBAccess(object):
         return self._undo_dict_field_escape(instance)
 
     def add_or_update(self, instance, validate=True):
-        instance.save()
+        instance.save(validate=validate)
         return self._undo_dict_field_escape(instance)
 
     def update(self, instance, **kwargs):
@@ -545,8 +545,8 @@ class ChangeRevisionMongoDBAccess(MongoDBAccess):
 
         return self._undo_dict_field_escape(instance)
 
-    def add_or_update(self, instance):
-        return self.save(instance)
+    def add_or_update(self, instance, validate=True):
+        return self.save(instance, validate=validate)
 
     def update(self, instance, **kwargs):
         for k, v in six.iteritems(kwargs):
@@ -554,14 +554,14 @@ class ChangeRevisionMongoDBAccess(MongoDBAccess):
 
         return self.save(instance)
 
-    def save(self, instance):
+    def save(self, instance, validate=True):
         if not hasattr(instance, 'id') or not instance.id:
             return self.insert(instance)
         else:
             try:
                 save_condition = {'id': instance.id, 'rev': instance.rev}
                 instance.rev = instance.rev + 1
-                instance.save(save_condition=save_condition)
+                instance.save(save_condition=save_condition, validate=validate)
             except mongoengine.SaveConditionError:
                 raise db_exc.StackStormDBObjectWriteConflictError(instance)
 

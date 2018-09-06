@@ -146,8 +146,8 @@ def create_execution_object(liveaction, action_db=None, runnertype_db=None, publ
     execution.web_url = _get_web_url_for_execution(str(execution.id))
 
     # NOTE: User input data is already validate as part of the API request,
-    # other data is set by us. Skipping validation here makes operation 10%-305 faster
-    execution = ActionExecution.add_or_update(execution, publish=publish)
+    # other data is set by us. Skipping validation here makes operation 10%-30% faster
+    execution = ActionExecution.add_or_update(execution, publish=publish, validate=False)
 
     if parent and str(execution.id) not in parent.children:
         values = {}
