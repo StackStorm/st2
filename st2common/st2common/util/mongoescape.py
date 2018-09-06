@@ -69,11 +69,15 @@ def _translate_chars(field, translation):
 
 
 def escape_chars(field):
+    # TODO: This is slow on large dicts, figure out if we can safely manipulate original value
+    # instead of creating the copy
     value = copy.deepcopy(field)
     return _translate_chars(value, ESCAPE_TRANSLATION)
 
 
 def unescape_chars(field):
+    # TODO: This is slow on large dicts, figure out if we can safely manipulate original value
+    # instead of creating the copy
     value = copy.deepcopy(field)
     translated = _translate_chars(value, UNESCAPE_TRANSLATION)
     translated = _translate_chars(value, RULE_CRITERIA_UNESCAPE_TRANSLATION)
