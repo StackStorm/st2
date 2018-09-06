@@ -165,7 +165,7 @@ def publish_request(liveaction, execution):
     ActionExecution.publish_create(execution)
 
     # TODO: This results in two queries, optimize it
-    #extra = {'liveaction_db': liveaction, 'execution_db': execution}
+    #  extra = {'liveaction_db': liveaction, 'execution_db': execution}
     extra = {}
     LOG.audit('Action execution requested. LiveAction.id=%s, ActionExecution.id=%s' %
               (liveaction.id, execution.id), extra=extra)
