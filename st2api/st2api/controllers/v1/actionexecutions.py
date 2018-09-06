@@ -301,7 +301,7 @@ class ActionExecutionAttributeController(BaseActionExecutionNestedController):
                                                           permission_type=permission_type)
 
         result = getattr(action_exec_db, attribute, None)
-        return result
+        return Response(json=result, status=http_client.OK)
 
 
 class ActionExecutionOutputController(ActionExecutionsControllerMixin, ResourceController):
