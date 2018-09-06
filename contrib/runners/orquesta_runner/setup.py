@@ -57,6 +57,8 @@ setup(
             'dirname = st2common.expressions.functions.path:dirname',
             'from_json_string = st2common.expressions.functions.data:from_json_string',
             'from_yaml_string = st2common.expressions.functions.data:from_yaml_string',
+            'json_dump = st2common.expressions.functions.data:to_json_string',
+            'json_parse = st2common.expressions.functions.data:from_json_string',
             'json_escape = st2common.expressions.functions.data:json_escape',
             'jsonpath_query = st2common.expressions.functions.data:jsonpath_query',
             'regex_match = st2common.expressions.functions.regex:regex_match',
@@ -75,7 +77,9 @@ setup(
             'version_bump_major = st2common.expressions.functions.version:version_bump_major',
             'version_bump_minor = st2common.expressions.functions.version:version_bump_minor',
             'version_bump_patch = st2common.expressions.functions.version:version_bump_patch',
-            'version_strip_patch = st2common.expressions.functions.version:version_strip_patch'
+            'version_strip_patch = st2common.expressions.functions.version:version_strip_patch',
+            'yaml_dump = st2common.expressions.functions.data:to_yaml_string',
+            'yaml_parse = st2common.expressions.functions.data:from_yaml_string'
         ],
     }
 )

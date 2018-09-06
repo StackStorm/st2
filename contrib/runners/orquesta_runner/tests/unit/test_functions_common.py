@@ -133,9 +133,13 @@ class OrquestaFunctionTest(st2tests.DbTestCase):
         expected_output = {
             'data_json_str_1': '{"foo": {"bar": "foobar"}}',
             'data_json_str_2': '{"foo": {"bar": "foobar"}}',
+            'data_json_str_3': '{"foo": {"bar": "foobar"}}',
             'data_json_obj_1': {'foo': {'bar': 'foobar'}},
             'data_json_obj_2': {'foo': {'bar': 'foobar'}},
+            'data_json_obj_3': {'foo': {'bar': 'foobar'}},
+            'data_json_obj_4': {'foo': {'bar': 'foobar'}},
             'data_yaml_str_1': 'foo:\n  bar: foobar\n',
+            'data_yaml_str_2': 'foo:\n  bar: foobar\n',
             'data_query_1': ['foobar']
         }
 
@@ -147,9 +151,13 @@ class OrquestaFunctionTest(st2tests.DbTestCase):
         expected_output = {
             'data_json_str_1': '{"foo": {"bar": "foobar"}}',
             'data_json_str_2': '{"foo": {"bar": "foobar"}}',
+            'data_json_str_3': '{"foo": {"bar": "foobar"}}',
             'data_json_obj_1': {'foo': {'bar': 'foobar'}},
             'data_json_obj_2': {'foo': {'bar': 'foobar'}},
+            'data_json_obj_3': {'foo': {'bar': 'foobar'}},
+            'data_json_obj_4': {'foo': {'bar': 'foobar'}},
             'data_yaml_str_1': 'foo:\n  bar: foobar\n',
+            'data_yaml_str_2': 'foo:\n  bar: foobar\n',
             'data_query_1': ['foobar'],
             'data_pipe_str_1': '{"foo": {"bar": "foobar"}}'
         }
