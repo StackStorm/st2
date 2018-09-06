@@ -49,7 +49,10 @@ Added
   get all (list) API endpoints (actions, rules, trigger, executions, etc.). With this query
   parameter user can control which API model attributes (fields) to receive in the response. In
   situations where user is only interested in a subset of the model attributes, this allows for a
-  significantly reduced response size and for a better performance. (new feature) (improvement) #4300
+  significantly reduced response size and for a better performance. (new feature) (improvement)
+  #4300
+* Improve concurrent performance of schedule action execution (``POST /v1/executions``) API
+  endpoint. (improvement) #4030 #4331
 
 Changed
 ~~~~~~~
