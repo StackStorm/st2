@@ -127,6 +127,7 @@ class WorkflowEngineTest(st2tests.DbTestCase):
         self.assertEqual(wf_ex_db.status, wf_lib_states.RUNNING)
 
         expected_st2_ctx = {
+            'workflow_execution_id': str(wf_ex_db.id),
             'action_execution_id': wf_ex_db.action_execution,
             'api_url': 'http://127.0.0.1/v1',
             'user': 'stanley'
