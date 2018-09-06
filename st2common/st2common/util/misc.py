@@ -18,15 +18,18 @@ from __future__ import absolute_import
 import os
 import re
 import sys
+import copy
 import collections
 
 import six
+import ujson
 
 __all__ = [
     'prefix_dict_keys',
     'compare_path_file_name',
     'lowercase_value',
-    'get_field_name_from_mongoengine_error'
+    'get_field_name_from_mongoengine_error',
+    'fast_deepcopy'
 ]
 
 
@@ -168,3 +171,16 @@ def get_field_name_from_mongoengine_error(exc):
         return match.groups()[0]
 
     return msg
+
+
+def fast_deepcopy(value):
+    # NOTE: ujson round-trip is up to 10 times faster on smaller and larger dicts compared
+    # to copy.deepcopy(), but it has some edge cases with non-simple types such as datetimes -
+    try:
+        value = ujson.loads(ujson.dumps(value))
+    except (OverflowError, ValueError):
+        # NOTE: ujson doesn't support 5 or 6 bytes utf-8 sequences which we use
+        # in our tests so we fall back to deep copy
+        value = copy.deepcopy(value)
+
+    return value

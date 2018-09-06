@@ -15,11 +15,10 @@
 
 from __future__ import absolute_import
 
-import copy
-
-import ujson
 import six
 from six.moves import zip
+
+from st2common.util.misc import fast_deepcopy
 
 # http://docs.mongodb.org/manual/faq/developers/#faq-dollar-sign-escaping
 UNESCAPED = ['.', '$']
@@ -76,16 +75,7 @@ def escape_chars(field):
     if not isinstance(field, dict):
         return field
 
-    # NOTE: ujson round trip is up to 10 times faster on larger dicts compared
-    # to copy.deepcopy, but it has some edge cases with non-standard types such
-    # as datetimes - those are serialized as unix epoch values
-    try:
-        value = ujson.loads(ujson.dumps(field))
-    except (OverflowError, ValueError):
-        # NOTE: ujson doesn't support 5 or 6 bytes utf-8 sequences which we use
-        # in our tests so we fall back to deep copy
-        value = copy.deepcopy(field)
-
+    value = fast_deepcopy(field)
     return _translate_chars(value, ESCAPE_TRANSLATION)
 
 
@@ -93,16 +83,7 @@ def unescape_chars(field):
     if not isinstance(field, dict):
         return field
 
-    # NOTE: ujson round trip is up to 10 times faster on larger dicts compared
-    # to copy.deepcopy, but it has some edge cases with non-standard types such
-    # as datetimes - those are serialized as unix epoch values
-    try:
-        value = ujson.loads(ujson.dumps(field))
-    except (OverflowError, ValueError):
-        # NOTE: ujson doesn't support 5 or 6 bytes utf-8 sequences which we use
-        # in our tests so we fall back to deep copy
-        value = copy.deepcopy(field)
-
+    value = fast_deepcopy(field)
     translated = _translate_chars(value, UNESCAPE_TRANSLATION)
     translated = _translate_chars(value, RULE_CRITERIA_UNESCAPE_TRANSLATION)
     return translated
