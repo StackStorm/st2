@@ -31,4 +31,3 @@ class KeyValuePair(core.Resource):
     _repr_attributes = ['name', 'value']
 
     # Note: This is a temporary hack until we refactor client and make it support non id PKs
-
