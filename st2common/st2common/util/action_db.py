@@ -229,6 +229,8 @@ def update_liveaction_status(status=None, result=None, context=None, end_timesta
     if runner_info:
         liveaction_db.runner_info = runner_info
 
+    # TODO: This is not efficient. Perform direct partial update and only update
+    # manipulated fields
     liveaction_db = LiveAction.add_or_update(liveaction_db)
 
     LOG.debug('Updated status for LiveAction object.', extra=extra)
