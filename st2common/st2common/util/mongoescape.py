@@ -18,7 +18,7 @@ from __future__ import absolute_import
 import six
 from six.moves import zip
 
-from st2common.util.misc import fast_deepcopy
+from st2common.util.ujson import fast_deepcopy
 
 # http://docs.mongodb.org/manual/faq/developers/#faq-dollar-sign-escaping
 UNESCAPED = ['.', '$']
