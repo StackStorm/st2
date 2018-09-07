@@ -32,9 +32,6 @@ def fast_deepcopy(value, fall_back_to_deepcopy=True):
                                   exception.
     :type fall_back_to_deepcopy: ``bool``
     """
-    # NOTE: We perform a lazy import to avoid issues with Python 3 virtualenvs on Python 2
-    # deployments
-
     # NOTE: ujson round-trip is up to 10 times faster on smaller and larger dicts compared
     # to copy.deepcopy(), but it has some edge cases with non-simple types such as datetimes -
     try:
