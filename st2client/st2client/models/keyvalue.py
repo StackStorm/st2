@@ -31,3 +31,10 @@ class KeyValuePair(core.Resource):
     _repr_attributes = ['name', 'value']
 
     # Note: This is a temporary hack until we refactor client and make it support non id PKs
+    def get_id(self):
+        return self.name
+
+    def set_id(self, value):
+        pass
+
+    id = property(get_id, set_id)
