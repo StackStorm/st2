@@ -32,10 +32,3 @@ class KeyValuePair(core.Resource):
 
     # Note: This is a temporary hack until we refactor client and make it support non id PKs
 
-    def get_id(self):
-        return self.name
-
-    def set_id(self, value):
-        self.name = value
-
-    id = property(get_id, set_id)
