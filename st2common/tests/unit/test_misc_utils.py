@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -14,11 +15,13 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import unittest2
 
 from st2common.util.misc import rstrip_last_char
 from st2common.util.misc import strip_shell_chars
 from st2common.util.misc import lowercase_value
+from st2common.util.ujson import fast_deepcopy
 
 __all__ = [
     'MiscUtilTestCase'
@@ -71,3 +74,24 @@ class MiscUtilTestCase(unittest2.TestCase):
             'teste': 'teste'
         }
         self.assertEqual(expected_value, lowercase_value(value=value))
+
+    def test_fast_deepcopy(self):
+        values = [
+            'a',
+            u'٩(̾●̮̮̃̾•̃̾)۶',
+            1,
+            [1, 2, '3', 'b'],
+            {'a': 1, 'b': '3333', 'c': 'd'},
+        ]
+        expected_values = [
+            'a',
+            u'٩(̾●̮̮̃̾•̃̾)۶',
+            1,
+            [1, 2, '3', 'b'],
+            {'a': 1, 'b': '3333', 'c': 'd'},
+        ]
+
+        for value, expected_value in zip(values, expected_values):
+            result = fast_deepcopy(value)
+            self.assertEqual(result, value)
+            self.assertEqual(result, expected_value)
