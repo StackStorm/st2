@@ -24,7 +24,7 @@ __all__ = [
 ]
 
 
-def fast_deepcopy(value, fall_back_to_deepcopy=False):
+def fast_deepcopy(value, fall_back_to_deepcopy=True):
     """
     Perform a fast deepcopy of the provided value.
 
