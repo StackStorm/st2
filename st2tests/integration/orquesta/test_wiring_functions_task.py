@@ -26,9 +26,9 @@ class FunctionsWiringTest(base.TestWorkflowExecution):
         wf_name = 'examples.orquesta-test-yaql-task-functions'
 
         expected_output = {
-            'last_task3_result': True,
-            'task8__1__parent': 'task7__1',
-            'task8__2__parent': 'task7__2',
+            'last_task3_result': 'False',
+            'task7__1__parent': 'task6__1',
+            'task7__2__parent': 'task6__2',
             'that_task_by_name': 'task1',
             'this_task_by_name': 'task1',
             'this_task_no_arg': 'task1'
@@ -42,9 +42,9 @@ class FunctionsWiringTest(base.TestWorkflowExecution):
         wf_name = 'examples.orquesta-test-jinja-task-functions'
 
         expected_output = {
-            'last_task3_result': True,
-            'task8__1__parent': 'task7__1',
-            'task8__2__parent': 'task7__2',
+            'last_task3_result': 'False',
+            'task7__1__parent': 'task6__1',
+            'task7__2__parent': 'task6__2',
             'that_task_by_name': 'task1',
             'this_task_by_name': 'task1',
             'this_task_no_arg': 'task1'
