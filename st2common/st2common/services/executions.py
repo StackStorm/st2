@@ -29,8 +29,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-from oslo_config import cfg
+
 import six
+from oslo_config import cfg
+from bson.objectid import ObjectId
 
 from st2common import log as logging
 from st2common.util import date as date_utils
@@ -99,14 +101,17 @@ def _create_execution_log_entry(status):
     }
 
 
-def create_execution_object(liveaction, publish=True):
-    action_db = action_utils.get_action_by_ref(liveaction.action)
-    runner = RunnerType.get_by_name(action_db.runner_type['name'])
+def create_execution_object(liveaction, action_db=None, runnertype_db=None, publish=True):
+    if not action_db:
+        action_db = action_utils.get_action_by_ref(liveaction.action)
+
+    if not runnertype_db:
+        runnertype_db = RunnerType.get_by_name(action_db.runner_type['name'])
 
     attrs = {
         'action': vars(ActionAPI.from_model(action_db)),
         'parameters': liveaction['parameters'],
-        'runner': vars(RunnerTypeAPI.from_model(runner))
+        'runner': vars(RunnerTypeAPI.from_model(runnertype_db))
     }
     attrs.update(_decompose_liveaction(liveaction))
 
@@ -134,33 +139,34 @@ def create_execution_object(liveaction, publish=True):
 
     attrs['log'] = [_create_execution_log_entry(liveaction['status'])]
 
+    # TODO: This object initialization takes 20-30or so ms
     execution = ActionExecutionDB(**attrs)
-    execution = ActionExecution.add_or_update(execution, publish=False)
-
-    # Update the web_url field in execution. Unfortunately, we need
-    # the execution id for constructing the URL which we only get
-    # after the model is written to disk.
+    # TODO: Do 100% research this is fully safe and unique in distributed setups
+    execution.id = ObjectId()
     execution.web_url = _get_web_url_for_execution(str(execution.id))
-    execution = ActionExecution.add_or_update(execution, publish=publish)
 
-    if parent:
-        if str(execution.id) not in parent.children:
-            parent.children.append(str(execution.id))
-            ActionExecution.add_or_update(parent)
+    # NOTE: User input data is already validate as part of the API request,
+    # other data is set by us. Skipping validation here makes operation 10%-30% faster
+    execution = ActionExecution.add_or_update(execution, publish=publish, validate=False)
+
+    if parent and str(execution.id) not in parent.children:
+        values = {}
+        values['push__children'] = str(execution.id)
+        ActionExecution.update(parent, **values)
 
     return execution
 
 
 def _get_parent_execution(child_liveaction_db):
-    parent_context = child_liveaction_db.context.get('parent', None)
+    parent_execution_id = child_liveaction_db.context.get('parent', {}).get('execution_id', None)
 
-    if parent_context:
-        parent_id = parent_context['execution_id']
+    if parent_execution_id:
         try:
-            return ActionExecution.get_by_id(parent_id)
+            return ActionExecution.get_by_id(parent_execution_id)
         except:
-            LOG.exception('No valid execution object found in db for id: %s' % parent_id)
+            LOG.exception('No valid execution object found in db for id: %s' % parent_execution_id)
             return None
+
     return None
 
 
