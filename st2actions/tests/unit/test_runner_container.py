@@ -56,7 +56,8 @@ TEST_FIXTURES = {
         'action1.yaml',
         'async_action1.yaml',
         'async_action2.yaml',
-        'action-invalid-runner.yaml'
+        'action-invalid-runner.yaml',
+        'action-with-output-schema.yaml'
     ]
 }
 
@@ -90,6 +91,9 @@ class RunnerContainerTest(DbTestCase):
         RunnerContainerTest.async_action_db = models['actions']['async_action1.yaml']
         RunnerContainerTest.polling_async_action_db = models['actions']['async_action2.yaml']
         RunnerContainerTest.failingaction_db = models['actions']['action-invalid-runner.yaml']
+        RunnerContainerTest.schema_output_action_db = models['actions'][
+            'action-with-output-schema.yaml'
+        ]
 
     @classmethod
     def tearDownClass(cls):
@@ -307,6 +311,21 @@ class RunnerContainerTest(DbTestCase):
         self.assertTrue('error' in liveaction_db.result)
         self.assertTrue('traceback' in liveaction_db.result)
 
+    def test_output_schema_failure(self):
+        runner_container = get_runner_container()
+        params = {
+            'cmd': 'echo "test"'
+        }
+        liveaction_db = self._get_output_schema_exec_db_model(params)
+        liveaction_db = LiveAction.add_or_update(liveaction_db)
+        executions.create_execution_object(liveaction_db)
+        runner_container.dispatch(liveaction_db)
+        # pickup updated liveaction_db
+        liveaction_db = LiveAction.get_by_id(liveaction_db.id)
+        self.assertTrue('error' in liveaction_db.result)
+        self.assertTrue('traceback' in liveaction_db.result)
+        self.assertTrue('message' in liveaction_db.result)
+
     def test_dispatch_override_default_action_params(self):
         runner_container = get_runner_container()
         params = {
@@ -419,6 +438,19 @@ class RunnerContainerTest(DbTestCase):
         action_ref = ResourceReference(
             name=RunnerContainerTest.failingaction_db.name,
             pack=RunnerContainerTest.failingaction_db.pack).ref
+        parameters = params
+        context = {'user': cfg.CONF.system_user.user}
+        liveaction_db = LiveActionDB(status=status, start_timestamp=start_timestamp,
+                                     action=action_ref, parameters=parameters,
+                                     context=context)
+        return liveaction_db
+
+    def _get_output_schema_exec_db_model(self, params):
+        status = action_constants.LIVEACTION_STATUS_REQUESTED
+        start_timestamp = date_utils.get_datetime_utc_now()
+        action_ref = ResourceReference(
+            name=RunnerContainerTest.schema_output_action_db.name,
+            pack=RunnerContainerTest.schema_output_action_db.pack).ref
         parameters = params
         context = {'user': cfg.CONF.system_user.user}
         liveaction_db = LiveActionDB(status=status, start_timestamp=start_timestamp,
