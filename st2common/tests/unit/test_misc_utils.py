@@ -101,6 +101,7 @@ class MiscUtilTestCase(unittest2.TestCase):
             self.assertEqual(result, value)
             self.assertEqual(result, expected_value)
 
+    @unittest2.skip()
     def test_fast_deepcopy_is_faster_than_copy_deepcopy(self):
         def random_string(N):
             return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(N))
