@@ -22,6 +22,7 @@ from st2common.transport.publishers import PoolPublisher
 from st2common.persistence.trigger import TriggerInstance
 from st2common.models.db.trigger import TriggerInstanceDB
 from st2common.util import date as date_utils
+from st2common.util import isotime
 from st2api.controllers.v1.triggers import TriggerInstanceController
 
 from tests.base import FunctionalTest
@@ -74,10 +75,16 @@ class TriggerInstanceTestCase(FunctionalTest,
         self.assertEqual(resp.status_int, http_client.OK)
         timestamp_largest = resp.json[0]['occurrence_time']
         timestamp_middle = resp.json[1]['occurrence_time']
+
+        dt = isotime.parse(timestamp_largest)
+        dt = dt + datetime.timedelta(seconds=1)
+        timestamp_largest = isotime.format(dt, offset=False)
+
         resp = self.app.get('/v1/triggerinstances?timestamp_gt=%s' % timestamp_largest)
         # Since we sort trigger instances by time (latest first), the previous
         # get should return no trigger instances.
         self.assertEqual(len(resp.json), 0)
+
         resp = self.app.get('/v1/triggerinstances?timestamp_lt=%s' % (timestamp_middle))
         self.assertEqual(len(resp.json), 1)
 

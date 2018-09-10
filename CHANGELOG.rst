@@ -49,7 +49,13 @@ Added
   get all (list) API endpoints (actions, rules, trigger, executions, etc.). With this query
   parameter user can control which API model attributes (fields) to receive in the response. In
   situations where user is only interested in a subset of the model attributes, this allows for a
-  significantly reduced response size and for a better performance. (new feature) (improvement) #4300
+  significantly reduced response size and for a better performance. (new feature) (improvement)
+  #4300
+* Improve performance of schedule action execution (``POST /v1/executions``) API endpoint.
+
+  Performance was improved by reducing the number of duplicated database queries, using atomic
+  partial document updates instead of full document updates and by improving database document
+  serialization and de-serialization performance. (improvement) #4030 #4331
 
 Changed
 ~~~~~~~
@@ -71,7 +77,10 @@ Changed
   This way we are not mixing non-streaming (short lived) and streaming (long lived) connections
   inside a single service (st2api). (improvement)
 * Upgrade ``mongoengine`` (0.15.3) and ``pymongo`` (3.7.1) to the latest stable version. Those
-  changes will allow us to support MongoDB 3.6 in the near future. (improvement) #4292
+  changes will allow us to support MongoDB 3.6 in the near future.
+
+  New version of ``mongoengine`` should also offer better performance when inserting and updating
+  larger database objects (e.g. executions). (improvement) #4292
 * Trigger parameters and payload schema validation is now enabled by default
   (``system.validate_trigger_parameters`` and ``system.validate_trigger_payload`` config options
   now default to ``True``).

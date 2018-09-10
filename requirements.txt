@@ -53,6 +53,7 @@ six==1.11.0
 sseclient==0.0.19
 stevedore==1.29.0
 tooz==1.62.0
+ujson==1.35
 unittest2
 webob==1.7.4
 webtest

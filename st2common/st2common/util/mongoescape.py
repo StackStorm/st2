@@ -14,9 +14,11 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import copy
+
 import six
 from six.moves import zip
+
+from st2common.util.ujson import fast_deepcopy
 
 # http://docs.mongodb.org/manual/faq/developers/#faq-dollar-sign-escaping
 UNESCAPED = ['.', '$']
@@ -52,7 +54,8 @@ def _translate_chars(field, translation):
         newkey = oldkey
 
         for t_k, t_v in six.iteritems(translation):
-            newkey = newkey.replace(t_k, t_v)
+            if t_k in newkey:
+                newkey = newkey.replace(t_k, t_v)
 
         if newkey != oldkey:
             work_field[newkey] = value
@@ -69,12 +72,18 @@ def _translate_chars(field, translation):
 
 
 def escape_chars(field):
-    value = copy.deepcopy(field)
+    if not isinstance(field, dict):
+        return field
+
+    value = fast_deepcopy(field)
     return _translate_chars(value, ESCAPE_TRANSLATION)
 
 
 def unescape_chars(field):
-    value = copy.deepcopy(field)
+    if not isinstance(field, dict):
+        return field
+
+    value = fast_deepcopy(field)
     translated = _translate_chars(value, UNESCAPE_TRANSLATION)
     translated = _translate_chars(value, RULE_CRITERIA_UNESCAPE_TRANSLATION)
     return translated

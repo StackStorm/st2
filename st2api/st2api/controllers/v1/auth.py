@@ -105,9 +105,8 @@ class ApiKeyController(BaseRestControllerMixin):
 
         limit = resource.validate_limit_query_param(limit, requester_user=requester_user)
 
-        api_key_dbs = ApiKey.get_all(limit=limit, offset=offset)
-
         try:
+            api_key_dbs = ApiKey.get_all(limit=limit, offset=offset)
             api_keys = [ApiKeyAPI.from_model(api_key_db, mask_secrets=mask_secrets)
                         for api_key_db in api_key_dbs]
         except OverflowError:
