@@ -63,14 +63,14 @@ class Token(Access):
         return cls.impl
 
     @classmethod
-    def add_or_update(cls, model_object, publish=True):
+    def add_or_update(cls, model_object, publish=True, validate=True):
         if not getattr(model_object, 'user', None):
             raise ValueError('User is not provided in the token.')
         if not getattr(model_object, 'token', None):
             raise ValueError('Token value is not set.')
         if not getattr(model_object, 'expiry', None):
             raise ValueError('Token expiry is not provided in the token.')
-        return super(Token, cls).add_or_update(model_object, publish=publish)
+        return super(Token, cls).add_or_update(model_object, publish=publish, validate=validate)
 
     @classmethod
     def get(cls, value):

@@ -236,7 +236,7 @@ class ActionAPI(BaseAPI, APIUIDMixin):
     @classmethod
     def from_model(cls, model, mask_secrets=False):
         action = cls._from_model(model)
-        action['runner_type'] = action['runner_type']['name']
+        action['runner_type'] = action.get('runner_type', {}).get('name', None)
         action['tags'] = TagsHelper.from_model(model.tags)
 
         if getattr(model, 'notify', None):

@@ -16,6 +16,7 @@
 from oslo_config import cfg
 
 import six
+import bson
 from mongoengine import ValidationError
 
 from st2api.controllers.resource import ResourceController
@@ -197,6 +198,11 @@ class KeyValuePairController(ResourceController):
                 )
             except StackStormDBObjectNotFoundError:
                 existing_kvp_api = None
+
+            # st2client sends invalid id when initially setting a key so we ignore those
+            id_ = kvp.__dict__.get('id', None)
+            if not existing_kvp_api and id_ and not bson.ObjectId.is_valid(id_):
+                del kvp.__dict__['id']
 
             kvp.name = key_ref
             kvp.scope = scope

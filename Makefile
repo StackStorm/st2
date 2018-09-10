@@ -269,7 +269,7 @@ compilepy3:
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2api ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2auth ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2debug; test $$? -eq 1
-	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2stream; test $$? -eq 1
+	find ${ROOT_DIR}/st2common/st2common/ \( -name \*.py ! -name router\.py -name \*.py \) -type f -print0 | xargs -0 cat | grep st2stream; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2exporter; test $$? -eq 1
 
 .PHONY: .cleanmongodb
