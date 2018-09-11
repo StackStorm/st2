@@ -112,6 +112,8 @@ Changed
 * Improve ``st2 execution tail`` CLI command so it also supports Orquesta workflows and arbitrarily
   nested workflows. Also fix the command so it doesn't include data from other unrelated running
   executions. (improvement) #4328
+* Change default NGINX configuration to use HTTP 308 redirect, rather than 301, for plaintext requests.
+  #4335
 
 Fixed
 ~~~~~
