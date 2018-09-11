@@ -143,6 +143,9 @@ class OverviewController(resource.ContentPackResourceController):
         result = []
         for item in resp.json:
             action_api = ActionAPI(**item)
+            # TODO: This is extreme inefficient and results in N * 2 queries where N is number of
+            # actions
+            # Refactor it to perform 2 queries instead
             result.append(self._transform_action_api(action_api=action_api,
                                                      requester_user=requester_user))
         resp.json = result
