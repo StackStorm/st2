@@ -14,12 +14,14 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import copy
 import six
 
 from st2common import log as logging
 from st2common.util import action_db as action_db_util
 from st2common.util.casts import get_cast
+from st2common.util.ujson import fast_deepcopy
 
 LOG = logging.getLogger(__name__)
 
@@ -50,16 +52,16 @@ def _merge_param_meta_values(action_meta=None, runner_meta=None):
 
 def get_params_view(action_db=None, runner_db=None, merged_only=False):
     if runner_db:
-        runner_params = copy.deepcopy(getattr(runner_db, 'runner_parameters', {}))
+        runner_params = fast_deepcopy(getattr(runner_db, 'runner_parameters', {})) or {}
     else:
         runner_params = {}
 
     if action_db:
-        action_params = copy.deepcopy(getattr(action_db, 'parameters', {}))
+        action_params = fast_deepcopy(getattr(action_db, 'parameters', {})) or {}
     else:
         action_params = {}
 
-    parameters = set(runner_params or {}.keys()).union(set(action_params or {}.keys()))
+    parameters = set(runner_params.keys()).union(set(action_params.keys()))
 
     merged_params = {}
     for param in parameters:
