@@ -51,6 +51,11 @@ Added
   situations where user is only interested in a subset of the model attributes, this allows for a
   significantly reduced response size and for a better performance. (new feature) (improvement)
   #4300
+* Add new ``action_sensor.emit_when`` config option which allows user to specify action status for
+  which actiontrigger is emitted. For backward compatibility reasons it defaults to all the action
+  completed states. (improvement) #4312 #4315
+
+  Contributed by Shu Sugimoto.
 * Improve performance of schedule action execution (``POST /v1/executions``) API endpoint.
 
   Performance was improved by reducing the number of duplicated database queries, using atomic
@@ -116,6 +121,10 @@ Fixed
   CentOS. (bug fix) #4297
 * Fix a bug with action runner throwing an exception and failing to run an action if there was an
   empty pack config inside ``/opt/stackstorm/configs/``. (bug fix) #4325
+* Fix ``action_sensor.enable`` config option so it works correctly if user sets this option to a
+  non-default value of ``True``. (bug fix) #4312 #4315
+
+  Contributed by Shu Sugimoto.
 * Update ``GET /v1/actions/views/entry_point/<action ref>`` to return correct ``Content-Type``
   response header based on the entry point type / file extension. Previously it would always
   incorrectly return ``application/json``. (improvement) #4327
