@@ -156,7 +156,7 @@ class OverviewController(resource.ContentPackResourceController):
             result.append(action_api)
 
             runner_type_names.add(action_api.runner_type)
-            action_ids.append(action_api.id)
+            action_ids.append(str(action_api.id))
 
         # Add combined runner and action parameters to the compound result object
         # NOTE: This approach results in 2 additional queries while previous one resulted in
@@ -168,8 +168,7 @@ class OverviewController(resource.ContentPackResourceController):
         runner_type_dbs = dict([(runner_db.name, runner_db) for runner_db in runner_type_dbs])
 
         # 2. Retrieve all the respective action objects - we only need parameters
-        action_dbs = Action.query(id__in=action_ids, only_fields=['ref', 'parameters'])
-        action_dbs = dict([(action_db.id, action_db) for action_db in action_dbs])
+        action_dbs = dict([(action_db.id, action_db) for action_db in result])
 
         for action_api in result:
             action_db = action_dbs.get(action_api.id, None)
