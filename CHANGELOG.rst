@@ -116,6 +116,9 @@ Fixed
   CentOS. (bug fix) #4297
 * Fix a bug with action runner throwing an exception and failing to run an action if there was an
   empty pack config inside ``/opt/stackstorm/configs/``. (bug fix) #4325
+* Update ``GET /v1/actions/views/entry_point/<action ref>`` to return correct ``Content-Type``
+  response header based on the entry point type / file extension. Previously it would always
+  incorrectly return ``application/json``. (improvement) #4327
 
 Deprecated
 ~~~~~~~~~~
