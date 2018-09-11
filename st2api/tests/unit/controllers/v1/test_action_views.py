@@ -212,3 +212,51 @@ class ActionEntryPointViewControllerTestCase(FunctionalTest):
             self.assertEqual(get_resp.status_int, 200)
         finally:
             self.app.delete('/v1/actions/%s' % action_id)
+
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    @mock.patch.object(content_utils, 'get_entry_point_abs_path', mock.MagicMock(
+        return_value='/path/to/file.yaml'))
+    @mock.patch(mock_open_name, mock.mock_open(read_data='file content'), create=True)
+    def test_get_one_ref_yaml_content_type(self):
+        post_resp = self.app.post_json('/v1/actions', ACTION_1)
+        action_id = post_resp.json['id']
+        action_ref = '.'.join((post_resp.json['pack'], post_resp.json['name']))
+        try:
+            get_resp = self.app.get('/v1/actions/views/entry_point/%s' % action_ref)
+            self.assertEqual(get_resp.status_int, 200)
+            self.assertEqual(get_resp.headers['Content-Type'], 'application/x-yaml')
+        finally:
+            self.app.delete('/v1/actions/%s' % action_id)
+
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    @mock.patch.object(content_utils, 'get_entry_point_abs_path', mock.MagicMock(
+        return_value=__file__.replace('.pyc', '.py')))
+    @mock.patch(mock_open_name, mock.mock_open(read_data='file content'), create=True)
+    def test_get_one_ref_python_content_type(self):
+        post_resp = self.app.post_json('/v1/actions', ACTION_1)
+        action_id = post_resp.json['id']
+        action_ref = '.'.join((post_resp.json['pack'], post_resp.json['name']))
+        try:
+            get_resp = self.app.get('/v1/actions/views/entry_point/%s' % action_ref)
+            self.assertEqual(get_resp.status_int, 200)
+            self.assertEqual(get_resp.headers['Content-Type'], 'application/x-python')
+        finally:
+            self.app.delete('/v1/actions/%s' % action_id)
+
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    @mock.patch.object(content_utils, 'get_entry_point_abs_path', mock.MagicMock(
+        return_value='/file/does/not/exist'))
+    @mock.patch(mock_open_name, mock.mock_open(read_data='file content'), create=True)
+    def test_get_one_ref_text_plain_content_type(self):
+        post_resp = self.app.post_json('/v1/actions', ACTION_1)
+        action_id = post_resp.json['id']
+        action_ref = '.'.join((post_resp.json['pack'], post_resp.json['name']))
+        try:
+            get_resp = self.app.get('/v1/actions/views/entry_point/%s' % action_ref)
+            self.assertEqual(get_resp.status_int, 200)
+            self.assertEqual(get_resp.headers['Content-Type'], 'text/plain')
+        finally:
+            self.app.delete('/v1/actions/%s' % action_id)

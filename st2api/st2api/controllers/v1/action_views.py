@@ -13,8 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from mongoengine import ValidationError
+import os
+import codecs
+import mimetypes
+
 import six
+from mongoengine import ValidationError
 
 from st2api.controllers import resource
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
@@ -27,6 +31,7 @@ from st2common.persistence.runner import RunnerType
 from st2common.rbac.types import PermissionType
 from st2common.rbac import utils as rbac_utils
 from st2common.router import abort
+from st2common.router import Response
 
 __all__ = [
     'OverviewController',
@@ -186,10 +191,32 @@ class EntryPointController(resource.ContentPackResourceController):
             raise StackStormDBObjectNotFoundError('Action ref_or_id=%s has no entry_point to output'
                                                   % ref_or_id)
 
-        with open(abs_path) as file:
-            content = file.read()
+        with codecs.open(abs_path, 'r') as fp:
+            content = fp.read()
 
-        return content
+        # Ensure content is utf-8
+        if isinstance(content, six.binary_type):
+            content = content.decode('utf-8')
+
+        try:
+            content_type = mimetypes.guess_type(abs_path)[0]
+        except Exception:
+            content_type = None
+
+        # Special case if /etc/mime.types doesn't contain entry for yaml, py
+        if not content_type:
+            _, extension = os.path.splitext(abs_path)
+            if extension in ['.yaml', '.yml']:
+                content_type = 'application/x-yaml'
+            elif extension in ['.py']:
+                content_type = 'application/x-python'
+            else:
+                content_type = 'text/plain'
+
+        response = Response()
+        response.headers['Content-Type'] = content_type
+        response.text = content
+        return response
 
 
 class ActionViewsController(object):

@@ -570,7 +570,12 @@ class Router(object):
 
             try:
                 validator = CustomValidator(response_spec['schema'], resolver=self.spec_resolver)
-                validator.validate(resp.json)
+
+                response_type = response_spec['schema'].get('type', 'json')
+                if response_type == 'string':
+                    validator.validate(resp.text)
+                else:
+                    validator.validate(resp.json)
             except (jsonschema.ValidationError, ValueError):
                 LOG.exception('Response validation failed.')
                 resp.headers.add('Warning', '199 OpenAPI "Response validation failed"')

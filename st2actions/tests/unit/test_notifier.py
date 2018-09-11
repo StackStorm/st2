@@ -204,14 +204,12 @@ class NotifierTestCase(CleanDbTestCase):
                                          trace_context={})
         notifier.process(execution)
 
-    @mock.patch('oslo_config.cfg.CONF.action_sensor', mock.MagicMock(
-        emit_when=[]))
     @mock.patch.object(Notifier, '_get_runner_ref', mock.MagicMock(
         return_value='run-local-cmd'))
     @mock.patch.object(Notifier, '_get_trace_context', mock.MagicMock(
         return_value={}))
     @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
-    def test_post_generic_trigger(self, dispatch):
+    def test_post_generic_trigger_emit_when_default_value_is_used(self, dispatch):
         for status in LIVEACTION_STATUSES:
             liveaction_db = LiveActionDB(action='core.local')
             liveaction_db.status = status
