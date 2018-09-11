@@ -17,7 +17,6 @@ from __future__ import absolute_import
 
 import sys
 import traceback
-import jsonschema
 
 from oslo_config import cfg
 
@@ -35,8 +34,7 @@ from st2common.util.action_db import (update_liveaction_status, get_liveaction_b
 from st2common.util import param as param_utils
 from st2common.util.config_loader import ContentPackConfigLoader
 from st2common.metrics.base import CounterWithTimer
-from st2common.util import jsonify, schema
-from st2common.util.ujson import fast_deepcopy
+from st2common.util import jsonify
 
 from st2common.runners.base import get_runner
 from st2common.runners.base import AsyncActionRunner, PollingAsyncActionRunner
@@ -129,57 +127,11 @@ class RunnerContainer(object):
                     (status, result, context) = runner.run(action_params)
                     result = jsonify.try_loads(result)
 
-            LOG.debug('Validating runner output: %s', runner.runner_type.output_schema)
-
-            if runner.runner_type.output_schema.get('unmodeled'):
-                runner.runner_type.output_schema.pop('unmodeled')
-                LOG.warn(
-                    """Deprecation Notice: This runner has previously had unmodeled
-                    output. In StackStorm 3.1 the output will be placed under the
-                    `output` key."""
-                )
-                runner_schema = {
-                    "additionalProperties": True
-                }
-            else:
-                runner_schema = {
-                    "type": "object",
-                    "properties": runner.runner_type.output_schema,
-                    "additionalProperties": False
-                }
-
-            LOG.debug("Action Result: %s", result)
-
-            schema.validate(result, runner_schema, cls=schema.get_validator('custom'))
-
-            if runner.action.output_schema:
-                output_schema = fast_deepcopy(runner.runner_type.output_schema)
-                output_schema.update(runner.action.output_schema)
-                action_schema = {
-                    "type": "object",
-                    "properties": output_schema,
-                    "additionalProperties": False
-                }
-                LOG.debug('Validating action output: %s', action_schema)
-                schema.validate(result, action_schema, cls=schema.get_validator('custom'))
-
             action_completed = status in action_constants.LIVEACTION_COMPLETED_STATES
 
             if (isinstance(runner, PollingAsyncActionRunner) and
                     runner.is_polling_enabled() and not action_completed):
                 queries.setup_query(runner.liveaction.id, runner.runner_type, context)
-        except jsonschema.ValidationError as e:
-            LOG.exception('Failed to validate output.')
-            _, ex, tb = sys.exc_info()
-            # mark execution as failed.
-            status = action_constants.LIVEACTION_STATUS_FAILED
-            # include the error message and traceback to try and provide some hints.
-            result = {
-                'error': str(ex),
-                'traceback': ''.join(traceback.format_tb(tb, 20)),
-                'message': 'Error validating output. See traceback for specific error.',
-            }
-            context = None
         except:
             LOG.exception('Failed to run action.')
             _, ex, tb = sys.exc_info()

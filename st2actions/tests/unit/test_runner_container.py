@@ -311,21 +311,6 @@ class RunnerContainerTest(DbTestCase):
         self.assertTrue('error' in liveaction_db.result)
         self.assertTrue('traceback' in liveaction_db.result)
 
-    def test_output_schema_failure(self):
-        runner_container = get_runner_container()
-        params = {
-            'cmd': 'echo "test"'
-        }
-        liveaction_db = self._get_output_schema_exec_db_model(params)
-        liveaction_db = LiveAction.add_or_update(liveaction_db)
-        executions.create_execution_object(liveaction_db)
-        runner_container.dispatch(liveaction_db)
-        # pickup updated liveaction_db
-        liveaction_db = LiveAction.get_by_id(liveaction_db.id)
-        self.assertTrue('error' in liveaction_db.result)
-        self.assertTrue('traceback' in liveaction_db.result)
-        self.assertTrue('message' in liveaction_db.result)
-
     def test_dispatch_override_default_action_params(self):
         runner_container = get_runner_container()
         params = {
