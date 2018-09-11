@@ -88,7 +88,6 @@ class ParametersViewController(object):
                 GET /actions/views/parameters/1
         """
         action_db = LookupUtils._get_action_by_id(action_id)
-        LOG.info('Found action: %s, runner: %s', action_db, action_db.runner_type['name'])
 
         permission_type = PermissionType.ACTION_VIEW
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
