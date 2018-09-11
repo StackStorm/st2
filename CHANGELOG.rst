@@ -56,6 +56,11 @@ Added
   completed states. (improvement) #4312 #4315
 
   Contributed by Shu Sugimoto.
+* Improve performance of schedule action execution (``POST /v1/executions``) API endpoint.
+
+  Performance was improved by reducing the number of duplicated database queries, using atomic
+  partial document updates instead of full document updates and by improving database document
+  serialization and de-serialization performance. (improvement) #4030 #4331
 
 Changed
 ~~~~~~~
@@ -77,7 +82,10 @@ Changed
   This way we are not mixing non-streaming (short lived) and streaming (long lived) connections
   inside a single service (st2api). (improvement)
 * Upgrade ``mongoengine`` (0.15.3) and ``pymongo`` (3.7.1) to the latest stable version. Those
-  changes will allow us to support MongoDB 3.6 in the near future. (improvement) #4292
+  changes will allow us to support MongoDB 3.6 in the near future.
+
+  New version of ``mongoengine`` should also offer better performance when inserting and updating
+  larger database objects (e.g. executions). (improvement) #4292
 * Trigger parameters and payload schema validation is now enabled by default
   (``system.validate_trigger_parameters`` and ``system.validate_trigger_payload`` config options
   now default to ``True``).
@@ -101,6 +109,9 @@ Changed
   which is prepended to each metric key (name). This comes handy in scenarios where user wants to
   submit metrics from multiple environments / deployments (e.g. testing, staging, dev) to the same
   backend instance. (improvement) #4310
+* Improve ``st2 execution tail`` CLI command so it also supports Orquesta workflows and arbitrarily
+  nested workflows. Also fix the command so it doesn't include data from other unrelated running
+  executions. (improvement) #4328
 
 Fixed
 ~~~~~
@@ -114,6 +125,9 @@ Fixed
   non-default value of ``True``. (bug fix) #4312 #4315
 
   Contributed by Shu Sugimoto.
+* Update ``GET /v1/actions/views/entry_point/<action ref>`` to return correct ``Content-Type``
+  response header based on the entry point type / file extension. Previously it would always
+  incorrectly return ``application/json``. (improvement) #4327
 
 Deprecated
 ~~~~~~~~~~
