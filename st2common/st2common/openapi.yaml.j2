@@ -246,6 +246,7 @@ paths:
       operationId: st2api.controllers.v1.actions:actions_controller.get_all
       x-permissions: {{ PERMISSION_TYPE.ACTION_LIST }}
       description: Returns a list of all actions.
+      x-log-result: false
       parameters:
         - name: exclude_attributes
           in: query
@@ -456,6 +457,7 @@ paths:
       operationId: st2api.controllers.v1.action_views:overview_controller.get_all
       x-permissions: {{ PERMISSION_TYPE.ACTION_LIST }}
       description: Returns a list of all the actions with runner parameters included.
+      x-log-result: false
       parameters:
         - name: exclude_attributes
           in: query
