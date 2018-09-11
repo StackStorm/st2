@@ -132,6 +132,18 @@ play:
 .PHONY: check
 check: requirements flake8 checklogs
 
+.PHONY: install-runners
+install-runners:
+	@echo ""
+	@echo "================== INSTALL RUNNERS ===================="
+	@echo ""
+	@for component in $(COMPONENTS_RUNNERS); do \
+		echo "==========================================================="; \
+		echo "Installing runner:" $$component; \
+		echo "==========================================================="; \
+        (. $(VIRTUALENV_DIR)/bin/activate; cd $$component; python setup.py develop); \
+	done
+
 .PHONY: checklogs
 checklogs:
 	@echo
@@ -318,7 +330,7 @@ distclean: clean
 	rm -rf $(VIRTUALENV_DIR)
 
 .PHONY: requirements
-requirements: virtualenv .sdist-requirements
+requirements: virtualenv .sdist-requirements install-runners
 	@echo
 	@echo "==================== requirements ===================="
 	@echo
