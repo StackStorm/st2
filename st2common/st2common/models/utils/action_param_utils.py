@@ -49,10 +49,17 @@ def _merge_param_meta_values(action_meta=None, runner_meta=None):
 
 
 def get_params_view(action_db=None, runner_db=None, merged_only=False):
-    runner_params = copy.deepcopy(runner_db.runner_parameters) if runner_db else {}
-    action_params = copy.deepcopy(action_db.parameters) if action_db else {}
+    if runner_db:
+        runner_params = copy.deepcopy(getattr(runner_db, 'runner_parameters', {}))
+    else:
+        runner_params = {}
 
-    parameters = set(runner_params.keys()).union(set(action_params.keys()))
+    if action_db:
+        action_params = copy.deepcopy(getattr(action_db, 'parameters', {}))
+    else:
+        action_params = {}
+
+    parameters = set(runner_params or {}.keys()).union(set(action_params or {}.keys()))
 
     merged_params = {}
     for param in parameters:
