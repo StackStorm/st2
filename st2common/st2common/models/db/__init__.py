@@ -55,7 +55,8 @@ MODEL_MODULE_NAMES = [
     'st2common.models.db.sensor',
     'st2common.models.db.trace',
     'st2common.models.db.trigger',
-    'st2common.models.db.webhook'
+    'st2common.models.db.webhook',
+    'st2common.models.db.workflow'
 ]
 
 # A list of model names for which we don't perform extra index cleanup
