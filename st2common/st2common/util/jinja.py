@@ -54,27 +54,26 @@ def use_none(value):
 
 def get_filters():
     # Lazy / late import to avoid long module import times
-    from st2common.jinja.filters import crypto
-    from st2common.jinja.filters import data
-    from st2common.jinja.filters import regex
-    from st2common.jinja.filters import complex_type
-    from st2common.jinja.filters import time
-    from st2common.jinja.filters import version
-    from st2common.jinja.filters import json_escape
-    from st2common.jinja.filters import jsonpath_query
-    from st2common.jinja.filters import path
+    from st2common.expressions.functions import datastore
+    from st2common.expressions.functions import data
+    from st2common.expressions.functions import regex
+    from st2common.expressions.functions import time
+    from st2common.expressions.functions import version
+    from st2common.expressions.functions import path
 
     # IMPORTANT NOTE - these filters were recently duplicated in st2mistral so that
     # they are also available in Mistral workflows. Please ensure any additions you
     # make here are also made there so that feature parity is maintained.
     return {
-        'decrypt_kv': crypto.decrypt_kv,
+        'decrypt_kv': datastore.decrypt_kv,
+
         'from_json_string': data.from_json_string,
         'from_yaml_string': data.from_yaml_string,
+        'json_escape': data.json_escape,
+        'jsonpath_query': data.jsonpath_query,
+        'to_complex': data.to_complex,
         'to_json_string': data.to_json_string,
         'to_yaml_string': data.to_yaml_string,
-
-        'to_complex': complex_type.to_complex,
 
         'regex_match': regex.regex_match,
         'regex_replace': regex.regex_replace,
@@ -93,9 +92,6 @@ def get_filters():
         'version_bump_patch': version.version_bump_patch,
         'version_strip_patch': version.version_strip_patch,
         'use_none': use_none,
-
-        'json_escape': json_escape.json_escape,
-        'jsonpath_query': jsonpath_query.jsonpath_query,
 
         'basename': path.basename,
         'dirname': path.dirname

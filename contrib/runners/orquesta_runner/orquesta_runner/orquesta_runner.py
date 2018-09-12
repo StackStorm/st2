@@ -84,7 +84,20 @@ class OrquestaRunner(runners.AsyncActionRunner):
             return (status, result, self.context)
         except Exception as e:
             status = ac_const.LIVEACTION_STATUS_FAILED
-            result = {'errors': str(e), 'output': None}
+            result = {'errors': [{'message': str(e)}], 'output': None}
+            return (status, result, self.context)
+
+        if wf_ex_db.status in wf_states.COMPLETED_STATES:
+            status = wf_ex_db.status
+            result = {'output': wf_ex_db.output or None}
+
+            if wf_ex_db.status in wf_states.ABENDED_STATES:
+                result['errors'] = wf_ex_db.errors
+
+            for wf_ex_error in wf_ex_db.errors:
+                msg = '[%s] Workflow execution completed with errors.'
+                LOG.error(msg, str(self.execution.id), extra=wf_ex_error)
+
             return (status, result, self.context)
 
         # Set return values.
