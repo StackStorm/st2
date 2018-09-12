@@ -24,6 +24,7 @@ from distutils.spawn import find_executable
 from st2common.constants.system import VERSION_STRING
 from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
 from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_LOG_LEVEL
+from st2common.constants.action import LIVEACTION_COMPLETED_STATES
 
 __all__ = [
     'do_register_opts',
@@ -389,9 +390,8 @@ def register_opts(ignore_errors=False):
             'enable', default=True,
             help='Whether to enable or disable the ability to post a trigger on action.'),
         cfg.ListOpt(
-            'emit_when', default=[],
-            help='List of execution statuses that a trigger will be emitted. '
-                 'If not specified, it defaults to action completion.'),
+            'emit_when', default=LIVEACTION_COMPLETED_STATES,
+            help='List of execution statuses for which a trigger will be emitted. ')
     ]
 
     do_register_opts(action_sensor_opts, group='action_sensor')
