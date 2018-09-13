@@ -77,8 +77,8 @@ def setup_app(config={}):
     app = ErrorHandlingMiddleware(app)
     app = CorsMiddleware(app)
     app = LoggingMiddleware(app, router)
-    app = ResponseInstrumentationMiddleware(app, service_name='api')
+    app = ResponseInstrumentationMiddleware(app, router, service_name='api')
     app = RequestIDMiddleware(app)
-    app = RequestInstrumentationMiddleware(app, service_name='api')
+    app = RequestInstrumentationMiddleware(app, router, service_name='api')
 
     return app

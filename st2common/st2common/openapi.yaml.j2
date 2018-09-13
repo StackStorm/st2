@@ -1064,6 +1064,7 @@ paths:
     get:
       operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.get_one
       x-log-result: false
+      x-submit-metrics: false
       description: |
         Get one execution.
       parameters:
@@ -1160,6 +1161,7 @@ paths:
     get:
       operationId: st2api.controllers.v1.actionexecutions:action_execution_output_controller.get_one
       x-log-result: false
+      x-submit-metrics: false
       description: |
         Retrieve execution output.
       parameters:
@@ -1193,6 +1195,7 @@ paths:
     post:
       operationId: st2api.controllers.v1.actionexecutions:action_execution_rerun_controller.post
       x-log-result: false
+      x-submit-metrics: false
       description: |
         Create a new execution.
       parameters:
@@ -1248,6 +1251,7 @@ paths:
     get:
       operationId: st2api.controllers.v1.actionexecutions:action_execution_attribute_controller.get
       x-log-result: false
+      x-submit-metrics: false
       description: |
         Get one execution.
       parameters:
@@ -1282,6 +1286,7 @@ paths:
     get:
       operationId: st2api.controllers.v1.actionexecutions:action_execution_children_controller.get_one
       x-log-result: false
+      x-submit-metrics: false
       description: |
         Get one execution.
       parameters:
@@ -1304,6 +1309,7 @@ paths:
           in: context
           x-as: requester_user
           description: User performing the operation.
+      x-submit-metrics: false
       responses:
         '200':
           description: Execution attribute requested
@@ -1898,6 +1904,7 @@ paths:
       x-requirements:
         file_path: .*
       x-log-result: false
+      x-submit-metrics: false
       description: Get information about an installed pack.
       parameters:
         - name: ref_or_id
