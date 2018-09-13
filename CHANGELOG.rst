@@ -116,6 +116,7 @@ Changed
   executions. (improvement) #4328
 * Change default NGINX configuration to use HTTP 308 redirect, rather than 301, for plaintext requests.
   #4335
+* Improve performance of the ``GET /v1/actions/views/overview`` API endpoint. (improvement) #4337
 
 Fixed
 ~~~~~

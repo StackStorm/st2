@@ -13,16 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from webob import Request
+
+from st2common import log as logging
+from st2common.metrics.base import CounterWithTimer
+from st2common.metrics.base import get_driver
+from st2common.util.date import get_datetime_utc_now
+from st2common.router import NotFoundException
+
 __all__ = [
     'RequestInstrumentationMiddleware',
     'ResponseInstrumentationMiddleware'
 ]
 
-from webob import Request
-
-from st2common.metrics.base import CounterWithTimer
-from st2common.metrics.base import get_driver
-from st2common.util.date import get_datetime_utc_now
+LOG = logging.getLogger(__name__)
 
 
 class RequestInstrumentationMiddleware(object):
@@ -30,16 +34,30 @@ class RequestInstrumentationMiddleware(object):
     Instrumentation middleware which records various request related metrics.
     """
 
-    def __init__(self, app, service_name):
+    def __init__(self, app, router, service_name):
         """
         :param service_name: Service name (e.g. api, stream, auth).
         :type service_name: ``str``
         """
         self.app = app
+        self.router = router
         self._service_name = service_name
 
     def __call__(self, environ, start_response):
         request = Request(environ)
+
+        try:
+            endpoint, _ = self.router.match(request)
+        except NotFoundException:
+            endpoint = {}
+
+        # NOTE: We don't track per request and response metrics for /v1/executions/<id> and some
+        # other endpoints because this would result in a lot of unique metrics which is an
+        # anti-pattern and causes unnecessary load on the metrics server.
+        submit_metrics = endpoint.get('x-submit-metrics', True)
+        if not submit_metrics:
+            LOG.debug('Not submitting request metrics for path: %s' % (request.path))
+            return self.app(environ, start_response)
 
         metrics_driver = get_driver()
 
@@ -99,12 +117,13 @@ class ResponseInstrumentationMiddleware(object):
     Instrumentation middleware which records various response related metrics.
     """
 
-    def __init__(self, app, service_name):
+    def __init__(self, app, router, service_name):
         """
         :param service_name: Service name (e.g. api, stream, auth).
         :type service_name: ``str``
         """
         self.app = app
+        self.router = router
         self._service_name = service_name
 
     def __call__(self, environ, start_response):

@@ -15,7 +15,6 @@
 
 from __future__ import absolute_import
 
-import copy
 import uuid
 
 from oslo_config import cfg
@@ -31,7 +30,7 @@ from st2common.runners import base as runners
 from st2common.services import action as ac_svc
 from st2common.services import workflows as wf_svc
 from st2common.util import api as api_util
-
+from st2common.util import ujson
 
 __all__ = [
     'OrquestaRunner',
@@ -51,7 +50,7 @@ class OrquestaRunner(runners.AsyncActionRunner):
             return def_file.read()
 
     def _construct_context(self, wf_ex):
-        ctx = copy.deepcopy(self.context)
+        ctx = ujson.fast_deepcopy(self.context)
         ctx['workflow_execution'] = str(wf_ex.id)
 
         return ctx

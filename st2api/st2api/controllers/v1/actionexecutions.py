@@ -86,7 +86,8 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
     # parameters
     mandatory_include_fields_retrieve = [
         'action.parameters',
-        'runner.runner_parameters'
+        'runner.runner_parameters',
+        'parameters'
     ]
 
     # A list of attributes which can be specified using ?exclude_attributes filter

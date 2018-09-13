@@ -88,7 +88,6 @@ class ParametersViewController(object):
                 GET /actions/views/parameters/1
         """
         action_db = LookupUtils._get_action_by_id(action_id)
-        LOG.info('Found action: %s, runner: %s', action_db, action_db.runner_type['name'])
 
         permission_type = PermissionType.ACTION_VIEW
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
@@ -110,6 +109,13 @@ class OverviewController(resource.ContentPackResourceController):
     query_options = {
         'sort': ['pack', 'name']
     }
+
+    mandatory_include_fields_retrieve = [
+        'pack',
+        'name',
+        'parameters',
+        'runner_type'
+    ]
 
     def get_one(self, ref_or_id, requester_user):
         """
@@ -141,11 +147,37 @@ class OverviewController(resource.ContentPackResourceController):
                                                         limit=limit,
                                                         raw_filters=raw_filters,
                                                         requester_user=requester_user)
+        runner_type_names = set([])
+        action_ids = []
+
         result = []
         for item in resp.json:
             action_api = ActionAPI(**item)
-            result.append(self._transform_action_api(action_api=action_api,
-                                                     requester_user=requester_user))
+            result.append(action_api)
+
+            runner_type_names.add(action_api.runner_type)
+            action_ids.append(str(action_api.id))
+
+        # Add combined runner and action parameters to the compound result object
+        # NOTE: This approach results in 2 additional queries while previous one resulted in
+        # N * 2 additional queries
+
+        # 1. Retrieve all the respective runner objects - we only need parameters
+        runner_type_dbs = RunnerType.query(name__in=runner_type_names,
+                                           only_fields=['name', 'runner_parameters'])
+        runner_type_dbs = dict([(runner_db.name, runner_db) for runner_db in runner_type_dbs])
+
+        # 2. Retrieve all the respective action objects - we only need parameters
+        action_dbs = dict([(action_db.id, action_db) for action_db in result])
+
+        for action_api in result:
+            action_db = action_dbs.get(action_api.id, None)
+            runner_db = runner_type_dbs.get(action_api.runner_type, None)
+            all_params = action_param_utils.get_params_view(action_db=action_db,
+                                                            runner_db=runner_db,
+                                                            merged_only=True)
+            action_api.parameters = all_params
+
         resp.json = result
         return resp
 
