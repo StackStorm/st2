@@ -137,19 +137,4 @@ class ResponseInstrumentationMiddleware(object):
 
             return start_response(status, headers, exc_info)
 
-        request = Request(environ)
-
-        try:
-            endpoint, _ = self.router.match(request)
-        except NotFoundException:
-            endpoint = {}
-
-        # NOTE: We don't track per request and response metrics for /v1/executions/<id> and some
-        # other endpoints because this would result in a lot of unique metrics which is an
-        # anti-pattern and causes unnecessary load on the metrics server.
-        submit_metrics = endpoint.get('x-submit-metrics', True)
-        if not submit_metrics:
-            LOG.debug('Not submitting response metrics for path: %s' % (request.path))
-            return self.app(environ, start_response)
-
         return self.app(environ, custom_start_response)
