@@ -62,6 +62,7 @@ Added
   partial document updates instead of full document updates and by improving database document
   serialization and de-serialization performance. (improvement) #4030 #4331
 * Ported existing YAQL and Jinja functions from st2common to Orquesta. (new feature)
+* Add error entry in Orquesta workflow result on action execution failure. (improvement)
 
 Changed
 ~~~~~~~
