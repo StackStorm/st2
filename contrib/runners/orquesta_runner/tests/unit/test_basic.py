@@ -126,6 +126,7 @@ class OrquestaRunnerTest(st2tests.DbTestCase):
         # Check context in the workflow execution.
         expected_wf_ex_ctx = {
             'st2': {
+                'workflow_execution_id': str(wf_ex_db.id),
                 'action_execution_id': str(ac_ex_db.id),
                 'api_url': 'http://127.0.0.1/v1',
                 'user': 'stanley'

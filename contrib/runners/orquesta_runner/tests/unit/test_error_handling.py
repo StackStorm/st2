@@ -43,6 +43,8 @@ from st2common.transport import workflow as wf_ex_xport
 from st2common.transport import publishers
 from st2tests.mocks import liveaction as mock_lv_ac_xport
 from st2tests.mocks import workflow as mock_wf_ex_xport
+from st2common.models.db.workflow import WorkflowExecutionDB
+from st2common.models.db.workflow import TaskExecutionDB
 
 
 TEST_PACK = 'orquesta_tests'
@@ -75,6 +77,11 @@ PACKS = [
     'publish_state',
     mock.MagicMock(side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_state))
 class OrquestaErrorHandlingTest(st2tests.DbTestCase):
+    ensure_indexes = True
+    ensure_indexes_models = [
+        WorkflowExecutionDB,
+        TaskExecutionDB
+    ]
 
     @classmethod
     def setUpClass(cls):
@@ -423,6 +430,48 @@ class OrquestaErrorHandlingTest(st2tests.DbTestCase):
         tk2_ex_db = wf_db_access.TaskExecution.query(task_id='task2')[0]
         self.assertEqual(tk2_ex_db.status, wf_states.FAILED)
         self.assertDictEqual(tk2_ex_db.result, {'errors': expected_errors})
+
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_FAILED)
+        self.assertDictEqual(lv_ac_db.result, expected_result)
+
+        ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db.id))
+        self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_FAILED)
+        self.assertDictEqual(ac_ex_db.result, expected_result)
+
+    def test_fail_task_execution(self):
+        expected_errors = [
+            {
+                'message': 'Execution failed. See result for details.',
+                'task_id': 'task1',
+                'result': {
+                    'stdout': '',
+                    'stderr': 'boom!',
+                    'return_code': 1,
+                    'failed': True,
+                    'succeeded': False
+                }
+            }
+        ]
+
+        expected_result = {'output': None, 'errors': expected_errors}
+
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'fail-task-execution.yaml')
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
+
+        # Process task1.
+        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
+        tk1_ex_db = wf_db_access.TaskExecution.query(workflow_execution=str(wf_ex_db.id))[0]
+        tk1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk1_ex_db.id))[0]
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction['id'])
+        self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_FAILED)
+        wf_svc.handle_action_execution_completion(tk1_ac_ex_db)
+
+        # Assert workflow state and result.
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(str(wf_ex_db.id))
+        self.assertEqual(wf_ex_db.status, wf_states.FAILED)
+        self.assertListEqual(self.sort_wf_runtime_errors(wf_ex_db.errors), expected_errors)
 
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_FAILED)
