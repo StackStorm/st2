@@ -15,7 +15,6 @@
 
 from __future__ import absolute_import
 
-import copy
 import six
 
 from st2common import log as logging
