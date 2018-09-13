@@ -14,7 +14,6 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import copy
 import eventlet
 import traceback
 import uuid
@@ -46,6 +45,7 @@ from st2common.util import date as date_utils
 from st2common.util import jinja as jinja_utils
 from st2common.util import param as param_utils
 from st2common.util.config_loader import get_config
+from st2common.util.ujson import fast_deepcopy
 
 __all__ = [
     'ActionChainRunner',
@@ -87,7 +87,7 @@ class ChainHolder(object):
                                                 action_parameters=action_parameters)
 
     def restore_vars(self, ctx_vars):
-        self.vars.update(copy.deepcopy(ctx_vars))
+        self.vars.update(fast_deepcopy(ctx_vars))
 
     def validate(self):
         """
