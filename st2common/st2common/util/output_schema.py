@@ -28,27 +28,17 @@ PATH_KEY = 'output_path'
 def _validate_runner(runner_schema, result):
     LOG.debug('Validating runner output: %s', runner_schema)
 
-    if runner_schema.get('unmodeled'):
-        runner_schema.pop('unmodeled')
-        LOG.warn(
-            """Deprecation Notice: This runner has previously had unmodeled
-            output. In StackStorm 3.1 the output will be placed under the
-            `output` key."""
-        )
-        runner_schema = {
-            "additionalProperties": True
-        }
-    else:
-        runner_schema = {
-            "type": "object",
-            "properties": runner_schema,
-            "additionalProperties": False
-        }
+    runner_schema = {
+        "type": "object",
+        "properties": runner_schema,
+        "additionalProperties": False
+    }
 
     schema.validate(result, runner_schema, cls=schema.get_validator('custom'))
 
 
 def _validate_action(action_schema, result, output_path):
+    LOG.debug('Validating action output: %s', action_schema)
     final_result = result
     output_path = action_schema.pop(PATH_KEY, output_path)
 
@@ -60,7 +50,6 @@ def _validate_action(action_schema, result, output_path):
         "properties": action_schema,
         "additionalProperties": False
     }
-    LOG.debug('Validating action output: %s', action_schema)
     schema.validate(final_result, action_schema, cls=schema.get_validator('custom'))
 
 
@@ -69,8 +58,9 @@ def validate_output(runner_schema, action_schema, result, status):
     """
     try:
         LOG.debug('Validating action output: %s', result)
-        output_path = runner_schema.pop(PATH_KEY, [])
-        _validate_runner(runner_schema, result)
+        if runner_schema:
+            output_path = runner_schema.pop(PATH_KEY, [])
+            _validate_runner(runner_schema, result)
 
         if action_schema:
             _validate_action(action_schema, result, output_path)

@@ -16,7 +16,3 @@
       maxLength: 255
       minLength: 1
       type: string
-  output_schema:
-    output_path: []
-    unmodeled:
-      type: boolean

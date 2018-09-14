@@ -37,7 +37,6 @@ RUNNER1 = {
         "str": {"type": "string"}
     },
     "name": "mock-runner1",
-    "output_schema": {"unmodeled": {"type": "boolean"}}
 }
 
 ACTION1 = {
@@ -54,7 +53,6 @@ RUNNER2 = {
     "enabled": True,
     "runner_parameters": {},
     "name": "mock-runner2",
-    "output_schema": {"unmodeled": {"type": "boolean"}}
 }
 
 ACTION2 = {

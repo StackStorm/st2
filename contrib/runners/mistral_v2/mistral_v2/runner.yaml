@@ -22,7 +22,3 @@
         If entry point is a workflow or a workbook with a single workflow, the runner
         will identify the workflow automatically.
       type: string
-  output_schema:
-    output_path: []
-    unmodeled:
-      type: boolean

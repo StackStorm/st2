@@ -36,6 +36,3 @@ runner_parameters:
     required: true
     description: Time (in minutes) that an unacknowledged Inquiry is cleaned up
     type: integer
-output_schema:
-  unmodeled:
-    type: boolean

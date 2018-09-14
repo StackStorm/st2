@@ -4,6 +4,3 @@ enabled: true
 name: action-chain
 runner_module: action_chain_runner
 runner_parameters: {}
-output_schema:
-  unmodeled:
-    type: boolean

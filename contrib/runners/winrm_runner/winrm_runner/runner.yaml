@@ -3,10 +3,6 @@
   name: winrm-cmd
   runner_package: winrm_runner
   runner_module: winrm_command_runner
-  output_schema:
-    output_path: []
-    unmodeled:
-      type: boolean
   runner_parameters:
     cmd:
       description: Arbitrary Command Prompt command to be executed on the remote host.
@@ -75,10 +71,6 @@
   name: winrm-ps-cmd
   runner_package: winrm_runner
   runner_module: winrm_ps_command_runner
-  output_schema:
-    output_path: []
-    unmodeled:
-      type: boolean
   runner_parameters:
     cmd:
       description: Arbitrary PowerShell command to be executed on the remote host.
@@ -147,10 +139,6 @@
   name: winrm-ps-script
   runner_package: winrm_runner
   runner_module: winrm_ps_script_runner
-  output_schema:
-    output_path: []
-    unmodeled:
-      type: boolean
   runner_parameters:
     cwd:
       description: Working directory where the command will be executed in
