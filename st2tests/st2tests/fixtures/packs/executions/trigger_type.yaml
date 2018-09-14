@@ -6,8 +6,7 @@ parameters_schema:
   properties:
     url:
       type: string
-  required:
-  - url
+      required: true
   type: object
 payload_schema:
   type: object

@@ -249,11 +249,12 @@ class ConsoleLogFormatterTestCase(unittest.TestCase):
         # Add "extra" attributes
         record._action_execution_db = mock_action_execution_db
 
-        expected_msg_part = "'parameters': {'parameter1': 'value1', 'parameter2': '********'}"
+        expected_msg_part = (r"'parameters': {u?'parameter1': u?'value1', "
+                             "u?'parameter2': u?'\*\*\*\*\*\*\*\*'}")
 
         message = formatter.format(record=record)
         self.assertTrue('test message 1' in message)
-        self.assertTrue(expected_msg_part in message)
+        self.assertRegexpMatches(message, expected_msg_part)
 
 
 class GelfLogFormatterTestCase(unittest.TestCase):

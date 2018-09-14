@@ -132,6 +132,18 @@ play:
 .PHONY: check
 check: requirements flake8 checklogs
 
+.PHONY: install-runners
+install-runners:
+	@echo ""
+	@echo "================== INSTALL RUNNERS ===================="
+	@echo ""
+	@for component in $(COMPONENTS_RUNNERS); do \
+		echo "==========================================================="; \
+		echo "Installing runner:" $$component; \
+		echo "==========================================================="; \
+        (. $(VIRTUALENV_DIR)/bin/activate; cd $$component; python setup.py develop); \
+	done
+
 .PHONY: checklogs
 checklogs:
 	@echo
@@ -265,11 +277,11 @@ compilepy3:
 .st2common-circular-dependencies-check:
 	@echo "Checking st2common for circular dependencies"
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2reactor ; test $$? -eq 1
-	find ${ROOT_DIR}/st2common/st2common/ \( -name \*.py ! -name runnersregistrar\.py -name \*.py ! -name compat\.py \) -type f -print0 | xargs -0 cat | grep st2actions ; test $$? -eq 1
+	find ${ROOT_DIR}/st2common/st2common/ \( -name \*.py ! -name runnersregistrar\.py -name \*.py ! -name compat\.py | -name inquiry\.py \) -type f -print0 | xargs -0 cat | grep st2actions ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2api ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2auth ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2debug; test $$? -eq 1
-	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2stream; test $$? -eq 1
+	find ${ROOT_DIR}/st2common/st2common/ \( -name \*.py ! -name router\.py -name \*.py \) -type f -print0 | xargs -0 cat | grep st2stream; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2exporter; test $$? -eq 1
 
 .PHONY: .cleanmongodb
@@ -318,7 +330,7 @@ distclean: clean
 	rm -rf $(VIRTUALENV_DIR)
 
 .PHONY: requirements
-requirements: virtualenv .sdist-requirements
+requirements: virtualenv .sdist-requirements install-runners
 	@echo
 	@echo "==================== requirements ===================="
 	@echo

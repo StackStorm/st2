@@ -183,9 +183,10 @@ class ProcessSensorContainer(object):
             else:
                 sensor_start_time = self._sensor_start_times[sensor_id]
                 sensor_respawn_count = self._sensor_respawn_counts[sensor_id]
-                successfuly_started = (now - sensor_start_time) >= SENSOR_SUCCESSFUL_START_THRESHOLD
+                successfully_started = ((now - sensor_start_time) >=
+                                        SENSOR_SUCCESSFUL_START_THRESHOLD)
 
-                if successfuly_started and sensor_respawn_count >= 1:
+                if successfully_started and sensor_respawn_count >= 1:
                     # Sensor has been successfully running more than threshold seconds, clear the
                     # respawn counter so we can try to restart the sensor if it dies later on
                     self._sensor_respawn_counts[sensor_id] = 0
@@ -402,7 +403,7 @@ class ProcessSensorContainer(object):
         if self._single_sensor_mode:
             # In single sensor mode we want to exit immediately on failure
             LOG.info('Not respawning a sensor since running in single sensor mode',
-                    extra=extra)
+                     extra=extra)
 
             self._stopped = True
             self._exit_code = exit_code

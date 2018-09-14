@@ -86,7 +86,8 @@ class ConfigDB(stormbase.StormFoundationDB):
         unique=True,
         help_text='Name of the content pack this config belongs to.')
     values = stormbase.EscapedDynamicField(
-        help_text='Config values.')
+        help_text='Config values.',
+        default={})
 
     def mask_secrets(self, value):
         """

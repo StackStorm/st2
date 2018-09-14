@@ -20,6 +20,7 @@ from oslo_config import cfg
 
 from st2common import config
 from st2common import log as logging
+from st2common.config import do_register_cli_opts
 from st2common.script_setup import setup as common_setup
 from st2common.script_setup import teardown as common_teardown
 from st2reactor.rules.tester import RuleTester
@@ -29,15 +30,6 @@ __all__ = [
 ]
 
 LOG = logging.getLogger(__name__)
-
-
-def _do_register_cli_opts(opts, ignore_errors=False):
-    for opt in opts:
-        try:
-            cfg.CONF.register_cli_opt(opt)
-        except:
-            if not ignore_errors:
-                raise
 
 
 def _register_cli_opts():
@@ -51,7 +43,7 @@ def _register_cli_opts():
         cfg.StrOpt('trigger-instance-id', default=None,
                    help='Id of the Trigger Instance to use for validation.')
     ]
-    _do_register_cli_opts(cli_opts)
+    do_register_cli_opts(cli_opts)
 
 
 def main():

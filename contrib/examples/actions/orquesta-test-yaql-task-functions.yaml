@@ -1,0 +1,6 @@
+---
+name: orquesta-test-yaql-task-functions
+description: A basic workflow testing task related functions.
+runner_type: orquesta
+entry_point: workflows/tests/orquesta-test-yaql-task-functions.yaml
+enabled: true

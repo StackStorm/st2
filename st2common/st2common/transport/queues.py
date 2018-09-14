@@ -140,10 +140,14 @@ STREAM_EXECUTION_OUTPUT_QUEUE = execution.get_output_queue(
 
 
 # Used by the workflow engine service
-WORKFLOW_EXECUTION_WORK_QUEUE = workflow.get_queue(
+WORKFLOW_EXECUTION_WORK_QUEUE = workflow.get_status_management_queue(
     name='st2.workflow.work',
-    routing_key=publishers.CREATE_RK)
+    routing_key=action_constants.LIVEACTION_STATUS_REQUESTED)
 
 WORKFLOW_EXECUTION_RESUME_QUEUE = workflow.get_status_management_queue(
     name='st2.workflow.resume',
     routing_key=action_constants.LIVEACTION_STATUS_RESUMING)
+
+WORKFLOW_ACTION_EXECUTION_UPDATE_QUEUE = execution.get_queue(
+    'st2.workflow.action.update',
+    routing_key=publishers.UPDATE_RK)

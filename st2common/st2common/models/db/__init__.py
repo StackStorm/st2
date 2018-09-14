@@ -29,6 +29,7 @@ from pymongo.errors import ConnectionFailure
 
 from st2common import log as logging
 from st2common.util import isotime
+from st2common.util.misc import get_field_name_from_mongoengine_error
 from st2common.models.db import stormbase
 from st2common.models.utils.profiling import log_query_and_profile_data_for_queryset
 from st2common.exceptions import db as db_exc
@@ -54,7 +55,8 @@ MODEL_MODULE_NAMES = [
     'st2common.models.db.sensor',
     'st2common.models.db.trace',
     'st2common.models.db.trigger',
-    'st2common.models.db.webhook'
+    'st2common.models.db.webhook',
+    'st2common.models.db.workflow'
 ]
 
 # A list of model names for which we don't perform extra index cleanup
@@ -126,7 +128,7 @@ def _db_connect(db_name, db_host, db_port, username=None, password=None,
 
     # NOTE: Since pymongo 3.0, connect() method is lazy and not blocking (always returns success)
     # so we need to issue a command / query to check if connection has been
-    # successfuly established.
+    # successfully established.
     # See http://api.mongodb.com/python/current/api/pymongo/mongo_client.html for details
     try:
         # The ismaster command is cheap and does not require auth
@@ -351,7 +353,7 @@ class MongoDBAccess(object):
         if only_fields:
             try:
                 instances = instances.only(*only_fields)
-            except mongoengine.errors.LookUpError as e:
+            except (mongoengine.errors.LookUpError, AttributeError) as e:
                 msg = ('Invalid or unsupported include attribute specified: %s' % str(e))
                 raise ValueError(msg)
 
@@ -400,13 +402,19 @@ class MongoDBAccess(object):
         result = self.model.objects(*args, **filters)
 
         if exclude_fields:
-            result = result.exclude(*exclude_fields)
+            try:
+                result = result.exclude(*exclude_fields)
+            except (mongoengine.errors.LookUpError, AttributeError) as e:
+                field = get_field_name_from_mongoengine_error(e)
+                msg = ('Invalid or unsupported exclude attribute specified: %s' % field)
+                raise ValueError(msg)
 
         if only_fields:
             try:
                 result = result.only(*only_fields)
-            except mongoengine.errors.LookUpError as e:
-                msg = ('Invalid or unsupported include attribute specified: %s' % str(e))
+            except (mongoengine.errors.LookUpError, AttributeError) as e:
+                field = get_field_name_from_mongoengine_error(e)
+                msg = ('Invalid or unsupported include attribute specified: %s' % field)
                 raise ValueError(msg)
 
         if no_dereference:
@@ -431,8 +439,8 @@ class MongoDBAccess(object):
         instance = self.model.objects.insert(instance)
         return self._undo_dict_field_escape(instance)
 
-    def add_or_update(self, instance):
-        instance.save()
+    def add_or_update(self, instance, validate=True):
+        instance.save(validate=validate)
         return self._undo_dict_field_escape(instance)
 
     def update(self, instance, **kwargs):
@@ -538,8 +546,8 @@ class ChangeRevisionMongoDBAccess(MongoDBAccess):
 
         return self._undo_dict_field_escape(instance)
 
-    def add_or_update(self, instance):
-        return self.save(instance)
+    def add_or_update(self, instance, validate=True):
+        return self.save(instance, validate=validate)
 
     def update(self, instance, **kwargs):
         for k, v in six.iteritems(kwargs):
@@ -547,14 +555,14 @@ class ChangeRevisionMongoDBAccess(MongoDBAccess):
 
         return self.save(instance)
 
-    def save(self, instance):
+    def save(self, instance, validate=True):
         if not hasattr(instance, 'id') or not instance.id:
             return self.insert(instance)
         else:
             try:
                 save_condition = {'id': instance.id, 'rev': instance.rev}
                 instance.rev = instance.rev + 1
-                instance.save(save_condition=save_condition)
+                instance.save(save_condition=save_condition, validate=validate)
             except mongoengine.SaveConditionError:
                 raise db_exc.StackStormDBObjectWriteConflictError(instance)
 

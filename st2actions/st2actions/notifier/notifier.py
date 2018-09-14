@@ -22,7 +22,6 @@ from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
-from st2common.constants.action import LIVEACTION_STATUS_PAUSED
 from st2common.constants.action import LIVEACTION_FAILED_STATES
 from st2common.constants.action import LIVEACTION_COMPLETED_STATES
 from st2common.constants.triggers import INTERNAL_TRIGGER_TYPES
@@ -30,12 +29,11 @@ from st2common.models.api.trace import TraceContext
 from st2common.models.db.execution import ActionExecutionDB
 from st2common.persistence.action import Action
 from st2common.persistence.liveaction import LiveAction
-from st2common.persistence.policy import Policy
-from st2common import policies
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.execution import ActionExecution
+from st2common.services import policies as policy_service
 from st2common.services import trace as trace_service
-from st2common.services import workflows as wf_svc
+from st2common.services import workflows as workflow_service
 from st2common.transport import consumers
 from st2common.transport import utils as transport_utils
 from st2common.transport.reactor import TriggerDispatcher
@@ -55,7 +53,6 @@ __all__ = [
 
 LOG = logging.getLogger(__name__)
 
-ACTION_SENSOR_ENABLED = cfg.CONF.action_sensor.enable
 # XXX: Fix this nasty positional dependency.
 ACTION_TRIGGER_TYPE = INTERNAL_TRIGGER_TYPES['action'][0]
 NOTIFY_TRIGGER_TYPE = INTERNAL_TRIGGER_TYPES['action'][1]
@@ -79,28 +76,22 @@ class Notifier(consumers.MessageHandler):
     def process(self, execution_db):
         execution_id = str(execution_db.id)
         extra = {'execution': execution_db}
-        LOG.debug('Processing execution %s', execution_id, extra=extra)
+        LOG.debug('Processing action execution "%s".', execution_id, extra=extra)
 
-        if ('orquesta' in execution_db.context and
-                execution_db.status == LIVEACTION_STATUS_PAUSED):
-            wf_svc.handle_action_execution_pause(execution_db)
+        # Get the corresponding liveaction record.
+        liveaction_db = LiveAction.get_by_id(execution_db.liveaction['id'])
 
-        if execution_db.status not in LIVEACTION_COMPLETED_STATES:
-            LOG.debug('Skipping processing of execution %s since it\'s not in a completed state' %
-                      (execution_id), extra=extra)
-            return
+        if execution_db.status in LIVEACTION_COMPLETED_STATES:
+            # If the action execution is executed under an orquesta workflow, policies for the
+            # action execution will be applied by the workflow engine. A policy may affect the
+            # final state of the action execution thereby impacting the state of the workflow.
+            if not workflow_service.is_action_execution_under_workflow_context(execution_db):
+                policy_service.apply_post_run_policies(liveaction_db)
 
-        liveaction_id = execution_db.liveaction['id']
-        liveaction_db = LiveAction.get_by_id(liveaction_id)
-        self._apply_post_run_policies(liveaction_db=liveaction_db)
-
-        if liveaction_db.notify is not None:
-            self._post_notify_triggers(liveaction_db=liveaction_db, execution_db=execution_db)
+            if liveaction_db.notify is not None:
+                self._post_notify_triggers(liveaction_db=liveaction_db, execution_db=execution_db)
 
         self._post_generic_trigger(liveaction_db=liveaction_db, execution_db=execution_db)
-
-        if 'orquesta' in liveaction_db.context:
-            wf_svc.handle_action_execution_completion(execution_db)
 
     def _get_execution_for_liveaction(self, liveaction):
         execution = ActionExecution.get(liveaction__id=str(liveaction.id))
@@ -235,11 +226,19 @@ class Notifier(consumers.MessageHandler):
         return None
 
     def _post_generic_trigger(self, liveaction_db=None, execution_db=None):
-        if not ACTION_SENSOR_ENABLED:
+        if not cfg.CONF.action_sensor.enable:
             LOG.debug('Action trigger is disabled, skipping trigger dispatch...')
             return
 
         execution_id = str(execution_db.id)
+        extra = {'execution': execution_db}
+
+        target_statuses = cfg.CONF.action_sensor.emit_when
+        if execution_db.status not in target_statuses:
+            msg = 'Skip action execution "%s" because state "%s" is not in %s'
+            LOG.debug(msg % (execution_id, execution_db.status, target_statuses), extra=extra)
+            return
+
         payload = {'execution_id': execution_id,
                    'status': liveaction_db.status,
                    'start_timestamp': str(liveaction_db.start_timestamp),
@@ -257,25 +256,6 @@ class Notifier(consumers.MessageHandler):
                   ACTION_TRIGGER_TYPE['name'], liveaction_db.id, payload, trace_context)
         self._trigger_dispatcher.dispatch(self._action_trigger, payload=payload,
                                           trace_context=trace_context)
-
-    def _apply_post_run_policies(self, liveaction_db):
-        # Apply policies defined for the action.
-        policy_dbs = Policy.query(resource_ref=liveaction_db.action, enabled=True)
-        LOG.debug('Applying %s post_run policies' % (len(policy_dbs)))
-
-        for policy_db in policy_dbs:
-            driver = policies.get_driver(policy_db.ref,
-                                         policy_db.policy_type,
-                                         **policy_db.parameters)
-
-            try:
-                LOG.debug('Applying post_run policy "%s" (%s) for liveaction %s' %
-                          (policy_db.ref, policy_db.policy_type, str(liveaction_db.id)))
-                liveaction_db = driver.apply_after(liveaction_db)
-            except:
-                LOG.exception('An exception occurred while applying policy "%s".', policy_db.ref)
-
-        return liveaction_db
 
     def _get_runner_ref(self, action_ref):
         """

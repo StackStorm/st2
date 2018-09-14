@@ -59,12 +59,27 @@ class TestWorkflowExecution(unittest2.TestCase):
     def setUpClass(cls):
         cls.st2client = st2.Client(base_url='http://127.0.0.1')
 
-    def _execute_workflow(self, action, parameters=None):
+    def _execute_workflow(self, action, parameters=None, execute_async=True,
+                          expected_status=None, expected_result=None):
+
         ex = models.LiveAction(action=action, parameters=(parameters or {}))
         ex = self.st2client.liveactions.create(ex)
         self.assertIsNotNone(ex.id)
         self.assertEqual(ex.action['ref'], action)
         self.assertIn(ex.status, LIVEACTION_LAUNCHED_STATUSES)
+
+        if execute_async:
+            return ex
+
+        if expected_status is None:
+            expected_status = action_constants.LIVEACTION_STATUS_SUCCEEDED
+
+        self.assertIn(expected_status, action_constants.LIVEACTION_STATUSES)
+
+        ex = self._wait_for_completion(ex)
+
+        self.assertEqual(ex.status, expected_status)
+        self.assertDictEqual(ex.result, expected_result)
 
         return ex
 
@@ -85,8 +100,8 @@ class TestWorkflowExecution(unittest2.TestCase):
         except:
             if ex.status in action_constants.LIVEACTION_COMPLETED_STATES:
                 raise Exception(
-                    'Execution is in completed state and does not '
-                    'match expected state(s).'
+                    'Execution is in completed state "%s" and '
+                    'does not match expected state(s).' % ex.status
                 )
             else:
                 raise
@@ -110,12 +125,22 @@ class TestWorkflowExecution(unittest2.TestCase):
 
         try:
             self.assertEqual(len(task_exs), num_task_exs)
+        except:
+            if ex.status in action_constants.LIVEACTION_COMPLETED_STATES:
+                raise Exception(
+                    'Execution is in completed state and does not '
+                    'match expected number of tasks.'
+                )
+            else:
+                raise
+
+        try:
             self.assertTrue(all([task_ex.status == status for task_ex in task_exs]))
         except:
             if ex.status in action_constants.LIVEACTION_COMPLETED_STATES:
                 raise Exception(
                     'Execution is in completed state and does not '
-                    'match expected task.'
+                    'match expected task state(s).'
                 )
             else:
                 raise

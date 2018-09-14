@@ -197,7 +197,7 @@ MOCK_LIVEACTION_4_CHILD_1_OUTPUT_1 = {
 }
 
 MOCK_LIVEACTION_4_CHILD_1_OUTPUT_2 = {
-    'execution_id': 'mistral',
+    'execution_id': 'idmistralchild1',
     'timestamp': '1505732598',
     'output_type': 'stderr',
     'data': 'line mistral 5\n'
@@ -244,7 +244,7 @@ MOCK_LIVEACTION_4_CHILD_2_TIMED_OUT = {
 }
 
 MOCK_LIVEACTION_4_CHILD_2_OUTPUT_1 = {
-    'execution_id': 'idchild2',
+    'execution_id': 'idmistralchild2',
     'timestamp': '1505732598',
     'output_type': 'stdout',
     'data': 'line mistral 100\n'
@@ -532,6 +532,23 @@ Execution idfoo4 has completed (status=succeeded).
             MOCK_LIVEACTION_4_CHILD_1_1_OUTPUT_1,
             MOCK_LIVEACTION_4_CHILD_1_1_OUTPUT_2,
 
+            # Another execution has started, this output should not be included
+            MOCK_LIVEACTION_3_RUNNING,
+
+            # Child task 1 started running
+            MOCK_LIVEACTION_3_CHILD_1_RUNNING,
+
+            # Output produced by the child task
+            MOCK_LIVEACTION_3_CHILD_1_OUTPUT_1,
+            MOCK_LIVEACTION_3_CHILD_1_OUTPUT_2,
+
+            # Child task 1 finished
+            MOCK_LIVEACTION_3_CHILD_1_SUCCEEDED,
+
+            # Parent workflow task finished
+            MOCK_LIVEACTION_3_SUCCEDED,
+            # End another execution
+
             # Child task 1 has finished
             MOCK_LIVEACTION_4_CHILD_1_1_SUCCEEDED,
 
@@ -585,5 +602,56 @@ Child execution (task=task_2) idmistralchild2 has finished (status=timeout).
 
 Execution idfoo4 has completed (status=succeeded).
 """.lstrip()
+
+        self.assertEqual(stdout, expected_result)
+        self.assertEqual(stderr, '')
+
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(MOCK_LIVEACTION_4_CHILD_2_RUNNING),
+                                                     200, 'OK')))
+    @mock.patch('st2client.client.StreamManager', autospec=True)
+    def test_tail_child_execution_directly(self, mock_stream_manager):
+        argv = ['execution', 'tail', 'idfoo4']
+
+        MOCK_EVENTS = [
+            # Child task 2 started running
+            MOCK_LIVEACTION_4_CHILD_2_RUNNING,
+
+            # Output produced by child task
+            MOCK_LIVEACTION_4_CHILD_2_OUTPUT_1,
+
+            # Other executions should not interfere
+            # Child task 1 started running
+            MOCK_LIVEACTION_3_CHILD_1_RUNNING,
+
+            # Child task 1 finished (sub workflow)
+            MOCK_LIVEACTION_4_CHILD_1_SUCCEEDED,
+
+            # Child task 2 finished
+            MOCK_LIVEACTION_4_CHILD_2_TIMED_OUT
+        ]
+
+        mock_cls = mock.Mock()
+        mock_cls.listen = mock.Mock()
+        mock_listen_generator = mock.Mock()
+        mock_listen_generator.return_value = MOCK_EVENTS
+        mock_cls.listen.side_effect = mock_listen_generator
+        mock_stream_manager.return_value = mock_cls
+
+        self.assertEqual(self.shell.run(argv), 0)
+        self.assertEqual(mock_listen_generator.call_count, 1)
+
+        stdout = self.stdout.getvalue()
+        stderr = self.stderr.getvalue()
+
+        expected_result = """
+Child execution (task=task_2) idmistralchild2 has started.
+
+line mistral 100
+
+Child execution (task=task_2) idmistralchild2 has finished (status=timeout).
+""".lstrip()
+
         self.assertEqual(stdout, expected_result)
         self.assertEqual(stderr, '')

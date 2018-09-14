@@ -46,6 +46,10 @@ def format(dt, usec=True, offset=True):
     # pylint: disable=no-member
     if isinstance(dt, six.string_types):
         dt = parse(dt)
+    elif isinstance(dt, int):
+        # unix epoch
+        dt = datetime.datetime.fromtimestamp(dt)
+
     fmt = ISO8601_FORMAT_MICROSECOND if usec else ISO8601_FORMAT
     if offset:
         ost = dt.strftime('%z')

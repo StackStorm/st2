@@ -18,10 +18,12 @@ Mock classes for use in pack testing.
 """
 
 from __future__ import absolute_import
+
 from logging import RootLogger
 
 from mock import Mock
 
+from st2common.models.api.trace import TraceContext
 from st2reactor.container.sensor_wrapper import SensorService
 from st2tests.mocks.datastore import MockDatastoreService
 
@@ -70,6 +72,11 @@ class MockSensorService(SensorService):
         """
         return self._logger
 
+    def dispatch(self, trigger, payload=None, trace_tag=None):
+        trace_context = TraceContext(trace_tag=trace_tag) if trace_tag else None
+        return self.dispatch_with_context(trigger=trigger, payload=payload,
+                                          trace_context=trace_context)
+
     def dispatch_with_context(self, trigger, payload=None, trace_context=None):
         item = {
             'trigger': trigger,
@@ -77,3 +84,4 @@ class MockSensorService(SensorService):
             'trace_context': trace_context
         }
         self.dispatched_triggers.append(item)
+        return item

@@ -15,8 +15,11 @@
 
 import six
 
+from st2api.controllers.v1.rule_enforcements import RuleEnforcementController
 from st2tests.fixturesloader import FixturesLoader
-from tests import FunctionalTest
+
+from tests.base import FunctionalTest
+from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
 
 http_client = six.moves.http_client
 
@@ -27,16 +30,22 @@ TEST_FIXTURES = {
 FIXTURES_PACK = 'rule_enforcements'
 
 
-class TestRuleEnforcementController(FunctionalTest):
+class RuleEnforcementControllerTestCase(FunctionalTest,
+        APIControllerWithIncludeAndExcludeFilterTestCase):
+    get_all_path = '/v1/ruleenforcements'
+    controller_cls = RuleEnforcementController
+    include_attribute_field_name = 'enforced_at'
+    exclude_attribute_field_name = 'status'
 
     fixtures_loader = FixturesLoader()
 
     @classmethod
     def setUpClass(cls):
-        super(TestRuleEnforcementController, cls).setUpClass()
-        models = TestRuleEnforcementController.fixtures_loader.save_fixtures_to_db(
+        super(RuleEnforcementControllerTestCase, cls).setUpClass()
+        cls.models = RuleEnforcementControllerTestCase.fixtures_loader.save_fixtures_to_db(
             fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_FIXTURES)
-        TestRuleEnforcementController.ENFORCEMENT_1 = models['enforcements']['enforcement1.yaml']
+        RuleEnforcementControllerTestCase.ENFORCEMENT_1 = \
+            cls.models['enforcements']['enforcement1.yaml']
 
     def test_get_all(self):
         resp = self.app.get('/v1/ruleenforcements')
@@ -60,7 +69,7 @@ class TestRuleEnforcementController(FunctionalTest):
                          u'Limit, "-22" specified, must be a positive number.')
 
     def test_get_one_by_id(self):
-        e_id = str(TestRuleEnforcementController.ENFORCEMENT_1.id)
+        e_id = str(RuleEnforcementControllerTestCase.ENFORCEMENT_1.id)
         resp = self.app.get('/v1/ruleenforcements/%s' % e_id)
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertEqual(resp.json['id'], e_id)
@@ -97,3 +106,11 @@ class TestRuleEnforcementController(FunctionalTest):
         resp = self.app.get('/v1/ruleenforcements?enforced_at_lt=2015-12-01T21:49:01.000000Z')
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertEqual(len(resp.json), 1)
+
+    def _insert_mock_models(self):
+        enfrocement_ids = [enforcement['id'] for enforcement in
+                           self.models['enforcements'].values()]
+        return enfrocement_ids
+
+    def _delete_mock_models(self, object_ids):
+        pass
