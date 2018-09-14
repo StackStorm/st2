@@ -39,6 +39,8 @@
         is not yet supported. Set to False to skip verification.
       type: boolean
   output_schema:
+    output_path:
+      - body
     status_code:
       type: integer
     body:

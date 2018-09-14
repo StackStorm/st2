@@ -86,6 +86,7 @@
       required: false
       type: string
   output_schema:
+    output_path: []
     unmodeled:
       type: boolean
 - aliases:
@@ -172,5 +173,6 @@
       required: false
       type: string
   output_schema:
+    output_path: []
     unmodeled:
       type: boolean

@@ -4,6 +4,7 @@
   runner_package: winrm_runner
   runner_module: winrm_command_runner
   output_schema:
+    output_path: []
     unmodeled:
       type: boolean
   runner_parameters:
@@ -75,6 +76,7 @@
   runner_package: winrm_runner
   runner_module: winrm_ps_command_runner
   output_schema:
+    output_path: []
     unmodeled:
       type: boolean
   runner_parameters:
@@ -146,6 +148,7 @@
   runner_package: winrm_runner
   runner_module: winrm_ps_script_runner
   output_schema:
+    output_path: []
     unmodeled:
       type: boolean
   runner_parameters:

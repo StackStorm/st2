@@ -26,13 +26,17 @@ import six
 from mongoengine import ValidationError
 
 from st2common import log as logging
-from st2common.constants.action import LIVEACTION_STATUSES, LIVEACTION_STATUS_CANCELED
+from st2common.constants.action import (
+    LIVEACTION_STATUSES,
+    LIVEACTION_STATUS_CANCELED,
+    LIVEACTION_STATUS_SUCCEEDED,
+)
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.persistence.action import Action
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.runner import RunnerType
 from st2common.metrics.base import get_driver
-from st2common.util import action_output
+from st2common.util import output_schema
 
 LOG = logging.getLogger(__name__)
 
@@ -196,10 +200,15 @@ def update_liveaction_status(status=None, result=None, context=None, end_timesta
                          'to unknown status string. Unknown status is "%s"',
                          liveaction_db, status)
 
-    if result and cfg.CONF.system.validate_output_schema:
+    if result and cfg.CONF.system.validate_output_schema and status == LIVEACTION_STATUS_SUCCEEDED:
         action_db = get_action_by_ref(liveaction_db.action)
         runner_db = get_runnertype_by_name(action_db.runner_type['name'])
-        result, status = action_output.validate_output(runner_db, action_db, result, status)
+        result, status = output_schema.validate_output(
+            runner_db.output_schema,
+            action_db.output_schema,
+            result,
+            status
+        )
 
     # If liveaction_db status is set then we need to decrement the counter
     # because it is transitioning to a new state

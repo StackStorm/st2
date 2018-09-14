@@ -15,6 +15,8 @@
         finish in timeout seconds.
       type: integer
   output_schema:
+    output_path:
+      - stdout
     stdout:
       type: "string"
     stderr:

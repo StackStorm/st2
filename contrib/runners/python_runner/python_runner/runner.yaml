@@ -5,6 +5,8 @@
   name: python-script
   runner_module: python_runner
   output_schema:
+    output_path:
+      - result
     result:
       anyOf:
         - type: "object"

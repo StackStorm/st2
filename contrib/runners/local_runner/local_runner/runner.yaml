@@ -36,6 +36,8 @@
         finish in timeout seconds.
       type: integer
   output_schema:
+    output_path:
+      - stdout
     succeeded:
       type: boolean
     failed:
@@ -104,6 +106,8 @@
         finish in timeout seconds.
       type: integer
   output_schema:
+    output_path:
+      - stdout
     succeeded:
       type: boolean
     failed:

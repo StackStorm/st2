@@ -5,6 +5,8 @@
   runner_module: noop_runner
   runner_parameters: {}
   output_schema:
+    output_path:
+      - stdout
     stdout:
       anyOf:
         - type: "object"
