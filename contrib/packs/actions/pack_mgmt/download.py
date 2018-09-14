@@ -71,7 +71,7 @@ class DownloadGitRepoAction(Action):
                                         verify_ssl=verifyssl, force=force,
                                         proxy_config=self.proxy_config,
                                         force_permissions=True,
-                                        logger=self.logger)
+                                        logger=self.logger, deploy_key = deploykey)
             pack_url, pack_ref, pack_result = pack_result
             result[pack_ref] = pack_result
 

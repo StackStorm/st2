@@ -62,7 +62,8 @@ CURRENT_STACKSTROM_VERSION = get_stackstorm_version()
 
 
 def download_pack(pack, abs_repo_base='/opt/stackstorm/packs', verify_ssl=True, force=False,
-                  proxy_config=None, force_owner_group=True, force_permissions=True, logger=LOG):
+                  proxy_config=None, force_owner_group=True, force_permissions=True, logger=LOG,
+                  deploy_key=None):
     """
     Download the pack and move it to /opt/stackstorm/packs.
 
@@ -116,7 +117,7 @@ def download_pack(pack, abs_repo_base='/opt/stackstorm/packs', verify_ssl=True, 
 
             # 1. Clone / download the repo
             clone_repo(temp_dir=abs_local_path, repo_url=pack_url, verify_ssl=verify_ssl,
-                       ref=pack_version)
+                       ref=pack_version, deploy_key=deploy_key)
 
             pack_ref = get_pack_ref(pack_dir=abs_local_path)
             result[1] = pack_ref
@@ -138,7 +139,7 @@ def download_pack(pack, abs_repo_base='/opt/stackstorm/packs', verify_ssl=True, 
     return tuple(result)
 
 
-def clone_repo(temp_dir, repo_url, verify_ssl=True, ref='master'):
+def clone_repo(temp_dir, repo_url, verify_ssl=True, ref='master', deploy_key=None):
     # Switch to non-interactive mode
     os.environ['GIT_TERMINAL_PROMPT'] = '0'
     os.environ['GIT_ASKPASS'] = '/bin/echo'
@@ -146,6 +147,11 @@ def clone_repo(temp_dir, repo_url, verify_ssl=True, ref='master'):
     # Disable SSL cert checking if explictly asked
     if not verify_ssl:
         os.environ['GIT_SSL_NO_VERIFY'] = 'true'
+
+    # Set ssh key if given a deploy key
+    if deploy_key:
+        ssh_cmd = ' ssh -i %s ' % deploy_key
+        os.environ['GIT_SSH_COMMAND'] = ssh_cmd
 
     # Clone the repo from git; we don't use shallow copying
     # because we want the user to work with the repo in the
