@@ -37,7 +37,7 @@ LOG = logging.getLogger(__name__)
 
 def validate_action(action_api, runner_type_db=None):
     """
-    :param runner_type_db: RunnerTypeDB object belonging to this action. If not provided, it's 
+    :param runner_type_db: RunnerTypeDB object belonging to this action. If not provided, it's
                            retrieved from the database.
     :type runner_type_db: :class:`RunnerTypeDB`
     """
