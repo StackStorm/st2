@@ -28,33 +28,6 @@
       description: Username used to log-in.
       required: true
       type: string
-  output_schema:
-    output_path:
-      - stdout
-    stdout:
-      anyOf:
-        - type: "object"
-        - type: "string"
-        - type: "integer"
-        - type: "number"
-        - type: "boolean"
-        - type: "array"
-        - type: "null"
-    stderr:
-      anyOf:
-        - type: "object"
-        - type: "string"
-        - type: "integer"
-        - type: "number"
-        - type: "boolean"
-        - type: "array"
-        - type: "null"
-    return_code:
-      type: integer
-    succeeded:
-      type: boolean
-    failed:
-      type: boolean
 - aliases: []
   description: A remote execution runner that executes power shell scripts on Windows
     hosts.
@@ -88,30 +61,3 @@
       description: Username used to log-in.
       required: true
       type: string
-  output_schema:
-    output_path:
-      - stdout
-    stdout:
-      anyOf:
-        - type: "object"
-        - type: "string"
-        - type: "integer"
-        - type: "number"
-        - type: "boolean"
-        - type: "array"
-        - type: "null"
-    stderr:
-      anyOf:
-        - type: "object"
-        - type: "string"
-        - type: "integer"
-        - type: "number"
-        - type: "boolean"
-        - type: "array"
-        - type: "null"
-    return_code:
-      type: integer
-    succeeded:
-      type: boolean
-    failed:
-      type: boolean

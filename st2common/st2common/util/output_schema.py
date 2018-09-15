@@ -16,13 +16,13 @@ import sys
 import logging
 
 import jsonschema
+import traceback
 
 from st2common.util import schema
 from st2common.constants import action as action_constants
 
 
 LOG = logging.getLogger(__name__)
-PATH_KEY = 'output_path'
 
 
 def _validate_runner(runner_schema, result):
@@ -37,33 +37,31 @@ def _validate_runner(runner_schema, result):
     schema.validate(result, runner_schema, cls=schema.get_validator('custom'))
 
 
-def _validate_action(action_schema, result, output_path):
+def _validate_action(action_schema, result, output_key):
     LOG.debug('Validating action output: %s', action_schema)
-    final_result = result
-    output_path = action_schema.pop(PATH_KEY, output_path)
 
-    for key in output_path:
-        final_result = final_result[key]
+    final_result = result[output_key]
 
     action_schema = {
         "type": "object",
         "properties": action_schema,
         "additionalProperties": False
     }
+
     schema.validate(final_result, action_schema, cls=schema.get_validator('custom'))
 
 
-def validate_output(runner_schema, action_schema, result, status):
+def validate_output(runner_schema, action_schema, result, status, output_key):
     """ Validate output of action with runner and action schema.
     """
     try:
         LOG.debug('Validating action output: %s', result)
+        LOG.debug('Output Key: %s', output_key)
         if runner_schema:
-            output_path = runner_schema.pop(PATH_KEY, [])
             _validate_runner(runner_schema, result)
 
-        if action_schema:
-            _validate_action(action_schema, result, output_path)
+            if action_schema:
+                _validate_action(action_schema, result, output_key)
 
     except jsonschema.ValidationError as _:
         LOG.exception('Failed to validate output.')
@@ -83,7 +81,7 @@ def validate_output(runner_schema, action_schema, result, status):
         status = action_constants.LIVEACTION_STATUS_FAILED
         # include the error message and traceback to try and provide some hints.
         result = {
-            'traceback': str(tb),
+            'traceback': ''.join(traceback.format_tb(tb, 20)),
             'error': str(ex),
             'message': 'Error validating output. See error output for more details.',
         }

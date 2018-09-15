@@ -12,9 +12,8 @@
       default: []
       description: List of tasks to skip notifications for.
       type: array
+  output_key: published
   output_schema:
-    output_path:
-      - published
     published:
       type: "object"
     tasks:

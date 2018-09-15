@@ -60,9 +60,16 @@ class ExecutionResult(formatters.Formatter):
             for attr in attrs:
                 value = jsutil.get_value(entry, attr)
                 value = strutil.strip_carriage_returns(strutil.unescape(value))
+                # TODO: This check is inherently flawed since it will crash st2client
+                # if the leading character is objectish start and last character is objectish
+                # end but the string isn't supposed to be a object. Try/Except will catch
+                # this for now, but this should be improved.
                 if (isinstance(value, six.string_types) and len(value) > 0 and
                         value[0] in ['{', '['] and value[len(value) - 1] in ['}', ']']):
-                    new_value = ast.literal_eval(value)
+                    try:
+                        new_value = ast.literal_eval(value)
+                    except:
+                        new_value = value
                     if type(new_value) in [dict, list]:
                         value = new_value
                 if type(value) in [dict, list]:

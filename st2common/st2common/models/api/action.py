@@ -110,6 +110,11 @@ class RunnerTypeAPI(BaseAPI):
                 },
                 'additionalProperties': False
             },
+            "output_key": {
+                "description": "Default key to expect results to be published to.",
+                "type": "string",
+                "required": False
+            },
             "output_schema": {
                 "description": "Schema for the runner's output.",
                 "type": "object",
@@ -144,13 +149,14 @@ class RunnerTypeAPI(BaseAPI):
         runner_package = getattr(runner_type, 'runner_package', runner_type.runner_module)
         runner_module = str(runner_type.runner_module)
         runner_parameters = getattr(runner_type, 'runner_parameters', dict())
+        output_key = getattr(runner_type, 'output_key', None)
         output_schema = getattr(runner_type, 'output_schema', dict())
         query_module = getattr(runner_type, 'query_module', None)
 
         model = cls.model(name=name, description=description, enabled=enabled,
                           runner_package=runner_package, runner_module=runner_module,
                           runner_parameters=runner_parameters, output_schema=output_schema,
-                          query_module=query_module)
+                          query_module=query_module, output_key=output_key)
 
         return model
 

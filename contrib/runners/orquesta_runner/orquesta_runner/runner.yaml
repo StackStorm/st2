@@ -4,9 +4,8 @@
   enabled: true
   name: orquesta
   runner_module: orquesta_runner
+  output_key: output
   output_schema:
-    output_path:
-      - output
     errors:
       anyOf:
         - type: "object"

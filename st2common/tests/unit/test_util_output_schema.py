@@ -33,9 +33,6 @@ ACTION_RESULT = {
 }
 
 RUNNER_SCHEMA = {
-    'output_path': [
-        'output'
-    ],
     'output': {
         'type': 'object'
     },
@@ -73,6 +70,8 @@ ACTION_SCHEMA_FAIL = {
     },
 }
 
+OUTPUT_KEY = 'output'
+
 
 class OutputSchemaTestCase(unittest2.TestCase):
     def test_valid_schema(self):
@@ -80,7 +79,8 @@ class OutputSchemaTestCase(unittest2.TestCase):
             copy.deepcopy(RUNNER_SCHEMA),
             copy.deepcopy(ACTION_SCHEMA),
             copy.deepcopy(ACTION_RESULT),
-            LIVEACTION_STATUS_SUCCEEDED
+            LIVEACTION_STATUS_SUCCEEDED,
+            OUTPUT_KEY,
         )
 
         self.assertEqual(result, ACTION_RESULT)
@@ -91,7 +91,8 @@ class OutputSchemaTestCase(unittest2.TestCase):
             copy.deepcopy(RUNNER_SCHEMA_FAIL),
             copy.deepcopy(ACTION_SCHEMA),
             copy.deepcopy(ACTION_RESULT),
-            LIVEACTION_STATUS_SUCCEEDED
+            LIVEACTION_STATUS_SUCCEEDED,
+            OUTPUT_KEY,
         )
 
         expected_result = {
@@ -114,7 +115,8 @@ class OutputSchemaTestCase(unittest2.TestCase):
             copy.deepcopy(RUNNER_SCHEMA),
             copy.deepcopy(ACTION_SCHEMA_FAIL),
             copy.deepcopy(ACTION_RESULT),
-            LIVEACTION_STATUS_SUCCEEDED
+            LIVEACTION_STATUS_SUCCEEDED,
+            OUTPUT_KEY,
         )
 
         expected_result = {

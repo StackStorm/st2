@@ -207,7 +207,8 @@ def update_liveaction_status(status=None, result=None, context=None, end_timesta
             runner_db.output_schema,
             action_db.output_schema,
             result,
-            status
+            status,
+            runner_db.output_key,
         )
 
     # If liveaction_db status is set then we need to decrement the counter

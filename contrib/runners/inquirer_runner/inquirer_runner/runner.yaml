@@ -35,15 +35,3 @@
       required: true
       description: Time (in minutes) to wait before timing out the inquiry if no response is received
       type: integer
-  output_schema:
-    output_path: []
-    schema:
-      type: object
-    roles:
-      type: array
-    users: 
-      type: array
-    route:
-      type: string
-    ttl:
-      type: integer

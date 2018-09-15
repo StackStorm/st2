@@ -25,10 +25,7 @@
             "uniqueItems": true
         }
     },
-    "anyOf": [
-        { "type": "object" },
-        { "type": "array" }
-    ],
+    "type": "object",
     "properties": {
         "id": {
             "type": "string",
