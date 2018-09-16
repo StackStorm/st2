@@ -15,8 +15,8 @@
 import sys
 import logging
 
-import jsonschema
 import traceback
+import jsonschema
 
 from st2common.util import schema
 from st2common.constants import action as action_constants

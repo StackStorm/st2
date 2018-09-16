@@ -56,8 +56,7 @@ TEST_FIXTURES = {
         'action1.yaml',
         'async_action1.yaml',
         'async_action2.yaml',
-        'action-invalid-runner.yaml',
-        'action-with-output-schema.yaml'
+        'action-invalid-runner.yaml'
     ]
 }
 
@@ -91,9 +90,6 @@ class RunnerContainerTest(DbTestCase):
         RunnerContainerTest.async_action_db = models['actions']['async_action1.yaml']
         RunnerContainerTest.polling_async_action_db = models['actions']['async_action2.yaml']
         RunnerContainerTest.failingaction_db = models['actions']['action-invalid-runner.yaml']
-        RunnerContainerTest.schema_output_action_db = models['actions'][
-            'action-with-output-schema.yaml'
-        ]
 
     @classmethod
     def tearDownClass(cls):

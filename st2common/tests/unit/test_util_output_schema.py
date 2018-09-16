@@ -120,15 +120,12 @@ class OutputSchemaTestCase(unittest2.TestCase):
         )
 
         expected_result = {
-            'error':
-                "Additional properties are not allowed ('deep_output', 'output_2', "
-                "'output_1' were unexpected)\n\nFailed validating 'additionalProper"
-                "ties' in schema:\n    {'additionalProperties': False,\n     'prope"
-                "rties': {'not_a_key_you_have': {'type': 'string'}},\n     'type': "
-                "'object'}\n\nOn instance:\n    {'deep_output': {'deep_item_1': 'Ji"
-                "ndal'},\n     'output_1': 'Bobby',\n     'output_2': 5}",
-            'message': 'Error validating output. See error output for more details.'
+            'error': "Additional properties are not allowed",
+            'message': u'Error validating output. See error output for more details.'
         }
 
-        self.assertEqual(result, expected_result)
+        # To avoid random failures (especially in python3) this assert cant be
+        # exact since the parameters can be ordered differently per execution.
+        self.assertIn(expected_result['error'], result['error'])
+        self.assertEqual(result['message'], expected_result['message'])
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)

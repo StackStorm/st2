@@ -75,6 +75,7 @@ def _override_common_opts():
     packs_base_path = get_fixtures_packs_base_path()
     runners_base_path = get_fixtures_runners_base_path()
     CONF.set_override(name='base_path', override=packs_base_path, group='system')
+    CONF.set_override(name='validate_output_schema', override=True, group='system')
     CONF.set_override(name='system_packs_base_path', override=packs_base_path, group='content')
     CONF.set_override(name='packs_base_paths', override=packs_base_path, group='content')
     CONF.set_override(name='system_runners_base_path', override=runners_base_path, group='content')
