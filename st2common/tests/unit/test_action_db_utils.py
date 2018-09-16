@@ -90,6 +90,44 @@ class ActionDBUtilsTestCase(DbTestCase):
         self.assertEqual(liveaction, ActionDBUtilsTestCase.liveaction_db)
 
     @mock.patch.object(LiveActionPublisher, 'publish_state', mock.MagicMock())
+    def test_update_liveaction_with_incorrect_output_schema(self):
+        liveaction_db = LiveActionDB()
+        liveaction_db.status = 'initializing'
+        liveaction_db.start_timestamp = get_datetime_utc_now()
+        liveaction_db.action = ResourceReference(
+            name=ActionDBUtilsTestCase.action_db.name,
+            pack=ActionDBUtilsTestCase.action_db.pack).ref
+        params = {
+            'actionstr': 'foo',
+            'some_key_that_aint_exist_in_action_or_runner': 'bar',
+            'runnerint': 555
+        }
+        liveaction_db.parameters = params
+        runner = mock.MagicMock()
+        runner.output_schema = {
+            "notaparam": {
+                "type": "boolean"
+            }
+        }
+        liveaction_db.runner = runner
+        liveaction_db = LiveAction.add_or_update(liveaction_db)
+        origliveaction_db = copy.copy(liveaction_db)
+
+        now = get_datetime_utc_now()
+        status = 'succeeded'
+        result = 'Work is done.'
+        context = {'third_party_id': uuid.uuid4().hex}
+        newliveaction_db = action_db_utils.update_liveaction_status(
+            status=status, result=result, context=context, end_timestamp=now,
+            liveaction_id=liveaction_db.id)
+
+        self.assertEqual(origliveaction_db.id, newliveaction_db.id)
+        self.assertEqual(newliveaction_db.status, status)
+        self.assertEqual(newliveaction_db.result, result)
+        self.assertDictEqual(newliveaction_db.context, context)
+        self.assertEqual(newliveaction_db.end_timestamp, now)
+
+    @mock.patch.object(LiveActionPublisher, 'publish_state', mock.MagicMock())
     def test_update_liveaction_status(self):
         liveaction_db = LiveActionDB()
         liveaction_db.status = 'initializing'

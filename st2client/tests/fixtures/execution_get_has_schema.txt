@@ -16,5 +16,3 @@ result:
       3 packets transmitted, 3 received, 0% packet loss, time 1998ms
       rtt min/avg/max/mdev = 0.015/0.023/0.030/0.006 ms'
     succeeded: true
-
-** This action does not have an output_schema. Run again with --with-schema to see a suggested schema.

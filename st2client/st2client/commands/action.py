@@ -277,6 +277,10 @@ class ActionRunCommandMixin(object):
 
         # Display options
         task_list_arg_grp = root_arg_grp.add_argument_group()
+        task_list_arg_grp.add_argument('--with-schema',
+                                 default=False, action='store_true',
+                                 help=('Show schema_ouput suggestion with action.'))
+
         task_list_arg_grp.add_argument('--raw', action='store_true',
                                        help='Raw output, don\'t show sub-tasks for workflows.')
         task_list_arg_grp.add_argument('--show-tasks', action='store_true',
@@ -356,6 +360,7 @@ class ActionRunCommandMixin(object):
                 options = {'attributes': attr}
 
             options['json'] = args.json
+            options['with_schema'] = args.with_schema
             options['attribute_transform_functions'] = self.attribute_transform_functions
             self.print_output(instance, formatter, **options)
 
@@ -1003,6 +1008,7 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
         execution = self._get_execution_result(execution=execution,
                                                action_exec_mgr=action_exec_mgr,
                                                args=args, **kwargs)
+
         return execution
 
 

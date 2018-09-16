@@ -76,6 +76,8 @@ class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
         help_text='The action runner to use for executing the action.')
     parameters = stormbase.EscapedDynamicField(
         help_text='The specification for parameters for the action.')
+    output_schema = stormbase.EscapedDynamicField(
+        help_text='The schema for output of the action.')
     notify = me.EmbeddedDocumentField(NotificationSchema)
 
     meta = {

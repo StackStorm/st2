@@ -49,7 +49,13 @@ from st2common.models.db import db_setup, db_teardown, db_ensure_indexes
 from st2common.bootstrap.base import ResourceRegistrar
 from st2common.bootstrap.configsregistrar import ConfigsRegistrar
 from st2common.content.utils import get_packs_base_paths
+from st2common.content.loader import MetaLoader
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.persistence import execution as ex_db_access
+from st2common.persistence import workflow as wf_db_access
+from st2common.services import workflows as wf_svc
+from st2common.util import api as api_util
+from st2common.util import loader
 import st2common.models.db.rule as rule_model
 import st2common.models.db.rule_enforcement as rule_enforcement_model
 import st2common.models.db.sensor as sensor_model
@@ -62,11 +68,6 @@ import st2common.models.db.executionstate as executionstate_model
 import st2common.models.db.liveaction as liveaction_model
 import st2common.models.db.actionalias as actionalias_model
 import st2common.models.db.policy as policy_model
-from st2common.persistence import execution as ex_db_access
-from st2common.persistence import workflow as wf_db_access
-from st2common.services import workflows as wf_svc
-from st2common.util import api as api_util
-from st2common.util import loader
 import st2tests.config
 
 # Imports for backward compatibility (those classes have been moved to standalone modules)
@@ -118,6 +119,8 @@ TESTS_CONFIG_PATH = os.path.join(BASE_DIR, '../conf/st2.conf')
 
 
 class RunnerTestCase(unittest2.TestCase):
+    meta_loader = MetaLoader()
+
     def assertCommonSt2EnvVarsAvailableInEnv(self, env):
         """
         Method which asserts that the common ST2 environment variables are present in the provided
@@ -125,9 +128,13 @@ class RunnerTestCase(unittest2.TestCase):
         """
         for var_name in COMMON_ACTION_ENV_VARIABLES:
             self.assertTrue(var_name in env)
-
         self.assertEqual(env['ST2_ACTION_API_URL'], get_full_public_api_url())
         self.assertTrue(env[AUTH_TOKEN_ENV_VARIABLE_NAME] is not None)
+
+    def loader(self, path):
+        """ Load the runner config
+        """
+        return self.meta_loader.load(path)
 
 
 class BaseTestCase(TestCase):
