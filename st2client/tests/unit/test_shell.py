@@ -374,14 +374,6 @@ class ShellTestCase(base.BaseCLITestCase):
         ]
         self._validate_parser(args_list)
 
-    def test_workflow(self):
-        args_list = [
-            ['workflow', 'inspect', '--file', '/path/to/workflow/definition'],
-            ['workflow', 'inspect', '--action', 'mock.foobar']
-        ]
-
-        self._validate_parser(args_list)
-
     @mock.patch('sys.exit', mock.Mock())
     @mock.patch('st2client.shell.__version__', 'v2.8.0')
     def test_get_version_no_package_metadata_file_stable_version(self):
