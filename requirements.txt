@@ -8,7 +8,7 @@ eventlet==0.24.1
 flex==6.13.2
 git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper
 git+https://github.com/StackStorm/mongoengine.git@stackstorm_patched#egg=mongoengine
-git+https://github.com/StackStorm/orquesta.git@99ef681b500791ebe8945abab53ddba834c4559d#egg=orquesta
+git+https://github.com/StackStorm/orquesta.git@v0.2#egg=orquesta
 git+https://github.com/StackStorm/python-mistralclient.git@st2-2.9.0#egg=python-mistralclient
 git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2-auth-backend-flat-file
 gitpython==2.1.11
