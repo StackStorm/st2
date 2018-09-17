@@ -102,6 +102,7 @@ class ExecutionResult(formatters.Formatter):
                 }
 
                 rendered_schema = yaml.safe_dump(rendered_schema, default_flow_style=False)
+                output += '\n'
                 output += _print_bordered(
                     "This action does not have an output schema defined. Based "
                     "on the action output the following inferred schema was built:"
