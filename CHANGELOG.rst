@@ -4,6 +4,11 @@ Changelog
 in development
 --------------
 
+Changed
+~~~~~~~
+
+* Triggertypes API now sorts by trigger ref by default. ``st2 trigger list`` will now show a sorted
+  list. (#4348)
 
 2.9.0 - September 16, 2018
 --------------------------
