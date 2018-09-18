@@ -133,8 +133,8 @@ else
     echo "OK!"
 fi
 
-echo -n "Attempting Example examples.orchestra-examples..."
-st2 run examples.orchestra-examples | grep "status" | grep -q "succeeded"
+echo -n "Attempting Example examples.orquesta-examples..."
+st2 run examples.orquesta-examples | grep "status" | grep -q "succeeded"
 if [ $? -ne 0 ]; then
     echo -e "ERROR!"
     ((ERRORS++))

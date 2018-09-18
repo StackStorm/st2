@@ -29,6 +29,7 @@ from pymongo.errors import ConnectionFailure
 
 from st2common import log as logging
 from st2common.util import isotime
+from st2common.util.misc import get_field_name_from_mongoengine_error
 from st2common.models.db import stormbase
 from st2common.models.utils.profiling import log_query_and_profile_data_for_queryset
 from st2common.exceptions import db as db_exc
@@ -54,13 +55,18 @@ MODEL_MODULE_NAMES = [
     'st2common.models.db.sensor',
     'st2common.models.db.trace',
     'st2common.models.db.trigger',
-    'st2common.models.db.webhook'
+    'st2common.models.db.webhook',
+    'st2common.models.db.workflow'
 ]
 
 # A list of model names for which we don't perform extra index cleanup
 INDEX_CLEANUP_MODEL_NAMES_BLACKLIST = [
     'PermissionGrantDB'
 ]
+
+# Reference to DB model classes used for db_ensure_indexes
+# NOTE: This variable is populated lazily inside get_model_classes()
+MODEL_CLASSES = None
 
 
 def get_model_classes():
@@ -69,13 +75,19 @@ def get_model_classes():
 
     :rtype: ``list``
     """
+    global MODEL_CLASSES
+
+    if MODEL_CLASSES:
+        return MODEL_CLASSES
+
     result = []
     for module_name in MODEL_MODULE_NAMES:
         module = importlib.import_module(module_name)
         model_classes = getattr(module, 'MODELS', [])
         result.extend(model_classes)
 
-    return result
+    MODEL_CLASSES = result
+    return MODEL_CLASSES
 
 
 def _db_connect(db_name, db_host, db_port, username=None, password=None,
@@ -116,7 +128,7 @@ def _db_connect(db_name, db_host, db_port, username=None, password=None,
 
     # NOTE: Since pymongo 3.0, connect() method is lazy and not blocking (always returns success)
     # so we need to issue a command / query to check if connection has been
-    # successfuly established.
+    # successfully established.
     # See http://api.mongodb.com/python/current/api/pymongo/mongo_client.html for details
     try:
         # The ismaster command is cheap and does not require auth
@@ -150,7 +162,7 @@ def db_setup(db_name, db_host, db_port, username=None, password=None, ensure_ind
     return connection
 
 
-def db_ensure_indexes():
+def db_ensure_indexes(model_classes=None):
     """
     This function ensures that indexes for all the models have been created and the
     extra indexes cleaned up.
@@ -160,9 +172,15 @@ def db_ensure_indexes():
 
     Note #2: This method blocks until all the index have been created (indexes
     are created in real-time and not in background).
+
+    :param model_classes: DB model classes to ensure indexes for. If not specified, indexes are
+                          ensured for all the models.
+    :type model_classes: ``list``
     """
     LOG.debug('Ensuring database indexes...')
-    model_classes = get_model_classes()
+
+    if not model_classes:
+        model_classes = get_model_classes()
 
     for model_class in model_classes:
         class_name = model_class.__name__
@@ -335,7 +353,7 @@ class MongoDBAccess(object):
         if only_fields:
             try:
                 instances = instances.only(*only_fields)
-            except mongoengine.errors.LookUpError as e:
+            except (mongoengine.errors.LookUpError, AttributeError) as e:
                 msg = ('Invalid or unsupported include attribute specified: %s' % str(e))
                 raise ValueError(msg)
 
@@ -384,13 +402,19 @@ class MongoDBAccess(object):
         result = self.model.objects(*args, **filters)
 
         if exclude_fields:
-            result = result.exclude(*exclude_fields)
+            try:
+                result = result.exclude(*exclude_fields)
+            except (mongoengine.errors.LookUpError, AttributeError) as e:
+                field = get_field_name_from_mongoengine_error(e)
+                msg = ('Invalid or unsupported exclude attribute specified: %s' % field)
+                raise ValueError(msg)
 
         if only_fields:
             try:
                 result = result.only(*only_fields)
-            except mongoengine.errors.LookUpError as e:
-                msg = ('Invalid or unsupported include attribute specified: %s' % str(e))
+            except (mongoengine.errors.LookUpError, AttributeError) as e:
+                field = get_field_name_from_mongoengine_error(e)
+                msg = ('Invalid or unsupported include attribute specified: %s' % field)
                 raise ValueError(msg)
 
         if no_dereference:
@@ -415,8 +439,8 @@ class MongoDBAccess(object):
         instance = self.model.objects.insert(instance)
         return self._undo_dict_field_escape(instance)
 
-    def add_or_update(self, instance):
-        instance.save()
+    def add_or_update(self, instance, validate=True):
+        instance.save(validate=validate)
         return self._undo_dict_field_escape(instance)
 
     def update(self, instance, **kwargs):
@@ -522,8 +546,8 @@ class ChangeRevisionMongoDBAccess(MongoDBAccess):
 
         return self._undo_dict_field_escape(instance)
 
-    def add_or_update(self, instance):
-        return self.save(instance)
+    def add_or_update(self, instance, validate=True):
+        return self.save(instance, validate=validate)
 
     def update(self, instance, **kwargs):
         for k, v in six.iteritems(kwargs):
@@ -531,14 +555,14 @@ class ChangeRevisionMongoDBAccess(MongoDBAccess):
 
         return self.save(instance)
 
-    def save(self, instance):
+    def save(self, instance, validate=True):
         if not hasattr(instance, 'id') or not instance.id:
             return self.insert(instance)
         else:
             try:
                 save_condition = {'id': instance.id, 'rev': instance.rev}
                 instance.rev = instance.rev + 1
-                instance.save(save_condition=save_condition)
+                instance.save(save_condition=save_condition, validate=validate)
             except mongoengine.SaveConditionError:
                 raise db_exc.StackStormDBObjectWriteConflictError(instance)
 

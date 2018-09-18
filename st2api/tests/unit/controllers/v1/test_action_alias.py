@@ -14,9 +14,12 @@
 # limitations under the License.
 
 from st2common.models.api.action import ActionAliasAPI
+from st2api.controllers.v1.actionalias import ActionAliasController
 
 from st2tests.fixturesloader import FixturesLoader
-from tests import FunctionalTest
+
+from tests.base import FunctionalTest
+from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
 
 FIXTURES_PACK = 'aliases'
 
@@ -35,7 +38,12 @@ TEST_LOAD_MODELS_GENERIC = {
 }
 
 
-class TestActionAlias(FunctionalTest):
+class ActionAliasControllerTestCase(FunctionalTest,
+                                    APIControllerWithIncludeAndExcludeFilterTestCase):
+    get_all_path = '/v1/actionalias'
+    controller_cls = ActionAliasController
+    include_attribute_field_name = 'formats'
+    exclude_attribute_field_name = 'result'
 
     models = None
     alias1 = None
@@ -45,7 +53,7 @@ class TestActionAlias(FunctionalTest):
 
     @classmethod
     def setUpClass(cls):
-        super(TestActionAlias, cls).setUpClass()
+        super(ActionAliasControllerTestCase, cls).setUpClass()
         cls.models = FixturesLoader().save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
                                                           fixtures_dict=TEST_MODELS)
         cls.alias1 = cls.models['aliases']['alias1.yaml']
@@ -182,6 +190,14 @@ class TestActionAlias(FunctionalTest):
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json.get('available'), 3)
         self.assertEqual(len(resp.json.get('helpstrings')), 1)
+
+    def _insert_mock_models(self):
+        alias_ids = [self.alias1['id'], self.alias2['id'], self.alias3['id'],
+                     self.alias3_generic['id']]
+        return alias_ids
+
+    def _delete_mock_models(self, object_ids):
+        return None
 
     def _do_post(self, actionalias, expect_errors=False):
         return self.app.post_json('/v1/actionalias', actionalias, expect_errors=expect_errors)

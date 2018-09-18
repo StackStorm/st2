@@ -1,0 +1,6 @@
+---
+name: orquesta-subworkflow
+description:  A basic workflow that runs another subworkflow.
+runner_type: orquesta
+entry_point: workflows/orquesta-subworkflow.yaml
+enabled: true

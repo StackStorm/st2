@@ -34,7 +34,8 @@ from st2common.models.db.webhook import WebhookDB
 from st2tests.fixturesloader import FixturesLoader
 from tests.base import APIControllerWithRBACTestCase
 
-from tests.unit.controllers.v1.test_webhooks import DUMMY_TRIGGER, DUMMY_TRIGGER_API
+from tests.unit.controllers.v1.test_webhooks import DUMMY_TRIGGER_DB
+from tests.unit.controllers.v1.test_webhooks import DUMMY_TRIGGER_API
 
 http_client = six.moves.http_client
 
@@ -161,7 +162,7 @@ class WebhookControllerRBACTestCase(APIControllerWithRBACTestCase):
 
         resp = self.app.get('/v1/webhooks/%s' % (webhook_id))
         self.assertEqual(resp.status_code, http_client.OK)
-        self.assertEqual(resp.json['ref'], DUMMY_TRIGGER.ref)
+        self.assertEqual(resp.json['ref'], DUMMY_TRIGGER_DB.ref)
 
         resp = self.app.get('/v1/webhooks', expect_errors=True)
         expected_msg = ('User "webhook_view" doesn\'t have required permission "webhook_list"')

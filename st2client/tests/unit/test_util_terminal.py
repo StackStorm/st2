@@ -29,6 +29,12 @@ __all__ = [
 
 
 class TerminalUtilsTestCase(unittest2.TestCase):
+    def setUp(self):
+        super(TerminalUtilsTestCase, self).setUp()
+
+        if 'COLUMNS' in os.environ:
+            del os.environ['COLUMNS']
+
     @mock.patch.dict(os.environ, {'LINES': '111', 'COLUMNS': '222'})
     def test_get_terminal_size_columns_columns_environment_variable_has_precedence(self):
         # Verify that COLUMNS environment variables has precedence over other approaches

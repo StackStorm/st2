@@ -42,7 +42,8 @@ FIXTURES_MANIFEST = {
     'executions': ['execution.json',
                    'execution_result_has_carriage_return.json',
                    'execution_unicode.json',
-                   'execution_with_stack_trace.json'],
+                   'execution_with_stack_trace.json',
+                   'execution_with_schema.json'],
     'results': ['execution_get_default.txt',
                 'execution_get_detail.txt',
                 'execution_get_result_by_key.txt',
@@ -53,12 +54,14 @@ FIXTURES_MANIFEST = {
                 'execution_list_empty_response_start_timestamp_attr.txt',
                 'execution_unescape_newline.txt',
                 'execution_unicode.txt',
-                'execution_unicode_py3.txt']
+                'execution_unicode_py3.txt',
+                'execution_get_has_schema.txt']
 }
 
 FIXTURES = loader.load_fixtures(fixtures_dict=FIXTURES_MANIFEST)
 EXECUTION = FIXTURES['executions']['execution.json']
 UNICODE = FIXTURES['executions']['execution_unicode.json']
+OUTPUT_SCHEMA = FIXTURES['executions']['execution_with_schema.json']
 NEWLINE = FIXTURES['executions']['execution_with_stack_trace.json']
 HAS_CARRIAGE_RETURN = FIXTURES['executions']['execution_result_has_carriage_return.json']
 
@@ -117,6 +120,11 @@ class TestExecutionResultFormatter(unittest2.TestCase):
         argv = ['execution', 'get', EXECUTION['id'], '-d']
         content = self._get_execution(argv)
         self.assertEqual(content, FIXTURES['results']['execution_get_detail.txt'])
+
+    def test_execution_with_schema(self):
+        argv = ['execution', 'get', OUTPUT_SCHEMA['id']]
+        content = self._get_schema_execution(argv)
+        self.assertEqual(content, FIXTURES['results']['execution_get_has_schema.txt'])
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
@@ -225,6 +233,17 @@ class TestExecutionResultFormatter(unittest2.TestCase):
         httpclient.HTTPClient, 'get',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps(EXECUTION), 200, 'OK', {})))
     def _get_execution(self, argv):
+        self.assertEqual(self.shell.run(argv), 0)
+        self._undo_console_redirect()
+        with open(self.path, 'r') as fd:
+            content = fd.read()
+
+        return content
+
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(OUTPUT_SCHEMA), 200, 'OK', {})))
+    def _get_schema_execution(self, argv):
         self.assertEqual(self.shell.run(argv), 0)
         self._undo_console_redirect()
         with open(self.path, 'r') as fd:

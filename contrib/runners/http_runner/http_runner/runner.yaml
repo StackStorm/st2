@@ -24,6 +24,7 @@
     password:
       description: Password required by basic authentication.
       type: string
+      secret: true
     url:
       description: URL to the HTTP endpoint.
       required: true
@@ -37,4 +38,20 @@
         CA bundle which comes from Mozilla. Verification using a custom CA bundle
         is not yet supported. Set to False to skip verification.
       type: boolean
-
+  output_key: body
+  output_schema:
+    status_code:
+      type: integer
+    body:
+      anyOf:
+        - type: "object"
+        - type: "string"
+        - type: "integer"
+        - type: "number"
+        - type: "boolean"
+        - type: "array"
+        - type: "null"
+    parsed:
+      type: boolean
+    headers:
+      type: object

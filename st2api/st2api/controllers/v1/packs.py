@@ -338,8 +338,11 @@ class PacksController(BasePacksController):
         super(PacksController, self).__init__()
         self.get_one_db_method = self._get_by_ref_or_id
 
-    def get_all(self, sort=None, offset=0, limit=None, requester_user=None, **raw_filters):
-        return super(PacksController, self)._get_all(sort=sort,
+    def get_all(self, exclude_attributes=None, include_attributes=None, sort=None, offset=0,
+                limit=None, requester_user=None, **raw_filters):
+        return super(PacksController, self)._get_all(exclude_fields=exclude_attributes,
+                                                     include_fields=include_attributes,
+                                                     sort=sort,
                                                      offset=offset,
                                                      limit=limit,
                                                      raw_filters=raw_filters,

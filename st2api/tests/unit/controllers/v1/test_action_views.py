@@ -18,7 +18,10 @@ import mock
 from st2common.content import utils as content_utils
 import st2common.validators.api.action as action_validator
 from st2common.util.compat import mock_open_name
+from st2api.controllers.v1.action_views import OverviewController
+
 from tests import FunctionalTest
+from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
 
 # ACTION_1: Good action definition.
 ACTION_1 = {
@@ -49,7 +52,13 @@ ACTION_2 = {
 }
 
 
-class TestActionViews(FunctionalTest):
+class ActionViewsOverviewControllerTestCase(FunctionalTest,
+                                            APIControllerWithIncludeAndExcludeFilterTestCase):
+    get_all_path = '/v1/actions/views/overview'
+    controller_cls = OverviewController
+    include_attribute_field_name = 'entry_point'
+    exclude_attribute_field_name = 'parameters'
+
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
     def test_get_one(self):
@@ -120,6 +129,24 @@ class TestActionViews(FunctionalTest):
             self._do_delete(action_1_id)
             self._do_delete(action_2_id)
 
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    def test_get_all_include_attributes_filter(self):
+        return super(ActionViewsOverviewControllerTestCase, self) \
+            .test_get_all_include_attributes_filter()
+
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    def test_get_all_exclude_attributes_filter(self):
+        return super(ActionViewsOverviewControllerTestCase, self) \
+            .test_get_all_include_attributes_filter()
+
+    def _insert_mock_models(self):
+        action_1_id = self._get_action_id(self._do_post(ACTION_1))
+        action_2_id = self._get_action_id(self._do_post(ACTION_2))
+
+        return [action_1_id, action_2_id]
+
     @staticmethod
     def _get_action_id(resp):
         return resp.json['id']
@@ -143,7 +170,7 @@ class TestActionViews(FunctionalTest):
         return self.app.delete('/v1/actions/%s' % action_id, expect_errors=expect_errors)
 
 
-class TestParametersView(FunctionalTest):
+class ActionViewsParametersControllerTestCase(FunctionalTest):
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
     def test_get_one(self):
@@ -156,7 +183,7 @@ class TestParametersView(FunctionalTest):
             self.app.delete('/v1/actions/%s' % action_id)
 
 
-class TestEntryPointView(FunctionalTest):
+class ActionEntryPointViewControllerTestCase(FunctionalTest):
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
     @mock.patch.object(content_utils, 'get_entry_point_abs_path', mock.MagicMock(
@@ -183,5 +210,53 @@ class TestEntryPointView(FunctionalTest):
         try:
             get_resp = self.app.get('/v1/actions/views/entry_point/%s' % action_ref)
             self.assertEqual(get_resp.status_int, 200)
+        finally:
+            self.app.delete('/v1/actions/%s' % action_id)
+
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    @mock.patch.object(content_utils, 'get_entry_point_abs_path', mock.MagicMock(
+        return_value='/path/to/file.yaml'))
+    @mock.patch(mock_open_name, mock.mock_open(read_data='file content'), create=True)
+    def test_get_one_ref_yaml_content_type(self):
+        post_resp = self.app.post_json('/v1/actions', ACTION_1)
+        action_id = post_resp.json['id']
+        action_ref = '.'.join((post_resp.json['pack'], post_resp.json['name']))
+        try:
+            get_resp = self.app.get('/v1/actions/views/entry_point/%s' % action_ref)
+            self.assertEqual(get_resp.status_int, 200)
+            self.assertEqual(get_resp.headers['Content-Type'], 'application/x-yaml')
+        finally:
+            self.app.delete('/v1/actions/%s' % action_id)
+
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    @mock.patch.object(content_utils, 'get_entry_point_abs_path', mock.MagicMock(
+        return_value=__file__.replace('.pyc', '.py')))
+    @mock.patch(mock_open_name, mock.mock_open(read_data='file content'), create=True)
+    def test_get_one_ref_python_content_type(self):
+        post_resp = self.app.post_json('/v1/actions', ACTION_1)
+        action_id = post_resp.json['id']
+        action_ref = '.'.join((post_resp.json['pack'], post_resp.json['name']))
+        try:
+            get_resp = self.app.get('/v1/actions/views/entry_point/%s' % action_ref)
+            self.assertEqual(get_resp.status_int, 200)
+            self.assertEqual(get_resp.headers['Content-Type'], 'application/x-python')
+        finally:
+            self.app.delete('/v1/actions/%s' % action_id)
+
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    @mock.patch.object(content_utils, 'get_entry_point_abs_path', mock.MagicMock(
+        return_value='/file/does/not/exist'))
+    @mock.patch(mock_open_name, mock.mock_open(read_data='file content'), create=True)
+    def test_get_one_ref_text_plain_content_type(self):
+        post_resp = self.app.post_json('/v1/actions', ACTION_1)
+        action_id = post_resp.json['id']
+        action_ref = '.'.join((post_resp.json['pack'], post_resp.json['name']))
+        try:
+            get_resp = self.app.get('/v1/actions/views/entry_point/%s' % action_ref)
+            self.assertEqual(get_resp.status_int, 200)
+            self.assertEqual(get_resp.headers['Content-Type'], 'text/plain')
         finally:
             self.app.delete('/v1/actions/%s' % action_id)

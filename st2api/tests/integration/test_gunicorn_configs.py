@@ -41,7 +41,7 @@ class GunicornWSGIEntryPointTestCase(IntegrationTestCase):
         process = subprocess.Popen(cmd, env=env, shell=True, preexec_fn=os.setsid)
         try:
             self.add_process(process=process)
-            eventlet.sleep(10)
+            eventlet.sleep(8)
             self.assertProcessIsRunning(process=process)
             response = requests.get('http://127.0.0.1:%s/v1/actions' % (port))
             self.assertEqual(response.status_code, http_client.OK)
@@ -57,7 +57,7 @@ class GunicornWSGIEntryPointTestCase(IntegrationTestCase):
         process = subprocess.Popen(cmd, env=env, shell=True, preexec_fn=os.setsid)
         try:
             self.add_process(process=process)
-            eventlet.sleep(10)
+            eventlet.sleep(8)
             self.assertProcessIsRunning(process=process)
             response = requests.post('http://127.0.0.1:%s/tokens' % (port))
             self.assertEqual(response.status_code, http_client.UNAUTHORIZED)

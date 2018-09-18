@@ -1,0 +1,6 @@
+---
+name: orquesta-ask-basic
+description: A basic workflow that demonstrates inquiry.
+runner_type: orquesta
+entry_point: workflows/orquesta-ask-basic.yaml
+enabled: true

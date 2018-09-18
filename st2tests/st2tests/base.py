@@ -14,6 +14,8 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+from __future__ import print_function
+
 try:
     import simplejson as json
 except ImportError:
@@ -33,9 +35,10 @@ from oslo_config import cfg
 from unittest2 import TestCase
 import unittest2
 
-from orchestra import conducting
-from orchestra.specs import loader as specs_loader
-from orchestra import states as wf_lib_states
+from orquesta import conducting
+from orquesta import events
+from orquesta.specs import loader as specs_loader
+from orquesta import states as wf_lib_states
 
 from st2common.util.api import get_full_public_api_url
 from st2common.constants import action as ac_const
@@ -46,7 +49,13 @@ from st2common.models.db import db_setup, db_teardown, db_ensure_indexes
 from st2common.bootstrap.base import ResourceRegistrar
 from st2common.bootstrap.configsregistrar import ConfigsRegistrar
 from st2common.content.utils import get_packs_base_paths
+from st2common.content.loader import MetaLoader
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.persistence import execution as ex_db_access
+from st2common.persistence import workflow as wf_db_access
+from st2common.services import workflows as wf_svc
+from st2common.util import api as api_util
+from st2common.util import loader
 import st2common.models.db.rule as rule_model
 import st2common.models.db.rule_enforcement as rule_enforcement_model
 import st2common.models.db.sensor as sensor_model
@@ -59,11 +68,6 @@ import st2common.models.db.executionstate as executionstate_model
 import st2common.models.db.liveaction as liveaction_model
 import st2common.models.db.actionalias as actionalias_model
 import st2common.models.db.policy as policy_model
-from st2common.persistence import execution as ex_db_access
-from st2common.persistence import workflow as wf_db_access
-from st2common.services import workflows as wf_svc
-from st2common.util import api as api_util
-from st2common.util import loader
 import st2tests.config
 
 # Imports for backward compatibility (those classes have been moved to standalone modules)
@@ -115,6 +119,8 @@ TESTS_CONFIG_PATH = os.path.join(BASE_DIR, '../conf/st2.conf')
 
 
 class RunnerTestCase(unittest2.TestCase):
+    meta_loader = MetaLoader()
+
     def assertCommonSt2EnvVarsAvailableInEnv(self, env):
         """
         Method which asserts that the common ST2 environment variables are present in the provided
@@ -122,9 +128,13 @@ class RunnerTestCase(unittest2.TestCase):
         """
         for var_name in COMMON_ACTION_ENV_VARIABLES:
             self.assertTrue(var_name in env)
-
         self.assertEqual(env['ST2_ACTION_API_URL'], get_full_public_api_url())
         self.assertTrue(env[AUTH_TOKEN_ENV_VARIABLE_NAME] is not None)
+
+    def loader(self, path):
+        """ Load the runner config
+        """
+        return self.meta_loader.load(path)
 
 
 class BaseTestCase(TestCase):
@@ -175,6 +185,14 @@ class EventletTestCase(TestCase):
 
 
 class BaseDbTestCase(BaseTestCase):
+    # True to synchronously ensure indexes after db_setup is called - NOTE: This is only needed
+    # with older MongoDB versions. With recent versions this is not needed for the tests anymore
+    # and offers significant test speeds ups.
+    ensure_indexes = False
+
+    # A list of models to ensure indexes for when ensure_indexes is True. If not specified, it
+    # defaults to all the models
+    ensure_indexes_models = []
 
     # Set to True to enable printing of all the log messages to the console
     DISPLAY_LOG_MESSAGES = False
@@ -195,30 +213,47 @@ class BaseDbTestCase(BaseTestCase):
         cls.db_connection = db_setup(
             cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
             username=username, password=password, ensure_indexes=False)
+
         cls._drop_collections()
         cls.db_connection.drop_database(cfg.CONF.database.db_name)
 
-        # Explicity ensure indexes after we re-create the DB otherwise ensure_indexes could failure
-        # inside db_setup if test inserted invalid data
-        db_ensure_indexes()
+        # Explicitly ensure indexes after we re-create the DB otherwise ensure_indexes could failure
+        # inside db_setup if test inserted invalid data.
+        # NOTE: This is only needed in distributed scenarios (production deployments) where
+        # multiple services can start up at the same time and race conditions are possible.
+        if cls.ensure_indexes:
+            if len(cls.ensure_indexes_models) == 0 or len(cls.ensure_indexes_models) > 1:
+                msg = ('Ensuring indexes for all the models, this could significantly slow down '
+                       'the tests')
+                print('#' * len(msg), file=sys.stderr)
+                print(msg, file=sys.stderr)
+                print('#' * len(msg), file=sys.stderr)
+
+            db_ensure_indexes(cls.ensure_indexes_models)
 
     @classmethod
     def _drop_db(cls):
         cls._drop_collections()
+
         if cls.db_connection is not None:
             cls.db_connection.drop_database(cfg.CONF.database.db_name)
+
         db_teardown()
         cls.db_connection = None
 
     @classmethod
     def _drop_collections(cls):
-        # XXX: Explicitly drop all the collection. Otherwise, artifacts are left over in
+        # XXX: Explicitly drop all the collections. Otherwise, artifacts are left over in
         # subsequent tests.
         # See: https://github.com/MongoEngine/mongoengine/issues/566
         # See: https://github.com/MongoEngine/mongoengine/issues/565
-        global ALL_MODELS
-        for model in ALL_MODELS:
-            model.drop_collection()
+
+        # NOTE: In older MongoDB versions you needed to drop all the collections prior to dropping
+        # the database - that's not needed anymore with the WiredTiger engine
+
+        # for model in ALL_MODELS:
+        #     model.drop_collection()
+        return
 
 
 class DbTestCase(BaseDbTestCase):
@@ -535,10 +570,11 @@ class WorkflowTestCase(DbTestCase):
         }
 
         conductor = conducting.WorkflowConductor.deserialize(data)
-        conductor.set_workflow_state(wf_lib_states.RUNNING)
+        conductor.request_workflow_state(wf_lib_states.RUNNING)
 
         for task in conductor.get_start_tasks():
-            conductor.update_task_flow(task['id'], wf_lib_states.RUNNING)
+            ac_ex_event = events.ActionExecutionEvent(wf_lib_states.RUNNING)
+            conductor.update_task_flow(task['id'], ac_ex_event)
 
         wf_ex_db.status = conductor.get_workflow_state()
         wf_ex_db.flow = conductor.flow.serialize()

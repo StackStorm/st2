@@ -545,6 +545,42 @@ class ConfigManager(ResourceManager):
         return instance
 
 
+class WebhookManager(ResourceManager):
+    def __init__(self, resource, endpoint, cacert=None, debug=False):
+        self.resource = resource
+        self.debug = debug
+        self.client = httpclient.HTTPClient(root=endpoint, cacert=cacert, debug=debug)
+
+    @add_auth_token_to_kwargs_from_env
+    def post_generic_webhook(self, trigger, payload=None, trace_tag=None, **kwargs):
+        url = '/webhooks/st2'
+
+        headers = {}
+        data = {
+            'trigger': trigger,
+            'payload': payload or {}
+        }
+
+        if trace_tag:
+            headers['St2-Trace-Tag'] = trace_tag
+
+        response = self.client.post(url, data=data, headers=headers, **kwargs)
+
+        if response.status_code != http_client.OK:
+            self.handle_error(response)
+
+        return response.json()
+
+    @add_auth_token_to_kwargs_from_env
+    def match(self, instance, **kwargs):
+        url = '/%s/match' % self.resource.get_url_path_name()
+        response = self.client.post(url, instance.serialize(), **kwargs)
+        if response.status_code != http_client.OK:
+            self.handle_error(response)
+        match = response.json()
+        return (self.resource.deserialize(match['actionalias']), match['representation'])
+
+
 class StreamManager(object):
     def __init__(self, endpoint, cacert, debug):
         self._url = httpclient.get_url_without_trailing_slash(endpoint) + '/stream'
@@ -583,3 +619,45 @@ class StreamManager(object):
                 continue
 
             yield json.loads(message.data)
+
+
+class WorkflowManager(object):
+    def __init__(self, endpoint, cacert, debug):
+        self.debug = debug
+        self.cacert = cacert
+        self.endpoint = endpoint + '/workflows'
+        self.client = httpclient.HTTPClient(root=self.endpoint, cacert=cacert, debug=debug)
+
+    @staticmethod
+    def handle_error(response):
+        try:
+            content = response.json()
+            fault = content.get('faultstring', '') if content else ''
+
+            if fault:
+                response.reason += '\nMESSAGE: %s' % fault
+        except Exception as e:
+            response.reason += (
+                '\nUnable to retrieve detailed message '
+                'from the HTTP response. %s\n' % str(e)
+            )
+
+        response.raise_for_status()
+
+    def inspect(self, definition, **kwargs):
+        url = '/inspect'
+
+        if not isinstance(definition, six.string_types):
+            raise TypeError('Workflow definition is not type of string.')
+
+        if 'headers' not in kwargs:
+            kwargs['headers'] = {}
+
+        kwargs['headers']['content-type'] = 'text/plain'
+
+        response = self.client.post_raw(url, definition, **kwargs)
+
+        if response.status_code != http_client.OK:
+            self.handle_error(response)
+
+        return response.json()

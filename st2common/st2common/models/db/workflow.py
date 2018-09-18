@@ -71,6 +71,7 @@ class TaskExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionField
     meta = {
         'indexes': [
             {'fields': ['workflow_execution']},
+            {'fields': ['task_id']},
             {'fields': ['workflow_execution', 'task_id']}
         ]
     }

@@ -109,7 +109,21 @@ class RunnerTypeAPI(BaseAPI):
                     "^\w+$": util_schema.get_action_parameters_schema()
                 },
                 'additionalProperties': False
-            }
+            },
+            "output_key": {
+                "description": "Default key to expect results to be published to.",
+                "type": "string",
+                "required": False
+            },
+            "output_schema": {
+                "description": "Schema for the runner's output.",
+                "type": "object",
+                "patternProperties": {
+                    "^\w+$": util_schema.get_action_output_schema()
+                },
+                'additionalProperties': False,
+                "default": {}
+            },
         },
         "additionalProperties": False
     }
@@ -135,12 +149,14 @@ class RunnerTypeAPI(BaseAPI):
         runner_package = getattr(runner_type, 'runner_package', runner_type.runner_module)
         runner_module = str(runner_type.runner_module)
         runner_parameters = getattr(runner_type, 'runner_parameters', dict())
+        output_key = getattr(runner_type, 'output_key', None)
+        output_schema = getattr(runner_type, 'output_schema', dict())
         query_module = getattr(runner_type, 'query_module', None)
 
         model = cls.model(name=name, description=description, enabled=enabled,
                           runner_package=runner_package, runner_module=runner_module,
-                          runner_parameters=runner_parameters,
-                          query_module=query_module)
+                          runner_parameters=runner_parameters, output_schema=output_schema,
+                          query_module=query_module, output_key=output_key)
 
         return model
 
@@ -206,6 +222,15 @@ class ActionAPI(BaseAPI, APIUIDMixin):
                 'additionalProperties': False,
                 "default": {}
             },
+            "output_schema": {
+                "description": "Schema for the action's output.",
+                "type": "object",
+                "patternProperties": {
+                    "^\w+$": util_schema.get_action_output_schema()
+                },
+                'additionalProperties': False,
+                "default": {}
+            },
             "tags": {
                 "description": "User associated metadata assigned to this object.",
                 "type": "array",
@@ -236,7 +261,7 @@ class ActionAPI(BaseAPI, APIUIDMixin):
     @classmethod
     def from_model(cls, model, mask_secrets=False):
         action = cls._from_model(model)
-        action['runner_type'] = action['runner_type']['name']
+        action['runner_type'] = action.get('runner_type', {}).get('name', None)
         action['tags'] = TagsHelper.from_model(model.tags)
 
         if getattr(model, 'notify', None):
@@ -253,6 +278,7 @@ class ActionAPI(BaseAPI, APIUIDMixin):
         pack = str(action.pack)
         runner_type = {'name': str(action.runner_type)}
         parameters = getattr(action, 'parameters', dict())
+        output_schema = getattr(action, 'output_schema', dict())
         tags = TagsHelper.to_model(getattr(action, 'tags', []))
         ref = ResourceReference.to_string_reference(pack=pack, name=name)
 
@@ -267,8 +293,8 @@ class ActionAPI(BaseAPI, APIUIDMixin):
 
         model = cls.model(name=name, description=description, enabled=enabled,
                           entry_point=entry_point, pack=pack, runner_type=runner_type,
-                          tags=tags, parameters=parameters, notify=notify,
-                          ref=ref)
+                          tags=tags, parameters=parameters, output_schema=output_schema,
+                          notify=notify, ref=ref)
 
         return model
 

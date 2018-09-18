@@ -1,0 +1,16 @@
+---
+name: orquesta-mock-create-vm
+description: A sample workflow that demonstrates forks and join.
+runner_type: orquesta
+entry_point: workflows/orquesta-mock-create-vm.yaml
+enabled: true
+parameters:
+  cpu_cores:
+    default: 1
+    type: integer
+  memory_mb:
+    default: 1024
+    type: integer
+  vm_name:
+    required: true
+    type: string

@@ -118,16 +118,16 @@ class InquiryAPI(BaseAPI):
         doc = cls._from_model(model, mask_secrets=mask_secrets)
 
         newdoc = {
-            "id": doc["id"],
-            "runner": doc["runner"],
-            "status": doc["status"],
-            "liveaction": doc["liveaction"],
-            "parent": doc.get("parent"),
-            "result": doc['result']
+            'id': doc['id'],
+            'runner': doc.get('runner', None),
+            'status': doc.get('status', None),
+            'liveaction': doc.get('liveaction', None),
+            'parent': doc.get('parent', None),
+            'result': doc.get('result', None)
         }
 
-        for field in ["route", "ttl", "users", "roles", "schema"]:
-            newdoc[field] = doc["result"].get(field)
+        for field in ['route', 'ttl', 'users', 'roles', 'schema']:
+            newdoc[field] = doc['result'].get(field, None)
 
         return cls(**newdoc)
 
