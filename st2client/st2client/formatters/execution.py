@@ -22,6 +22,7 @@ import struct
 import yaml
 
 from st2client import formatters
+from st2client.config import get_config
 from st2client.utils import jsutil
 from st2client.utils import strutil
 from st2client.utils.color import DisplayColors
@@ -95,20 +96,20 @@ class ExecutionResult(formatters.Formatter):
                     (DisplayColors.colorize(attr, DisplayColors.BLUE), value)
 
             output_schema = entry.get('action', {}).get('output_schema')
-
+            schema_check = get_config()['general']['silence_schema_output']
             if not output_schema and kwargs.get('with_schema'):
                 rendered_schema = {
                     'output_schema': schema.render_output_schema_from_output(entry['result'])
                 }
 
                 rendered_schema = yaml.safe_dump(rendered_schema, default_flow_style=False)
+                output += '\n'
                 output += _print_bordered(
-                    "This action does not have an output schema defined. Based "
-                    "on the action output the following inferred schema was built:"
+                    "Based on the action output the following inferred schema was built:"
                     "\n\n"
                     "%s" % rendered_schema
                 )
-            elif not output_schema:
+            elif not output_schema and not schema_check:
                 output += (
                     "\n\n** This action does not have an output_schema. "
                     "Run again with --with-schema to see a suggested schema."
