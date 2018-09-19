@@ -4,6 +4,12 @@ Changelog
 in development
 --------------
 
+Added
+~~~~~
+
+* Added ``-o`` and ``-m`` CLI options to ``st2-self-check`` script, to skip Orquesta and/or Mistral
+  tests (#4347)
+
 
 2.9.0 - September 16, 2018
 --------------------------
