@@ -127,7 +127,6 @@ def get_sandbox_python_path(inherit_from_parent=True, inherit_parent_virtualenv=
 
 def get_sandbox_python_path_for_python_action(pack, inherit_from_parent=True,
                                               inherit_parent_virtualenv=True):
-
     """
     Same as get_sandbox_python_path function, but it's intended to be used for Python runner actions
     and also takes into account if a pack virtual environment uses Python 3.
@@ -142,14 +141,16 @@ def get_sandbox_python_path_for_python_action(pack, inherit_from_parent=True,
     virtualenv_path = get_sandbox_virtualenv_path(pack=pack)
 
     pack_actions_lib_paths = os.path.join(pack_base_path, 'actions/lib/')
-    pack_virtualenv_lib_path = os.path.join(virtualenv_path, 'lib')
+
+    if not virtualenv_path:
+        return sandbox_python_path
 
     uses_python3, virtualenv_directories = is_pack_virtualenv_using_python3(pack=pack)
-
     if uses_python3:
         # Add Python 3 lib directory (lib/python3.x) in front of the PYTHONPATH. This way we avoid
         # issues with scripts trying to use packages / modules from Python 2.7 site-packages
         # directory instead of the versions from Python 3 stdlib.
+        pack_virtualenv_lib_path = os.path.join(virtualenv_path, 'lib')
         python3_lib_directory = os.path.join(pack_virtualenv_lib_path, virtualenv_directories[0])
 
         # Add Python 3 site-packages directory (lib/python3.x/site-packages) in front of the Python
@@ -167,6 +168,9 @@ def get_sandbox_python_path_for_python_action(pack, inherit_from_parent=True,
 def is_pack_virtualenv_using_python3(pack):
     """
     Return True if a particular pack virtual environment is used Python 3.
+
+    :return: (uses_python3_bool, virtualenv_directories)
+    :rtype: ``tuple``
     """
     # If python3.? directory exists in pack virtualenv lib/ path it means Python 3 is used by
     # that virtual environment and we take that in to account when constructing PYTHONPATH
@@ -174,9 +178,6 @@ def is_pack_virtualenv_using_python3(pack):
 
     if virtualenv_path and os.path.isdir(virtualenv_path):
         pack_virtualenv_lib_path = os.path.join(virtualenv_path, 'lib')
-
-        if not os.path.exists(pack_virtualenv_lib_path):
-            return False, None
 
         virtualenv_directories = os.listdir(pack_virtualenv_lib_path)
         virtualenv_directories = [dir_name for dir_name in virtualenv_directories if
