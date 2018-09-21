@@ -11,6 +11,7 @@ from st2common.util.sandboxing import get_sandbox_path
 from st2common.util.sandboxing import get_sandbox_python_path
 from st2common.util.sandboxing import get_sandbox_python_path_for_python_action
 from st2common.util.sandboxing import get_sandbox_python_binary_path
+from st2common.util.sandboxing import is_pack_virtualenv_using_python3
 
 import st2tests.config as tests_config
 
@@ -96,6 +97,8 @@ class SandboxingUtilsTestCase(unittest.TestCase):
     @mock.patch('st2common.util.sandboxing.get_python_lib')
     def test_get_sandbox_python_path_for_python_action_python2_used_for_venv(self,
             mock_get_python_lib):
+        self.assertFalse(is_pack_virtualenv_using_python3(pack='dummy_pack')[0])
+
         # No inheritance
         python_path = get_sandbox_python_path_for_python_action(pack='dummy_pack',
                                                                 inherit_from_parent=False,
@@ -135,6 +138,8 @@ class SandboxingUtilsTestCase(unittest.TestCase):
                 mock.Mock(return_value='/tmp/virtualenvs/dummy_pack'))
     def test_get_sandbox_python_path_for_python_action_python3_used_for_venv(self,
             mock_get_python_lib):
+        self.assertTrue(is_pack_virtualenv_using_python3(pack='dummy_pack')[0])
+
         # No inheritance
         python_path = get_sandbox_python_path_for_python_action(pack='dummy_pack',
                                                                 inherit_from_parent=False,
