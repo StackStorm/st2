@@ -34,6 +34,7 @@ __all__ = [
     'get_sandbox_python_binary_path',
     'get_sandbox_python_path',
     'get_sandbox_python_path_for_python_action',
+    'get_sandbox_python_path_for_python_sensor',
     'get_sandbox_path',
     'get_sandbox_virtualenv_path'
 ]
@@ -164,6 +165,48 @@ def get_sandbox_python_path_for_python_action(pack, inherit_from_parent=True,
                                                        'site-packages')
         sandbox_python_path = (python3_lib_directory + ':' + python3_site_packages_directory + ':' +
                                pack_actions_lib_paths + ':' + sandbox_python_path)
+
+    return sandbox_python_path
+
+
+def get_sandbox_python_path_for_python_sensor(pack, inherit_from_parent=True,
+                                              inherit_parent_virtualenv=True):
+    """
+    Same as get_sandbox_python_path function, but it's intended to be used for
+    Python sensors and also takes into account if a pack virtual environment uses Python 3.
+    """
+    sandbox_python_path = get_sandbox_python_path(
+        inherit_from_parent=inherit_from_parent,
+        inherit_parent_virtualenv=inherit_parent_virtualenv)
+
+    # If python3.? directory exists in pack virtualenv lib/ path it means Python 3 is used by
+    # that virtual environment and we take that in to account when constructing PYTHONPATH
+    virtualenv_path = get_sandbox_virtualenv_path(pack=pack)
+
+    if virtualenv_path and os.path.isdir(virtualenv_path):
+        pack_virtualenv_lib_path = os.path.join(virtualenv_path, 'lib')
+
+        virtualenv_directories = os.listdir(pack_virtualenv_lib_path)
+        virtualenv_directories = [dir_name for dir_name in virtualenv_directories if
+                                  fnmatch.fnmatch(dir_name, 'python3*')]
+        uses_python3 = bool(virtualenv_directories)
+    else:
+        uses_python3 = False
+
+    if uses_python3:
+        # Add Python 3 lib directory (lib/python3.x) in front of the PYTHONPATH. This way we avoid
+        # issues with scripts trying to use packages / modules from Python 2.7 site-packages
+        # directory instead of the versions from Python 3 stdlib.
+        python3_lib_directory = os.path.join(pack_virtualenv_lib_path, virtualenv_directories[0])
+
+        # Add Python 3 site-packages directory (lib/python3.x/site-packages) in front of the Python
+        # 2.7 system site-packages This is important because we want Python 3 compatible libraries
+        # to be used from the pack virtual environment and not system ones.
+        python3_site_packages_directory = os.path.join(pack_virtualenv_lib_path,
+                                                       virtualenv_directories[0],
+                                                       'site-packages')
+        sandbox_python_path = (python3_lib_directory + ':' + python3_site_packages_directory + ':' +
+                               sandbox_python_path)
 
     return sandbox_python_path
 
