@@ -178,6 +178,9 @@ def is_pack_virtualenv_using_python3(pack):
     if virtualenv_path and os.path.isdir(virtualenv_path):
         pack_virtualenv_lib_path = os.path.join(virtualenv_path, 'lib')
 
+        if not os.path.exists(pack_virtualenv_lib_path):
+            return False, None
+
         virtualenv_directories = os.listdir(pack_virtualenv_lib_path)
         virtualenv_directories = [dir_name for dir_name in virtualenv_directories if
                                   fnmatch.fnmatch(dir_name, 'python3*')]
