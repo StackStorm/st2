@@ -287,7 +287,7 @@ class ProcessSensorContainer(object):
             raise Exception(msg)
 
         # NOTE: Running sensors using Python 3 virtual environments is not supported
-        uses_python3 = is_pack_virtualenv_using_python3(pack=sensor['pack'])
+        uses_python3, _ = is_pack_virtualenv_using_python3(pack=sensor['pack'])
 
         if uses_python3:
             format_values = {'pack': sensor['pack'], 'virtualenv_path': virtualenv_path}

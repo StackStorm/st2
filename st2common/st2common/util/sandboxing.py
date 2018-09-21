@@ -141,16 +141,10 @@ def get_sandbox_python_path_for_python_action(pack, inherit_from_parent=True,
     pack_base_path = get_pack_base_path(pack_name=pack)
     virtualenv_path = get_sandbox_virtualenv_path(pack=pack)
 
-    if virtualenv_path and os.path.isdir(virtualenv_path):
-        pack_actions_lib_paths = os.path.join(pack_base_path, 'actions/lib/')
-        pack_virtualenv_lib_path = os.path.join(virtualenv_path, 'lib')
+    pack_actions_lib_paths = os.path.join(pack_base_path, 'actions/lib/')
+    pack_virtualenv_lib_path = os.path.join(virtualenv_path, 'lib')
 
-        virtualenv_directories = os.listdir(pack_virtualenv_lib_path)
-        virtualenv_directories = [dir_name for dir_name in virtualenv_directories if
-                                  fnmatch.fnmatch(dir_name, 'python3*')]
-        uses_python3 = bool(virtualenv_directories)
-    else:
-        uses_python3 = False
+    uses_python3, virtualenv_directories = is_pack_virtualenv_using_python3(pack=pack)
 
     if uses_python3:
         # Add Python 3 lib directory (lib/python3.x) in front of the PYTHONPATH. This way we avoid
@@ -176,8 +170,6 @@ def is_pack_virtualenv_using_python3(pack):
     """
     # If python3.? directory exists in pack virtualenv lib/ path it means Python 3 is used by
     # that virtual environment and we take that in to account when constructing PYTHONPATH
-    pack_base_path = get_pack_base_path(pack_name=pack)
-
     virtualenv_path = get_sandbox_virtualenv_path(pack=pack)
 
     if virtualenv_path and os.path.isdir(virtualenv_path):
@@ -189,8 +181,9 @@ def is_pack_virtualenv_using_python3(pack):
         uses_python3 = bool(virtualenv_directories)
     else:
         uses_python3 = False
+        virtualenv_directories = None
 
-    return uses_python3
+    return uses_python3, virtualenv_directories
 
 
 def get_sandbox_virtualenv_path(pack):
