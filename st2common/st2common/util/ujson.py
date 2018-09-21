@@ -17,7 +17,16 @@ from __future__ import absolute_import
 
 import copy
 
-import ujson
+try:
+    import ujson
+except ImportError as e:
+    # Special case when a pack is using Python 3 venv, but installation is
+    # running under Python 3
+    if '_Py_ZeroStruct' in str(e):
+        ujson = None
+    else:
+        raise e
+
 
 __all__ = [
     'fast_deepcopy'
@@ -34,6 +43,10 @@ def fast_deepcopy(value, fall_back_to_deepcopy=True):
     """
     # NOTE: ujson round-trip is up to 10 times faster on smaller and larger dicts compared
     # to copy.deepcopy(), but it has some edge cases with non-simple types such as datetimes -
+    if not ujson and fall_back_to_deepcopy:
+        value = copy.deepcopy(value)
+        return value
+
     try:
         value = ujson.loads(ujson.dumps(value))
     except (OverflowError, ValueError) as e:

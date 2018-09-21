@@ -39,7 +39,7 @@ from st2common.transport.reactor import TriggerDispatcher
 from st2common.util.api import get_full_public_api_url
 from st2common.util.pack import get_pack_common_libs_path_for_pack_ref
 from st2common.util.shell import on_parent_exit
-from st2common.util.sandboxing import get_sandbox_python_path
+from st2common.util.sandboxing import get_sandbox_python_path_for_python_sensor
 from st2common.util.sandboxing import get_sandbox_python_binary_path
 from st2common.util.sandboxing import get_sandbox_virtualenv_path
 
@@ -302,8 +302,10 @@ class ProcessSensorContainer(object):
         if sensor['poll_interval']:
             args.append('--poll-interval=%s' % (sensor['poll_interval']))
 
-        sandbox_python_path = get_sandbox_python_path(inherit_from_parent=True,
-                                                      inherit_parent_virtualenv=True)
+        sandbox_python_path = get_sandbox_python_path_for_python_sensor(
+                pack=sensor['pack'],
+                inherit_from_parent=True,
+                inherit_parent_virtualenv=True)
 
         if self._enable_common_pack_libs:
             pack_common_libs_path = get_pack_common_libs_path_for_pack_ref(pack_ref=pack_ref)
