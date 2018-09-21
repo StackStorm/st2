@@ -26,8 +26,9 @@ means, you can create a new virtual environment using the command:
 '''
 
 PACK_VIRTUALENV_USES_PYTHON3 = '''
-Virtual environment (%(virtualenv_path)s) for pack "%(pack)s" is using python3.
+Virtual environment (%(virtualenv_path)s) for pack "%(pack)s" is using Python 3.
 Using Python 3 virtual environments in mixed deployments is only supported for Python runner
 actions and not sensors. If you want to run this sensor, please re-recreate the
-virtualenv environment with python2 binary.
+virtual environment with python2 binary:
+"st2 run packs.setup_virtualenv packs=%(pack)s python3=false"
 '''
