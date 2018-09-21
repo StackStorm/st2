@@ -90,7 +90,12 @@ BASE_PACK_REQUIREMENTS = [
 # Python requirements which are common to all the packs and need to be installed
 # for Python 3 pack virtual environments to work
 BASE_PACK_PYTHON3_REQUIREMENTS = [
-    'pyyaml>=3.12,<4.0'
+    'pyyaml==3.13',
+    'pycrypto==2.6.1',
+    'greenlet==0.4.14',
+    'eventlet==0.24.1',
+    'kombu==4.2.1',
+    'typing'
 ]
 
 # Name of the pack manifest file
