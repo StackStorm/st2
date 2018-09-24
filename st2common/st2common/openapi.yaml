@@ -1313,7 +1313,6 @@ paths:
           in: context
           x-as: requester_user
           description: User performing the operation.
-      x-submit-metrics: false
       responses:
         '200':
           description: Execution attribute requested

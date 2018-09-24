@@ -11,6 +11,11 @@ Added
   tests (#4347)
 
 
+Changed
+~~~~~~~
+
+* Speed up pack registration through the ``/v1/packs/register`` API endpoint. (improvement) #4342
+
 2.9.0 - September 16, 2018
 --------------------------
 

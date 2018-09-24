@@ -5,6 +5,8 @@ pack: "packs"
 description: "Install/upgrade StackStorm packs."
 formats:
   - display: "pack install <pack>[,<pack>]"
+    representation:
+      - "pack install {{ packs }}"
   - display: "pack install <gitUrl>[,<gitUrl>]"
     representation:
       - "pack install {{ packs }}"
