@@ -360,6 +360,7 @@ class ActionRunCommandMixin(object):
                 options = {'attributes': attr}
 
             options['json'] = args.json
+            options['yaml'] = args.yaml
             options['with_schema'] = args.with_schema
             options['attribute_transform_functions'] = self.attribute_transform_functions
             self.print_output(instance, formatter, **options)
