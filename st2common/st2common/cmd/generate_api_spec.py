@@ -39,7 +39,6 @@ def setup():
 def generate_spec():
     spec_string = spec_loader.generate_spec('st2common', 'openapi.yaml.j2')
     print(spec_string)
-    spec_loader.load_spec('st2common', 'openapi.yaml.j2')
 
 
 def teartown():
