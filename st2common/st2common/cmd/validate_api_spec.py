@@ -111,9 +111,10 @@ def main():
     setup()
 
     try:
-        ret = validate_spec()
-    except Exception as e:
-        LOG.error(e.message)
+        spec_loader.load_spec('st2common', 'openapi.yaml.j2', allow_duplicate_keys=False)
+        ret = 0
+    except Exception:
+        LOG.error('Failed to validate openapi.yaml file', exc_info=True)
         ret = 1
     finally:
         teartown()

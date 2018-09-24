@@ -25,7 +25,6 @@ from st2common.util import spec_loader
 from st2common.script_setup import setup as common_setup
 from st2common.script_setup import teardown as common_teardown
 
-
 __all__ = [
     'main'
 ]
@@ -40,6 +39,7 @@ def setup():
 def generate_spec():
     spec_string = spec_loader.generate_spec('st2common', 'openapi.yaml.j2')
     print(spec_string)
+    spec_loader.load_spec('st2common', 'openapi.yaml.j2')
 
 
 def teartown():
@@ -52,8 +52,8 @@ def main():
     try:
         generate_spec()
         ret = 0
-    except Exception as e:
-        LOG.error(e.message)
+    except Exception:
+        LOG.error('Failed to generate openapi.yaml file', exc_info=True)
         ret = 1
     finally:
         teartown()
