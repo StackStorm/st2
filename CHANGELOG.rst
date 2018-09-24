@@ -7,6 +7,16 @@ in development
 Added
 ~~~~~
 
+* Added ``-o`` and ``-m`` CLI options to ``st2-self-check`` script, to skip Orquesta and/or Mistral
+  tests (#4347)
+
+
+2.9.0 - September 16, 2018
+--------------------------
+
+Added
+~~~~~
+
 * Add new runners: ``winrm-cmd``, ``winrm-ps-cmd`` and ``winrm-ps-script``.
   The ``winrm-cmd`` runner executes Command Prompt commands remotely on Windows hosts using the
   WinRM protocol. The ``winrm-ps-cmd`` and ``winrm-ps-script`` runners execute PowerShell commands

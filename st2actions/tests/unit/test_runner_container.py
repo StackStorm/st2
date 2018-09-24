@@ -425,3 +425,16 @@ class RunnerContainerTest(DbTestCase):
                                      action=action_ref, parameters=parameters,
                                      context=context)
         return liveaction_db
+
+    def _get_output_schema_exec_db_model(self, params):
+        status = action_constants.LIVEACTION_STATUS_REQUESTED
+        start_timestamp = date_utils.get_datetime_utc_now()
+        action_ref = ResourceReference(
+            name=RunnerContainerTest.schema_output_action_db.name,
+            pack=RunnerContainerTest.schema_output_action_db.pack).ref
+        parameters = params
+        context = {'user': cfg.CONF.system_user.user}
+        liveaction_db = LiveActionDB(status=status, start_timestamp=start_timestamp,
+                                     action=action_ref, parameters=parameters,
+                                     context=context)
+        return liveaction_db

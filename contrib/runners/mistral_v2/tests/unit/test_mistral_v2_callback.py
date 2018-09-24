@@ -54,9 +54,9 @@ PACKS = [
 ]
 
 if six.PY2:
-    NON_EMPTY_RESULT = 'non-empty'
+    NON_EMPTY_RESULT = '{"stdout": "non-empty"}'
 else:
-    NON_EMPTY_RESULT = u'non-empty'
+    NON_EMPTY_RESULT = u'{"stdout": "non-empty"}'
 
 
 @mock.patch.object(

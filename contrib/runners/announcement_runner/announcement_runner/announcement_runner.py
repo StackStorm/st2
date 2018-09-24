@@ -60,7 +60,13 @@ class AnnouncementRunner(ActionRunner):
         self._dispatcher.dispatch(self._route,
                                   payload=action_parameters,
                                   trace_context=trace_context)
-        return (LIVEACTION_STATUS_SUCCEEDED, action_parameters, None)
+
+        result = {
+            "output": action_parameters
+        }
+        result.update(action_parameters)
+
+        return (LIVEACTION_STATUS_SUCCEEDED, result, None)
 
 
 def get_runner():

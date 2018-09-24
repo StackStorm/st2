@@ -53,7 +53,8 @@ SCHEMAS = {
     'custom': jsonify.load_file(os.path.join(PATH, 'custom.json')),
 
     # Custom schema for action params which doesn't allow parameter "type" attribute to be array
-    'action_params': jsonify.load_file(os.path.join(PATH, 'action_params.json'))
+    'action_params': jsonify.load_file(os.path.join(PATH, 'action_params.json')),
+    'action_output_schema': jsonify.load_file(os.path.join(PATH, 'action_output_schema.json'))
 }
 
 SCHEMA_ANY_TYPE = {
@@ -81,6 +82,16 @@ def get_draft_schema(version='custom', additional_properties=False):
     if additional_properties and 'additionalProperties' in schema:
         del schema['additionalProperties']
     return schema
+
+
+def get_action_output_schema(additional_properties=True):
+    """
+    Return a generic schema which is used for validating action output.
+    """
+    return get_draft_schema(
+        version='action_output_schema',
+        additional_properties=additional_properties
+    )
 
 
 def get_action_parameters_schema(additional_properties=False):

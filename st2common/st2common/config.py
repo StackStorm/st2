@@ -111,7 +111,10 @@ def register_opts(ignore_errors=False):
         cfg.BoolOpt(
             'validate_trigger_payload', default=True,
             help='True to validate payload for non-system trigger types when dispatching a trigger '
-                 'inside the sensor. By default, only payload for system triggers is validated.')
+                 'inside the sensor. By default, only payload for system triggers is validated.'),
+        cfg.BoolOpt(
+            'validate_output_schema', default=False,
+            help='True to validate action and runner output against schema.')
     ]
 
     do_register_opts(system_opts, 'system', ignore_errors)
