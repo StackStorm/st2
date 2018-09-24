@@ -198,7 +198,7 @@ lint-api-spec: requirements .lint-api-spec
 generate-api-spec: requirements .generate-api-spec
 
 .PHONY: .generate-api-spec
-.generate-api-spec:
+.generate-api-spec: .lint-api-spec
 	@echo
 	@echo "================== Generate openapi.yaml file ===================="
 	@echo
