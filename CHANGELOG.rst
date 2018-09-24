@@ -4,7 +4,6 @@ Changelog
 in development
 --------------
 
-
 Changed
 ~~~~~~~
 
