@@ -10,6 +10,11 @@ Added
 * Added ``-o`` and ``-m`` CLI options to ``st2-self-check`` script, to skip Orquesta and/or Mistral
   tests (#4347)
 
+Changed
+~~~~~~~
+
+* Triggertypes API now sorts by trigger ref by default. ``st2 trigger list`` will now show a sorted
+  list. (#4348)
 
 Changed
 ~~~~~~~
