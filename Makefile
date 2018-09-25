@@ -192,13 +192,13 @@ lint-api-spec: requirements .lint-api-spec
 	@echo
 	@echo "================== Lint API spec ===================="
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; st2common/bin/st2-validate-api-spec
+	. $(VIRTUALENV_DIR)/bin/activate; st2common/bin/st2-validate-api-spec --config-file conf/st2.dev.conf 
 
 .PHONY: generate-api-spec
 generate-api-spec: requirements .generate-api-spec
 
 .PHONY: .generate-api-spec
-.generate-api-spec:
+.generate-api-spec: .lint-api-spec
 	@echo
 	@echo "================== Generate openapi.yaml file ===================="
 	@echo

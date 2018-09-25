@@ -13,12 +13,16 @@ Added
 Changed
 ~~~~~~~
 
+* Speed up pack registration through the ``/v1/packs/register`` API endpoint. (improvement) #4342
+* Triggertypes API now sorts by trigger ref by default. ``st2 trigger list`` will now show a sorted
+  list. (#4348)
 * Update ``st2sensorcontainer`` service to throw if user wants to run a sensor from a pack which is
   using Python 3 virtual environment.
 
   We only support running Python runner actions from packs which use mixed Python environments
   (StackStorm components are running under Python 2 and particular a pack virtual environment is
   using Python 3). #4354
+
 
 2.9.0 - September 16, 2018
 --------------------------
