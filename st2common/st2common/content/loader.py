@@ -28,47 +28,11 @@ from st2common.constants.runners import MANIFEST_FILE_NAME as RUNNER_MANIFEST_FI
 from st2common.constants.runners import RUNNER_NAME_WHITELIST
 
 __all__ = [
-    'RunnersLoader',
     'ContentPackLoader',
     'MetaLoader'
 ]
 
 LOG = logging.getLogger(__name__)
-
-
-class RunnersLoader(object):
-    """Class for loading runners from directories on disk.
-    """
-
-    def get_runners(self, base_dirs):
-        """Retrieve a list of runners in the provided directories.
-
-        :return: Dictionary where the key is runner name and the value is full path to the runner
-                 directory.
-        :rtype: ``dict``
-        """
-        assert isinstance(base_dirs, list)
-
-        result = {}
-        for base_dir in base_dirs:
-            if not os.path.isdir(base_dir):
-                raise ValueError('Directory "%s" doesn\'t exist' % (base_dir))
-
-            runners_in_dir = self._get_runners_from_dir(base_dir=base_dir)
-            result.update(runners_in_dir)
-
-        return result
-
-    def _get_runners_from_dir(self, base_dir):
-        result = {}
-        for runner_name in os.listdir(base_dir):
-            runner_dir = os.path.join(base_dir, runner_name)
-            runner_manifest_file = os.path.join(runner_dir, RUNNER_MANIFEST_FILE_NAME)
-
-            if os.path.isdir(runner_dir) and os.path.isfile(runner_manifest_file):
-                result[runner_name] = runner_dir
-
-        return result
 
 
 class ContentPackLoader(object):

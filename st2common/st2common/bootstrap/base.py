@@ -23,7 +23,6 @@ from st2common import log as logging
 from st2common.constants.pack import CONFIG_SCHEMA_FILE_NAME
 from st2common.content.loader import MetaLoader
 from st2common.content.loader import ContentPackLoader
-from st2common.content.loader import RunnersLoader
 from st2common.models.api.pack import PackAPI
 from st2common.models.api.pack import ConfigSchemaAPI
 from st2common.persistence.pack import Pack
@@ -73,7 +72,6 @@ class ResourceRegistrar(object):
 
         self._meta_loader = MetaLoader()
         self._pack_loader = ContentPackLoader()
-        self._runner_loader = RunnersLoader()
 
         # Maps runner name -> RunnerTypeDB
         self._runner_type_db_cache = {}
