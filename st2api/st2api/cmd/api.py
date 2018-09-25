@@ -13,16 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import sys
-
 import eventlet
 from oslo_config import cfg
 from eventlet import wsgi
 
 from st2common import log as logging
-from st2common.service_setup import setup as common_setup
-from st2common.service_setup import teardown as common_teardown
+from st2common.service import ActiveService
+from st2common.service import run_service
 from st2common.util.monkey_patch import monkey_patch
 from st2api import config
 config.register_opts()
@@ -38,44 +35,39 @@ monkey_patch()
 
 LOG = logging.getLogger(__name__)
 
-# How much time to give to the request in progress to finish in seconds before killing them
-WSGI_SERVER_REQUEST_SHUTDOWN_TIME = 2
 
+class APIHTTPService(ActiveService):
+    name = 'api'
+    config = config
 
-def _setup():
-    common_setup(service='api', config=config, setup_db=True, register_mq_exchanges=True,
-                 register_signal_handlers=True, register_internal_trigger_types=True)
+    setup_db = True
+    register_mq_exchanges = True
+    register_signal_handlers = True
+    register_internal_trigger_types = True
+    run_migrations = True
 
-    # Additional pre-run time checks
-    validate_rbac_is_correctly_configured()
+    def setup(self):
+        super(APIHTTPService, self).setup()
 
+        # Additional pre-run time checks
+        validate_rbac_is_correctly_configured()
 
-def _run_server():
-    host = cfg.CONF.api.host
-    port = cfg.CONF.api.port
+    def start(self):
+        super(APIHTTPService, self).start()
 
-    LOG.info('(PID=%s) ST2 API is serving on http://%s:%s.', os.getpid(), host, port)
+        max_pool_size = eventlet.wsgi.DEFAULT_MAX_SIMULTANEOUS_REQUESTS
+        worker_pool = eventlet.GreenPool(max_pool_size)
+        self._socket = eventlet.listen((self._host, self._port))
 
-    max_pool_size = eventlet.wsgi.DEFAULT_MAX_SIMULTANEOUS_REQUESTS
-    worker_pool = eventlet.GreenPool(max_pool_size)
-    sock = eventlet.listen((host, port))
+        self.logger.info('(PID=%s) StackStorm API is serving on http://%s:%s.', self.pid,
+                         self._host, self._port)
 
-    wsgi.server(sock, app.setup_app(), custom_pool=worker_pool, log=LOG, log_output=False)
-    return 0
-
-
-def _teardown():
-    common_teardown()
+        wsgi_app = app.setup_app()
+        self._server = wsgi.server(self._socket, wsgi_app, custom_pool=worker_pool, log=LOG,
+                                   log_output=False)
 
 
 def main():
-    try:
-        _setup()
-        return _run_server()
-    except SystemExit as exit_code:
-        sys.exit(exit_code)
-    except Exception:
-        LOG.exception('(PID=%s) ST2 API quit due to exception.', os.getpid())
-        return 1
-    finally:
-        _teardown()
+    service = APIHTTPService(logger=LOG, host=cfg.CONF.api.host, port=cfg.CONF.api.port)
+    exit_code = run_service(service=service)
+    return exit_code
