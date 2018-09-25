@@ -25,7 +25,7 @@ __all__ = [
 ]
 
 
-def get_runner():
+def get_runner(config=None):
     return MockActionRunner()
 
 
