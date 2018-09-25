@@ -47,9 +47,7 @@ def register_runners(runner_dirs=None, experimental=False, fail_on_failure=True)
 
         manager = DriverManager(namespace=RUNNERS_NAMESPACE, invoke_on_load=False, name=name)
         runner_metadata = manager.driver.get_metadata()
-
-        for runner_type in runner_metadata:
-            runner_count += register_runner(runner_type, experimental)
+        runner_count += register_runner(runner_metadata, experimental)
 
     LOG.debug('End : register runners')
 
