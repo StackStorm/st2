@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import os
-import sys
 
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
@@ -92,8 +91,9 @@ def run_service(service):
         service.setup()
         service.start()
         return 0
-    except SystemExit as exit_code:
-        sys.exit(exit_code)
+    except (KeyboardInterrupt, SystemExit):
+        service.logger.info('(PID=%s) StackStorm %s stopped.', os.getpid(), service.name)
+        return 1
     except Exception:
         service.logger.exception('(PID=%s) StackStorm %s quit due to exception.', service.pid,
                                  service.name)
