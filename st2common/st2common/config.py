@@ -138,7 +138,7 @@ def register_opts(ignore_errors=False):
             help='Paths which will be searched for integration packs.'),
         cfg.StrOpt(
             'runners_base_paths', default=None,
-            help='Paths which will be searched for runners.'
+            help='Paths which will be searched for runners. '
                  'NOTE: This option has been deprecated and it\'s unused since StackStorm v3.0.0'),
         cfg.ListOpt(
             'index_url', default=['https://index.stackstorm.org/v1/index.json'],
