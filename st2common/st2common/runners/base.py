@@ -66,7 +66,7 @@ def get_runner(name, config=None):
     LOG.debug('Runner loading Python module: %s', name)
 
     try:
-        module = get_plugin_instance(runner_constants.RUNNER_NAMESPACE, name, invoke_on_load=False)
+        module = get_plugin_instance(runner_constants.RUNNERS_NAMESPACE, name, invoke_on_load=False)
     except Exception as e:
         msg = ('Failed to find runner %s - This functionality was changed'
                'in StackStorm 2.9. You will need to run st2ctl reinstall-runners'
