@@ -33,7 +33,7 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 
-def register_runners(runner_dirs=None, experimental=False, fail_on_failure=True):
+def register_runners(experimental=False, fail_on_failure=True):
     """ Register runners
     """
     LOG.debug('Start : register runners')
