@@ -15,6 +15,7 @@
 
 import os
 
+from st2common.constants.exit_codes import FAILURE_EXIT_CODE
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
 
@@ -33,7 +34,7 @@ class BaseService(object):
     setup_db = True
     register_mq_exchanges = True
     register_signal_handlers = True
-    register_internal_trigger_types = True
+    register_internal_trigger_types = False
     run_migrations = True
 
     def __init__(self, logger):
@@ -93,10 +94,10 @@ def run_service(service):
         return 0
     except (KeyboardInterrupt, SystemExit):
         service.logger.info('(PID=%s) StackStorm %s stopped.', os.getpid(), service.name)
-        return 1
+        return FAILURE_EXIT_CODE
     except Exception:
         service.logger.exception('(PID=%s) StackStorm %s quit due to exception.', service.pid,
                                  service.name)
-        return 1
+        return FAILURE_EXIT_CODE
     finally:
         service.stop()
