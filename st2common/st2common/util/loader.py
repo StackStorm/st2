@@ -33,7 +33,6 @@ __all__ = [
     'register_plugin',
     'register_plugin_class',
 
-    'register_runner',
     'register_query_module',
     'register_callback_module',
 
