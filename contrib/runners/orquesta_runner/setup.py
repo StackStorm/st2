@@ -32,7 +32,7 @@ install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
 
 apply_vagrant_workaround()
 setup(
-    name='stackstorm-runner-orchestra',
+    name='stackstorm-runner-orquesta',
     version=__version__,
     description='Orquesta workflow runner for StackStorm event-driven automation platform',
     author='StackStorm',
