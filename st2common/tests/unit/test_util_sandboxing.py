@@ -129,6 +129,7 @@ class SandboxingUtilsTestCase(unittest.TestCase):
         self.assertEqual(python_path, ':/data/test1:/data/test2:%s/virtualenvtest' %
                          (sys.prefix))
 
+    @mock.patch('os.path.exists', mock.Mock(return_value=True))
     @mock.patch('os.path.isdir', mock.Mock(return_value=True))
     @mock.patch('os.listdir', mock.Mock(return_value=['python3.6']))
     @mock.patch('st2common.util.sandboxing.get_python_lib')
