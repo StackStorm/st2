@@ -22,6 +22,8 @@ from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.logging.misc import get_logger_name_for_module
+from st2common.service import PassiveService
+from st2common.service import run_service
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
 from st2common.util.monkey_patch import monkey_patch
@@ -41,19 +43,17 @@ LOGGER_NAME = get_logger_name_for_module(sys.modules[__name__])
 LOG = logging.getLogger(LOGGER_NAME)
 
 
-def _setup():
-    common_setup(service='sensorcontainer', config=config, setup_db=True,
-                 register_mq_exchanges=True, register_signal_handlers=True)
+class SensorManagerService(PassiveService):
+    name = 'sensorcontainer'
 
+    config = config
 
-def _teardown():
-    common_teardown()
+    setup_db = True
+    register_mq_exchanges = True
+    register_signal_handlers = True
+    run_migrations = True
 
-
-def main():
-    try:
-        _setup()
-
+    def start(self):
         single_sensor_mode = (cfg.CONF.single_sensor_mode or
                               cfg.CONF.sensorcontainer.single_sensor_mode)
 
@@ -65,13 +65,9 @@ def main():
         container_manager = SensorContainerManager(sensors_partitioner=sensors_partitioner,
                                                    single_sensor_mode=single_sensor_mode)
         return container_manager.run_sensors()
-    except SystemExit as exit_code:
-        return exit_code
-    except SensorNotFoundException as e:
-        LOG.exception(e)
-        return 1
-    except:
-        LOG.exception('(PID:%s) SensorContainer quit due to exception.', os.getpid())
-        return FAILURE_EXIT_CODE
-    finally:
-        _teardown()
+
+
+def main():
+    service = SensorManagerService(logger=LOG)
+    exit_code = run_service(service=service)
+    return exit_code
