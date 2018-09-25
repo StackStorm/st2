@@ -34,7 +34,8 @@ LOG = logging.getLogger(__name__)
 
 
 def register_runners(experimental=False, fail_on_failure=True):
-    """ Register runners
+    """
+    Register runners
     """
     LOG.debug('Start : register runners')
     runner_count = 0
@@ -43,7 +44,7 @@ def register_runners(experimental=False, fail_on_failure=True):
     extension_names = manager.names()
 
     for name in extension_names:
-        LOG.debug('Runner "%s"' % (name))
+        LOG.debug('Found runner "%s"' % (name))
 
         manager = DriverManager(namespace=RUNNERS_NAMESPACE, invoke_on_load=False, name=name)
         runner_metadata = manager.driver.get_metadata()
