@@ -31,6 +31,8 @@ from st2common.middleware.error_handling import ErrorHandlingMiddleware
 from st2common.middleware.cors import CorsMiddleware
 from st2common.middleware.request_id import RequestIDMiddleware
 from st2common.middleware.logging import LoggingMiddleware
+from st2common.middleware.instrumentation import RequestInstrumentationMiddleware
+from st2common.middleware.instrumentation import ResponseInstrumentationMiddleware
 from st2common.router import Router
 from st2common.util.monkey_patch import monkey_patch
 from st2common.constants.system import VERSION_STRING
@@ -61,7 +63,8 @@ def setup_app(config={}):
                      run_migrations=False,
                      config_args=config.get('config_args', None))
 
-    router = Router(debug=cfg.CONF.stream.debug, auth=cfg.CONF.auth.enable)
+    router = Router(debug=cfg.CONF.stream.debug, auth=cfg.CONF.auth.enable,
+                    is_gunicorn=is_gunicorn)
 
     spec = spec_loader.load_spec('st2common', 'openapi.yaml.j2')
     transforms = {
@@ -76,6 +79,8 @@ def setup_app(config={}):
     app = ErrorHandlingMiddleware(app)
     app = CorsMiddleware(app)
     app = LoggingMiddleware(app, router)
+    app = ResponseInstrumentationMiddleware(app, router, service_name='stream')
     app = RequestIDMiddleware(app)
+    app = RequestInstrumentationMiddleware(app, router, service_name='stream')
 
     return app

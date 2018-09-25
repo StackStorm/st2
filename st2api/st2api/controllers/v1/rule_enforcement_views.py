@@ -50,12 +50,16 @@ class RuleEnforcementViewController(ResourceController):
     supported_filters = SUPPORTED_FILTERS
     filter_transform_functions = FILTER_TRANSFORM_FUNCTIONS
 
-    def get_all(self, sort=None, offset=0, limit=None, requester_user=None, **raw_filters):
-        rule_enforcement_apis = super(RuleEnforcementViewController, self)._get_all(sort=sort,
-                                                               offset=offset,
-                                                               limit=limit,
-                                                               raw_filters=raw_filters,
-                                                               requester_user=requester_user)
+    def get_all(self, exclude_attributes=None, include_attributes=None, sort=None, offset=0,
+                limit=None, requester_user=None, **raw_filters):
+        rule_enforcement_apis = super(RuleEnforcementViewController, self)._get_all(
+            exclude_fields=exclude_attributes,
+            include_fields=include_attributes,
+            sort=sort,
+            offset=offset,
+            limit=limit,
+            raw_filters=raw_filters,
+            requester_user=requester_user)
 
         rule_enforcement_apis.json = self._append_view_properties(rule_enforcement_apis.json)
         return rule_enforcement_apis
@@ -76,7 +80,8 @@ class RuleEnforcementViewController(ResourceController):
         execution_ids = []
 
         for rule_enforcement_api in rule_enforcement_apis:
-            trigger_instance_ids.add(str(rule_enforcement_api['trigger_instance_id']))
+            if rule_enforcement_api.get('trigger_instance_id', None):
+                trigger_instance_ids.add(str(rule_enforcement_api['trigger_instance_id']))
 
             if rule_enforcement_api.get('execution_id', None):
                 execution_ids.append(rule_enforcement_api['execution_id'])
@@ -116,7 +121,7 @@ class RuleEnforcementViewController(ResourceController):
             rule_enforcement_api['trigger_instance'] = {}
             rule_enforcement_api['execution'] = {}
 
-            trigger_instance_id = rule_enforcement_api['trigger_instance_id']
+            trigger_instance_id = rule_enforcement_api.get('trigger_instance_id', None)
             execution_id = rule_enforcement_api.get('execution_id', None)
 
             trigger_instance_db = trigger_instance_dbs_by_id.get(trigger_instance_id, None)

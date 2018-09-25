@@ -89,7 +89,7 @@ class ContentPackConfigLoader(object):
         schema_values = getattr(config_schema_db, 'attributes', {})
         config_values = getattr(config_db, 'values', {})
 
-        config = copy.deepcopy(config_values)
+        config = copy.deepcopy(config_values or {})
 
         # Assign dynamic config values based on the values in the datastore
         config = self._assign_dynamic_config_values(schema=schema_values, config=config)

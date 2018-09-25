@@ -1,0 +1,22 @@
+version: 1.0
+
+description: A sample workflow used to test the cascading pause of subworkflow action.
+
+input:
+  - file1
+  - file2
+
+tasks:
+  task1:
+    action: examples.orquesta-test-pause tempfile=<% ctx().file1 %>
+    next:
+      - when: <% succeeded() %>
+        do: task3
+  task2:
+    action: examples.orquesta-test-pause tempfile=<% ctx().file2 %>
+    next:
+      - when: <% succeeded() %>
+        do: task3
+  task3:
+    join: all
+    action: core.echo message="Yahoo!"

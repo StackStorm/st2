@@ -7,6 +7,26 @@ in development
 Added
 ~~~~~
 
+* Added ``-o`` and ``-m`` CLI options to ``st2-self-check`` script, to skip Orquesta and/or Mistral
+  tests (#4347)
+
+Changed
+~~~~~~~
+
+* Triggertypes API now sorts by trigger ref by default. ``st2 trigger list`` will now show a sorted
+  list. (#4348)
+
+Changed
+~~~~~~~
+
+* Speed up pack registration through the ``/v1/packs/register`` API endpoint. (improvement) #4342
+
+2.9.0 - September 16, 2018
+--------------------------
+
+Added
+~~~~~
+
 * Add new runners: ``winrm-cmd``, ``winrm-ps-cmd`` and ``winrm-ps-script``.
   The ``winrm-cmd`` runner executes Command Prompt commands remotely on Windows hosts using the
   WinRM protocol. The ``winrm-ps-cmd`` and ``winrm-ps-script`` runners execute PowerShell commands
@@ -20,12 +40,131 @@ Added
 * Add new ``?tags``, query param filter to the ``/v1/actions`` API endpoint. This query parameter
   allows users to filter out actions based on the tag name . By default, when no filter values are
   provided, all actions are returned. (new feature) #4219
+* Add a new standalone standalone ``st2-pack-install`` CLI command. This command installs a pack
+  (and sets up the pack virtual environment) on the server where it runs. It doesn't register the
+  content. It only depends on the Python, git and pip binary and ``st2common`` Python package to be
+  installed on the system where it runs. It doesn't depend on the database (MongoDB) and message
+  bus (RabbitMQ).
+
+  It's primary meant to be used in scenarios where the content (packs) are baked into the base
+  container / VM image which is deployed to the cluster.
+
+  Keep in mind that the content itself still needs to be registered with StackStorm at some later
+  point when access to RabbitMQ and MongoDB is available by running
+  ``st2ctl reload --register-all``. (new feature) #3912 #4256
+* Add new ``/v1/stream/executions/<id>/output[?output_type=all|stdout|stderr]`` stream API
+  endpoint.
+
+  This API endpoint returns event source compatible response format.
+
+  For running executions it returns any output produced so far and any new output as it's produced.
+  Once the execution finishes, the connection is automatically closed.
+
+  For completed executions it returns all the output produced by the execution. (new feature)
+* Add new ``core.inject_trigger`` action for injecting a trigger instance into the system.
+
+  Keep in mind that the trigger which is to be injected must be registered and exist in the system.
+  (new feature) #4231 #4259
+* Add support for ``?include_attributes`` query param filter to all the content pack resource
+  get all (list) API endpoints (actions, rules, trigger, executions, etc.). With this query
+  parameter user can control which API model attributes (fields) to receive in the response. In
+  situations where user is only interested in a subset of the model attributes, this allows for a
+  significantly reduced response size and for a better performance. (new feature) (improvement)
+  #4300
+* Add new ``action_sensor.emit_when`` config option which allows user to specify action status for
+  which actiontrigger is emitted. For backward compatibility reasons it defaults to all the action
+  completed states. (improvement) #4312 #4315
+
+  Contributed by Shu Sugimoto.
+* Improve performance of schedule action execution (``POST /v1/executions``) API endpoint.
+
+  Performance was improved by reducing the number of duplicated database queries, using atomic
+  partial document updates instead of full document updates and by improving database document
+  serialization and de-serialization performance. (improvement) #4030 #4331
+* Ported existing YAQL and Jinja functions from st2common to Orquesta. (new feature)
+* Add error entry in Orquesta workflow result on action execution failure. (improvement)
 
 Changed
 ~~~~~~~
 
+* ``st2 key list`` command now defaults to ``--scope=all`` aka displaying all the datastore values
+  (system and current user scoped) . If you only want to display system scoped values (old behavior)
+  you can do that by passing ``--scope=system`` argument to the ``st2 key list`` command
+  (``st2 key list --scope=system``). (improvement) #4221
+* The orquesta conductor implemented event based state machines to manage state transition of
+  workflow execution. Interfaces to set workflow state and update task on action execution
+  completion have changed and calls to those interfaces are changed accordingly. (improvement)
+* Change ``GET /v1/executions/<id>/output`` API endpoint so it never blocks and returns data
+  produced so far for running executions. Behavior for completed executions is the same and didn't
+  change - all data produced by the execution is returned in the raw format.
+
+  The streaming (block until execution has finished for running executions) behavior has been moved
+  to the new ``/stream/v1/executions/<id>/output`` API endpoint.
+
+  This way we are not mixing non-streaming (short lived) and streaming (long lived) connections
+  inside a single service (st2api). (improvement)
+* Upgrade ``mongoengine`` (0.15.3) and ``pymongo`` (3.7.1) to the latest stable version. Those
+  changes will allow us to support MongoDB 3.6 in the near future.
+
+  New version of ``mongoengine`` should also offer better performance when inserting and updating
+  larger database objects (e.g. executions). (improvement) #4292
+* Trigger parameters and payload schema validation is now enabled by default
+  (``system.validate_trigger_parameters`` and ``system.validate_trigger_payload`` config options
+  now default to ``True``).
+
+  This means that trigger parameters are now validated against the ``parameters_schema`` defined on
+  the trigger type when creating a rule and trigger payload is validated against ``payload_schema``
+  when dispatching a trigger via the sensor or via the webhooks API endpoint.
+
+  This provides a much safer and user-friendly default value. Previously we didn't validate trigger
+  payload for custom (non-system) triggers when dispatching a trigger via webhook which meant that
+  webhooks API endpoint would silently accept an invalid trigger (e.g. referenced trigger doesn't
+  exist in the database or the payload doesn't validate against the ``payload_schema``), but
+  ``TriggerInstanceDB`` object would never be created because creation failed inside the
+  ``st2rulesengine`` service. This would make such issues very hard to troubleshoot because only
+  way to find out about this failure would be to inspect the ``st2rulesengine`` service logs.
+  (improvement) #4231
+* Improve code metric instrumentation and instrument code and various services with more metrics.
+  Also document various exposed metrics. Documentation can be found at
+  https://docs.stackstorm.com/latest/reference/metrics.html (improvement) #4310
+* Add new ``metrics.prefix`` config option. With this option user can specify an optional prefix
+  which is prepended to each metric key (name). This comes handy in scenarios where user wants to
+  submit metrics from multiple environments / deployments (e.g. testing, staging, dev) to the same
+  backend instance. (improvement) #4310
+* Improve ``st2 execution tail`` CLI command so it also supports Orquesta workflows and arbitrarily
+  nested workflows. Also fix the command so it doesn't include data from other unrelated running
+  executions. (improvement) #4328
+* Change default NGINX configuration to use HTTP 308 redirect, rather than 301, for plaintext requests.
+  #4335
+* Improve performance of the ``GET /v1/actions/views/overview`` API endpoint. (improvement) #4337
+
 Fixed
 ~~~~~
+
+* Fix an issue with ``AttributeError: module 'enum' has no attribute 'IntFlag'`` error which would
+  appear when using Python 3 for a particular pack virtual environment and running on RHEL /
+  CentOS. (bug fix) #4297
+* Fix a bug with action runner throwing an exception and failing to run an action if there was an
+  empty pack config inside ``/opt/stackstorm/configs/``. (bug fix) #4325
+* Fix ``action_sensor.enable`` config option so it works correctly if user sets this option to a
+  non-default value of ``True``. (bug fix) #4312 #4315
+
+  Contributed by Shu Sugimoto.
+* Update ``GET /v1/actions/views/entry_point/<action ref>`` to return correct ``Content-Type``
+  response header based on the entry point type / file extension. Previously it would always
+  incorrectly return ``application/json``. (improvement) #4327
+
+Deprecated
+~~~~~~~~~~
+
+* The CloudSlang runner is now deprecated. In StackStorm 3.1 it will be removed from the core
+  StackStorm codebase. The runner code will be moved to a separate repository, and no longer
+  maintained by the core StackStorm team. Users will still be able to install and use this runner,
+  but it will require additional steps to install.
+* The ``winexe``-based Windows runners are now deprecated. They will be removed in StackStorm 3.1.
+  They have been replaced by ``pywinrm``-based Windows runners. See
+  https://docs.stackstorm.com/latest/reference/runners.html#winrm-command-runner-winrm-cmd
+  for more on using these new runners.
 
 2.8.1 - July 18, 2018
 ---------------------
@@ -48,6 +187,11 @@ Changed
 * Update ``st2client/setup.py`` file to dynamically load requirements from
   ``st2client/requirements.txt`` file. The code works with pip >= 6.0.0, although using pip 9.0.0
   or higher is strongly recommended. (improvement) #4209
+* Migrated runners to using the ``in-requirements.txt`` pattern for "components" in the build
+  system, so the ``Makefile`` correctly generates and installs runner dependencies during
+  testing and packaging. (improvement) (bugfix) #4169
+
+  Contributed by Nick Maludy (Encore Technologies).
 * Update ``st2`` CLI to use a more sensible default terminal size for table formatting purposes if
   we are unable to retrieve terminal size using various system-specific approaches.
 
@@ -72,7 +216,7 @@ Fixed
 Added
 ~~~~~
 
-* Orchestra - new StackStorm-native workflow engine. This is currently in **beta**. (new feature)
+* Orquesta - new StackStorm-native workflow engine. This is currently in **beta**. (new feature)
 * Added metrics for collecting performance and health information about the various ST2 services
   and functions. (new feature) #4004 #2974
 * When running a dev (unstable) release include git revision hash in the output when using

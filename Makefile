@@ -13,11 +13,11 @@ PYTHON_VERSION = python2.7
 
 BINARIES := bin
 
-# All components are prefixed by st2
-COMPONENTS := $(wildcard st2*)
+# All components are prefixed by st2 and not .egg-info.
+COMPONENTS := $(shell ls -a | grep ^st2 | grep -v .egg-info)
 COMPONENTS_RUNNERS := $(wildcard contrib/runners/*)
 
-COMPONENTS_WITH_RUNNERS := $(wildcard st2*) $(COMPONENTS_RUNNERS)
+COMPONENTS_WITH_RUNNERS := $(COMPONENTS) $(COMPONENTS_RUNNERS)
 
 COMPONENTS_TEST_DIRS := $(wildcard st2*/tests) $(wildcard contrib/runners/*/tests)
 
@@ -47,20 +47,37 @@ PYTHON_TARGET := 2.7
 REQUIREMENTS := test-requirements.txt requirements.txt
 PIP_OPTIONS := $(ST2_PIP_OPTIONS)
 
-NOSE_OPTS := --rednose --immediate --with-parallel
-NOSE_TIME := $(NOSE_TIME)
-NOSE_COVERAGE_FLAGS := --with-coverage --cover-branches --cover-erase
-NOSE_COVERAGE_PACKAGES := --cover-package=$(COMPONENTS_TEST_COMMA)
+ifndef PYLINT_CONCURRENCY
+	PYLINT_CONCURRENCY := 1
+endif
 
-ifdef NOSE_TIME
+NOSE_OPTS := --rednose --immediate --with-parallel
+
+ifndef NOSE_TIME
+	NOSE_TIME := yes
+endif
+
+ifeq ($(NOSE_TIME),yes)
 	NOSE_OPTS := --rednose --immediate --with-parallel --with-timer
+	NOSE_WITH_TIMER := 1
 endif
 
 ifndef PIP_OPTIONS
 	PIP_OPTIONS :=
 endif
 
-ifneq ($(INCLUDE_TESTS_IN_COVERAGE),)
+# NOTE: We only run coverage on master and version branches and not on pull requests since
+# it has a big performance overhead and is very slow.
+ifeq ($(ENABLE_COVERAGE),yes)
+	NOSE_COVERAGE_FLAGS := --with-coverage --cover-branches --cover-erase
+	NOSE_COVERAGE_PACKAGES := --cover-package=$(COMPONENTS_TEST_COMMA)
+else
+	INCLUDE_TESTS_IN_COVERAGE :=
+endif
+
+# If we aren't running test coverage, don't try to include tests in coverage
+# results
+ifdef INCLUDE_TESTS_IN_COVERAGE
 	NOSE_COVERAGE_FLAGS += --cover-tests
 	NOSE_COVERAGE_PACKAGES := $(NOSE_COVERAGE_PACKAGES),$(COMPONENTS_TEST_MODULES_COMMA)
 endif
@@ -99,13 +116,33 @@ play:
 	@echo
 	@echo COMPONENT_PYTHONPATH=$(COMPONENT_PYTHONPATH)
 	@echo
+	@echo TRAVIS_PULL_REQUEST=$(TRAVIS_PULL_REQUEST)
+	@echo
+	@echo NOSE_OPTS=$(NOSE_OPTS)
+	@echo
+	@echo ENABLE_COVERAGE=$(ENABLE_COVERAGE)
+	@echo
 	@echo NOSE_COVERAGE_FLAGS=$(NOSE_COVERAGE_FLAGS)
 	@echo
 	@echo NOSE_COVERAGE_PACKAGES=$(NOSE_COVERAGE_PACKAGES)
 	@echo
+	@echo INCLUDE_TESTS_IN_COVERAGE=$(INCLUDE_TESTS_IN_COVERAGE)
+	@echo
 
 .PHONY: check
 check: requirements flake8 checklogs
+
+.PHONY: install-runners
+install-runners:
+	@echo ""
+	@echo "================== INSTALL RUNNERS ===================="
+	@echo ""
+	@for component in $(COMPONENTS_RUNNERS); do \
+		echo "==========================================================="; \
+		echo "Installing runner:" $$component; \
+		echo "==========================================================="; \
+        (. $(VIRTUALENV_DIR)/bin/activate; cd $$component; python setup.py develop); \
+	done
 
 .PHONY: checklogs
 checklogs:
@@ -136,29 +173,16 @@ configgen: requirements .configgen
 	@echo "================== pylint ===================="
 	@echo
 	# Lint st2 components
-	@for component in $(COMPONENTS); do\
-		echo "==========================================================="; \
-		echo "Running pylint on" $$component; \
-		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models --load-plugins=pylint_plugins.db_models $$component/$$component || exit 1; \
-	done
-	# Lint runner modules and packages
-	@for component in $(COMPONENTS_RUNNERS); do\
-		echo "==========================================================="; \
-		echo "Running pylint on" $$component; \
-		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models --load-plugins=pylint_plugins.db_models $$component/*.py || exit 1; \
-	done
 	# Lint Python pack management actions
-	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models contrib/packs/actions/*.py || exit 1;
-	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models contrib/packs/actions/*/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models contrib/packs/actions/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models contrib/packs/actions/*/*.py || exit 1;
 	# Lint other packs
-	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models contrib/linux/*/*.py || exit 1;
-	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models contrib/chatops/*/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models contrib/linux/*/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models contrib/chatops/*/*.py || exit 1;
 	# Lint Python scripts
-	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models scripts/*.py || exit 1;
-	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models tools/*.py || exit 1;
-	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./lint-configs/python/.pylintrc pylint_plugins/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models scripts/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models tools/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc pylint_plugins/*.py || exit 1;
 
 .PHONY: lint-api-spec
 lint-api-spec: requirements .lint-api-spec
@@ -168,13 +192,13 @@ lint-api-spec: requirements .lint-api-spec
 	@echo
 	@echo "================== Lint API spec ===================="
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; st2common/bin/st2-validate-api-spec
+	. $(VIRTUALENV_DIR)/bin/activate; st2common/bin/st2-validate-api-spec --config-file conf/st2.dev.conf 
 
 .PHONY: generate-api-spec
 generate-api-spec: requirements .generate-api-spec
 
 .PHONY: .generate-api-spec
-.generate-api-spec:
+.generate-api-spec: .lint-api-spec
 	@echo
 	@echo "================== Generate openapi.yaml file ===================="
 	@echo
@@ -182,7 +206,7 @@ generate-api-spec: requirements .generate-api-spec
 	echo "# Edit st2common/st2common/openapi.yaml.j2 and then run" >> st2common/st2common/openapi.yaml
 	echo "# make .generate-api-spec" >> st2common/st2common/openapi.yaml
 	echo "# to generate the final spec file" >> st2common/st2common/openapi.yaml
-	. virtualenv/bin/activate; st2common/bin/st2-generate-api-spec --config-file conf/st2.dev.conf >> st2common/st2common/openapi.yaml
+	. $(VIRTUALENV_DIR)/bin/activate; st2common/bin/st2-generate-api-spec --config-file conf/st2.dev.conf >> st2common/st2common/openapi.yaml
 
 .PHONY: circle-lint-api-spec
 circle-lint-api-spec:
@@ -231,13 +255,13 @@ clean: .cleanpycs
 compile:
 	@echo "======================= compile ========================"
 	@echo "------- Compile all .py files (syntax check test - Python 2) ------"
-	@if python -c 'import compileall,re; compileall.compile_dir(".", rx=re.compile(r"/virtualenv|.tox"), quiet=True)' | grep .; then exit 1; else exit 0; fi
+	@if python -c 'import compileall,re; compileall.compile_dir(".", rx=re.compile(r"/virtualenv|virtualenv-osx|.tox"), quiet=True)' | grep .; then exit 1; else exit 0; fi
 
 .PHONY: compilepy3
 compilepy3:
 	@echo "======================= compile ========================"
 	@echo "------- Compile all .py files (syntax check test - Python 3) ------"
-	@if python3 -c 'import compileall,re; compileall.compile_dir(".", rx=re.compile(r"/virtualenv|.tox|./st2tests/st2tests/fixtures/packs/test"), quiet=True)' | grep .; then exit 1; else exit 0; fi
+	@if python3 -c 'import compileall,re; compileall.compile_dir(".", rx=re.compile(r"/virtualenv|virtualenv-osx|.tox|./st2tests/st2tests/fixtures/packs/test"), quiet=True)' | grep .; then exit 1; else exit 0; fi
 
 .PHONY: .cleanpycs
 .cleanpycs:
@@ -253,11 +277,11 @@ compilepy3:
 .st2common-circular-dependencies-check:
 	@echo "Checking st2common for circular dependencies"
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2reactor ; test $$? -eq 1
-	find ${ROOT_DIR}/st2common/st2common/ \( -name \*.py ! -name runnersregistrar\.py -name \*.py ! -name compat\.py \) -type f -print0 | xargs -0 cat | grep st2actions ; test $$? -eq 1
+	find ${ROOT_DIR}/st2common/st2common/ \( -name \*.py ! -name runnersregistrar\.py -name \*.py ! -name compat\.py | -name inquiry\.py \) -type f -print0 | xargs -0 cat | grep st2actions ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2api ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2auth ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2debug; test $$? -eq 1
-	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2stream; test $$? -eq 1
+	find ${ROOT_DIR}/st2common/st2common/ \( -name \*.py ! -name router\.py -name \*.py \) -type f -print0 | xargs -0 cat | grep st2stream; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2exporter; test $$? -eq 1
 
 .PHONY: .cleanmongodb
@@ -306,7 +330,7 @@ distclean: clean
 	rm -rf $(VIRTUALENV_DIR)
 
 .PHONY: requirements
-requirements: virtualenv .sdist-requirements
+requirements: virtualenv .sdist-requirements install-runners
 	@echo
 	@echo "==================== requirements ===================="
 	@echo
@@ -316,14 +340,14 @@ requirements: virtualenv .sdist-requirements
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade "virtualenv==15.1.0" # Required for packs.install in dev envs.
 
 	# Generate all requirements to support current CI pipeline.
-	$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv -s st2*/in-requirements.txt contrib/runners/*/in-requirements.txt -f fixed-requirements.txt -o requirements.txt
+	$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s st2*/in-requirements.txt contrib/runners/*/in-requirements.txt -f fixed-requirements.txt -o requirements.txt
 
 	# Generate finall requirements.txt file for each component
 	@for component in $(COMPONENTS_WITH_RUNNERS); do\
 		echo "==========================================================="; \
 		echo "Generating requirements.txt for" $$component; \
 		echo "==========================================================="; \
-		$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv -s $$component/in-requirements.txt -f fixed-requirements.txt -o $$component/requirements.txt; \
+		$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s $$component/in-requirements.txt -f fixed-requirements.txt -o $$component/requirements.txt; \
 	done
 
 	# Fix for Travis CI race
@@ -396,10 +420,10 @@ tests: pytests
 pytests: compile requirements .flake8 .pylint .pytests-coverage
 
 .PHONY: .pytests
-.pytests: compile .configgen .generate-api-spec .unit-tests .itests clean
+.pytests: compile .configgen .generate-api-spec .unit-tests clean
 
 .PHONY: .pytests-coverage
-.pytests-coverage: .unit-tests-coverage-html .itests-coverage-html clean
+.pytests-coverage: .unit-tests-coverage-html clean
 
 .PHONY: unit-tests
 unit-tests: requirements .unit-tests
@@ -424,7 +448,7 @@ unit-tests: requirements .unit-tests
 	done
 
 .PHONY: .run-unit-tests-coverage
-ifneq ($(INCLUDE_TESTS_IN_COVERAGE),)
+ifdef INCLUDE_TESTS_IN_COVERAGE
 .run-unit-tests-coverage: NOSE_COVERAGE_PACKAGES := $(NOSE_COVERAGE_PACKAGES),tests.unit
 endif
 .run-unit-tests-coverage:
@@ -449,29 +473,36 @@ endif
 
 .PHONY: .combine-unit-tests-coverage
 .combine-unit-tests-coverage: .run-unit-tests-coverage
-	. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.unit \
-	    coverage combine .coverage.unit.*
+	@if [ -n "$(NOSE_COVERAGE_FLAGS)" ]; then \
+	    . $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.unit \
+	        coverage combine .coverage.unit.*; \
+	fi
 
 .coverage.unit:
-	@compgen -G '.coverage.unit.*' && \
+	@if compgen -G '.coverage.unit.*'; then \
 		for coverage_result in $$(compgen -G '.coverage.unit.*'); do \
 			echo "Combining data from $${coverage_result}"; \
 			. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.unit \
 			coverage combine $${coverage_result}; \
-		done \
-	|| \
+		done; \
+	else \
 		echo "Running unit tests"; \
-		make .combine-unit-tests-coverage
+		make .combine-unit-tests-coverage; \
+	fi
 
 .PHONY: .report-unit-tests-coverage
 .report-unit-tests-coverage: .coverage.unit
-	. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.unit \
-	    coverage report
+	@if [ -n "$(NOSE_COVERAGE_FLAGS)" ]; then \
+	    . $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.unit \
+	        coverage report; \
+	fi
 
 .PHONY: .unit-tests-coverage-html
 .unit-tests-coverage-html: .coverage.unit
-	. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.unit \
-	    coverage html
+	@if [ -n "$(NOSE_COVERAGE_FLAGS)" ]; then \
+	    . $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.unit \
+	        coverage html; \
+	fi
 
 .PHONY: itests
 itests: requirements .itests
@@ -496,7 +527,7 @@ itests: requirements .itests
 	done
 
 .PHONY: .run-integration-tests-coverage
-ifneq ($(INCLUDE_TESTS_IN_COVERAGE),)
+ifdef INCLUDE_TESTS_IN_COVERAGE
 .run-integration-tests-coverage: NOSE_COVERAGE_PACKAGES := $(NOSE_COVERAGE_PACKAGES),tests.integration
 endif
 .run-integration-tests-coverage:
@@ -521,29 +552,36 @@ endif
 
 .PHONY: .combine-integration-tests-coverage
 .combine-integration-tests-coverage: .run-integration-tests-coverage
-	. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.integration \
-	    coverage combine .coverage.integration.*
+	@if [ -n "$(NOSE_COVERAGE_FLAGS)" ]; then \
+	    . $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.integration \
+	        coverage combine .coverage.integration.*; \
+	fi
 
 .coverage.integration:
-	@compgen -G '.coverage.integration.*' && \
+	@if compgen -G '.coverage.integration.*'; then \
 		for coverage_result in $$(compgen -G '.coverage.integration.*'); do \
 			echo "Combining data from $${coverage_result}"; \
 			. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.integration \
 			coverage combine $${coverage_result}; \
-		done \
-	|| \
+		done; \
+	else \
 		echo "Running integration tests"; \
-		make .combine-integration-tests-coverage
+		make .combine-integration-tests-coverage; \
+	fi
 
 .PHONY: .report-integration-tests-coverage
 .report-integration-tests-coverage: .coverage.integration
-	@. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.integration \
-	    coverage report
+	@if [ -n "$(NOSE_COVERAGE_FLAGS)" ]; then \
+	    . $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.integration \
+	        coverage report; \
+	fi
 
 .PHONY: .integration-tests-coverage-html
 .integration-tests-coverage-html: .coverage.integration
-	@. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.integration \
-	    coverage html
+	@if [ -n "$(NOSE_COVERAGE_FLAGS)" ]; then \
+	    . $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.integration \
+	        coverage html; \
+	fi
 
 .PHONY: .itests-coverage-html
 .itests-coverage-html: .integration-tests-coverage-html
@@ -560,7 +598,7 @@ mistral-itests: requirements .mistral-itests
 	. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v st2tests/integration/mistral || exit 1;
 
 .PHONY: .run-mistral-itests-coverage
-ifneq ($(INCLUDE_TESTS_IN_COVERAGE),)
+ifdef INCLUDE_TESTS_IN_COVERAGE
 .run-mistral-itests-coverage: NOSE_COVERAGE_PACKAGES := $(NOSE_COVERAGE_PACKAGES),st2tests.mistral.integration
 endif
 .run-mistral-itests-coverage:
@@ -619,25 +657,25 @@ endif
 .coverage-html: .coverage
 	. $(VIRTUALENV_DIR)/bin/activate; coverage html
 
-.PHONY: orchestra-itests
-orchestra-itests: requirements .orchestra-itests
+.PHONY: orquesta-itests
+orquesta-itests: requirements .orquesta-itests
 
-.PHONY: .orchestra-itests
-.orchestra-itests:
+.PHONY: .orquesta-itests
+.orquesta-itests:
 	@echo
-	@echo "==================== Orchestra integration tests ===================="
+	@echo "==================== Orquesta integration tests ===================="
 	@echo "The tests assume st2 is running on 127.0.0.1."
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v st2tests/integration/orchestra || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v st2tests/integration/orquesta || exit 1;
 
-.PHONY: .orchestra-itests-coverage-html
-.orchestra-itests-coverage-html:
+.PHONY: .orquesta-itests-coverage-html
+.orquesta-itests-coverage-html:
 	@echo
-	@echo "==================== Orchestra integration tests with coverage (HTML reports) ===================="
+	@echo "==================== Orquesta integration tests with coverage (HTML reports) ===================="
 	@echo "The tests assume st2 is running on 127.0.0.1."
 	@echo
 	. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v --with-coverage \
-        --cover-inclusive --cover-html st2tests/integration/orchestra || exit 1;
+        --cover-inclusive --cover-html st2tests/integration/orquesta || exit 1;
 
 .PHONY: packs-tests
 packs-tests: requirements .packs-tests
@@ -757,7 +795,7 @@ ci-py3-unit:
 	@echo
 	@echo "==================== ci-py3-unit ===================="
 	@echo
-	tox -e py36-unit -vv
+	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-unit -vv
 
 .PHONY: ci-py3-integration
 ci-py3-integration: requirements .ci-prepare-integration .ci-py3-integration
@@ -767,7 +805,7 @@ ci-py3-integration: requirements .ci-prepare-integration .ci-py3-integration
 	@echo
 	@echo "==================== ci-py3-integration ===================="
 	@echo
-	tox -e py36-integration -vv
+	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-integration -vv
 
 .PHONY: .rst-check
 .rst-check:
@@ -802,7 +840,7 @@ ci-unit: .unit-tests-coverage-html
 	sudo -E ./scripts/travis/prepare-integration.sh
 
 .PHONY: ci-integration
-ci-integration: .ci-prepare-integration .itests-coverage-html .runners-itests-coverage-html .orchestra-itests-coverage-html
+ci-integration: .ci-prepare-integration .itests-coverage-html .runners-itests-coverage-html .orquesta-itests-coverage-html
 
 .PHONY: ci-runners
 ci-runners: .ci-prepare-integration .runners-itests-coverage-html
@@ -814,8 +852,8 @@ ci-runners: .ci-prepare-integration .runners-itests-coverage-html
 .PHONY: ci-mistral
 ci-mistral: .ci-prepare-integration .ci-prepare-mistral .mistral-itests-coverage-html
 
-.PHONY: ci-orchestra
-ci-orchestra: .ci-prepare-integration .orchestra-itests-coverage-html
+.PHONY: ci-orquesta
+ci-orquesta: .ci-prepare-integration .orquesta-itests-coverage-html
 
 .PHONY: ci-packs-tests
 ci-packs-tests: .packs-tests

@@ -16,15 +16,21 @@
 import copy
 import json
 import mock
+import uuid
 
 from oslo_config import cfg
-
-from st2common import log as logging
 from six.moves import http_client
-from st2common.transport.publishers import PoolPublisher
-import st2common.validators.api.action as action_validator
-from tests.base import BaseInquiryControllerTestCase
 
+from st2common.transport.publishers import PoolPublisher
+from st2api.controllers.exp.inquiries import InquiriesController
+from st2common.constants import action as action_constants
+from st2common import log as logging
+import st2common.validators.api.action as action_validator
+from st2common.models.db import liveaction as lv_db_models
+from st2common.services import action as action_service
+
+from tests.base import BaseInquiryControllerTestCase
+from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
 
 LOG = logging.getLogger(__name__)
 
@@ -151,25 +157,33 @@ RESPONSE_MULTIPLE = {
     "paradox": True
 }
 
+ROOT_LIVEACTION_DB = lv_db_models.LiveActionDB(
+    id=uuid.uuid4().hex,
+    status=action_constants.LIVEACTION_STATUS_PAUSED
+)
+
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
-class InquiryControllerTestCase(BaseInquiryControllerTestCase):
+class InquiryControllerTestCase(BaseInquiryControllerTestCase,
+                                APIControllerWithIncludeAndExcludeFilterTestCase):
+    get_all_path = '/exp/inquiries'
+    controller_cls = InquiriesController
+    include_attribute_field_name = 'ttl'
+    exclude_attribute_field_name = 'ttl'
 
-    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
-        return_value=True))
+    @mock.patch.object(
+        action_validator,
+        'validate_action',
+        mock.MagicMock(return_value=True))
     def setUp(cls):
         super(BaseInquiryControllerTestCase, cls).setUpClass()
+
         cls.inquiry1 = copy.deepcopy(INQUIRY_ACTION)
         post_resp = cls.app.post_json('/v1/actions', cls.inquiry1)
         cls.inquiry1['id'] = post_resp.json['id']
         cls.action1 = copy.deepcopy(ACTION_1)
         post_resp = cls.app.post_json('/v1/actions', cls.action1)
         cls.action1['id'] = post_resp.json['id']
-
-    def tearDown(cls):
-        cls.app.delete('/v1/actions/%s' % cls.inquiry1['id'])
-        cls.app.delete('/v1/actions/%s' % cls.action1['id'])
-        super(BaseInquiryControllerTestCase, cls).tearDownClass()
 
     def test_get_all(self):
         """Test retrieval of a list of Inquiries
@@ -245,7 +259,7 @@ class InquiryControllerTestCase(BaseInquiryControllerTestCase):
         inquiry_id = 'asdfeoijasdf'
         get_resp = self._do_get_one(inquiry_id, expect_errors=True)
         self.assertEqual(get_resp.status_int, http_client.NOT_FOUND)
-        self.assertIn('Unable to identify resource with id', get_resp.json['faultstring'])
+        self.assertIn('resource could not be found', get_resp.json['faultstring'])
 
     def test_get_one_not_an_inquiry(self):
         """Test that an attempt to retrieve a valid execution that isn't an Inquiry fails
@@ -253,7 +267,7 @@ class InquiryControllerTestCase(BaseInquiryControllerTestCase):
         test_exec = json.loads(self.app.post_json('/v1/executions', LIVE_ACTION_1).body)
         get_resp = self._do_get_one(test_exec.get('id'), expect_errors=True)
         self.assertEqual(get_resp.status_int, http_client.BAD_REQUEST)
-        self.assertIn('is not an Inquiry', get_resp.json['faultstring'])
+        self.assertIn('is not an inquiry', get_resp.json['faultstring'])
 
     def test_get_one_nondefault_params(self):
         """Ensure an Inquiry with custom parameters contains those in result
@@ -267,14 +281,15 @@ class InquiryControllerTestCase(BaseInquiryControllerTestCase):
         for param in ["route", "ttl", "users", "roles", "schema"]:
             self.assertEqual(get_resp.json.get(param), RESULT_2.get(param))
 
-    @mock.patch('st2api.controllers.exp.inquiries.action_service')
-    def test_respond(self, mock_as):
+    @mock.patch.object(
+        action_service, 'get_root_liveaction',
+        mock.MagicMock(return_value=ROOT_LIVEACTION_DB))
+    @mock.patch.object(
+        action_service, 'request_resume',
+        mock.MagicMock(return_value=None))
+    def test_respond(self):
         """Test that a correct response is successful
         """
-
-        # Set up parent
-        parent_id = '2934857foo'
-        mock_as.get_root_liveaction.return_value = parent_id
 
         post_resp = self._do_create_inquiry(INQUIRY_1, RESULT_DEFAULT)
         inquiry_id = self._get_inquiry_id(post_resp)
@@ -289,16 +304,17 @@ class InquiryControllerTestCase(BaseInquiryControllerTestCase):
 
         # This Inquiry is in a workflow, so has a parent. Assert that the resume
         # was requested for this parent.
-        mock_as.request_resume.assert_called_once()
+        action_service.request_resume.assert_called_once()
 
-    @mock.patch('st2api.controllers.exp.inquiries.action_service')
-    def test_respond_multiple(self, mock_as):
+    @mock.patch.object(
+        action_service, 'get_root_liveaction',
+        mock.MagicMock(return_value=ROOT_LIVEACTION_DB))
+    @mock.patch.object(
+        action_service, 'request_resume',
+        mock.MagicMock(return_value=None))
+    def test_respond_multiple(self):
         """Test that a more complicated response is successful
         """
-
-        # Set up parent
-        parent_id = '2934857foo'
-        mock_as.get_root_liveaction.return_value = parent_id
 
         post_resp = self._do_create_inquiry(INQUIRY_1, RESULT_MULTIPLE)
         inquiry_id = self._get_inquiry_id(post_resp)
@@ -312,7 +328,7 @@ class InquiryControllerTestCase(BaseInquiryControllerTestCase):
 
         # This Inquiry is in a workflow, so has a parent. Assert that the resume
         # was requested for this parent.
-        mock_as.request_resume.assert_called_once()
+        action_service.request_resume.assert_called_once()
 
     def test_respond_fail(self):
         """Test that an incorrect response is unsuccessful
@@ -323,7 +339,7 @@ class InquiryControllerTestCase(BaseInquiryControllerTestCase):
         response = {"continue": 123}
         put_resp = self._do_respond(inquiry_id, response, expect_errors=True)
         self.assertEqual(put_resp.status_int, http_client.BAD_REQUEST)
-        self.assertIn('Response did not pass schema validation.', put_resp.json['faultstring'])
+        self.assertIn('did not pass schema validation', put_resp.json['faultstring'])
 
     def test_respond_not_an_inquiry(self):
         """Test that attempts to respond to an execution ID that isn't an Inquiry fails
@@ -332,10 +348,12 @@ class InquiryControllerTestCase(BaseInquiryControllerTestCase):
         response = {"continue": 123}
         put_resp = self._do_respond(test_exec.get('id'), response, expect_errors=True)
         self.assertEqual(put_resp.status_int, http_client.BAD_REQUEST)
-        self.assertIn('is not an Inquiry', put_resp.json['faultstring'])
+        self.assertIn('is not an inquiry', put_resp.json['faultstring'])
 
-    @mock.patch('st2api.controllers.exp.inquiries.action_service')
-    def test_respond_no_parent(self, mock_as):
+    @mock.patch.object(
+        action_service, 'request_resume',
+        mock.MagicMock(return_value=None))
+    def test_respond_no_parent(self):
         """Test that a resume was not requested for an Inquiry without a parent
         """
 
@@ -344,7 +362,7 @@ class InquiryControllerTestCase(BaseInquiryControllerTestCase):
         response = {"continue": True}
         put_resp = self._do_respond(inquiry_id, response)
         self.assertEqual(response, put_resp.json.get("response"))
-        mock_as.request_resume.assert_not_called()
+        action_service.request_resume.assert_not_called()
 
     def test_respond_duplicate_rejected(self):
         """Test that responding to an already-responded Inquiry fails
@@ -376,7 +394,7 @@ class InquiryControllerTestCase(BaseInquiryControllerTestCase):
         response = {"continue": True}
         put_resp = self._do_respond(inquiry_id, response, expect_errors=True)
         self.assertEqual(put_resp.status_int, http_client.BAD_REQUEST)
-        self.assertIn('timed out and can no longer be responded to', put_resp.json['faultstring'])
+        self.assertIn('timed out and cannot be responded to', put_resp.json['faultstring'])
 
     def test_respond_restrict_users(self):
         """Test that Inquiries can reject responses from users not in a list
@@ -389,8 +407,7 @@ class InquiryControllerTestCase(BaseInquiryControllerTestCase):
         response = {"continue": True}
         put_resp = self._do_respond(inquiry_id, response, expect_errors=True)
         self.assertEqual(put_resp.status_int, http_client.FORBIDDEN)
-        self.assertIn('Requesting user does not have permission to respond to inquiry',
-                      put_resp.json['faultstring'])
+        self.assertIn('does not have permission to respond', put_resp.json['faultstring'])
 
         # Responding as a use in the list should be accepted
         old_user = cfg.CONF.system_user.user
@@ -403,3 +420,15 @@ class InquiryControllerTestCase(BaseInquiryControllerTestCase):
 
         # Clean up
         cfg.CONF.system_user.user = old_user
+
+    def test_get_all_invalid_exclude_and_include_parameter(self):
+        pass
+
+    def _insert_mock_models(self):
+        id_1 = self._do_create_inquiry(INQUIRY_1, RESULT_DEFAULT).json['id']
+        id_2 = self._do_create_inquiry(INQUIRY_1, RESULT_DEFAULT).json['id']
+
+        return [id_1, id_2]
+
+    def _do_delete(self, rule_id):
+        pass

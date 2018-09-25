@@ -18,7 +18,7 @@ from __future__ import absolute_import
 import mock
 import os
 
-from orchestra import states as wf_lib_states
+from orquesta import states as wf_lib_states
 
 import st2tests
 
@@ -47,7 +47,7 @@ TEST_FIXTURES = {
     ]
 }
 
-TEST_PACK = 'orchestra_tests'
+TEST_PACK = 'orquesta_tests'
 TEST_PACK_PATH = st2tests.fixturesloader.get_fixtures_packs_base_path() + '/' + TEST_PACK
 
 PACKS = [
@@ -127,6 +127,7 @@ class WorkflowEngineTest(st2tests.DbTestCase):
         self.assertEqual(wf_ex_db.status, wf_lib_states.RUNNING)
 
         expected_st2_ctx = {
+            'workflow_execution_id': str(wf_ex_db.id),
             'action_execution_id': wf_ex_db.action_execution,
             'api_url': 'http://127.0.0.1/v1',
             'user': 'stanley'

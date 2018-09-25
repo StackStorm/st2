@@ -24,6 +24,14 @@ from distutils.spawn import find_executable
 from st2common.constants.system import VERSION_STRING
 from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
 from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_LOG_LEVEL
+from st2common.constants.action import LIVEACTION_COMPLETED_STATES
+
+__all__ = [
+    'do_register_opts',
+    'do_register_cli_opts',
+
+    'parse_args'
+]
 
 
 def do_register_opts(opts, group=None, ignore_errors=False):
@@ -97,13 +105,16 @@ def register_opts(ignore_errors=False):
             'base_path', default='/opt/stackstorm',
             help='Base path to all st2 artifacts.'),
         cfg.BoolOpt(
-            'validate_trigger_parameters', default=False,
+            'validate_trigger_parameters', default=True,
             help='True to validate parameters for non-system trigger types when creating'
-                 'a rule. By default, only parameters for system triggers are validated'),
+                 'a rule. By default, only parameters for system triggers are validated.'),
         cfg.BoolOpt(
-            'validate_trigger_payload', default=False,
+            'validate_trigger_payload', default=True,
             help='True to validate payload for non-system trigger types when dispatching a trigger '
-                 'inside the sensor. By default, only payload for system triggers is validated.')
+                 'inside the sensor. By default, only payload for system triggers is validated.'),
+        cfg.BoolOpt(
+            'validate_output_schema', default=False,
+            help='True to validate action and runner output against schema.')
     ]
 
     do_register_opts(system_opts, 'system', ignore_errors)
@@ -381,6 +392,9 @@ def register_opts(ignore_errors=False):
         cfg.BoolOpt(
             'enable', default=True,
             help='Whether to enable or disable the ability to post a trigger on action.'),
+        cfg.ListOpt(
+            'emit_when', default=LIVEACTION_COMPLETED_STATES,
+            help='List of execution statuses for which a trigger will be emitted. ')
     ]
 
     do_register_opts(action_sensor_opts, group='action_sensor')
@@ -531,6 +545,17 @@ def register_opts(ignore_errors=False):
         cfg.IntOpt(
             'port', default=8125,
             help='Destination port to connect to if driver requires connection.'),
+        cfg.StrOpt(
+            'prefix', default=None,
+            help='Optional prefix which is prepended to all the metric names. Comes handy when '
+                 'you want to submit metrics from various environment to the same metric '
+                 'backend instance.'),
+        cfg.FloatOpt(
+            'sample_rate', default=1,
+            help='Randomly sample and only send metrics for X% of metric operations to the '
+                 'backend. Default value of 1 means no sampling is done and all the metrics are '
+                 'sent to the backend. E.g. 0.1 would mean 10% of operations are sampled.')
+
     ]
 
     do_register_opts(metrics_opts, group='metrics', ignore_errors=ignore_errors)

@@ -13,13 +13,18 @@
 # See the License for the specific language governing permissions and
 
 from __future__ import absolute_import
+
 import os
+import sys
 import signal
 import tempfile
 
 from eventlet.green import subprocess
 
-from st2common.constants.scheduler import SCHEDULER_ENABLED_LOG_LINE, SCHEDULER_DISABLED_LOG_LINE
+from st2common.constants.scheduler import SCHEDULER_ENABLED_LOG_LINE
+from st2common.constants.scheduler import SCHEDULER_DISABLED_LOG_LINE
+from st2common.util.shell import kill_process
+
 from st2tests.base import IntegrationTestCase
 from st2tests.base import CleanDbTestCase
 
@@ -31,18 +36,16 @@ __all__ = [
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ST2_CONFIG_PATH = os.path.join(BASE_DIR, '../../../conf/st2.tests.conf')
 ST2_CONFIG_PATH = os.path.abspath(ST2_CONFIG_PATH)
+PYTHON_BINARY = sys.executable
 BINARY = os.path.join(BASE_DIR, '../../../st2actions/bin/st2notifier')
 BINARY = os.path.abspath(BINARY)
-CMD = [BINARY, '--config-file']
+CMD = [PYTHON_BINARY, BINARY, '--config-file']
 
 
 class SchedulerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
-    @classmethod
-    def setUpClass(cls):
-        super(SchedulerEnableDisableTestCase, cls).setUpClass()
-
     def setUp(self):
         super(SchedulerEnableDisableTestCase, self).setUp()
+
         config_text = open(ST2_CONFIG_PATH).read()
         self.cfg_fd, self.cfg_path = tempfile.mkstemp()
         with open(self.cfg_path, 'w') as f:
@@ -52,59 +55,88 @@ class SchedulerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
         self.cmd.append(self.cfg_path)
 
     def tearDown(self):
+        super(SchedulerEnableDisableTestCase, self).tearDown()
         self.cmd = None
         self._remove_tempfile(self.cfg_fd, self.cfg_path)
-        super(SchedulerEnableDisableTestCase, self).tearDown()
 
     def test_scheduler_enable_implicit(self):
         process = None
+        seen_line = False
+
         try:
             process = self._start_notifier(cmd=self.cmd)
             lines = 0
+
             while lines < 100:
-                line = process.stdout.readline()
+                line = process.stdout.readline().decode('utf-8')
                 lines += 1
+                sys.stdout.write(line)
+
                 if SCHEDULER_ENABLED_LOG_LINE in line:
-                    self.assertTrue(True)
+                    seen_line = True
                     break
         finally:
             if process:
-                process.send_signal(signal.SIGKILL)
+                kill_process(process)
                 self.remove_process(process=process)
+
+        if not seen_line:
+            print(process.stdout.read())
+            print(process.stderr.read())
+            raise AssertionError('Didn\'t see "%s" log line in scheduler output' %
+                                 (SCHEDULER_ENABLED_LOG_LINE))
 
     def test_scheduler_enable_explicit(self):
         self._append_to_cfg_file(cfg_path=self.cfg_path, content='\n[scheduler]\nenable = True')
         process = None
+        seen_line = False
+
         try:
             process = self._start_notifier(cmd=self.cmd)
             lines = 0
+
             while lines < 100:
-                line = process.stdout.readline()
+                line = process.stdout.readline().decode('utf-8')
                 lines += 1
+                sys.stdout.write(line)
+
                 if SCHEDULER_ENABLED_LOG_LINE in line:
-                    self.assertTrue(True)
+                    seen_line = True
+                    break
+        finally:
+            if process:
+                kill_process(process)
+                self.remove_process(process=process)
+
+        if not seen_line:
+            raise AssertionError('Didn\'t see "%s" log line in scheduler output' %
+                                 (SCHEDULER_DISABLED_LOG_LINE))
+
+    def test_scheduler_disable_explicit(self):
+        self._append_to_cfg_file(cfg_path=self.cfg_path, content='\n[scheduler]\nenable = False')
+        process = None
+        seen_line = False
+
+        try:
+            process = self._start_notifier(cmd=self.cmd)
+            lines = 0
+
+            while lines < 100:
+                line = process.stdout.readline().decode('utf-8')
+                lines += 1
+                sys.stdout.write(line)
+
+                if SCHEDULER_DISABLED_LOG_LINE in line:
+                    seen_line = True
                     break
         finally:
             if process:
                 process.send_signal(signal.SIGKILL)
                 self.remove_process(process=process)
 
-    def test_scheduler_disable_explicit(self):
-        self._append_to_cfg_file(cfg_path=self.cfg_path, content='\n[scheduler]\nenable = False')
-        process = None
-        try:
-            process = self._start_notifier(cmd=self.cmd)
-            lines = 0
-            while lines < 100:
-                line = process.stdout.readline()
-                lines += 1
-                if SCHEDULER_DISABLED_LOG_LINE in line:
-                    self.assertTrue(True)
-                    break
-        finally:
-            if process:
-                process.send_signal(signal.SIGKILL)
-                self.remove_process(process=process)
+        if not seen_line:
+            raise AssertionError('Didn\'t see "%s" log line in scheduler output' %
+                                 (SCHEDULER_DISABLED_LOG_LINE))
 
     def _start_notifier(self, cmd):
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,

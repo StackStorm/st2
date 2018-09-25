@@ -15,11 +15,8 @@
 
 from __future__ import absolute_import
 
-import six
 import mock
-import unittest2
 
-from bson.errors import InvalidStringData
 from oslo_config import cfg
 
 from st2common.constants import action as action_constants
@@ -34,9 +31,6 @@ from st2common.runners.base import PollingAsyncActionRunner
 from st2common.services import executions
 from st2common.util import date as date_utils
 from st2common.transport.publishers import PoolPublisher
-
-from local_runner import local_shell_command_runner
-from local_runner.local_shell_command_runner import LocalShellCommandRunner
 
 from st2tests.base import DbTestCase
 import st2tests.config as tests_config
@@ -299,26 +293,6 @@ class RunnerContainerTest(DbTestCase):
             liveaction_db
         )
 
-    @unittest2.skipIf(six.PY3, 'non-utf8 works fine in MongoDB under Python 3')
-    @mock.patch.object(LocalShellCommandRunner, 'run', mock.MagicMock(
-        return_value=(action_constants.LIVEACTION_STATUS_SUCCEEDED, NON_UTF8_RESULT, None)))
-    @mock.patch('st2common.runners.base.register_runner',
-                mock.MagicMock(return_value=local_shell_command_runner))
-    def test_dispatch_non_utf8_result(self):
-        runner_container = get_runner_container()
-        params = {
-            'cmd': "python -c 'print \"\\x82\"'"
-        }
-        liveaction_db = self._get_liveaction_model(RunnerContainerTest.local_action_db, params)
-        liveaction_db = LiveAction.add_or_update(liveaction_db)
-        executions.create_execution_object(liveaction_db)
-
-        try:
-            runner_container.dispatch(liveaction_db)
-            self.fail('Mongo won\'t handle non UTF-8 strings. Should have failed.')
-        except InvalidStringData:
-            pass
-
     def test_dispatch_runner_failure(self):
         runner_container = get_runner_container()
         params = {
@@ -445,6 +419,19 @@ class RunnerContainerTest(DbTestCase):
         action_ref = ResourceReference(
             name=RunnerContainerTest.failingaction_db.name,
             pack=RunnerContainerTest.failingaction_db.pack).ref
+        parameters = params
+        context = {'user': cfg.CONF.system_user.user}
+        liveaction_db = LiveActionDB(status=status, start_timestamp=start_timestamp,
+                                     action=action_ref, parameters=parameters,
+                                     context=context)
+        return liveaction_db
+
+    def _get_output_schema_exec_db_model(self, params):
+        status = action_constants.LIVEACTION_STATUS_REQUESTED
+        start_timestamp = date_utils.get_datetime_utc_now()
+        action_ref = ResourceReference(
+            name=RunnerContainerTest.schema_output_action_db.name,
+            pack=RunnerContainerTest.schema_output_action_db.pack).ref
         parameters = params
         context = {'user': cfg.CONF.system_user.user}
         liveaction_db = LiveActionDB(status=status, start_timestamp=start_timestamp,

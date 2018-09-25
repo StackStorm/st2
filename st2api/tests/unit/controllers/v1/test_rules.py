@@ -24,8 +24,11 @@ from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.persistence.trigger import Trigger
 from st2common.models.system.common import ResourceReference
 from st2common.transport.publishers import PoolPublisher
+from st2api.controllers.v1.rules import RuleController
 from st2tests.fixturesloader import FixturesLoader
-from tests import FunctionalTest
+
+from tests.base import FunctionalTest
+from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
 
 http_client = six.moves.http_client
 
@@ -40,7 +43,11 @@ FIXTURES_PACK = 'generic'
 
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
-class TestRuleController(FunctionalTest):
+class RulesControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExcludeFilterTestCase):
+    get_all_path = '/v1/rules'
+    controller_cls = RuleController
+    include_attribute_field_name = 'criteria'
+    exclude_attribute_field_name = 'enabled'
 
     VALIDATE_TRIGGER_PAYLOAD = None
 
@@ -48,77 +55,77 @@ class TestRuleController(FunctionalTest):
 
     @classmethod
     def setUpClass(cls):
-        super(TestRuleController, cls).setUpClass()
+        super(RulesControllerTestCase, cls).setUpClass()
 
         # Previously, cfg.CONF.system.validate_trigger_payload was set to False explicitly
         # here. Instead, we store original value so that the default is used, and if unit
         # test modifies this, we can set it to what it was (preserve test atomicity)
         cls.VALIDATE_TRIGGER_PAYLOAD = cfg.CONF.system.validate_trigger_parameters
 
-        models = TestRuleController.fixtures_loader.save_fixtures_to_db(
+        models = RulesControllerTestCase.fixtures_loader.save_fixtures_to_db(
             fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_FIXTURES)
-        TestRuleController.RUNNER_TYPE = models['runners']['testrunner1.yaml']
-        TestRuleController.ACTION = models['actions']['action1.yaml']
-        TestRuleController.TRIGGER = models['triggers']['trigger1.yaml']
+        RulesControllerTestCase.RUNNER_TYPE = models['runners']['testrunner1.yaml']
+        RulesControllerTestCase.ACTION = models['actions']['action1.yaml']
+        RulesControllerTestCase.TRIGGER = models['triggers']['trigger1.yaml']
 
         # Don't load rule into DB as that is what is being tested.
         file_name = 'rule1.yaml'
-        TestRuleController.RULE_1 = TestRuleController.fixtures_loader.load_fixtures(
+        RulesControllerTestCase.RULE_1 = RulesControllerTestCase.fixtures_loader.load_fixtures(
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'rules': [file_name]})['rules'][file_name]
 
         file_name = 'cron_timer_rule_invalid_parameters.yaml'
-        TestRuleController.RULE_2 = TestRuleController.fixtures_loader.load_fixtures(
+        RulesControllerTestCase.RULE_2 = RulesControllerTestCase.fixtures_loader.load_fixtures(
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'rules': [file_name]})['rules'][file_name]
 
         file_name = 'rule_no_enabled_attribute.yaml'
-        TestRuleController.RULE_3 = TestRuleController.fixtures_loader.load_fixtures(
+        RulesControllerTestCase.RULE_3 = RulesControllerTestCase.fixtures_loader.load_fixtures(
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'rules': [file_name]})['rules'][file_name]
 
         file_name = 'backstop_rule.yaml'
-        TestRuleController.RULE_4 = TestRuleController.fixtures_loader.load_fixtures(
+        RulesControllerTestCase.RULE_4 = RulesControllerTestCase.fixtures_loader.load_fixtures(
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'rules': [file_name]})['rules'][file_name]
 
         file_name = 'date_timer_rule_invalid_parameters.yaml'
-        TestRuleController.RULE_5 = TestRuleController.fixtures_loader.load_fixtures(
+        RulesControllerTestCase.RULE_5 = RulesControllerTestCase.fixtures_loader.load_fixtures(
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'rules': [file_name]})['rules'][file_name]
 
         file_name = 'cron_timer_rule_invalid_parameters_1.yaml'
-        TestRuleController.RULE_6 = TestRuleController.fixtures_loader.load_fixtures(
+        RulesControllerTestCase.RULE_6 = RulesControllerTestCase.fixtures_loader.load_fixtures(
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'rules': [file_name]})['rules'][file_name]
 
         file_name = 'cron_timer_rule_invalid_parameters_2.yaml'
-        TestRuleController.RULE_7 = TestRuleController.fixtures_loader.load_fixtures(
+        RulesControllerTestCase.RULE_7 = RulesControllerTestCase.fixtures_loader.load_fixtures(
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'rules': [file_name]})['rules'][file_name]
 
         file_name = 'cron_timer_rule_invalid_parameters_3.yaml'
-        TestRuleController.RULE_8 = TestRuleController.fixtures_loader.load_fixtures(
+        RulesControllerTestCase.RULE_8 = RulesControllerTestCase.fixtures_loader.load_fixtures(
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'rules': [file_name]})['rules'][file_name]
 
         file_name = 'rule_invalid_trigger_parameter_type.yaml'
-        TestRuleController.RULE_9 = TestRuleController.fixtures_loader.load_fixtures(
+        RulesControllerTestCase.RULE_9 = RulesControllerTestCase.fixtures_loader.load_fixtures(
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'rules': [file_name]})['rules'][file_name]
 
         file_name = 'rule_trigger_with_no_parameters.yaml'
-        TestRuleController.RULE_10 = TestRuleController.fixtures_loader.load_fixtures(
+        RulesControllerTestCase.RULE_10 = RulesControllerTestCase.fixtures_loader.load_fixtures(
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'rules': [file_name]})['rules'][file_name]
 
         file_name = 'rule_invalid_trigger_parameter_type_default_cfg.yaml'
-        TestRuleController.RULE_11 = TestRuleController.fixtures_loader.load_fixtures(
+        RulesControllerTestCase.RULE_11 = RulesControllerTestCase.fixtures_loader.load_fixtures(
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'rules': [file_name]})['rules'][file_name]
 
         file_name = 'rule space.yaml'
-        TestRuleController.RULE_SPACE = TestRuleController.fixtures_loader.load_fixtures(
+        RulesControllerTestCase.RULE_SPACE = RulesControllerTestCase.fixtures_loader.load_fixtures(
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'rules': [file_name]})['rules'][file_name]
 
@@ -127,13 +134,13 @@ class TestRuleController(FunctionalTest):
         # Replace original configured value for trigger parameter validation
         cfg.CONF.system.validate_trigger_payload = cls.VALIDATE_TRIGGER_PAYLOAD
 
-        TestRuleController.fixtures_loader.delete_fixtures_from_db(
+        RulesControllerTestCase.fixtures_loader.delete_fixtures_from_db(
             fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_FIXTURES)
-        super(TestRuleController, cls).setUpClass()
+        super(RulesControllerTestCase, cls).setUpClass()
 
     def test_get_all_and_minus_one(self):
-        post_resp_rule_1 = self.__do_post(TestRuleController.RULE_1)
-        post_resp_rule_3 = self.__do_post(TestRuleController.RULE_3)
+        post_resp_rule_1 = self.__do_post(RulesControllerTestCase.RULE_1)
+        post_resp_rule_3 = self.__do_post(RulesControllerTestCase.RULE_3)
 
         resp = self.app.get('/v1/rules')
         self.assertEqual(resp.status_int, http_client.OK)
@@ -147,8 +154,8 @@ class TestRuleController(FunctionalTest):
         self.__do_delete(self.__get_rule_id(post_resp_rule_3))
 
     def test_get_all_limit_negative_number(self):
-        post_resp_rule_1 = self.__do_post(TestRuleController.RULE_1)
-        post_resp_rule_3 = self.__do_post(TestRuleController.RULE_3)
+        post_resp_rule_1 = self.__do_post(RulesControllerTestCase.RULE_1)
+        post_resp_rule_3 = self.__do_post(RulesControllerTestCase.RULE_3)
 
         resp = self.app.get('/v1/rules?limit=-22', expect_errors=True)
         self.assertEqual(resp.status_int, 400)
@@ -159,8 +166,8 @@ class TestRuleController(FunctionalTest):
         self.__do_delete(self.__get_rule_id(post_resp_rule_3))
 
     def test_get_all_enabled(self):
-        post_resp_rule_1 = self.__do_post(TestRuleController.RULE_1)
-        post_resp_rule_3 = self.__do_post(TestRuleController.RULE_3)
+        post_resp_rule_1 = self.__do_post(RulesControllerTestCase.RULE_1)
+        post_resp_rule_3 = self.__do_post(RulesControllerTestCase.RULE_3)
 
         # enabled=True
         resp = self.app.get('/v1/rules?enabled=True')
@@ -180,7 +187,7 @@ class TestRuleController(FunctionalTest):
         self.__do_delete(self.__get_rule_id(post_resp_rule_3))
 
     def test_get_one_by_id(self):
-        post_resp = self.__do_post(TestRuleController.RULE_1)
+        post_resp = self.__do_post(RulesControllerTestCase.RULE_1)
         rule_id = self.__get_rule_id(post_resp)
         get_resp = self.__do_get_one(rule_id)
         self.assertEqual(get_resp.status_int, http_client.OK)
@@ -188,7 +195,7 @@ class TestRuleController(FunctionalTest):
         self.__do_delete(rule_id)
 
     def test_get_one_by_ref(self):
-        post_resp = self.__do_post(TestRuleController.RULE_1)
+        post_resp = self.__do_post(RulesControllerTestCase.RULE_1)
         rule_name = post_resp.json['name']
         rule_pack = post_resp.json['pack']
         ref = ResourceReference.to_string_reference(name=rule_name, pack=rule_pack)
@@ -198,7 +205,7 @@ class TestRuleController(FunctionalTest):
         self.assertEqual(get_resp.status_int, http_client.OK)
         self.__do_delete(rule_id)
 
-        post_resp = self.__do_post(TestRuleController.RULE_SPACE)
+        post_resp = self.__do_post(RulesControllerTestCase.RULE_SPACE)
         rule_name = post_resp.json['name']
         rule_pack = post_resp.json['pack']
         ref = ResourceReference.to_string_reference(name=rule_name, pack=rule_pack)
@@ -213,15 +220,15 @@ class TestRuleController(FunctionalTest):
         self.assertEqual(resp.status_int, http_client.NOT_FOUND)
 
     def test_post(self):
-        post_resp = self.__do_post(TestRuleController.RULE_1)
+        post_resp = self.__do_post(RulesControllerTestCase.RULE_1)
         self.assertEqual(post_resp.status_int, http_client.CREATED)
         self.__do_delete(self.__get_rule_id(post_resp))
 
     def test_post_duplicate(self):
-        post_resp = self.__do_post(TestRuleController.RULE_1)
+        post_resp = self.__do_post(RulesControllerTestCase.RULE_1)
         org_id = self.__get_rule_id(post_resp)
         self.assertEqual(post_resp.status_int, http_client.CREATED)
-        post_resp_2 = self.__do_post(TestRuleController.RULE_1)
+        post_resp_2 = self.__do_post(RulesControllerTestCase.RULE_1)
         self.assertEqual(post_resp_2.status_int, http_client.CONFLICT)
         self.assertEqual(post_resp_2.json['conflict-id'], org_id)
         self.__do_delete(org_id)
@@ -233,7 +240,7 @@ class TestRuleController(FunctionalTest):
         self.assertEqual(post_resp.json['faultstring'], expected_msg)
 
     def test_post_trigger_parameter_schema_validation_fails(self):
-        post_resp = self.__do_post(TestRuleController.RULE_2)
+        post_resp = self.__do_post(RulesControllerTestCase.RULE_2)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
 
         if six.PY3:
@@ -244,26 +251,26 @@ class TestRuleController(FunctionalTest):
         self.assertTrue(expected_msg in post_resp.body)
 
     def test_post_trigger_parameter_schema_validation_fails_missing_required_param(self):
-        post_resp = self.__do_post(TestRuleController.RULE_5)
+        post_resp = self.__do_post(RulesControllerTestCase.RULE_5)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
 
         expected_msg = b'\'date\' is a required property'
         self.assertTrue(expected_msg in post_resp.body)
 
     def test_post_invalid_crontimer_trigger_parameters(self):
-        post_resp = self.__do_post(TestRuleController.RULE_6)
+        post_resp = self.__do_post(RulesControllerTestCase.RULE_6)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
 
         expected_msg = b'1000 is greater than the maximum of 6'
         self.assertTrue(expected_msg in post_resp.body)
 
-        post_resp = self.__do_post(TestRuleController.RULE_7)
+        post_resp = self.__do_post(RulesControllerTestCase.RULE_7)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
 
         expected_msg = b'Invalid weekday name \\"abcdef\\"'
         self.assertTrue(expected_msg in post_resp.body)
 
-        post_resp = self.__do_post(TestRuleController.RULE_8)
+        post_resp = self.__do_post(RulesControllerTestCase.RULE_8)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
 
         expected_msg = b'Invalid weekday name \\"a\\"'
@@ -274,7 +281,7 @@ class TestRuleController(FunctionalTest):
         # validation is enabled - trigger creation should fail
         cfg.CONF.system.validate_trigger_parameters = True
 
-        post_resp = self.__do_post(TestRuleController.RULE_9)
+        post_resp = self.__do_post(RulesControllerTestCase.RULE_9)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
 
         if six.PY3:
@@ -287,19 +294,12 @@ class TestRuleController(FunctionalTest):
         self.assertTrue(expected_msg_1 in post_resp.json['faultstring'])
         self.assertTrue(expected_msg_2 in post_resp.json['faultstring'])
 
-    def test_post_invalid_custom_trigger_param_trigger_param_validation_disabled_default_cfg(self):
-        """Test validation does NOT take place with the default configuration.
-        """
-
-        post_resp = self.__do_post(TestRuleController.RULE_11)
-        self.assertEqual(post_resp.status_int, http_client.CREATED)
-
     def test_post_invalid_custom_trigger_parameter_trigger_param_validation_disabled(self):
         # Invalid custom trigger parameter (invalid type) and non-system trigger parameter
         # validation is disabled - trigger creation should succeed
         cfg.CONF.system.validate_trigger_parameters = False
 
-        post_resp = self.__do_post(TestRuleController.RULE_9)
+        post_resp = self.__do_post(RulesControllerTestCase.RULE_9)
         self.assertEqual(post_resp.status_int, http_client.CREATED)
 
     def test_post_invalid_custom_trigger_parameter_trigger_no_parameters_schema(self):
@@ -309,17 +309,17 @@ class TestRuleController(FunctionalTest):
         # validation is not performed.
         cfg.CONF.system.validate_trigger_parameters = True
 
-        post_resp = self.__do_post(TestRuleController.RULE_10)
+        post_resp = self.__do_post(RulesControllerTestCase.RULE_10)
         self.assertEqual(post_resp.status_int, http_client.CREATED)
 
     def test_post_no_enabled_attribute_disabled_by_default(self):
-        post_resp = self.__do_post(TestRuleController.RULE_3)
+        post_resp = self.__do_post(RulesControllerTestCase.RULE_3)
         self.assertEqual(post_resp.status_int, http_client.CREATED)
         self.assertFalse(post_resp.json['enabled'])
         self.__do_delete(self.__get_rule_id(post_resp))
 
     def test_put(self):
-        post_resp = self.__do_post(TestRuleController.RULE_1)
+        post_resp = self.__do_post(RulesControllerTestCase.RULE_1)
         update_input = post_resp.json
         update_input['enabled'] = not update_input['enabled']
         put_resp = self.__do_put(self.__get_rule_id(post_resp), update_input)
@@ -327,7 +327,7 @@ class TestRuleController(FunctionalTest):
         self.__do_delete(self.__get_rule_id(put_resp))
 
     def test_post_no_pack_info(self):
-        rule = copy.deepcopy(TestRuleController.RULE_1)
+        rule = copy.deepcopy(RulesControllerTestCase.RULE_1)
         del rule['pack']
         post_resp = self.__do_post(rule)
         self.assertEqual(post_resp.json['pack'], DEFAULT_PACK_NAME)
@@ -335,7 +335,7 @@ class TestRuleController(FunctionalTest):
         self.__do_delete(self.__get_rule_id(post_resp))
 
     def test_put_no_pack_info(self):
-        post_resp = self.__do_post(TestRuleController.RULE_1)
+        post_resp = self.__do_post(RulesControllerTestCase.RULE_1)
         test_rule = post_resp.json
         if 'pack' in test_rule:
             del test_rule['pack']
@@ -346,7 +346,7 @@ class TestRuleController(FunctionalTest):
         self.__do_delete(self.__get_rule_id(put_resp))
 
     def test_put_fail(self):
-        post_resp = self.__do_post(TestRuleController.RULE_1)
+        post_resp = self.__do_post(RulesControllerTestCase.RULE_1)
         update_input = post_resp.json
         # If the id in the URL is incorrect the update will fail since id in the body is ignored.
         put_resp = self.__do_put(1, update_input)
@@ -354,21 +354,21 @@ class TestRuleController(FunctionalTest):
         self.__do_delete(self.__get_rule_id(post_resp))
 
     def test_delete(self):
-        post_resp = self.__do_post(TestRuleController.RULE_1)
+        post_resp = self.__do_post(RulesControllerTestCase.RULE_1)
         del_resp = self.__do_delete(self.__get_rule_id(post_resp))
         self.assertEqual(del_resp.status_int, http_client.NO_CONTENT)
 
     def test_rule_with_tags(self):
-        post_resp = self.__do_post(TestRuleController.RULE_1)
+        post_resp = self.__do_post(RulesControllerTestCase.RULE_1)
         rule_id = self.__get_rule_id(post_resp)
         get_resp = self.__do_get_one(rule_id)
         self.assertEqual(get_resp.status_int, http_client.OK)
         self.assertEqual(self.__get_rule_id(get_resp), rule_id)
-        self.assertEqual(get_resp.json['tags'], TestRuleController.RULE_1['tags'])
+        self.assertEqual(get_resp.json['tags'], RulesControllerTestCase.RULE_1['tags'])
         self.__do_delete(rule_id)
 
     def test_rule_without_type(self):
-        post_resp = self.__do_post(TestRuleController.RULE_1)
+        post_resp = self.__do_post(RulesControllerTestCase.RULE_1)
         rule_id = self.__get_rule_id(post_resp)
         get_resp = self.__do_get_one(rule_id)
         self.assertEqual(get_resp.status_int, http_client.OK)
@@ -380,7 +380,7 @@ class TestRuleController(FunctionalTest):
         self.__do_delete(rule_id)
 
     def test_rule_with_type(self):
-        post_resp = self.__do_post(TestRuleController.RULE_4)
+        post_resp = self.__do_post(RulesControllerTestCase.RULE_4)
         rule_id = self.__get_rule_id(post_resp)
         get_resp = self.__do_get_one(rule_id)
         self.assertEqual(get_resp.status_int, http_client.OK)
@@ -414,6 +414,16 @@ class TestRuleController(FunctionalTest):
 
         self.__do_delete(rule_1_id)
 
+    def _insert_mock_models(self):
+        rule = copy.deepcopy(RulesControllerTestCase.RULE_1)
+        rule['name'] += '-253'
+        post_resp = self.__do_post(rule)
+        rule_1_id = self.__get_rule_id(post_resp)
+        return [rule_1_id]
+
+    def _do_delete(self, rule_id):
+        return self.__do_delete(rule_id)
+
     @staticmethod
     def __get_rule_id(resp):
         return resp.json['id']
@@ -442,13 +452,13 @@ TEST_FIXTURES_2 = {
 
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
-class TestRuleControllerTriggerCreator(FunctionalTest):
+class RulesControllerTestCaseTriggerCreator(FunctionalTest):
 
     fixtures_loader = FixturesLoader()
 
     @classmethod
     def setUpClass(cls):
-        super(TestRuleControllerTriggerCreator, cls).setUpClass()
+        super(RulesControllerTestCaseTriggerCreator, cls).setUpClass()
         cls.models = cls.fixtures_loader.save_fixtures_to_db(
             fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_FIXTURES_2)
 

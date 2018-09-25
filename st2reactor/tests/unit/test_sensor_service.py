@@ -39,8 +39,9 @@ class SensorServiceTestCase(unittest2.TestCase):
             self._dispatched_count += 1
 
         self.sensor_service = SensorService(mock.MagicMock())
-        self.sensor_service._dispatcher = mock.Mock()
-        self.sensor_service._dispatcher.dispatch = mock.MagicMock(side_effect=side_effect)
+        self.sensor_service._trigger_dispatcher_service._dispatcher = mock.Mock()
+        self.sensor_service._trigger_dispatcher_service._dispatcher.dispatch = \
+            mock.MagicMock(side_effect=side_effect)
         self._dispatched_count = 0
 
         # Previously, cfg.CONF.system.validate_trigger_payload was set to False explicitly
@@ -54,7 +55,9 @@ class SensorServiceTestCase(unittest2.TestCase):
 
     @mock.patch('st2common.services.triggers.get_trigger_type_db',
                 mock.MagicMock(return_value=TriggerTypeMock(TEST_SCHEMA)))
-    def test_dispatch_success(self):
+    def test_dispatch_success_valid_payload_validation_enabled(self):
+        cfg.CONF.system.validate_trigger_payload = True
+
         # define a valid payload
         payload = {
             'name': 'John Doe',
@@ -62,8 +65,7 @@ class SensorServiceTestCase(unittest2.TestCase):
             'career': ['foo, Inc.', 'bar, Inc.'],
             'married': True,
             'awards': {'2016': ['hoge prize', 'fuga prize']},
-            'income': 50000,
-            'country': 'US',
+            'income': 50000
         }
 
         # dispatching a trigger
@@ -74,8 +76,9 @@ class SensorServiceTestCase(unittest2.TestCase):
 
     @mock.patch('st2common.services.triggers.get_trigger_type_db',
                 mock.MagicMock(return_value=TriggerTypeMock(TEST_SCHEMA)))
-    def test_dispatch_success_with_default_config_and_invalid_payload(self):
-        """Tests that an invalid payload still results in dispatch success with default config
+    def test_dispatch_success_with_validation_disabled_and_invalid_payload(self):
+        """
+        Tests that an invalid payload still results in dispatch success with default config
 
         The previous config defition used StrOpt instead of BoolOpt for
         cfg.CONF.system.validate_trigger_payload. This meant that even though the intention
@@ -90,6 +93,7 @@ class SensorServiceTestCase(unittest2.TestCase):
         to it's original value during tearDown) will test validation does
         NOT take place with the default configuration.
         """
+        cfg.CONF.system.validate_trigger_payload = False
 
         # define a invalid payload (the type of 'age' is incorrect)
         payload = {
@@ -197,17 +201,11 @@ class SensorServiceTestCase(unittest2.TestCase):
 
     @mock.patch('st2common.services.triggers.get_trigger_type_db',
                 mock.MagicMock(return_value=None))
-    def test_dispatch_success_without_trigger_type(self):
-        self.sensor_service.dispatch('trigger-name', {})
-        self.assertEqual(self._dispatched_count, 1)
-
-    @mock.patch('st2common.services.triggers.get_trigger_type_db',
-                mock.MagicMock(return_value=None))
-    def test_dispatch_trigger__type_not_in_db_should_still_dispatch(self):
+    def test_dispatch_trigger_type_not_in_db_should_not_dispatch(self):
         cfg.CONF.system.validate_trigger_payload = True
 
         self.sensor_service.dispatch('not-in-database-ref', {})
-        self.assertEqual(self._dispatched_count, 1)
+        self.assertEqual(self._dispatched_count, 0)
 
     def test_datastore_methods(self):
         self.sensor_service._datastore_service = mock.Mock()

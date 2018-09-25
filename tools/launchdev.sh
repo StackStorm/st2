@@ -193,7 +193,7 @@ function st2start(){
     else
         BINDING_ADDRESS="0.0.0.0"
     fi
-    
+
     VIRTUALENVS_DIR=$ST2_BASE_DIR/virtualenvs
 
     sudo mkdir -p $PACKS_BASE_DIR/default/sensors/
@@ -285,6 +285,12 @@ function st2start(){
     echo 'Starting screen session st2-rulesengine...'
     screen -d -m -S st2-rulesengine ./virtualenv/bin/python \
         ./st2reactor/bin/st2rulesengine \
+        --config-file $ST2_CONF
+
+    # Run the timer engine server
+    echo 'Starting screen session st2-timersengine...'
+    screen -d -m -S st2-rulesengine ./virtualenv/bin/python \
+        ./st2reactor/bin/st2timersengine \
         --config-file $ST2_CONF
 
     # Run the results tracker

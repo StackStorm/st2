@@ -4,6 +4,26 @@
   enabled: true
   name: python-script
   runner_module: python_runner
+  output_key: result
+  output_schema:
+    result:
+      anyOf:
+        - type: "object"
+        - type: "string"
+        - type: "integer"
+        - type: "number"
+        - type: "boolean"
+        - type: "array"
+        - type: "null"
+    stderr:
+      type: string
+      required: true
+    stdout:
+      type: string
+      required: true
+    exit_code:
+      type: integer
+      required: true
   runner_parameters:
     debug:
       description: Enable runner debug mode.

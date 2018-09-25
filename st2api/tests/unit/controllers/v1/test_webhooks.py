@@ -17,7 +17,7 @@ import json
 
 import mock
 import six
-from tests import FunctionalTest
+from oslo_config import cfg
 
 import st2common.services.triggers as trigger_service
 
@@ -27,7 +27,10 @@ with mock.patch.object(trigger_service, 'create_trigger_type_db', mock.MagicMock
 from st2common.constants.triggers import WEBHOOK_TRIGGER_TYPES
 from st2common.models.api.trigger import TriggerAPI
 from st2common.models.db.trigger import TriggerDB
+from st2common.models.db.trigger import TriggerTypeDB
 from st2common.transport.reactor import TriggerInstancePublisher
+
+from tests import FunctionalTest
 
 http_client = six.moves.http_client
 
@@ -39,34 +42,81 @@ WEBHOOK_1 = {
 }
 
 ST2_WEBHOOK = {
-    'trigger': 'foo.bar',
-    'payload': {'ponies': 'unicorns'}
+    'trigger': 'git.pr-merged',
+    'payload': {
+        'value_str': 'string!',
+        'value_int': 12345
+    }
 }
 
-DUMMY_TRIGGER = TriggerDB(name='pr-merged', pack='git')
-DUMMY_TRIGGER.type = list(WEBHOOK_TRIGGER_TYPES.keys())[0]
-DUMMY_TRIGGER_API = TriggerAPI.from_model(DUMMY_TRIGGER)
+WEBHOOK_DATA = {
+    'value_str': 'test string 1',
+    'value_int': 987654,
+}
+
+# 1. Trigger which references a system webhook trigger type
+DUMMY_TRIGGER_DB = TriggerDB(name='pr-merged', pack='git')
+DUMMY_TRIGGER_DB.type = list(WEBHOOK_TRIGGER_TYPES.keys())[0]
+
+
+DUMMY_TRIGGER_API = TriggerAPI.from_model(DUMMY_TRIGGER_DB)
+DUMMY_TRIGGER_DICT = vars(DUMMY_TRIGGER_API)
+
+# 2. Custom TriggerType object
+DUMMY_TRIGGER_TYPE_DB = TriggerTypeDB(name='pr-merged', pack='git')
+DUMMY_TRIGGER_TYPE_DB.payload_schema = {
+    'type': 'object',
+    'properties': {
+        'body': {
+            'properties': {
+                'value_str': {
+                    'type': 'string',
+                    'required': True
+                },
+                'value_int': {
+                    'type': 'integer',
+                    'required': True
+                }
+            }
+        }
+    }
+}
+
+# 2. Custom TriggerType object
+DUMMY_TRIGGER_TYPE_DB_2 = TriggerTypeDB(name='pr-merged', pack='git')
+DUMMY_TRIGGER_TYPE_DB_2.payload_schema = {
+    'type': 'object',
+    'properties': {
+        'body': {
+            'type': 'array'
+        }
+    }
+}
 
 
 class TestWebhooksController(FunctionalTest):
+    def setUp(self):
+        super(TestWebhooksController, self).setUp()
+
+        cfg.CONF.system.validate_trigger_payload = True
 
     @mock.patch.object(TriggerInstancePublisher, 'publish_trigger', mock.MagicMock(
         return_value=True))
     @mock.patch.object(WebhooksController, '_is_valid_hook', mock.MagicMock(
         return_value=True))
     @mock.patch.object(HooksHolder, 'get_all', mock.MagicMock(
-        return_value=[vars(DUMMY_TRIGGER)]))
+        return_value=[DUMMY_TRIGGER_DICT]))
     def test_get_all(self):
         get_resp = self.app.get('/v1/webhooks', expect_errors=False)
         self.assertEqual(get_resp.status_int, http_client.OK)
-        self.assertEqual(get_resp.json, [vars(DUMMY_TRIGGER)])
+        self.assertEqual(get_resp.json, [DUMMY_TRIGGER_DICT])
 
     @mock.patch.object(TriggerInstancePublisher, 'publish_trigger', mock.MagicMock(
         return_value=True))
     @mock.patch.object(WebhooksController, '_is_valid_hook', mock.MagicMock(
         return_value=True))
     @mock.patch.object(HooksHolder, 'get_triggers_for_hook', mock.MagicMock(
-        return_value=[DUMMY_TRIGGER]))
+        return_value=[DUMMY_TRIGGER_DICT]))
     @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
     def test_post(self, dispatch_mock):
         post_resp = self.__do_post('git', WEBHOOK_1, expect_errors=False)
@@ -78,7 +128,9 @@ class TestWebhooksController(FunctionalTest):
     @mock.patch.object(WebhooksController, '_is_valid_hook', mock.MagicMock(
         return_value=True))
     @mock.patch.object(HooksHolder, 'get_triggers_for_hook', mock.MagicMock(
-        return_value=[DUMMY_TRIGGER]))
+        return_value=[DUMMY_TRIGGER_DICT]))
+    @mock.patch('st2common.services.triggers.get_trigger_type_db', mock.MagicMock(
+        return_value=DUMMY_TRIGGER_TYPE_DB))
     @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
     def test_post_with_trace(self, dispatch_mock):
         post_resp = self.__do_post('git', WEBHOOK_1, expect_errors=False,
@@ -94,6 +146,8 @@ class TestWebhooksController(FunctionalTest):
 
     @mock.patch.object(TriggerInstancePublisher, 'publish_trigger', mock.MagicMock(
         return_value=True))
+    @mock.patch('st2common.services.triggers.get_trigger_type_db', mock.MagicMock(
+        return_value=DUMMY_TRIGGER_TYPE_DB))
     @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
     def test_st2_webhook_success(self, dispatch_mock):
         post_resp = self.__do_post('st2', ST2_WEBHOOK)
@@ -105,6 +159,27 @@ class TestWebhooksController(FunctionalTest):
 
     @mock.patch.object(TriggerInstancePublisher, 'publish_trigger', mock.MagicMock(
         return_value=True))
+    @mock.patch('st2common.services.triggers.get_trigger_type_db', mock.MagicMock(
+        return_value=DUMMY_TRIGGER_TYPE_DB))
+    @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
+    def test_st2_webhook_failure_payload_validation_failed(self, dispatch_mock):
+        data = {
+            'trigger': 'git.pr-merged',
+            'payload': 'invalid'
+        }
+        post_resp = self.__do_post('st2', data, expect_errors=True)
+        self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
+
+        expected_msg = 'Trigger payload validation failed'
+        self.assertTrue(expected_msg in post_resp.json['faultstring'])
+
+        expected_msg = "'invalid' is not of type 'object'"
+        self.assertTrue(expected_msg in post_resp.json['faultstring'])
+
+    @mock.patch.object(TriggerInstancePublisher, 'publish_trigger', mock.MagicMock(
+        return_value=True))
+    @mock.patch('st2common.services.triggers.get_trigger_type_db', mock.MagicMock(
+        return_value=DUMMY_TRIGGER_TYPE_DB))
     @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
     def test_st2_webhook_with_trace(self, dispatch_mock):
         post_resp = self.__do_post('st2', ST2_WEBHOOK, headers={'St2-Trace-Tag': 'tag1'})
@@ -123,7 +198,7 @@ class TestWebhooksController(FunctionalTest):
     @mock.patch.object(WebhooksController, '_is_valid_hook', mock.MagicMock(
         return_value=True))
     @mock.patch.object(HooksHolder, 'get_triggers_for_hook', mock.MagicMock(
-        return_value=[DUMMY_TRIGGER]))
+        return_value=[DUMMY_TRIGGER_DICT]))
     @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
     def test_json_request_body(self, dispatch_mock):
         # 1. Send JSON using application/json content type
@@ -160,7 +235,7 @@ class TestWebhooksController(FunctionalTest):
     @mock.patch.object(WebhooksController, '_is_valid_hook', mock.MagicMock(
         return_value=True))
     @mock.patch.object(HooksHolder, 'get_triggers_for_hook', mock.MagicMock(
-        return_value=[DUMMY_TRIGGER]))
+        return_value=[DUMMY_TRIGGER_DICT]))
     @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
     def test_form_encoded_request_body(self, dispatch_mock):
         # Send request body as form urlencoded data
@@ -169,7 +244,12 @@ class TestWebhooksController(FunctionalTest):
         else:
             data = {'form': ['test']}
 
-        self.app.post('/v1/webhooks/git', data, headers={'St2-Trace-Tag': 'tag1'})
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'St2-Trace-Tag': 'tag1'
+        }
+
+        self.app.post('/v1/webhooks/git', data, headers=headers)
         self.assertEqual(dispatch_mock.call_args[1]['payload']['headers']['Content-Type'],
                         'application/x-www-form-urlencoded')
         self.assertEqual(dispatch_mock.call_args[1]['payload']['body'], data)
@@ -190,14 +270,16 @@ class TestWebhooksController(FunctionalTest):
     @mock.patch.object(WebhooksController, '_is_valid_hook', mock.MagicMock(
         return_value=True))
     @mock.patch.object(HooksHolder, 'get_triggers_for_hook', mock.MagicMock(
-        return_value=[DUMMY_TRIGGER]))
+        return_value=[DUMMY_TRIGGER_DICT]))
+    @mock.patch('st2common.services.triggers.get_trigger_type_db', mock.MagicMock(
+        return_value=DUMMY_TRIGGER_TYPE_DB_2))
     @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
     def test_custom_webhook_array_input_type(self, _):
         post_resp = self.__do_post('sample', [{'foo': 'bar'}])
         self.assertEqual(post_resp.status_int, http_client.ACCEPTED)
         self.assertEqual(post_resp.json, [{'foo': 'bar'}])
 
-    def test_array_webhook_array_input_type_not_valid(self):
+    def test_st2_webhook_array_webhook_array_input_type_not_valid(self):
         post_resp = self.__do_post('st2', [{'foo': 'bar'}], expect_errors=True)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
         self.assertEqual(post_resp.json['faultstring'],
