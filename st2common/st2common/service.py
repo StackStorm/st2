@@ -90,8 +90,7 @@ def run_service(service):
 
     try:
         service.setup()
-        service.start()
-        return 0
+        return service.start()
     except (KeyboardInterrupt, SystemExit):
         service.logger.info('(PID=%s) StackStorm %s stopped.', os.getpid(), service.name)
         return FAILURE_EXIT_CODE
