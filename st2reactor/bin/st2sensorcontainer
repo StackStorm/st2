@@ -20,7 +20,7 @@
 
 import sys
 
-from st2reactor.cmd import sensormanager
+from st2reactor.cmd import sensorcontainer
 
 if __name__ == '__main__':
-    sys.exit(sensormanager.main())
+    sys.exit(sensorcontainer.main())

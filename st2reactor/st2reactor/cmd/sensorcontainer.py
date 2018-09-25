@@ -15,7 +15,6 @@
 
 from __future__ import absolute_import
 
-import os
 import sys
 
 from oslo_config import cfg
@@ -24,11 +23,7 @@ from st2common import log as logging
 from st2common.logging.misc import get_logger_name_for_module
 from st2common.service import PassiveService
 from st2common.service import run_service
-from st2common.service_setup import setup as common_setup
-from st2common.service_setup import teardown as common_teardown
 from st2common.util.monkey_patch import monkey_patch
-from st2common.exceptions.sensors import SensorNotFoundException
-from st2common.constants.exit_codes import FAILURE_EXIT_CODE
 from st2reactor.sensor import config
 from st2reactor.container.manager import SensorContainerManager
 from st2reactor.container.partitioner_lookup import get_sensors_partitioner
@@ -43,7 +38,7 @@ LOGGER_NAME = get_logger_name_for_module(sys.modules[__name__])
 LOG = logging.getLogger(LOGGER_NAME)
 
 
-class SensorManagerService(PassiveService):
+class SensorContainerService(PassiveService):
     name = 'sensorcontainer'
 
     config = config
@@ -68,6 +63,6 @@ class SensorManagerService(PassiveService):
 
 
 def main():
-    service = SensorManagerService(logger=LOG)
+    service = SensorContainerService(logger=LOG)
     exit_code = run_service(service=service)
     return exit_code
