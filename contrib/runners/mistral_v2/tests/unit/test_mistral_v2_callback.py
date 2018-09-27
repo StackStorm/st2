@@ -405,7 +405,7 @@ class MistralRunnerCallbackTest(DbTestCase):
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
     def test_callback_success_state(self):
-        local_runner_cls = self.get_runner_class('local_runner', 'local_shell_command_runner')
+        local_runner_cls = runners.get_runner('local-shell-cmd').__class__
         local_run_result = (action_constants.LIVEACTION_STATUS_SUCCEEDED, NON_EMPTY_RESULT, None)
         local_runner_cls.run = mock.Mock(return_value=local_run_result)
         expected_mistral_status = self.status_map[local_run_result[0]]
@@ -422,7 +422,7 @@ class MistralRunnerCallbackTest(DbTestCase):
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
     def test_callback_incomplete_state(self):
-        local_runner_cls = self.get_runner_class('local_runner', 'local_shell_command_runner')
+        local_runner_cls = runners.get_runner('local-shell-cmd').__class__
         local_run_result = (action_constants.LIVEACTION_STATUS_RUNNING, NON_EMPTY_RESULT, None)
         local_runner_cls.run = mock.Mock(return_value=local_run_result)
         liveaction = self.get_liveaction_instance()
@@ -436,7 +436,7 @@ class MistralRunnerCallbackTest(DbTestCase):
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
     def test_callback_canceling_state(self):
-        local_runner_cls = self.get_runner_class('local_runner', 'local_shell_command_runner')
+        local_runner_cls = runners.get_runner('local-shell-cmd').__class__
         local_run_result = (action_constants.LIVEACTION_STATUS_CANCELING, NON_EMPTY_RESULT, None)
         local_runner_cls.run = mock.Mock(return_value=local_run_result)
         local_cancel_result = (action_constants.LIVEACTION_STATUS_CANCELING, NON_EMPTY_RESULT, None)
@@ -453,7 +453,7 @@ class MistralRunnerCallbackTest(DbTestCase):
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
     def test_callback_canceled_state(self):
-        local_runner_cls = self.get_runner_class('local_runner', 'local_shell_command_runner')
+        local_runner_cls = runners.get_runner('local-shell-cmd').__class__
         local_run_result = (action_constants.LIVEACTION_STATUS_CANCELED, NON_EMPTY_RESULT, None)
         local_runner_cls.run = mock.Mock(return_value=local_run_result)
         expected_mistral_status = self.status_map[local_run_result[0]]
@@ -470,7 +470,7 @@ class MistralRunnerCallbackTest(DbTestCase):
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
     def test_callback_pausing_state(self):
-        local_runner_cls = self.get_runner_class('local_runner', 'local_shell_command_runner')
+        local_runner_cls = runners.get_runner('local-shell-cmd').__class__
         local_run_result = (action_constants.LIVEACTION_STATUS_PAUSING, NON_EMPTY_RESULT, None)
         local_runner_cls.run = mock.Mock(return_value=local_run_result)
         local_pause_result = (action_constants.LIVEACTION_STATUS_PAUSING, NON_EMPTY_RESULT, None)
@@ -487,7 +487,7 @@ class MistralRunnerCallbackTest(DbTestCase):
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
     def test_callback_paused_state(self):
-        local_runner_cls = self.get_runner_class('local_runner', 'local_shell_command_runner')
+        local_runner_cls = runners.get_runner('local-shell-cmd').__class__
         local_run_result = (action_constants.LIVEACTION_STATUS_PAUSED, NON_EMPTY_RESULT, None)
         local_runner_cls.run = mock.Mock(return_value=local_run_result)
         expected_mistral_status = self.status_map[local_run_result[0]]
@@ -504,7 +504,7 @@ class MistralRunnerCallbackTest(DbTestCase):
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
     def test_callback_resuming_state(self):
-        local_runner_cls = self.get_runner_class('local_runner', 'local_shell_command_runner')
+        local_runner_cls = runners.get_runner('local-shell-cmd').__class__
         local_run_result = (action_constants.LIVEACTION_STATUS_RESUMING, NON_EMPTY_RESULT, None)
         local_runner_cls.run = mock.Mock(return_value=local_run_result)
         local_resume_result = (action_constants.LIVEACTION_STATUS_RUNNING, NON_EMPTY_RESULT, None)
@@ -522,7 +522,7 @@ class MistralRunnerCallbackTest(DbTestCase):
             requests.exceptions.ConnectionError(),
             None]))
     def test_callback_retry(self):
-        local_runner_cls = self.get_runner_class('local_runner', 'local_shell_command_runner')
+        local_runner_cls = runners.get_runner('local-shell-cmd').__class__
         local_run_result = (action_constants.LIVEACTION_STATUS_SUCCEEDED, NON_EMPTY_RESULT, None)
         local_runner_cls.run = mock.Mock(return_value=local_run_result)
         liveaction = self.get_liveaction_instance()
@@ -542,7 +542,7 @@ class MistralRunnerCallbackTest(DbTestCase):
             requests.exceptions.ConnectionError(),
             None]))
     def test_callback_retry_exhausted(self):
-        local_runner_cls = self.get_runner_class('local_runner', 'local_shell_command_runner')
+        local_runner_cls = runners.get_runner('local-shell-cmd').__class__
         local_run_result = (action_constants.LIVEACTION_STATUS_SUCCEEDED, NON_EMPTY_RESULT, None)
         local_runner_cls.run = mock.Mock(return_value=local_run_result)
         liveaction = self.get_liveaction_instance()

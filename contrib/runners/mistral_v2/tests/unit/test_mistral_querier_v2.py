@@ -208,7 +208,7 @@ MOCK_LIVEACTION_UP_TO_DATE_INCOMPLETE_TASKS_RESULT = {
 
 MOCK_CHILD_ACTIONEXECUTION_REQUESTED = ActionExecutionDB(
     action={'ref': 'mock.task'},
-    runner={'name': 'local_runner'},
+    runner={'name': 'local-shell-cmd'},
     liveaction={'id': uuid.uuid4().hex},
     status=action_constants.LIVEACTION_STATUS_REQUESTED,
     children=[]
@@ -216,7 +216,7 @@ MOCK_CHILD_ACTIONEXECUTION_REQUESTED = ActionExecutionDB(
 
 MOCK_CHILD_ACTIONEXECUTION_RUNNING = ActionExecutionDB(
     action={'ref': 'mock.task'},
-    runner={'name': 'local_runner'},
+    runner={'name': 'local-shell-cmd'},
     liveaction={'id': uuid.uuid4().hex},
     status=action_constants.LIVEACTION_STATUS_RUNNING,
     children=[]
@@ -224,7 +224,7 @@ MOCK_CHILD_ACTIONEXECUTION_RUNNING = ActionExecutionDB(
 
 MOCK_CHILD_ACTIONEXECUTION_SUCCEEDED = ActionExecutionDB(
     action={'ref': 'mock.task'},
-    runner={'name': 'local_runner'},
+    runner={'name': 'local-shell-cmd'},
     liveaction={'id': uuid.uuid4().hex},
     status=action_constants.LIVEACTION_STATUS_SUCCEEDED,
     children=[]
