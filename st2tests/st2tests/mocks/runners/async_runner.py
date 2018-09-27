@@ -54,4 +54,3 @@ class AsyncTestRunner(AsyncActionRunner):
 
     def post_run(self, status, result):
         self.post_run_called = True
-

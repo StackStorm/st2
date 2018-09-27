@@ -17,7 +17,6 @@ from __future__ import absolute_import
 import mock
 import six
 import uuid
-from collections import defaultdict
 
 from oslo_config import cfg
 
@@ -36,7 +35,6 @@ from st2common.services import action as action_service
 from st2common.services import trace as trace_service
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
-from st2common.util import loader
 from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
 from st2tests.mocks.execution import MockExecutionPublisher

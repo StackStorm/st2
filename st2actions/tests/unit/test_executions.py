@@ -42,8 +42,6 @@ import st2common.util.action_db as action_utils
 from st2common.util import reference
 from st2reactor.rules.enforcer import RuleEnforcer
 
-from action_chain_runner import action_chain_runner
-from local_runner import local_shell_command_runner as local_runner
 from local_runner.local_shell_command_runner import LocalShellCommandRunner
 
 from st2tests.fixtures.packs import executions as fixture
@@ -52,6 +50,7 @@ from st2tests.mocks.liveaction import MockLiveActionPublisher
 
 
 MOCK_FAIL_EXECUTION_CREATE = False
+
 
 @mock.patch.object(LocalShellCommandRunner, 'run',
                    mock.MagicMock(return_value=(action_constants.LIVEACTION_STATUS_FAILED,
