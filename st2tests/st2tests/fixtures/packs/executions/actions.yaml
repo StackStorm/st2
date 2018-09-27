@@ -38,15 +38,15 @@ local:
   pack: executions
   ref: executions.local
   runner_type: local-shell-cmd
-local-override-runner-immutable:
+remote-override-runner-immutable:
   enabled: true
-  name: local-override-runner-immutable
+  name: remote-override-runner-immutable
   pack: executions
   parameters:
-    hosts:
+    dir:
       immutable: false
-  ref: executions.local-override-runner-immutable
-  runner_type: local-shell-cmd
+  ref: executions.remote-override-runner-immutable
+  runner_type: remote-shell-cmd
 action-with-non-unique-positions:
   enabled: true
   name: position-test
