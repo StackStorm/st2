@@ -28,8 +28,8 @@ from eventlet.green import subprocess
 
 from st2common import log as logging
 from st2common.constants import action as action_constants
-from st2common.constants import runners as runner_constants
 from st2common.constants import pack as pack_constants
+from st2common.constants.runners import RUNNERS_NAMESPACE
 from st2common.content.utils import get_pack_directory
 from st2common.content.utils import get_pack_base_path
 from st2common.exceptions import actionrunner as exc
@@ -68,9 +68,9 @@ def get_runner(name, config=None):
     LOG.debug('Runner loading Python module: %s', name)
 
     try:
-        module = get_plugin_instance(runner_constants.RUNNERS_NAMESPACE, name, invoke_on_load=False)
+        module = get_plugin_instance(RUNNERS_NAMESPACE, name, invoke_on_load=False)
     except Exception as e:
-        available_runners = get_available_plugins()
+        available_runners = get_available_plugins(namespace=RUNNERS_NAMESPACE)
         available_runners = ', '.join(available_runners)
         msg = ('Failed to find runner %s. Make sure that the runner is available and installed in '
                'StackStorm virtual environment. Available runners are: %s' %
