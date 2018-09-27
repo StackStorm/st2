@@ -29,6 +29,7 @@ from st2common.persistence.execution import ActionExecution
 from st2common.persistence.liveaction import LiveAction
 from st2common.services import executions
 from st2common.util import date as date_utils
+from st2common.bootstrap import runnersregistrar as runners_registrar
 from local_runner.local_shell_command_runner import LocalShellCommandRunner
 
 from st2tests.base import DbTestCase
@@ -38,7 +39,6 @@ from six.moves import range
 tests_config.parse_args()
 
 TEST_FIXTURES = {
-    'runners': ['run-local.yaml'],
     'actions': ['local.yaml']
 }
 
@@ -55,9 +55,11 @@ class WorkerTestCase(DbTestCase):
     @classmethod
     def setUpClass(cls):
         super(WorkerTestCase, cls).setUpClass()
+
+        runners_registrar.register_runners()
+
         models = WorkerTestCase.fixtures_loader.save_fixtures_to_db(
             fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_FIXTURES)
-        WorkerTestCase.local_runnertype_db = models['runners']['run-local.yaml']
         WorkerTestCase.local_action_db = models['actions']['local.yaml']
 
     def _get_liveaction_model(self, action_db, params):
