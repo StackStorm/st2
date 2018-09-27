@@ -45,7 +45,6 @@ TEST_FIXTURES = {
 FIXTURES_PACK = 'generic'
 
 NON_UTF8_RESULT = {'stderr': '', 'stdout': '\x82\n', 'succeeded': True, 'failed': False,
-
                    'return_code': 0}
 
 
@@ -114,8 +113,8 @@ class WorkerTestCase(DbTestCase):
             executions.create_execution_object(liveaction_db)
             runner_thread = eventlet.spawn(action_worker._run_action, liveaction_db)
 
-            # Wait for the worker up to 15s to add the liveaction to _running_liveactions.
-            for i in range(0, int(15 / 0.1)):
+            # Wait for the worker up to 10s to add the liveaction to _running_liveactions.
+            for i in range(0, int(10 / 0.1)):
                 eventlet.sleep(0.1)
                 if len(action_worker._running_liveactions) > 0:
                     break

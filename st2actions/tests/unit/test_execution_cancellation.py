@@ -39,6 +39,7 @@ from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
 from st2tests.mocks.execution import MockExecutionPublisher
 from st2tests.mocks.liveaction import MockLiveActionPublisher
+from st2tests.mocks.runners import runner
 
 __all__ = [
     'ExecutionCancellationTestCase'
@@ -85,20 +86,22 @@ class ExecutionCancellationTestCase(DbTestCase):
     @mock.patch.object(
         LiveActionPublisher, 'publish_state',
         mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
+    @mock.patch('st2common.runners.base.get_runner', mock.Mock(return_value=runner.get_runner()))
+    @mock.patch('st2actions.container.base.get_runner', mock.Mock(return_value=runner.get_runner()))
     def test_basic_cancel(self):
-        runner_cls = self.get_runner_class('local-shell-cmd')
         runner_run_result = (action_constants.LIVEACTION_STATUS_RUNNING, 'foobar', None)
-        runner_cls.run = mock.Mock(return_value=runner_run_result)
+        mock_runner_run = mock.Mock(return_value=runner_run_result)
 
-        liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
-        liveaction, _ = action_service.request(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        with mock.patch.object(runner.MockActionRunner, 'run', mock_runner_run):
+            liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
+            liveaction, _ = action_service.request(liveaction)
+            liveaction = LiveAction.get_by_id(str(liveaction.id))
+            self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
-        # Cancel execution.
-        action_service.request_cancellation(liveaction, cfg.CONF.system_user.user)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELED)
+            # Cancel execution.
+            action_service.request_cancellation(liveaction, cfg.CONF.system_user.user)
+            liveaction = LiveAction.get_by_id(str(liveaction.id))
+            self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELED)
 
     @mock.patch.object(
         CUDPublisher, 'publish_create',
@@ -112,23 +115,24 @@ class ExecutionCancellationTestCase(DbTestCase):
     @mock.patch.object(
         runners.ActionRunner, 'cancel',
         mock.MagicMock(side_effect=Exception('Mock cancellation failure.')))
+    @mock.patch('st2common.runners.base.get_runner', mock.Mock(return_value=runner.get_runner()))
+    @mock.patch('st2actions.container.base.get_runner', mock.Mock(return_value=runner.get_runner()))
     def test_failed_cancel(self):
-        runner_cls = self.get_runner_class('local-shell-cmd')
         runner_run_result = (action_constants.LIVEACTION_STATUS_RUNNING, 'foobar', None)
-        runner_cls.run = mock.Mock(return_value=runner_run_result)
+        mock_runner_run = mock.Mock(return_value=runner_run_result)
+        with mock.patch.object(runner.MockActionRunner, 'run', mock_runner_run):
+            liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
+            liveaction, _ = action_service.request(liveaction)
+            liveaction = LiveAction.get_by_id(str(liveaction.id))
+            self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
-        liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
-        liveaction, _ = action_service.request(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+            # Cancel execution.
+            action_service.request_cancellation(liveaction, cfg.CONF.system_user.user)
 
-        # Cancel execution.
-        action_service.request_cancellation(liveaction, cfg.CONF.system_user.user)
-
-        # Cancellation failed and execution state remains "canceling".
-        runners.ActionRunner.cancel.assert_called_once_with()
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELING)
+            # Cancellation failed and execution state remains "canceling".
+            runners.ActionRunner.cancel.assert_called_once_with()
+            liveaction = LiveAction.get_by_id(str(liveaction.id))
+            self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELING)
 
     @mock.patch.object(
         CUDPublisher, 'publish_create',
