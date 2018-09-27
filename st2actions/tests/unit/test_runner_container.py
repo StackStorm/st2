@@ -70,7 +70,11 @@ NON_UTF8_RESULT = {
     'return_code': 0
 }
 
+from st2tests.mocks import runner
 
+
+@mock.patch('st2common.runners.base.get_runner', mock.Mock(return_value=runner.get_runner()))
+@mock.patch('st2actions.container.base.get_runner', mock.Mock(return_value=runner.get_runner()))
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
 class RunnerContainerTest(DbTestCase):
     action_db = None
@@ -98,13 +102,12 @@ class RunnerContainerTest(DbTestCase):
         super(RunnerContainerTest, cls).tearDownClass()
 
     def test_get_runner_module(self):
-        runnertype_db = RunnerContainerTest.runnertype_db
-        runner = get_runner(runnertype_db.runner_module, runnertype_db.runner_module)
+        runner = get_runner(name='local-shell-script')
         self.assertTrue(runner is not None, 'TestRunner must be valid.')
 
     def test_pre_run_runner_is_disabled(self):
         runnertype_db = RunnerContainerTest.runnertype_db
-        runner = get_runner(runnertype_db.runner_module, runnertype_db.runner_module)
+        runner = get_runner(name='local-shell-cmd')
 
         runner.runner_type = runnertype_db
         runner.runner_type.enabled = False

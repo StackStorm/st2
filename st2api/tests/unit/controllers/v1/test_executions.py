@@ -60,7 +60,7 @@ ACTION_1 = {
     'enabled': True,
     'entry_point': '/tmp/test/action1.sh',
     'pack': 'sixpack',
-    'runner_type': 'run-remote',
+    'runner_type': 'run-remote-cmd',
     'parameters': {
         'a': {
             'type': 'string',
@@ -88,7 +88,7 @@ ACTION_2 = {
     'enabled': True,
     'entry_point': '/tmp/test/action2.sh',
     'pack': 'familypack',
-    'runner_type': 'run-remote',
+    'runner_type': 'run-remote-cmd',
     'parameters': {
         'c': {
             'type': 'object',
@@ -111,7 +111,7 @@ ACTION_3 = {
     'enabled': True,
     'entry_point': '/tmp/test/action3.sh',
     'pack': 'wolfpack',
-    'runner_type': 'run-remote',
+    'runner_type': 'run-remote-cmd',
     'parameters': {
         'e': {},
         'f': {}
