@@ -33,7 +33,9 @@ from st2common.constants import pack as pack_constants
 from st2common.content.utils import get_pack_directory
 from st2common.content.utils import get_pack_base_path
 from st2common.exceptions import actionrunner as exc
-from st2common.util.loader import register_callback_module, get_plugin_instance
+from st2common.util.loader import register_callback_module
+from st2common.util.loader import get_plugin_instance
+from st2common.util.loader import get_available_plugins
 from st2common.util.api import get_full_public_api_url
 from st2common.util.deprecation import deprecated
 from st2common.util.green.shell import run_command
@@ -68,9 +70,11 @@ def get_runner(name, config=None):
     try:
         module = get_plugin_instance(runner_constants.RUNNERS_NAMESPACE, name, invoke_on_load=False)
     except Exception as e:
-        msg = ('Failed to find runner %s - This functionality was changed'
-               'in StackStorm 2.9. You will need to run st2ctl reinstall-runners'
-               'if you are upgrading from <= Stackstorm 2.8.' % (name))
+        available_runners = get_available_plugins()
+        available_runners = ', '.join(available_runners)
+        msg = ('Failed to find runner %s. Make sure that the runner is available and installed in '
+               'StackStorm virtual environment. Available runners are: %s' %
+               (name, available_runners))
         LOG.exception(msg)
 
         raise exc.ActionRunnerCreateError('%s\n\n%s' % (msg, str(e)))
