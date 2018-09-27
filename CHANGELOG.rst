@@ -30,6 +30,10 @@ Changed
   For users who wish to develop and user custom action runners, they simply need to ensure they are
   packaged as Python packages and available / installed in StackStorm virtual environment
   (``/opt/stackstorm/st2``). (improvement) (#4217)
+* Old runner names which have been deprecated in StackStorm v0.9.0 have been removed (run-local,
+  run-local-script, run-remote, run-remote-script, run-python, http-runner). If you are still using
+  actions which reference runners using old names, you need to update them to keep them working.
+  #4217
 
 Changed
 ~~~~~~~
@@ -221,7 +225,7 @@ Fixed
   Reported by @jjm
 
   Contributed by Nick Maludy (Encore Technologies).
-* Mark ``password`` ``http-runner`` parameter as a secret. (bug fix) #4245
+* Mark ``password`` ``http-request`` parameter as a secret. (bug fix) #4245
 
   Reported by @daniel-mckenna
 

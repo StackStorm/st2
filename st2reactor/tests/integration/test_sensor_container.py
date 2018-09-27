@@ -55,6 +55,8 @@ DEFAULT_CMD = [
     '--sensor-ref=examples.SamplePollingSensor'
 ]
 
+print ' '.join(DEFAULT_CMD)
+
 
 # @unittest2.skipIf(True, 'Skipped until we improve integration tests setup')
 class SensorContainerTestCase(IntegrationTestCase):
@@ -92,7 +94,7 @@ class SensorContainerTestCase(IntegrationTestCase):
         process = self._start_sensor_container()
 
         # Give it some time to start up
-        eventlet.sleep(5)
+        eventlet.sleep(15)
 
         # Assert process has started and is running
         self.assertProcessIsRunning(process=process)
@@ -133,7 +135,7 @@ class SensorContainerTestCase(IntegrationTestCase):
 
         # SIGTERM causes graceful shutdown so give it some time to gracefuly shut down the sensor
         # child processes
-        eventlet.sleep(PROCESS_EXIT_TIMEOUT + 1)
+        eventlet.sleep(PROCESS_EXIT_TIMEOUT + 5)
 
         # Verify parent and children processes have exited
         self.assertProcessExited(proc=pp)
@@ -145,7 +147,7 @@ class SensorContainerTestCase(IntegrationTestCase):
         process = self._start_sensor_container()
 
         # Give it some time to start up
-        eventlet.sleep(4)
+        eventlet.sleep(10)
 
         # Verify container process and children sensor / wrapper processes are running
         pp = psutil.Process(process.pid)
