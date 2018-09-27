@@ -27,12 +27,11 @@ tests_config.parse_args()
 
 from st2common.constants import action as action_constants
 from st2common.models.api.action import ActionAPI
-from st2common.models.api.action import RunnerTypeAPI
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.persistence.action import Action
 from st2common.persistence.action import LiveAction
-from st2common.persistence.runner import RunnerType
 from st2common.runners import base as runners
+from st2common.bootstrap import runnersregistrar as runners_registrar
 from st2common.services import action as action_service
 from st2common.services import trace as trace_service
 from st2common.transport.liveaction import LiveActionPublisher
@@ -43,11 +42,11 @@ from st2tests.fixturesloader import FixturesLoader
 from st2tests.mocks.execution import MockExecutionPublisher
 from st2tests.mocks.liveaction import MockLiveActionPublisher
 
+__all__ = [
+    'ExecutionCancellationTestCase'
+]
 
 TEST_FIXTURES = {
-    'runners': [
-        'testrunner1.yaml'
-    ],
     'actions': [
         'action1.yaml'
     ]
@@ -58,26 +57,16 @@ LOADER = FixturesLoader()
 FIXTURES = LOADER.load_fixtures(fixtures_pack=PACK, fixtures_dict=TEST_FIXTURES)
 
 
-class ExecutionCancellationTest(DbTestCase):
+class ExecutionCancellationTestCase(DbTestCase):
 
     @classmethod
     def setUpClass(cls):
-        super(ExecutionCancellationTest, cls).setUpClass()
-
-        for _, fixture in six.iteritems(FIXTURES['runners']):
-            instance = RunnerTypeAPI(**fixture)
-            RunnerType.add_or_update(RunnerTypeAPI.to_model(instance))
-
+        super(ExecutionCancellationTestCase, cls).setUpClass()
         for _, fixture in six.iteritems(FIXTURES['actions']):
             instance = ActionAPI(**fixture)
             Action.add_or_update(ActionAPI.to_model(instance))
 
-    @classmethod
-    def tearDownClass(cls):
-        # Unset the cache for the runner modules
-        loader.RUNNER_MODULES_CACHE = defaultdict(dict)
-
-        super(ExecutionCancellationTest, cls).tearDownClass()
+        runners_registrar.register_runners()
 
     def tearDown(self):
         # Ensure all liveactions are canceled at end of each test.
@@ -87,7 +76,7 @@ class ExecutionCancellationTest(DbTestCase):
 
     @classmethod
     def get_runner_class(cls, runner_name):
-        return runners.get_runner(runner_name, runner_name).__class__
+        return runners.get_runner(runner_name).__class__
 
     @mock.patch.object(
         CUDPublisher, 'publish_create',
@@ -99,7 +88,7 @@ class ExecutionCancellationTest(DbTestCase):
         LiveActionPublisher, 'publish_state',
         mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
     def test_basic_cancel(self):
-        runner_cls = self.get_runner_class('runner')
+        runner_cls = self.get_runner_class('local-shell-cmd')
         runner_run_result = (action_constants.LIVEACTION_STATUS_RUNNING, 'foobar', None)
         runner_cls.run = mock.Mock(return_value=runner_run_result)
 
@@ -126,7 +115,7 @@ class ExecutionCancellationTest(DbTestCase):
         runners.ActionRunner, 'cancel',
         mock.MagicMock(side_effect=Exception('Mock cancellation failure.')))
     def test_failed_cancel(self):
-        runner_cls = self.get_runner_class('runner')
+        runner_cls = self.get_runner_class('local-shell-cmd')
         runner_run_result = (action_constants.LIVEACTION_STATUS_RUNNING, 'foobar', None)
         runner_cls.run = mock.Mock(return_value=runner_run_result)
 
