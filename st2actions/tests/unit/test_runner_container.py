@@ -87,6 +87,9 @@ class RunnerContainerTest(DbTestCase):
     @classmethod
     def setUpClass(cls):
         super(RunnerContainerTest, cls).setUpClass()
+
+        cfg.CONF.set_override(name='validate_output_schema', override=False, group='system')
+
         models = RunnerContainerTest.fixtures_loader.save_fixtures_to_db(
             fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_FIXTURES)
         RunnerContainerTest.runnertype_db = models['runners']['testrunner1.yaml']

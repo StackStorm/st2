@@ -27,8 +27,10 @@ from st2common.persistence.runner import RunnerType
 from st2common.services import action as action_service
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
+from st2common.bootstrap import runnersregistrar as runners_registrar
 from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
+from st2tests.mocks.runners import runner
 from st2tests.mocks.execution import MockExecutionPublisher
 from st2tests.mocks.liveaction import MockLiveActionPublisher
 from st2tests.policies.concurrency import FakeConcurrencyApplicator
@@ -36,9 +38,6 @@ from st2tests.policies.mock_exception import RaiseExceptionApplicator
 
 
 TEST_FIXTURES = {
-    'runners': [
-        'testrunner1.yaml'
-    ],
     'actions': [
         'action1.yaml'
     ],
@@ -66,15 +65,16 @@ FIXTURES = LOADER.load_fixtures(fixtures_pack=PACK, fixtures_dict=TEST_FIXTURES)
 @mock.patch.object(
     LiveActionPublisher, 'publish_state',
     mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
+@mock.patch('st2common.runners.base.get_runner', mock.Mock(return_value=runner.get_runner()))
+@mock.patch('st2actions.container.base.get_runner', mock.Mock(return_value=runner.get_runner()))
 class SchedulingPolicyTest(DbTestCase):
 
     @classmethod
     def setUpClass(cls):
         super(SchedulingPolicyTest, cls).setUpClass()
 
-        for _, fixture in six.iteritems(FIXTURES['runners']):
-            instance = RunnerTypeAPI(**fixture)
-            RunnerType.add_or_update(RunnerTypeAPI.to_model(instance))
+        # Register runners
+        runners_registrar.register_runners()
 
         for _, fixture in six.iteritems(FIXTURES['actions']):
             instance = ActionAPI(**fixture)
