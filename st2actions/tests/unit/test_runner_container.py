@@ -70,7 +70,8 @@ NON_UTF8_RESULT = {
     'return_code': 0
 }
 
-from st2tests.mocks import runner
+from st2tests.mocks.runners import runner
+from st2tests.mocks.runners import polling_async_runner
 
 
 @mock.patch('st2common.runners.base.get_runner', mock.Mock(return_value=runner.get_runner()))
@@ -344,7 +345,9 @@ class RunnerContainerTest(DbTestCase):
         executions.create_execution_object(liveaction_db)
 
         # Assert that execution ran without exceptions.
-        runner_container.dispatch(liveaction_db)
+        with mock.patch('st2actions.container.base.get_runner',
+                mock.Mock(return_value=polling_async_runner.get_runner())):
+            runner_container.dispatch(liveaction_db)
         states = ActionExecutionState.get_all()
         found = [state for state in states if state.execution_id == liveaction_db.id]
 
