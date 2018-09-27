@@ -15,6 +15,21 @@ Changed
 
 * Triggertypes API now sorts by trigger ref by default. ``st2 trigger list`` will now show a sorted
   list. (#4348)
+* Runner loading code has been updated so it utilizes new "runner as Python package" functionality
+  which has been introduced in a previous release. This means that the runner loading is now fully
+  automatic and dynamic.
+
+  All the available / installed runners are automatically loaded and registering on each StackStorm
+  service startup.
+
+  This means that ``st2ctl reload --register-runners`` flag is now obsolete because runners are
+  automatically registered on service start up. In addition to that,
+  ``content.system_runners_base_path`` and ``content.runners_base_paths`` config options are now
+  also deprecated and unused.
+
+  For users who wish to develop and user custom action runners, they simply need to ensure they are
+  packaged as Python packages and available / installed in StackStorm virtual environment
+  (``/opt/stackstorm/st2``). (improvement) (#4217)
 
 Changed
 ~~~~~~~
