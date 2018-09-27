@@ -87,6 +87,10 @@ home_dir = /opt/cslang
 [content]
 # A URL pointing to the pack index. StackStorm Exchange is used by default. Use a comma-separated list for multiple indexes if you want to get other packs discovered with "st2 pack search".
 index_url = https://index.stackstorm.org/v1/index.json # comma separated list allowed here.
+# Path to the directory which contains system runners. NOTE: This option has been deprecated and it's unused since StackStorm v3.0.0
+system_runners_base_path = /opt/stackstorm/runners
+# Paths which will be searched for runners. NOTE: This option has been deprecated and it's unused since StackStorm v3.0.0
+runners_base_paths = None
 # User group that can write to packs directory.
 pack_group = st2packs
 # Path to the directory which contains system packs.
