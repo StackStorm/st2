@@ -55,8 +55,6 @@ DEFAULT_CMD = [
     '--sensor-ref=examples.SamplePollingSensor'
 ]
 
-print ' '.join(DEFAULT_CMD)
-
 
 # @unittest2.skipIf(True, 'Skipped until we improve integration tests setup')
 class SensorContainerTestCase(IntegrationTestCase):
