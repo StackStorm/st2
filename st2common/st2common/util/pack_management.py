@@ -151,7 +151,22 @@ def clone_repo(temp_dir, repo_url, verify_ssl=True, ref='master'):
     # because we want the user to work with the repo in the
     # future.
     repo = Repo.clone_from(repo_url, temp_dir)
-    active_branch = repo.active_branch
+
+    is_local_repo = repo_url.startswith('file:///')
+
+    try:
+        active_branch = repo.active_branch
+    except TypeError as e:
+        if is_local_repo:
+            active_branch = None
+        else:
+            raise e
+
+    # Special case for local git repos - we allow users to install from repos which are checked out
+    # at a specific commit (aka detached HEAD)
+    if is_local_repo and not active_branch and not ref:
+        LOG.debug('Installing pack from git repo on disk, skipping branch checkout')
+        return temp_dir
 
     use_branch = False
 
