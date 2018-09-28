@@ -22,6 +22,7 @@ import subprocess
 
 from collections import defaultdict
 
+import six
 import eventlet
 from eventlet.support import greenlets as greenlet
 from oslo_config import cfg
@@ -289,7 +290,7 @@ class ProcessSensorContainer(object):
         # NOTE: Running sensors using Python 3 virtual environments is not supported
         uses_python3, _ = is_pack_virtualenv_using_python3(pack=sensor['pack'])
 
-        if uses_python3:
+        if uses_python3 and not six.PY3:
             format_values = {'pack': sensor['pack'], 'virtualenv_path': virtualenv_path}
             msg = PACK_VIRTUALENV_USES_PYTHON3 % format_values
             raise Exception(msg)
