@@ -8,6 +8,12 @@ Changed
 ~~~~~~~
 
 * Speed up pack registration through the ``/v1/packs/register`` API endpoint. (improvement) #4342
+* Triggertypes API now sorts by trigger ref by default. ``st2 trigger list`` will now show a sorted
+  list. (#4348)
+
+Fixed
+~~~~~
+
 * Update ``st2sensorcontainer`` service to throw if user wants to run a sensor from a pack which is
   using Python 3 virtual environment.
 
