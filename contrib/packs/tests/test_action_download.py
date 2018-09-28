@@ -300,6 +300,9 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         url = eval_repo_url("file:///home/vagrant/stackstorm-test")
         self.assertEqual(url, "file:///home/vagrant/stackstorm-test")
 
+        url = eval_repo_url("file://localhost/home/vagrant/stackstorm-test")
+        self.assertEqual(url, "file://localhost/home/vagrant/stackstorm-test")
+
         url = eval_repo_url('ssh://<user@host>/AutomationStackStorm')
         self.assertEqual(url, 'ssh://<user@host>/AutomationStackStorm')
 
