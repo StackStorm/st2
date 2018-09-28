@@ -15,11 +15,14 @@ Changed
 
 * Triggertypes API now sorts by trigger ref by default. ``st2 trigger list`` will now show a sorted
   list. (#4348)
-
-Changed
-~~~~~~~
-
 * Speed up pack registration through the ``/v1/packs/register`` API endpoint. (improvement) #4342
+
+Fixed
+~~~~~
+
+* Update ``st2-pack-install`` and ``st2 pack install`` command so it works with local git repos
+  (``file://<path to local git repo>``) which are in a detached head state (e.g. specific revision
+  is checked out). (improvement) #4366
 
 2.9.0 - September 16, 2018
 --------------------------
