@@ -85,4 +85,7 @@ COMMON_ACTION_ENV_VARIABLES = [
     'ST2_ACTION_AUTH_TOKEN'
 ]
 
+# Namespaces for dynamically loaded runner modules
 RUNNERS_NAMESPACE = "st2common.runners.runner"
+RUNNERS_QUERY_MODULES_NAMESPACE = 'st2common.runners.query'
+RUNNERS_CALLBACK_MODULES_NAMESPACE = 'st2common.runners.callback'

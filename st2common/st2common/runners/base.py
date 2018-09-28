@@ -30,6 +30,8 @@ from st2common import log as logging
 from st2common.constants import action as action_constants
 from st2common.constants import pack as pack_constants
 from st2common.constants.runners import RUNNERS_NAMESPACE
+from st2common.constants.runners import RUNNERS_QUERY_MODULES_NAMESPACE
+from st2common.constants.runners import RUNNERS_CALLBACK_MODULES_NAMESPACE
 from st2common.content.utils import get_pack_directory
 from st2common.content.utils import get_pack_base_path
 from st2common.exceptions import actionrunner as exc
@@ -49,7 +51,10 @@ __all__ = [
     'ShellRunnerMixin',
 
     'get_runner',
-    'get_metadata'
+    'get_metadata',
+
+    'get_query_module',
+    'get_callback_module'
 ]
 
 
@@ -89,6 +94,22 @@ def get_runner(name, config=None):
     runner = module.get_runner(**runner_kwargs)
     LOG.debug('Instance of runner: %s', runner)
     return runner
+
+
+def get_query_module(name):
+    """
+    Retrieve runner query module for the provided runner.
+    """
+    module = get_plugin_instance(RUNNERS_QUERY_MODULES_NAMESPACE, name, invoke_on_load=False)
+    return module
+
+
+def get_callback_module(name):
+    """
+    Retrieve runner callback module for the provided runner.
+    """
+    module = get_plugin_instance(RUNNERS_CALLBACK_MODULES_NAMESPACE, name, invoke_on_load=False)
+    return module
 
 
 def get_metadata(package_name):
