@@ -10,6 +10,16 @@ Added
 * Added ``-o`` and ``-m`` CLI options to ``st2-self-check`` script, to skip Orquesta and/or Mistral
   tests (#4347)
 
+Changed
+~~~~~~~
+
+* Triggertypes API now sorts by trigger ref by default. ``st2 trigger list`` will now show a sorted
+  list. (#4348)
+
+Changed
+~~~~~~~
+
+* Speed up pack registration through the ``/v1/packs/register`` API endpoint. (improvement) #4342
 
 2.9.0 - September 16, 2018
 --------------------------
