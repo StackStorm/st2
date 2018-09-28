@@ -260,7 +260,7 @@ class ProcessSensorContainer(object):
             try:
                 self._spawn_sensor_process(sensor=sensor_obj)
             except Exception as e:
-                LOG.warning(e.message, exc_info=True)
+                LOG.warning(str(e), exc_info=True)
 
                 # Disable sensor which we are unable to start
                 del self._sensors[sensor_id]
@@ -439,7 +439,7 @@ class ProcessSensorContainer(object):
         try:
             self._spawn_sensor_process(sensor=sensor)
         except Exception as e:
-            LOG.warning(e.message, exc_info=True)
+            LOG.warning(str(e), exc_info=True)
 
             # Disable sensor which we are unable to start
             del self._sensors[sensor_id]
