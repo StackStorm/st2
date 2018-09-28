@@ -152,7 +152,7 @@ def clone_repo(temp_dir, repo_url, verify_ssl=True, ref='master'):
     # future.
     repo = Repo.clone_from(repo_url, temp_dir)
 
-    is_local_repo = repo_url.startswith('file:///')
+    is_local_repo = repo_url.startswith('file://')
 
     try:
         active_branch = repo.active_branch
