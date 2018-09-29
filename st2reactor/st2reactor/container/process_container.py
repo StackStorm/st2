@@ -22,12 +22,14 @@ import subprocess
 
 from collections import defaultdict
 
+import six
 import eventlet
 from eventlet.support import greenlets as greenlet
 from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.constants.error_messages import PACK_VIRTUALENV_DOESNT_EXIST
+from st2common.constants.error_messages import PACK_VIRTUALENV_USES_PYTHON3
 from st2common.constants.system import API_URL_ENV_VARIABLE_NAME
 from st2common.constants.system import AUTH_TOKEN_ENV_VARIABLE_NAME
 from st2common.constants.triggers import (SENSOR_SPAWN_TRIGGER, SENSOR_EXIT_TRIGGER)
@@ -42,6 +44,7 @@ from st2common.util.shell import on_parent_exit
 from st2common.util.sandboxing import get_sandbox_python_path
 from st2common.util.sandboxing import get_sandbox_python_binary_path
 from st2common.util.sandboxing import get_sandbox_virtualenv_path
+from st2common.util.sandboxing import is_pack_virtualenv_using_python3
 
 __all__ = [
     'ProcessSensorContainer'
@@ -258,7 +261,7 @@ class ProcessSensorContainer(object):
             try:
                 self._spawn_sensor_process(sensor=sensor_obj)
             except Exception as e:
-                LOG.warning(e.message, exc_info=True)
+                LOG.warning(str(e), exc_info=True)
 
                 # Disable sensor which we are unable to start
                 del self._sensors[sensor_id]
@@ -282,6 +285,14 @@ class ProcessSensorContainer(object):
         if virtualenv_path and not os.path.isdir(virtualenv_path):
             format_values = {'pack': sensor['pack'], 'virtualenv_path': virtualenv_path}
             msg = PACK_VIRTUALENV_DOESNT_EXIST % format_values
+            raise Exception(msg)
+
+        # NOTE: Running sensors using Python 3 virtual environments is not supported
+        uses_python3, _ = is_pack_virtualenv_using_python3(pack=sensor['pack'])
+
+        if uses_python3 and not six.PY3:
+            format_values = {'pack': sensor['pack'], 'virtualenv_path': virtualenv_path}
+            msg = PACK_VIRTUALENV_USES_PYTHON3 % format_values
             raise Exception(msg)
 
         trigger_type_refs = sensor['trigger_types'] or []
@@ -429,7 +440,7 @@ class ProcessSensorContainer(object):
         try:
             self._spawn_sensor_process(sensor=sensor)
         except Exception as e:
-            LOG.warning(e.message, exc_info=True)
+            LOG.warning(str(e), exc_info=True)
 
             # Disable sensor which we are unable to start
             del self._sensors[sensor_id]
