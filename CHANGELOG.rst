@@ -20,6 +20,9 @@ Fixed
   We only support running Python runner actions from packs which use mixed Python environments
   (StackStorm components are running under Python 2 and particular a pack virtual environment is
   using Python 3). #4354
+* Update ``st2-pack-install`` and ``st2 pack install`` command so it works with local git repos
+  (``file://<path to local git repo>``) which are in a detached head state (e.g. specific revision
+  is checked out). (improvement) #4366
 
 2.9.0 - September 16, 2018
 --------------------------
