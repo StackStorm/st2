@@ -134,10 +134,11 @@ do
 
     START_TS=$(date +%s)
     st2 run ${TEST} protocol=${PROTOCOL} token=${ST2_AUTH_TOKEN} | grep "status" | grep -q "succeeded"
+    EXIT_CODE=$?
     END_TS=$(date +%s)
     DURATION=$(expr ${END_TS} - ${START_TS})
 
-    if [ $? -ne 0 ]; then
+    if [ ${EXIT_CODE} -ne 0 ]; then
         echo -e "ERROR! (${DURATION}s)"
         ((ERRORS++))
     else
@@ -150,10 +151,11 @@ if [ ${RUN_MISTRAL_TESTS} = "true" ]; then
 
     START_TS=$(date +%s)
     st2 run examples.mistral_examples | grep "status" | grep -q "succeeded"
+    EXIT_CODE=$?
     END_TS=$(date +%s)
     DURATION=$(expr ${END_TS} - ${START_TS})
 
-    if [ $? -ne 0 ]; then
+    if [ ${EXIT_CODE} -ne 0 ]; then
         echo -e "ERROR! (${DURATION}s)"
         ((ERRORS++))
     else
@@ -168,10 +170,11 @@ if [ ${RUN_ORQUESTA_TESTS} = "true" ]; then
 
     START_TS=$(date +%s)
     st2 run examples.orquesta-examples | grep "status" | grep -q "succeeded"
+    EXIT_CODE=$?
     END_TS=$(date +%s)
     DURATION=$(expr ${END_TS} - ${START_TS})
 
-    if [ $? -ne 0 ]; then
+    if [ ${EXIT_CODE} -ne 0 ]; then
         echo -e "ERROR! (${DURATION}s)"
         ((ERRORS++))
     else
