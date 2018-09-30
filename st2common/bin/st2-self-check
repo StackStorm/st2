@@ -115,31 +115,49 @@ do
     fi
 
     echo -n "Attempting Test ${TEST}..."
+
+    START_TS=$(date +%s)
     st2 run ${TEST} protocol=${PROTOCOL} token=${ST2_AUTH_TOKEN} | grep "status" | grep -q "succeeded"
-    if [ $? -ne 0 ]; then
-        echo -e "ERROR!"
+    EXIT_CODE=$?
+    END_TS=$(date +%s)
+    DURATION=$(expr ${END_TS} - ${START_TS})
+
+    if [ ${EXIT_CODE} -ne 0 ]; then
+        echo -e "ERROR! (${DURATION}s)"
         ((ERRORS++))
     else
-        echo "OK!"
+        echo "OK!  (${DURATION}s)"
     fi
 done
 
 echo -n "Attempting Example examples.mistral_examples..."
+
+START_TS=$(date +%s)
 st2 run examples.mistral_examples | grep "status" | grep -q "succeeded"
-if [ $? -ne 0 ]; then
-    echo -e "ERROR!"
+EXIT_CODE=$?
+END_TS=$(date +%s)
+DURATION=$(expr ${END_TS} - ${START_TS})
+
+if [ ${EXIT_CODE} -ne 0 ]; then
+    echo -e "ERROR! (${DURATION}s)"
     ((ERRORS++))
 else
-    echo "OK!"
+    echo "OK!  (${DURATION}s)"
 fi
 
 echo -n "Attempting Example examples.orquesta-examples..."
+
+START_TS=$(date +%s)
 st2 run examples.orquesta-examples | grep "status" | grep -q "succeeded"
-if [ $? -ne 0 ]; then
-    echo -e "ERROR!"
+EXIT_CODE=$?
+END_TS=$(date +%s)
+DURATION=$(expr ${END_TS} - ${START_TS})
+
+if [ ${EXIT_CODE} -ne 0 ]; then
+    echo -e "ERROR! (${DURATION}s)"
     ((ERRORS++))
 else
-    echo "OK!"
+    echo "OK!  (${DURATION}s)"
 fi
 
 if [ $ERRORS -ne 0 ]; then
