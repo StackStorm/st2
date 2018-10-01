@@ -77,7 +77,7 @@ def get_runner(name, config=None):
     try:
         module = get_plugin_instance(RUNNERS_NAMESPACE, name, invoke_on_load=False)
     except NoMatches:
-        name = name.replace('-', '_')
+        name = name.replace('_', '-')
 
         try:
             module = get_plugin_instance(RUNNERS_NAMESPACE, name, invoke_on_load=False)
@@ -113,7 +113,7 @@ def get_query_module(name):
     try:
         module = get_plugin_instance(RUNNERS_QUERY_MODULES_NAMESPACE, name, invoke_on_load=False)
     except NoMatches:
-        name = name.replace('-', '_')
+        name = name.replace('_', '-')
         module = get_plugin_instance(RUNNERS_QUERY_MODULES_NAMESPACE, name, invoke_on_load=False)
 
     return module
@@ -129,7 +129,7 @@ def get_callback_module(name):
     try:
         module = get_plugin_instance(RUNNERS_CALLBACK_MODULES_NAMESPACE, name, invoke_on_load=False)
     except NoMatches:
-        name = name.replace('-', '_')
+        name = name.replace('_', '-')
         module = get_plugin_instance(RUNNERS_CALLBACK_MODULES_NAMESPACE, name, invoke_on_load=False)
 
     return module
@@ -215,7 +215,7 @@ class ActionRunner(object):
 
     def post_run(self, status, result):
         if self.callback and isinstance(self.callback, dict) and 'source' in self.callback:
-            callback_module = get_query_module(self.callback['source'])
+            callback_module = get_callback_module(self.callback['source'])
             callback_handler = callback_module.get_instance()
             callback_handler.callback(self.liveaction)
 
