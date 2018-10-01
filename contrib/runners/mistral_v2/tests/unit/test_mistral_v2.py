@@ -31,6 +31,11 @@ from oslo_config import cfg
 import st2tests.config as tests_config
 tests_config.parse_args()
 
+# NOTE: This has to be done before imports because otherwise it wont take affect
+cfg.CONF.set_override('retry_exp_msec', 100, group='mistral')
+cfg.CONF.set_override('retry_exp_max_msec', 200, group='mistral')
+cfg.CONF.set_override('retry_stop_max_msec', 200, group='mistral')
+
 from mistral_v2.mistral_v2 import MistralRunner
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar
@@ -169,11 +174,6 @@ class MistralRunnerTest(DbTestCase):
     def setUpClass(cls):
         super(MistralRunnerTest, cls).setUpClass()
 
-        # Override the retry configuration here otherwise st2tests.config.parse_args
-        # in DbTestCase.setUpClass will reset these overrides.
-        cfg.CONF.set_override('retry_exp_msec', 100, group='mistral')
-        cfg.CONF.set_override('retry_exp_max_msec', 200, group='mistral')
-        cfg.CONF.set_override('retry_stop_max_msec', 200, group='mistral')
         cfg.CONF.set_override('api_url', 'http://0.0.0.0:9101', group='auth')
 
         # Register runners.
