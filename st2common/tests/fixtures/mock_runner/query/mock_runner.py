@@ -20,8 +20,8 @@ from st2common.constants import action as action_constants
 from st2common.query.base import Querier
 
 
-def get_query_instance():
-    return MockQuerier(str(uuid.uuid4()))
+def get_instance():
+    return MockQuerier()
 
 
 class MockQuerier(Querier):
