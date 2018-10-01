@@ -72,17 +72,25 @@ def get_runner(name, config=None):
     """
     LOG.debug('Runner loading Python module: %s', name)
 
+    # NOTE: For backward compatibility we also support "_" in place of "-"
+    from stevedore.exception import NoMatches
+
     try:
         module = get_plugin_instance(RUNNERS_NAMESPACE, name, invoke_on_load=False)
-    except Exception as e:
-        available_runners = get_available_plugins(namespace=RUNNERS_NAMESPACE)
-        available_runners = ', '.join(available_runners)
-        msg = ('Failed to find runner %s. Make sure that the runner is available and installed in '
-               'StackStorm virtual environment. Available runners are: %s' %
-               (name, available_runners))
-        LOG.exception(msg)
+    except NoMatches:
+        name = name.replace('-', '_')
 
-        raise exc.ActionRunnerCreateError('%s\n\n%s' % (msg, str(e)))
+        try:
+            module = get_plugin_instance(RUNNERS_NAMESPACE, name, invoke_on_load=False)
+        except Exception as e:
+            available_runners = get_available_plugins(namespace=RUNNERS_NAMESPACE)
+            available_runners = ', '.join(available_runners)
+            msg = ('Failed to find runner %s. Make sure that the runner is available and installed '
+                   'in StackStorm virtual environment. Available runners are: %s' %
+                   (name, available_runners))
+            LOG.exception(msg)
+
+            raise exc.ActionRunnerCreateError('%s\n\n%s' % (msg, str(e)))
 
     LOG.debug('Instance of runner module: %s', module)
 
@@ -100,7 +108,15 @@ def get_query_module(name):
     """
     Retrieve runner query module for the provided runner.
     """
-    module = get_plugin_instance(RUNNERS_QUERY_MODULES_NAMESPACE, name, invoke_on_load=False)
+    # NOTE: For backward compatibility we also support "_" in place of "-"
+    from stevedore.exception import NoMatches
+
+    try:
+        module = get_plugin_instance(RUNNERS_QUERY_MODULES_NAMESPACE, name, invoke_on_load=False)
+    except NoMatches:
+        name = name.replace('-', '_')
+        module = get_plugin_instance(RUNNERS_QUERY_MODULES_NAMESPACE, name, invoke_on_load=False)
+
     return module
 
 
@@ -108,7 +124,15 @@ def get_callback_module(name):
     """
     Retrieve runner callback module for the provided runner.
     """
-    module = get_plugin_instance(RUNNERS_CALLBACK_MODULES_NAMESPACE, name, invoke_on_load=False)
+    # NOTE: For backward compatibility we also support "_" in place of "-"
+    from stevedore.exception import NoMatches
+
+    try:
+        module = get_plugin_instance(RUNNERS_CALLBACK_MODULES_NAMESPACE, name, invoke_on_load=False)
+    except NoMatches:
+        name = name.replace('-', '_')
+        module = get_plugin_instance(RUNNERS_CALLBACK_MODULES_NAMESPACE, name, invoke_on_load=False)
+
     return module
 
 
