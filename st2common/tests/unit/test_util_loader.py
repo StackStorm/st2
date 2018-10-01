@@ -90,39 +90,3 @@ class PluginLoaderTestCase(unittest2.TestCase):
         self.assertEqual(MOCK_RUNNER_NAME, querier2.__name__)
         self.assertIn(MOCK_RUNNER_NAME, loader.QUERIER_MODULES_CACHE)
         self.assertEqual(querier2, loader.QUERIER_MODULES_CACHE[MOCK_RUNNER_NAME])
-
-    @mock.patch.object(
-        imp,
-        'load_source',
-        mock.MagicMock(return_value=MOCK_CALLBACK_MODULE)
-    )
-    def test_register_callback_module(self):
-        callback_module = loader.register_callback_module(MOCK_RUNNER_NAME)
-
-        self.assertIsNotNone(callback_module)
-        self.assertEqual(MOCK_RUNNER_NAME, callback_module.__name__)
-        self.assertIn(MOCK_RUNNER_NAME, loader.CALLBACK_MODULES_CACHE)
-        self.assertEqual(callback_module, loader.CALLBACK_MODULES_CACHE[MOCK_RUNNER_NAME])
-
-    @mock.patch.object(
-        imp,
-        'load_source',
-        mock.MagicMock(return_value=MOCK_CALLBACK_MODULE)
-    )
-    def test_register_callback_module_again(self):
-        callback_module1 = loader.register_callback_module(MOCK_RUNNER_NAME)
-
-        self.assertEqual(1, imp.load_source.call_count)
-        self.assertIsNotNone(callback_module1)
-        self.assertEqual(MOCK_RUNNER_NAME, callback_module1.__name__)
-        self.assertIn(MOCK_RUNNER_NAME, loader.CALLBACK_MODULES_CACHE)
-        self.assertEqual(callback_module1, loader.CALLBACK_MODULES_CACHE[MOCK_RUNNER_NAME])
-
-        callback_module2 = loader.register_callback_module(MOCK_RUNNER_NAME)
-
-        self.assertEqual(1, imp.load_source.call_count)
-        self.assertEqual(callback_module1, callback_module2)
-        self.assertIsNotNone(callback_module2)
-        self.assertEqual(MOCK_RUNNER_NAME, callback_module2.__name__)
-        self.assertIn(MOCK_RUNNER_NAME, loader.CALLBACK_MODULES_CACHE)
-        self.assertEqual(callback_module2, loader.CALLBACK_MODULES_CACHE[MOCK_RUNNER_NAME])
