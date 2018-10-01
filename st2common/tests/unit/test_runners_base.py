@@ -36,7 +36,6 @@ class RunnersLoaderUtilsTestCase(DbTestCase):
         self.assertRaisesRegexp(ActionRunnerCreateError, expected_msg,
                                 get_runner, 'invalid-name-not-found')
 
-
     def test_get_query_module_success(self):
         query_module = get_query_module('mistral-v2')
 
