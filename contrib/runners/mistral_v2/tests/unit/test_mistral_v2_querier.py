@@ -39,7 +39,6 @@ from st2common.models.db.execution import ActionExecutionDB
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.persistence.execution import ActionExecution
 from st2common.util import action_db as action_utils
-from st2common.util import loader
 from st2common.runners.base import get_query_module
 from st2tests import DbTestCase
 
