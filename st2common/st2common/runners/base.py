@@ -35,7 +35,6 @@ from st2common.constants.runners import RUNNERS_CALLBACK_MODULES_NAMESPACE
 from st2common.content.utils import get_pack_directory
 from st2common.content.utils import get_pack_base_path
 from st2common.exceptions import actionrunner as exc
-from st2common.util.loader import register_callback_module
 from st2common.util.loader import get_plugin_instance
 from st2common.util.loader import get_available_plugins
 from st2common.util.api import get_full_public_api_url
@@ -216,7 +215,7 @@ class ActionRunner(object):
 
     def post_run(self, status, result):
         if self.callback and isinstance(self.callback, dict) and 'source' in self.callback:
-            callback_module = register_callback_module(self.callback['source'])
+            callback_module = get_query_module(self.callback['source'])
             callback_handler = callback_module.get_instance()
             callback_handler.callback(self.liveaction)
 

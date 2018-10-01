@@ -38,7 +38,7 @@ from st2common.runners import base as runners
 from st2common.services import action as action_service
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
-from st2common.util import loader
+from st2common.runners.base import get_callback_module
 from st2tests import DbTestCase
 from st2tests import fixturesloader
 from st2tests.mocks.liveaction import MockLiveActionPublisher
@@ -97,7 +97,7 @@ class MistralRunnerCallbackTest(DbTestCase):
             actions_registrar.register_from_pack(pack)
 
         # Get an instance of the callback module and reference to mistral status map
-        cls.callback_module = loader.register_callback_module(MISTRAL_RUNNER_NAME)
+        cls.callback_module = get_callback_module(MISTRAL_RUNNER_NAME)
         cls.callback_class = cls.callback_module.get_instance()
         cls.status_map = cls.callback_module.STATUS_MAP
 
