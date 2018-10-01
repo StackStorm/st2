@@ -31,7 +31,7 @@ from oslo_config import cfg
 import st2tests.config as tests_config
 tests_config.parse_args()
 
-# NOTE: This has to be done before imports because otherwise it wont take affect
+# NOTE: This has to be done before importing MistralRunner
 cfg.CONF.set_override('retry_exp_msec', 100, group='mistral')
 cfg.CONF.set_override('retry_exp_max_msec', 200, group='mistral')
 cfg.CONF.set_override('retry_stop_max_msec', 200, group='mistral')
