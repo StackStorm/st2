@@ -304,7 +304,9 @@ def request_resume(ac_ex_db):
         raise wf_exc.WorkflowExecutionIsCompletedException(str(wf_ex_db.id))
 
     if wf_ex_db.status in states.RUNNING_STATES:
-        raise wf_exc.WorkflowExecutionIsRunningException(str(wf_ex_db.id))
+        msg = '[%s] Workflow execution "%s" is not resumed because it is already active.'
+        LOG.info(msg, wf_ac_ex_id, str(wf_ex_db.id))
+        return
 
     conductor = deserialize_conductor(wf_ex_db)
 
@@ -312,7 +314,9 @@ def request_resume(ac_ex_db):
         raise wf_exc.WorkflowExecutionIsCompletedException(str(wf_ex_db.id))
 
     if conductor.get_workflow_state() in states.RUNNING_STATES:
-        raise wf_exc.WorkflowExecutionIsRunningException(str(wf_ex_db.id))
+        msg = '[%s] Workflow execution "%s" is not resumed because it is already active.'
+        LOG.info(msg, wf_ac_ex_id, str(wf_ex_db.id))
+        return
 
     conductor.request_workflow_state(states.RESUMING)
 
