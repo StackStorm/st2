@@ -101,7 +101,8 @@ class TestWorkflowExecution(unittest2.TestCase):
             if ex.status in action_constants.LIVEACTION_COMPLETED_STATES:
                 raise Exception(
                     'Execution is in completed state "%s" and '
-                    'does not match expected state(s).' % ex.status
+                    'does not match expected state(s). %s' %
+                    (ex.status, ex.result)
                 )
             else:
                 raise

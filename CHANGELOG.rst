@@ -24,6 +24,7 @@ Fixed
 * Update ``st2-pack-install`` and ``st2 pack install`` command so it works with local git repos
   (``file://<path to local git repo>``) which are in a detached head state (e.g. specific revision
   is checked out). (improvement) #4366
+* Fix a race which occurs when there are multiple concurrent requests to resume a workflow. #4369
 
 2.9.0 - September 16, 2018
 --------------------------
