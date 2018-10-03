@@ -1,12 +1,8 @@
 Changelog
 =========
 
-In development
+in development
 --------------
-
-
-2.9.1 - October 03, 2018
-------------------------
 
 Changed
 ~~~~~~~
