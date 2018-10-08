@@ -582,7 +582,7 @@ class WebhookManager(ResourceManager):
 
 
 class StreamManager(object):
-    def __init__(self, endpoint, cacert, debug):
+    def __init__(self, endpoint, cacert=None, debug=False):
         self._url = httpclient.get_url_without_trailing_slash(endpoint) + '/stream'
         self.debug = debug
         self.cacert = cacert
@@ -595,6 +595,7 @@ class StreamManager(object):
 
         url = self._url
         query_params = {}
+        request_params = {}
 
         if events and isinstance(events, six.string_types):
             events = [events]
@@ -608,10 +609,13 @@ class StreamManager(object):
         if events:
             query_params['events'] = ','.join(events)
 
+        if self.cacert is not None:
+            request_params['verify'] = self.cacert
+
         query_string = '?' + urllib.parse.urlencode(query_params)
         url = url + query_string
 
-        for message in SSEClient(url):
+        for message in SSEClient(url, **request_params):
 
             # If the execution on the API server takes too long, the message
             # can be empty. In this case, rerun the query.
