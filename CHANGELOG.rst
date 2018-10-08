@@ -28,6 +28,10 @@ Fixed
 * Update ``st2-pack-install`` and ``st2 pack install`` command so it works with local git repos
   (``file://<path to local git repo>``) which are in a detached head state (e.g. specific revision
   is checked out). (improvement) #4366
+* Fixed warning in ``st2-run-pack-tests`` about invalid format for ``pip list``. (Bugfix)
+
+  Contributed by Nick Maludy (Encore Technologies).
+
 
 2.9.0 - September 16, 2018
 --------------------------
