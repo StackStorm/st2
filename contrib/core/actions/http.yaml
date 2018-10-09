@@ -39,6 +39,7 @@ parameters:
     - OPTIONS
     - TRACE
     - PATCH
+    - PURGE
   params:
     description: Query params to be used with the HTTP request.
     type: object
