@@ -275,6 +275,12 @@ function st2start(){
             --config-file $ST2_CONF
     done
 
+    # Run the scheduler server
+    echo 'Starting screen session st2-scheduler'
+    screen -d -m -S st2-scheduler ./virtualenv/bin/python \
+        ./st2actions/bin/st2scheduler \
+        --config-file $ST2_CONF
+
     # Run the sensor container server
     echo 'Starting screen session st2-sensorcontainer'
     screen -d -m -S st2-sensorcontainer ./virtualenv/bin/python \
