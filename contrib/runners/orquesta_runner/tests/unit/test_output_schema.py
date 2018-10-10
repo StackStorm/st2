@@ -101,7 +101,7 @@ class OrquestaRunnerTest(RunnerTestCase, st2tests.DbTestCase):
     def get_runner_class(cls, runner_name):
         return runners.get_runner(runner_name, runner_name).__class__
 
-    def test_ahearence_to_output_schema(self):
+    def test_adherence_to_output_schema(self):
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential_with_schema.yaml')
         wf_input = {'who': 'Thanos'}
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=wf_input)
