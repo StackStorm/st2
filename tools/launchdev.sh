@@ -366,6 +366,8 @@ function st2start(){
         "st2-resultstracker"
         "st2-notifier"
         "st2-auth"
+        "st2-timersengine"
+        "st2-scheduler"
     )
 
     if [ "${include_mistral}" = true ]; then

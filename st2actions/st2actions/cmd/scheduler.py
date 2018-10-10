@@ -40,27 +40,21 @@ def _setup():
 def _run_scheduler():
     LOG.info('(PID=%s) Scheduler started.', os.getpid())
 
-    components = [
-        scheduler.get_scheduler(),
-    ]
+    scheduler_instance = scheduler.get_scheduler()
 
     try:
-        for component in components:
-            component.start()
-
-        for component in components:
-            component.wait()
+        scheduler_instance.start()
+        scheduler_instance.wait()
     except (KeyboardInterrupt, SystemExit):
         LOG.info('(PID=%s) Scheduler stopped.', os.getpid())
 
         errors = False
 
-        for component in components:
-            try:
-                component.shutdown()
-            except:
-                LOG.exception('Unable to shutdown %s.', component.__class__.__name__)
-                errors = True
+        try:
+            scheduler_instance.shutdown()
+        except:
+            LOG.exception('Unable to shutdown scheduler.')
+            errors = True
 
         if errors:
             return 1

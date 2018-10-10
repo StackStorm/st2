@@ -41,27 +41,21 @@ def _setup():
 def _run_worker():
     LOG.info('(PID=%s) Worker started.', os.getpid())
 
-    components = [
-        worker.get_worker()
-    ]
+    action_worker = worker.get_worker()
 
     try:
-        for component in components:
-            component.start()
-
-        for component in components:
-            component.wait()
+        action_worker.start()
+        action_worker.wait()
     except (KeyboardInterrupt, SystemExit):
         LOG.info('(PID=%s) Worker stopped.', os.getpid())
 
         errors = False
 
-        for component in components:
-            try:
-                component.shutdown()
-            except:
-                LOG.exception('Unable to shutdown %s.', component.__class__.__name__)
-                errors = True
+        try:
+            action_worker.shutdown()
+        except:
+            LOG.exception('Unable to shutdown worker.')
+            errors = True
 
         if errors:
             return 1
