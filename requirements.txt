@@ -27,7 +27,7 @@ nose-parallel==0.2.1
 nose-timer==0.7.3
 oslo.config<1.13,>=1.12.1
 oslo.utils<=3.37.0,>=3.36.2
-paramiko==2.4.1
+paramiko==2.4.2
 passlib==1.7.1
 prettytable
 prometheus_client==0.1.1

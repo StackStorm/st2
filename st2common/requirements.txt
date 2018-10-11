@@ -13,7 +13,7 @@ jsonschema==2.6.0
 kombu==4.2.1
 networkx==1.11
 oslo.config<1.13,>=1.12.1
-paramiko==2.4.1
+paramiko==2.4.2
 prometheus_client==0.1.1
 pymongo==3.7.1
 python-dateutil
