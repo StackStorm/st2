@@ -135,11 +135,8 @@ class AliasesRegistrar(ResourceRegistrar):
 
         action_ref = action_alias_db.action_ref
 
-        try:
-            action_db = Action.get_by_ref(action_ref)
-            if not action_db:
-                raise StackStormDBObjectNotFoundError('Action %s not found in DB' % action_ref)
-        except StackStormDBObjectNotFoundError:
+        action_db = Action.get_by_ref(action_ref)
+        if not action_db:
             LOG.warning('Action %s not found in DB. Did you forget to register the action?',
                         action_ref)
 
