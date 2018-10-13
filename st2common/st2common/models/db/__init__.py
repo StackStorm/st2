@@ -92,7 +92,7 @@ def get_model_classes():
 
 def _db_connect(db_name, db_host, db_port, username=None, password=None,
              ssl=False, ssl_keyfile=None, ssl_certfile=None,
-             ssl_cert_reqs=None, ssl_ca_certs=None, ssl_match_hostname=True):
+             ssl_cert_reqs=None, ssl_ca_certs=None, authentication_mechanism=None, ssl_match_hostname=True):
 
     if '://' in db_host:
         # Hostname is provided as a URI string. Make sure we don't log the password in case one is
@@ -119,7 +119,7 @@ def _db_connect(db_name, db_host, db_port, username=None, password=None,
 
     ssl_kwargs = _get_ssl_kwargs(ssl=ssl, ssl_keyfile=ssl_keyfile, ssl_certfile=ssl_certfile,
                                  ssl_cert_reqs=ssl_cert_reqs, ssl_ca_certs=ssl_ca_certs,
-                                 ssl_match_hostname=ssl_match_hostname)
+                                 authentication_mechanism=authentication_mechanism, ssl_match_hostname=ssl_match_hostname)
 
     connection = mongoengine.connection.connect(db_name, host=db_host,
                                                 port=db_port, tz_aware=True,
@@ -146,12 +146,14 @@ def _db_connect(db_name, db_host, db_port, username=None, password=None,
 
 def db_setup(db_name, db_host, db_port, username=None, password=None, ensure_indexes=True,
              ssl=False, ssl_keyfile=None, ssl_certfile=None,
-             ssl_cert_reqs=None, ssl_ca_certs=None, ssl_match_hostname=True):
+             ssl_cert_reqs=None, ssl_ca_certs=None, 
+             authentication_mechanism=None, ssl_match_hostname=True):
 
     connection = _db_connect(db_name, db_host, db_port, username=username,
                              password=password, ssl=ssl, ssl_keyfile=ssl_keyfile,
                              ssl_certfile=ssl_certfile,
                              ssl_cert_reqs=ssl_cert_reqs, ssl_ca_certs=ssl_ca_certs,
+                             authentication_mechanism=authentication_mechanism, 
                              ssl_match_hostname=ssl_match_hostname)
 
     # Create all the indexes upfront to prevent race-conditions caused by
@@ -273,12 +275,14 @@ def db_teardown():
 
 def db_cleanup(db_name, db_host, db_port, username=None, password=None,
                ssl=False, ssl_keyfile=None, ssl_certfile=None,
-               ssl_cert_reqs=None, ssl_ca_certs=None, ssl_match_hostname=True):
+               ssl_cert_reqs=None, ssl_ca_certs=None, 
+               authentication_mechanism=None, ssl_match_hostname=True):
 
     connection = _db_connect(db_name, db_host, db_port, username=username,
                              password=password, ssl=ssl, ssl_keyfile=ssl_keyfile,
                              ssl_certfile=ssl_certfile,
                              ssl_cert_reqs=ssl_cert_reqs, ssl_ca_certs=ssl_ca_certs,
+                             authentication_mechanism=authentication_mechanism,
                              ssl_match_hostname=ssl_match_hostname)
 
     LOG.info('Dropping database "%s" @ "%s:%s" as user "%s".',
@@ -289,7 +293,7 @@ def db_cleanup(db_name, db_host, db_port, username=None, password=None,
 
 
 def _get_ssl_kwargs(ssl=False, ssl_keyfile=None, ssl_certfile=None, ssl_cert_reqs=None,
-                    ssl_ca_certs=None, ssl_match_hostname=True):
+                    ssl_ca_certs=None, authentication_mechanism=None, ssl_match_hostname=True):
     ssl_kwargs = {
         'ssl': ssl,
     }
@@ -310,6 +314,9 @@ def _get_ssl_kwargs(ssl=False, ssl_keyfile=None, ssl_certfile=None, ssl_cert_req
     if ssl_ca_certs:
         ssl_kwargs['ssl'] = True
         ssl_kwargs['ssl_ca_certs'] = ssl_ca_certs
+    if authentication_mechanism:
+        ssl_kwargs['ssl'] = True
+        ssl_kwargs['authentication_mechanism'] = authentication_mechanism
     if ssl_kwargs.get('ssl', False):
         # pass in ssl_match_hostname only if ssl is True. The right default value
         # for ssl_match_hostname in almost all cases is True.

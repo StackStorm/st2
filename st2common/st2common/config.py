@@ -200,7 +200,12 @@ def register_opts(ignore_errors=False):
                  'used to validate certificates passed from MongoDB.'),
         cfg.BoolOpt(
             'ssl_match_hostname', default=True,
-            help='If True and `ssl_cert_reqs` is not None, enables hostname verification')
+            help='If True and `ssl_cert_reqs` is not None, enables hostname verification'),
+        cfg.StrOpt(
+            'authentication_mechanism', default=None,
+            help='Specifies database authentication mechanisms. '
+                 'By default, it use SCRAM-SHA-1 with MongoDB 3.0 and later, '
+                 'MONGODB-CR (MongoDB Challenge Response protocol) for older servers.')
     ]
 
     do_register_opts(db_opts, 'database', ignore_errors)
