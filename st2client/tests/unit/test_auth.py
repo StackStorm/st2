@@ -289,7 +289,7 @@ class TestLoginUncaughtException(TestLoginBase):
 
         self.assertTrue('Failed to log in as %s' % expected_username in self.stdout.getvalue())
         self.assertTrue('Logged in as' not in self.stdout.getvalue())
-        self.assertEqual(retcode, 0)
+        self.assertEqual(retcode, 1)
 
 
 class TestAuthToken(base.BaseCLITestCase):
