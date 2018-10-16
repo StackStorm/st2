@@ -27,6 +27,7 @@ from st2common.transport.publishers import PoolPublisher
 from st2common.util import schema as util_schema
 from st2common.util import reference
 from st2common.models.db import db_setup
+from st2common.models.db import _get_ssl_kwargs
 from st2common.util import date as date_utils
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.db.trigger import TriggerTypeDB, TriggerDB, TriggerInstanceDB
@@ -51,6 +52,43 @@ class DbConnectionTest(DbTestCase):
 
         expected_str = "host=['%s:%s']" % (cfg.CONF.database.host, cfg.CONF.database.port)
         self.assertTrue(expected_str in str(client), 'Not connected to desired host.')
+
+    def test_get_ssl_kwargs(self):
+        # 1. No SSL kwargs provided
+        ssl_kwargs = _get_ssl_kwargs()
+        self.assertEqual(ssl_kwargs, {'ssl': False})
+
+        # 2. ssl kwarg provided
+        ssl_kwargs = _get_ssl_kwargs(ssl=True)
+        self.assertEqual(ssl_kwargs, {'ssl': True, 'ssl_match_hostname': True})
+
+        # 2. authentication_mechanism kwarg provided
+        ssl_kwargs = _get_ssl_kwargs(authentication_mechanism='MONGODB-X509')
+        self.assertEqual(ssl_kwargs, {
+            'ssl': True,
+            'ssl_match_hostname': True,
+            'authentication_mechanism': 'MONGODB-X509'
+        })
+
+    @mock.patch('st2common.models.db.mongoengine')
+    def test_db_setup(self, mock_mongoengine):
+        db_setup(db_name='name', db_host='host', db_port=12345, username='username',
+                 password='password', authentication_mechanism='MONGODB-X509')
+
+        call_args = mock_mongoengine.connection.connect.call_args_list[0][0]
+        call_kwargs = mock_mongoengine.connection.connect.call_args_list[0][1]
+
+        self.assertEqual(call_args, ('name',))
+        self.assertEqual(call_kwargs, {
+            'host': 'host',
+            'port': 12345,
+            'username': 'username',
+            'password': 'password',
+            'tz_aware': True,
+            'authentication_mechanism': 'MONGODB-X509',
+            'ssl': True,
+            'ssl_match_hostname': True
+        })
 
     @mock.patch('st2common.models.db.mongoengine')
     @mock.patch('st2common.models.db.LOG')
