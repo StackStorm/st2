@@ -28,7 +28,7 @@ pyinotify==0.9.6
 semver==2.8.1
 pytz==2018.5
 stevedore==1.29.0
-paramiko==2.4.1
+paramiko==2.4.2
 networkx==1.11
 python-keyczar==0.716
 cryptography==2.3.1
