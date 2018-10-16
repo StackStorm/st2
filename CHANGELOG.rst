@@ -9,6 +9,13 @@ Added
 
 * Added ``-o`` and ``-m`` CLI options to ``st2-self-check`` script, to skip Orquesta and/or Mistral
   tests. #4347
+* Allow user to specify new ``database.authentication_mechanism`` config option in
+  ``/etc/st2/st2.conf``.
+
+  By default, SCRAM-SHA-1 is used with MongoDB 3.0 and later and MONGODB-CR (MongoDB Challenge
+  Response protocol) for older servers.
+
+  Contributed by @aduca85 #4373
 
 Changed
 ~~~~~~~
