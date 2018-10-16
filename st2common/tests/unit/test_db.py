@@ -447,7 +447,7 @@ class ActionModelTestCase(DbTestCase):
     def tearDown(self):
         runnertype = RunnerType.get_by_name('python')
         self._delete([runnertype])
-        super(ActionModelTestCase. self).tearDown()
+        super(ActionModelTestCase, self).tearDown()
 
     def test_action_crud(self):
         runnertype = self._create_save_runnertype(metadata=False)
