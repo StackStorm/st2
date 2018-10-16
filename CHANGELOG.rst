@@ -33,6 +33,7 @@ Fixed
   is checked out). (improvement) #4366
 * st2 login now exits with non zero exit code when login fails due to invalid credentials.
   (improvement) #4338
+* Fix ``st2 key load`` that errors when importing an empty file #4393
 
 2.9.0 - September 16, 2018
 --------------------------
