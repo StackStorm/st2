@@ -71,5 +71,6 @@ def db_setup_with_retry(db_name, db_host, db_port, username=None, password=None,
                               ensure_indexes=ensure_indexes,
                               ssl=ssl, ssl_keyfile=ssl_keyfile,
                               ssl_certfile=ssl_certfile, ssl_cert_reqs=ssl_cert_reqs,
-                              ssl_ca_certs=ssl_ca_certs, authentication_mechanism=authentication_mechanism,
+                              ssl_ca_certs=ssl_ca_certs,
+                              authentication_mechanism=authentication_mechanism,
                               ssl_match_hostname=ssl_match_hostname)
