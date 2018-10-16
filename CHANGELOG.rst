@@ -15,6 +15,9 @@ Changed
 
 * Speed up pack registration through the ``/v1/packs/register`` API endpoint. (improvement) #4342
 * Triggertypes API now sorts by trigger ref by default. ``st2 trigger list`` will now show a sorted
+* ``core.http`` action now supports additional HTTP methods: OPTIONS, TRACE, PATCH, PURGE.
+
+  Contributed by @emptywee (improvement) #4379
 
 Fixed
 ~~~~~
