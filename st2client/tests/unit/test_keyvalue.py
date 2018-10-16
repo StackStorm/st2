@@ -333,3 +333,16 @@ class TestKeyValueLoad(TestKeyValueBase):
         finally:
             os.close(fd)
             os.unlink(path)
+
+    def test_load_keyvalue_empty_file(self):
+        """
+        Loading K/V from an empty file shouldn't throw an error
+        """
+        fd, path = tempfile.mkstemp(suffix='.yaml')
+        try:
+            args = ['key', 'load', path]
+            retcode = self.shell.run(args)
+            self.assertEqual(retcode, 0)
+        finally:
+            os.close(fd)
+            os.unlink(path)
