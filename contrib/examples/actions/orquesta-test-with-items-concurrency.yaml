@@ -1,0 +1,10 @@
+---
+name: orquesta-test-with-items-concurrency
+description: A workflow demonstrating with items and concurrent processing.
+runner_type: orquesta
+entry_point: workflows/tests/orquesta-test-with-items-concurrency.yaml
+enabled: true
+parameters:
+  tempfiles:
+    required: true
+    type: array

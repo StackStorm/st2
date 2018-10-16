@@ -1,0 +1,16 @@
+version: 1.0
+  
+description: A workflow demonstrating with items and concurrent processing.
+
+input:
+  - tempfiles
+
+tasks:
+  task1:
+    with:
+      items: tempfile in <% ctx(tempfiles) %>
+      concurrency: 2
+    action: core.local
+    input:
+      cmd: "while [ -e '<% item(tempfile) %>' ]; do sleep 0.1; done"
+      timeout: 300

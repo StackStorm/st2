@@ -50,7 +50,7 @@ LOG = logging.getLogger(__name__)
 def is_action_execution_under_workflow_context(ac_ex_db):
     # The action execution is executed under the context of a workflow
     # if it contains the orquesta key in its context dictionary.
-    return 'orquesta' in ac_ex_db.context
+    return ac_ex_db.context and 'orquesta' in ac_ex_db.context
 
 
 def format_inspection_result(result):
@@ -446,11 +446,17 @@ def request_task_execution(wf_ex_db, st2_ctx, task_req):
     return task_ex_db
 
 
+@retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
 def request_action_execution(wf_ex_db, task_ex_db, st2_ctx, ac_ex_req):
     wf_ac_ex_id = wf_ex_db.action_execution
     action_ref = ac_ex_req['action']
     action_input = ac_ex_req['input']
     item_id = ac_ex_req.get('item_id')
+
+    # If the task is with items and item_id is not provided, raise exception.
+    if task_ex_db.itemized and item_id is None:
+        msg = 'Unable to request action execution. Identifier for the item is not provided.'
+        raise Exception(msg)
 
     # Identify the action to execute.
     action_db = action_utils.get_action_by_ref(ref=action_ref)
@@ -810,9 +816,9 @@ def update_task_execution(task_ex_id, ac_ex_status, ac_ex_result=None, ac_ex_ctx
 
         task_ex_db.status = ac_ex_status
         task_ex_db.result = ac_ex_result if ac_ex_result else task_ex_db.result
-    else:
-        if not ac_ex_ctx or 'orquesta' not in ac_ex_ctx or 'item_id' not in ac_ex_ctx['orquesta']:
-            raise Exception('Context information for the item is not provided.')
+    elif task_ex_db.itemized and ac_ex_ctx:
+        if 'orquesta' not in ac_ex_ctx or 'item_id' not in ac_ex_ctx['orquesta']:
+            raise Exception('Context information for the item is not provided. %s' % str(ac_ex_ctx))
 
         item_id = ac_ex_ctx['orquesta']['item_id']
 

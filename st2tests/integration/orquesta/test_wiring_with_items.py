@@ -17,12 +17,27 @@
 
 from __future__ import absolute_import
 
+import os
+import tempfile
+
 from integration.orquesta import base
 
 from st2common.constants import action as ac_const
 
 
 class WithItemsWiringTest(base.TestWorkflowExecution):
+
+    tempfiles = None
+
+    def tearDown(self):
+        if self.tempfiles and isinstance(self.tempfiles, list):
+            for f in self.tempfiles:
+                if os.path.exists(f):
+                    os.remove(f)
+
+        self.tempfiles = None
+
+        super(WithItemsWiringTest, self).tearDown()
 
     def test_with_items(self):
         wf_name = 'examples.orquesta-with-items'
@@ -41,17 +56,32 @@ class WithItemsWiringTest(base.TestWorkflowExecution):
         self.assertDictEqual(ex.result, expected_result)
 
     def test_with_items_concurrency(self):
-        wf_name = 'examples.orquesta-with-items-concurrency'
+        wf_name = 'examples.orquesta-test-with-items-concurrency'
 
-        members = ['Lakshmi', 'Lindsay', 'Tomaz', 'Matt', 'Drew']
-        wf_input = {'members': members}
+        concurrency = 2
+        num_items = 5
+        self.tempfiles = []
 
-        message = '%s, resistance is futile!'
-        expected_output = {'items': [message % i for i in members]}
-        expected_result = {'output': expected_output}
+        for i in range(0, num_items):
+            _, f = tempfile.mkstemp()
+            os.chmod(f, 0o755)   # nosec
+            self.tempfiles.append(f)
 
+        wf_input = {'tempfiles': self.tempfiles}
         ex = self._execute_workflow(wf_name, wf_input)
+        ex = self._wait_for_state(ex, [ac_const.LIVEACTION_STATUS_RUNNING])
+
+        self._wait_for_task(ex, 'task1', num_task_exs=2)
+        os.remove(self.tempfiles[0])
+        os.remove(self.tempfiles[1])
+
+        self._wait_for_task(ex, 'task1', num_task_exs=4)
+        os.remove(self.tempfiles[2])
+        os.remove(self.tempfiles[3])
+
+        self._wait_for_task(ex, 'task1', num_task_exs=5)
+        os.remove(self.tempfiles[4])
+
         ex = self._wait_for_completion(ex)
 
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-        self.assertDictEqual(ex.result, expected_result)
