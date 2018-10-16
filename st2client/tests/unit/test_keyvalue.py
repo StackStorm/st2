@@ -342,6 +342,7 @@ class TestKeyValueLoad(TestKeyValueBase):
         try:
             args = ['key', 'load', path]
             retcode = self.shell.run(args)
+            self.assertTrue('No matching items found' in self.stdout.getvalue())
             self.assertEqual(retcode, 0)
         finally:
             os.close(fd)
