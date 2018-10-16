@@ -48,6 +48,8 @@ Fixed
 * Update ``st2-pack-install`` and ``st2 pack install`` command so it works with local git repos
   (``file://<path to local git repo>``) which are in a detached head state (e.g. specific revision
   is checked out). (improvement) #4366
+* st2 login now exits with non zero exit code when login fails due to invalid credentials.
+  (improvement) #4338
 
 2.9.0 - September 16, 2018
 --------------------------
