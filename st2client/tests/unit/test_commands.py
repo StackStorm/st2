@@ -30,11 +30,11 @@ from st2client.shell import Shell
 from st2client import models
 from st2client.utils import httpclient
 from st2client.commands import resource
-from st2client.commands.action import ActionExecutionReadCommand
+from st2client.commands.resource import ResourceViewCommand
 
 __all__ = [
     'TestResourceCommand',
-    'ActionExecutionReadCommandTestCase'
+    'ResourceViewCommandTestCase'
 ]
 
 
@@ -246,50 +246,50 @@ class TestResourceCommand(unittest2.TestCase):
         self.assertRaises(Exception, self.branch.commands['delete'].run, args)
 
 
-class ActionExecutionReadCommandTestCase(unittest2.TestCase):
+class ResourceViewCommandTestCase(unittest2.TestCase):
 
     def setUp(self):
-        ActionExecutionReadCommand.display_attributes = []
+        ResourceViewCommand.display_attributes = []
 
     def test_get_include_attributes(self):
         cls = namedtuple('Args', 'attr')
 
         args = cls(attr=[])
-        result = ActionExecutionReadCommand._get_include_attributes(args=args)
+        result = ResourceViewCommand._get_include_attributes(args=args)
         self.assertEqual(result, [])
 
         args = cls(attr=['result'])
-        result = ActionExecutionReadCommand._get_include_attributes(args=args)
+        result = ResourceViewCommand._get_include_attributes(args=args)
         self.assertEqual(result, ['result'])
 
         args = cls(attr=['result', 'trigger_instance'])
-        result = ActionExecutionReadCommand._get_include_attributes(args=args)
+        result = ResourceViewCommand._get_include_attributes(args=args)
         self.assertEqual(result, ['result', 'trigger_instance'])
 
         args = cls(attr=['result.stdout'])
-        result = ActionExecutionReadCommand._get_include_attributes(args=args)
+        result = ResourceViewCommand._get_include_attributes(args=args)
         self.assertEqual(result, ['result.stdout'])
 
         args = cls(attr=['result.stdout', 'result.stderr'])
-        result = ActionExecutionReadCommand._get_include_attributes(args=args)
+        result = ResourceViewCommand._get_include_attributes(args=args)
         self.assertEqual(result, ['result.stdout', 'result.stderr'])
 
         args = cls(attr=['result.stdout', 'trigger_instance.id'])
-        result = ActionExecutionReadCommand._get_include_attributes(args=args)
+        result = ResourceViewCommand._get_include_attributes(args=args)
         self.assertEqual(result, ['result.stdout', 'trigger_instance.id'])
 
-        ActionExecutionReadCommand.display_attributes = ['id', 'status']
+        ResourceViewCommand.display_attributes = ['id', 'status']
 
         args = cls(attr=[])
-        result = ActionExecutionReadCommand._get_include_attributes(args=args)
+        result = ResourceViewCommand._get_include_attributes(args=args)
         self.assertEqual(set(result), set(['id', 'status']))
 
         args = cls(attr=['trigger_instance'])
-        result = ActionExecutionReadCommand._get_include_attributes(args=args)
+        result = ResourceViewCommand._get_include_attributes(args=args)
         self.assertEqual(set(result), set(['trigger_instance']))
 
         args = cls(attr=['all'])
-        result = ActionExecutionReadCommand._get_include_attributes(args=args)
+        result = ResourceViewCommand._get_include_attributes(args=args)
         self.assertEqual(result, None)
 
 
