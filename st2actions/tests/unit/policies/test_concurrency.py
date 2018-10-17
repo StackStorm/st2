@@ -28,18 +28,20 @@ from st2common.services import action as action_service
 from st2common.transport.execution import ActionExecutionPublisher
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
+from st2common.bootstrap import runnersregistrar as runners_registrar
 from st2tests import DbTestCase, EventletTestCase
 from st2tests.fixturesloader import FixturesLoader
 from st2tests.mocks.execution import MockExecutionPublisher, MockExecutionPublisherNonBlocking
 from st2tests.mocks.liveaction import MockLiveActionPublisherNonBlocking
-from st2tests.mocks import runner
+from st2tests.mocks.runners import runner
 from six.moves import range
+
+__all__ = [
+    'ConcurrencyPolicyTestCase'
+]
 
 PACK = 'generic'
 TEST_FIXTURES = {
-    'runners': [
-        'testrunner1.yaml'
-    ],
     'actions': [
         'action1.yaml',
         'action2.yaml'
@@ -59,19 +61,22 @@ SCHEDULED_STATES = [
 ]
 
 
-@mock.patch('st2common.runners.base.register_runner',
-            mock.MagicMock(return_value=runner))
+@mock.patch('st2common.runners.base.get_runner', mock.Mock(return_value=runner.get_runner()))
+@mock.patch('st2actions.container.base.get_runner', mock.Mock(return_value=runner.get_runner()))
 @mock.patch.object(
     CUDPublisher, 'publish_update',
     mock.MagicMock(side_effect=MockExecutionPublisher.publish_update))
 @mock.patch.object(
     CUDPublisher, 'publish_create',
     mock.MagicMock(return_value=None))
-class ConcurrencyPolicyTest(EventletTestCase, DbTestCase):
+class ConcurrencyPolicyTestCase(EventletTestCase, DbTestCase):
     @classmethod
     def setUpClass(cls):
         EventletTestCase.setUpClass()
         DbTestCase.setUpClass()
+
+        # Register runners
+        runners_registrar.register_runners()
 
         # Register common policy types
         register_policy_types(st2common)

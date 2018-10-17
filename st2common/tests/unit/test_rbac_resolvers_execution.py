@@ -80,7 +80,7 @@ class ExecutionPermissionsResolverTestCase(BasePermissionsResolverTestCase):
 
         # Create some mock resources on which permissions can be granted
         action_1_db = ActionDB(pack='test_pack_2', name='action1', entry_point='',
-                               runner_type={'name': 'run-local'})
+                               runner_type={'name': 'local-shell-cmd'})
         action_1_db = Action.add_or_update(action_1_db)
         self.resources['action_1'] = action_1_db
 

@@ -42,7 +42,7 @@ ACTION_1 = {
     'enabled': True,
     'entry_point': '/tmp/test/action1.sh',
     'pack': 'sixpack',
-    'runner_type': 'run-remote',
+    'runner_type': 'remote-shell-cmd',
     'parameters': {
         'a': {
             'type': 'string',

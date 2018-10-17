@@ -335,14 +335,14 @@ class RunnerContainer(object):
         config = None
 
         # Note: Right now configs are only supported by the Python runner actions
-        if runner_type_db.runner_module == 'python_runner':
+        if (runner_type_db.name == 'python-script' or
+                runner_type_db.runner_module == 'python_runner'):
             LOG.debug('Loading config from pack for python runner.')
             config_loader = ContentPackConfigLoader(pack_name=action_db.pack, user=user)
             config = config_loader.get_config()
 
         runner = get_runner(
-            package_name=runner_type_db.runner_package,
-            module_name=runner_type_db.runner_module,
+            name=runner_type_db.name,
             config=config)
 
         # TODO: Pass those arguments to the constructor instead of late
