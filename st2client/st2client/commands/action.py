@@ -158,17 +158,18 @@ def format_execution_status(instance):
     executions which are in running state and execution total run time for all the executions
     which have finished.
     """
+    status = getattr(instance, 'status', None)
     start_timestamp = getattr(instance, 'start_timestamp', None)
     end_timestamp = getattr(instance, 'end_timestamp', None)
 
-    if instance.status == LIVEACTION_STATUS_RUNNING and start_timestamp:
+    if status == LIVEACTION_STATUS_RUNNING and start_timestamp:
         start_timestamp = instance.start_timestamp
         start_timestamp = parse_isotime(start_timestamp)
         start_timestamp = calendar.timegm(start_timestamp.timetuple())
         now = int(time.time())
         elapsed_seconds = (now - start_timestamp)
         instance.status = '%s (%ss elapsed)' % (instance.status, elapsed_seconds)
-    elif instance.status in LIVEACTION_COMPLETED_STATES and start_timestamp and end_timestamp:
+    elif status in LIVEACTION_COMPLETED_STATES and start_timestamp and end_timestamp:
         start_timestamp = parse_isotime(start_timestamp)
         start_timestamp = calendar.timegm(start_timestamp.timetuple())
         end_timestamp = parse_isotime(end_timestamp)
@@ -1046,30 +1047,30 @@ class ActionExecutionReadCommand(resource.ResourceCommand):
     """
 
     @classmethod
-    def _get_exclude_attributes(cls, args):
-        """
-        Retrieve a list of exclude attributes for particular command line arguments.
-        """
-        exclude_attributes = []
+    def _get_include_attributes(cls, args):
+        include_attributes = []
 
-        result_included = False
-        trigger_instance_included = False
+        # If user specifies which attributes to retrieve via CLI --attr / -a argument, take that
+        # into account
+
+        # Special case for "all"
+        if 'all' in args.attr:
+            return None
 
         for attr in args.attr:
-            # Note: We perform startswith check so we correctly detected child attribute properties
-            # (e.g. result, result.stdout, result.stderr, etc.)
-            if attr.startswith('result'):
-                result_included = True
+            include_attributes.append(attr)
 
-            if attr.startswith('trigger_instance'):
-                trigger_instance_included = True
+        if include_attributes:
+            return include_attributes
 
-        if not result_included:
-            exclude_attributes.append('result')
-        if not trigger_instance_included:
-            exclude_attributes.append('trigger_instance')
+        display_attributes = getattr(cls, 'display_attributes', [])
 
-        return exclude_attributes
+        if display_attributes:
+            include_attributes += display_attributes
+
+        include_attributes = list(set(include_attributes))
+
+        return include_attributes
 
 
 class ActionExecutionListCommand(ActionExecutionReadCommand):
@@ -1156,11 +1157,10 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
             elif args.sort_order in ['desc', 'descending']:
                 kwargs['sort_desc'] = True
 
-        # We exclude "result" and "trigger_instance" attributes which can contain a lot of data
-        # since they are not displayed nor used which speeds the common operation substantially.
-        exclude_attributes = self._get_exclude_attributes(args=args)
-        exclude_attributes = ','.join(exclude_attributes)
-        kwargs['exclude_attributes'] = exclude_attributes
+        # We only retrieve attributes which are needed to speed things up
+        include_attributes = self._get_include_attributes(args=args)
+        if include_attributes:
+            kwargs['include_attributes'] = ','.join(include_attributes)
 
         return self.manager.query_with_count(limit=args.last, **kwargs)
 
@@ -1205,12 +1205,11 @@ class ActionExecutionGetCommand(ActionRunCommandMixin, ActionExecutionReadComman
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        # We exclude "result" and / or "trigger_instance" attribute if it's not explicitly
-        # requested by user either via "--attr" flag or by default.
-        exclude_attributes = self._get_exclude_attributes(args=args)
-        exclude_attributes = ','.join(exclude_attributes)
-
-        kwargs['params'] = {'exclude_attributes': exclude_attributes}
+        # We only retrieve attributes which are needed to speed things up
+        include_attributes = self._get_include_attributes(args=args)
+        if include_attributes:
+            include_attributes = ','.join(include_attributes)
+            kwargs['params'] = {'include_attributes': include_attributes}
 
         execution = self.get_resource_by_id(id=args.id, **kwargs)
         return execution
