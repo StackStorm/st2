@@ -248,32 +248,32 @@ class TestResourceCommand(unittest2.TestCase):
 
 class ActionExecutionReadCommandTestCase(unittest2.TestCase):
 
-    def test_get_exclude_attributes(self):
+    def test_get_include_attributes(self):
         cls = namedtuple('Args', 'attr')
 
         args = cls(attr=[])
-        result = ActionExecutionReadCommand._get_exclude_attributes(args=args)
-        self.assertEqual(result, ['result', 'trigger_instance'])
+        result = ActionExecutionReadCommand._get_include_attributes(args=args)
+        self.assertEqual(result, [])
 
         args = cls(attr=['result'])
-        result = ActionExecutionReadCommand._get_exclude_attributes(args=args)
-        self.assertEqual(result, ['trigger_instance'])
+        result = ActionExecutionReadCommand._get_include_attributes(args=args)
+        self.assertEqual(result, ['result'])
 
         args = cls(attr=['result', 'trigger_instance'])
-        result = ActionExecutionReadCommand._get_exclude_attributes(args=args)
-        self.assertEqual(result, [])
+        result = ActionExecutionReadCommand._get_include_attributes(args=args)
+        self.assertEqual(result, ['result', 'trigger_instance'])
 
         args = cls(attr=['result.stdout'])
-        result = ActionExecutionReadCommand._get_exclude_attributes(args=args)
-        self.assertEqual(result, ['trigger_instance'])
+        result = ActionExecutionReadCommand._get_include_attributes(args=args)
+        self.assertEqual(result, ['result.stdout'])
 
         args = cls(attr=['result.stdout', 'result.stderr'])
-        result = ActionExecutionReadCommand._get_exclude_attributes(args=args)
-        self.assertEqual(result, ['trigger_instance'])
+        result = ActionExecutionReadCommand._get_include_attributes(args=args)
+        self.assertEqual(result, ['result.stdout', 'result.stderr'])
 
         args = cls(attr=['result.stdout', 'trigger_instance.id'])
-        result = ActionExecutionReadCommand._get_exclude_attributes(args=args)
-        self.assertEqual(result, [])
+        result = ActionExecutionReadCommand._get_include_attributes(args=args)
+        self.assertEqual(result, ['result.stdout', 'trigger_instance.id'])
 
 
 class CommandsHelpStringTestCase(BaseCLITestCase):
