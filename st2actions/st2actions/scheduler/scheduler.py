@@ -15,6 +15,7 @@
 
 from __future__ import absolute_import
 from kombu import Connection
+import eventlet
 
 from st2common import log as logging
 from st2common.constants import action as action_constants
@@ -72,8 +73,15 @@ class ActionExecutionScheduler(consumers.MessageHandler):
                      self.__class__.__name__, type(request), request.id, liveaction_db.status)
             return
 
+        LOG.debug("Delay: %s", liveaction_db.delay)
+        if liveaction_db.delay and liveaction_db.delay > 0:
+            liveaction_db = action_service.update_status(
+                liveaction_db, action_constants.LIVEACTION_STATUS_DELAYED, publish=False)
+            eventlet.greenthread.sleep(liveaction_db.delay/1000)
+
         # Update liveaction status to "scheduled".
-        if liveaction_db.status == action_constants.LIVEACTION_STATUS_REQUESTED:
+        if liveaction_db.status in [action_constants.LIVEACTION_STATUS_REQUESTED,
+                                    action_constants.LIVEACTION_STATUS_DELAYED]:
             liveaction_db = action_service.update_status(
                 liveaction_db, action_constants.LIVEACTION_STATUS_SCHEDULED, publish=False)
 

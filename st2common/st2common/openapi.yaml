@@ -4794,6 +4794,9 @@ definitions:
             status:
               type: string
               enum: ['requested', 'scheduled', 'delayed', 'running', 'succeeded', 'failed', 'timeout', 'abandoned', 'canceling', 'canceled', 'pending', 'pausing', 'paused', 'resuming']
+      delay:
+        description: How long (in milliseconds) to delay the execution before scheduling.
+        type: integer
     required:
       - id
     additionalProperties: False
@@ -5144,6 +5147,9 @@ definitions:
           on-failure: {$ref: '#/definitions/NotificationPropertySubSchema'}
           on-success: {$ref: '#/definitions/NotificationPropertySubSchema'}
         additionalProperties: False
+      delay:
+        description: How long (in milliseconds) to delay the execution before scheduling.
+        type: integer
     required:
       - action
   Webhook:
