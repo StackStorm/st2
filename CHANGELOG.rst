@@ -36,7 +36,7 @@ Changed
   (``/opt/stackstorm/st2``). (improvement) #4217
 * Old runner names which have been deprecated in StackStorm v0.9.0 have been removed (run-local,
   run-local-script, run-remote, run-remote-script, run-python, http-runner). If you are still using
-  actions which reference runners using old names, you need to update them to keep them working.
+  actions which reference runners using old names, you need to update them to keep it working.
   #4217
 
 Fixed
