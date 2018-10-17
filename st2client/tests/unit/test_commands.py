@@ -248,6 +248,9 @@ class TestResourceCommand(unittest2.TestCase):
 
 class ActionExecutionReadCommandTestCase(unittest2.TestCase):
 
+    def setUp(self):
+        ActionExecutionReadCommand.display_attributes = []
+
     def test_get_include_attributes(self):
         cls = namedtuple('Args', 'attr')
 
@@ -274,6 +277,20 @@ class ActionExecutionReadCommandTestCase(unittest2.TestCase):
         args = cls(attr=['result.stdout', 'trigger_instance.id'])
         result = ActionExecutionReadCommand._get_include_attributes(args=args)
         self.assertEqual(result, ['result.stdout', 'trigger_instance.id'])
+
+        ActionExecutionReadCommand.display_attributes = ['id', 'status']
+
+        args = cls(attr=[])
+        result = ActionExecutionReadCommand._get_include_attributes(args=args)
+        self.assertEqual(set(result), set(['id', 'status']))
+
+        args = cls(attr=['trigger_instance'])
+        result = ActionExecutionReadCommand._get_include_attributes(args=args)
+        self.assertEqual(set(result), set(['trigger_instance']))
+
+        args = cls(attr=['all'])
+        result = ActionExecutionReadCommand._get_include_attributes(args=args)
+        self.assertEqual(result, None)
 
 
 class CommandsHelpStringTestCase(BaseCLITestCase):
