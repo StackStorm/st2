@@ -33,6 +33,7 @@ from six.moves import range
 from st2client import models
 from st2client.commands import resource
 from st2client.commands.resource import ResourceNotFoundError
+from st2client.commands.resource import ResourceViewCommand
 from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
 from st2client.formatters import table
 from st2client.formatters import execution as execution_formatter
@@ -1041,39 +1042,7 @@ POSSIBLE_ACTION_STATUS_VALUES = ('succeeded', 'running', 'scheduled', 'paused', 
                                  'canceling', 'canceled')
 
 
-class ActionExecutionReadCommand(resource.ResourceCommand):
-    """
-    Base class for read / view commands (list and get).
-    """
-
-    @classmethod
-    def _get_include_attributes(cls, args):
-        include_attributes = []
-
-        # If user specifies which attributes to retrieve via CLI --attr / -a argument, take that
-        # into account
-
-        # Special case for "all"
-        if 'all' in args.attr:
-            return None
-
-        for attr in args.attr:
-            include_attributes.append(attr)
-
-        if include_attributes:
-            return include_attributes
-
-        display_attributes = getattr(cls, 'display_attributes', [])
-
-        if display_attributes:
-            include_attributes += display_attributes
-
-        include_attributes = list(set(include_attributes))
-
-        return include_attributes
-
-
-class ActionExecutionListCommand(ActionExecutionReadCommand):
+class ActionExecutionListCommand(ResourceViewCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'status', 'start_timestamp',
                           'end_timestamp']
     attribute_transform_functions = {
@@ -1187,7 +1156,7 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
                 table.SingleRowTable.note_box(self.resource_name, args.last)
 
 
-class ActionExecutionGetCommand(ActionRunCommandMixin, ActionExecutionReadCommand):
+class ActionExecutionGetCommand(ActionRunCommandMixin, ResourceViewCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'parameters', 'status',
                           'start_timestamp', 'end_timestamp', 'result', 'liveaction']
 
@@ -1338,7 +1307,7 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
         return execution
 
 
-class ActionExecutionPauseCommand(ActionRunCommandMixin, ActionExecutionReadCommand):
+class ActionExecutionPauseCommand(ActionRunCommandMixin, ResourceViewCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'parameters', 'status',
                           'start_timestamp', 'end_timestamp', 'result', 'liveaction']
 
@@ -1381,7 +1350,7 @@ class ActionExecutionPauseCommand(ActionRunCommandMixin, ActionExecutionReadComm
         return self._print_execution_details(execution=execution, args=args, **kwargs)
 
 
-class ActionExecutionResumeCommand(ActionRunCommandMixin, ActionExecutionReadCommand):
+class ActionExecutionResumeCommand(ActionRunCommandMixin, ResourceViewCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'parameters', 'status',
                           'start_timestamp', 'end_timestamp', 'result', 'liveaction']
 
