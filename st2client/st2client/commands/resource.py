@@ -30,6 +30,7 @@ from six.moves import http_client
 from st2client import commands
 from st2client.exceptions.operations import OperationFailureException
 from st2client.formatters import table
+from st2client.utils.types import OrderedSet
 
 ALLOWED_EXTS = ['.json', '.yaml', '.yml']
 PARSER_FUNCS = {'.json': json.load, '.yml': yaml.safe_load, '.yaml': yaml.safe_load}
@@ -268,7 +269,7 @@ class ResourceViewCommand(ResourceCommand):
         if display_attributes:
             include_attributes += display_attributes
 
-        include_attributes = list(set(include_attributes))
+        include_attributes = list(OrderedSet(include_attributes))
 
         return include_attributes
 
