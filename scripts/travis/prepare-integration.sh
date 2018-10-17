@@ -11,7 +11,6 @@ fi
 TYPE='debs'
 SYSTEMUSER='stanley'
 STAN="/home/${SYSTEMUSER}/${TYPE}"
-RUNNERS=$(ls -d contrib/runners/*)
 mkdir -p ${STAN}
 
 VIRTUALENV_DIR=virtualenv

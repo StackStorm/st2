@@ -29,11 +29,14 @@ from eventlet.green import subprocess
 from st2common import log as logging
 from st2common.constants import action as action_constants
 from st2common.constants import pack as pack_constants
+from st2common.constants.runners import RUNNERS_NAMESPACE
+from st2common.constants.runners import RUNNERS_QUERY_MODULES_NAMESPACE
+from st2common.constants.runners import RUNNERS_CALLBACK_MODULES_NAMESPACE
 from st2common.content.utils import get_pack_directory
 from st2common.content.utils import get_pack_base_path
 from st2common.exceptions import actionrunner as exc
-from st2common.util.loader import register_runner
-from st2common.util.loader import register_callback_module
+from st2common.util.loader import get_plugin_instance
+from st2common.util.loader import get_available_plugins
 from st2common.util.api import get_full_public_api_url
 from st2common.util.deprecation import deprecated
 from st2common.util.green.shell import run_command
@@ -47,7 +50,10 @@ __all__ = [
     'ShellRunnerMixin',
 
     'get_runner',
-    'get_metadata'
+    'get_metadata',
+
+    'get_query_module',
+    'get_callback_module'
 ]
 
 
@@ -59,25 +65,31 @@ RUNNER_CONTENT_VERSION = 'content_version'
 RUNNER_DEBUG = 'debug'
 
 
-def get_runner(package_name, module_name, config=None):
+def get_runner(name, config=None):
     """
     Load the module and return an instance of the runner.
     """
+    LOG.debug('Runner loading Python module: %s', name)
 
-    if not package_name:
-        # Backward compatibility for Pre 2.7.0 where package name always equaled module name
-        package_name = module_name
-
-    LOG.debug('Runner loading Python module: %s.%s', package_name, module_name)
+    # NOTE: For backward compatibility we also support "_" in place of "-"
+    from stevedore.exception import NoMatches
 
     try:
-        # TODO: Explore modifying this to support register_plugin
-        module = register_runner(package_name=package_name, module_name=module_name)
-    except Exception as e:
-        msg = ('Failed to import runner module %s.%s' % (package_name, module_name))
-        LOG.exception(msg)
+        module = get_plugin_instance(RUNNERS_NAMESPACE, name, invoke_on_load=False)
+    except NoMatches:
+        name = name.replace('_', '-')
 
-        raise exc.ActionRunnerCreateError('%s\n\n%s' % (msg, str(e)))
+        try:
+            module = get_plugin_instance(RUNNERS_NAMESPACE, name, invoke_on_load=False)
+        except Exception as e:
+            available_runners = get_available_plugins(namespace=RUNNERS_NAMESPACE)
+            available_runners = ', '.join(available_runners)
+            msg = ('Failed to find runner %s. Make sure that the runner is available and installed '
+                   'in StackStorm virtual environment. Available runners are: %s' %
+                   (name, available_runners))
+            LOG.exception(msg)
+
+            raise exc.ActionRunnerCreateError('%s\n\n%s' % (msg, str(e)))
 
     LOG.debug('Instance of runner module: %s', module)
 
@@ -89,6 +101,38 @@ def get_runner(package_name, module_name, config=None):
     runner = module.get_runner(**runner_kwargs)
     LOG.debug('Instance of runner: %s', runner)
     return runner
+
+
+def get_query_module(name):
+    """
+    Retrieve runner query module for the provided runner.
+    """
+    # NOTE: For backward compatibility we also support "_" in place of "-"
+    from stevedore.exception import NoMatches
+
+    try:
+        module = get_plugin_instance(RUNNERS_QUERY_MODULES_NAMESPACE, name, invoke_on_load=False)
+    except NoMatches:
+        name = name.replace('_', '-')
+        module = get_plugin_instance(RUNNERS_QUERY_MODULES_NAMESPACE, name, invoke_on_load=False)
+
+    return module
+
+
+def get_callback_module(name):
+    """
+    Retrieve runner callback module for the provided runner.
+    """
+    # NOTE: For backward compatibility we also support "_" in place of "-"
+    from stevedore.exception import NoMatches
+
+    try:
+        module = get_plugin_instance(RUNNERS_CALLBACK_MODULES_NAMESPACE, name, invoke_on_load=False)
+    except NoMatches:
+        name = name.replace('_', '-')
+        module = get_plugin_instance(RUNNERS_CALLBACK_MODULES_NAMESPACE, name, invoke_on_load=False)
+
+    return module
 
 
 def get_metadata(package_name):
@@ -171,7 +215,7 @@ class ActionRunner(object):
 
     def post_run(self, status, result):
         if self.callback and isinstance(self.callback, dict) and 'source' in self.callback:
-            callback_module = register_callback_module(self.callback['source'])
+            callback_module = get_callback_module(self.callback['source'])
             callback_handler = callback_module.get_instance()
             callback_handler.callback(self.liveaction)
 
