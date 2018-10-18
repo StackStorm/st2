@@ -323,7 +323,8 @@ def request_resume(ac_ex_db):
     # Write the updated workflow state and task flow to the database.
     wf_ex_db.status = conductor.get_workflow_state()
     wf_ex_db.flow = conductor.flow.serialize()
-    wf_ex_db = wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
+    wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
+    wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(str(wf_ex_db.id))
 
     # Publish state change.
     wf_db_access.WorkflowExecution.publish_status(wf_ex_db)
@@ -371,6 +372,7 @@ def request_cancellation(ac_ex_db):
         root_lv_ac_db = lv_db_access.LiveAction.get(id=root_ac_ex_db.liveaction['id'])
         ac_svc.request_cancellation(root_lv_ac_db, None)
 
+    LOG.debug('[%s] %s', wf_ac_ex_id, conductor.serialize())
     LOG.info('[%s] Completed processing cancelation request for workflow.', wf_ac_ex_id)
 
     return wf_ex_db
@@ -386,7 +388,11 @@ def request_task_execution(wf_ex_db, st2_ctx, task_req):
     LOG.info('[%s] Processing task execution request for "%s".', wf_ac_ex_id, task_id)
 
     # Use existing task execution when task is with items and still running.
-    task_ex_dbs = wf_db_access.TaskExecution.query(task_id=task_id, order_by=['-start_timestamp'])
+    task_ex_dbs = wf_db_access.TaskExecution.query(
+        workflow_execution=str(wf_ex_db.id),
+        task_id=task_id,
+        order_by=['-start_timestamp']
+    )
 
     if (len(task_ex_dbs) > 0 and task_ex_dbs[0].itemized and
             task_ex_dbs[0].status == ac_const.LIVEACTION_STATUS_RUNNING):
@@ -692,6 +698,7 @@ def update_task_flow(task_ex_id, ac_ex_status, ac_ex_result=None, ac_ex_ctx=None
     msg = '[%s] Publish task "%s" with status "%s" to conductor.'
     LOG.info(msg, wf_ac_ex_id, task_ex_db.task_id, task_ex_db.status)
     ac_ex_event = events.ActionExecutionEvent(ac_ex_status, result=ac_ex_result, context=ac_ex_ctx)
+    LOG.debug('[%s] %s', wf_ac_ex_id, conductor.serialize())
     conductor.update_task_flow(task_ex_db.task_id, ac_ex_event)
 
     # Update workflow execution and related liveaction and action execution.
