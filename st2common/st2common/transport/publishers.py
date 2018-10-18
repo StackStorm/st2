@@ -20,6 +20,7 @@ from kombu import Connection
 from kombu.messaging import Producer
 
 from st2common import log as logging
+from st2common.metrics.base import Timer
 from st2common.transport.connection_retry_wrapper import ConnectionRetryWrapper
 
 ANY_RK = '*'
@@ -39,28 +40,29 @@ class PoolPublisher(object):
         LOG.error('Rabbitmq connection error: %s', exc.message, exc_info=False)
 
     def publish(self, payload, exchange, routing_key=''):
-        with self.pool.acquire(block=True) as connection:
-            retry_wrapper = ConnectionRetryWrapper(cluster_size=self.cluster_size, logger=LOG)
+        with Timer(key='amqp.pool_publisher.publish_with_retries.' + exchange.name):
+            with self.pool.acquire(block=True) as connection:
+                retry_wrapper = ConnectionRetryWrapper(cluster_size=self.cluster_size, logger=LOG)
 
-            def do_publish(connection, channel):
-                # ProducerPool ends up creating it own ConnectionPool which ends up completely
-                # invalidating this ConnectionPool. Also, a ConnectionPool for producer does not
-                # really solve any problems for us so better to create a Producer for each
-                # publish.
-                producer = Producer(channel)
-                kwargs = {
-                    'body': payload,
-                    'exchange': exchange,
-                    'routing_key': routing_key,
-                    'serializer': 'pickle',
-                    'content_encoding': 'utf-8'
-                }
-                retry_wrapper.ensured(connection=connection,
-                                      obj=producer,
-                                      to_ensure_func=producer.publish,
-                                      **kwargs)
+                def do_publish(connection, channel):
+                    # ProducerPool ends up creating it own ConnectionPool which ends up completely
+                    # invalidating this ConnectionPool. Also, a ConnectionPool for producer does not
+                    # really solve any problems for us so better to create a Producer for each
+                    # publish.
+                    producer = Producer(channel)
+                    kwargs = {
+                        'body': payload,
+                        'exchange': exchange,
+                        'routing_key': routing_key,
+                        'serializer': 'pickle',
+                        'content_encoding': 'utf-8'
+                    }
+                    retry_wrapper.ensured(connection=connection,
+                                        obj=producer,
+                                        to_ensure_func=producer.publish,
+                                        **kwargs)
 
-            retry_wrapper.run(connection=connection, wrapped_callback=do_publish)
+                retry_wrapper.run(connection=connection, wrapped_callback=do_publish)
 
 
 class SharedPoolPublishers(object):
@@ -92,13 +94,16 @@ class CUDPublisher(object):
         self._exchange = exchange
 
     def publish_create(self, payload):
-        self._publisher.publish(payload, self._exchange, CREATE_RK)
+        with Timer(key='amqp.publish.create'):
+            self._publisher.publish(payload, self._exchange, CREATE_RK)
 
     def publish_update(self, payload):
-        self._publisher.publish(payload, self._exchange, UPDATE_RK)
+        with Timer(key='amqp.publish.update'):
+            self._publisher.publish(payload, self._exchange, UPDATE_RK)
 
     def publish_delete(self, payload):
-        self._publisher.publish(payload, self._exchange, DELETE_RK)
+        with Timer(key='amqp.publish.delete'):
+            self._publisher.publish(payload, self._exchange, DELETE_RK)
 
 
 class StatePublisherMixin(object):
@@ -109,5 +114,5 @@ class StatePublisherMixin(object):
     def publish_state(self, payload, state):
         if not state:
             raise Exception('Unable to publish unassigned state.')
-
-        self._state_publisher.publish(payload, self._state_exchange, state)
+        with Timer(key='amqp.publish.state'):
+            self._state_publisher.publish(payload, self._state_exchange, state)

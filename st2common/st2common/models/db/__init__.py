@@ -30,6 +30,7 @@ from pymongo.errors import ConnectionFailure
 from st2common import log as logging
 from st2common.util import isotime
 from st2common.util.misc import get_field_name_from_mongoengine_error
+from st2common.metrics.base import Timer
 from st2common.models.db import stormbase
 from st2common.models.utils.profiling import log_query_and_profile_data_for_queryset
 from st2common.exceptions import db as db_exc
@@ -330,6 +331,7 @@ class MongoDBAccess(object):
 
     def __init__(self, model):
         self.model = model
+        self.model_name = self.model.RESOURCE_TYPE
 
     def get_by_name(self, value):
         return self.get(name=value, raise_exception=True)
@@ -353,7 +355,8 @@ class MongoDBAccess(object):
 
         args = self._process_arg_filters(args)
 
-        instances = self.model.objects(*args, **kwargs)
+        with Timer(key='mongo.get.' + self.model_name):
+            instances = self.model.objects(*args, **kwargs)
 
         if exclude_fields:
             instances = instances.exclude(*exclude_fields)
@@ -407,7 +410,8 @@ class MongoDBAccess(object):
         filters, order_by = self._process_datetime_range_filters(filters=filters, order_by=order_by)
         filters = self._process_null_filters(filters=filters)
 
-        result = self.model.objects(*args, **filters)
+        with Timer(key='mongo.query.' + self.model_name):
+            result = self.model.objects(*args, **filters)
 
         if exclude_fields:
             try:
@@ -441,28 +445,35 @@ class MongoDBAccess(object):
         return result
 
     def aggregate(self, *args, **kwargs):
-        return self.model.objects(**kwargs)._collection.aggregate(*args, **kwargs)
+        with Timer(key='mongo.aggregate.' + self.model_name):
+            return self.model.objects(**kwargs)._collection.aggregate(*args, **kwargs)
 
     def insert(self, instance):
-        instance = self.model.objects.insert(instance)
+        with Timer(key='mongo.insert.' + self.model_name):
+            instance = self.model.objects.insert(instance)
         return self._undo_dict_field_escape(instance)
 
     def add_or_update(self, instance, validate=True):
-        instance.save(validate=validate)
+        with Timer(key='mongo.add_or_update.' + self.model_name):
+            instance.save(validate=validate)
         return self._undo_dict_field_escape(instance)
 
     def update(self, instance, **kwargs):
-        return instance.update(**kwargs)
+        with Timer(key='mongo.update.' + self.model_name):
+            return instance.update(**kwargs)
 
     def delete(self, instance):
-        return instance.delete()
+        with Timer(key='mongo.delete.' + self.model_name):
+            return instance.delete()
 
     def delete_by_query(self, *args, **query):
         """
         Delete objects by query and return number of deleted objects.
         """
-        qs = self.model.objects.filter(*args, **query)
-        count = qs.delete()
+        with Timer(key='mongo.delete_by_query.query.' + self.model_name):
+            qs = self.model.objects.filter(*args, **query)
+        with Timer(key='mongo.delete_by_query.delete.' + self.model_name):
+            count = qs.delete()
         log_query_and_profile_data_for_queryset(queryset=qs)
 
         return count
