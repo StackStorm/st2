@@ -28,6 +28,7 @@ from st2common.models.db.keyvalue import KeyValuePairDB
 from st2common.persistence.keyvalue import KeyValuePair
 from st2common.persistence.rule_enforcement import RuleEnforcement
 from st2common.services import action as action_service
+from st2common.bootstrap import runnersregistrar as runners_registrar
 from st2common.util import casts
 from st2common.util import reference
 from st2common.util import date as date_utils
@@ -104,6 +105,9 @@ class BaseRuleEnforcerTestCase(DbTestCase):
     @classmethod
     def setUpClass(cls):
         super(BaseRuleEnforcerTestCase, cls).setUpClass()
+
+        runners_registrar.register_runners()
+
         # Create TriggerTypes before creation of Rule to avoid failure. Rule requires the
         # Trigger and therefore TriggerType to be created prior to rule creation.
         cls.models = FixturesLoader().save_fixtures_to_db(

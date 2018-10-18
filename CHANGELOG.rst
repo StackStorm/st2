@@ -9,15 +9,42 @@ Added
 
 * Added ``-o`` and ``-m`` CLI options to ``st2-self-check`` script, to skip Orquesta and/or Mistral
   tests. #4347
+* Allow user to specify new ``database.authentication_mechanism`` config option in
+  ``/etc/st2/st2.conf``.
+
+  By default, SCRAM-SHA-1 is used with MongoDB 3.0 and later and MONGODB-CR (MongoDB Challenge
+  Response protocol) for older servers.
+
+  Contributed by @aduca85 #4373
 
 Changed
 ~~~~~~~
 
 * Speed up pack registration through the ``/v1/packs/register`` API endpoint. (improvement) #4342
 * Triggertypes API now sorts by trigger ref by default. ``st2 trigger list`` will now show a sorted
+  list. (#4348)
 * ``core.http`` action now supports additional HTTP methods: OPTIONS, TRACE, PATCH, PURGE.
 
   Contributed by @emptywee (improvement) #4379
+* Runner loading code has been updated so it utilizes new "runner as Python package" functionality
+  which has been introduced in a previous release. This means that the runner loading is now fully
+  automatic and dynamic.
+
+  All the available / installed runners are automatically loaded and registering on each StackStorm
+  service startup.
+
+  This means that ``st2ctl reload --register-runners`` flag is now obsolete because runners are
+  automatically registered on service start up. In addition to that,
+  ``content.system_runners_base_path`` and ``content.runners_base_paths`` config options are now
+  also deprecated and unused.
+
+  For users who wish to develop and user custom action runners, they simply need to ensure they are
+  packaged as Python packages and available / installed in StackStorm virtual environment
+  (``/opt/stackstorm/st2``). (improvement) #4217
+* Old runner names which have been deprecated in StackStorm v0.9.0 have been removed (run-local,
+  run-local-script, run-remote, run-remote-script, run-python, http-runner). If you are still using
+  actions which reference runners using old names, you need to update them to keep it working.
+  #4217
 
 Fixed
 ~~~~~
@@ -223,7 +250,7 @@ Fixed
   Reported by @jjm
 
   Contributed by Nick Maludy (Encore Technologies).
-* Mark ``password`` ``http-runner`` parameter as a secret. (bug fix) #4245
+* Mark ``password`` ``http-request`` parameter as a secret. (bug fix) #4245
 
   Reported by @daniel-mckenna
 

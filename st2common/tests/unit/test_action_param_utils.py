@@ -22,6 +22,7 @@ from st2common.models.utils import action_param_utils
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI
 from st2common.persistence.action import Action
 from st2common.persistence.runner import RunnerType
+from st2common.bootstrap import runnersregistrar as runners_registrar
 from st2tests.base import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
 
@@ -47,6 +48,8 @@ class ActionParamsUtilsTest(DbTestCase):
     @classmethod
     def setUpClass(cls):
         super(ActionParamsUtilsTest, cls).setUpClass()
+
+        runners_registrar.register_runners()
 
         cls.runnertype_dbs = {}
         cls.action_dbs = {}

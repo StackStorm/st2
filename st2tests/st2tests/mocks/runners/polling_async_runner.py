@@ -14,56 +14,43 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import json
+try:
+    import simplejson as json
+except:
+    import json
 
-from st2common.runners.base import ActionRunner
-from st2common.constants.action import (LIVEACTION_STATUS_SUCCEEDED)
+from st2common.runners.base import PollingAsyncActionRunner
+from st2common.constants.action import (LIVEACTION_STATUS_RUNNING)
 
-__all__ = [
-    'get_runner',
-    'MockActionRunner'
-]
+RAISE_PROPERTY = 'raise'
 
 
 def get_runner():
-    return MockActionRunner()
+    return PollingAsyncTestRunner()
 
 
-class MockActionRunner(ActionRunner):
+class PollingAsyncTestRunner(PollingAsyncActionRunner):
     def __init__(self):
-        super(MockActionRunner, self).__init__(runner_id='1')
-
+        super(PollingAsyncTestRunner, self).__init__(runner_id='1')
         self.pre_run_called = False
         self.run_called = False
         self.post_run_called = False
 
     def pre_run(self):
-        super(MockActionRunner, self).pre_run()
         self.pre_run_called = True
 
     def run(self, action_params):
         self.run_called = True
         result = {}
-
-        if self.runner_parameters.get('raise', False):
+        if self.runner_parameters.get(RAISE_PROPERTY, False):
             raise Exception('Raise required.')
-
-        default_result = {
-            'ran': True,
-            'action_params': action_params
-        }
-        default_context = {
-            'third_party_system': {
-                'ref_id': '1234'
+        else:
+            result = {
+                'ran': True,
+                'action_params': action_params
             }
-        }
 
-        status = self.runner_parameters.get('mock_status', LIVEACTION_STATUS_SUCCEEDED)
-        result = self.runner_parameters.get('mock_result', default_result)
-        context = self.runner_parameters.get('mock_context', default_context)
-
-        return (status, json.dumps(result), context)
+        return (LIVEACTION_STATUS_RUNNING, json.dumps(result), {'id': 'foo'})
 
     def post_run(self, status, result):
-        super(MockActionRunner, self).post_run(status=status, result=result)
         self.post_run_called = True
