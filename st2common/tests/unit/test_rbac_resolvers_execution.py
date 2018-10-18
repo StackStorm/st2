@@ -84,7 +84,7 @@ class ExecutionPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         action_1_db = Action.add_or_update(action_1_db)
         self.resources['action_1'] = action_1_db
 
-        runner = {'name': 'run-python'}
+        runner = {'name': 'python-script'}
         liveaction = {'action': 'test_pack_2.action1'}
         status = action_constants.LIVEACTION_STATUS_REQUESTED
 
