@@ -60,7 +60,10 @@ Fixed
   is checked out). (improvement) #4366
 * st2 login now exits with non zero exit code when login fails due to invalid credentials.
   (improvement) #4338
-* Fix ``st2 key load`` that errors when importing an empty file #4393
+* Fix ``st2 key load`` that errors when importing an empty file #43
+* Fixed warning in ``st2-run-pack-tests`` about invalid format for ``pip list``. (bug fix)
+
+  Contributed by Nick Maludy (Encore Technologies). #4380
 
 2.9.0 - September 16, 2018
 --------------------------
