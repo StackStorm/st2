@@ -134,7 +134,7 @@ class OrquestaRunner(runners.AsyncActionRunner):
 
     def resume(self):
         # Resume the target workflow.
-        wf_svc.request_resume(self.execution)
+        wf_ex_db = wf_svc.request_resume(self.execution)
 
         # Request resume of tasks that are workflows and still running.
         for child_ex_id in self.execution.children:
@@ -147,7 +147,7 @@ class OrquestaRunner(runners.AsyncActionRunner):
                 )
 
         return (
-            ac_const.LIVEACTION_STATUS_RUNNING,
+            wf_ex_db.status if wf_ex_db else ac_const.LIVEACTION_STATUS_RUNNING,
             self.liveaction.result,
             self.liveaction.context
         )

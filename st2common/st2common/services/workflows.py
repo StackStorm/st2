@@ -50,7 +50,7 @@ LOG = logging.getLogger(__name__)
 def is_action_execution_under_workflow_context(ac_ex_db):
     # The action execution is executed under the context of a workflow
     # if it contains the orquesta key in its context dictionary.
-    return 'orquesta' in ac_ex_db.context
+    return ac_ex_db.context and 'orquesta' in ac_ex_db.context
 
 
 def format_inspection_result(result):
@@ -323,7 +323,8 @@ def request_resume(ac_ex_db):
     # Write the updated workflow state and task flow to the database.
     wf_ex_db.status = conductor.get_workflow_state()
     wf_ex_db.flow = conductor.flow.serialize()
-    wf_ex_db = wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
+    wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
+    wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(str(wf_ex_db.id))
 
     # Publish state change.
     wf_db_access.WorkflowExecution.publish_status(wf_ex_db)
@@ -371,99 +372,150 @@ def request_cancellation(ac_ex_db):
         root_lv_ac_db = lv_db_access.LiveAction.get(id=root_ac_ex_db.liveaction['id'])
         ac_svc.request_cancellation(root_lv_ac_db, None)
 
+    LOG.debug('[%s] %s', wf_ac_ex_id, conductor.serialize())
     LOG.info('[%s] Completed processing cancelation request for workflow.', wf_ac_ex_id)
 
     return wf_ex_db
 
 
-def request_task_execution(wf_ex_db, task_id, task_spec, task_ctx, st2_ctx):
+def request_task_execution(wf_ex_db, st2_ctx, task_req):
     wf_ac_ex_id = wf_ex_db.action_execution
+    task_id = task_req['id']
+    task_spec = task_req['spec']
+    task_ctx = task_req['ctx']
+    task_actions = task_req['actions']
+
     LOG.info('[%s] Processing task execution request for "%s".', wf_ac_ex_id, task_id)
 
-    # Create a record for task execution.
-    task_ex_db = wf_db_models.TaskExecutionDB(
+    # Use existing task execution when task is with items and still running.
+    task_ex_dbs = wf_db_access.TaskExecution.query(
         workflow_execution=str(wf_ex_db.id),
-        task_name=task_spec.name or task_id,
         task_id=task_id,
-        task_spec=task_spec.serialize(),
-        context=task_ctx,
-        status=states.REQUESTED
+        order_by=['-start_timestamp']
     )
 
-    # Insert new record into the database.
-    task_ex_db = wf_db_access.TaskExecution.insert(task_ex_db, publish=False)
-    task_ex_id = str(task_ex_db.id)
-    LOG.info('[%s] Task execution "%s" created for task "%s".', wf_ac_ex_id, task_ex_id, task_id)
+    if (len(task_ex_dbs) > 0 and task_ex_dbs[0].itemized and
+            task_ex_dbs[0].status == ac_const.LIVEACTION_STATUS_RUNNING):
+        task_ex_db = task_ex_dbs[0]
+        task_ex_id = str(task_ex_db.id)
+        msg = '[%s] Task execution "%s" retrieved for task "%s".'
+        LOG.info(msg, wf_ac_ex_id, task_ex_id, task_id)
+    else:
+        # Create a record for task execution.
+        task_ex_db = wf_db_models.TaskExecutionDB(
+            workflow_execution=str(wf_ex_db.id),
+            task_name=task_spec.name or task_id,
+            task_id=task_id,
+            task_spec=task_spec.serialize(),
+            itemized=task_spec.has_items(),
+            context=task_ctx,
+            status=states.REQUESTED
+        )
+
+        # Prepare the result format for itemized task execution.
+        if task_ex_db.itemized:
+            task_ex_db.result = {'items': [None] * task_req['items_count']}
+
+        # Insert new record into the database.
+        task_ex_db = wf_db_access.TaskExecution.insert(task_ex_db, publish=False)
+        task_ex_id = str(task_ex_db.id)
+        msg = '[%s] Task execution "%s" created for task "%s".'
+        LOG.info(msg, wf_ac_ex_id, task_ex_id, task_id)
 
     try:
         # Return here if no action is specified in task spec.
         if task_spec.action is None:
+            LOG.info('[%s] Task "%s" is action less and succeed by default.', wf_ac_ex_id, task_id)
+
             # Set the task execution to running.
             task_ex_db.status = states.RUNNING
             task_ex_db = wf_db_access.TaskExecution.update(task_ex_db, publish=False)
 
             # Fast forward task execution to completion.
             update_task_execution(str(task_ex_db.id), states.SUCCEEDED)
-            update_task_flow(str(task_ex_db.id), publish=False)
+            update_task_flow(str(task_ex_db.id), states.SUCCEEDED, publish=False)
 
             # Refresh and return the task execution
             return wf_db_access.TaskExecution.get_by_id(str(task_ex_db.id))
 
-        # Identify the action to execute.
-        action_db = action_utils.get_action_by_ref(ref=task_spec.action)
-
-        if not action_db:
-            error = 'Unable to find action "%s".' % task_spec.action
-            raise ac_exc.InvalidActionReferencedException(error)
-
-        # Identify the runner for the action.
-        runner_type_db = action_utils.get_runnertype_by_name(action_db.runner_type['name'])
-
-        # Set context for the action execution.
-        ac_ex_ctx = {
-            'parent': st2_ctx,
-            'orquesta': {
-                'workflow_execution_id': str(wf_ex_db.id),
-                'task_execution_id': str(task_ex_db.id),
-                'task_name': task_spec.name or task_id,
-                'task_id': task_id
-            }
-        }
-
-        # Render action execution parameters and setup action execution object.
-        ac_ex_params = param_utils.render_live_params(
-            runner_type_db.runner_parameters or {},
-            action_db.parameters or {},
-            getattr(task_spec, 'input', None) or {},
-            ac_ex_ctx
-        )
-
-        lv_ac_db = lv_db_models.LiveActionDB(
-            action=task_spec.action,
-            workflow_execution=str(wf_ex_db.id),
-            task_execution=str(task_ex_db.id),
-            context=ac_ex_ctx,
-            parameters=ac_ex_params
-        )
-
-        # Set the task execution to running first otherwise a race can occur
-        # where the action execution finishes first and the completion handler
-        # conflicts with this status update.
-        task_ex_db.status = states.RUNNING
-        task_ex_db = wf_db_access.TaskExecution.update(task_ex_db, publish=False)
-
-        # Request action execution.
-        lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
-
-        msg = '[%s] Action execution "%s" requested for task "%s".'
-        LOG.info(msg, wf_ac_ex_id, str(ac_ex_db.id), task_id)
+        # Request action execution for each actions in the task request.
+        for action in task_actions:
+            request_action_execution(wf_ex_db, task_ex_db, st2_ctx, action)
+            task_ex_db = wf_db_access.TaskExecution.get_by_id(str(task_ex_db.id))
     except Exception as e:
-        LOG.exception('[%s] Failed task execution for task "%s".', wf_ac_ex_id, task_id)
+        msg = '[%s] Failed action execution(s) for task "%s". %s'
+        LOG.exception(msg, wf_ac_ex_id, task_id, str(e))
         result = {'errors': [{'message': str(e), 'task_id': task_ex_db.task_id}]}
         update_task_execution(str(task_ex_db.id), states.FAILED, result)
         raise e
 
     return task_ex_db
+
+
+@retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
+def request_action_execution(wf_ex_db, task_ex_db, st2_ctx, ac_ex_req):
+    wf_ac_ex_id = wf_ex_db.action_execution
+    action_ref = ac_ex_req['action']
+    action_input = ac_ex_req['input']
+    item_id = ac_ex_req.get('item_id')
+
+    # If the task is with items and item_id is not provided, raise exception.
+    if task_ex_db.itemized and item_id is None:
+        msg = 'Unable to request action execution. Identifier for the item is not provided.'
+        raise Exception(msg)
+
+    # Identify the action to execute.
+    action_db = action_utils.get_action_by_ref(ref=action_ref)
+
+    if not action_db:
+        error = 'Unable to find action "%s".' % action_ref
+        raise ac_exc.InvalidActionReferencedException(error)
+
+    # Identify the runner for the action.
+    runner_type_db = action_utils.get_runnertype_by_name(action_db.runner_type['name'])
+
+    # Set context for the action execution.
+    ac_ex_ctx = {
+        'parent': st2_ctx,
+        'orquesta': {
+            'workflow_execution_id': str(wf_ex_db.id),
+            'task_execution_id': str(task_ex_db.id),
+            'task_name': task_ex_db.task_name,
+            'task_id': task_ex_db.task_id
+        }
+    }
+
+    if item_id is not None:
+        ac_ex_ctx['orquesta']['item_id'] = item_id
+
+    # Render action execution parameters and setup action execution object.
+    ac_ex_params = param_utils.render_live_params(
+        runner_type_db.runner_parameters or {},
+        action_db.parameters or {},
+        action_input or {},
+        ac_ex_ctx
+    )
+
+    lv_ac_db = lv_db_models.LiveActionDB(
+        action=action_ref,
+        workflow_execution=str(wf_ex_db.id),
+        task_execution=str(task_ex_db.id),
+        context=ac_ex_ctx,
+        parameters=ac_ex_params
+    )
+
+    # Set the task execution to running first otherwise a race can occur
+    # where the action execution finishes first and the completion handler
+    # conflicts with this status update.
+    task_ex_db.status = states.RUNNING
+    task_ex_db = wf_db_access.TaskExecution.update(task_ex_db, publish=False)
+
+    # Request action execution.
+    lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
+    msg = '[%s] Action execution "%s" requested for task "%s".'
+    LOG.info(msg, wf_ac_ex_id, str(ac_ex_db.id), task_ex_db.task_id)
+
+    return ac_ex_db
 
 
 def handle_action_execution_pending(ac_ex_db):
@@ -486,10 +538,11 @@ def handle_action_execution_pending(ac_ex_db):
     LOG.info(msg, wf_ex_db.action_execution, str(ac_ex_db.id), task_ex_db.task_id)
 
     # Updat task execution
-    update_task_execution(task_ex_id, ac_ex_db.status)
+    update_task_execution(task_ex_id, ac_ex_db.status, ac_ex_ctx=ac_ex_db.context)
 
     # Update task flow in the workflow execution.
-    update_task_flow(task_ex_id, publish=True)
+    ac_ex_ctx = ac_ex_db.context.get('orquesta')
+    update_task_flow(task_ex_id, ac_ex_db.status, ac_ex_ctx=ac_ex_ctx, publish=True)
 
 
 def handle_action_execution_pause(ac_ex_db):
@@ -516,10 +569,11 @@ def handle_action_execution_pause(ac_ex_db):
     LOG.info(msg, wf_ex_db.action_execution, str(ac_ex_db.id), task_ex_db.task_id)
 
     # Updat task execution
-    update_task_execution(task_ex_id, ac_ex_db.status)
+    update_task_execution(task_ex_id, ac_ex_db.status, ac_ex_ctx=ac_ex_db.context)
 
     # Update task flow in the workflow execution.
-    update_task_flow(task_ex_id, publish=False)
+    ac_ex_ctx = ac_ex_db.context.get('orquesta')
+    update_task_flow(task_ex_id, ac_ex_db.status, ac_ex_ctx=ac_ex_ctx, publish=True)
 
 
 def handle_action_execution_resume(ac_ex_db):
@@ -588,10 +642,18 @@ def handle_action_execution_completion(ac_ex_db):
         resume_task_execution(task_ex_id)
 
     # Update task execution if completed.
-    update_task_execution(task_ex_id, ac_ex_db.status, ac_ex_db.result)
+    update_task_execution(task_ex_id, ac_ex_db.status, ac_ex_db.result, ac_ex_db.context)
+
+    # Update task flow in the workflow execution.
+    update_task_flow(
+        task_ex_id,
+        ac_ex_db.status,
+        ac_ex_result=ac_ex_db.result,
+        ac_ex_ctx=ac_ex_db.context.get('orquesta')
+    )
 
     # Request the next set of tasks if workflow execution is not complete.
-    request_next_tasks(task_ex_id)
+    request_next_tasks(wf_ex_db, task_ex_id=task_ex_id)
 
     # Update workflow execution if completed.
     update_workflow_execution(wf_ex_id)
@@ -620,58 +682,73 @@ def refresh_conductor(wf_ex_id):
 
 
 @retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
-def update_task_flow(task_ex_id, publish=True):
-    task_ex_db = wf_db_access.TaskExecution.get_by_id(task_ex_id)
+def update_task_flow(task_ex_id, ac_ex_status, ac_ex_result=None, ac_ex_ctx=None, publish=True):
+    # Return if action execution status is not in the list of states to process.
+    states_to_process = states.COMPLETED_STATES + [states.PAUSED, states.PENDING]
 
-    # Return if task execution is not completed or paused.
-    if task_ex_db.status not in states.COMPLETED_STATES + [states.PAUSED, states.PENDING]:
+    if ac_ex_status not in states_to_process:
         return
 
-    # Update task flow if task execution is completed or paused.
+    # Refresh records
+    task_ex_db = wf_db_access.TaskExecution.get_by_id(task_ex_id)
     conductor, wf_ex_db = refresh_conductor(task_ex_db.workflow_execution)
-    ac_ex_event = events.ActionExecutionEvent(task_ex_db.status, result=task_ex_db.result)
+    wf_ac_ex_id = wf_ex_db.action_execution
+
+    # Update task flow if task execution is completed or paused.
+    msg = '[%s] Publish task "%s" with status "%s" to conductor.'
+    LOG.info(msg, wf_ac_ex_id, task_ex_db.task_id, task_ex_db.status)
+    ac_ex_event = events.ActionExecutionEvent(ac_ex_status, result=ac_ex_result, context=ac_ex_ctx)
+    LOG.debug('[%s] %s', wf_ac_ex_id, conductor.serialize())
     conductor.update_task_flow(task_ex_db.task_id, ac_ex_event)
 
     # Update workflow execution and related liveaction and action execution.
     update_execution_records(
         wf_ex_db,
         conductor,
-        update_lv_ac_on_states=(states.COMPLETED_STATES + [states.PAUSED, states.PENDING]),
+        update_lv_ac_on_states=states_to_process,
         pub_lv_ac=publish,
         pub_ac_ex=publish
     )
 
 
 @retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
-def request_next_tasks(task_ex_id):
+def request_next_tasks(wf_ex_db, task_ex_id=None):
     iteration = 0
-    task_ex_db = wf_db_access.TaskExecution.get_by_id(task_ex_id)
-
-    # Return if task execution is not complete.
-    if task_ex_db.status not in states.COMPLETED_STATES:
-        return
 
     # Refresh records.
-    conductor, wf_ex_db = refresh_conductor(task_ex_db.workflow_execution)
+    conductor, wf_ex_db = refresh_conductor(str(wf_ex_db.id))
     wf_ac_ex_id = wf_ex_db.action_execution
 
-    # Update task flow if task execution is completed.
-    msg = '[%s] Mark task "%s" in conductor as "%s".'
-    LOG.info(msg, wf_ac_ex_id, task_ex_db.task_id, task_ex_db.status)
-    ac_ex_event = events.ActionExecutionEvent(task_ex_db.status, result=task_ex_db.result)
-    conductor.update_task_flow(task_ex_db.task_id, ac_ex_event)
+    # If workflow is in requested state, set it to running.
+    if conductor.get_workflow_state() in [states.REQUESTED, states.SCHEDULED]:
+        LOG.info('[%s] Requesting conductor to start running workflow execution.', wf_ac_ex_id)
+        conductor.request_workflow_state(states.RUNNING)
 
-    # Identify the list of next set of tasks.
-    msg = '[%s] Identifying next set (%s) of tasks for workflow execution in state "%s".'
-    LOG.info(msg, wf_ac_ex_id, str(iteration), conductor.get_workflow_state())
-    LOG.debug('[%s] %s', wf_ac_ex_id, conductor.serialize())
-    next_tasks = conductor.get_next_tasks(task_ex_db.task_id)
+    # Identify the list of next set of tasks. Don't pass the task id to the conductor
+    # so it can identify any next set of tasks to run from the workflow.
+    if task_ex_id:
+        task_ex_db = wf_db_access.TaskExecution.get_by_id(task_ex_id)
+        msg = '[%s] Identifying next set (%s) of tasks after completion of task "%s".'
+        LOG.info(msg, wf_ac_ex_id, str(iteration), task_ex_db.task_id)
+        LOG.debug('[%s] %s', wf_ac_ex_id, conductor.serialize())
+        next_tasks = conductor.get_next_tasks()
+    else:
+        msg = '[%s] Identifying next set (%s) of tasks for workflow execution in state "%s".'
+        LOG.info(msg, wf_ac_ex_id, str(iteration), conductor.get_workflow_state())
+        LOG.debug('[%s] %s', wf_ac_ex_id, conductor.serialize())
+        next_tasks = conductor.get_next_tasks()
 
     # If there is no new tasks, update execution records to handle possible completion.
     if not next_tasks:
         # Update workflow execution and related liveaction and action execution.
         LOG.info('[%s] No tasks identified to execute next.', wf_ac_ex_id)
         update_execution_records(wf_ex_db, conductor)
+
+    # If workflow execution is no longer active, then stop processing here.
+    if wf_ex_db.status in states.COMPLETED_STATES:
+        msg = '[%s] Workflow execution is in completed state "%s".'
+        LOG.info(msg, wf_ac_ex_id, wf_ex_db.status)
+        return
 
     # Iterate while there are next tasks identified for processing. In the case for
     # task with no action execution defined, the task execution will complete
@@ -684,19 +761,36 @@ def request_next_tasks(task_ex_id):
         for task in next_tasks:
             msg = '[%s] Mark task "%s" in conductor as running.'
             LOG.info(msg, wf_ac_ex_id, task['id'])
-            ac_ex_event = events.ActionExecutionEvent(states.RUNNING)
-            conductor.update_task_flow(task['id'], ac_ex_event)
+
+            # If task contains multiple action execution (i.e. with items),
+            # then mark each item individually.
+            for action in task['actions']:
+                ac_ex_ctx = None
+
+                if 'item_id' in action and action['item_id'] is not None:
+                    msg = '[%s] Mark task "%s" item "%s" in conductor as running.'
+                    LOG.info(msg, wf_ac_ex_id, task['id'], action['item_id'])
+                    ac_ex_ctx = {'item_id': action['item_id']} if 'item_id' in action else None
+
+                ac_ex_event = events.ActionExecutionEvent(states.RUNNING, context=ac_ex_ctx)
+                conductor.update_task_flow(task['id'], ac_ex_event)
 
         # Update workflow execution and related liveaction and action execution.
+        LOG.debug('[%s] %s', wf_ac_ex_id, conductor.serialize())
         update_execution_records(wf_ex_db, conductor)
+
+        # If workflow execution is no longer active, then stop processing here.
+        if wf_ex_db.status in states.COMPLETED_STATES:
+            msg = '[%s] Workflow execution is in completed state "%s".'
+            LOG.info(msg, wf_ac_ex_id, wf_ex_db.status)
+            break
 
         # Request task execution for the tasks.
         for task in next_tasks:
             try:
                 LOG.info('[%s] Requesting execution for task "%s".', wf_ac_ex_id, task['id'])
-                task_id, task_spec, task_ctx = task['id'], task['spec'], task['ctx']
                 st2_ctx = {'execution_id': wf_ex_db.action_execution}
-                request_task_execution(wf_ex_db, task_id, task_spec, task_ctx, st2_ctx)
+                request_task_execution(wf_ex_db, st2_ctx, task)
             except Exception as e:
                 LOG.exception('[%s] Failed task execution for "%s".', wf_ac_ex_id, task['id'])
                 fail_workflow_execution(str(wf_ex_db.id), e, task_id=task['id'])
@@ -715,21 +809,53 @@ def request_next_tasks(task_ex_id):
 
 
 @retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
-def update_task_execution(task_ex_id, ac_ex_status, ac_ex_result=None):
+def update_task_execution(task_ex_id, ac_ex_status, ac_ex_result=None, ac_ex_ctx=None):
     if ac_ex_status not in states.COMPLETED_STATES + [states.PAUSED, states.PENDING]:
         return
 
     task_ex_db = wf_db_access.TaskExecution.get_by_id(task_ex_id)
     wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(task_ex_db.workflow_execution)
 
-    if ac_ex_status != task_ex_db.status:
-        msg = '[%s] Updating task execution from state "%s" to "%s".'
-        LOG.debug(msg, wf_ex_db.action_execution, task_ex_db.status, ac_ex_status)
+    if not task_ex_db.itemized:
+        if ac_ex_status != task_ex_db.status:
+            msg = '[%s] Updating task execution from state "%s" to "%s".'
+            LOG.debug(msg, wf_ex_db.action_execution, task_ex_db.status, ac_ex_status)
 
-    task_ex_db.status = ac_ex_status
-    task_ex_db.result = ac_ex_result if ac_ex_result else task_ex_db.result
+        task_ex_db.status = ac_ex_status
+        task_ex_db.result = ac_ex_result if ac_ex_result else task_ex_db.result
+    elif task_ex_db.itemized and ac_ex_ctx:
+        if 'orquesta' not in ac_ex_ctx or 'item_id' not in ac_ex_ctx['orquesta']:
+            raise Exception('Context information for the item is not provided. %s' % str(ac_ex_ctx))
 
-    if ac_ex_status in states.COMPLETED_STATES:
+        item_id = ac_ex_ctx['orquesta']['item_id']
+
+        msg = '[%s] Processing action execution for task "%s" item "%s".'
+        LOG.debug(msg, wf_ex_db.action_execution, task_ex_db.task_id, item_id)
+
+        task_ex_db.result['items'][item_id] = {'status': ac_ex_status, 'result': ac_ex_result}
+
+        statuses = [
+            item.get('status', states.UNSET) if item else states.UNSET
+            for item in task_ex_db.result['items']
+        ]
+
+        task_completed = all([status in states.COMPLETED_STATES for status in statuses])
+
+        if task_completed:
+            new_task_status = (
+                states.SUCCEEDED
+                if all([status == states.SUCCEEDED for status in statuses])
+                else states.FAILED
+            )
+
+            msg = '[%s] Updating task execution from state "%s" to "%s".'
+            LOG.debug(msg, wf_ex_db.action_execution, task_ex_db.status, new_task_status)
+            task_ex_db.status = new_task_status
+        else:
+            msg = '[%s] Task execution is not complete because not all items are complete: %s'
+            LOG.debug(msg, wf_ex_db.action_execution, ', '.join(statuses))
+
+    if task_ex_db.status in states.COMPLETED_STATES:
         task_ex_db.end_timestamp = date_utils.get_datetime_utc_now()
 
     wf_db_access.TaskExecution.update(task_ex_db, publish=False)
