@@ -29,12 +29,10 @@ tests_config.parse_args()
 
 from tests.unit import base
 
-from st2actions import worker
 from st2actions.workflows import workflows
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar
 from st2common.constants import action as action_constants
-from st2common.models.api import inquiry as inqy_api_models
 from st2common.models.db import liveaction as lv_db_models
 from st2common.persistence import execution as ex_db_access
 from st2common.persistence import liveaction as lv_db_access
@@ -59,7 +57,6 @@ PACKS = [
 ]
 
 
-    # mock.MagicMock(return_value=(action_constants.LIVEACTION_STATUS_RUNNING, 'foobar', None)))
 @mock.patch.object(
     publishers.CUDPublisher,
     'publish_update',
@@ -113,6 +110,8 @@ class OrquestaWithItemsTest(st2tests.DbTestCase):
             lv_ac_db,
             publish=False
         )
+
+        return lv_ac_db, ac_ex_db
 
     def test_with_items(self):
         num_items = 3
@@ -282,7 +281,6 @@ class OrquestaWithItemsTest(st2tests.DbTestCase):
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_CANCELED)
 
     def test_with_items_concurrency_cancellation(self):
-        num_items = 3
         concurrency = 2
 
         wf_input = {'concurrency': concurrency}
