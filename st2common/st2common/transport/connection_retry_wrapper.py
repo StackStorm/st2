@@ -16,6 +16,8 @@
 from __future__ import absolute_import
 import eventlet
 
+from st2common.metrics.base import Timer
+
 __all__ = ['ConnectionRetryWrapper', 'ClusterRetryContext']
 
 
@@ -113,10 +115,13 @@ class ConnectionRetryWrapper(object):
         channel = None
         while not should_stop:
             try:
-                channel = connection.channel()
-                wrapped_callback(connection=connection, channel=channel)
+                with Timer(key='amqp.connection.get_channel'):
+                    channel = connection.channel()
+                with Timer(key='amqp.connection.hold_time'):
+                    wrapped_callback(connection=connection, channel=channel)
                 should_stop = True
             except connection.connection_errors + connection.channel_errors as e:
+                print('Exception getting channel: %s' % str(e))
                 self._logger.exception('RabbitMQ connection or channel error: %s.' % (str(e)))
                 should_stop, wait = self._retry_context.test_should_stop()
                 # reset channel to None to avoid any channel closing errors. At this point
@@ -161,5 +166,6 @@ class ConnectionRetryWrapper(object):
                     the kombu library.
         :type obj: Must support mixin kombu.abstract.MaybeChannelBound
         """
-        ensuring_func = connection.ensure(obj, to_ensure_func, errback=self.errback, max_retries=3)
-        ensuring_func(**kwargs)
+        with Timer(key='amqp.connection.ensure_and_publish'):
+            ensuring_func = connection.ensure(obj, to_ensure_func, errback=self.errback, max_retries=3)
+            ensuring_func(**kwargs)

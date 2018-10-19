@@ -40,29 +40,34 @@ class PoolPublisher(object):
         LOG.error('Rabbitmq connection error: %s', exc.message, exc_info=False)
 
     def publish(self, payload, exchange, routing_key=''):
+        print('Sending payload %s over the wire' % payload)
+
         with Timer(key='amqp.pool_publisher.publish_with_retries.' + exchange.name):
             with self.pool.acquire(block=True) as connection:
                 retry_wrapper = ConnectionRetryWrapper(cluster_size=self.cluster_size, logger=LOG)
 
                 def do_publish(connection, channel):
-                    # ProducerPool ends up creating it own ConnectionPool which ends up completely
-                    # invalidating this ConnectionPool. Also, a ConnectionPool for producer does not
-                    # really solve any problems for us so better to create a Producer for each
-                    # publish.
-                    producer = Producer(channel)
-                    kwargs = {
-                        'body': payload,
-                        'exchange': exchange,
-                        'routing_key': routing_key,
-                        'serializer': 'pickle',
-                        'content_encoding': 'utf-8'
-                    }
-                    retry_wrapper.ensured(connection=connection,
-                                        obj=producer,
-                                        to_ensure_func=producer.publish,
-                                        **kwargs)
+                    with Timer(key='amqp.pool_publisher.do_publish'):
+                        # ProducerPool ends up creating it own ConnectionPool which ends up completely
+                        # invalidating this ConnectionPool. Also, a ConnectionPool for producer does not
+                        # really solve any problems for us so better to create a Producer for each
+                        # publish.
+                        producer = Producer(channel)
+                        kwargs = {
+                            'body': payload,
+                            'exchange': exchange,
+                            'routing_key': routing_key,
+                            'serializer': 'pickle',
+                            'content_encoding': 'utf-8'
+                        }
 
-                retry_wrapper.run(connection=connection, wrapped_callback=do_publish)
+                        retry_wrapper.ensured(connection=connection,
+                                            obj=producer,
+                                            to_ensure_func=producer.publish,
+                                            **kwargs)
+
+                with Timer(key='amqp.pool_publisher.loop_send'):
+                    retry_wrapper.run(connection=connection, wrapped_callback=do_publish)
 
 
 class SharedPoolPublishers(object):
