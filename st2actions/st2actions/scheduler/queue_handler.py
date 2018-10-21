@@ -24,42 +24,39 @@ from st2common.models.db.liveaction import LiveActionDB
 from st2common.services import action as action_service
 from st2common.services import policies as policy_service
 from st2common.persistence.liveaction import LiveAction
-from st2common.transport import consumers
-from st2common.transport import utils as transport_utils
+from st2common.util import execution_queue_db as exdb
 from st2common.util import action_db as action_utils
-from st2common.transport.queues import ACTIONSCHEDULER_REQUEST_QUEUE
 
 __all__ = [
-    'ActionExecutionScheduler',
-    'get_scheduler'
+    'ExecutionQueueHandler',
+    'get_handler'
 ]
 
 
 LOG = logging.getLogger(__name__)
 
 
-class ActionExecutionScheduler(consumers.MessageHandler):
-    message_type = LiveActionDB
+class ExecutionQueueHandler(object):
+    def __init__(self):
+        self.message_type = LiveActionDB
+        self._shutdown = False
 
-    def process(self, request):
-        """Schedules the LiveAction and publishes the request
-        to the appropriate action runner(s).
+    def loop(self):
+        LOG.debug('Entering scheduler loop')
+        while self._shutdown is not True:
+            # TODO: Make config setting
+            eventlet.greenthread.sleep(0.25)
+            execution = exdb.pop_next_execution()
 
-        LiveAction in statuses other than "requested" are ignored.
+            if execution:
+                eventlet.spawn(self._handle_execution, execution)
 
-        :param request: Action execution request.
-        :type request: ``st2common.models.db.liveaction.LiveActionDB``
-        """
-
-        if request.status != action_constants.LIVEACTION_STATUS_REQUESTED:
-            LOG.info('%s is ignoring %s (id=%s) with "%s" status.',
-                     self.__class__.__name__, type(request), request.id, request.status)
-            return
-
+    def _handle_execution(self, execution):
+        LOG.info('Scheduling liveaction: %s', execution.liveaction.get('id'))
         try:
-            liveaction_db = action_utils.get_liveaction_by_id(request.id)
+            liveaction_db = action_utils.get_liveaction_by_id(execution.liveaction.get('id'))
         except StackStormDBObjectNotFoundError:
-            LOG.exception('Failed to find liveaction %s in the database.', request.id)
+            LOG.exception('Failed to find liveaction %s in the database.', execution.liveaction.id)
             raise
 
         # Apply policies defined for the action.
@@ -70,14 +67,8 @@ class ActionExecutionScheduler(consumers.MessageHandler):
         if liveaction_db.status not in [action_constants.LIVEACTION_STATUS_REQUESTED,
                                         action_constants.LIVEACTION_STATUS_SCHEDULED]:
             LOG.info('%s is ignoring %s (id=%s) with "%s" status after policies are applied.',
-                     self.__class__.__name__, type(request), request.id, liveaction_db.status)
+                     self.__class__.__name__, type(execution), execution.id, liveaction_db.status)
             return
-
-        LOG.debug("Delay: %s", liveaction_db.delay)
-        if liveaction_db.delay and liveaction_db.delay > 0:
-            liveaction_db = action_service.update_status(
-                liveaction_db, action_constants.LIVEACTION_STATUS_DELAYED, publish=False)
-            eventlet.greenthread.sleep(liveaction_db.delay/1000)
 
         # Update liveaction status to "scheduled".
         if liveaction_db.status in [action_constants.LIVEACTION_STATUS_REQUESTED,
@@ -90,7 +81,13 @@ class ActionExecutionScheduler(consumers.MessageHandler):
         # of the liveaction completes first.
         LiveAction.publish_status(liveaction_db)
 
+    def start(self):
+        self._shutdown = False
+        eventlet.spawn(self.loop)
 
-def get_scheduler():
-    with Connection(transport_utils.get_messaging_urls()) as conn:
-        return ActionExecutionScheduler(conn, [ACTIONSCHEDULER_REQUEST_QUEUE])
+    def shutdown(self):
+        self._shutdown = True
+
+
+def get_handler():
+    return ExecutionQueueHandler()
