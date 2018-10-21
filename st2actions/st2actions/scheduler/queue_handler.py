@@ -14,7 +14,6 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-from kombu import Connection
 import eventlet
 
 from st2common import log as logging

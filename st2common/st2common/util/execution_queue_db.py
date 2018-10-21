@@ -90,5 +90,3 @@ def pop_next_execution():
         return next_execution
 
     return None
-
-
