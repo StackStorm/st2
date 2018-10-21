@@ -291,6 +291,11 @@ class DbTestCase(BaseDbTestCase):
         if drop_db:
             cls._drop_db()
 
+    @classmethod
+    def reset(cls):
+        cls.tearDownClass()
+        cls.setUpClass()
+
     def run(self, result=None):
         # Remember result for use in tearDown and tearDownClass
         self.current_result = result

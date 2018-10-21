@@ -43,6 +43,13 @@ def get_datetime_utc_now():
     return dt
 
 
+def append_milliseconds_to_time(date, millis):
+    """
+        Return time UTC datetime object offset by provided milliseconds.
+    """
+    return convert_to_utc(date + datetime.timedelta(milliseconds=millis))
+
+
 def add_utc_tz(dt):
     if dt.tzinfo and dt.tzinfo.utcoffset(dt) != datetime.timedelta(0):
         raise ValueError('datetime already contains a non UTC timezone')
