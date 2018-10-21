@@ -22,9 +22,10 @@ from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.transport import consumers
 from st2common.transport import utils as transport_utils
+from st2common.transport.queues import ACTIONSCHEDULER_REQUEST_QUEUE
 from st2common.util import action_db as action_utils
 from st2common.util import execution_queue_db as exdb
-from st2common.transport.queues import ACTIONSCHEDULER_REQUEST_QUEUE
+from st2common.services import action as action_service
 from st2common.persistence.execution_queue import ExecutionQueue
 
 __all__ = [
@@ -55,6 +56,13 @@ class ActionExecutionQueuer(consumers.MessageHandler):
         except StackStormDBObjectNotFoundError:
             LOG.exception('Failed to find liveaction %s in the database.', request.id)
             raise
+
+        if liveaction_db.delay > 0:
+            liveaction_db = action_service.update_status(
+                liveaction_db,
+                action_constants.LIVEACTION_STATUS_DELAYED,
+                publish=False
+            )
 
         execution_request = exdb.create_execution_request_from_liveaction(
             liveaction_db,

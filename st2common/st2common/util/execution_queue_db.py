@@ -60,7 +60,7 @@ def create_execution_request_from_liveaction(liveaction, delay=None,
     execution_request.liveaction = liveaction.to_serializable_dict()
     execution_request.start_timestamp = date.append_milliseconds_to_time(
         liveaction.start_timestamp,
-        delay
+        delay or 0
     )
     execution_request.delay = delay
     execution_request.priority = priority

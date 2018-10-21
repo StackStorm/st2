@@ -64,7 +64,8 @@ class ExecutionQueueHandler(object):
         # Exit if the status of the request is no longer runnable.
         # The status could have be changed by one of the policies.
         if liveaction_db.status not in [action_constants.LIVEACTION_STATUS_REQUESTED,
-                                        action_constants.LIVEACTION_STATUS_SCHEDULED]:
+                                        action_constants.LIVEACTION_STATUS_SCHEDULED,
+                                        action_constants.LIVEACTION_STATUS_DELAYED]:
             LOG.info('%s is ignoring %s (id=%s) with "%s" status after policies are applied.',
                      self.__class__.__name__, type(execution), execution.id, liveaction_db.status)
             return
