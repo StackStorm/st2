@@ -45,6 +45,12 @@ Changed
   run-local-script, run-remote, run-remote-script, run-python, http-runner). If you are still using
   actions which reference runners using old names, you need to update them to keep it working.
   #4217
+* Update various CLI commands to only retrieve attributes which are displayed in the CLI from the
+  API (``st2 execution list``, ``st2 execution get``, ``st2 action list``, ``st2 rule list``,
+  ``st2 sensor list``). This speeds up run-time for those commands.
+
+  If user wants to retrieve and view all the attributes, they can use ``--attr all`` CLI command
+  argument (same as before). (improvement) #4396
 
 Fixed
 ~~~~~
