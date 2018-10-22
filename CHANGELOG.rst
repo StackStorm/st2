@@ -64,6 +64,11 @@ Fixed
 * Fixed warning in ``st2-run-pack-tests`` about invalid format for ``pip list``. (bug fix)
 
   Contributed by Nick Maludy (Encore Technologies). #4380
+* Fix a bug with ``st2 execution get`` / ``st2 run`` CLI command throwing an exception if the
+  result field contained a double backslash string which looked like an unicode escape sequence.
+  CLI incorrectly tried to parse that string as unicode escape sequence.
+
+  Reported by James E. King III @jeking3 (bug fix) #4407
 
 2.9.0 - September 16, 2018
 --------------------------
