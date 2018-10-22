@@ -22,6 +22,7 @@ from st2common.util import date
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.persistence.execution_queue import ExecutionQueue
 from st2common.models.db.execution_queue import ExecutionQueueDB
+from st2common.services import coordination
 
 LOG = logging.getLogger(__name__)
 
@@ -69,6 +70,7 @@ def create_execution_request_from_liveaction(liveaction, delay=None,
     return execution_request
 
 
+@coordination.Locker('st2schedulerqueue')
 def pop_next_execution():
     """
         Sort executions by fifo and priority and get the latest, highest priority

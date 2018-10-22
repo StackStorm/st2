@@ -16,9 +16,11 @@
 from __future__ import absolute_import
 
 import six
+from functools import wraps
 from oslo_config import cfg
 from tooz import coordination
 from tooz import locking
+import eventlet
 
 from st2common import log as logging
 from st2common.util import system_info
@@ -180,3 +182,40 @@ def get_coordinator():
         COORDINATOR = coordinator_setup()
 
     return COORDINATOR
+
+
+class LockAcquireError(Exception):
+    pass
+
+
+class Locker(object):
+    def __init__(self, name):
+        self._name = name
+        self._lock = None
+        self._timeout = 0
+
+    def __call__(self, func):
+        @wraps(func)
+        def with_lock(*args, **kwds):
+            with self:
+                return func(*args, **kwds)
+        return with_lock
+
+    def _setup(self):
+        if COORDINATOR is None:
+            get_coordinator()
+
+        if self._timeout > 5000:
+            raise LockAcquireError("Could not acquire lock for %s", self._name)
+
+    def __enter__(self):
+        self._setup()
+        self._lock = COORDINATOR.get_lock(self._name)
+
+        if not self._lock and self._timeout < 5000:
+            self._timeout += 1
+            eventlet.sleep(.25)
+            self.__enter__()
+
+    def __exit__(self, *_args, **_kwargs):
+        self._lock.release()

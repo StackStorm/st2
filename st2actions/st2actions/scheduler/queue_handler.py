@@ -25,6 +25,7 @@ from st2common.services import policies as policy_service
 from st2common.persistence.liveaction import LiveAction
 from st2common.util import execution_queue_db as exdb
 from st2common.util import action_db as action_utils
+from st2common.services.coordination import LockAcquireError
 
 __all__ = [
     'ExecutionQueueHandler',
@@ -45,10 +46,12 @@ class ExecutionQueueHandler(object):
         while self._shutdown is not True:
             # TODO: Make config setting
             eventlet.greenthread.sleep(0.25)
-            execution = exdb.pop_next_execution()
-
-            if execution:
-                eventlet.spawn(self._handle_execution, execution)
+            try:
+                execution = exdb.pop_next_execution()
+                if execution:
+                    eventlet.spawn(self._handle_execution, execution)
+            except LockAcquireError as e:
+                LOG.error(e)
 
     def _handle_execution(self, execution):
         LOG.info('Scheduling liveaction: %s', execution.liveaction.get('id'))
