@@ -330,6 +330,11 @@ class ContentPackResourceListCommand(ResourceListCommand):
         filters = {'pack': args.pack}
         filters.update(**kwargs)
 
+        include_attributes = self._get_include_attributes(args=args)
+        if include_attributes:
+            include_attributes = ','.join(include_attributes)
+            filters['params'] = {'include_attributes': include_attributes}
+
         return self.manager.get_all(**filters)
 
 
