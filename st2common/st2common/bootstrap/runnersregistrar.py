@@ -12,18 +12,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from __future__ import absolute_import
-import os
 
-import st2common.content.utils as content_utils
+from __future__ import absolute_import
+
+from stevedore.driver import DriverManager
+from stevedore.extension import ExtensionManager
+
 from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.api.action import RunnerTypeAPI
 from st2common.persistence.runner import RunnerType
-from st2common.content.loader import RunnersLoader, MetaLoader
-from st2common.constants.runners import MANIFEST_FILE_NAME
+from st2common.constants.runners import RUNNERS_NAMESPACE
 from st2common.util.action_db import get_runnertype_by_name
-import six
 
 __all__ = [
     'register_runner_types',
@@ -33,25 +33,22 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 
-def register_runners(runner_dirs=None, experimental=False, fail_on_failure=True):
-    """ Register runners
+def register_runners(experimental=False, fail_on_failure=True):
+    """
+    Register runners
     """
     LOG.debug('Start : register runners')
     runner_count = 0
-    runner_loader = RunnersLoader()
 
-    if not runner_dirs:
-        runner_dirs = content_utils.get_runners_base_paths()
+    manager = ExtensionManager(namespace=RUNNERS_NAMESPACE, invoke_on_load=False)
+    extension_names = manager.names()
 
-    runners = runner_loader.get_runners(runner_dirs)
+    for name in extension_names:
+        LOG.debug('Found runner "%s"' % (name))
 
-    for runner, path in six.iteritems(runners):
-        LOG.debug('Runner "%s"' % (runner))
-        runner_manifest = os.path.join(path, MANIFEST_FILE_NAME)
-        meta_loader = MetaLoader()
-        runner_types = meta_loader.load(runner_manifest)
-        for runner_type in runner_types:
-            runner_count += register_runner(runner_type, experimental)
+        manager = DriverManager(namespace=RUNNERS_NAMESPACE, invoke_on_load=False, name=name)
+        runner_metadata = manager.driver.get_metadata()
+        runner_count += register_runner(runner_metadata, experimental)
 
     LOG.debug('End : register runners')
 

@@ -39,7 +39,7 @@ from st2common.models.db.execution import ActionExecutionDB
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.persistence.execution import ActionExecution
 from st2common.util import action_db as action_utils
-from st2common.util import loader
+from st2common.runners.base import get_query_module
 from st2tests import DbTestCase
 
 
@@ -208,7 +208,7 @@ MOCK_LIVEACTION_UP_TO_DATE_INCOMPLETE_TASKS_RESULT = {
 
 MOCK_CHILD_ACTIONEXECUTION_REQUESTED = ActionExecutionDB(
     action={'ref': 'mock.task'},
-    runner={'name': 'local_runner'},
+    runner={'name': 'local-shell-cmd'},
     liveaction={'id': uuid.uuid4().hex},
     status=action_constants.LIVEACTION_STATUS_REQUESTED,
     children=[]
@@ -216,7 +216,7 @@ MOCK_CHILD_ACTIONEXECUTION_REQUESTED = ActionExecutionDB(
 
 MOCK_CHILD_ACTIONEXECUTION_RUNNING = ActionExecutionDB(
     action={'ref': 'mock.task'},
-    runner={'name': 'local_runner'},
+    runner={'name': 'local-shell-cmd'},
     liveaction={'id': uuid.uuid4().hex},
     status=action_constants.LIVEACTION_STATUS_RUNNING,
     children=[]
@@ -224,7 +224,7 @@ MOCK_CHILD_ACTIONEXECUTION_RUNNING = ActionExecutionDB(
 
 MOCK_CHILD_ACTIONEXECUTION_SUCCEEDED = ActionExecutionDB(
     action={'ref': 'mock.task'},
-    runner={'name': 'local_runner'},
+    runner={'name': 'local-shell-cmd'},
     liveaction={'id': uuid.uuid4().hex},
     status=action_constants.LIVEACTION_STATUS_SUCCEEDED,
     children=[]
@@ -378,7 +378,7 @@ class MistralQuerierTest(DbTestCase):
         cfg.CONF.set_override('retry_stop_max_msec', 200, group='mistral')
 
         # Register query module.
-        cls.query_module = loader.register_query_module('mistral_v2')
+        cls.query_module = get_query_module('mistral-v2')
 
     def setUp(self):
         super(MistralQuerierTest, self).setUp()

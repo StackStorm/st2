@@ -1,6 +1,4 @@
-- aliases:
-  - run-python
-  description: A runner for launching python actions.
+- description: A runner for launching python actions.
   enabled: true
   name: python-script
   runner_module: python_runner

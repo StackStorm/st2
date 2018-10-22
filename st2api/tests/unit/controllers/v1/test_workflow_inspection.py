@@ -100,8 +100,11 @@ class WorkflowInspectionControllerTest(st2api_tests.FunctionalTest, st2tests.Wor
             },
             {
                 'type': 'syntax',
-                'message': '[{\'cmd\': \'echo <% ctx().macro %>\'}] is not of type \'object\'',
-                'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.input.type',
+                'message': (
+                    '[{\'cmd\': \'echo <% ctx().macro %>\'}] is '
+                    'not valid under any of the given schemas'
+                ),
+                'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.input.oneOf',
                 'spec_path': 'tasks.task2.input'
             }
         ]
