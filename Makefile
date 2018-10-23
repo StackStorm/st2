@@ -257,7 +257,7 @@ flake8: requirements .flake8
 	chmod +x $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
 
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "pip>=9.0,<9.1"
-	$(VIRTUALENV_ST2CLIENT_DIR)/bin/activate; cd st2client ; $(VIRTUALENV_ST2CLIENT_DIR)/bin/python setup.py install ; cd ..
+	$(VIRTUALENV_ST2CLIENT_DIR)/bin/activate; cd st2client ; ../$(VIRTUALENV_ST2CLIENT_DIR)/bin/python setup.py install ; cd ..
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/st2 --version
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/python -c "import st2client"
 
