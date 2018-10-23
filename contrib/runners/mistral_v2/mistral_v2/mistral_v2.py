@@ -556,4 +556,4 @@ def get_runner():
 
 
 def get_metadata():
-    return get_runner_metadata('mistral_v2')
+    return get_runner_metadata('mistral_v2')[0]

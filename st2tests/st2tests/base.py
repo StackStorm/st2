@@ -572,7 +572,7 @@ class WorkflowTestCase(DbTestCase):
         conductor = conducting.WorkflowConductor.deserialize(data)
         conductor.request_workflow_state(wf_lib_states.RUNNING)
 
-        for task in conductor.get_start_tasks():
+        for task in conductor.get_next_tasks():
             ac_ex_event = events.ActionExecutionEvent(wf_lib_states.RUNNING)
             conductor.update_task_flow(task['id'], ac_ex_event)
 
@@ -600,9 +600,11 @@ class WorkflowTestCase(DbTestCase):
     def run_workflow_step(self, wf_ex_db, task_id, ctx=None):
         spec_module = specs_loader.get_spec_module(wf_ex_db.spec['catalog'])
         wf_spec = spec_module.WorkflowSpec.deserialize(wf_ex_db.spec)
-        task_spec = wf_spec.tasks.get_task(task_id)
         st2_ctx = {'execution_id': wf_ex_db.action_execution}
-        task_ex_db = wf_svc.request_task_execution(wf_ex_db, task_id, task_spec, ctx or {}, st2_ctx)
+        task_spec = wf_spec.tasks.get_task(task_id)
+        task_actions = [{'action': task_spec.action, 'input': getattr(task_spec, 'input', {})}]
+        task_req = {'id': task_id, 'spec': task_spec, 'ctx': ctx or {}, 'actions': task_actions}
+        task_ex_db = wf_svc.request_task_execution(wf_ex_db, st2_ctx, task_req)
         ac_ex_db = self.get_action_ex(str(task_ex_db.id))
         self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         wf_svc.handle_action_execution_completion(ac_ex_db)

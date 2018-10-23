@@ -849,4 +849,4 @@ def get_runner():
 
 
 def get_metadata():
-    return get_runner_metadata('action_chain_runner')
+    return get_runner_metadata('action_chain_runner')[0]

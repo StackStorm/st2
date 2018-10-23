@@ -7,7 +7,7 @@ action-immutable-param-no-default:
     foo:
       immutable: true
   ref: executions.action-immutable-param-no-default
-  runner_type: run-local
+  runner_type: local-shell-cmd
 action-immutable-runner-param-no-default:
   enabled: true
   name: action-immutable-param-no-default
@@ -16,7 +16,7 @@ action-immutable-runner-param-no-default:
     sudo:
       immutable: true
   ref: executions.action-immutable-param-no-default
-  runner_type: run-local
+  runner_type: local-shell-cmd
 action-with-invalid-runner:
   enabled: true
   name: action-with-invalid-runner
@@ -37,16 +37,16 @@ local:
   name: local
   pack: executions
   ref: executions.local
-  runner_type: run-local
-local-override-runner-immutable:
+  runner_type: local-shell-cmd
+remote-override-runner-immutable:
   enabled: true
-  name: local-override-runner-immutable
+  name: remote-override-runner-immutable
   pack: executions
   parameters:
-    hosts:
+    dir:
       immutable: false
-  ref: executions.local-override-runner-immutable
-  runner_type: run-local
+  ref: executions.remote-override-runner-immutable
+  runner_type: remote-shell-cmd
 action-with-non-unique-positions:
   enabled: true
   name: position-test
@@ -57,7 +57,7 @@ action-with-non-unique-positions:
       position: 0
     two:
       position: 0
-  runner_type: run-local
+  runner_type: local-shell-cmd
 action-with-non-contiguous-positions:
   enabled: true
   name: position-test-cont
@@ -68,4 +68,4 @@ action-with-non-contiguous-positions:
       position: 0
     two:
       position: 3
-  runner_type: run-local
+  runner_type: local-shell-cmd
