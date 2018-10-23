@@ -21,7 +21,7 @@ import mock
 from kombu.message import Message
 
 from st2actions import worker
-from st2actions import scheduler
+from st2actions.scheduler import scheduler
 from st2actions.container.base import RunnerContainer
 from st2common.constants import action as action_constants
 from st2common.models.db.liveaction import LiveActionDB
