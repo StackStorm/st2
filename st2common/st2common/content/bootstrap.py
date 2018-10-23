@@ -35,6 +35,7 @@ import st2common.bootstrap.rulesregistrar as rules_registrar
 import st2common.bootstrap.ruletypesregistrar as rule_types_registrar
 import st2common.bootstrap.configsregistrar as configs_registrar
 import st2common.content.utils as content_utils
+from st2common.metrics.base import Timer
 from st2common.util.virtualenvs import setup_pack_virtualenv
 
 __all__ = [
@@ -329,14 +330,22 @@ def register_content():
     register_all = cfg.CONF.register.all
 
     if register_all:
-        register_triggers()
-        register_sensors()
-        register_runners()
-        register_actions()
-        register_rules()
-        register_aliases()
-        register_policies()
-        register_configs()
+        with Timer(key='st2.register.triggers'):
+            register_triggers()
+        with Timer(key='st2.register.sensors'):
+            register_sensors()
+        with Timer(key='st2.register.runners'):
+            register_runners()
+        with Timer(key='st2.register.actions'):
+            register_actions()
+        with Timer(key='st2.register.rules'):
+            register_rules()
+        with Timer(key='st2.register.aliases'):
+            register_aliases()
+        with Timer(key='st2.register.policies'):
+            register_policies()
+        with Timer(key='st2.register.configs'):
+            register_configs()
 
     if cfg.CONF.register.triggers and not register_all:
         register_triggers()

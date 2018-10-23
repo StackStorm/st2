@@ -15,6 +15,7 @@
 
 from __future__ import absolute_import
 import copy
+import os
 
 from kombu import Connection
 from kombu.messaging import Producer
@@ -40,8 +41,6 @@ class PoolPublisher(object):
         LOG.error('Rabbitmq connection error: %s', exc.message, exc_info=False)
 
     def publish(self, payload, exchange, routing_key=''):
-        print('Sending payload %s over the wire' % payload)
-
         with Timer(key='amqp.pool_publisher.publish_with_retries.' + exchange.name):
             with self.pool.acquire(block=True) as connection:
                 retry_wrapper = ConnectionRetryWrapper(cluster_size=self.cluster_size, logger=LOG)
