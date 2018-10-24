@@ -64,8 +64,8 @@ Fixed
 * Update ``st2-pack-install`` and ``st2 pack install`` command so it works with local git repos
   (``file://<path to local git repo>``) which are in a detached head state (e.g. specific revision
   is checked out). (improvement) #4366
-* st2 login now exits with non zero exit code when login fails due to invalid credentials.
-  (improvement) #4338
+* ``st2 login`` CLI commands now exits with non zero exit code when login fails due to invalid
+  credentials. (improvement) #4338
 * Fix ``st2 key load`` that errors when importing an empty file #43
 * Fixed warning in ``st2-run-pack-tests`` about invalid format for ``pip list``. (bug fix)
 
