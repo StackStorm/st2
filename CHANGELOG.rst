@@ -20,9 +20,6 @@ Added
 Changed
 ~~~~~~~
 
-* Speed up pack registration through the ``/v1/packs/register`` API endpoint. (improvement) #4342
-* Triggertypes API now sorts by trigger ref by default. ``st2 trigger list`` will now show a sorted
-  list. (#4348)
 * ``core.http`` action now supports additional HTTP methods: OPTIONS, TRACE, PATCH, PURGE.
 
   Contributed by @emptywee (improvement) #4379
@@ -55,6 +52,27 @@ Changed
 Fixed
 ~~~~~
 
+* ``st2 login`` CLI commands now exits with non zero exit code when login fails due to invalid
+  credentials. (improvement) #4338
+* Fix ``st2 key load`` that errors when importing an empty file #43
+* Fixed warning in ``st2-run-pack-tests`` about invalid format for ``pip list``. (bug fix)
+
+  Contributed by Nick Maludy (Encore Technologies). #4380
+
+2.9.1 - October 03, 2018
+------------------------
+
+Changed
+~~~~~~~
+
+* Speed up pack registration through the ``/v1/packs/register`` API endpoint. (improvement) #4342
+* Triggertypes API now sorts by trigger ref by default. ``st2 trigger list`` will now show a sorted
+  list. (#4348)
+* Update ``st2-self-check`` script to include per-test timing information. (improvement) #4359
+
+Fixed
+~~~~~
+
 * Update ``st2sensorcontainer`` service to throw if user wants to run a sensor from a pack which is
   using Python 3 virtual environment.
 
@@ -64,12 +82,7 @@ Fixed
 * Update ``st2-pack-install`` and ``st2 pack install`` command so it works with local git repos
   (``file://<path to local git repo>``) which are in a detached head state (e.g. specific revision
   is checked out). (improvement) #4366
-* ``st2 login`` CLI commands now exits with non zero exit code when login fails due to invalid
-  credentials. (improvement) #4338
-* Fix ``st2 key load`` that errors when importing an empty file #43
-* Fixed warning in ``st2-run-pack-tests`` about invalid format for ``pip list``. (bug fix)
-
-  Contributed by Nick Maludy (Encore Technologies). #4380
+* Fix a race which occurs when there are multiple concurrent requests to resume a workflow. #4369
 
 2.9.0 - September 16, 2018
 --------------------------
