@@ -12,7 +12,7 @@ load_content=true
 use_ipv6=false
 include_mistral=false
 
-while getopts ":r:v:gxcu6m" o; do
+while getopts ":r:gxcu6m" o; do
     case "${o}" in
         r)
             runner_count=${OPTARG}
@@ -32,9 +32,6 @@ while getopts ":r:v:gxcu6m" o; do
         m)
             include_mistral=true
             ;;
-        v)
-            venv_dir=${OPTARG}
-            ;;
         \?)
             echo "Invalid option: -$OPTARG" >&2
             usage
@@ -47,6 +44,8 @@ while getopts ":r:v:gxcu6m" o; do
             ;;
     esac
 done
+
+${parameter:-word}
 
 function init(){
     ST2_BASE_DIR="/opt/stackstorm"
@@ -62,11 +61,7 @@ function init(){
         ST2_REPO=${CURRENT_DIR}/${COMMAND_PATH}/..
     fi
 
-    if [ -z "$venv_dir" ]; then
-        venv_dir=virtualenv
-    fi
-
-    VENV=${ST2_REPO}/${venv_dir}
+    VENV=${ST2_REPO}/${VIRTUALENV_DIR:virtualenv}
     PY=${VENV}/bin/python
     echo "Using virtualenv: ${VENV}"
     echo "Using python: ${PY}"
