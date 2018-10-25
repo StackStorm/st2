@@ -44,7 +44,7 @@ Changed
   #4217
 * Update various CLI commands to only retrieve attributes which are displayed in the CLI from the
   API (``st2 execution list``, ``st2 execution get``, ``st2 action list``, ``st2 rule list``,
-  ``st2 sensor list``). This speeds up run-time for those commands.
+  ``st2 sensor list``). This speeds up run-time and means now those commands now finish faster.
 
   If user wants to retrieve and view all the attributes, they can use ``--attr all`` CLI command
   argument (same as before). (improvement) #4396
