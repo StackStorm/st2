@@ -25,32 +25,29 @@ from st2common.util import date as date_utils
 from st2common.constants.types import ResourceType
 
 __all__ = [
-    'ExecutionQueueDB',
+    'ActionExecutionSchedulingQueueDB',
 ]
 
 
 LOG = logging.getLogger(__name__)
 
 
-class ExecutionQueueDB(stormbase.StormFoundationDB):
+class ActionExecutionSchedulingQueueDB(stormbase.StormFoundationDB):
     RESOURCE_TYPE = ResourceType.EXECUTION_REQUEST
     UID_FIELDS = ['id']
-    liveaction = stormbase.EscapedDictField(required=True)
-    start_timestamp = ComplexDateTimeField(
+    liveaction = me.StringField(required=True)
+    scheduled_start_timestamp = ComplexDateTimeField(
         default=date_utils.get_datetime_utc_now,
         help_text='The timestamp when the liveaction was created.')
     delay = me.IntField()
-    priority = me.IntField()
-    affinity = me.StringField()
 
     meta = {
         'indexes': [
-            {'fields': ['liveaction.id']},
-            {'fields': ['start_timestamp']},
-            {'fields': ['priority']},
+            {'fields': ['liveaction']},
+            {'fields': ['scheduled_start_timestamp']},
         ]
     }
 
 
-MODELS = [ExecutionQueueDB]
-EXECUTION_QUEUE_ACCESS = MongoDBAccess(ExecutionQueueDB)
+MODELS = [ActionExecutionSchedulingQueueDB]
+EXECUTION_QUEUE_ACCESS = MongoDBAccess(ActionExecutionSchedulingQueueDB)

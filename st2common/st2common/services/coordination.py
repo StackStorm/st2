@@ -188,11 +188,11 @@ class LockAcquireError(Exception):
     pass
 
 
-class Locker(object):
-    def __init__(self, name):
+class lock(object):
+    def __init__(self, name, timeout=5000):
         self._name = name
         self._lock = None
-        self._timeout = 0
+        self._timeout = timeout
 
     def __call__(self, func):
         @wraps(func)
@@ -205,17 +205,23 @@ class Locker(object):
         if COORDINATOR is None:
             get_coordinator()
 
-        if self._timeout > 5000:
-            raise LockAcquireError("Could not acquire lock for %s", self._name)
+        if not self._lock:
+            self._lock = COORDINATOR.get_lock(self._name)
+
+        if self._timeout <= 0:
+            LOG.warning("Failed to secure lock for %s.", self._name)
+            raise LockAcquireError("Could not acquire lock for %s" % self._name)
 
     def __enter__(self):
         self._setup()
-        self._lock = COORDINATOR.get_lock(self._name)
 
-        if not self._lock and self._timeout < 5000:
-            self._timeout += 1
+        LOG.debug("Attempting to secure lock for: %s", self._name)
+        if not self._lock.acquire():
+            LOG.info("Could not secure lock for %s. Retrying.", self._name)
+            self._timeout -= 1
             eventlet.sleep(.25)
             self.__enter__()
 
     def __exit__(self, *_args, **_kwargs):
+        LOG.debug("Releasing lock for: %s", self._name)
         self._lock.release()

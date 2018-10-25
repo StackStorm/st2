@@ -17,15 +17,17 @@ from __future__ import absolute_import
 import eventlet
 
 from st2common import log as logging
+from st2common.util import date
 from st2common.constants import action as action_constants
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.services import action as action_service
 from st2common.services import policies as policy_service
 from st2common.persistence.liveaction import LiveAction
-from st2common.util import execution_queue_db as exdb
+from st2common.persistence.execution_queue import ExecutionQueue
 from st2common.util import action_db as action_utils
 from st2common.services.coordination import LockAcquireError
+from st2common.services import coordination
 
 __all__ = [
     'ExecutionQueueHandler',
@@ -36,6 +38,25 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 
+def _next_executions():
+    """
+        Sort executions by fifo and priority and get the latest, highest priority
+        item from the queue and pop it off.
+    """
+    query = {
+        "scheduled_start_timestamp__lte": date.get_datetime_utc_now(),
+        "order_by": [
+            "scheduled_start_timestamp",
+        ]
+    }
+
+    queued_executions = ExecutionQueue.query(**query)
+    if queued_executions:
+        return queued_executions
+
+    return []
+
+
 class ExecutionQueueHandler(object):
     def __init__(self):
         self.message_type = LiveActionDB
@@ -44,19 +65,19 @@ class ExecutionQueueHandler(object):
     def loop(self):
         LOG.debug('Entering scheduler loop')
         while self._shutdown is not True:
-            # TODO: Make config setting
             eventlet.greenthread.sleep(0.25)
             try:
-                execution = exdb.pop_next_execution()
-                if execution:
-                    eventlet.spawn(self._handle_execution, execution)
+                with coordination.lock('st2shcedulerqueue'):
+                    queued_executions = _next_executions()
+                    for execution in queued_executions:
+                        self._handle_execution(execution)
             except LockAcquireError as e:
                 LOG.error(e)
 
     def _handle_execution(self, execution):
-        LOG.info('Scheduling liveaction: %s', execution.liveaction.get('id'))
+        LOG.info('Scheduling liveaction: %s', execution.liveaction)
         try:
-            liveaction_db = action_utils.get_liveaction_by_id(execution.liveaction.get('id'))
+            liveaction_db = action_utils.get_liveaction_by_id(execution.liveaction)
         except StackStormDBObjectNotFoundError:
             LOG.exception('Failed to find liveaction %s in the database.', execution.liveaction.id)
             raise
@@ -83,6 +104,7 @@ class ExecutionQueueHandler(object):
         # race condition with the update of the action_execution_db if the execution
         # of the liveaction completes first.
         LiveAction.publish_status(liveaction_db)
+        ExecutionQueue.delete(execution)
 
     def start(self):
         self._shutdown = False
