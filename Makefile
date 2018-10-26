@@ -383,6 +383,7 @@ requirements: virtualenv .sdist-requirements install-runners
 
 	# Fix for Travis CI caching issue
 	$(VIRTUALENV_DIR)/bin/pip uninstall -y "pytz"
+	$(VIRTUALENV_DIR)/bin/pip uninstall -y "python-dateutil"
 
 	# Install requirements
 	#
