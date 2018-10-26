@@ -114,6 +114,8 @@ class ConcurrencyPolicyTestCase(EventletTestCase, DbTestCase):
             liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
             action_service.request(liveaction)
 
+        MockLiveActionPublisherNonBlocking.wait_all()
+
         # Since states are being processed asynchronously, wait for the
         # liveactions to go into scheduled states.
         for i in range(0, 100):
@@ -121,6 +123,8 @@ class ConcurrencyPolicyTestCase(EventletTestCase, DbTestCase):
             scheduled = [item for item in LiveAction.get_all() if item.status in SCHEDULED_STATES]
             if len(scheduled) == policy_db.parameters['threshold']:
                 break
+
+        MockLiveActionPublisherNonBlocking.wait_all()
 
         scheduled = [item for item in LiveAction.get_all() if item.status in SCHEDULED_STATES]
         self.assertEqual(len(scheduled), policy_db.parameters['threshold'])
