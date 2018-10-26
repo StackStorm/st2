@@ -1,6 +1,4 @@
-- aliases:
-  - http-runner
-  description: HTTP client for running HTTP actions.
+- description: HTTP client for running HTTP actions.
   enabled: true
   name: http-request
   runner_module: http_runner

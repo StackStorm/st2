@@ -14,17 +14,40 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import uuid
 
-from st2common.constants import action as action_constants
-from st2common.query.base import Querier
+from oslo_config import cfg
 
-
-def get_query_instance():
-    return MockQuerier(str(uuid.uuid4()))
+from st2common import config as common_config
+from st2common.constants import system as sys_constants
 
 
-class MockQuerier(Querier):
+def parse_args(args=None):
+    cfg.CONF(args=args, version=sys_constants.VERSION_STRING)
 
-    def query(self, execution_id, query_context):
-        return (action_constants.LIVEACTION_STATUS_SUCCEEDED, {})
+
+def register_opts():
+    _register_common_opts()
+    _register_service_opts()
+
+
+def get_logging_config_path():
+    return cfg.CONF.scheduler.logging
+
+
+def _register_common_opts():
+    common_config.register_opts()
+
+
+def _register_service_opts():
+    scheduler_opts = [
+        cfg.StrOpt(
+            'logging',
+            default='conf/logging.scheduler.conf',
+            help='Location of the logging configuration file.'
+        )
+    ]
+
+    cfg.CONF.register_opts(scheduler_opts, group='scheduler')
+
+
+register_opts()

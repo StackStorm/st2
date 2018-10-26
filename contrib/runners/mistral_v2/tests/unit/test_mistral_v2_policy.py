@@ -174,7 +174,7 @@ class MistralRunnerPolicyTest(DbTestCase):
         self.assertEqual(running, threshold)
 
         # Mock the mistral runner cancel method to assert cancel is called.
-        mistral_runner_cls = self.get_runner_class('mistral_v2')
+        mistral_runner_cls = runners.get_runner('mistral-v2').__class__
         mock_cancel_return_value = (action_constants.LIVEACTION_STATUS_CANCELING, None, None)
         mock_cancel = mock.MagicMock(return_value=mock_cancel_return_value)
 
@@ -238,7 +238,7 @@ class MistralRunnerPolicyTest(DbTestCase):
         self.assertEqual(running, threshold)
 
         # Mock the mistral runner cancel method to assert cancel is called.
-        mistral_runner_cls = self.get_runner_class('mistral_v2')
+        mistral_runner_cls = runners.get_runner('mistral-v2').__class__
         mock_cancel_return_value = (action_constants.LIVEACTION_STATUS_CANCELING, None, None)
         mock_cancel = mock.MagicMock(return_value=mock_cancel_return_value)
 

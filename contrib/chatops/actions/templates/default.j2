@@ -28,7 +28,7 @@ result :
 {% if execution.runner['name'] in ('http-request',) -%}
   {# TODO: is there are conceptual difference between it and default? #}
   {{ serialize(six.iteritems(execution.result)) }}
-{% elif execution.runner['name'] in ('run-python', 'python-script', 'windows-cmd', 'windows-script',) -%}
+{% elif execution.runner['name'] in ('python-script', 'windows-cmd', 'windows-script',) -%}
   {{ serialize(six.iteritems(execution.result)
                | selectattr('0', 'in', ['result', 'stdout', 'stderr', 'exit_code'])
                | selectattr('1')) }}

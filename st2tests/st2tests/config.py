@@ -22,7 +22,7 @@ from oslo_config import cfg, types
 from st2common import log as logging
 import st2common.config as common_config
 from st2common.constants.sensors import DEFAULT_PARTITION_LOADER
-from st2tests.fixturesloader import get_fixtures_packs_base_path, get_fixtures_runners_base_path
+from st2tests.fixturesloader import get_fixtures_packs_base_path
 
 CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
@@ -73,13 +73,10 @@ def _override_db_opts():
 
 def _override_common_opts():
     packs_base_path = get_fixtures_packs_base_path()
-    runners_base_path = get_fixtures_runners_base_path()
     CONF.set_override(name='base_path', override=packs_base_path, group='system')
     CONF.set_override(name='validate_output_schema', override=True, group='system')
     CONF.set_override(name='system_packs_base_path', override=packs_base_path, group='content')
     CONF.set_override(name='packs_base_paths', override=packs_base_path, group='content')
-    CONF.set_override(name='system_runners_base_path', override=runners_base_path, group='content')
-    CONF.set_override(name='runners_base_paths', override=runners_base_path, group='content')
     CONF.set_override(name='api_url', override='http://127.0.0.1', group='auth')
     CONF.set_override(name='mask_secrets', override=True, group='log')
     CONF.set_override(name='url', override='zake://', group='coordination')

@@ -941,6 +941,7 @@ fatal: invalid reference: vinvalid
         container = RunnerContainer()
 
         runnertype_db = mock.Mock()
+        runnertype_db.name = 'python-script'
         runnertype_db.runner_package = 'python_runner'
         runnertype_db.runner_module = 'python_runner'
         action_db = mock.Mock()

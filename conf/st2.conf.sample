@@ -87,9 +87,9 @@ home_dir = /opt/cslang
 [content]
 # A URL pointing to the pack index. StackStorm Exchange is used by default. Use a comma-separated list for multiple indexes if you want to get other packs discovered with "st2 pack search".
 index_url = https://index.stackstorm.org/v1/index.json # comma separated list allowed here.
-# Path to the directory which contains system runners.
+# Path to the directory which contains system runners. NOTE: This option has been deprecated and it's unused since StackStorm v3.0.0
 system_runners_base_path = /opt/stackstorm/runners
-# Paths which will be searched for runners.
+# Paths which will be searched for runners. NOTE: This option has been deprecated and it's unused since StackStorm v3.0.0
 runners_base_paths = None
 # User group that can write to packs directory.
 pack_group = st2packs
@@ -125,6 +125,8 @@ host = 127.0.0.1
 db_name = st2
 # Backoff multiplier (seconds).
 connection_retry_backoff_mul = 1
+# Specifies database authentication mechanisms. By default, it use SCRAM-SHA-1 with MongoDB 3.0 and later, MONGODB-CR (MongoDB Challenge Response protocol) for older servers.
+authentication_mechanism = None
 # Private keyfile used to identify the local connection against MongoDB.
 ssl_keyfile = None
 # If True and `ssl_cert_reqs` is not None, enables hostname verification
