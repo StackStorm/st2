@@ -30,8 +30,8 @@ from st2common.persistence.execution_queue import ExecutionQueue
 from st2common.models.db.execution_queue import ActionExecutionSchedulingQueueDB
 
 __all__ = [
-    'ActionExecutionQueuer',
-    'get_queuer'
+    'SchedulerEntrypoint',
+    'get_scheduler_entrypoint'
 ]
 
 
@@ -53,7 +53,12 @@ def _create_execution_request_from_liveaction(liveaction, delay=None,):
     return execution_request
 
 
-class ActionExecutionQueuer(consumers.MessageHandler):
+class SchedulerEntrypoint(consumers.MessageHandler):
+    """
+        SchedulerEntrypoint subscribes to the Action scheduler request queue
+        and places new Live Actions into the scheduling queue collection for
+        scheduling on actionrunners.
+    """
     message_type = LiveActionDB
 
     def process(self, request):
@@ -87,6 +92,6 @@ class ActionExecutionQueuer(consumers.MessageHandler):
         ExecutionQueue.add_or_update(execution_request)
 
 
-def get_queuer():
+def get_scheduler_entrypoint():
     with Connection(transport_utils.get_messaging_urls()) as conn:
-        return ActionExecutionQueuer(conn, [ACTIONSCHEDULER_REQUEST_QUEUE])
+        return SchedulerEntrypoint(conn, [ACTIONSCHEDULER_REQUEST_QUEUE])

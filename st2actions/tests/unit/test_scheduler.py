@@ -24,7 +24,7 @@ from st2common.models.db.liveaction import LiveActionDB
 from st2common.persistence.execution_queue import ExecutionQueue
 from st2common.persistence.liveaction import LiveAction
 
-from st2actions.scheduler import queuer, queue_handler
+from st2actions.scheduler import handler, entrypoint
 
 
 LIVE_ACTION = {
@@ -47,7 +47,7 @@ class ActionExecutionSchedulingQueueDBTest(DbTestCase):
             )
         )
         delay = 500
-        execution_request = queuer._create_execution_request_from_liveaction(
+        execution_request = entrypoint._create_execution_request_from_liveaction(
             live_action,
             delay,
         )
@@ -89,7 +89,7 @@ class ActionExecutionSchedulingQueueDBTest(DbTestCase):
         for execution in executions:
             execution_requests.append(
                 ExecutionQueue.add_or_update(
-                    queuer._create_execution_request_from_liveaction(
+                    entrypoint._create_execution_request_from_liveaction(
                         execution['liveaction'],
                         execution['delay'],
                     )
@@ -108,8 +108,8 @@ class ActionExecutionSchedulingQueueDBTest(DbTestCase):
             date_mock.get_datetime_utc_now.return_value = delay_date
             date_mock.append_milliseconds_to_time = date.append_milliseconds_to_time
 
-            with patch('st2actions.scheduler.queue_handler.date', date_mock):
-                execution_request = queue_handler._next_executions()[0]
+            with patch('st2actions.scheduler.handler.date', date_mock):
+                execution_request = handler._next_executions()[0]
                 ExecutionQueue.delete(execution_request)
 
             self.assertIsInstance(execution_request, ActionExecutionSchedulingQueueDB)
@@ -119,6 +119,6 @@ class ActionExecutionSchedulingQueueDBTest(DbTestCase):
 
     def test_next_executions_empty(self):
         self.reset()
-        execution_request = queue_handler._next_executions()
+        execution_request = handler._next_executions()
         self.assertIsInstance(execution_request, list)
         self.assertEquals(execution_request, [])

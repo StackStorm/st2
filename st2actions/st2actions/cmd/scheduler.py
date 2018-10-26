@@ -8,7 +8,10 @@ import os
 import signal
 import sys
 
-from st2actions.scheduler import queue_handler, queuer
+from st2actions.scheduler import (
+    handler as scheduler_handler,
+    entrypoint as scheduler_entrypoint
+)
 from st2actions.scheduler import config
 from st2common import log as logging
 from st2common.service_setup import teardown as common_teardown
@@ -40,13 +43,13 @@ def _setup():
 def _run_queuer():
     LOG.info('(PID=%s) Scheduler started.', os.getpid())
 
-    handler = queue_handler.get_handler()
-    queuer_instance = queuer.get_queuer()
+    handler = scheduler_handler.get_handler()
+    entrypoint = scheduler_entrypoint.get_scheduler_entrypoint()
 
     try:
         handler.start()
-        queuer_instance.start()
-        queuer_instance.wait()
+        entrypoint.start()
+        entrypoint.wait()
     except (KeyboardInterrupt, SystemExit):
         LOG.info('(PID=%s) Scheduler stopped.', os.getpid())
 
@@ -54,7 +57,7 @@ def _run_queuer():
 
         try:
             handler.shutdown()
-            queuer_instance.shutdown()
+            entrypoint.shutdown()
         except:
             LOG.exception('Unable to shutdown scheduler.')
             errors = True
