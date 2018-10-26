@@ -16,7 +16,7 @@ oslo.config<1.13,>=1.12.1
 paramiko==2.4.2
 prometheus_client==0.1.1
 pymongo==3.7.2
-python-dateutil
+python-dateutil==2.7.4
 python-statsd==2.1.0
 pyyaml==3.13
 requests[security]<2.15,>=2.14.1

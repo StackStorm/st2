@@ -36,7 +36,7 @@ psutil==5.4.7
 pyinotify==0.9.6
 pymongo==3.7.2
 pyrabbit
-python-dateutil
+python-dateutil==2.7.4
 python-editor==1.0.3
 python-gnupg==0.4.3
 python-json-logger

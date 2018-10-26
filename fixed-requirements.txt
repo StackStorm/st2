@@ -53,3 +53,4 @@ python-statsd==2.1.0
 prometheus_client==0.1.1
 mock==2.0.0
 ujson==1.35
+python-dateutil==2.7.4
