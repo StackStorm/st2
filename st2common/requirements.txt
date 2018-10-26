@@ -5,7 +5,7 @@ eventlet==0.24.1
 flex==6.13.2
 git+https://github.com/StackStorm/mongoengine.git@stackstorm_patched#egg=mongoengine
 git+https://github.com/StackStorm/orquesta.git@142a19ddabbeea6a8d9d10341ba70585114dc3b7#egg=orquesta
-greenlet==0.4.14
+greenlet==0.4.15
 ipaddr
 jinja2
 jsonpath-rw==1.4.0
@@ -15,7 +15,7 @@ networkx==1.11
 oslo.config<1.13,>=1.12.1
 paramiko==2.4.2
 prometheus_client==0.1.1
-pymongo==3.7.1
+pymongo==3.7.2
 python-dateutil
 python-statsd==2.1.0
 pyyaml==3.13
@@ -24,7 +24,7 @@ retrying==1.3.3
 routes==2.4.1
 semver==2.8.1
 six==1.11.0
-tooz==1.62.0
+tooz==1.63.1
 ujson==1.35
 webob==1.8.2
 zake==0.2.2

@@ -6,7 +6,7 @@ prettytable
 prompt-toolkit==1.0.15
 python-dateutil
 python-editor==1.0.3
-pytz==2018.5
+pytz==2018.6
 pyyaml==3.13
 requests[security]<2.15,>=2.14.1
 six==1.11.0
