@@ -20,9 +20,6 @@ Added
 Changed
 ~~~~~~~
 
-* Speed up pack registration through the ``/v1/packs/register`` API endpoint. (improvement) #4342
-* Triggertypes API now sorts by trigger ref by default. ``st2 trigger list`` will now show a sorted
-  list. (#4348)
 * ``core.http`` action now supports additional HTTP methods: OPTIONS, TRACE, PATCH, PURGE.
 
   Contributed by @emptywee (improvement) #4379
@@ -45,6 +42,33 @@ Changed
   run-local-script, run-remote, run-remote-script, run-python, http-runner). If you are still using
   actions which reference runners using old names, you need to update them to keep it working.
   #4217
+* Update various CLI commands to only retrieve attributes which are displayed in the CLI from the
+  API (``st2 execution list``, ``st2 execution get``, ``st2 action list``, ``st2 rule list``,
+  ``st2 sensor list``). This speeds up run-time and means now those commands now finish faster.
+
+  If user wants to retrieve and view all the attributes, they can use ``--attr all`` CLI command
+  argument (same as before). (improvement) #4396
+
+Fixed
+~~~~~
+
+* ``st2 login`` CLI commands now exits with non zero exit code when login fails due to invalid
+  credentials. (improvement) #4338
+* Fix ``st2 key load`` that errors when importing an empty file #43
+* Fixed warning in ``st2-run-pack-tests`` about invalid format for ``pip list``. (bug fix)
+
+  Contributed by Nick Maludy (Encore Technologies). #4380
+
+2.9.1 - October 03, 2018
+------------------------
+
+Changed
+~~~~~~~
+
+* Speed up pack registration through the ``/v1/packs/register`` API endpoint. (improvement) #4342
+* Triggertypes API now sorts by trigger ref by default. ``st2 trigger list`` will now show a sorted
+  list. (#4348)
+* Update ``st2-self-check`` script to include per-test timing information. (improvement) #4359
 
 Fixed
 ~~~~~
@@ -58,12 +82,7 @@ Fixed
 * Update ``st2-pack-install`` and ``st2 pack install`` command so it works with local git repos
   (``file://<path to local git repo>``) which are in a detached head state (e.g. specific revision
   is checked out). (improvement) #4366
-* st2 login now exits with non zero exit code when login fails due to invalid credentials.
-  (improvement) #4338
-* Fix ``st2 key load`` that errors when importing an empty file #43
-* Fixed warning in ``st2-run-pack-tests`` about invalid format for ``pip list``. (bug fix)
-
-  Contributed by Nick Maludy (Encore Technologies). #4380
+* Fix a race which occurs when there are multiple concurrent requests to resume a workflow. #4369
 
 2.9.0 - September 16, 2018
 --------------------------
