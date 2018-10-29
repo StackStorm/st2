@@ -42,7 +42,7 @@ def _register_service_opts():
     scheduler_opts = [
         cfg.StrOpt(
             'logging',
-            default='conf/logging.scheduler.conf',
+            default='/etc/st2/logging.scheduler.conf',
             help='Location of the logging configuration file.'
         )
     ]
