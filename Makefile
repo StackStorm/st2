@@ -275,7 +275,7 @@ bandit: requirements .bandit
 lint: requirements .lint
 
 .PHONY: .lint
-.lint: .generate-api-spec .flake8 .pylint .bandit .st2client-dependencies-check .st2common-circular-dependencies-check .rst-check 
+.lint: .generate-api-spec .flake8 .pylint .bandit .st2client-dependencies-check .st2common-circular-dependencies-check .rst-check .st2client-install-check
 
 .PHONY: clean
 clean: .cleanpycs
@@ -381,6 +381,9 @@ requirements: virtualenv .sdist-requirements install-runners
 
 	# Fix for Travis CI race
 	$(VIRTUALENV_DIR)/bin/pip install "six==1.11.0"
+
+	# Fix for Travis CI caching issue
+	$(VIRTUALENV_DIR)/bin/pip uninstall -y "pytz"
 
 	# Install requirements
 	#

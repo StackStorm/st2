@@ -1,0 +1,27 @@
+{
+    "id": "547e19561e2e2417d3dde333",
+    "parameters": {
+        "cmd": "echo 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\jking_vmware20_test'"
+    },
+    "callback": {},
+    "context": {
+        "user": "stanley"
+    },
+    "result": {
+        "failed": false,
+        "stderr": "",
+        "return_code": 0,
+        "succeeded": true,
+        "stdout": "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\jking_vmware20_test"
+    },
+    "status": "succeeded",
+    "start_timestamp": "2014-12-02T19:56:06.900000Z",
+    "end_timestamp": "2014-12-02T19:56:07.000000Z",
+    "action": {
+        "ref": "core.local"
+    },
+    "liveaction": {
+        "callback": {},
+        "id": "1"
+    }
+}
