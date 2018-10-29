@@ -353,6 +353,10 @@ requirements: virtualenv .sdist-requirements install-runners
 	# Fix for Travis CI race
 	$(VIRTUALENV_DIR)/bin/pip install "six==1.11.0"
 
+	# Fix for Travis CI caching issue
+	$(VIRTUALENV_DIR)/bin/pip uninstall -y "pytz" || echo "not installed"
+	$(VIRTUALENV_DIR)/bin/pip uninstall -y "python-dateutil" || echo "not installed"
+
 	# Install requirements
 	#
 	for req in $(REQUIREMENTS); do \
