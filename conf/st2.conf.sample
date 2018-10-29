@@ -19,7 +19,7 @@ virtualenv_binary = /usr/bin/virtualenv
 # Python 3 binary which will be used by Python actions for packs which use Python 3 virtual environment
 python3_binary = /usr/bin/python3
 # location of the logging.conf file
-logging = conf/logging.conf
+logging = /etc/st2/logging.actionrunner.conf
 # True to store and stream action output (stdout and stderr) in real-time.
 stream_output = True
 # List of virtualenv options to be passsed to "virtualenv" command that creates pack virtualenv.

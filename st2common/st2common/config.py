@@ -325,7 +325,7 @@ def register_opts(ignore_errors=False):
     action_runner_opts = [
         # Common runner options
         cfg.StrOpt(
-            'logging', default='conf/logging.conf',
+            'logging', default='/etc/st2/logging.actionrunner.conf',
             help='location of the logging.conf file'),
 
         # Python runner options
