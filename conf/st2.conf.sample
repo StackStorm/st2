@@ -246,7 +246,7 @@ thread_pool_size = 10
 
 [rulesengine]
 # Location of the logging configuration file.
-logging = conf/logging.rulesengine.conf
+logging = /etc/st2/logging.rulesengine.conf
 
 [scheduler]
 # The frequency for rescheduling action executions.
