@@ -138,7 +138,7 @@ port = 27017
 
 [exporter]
 # location of the logging.exporter.conf file
-logging = conf/logging.exporter.conf
+logging = /etc/st2/logging.exporter.conf
 # Directory to dump data to.
 dump_dir = /opt/stackstorm/exports/
 
