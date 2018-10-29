@@ -50,7 +50,7 @@ port = 9101
 # Enable authentication middleware.
 enable = True
 # Path to the logging config.
-logging = conf/logging.conf
+logging = /etc/st2/logging.auth.conf
 # Base URL to the API endpoint excluding the version
 api_url = None
 # Service token ttl in seconds.
