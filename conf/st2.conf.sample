@@ -330,7 +330,7 @@ enable = True
 # Timezone pertaining to the location where st2 is run.
 local_timezone = America/Los_Angeles
 # Location of the logging configuration file.
-logging = conf/logging.timersengine.conf
+logging = /etc/st2/logging.timersengine.conf
 
 [timersengine]
 # Specify to enable timer service.
@@ -338,7 +338,7 @@ enable = True
 # Timezone pertaining to the location where st2 is run.
 local_timezone = America/Los_Angeles
 # Location of the logging configuration file.
-logging = conf/logging.timersengine.conf
+logging = /etc/st2/logging.timersengine.conf
 
 [webui]
 # Base https URL to access st2 Web UI. This is used to construct history URLs that are sent out when chatops is used to kick off executions.
@@ -346,5 +346,5 @@ webui_base_url = https://localhost
 
 [workflow_engine]
 # Location of the logging configuration file.
-logging = conf/logging.workflowengine.conf
+logging = /etc/st2/logging.workflowengine.conf
 
