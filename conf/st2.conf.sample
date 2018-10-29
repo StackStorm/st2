@@ -238,7 +238,7 @@ query_interval = 5
 # Sleep delay in between queries when query queue is empty.
 empty_q_sleep_time = 1
 # Location of the logging configuration file.
-logging = conf/logging.resultstracker.conf
+logging = /etc/st2/logging.resultstracker.conf
 # Sleep delay for query when there is no more worker in pool.
 no_workers_sleep_time = 1
 # Number of threads to use to query external workflow systems.
