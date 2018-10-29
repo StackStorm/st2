@@ -31,7 +31,7 @@ python_binary = /usr/bin/python
 # List of origins allowed for api, auth and stream
 allow_origin = http://127.0.0.1:3000 # comma separated list allowed here.
 # location of the logging.conf file
-logging = conf/logging.conf
+logging = /etc/st2/logging.api.conf
 # Maximum limit (page size) argument which can be specified by the user in a query string.
 max_page_size = 100
 # True to mask secrets in the API responses
