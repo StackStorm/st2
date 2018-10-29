@@ -119,4 +119,9 @@ class ExecutionResult(formatters.Formatter):
             return strutil.unescape(str(output))
         else:
             # Assume Python 2
-            return strutil.unescape(str(output)).decode('unicode_escape').encode('utf-8')
+            try:
+                result = strutil.unescape(str(output)).decode('unicode_escape').encode('utf-8')
+            except UnicodeDecodeError:
+                # String contains a value which is not an unicode escape sequence, ignore the error
+                result = strutil.unescape(str(output))
+            return result

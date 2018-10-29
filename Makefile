@@ -256,7 +256,8 @@ flake8: requirements .flake8
 	touch $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
 	chmod +x $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
 
-	$(VIRTUALENV_ST2CLIENT_DIR)/bin/activate; cd st2client ; python setup.py install
+	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "pip>=9.0,<9.1"
+	$(VIRTUALENV_ST2CLIENT_DIR)/bin/activate; cd st2client ; ../$(VIRTUALENV_ST2CLIENT_DIR)/bin/python setup.py install ; cd ..
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/st2 --version
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/python -c "import st2client"
 
@@ -820,7 +821,7 @@ debs:
 ci: ci-checks ci-unit ci-integration ci-mistral ci-packs-tests
 
 .PHONY: ci-checks
-ci-checks: compile .generated-files-check .pylint .flake8 .bandit .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check
+ci-checks: compile .generated-files-check .pylint .flake8 .bandit .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check
 
 .PHONY: ci-py3-unit
 ci-py3-unit:

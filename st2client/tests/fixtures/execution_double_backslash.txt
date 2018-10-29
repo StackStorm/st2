@@ -1,0 +1,10 @@
+id: 547e19561e2e2417d3dde333
+status: succeeded (1s elapsed)
+parameters: 
+  cmd: echo 'C:\Users\ADMINI~1\AppData\Local\Temp\jking_vmware20_test'
+result: 
+  failed: false
+  return_code: 0
+  stderr: ''
+  stdout: C:\Users\ADMINI~1\AppData\Local\Temp\jking_vmware20_test
+  succeeded: true
