@@ -92,6 +92,8 @@ class ConcurrencyPolicyTestCase(EventletTestCase, DbTestCase):
         MockLiveActionPublisherNonBlocking.wait_all()
 
     def tearDown(self):
+        MockLiveActionPublisherNonBlocking.wait_all()
+
         for liveaction in LiveAction.get_all():
             action_service.update_status(
                 liveaction, action_constants.LIVEACTION_STATUS_CANCELED)
