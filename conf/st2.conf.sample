@@ -148,7 +148,7 @@ action_executions_ttl = None
 # Trigger instances older than this value (days) will be automatically deleted.
 trigger_instances_ttl = None
 # Location of the logging configuration file.
-logging = conf/logging.garbagecollector.conf
+logging = /etc/st2/logging.garbagecollector.conf
 # How long to wait / sleep (in seconds) between collection of different object types.
 sleep_delay = 2
 # Set to True to perform garbage collection on Inquiries (based on the TTL value per Inquiry)
