@@ -292,7 +292,7 @@ heartbeat = 25
 # StackStorm stream API server host
 host = 127.0.0.1
 # location of the logging.conf file
-logging = conf/logging.conf
+logging = /etc/st2/logging.stream.conf
 # StackStorm API stream, server port
 port = 9102
 
