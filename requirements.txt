@@ -12,7 +12,7 @@ git+https://github.com/StackStorm/orquesta.git@142a19ddabbeea6a8d9d10341ba705851
 git+https://github.com/StackStorm/python-mistralclient.git#egg=python-mistralclient
 git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2-auth-backend-flat-file
 gitpython==2.1.11
-greenlet==0.4.14
+greenlet==0.4.15
 gunicorn==19.9.0
 ipaddr
 jinja2
@@ -34,14 +34,14 @@ prometheus_client==0.1.1
 prompt-toolkit==1.0.15
 psutil==5.4.7
 pyinotify==0.9.6
-pymongo==3.7.1
+pymongo==3.7.2
 pyrabbit
-python-dateutil
+python-dateutil==2.7.4
 python-editor==1.0.3
 python-gnupg==0.4.3
 python-json-logger
 python-statsd==2.1.0
-pytz==2018.5
+pytz==2018.6
 pywinrm==0.3.0
 pyyaml==3.13
 rednose
@@ -51,8 +51,8 @@ routes==2.4.1
 semver==2.8.1
 six==1.11.0
 sseclient==0.0.19
-stevedore==1.29.0
-tooz==1.62.0
+stevedore==1.30.0
+tooz==1.63.1
 ujson==1.35
 unittest2
 webob==1.8.2
