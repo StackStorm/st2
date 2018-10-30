@@ -7,6 +7,8 @@ in development
 Added
 ~~~~~
 
+* Added ``notify`` runner parameter to Orquesta that allows user to specify which task(s) to get
+  notified on completion.
 * Added ``-o`` and ``-m`` CLI options to ``st2-self-check`` script, to skip Orquesta and/or Mistral
   tests. #4347
 * Allow user to specify new ``database.authentication_mechanism`` config option in
