@@ -314,7 +314,7 @@ class WindowsScriptRunner(BaseWindowsRunner, ShellRunnerMixin):
 
         for line in lines:
             line = line.strip()
-            split = re.split('\s{3,}', line)
+            split = re.split(r'\s{3,}', line)
 
             if len(split) not in [1, 2]:
                 # Invalid line, skip it

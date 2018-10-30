@@ -72,7 +72,7 @@ class WindowsRunnerTestCase(TestCase):
             [
                 'winexe',
                 '--interactive', '0',
-                '-U', 'MyDomain\Administrator3%bar3',
+                '-U', r'MyDomain\Administrator3%bar3',
                 '//localhost',
                 'dir'
             ]
@@ -123,7 +123,7 @@ class WindowsRunnerTestCase(TestCase):
             ],
             [
                 'smbclient',
-                '-U', 'MyDomain\Administrator3%bar3',
+                '-U', r'MyDomain\Administrator3%bar3',
                 '//localhost/E$',
                 '-c', 'dir'
             ],

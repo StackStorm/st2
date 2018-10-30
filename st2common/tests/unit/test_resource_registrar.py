@@ -189,6 +189,6 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         registrar._pack_loader.get_packs.return_value = {'dummy_pack_18': PACK_PATH_18}
         packs_base_paths = content_utils.get_packs_base_paths()
 
-        expected_msg = 'Additional properties are not allowed \(\'invalid\' was unexpected\)'
+        expected_msg = r'Additional properties are not allowed \(\'invalid\' was unexpected\)'
         self.assertRaisesRegexp(ValueError, expected_msg, registrar.register_packs,
                                 base_dirs=packs_base_paths)

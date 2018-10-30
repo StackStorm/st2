@@ -111,7 +111,7 @@ class OrquestaErrorHandlingTest(st2tests.DbTestCase):
             {
                 'type': 'content',
                 'message': 'The action "std.noop" is not registered in the database.',
-                'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.action',
+                'schema_path': r'properties.tasks.patternProperties.^\w+$.properties.action',
                 'spec_path': 'tasks.task3.action'
             },
             {
@@ -119,7 +119,7 @@ class OrquestaErrorHandlingTest(st2tests.DbTestCase):
                 'language': 'yaql',
                 'expression': '<% ctx().foobar %>',
                 'message': 'Variable "foobar" is referenced before assignment.',
-                'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.input',
+                'schema_path': r'properties.tasks.patternProperties.^\w+$.properties.input',
                 'spec_path': 'tasks.task1.input',
             },
             {
@@ -131,7 +131,7 @@ class OrquestaErrorHandlingTest(st2tests.DbTestCase):
                     'position 0 of expression \'<% succeeded()\''
                 ),
                 'schema_path': (
-                    'properties.tasks.patternProperties.^\w+$.'
+                    r'properties.tasks.patternProperties.^\w+$.'
                     'properties.next.items.properties.when'
                 ),
                 'spec_path': 'tasks.task2.next[0].when'
@@ -142,7 +142,7 @@ class OrquestaErrorHandlingTest(st2tests.DbTestCase):
                     '[{\'cmd\': \'echo <% ctx().macro %>\'}] is '
                     'not valid under any of the given schemas'
                 ),
-                'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.input.oneOf',
+                'schema_path': r'properties.tasks.patternProperties.^\w+$.properties.input.oneOf',
                 'spec_path': 'tasks.task2.input'
             }
         ]
