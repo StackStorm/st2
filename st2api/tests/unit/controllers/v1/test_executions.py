@@ -1090,7 +1090,8 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
             updates = {'status': 'resuming'}
             put_resp = self._do_put(execution_id, updates, expect_errors=True)
             self.assertEqual(put_resp.status_int, 400)
-            self.assertIn('is not in a paused state', put_resp.json['faultstring'])
+            expected_error_message = 'it is in "pausing" state and not in "paused" state'
+            self.assertIn(expected_error_message, put_resp.json['faultstring'])
 
             get_resp = self._do_get_one(execution_id)
             self.assertEqual(get_resp.status_int, 200)
