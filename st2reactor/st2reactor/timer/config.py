@@ -47,7 +47,7 @@ def _register_timers_engine_opts():
     # under ``timer`` section as well as ``timersengine``.
     logging_opts = [
         cfg.StrOpt(
-            'logging', default='conf/logging.timersengine.conf',
+            'logging', default='/etc/st2/logging.timersengine.conf',
             help='Location of the logging configuration file.')
     ]
 

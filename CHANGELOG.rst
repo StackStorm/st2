@@ -51,6 +51,8 @@ Changed
 * Update various internal dependencies to latest stable versions (greenlet, pymongo, pytz,
   stevedore, tooz). #4410
 
+* Improve ``st2.conf`` migration for the new services by using prod-friendly logging settings by default #4415
+
 Fixed
 ~~~~~
 
