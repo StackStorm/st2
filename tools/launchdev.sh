@@ -285,7 +285,7 @@ function st2start(){
 
     # Run the timer engine server
     echo 'Starting screen session st2-timersengine...'
-    screen -d -m -S st2-rulesengine ./virtualenv/bin/python \
+    screen -d -m -S st2-timersengine ./virtualenv/bin/python \
         ./st2reactor/bin/st2timersengine \
         --config-file $ST2_CONF
 
