@@ -169,7 +169,7 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
     def test_abandon_executions_on_complete(self):
         liveaction_db = self.MODELS['liveactions']['successful_liveaction.yaml']
         executions_util.create_execution_object(liveaction_db)
-        expected_msg = 'LiveAction %s already in a completed state %s\.' % \
+        expected_msg = r'LiveAction %s already in a completed state %s\.' % \
                        (str(liveaction_db.id), liveaction_db.status)
 
         self.assertRaisesRegexp(ValueError, expected_msg,

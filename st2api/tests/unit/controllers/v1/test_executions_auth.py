@@ -73,8 +73,12 @@ LIVE_ACTION_1 = {
     }
 }
 
+# NOTE: We use a longer expiry time because this variable is initialized on module import (aka
+# when nosetests or similar imports this module before running the tests.
+# Depending on when the import happens and when the tests actually run, token could already expire
+# by that time and the tests would fail.
 NOW = date_utils.get_datetime_utc_now()
-EXPIRY = NOW + datetime.timedelta(seconds=300)
+EXPIRY = NOW + datetime.timedelta(seconds=1000)
 SYS_TOKEN = TokenDB(id=bson.ObjectId(), user='system', token=uuid.uuid4().hex, expiry=EXPIRY)
 USR_TOKEN = TokenDB(id=bson.ObjectId(), user='tokenuser', token=uuid.uuid4().hex, expiry=EXPIRY)
 

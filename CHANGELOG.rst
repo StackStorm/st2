@@ -48,6 +48,8 @@ Changed
 
   If user wants to retrieve and view all the attributes, they can use ``--attr all`` CLI command
   argument (same as before). (improvement) #4396
+* Update various internal dependencies to latest stable versions (greenlet, pymongo, pytz,
+  stevedore, tooz). #4410
 
 * Improve ``st2.conf`` migration for the new services by using prod-friendly logging settings by default #4415
 

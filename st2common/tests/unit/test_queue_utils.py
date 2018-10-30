@@ -41,7 +41,7 @@ class TestQueueUtils(TestCase):
             queue_name_suffix='foo',
             add_random_uuid_to_suffix=True
         )
-        pattern = re.compile('st2.test.watch.foo-\w')
+        pattern = re.compile(r'st2.test.watch.foo-\w')
         self.assertTrue(re.match(pattern, queue_name))
 
         queue_name = queue_utils.get_queue_name(
