@@ -813,7 +813,8 @@ def request_next_tasks(wf_ex_db, task_ex_id=None):
         for task in next_tasks:
             try:
                 LOG.info('[%s] Requesting execution for task "%s".', wf_ac_ex_id, task['id'])
-                st2_ctx = {'execution_id': wf_ex_db.action_execution}
+                root_st2_ctx = wf_ex_db.context.get('st2', {})
+                st2_ctx = {'execution_id': wf_ac_ex_id, 'user': root_st2_ctx.get('user')}
                 request_task_execution(wf_ex_db, st2_ctx, task)
             except Exception as e:
                 LOG.exception('[%s] Failed task execution for "%s".', wf_ac_ex_id, task['id'])
