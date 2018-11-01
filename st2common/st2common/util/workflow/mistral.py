@@ -33,13 +33,13 @@ from st2common.util import action_db as action_utils
 LOG = logging.getLogger(__name__)
 
 
-CMD_PTRN = re.compile("^[\w\.]+[^=\s\"]*")
+CMD_PTRN = re.compile(r"^[\w\.]+[^=\s\"]*")
 
-INLINE_YAQL = '<%.*?%>'
-_ALL_IN_BRACKETS = "\[.*\]\s*"
-_ALL_IN_QUOTES = "\"[^\"]*\"\s*"
-_ALL_IN_APOSTROPHES = "'[^']*'\s*"
-_DIGITS = "\d+"
+INLINE_YAQL = r'<%.*?%>'
+_ALL_IN_BRACKETS = r"\[.*\]\s*"
+_ALL_IN_QUOTES = r"\"[^\"]*\"\s*"
+_ALL_IN_APOSTROPHES = r"'[^']*'\s*"
+_DIGITS = r"\d+"
 _TRUE = "true"
 _FALSE = "false"
 _NULL = "null"
@@ -49,7 +49,7 @@ ALL = (
     _ALL_IN_BRACKETS, _TRUE, _FALSE, _NULL, _DIGITS
 )
 
-PARAMS_PTRN = re.compile("([\w]+)=(%s)" % "|".join(ALL))
+PARAMS_PTRN = re.compile(r"([\w]+)=(%s)" % "|".join(ALL))
 
 SPEC_TYPES = {
     'adhoc': {
@@ -62,9 +62,9 @@ SPEC_TYPES = {
     }
 }
 
-JINJA_REGEX_WITH_ST2KV = '{{st2kv\..*?|.*?\sst2kv\..*?}}'
+JINJA_REGEX_WITH_ST2KV = r'{{st2kv\..*?|.*?\sst2kv\..*?}}'
 JINJA_REGEX_WITH_ST2KV_PTRN = re.compile(JINJA_REGEX_WITH_ST2KV)
-JINJA_REGEX_WITH_LOCAL_CTX = '{{.*?_\..*?}}'
+JINJA_REGEX_WITH_LOCAL_CTX = r'{{.*?_\..*?}}'
 JINJA_REGEX_WITH_LOCAL_CTX_PTRN = re.compile(JINJA_REGEX_WITH_LOCAL_CTX)
 
 

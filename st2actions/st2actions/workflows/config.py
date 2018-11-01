@@ -42,7 +42,7 @@ def _register_service_opts():
     wf_engine_opts = [
         cfg.StrOpt(
             'logging',
-            default='conf/logging.workflowengine.conf',
+            default='/etc/st2/logging.workflowengine.conf',
             help='Location of the logging configuration file.'
         )
     ]

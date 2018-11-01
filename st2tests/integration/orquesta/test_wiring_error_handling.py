@@ -27,7 +27,7 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
             {
                 'type': 'content',
                 'message': 'The action "std.noop" is not registered in the database.',
-                'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.action',
+                'schema_path': r'properties.tasks.patternProperties.^\w+$.properties.action',
                 'spec_path': 'tasks.task3.action'
             },
             {
@@ -35,7 +35,7 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
                 'language': 'yaql',
                 'expression': '<% ctx().foobar %>',
                 'message': 'Variable "foobar" is referenced before assignment.',
-                'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.input',
+                'schema_path': r'properties.tasks.patternProperties.^\w+$.properties.input',
                 'spec_path': 'tasks.task1.input',
             },
             {
@@ -47,15 +47,18 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
                     'position 0 of expression \'<% succeeded()\''
                 ),
                 'schema_path': (
-                    'properties.tasks.patternProperties.^\w+$.'
+                    r'properties.tasks.patternProperties.^\w+$.'
                     'properties.next.items.properties.when'
                 ),
                 'spec_path': 'tasks.task2.next[0].when'
             },
             {
                 'type': 'syntax',
-                'message': '[{\'cmd\': \'echo <% ctx().macro %>\'}] is not of type \'object\'',
-                'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.input.type',
+                'message': (
+                    '[{\'cmd\': \'echo <% ctx().macro %>\'}] is '
+                    'not valid under any of the given schemas'
+                ),
+                'schema_path': r'properties.tasks.patternProperties.^\w+$.properties.input.oneOf',
                 'spec_path': 'tasks.task2.input'
             }
         ]
@@ -132,27 +135,27 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
             {
                 'type': 'content',
                 'message': 'The action reference "echo" is not formatted correctly.',
-                'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.action',
+                'schema_path': r'properties.tasks.patternProperties.^\w+$.properties.action',
                 'spec_path': 'tasks.task1.action'
             },
             {
                 'type': 'content',
                 'message': 'The action "core.echoz" is not registered in the database.',
-                'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.action',
+                'schema_path': r'properties.tasks.patternProperties.^\w+$.properties.action',
                 'spec_path': 'tasks.task2.action'
             },
             {
                 'type': 'content',
                 'message': 'Action "core.echo" is missing required input "message".',
-                'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.input',
+                'schema_path': r'properties.tasks.patternProperties.^\w+$.properties.input',
                 'spec_path': 'tasks.task3.input'
             },
             {
                 'type': 'content',
                 'message': 'Action "core.echo" has unexpected input "messages".',
                 'schema_path': (
-                    'properties.tasks.patternProperties.^\w+$.properties.input.'
-                    'patternProperties.^\w+$'
+                    r'properties.tasks.patternProperties.^\w+$.properties.input.'
+                    r'patternProperties.^\w+$'
                 ),
                 'spec_path': 'tasks.task3.input.messages'
             }

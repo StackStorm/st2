@@ -62,7 +62,7 @@ class BaseWindowsRunner(ActionRunner):
         args += ['--interactive', '0']
 
         if domain:
-            args += ['-U', '%s\%s%%%s' % (domain, username, password)]
+            args += ['-U', r'%s\%s%%%s' % (domain, username, password)]
         else:
             args += ['-U', '%s%%%s' % (username, password)]
 
@@ -84,7 +84,7 @@ class BaseWindowsRunner(ActionRunner):
 
         values = {'domain': domain, 'username': username, 'password': password}
         if domain:
-            auth_string = '%(domain)s\%(username)s%%%(password)s' % values
+            auth_string = r'%(domain)s\%(username)s%%%(password)s' % values
         else:
             auth_string = '%(username)s%%%(password)s' % values
 

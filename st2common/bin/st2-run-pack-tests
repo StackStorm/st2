@@ -230,7 +230,7 @@ if [ "${JUST_TESTS}" = false ]; then
     fi
 
     # Install global test dependencies
-    INSTALLED_PIP_PACKAGES=$(pip list --format legacy)
+    INSTALLED_PIP_PACKAGES=$(pip list --format freeze)
 
     echo "Installing global pack test dependencies..."
     for((i = 0; i < ${#PACK_TEST_PYTHON_DEPENDENCIES_NAMES[@]}; i++)); do
