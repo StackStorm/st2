@@ -37,6 +37,7 @@ from st2common.persistence import execution as ex_db_access
 from st2common.persistence import liveaction as lv_db_access
 from st2common.persistence import workflow as wf_db_access
 from st2common.runners import base as runners
+from st2common.runners import utils as runners_utils
 from st2common.services import action as ac_svc
 from st2common.services import policies as pc_svc
 from st2common.services import workflows as wf_svc
@@ -98,6 +99,10 @@ class OrquestaRunnerTest(st2tests.DbTestCase):
     def get_runner_class(cls, runner_name):
         return runners.get_runner(runner_name, runner_name).__class__
 
+    @mock.patch.object(
+        runners_utils,
+        'invoke_post_run',
+        mock.MagicMock(return_value=None))
     def test_run_workflow(self):
         username = 'stanley'
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
@@ -214,6 +219,10 @@ class OrquestaRunnerTest(st2tests.DbTestCase):
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db.id))
         self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+
+        # Check post run is invoked for the liveaction.
+        self.assertTrue(runners_utils.invoke_post_run.called)
+        self.assertEqual(runners_utils.invoke_post_run.call_count, 1)
 
         # Check workflow output.
         expected_output = {'msg': '%s, All your base are belong to us!' % wf_input['who']}
