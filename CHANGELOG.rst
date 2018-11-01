@@ -69,9 +69,6 @@ Fixed
   CLI incorrectly tried to parse that string as unicode escape sequence.
 
   Reported by James E. King III @jeking3 (bug fix) #4407
-
-  * st2 login now exits with non zero exit code when login fails due to invalid credentials.
-  (improvement) #4338
 * ``st2 pack install -j`` now only spits JSON output. Similarly, ``st2 pack install -y`` only spits
   YAML output. This change would enable the output to be parsed by tools.
   The behavior of ``st2 pack install`` hasn't changed and is human friendly. If you want to get meta
