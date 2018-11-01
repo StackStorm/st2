@@ -153,12 +153,6 @@ function st2start(){
     # Change working directory to the root of the repo.
     echo "Changing working directory to ${ST2_REPO}..."
     cd ${ST2_REPO}
-    RUNNERS_BASE_DIR=$(grep 'runners_base_path' ${ST2_CONF} \
-        | awk 'BEGIN {FS=" = "}; {print $2}')
-    if [ -z $RUNNERS_BASE_DIR ]; then
-        RUNNERS_BASE_DIR="/opt/stackstorm/runners"
-    fi
-    echo "Using runners base dir: $RUNNERS_BASE_DIR"
 
     BASE_DIR=$(grep 'base_path' ${ST2_CONF} \
         | awk 'BEGIN {FS=" = "}; {print $2}')
@@ -184,7 +178,6 @@ function st2start(){
     if [ ! -d "$ST2_BASE_DIR" ]; then
         echo "$ST2_BASE_DIR doesn't exist. Creating..."
         sudo mkdir -p $PACKS_BASE_DIR
-        sudo mkdir -p $RUNNERS_BASE_DIR
     fi
 
     if [ "${use_ipv6}" = true ]; then
@@ -200,14 +193,11 @@ function st2start(){
     sudo mkdir -p $PACKS_BASE_DIR/default/actions/
     sudo mkdir -p $PACKS_BASE_DIR/default/rules/
     sudo mkdir -p $VIRTUALENVS_DIR
-    sudo mkdir -p $RUNNERS_BASE_DIR
     sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $PACKS_BASE_DIR
-    sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $RUNNERS_BASE_DIR
     sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $VIRTUALENVS_DIR
     sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $CONFIG_BASE_DIR
     cp -Rp ./contrib/core/ $PACKS_BASE_DIR
     cp -Rp ./contrib/packs/ $PACKS_BASE_DIR
-    cp -Rp ./contrib/runners/* $RUNNERS_BASE_DIR
 
     if [ "$copy_examples" = true ]; then
         echo "Copying examples from ./contrib/examples to $PACKS_BASE_DIR"
@@ -295,7 +285,7 @@ function st2start(){
 
     # Run the timer engine server
     echo 'Starting screen session st2-timersengine...'
-    screen -d -m -S st2-rulesengine ./virtualenv/bin/python \
+    screen -d -m -S st2-timersengine ./virtualenv/bin/python \
         ./st2reactor/bin/st2timersengine \
         --config-file $ST2_CONF
 

@@ -47,7 +47,7 @@ def _register_common_opts():
 def _register_results_tracker_opts():
     resultstracker_opts = [
         cfg.StrOpt(
-            'logging', default='conf/logging.resultstracker.conf',
+            'logging', default='/etc/st2/logging.resultstracker.conf',
             help='Location of the logging configuration file.')
     ]
 

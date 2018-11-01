@@ -172,9 +172,6 @@ def register_sensors():
 
 def register_runners():
     # Register runners
-    runner_dir = cfg.CONF.register.runner_dir
-    if runner_dir:
-        runner_dir = [runner_dir]
     registered_count = 0
     fail_on_failure = cfg.CONF.register.fail_on_failure
 
@@ -183,8 +180,7 @@ def register_runners():
         LOG.info('=========================================================')
         LOG.info('############## Registering runners ######################')
         LOG.info('=========================================================')
-        registered_count = runners_registrar.register_runners(runner_dirs=runner_dir,
-                                                              fail_on_failure=fail_on_failure,
+        registered_count = runners_registrar.register_runners(fail_on_failure=fail_on_failure,
                                                               experimental=False)
     except Exception as error:
         exc_info = not fail_on_failure

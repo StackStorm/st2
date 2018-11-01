@@ -42,8 +42,6 @@ import st2common.util.action_db as action_utils
 from st2common.util import reference
 from st2reactor.rules.enforcer import RuleEnforcer
 
-from action_chain_runner import action_chain_runner
-from local_runner import local_shell_command_runner as local_runner
 from local_runner.local_shell_command_runner import LocalShellCommandRunner
 
 from st2tests.fixtures.packs import executions as fixture
@@ -57,8 +55,6 @@ MOCK_FAIL_EXECUTION_CREATE = False
 @mock.patch.object(LocalShellCommandRunner, 'run',
                    mock.MagicMock(return_value=(action_constants.LIVEACTION_STATUS_FAILED,
                                                 'Non-empty', None)))
-@mock.patch('st2common.runners.base.register_runner',
-            mock.MagicMock(return_value=local_runner))
 @mock.patch.object(CUDPublisher, 'publish_create',
                    mock.MagicMock(side_effect=MockLiveActionPublisher.publish_create))
 @mock.patch.object(LiveActionPublisher, 'publish_state',
@@ -108,32 +104,30 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         self.test_basic_execution()
 
     def test_chained_executions(self):
-        with mock.patch('st2common.runners.base.register_runner',
-                        mock.MagicMock(return_value=action_chain_runner)):
-            liveaction = LiveActionDB(action='executions.chain')
-            liveaction, _ = action_service.request(liveaction)
-            liveaction = LiveAction.get_by_id(str(liveaction.id))
-            self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
-            execution = self._get_action_execution(liveaction__id=str(liveaction.id),
-                                                raise_exception=True)
-            action = action_utils.get_action_by_ref('executions.chain')
-            self.assertDictEqual(execution.action, vars(ActionAPI.from_model(action)))
-            runner = RunnerType.get_by_name(action.runner_type['name'])
-            self.assertDictEqual(execution.runner, vars(RunnerTypeAPI.from_model(runner)))
-            liveaction = LiveAction.get_by_id(str(liveaction.id))
-            self.assertEqual(execution.start_timestamp, liveaction.start_timestamp)
-            self.assertEqual(execution.end_timestamp, liveaction.end_timestamp)
-            self.assertEqual(execution.result, liveaction.result)
-            self.assertEqual(execution.status, liveaction.status)
-            self.assertEqual(execution.context, liveaction.context)
-            self.assertEqual(execution.liveaction['callback'], liveaction.callback)
-            self.assertEqual(execution.liveaction['action'], liveaction.action)
-            self.assertGreater(len(execution.children), 0)
-            for child in execution.children:
-                record = ActionExecution.get(id=child, raise_exception=True)
-                self.assertEqual(record.parent, str(execution.id))
-                self.assertEqual(record.action['name'], 'local')
-                self.assertEqual(record.runner['name'], 'run-local')
+        liveaction = LiveActionDB(action='executions.chain')
+        liveaction, _ = action_service.request(liveaction)
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
+        execution = self._get_action_execution(liveaction__id=str(liveaction.id),
+                                            raise_exception=True)
+        action = action_utils.get_action_by_ref('executions.chain')
+        self.assertDictEqual(execution.action, vars(ActionAPI.from_model(action)))
+        runner = RunnerType.get_by_name(action.runner_type['name'])
+        self.assertDictEqual(execution.runner, vars(RunnerTypeAPI.from_model(runner)))
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+        self.assertEqual(execution.start_timestamp, liveaction.start_timestamp)
+        self.assertEqual(execution.end_timestamp, liveaction.end_timestamp)
+        self.assertEqual(execution.result, liveaction.result)
+        self.assertEqual(execution.status, liveaction.status)
+        self.assertEqual(execution.context, liveaction.context)
+        self.assertEqual(execution.liveaction['callback'], liveaction.callback)
+        self.assertEqual(execution.liveaction['action'], liveaction.action)
+        self.assertGreater(len(execution.children), 0)
+        for child in execution.children:
+            record = ActionExecution.get(id=child, raise_exception=True)
+            self.assertEqual(record.parent, str(execution.id))
+            self.assertEqual(record.action['name'], 'local')
+            self.assertEqual(record.runner['name'], 'local-shell-cmd')
 
     def test_triggered_execution(self):
         docs = {

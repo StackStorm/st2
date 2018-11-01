@@ -13,18 +13,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import
-import uuid
+import unittest2
 
-from st2common.constants import action as action_constants
-from st2common.query.base import Querier
+from st2common.util.types import OrderedSet
 
-
-def get_query_instance():
-    return MockQuerier(str(uuid.uuid4()))
+__all__ = [
+    'OrderedTestTypeTestCase'
+]
 
 
-class MockQuerier(Querier):
+class OrderedTestTypeTestCase(unittest2.TestCase):
+    def test_ordered_set(self):
+        set1 = OrderedSet([1, 2, 3, 3, 4, 2, 1, 5])
+        self.assertEqual(set1, [1, 2, 3, 4, 5])
 
-    def query(self, execution_id, query_context):
-        return (action_constants.LIVEACTION_STATUS_SUCCEEDED, {})
+        set2 = OrderedSet([5, 4, 3, 2, 1])
+        self.assertEqual(set2, [5, 4, 3, 2, 1])
+
+        set3 = OrderedSet([1, 2, 3, 4, 5, 5, 4, 3, 2, 1])
+        self.assertEqual(set3, [1, 2, 3, 4, 5])
+
+        set4 = OrderedSet([1, 1, 1, 1, 4, 4, 4, 9])
+        self.assertEqual(set4, [1, 4, 9])

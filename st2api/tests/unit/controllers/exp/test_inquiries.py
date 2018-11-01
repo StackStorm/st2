@@ -40,7 +40,7 @@ ACTION_1 = {
     'description': 'test description',
     'enabled': True,
     'pack': 'testpack',
-    'runner_type': 'run-local',
+    'runner_type': 'local-shell-cmd',
 }
 
 LIVE_ACTION_1 = {

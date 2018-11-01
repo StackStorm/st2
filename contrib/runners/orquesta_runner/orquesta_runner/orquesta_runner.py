@@ -24,6 +24,7 @@ from orquesta import states as wf_states
 
 from st2common.constants import action as ac_const
 from st2common import log as logging
+from st2common.models.api import notification as notify_api_models
 from st2common.persistence import execution as ex_db_access
 from st2common.persistence import liveaction as lv_db_access
 from st2common.runners import base as runners
@@ -48,6 +49,13 @@ class OrquestaRunner(runners.AsyncActionRunner):
     def get_workflow_definition(entry_point):
         with open(entry_point, 'r') as def_file:
             return def_file.read()
+
+    def _get_notify_config(self):
+        return (
+            notify_api_models.NotificationsHelper.from_model(notify_model=self.liveaction.notify)
+            if self.liveaction.notify
+            else None
+        )
 
     def _construct_context(self, wf_ex):
         ctx = ujson.fast_deepcopy(self.context)
@@ -76,7 +84,8 @@ class OrquestaRunner(runners.AsyncActionRunner):
         try:
             # Request workflow execution.
             st2_ctx = self._construct_st2_context()
-            wf_ex_db = wf_svc.request(wf_def, self.execution, st2_ctx)
+            notify_cfg = self._get_notify_config()
+            wf_ex_db = wf_svc.request(wf_def, self.execution, st2_ctx, notify_cfg)
         except wf_exc.WorkflowInspectionError as e:
             status = ac_const.LIVEACTION_STATUS_FAILED
             result = {'errors': e.args[1], 'output': None}
@@ -134,7 +143,7 @@ class OrquestaRunner(runners.AsyncActionRunner):
 
     def resume(self):
         # Resume the target workflow.
-        wf_svc.request_resume(self.execution)
+        wf_ex_db = wf_svc.request_resume(self.execution)
 
         # Request resume of tasks that are workflows and still running.
         for child_ex_id in self.execution.children:
@@ -147,7 +156,7 @@ class OrquestaRunner(runners.AsyncActionRunner):
                 )
 
         return (
-            ac_const.LIVEACTION_STATUS_RUNNING,
+            wf_ex_db.status if wf_ex_db else ac_const.LIVEACTION_STATUS_RUNNING,
             self.liveaction.result,
             self.liveaction.context
         )
@@ -184,4 +193,4 @@ def get_runner():
 
 
 def get_metadata():
-    return runners.get_metadata('orquesta_runner')
+    return runners.get_metadata('orquesta_runner')[0]

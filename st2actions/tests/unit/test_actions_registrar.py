@@ -66,8 +66,8 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
             content = yaml.safe_load(fd)
             action_name = str(content['name'])
             action_db = Action.get_by_name(action_name)
-            self.assertEqual(action_db.pack, 'dummy', 'Content pack must be ' +
-                             'set to dummy')
+            expected_msg = 'Content pack must be set to dummy'
+            self.assertEqual(action_db.pack, 'dummy', expected_msg)
             Action.delete(action_db)
 
     @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(return_value=True))
@@ -138,6 +138,6 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
             content = yaml.safe_load(fd)
             action_name = str(content['name'])
             action_db = Action.get_by_name(action_name)
-            self.assertEqual(action_db.pack, 'wolfpack', 'Content pack must be ' +
-                             'set to wolfpack')
+            expected_msg = 'Content pack must be set to wolfpack'
+            self.assertEqual(action_db.pack, 'wolfpack', expected_msg)
             Action.delete(action_db)

@@ -221,15 +221,25 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
         wf_def = self.get_wf_def(TEST_PACK_PATH, wf_meta)
         st2_ctx = self.mock_st2_context(ac_ex_db)
         wf_ex_db = wf_svc.request(wf_def, ac_ex_db, st2_ctx)
+        spec_module = specs_loader.get_spec_module(wf_ex_db.spec['catalog'])
+        wf_spec = spec_module.WorkflowSpec.deserialize(wf_ex_db.spec)
 
         # Manually request task execution.
         task_id = 'task1'
-        spec_module = specs_loader.get_spec_module(wf_ex_db.spec['catalog'])
-        wf_spec = spec_module.WorkflowSpec.deserialize(wf_ex_db.spec)
         task_spec = wf_spec.tasks.get_task(task_id)
         task_ctx = {'foo': 'bar'}
         st2_ctx = {'execution_id': wf_ex_db.action_execution}
-        wf_svc.request_task_execution(wf_ex_db, task_id, task_spec, task_ctx, st2_ctx)
+
+        task_req = {
+            'id': task_id,
+            'spec': task_spec,
+            'ctx': task_ctx,
+            'actions': [
+                {'action': 'core.echo', 'input': {'message': 'Veni, vidi, vici.'}}
+            ]
+        }
+
+        wf_svc.request_task_execution(wf_ex_db, st2_ctx, task_req)
 
         # Check task execution is saved to the database.
         task_ex_dbs = wf_db_access.TaskExecution.query(workflow_execution=str(wf_ex_db.id))
@@ -261,25 +271,30 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
         wf_def = self.get_wf_def(TEST_PACK_PATH, wf_meta)
         st2_ctx = self.mock_st2_context(ac_ex_db)
         wf_ex_db = wf_svc.request(wf_def, ac_ex_db, st2_ctx)
+        spec_module = specs_loader.get_spec_module(wf_ex_db.spec['catalog'])
+        wf_spec = spec_module.WorkflowSpec.deserialize(wf_ex_db.spec)
 
         # Manually request task execution.
         task_id = 'task1'
-        spec_module = specs_loader.get_spec_module(wf_ex_db.spec['catalog'])
-        wf_spec = spec_module.WorkflowSpec.deserialize(wf_ex_db.spec)
         task_spec = wf_spec.tasks.get_task(task_id)
         task_ctx = {'foo': 'bar'}
         st2_ctx = {'execution_id': wf_ex_db.action_execution}
 
-        task_spec.action = 'mock.foobar'
+        task_req = {
+            'id': task_id,
+            'spec': task_spec,
+            'ctx': task_ctx,
+            'actions': [
+                {'action': 'mock.echo', 'input': {'message': 'Veni, vidi, vici.'}}
+            ]
+        }
 
         self.assertRaises(
             ac_exc.InvalidActionReferencedException,
             wf_svc.request_task_execution,
             wf_ex_db,
-            task_id,
-            task_spec,
-            task_ctx,
-            st2_ctx
+            st2_ctx,
+            task_req
         )
 
     def test_handle_action_execution_completion(self):

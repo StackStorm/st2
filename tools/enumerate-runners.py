@@ -29,7 +29,7 @@ for name in extension_names:
     manager = DriverManager(namespace='st2common.runners.runner', invoke_on_load=False,
                             name=name)
     runner_instance = manager.driver.get_runner()
-    runner_metadata = manager.driver.get_metadata()[0]
+    runner_metadata = manager.driver.get_metadata()
 
     print('- %s (runner_module=%s,cls=%s)' % (name, runner_metadata['runner_module'],
                                               runner_instance.__class__))
