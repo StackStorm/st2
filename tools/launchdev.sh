@@ -402,7 +402,7 @@ function st2stop(){
     fi
 
     if [ "${use_gunicorn}" = true ]; then
-        pids=`ps -ef | grep "gunicorn_config.py" | awk '{print $2}'`
+        pids=`ps -ef | grep "wsgi:application" | awk '{print $2}'`
         if [ -n "$pids" ]; then
             echo "Killing gunicorn processes"
             # true ensures that any failure to kill a process which does not exist will not lead
