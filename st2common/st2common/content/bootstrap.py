@@ -137,8 +137,11 @@ def register_triggers():
         LOG.info('=========================================================')
         LOG.info('############## Registering triggers #####################')
         LOG.info('=========================================================')
-        registered_count = triggers_registrar.register_triggers(pack_dir=pack_dir,
-                                                                fail_on_failure=fail_on_failure)
+        with Timer(key='st2.register.triggers'):
+            registered_count = triggers_registrar.register_triggers(
+                pack_dir=pack_dir,
+                fail_on_failure=fail_on_failure
+            )
     except Exception as e:
         exc_info = not fail_on_failure
         LOG.warning('Failed to register sensors: %s', e, exc_info=exc_info)
@@ -159,8 +162,11 @@ def register_sensors():
         LOG.info('=========================================================')
         LOG.info('############## Registering sensors ######################')
         LOG.info('=========================================================')
-        registered_count = sensors_registrar.register_sensors(pack_dir=pack_dir,
-                                                              fail_on_failure=fail_on_failure)
+        with Timer(key='st2.register.sensors'):
+            registered_count = sensors_registrar.register_sensors(
+                pack_dir=pack_dir,
+                fail_on_failure=fail_on_failure
+            )
     except Exception as e:
         exc_info = not fail_on_failure
         LOG.warning('Failed to register sensors: %s', e, exc_info=exc_info)
@@ -181,8 +187,11 @@ def register_runners():
         LOG.info('=========================================================')
         LOG.info('############## Registering runners ######################')
         LOG.info('=========================================================')
-        registered_count = runners_registrar.register_runners(fail_on_failure=fail_on_failure,
-                                                              experimental=False)
+        with Timer(key='st2.register.runners'):
+            registered_count = runners_registrar.register_runners(
+                fail_on_failure=fail_on_failure,
+                experimental=False
+            )
     except Exception as error:
         exc_info = not fail_on_failure
 
@@ -207,8 +216,11 @@ def register_actions():
         LOG.info('=========================================================')
         LOG.info('############## Registering actions ######################')
         LOG.info('=========================================================')
-        registered_count = actions_registrar.register_actions(pack_dir=pack_dir,
-                                                              fail_on_failure=fail_on_failure)
+        with Timer(key='st2.register.actions'):
+            registered_count = actions_registrar.register_actions(
+                pack_dir=pack_dir,
+                fail_on_failure=fail_on_failure
+            )
     except Exception as e:
         exc_info = not fail_on_failure
         LOG.warning('Failed to register actions: %s', e, exc_info=exc_info)
@@ -236,8 +248,11 @@ def register_rules():
         return
 
     try:
-        registered_count = rules_registrar.register_rules(pack_dir=pack_dir,
-                                                          fail_on_failure=fail_on_failure)
+        with Timer(key='st2.register.rules'):
+            registered_count = rules_registrar.register_rules(
+                pack_dir=pack_dir,
+                fail_on_failure=fail_on_failure
+            )
     except Exception as e:
         exc_info = not fail_on_failure
         LOG.warning('Failed to register rules: %s', e, exc_info=exc_info)
@@ -258,8 +273,11 @@ def register_aliases():
         LOG.info('=========================================================')
         LOG.info('############## Registering aliases ######################')
         LOG.info('=========================================================')
-        registered_count = aliases_registrar.register_aliases(pack_dir=pack_dir,
-                                                              fail_on_failure=fail_on_failure)
+        with Timer(key='st2.register.aliases'):
+            registered_count = aliases_registrar.register_aliases(
+                pack_dir=pack_dir,
+                fail_on_failure=fail_on_failure
+            )
     except Exception as e:
         if fail_on_failure:
             raise e
@@ -280,7 +298,8 @@ def register_policies():
         LOG.info('=========================================================')
         LOG.info('############## Registering policy types #################')
         LOG.info('=========================================================')
-        registered_type_count = policies_registrar.register_policy_types(st2common)
+        with Timer(key='st2.register.policies'):
+            registered_type_count = policies_registrar.register_policy_types(st2common)
     except Exception:
         LOG.warning('Failed to register policy types.', exc_info=True)
 
@@ -313,9 +332,12 @@ def register_configs():
         LOG.info('=========================================================')
         LOG.info('############## Registering configs ######################')
         LOG.info('=========================================================')
-        registered_count = configs_registrar.register_configs(pack_dir=pack_dir,
-                                                              fail_on_failure=fail_on_failure,
-                                                              validate_configs=True)
+        with Timer(key='st2.register.configs'):
+            registered_count = configs_registrar.register_configs(
+                pack_dir=pack_dir,
+                fail_on_failure=fail_on_failure,
+                validate_configs=True
+            )
     except Exception as e:
         exc_info = not fail_on_failure
         LOG.warning('Failed to register configs: %s', e, exc_info=exc_info)
@@ -330,22 +352,14 @@ def register_content():
     register_all = cfg.CONF.register.all
 
     if register_all:
-        with Timer(key='st2.register.triggers'):
-            register_triggers()
-        with Timer(key='st2.register.sensors'):
-            register_sensors()
-        with Timer(key='st2.register.runners'):
-            register_runners()
-        with Timer(key='st2.register.actions'):
-            register_actions()
-        with Timer(key='st2.register.rules'):
-            register_rules()
-        with Timer(key='st2.register.aliases'):
-            register_aliases()
-        with Timer(key='st2.register.policies'):
-            register_policies()
-        with Timer(key='st2.register.configs'):
-            register_configs()
+        register_triggers()
+        register_sensors()
+        register_runners()
+        register_actions()
+        register_rules()
+        register_aliases()
+        register_policies()
+        register_configs()
 
     if cfg.CONF.register.triggers and not register_all:
         register_triggers()
