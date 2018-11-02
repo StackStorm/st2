@@ -59,10 +59,14 @@ function init(){
         ST2_REPO=${CURRENT_DIR}/${COMMAND_PATH}/..
     fi
 
-    VENV=${ST2_REPO}/virtualenv
+    VIRTUALENV=${VIRTUALENV:-${ST2_REPO}/virtualenv}
+
+    VENV=${VIRTUALENV}
     PY=${VENV}/bin/python
+    PYTHON_VERSION=$(${PY} --version 2>&1)
+
     echo "Using virtualenv: ${VENV}"
-    echo "Using python: ${PY}"
+    echo "Using python: ${PY} (${PYTHON_VERSION})"
 
     if [ -z "$ST2_CONF" ]; then
         ST2_CONF=${ST2_REPO}/conf/st2.dev.conf
