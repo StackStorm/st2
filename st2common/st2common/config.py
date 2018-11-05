@@ -567,6 +567,28 @@ def register_opts(ignore_errors=False):
 
     do_register_opts(metrics_opts, group='metrics', ignore_errors=ignore_errors)
 
+    # Common timers engine options
+    logging_opts = [
+        cfg.StrOpt(
+            'logging', default='/etc/st2/logging.timersengine.conf',
+            help='Location of the logging configuration file.')
+    ]
+
+    do_register_opts(logging_opts, group='timer', ignore_errors=ignore_errors)
+    do_register_opts(logging_opts, group='timersengine', ignore_errors=ignore_errors)
+
+    timer_opts = [
+        cfg.StrOpt(
+            'local_timezone', default='America/Los_Angeles',
+            help='Timezone pertaining to the location where st2 is run.'),
+        cfg.BoolOpt(
+            'enable', default=True,
+            help='Specify to enable timer service.')
+    ]
+
+    do_register_opts(timer_opts, group='timer', ignore_errors=ignore_errors)
+    do_register_opts(timer_opts, group='timersengine', ignore_errors=ignore_errors)
+
 
 def parse_args(args=None):
     register_opts()
