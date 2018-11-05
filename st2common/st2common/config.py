@@ -571,7 +571,8 @@ def register_opts(ignore_errors=False):
     timer_logging_opts = [
         cfg.StrOpt(
             'logging', default=None,
-            help='Location of the logging configuration file.')
+            help='Location of the logging configuration file. '
+                 'NOTE: Deprecated in favor of timersengine.logging'),
     ]
 
     timers_engine_logging_opts = [
@@ -589,10 +590,12 @@ def register_opts(ignore_errors=False):
     timer_opts = [
         cfg.StrOpt(
             'local_timezone', default=None,
-            help='Timezone pertaining to the location where st2 is run.'),
+            help='Timezone pertaining to the location where st2 is run. '
+                 'NOTE: Deprecated in favor of timersengine.local_timezone'),
         cfg.BoolOpt(
             'enable', default=None,
-            help='Specify to enable timer service.')
+            help='Specify to enable timer service. '
+                 'NOTE: Deprecated in favor of timersengine.enable'),
     ]
 
     timers_engine_opts = [
