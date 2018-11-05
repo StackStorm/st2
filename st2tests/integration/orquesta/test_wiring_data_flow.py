@@ -57,6 +57,22 @@ class WiringTest(base.TestWorkflowExecution):
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         self.assertDictEqual(ex.result, expected_result)
 
+    def test_data_flow_unicode_concat_with_ascii(self):
+        wf_name = 'examples.orquesta-sequential'
+        wf_input = {'name': '薩諾斯'}
+
+        expected_output = {
+            'greeting': '%s, All your base are belong to us!' % wf_input['name'].decode('utf-8')
+        }
+
+        expected_result = {'output': expected_output}
+
+        ex = self._execute_workflow(wf_name, wf_input)
+        ex = self._wait_for_completion(ex)
+
+        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertDictEqual(ex.result, expected_result)
+
     def test_data_flow_big_data_size(self):
         wf_name = 'examples.orquesta-data-flow'
 
