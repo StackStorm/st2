@@ -4,7 +4,7 @@ cryptography==2.3.1
 eventlet==0.24.1
 flex==6.13.2
 git+https://github.com/StackStorm/mongoengine.git@stackstorm_patched#egg=mongoengine
-git+https://github.com/StackStorm/orquesta.git@142a19ddabbeea6a8d9d10341ba70585114dc3b7#egg=orquesta
+git+https://github.com/StackStorm/orquesta.git@73e06ae056914ccb17cf4a7ac3c5c8e78568c8cb#egg=orquesta
 greenlet==0.4.15
 ipaddr
 jinja2
