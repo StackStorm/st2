@@ -267,6 +267,12 @@ function st2start(){
             --config-file $ST2_CONF
     done
 
+    # Run the garbage collector service
+    echo 'Starting screen session st2-garbagecollector'
+    screen -d -m -S st2-garbagecollector ${VIRTUALENV}/bin/python \
+        ./st2reactor/bin/st2garbagecollector \
+        --config-file $ST2_CONF
+
     # Run the scheduler server
     echo 'Starting screen session st2-scheduler'
     screen -d -m -S st2-scheduler ${VIRTUALENV}/bin/python \
@@ -360,6 +366,7 @@ function st2start(){
         "st2-auth"
         "st2-timersengine"
         "st2-scheduler"
+        "st2-garbagecollector"
     )
 
     if [ "${include_mistral}" = true ]; then
