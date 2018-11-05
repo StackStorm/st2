@@ -250,7 +250,7 @@ class ConsoleLogFormatterTestCase(unittest.TestCase):
         record._action_execution_db = mock_action_execution_db
 
         expected_msg_part = (r"'parameters': {u?'parameter1': u?'value1', "
-                             "u?'parameter2': u?'\*\*\*\*\*\*\*\*'}")
+                             r"u?'parameter2': u?'\*\*\*\*\*\*\*\*'}")
 
         message = formatter.format(record=record)
         self.assertTrue('test message 1' in message)

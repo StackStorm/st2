@@ -2,13 +2,17 @@ ROOT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 SHELL := /bin/bash
 TOX_DIR := .tox
 OS := $(shell uname)
+
 # We separate the OSX X and Linux virtualenvs so we can run in a Docker
 # container (st2devbox) while doing things on our host Mac machine
 ifeq ($(OS),Darwin)
 	VIRTUALENV_DIR ?= virtualenv-osx
+	VIRTUALENV_ST2CLIENT_DIR ?= virtualenv-st2client-osx
 else
 	VIRTUALENV_DIR ?= virtualenv
+	VIRTUALENV_ST2CLIENT_DIR ?= virtualenv-st2client
 endif
+
 PYTHON_VERSION = python2.7
 
 BINARIES := bin
@@ -232,6 +236,31 @@ flake8: requirements .flake8
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./lint-configs/python/.flake8 tools/
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./lint-configs/python/.flake8 pylint_plugins/
 
+# Make task which verifies st2client installs and works fine
+.PHONY: .st2client-install-check
+.st2client-install-check:
+	@echo
+	@echo "==================== st2client install check ===================="
+	@echo
+	test -f $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) --no-site-packages $(VIRTUALENV_ST2CLIENT_DIR) --no-download
+
+	# Setup PYTHONPATH in bash activate script...
+	# Delete existing entries (if any)
+	sed -i '/_OLD_PYTHONPATHp/d' $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
+	sed -i '/PYTHONPATH=/d' $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
+	sed -i '/export PYTHONPATH/d' $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
+
+	echo '_OLD_PYTHONPATH=$$PYTHONPATH' >> $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
+	echo 'PYTHONPATH=${ROOT_DIR}:$(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
+	echo 'export PYTHONPATH' >> $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
+	touch $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
+	chmod +x $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
+
+	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "pip>=9.0,<9.1"
+	$(VIRTUALENV_ST2CLIENT_DIR)/bin/activate; cd st2client ; ../$(VIRTUALENV_ST2CLIENT_DIR)/bin/python setup.py install ; cd ..
+	$(VIRTUALENV_ST2CLIENT_DIR)/bin/st2 --version
+	$(VIRTUALENV_ST2CLIENT_DIR)/bin/python -c "import st2client"
+
 .PHONY: bandit
 bandit: requirements .bandit
 
@@ -246,7 +275,7 @@ bandit: requirements .bandit
 lint: requirements .lint
 
 .PHONY: .lint
-.lint: .generate-api-spec .flake8 .pylint .bandit .st2client-dependencies-check .st2common-circular-dependencies-check .rst-check
+.lint: .generate-api-spec .flake8 .pylint .bandit .st2client-dependencies-check .st2common-circular-dependencies-check .rst-check .st2client-install-check
 
 .PHONY: clean
 clean: .cleanpycs
@@ -352,6 +381,10 @@ requirements: virtualenv .sdist-requirements install-runners
 
 	# Fix for Travis CI race
 	$(VIRTUALENV_DIR)/bin/pip install "six==1.11.0"
+
+	# Fix for Travis CI caching issue
+	$(VIRTUALENV_DIR)/bin/pip uninstall -y "pytz" || echo "not installed"
+	$(VIRTUALENV_DIR)/bin/pip uninstall -y "python-dateutil" || echo "not installed"
 
 	# Install requirements
 	#
@@ -788,7 +821,7 @@ debs:
 ci: ci-checks ci-unit ci-integration ci-mistral ci-packs-tests
 
 .PHONY: ci-checks
-ci-checks: compile .generated-files-check .pylint .flake8 .bandit .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check
+ci-checks: compile .generated-files-check .pylint .flake8 .bandit .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check
 
 .PHONY: ci-py3-unit
 ci-py3-unit:

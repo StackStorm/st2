@@ -223,7 +223,7 @@ class ConfigSchemaAPI(BaseAPI):
                 "description": "Config schema attributes.",
                 "type": "object",
                 "patternProperties": {
-                    "^\w+$": util_schema.get_action_parameters_schema()
+                    r"^\w+$": util_schema.get_action_parameters_schema()
                 },
                 'additionalProperties': False,
                 "default": {}

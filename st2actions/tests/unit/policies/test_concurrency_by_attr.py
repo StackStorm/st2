@@ -85,7 +85,14 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, DbTestCase):
         loader.save_fixtures_to_db(fixtures_pack=PACK,
                                    fixtures_dict=TEST_FIXTURES)
 
+    def setUp(self):
+        super(ConcurrencyByAttributePolicyTestCase, self).setUp()
+
+        MockLiveActionPublisherNonBlocking.wait_all()
+
     def tearDown(self):
+        MockLiveActionPublisherNonBlocking.wait_all()
+
         for liveaction in LiveAction.get_all():
             action_service.update_status(
                 liveaction, action_constants.LIVEACTION_STATUS_CANCELED)
@@ -109,6 +116,8 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, DbTestCase):
             liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'fu'})
             action_service.request(liveaction)
 
+        MockLiveActionPublisherNonBlocking.wait_all()
+
         # Since states are being processed asynchronously, wait for the
         # liveactions to go into scheduled states.
         for i in range(0, 100):
@@ -116,6 +125,8 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, DbTestCase):
             scheduled = [item for item in LiveAction.get_all() if item.status in SCHEDULED_STATES]
             if len(scheduled) == policy_db.parameters['threshold']:
                 break
+
+        MockLiveActionPublisherNonBlocking.wait_all()
 
         scheduled = [item for item in LiveAction.get_all() if item.status in SCHEDULED_STATES]
         self.assertEqual(len(scheduled), policy_db.parameters['threshold'])
@@ -282,11 +293,15 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, DbTestCase):
 
         # Since states are being processed asynchronously, wait for the
         # liveactions to go into scheduled states.
+        MockLiveActionPublisherNonBlocking.wait_all()
+
         for i in range(0, 100):
             eventlet.sleep(1)
             scheduled = [item for item in LiveAction.get_all() if item.status in SCHEDULED_STATES]
             if len(scheduled) == policy_db.parameters['threshold']:
                 break
+
+        MockLiveActionPublisherNonBlocking.wait_all()
 
         scheduled = [item for item in LiveAction.get_all() if item.status in SCHEDULED_STATES]
         self.assertEqual(len(scheduled), policy_db.parameters['threshold'])

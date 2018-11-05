@@ -115,13 +115,12 @@ class TestWorkflowExecution(unittest2.TestCase):
     @retrying.retry(
         retry_on_exception=retry_on_exceptions,
         wait_fixed=3000, stop_max_delay=900000)
-    def _wait_for_task(self, ex, task, status, num_task_exs=1):
+    def _wait_for_task(self, ex, task, status=None, num_task_exs=1):
         ex = self.st2client.liveactions.get_by_id(ex.id)
 
         task_exs = [
             task_ex for task_ex in self._get_children(ex)
-            if (task_ex.context.get('orquesta', {}).get('task_name', '') == task and
-                task_ex.status == status)
+            if task_ex.context.get('orquesta', {}).get('task_name', '') == task
         ]
 
         try:
@@ -135,16 +134,17 @@ class TestWorkflowExecution(unittest2.TestCase):
             else:
                 raise
 
-        try:
-            self.assertTrue(all([task_ex.status == status for task_ex in task_exs]))
-        except:
-            if ex.status in action_constants.LIVEACTION_COMPLETED_STATES:
-                raise Exception(
-                    'Execution is in completed state and does not '
-                    'match expected task state(s).'
-                )
-            else:
-                raise
+        if status is not None:
+            try:
+                self.assertTrue(all([task_ex.status == status for task_ex in task_exs]))
+            except:
+                if ex.status in action_constants.LIVEACTION_COMPLETED_STATES:
+                    raise Exception(
+                        'Execution is in completed state and not all tasks '
+                        'match expected status "%s".' % status
+                    )
+                else:
+                    raise
 
         return task_exs
 

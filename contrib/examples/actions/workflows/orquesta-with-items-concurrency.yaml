@@ -1,0 +1,16 @@
+version: 1.0
+  
+description: A workflow demonstrating with items and concurrent processing.
+
+input:
+  - members
+
+tasks:
+  task1:
+    with:
+      items: <% ctx(members) %>
+      concurrency: 2
+    action: core.echo message="<% item() %>, resistance is futile!"
+
+output:
+  - items: <% task(task1).result.items.select($.result.stdout) %>

@@ -110,8 +110,8 @@ class NotifierTestCase(CleanDbTestCase):
         liveaction_db.notify = NotificationSchema(on_success=on_success,
                                                   on_failure=on_failure)
         liveaction_db.start_timestamp = date_utils.get_datetime_utc_now()
-        liveaction_db.end_timestamp = (liveaction_db.start_timestamp +
-                                       datetime.timedelta(seconds=50))
+        liveaction_db.end_timestamp = \
+            (liveaction_db.start_timestamp + datetime.timedelta(seconds=50))
         LiveAction.add_or_update(liveaction_db)
 
         execution = MOCK_EXECUTION
@@ -181,8 +181,8 @@ class NotifierTestCase(CleanDbTestCase):
                                            data={'stdout': '{{action_results.stdout}}'})
         liveaction_db.notify = NotificationSchema(on_success=on_success)
         liveaction_db.start_timestamp = date_utils.get_datetime_utc_now()
-        liveaction_db.end_timestamp = (liveaction_db.start_timestamp +
-                                       datetime.timedelta(seconds=50))
+        liveaction_db.end_timestamp = \
+            (liveaction_db.start_timestamp + datetime.timedelta(seconds=50))
 
         LiveAction.add_or_update(liveaction_db)
 

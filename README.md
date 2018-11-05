@@ -33,6 +33,10 @@ StackStorm helps automate common operational patterns. Some examples are:
 
 StackStorm helps you compose these and other operational patterns as rules and workflows or actions; and these rules and workflows - the content within the StackStorm platform - are stored *as code* which means they support the same approach to collaboration that you use today for code development and can be shared with the broader open source community via StackStorm.com/community for example.
 
+### Who is using StackStorm?
+
+See the list of known StackStorm [ADOPTERS.md](/ADOPTERS.md) and [Thought Leaders](https://stackstorm.com/stackstorm-thought-leaders/).
+
 ### How it works
 
 ![stackstorm component diagram](https://cloud.githubusercontent.com/assets/20028/5688946/fabef9ec-9822-11e4-859e-29bbb67df85b.jpg)
