@@ -18,6 +18,7 @@
 from __future__ import absolute_import
 
 import mock
+import six
 
 from orquesta import states as wf_states
 
@@ -283,10 +284,8 @@ class OrquestaRunnerTest(st2tests.DbTestCase):
         self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
 
         # Check workflow output.
-        expected_output = {
-            'msg': '%s, All your base are belong to us!' % wf_input['who'].decode('utf-8')
-        }
-
+        wf_input_val = wf_input['who'].decode('utf-8') if six.PY2 else wf_input['who']
+        expected_output = {'msg': '%s, All your base are belong to us!' % wf_input_val}
         self.assertDictEqual(wf_ex_db.output, expected_output)
 
         # Check liveaction and action execution result.
