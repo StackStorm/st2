@@ -13,7 +13,7 @@ else
 	VIRTUALENV_ST2CLIENT_DIR ?= virtualenv-st2client
 endif
 
-PYTHON_VERSION = python2.7
+PYTHON_VERSION ?= python2.7
 
 BINARIES := bin
 
@@ -45,8 +45,6 @@ COMPONENTS_TEST_MODULES_COMMA := $(subst $(space_char),$(comma),$(COMPONENTS_TES
 
 COVERAGE_GLOBS := .coverage.unit.* .coverage.integration.* .coverage.mistral.*
 COVERAGE_GLOBS_QUOTED := $(foreach glob,$(COVERAGE_GLOBS),'$(glob)')
-
-PYTHON_TARGET := 2.7
 
 REQUIREMENTS := test-requirements.txt requirements.txt
 PIP_OPTIONS := $(ST2_PIP_OPTIONS)
