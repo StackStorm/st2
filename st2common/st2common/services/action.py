@@ -332,14 +332,19 @@ def request_resume(liveaction, requester):
             '"%s" runner.' % (liveaction.id, action_db.runner_type['name'])
         )
 
-    if liveaction.status == action_constants.LIVEACTION_STATUS_RUNNING:
+    running_states = [
+        action_constants.LIVEACTION_STATUS_RUNNING,
+        action_constants.LIVEACTION_STATUS_RESUMING
+    ]
+
+    if liveaction.status in running_states:
         execution = ActionExecution.get(liveaction__id=str(liveaction.id))
         return (liveaction, execution)
 
     if liveaction.status != action_constants.LIVEACTION_STATUS_PAUSED:
         raise runner_exc.UnexpectedActionExecutionStatusError(
-            'Unable to resume liveaction "%s" because it is not in a paused state.'
-            % liveaction.id
+            'Unable to resume liveaction "%s" because it is in "%s" state and '
+            'not in "paused" state.' % (liveaction.id, liveaction.status)
         )
 
     liveaction = update_status(liveaction, action_constants.LIVEACTION_STATUS_RESUMING)

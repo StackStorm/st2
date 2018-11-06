@@ -69,6 +69,12 @@ Fixed
   CLI incorrectly tried to parse that string as unicode escape sequence.
 
   Reported by James E. King III @jeking3 (bug fix) #4407
+* Fix a bug so ``timersengine`` config section in ``st2.conf`` has precedence over ``timer``
+  section if explicitly specified in the config file.
+
+  Also fix a bug with default config values for ``timer`` section being used if user only
+  specified ``timersengine`` section in the config. Previously user options were incorrectly
+  ignored in favor of the default values. (bug fix) #4424
 * ``st2 pack install -j`` now only spits JSON output. Similarly, ``st2 pack install -y`` only spits
   YAML output. This change would enable the output to be parsed by tools.
   The behavior of ``st2 pack install`` hasn't changed and is human friendly. If you want to get meta

@@ -38,6 +38,7 @@ from st2common.models.utils import action_param_utils
 from st2common.persistence import liveaction as lv_db_access
 from st2common.persistence import execution as ex_db_access
 from st2common.persistence import workflow as wf_db_access
+from st2common.runners import utils as runners_utils
 from st2common.services import action as ac_svc
 from st2common.services import executions as ex_svc
 from st2common.util import action_db as action_utils
@@ -813,7 +814,8 @@ def request_next_tasks(wf_ex_db, task_ex_id=None):
         for task in next_tasks:
             try:
                 LOG.info('[%s] Requesting execution for task "%s".', wf_ac_ex_id, task['id'])
-                st2_ctx = {'execution_id': wf_ex_db.action_execution}
+                root_st2_ctx = wf_ex_db.context.get('st2', {})
+                st2_ctx = {'execution_id': wf_ac_ex_id, 'user': root_st2_ctx.get('user')}
                 request_task_execution(wf_ex_db, st2_ctx, task)
             except Exception as e:
                 LOG.exception('[%s] Failed task execution for "%s".', wf_ac_ex_id, task['id'])
@@ -941,12 +943,13 @@ def update_execution_records(wf_ex_db, conductor, update_lv_ac_on_states=None,
                              pub_wf_ex=False, pub_lv_ac=True, pub_ac_ex=True):
 
     wf_ac_ex_id = wf_ex_db.action_execution
+
+    # Determine if workflow status has changed.
     wf_old_status = wf_ex_db.status
-
-    # Update workflow status.
     wf_ex_db.status = conductor.get_workflow_state()
+    status_changed = (wf_old_status != wf_ex_db.status)
 
-    if wf_old_status != wf_ex_db.status:
+    if status_changed:
         msg = '[%s] Updating workflow execution from state "%s" to "%s".'
         LOG.info(msg, wf_ac_ex_id, wf_old_status, wf_ex_db.status)
 
@@ -1001,3 +1004,8 @@ def update_execution_records(wf_ex_db, conductor, update_lv_ac_on_states=None,
         publish=pub_lv_ac)
 
     ex_svc.update_execution(wf_lv_ac_db, publish=pub_ac_ex)
+
+    # Invoke post run on the liveaction for the workflow execution.
+    if status_changed and wf_lv_ac_db.status in ac_const.LIVEACTION_COMPLETED_STATES:
+        LOG.info('[%s] Workflow action execution is completed and invoking post run.', wf_ac_ex_id)
+        runners_utils.invoke_post_run(wf_lv_ac_db)

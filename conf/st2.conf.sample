@@ -325,12 +325,12 @@ ssh_key_file = /home/stanley/.ssh/stanley_rsa
 user = stanley
 
 [timer]
-# Specify to enable timer service.
-enable = True
-# Timezone pertaining to the location where st2 is run.
-local_timezone = America/Los_Angeles
-# Location of the logging configuration file.
-logging = /etc/st2/logging.timersengine.conf
+# Specify to enable timer service. NOTE: Deprecated in favor of timersengine.enable
+enable = None
+# Timezone pertaining to the location where st2 is run. NOTE: Deprecated in favor of timersengine.local_timezone
+local_timezone = None
+# Location of the logging configuration file. NOTE: Deprecated in favor of timersengine.logging
+logging = None
 
 [timersengine]
 # Specify to enable timer service.
