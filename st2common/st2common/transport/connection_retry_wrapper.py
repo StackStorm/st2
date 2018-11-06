@@ -16,8 +16,6 @@
 from __future__ import absolute_import
 import eventlet
 
-from st2common.metrics.base import Timer
-
 __all__ = ['ConnectionRetryWrapper', 'ClusterRetryContext']
 
 
@@ -115,10 +113,8 @@ class ConnectionRetryWrapper(object):
         channel = None
         while not should_stop:
             try:
-                with Timer(key='amqp.connection.get_channel'):
-                    channel = connection.channel()
-                with Timer(key='amqp.connection.hold_time'):
-                    wrapped_callback(connection=connection, channel=channel)
+                channel = connection.channel()
+                wrapped_callback(connection=connection, channel=channel)
                 should_stop = True
             except connection.connection_errors + connection.channel_errors as e:
                 should_stop, wait = self._retry_context.test_should_stop()
@@ -164,9 +160,8 @@ class ConnectionRetryWrapper(object):
                     the kombu library.
         :type obj: Must support mixin kombu.abstract.MaybeChannelBound
         """
-        with Timer(key='amqp.connection.ensure_and_publish'):
-            ensuring_func = connection.ensure(
-                obj, to_ensure_func,
-                errback=self.errback,
-                max_retries=3)
-            ensuring_func(**kwargs)
+        ensuring_func = connection.ensure(
+            obj, to_ensure_func,
+            errback=self.errback,
+            max_retries=3)
+        ensuring_func(**kwargs)

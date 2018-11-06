@@ -22,8 +22,6 @@ from st2common.constants.types import ResourceType
 
 
 class RuleTypeDB(stormbase.StormBaseDB):
-    RESOURCE_TYPE = ResourceType.RULE_TYPE
-
     enabled = me.BooleanField(
         default=True,
         help_text='A flag indicating whether the runner for this type is enabled.')
