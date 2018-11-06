@@ -30,6 +30,7 @@ from six.moves import http_client
 from st2client import commands
 from st2client.exceptions.operations import OperationFailureException
 from st2client.formatters import table
+from st2client.utils.types import OrderedSet
 
 ALLOWED_EXTS = ['.json', '.yaml', '.yml']
 PARSER_FUNCS = {'.json': json.load, '.yml': yaml.safe_load, '.yaml': yaml.safe_load}
@@ -235,7 +236,45 @@ class ResourceCommand(commands.Command):
         return result
 
 
-class ResourceTableCommand(ResourceCommand):
+class ResourceViewCommand(ResourceCommand):
+    """
+    Base class for read / view commands (list and get).
+    """
+
+    @classmethod
+    def _get_include_attributes(cls, args):
+        """
+        Return a list of attributes to send to the API using ?include_attributes filter.
+
+        If None / empty list is returned it's assumed no filtering is to be performed and all
+        attributes are to be retrieved.
+        """
+        include_attributes = []
+
+        # If user specifies which attributes to retrieve via CLI --attr / -a argument, take that
+        # into account
+
+        # Special case for "all"
+        if 'all' in args.attr:
+            return None
+
+        for attr in args.attr:
+            include_attributes.append(attr)
+
+        if include_attributes:
+            return include_attributes
+
+        display_attributes = getattr(cls, 'display_attributes', [])
+
+        if display_attributes:
+            include_attributes += display_attributes
+
+        include_attributes = list(OrderedSet(include_attributes))
+
+        return include_attributes
+
+
+class ResourceTableCommand(ResourceViewCommand):
     display_attributes = ['id', 'name', 'description']
 
     def __init__(self, resource, name, description, *args, **kwargs):
@@ -253,6 +292,11 @@ class ResourceTableCommand(ResourceCommand):
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
+        include_attributes = self._get_include_attributes(args=args)
+        if include_attributes:
+            include_attributes = ','.join(include_attributes)
+            kwargs['params'] = {'include_attributes': include_attributes}
+
         return self.manager.get_all(**kwargs)
 
     def run_and_print(self, args, **kwargs):
@@ -285,10 +329,16 @@ class ContentPackResourceListCommand(ResourceListCommand):
     def run(self, args, **kwargs):
         filters = {'pack': args.pack}
         filters.update(**kwargs)
+
+        include_attributes = self._get_include_attributes(args=args)
+        if include_attributes:
+            include_attributes = ','.join(include_attributes)
+            filters['params'] = {'include_attributes': include_attributes}
+
         return self.manager.get_all(**filters)
 
 
-class ResourceGetCommand(ResourceCommand):
+class ResourceGetCommand(ResourceViewCommand):
     display_attributes = ['all']
     attribute_display_order = ['id', 'name', 'description']
 

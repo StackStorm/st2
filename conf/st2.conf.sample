@@ -19,7 +19,7 @@ virtualenv_binary = /usr/bin/virtualenv
 # Python 3 binary which will be used by Python actions for packs which use Python 3 virtual environment
 python3_binary = /usr/bin/python3
 # location of the logging.conf file
-logging = conf/logging.conf
+logging = /etc/st2/logging.actionrunner.conf
 # True to store and stream action output (stdout and stderr) in real-time.
 stream_output = True
 # List of virtualenv options to be passsed to "virtualenv" command that creates pack virtualenv.
@@ -31,7 +31,7 @@ python_binary = /usr/bin/python
 # List of origins allowed for api, auth and stream
 allow_origin = http://127.0.0.1:3000 # comma separated list allowed here.
 # location of the logging.conf file
-logging = conf/logging.conf
+logging = /etc/st2/logging.api.conf
 # Maximum limit (page size) argument which can be specified by the user in a query string.
 max_page_size = 100
 # True to mask secrets in the API responses
@@ -50,7 +50,7 @@ port = 9101
 # Enable authentication middleware.
 enable = True
 # Path to the logging config.
-logging = conf/logging.conf
+logging = /etc/st2/logging.auth.conf
 # Base URL to the API endpoint excluding the version
 api_url = None
 # Service token ttl in seconds.
@@ -87,9 +87,9 @@ home_dir = /opt/cslang
 [content]
 # A URL pointing to the pack index. StackStorm Exchange is used by default. Use a comma-separated list for multiple indexes if you want to get other packs discovered with "st2 pack search".
 index_url = https://index.stackstorm.org/v1/index.json # comma separated list allowed here.
-# Path to the directory which contains system runners.
+# Path to the directory which contains system runners. NOTE: This option has been deprecated and it's unused since StackStorm v3.0.0
 system_runners_base_path = /opt/stackstorm/runners
-# Paths which will be searched for runners.
+# Paths which will be searched for runners. NOTE: This option has been deprecated and it's unused since StackStorm v3.0.0
 runners_base_paths = None
 # User group that can write to packs directory.
 pack_group = st2packs
@@ -125,6 +125,8 @@ host = 127.0.0.1
 db_name = st2
 # Backoff multiplier (seconds).
 connection_retry_backoff_mul = 1
+# Specifies database authentication mechanisms. By default, it use SCRAM-SHA-1 with MongoDB 3.0 and later, MONGODB-CR (MongoDB Challenge Response protocol) for older servers.
+authentication_mechanism = None
 # Private keyfile used to identify the local connection against MongoDB.
 ssl_keyfile = None
 # If True and `ssl_cert_reqs` is not None, enables hostname verification
@@ -136,7 +138,7 @@ port = 27017
 
 [exporter]
 # location of the logging.exporter.conf file
-logging = conf/logging.exporter.conf
+logging = /etc/st2/logging.exporter.conf
 # Directory to dump data to.
 dump_dir = /opt/stackstorm/exports/
 
@@ -146,7 +148,7 @@ action_executions_ttl = None
 # Trigger instances older than this value (days) will be automatically deleted.
 trigger_instances_ttl = None
 # Location of the logging configuration file.
-logging = conf/logging.garbagecollector.conf
+logging = /etc/st2/logging.garbagecollector.conf
 # How long to wait / sleep (in seconds) between collection of different object types.
 sleep_delay = 2
 # Set to True to perform garbage collection on Inquiries (based on the TTL value per Inquiry)
@@ -224,7 +226,7 @@ retry_exp_max_msec = 300000
 
 [notifier]
 # Location of the logging configuration file.
-logging = conf/logging.notifier.conf
+logging = /etc/st2/logging.notifier.conf
 
 [packs]
 # Enable/Disable support for pack common libs. Setting this config to ``True`` would allow you to place common library code for sensors and actions in lib/ folder in packs and use them in python sensors and actions. See https://docs.stackstorm.com/reference/sharing_code_sensors_actions.html for details.
@@ -236,7 +238,7 @@ query_interval = 5
 # Sleep delay in between queries when query queue is empty.
 empty_q_sleep_time = 1
 # Location of the logging configuration file.
-logging = conf/logging.resultstracker.conf
+logging = /etc/st2/logging.resultstracker.conf
 # Sleep delay for query when there is no more worker in pool.
 no_workers_sleep_time = 1
 # Number of threads to use to query external workflow systems.
@@ -244,7 +246,7 @@ thread_pool_size = 10
 
 [rulesengine]
 # Location of the logging configuration file.
-logging = conf/logging.rulesengine.conf
+logging = /etc/st2/logging.rulesengine.conf
 
 [scheduler]
 # The frequency for rescheduling action executions.
@@ -266,7 +268,7 @@ partition_provider = {'name': 'default'}
 # Run in a single sensor mode where parent process exits when a sensor crashes / dies. This is useful in environments where partitioning, sensor process life cycle and failover is handled by a 3rd party service such as kubernetes.
 single_sensor_mode = False
 # location of the logging.conf file
-logging = conf/logging.sensorcontainer.conf
+logging = /etc/st2/logging.sensorcontainer.conf
 # name of the sensor node.
 sensor_node_name = sensornode1
 
@@ -290,7 +292,7 @@ heartbeat = 25
 # StackStorm stream API server host
 host = 127.0.0.1
 # location of the logging.conf file
-logging = conf/logging.conf
+logging = /etc/st2/logging.stream.conf
 # StackStorm API stream, server port
 port = 9102
 
@@ -309,6 +311,8 @@ facility = local7
 debug = False
 # True to validate parameters for non-system trigger types when creatinga rule. By default, only parameters for system triggers are validated.
 validate_trigger_parameters = True
+# True to validate action and runner output against schema.
+validate_output_schema = False
 # True to validate payload for non-system trigger types when dispatching a trigger inside the sensor. By default, only payload for system triggers is validated.
 validate_trigger_payload = True
 # Base path to all st2 artifacts.
@@ -321,12 +325,12 @@ ssh_key_file = /home/stanley/.ssh/stanley_rsa
 user = stanley
 
 [timer]
-# Specify to enable timer service.
-enable = True
-# Timezone pertaining to the location where st2 is run.
-local_timezone = America/Los_Angeles
-# Location of the logging configuration file.
-logging = conf/logging.timersengine.conf
+# Specify to enable timer service. NOTE: Deprecated in favor of timersengine.enable
+enable = None
+# Timezone pertaining to the location where st2 is run. NOTE: Deprecated in favor of timersengine.local_timezone
+local_timezone = None
+# Location of the logging configuration file. NOTE: Deprecated in favor of timersengine.logging
+logging = None
 
 [timersengine]
 # Specify to enable timer service.
@@ -334,7 +338,7 @@ enable = True
 # Timezone pertaining to the location where st2 is run.
 local_timezone = America/Los_Angeles
 # Location of the logging configuration file.
-logging = conf/logging.timersengine.conf
+logging = /etc/st2/logging.timersengine.conf
 
 [webui]
 # Base https URL to access st2 Web UI. This is used to construct history URLs that are sent out when chatops is used to kick off executions.
@@ -342,5 +346,5 @@ webui_base_url = https://localhost
 
 [workflow_engine]
 # Location of the logging configuration file.
-logging = conf/logging.workflowengine.conf
+logging = /etc/st2/logging.workflowengine.conf
 

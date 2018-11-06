@@ -53,6 +53,10 @@ class TriggerTypeController(resource.ContentPackResourceController):
         'sort': ['pack', 'name']
     }
 
+    query_options = {
+        'sort': ['ref']
+    }
+
     def get_all(self, exclude_attributes=None, include_attributes=None, sort=None, offset=0,
                 limit=None, requester_user=None, **raw_filters):
         return self._get_all(exclude_fields=exclude_attributes,

@@ -31,7 +31,9 @@ USERNAME = 'stanley'
 PASSWORD = 'ShhhDontTell'
 HEADERS = {'content-type': 'application/json'}
 AUTH_URL = 'https://127.0.0.1:9100/tokens'
-GET_RULES_URL = 'http://127.0.0.1:9101/v1/rules/?limit=50'
+GET_RULES_URL = ('http://127.0.0.1:9101/v1/rules/'
+                 '?include_attributes=ref,pack,description,enabled&limit=50')
+GET_RULES_URL = GET_RULES_URL.replace(',', '%2C')
 
 
 class TestHttps(base.BaseCLITestCase):

@@ -63,7 +63,7 @@ def _register_app_opts():
             'key', default='/etc/apache2/ssl/mycert.key',
             help='Path to the SSL private key file. Only used when "use_ssl" is specified.'),
         cfg.StrOpt(
-            'logging', default='conf/logging.conf',
+            'logging', default='/etc/st2/logging.auth.conf',
             help='Path to the logging config.'),
         cfg.BoolOpt(
             'debug', default=False,

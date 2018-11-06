@@ -108,7 +108,7 @@ class SensorContainerTestCase(IntegrationTestCase):
 
         # SIGINT causes graceful shutdown so give it some time to gracefuly shut down the sensor
         # child processes
-        eventlet.sleep(PROCESS_EXIT_TIMEOUT + 2)
+        eventlet.sleep(PROCESS_EXIT_TIMEOUT + 1)
 
         # Verify parent and children processes have exited
         self.assertProcessExited(proc=pp)
@@ -133,7 +133,7 @@ class SensorContainerTestCase(IntegrationTestCase):
 
         # SIGTERM causes graceful shutdown so give it some time to gracefuly shut down the sensor
         # child processes
-        eventlet.sleep(PROCESS_EXIT_TIMEOUT + 1)
+        eventlet.sleep(PROCESS_EXIT_TIMEOUT + 5)
 
         # Verify parent and children processes have exited
         self.assertProcessExited(proc=pp)

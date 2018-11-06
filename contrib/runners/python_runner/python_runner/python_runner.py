@@ -430,4 +430,4 @@ def get_runner(config=None):
 
 
 def get_metadata():
-    return get_runner_metadata('python_runner')
+    return get_runner_metadata('python_runner')[0]

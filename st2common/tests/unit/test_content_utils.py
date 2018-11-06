@@ -119,8 +119,8 @@ class ContentUtilsTestCase(unittest2.TestCase):
                      '../../foo.py']
         for file_path in file_paths:
             # action resource_type
-            expected_msg = ('Invalid file path: ".*%s"\. File path needs to be relative to the '
-                            'pack actions directory (.*). For example "my_action.py"\.' %
+            expected_msg = (r'Invalid file path: ".*%s"\. File path needs to be relative to the '
+                            r'pack actions directory (.*). For example "my_action.py"\.' %
                             (file_path))
             self.assertRaisesRegexp(ValueError, expected_msg, get_pack_resource_file_abs_path,
                                     pack_ref='dummy_pack_1',
@@ -128,8 +128,8 @@ class ContentUtilsTestCase(unittest2.TestCase):
                                     file_path=file_path)
 
             # sensor resource_type
-            expected_msg = ('Invalid file path: ".*%s"\. File path needs to be relative to the '
-                            'pack sensors directory (.*). For example "my_sensor.py"\.' %
+            expected_msg = (r'Invalid file path: ".*%s"\. File path needs to be relative to the '
+                            r'pack sensors directory (.*). For example "my_sensor.py"\.' %
                             (file_path))
             self.assertRaisesRegexp(ValueError, expected_msg, get_pack_resource_file_abs_path,
                                     pack_ref='dummy_pack_1',
@@ -137,8 +137,8 @@ class ContentUtilsTestCase(unittest2.TestCase):
                                     file_path=file_path)
 
             # no resource type
-            expected_msg = ('Invalid file path: ".*%s"\. File path needs to be relative to the '
-                            'pack directory (.*). For example "my_action.py"\.' %
+            expected_msg = (r'Invalid file path: ".*%s"\. File path needs to be relative to the '
+                            r'pack directory (.*). For example "my_action.py"\.' %
                             (file_path))
             self.assertRaisesRegexp(ValueError, expected_msg, get_pack_file_abs_path,
                                     pack_ref='dummy_pack_1',

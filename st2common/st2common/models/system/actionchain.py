@@ -68,7 +68,7 @@ class Node(object):
                                " remainder of the chain as a global variable.",
                 "type": "object",
                 "patternProperties": {
-                    "^\w+$": {}
+                    r"^\w+$": {}
                 }
             },
             "notify": {
@@ -137,7 +137,7 @@ class ActionChain(object):
                 "description": "",
                 "type": "object",
                 "patternProperties": {
-                    "^\w+$": {}
+                    r"^\w+$": {}
                 }
             }
         },

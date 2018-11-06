@@ -89,6 +89,7 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         self.repo_base = tempfile.mkdtemp()
 
         self.repo_instance = mock.MagicMock()
+        type(self.repo_instance).active_branch = mock.Mock()
 
         def side_effect(url, to_path, **kwargs):
             # Since we have no way to pass pack name here, we would have to derive it from repo url
@@ -106,12 +107,16 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
     def test_run_pack_download(self):
         action = self.get_action_instance()
         result = action.run(packs=['test'], abs_repo_base=self.repo_base)
-        temp_dir = hashlib.md5(PACK_INDEX['test']['repo_url']).hexdigest()
+        temp_dir = hashlib.md5(PACK_INDEX['test']['repo_url'].encode()).hexdigest()
 
         self.assertEqual(result, {'test': 'Success.'})
         self.clone_from.assert_called_once_with(PACK_INDEX['test']['repo_url'],
                                                 os.path.join(os.path.expanduser('~'), temp_dir))
         self.assertTrue(os.path.isfile(os.path.join(self.repo_base, 'test/pack.yaml')))
+
+        self.repo_instance.git.checkout.assert_called()
+        self.repo_instance.git.branch.assert_called()
+        self.repo_instance.git.checkout.assert_called()
 
     def test_run_pack_download_existing_pack(self):
         action = self.get_action_instance()
@@ -126,8 +131,8 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         action = self.get_action_instance()
         result = action.run(packs=['test', 'test2'], abs_repo_base=self.repo_base)
         temp_dirs = [
-            hashlib.md5(PACK_INDEX['test']['repo_url']).hexdigest(),
-            hashlib.md5(PACK_INDEX['test2']['repo_url']).hexdigest()
+            hashlib.md5(PACK_INDEX['test']['repo_url'].encode()).hexdigest(),
+            hashlib.md5(PACK_INDEX['test2']['repo_url'].encode()).hexdigest()
         ]
 
         self.assertEqual(result, {'test': 'Success.', 'test2': 'Success.'})
@@ -155,7 +160,7 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
 
     def test_run_pack_lock_is_already_acquired(self):
         action = self.get_action_instance()
-        temp_dir = hashlib.md5(PACK_INDEX['test']['repo_url']).hexdigest()
+        temp_dir = hashlib.md5(PACK_INDEX['test']['repo_url'].encode()).hexdigest()
 
         original_acquire = LockFile.acquire
 
@@ -181,7 +186,7 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
     def test_run_pack_lock_is_already_acquired_force_flag(self):
         # Lock is already acquired but force is true so it should be deleted and released
         action = self.get_action_instance()
-        temp_dir = hashlib.md5(PACK_INDEX['test']['repo_url']).hexdigest()
+        temp_dir = hashlib.md5(PACK_INDEX['test']['repo_url'].encode()).hexdigest()
 
         original_acquire = LockFile.acquire
 
@@ -295,6 +300,9 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         url = eval_repo_url("file:///home/vagrant/stackstorm-test")
         self.assertEqual(url, "file:///home/vagrant/stackstorm-test")
 
+        url = eval_repo_url("file://localhost/home/vagrant/stackstorm-test")
+        self.assertEqual(url, "file://localhost/home/vagrant/stackstorm-test")
+
         url = eval_repo_url('ssh://<user@host>/AutomationStackStorm')
         self.assertEqual(url, 'ssh://<user@host>/AutomationStackStorm')
 
@@ -363,3 +371,17 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
 
             result = action.run(packs=packs, abs_repo_base=self.repo_base)
             self.assertEqual(result, {'test': 'Success.'})
+
+    def test_run_pack_dowload_local_git_repo_detached_head_state(self):
+        action = self.get_action_instance()
+
+        type(self.repo_instance).active_branch = \
+            mock.PropertyMock(side_effect=TypeError('detached head'))
+
+        result = action.run(packs=['file:///stackstorm-test'], abs_repo_base=self.repo_base)
+        self.assertEqual(result, {'test': 'Success.'})
+
+        # Verify function has bailed out early
+        self.repo_instance.git.checkout.assert_not_called()
+        self.repo_instance.git.branch.assert_not_called()
+        self.repo_instance.git.checkout.assert_not_called()

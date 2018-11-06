@@ -145,7 +145,7 @@ def get_deb_package_list(name_startswith):
         if not line:
             continue
 
-        split = re.split('\s+', line)
+        split = re.split(r'\s+', line)
         name = split[1]
         version = split[2]
 

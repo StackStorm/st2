@@ -49,7 +49,7 @@ def _register_common_opts():
 def _register_garbage_collector_opts():
     logging_opts = [
         cfg.StrOpt(
-            'logging', default='conf/logging.garbagecollector.conf',
+            'logging', default='/etc/st2/logging.garbagecollector.conf',
             help='Location of the logging configuration file.')
     ]
 

@@ -150,7 +150,17 @@ class ActionsRegistrar(ResourceRegistrar):
                 raise jsonschema.ValidationError(new_msg)
             raise e
 
-        action_validator.validate_action(action_api)
+        # Use in-memory cached RunnerTypeDB objects to reduce load on the database
+        if self._use_runners_cache:
+            runner_type_db = self._runner_type_db_cache.get(action_api.runner_type, None)
+
+            if not runner_type_db:
+                runner_type_db = action_validator.get_runner_model(action_api)
+                self._runner_type_db_cache[action_api.runner_type] = runner_type_db
+        else:
+            runner_type_db = None
+
+        action_validator.validate_action(action_api, runner_type_db=runner_type_db)
         model = ActionAPI.to_model(action_api)
 
         action_ref = ResourceReference.to_string_reference(pack=pack, name=str(content['name']))

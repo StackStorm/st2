@@ -42,8 +42,10 @@ class ConfigsRegistrar(ResourceRegistrar):
 
     ALLOWED_EXTENSIONS = ALLOWED_EXTS
 
-    def __init__(self, use_pack_cache=True, fail_on_failure=False, validate_configs=True):
+    def __init__(self, use_pack_cache=True, use_runners_cache=False, fail_on_failure=False,
+                 validate_configs=True):
         super(ConfigsRegistrar, self).__init__(use_pack_cache=use_pack_cache,
+                                               use_runners_cache=use_runners_cache,
                                                fail_on_failure=fail_on_failure)
 
         self._validate_configs = validate_configs

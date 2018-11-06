@@ -33,6 +33,7 @@ from six.moves import range
 from st2client import models
 from st2client.commands import resource
 from st2client.commands.resource import ResourceNotFoundError
+from st2client.commands.resource import ResourceViewCommand
 from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
 from st2client.formatters import table
 from st2client.formatters import execution as execution_formatter
@@ -158,17 +159,18 @@ def format_execution_status(instance):
     executions which are in running state and execution total run time for all the executions
     which have finished.
     """
+    status = getattr(instance, 'status', None)
     start_timestamp = getattr(instance, 'start_timestamp', None)
     end_timestamp = getattr(instance, 'end_timestamp', None)
 
-    if instance.status == LIVEACTION_STATUS_RUNNING and start_timestamp:
+    if status == LIVEACTION_STATUS_RUNNING and start_timestamp:
         start_timestamp = instance.start_timestamp
         start_timestamp = parse_isotime(start_timestamp)
         start_timestamp = calendar.timegm(start_timestamp.timetuple())
         now = int(time.time())
         elapsed_seconds = (now - start_timestamp)
         instance.status = '%s (%ss elapsed)' % (instance.status, elapsed_seconds)
-    elif instance.status in LIVEACTION_COMPLETED_STATES and start_timestamp and end_timestamp:
+    elif status in LIVEACTION_COMPLETED_STATES and start_timestamp and end_timestamp:
         start_timestamp = parse_isotime(start_timestamp)
         start_timestamp = calendar.timegm(start_timestamp.timetuple())
         end_timestamp = parse_isotime(end_timestamp)
@@ -277,6 +279,10 @@ class ActionRunCommandMixin(object):
 
         # Display options
         task_list_arg_grp = root_arg_grp.add_argument_group()
+        task_list_arg_grp.add_argument('--with-schema',
+                                 default=False, action='store_true',
+                                 help=('Show schema_ouput suggestion with action.'))
+
         task_list_arg_grp.add_argument('--raw', action='store_true',
                                        help='Raw output, don\'t show sub-tasks for workflows.')
         task_list_arg_grp.add_argument('--show-tasks', action='store_true',
@@ -356,6 +362,8 @@ class ActionRunCommandMixin(object):
                 options = {'attributes': attr}
 
             options['json'] = args.json
+            options['yaml'] = args.yaml
+            options['with_schema'] = args.with_schema
             options['attribute_transform_functions'] = self.attribute_transform_functions
             self.print_output(instance, formatter, **options)
 
@@ -1003,6 +1011,7 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
         execution = self._get_execution_result(execution=execution,
                                                action_exec_mgr=action_exec_mgr,
                                                args=args, **kwargs)
+
         return execution
 
 
@@ -1033,39 +1042,7 @@ POSSIBLE_ACTION_STATUS_VALUES = ('succeeded', 'running', 'scheduled', 'paused', 
                                  'canceling', 'canceled')
 
 
-class ActionExecutionReadCommand(resource.ResourceCommand):
-    """
-    Base class for read / view commands (list and get).
-    """
-
-    @classmethod
-    def _get_exclude_attributes(cls, args):
-        """
-        Retrieve a list of exclude attributes for particular command line arguments.
-        """
-        exclude_attributes = []
-
-        result_included = False
-        trigger_instance_included = False
-
-        for attr in args.attr:
-            # Note: We perform startswith check so we correctly detected child attribute properties
-            # (e.g. result, result.stdout, result.stderr, etc.)
-            if attr.startswith('result'):
-                result_included = True
-
-            if attr.startswith('trigger_instance'):
-                trigger_instance_included = True
-
-        if not result_included:
-            exclude_attributes.append('result')
-        if not trigger_instance_included:
-            exclude_attributes.append('trigger_instance')
-
-        return exclude_attributes
-
-
-class ActionExecutionListCommand(ActionExecutionReadCommand):
+class ActionExecutionListCommand(ResourceViewCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'status', 'start_timestamp',
                           'end_timestamp']
     attribute_transform_functions = {
@@ -1149,11 +1126,10 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
             elif args.sort_order in ['desc', 'descending']:
                 kwargs['sort_desc'] = True
 
-        # We exclude "result" and "trigger_instance" attributes which can contain a lot of data
-        # since they are not displayed nor used which speeds the common operation substantially.
-        exclude_attributes = self._get_exclude_attributes(args=args)
-        exclude_attributes = ','.join(exclude_attributes)
-        kwargs['exclude_attributes'] = exclude_attributes
+        # We only retrieve attributes which are needed to speed things up
+        include_attributes = self._get_include_attributes(args=args)
+        if include_attributes:
+            kwargs['include_attributes'] = ','.join(include_attributes)
 
         return self.manager.query_with_count(limit=args.last, **kwargs)
 
@@ -1180,7 +1156,7 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
                 table.SingleRowTable.note_box(self.resource_name, args.last)
 
 
-class ActionExecutionGetCommand(ActionRunCommandMixin, ActionExecutionReadCommand):
+class ActionExecutionGetCommand(ActionRunCommandMixin, ResourceViewCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'parameters', 'status',
                           'start_timestamp', 'end_timestamp', 'result', 'liveaction']
 
@@ -1198,12 +1174,11 @@ class ActionExecutionGetCommand(ActionRunCommandMixin, ActionExecutionReadComman
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        # We exclude "result" and / or "trigger_instance" attribute if it's not explicitly
-        # requested by user either via "--attr" flag or by default.
-        exclude_attributes = self._get_exclude_attributes(args=args)
-        exclude_attributes = ','.join(exclude_attributes)
-
-        kwargs['params'] = {'exclude_attributes': exclude_attributes}
+        # We only retrieve attributes which are needed to speed things up
+        include_attributes = self._get_include_attributes(args=args)
+        if include_attributes:
+            include_attributes = ','.join(include_attributes)
+            kwargs['params'] = {'include_attributes': include_attributes}
 
         execution = self.get_resource_by_id(id=args.id, **kwargs)
         return execution
@@ -1332,7 +1307,7 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
         return execution
 
 
-class ActionExecutionPauseCommand(ActionRunCommandMixin, ActionExecutionReadCommand):
+class ActionExecutionPauseCommand(ActionRunCommandMixin, ResourceViewCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'parameters', 'status',
                           'start_timestamp', 'end_timestamp', 'result', 'liveaction']
 
@@ -1375,7 +1350,7 @@ class ActionExecutionPauseCommand(ActionRunCommandMixin, ActionExecutionReadComm
         return self._print_execution_details(execution=execution, args=args, **kwargs)
 
 
-class ActionExecutionResumeCommand(ActionRunCommandMixin, ActionExecutionReadCommand):
+class ActionExecutionResumeCommand(ActionRunCommandMixin, ResourceViewCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'parameters', 'status',
                           'start_timestamp', 'end_timestamp', 'result', 'liveaction']
 

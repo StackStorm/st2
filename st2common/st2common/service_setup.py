@@ -29,6 +29,7 @@ from st2common import log as logging
 from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
 from st2common.transport.bootstrap_utils import register_exchanges_with_retry
 from st2common.transport.bootstrap_utils import register_kombu_serializers
+from st2common.bootstrap import runnersregistrar
 from st2common.signal_handlers import register_common_signal_handlers
 from st2common.util.debugging import enable_debugging
 from st2common.models.utils.profiling import enable_profiling
@@ -56,7 +57,7 @@ LOG = logging.getLogger(__name__)
 
 def setup(service, config, setup_db=True, register_mq_exchanges=True,
           register_signal_handlers=True, register_internal_trigger_types=False,
-          run_migrations=True, config_args=None):
+          run_migrations=True, register_runners=True, config_args=None):
     """
     Common setup function.
 
@@ -69,6 +70,7 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
     4. Registers RabbitMQ exchanges
     5. Registers common signal handlers
     6. Register internal trigger types
+    7. Register all the runners which are installed inside StackStorm virtualenv.
 
     :param service: Name of the service.
     :param config: Config object to use to parse args.
@@ -131,6 +133,9 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
     # TODO: This is a "not so nice" workaround until we have a proper migration system in place
     if run_migrations:
         run_all_rbac_migrations()
+
+    if register_runners:
+        runnersregistrar.register_runners()
 
     register_kombu_serializers()
 

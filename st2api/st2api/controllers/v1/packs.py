@@ -184,6 +184,7 @@ class PackRegisterController(object):
         for type, (Registrar, name) in six.iteritems(ENTITIES):
             if type in types or name in types:
                 registrar = Registrar(use_pack_cache=use_pack_cache,
+                                      use_runners_cache=True,
                                       fail_on_failure=fail_on_failure)
                 if packs:
                     for pack in packs:

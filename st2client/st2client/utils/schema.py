@@ -12,19 +12,41 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from __future__ import absolute_import
-import uuid
-
-from st2common.constants import action as action_constants
-from st2common.query.base import Querier
+#
+import sys
 
 
-def get_query_instance():
-    return MockQuerier(str(uuid.uuid4()))
+TYPE_TABLE = {
+    dict: 'object',
+    list: 'array',
+    int: 'integer',
+    str: 'string',
+    float: 'number',
+    bool: 'boolean',
+    type(None): 'null',
+}
+
+if sys.version_info[0] < 3:
+    TYPE_TABLE[unicode] = 'string'
 
 
-class MockQuerier(Querier):
+def _dict_to_schema(item):
+    schema = {}
+    for key, value in item.iteritems():
+        if isinstance(value, dict):
+            schema[key] = {
+                'type': 'object',
+                'parameters': _dict_to_schema(value)
+            }
+        else:
+            schema[key] = {
+                'type': TYPE_TABLE[type(value)]
+            }
 
-    def query(self, execution_id, query_context):
-        return (action_constants.LIVEACTION_STATUS_SUCCEEDED, {})
+    return schema
+
+
+def render_output_schema_from_output(output):
+    """Given an action output produce a reasonable schema to match.
+    """
+    return _dict_to_schema(output)
