@@ -69,6 +69,12 @@ Fixed
   CLI incorrectly tried to parse that string as unicode escape sequence.
 
   Reported by James E. King III @jeking3 (bug fix) #4407
+* Fix a bug so ``timersengine`` config section in ``st2.conf`` has precedence over ``timer``
+  section if explicitly specified in the config file.
+
+  Also fix a bug with default config values for ``timer`` section being used if user only
+  specified ``timersengine`` section in the config. Previously user options were incorrectly
+  ignored in favor of the default values. (bug fix) #4424
 
 2.9.1 - October 03, 2018
 ------------------------

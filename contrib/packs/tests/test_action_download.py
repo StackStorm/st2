@@ -107,7 +107,7 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
     def test_run_pack_download(self):
         action = self.get_action_instance()
         result = action.run(packs=['test'], abs_repo_base=self.repo_base)
-        temp_dir = hashlib.md5(PACK_INDEX['test']['repo_url']).hexdigest()
+        temp_dir = hashlib.md5(PACK_INDEX['test']['repo_url'].encode()).hexdigest()
 
         self.assertEqual(result, {'test': 'Success.'})
         self.clone_from.assert_called_once_with(PACK_INDEX['test']['repo_url'],
@@ -131,8 +131,8 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         action = self.get_action_instance()
         result = action.run(packs=['test', 'test2'], abs_repo_base=self.repo_base)
         temp_dirs = [
-            hashlib.md5(PACK_INDEX['test']['repo_url']).hexdigest(),
-            hashlib.md5(PACK_INDEX['test2']['repo_url']).hexdigest()
+            hashlib.md5(PACK_INDEX['test']['repo_url'].encode()).hexdigest(),
+            hashlib.md5(PACK_INDEX['test2']['repo_url'].encode()).hexdigest()
         ]
 
         self.assertEqual(result, {'test': 'Success.', 'test2': 'Success.'})
@@ -160,7 +160,7 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
 
     def test_run_pack_lock_is_already_acquired(self):
         action = self.get_action_instance()
-        temp_dir = hashlib.md5(PACK_INDEX['test']['repo_url']).hexdigest()
+        temp_dir = hashlib.md5(PACK_INDEX['test']['repo_url'].encode()).hexdigest()
 
         original_acquire = LockFile.acquire
 
@@ -186,7 +186,7 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
     def test_run_pack_lock_is_already_acquired_force_flag(self):
         # Lock is already acquired but force is true so it should be deleted and released
         action = self.get_action_instance()
-        temp_dir = hashlib.md5(PACK_INDEX['test']['repo_url']).hexdigest()
+        temp_dir = hashlib.md5(PACK_INDEX['test']['repo_url'].encode()).hexdigest()
 
         original_acquire = LockFile.acquire
 

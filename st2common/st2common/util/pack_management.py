@@ -96,7 +96,7 @@ def download_pack(pack, abs_repo_base='/opt/stackstorm/packs', verify_ssl=True, 
 
     result = [pack_url, None, None]
 
-    temp_dir_name = hashlib.md5(pack_url).hexdigest()
+    temp_dir_name = hashlib.md5(pack_url.encode()).hexdigest()
     lock_file = LockFile('/tmp/%s' % (temp_dir_name))
     lock_file_path = lock_file.lock_file
 
