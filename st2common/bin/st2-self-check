@@ -66,10 +66,10 @@ if [[ `id -u` != 0 ]]; then
   exit 1
 fi
 
-# Ubuntu Bionic packages ship without Mistral
-SUBTYPE=$(lsb_release -a 2>&1 | grep Codename | grep -v "LSB" | awk '{print $2}')
+# Installations which use Python 3 (e.g. Ubuntu Bionic) ship without Mistral
+PYTHON_VERSION=$(/opt/stackstorm/st2/bin/python --version 2>&1 | awk '{print $2'} | awk -F"." '{print $1}')
 
-if [ "${SUBTYPE}" = "bionic" ]; then
+if [ "${PYTHON_VERSION}" = "3" ]; then
     RUN_MISTRAL_TESTS=false
 fi
 
