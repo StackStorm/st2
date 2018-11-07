@@ -75,6 +75,13 @@ Fixed
   Also fix a bug with default config values for ``timer`` section being used if user only
   specified ``timersengine`` section in the config. Previously user options were incorrectly
   ignored in favor of the default values. (bug fix) #4424
+* ``st2 pack install -j`` now only spits JSON output. Similarly, ``st2 pack install -y`` only spits
+  YAML output. This change would enable the output to be parsed by tools.
+  The behavior of ``st2 pack install`` hasn't changed and is human friendly. If you want to get meta
+  information about the pack as JSON (count of actions, sensors etc), you should rely on already
+  existing ``st2 pack show -j``.
+
+  Reported by Nick Maludy (improvement) #4260
 
 2.9.1 - October 03, 2018
 ------------------------

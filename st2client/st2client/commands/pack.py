@@ -195,7 +195,13 @@ class PackInstallCommand(PackAsyncCommand):
                                  help='Force pack installation.')
 
     def run(self, args, **kwargs):
-        self._get_content_counts_for_pack(args, **kwargs)
+        is_structured_output = args.json or args.yaml
+
+        # If structured output is requested, do not print information about contents of pack
+        # This information is already exposed via st2 pack show ${pack_name} -j
+        if not is_structured_output:
+            self._get_content_counts_for_pack(args, **kwargs)
+
         return self.manager.install(args.packs, python3=args.python3, force=args.force, **kwargs)
 
     def _get_content_counts_for_pack(self, args, **kwargs):
