@@ -66,6 +66,13 @@ if [[ `id -u` != 0 ]]; then
   exit 1
 fi
 
+# Ubuntu Bionic packages ship without Mistral
+SUBTYPE=$(lsb_release -a 2>&1 | grep Codename | grep -v "LSB" | awk '{print $2}')
+
+if [ "${SUBTYPE}" = "bionic" ]; then
+    RUN_MISTRAL_TESTS=false
+fi
+
 ERRORS=0
 PACKS="tests examples"
 
