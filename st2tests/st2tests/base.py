@@ -53,6 +53,7 @@ from st2common.content.loader import MetaLoader
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.persistence import execution as ex_db_access
 from st2common.persistence import workflow as wf_db_access
+from st2common.persistence.action import LiveAction
 from st2common.services import workflows as wf_svc
 from st2common.util import api as api_util
 from st2common.util import loader
@@ -268,6 +269,15 @@ class DbTestCase(BaseDbTestCase):
     current_result = None
     register_packs = False
     register_pack_configs = False
+
+    @staticmethod
+    def _wait_on_status(liveaction, status):
+        for _ in range(0, 100):
+            eventlet.sleep(1)
+            liveaction = LiveAction.get_by_id(str(liveaction.id))
+            if liveaction.status == status:
+                return liveaction
+        return liveaction
 
     @classmethod
     def setUpClass(cls):

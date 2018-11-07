@@ -53,7 +53,7 @@ ifndef PYLINT_CONCURRENCY
 	PYLINT_CONCURRENCY := 1
 endif
 
-NOSE_OPTS := --rednose --immediate --with-parallel
+NOSE_OPTS := --rednose --immediate --with-parallel -x
 
 ifndef NOSE_TIME
 	NOSE_TIME := yes

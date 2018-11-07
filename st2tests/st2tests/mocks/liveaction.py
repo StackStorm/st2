@@ -13,18 +13,41 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 import eventlet
 import traceback
 
 from st2actions import worker
-from st2actions.scheduler import scheduler
+from st2actions.scheduler import entrypoint, handler
 from st2common.constants import action as action_constants
 from st2common.models.db.liveaction import LiveActionDB
+from st2common.persistence.execution_queue import ExecutionQueue
 
 __all__ = [
-    'MockLiveActionPublisher'
+    'MockLiveActionPublisher',
+    'MockLiveActionPublisherNonBlocking',
+    'setup',
+    'teardown'
 ]
+
+
+SCHEDULER_HANDLER = None
+ENTRYPOINT = None
+
+
+def setup():
+    global SCHEDULER_HANDLER
+    global ENTRYPOINT
+    SCHEDULER_HANDLER = handler.get_handler()
+    SCHEDULER_HANDLER.start()
+    ENTRYPOINT = entrypoint.get_scheduler_entrypoint()
+
+
+def teardown():
+    SCHEDULER_HANDLER.shutdown()
+    for execution in ExecutionQueue.get_all():
+        print(execution)
+        ExecutionQueue.delete(execution)
 
 
 class MockLiveActionPublisher(object):
@@ -33,7 +56,7 @@ class MockLiveActionPublisher(object):
     def publish_create(cls, payload):
         try:
             if isinstance(payload, LiveActionDB):
-                scheduler.get_scheduler().process(payload)
+                ENTRYPOINT.process(payload)
         except Exception:
             traceback.print_exc()
             print(payload)
@@ -43,7 +66,7 @@ class MockLiveActionPublisher(object):
         try:
             if isinstance(payload, LiveActionDB):
                 if state == action_constants.LIVEACTION_STATUS_REQUESTED:
-                    scheduler.get_scheduler().process(payload)
+                    ENTRYPOINT.process(payload)
                 else:
                     worker.get_worker().process(payload)
         except Exception:
@@ -58,7 +81,7 @@ class MockLiveActionPublisherNonBlocking(object):
     def publish_create(cls, payload):
         try:
             if isinstance(payload, LiveActionDB):
-                thread = eventlet.spawn(scheduler.get_scheduler().process, payload)
+                thread = eventlet.spawn(ENTRYPOINT.process, payload)
                 cls.threads.append(thread)
         except Exception:
             traceback.print_exc()
@@ -69,7 +92,7 @@ class MockLiveActionPublisherNonBlocking(object):
         try:
             if isinstance(payload, LiveActionDB):
                 if state == action_constants.LIVEACTION_STATUS_REQUESTED:
-                    thread = eventlet.spawn(scheduler.get_scheduler().process, payload)
+                    thread = eventlet.spawn(ENTRYPOINT.process, payload)
                     cls.threads.append(thread)
                 else:
                     thread = eventlet.spawn(worker.get_worker().process, payload)

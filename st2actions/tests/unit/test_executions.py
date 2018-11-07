@@ -46,7 +46,8 @@ from local_runner.local_shell_command_runner import LocalShellCommandRunner
 
 from st2tests.fixtures.packs import executions as fixture
 from st2tests import DbTestCase
-from st2tests.mocks.liveaction import MockLiveActionPublisher
+from st2tests.mocks import liveaction as mock_liveaction
+from st2tests.mocks.execution import MockExecutionPublisher
 
 
 MOCK_FAIL_EXECUTION_CREATE = False
@@ -56,9 +57,9 @@ MOCK_FAIL_EXECUTION_CREATE = False
                    mock.MagicMock(return_value=(action_constants.LIVEACTION_STATUS_FAILED,
                                                 'Non-empty', None)))
 @mock.patch.object(CUDPublisher, 'publish_create',
-                   mock.MagicMock(side_effect=MockLiveActionPublisher.publish_create))
+                   mock.MagicMock(side_effect=mock_liveaction.MockLiveActionPublisherNonBlocking.publish_create))
 @mock.patch.object(LiveActionPublisher, 'publish_state',
-                   mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
+                   mock.MagicMock(side_effect=mock_liveaction.MockLiveActionPublisherNonBlocking.publish_state))
 class TestActionExecutionHistoryWorker(DbTestCase):
 
     @classmethod
@@ -70,15 +71,27 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         action_chain = ActionAPI(**copy.deepcopy(fixture.ARTIFACTS['actions']['chain']))
         action_chain.entry_point = fixture.PATH + '/chain.yaml'
         Action.add_or_update(ActionAPI.to_model(action_chain))
+        mock_liveaction.setup()
 
     def tearDown(self):
         MOCK_FAIL_EXECUTION_CREATE = False      # noqa
         super(TestActionExecutionHistoryWorker, self).tearDown()
+        mock_liveaction.teardown()
+
+    @staticmethod
+    def _reset():
+        mock_liveaction.teardown()
+        mock_liveaction.setup()
 
     def test_basic_execution(self):
+        self._reset()
         liveaction = LiveActionDB(action='executions.local', parameters={'cmd': 'uname -a'})
         liveaction, _ = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
+        liveaction = self._wait_on_status(
+            liveaction,
+            action_constants.LIVEACTION_STATUS_FAILED
+        )
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
         execution = self._get_action_execution(liveaction__id=str(liveaction.id),
                                                raise_exception=True)
@@ -100,13 +113,19 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         self.assertEqual(execution.liveaction['action'], liveaction.action)
 
     def test_basic_execution_history_create_failed(self):
+        self._reset()
         MOCK_FAIL_EXECUTION_CREATE = True     # noqa
         self.test_basic_execution()
 
     def test_chained_executions(self):
+        self._reset()
         liveaction = LiveActionDB(action='executions.chain')
         liveaction, _ = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
+        liveaction = self._wait_on_status(
+            liveaction,
+            action_constants.LIVEACTION_STATUS_FAILED
+        )
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
         execution = self._get_action_execution(liveaction__id=str(liveaction.id),
                                             raise_exception=True)
@@ -130,6 +149,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
             self.assertEqual(record.runner['name'], 'local-shell-cmd')
 
     def test_triggered_execution(self):
+        self._reset()
         docs = {
             'trigger_type': copy.deepcopy(fixture.ARTIFACTS['trigger_type']),
             'trigger': copy.deepcopy(fixture.ARTIFACTS['trigger']),
@@ -155,6 +175,10 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         liveaction = LiveAction.get(context__trigger_instance__id=str(trigger_instance.id))
         self.assertIsNotNone(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
+        liveaction = self._wait_on_status(
+            liveaction,
+            action_constants.LIVEACTION_STATUS_FAILED
+        )
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
         execution = self._get_action_execution(liveaction__id=str(liveaction.id),
                                                raise_exception=True)

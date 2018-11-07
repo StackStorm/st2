@@ -78,6 +78,13 @@ class SchedulerEntrypoint(consumers.MessageHandler):
             LOG.exception('Failed to find liveaction %s in the database.', request.id)
             raise
 
+        query = {
+            "liveaction": str(liveaction_db.id),
+        }
+
+        if ExecutionQueue.query(**query):
+            return
+
         if liveaction_db.delay > 0:
             liveaction_db = action_service.update_status(
                 liveaction_db,
@@ -89,7 +96,7 @@ class SchedulerEntrypoint(consumers.MessageHandler):
             liveaction_db,
             delay=liveaction_db.delay
         )
-        ExecutionQueue.add_or_update(execution_request)
+        ExecutionQueue.add_or_update(execution_request, publish=False)
 
 
 def get_scheduler_entrypoint():

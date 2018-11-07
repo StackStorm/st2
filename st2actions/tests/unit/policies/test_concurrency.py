@@ -32,7 +32,7 @@ from st2common.bootstrap import runnersregistrar as runners_registrar
 from st2tests import DbTestCase, EventletTestCase
 from st2tests.fixturesloader import FixturesLoader
 from st2tests.mocks.execution import MockExecutionPublisher, MockExecutionPublisherNonBlocking
-from st2tests.mocks.liveaction import MockLiveActionPublisherNonBlocking
+from st2tests.mocks import liveaction as mock_liveaction
 from st2tests.mocks.runners import runner
 from six.moves import range
 
@@ -89,14 +89,21 @@ class ConcurrencyPolicyTestCase(EventletTestCase, DbTestCase):
         super(ConcurrencyPolicyTestCase, self).setUp()
 
         # Wait for all threads to finish processing so there is no cross test polution
-        MockLiveActionPublisherNonBlocking.wait_all()
+        mock_liveaction.MockLiveActionPublisherNonBlocking.wait_all()
+        mock_liveaction.setup()
 
     def tearDown(self):
-        MockLiveActionPublisherNonBlocking.wait_all()
+        mock_liveaction.MockLiveActionPublisherNonBlocking.wait_all()
 
         for liveaction in LiveAction.get_all():
             action_service.update_status(
                 liveaction, action_constants.LIVEACTION_STATUS_CANCELED)
+        mock_liveaction.teardown()
+
+    @staticmethod
+    def _reset():
+        mock_liveaction.teardown()
+        mock_liveaction.setup()
 
     @mock.patch.object(
         runner.MockActionRunner, 'run',
@@ -107,8 +114,11 @@ class ConcurrencyPolicyTestCase(EventletTestCase, DbTestCase):
     # running in the same process.
     @mock.patch.object(
         LiveActionPublisher, 'publish_state',
-        mock.MagicMock(side_effect=MockLiveActionPublisherNonBlocking.publish_state))
+        mock.MagicMock(
+            side_effect=mock_liveaction.MockLiveActionPublisherNonBlocking.publish_state
+        ))
     def test_over_threshold_delay_executions(self):
+        self._reset()
         policy_db = Policy.get_by_ref('wolfpack.action-1.concurrency')
         self.assertGreater(policy_db.parameters['threshold'], 0)
 
@@ -116,7 +126,7 @@ class ConcurrencyPolicyTestCase(EventletTestCase, DbTestCase):
             liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
             action_service.request(liveaction)
 
-        MockLiveActionPublisherNonBlocking.wait_all()
+        mock_liveaction.MockLiveActionPublisherNonBlocking.wait_all()
 
         # Since states are being processed asynchronously, wait for the
         # liveactions to go into scheduled states.
@@ -126,7 +136,7 @@ class ConcurrencyPolicyTestCase(EventletTestCase, DbTestCase):
             if len(scheduled) == policy_db.parameters['threshold']:
                 break
 
-        MockLiveActionPublisherNonBlocking.wait_all()
+        mock_liveaction.MockLiveActionPublisherNonBlocking.wait_all()
 
         scheduled = [item for item in LiveAction.get_all() if item.status in SCHEDULED_STATES]
         self.assertEqual(len(scheduled), policy_db.parameters['threshold'])
@@ -163,7 +173,7 @@ class ConcurrencyPolicyTestCase(EventletTestCase, DbTestCase):
         expected_num_pubs += 1  # Tally requested state.
 
         # Once capacity freed up, the delayed execution is published as requested again.
-        expected_num_pubs += 3  # Tally requested, scheduled, and running state.
+        expected_num_pubs += 2  # Tally requested, scheduled, and running state.
 
         # Since states are being processed asynchronously, wait for the
         # liveaction to go into scheduled state.
@@ -188,13 +198,16 @@ class ConcurrencyPolicyTestCase(EventletTestCase, DbTestCase):
     # running in the same process.
     @mock.patch.object(
         LiveActionPublisher, 'publish_state',
-        mock.MagicMock(side_effect=MockLiveActionPublisherNonBlocking.publish_state))
+        mock.MagicMock(
+            side_effect=mock_liveaction.MockLiveActionPublisherNonBlocking.publish_state
+        ))
     # policy will try to acquire lock twice and hang because the liveaction publisher is
     # running in the same process.
     @mock.patch.object(
         LiveActionPublisher, 'publish_update',
         mock.MagicMock(side_effect=MockExecutionPublisherNonBlocking.publish_update))
     def test_over_threshold_cancel_executions(self):
+        self._reset()
         policy_db = Policy.get_by_ref('wolfpack.action-2.concurrency.cancel')
         self.assertEqual(policy_db.parameters['action'], 'cancel')
         self.assertGreater(policy_db.parameters['threshold'], 0)
@@ -257,11 +270,14 @@ class ConcurrencyPolicyTestCase(EventletTestCase, DbTestCase):
     # running in the same process.
     @mock.patch.object(
         LiveActionPublisher, 'publish_state',
-        mock.MagicMock(side_effect=MockLiveActionPublisherNonBlocking.publish_state))
+        mock.MagicMock(
+            side_effect=mock_liveaction.MockLiveActionPublisherNonBlocking.publish_state
+        ))
     @mock.patch.object(
         ActionExecutionPublisher, 'publish_update',
         mock.MagicMock(side_effect=MockExecutionPublisherNonBlocking.publish_update))
     def test_on_cancellation(self):
+        self._reset()
         policy_db = Policy.get_by_ref('wolfpack.action-1.concurrency')
         self.assertGreater(policy_db.parameters['threshold'], 0)
 
@@ -271,7 +287,7 @@ class ConcurrencyPolicyTestCase(EventletTestCase, DbTestCase):
 
         # Since states are being processed asynchronously, wait for the
         # liveactions to go into scheduled states.
-        MockLiveActionPublisherNonBlocking.wait_all()
+        mock_liveaction.MockLiveActionPublisherNonBlocking.wait_all()
 
         for i in range(0, 100):
             eventlet.sleep(1)
@@ -279,7 +295,7 @@ class ConcurrencyPolicyTestCase(EventletTestCase, DbTestCase):
             if len(scheduled) == policy_db.parameters['threshold']:
                 break
 
-        MockLiveActionPublisherNonBlocking.wait_all()
+        mock_liveaction.MockLiveActionPublisherNonBlocking.wait_all()
 
         scheduled = [item for item in LiveAction.get_all() if item.status in SCHEDULED_STATES]
         self.assertEqual(len(scheduled), policy_db.parameters['threshold'])
@@ -314,7 +330,7 @@ class ConcurrencyPolicyTestCase(EventletTestCase, DbTestCase):
         expected_num_pubs += 2  # Tally the canceling and canceled states.
 
         # Once capacity freed up, the delayed execution is published as requested again.
-        expected_num_pubs += 3  # Tally requested, scheduled, and running state.
+        expected_num_pubs += 2  # Tally requested, scheduled, and running state.
 
         # Since states are being processed asynchronously, wait for the
         # liveaction to go into scheduled state.

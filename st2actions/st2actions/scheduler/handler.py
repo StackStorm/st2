@@ -80,21 +80,65 @@ class ExecutionQueueHandler(object):
             liveaction_db = action_utils.get_liveaction_by_id(execution.liveaction)
         except StackStormDBObjectNotFoundError:
             LOG.exception('Failed to find liveaction %s in the database.', execution.liveaction.id)
+            ExecutionQueue.delete(execution)
             raise
 
+        liveaction_db = self._apply_pre_run(liveaction_db, execution)
+
+        if liveaction_db:
+            if not self._exit_if_not_runnable(liveaction_db, execution):
+                self._update_to_scheduled(liveaction_db, execution)
+
+    @staticmethod
+    def _apply_pre_run(liveaction_db, execution):
         # Apply policies defined for the action.
         liveaction_db = policy_service.apply_pre_run_policies(liveaction_db)
 
+        LOG.info("Liveaction Status Pre-Run: %s", liveaction_db.status)
+
+        if liveaction_db.status is action_constants.LIVEACTION_STATUS_POLICY_DELAYED:
+            liveaction_db = action_service.update_status(
+                liveaction_db, action_constants.LIVEACTION_STATUS_DELAYED, publish=False
+            )
+            execution.scheduled_start_timestamp = date.append_milliseconds_to_time(
+                date.get_datetime_utc_now(),
+                500
+            )
+            ExecutionQueue.add_or_update(execution, publish=False)
+            return None
+
+        if (liveaction_db.status in action_constants.LIVEACTION_COMPLETED_STATES or
+                liveaction_db.status in action_constants.LIVEACTION_CANCEL_STATES):
+            ExecutionQueue.delete(execution)
+            return None
+
+        return liveaction_db
+
+    def _exit_if_not_runnable(self, liveaction_db, execution):
         # Exit if the status of the request is no longer runnable.
         # The status could have be changed by one of the policies.
-        if liveaction_db.status not in [action_constants.LIVEACTION_STATUS_REQUESTED,
-                                        action_constants.LIVEACTION_STATUS_SCHEDULED,
-                                        action_constants.LIVEACTION_STATUS_DELAYED]:
-            LOG.info('%s is ignoring %s (id=%s) with "%s" status after policies are applied.',
-                     self.__class__.__name__, type(execution), execution.id, liveaction_db.status)
-            return
+        valid_status = [
+            action_constants.LIVEACTION_STATUS_REQUESTED,
+            action_constants.LIVEACTION_STATUS_SCHEDULED,
+            action_constants.LIVEACTION_STATUS_DELAYED
+        ]
+        if liveaction_db.status not in valid_status:
+            LOG.info(
+                '%s is ignoring %s (id=%s) with "%s" status after policies are applied.',
+                self.__class__.__name__,
+                type(execution),
+                execution.id,
+                liveaction_db.status
+            )
+            ExecutionQueue.delete(execution)
+            return True
 
+        return False
+
+    @staticmethod
+    def _update_to_scheduled(liveaction_db, execution):
         # Update liveaction status to "scheduled".
+        LOG.info("Liveaction Status Update to Scheduled 1: %s", liveaction_db.status)
         if liveaction_db.status in [action_constants.LIVEACTION_STATUS_REQUESTED,
                                     action_constants.LIVEACTION_STATUS_DELAYED]:
             liveaction_db = action_service.update_status(
@@ -104,7 +148,9 @@ class ExecutionQueueHandler(object):
         # race condition with the update of the action_execution_db if the execution
         # of the liveaction completes first.
         LiveAction.publish_status(liveaction_db)
+        # Delete execution queue entry only after status is published.
         ExecutionQueue.delete(execution)
+        LOG.info("Liveaction Status Update to Scheduled 2: %s", liveaction_db.status)
 
     def start(self):
         self._shutdown = False

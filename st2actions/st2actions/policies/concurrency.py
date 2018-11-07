@@ -54,7 +54,7 @@ class ConcurrencyApplicator(BaseConcurrencyApplicator):
             LOG.debug('There are %s instances of %s in scheduled or running status. '
                       'Threshold of %s is not reached. Action execution will be scheduled.',
                       count, target.action, self._policy_ref)
-            status = action_constants.LIVEACTION_STATUS_SCHEDULED
+            status = action_constants.LIVEACTION_STATUS_REQUESTED
         else:
             action = 'delayed' if self.policy_action == 'delay' else 'canceled'
             LOG.debug('There are %s instances of %s in scheduled or running status. '
@@ -69,14 +69,22 @@ class ConcurrencyApplicator(BaseConcurrencyApplicator):
         publish = (status == action_constants.LIVEACTION_STATUS_CANCELING)
         target = action_service.update_status(target, status, publish=publish)
 
+        LOG.debug('Publishing: %s', publish)
+        LOG.debug('Status: %s', status)
+
         return target
 
     def apply_before(self, target):
         target = super(ConcurrencyApplicator, self).apply_before(target=target)
 
-        # Exit if target not in schedulable state.
-        if target.status != action_constants.LIVEACTION_STATUS_REQUESTED:
-            LOG.debug('The live action is not schedulable therefore the policy '
+        valid_states = [
+            action_constants.LIVEACTION_STATUS_REQUESTED,
+            action_constants.LIVEACTION_STATUS_DELAYED,
+            action_constants.LIVEACTION_STATUS_POLICY_DELAYED,
+        ]
+        # Exit if target not in valid state.
+        if target.status not in valid_states:
+            LOG.debug('The live action is not in a valid state therefore the policy '
                       '"%s" cannot be applied. %s', self._policy_ref, target)
             return target
 
@@ -94,7 +102,7 @@ class ConcurrencyApplicator(BaseConcurrencyApplicator):
     def _apply_after(self, target):
         # Schedule the oldest delayed executions.
         requests = action_access.LiveAction.query(action=target.action,
-                                                  status=action_constants.LIVEACTION_STATUS_DELAYED,
+                                                  status=action_constants.LIVEACTION_STATUS_POLICY_DELAYED,
                                                   order_by=['start_timestamp'], limit=1)
 
         if requests:

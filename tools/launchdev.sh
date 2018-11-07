@@ -466,7 +466,6 @@ startclean)
     st2clean
     st2start
     ;;
-<<<<<<< HEAD
 stop)
     st2stop
     ;;

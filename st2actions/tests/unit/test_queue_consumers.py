@@ -21,7 +21,7 @@ import mock
 from kombu.message import Message
 
 from st2actions import worker
-from st2actions.scheduler import scheduler
+from st2actions.scheduler import entrypoint
 from st2actions.container.base import RunnerContainer
 from st2common.constants import action as action_constants
 from st2common.models.db.liveaction import LiveActionDB
@@ -32,6 +32,7 @@ from st2common.transport.publishers import PoolPublisher
 from st2common.util import action_db
 from st2common.util import date as date_utils
 from st2tests.base import DbTestCase
+from st2tests.mocks import liveaction as mock_liveaction
 
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
@@ -41,8 +42,22 @@ class QueueConsumerTest(DbTestCase):
 
     def __init__(self, *args, **kwargs):
         super(QueueConsumerTest, self).__init__(*args, **kwargs)
-        self.scheduler = scheduler.get_scheduler()
+        mock_liveaction.setup()
+        self.scheduler = mock_liveaction.ENTRYPOINT
         self.dispatcher = worker.get_worker()
+
+    @classmethod
+    def setUpClass(cls):
+        super(QueueConsumerTest, cls).setUpClass()
+        mock_liveaction.setup()
+
+    def tearDown(self):
+        mock_liveaction.teardown()
+
+    @staticmethod
+    def _reset():
+        mock_liveaction.teardown()
+        mock_liveaction.setup()
 
     def _get_execution_db_model(self, status=action_constants.LIVEACTION_STATUS_REQUESTED):
         start_timestamp = date_utils.get_datetime_utc_now()
@@ -54,11 +69,16 @@ class QueueConsumerTest(DbTestCase):
 
     @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(return_value={'key': 'value'}))
     def test_execute(self):
+        self._reset()
         live_action_db = self._get_execution_db_model(
             status=action_constants.LIVEACTION_STATUS_REQUESTED)
 
         self.scheduler._queue_consumer._process_message(live_action_db)
         scheduled_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
+        scheduled_live_action_db = self._wait_on_status(
+            scheduled_live_action_db,
+            action_constants.LIVEACTION_STATUS_SCHEDULED
+        )
         self.assertDictEqual(scheduled_live_action_db.runner_info, {})
         self.assertEqual(scheduled_live_action_db.status,
                          action_constants.LIVEACTION_STATUS_SCHEDULED)
@@ -71,11 +91,16 @@ class QueueConsumerTest(DbTestCase):
 
     @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(side_effect=Exception('Boom!')))
     def test_execute_failure(self):
+        self._reset()
         live_action_db = self._get_execution_db_model(
             status=action_constants.LIVEACTION_STATUS_REQUESTED)
 
         self.scheduler._queue_consumer._process_message(live_action_db)
         scheduled_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
+        scheduled_live_action_db = self._wait_on_status(
+            scheduled_live_action_db,
+            action_constants.LIVEACTION_STATUS_SCHEDULED
+        )
         self.assertEqual(scheduled_live_action_db.status,
                          action_constants.LIVEACTION_STATUS_SCHEDULED)
 
@@ -86,11 +111,16 @@ class QueueConsumerTest(DbTestCase):
 
     @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(return_value=None))
     def test_execute_no_result(self):
+        self._reset()
         live_action_db = self._get_execution_db_model(
             status=action_constants.LIVEACTION_STATUS_REQUESTED)
 
         self.scheduler._queue_consumer._process_message(live_action_db)
         scheduled_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
+        scheduled_live_action_db = self._wait_on_status(
+            scheduled_live_action_db,
+            action_constants.LIVEACTION_STATUS_SCHEDULED
+        )
         self.assertEqual(scheduled_live_action_db.status,
                          action_constants.LIVEACTION_STATUS_SCHEDULED)
 
@@ -101,11 +131,16 @@ class QueueConsumerTest(DbTestCase):
 
     @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(return_value=None))
     def test_execute_cancelation(self):
+        self._reset()
         live_action_db = self._get_execution_db_model(
             status=action_constants.LIVEACTION_STATUS_REQUESTED)
 
         self.scheduler._queue_consumer._process_message(live_action_db)
         scheduled_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
+        scheduled_live_action_db = self._wait_on_status(
+            scheduled_live_action_db,
+            action_constants.LIVEACTION_STATUS_SCHEDULED
+        )
         self.assertEqual(scheduled_live_action_db.status,
                          action_constants.LIVEACTION_STATUS_SCHEDULED)
 
