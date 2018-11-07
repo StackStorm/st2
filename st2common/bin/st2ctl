@@ -17,7 +17,7 @@
 COMPONENTS="st2actionrunner st2api st2stream st2auth st2garbagecollector st2notifier st2resultstracker st2rulesengine st2sensorcontainer st2chatops st2timersengine st2workflowengine st2scheduler mistral"
 ST2_CONF="/etc/st2/st2.conf"
 
-# Ubuntu Bionic packages skip without Mistral
+# Ubuntu Bionic packages ship without Mistral
 SUBTYPE=$(lsb_release -a 2>&1 | grep Codename | grep -v "LSB" | awk '{print $2}')
 
 if [ "${SUBTYPE}" = "bionic" ]; then
