@@ -8,3 +8,25 @@ output:
 tasks:
   task1:
     action: core.noop
+    next:
+      - when: <% succeeded() %>
+        do:
+          - task2
+      - when: <% failed() %>
+        do:
+          - fail
+  task2:
+    action: "core.echo message=\"API_URL: <% ctx(st2).api_url %>\""
+    next:
+      - when: <% succeeded() %>
+        do:
+          - task3
+      - when: <% failed() %>
+        do:
+          - fail
+  task3:
+    action: "core.echo message=\"ACTION_EXECUTION_ID: <% ctx(st2).action_execution_id %>\""
+    next:
+      - when: <% failed() %>
+        do:
+          - fail
