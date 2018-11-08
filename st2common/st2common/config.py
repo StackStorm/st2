@@ -131,13 +131,15 @@ def register_opts(ignore_errors=False):
             help='Path to the directory which contains system packs.'),
         cfg.StrOpt(
             'system_runners_base_path', default=system_runners_base_path,
-            help='Path to the directory which contains system runners.'),
+            help='Path to the directory which contains system runners. '
+                 'NOTE: This option has been deprecated and it\'s unused since StackStorm v3.0.0'),
         cfg.StrOpt(
             'packs_base_paths', default=None,
             help='Paths which will be searched for integration packs.'),
         cfg.StrOpt(
             'runners_base_paths', default=None,
-            help='Paths which will be searched for runners.'),
+            help='Paths which will be searched for runners. '
+                 'NOTE: This option has been deprecated and it\'s unused since StackStorm v3.0.0'),
         cfg.ListOpt(
             'index_url', default=['https://index.stackstorm.org/v1/index.json'],
             help='A URL pointing to the pack index. StackStorm Exchange is used by '
@@ -200,7 +202,12 @@ def register_opts(ignore_errors=False):
                  'used to validate certificates passed from MongoDB.'),
         cfg.BoolOpt(
             'ssl_match_hostname', default=True,
-            help='If True and `ssl_cert_reqs` is not None, enables hostname verification')
+            help='If True and `ssl_cert_reqs` is not None, enables hostname verification'),
+        cfg.StrOpt(
+            'authentication_mechanism', default=None,
+            help='Specifies database authentication mechanisms. '
+                 'By default, it use SCRAM-SHA-1 with MongoDB 3.0 and later, '
+                 'MONGODB-CR (MongoDB Challenge Response protocol) for older servers.')
     ]
 
     do_register_opts(db_opts, 'database', ignore_errors)
@@ -318,7 +325,7 @@ def register_opts(ignore_errors=False):
     action_runner_opts = [
         # Common runner options
         cfg.StrOpt(
-            'logging', default='conf/logging.conf',
+            'logging', default='/etc/st2/logging.actionrunner.conf',
             help='location of the logging.conf file'),
 
         # Python runner options
@@ -559,6 +566,48 @@ def register_opts(ignore_errors=False):
     ]
 
     do_register_opts(metrics_opts, group='metrics', ignore_errors=ignore_errors)
+
+    # Common timers engine options
+    timer_logging_opts = [
+        cfg.StrOpt(
+            'logging', default=None,
+            help='Location of the logging configuration file. '
+                 'NOTE: Deprecated in favor of timersengine.logging'),
+    ]
+
+    timers_engine_logging_opts = [
+        cfg.StrOpt(
+            'logging', default='/etc/st2/logging.timersengine.conf',
+            help='Location of the logging configuration file.')
+    ]
+
+    do_register_opts(timer_logging_opts, group='timer', ignore_errors=ignore_errors)
+    do_register_opts(timers_engine_logging_opts, group='timersengine', ignore_errors=ignore_errors)
+
+    # NOTE: We default old style deprecated "timer" options to None so our code
+    # works correclty and "timersengine" has precedence over "timers"
+    # NOTE: "timer" section will be removed in v3.1
+    timer_opts = [
+        cfg.StrOpt(
+            'local_timezone', default=None,
+            help='Timezone pertaining to the location where st2 is run. '
+                 'NOTE: Deprecated in favor of timersengine.local_timezone'),
+        cfg.BoolOpt(
+            'enable', default=None,
+            help='Specify to enable timer service. '
+                 'NOTE: Deprecated in favor of timersengine.enable'),
+    ]
+
+    timers_engine_opts = [
+        cfg.StrOpt(
+            'local_timezone', default='America/Los_Angeles',
+            help='Timezone pertaining to the location where st2 is run.'),
+        cfg.BoolOpt(
+            'enable', default=True,
+            help='Specify to enable timer service.')
+    ]
+    do_register_opts(timer_opts, group='timer', ignore_errors=ignore_errors)
+    do_register_opts(timers_engine_opts, group='timersengine', ignore_errors=ignore_errors)
 
 
 def parse_args(args=None):

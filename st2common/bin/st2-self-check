@@ -66,6 +66,13 @@ if [[ `id -u` != 0 ]]; then
   exit 1
 fi
 
+# Installations which use Python 3 (e.g. Ubuntu Bionic) ship without Mistral
+PYTHON_VERSION=$(/opt/stackstorm/st2/bin/python --version 2>&1 | awk '{print $2'} | awk -F"." '{print $1}')
+
+if [ "${PYTHON_VERSION}" = "3" ]; then
+    RUN_MISTRAL_TESTS=false
+fi
+
 ERRORS=0
 PACKS="tests examples"
 

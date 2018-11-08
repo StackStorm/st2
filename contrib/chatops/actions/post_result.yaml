@@ -1,7 +1,7 @@
 ---
 name: "post_result"
 pack: chatops
-runner_type: "action-chain"
+runner_type: "orquesta"
 description: "Post an execution result to stream for chatops"
 enabled: true
 entry_point: "workflows/post_result.yaml"

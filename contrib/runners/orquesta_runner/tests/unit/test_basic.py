@@ -37,6 +37,7 @@ from st2common.persistence import execution as ex_db_access
 from st2common.persistence import liveaction as lv_db_access
 from st2common.persistence import workflow as wf_db_access
 from st2common.runners import base as runners
+from st2common.runners import utils as runners_utils
 from st2common.services import action as ac_svc
 from st2common.services import policies as pc_svc
 from st2common.services import workflows as wf_svc
@@ -98,7 +99,12 @@ class OrquestaRunnerTest(st2tests.DbTestCase):
     def get_runner_class(cls, runner_name):
         return runners.get_runner(runner_name, runner_name).__class__
 
+    @mock.patch.object(
+        runners_utils,
+        'invoke_post_run',
+        mock.MagicMock(return_value=None))
     def test_run_workflow(self):
+        username = 'stanley'
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
         wf_input = {'who': 'Thanos'}
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=wf_input)
@@ -129,7 +135,7 @@ class OrquestaRunnerTest(st2tests.DbTestCase):
                 'workflow_execution_id': str(wf_ex_db.id),
                 'action_execution_id': str(ac_ex_db.id),
                 'api_url': 'http://127.0.0.1/v1',
-                'user': 'stanley'
+                'user': username
             }
         }
 
@@ -163,6 +169,7 @@ class OrquestaRunnerTest(st2tests.DbTestCase):
         tk1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
         tk1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk1_ex_db.id))[0]
         tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction['id'])
+        self.assertEqual(tk1_lv_ac_db.context.get('user'), username)
         self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         self.assertTrue(wf_svc.is_action_execution_under_workflow_context(tk1_ac_ex_db))
 
@@ -180,6 +187,7 @@ class OrquestaRunnerTest(st2tests.DbTestCase):
         tk2_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
         tk2_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk2_ex_db.id))[0]
         tk2_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk2_ac_ex_db.liveaction['id'])
+        self.assertEqual(tk2_lv_ac_db.context.get('user'), username)
         self.assertEqual(tk2_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         self.assertTrue(wf_svc.is_action_execution_under_workflow_context(tk2_ac_ex_db))
 
@@ -197,6 +205,7 @@ class OrquestaRunnerTest(st2tests.DbTestCase):
         tk3_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
         tk3_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk3_ex_db.id))[0]
         tk3_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk3_ac_ex_db.liveaction['id'])
+        self.assertEqual(tk3_lv_ac_db.context.get('user'), username)
         self.assertEqual(tk3_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         self.assertTrue(wf_svc.is_action_execution_under_workflow_context(tk3_ac_ex_db))
 
@@ -210,6 +219,10 @@ class OrquestaRunnerTest(st2tests.DbTestCase):
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db.id))
         self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+
+        # Check post run is invoked for the liveaction.
+        self.assertTrue(runners_utils.invoke_post_run.called)
+        self.assertEqual(runners_utils.invoke_post_run.call_count, 1)
 
         # Check workflow output.
         expected_output = {'msg': '%s, All your base are belong to us!' % wf_input['who']}

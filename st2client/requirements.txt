@@ -1,12 +1,13 @@
 # Don't edit this file. It's generated automatically!
 argcomplete
+cryptography==2.3.1
 jsonpath-rw==1.4.0
 jsonschema==2.6.0
 prettytable
 prompt-toolkit==1.0.15
-python-dateutil
+python-dateutil==2.7.4
 python-editor==1.0.3
-pytz==2018.5
+pytz==2018.6
 pyyaml==3.13
 requests[security]<2.15,>=2.14.1
 six==1.11.0

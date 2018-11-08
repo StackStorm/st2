@@ -27,6 +27,7 @@ from st2common.transport.publishers import PoolPublisher
 from st2common.util import schema as util_schema
 from st2common.util import reference
 from st2common.models.db import db_setup
+from st2common.models.db import _get_ssl_kwargs
 from st2common.util import date as date_utils
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.db.trigger import TriggerTypeDB, TriggerDB, TriggerInstanceDB
@@ -36,11 +37,19 @@ from st2common.persistence.rule import Rule
 from st2common.persistence.trigger import TriggerType, Trigger, TriggerInstance
 from st2tests import DbTestCase
 
+__all__ = [
+    'DbConnectionTestCase',
+    'DbConnectionTestCase',
+    'ReactorModelTestCase',
+    'ActionModelTestCase',
+    'KeyValuePairModelTestCase'
+]
+
 SKIP_DELETE = False
 DUMMY_DESCRIPTION = 'Sample Description.'
 
 
-class DbConnectionTest(DbTestCase):
+class DbConnectionTestCase(DbTestCase):
 
     def test_check_connect(self):
         """
@@ -51,6 +60,43 @@ class DbConnectionTest(DbTestCase):
 
         expected_str = "host=['%s:%s']" % (cfg.CONF.database.host, cfg.CONF.database.port)
         self.assertTrue(expected_str in str(client), 'Not connected to desired host.')
+
+    def test_get_ssl_kwargs(self):
+        # 1. No SSL kwargs provided
+        ssl_kwargs = _get_ssl_kwargs()
+        self.assertEqual(ssl_kwargs, {'ssl': False})
+
+        # 2. ssl kwarg provided
+        ssl_kwargs = _get_ssl_kwargs(ssl=True)
+        self.assertEqual(ssl_kwargs, {'ssl': True, 'ssl_match_hostname': True})
+
+        # 2. authentication_mechanism kwarg provided
+        ssl_kwargs = _get_ssl_kwargs(authentication_mechanism='MONGODB-X509')
+        self.assertEqual(ssl_kwargs, {
+            'ssl': True,
+            'ssl_match_hostname': True,
+            'authentication_mechanism': 'MONGODB-X509'
+        })
+
+    @mock.patch('st2common.models.db.mongoengine')
+    def test_db_setup(self, mock_mongoengine):
+        db_setup(db_name='name', db_host='host', db_port=12345, username='username',
+                 password='password', authentication_mechanism='MONGODB-X509')
+
+        call_args = mock_mongoengine.connection.connect.call_args_list[0][0]
+        call_kwargs = mock_mongoengine.connection.connect.call_args_list[0][1]
+
+        self.assertEqual(call_args, ('name',))
+        self.assertEqual(call_kwargs, {
+            'host': 'host',
+            'port': 12345,
+            'username': 'username',
+            'password': 'password',
+            'tz_aware': True,
+            'authentication_mechanism': 'MONGODB-X509',
+            'ssl': True,
+            'ssl_match_hostname': True
+        })
 
     @mock.patch('st2common.models.db.mongoengine')
     @mock.patch('st2common.models.db.LOG')
@@ -169,7 +215,7 @@ class DbConnectionTest(DbTestCase):
         self.assertEqual(expected_message, actual_message)
 
 
-class DbCleanupTest(DbTestCase):
+class DbCleanupTestCase(DbTestCase):
     ensure_indexes = True
 
     def test_cleanup(self):
@@ -184,10 +230,10 @@ class DbCleanupTest(DbTestCase):
 
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
-class ReactorModelTest(DbTestCase):
+class ReactorModelTestCase(DbTestCase):
 
     def test_triggertype_crud(self):
-        saved = ReactorModelTest._create_save_triggertype()
+        saved = ReactorModelTestCase._create_save_triggertype()
         retrieved = TriggerType.get_by_id(saved.id)
         self.assertEqual(saved.name, retrieved.name,
                          'Same triggertype was not returned.')
@@ -198,7 +244,7 @@ class ReactorModelTest(DbTestCase):
         retrieved = TriggerType.get_by_id(saved.id)
         self.assertEqual(retrieved.description, DUMMY_DESCRIPTION, 'Update to trigger failed.')
         # cleanup
-        ReactorModelTest._delete([retrieved])
+        ReactorModelTestCase._delete([retrieved])
         try:
             retrieved = TriggerType.get_by_id(saved.id)
         except StackStormDBObjectNotFoundError:
@@ -206,8 +252,8 @@ class ReactorModelTest(DbTestCase):
         self.assertIsNone(retrieved, 'managed to retrieve after failure.')
 
     def test_trigger_crud(self):
-        triggertype = ReactorModelTest._create_save_triggertype()
-        saved = ReactorModelTest._create_save_trigger(triggertype)
+        triggertype = ReactorModelTestCase._create_save_triggertype()
+        saved = ReactorModelTestCase._create_save_trigger(triggertype)
         retrieved = Trigger.get_by_id(saved.id)
         self.assertEqual(saved.name, retrieved.name,
                          'Same trigger was not returned.')
@@ -218,7 +264,7 @@ class ReactorModelTest(DbTestCase):
         retrieved = Trigger.get_by_id(saved.id)
         self.assertEqual(retrieved.description, DUMMY_DESCRIPTION, 'Update to trigger failed.')
         # cleanup
-        ReactorModelTest._delete([retrieved, triggertype])
+        ReactorModelTestCase._delete([retrieved, triggertype])
         try:
             retrieved = Trigger.get_by_id(saved.id)
         except StackStormDBObjectNotFoundError:
@@ -226,12 +272,12 @@ class ReactorModelTest(DbTestCase):
         self.assertIsNone(retrieved, 'managed to retrieve after failure.')
 
     def test_triggerinstance_crud(self):
-        triggertype = ReactorModelTest._create_save_triggertype()
-        trigger = ReactorModelTest._create_save_trigger(triggertype)
-        saved = ReactorModelTest._create_save_triggerinstance(trigger)
+        triggertype = ReactorModelTestCase._create_save_triggertype()
+        trigger = ReactorModelTestCase._create_save_trigger(triggertype)
+        saved = ReactorModelTestCase._create_save_triggerinstance(trigger)
         retrieved = TriggerInstance.get_by_id(saved.id)
         self.assertIsNotNone(retrieved, 'No triggerinstance created.')
-        ReactorModelTest._delete([retrieved, trigger, triggertype])
+        ReactorModelTestCase._delete([retrieved, trigger, triggertype])
         try:
             retrieved = TriggerInstance.get_by_id(saved.id)
         except StackStormDBObjectNotFoundError:
@@ -239,11 +285,11 @@ class ReactorModelTest(DbTestCase):
         self.assertIsNone(retrieved, 'managed to retrieve after failure.')
 
     def test_rule_crud(self):
-        triggertype = ReactorModelTest._create_save_triggertype()
-        trigger = ReactorModelTest._create_save_trigger(triggertype)
-        runnertype = ActionModelTest._create_save_runnertype()
-        action = ActionModelTest._create_save_action(runnertype)
-        saved = ReactorModelTest._create_save_rule(trigger, action)
+        triggertype = ReactorModelTestCase._create_save_triggertype()
+        trigger = ReactorModelTestCase._create_save_trigger(triggertype)
+        runnertype = ActionModelTestCase._create_save_runnertype()
+        action = ActionModelTestCase._create_save_action(runnertype)
+        saved = ReactorModelTestCase._create_save_rule(trigger, action)
         retrieved = Rule.get_by_id(saved.id)
         self.assertEqual(saved.name, retrieved.name, 'Same rule was not returned.')
         # test update
@@ -253,7 +299,7 @@ class ReactorModelTest(DbTestCase):
         retrieved = Rule.get_by_id(saved.id)
         self.assertEqual(retrieved.enabled, False, 'Update to rule failed.')
         # cleanup
-        ReactorModelTest._delete([retrieved, trigger, action, runnertype, triggertype])
+        ReactorModelTestCase._delete([retrieved, trigger, action, runnertype, triggertype])
         try:
             retrieved = Rule.get_by_id(saved.id)
         except StackStormDBObjectNotFoundError:
@@ -261,53 +307,53 @@ class ReactorModelTest(DbTestCase):
         self.assertIsNone(retrieved, 'managed to retrieve after failure.')
 
     def test_rule_lookup(self):
-        triggertype = ReactorModelTest._create_save_triggertype()
-        trigger = ReactorModelTest._create_save_trigger(triggertype)
-        runnertype = ActionModelTest._create_save_runnertype()
-        action = ActionModelTest._create_save_action(runnertype)
-        saved = ReactorModelTest._create_save_rule(trigger, action)
+        triggertype = ReactorModelTestCase._create_save_triggertype()
+        trigger = ReactorModelTestCase._create_save_trigger(triggertype)
+        runnertype = ActionModelTestCase._create_save_runnertype()
+        action = ActionModelTestCase._create_save_action(runnertype)
+        saved = ReactorModelTestCase._create_save_rule(trigger, action)
         retrievedrules = Rule.query(trigger=reference.get_str_resource_ref_from_model(trigger))
         self.assertEqual(1, len(retrievedrules), 'No rules found.')
         for retrievedrule in retrievedrules:
             self.assertEqual(saved.id, retrievedrule.id, 'Incorrect rule returned.')
-        ReactorModelTest._delete([saved, trigger, action, runnertype, triggertype])
+        ReactorModelTestCase._delete([saved, trigger, action, runnertype, triggertype])
 
     def test_rule_lookup_enabled(self):
-        triggertype = ReactorModelTest._create_save_triggertype()
-        trigger = ReactorModelTest._create_save_trigger(triggertype)
-        runnertype = ActionModelTest._create_save_runnertype()
-        action = ActionModelTest._create_save_action(runnertype)
-        saved = ReactorModelTest._create_save_rule(trigger, action)
+        triggertype = ReactorModelTestCase._create_save_triggertype()
+        trigger = ReactorModelTestCase._create_save_trigger(triggertype)
+        runnertype = ActionModelTestCase._create_save_runnertype()
+        action = ActionModelTestCase._create_save_action(runnertype)
+        saved = ReactorModelTestCase._create_save_rule(trigger, action)
         retrievedrules = Rule.query(trigger=reference.get_str_resource_ref_from_model(trigger),
                                     enabled=True)
         self.assertEqual(1, len(retrievedrules), 'Error looking up enabled rules.')
         for retrievedrule in retrievedrules:
             self.assertEqual(saved.id, retrievedrule.id,
                              'Incorrect rule returned.')
-        ReactorModelTest._delete([saved, trigger, action, runnertype, triggertype])
+        ReactorModelTestCase._delete([saved, trigger, action, runnertype, triggertype])
 
     def test_rule_lookup_disabled(self):
-        triggertype = ReactorModelTest._create_save_triggertype()
-        trigger = ReactorModelTest._create_save_trigger(triggertype)
-        runnertype = ActionModelTest._create_save_runnertype()
-        action = ActionModelTest._create_save_action(runnertype)
-        saved = ReactorModelTest._create_save_rule(trigger, action, False)
+        triggertype = ReactorModelTestCase._create_save_triggertype()
+        trigger = ReactorModelTestCase._create_save_trigger(triggertype)
+        runnertype = ActionModelTestCase._create_save_runnertype()
+        action = ActionModelTestCase._create_save_action(runnertype)
+        saved = ReactorModelTestCase._create_save_rule(trigger, action, False)
         retrievedrules = Rule.query(trigger=reference.get_str_resource_ref_from_model(trigger),
                                     enabled=False)
         self.assertEqual(1, len(retrievedrules), 'Error looking up enabled rules.')
         for retrievedrule in retrievedrules:
             self.assertEqual(saved.id, retrievedrule.id, 'Incorrect rule returned.')
-        ReactorModelTest._delete([saved, trigger, action, runnertype, triggertype])
+        ReactorModelTestCase._delete([saved, trigger, action, runnertype, triggertype])
 
     def test_trigger_lookup(self):
-        triggertype = ReactorModelTest._create_save_triggertype()
-        saved = ReactorModelTest._create_save_trigger(triggertype)
+        triggertype = ReactorModelTestCase._create_save_triggertype()
+        saved = ReactorModelTestCase._create_save_trigger(triggertype)
         retrievedtriggers = Trigger.query(name=saved.name)
         self.assertEqual(1, len(retrievedtriggers), 'No triggers found.')
         for retrievedtrigger in retrievedtriggers:
             self.assertEqual(saved.id, retrievedtrigger.id,
                              'Incorrect trigger returned.')
-        ReactorModelTest._delete([saved, triggertype])
+        ReactorModelTestCase._delete([saved, triggertype])
 
     @staticmethod
     def _create_save_triggertype():
@@ -396,12 +442,12 @@ PARAM_SCHEMA = {
 
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
-class ActionModelTest(DbTestCase):
+class ActionModelTestCase(DbTestCase):
 
     def tearDown(self):
         runnertype = RunnerType.get_by_name('python')
         self._delete([runnertype])
-        super(ActionModelTest, self).tearDown()
+        super(ActionModelTestCase, self).tearDown()
 
     def test_action_crud(self):
         runnertype = self._create_save_runnertype(metadata=False)
@@ -551,10 +597,10 @@ from st2common.models.db.keyvalue import KeyValuePairDB
 from st2common.persistence.keyvalue import KeyValuePair
 
 
-class KeyValuePairModelTest(DbTestCase):
+class KeyValuePairModelTestCase(DbTestCase):
 
     def test_kvp_crud(self):
-        saved = KeyValuePairModelTest._create_save_kvp()
+        saved = KeyValuePairModelTestCase._create_save_kvp()
         retrieved = KeyValuePair.get_by_name(saved.name)
         self.assertEqual(saved.id, retrieved.id,
                          'Same KeyValuePair was not returned.')
@@ -568,7 +614,7 @@ class KeyValuePairModelTest(DbTestCase):
                          'Update of key value failed')
 
         # cleanup
-        KeyValuePairModelTest._delete([retrieved])
+        KeyValuePairModelTestCase._delete([retrieved])
         try:
             retrieved = KeyValuePair.get_by_name(saved.name)
         except StackStormDBObjectNotFoundError:

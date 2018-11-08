@@ -1,6 +1,6 @@
 # Packages versions fixed for the whole st2 stack
 # Note: greenlet is used by eventlet
-greenlet==0.4.14
+greenlet==0.4.15
 # Note: 0.20.0 removed select.poll() on which some of our code and libraries we
 # depend on rely
 eventlet==0.24.1
@@ -19,15 +19,15 @@ requests[security]<2.15,>=2.14.1
 apscheduler==3.5.3
 gitpython==2.1.11
 jsonschema==2.6.0
-pymongo==3.7.1
+pymongo==3.7.2
 passlib==1.7.1
 lockfile==0.12.2
 python-gnupg==0.4.3
 jsonpath-rw==1.4.0
 pyinotify==0.9.6
 semver==2.8.1
-pytz==2018.5
-stevedore==1.29.0
+pytz==2018.6
+stevedore==1.30.0
 paramiko==2.4.2
 networkx==1.11
 python-keyczar==0.716
@@ -38,7 +38,7 @@ virtualenv==15.1.0
 sseclient==0.0.19
 python-editor==1.0.3
 prompt-toolkit==1.0.15
-tooz==1.62.0
+tooz==1.63.1
 zake==0.2.2
 routes==2.4.1
 flex==6.13.2
@@ -53,3 +53,4 @@ python-statsd==2.1.0
 prometheus_client==0.1.1
 mock==2.0.0
 ujson==1.35
+python-dateutil==2.7.4

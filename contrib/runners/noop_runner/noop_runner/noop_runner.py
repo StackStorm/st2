@@ -65,4 +65,4 @@ def get_runner():
 
 
 def get_metadata():
-    return get_runner_metadata('noop_runner')
+    return get_runner_metadata('noop_runner')[0]

@@ -60,41 +60,6 @@ def get_system_packs_base_path():
     return cfg.CONF.content.system_packs_base_path
 
 
-def get_system_runners_base_path():
-    """
-    Return a path to the directory where system runners are stored.
-
-    :rtype: ``str``
-    """
-    return cfg.CONF.content.system_runners_base_path
-
-
-def get_runners_base_paths():
-    """
-    Return a list of base paths which are searched for runners.
-
-    :rtype: ``list``
-    """
-    system_runners_base_path = get_system_runners_base_path()
-    runners_base_paths = cfg.CONF.content.runners_base_paths or ''
-
-    # Remove trailing colon (if present)
-    if runners_base_paths.endswith(':'):
-        runners_base_paths = runners_base_paths[:-1]
-
-    result = []
-    # System path is always first
-    if system_runners_base_path:
-        result.append(system_runners_base_path)
-
-    runners_base_paths = runners_base_paths.split(':')
-
-    result = result + runners_base_paths
-    result = [path for path in result if path]
-    result = list(OrderedSet(result))
-    return result
-
-
 def get_packs_base_paths():
     """
     Return a list of base paths which are searched for integration packs.

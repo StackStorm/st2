@@ -106,7 +106,7 @@ class RunnerTypeAPI(BaseAPI):
                 "description": "Input parameters for the action runner.",
                 "type": "object",
                 "patternProperties": {
-                    "^\w+$": util_schema.get_action_parameters_schema()
+                    r"^\w+$": util_schema.get_action_parameters_schema()
                 },
                 'additionalProperties': False
             },
@@ -119,7 +119,7 @@ class RunnerTypeAPI(BaseAPI):
                 "description": "Schema for the runner's output.",
                 "type": "object",
                 "patternProperties": {
-                    "^\w+$": util_schema.get_action_output_schema()
+                    r"^\w+$": util_schema.get_action_output_schema()
                 },
                 'additionalProperties': False,
                 "default": {}
@@ -217,7 +217,7 @@ class ActionAPI(BaseAPI, APIUIDMixin):
                 "description": "Input parameters for the action.",
                 "type": "object",
                 "patternProperties": {
-                    "^\w+$": util_schema.get_action_parameters_schema()
+                    r"^\w+$": util_schema.get_action_parameters_schema()
                 },
                 'additionalProperties': False,
                 "default": {}
@@ -226,7 +226,7 @@ class ActionAPI(BaseAPI, APIUIDMixin):
                 "description": "Schema for the action's output.",
                 "type": "object",
                 "patternProperties": {
-                    "^\w+$": util_schema.get_action_output_schema()
+                    r"^\w+$": util_schema.get_action_output_schema()
                 },
                 'additionalProperties': False,
                 "default": {}
@@ -375,7 +375,7 @@ class LiveActionAPI(BaseAPI):
                 "description": "Input parameters for the action.",
                 "type": "object",
                 "patternProperties": {
-                    "^\w+$": {
+                    r"^\w+$": {
                         "anyOf": [
                             {"type": "array"},
                             {"type": "boolean"},

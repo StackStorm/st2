@@ -25,24 +25,21 @@ from oslo_config import cfg
 
 from st2actions.notifier import scheduler
 from st2common.constants import action as action_constants
-from st2common.models.api.action import ActionAPI, RunnerTypeAPI
+from st2common.models.api.action import ActionAPI
 from st2common.models.db.action import LiveActionDB
 from st2common.persistence.action import Action, LiveAction
-from st2common.persistence.runner import RunnerType
 from st2common.services import executions
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
+from st2common.bootstrap import runnersregistrar as runners_registrar
 from st2common.util import date as date_utils
 from st2tests import DbTestCase, fixturesloader
 from st2tests.mocks.execution import MockExecutionPublisher
 from st2tests.mocks.liveaction import MockLiveActionPublisher
-from st2tests.mocks.runner import MockActionRunner
-
+from st2tests.mocks.runners.runner import MockActionRunner
+from st2tests.mocks.runners import runner
 
 TEST_FIXTURES = {
-    'runners': [
-        'testrunner1.yaml'
-    ],
     'actions': [
         'action1.yaml'
     ]
@@ -64,15 +61,16 @@ RUN_RESULT = (action_constants.LIVEACTION_STATUS_SUCCEEDED, NON_EMPTY_RESULT, No
 @mock.patch.object(
     LiveActionPublisher, 'publish_state',
     mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
+@mock.patch('st2common.runners.base.get_runner', mock.Mock(return_value=runner.get_runner()))
+@mock.patch('st2actions.container.base.get_runner', mock.Mock(return_value=runner.get_runner()))
 class SchedulerTest(DbTestCase):
 
     @classmethod
     def setUpClass(cls):
         super(SchedulerTest, cls).setUpClass()
 
-        for _, fixture in six.iteritems(FIXTURES['runners']):
-            instance = RunnerTypeAPI(**fixture)
-            RunnerType.add_or_update(RunnerTypeAPI.to_model(instance))
+        # Register runners
+        runners_registrar.register_runners()
 
         for _, fixture in six.iteritems(FIXTURES['actions']):
             instance = ActionAPI(**fixture)

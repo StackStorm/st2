@@ -60,7 +60,7 @@ ACTION_1 = {
     'enabled': True,
     'entry_point': '/tmp/test/action1.sh',
     'pack': 'sixpack',
-    'runner_type': 'run-remote',
+    'runner_type': 'remote-shell-cmd',
     'parameters': {
         'a': {
             'type': 'string',
@@ -88,7 +88,7 @@ ACTION_2 = {
     'enabled': True,
     'entry_point': '/tmp/test/action2.sh',
     'pack': 'familypack',
-    'runner_type': 'run-remote',
+    'runner_type': 'remote-shell-cmd',
     'parameters': {
         'c': {
             'type': 'object',
@@ -111,7 +111,7 @@ ACTION_3 = {
     'enabled': True,
     'entry_point': '/tmp/test/action3.sh',
     'pack': 'wolfpack',
-    'runner_type': 'run-remote',
+    'runner_type': 'remote-shell-cmd',
     'parameters': {
         'e': {},
         'f': {}
@@ -1090,7 +1090,8 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
             updates = {'status': 'resuming'}
             put_resp = self._do_put(execution_id, updates, expect_errors=True)
             self.assertEqual(put_resp.status_int, 400)
-            self.assertIn('is not in a paused state', put_resp.json['faultstring'])
+            expected_error_message = 'it is in "pausing" state and not in "paused" state'
+            self.assertIn(expected_error_message, put_resp.json['faultstring'])
 
             get_resp = self._do_get_one(execution_id)
             self.assertEqual(get_resp.status_int, 200)
@@ -1264,7 +1265,7 @@ class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestC
                                                 end_timestamp=timestamp,
                                                 status=status,
                                                 action={'ref': 'core.local'},
-                                                runner={'name': 'run-local'},
+                                                runner={'name': 'local-shell-cmd'},
                                                 liveaction={'ref': 'foo'})
         action_execution_db = ActionExecution.add_or_update(action_execution_db)
 
@@ -1335,7 +1336,7 @@ class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestC
                                                     end_timestamp=timestamp,
                                                     status=status,
                                                     action={'ref': 'core.local'},
-                                                    runner={'name': 'run-local'},
+                                                    runner={'name': 'local-shell-cmd'},
                                                     liveaction={'ref': 'foo'})
             action_execution_db = ActionExecution.add_or_update(action_execution_db)
 

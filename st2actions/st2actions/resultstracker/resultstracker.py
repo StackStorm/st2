@@ -26,7 +26,7 @@ from st2common.models.db.executionstate import ActionExecutionStateDB
 from st2common.persistence.executionstate import ActionExecutionState
 from st2common.transport import consumers
 from st2common.transport import utils as transport_utils
-from st2common.util.loader import register_query_module
+from st2common.runners.base import get_query_module
 from st2common.transport.queues import RESULTSTRACKER_ACTIONSTATE_WORK_QUEUE
 
 __all__ = [
@@ -97,7 +97,7 @@ class ResultsTracker(consumers.MessageHandler):
         if (query_module_name not in self._queriers and
                 query_module_name not in self._failed_imports):
             try:
-                query_module = register_query_module(query_module_name)
+                query_module = get_query_module(query_module_name)
             except:
                 LOG.exception('Failed importing query module: %s', query_module_name)
                 self._failed_imports.add(query_module_name)
