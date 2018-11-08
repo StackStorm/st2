@@ -86,7 +86,7 @@ class UnloadActionTestCase(BaseActionTestCase, CleanDbTestCase):
 
         self.assertEqual(len(pack_dbs), 1)
         self.assertEqual(len(action_dbs), 1)
-        self.assertEqual(len(alias_dbs), 2)
+        self.assertEqual(len(alias_dbs), 3)
         self.assertEqual(len(rule_dbs), 1)
         self.assertEqual(len(sensor_dbs), 3)
         self.assertEqual(len(trigger_type_dbs), 4)
