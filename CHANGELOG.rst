@@ -82,6 +82,8 @@ Fixed
   existing ``st2 pack show -j``.
 
   Reported by Nick Maludy (improvement) #4260
+* Fix string operations on unicode data in Orquest workflows, associated with PR
+  https://github.com/StackStorm/orquesta/pull/98. (bug fix)
 * ``st2ctl reload --register-aliases`` and ``st2ctl reload --register-all`` now spits a warning when
   trying to register aliases with no corresponding action registered in the db.
 

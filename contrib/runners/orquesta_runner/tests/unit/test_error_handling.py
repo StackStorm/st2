@@ -159,7 +159,10 @@ class OrquestaErrorHandlingTest(st2tests.DbTestCase):
     def test_fail_input_rendering(self):
         expected_errors = [
             {
-                'message': 'Unknown function "#property#value"'
+                'message': (
+                    'Unable to evaluate expression \'<% abs(4).value %>\'. '
+                    'NoFunctionRegisteredException: Unknown function "#property#value"'
+                )
             }
         ]
 
@@ -188,7 +191,10 @@ class OrquestaErrorHandlingTest(st2tests.DbTestCase):
     def test_fail_vars_rendering(self):
         expected_errors = [
             {
-                'message': 'Unknown function "#property#value"'
+                'message': (
+                    'Unable to evaluate expression \'<% abs(4).value %>\'. '
+                    'NoFunctionRegisteredException: Unknown function "#property#value"'
+                )
             }
         ]
 
@@ -217,7 +223,10 @@ class OrquestaErrorHandlingTest(st2tests.DbTestCase):
     def test_fail_start_task_action(self):
         expected_errors = [
             {
-                'message': 'Unknown function "#property#value"',
+                'message': (
+                    'Unable to evaluate expression \'<% ctx().func.value %>\'. '
+                    'NoFunctionRegisteredException: Unknown function "#property#value"'
+                ),
                 'task_id': 'task1'
             }
         ]
@@ -247,7 +256,10 @@ class OrquestaErrorHandlingTest(st2tests.DbTestCase):
     def test_fail_start_task_input_expr_eval(self):
         expected_errors = [
             {
-                'message': 'Unknown function "#property#value"',
+                'message': (
+                    'Unable to evaluate expression \'<% ctx().msg1.value %>\'. '
+                    'NoFunctionRegisteredException: Unknown function "#property#value"'
+                ),
                 'task_id': 'task1'
             }
         ]
@@ -316,7 +328,10 @@ class OrquestaErrorHandlingTest(st2tests.DbTestCase):
     def test_fail_next_task_action(self):
         expected_errors = [
             {
-                'message': 'Unknown function "#property#value"',
+                'message': (
+                    'Unable to evaluate expression \'<% ctx().func.value %>\'. '
+                    'NoFunctionRegisteredException: Unknown function "#property#value"'
+                ),
                 'task_id': 'task2'
             }
         ]
@@ -356,7 +371,10 @@ class OrquestaErrorHandlingTest(st2tests.DbTestCase):
     def test_fail_next_task_input_expr_eval(self):
         expected_errors = [
             {
-                'message': 'Unknown function "#property#value"',
+                'message': (
+                    'Unable to evaluate expression \'<% ctx().msg2.value %>\'. '
+                    'NoFunctionRegisteredException: Unknown function "#property#value"'
+                ),
                 'task_id': 'task2'
             }
         ]
@@ -530,7 +548,10 @@ class OrquestaErrorHandlingTest(st2tests.DbTestCase):
     def test_fail_task_publish(self):
         expected_errors = [
             {
-                'message': 'Unknown function "foobar"',
+                'message': (
+                    'Unable to evaluate expression \'<% foobar() %>\'. '
+                    'NoFunctionRegisteredException: Unknown function "foobar"'
+                ),
                 'task_transition_id': 'task2__0',
                 'task_id': 'task1'
             }
@@ -570,7 +591,10 @@ class OrquestaErrorHandlingTest(st2tests.DbTestCase):
     def test_fail_output_rendering(self):
         expected_errors = [
             {
-                'message': 'Unknown function "#property#value"'
+                'message': (
+                    'Unable to evaluate expression \'<% abs(4).value %>\'. '
+                    'NoFunctionRegisteredException: Unknown function "#property#value"'
+                )
             }
         ]
 

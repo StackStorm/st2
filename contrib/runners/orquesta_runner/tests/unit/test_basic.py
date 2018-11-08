@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -16,6 +18,7 @@
 from __future__ import absolute_import
 
 import mock
+import six
 
 from orquesta import states as wf_states
 
@@ -227,6 +230,62 @@ class OrquestaRunnerTest(st2tests.DbTestCase):
         # Check workflow output.
         expected_output = {'msg': '%s, All your base are belong to us!' % wf_input['who']}
 
+        self.assertDictEqual(wf_ex_db.output, expected_output)
+
+        # Check liveaction and action execution result.
+        expected_result = {'output': expected_output}
+
+        self.assertDictEqual(lv_ac_db.result, expected_result)
+        self.assertDictEqual(ac_ex_db.result, expected_result)
+
+    def test_run_workflow_with_unicode_input(self):
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
+        wf_input = {'who': '薩諾斯'}
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=wf_input)
+        lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
+        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
+
+        # Process task1.
+        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task1'}
+        tk1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        tk1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk1_ex_db.id))[0]
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction['id'])
+        self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        wf_svc.handle_action_execution_completion(tk1_ac_ex_db)
+        tk1_ex_db = wf_db_access.TaskExecution.get_by_id(tk1_ex_db.id)
+        self.assertEqual(tk1_ex_db.status, wf_states.SUCCEEDED)
+
+        # Process task2.
+        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task2'}
+        tk2_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        tk2_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk2_ex_db.id))[0]
+        tk2_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk2_ac_ex_db.liveaction['id'])
+        self.assertEqual(tk2_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        wf_svc.handle_action_execution_completion(tk2_ac_ex_db)
+        tk2_ex_db = wf_db_access.TaskExecution.get_by_id(tk2_ex_db.id)
+        self.assertEqual(tk2_ex_db.status, wf_states.SUCCEEDED)
+
+        # Process task3.
+        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task3'}
+        tk3_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        tk3_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk3_ex_db.id))[0]
+        tk3_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk3_ac_ex_db.liveaction['id'])
+        self.assertEqual(tk3_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        wf_svc.handle_action_execution_completion(tk3_ac_ex_db)
+        tk3_ex_db = wf_db_access.TaskExecution.get_by_id(tk3_ex_db.id)
+        self.assertEqual(tk3_ex_db.status, wf_states.SUCCEEDED)
+
+        # Assert workflow is completed.
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
+        self.assertEqual(wf_ex_db.status, wf_states.SUCCEEDED)
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db.id))
+        self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+
+        # Check workflow output.
+        wf_input_val = wf_input['who'].decode('utf-8') if six.PY2 else wf_input['who']
+        expected_output = {'msg': '%s, All your base are belong to us!' % wf_input_val}
         self.assertDictEqual(wf_ex_db.output, expected_output)
 
         # Check liveaction and action execution result.
