@@ -54,7 +54,8 @@ EXCLUDE_FILE_PATTERNS = [
 class ResourceRegistrar(object):
     ALLOWED_EXTENSIONS = []
 
-    def __init__(self, use_pack_cache=True, use_runners_cache=False, fail_on_failure=False):
+    def __init__(self, use_pack_cache=True, use_runners_cache=False, fail_on_failure=False,
+                 st2_model=None):
         """
         :param use_pack_cache: True to cache which packs have been registered in memory and making
                                 sure packs are only registered once.
@@ -77,6 +78,9 @@ class ResourceRegistrar(object):
 
         # Maps runner name -> RunnerTypeDB
         self._runner_type_db_cache = {}
+
+        self._st2_model = st2_model
+        self._db_content_cache = {}
 
     def get_resources_from_pack(self, resources_dir):
         resources = []
@@ -111,6 +115,15 @@ class ResourceRegistrar(object):
         registered_count = 0
         for pack_name, pack_path in six.iteritems(packs):
             self.register_pack(pack_name=pack_name, pack_dir=pack_path)
+            print('Querying for content type: %s' % self._st2_model)
+            if self._st2_model:
+                print('Getting content from db for pack %s' % pack_name)
+                models = self._st2_model.query(pack=pack_name, only_fields=['ref', 'id'])
+                model_ref_id_map = {}
+                for model in models:
+                    model_ref_id_map[model.ref] = str(model.id)
+                self._db_content_cache[pack_name] = model_ref_id_map
+                print('Got models: %s' % self._db_content_cache[pack_name])
             registered_count += 1
 
         return registered_count

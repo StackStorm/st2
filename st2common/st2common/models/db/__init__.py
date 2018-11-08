@@ -437,6 +437,7 @@ class MongoDBAccess(object):
 
     def insert(self, instance):
         instance = self.model.objects.insert(instance)
+        print('WROTE INSTANCES: %s', instance)
         return self._undo_dict_field_escape(instance)
 
     def add_or_update(self, instance, validate=True):
