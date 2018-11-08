@@ -259,7 +259,7 @@ TESTS_PYTHON_PATH=()
 # 1. Add PYTHONPATH from StackStorm packages virtualenv (only applies when running on server when
 # StackStorm is installed using packages)
 if [ -f "${STACKSTORM_VIRTUALENV_PYTHON_BINARY}" ]; then
-    ST2_PYTHONPATH=$(${STACKSTORM_VIRTUALENV_PYTHON_BINARY} -c "import sys;print ':'.join([x for x in sys.path if x.strip()])")
+    ST2_PYTHONPATH=$(${STACKSTORM_VIRTUALENV_PYTHON_BINARY} -c "import sys;print(':'.join([x for x in sys.path if x.strip()]))")
     verbose_log "Adding entries from StackStorm virtualenv to PYTHONPATH: ${ST2_PYTHONPATH}"
 
     TESTS_PYTHON_PATH+=("${ST2_PYTHONPATH}")

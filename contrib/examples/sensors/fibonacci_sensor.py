@@ -1,6 +1,6 @@
-from st2reactor.sensor.base import PollingSensor
+import os
 
-from environ import get_environ
+from st2reactor.sensor.base import PollingSensor
 
 
 class FibonacciSensor(PollingSensor):
@@ -30,7 +30,7 @@ class FibonacciSensor(PollingSensor):
         payload = {
             "count": self.count,
             "fibonacci": fib,
-            "pythonpath": get_environ("PYTHONPATH")
+            "pythonpath": os.environ.get("PYTHONPATH", None)
         }
 
         self.sensor_service.dispatch(trigger="examples.fibonacci", payload=payload)
