@@ -12,7 +12,7 @@ kombu
 # See https://github.com/MongoEngine/mongoengine/pull/1833
 git+https://github.com/StackStorm/mongoengine.git@stackstorm_patched#egg=mongoengine
 networkx
-git+https://github.com/StackStorm/orquesta.git@142a19ddabbeea6a8d9d10341ba70585114dc3b7#egg=orquesta
+git+https://github.com/StackStorm/orquesta.git@251d72113bd0586bc57529d340d0e62c8e575943#egg=orquesta
 oslo.config
 paramiko
 pyyaml

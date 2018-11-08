@@ -69,21 +69,46 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
         self.assertDictEqual(ex.result, {'errors': expected_errors, 'output': None})
 
     def test_input_error(self):
-        expected_errors = [{'message': 'Unknown function "#property#value"'}]
+        expected_errors = [
+            {
+                'message': (
+                    'Unable to evaluate expression \'<% abs(8).value %>\'. '
+                    'NoFunctionRegisteredException: Unknown function "#property#value"'
+                ),
+            }
+        ]
+
         ex = self._execute_workflow('examples.orquesta-fail-input-rendering')
         ex = self._wait_for_completion(ex)
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
         self.assertDictEqual(ex.result, {'errors': expected_errors, 'output': None})
 
     def test_vars_error(self):
-        expected_errors = [{'message': 'Unknown function "#property#value"'}]
+        expected_errors = [
+            {
+                'message': (
+                    'Unable to evaluate expression \'<% abs(8).value %>\'. '
+                    'NoFunctionRegisteredException: Unknown function "#property#value"'
+                )
+            }
+        ]
+
         ex = self._execute_workflow('examples.orquesta-fail-vars-rendering')
         ex = self._wait_for_completion(ex)
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
         self.assertDictEqual(ex.result, {'errors': expected_errors, 'output': None})
 
     def test_start_task_error(self):
-        expected_errors = [{'message': 'Unknown function "#property#value"', 'task_id': 'task1'}]
+        expected_errors = [
+            {
+                'message': (
+                    'Unable to evaluate expression \'<% ctx().name.value %>\'. '
+                    'NoFunctionRegisteredException: Unknown function "#property#value"'
+                ),
+                'task_id': 'task1'
+            }
+        ]
+
         ex = self._execute_workflow('examples.orquesta-fail-start-task')
         ex = self._wait_for_completion(ex)
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
@@ -124,7 +149,15 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
         self.assertDictEqual(ex.result, {'errors': expected_errors, 'output': None})
 
     def test_output_error(self):
-        expected_errors = [{'message': 'Unknown function "#property#value"'}]
+        expected_errors = [
+            {
+                'message': (
+                    'Unable to evaluate expression \'<% abs(8).value %>\'. '
+                    'NoFunctionRegisteredException: Unknown function "#property#value"'
+                )
+            }
+        ]
+
         ex = self._execute_workflow('examples.orquesta-fail-output-rendering')
         ex = self._wait_for_completion(ex)
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
