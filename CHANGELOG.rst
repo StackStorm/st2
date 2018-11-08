@@ -82,6 +82,7 @@ Fixed
   existing ``st2 pack show -j``.
 
   Reported by Nick Maludy (improvement) #4260
+* Fix string operations on unicode data in Orquest workflows. (bug fix)
 
 2.9.1 - October 03, 2018
 ------------------------
