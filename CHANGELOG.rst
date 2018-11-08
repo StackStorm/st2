@@ -82,6 +82,10 @@ Fixed
   existing ``st2 pack show -j``.
 
   Reported by Nick Maludy (improvement) #4260
+* ``st2ctl reload --register-aliases`` and ``st2ctl reload --register-all`` now spits a warning when
+  trying to register aliases with no corresponding action registered in the db.
+
+  Reported by nzlosh (improvement) #4372.
 
 2.9.1 - October 03, 2018
 ------------------------
