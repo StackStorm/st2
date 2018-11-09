@@ -104,8 +104,8 @@ class WiringTest(base.TestWorkflowExecution):
         expected_output = ''
         expected_result = {'output': expected_output}
 
-        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         self.assertDictEqual(ex.result, expected_result)
+        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
 
     def test_subworkflow(self):
         wf_name = 'examples.orquesta-subworkflow'
