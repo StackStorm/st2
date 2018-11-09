@@ -123,6 +123,13 @@ class Access(object):
         return cls._get_impl().aggregate(*args, **kwargs)
 
     @classmethod
+    def bulk_add_or_update(cls, model_objects):
+        try:
+            cls._get_impl().bulk_insert(model_objects)
+        except:
+            raise
+
+    @classmethod
     def insert(cls, model_object, publish=True, dispatch_trigger=True,
                log_not_unique_error_as_debug=False):
         # Late import to avoid very expensive in-direct import (~1 second) when this function

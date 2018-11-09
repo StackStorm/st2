@@ -435,6 +435,9 @@ class MongoDBAccess(object):
     def aggregate(self, *args, **kwargs):
         return self.model.objects(**kwargs)._collection.aggregate(*args, **kwargs)
 
+    def bulk_add_or_update(self, instances):
+        self.model.objects.save(instances)
+
     def insert(self, instance):
         instance = self.model.objects.insert(instance)
         print('WROTE INSTANCES: %s', instance)

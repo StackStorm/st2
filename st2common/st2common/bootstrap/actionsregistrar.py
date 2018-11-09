@@ -82,7 +82,7 @@ class ActionsRegistrar(ResourceRegistrar):
         registered_count = 0
         try:
             LOG.info('Actions to write to disk: %s', all_actions)
-            Action.insert(all_actions)
+            Action.bulk_insert(all_actions)
             registered_count = len(all_actions)
         except Exception as e:
             LOG.exception('Not all actions were successfully persisted.')
@@ -122,7 +122,7 @@ class ActionsRegistrar(ResourceRegistrar):
 
         registered_count = 0
         try:
-            Action.insert(action_db_models)
+            Action.bulk_insert(action_db_models)
             registered_count = len(action_db_models)
         except Exception as e:
             LOG.error('Not all actions were successfully persisted.')
@@ -205,7 +205,8 @@ class ActionsRegistrar(ResourceRegistrar):
         return model
 
     def _get_action_db_models(self, pack, actions):
-        action_db_models = []
+        action_db_inserts = []
+        action_db_updates = []
         for action in actions:
             action_db_model = self._get_action_db_model(pack, action)
             action_db_models.append(action_db_model)
