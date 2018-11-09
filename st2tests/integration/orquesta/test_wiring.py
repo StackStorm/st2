@@ -95,6 +95,18 @@ class WiringTest(base.TestWorkflowExecution):
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         self.assertDictEqual(ex.result, expected_result)
 
+    def test_action_context(self):
+        wf_name = 'examples.orquesta-action-context'
+
+        ex = self._execute_workflow(wf_name)
+        ex = self._wait_for_completion(ex)
+
+        expected_output = ''
+        expected_result = {'output': expected_output}
+
+        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertDictEqual(ex.result, expected_result)
+
     def test_subworkflow(self):
         wf_name = 'examples.orquesta-subworkflow'
 

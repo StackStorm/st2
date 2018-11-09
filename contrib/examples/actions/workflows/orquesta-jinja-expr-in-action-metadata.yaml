@@ -1,0 +1,12 @@
+---
+version: '1.0'
+description: >
+  Test that Jinja expressions containing action_context references are properly
+  passed to Orquesta workflows
+input:
+  immutable_default_user
+tasks:
+  echo_user:
+    action: core.local
+    input:
+      cmd: echo <% ctx().immutable_default_user %>

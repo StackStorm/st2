@@ -1,0 +1,14 @@
+---
+name: orquesta-jinja-expr-in-action-metadata
+description: >
+  Helper action for orquesta-action-context workflow. This action uses a Jinja
+  expression to calculate a default value for an immutable parameter. This
+  tests that the action_context is properly being passed in.
+  This action is inspired by st2cd.create_vm_role.
+runner_type: orquesta
+entry_point: workflows/orquesta-jinja-expr-in-action-metadata.yaml
+enabled: true
+parameters:
+  immutable_default_user:
+    type: string
+    default: "{{ 'api_user' in action_context and action_context.api_user or action_context.user }}"

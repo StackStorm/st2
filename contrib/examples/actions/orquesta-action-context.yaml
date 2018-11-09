@@ -1,0 +1,7 @@
+---
+name: orquesta-action-context
+description: >
+  A sample workflow demonstrating use of st2 runtime context in action metadata
+runner_type: orquesta
+entry_point: workflows/orquesta-action-context.yaml
+enabled: true

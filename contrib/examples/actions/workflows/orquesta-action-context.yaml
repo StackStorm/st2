@@ -1,0 +1,7 @@
+---
+version: '1.0'
+description: >
+  A sample workflow demonstrating use of st2 runtime context in action metadata
+tasks:
+  echo_user:
+    action: examples.orquesta-jinja-expr-in-action-metadata
