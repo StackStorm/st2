@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
 import os
 import os.path
 import copy
@@ -535,6 +536,21 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
         self.assertTrue('actions/fileb.txt' in pack_db.files)
 
         self.__do_delete(action_id)
+
+    def test_post_include_data_files_non_relative_path(self):
+        action = copy.deepcopy(ACTION_12)
+        action['data_files'] = [
+            {
+                'file_path': '/tmp/not/relative/filea.txt',
+                'content': 'test content a'
+            }
+        ]
+
+        post_resp = self.__do_post(action, expect_errors=True)
+
+        expected = (r'Invalid file path: .*?\. File path needs to be relative '
+                    'to the pack actions directory')
+        self.assertTrue(re.match(expected, post_resp.json['faultstring']))
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
