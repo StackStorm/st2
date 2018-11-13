@@ -480,12 +480,13 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
-    def test_post_include_files(self):
+    def test_post_and_put_include_files(self):
         # Verify initial state
         pack_db = Pack.get_by_ref(ACTION_12['pack'])
         self.assertTrue('actions/filea.txt' not in pack_db.files)
         self.assertTrue('actions/fileb.txt' not in pack_db.files)
 
+        # 1. Create new action
         action = copy.deepcopy(ACTION_12)
         action['data_files'] = [
             {
@@ -498,6 +499,7 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
             }
         ]
         post_resp = self.__do_post(action)
+        action_id = self.__get_action_id(post_resp)
 
         # Verify file has been written on disk
         for file_path in self.to_delete_files:
@@ -508,7 +510,31 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
         pack_db = Pack.get_by_ref(ACTION_12['pack'])
         self.assertTrue('actions/filea.txt' in pack_db.files)
         self.assertTrue('actions/fileb.txt' in pack_db.files)
-        self.__do_delete(self.__get_action_id(post_resp))
+
+        # 2. Update an existing action
+        action['data_files'] = [
+            {
+                'file_path': 'filea.txt',
+                'content': 'new content a'
+            },
+            {
+                'file_path': 'fileb.txt',
+                'content': 'new content b'
+            }
+        ]
+        post_resp = self.__do_put(action_id, action)
+
+        # Verify file has been updated on disk
+        for file_path in self.to_delete_files:
+            self.assertTrue(os.path.exists(file_path))
+            self.assertTrue('new content' in open(file_path).read())
+
+        # Verify PackDB.files has been updated
+        pack_db = Pack.get_by_ref(ACTION_12['pack'])
+        self.assertTrue('actions/filea.txt' in pack_db.files)
+        self.assertTrue('actions/fileb.txt' in pack_db.files)
+
+        self.__do_delete(action_id)
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))

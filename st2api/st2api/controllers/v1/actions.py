@@ -159,6 +159,7 @@ class ActionsController(ContentPackResourceController, BaseDataFilesController):
         written_data_files = []
         if data_files:
             written_data_files = self._handle_data_files(pack_ref=action.pack,
+                                                         resource_type='action',
                                                          data_files=data_files)
 
         try:
