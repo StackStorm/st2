@@ -128,7 +128,7 @@ class BaseDataFilesController(object):
         pack_db = Pack.get_by_ref(pack_ref)
         pack_db.files = set(pack_db.files)
         pack_db.files.update(set(file_paths))
-        pack_db.files = list(pack_db.files)
+        pack_db.files = sorted(list(pack_db.files))
         pack_db = Pack.add_or_update(pack_db)
 
         return pack_db

@@ -178,6 +178,8 @@ class ResourceRegistrar(object):
 
         # Include a list of pack files
         pack_file_list = get_file_list(directory=pack_dir, exclude_patterns=EXCLUDE_FILE_PATTERNS)
+        pack_file_list = sorted(pack_file_list)
+
         content['files'] = pack_file_list
         content['path'] = pack_dir
 
