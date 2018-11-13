@@ -98,9 +98,16 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
 
     LOG.debug('Using logging config: %s', logging_config_path)
 
+    is_debug_enabled = (cfg.CONF.debug or cfg.CONF.system.debug)
+
+    excluded_logger_names = list(cfg.CONF.log.excludes)
+
+    if not is_debug_enabled:
+        excluded_logger_names.append('statsd')
+
     try:
         logging.setup(logging_config_path, redirect_stderr=cfg.CONF.log.redirect_stderr,
-                      excludes=cfg.CONF.log.excludes)
+                      excludes=excluded_logger_names)
     except KeyError as e:
         tb_msg = traceback.format_exc()
         if 'log.setLevel' in tb_msg:
@@ -110,7 +117,7 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
         else:
             raise e
 
-    if cfg.CONF.debug or cfg.CONF.system.debug:
+    if is_debug_enabled:
         enable_debugging()
 
     if cfg.CONF.profile:

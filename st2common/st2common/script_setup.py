@@ -25,12 +25,12 @@ from __future__ import absolute_import
 import logging as stdlib_logging
 
 from oslo_config import cfg
-
 from st2common import log as logging
 from st2common.database_setup import db_setup
 from st2common.database_setup import db_teardown
 from st2common import triggers
 from st2common.logging.filters import LogLevelFilter
+from st2common.logging.filters import LoggerNameExclusionFilter
 from st2common.transport.bootstrap_utils import register_exchanges_with_retry
 
 __all__ = [
@@ -77,7 +77,8 @@ def setup(config, setup_db=True, register_mq_exchanges=True,
 
     # Set up logging
     log_level = stdlib_logging.DEBUG
-    stdlib_logging.basicConfig(format='%(asctime)s %(levelname)s [-] %(message)s', level=log_level)
+    stdlib_logging.basicConfig(format='%(asctime)s %(levelname)s %(module)s [-] %(message)s',
+                               level=log_level)
 
     if not cfg.CONF.verbose:
         # Note: We still want to print things at the following log levels: INFO, ERROR, CRITICAL
@@ -86,6 +87,10 @@ def setup(config, setup_db=True, register_mq_exchanges=True,
 
         for handler in handlers:
             handler.addFilter(LogLevelFilter(log_levels=exclude_log_levels))
+
+            # NOTE: statsd logger logs everything by default under INFO so we ignore those log
+            # messages unless verbose / debug mode is used
+            handler.addFilter(LoggerNameExclusionFilter(exclusions=['statsd']))
 
     # All other setup code which requires config to be parsed and logging to be correctly setup
     if setup_db:
