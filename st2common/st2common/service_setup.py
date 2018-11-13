@@ -117,6 +117,8 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
         else:
             raise e
 
+    logging.ignore_lib2to3_log_messages()
+
     if is_debug_enabled:
         enable_debugging()
 

@@ -40,7 +40,9 @@ __all__ = [
     'FormatNamedFileHandler',
     'ConfigurableSyslogHandler',
 
-    'LoggingStream'
+    'LoggingStream',
+
+    'ignore_lib2to3_log_messages'
 ]
 
 logging.AUDIT = logging.CRITICAL + 10
@@ -202,3 +204,18 @@ def setup(config_file, redirect_stderr=True, excludes=None, disable_existing_log
         sys.stderr.write('ERROR: %s' % (msg))
 
         raise exc_cls(six.text_type(msg))
+
+
+def ignore_lib2to3_log_messages():
+    """
+    Work around to ignore "Generating grammar tables from" log messages which are logged under
+    INFO by default by libraries such as networkx which use 2to3.
+    """
+    import lib2to3.pgen2.driver
+
+    class MockLogging(object):
+        def getLogger(self):
+            return logging.getLogger('lib2to3')
+
+    lib2to3.pgen2.driver.logging = MockLogging()
+    logging.getLogger('lib2to3').setLevel(logging.ERROR)

@@ -89,7 +89,9 @@ def setup(config, setup_db=True, register_mq_exchanges=True,
 
             # NOTE: statsd logger logs everything by default under INFO so we ignore those log
             # messages unless verbose / debug mode is used
-            handler.addFilter(LoggerNameExclusionFilter(exclusions=['statsd']))
+            handler.addFilter(LoggerNameExclusionFilter(exclusions=['statsd', 'lib2to3']))
+
+    logging.ignore_lib2to3_log_messages()
 
     # All other setup code which requires config to be parsed and logging to be correctly setup
     if setup_db:
