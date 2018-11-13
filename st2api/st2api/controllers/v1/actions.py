@@ -114,9 +114,9 @@ class ActionsController(ContentPackResourceController, BaseDataFilesController):
         data_files = getattr(action, 'data_files', [])
         written_data_files = []
         if data_files:
-            written_data_files = self._handle_data_files(pack_ref=action.pack,
-                                                         resource_type='action',
-                                                         data_files=data_files)
+            written_data_files, _ = self._handle_data_files(pack_ref=action.pack,
+                                                            resource_type='action',
+                                                            data_files=data_files)
 
         action_model = ActionAPI.to_model(action)
 
@@ -158,9 +158,9 @@ class ActionsController(ContentPackResourceController, BaseDataFilesController):
         data_files = getattr(action, 'data_files', [])
         written_data_files = []
         if data_files:
-            written_data_files = self._handle_data_files(pack_ref=action.pack,
-                                                         resource_type='action',
-                                                         data_files=data_files)
+            written_data_files, _ = self._handle_data_files(pack_ref=action.pack,
+                                                            resource_type='action',
+                                                            data_files=data_files)
 
         try:
             action_db = ActionAPI.to_model(action)

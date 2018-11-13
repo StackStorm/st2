@@ -18,6 +18,8 @@ Added
   Response protocol) for older servers.
 
   Contributed by @aduca85 #4373
+* Add new ``POST /api/v1/packs/{ref_or_id}/files`` API endpoint which allows user to write
+  arbitrary files into the pack directory. (new feature)
 
 Changed
 ~~~~~~~
@@ -83,7 +85,10 @@ Fixed
 
   Reported by Nick Maludy (improvement) #4260
 * Fix string operations on unicode data in Orquest workflows, associated with PR
-  https://github.com/StackStorm/orquesta/pull/98. (bug fix)
+  https://github.com/StackStorm/orquesta/pull/98. (bug fix) #4426
+* Fix ``PackDB`` model and ensure ``files`` attribute value is always sorted and stable. Previously
+  we didn't sort the value so even if the list of pack files wouldn't change on disk, value of this
+  attribute could change during ``st2-register-content`` script runs.
 
 2.9.1 - October 03, 2018
 ------------------------

@@ -49,6 +49,7 @@ from st2common.router import Response
 
 from st2api.controllers.resource import ResourceController
 from st2api.controllers.v1.actionexecutions import ActionExecutionsControllerMixin
+from st2api.controllers.v1.data_files import BaseDataFilesController
 
 http_client = six.moves.http_client
 
@@ -314,6 +315,42 @@ class PacksIndexController():
         }
 
 
+class PackFilesController(BasePacksController, BaseDataFilesController):
+    """
+    Controller which allows user to write in an arbitrary file located inside a pack directory.
+
+    NOTE: If user is writting / updating metadata file on disk, "pack register" step needs to be
+    called to sync content in the database with the content on disk otherwise database will contain
+    stale data until it's synced.
+    """
+
+    model = PackAPI
+    access = Pack
+
+    supported_filters = {}
+    query_options = {}
+
+    def post(self, ref_or_id, body, requester_user):
+        pack_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
+
+        if not pack_db:
+            msg = 'Pack with ref_or_id "%s" does not exist' % (ref_or_id)
+            raise StackStormDBObjectNotFoundError(msg)
+
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=pack_db,
+                                                          permission_type=PermissionType.PACK_MODIFY)
+
+        pack_ref = pack_db.ref
+
+        data_files = body.data_files
+        written_data_files, _ = self._handle_data_files(pack_ref=pack_ref,
+                                                        data_files=data_files)
+        return written_data_files
+
+        return PackAPI.from_model(pack_db)
+
+
 class PacksController(BasePacksController):
     from st2api.controllers.v1.pack_views import PackViewsController
 
@@ -333,6 +370,7 @@ class PacksController(BasePacksController):
     uninstall = PackUninstallController()
     register = PackRegisterController()
     views = PackViewsController()
+    files = PackFilesController()
     index = PacksIndexController()
 
     def __init__(self):
