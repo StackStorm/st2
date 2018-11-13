@@ -103,6 +103,8 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
     excluded_logger_names = list(cfg.CONF.log.excludes)
 
     if not is_debug_enabled:
+        # NOTE: statsd logger logs everything by default under INFO so we ignore those log
+        # messages unless verbose / debug mode is used
         excluded_logger_names.append('statsd')
 
     try:
