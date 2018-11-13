@@ -284,7 +284,8 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
     register_packs = True
 
     to_delete_files = [
-        os.path.join(get_fixtures_packs_base_path(), 'dummy_pack_1/actions/filea.txt')
+        os.path.join(get_fixtures_packs_base_path(), 'dummy_pack_1/actions/filea.txt'),
+        os.path.join(get_fixtures_packs_base_path(), 'dummy_pack_1/actions/fileb.txt')
     ]
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
@@ -483,12 +484,17 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
         # Verify initial state
         pack_db = Pack.get_by_ref(ACTION_12['pack'])
         self.assertTrue('actions/filea.txt' not in pack_db.files)
+        self.assertTrue('actions/fileb.txt' not in pack_db.files)
 
         action = copy.deepcopy(ACTION_12)
         action['data_files'] = [
             {
                 'file_path': 'filea.txt',
-                'content': 'test content'
+                'content': 'test content a'
+            },
+            {
+                'file_path': 'fileb.txt',
+                'content': 'test content b'
             }
         ]
         post_resp = self.__do_post(action)
@@ -496,10 +502,12 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
         # Verify file has been written on disk
         for file_path in self.to_delete_files:
             self.assertTrue(os.path.exists(file_path))
+            self.assertTrue('test content' in open(file_path).read())
 
         # Verify PackDB.files has been updated
         pack_db = Pack.get_by_ref(ACTION_12['pack'])
         self.assertTrue('actions/filea.txt' in pack_db.files)
+        self.assertTrue('actions/fileb.txt' in pack_db.files)
         self.__do_delete(self.__get_action_id(post_resp))
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
