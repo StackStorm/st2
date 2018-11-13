@@ -297,6 +297,10 @@ def get_pack_resource_file_abs_path(pack_ref, resource_type, file_path):
         path_components.append('sensors/')
     elif resource_type == 'rule':
         path_components.append('rules/')
+    elif resource_type == 'trigger':
+        path_components.append('trigger/')
+    elif resource_type == 'alias':
+        path_components.append('aliases/')
     else:
         raise ValueError('Invalid resource type: %s' % (resource_type))
 
