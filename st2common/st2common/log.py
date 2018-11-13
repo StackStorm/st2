@@ -42,7 +42,8 @@ __all__ = [
 
     'LoggingStream',
 
-    'ignore_lib2to3_log_messages'
+    'ignore_lib2to3_log_messages',
+    'ignore_statsd_log_messages'
 ]
 
 logging.AUDIT = logging.CRITICAL + 10
@@ -213,9 +214,27 @@ def ignore_lib2to3_log_messages():
     """
     import lib2to3.pgen2.driver
 
-    class MockLogging(object):
-        def getLogger(self):
+    class MockLoggingModule(object):
+        def getLogger(self, *args, **kwargs):
             return logging.getLogger('lib2to3')
 
-    lib2to3.pgen2.driver.logging = MockLogging()
+    lib2to3.pgen2.driver.logging = MockLoggingModule()
     logging.getLogger('lib2to3').setLevel(logging.ERROR)
+
+
+def ignore_statsd_log_messages():
+    """
+    By default statsd client logs all the operations under INFO and that causes a lot of noise.
+
+    This pull request silences all the statsd INFO log messages.
+    """
+    import statsd.connection
+    import statsd.client
+
+    class MockLoggingModule(object):
+        def getLogger(self, *args, **kwargs):
+            return logging.getLogger('statsd')
+
+    statsd.connection.logging = MockLoggingModule()
+    statsd.client.logging = MockLoggingModule()
+    logging.getLogger('statsd').setLevel(logging.ERROR)

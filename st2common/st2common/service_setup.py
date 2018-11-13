@@ -100,16 +100,9 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
 
     is_debug_enabled = (cfg.CONF.debug or cfg.CONF.system.debug)
 
-    excluded_logger_names = list(cfg.CONF.log.excludes)
-
-    if not is_debug_enabled:
-        # NOTE: statsd logger logs everything by default under INFO so we ignore those log
-        # messages unless verbose / debug mode is used
-        excluded_logger_names.append('statsd')
-
     try:
         logging.setup(logging_config_path, redirect_stderr=cfg.CONF.log.redirect_stderr,
-                      excludes=excluded_logger_names)
+                      excludes=cfg.CONF.log.excludes)
     except KeyError as e:
         tb_msg = traceback.format_exc()
         if 'log.setLevel' in tb_msg:
@@ -119,6 +112,11 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
         else:
             raise e
 
+    if not is_debug_enabled:
+        # NOTE: statsd logger logs everything by default under INFO so we ignore those log
+        # messages unless verbose / debug mode is used
+        logging.ignore_statsd_log_messages()
+
     logging.ignore_lib2to3_log_messages()
 
     if is_debug_enabled:
@@ -127,8 +125,7 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
     if cfg.CONF.profile:
         enable_profiling()
 
-    # All other setup which requires config to be parsed and logging to
-    # be correctly setup.
+    # All other setup which requires config to be parsed and logging to be correctly setup.
     if setup_db:
         db_setup()
 
