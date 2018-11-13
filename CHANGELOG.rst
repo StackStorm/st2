@@ -19,7 +19,7 @@ Added
 
   Contributed by @aduca85 #4373
 * Add new ``POST /api/v1/packs/{ref_or_id}/files`` API endpoint which allows user to write
-  arbitrary files into the pack directory. (new feature)
+  arbitrary files into the pack directory. (new feature) #4440
 
 Changed
 ~~~~~~~
@@ -54,8 +54,8 @@ Changed
   argument (same as before). (improvement) #4396
 * Update various internal dependencies to latest stable versions (greenlet, pymongo, pytz,
   stevedore, tooz). #4410
-
-* Improve ``st2.conf`` migration for the new services by using prod-friendly logging settings by default #4415
+* Improve ``st2.conf`` migration for the new services by using prod-friendly logging settings by
+  default. #4415
 
 Fixed
 ~~~~~
@@ -88,7 +88,7 @@ Fixed
   https://github.com/StackStorm/orquesta/pull/98. (bug fix) #4426
 * Fix ``PackDB`` model and ensure ``files`` attribute value is always sorted and stable. Previously
   we didn't sort the value so even if the list of pack files wouldn't change on disk, value of this
-  attribute could change during ``st2-register-content`` script runs.
+  attribute could change during ``st2-register-content`` script runs. #4440
 
 2.9.1 - October 03, 2018
 ------------------------
