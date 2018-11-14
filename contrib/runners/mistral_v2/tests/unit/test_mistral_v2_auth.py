@@ -47,6 +47,7 @@ from st2common.util import loader
 from st2tests import DbTestCase
 from st2tests import fixturesloader
 from st2tests.mocks.liveaction import MockLiveActionPublisher
+from st2tests.mocks import liveaction as mock_liveaction
 
 
 TEST_FIXTURES = {
@@ -140,6 +141,7 @@ class MistralAuthTest(DbTestCase):
         local_runner_cls = runners.get_runner('local-shell-cmd').__class__
         local_run_result = (action_constants.LIVEACTION_STATUS_SUCCEEDED, NON_EMPTY_RESULT, None)
         local_runner_cls.run = mock.Mock(return_value=local_run_result)
+        mock_liveaction.setup()
 
     def tearDown(self):
         super(MistralAuthTest, self).tearDown()
@@ -147,6 +149,12 @@ class MistralAuthTest(DbTestCase):
         cfg.CONF.set_default('keystone_password', None, group='mistral')
         cfg.CONF.set_default('keystone_project_name', None, group='mistral')
         cfg.CONF.set_default('keystone_auth_url', None, group='mistral')
+        mock_liveaction.teardown()
+
+    @staticmethod
+    def _reset():
+        mock_liveaction.teardown()
+        mock_liveaction.setup()
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',
@@ -167,6 +175,10 @@ class MistralAuthTest(DbTestCase):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=ACTION_CONTEXT)
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
+        liveaction = self._wait_on_status(
+            liveaction,
+            action_constants.LIVEACTION_STATUS_RUNNING
+        )
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
@@ -226,6 +238,10 @@ class MistralAuthTest(DbTestCase):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
+        liveaction = self._wait_on_status(
+            liveaction,
+            action_constants.LIVEACTION_STATUS_RUNNING
+        )
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)

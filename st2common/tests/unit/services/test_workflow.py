@@ -23,6 +23,7 @@ from orquesta import states as wf_lib_states
 
 import st2tests
 
+from st2common.constants import action as action_constants
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar
 from st2common.exceptions import action as ac_exc
@@ -53,12 +54,26 @@ PACKS = [
 @mock.patch.object(
     publishers.CUDPublisher,
     'publish_create',
-    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_create))
+    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisherNonBlocking.publish_create))
 @mock.patch.object(
     lv_ac_xport.LiveActionPublisher,
     'publish_state',
-    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_state))
+    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisherNonBlocking.publish_state))
 class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
+
+    @staticmethod
+    def setUp():
+        mock_lv_ac_xport.setup()
+
+    @staticmethod
+    def tearDown():
+        mock_lv_ac_xport.MockLiveActionPublisherNonBlocking.wait_all()
+        mock_lv_ac_xport.teardown()
+
+    @classmethod
+    def _reset(cls):
+        cls.tearDown()
+        cls.setUp()
 
     @classmethod
     def setUpClass(cls):
@@ -75,6 +90,8 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
 
         for pack in PACKS:
             actions_registrar.register_from_pack(pack)
+
+        mock_lv_ac_xport.MockLiveActionPublisherNonBlocking.wait_all()
 
     def test_request(self):
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
@@ -298,6 +315,7 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
         )
 
     def test_handle_action_execution_completion(self):
+        self._reset()
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
 
         # Manually create the liveaction and action execution objects without publishing.

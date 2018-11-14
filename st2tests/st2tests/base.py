@@ -70,6 +70,7 @@ import st2common.models.db.liveaction as liveaction_model
 import st2common.models.db.actionalias as actionalias_model
 import st2common.models.db.policy as policy_model
 import st2tests.config
+from st2tests.mocks import liveaction as mock_lv_ac_xport
 
 # Imports for backward compatibility (those classes have been moved to standalone modules)
 from st2tests.actions import BaseActionTestCase
@@ -278,6 +279,15 @@ class DbTestCase(BaseDbTestCase):
             if liveaction.status == status:
                 return liveaction
         return liveaction
+
+    @staticmethod
+    def _wait_on_ac_ex_status(action_d_b, status):
+        for _ in range(0, 100):
+            eventlet.sleep(1)
+            action_d_b = ex_db_access.ActionExecution.get_by_id(str(action_d_b.id))
+            if action_d_b.status == status:
+                return action_d_b
+        return action_d_b
 
     @classmethod
     def setUpClass(cls):
@@ -540,6 +550,19 @@ class WorkflowTestCase(DbTestCase):
     Base class for workflow service tests to inherit from.
     """
 
+    @classmethod
+    def setUp(cls):
+        mock_lv_ac_xport.MockLiveActionPublisherNonBlocking.wait_all()
+        mock_lv_ac_xport.setup()
+
+    @classmethod
+    def tearDown(cls):
+        mock_lv_ac_xport.MockLiveActionPublisherNonBlocking.wait_all()
+        try:
+            mock_lv_ac_xport.teardown()
+        except:
+            pass
+
     def get_wf_fixture_meta_data(self, fixture_pack_path, wf_meta_file_name):
         wf_meta_file_path = fixture_pack_path + '/actions/' + wf_meta_file_name
         wf_meta_content = loader.load_meta_file(wf_meta_file_path)
@@ -621,6 +644,12 @@ class WorkflowTestCase(DbTestCase):
         task_req = {'id': task_id, 'spec': task_spec, 'ctx': ctx or {}, 'actions': task_actions}
         task_ex_db = wf_svc.request_task_execution(wf_ex_db, st2_ctx, task_req)
         ac_ex_db = self.get_action_ex(str(task_ex_db.id))
+
+        ac_ex_db = self._wait_on_ac_ex_status(
+            ac_ex_db,
+            ac_const.LIVEACTION_STATUS_SUCCEEDED
+        )
+
         self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         wf_svc.handle_action_execution_completion(ac_ex_db)
         task_ex_db = wf_db_access.TaskExecution.get_by_id(str(task_ex_db.id))

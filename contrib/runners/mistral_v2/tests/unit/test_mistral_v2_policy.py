@@ -46,7 +46,8 @@ from st2common.transport.publishers import CUDPublisher
 from st2common.util import loader
 from st2tests import DbTestCase
 from st2tests import fixturesloader
-from st2tests.mocks.liveaction import MockLiveActionPublisher
+from st2tests.mocks.liveaction import MockLiveActionPublisherNonBlocking
+from st2tests.mocks import liveaction as mock_liveaction
 
 
 MISTRAL_RUNNER_NAME = 'mistral_v2'
@@ -79,11 +80,11 @@ WF1_EXEC = copy.deepcopy(MISTRAL_EXECUTION)
 @mock.patch.object(
     CUDPublisher,
     'publish_create',
-    mock.MagicMock(side_effect=MockLiveActionPublisher.publish_create))
+    mock.MagicMock(side_effect=MockLiveActionPublisherNonBlocking.publish_create))
 @mock.patch.object(
     LiveActionPublisher,
     'publish_state',
-    mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
+    mock.MagicMock(side_effect=MockLiveActionPublisherNonBlocking.publish_state))
 class MistralRunnerPolicyTest(DbTestCase):
 
     @classmethod
@@ -125,6 +126,12 @@ class MistralRunnerPolicyTest(DbTestCase):
         for pack in PACKS:
             policies_registrar.register_from_pack(pack)
 
+        mock_liveaction.setup()
+
+    @staticmethod
+    def tearDown():
+        mock_liveaction.teardown()
+
     @classmethod
     def get_runner_class(cls, runner_name):
         return runners.get_runner(runner_name, runner_name).__class__
@@ -165,6 +172,10 @@ class MistralRunnerPolicyTest(DbTestCase):
             liveaction = LiveActionDB(action=WF1_NAME, parameters={'friend': 'friend' + str(i)})
             liveaction, execution1 = action_service.request(liveaction)
             liveaction = LiveAction.get_by_id(str(liveaction.id))
+            liveaction = self._wait_on_status(
+                liveaction,
+                action_constants.LIVEACTION_STATUS_RUNNING
+            )
             self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         # Check number of running instances
@@ -193,6 +204,10 @@ class MistralRunnerPolicyTest(DbTestCase):
             liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
 
             # Assert cancel has been called.
+            liveaction2 = self._wait_on_status(
+                liveaction2,
+                action_constants.LIVEACTION_STATUS_CANCELING
+            )
             self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_CANCELING)
             mistral_runner_cls.cancel.assert_called_once_with()
 
@@ -228,6 +243,10 @@ class MistralRunnerPolicyTest(DbTestCase):
             liveaction = LiveActionDB(action=WF1_NAME, parameters=params)
             liveaction, execution1 = action_service.request(liveaction)
             liveaction = LiveAction.get_by_id(str(liveaction.id))
+            liveaction = self._wait_on_status(
+                liveaction,
+                action_constants.LIVEACTION_STATUS_RUNNING
+            )
             self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         # Check number of running instances
@@ -254,6 +273,10 @@ class MistralRunnerPolicyTest(DbTestCase):
             liveaction2, execution2 = action_service.request(liveaction2)
             liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
 
+            liveaction2 = self._wait_on_status(
+                liveaction2,
+                action_constants.LIVEACTION_STATUS_CANCELING
+            )
             # Assert cancel has been called.
             self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_CANCELING)
             mistral_runner_cls.cancel.assert_called_once_with()

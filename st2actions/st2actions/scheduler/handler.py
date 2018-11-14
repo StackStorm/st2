@@ -26,7 +26,6 @@ from st2common.services import policies as policy_service
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution_queue import ExecutionQueue
 from st2common.util import action_db as action_utils
-from st2common.services.coordination import LockAcquireError
 from st2common.services import coordination
 
 __all__ = [
@@ -61,18 +60,20 @@ class ExecutionQueueHandler(object):
     def __init__(self):
         self.message_type = LiveActionDB
         self._shutdown = False
+        self._coordinator = coordination.get_coordinator()
 
     def loop(self):
         LOG.debug('Entering scheduler loop')
         while self._shutdown is not True:
-            eventlet.greenthread.sleep(0.25)
-            try:
-                with coordination.lock('st2shcedulerqueue'):
-                    queued_executions = _next_executions()
-                    for execution in queued_executions:
-                        self._handle_execution(execution)
-            except LockAcquireError as e:
-                LOG.error(e)
+            eventlet.greenthread.sleep(0.1)
+            with self._coordinator.get_lock('st2shcedulerqueue'):
+                queued_executions = _next_executions()
+                for execution in queued_executions:
+                    self._handle_execution(execution)
+            # try:
+            # except Exception as error:
+            #     self._coordinator = coordination.get_coordinator()
+            #     LOG.error("Error encountered in scheduler loop: %s", error)
 
     def _handle_execution(self, execution):
         LOG.info('Scheduling liveaction: %s', execution.liveaction)

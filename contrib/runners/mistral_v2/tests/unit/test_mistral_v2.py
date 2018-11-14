@@ -51,6 +51,7 @@ from st2common.util import loader
 from st2tests import DbTestCase
 from st2tests import fixturesloader
 from st2tests.mocks.liveaction import MockLiveActionPublisher
+from st2tests.mocks import liveaction as mock_liveaction
 
 
 TEST_FIXTURES = {
@@ -170,6 +171,19 @@ NOTIFY = [{'type': 'st2'}]
     mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
 class MistralRunnerTest(DbTestCase):
 
+    @staticmethod
+    def setUp():
+        mock_liveaction.setup()
+
+    @staticmethod
+    def tearDown():
+        mock_liveaction.teardown()
+
+    @staticmethod
+    def _reset():
+        mock_liveaction.teardown()
+        mock_liveaction.setup()
+
     @classmethod
     def setUpClass(cls):
         super(MistralRunnerTest, cls).setUpClass()
@@ -242,6 +256,10 @@ class MistralRunnerTest(DbTestCase):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
+        liveaction = self._wait_on_status(
+            liveaction,
+            action_constants.LIVEACTION_STATUS_RUNNING
+        )
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
@@ -307,6 +325,10 @@ class MistralRunnerTest(DbTestCase):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=ac_ctx)
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
+        liveaction = self._wait_on_status(
+            liveaction,
+            action_constants.LIVEACTION_STATUS_RUNNING
+        )
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
@@ -388,6 +410,10 @@ class MistralRunnerTest(DbTestCase):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=ac_ctx)
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
+        liveaction = self._wait_on_status(
+            liveaction,
+            action_constants.LIVEACTION_STATUS_RUNNING
+        )
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
@@ -452,6 +478,10 @@ class MistralRunnerTest(DbTestCase):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=ac_ctx)
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
+        liveaction = self._wait_on_status(
+            liveaction,
+            action_constants.LIVEACTION_STATUS_RUNNING
+        )
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
@@ -504,6 +534,10 @@ class MistralRunnerTest(DbTestCase):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=ac_ctx)
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
+        liveaction = self._wait_on_status(
+            liveaction,
+            action_constants.LIVEACTION_STATUS_RUNNING
+        )
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
@@ -558,6 +592,10 @@ class MistralRunnerTest(DbTestCase):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
+        liveaction = self._wait_on_status(
+            liveaction,
+            action_constants.LIVEACTION_STATUS_RUNNING
+        )
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
@@ -610,6 +648,10 @@ class MistralRunnerTest(DbTestCase):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, notify=notify_data)
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
+        liveaction = self._wait_on_status(
+            liveaction,
+            action_constants.LIVEACTION_STATUS_RUNNING
+        )
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
@@ -650,6 +692,10 @@ class MistralRunnerTest(DbTestCase):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
+        liveaction = self._wait_on_status(
+            liveaction,
+            action_constants.LIVEACTION_STATUS_FAILED
+        )
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
         self.assertIn('Connection refused', liveaction.result['error'])
 
@@ -669,6 +715,10 @@ class MistralRunnerTest(DbTestCase):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
+        liveaction = self._wait_on_status(
+            liveaction,
+            action_constants.LIVEACTION_STATUS_RUNNING
+        )
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
@@ -692,6 +742,10 @@ class MistralRunnerTest(DbTestCase):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
+        liveaction = self._wait_on_status(
+            liveaction,
+            action_constants.LIVEACTION_STATUS_RUNNING
+        )
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
@@ -718,6 +772,10 @@ class MistralRunnerTest(DbTestCase):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
+        liveaction = self._wait_on_status(
+            liveaction,
+            action_constants.LIVEACTION_STATUS_RUNNING
+        )
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
@@ -744,6 +802,10 @@ class MistralRunnerTest(DbTestCase):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
+        liveaction = self._wait_on_status(
+            liveaction,
+            action_constants.LIVEACTION_STATUS_RUNNING
+        )
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
@@ -761,6 +823,10 @@ class MistralRunnerTest(DbTestCase):
         liveaction = LiveActionDB(action=WF2_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
+        liveaction = self._wait_on_status(
+            liveaction,
+            action_constants.LIVEACTION_STATUS_FAILED
+        )
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
         self.assertIn('Multiple workflows is not supported.', liveaction.result['error'])
 
@@ -775,6 +841,10 @@ class MistralRunnerTest(DbTestCase):
         liveaction = LiveActionDB(action=action_ref, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
+        liveaction = self._wait_on_status(
+            liveaction,
+            action_constants.LIVEACTION_STATUS_FAILED
+        )
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
         self.assertIn('Name of the workflow must be the same', liveaction.result['error'])
 
@@ -797,6 +867,10 @@ class MistralRunnerTest(DbTestCase):
         liveaction = LiveActionDB(action=WB1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
+        liveaction = self._wait_on_status(
+            liveaction,
+            action_constants.LIVEACTION_STATUS_RUNNING
+        )
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
@@ -823,6 +897,10 @@ class MistralRunnerTest(DbTestCase):
         liveaction = LiveActionDB(action=WB2_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
+        liveaction = self._wait_on_status(
+            liveaction,
+            action_constants.LIVEACTION_STATUS_RUNNING
+        )
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
@@ -849,6 +927,10 @@ class MistralRunnerTest(DbTestCase):
         liveaction = LiveActionDB(action=WB3_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
+        liveaction = self._wait_on_status(
+            liveaction,
+            action_constants.LIVEACTION_STATUS_FAILED
+        )
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
         self.assertIn('Default workflow cannot be determined.', liveaction.result['error'])
 
@@ -871,6 +953,12 @@ class MistralRunnerTest(DbTestCase):
         liveaction = LiveActionDB(action=WB1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
+
+        liveaction = self._wait_on_status(
+            liveaction,
+            action_constants.LIVEACTION_STATUS_RUNNING
+        )
+
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
@@ -897,6 +985,12 @@ class MistralRunnerTest(DbTestCase):
         liveaction = LiveActionDB(action=WB1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
+
+        liveaction = self._wait_on_status(
+            liveaction,
+            action_constants.LIVEACTION_STATUS_RUNNING
+        )
+
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
@@ -915,5 +1009,9 @@ class MistralRunnerTest(DbTestCase):
         liveaction = LiveActionDB(action=action_ref, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
+        liveaction = self._wait_on_status(
+            liveaction,
+            action_constants.LIVEACTION_STATUS_FAILED
+        )
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
         self.assertIn('Name of the workbook must be the same', liveaction.result['error'])

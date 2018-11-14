@@ -33,6 +33,7 @@ from st2common.transport.publishers import CUDPublisher
 from st2tests import DbTestCase
 from st2tests import fixturesloader
 from st2tests.mocks.liveaction import MockLiveActionPublisherNonBlocking
+from st2tests.mocks import liveaction as mock_liveaction
 from six.moves import range
 
 
@@ -96,12 +97,14 @@ class ActionChainRunnerPauseResumeTest(DbTestCase):
         # Create temporary directory used by the tests
         _, self.temp_file_path = tempfile.mkstemp()
         os.chmod(self.temp_file_path, 0o755)   # nosec
+        mock_liveaction.setup()
 
     def tearDown(self):
         if self.temp_file_path and os.path.exists(self.temp_file_path):
             os.remove(self.temp_file_path)
 
         super(ActionChainRunnerPauseResumeTest, self).tearDown()
+        mock_liveaction.teardown()
 
     def _wait_for_status(self, liveaction, status, interval=0.1, retries=100):
         # Wait until the liveaction reaches status.

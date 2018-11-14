@@ -43,6 +43,7 @@ from st2common.util import loader
 from st2tests import DbTestCase
 from st2tests import fixturesloader
 from st2tests.mocks.liveaction import MockLiveActionPublisher
+from st2tests.mocks import liveaction as mock_liveaction
 
 
 TEST_PACK = 'mistral_tests'
@@ -101,6 +102,14 @@ WF2_EXEC_PAUSED['state'] = 'PAUSED'
     mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
 class MistralRunnerPauseResumeTest(DbTestCase):
 
+    @staticmethod
+    def setUp():
+        mock_liveaction.setup()
+
+    @staticmethod
+    def tearDown():
+        mock_liveaction.teardown()
+
     @classmethod
     def setUpClass(cls):
         super(MistralRunnerPauseResumeTest, cls).setUpClass()
@@ -151,6 +160,10 @@ class MistralRunnerPauseResumeTest(DbTestCase):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
+        liveaction = self._wait_on_status(
+            liveaction,
+            action_constants.LIVEACTION_STATUS_RUNNING
+        )
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
@@ -190,6 +203,10 @@ class MistralRunnerPauseResumeTest(DbTestCase):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
+        liveaction = self._wait_on_status(
+            liveaction,
+            action_constants.LIVEACTION_STATUS_RUNNING
+        )
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
@@ -246,11 +263,19 @@ class MistralRunnerPauseResumeTest(DbTestCase):
         liveaction1 = LiveActionDB(action=WF2_NAME, parameters=ACTION_PARAMS)
         liveaction1, execution1 = action_service.request(liveaction1)
         liveaction1 = LiveAction.get_by_id(str(liveaction1.id))
+        liveaction1 = self._wait_on_status(
+            liveaction1,
+            action_constants.LIVEACTION_STATUS_RUNNING
+        )
         self.assertEqual(liveaction1.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         liveaction2 = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction2, execution2 = action_service.request(liveaction2)
         liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
+        liveaction2 = self._wait_on_status(
+            liveaction2,
+            action_constants.LIVEACTION_STATUS_RUNNING
+        )
         self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         # Mock the children of the parent execution to make this
@@ -343,6 +368,10 @@ class MistralRunnerPauseResumeTest(DbTestCase):
         liveaction1 = LiveActionDB(action=WF2_NAME, parameters=ACTION_PARAMS)
         liveaction1, execution1 = action_service.request(liveaction1)
         liveaction1 = LiveAction.get_by_id(str(liveaction1.id))
+        liveaction1 = self._wait_on_status(
+            liveaction1,
+            action_constants.LIVEACTION_STATUS_RUNNING
+        )
         self.assertEqual(liveaction1.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         # Mock the children of the parent execution to make this
@@ -405,11 +434,19 @@ class MistralRunnerPauseResumeTest(DbTestCase):
         liveaction1 = LiveActionDB(action=WF2_NAME, parameters=ACTION_PARAMS)
         liveaction1, execution1 = action_service.request(liveaction1)
         liveaction1 = LiveAction.get_by_id(str(liveaction1.id))
+        liveaction1 = self._wait_on_status(
+            liveaction1,
+            action_constants.LIVEACTION_STATUS_RUNNING
+        )
         self.assertEqual(liveaction1.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         liveaction2 = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction2, execution2 = action_service.request(liveaction2)
         liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
+        liveaction2 = self._wait_on_status(
+            liveaction2,
+            action_constants.LIVEACTION_STATUS_RUNNING
+        )
         self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         # Mock the children of the parent execution to make this

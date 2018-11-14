@@ -4734,7 +4734,7 @@ definitions:
       status:
         description: The current status of the action execution.
         type: string
-        enum: ['requested', 'scheduled', 'delayed', 'running', 'succeeded', 'failed', 'timeout', 'abandoned', 'canceling', 'canceled', 'pending', 'pausing', 'paused', 'resuming']
+        enum: ['requested', 'scheduled', 'delayed', 'policy-delayed', 'running', 'succeeded', 'failed', 'timeout', 'abandoned', 'canceling', 'canceled', 'pending', 'pausing', 'paused', 'resuming']
       start_timestamp:
         description: The start time when the action is executed.
         type: string
@@ -4793,7 +4793,7 @@ definitions:
               pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
             status:
               type: string
-              enum: ['requested', 'scheduled', 'delayed', 'running', 'succeeded', 'failed', 'timeout', 'abandoned', 'canceling', 'canceled', 'pending', 'pausing', 'paused', 'resuming']
+              enum: ['requested', 'scheduled', 'delayed', 'policy-delayed', 'running', 'succeeded', 'failed', 'timeout', 'abandoned', 'canceling', 'canceled', 'pending', 'pausing', 'paused', 'resuming']
       delay:
         description: How long (in milliseconds) to delay the execution before scheduling.
         type: integer
@@ -4816,7 +4816,7 @@ definitions:
       status:
         description: The current status of the action execution.
         type: string
-        enum: ['requested', 'scheduled', 'delayed', 'running', 'succeeded', 'failed', 'timeout', 'abandoned', 'canceling', 'canceled', 'pending', 'pausing', 'paused', 'resuming']
+        enum: ['requested', 'scheduled', 'delayed', 'policy-delayed', 'running', 'succeeded', 'failed', 'timeout', 'abandoned', 'canceling', 'canceled', 'pending', 'pausing', 'paused', 'resuming']
       result:
         type: object
     additionalProperties: False
@@ -5095,7 +5095,7 @@ definitions:
       status:
         description: The current status of the action execution.
         type: string
-        enum: ['requested', 'scheduled', 'delayed', 'running', 'succeeded', 'failed', 'timeout', 'abandoned', 'canceling', 'canceled', 'pending', 'pausing', 'paused', 'resuming']
+        enum: ['requested', 'scheduled', 'delayed', 'policy-delayed', 'running', 'succeeded', 'failed', 'timeout', 'abandoned', 'canceling', 'canceled', 'pending', 'pausing', 'paused', 'resuming']
       start_timestamp:
         description: The start time when the action is executed.
         type: string

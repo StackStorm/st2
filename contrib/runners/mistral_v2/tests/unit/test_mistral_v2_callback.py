@@ -41,7 +41,8 @@ from st2common.transport.publishers import CUDPublisher
 from st2common.runners.base import get_callback_module
 from st2tests import DbTestCase
 from st2tests import fixturesloader
-from st2tests.mocks.liveaction import MockLiveActionPublisher
+from st2tests.mocks.liveaction import MockLiveActionPublisherNonBlocking
+from st2tests.mocks import liveaction as mock_liveaction
 
 
 MISTRAL_RUNNER_NAME = 'mistral_v2'
@@ -66,11 +67,11 @@ else:
 @mock.patch.object(
     CUDPublisher,
     'publish_create',
-    mock.MagicMock(side_effect=MockLiveActionPublisher.publish_create))
+    mock.MagicMock(side_effect=MockLiveActionPublisherNonBlocking.publish_create))
 @mock.patch.object(
     LiveActionPublisher,
     'publish_state',
-    mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
+    mock.MagicMock(side_effect=MockLiveActionPublisherNonBlocking.publish_state))
 class MistralRunnerCallbackTest(DbTestCase):
 
     @classmethod
@@ -100,6 +101,19 @@ class MistralRunnerCallbackTest(DbTestCase):
         cls.callback_module = get_callback_module(MISTRAL_RUNNER_NAME)
         cls.callback_class = cls.callback_module.get_instance()
         cls.status_map = cls.callback_module.STATUS_MAP
+
+    @staticmethod
+    def setUp():
+        mock_liveaction.setup()
+
+    @staticmethod
+    def tearDown():
+        mock_liveaction.teardown()
+
+    @staticmethod
+    def _reset():
+        mock_liveaction.teardown()
+        mock_liveaction.setup()
 
     @classmethod
     def get_runner_class(cls, package_name, module_name):
@@ -412,7 +426,10 @@ class MistralRunnerCallbackTest(DbTestCase):
         liveaction = self.get_liveaction_instance()
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
-
+        liveaction = self._wait_on_status(
+            liveaction,
+            action_constants.LIVEACTION_STATUS_SUCCEEDED
+        )
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
 
         action_executions.ActionExecutionManager.update.assert_called_with(
@@ -428,7 +445,10 @@ class MistralRunnerCallbackTest(DbTestCase):
         liveaction = self.get_liveaction_instance()
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
-
+        liveaction = self._wait_on_status(
+            liveaction,
+            local_run_result[0]
+        )
         self.assertEqual(liveaction.status, local_run_result[0])
         self.assertFalse(action_executions.ActionExecutionManager.update.called)
 
@@ -444,7 +464,10 @@ class MistralRunnerCallbackTest(DbTestCase):
         liveaction = self.get_liveaction_instance()
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
-
+        liveaction = self._wait_on_status(
+            liveaction,
+            local_cancel_result[0]
+        )
         self.assertEqual(liveaction.status, local_cancel_result[0])
 
         action_executions.ActionExecutionManager.update.assert_not_called()
@@ -460,7 +483,10 @@ class MistralRunnerCallbackTest(DbTestCase):
         liveaction = self.get_liveaction_instance()
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
-
+        liveaction = self._wait_on_status(
+            liveaction,
+            local_run_result[0]
+        )
         self.assertEqual(liveaction.status, local_run_result[0])
 
         action_executions.ActionExecutionManager.update.assert_called_with(
@@ -478,7 +504,10 @@ class MistralRunnerCallbackTest(DbTestCase):
         liveaction = self.get_liveaction_instance()
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
-
+        liveaction = self._wait_on_status(
+            liveaction,
+            local_pause_result[0]
+        )
         self.assertEqual(liveaction.status, local_pause_result[0])
 
         action_executions.ActionExecutionManager.update.assert_not_called()
@@ -494,7 +523,10 @@ class MistralRunnerCallbackTest(DbTestCase):
         liveaction = self.get_liveaction_instance()
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
-
+        liveaction = self._wait_on_status(
+            liveaction,
+            local_run_result[0]
+        )
         self.assertEqual(liveaction.status, local_run_result[0])
 
         action_executions.ActionExecutionManager.update.assert_called_with(
@@ -512,7 +544,10 @@ class MistralRunnerCallbackTest(DbTestCase):
         liveaction = self.get_liveaction_instance()
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
-
+        liveaction = self._wait_on_status(
+            liveaction,
+            local_resume_result[0]
+        )
         self.assertEqual(liveaction.status, local_resume_result[0])
         self.assertFalse(action_executions.ActionExecutionManager.update.called)
 
@@ -528,6 +563,10 @@ class MistralRunnerCallbackTest(DbTestCase):
         liveaction = self.get_liveaction_instance()
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
+        liveaction = self._wait_on_status(
+            liveaction,
+            action_constants.LIVEACTION_STATUS_SUCCEEDED
+        )
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
 
         calls = [call('12345', state='SUCCESS', output=NON_EMPTY_RESULT) for i in range(0, 2)]
@@ -548,6 +587,10 @@ class MistralRunnerCallbackTest(DbTestCase):
         liveaction = self.get_liveaction_instance()
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
+        liveaction = self._wait_on_status(
+            liveaction,
+            action_constants.LIVEACTION_STATUS_SUCCEEDED
+        )
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
 
         # This test initially setup mock for action_executions.ActionExecutionManager.update

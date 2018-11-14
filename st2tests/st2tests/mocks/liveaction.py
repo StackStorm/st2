@@ -46,7 +46,6 @@ def setup():
 def teardown():
     SCHEDULER_HANDLER.shutdown()
     for execution in ExecutionQueue.get_all():
-        print(execution)
         ExecutionQueue.delete(execution)
 
 
