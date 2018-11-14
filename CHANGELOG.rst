@@ -54,6 +54,9 @@ Changed
   stevedore, tooz). #4410
 
 * Improve ``st2.conf`` migration for the new services by using prod-friendly logging settings by default #4415
+* Refactor Orquesta workflow to output on error. Depends on PR
+  https://github.com/StackStorm/orquesta/pull/101 and https://github.com/StackStorm/orquesta/pull/102
+  (improvement)
 
 Fixed
 ~~~~~

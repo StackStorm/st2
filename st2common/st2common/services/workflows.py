@@ -465,7 +465,8 @@ def request_task_execution(wf_ex_db, st2_ctx, task_req):
     except Exception as e:
         msg = '[%s] Failed action execution(s) for task "%s". %s'
         LOG.exception(msg, wf_ac_ex_id, task_id, str(e))
-        result = {'errors': [{'message': str(e), 'task_id': task_ex_db.task_id}]}
+        message = '%s: %s' % (type(e).__name__, str(e))
+        result = {'errors': [{'type': 'error', 'message': message, 'task_id': task_ex_db.task_id}]}
         update_task_execution(str(task_ex_db.id), states.FAILED, result)
         raise e
 
@@ -933,7 +934,7 @@ def fail_workflow_execution(wf_ex_id, exception, task_id=None):
 
     # Set workflow execution status to failed and record error.
     conductor.request_workflow_state(states.FAILED)
-    conductor.log_error(str(exception), task_id=task_id)
+    conductor.log_error(exception, task_id=task_id)
 
     # Update workflow execution and related liveaction and action execution.
     update_execution_records(wf_ex_db, conductor)
