@@ -22,7 +22,7 @@ Command-line interface to StackStorm.
 from __future__ import print_function
 from __future__ import absolute_import
 
-# Ignore CryptographyDeprecationWarning warnings which appear on our Ubuntu build server
+# Ignore CryptographyDeprecationWarning warnings which appear on older versions of Python 2.7
 import warnings
 from cryptography.utils import CryptographyDeprecationWarning
 warnings.filterwarnings("ignore", category=CryptographyDeprecationWarning)
