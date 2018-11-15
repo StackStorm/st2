@@ -64,6 +64,9 @@ Changed
   stevedore, tooz). #4410
 
 * Improve ``st2.conf`` migration for the new services by using prod-friendly logging settings by default #4415
+* Refactor Orquesta workflow to output on error. Depends on PR
+  https://github.com/StackStorm/orquesta/pull/101 and https://github.com/StackStorm/orquesta/pull/102
+  (improvement)
 
 Fixed
 ~~~~~
@@ -92,8 +95,10 @@ Fixed
   existing ``st2 pack show -j``.
 
   Reported by Nick Maludy (improvement) #4260
-* Fix string operations on unicode data in Orquest workflows, associated with PR
+* Fix string operations on unicode data in Orquesta workflows, associated with PR
   https://github.com/StackStorm/orquesta/pull/98. (bug fix)
+* Fix access to st2 and action context in Orquesta workflows, associated with PR
+  https://github.com/StackStorm/orquesta/pull/104. (bug fix)
 
 2.9.1 - October 03, 2018
 ------------------------

@@ -66,11 +66,14 @@ class OrquestaRunner(runners.AsyncActionRunner):
     def _construct_st2_context(self):
         st2_ctx = {
             'st2': {
-                'api_url': api_util.get_full_public_api_url(),
                 'action_execution_id': str(self.execution.id),
+                'api_url': api_util.get_full_public_api_url(),
                 'user': self.execution.context.get('user', cfg.CONF.system_user.user)
             }
         }
+
+        if self.execution.context.get('api_user'):
+            st2_ctx['st2']['api_user'] = self.execution.context.get('api_user')
 
         if self.execution.context:
             st2_ctx['parent'] = self.execution.context

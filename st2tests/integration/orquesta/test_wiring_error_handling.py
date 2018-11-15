@@ -71,10 +71,12 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
     def test_input_error(self):
         expected_errors = [
             {
+                'type': 'error',
                 'message': (
-                    'Unable to evaluate expression \'<% abs(8).value %>\'. '
-                    'NoFunctionRegisteredException: Unknown function "#property#value"'
-                ),
+                    'YaqlEvaluationException: Unable to evaluate expression '
+                    '\'<% abs(8).value %>\'. NoFunctionRegisteredException: '
+                    'Unknown function "#property#value"'
+                )
             }
         ]
 
@@ -86,9 +88,11 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
     def test_vars_error(self):
         expected_errors = [
             {
+                'type': 'error',
                 'message': (
-                    'Unable to evaluate expression \'<% abs(8).value %>\'. '
-                    'NoFunctionRegisteredException: Unknown function "#property#value"'
+                    'YaqlEvaluationException: Unable to evaluate expression '
+                    '\'<% abs(8).value %>\'. NoFunctionRegisteredException: '
+                    'Unknown function "#property#value"'
                 )
             }
         ]
@@ -101,9 +105,11 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
     def test_start_task_error(self):
         expected_errors = [
             {
+                'type': 'error',
                 'message': (
-                    'Unable to evaluate expression \'<% ctx().name.value %>\'. '
-                    'NoFunctionRegisteredException: Unknown function "#property#value"'
+                    'YaqlEvaluationException: Unable to evaluate expression '
+                    '\'<% ctx().name.value %>\'. NoFunctionRegisteredException: '
+                    'Unknown function "#property#value"'
                 ),
                 'task_id': 'task1'
             }
@@ -117,43 +123,55 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
     def test_task_transition_error(self):
         expected_errors = [
             {
+                'type': 'error',
                 'message': (
-                    'Unable to resolve key \'value\' in expression \''
-                    '<% succeeded() and result().value %>\' from context.'
+                    'YaqlEvaluationException: Unable to resolve key \'value\' '
+                    'in expression \'<% succeeded() and result().value %>\' from context.'
                 ),
                 'task_transition_id': 'task2__0',
                 'task_id': 'task1'
             }
         ]
+
+        expected_output = {
+            'greeting': None
+        }
 
         ex = self._execute_workflow('examples.orquesta-fail-task-transition')
         ex = self._wait_for_completion(ex)
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
-        self.assertDictEqual(ex.result, {'errors': expected_errors, 'output': None})
+        self.assertDictEqual(ex.result, {'errors': expected_errors, 'output': expected_output})
 
     def test_task_publish_error(self):
         expected_errors = [
             {
+                'type': 'error',
                 'message': (
-                    'Unable to resolve key \'value\' in expression \''
-                    '<% result().value %>\' from context.'
+                    'YaqlEvaluationException: Unable to resolve key \'value\' '
+                    'in expression \'<% result().value %>\' from context.'
                 ),
                 'task_transition_id': 'task2__0',
                 'task_id': 'task1'
             }
         ]
 
+        expected_output = {
+            'greeting': None
+        }
+
         ex = self._execute_workflow('examples.orquesta-fail-task-publish')
         ex = self._wait_for_completion(ex)
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
-        self.assertDictEqual(ex.result, {'errors': expected_errors, 'output': None})
+        self.assertDictEqual(ex.result, {'errors': expected_errors, 'output': expected_output})
 
     def test_output_error(self):
         expected_errors = [
             {
+                'type': 'error',
                 'message': (
-                    'Unable to evaluate expression \'<% abs(8).value %>\'. '
-                    'NoFunctionRegisteredException: Unknown function "#property#value"'
+                    'YaqlEvaluationException: Unable to evaluate expression '
+                    '\'<% abs(8).value %>\'. NoFunctionRegisteredException: '
+                    'Unknown function "#property#value"'
                 )
             }
         ]
