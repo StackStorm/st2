@@ -85,8 +85,10 @@ Fixed
   existing ``st2 pack show -j``.
 
   Reported by Nick Maludy (improvement) #4260
-* Fix string operations on unicode data in Orquest workflows, associated with PR
+* Fix string operations on unicode data in Orquesta workflows, associated with PR
   https://github.com/StackStorm/orquesta/pull/98. (bug fix)
+* Fix access to st2 and action context in Orquesta workflows, associated with PR
+  https://github.com/StackStorm/orquesta/pull/104. (bug fix)
 
 2.9.1 - October 03, 2018
 ------------------------

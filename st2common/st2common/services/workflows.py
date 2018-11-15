@@ -497,6 +497,7 @@ def request_action_execution(wf_ex_db, task_ex_db, st2_ctx, ac_ex_req):
 
     # Set context for the action execution.
     ac_ex_ctx = {
+        'user': st2_ctx.get('user'),
         'parent': st2_ctx,
         'orquesta': {
             'workflow_execution_id': str(wf_ex_db.id),
@@ -505,6 +506,9 @@ def request_action_execution(wf_ex_db, task_ex_db, st2_ctx, ac_ex_req):
             'task_id': task_ex_db.task_id
         }
     }
+
+    if st2_ctx.get('api_user'):
+        ac_ex_ctx['api_user'] = st2_ctx.get('api_user')
 
     if item_id is not None:
         ac_ex_ctx['orquesta']['item_id'] = item_id
@@ -815,8 +819,14 @@ def request_next_tasks(wf_ex_db, task_ex_id=None):
         for task in next_tasks:
             try:
                 LOG.info('[%s] Requesting execution for task "%s".', wf_ac_ex_id, task['id'])
+
+                # Pass down appropriate st2 context to the task and action execution(s).
                 root_st2_ctx = wf_ex_db.context.get('st2', {})
                 st2_ctx = {'execution_id': wf_ac_ex_id, 'user': root_st2_ctx.get('user')}
+                if root_st2_ctx.get('api_user'):
+                    st2_ctx['api_user'] = root_st2_ctx.get('api_user')
+
+                # Request the task execution.
                 request_task_execution(wf_ex_db, st2_ctx, task)
             except Exception as e:
                 LOG.exception('[%s] Failed task execution for "%s".', wf_ac_ex_id, task['id'])
