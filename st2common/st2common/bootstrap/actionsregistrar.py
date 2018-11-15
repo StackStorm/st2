@@ -61,9 +61,9 @@ class ActionsRegistrar(ResourceRegistrar):
         print("Content cache contents: %s" % self._db_content_cache)
 
         registered_count = 0
+        all_action_db_upserts = []
         content = self._pack_loader.get_content(base_dirs=base_dirs,
                                                 content_type='actions')
-        all_actions = []
         for pack, actions_dir in six.iteritems(content):
             if not actions_dir:
                 LOG.debug('Pack %s does not contain actions.', pack)
@@ -71,8 +71,8 @@ class ActionsRegistrar(ResourceRegistrar):
             try:
                 LOG.debug('Registering actions from pack %s:, dir: %s', pack, actions_dir)
                 actions = self._get_actions_from_pack(actions_dir)
-                action_db_models = self._get_action_db_models(pack, actions)
-                all_actions.extend(action_db_models)
+                action_db_upserts = self._get_action_db_models(pack=pack, actions=actions)
+                all_action_db_upserts.extend(action_db_upserts)
             except Exception as e:
                 if self._fail_on_failure:
                     raise e
@@ -81,12 +81,12 @@ class ActionsRegistrar(ResourceRegistrar):
 
         registered_count = 0
         try:
-            LOG.info('Actions to write to disk: %s', all_actions)
-            Action.bulk_insert(all_actions)
-            registered_count = len(all_actions)
+            LOG.debug('Actions to persist to disk: %s', all_action_db_upserts)
+            Action.bulk_upsert(all_action_db_upserts)
+            registered_count = len(action_db_upserts)
         except Exception as e:
             LOG.exception('Not all actions were successfully persisted.')
-            registered_count = len(all_actions)
+            registered_count = 0
 
         return registered_count
 
@@ -113,7 +113,7 @@ class ActionsRegistrar(ResourceRegistrar):
 
         try:
             actions = self._get_actions_from_pack(actions_dir=actions_dir)
-            action_db_models = self._get_action_db_models(pack=pack, actions=actions)
+            action_db_upserts = self._get_action_db_models(pack=pack, actions=actions)
         except Exception as e:
             if self._fail_on_failure:
                 raise e
@@ -122,11 +122,12 @@ class ActionsRegistrar(ResourceRegistrar):
 
         registered_count = 0
         try:
-            Action.bulk_insert(action_db_models)
-            registered_count = len(action_db_models)
+            LOG.debug('Actions to persist to disk: %s', action_db_upserts)
+            Action.bulk_upsert(action_db_upserts)
+            registered_count = len(action_db_upserts)
         except Exception as e:
-            LOG.error('Not all actions were successfully persisted.')
-            registered_count = len(action_db_models)
+            LOG.exception('Not all actions were successfully persisted.')
+            registered_count = 0
 
         return registered_count
 
@@ -205,13 +206,13 @@ class ActionsRegistrar(ResourceRegistrar):
         return model
 
     def _get_action_db_models(self, pack, actions):
-        action_db_inserts = []
-        action_db_updates = []
+        action_db_upserts = []
+
         for action in actions:
             action_db_model = self._get_action_db_model(pack, action)
-            action_db_models.append(action_db_model)
+            action_db_upserts.append(action_db_model)
 
-        return action_db_models
+        return action_db_upserts
 
 def register_actions(packs_base_paths=None, pack_dir=None, use_pack_cache=True,
                      fail_on_failure=False):

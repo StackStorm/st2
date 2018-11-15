@@ -115,15 +115,14 @@ class ResourceRegistrar(object):
         registered_count = 0
         for pack_name, pack_path in six.iteritems(packs):
             self.register_pack(pack_name=pack_name, pack_dir=pack_path)
-            print('Querying for content type: %s' % self._st2_model)
+            LOG.debug('Querying for content type: %s', self._st2_model)
             if self._st2_model:
-                print('Getting content from db for pack %s' % pack_name)
                 models = self._st2_model.query(pack=pack_name, only_fields=['ref', 'id'])
                 model_ref_id_map = {}
                 for model in models:
                     model_ref_id_map[model.ref] = str(model.id)
                 self._db_content_cache[pack_name] = model_ref_id_map
-                print('Got models: %s' % self._db_content_cache[pack_name])
+                LOG.debug('Got models: %s', self._db_content_cache[pack_name])
             registered_count += 1
 
         return registered_count

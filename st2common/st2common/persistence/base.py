@@ -123,9 +123,9 @@ class Access(object):
         return cls._get_impl().aggregate(*args, **kwargs)
 
     @classmethod
-    def bulk_add_or_update(cls, model_objects):
+    def bulk_upsert(cls, model_objects):
         try:
-            cls._get_impl().bulk_insert(model_objects)
+            cls._get_impl().bulk_upsert(model_objects)
         except:
             raise
 
