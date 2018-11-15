@@ -18,6 +18,16 @@ Added
   Response protocol) for older servers.
 
   Contributed by @aduca85 #4373
+* Add new ``metadata_file`` attribute to the following models: Action, Action Alias, Rule, Sensor,
+  TriggerType. Value of this attribute points to a metadata file for a specific resource (YAML file
+  which contains actual resource definition). Path is relative to the pack directory (e.g.
+  ``actions/my_action1.meta.yaml``, ``aliases/my_alias.yaml``, ``sensors/my_sensor.yaml``,
+  ``rules/my_rule.yaml``, ``triggers/my_trigger.yaml`` etc.).
+
+  Keep in mind that triggers can be registered in two ways - either via sensor definition file in
+  ``sensors/`` directory or via trigger definition file in ``triggers/`` directory. If
+  ``metadata_file`` attribute on TriggerTypeDB model points to ``sensors/`` directory it means that
+  trigger is registered via sensor definition. (new feature) #4445
 
 Changed
 ~~~~~~~
