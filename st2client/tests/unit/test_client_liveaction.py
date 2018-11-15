@@ -169,20 +169,18 @@ class TestLiveActionResourceManager(unittest2.TestCase):
         httpclient.HTTPClient.put.assert_called_with(endpoint, data)
 
     @mock.patch.object(
-        models.ResourceManager, 'get_by_id',
-        mock.MagicMock(return_vaue=models.LiveAction(**LIVE_ACTION)))
-    @mock.patch.object(
-        models.ResourceManager, 'get_by_ref_or_id',
-        mock.MagicMock(return_value=models.Action(**ACTION)))
-    @mock.patch.object(
-        models.ResourceManager, 'get_by_name',
-        mock.MagicMock(return_value=models.RunnerType(**RUNNER)))
+        models.core.Resource, 'get_url_path_name',
+        mock.MagicMock(return_value='executions'))
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps([LIVE_ACTION]), 200, 'OK')))
     def test_get_children(self):
         self.client.liveactions.get_children(LIVE_ACTION['id'])
 
         endpoint = '/executions/%s/children' % LIVE_ACTION['id']
 
-        httpclient.HTTPClient.get.assert_called_with(endpoint)
+        data = {
+            'depth': -1
+        }
+
+        httpclient.HTTPClient.get.assert_called_with(url=endpoint, params=data)
