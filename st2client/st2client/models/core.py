@@ -450,8 +450,7 @@ class LiveActionResourceManager(ResourceManager):
         response = self.client.get(url=url, params=params, **kwargs)
         if response.status_code != http_client.OK:
             self.handle_error(response)
-        return [self.resource.deserialize(item)
-                for item in response.json()]
+        return [self.resource.deserialize(item) for item in response.json()]
 
 
 class InquiryResourceManager(ResourceManager):
