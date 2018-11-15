@@ -61,9 +61,11 @@ class FunctionsWiringTest(base.TestWorkflowExecution):
 
         expected_errors = [
             {
+                'type': 'error',
                 'message': (
-                    'Unable to evaluate expression \'<% task("task0") %>\'. '
-                    'ExpressionEvaluationException: Unable to find task execution for "task0".'
+                    'YaqlEvaluationException: Unable to evaluate expression '
+                    '\'<% task("task0") %>\'. ExpressionEvaluationException: '
+                    'Unable to find task execution for "task0".'
                 ),
                 'task_transition_id': 'noop__0',
                 'task_id': 'task1'
@@ -86,9 +88,11 @@ class FunctionsWiringTest(base.TestWorkflowExecution):
 
         expected_errors = [
             {
+                'type': 'error',
                 'message': (
-                    'Unable to evaluate expression \'{{ task("task0") }}\'. '
-                    'ExpressionEvaluationException: Unable to find task execution for "task0".'
+                    'JinjaEvaluationException: Unable to evaluate expression '
+                    '\'{{ task("task0") }}\'. ExpressionEvaluationException: '
+                    'Unable to find task execution for "task0".'
                 ),
                 'task_transition_id': 'noop__0',
                 'task_id': 'task1'

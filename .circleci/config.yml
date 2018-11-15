@@ -107,7 +107,7 @@ jobs:
 
   # Build & Test st2 packages
   packages:
-    parallelism: 4
+    parallelism: 5
     # 4CPUs & 8GB RAM CircleCI machine
     # sadly, it doesn't work with 'setup_remote_docker'
     resource_class: large
@@ -116,7 +116,7 @@ jobs:
       - image: circleci/python:2.7
     working_directory: ~/st2
     environment:
-      - DISTROS: "trusty xenial el6 el7"
+      - DISTROS: "trusty xenial bionic el6 el7"
       - ST2_PACKAGES_REPO: https://github.com/StackStorm/st2-packages
       - ST2_PACKAGES: "st2"
       - ST2_CHECKOUT: 0
@@ -229,7 +229,7 @@ jobs:
       - image: circleci/ruby:2.4
     working_directory: /tmp/deploy
     environment:
-      - DISTROS: "trusty xenial el6 el7"
+      - DISTROS: "trusty xenial bionic el6 el7"
     steps:
       - attach_workspace:
           at: .

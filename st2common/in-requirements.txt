@@ -7,12 +7,9 @@ greenlet
 jinja2
 jsonschema
 kombu
-# Our fork contains a fix / revert of a change which was introduced in v0.13.0
-# and introduces a large regression in memory usage
-# See https://github.com/MongoEngine/mongoengine/pull/1833
-git+https://github.com/StackStorm/mongoengine.git@stackstorm_patched#egg=mongoengine
+mongoengine
 networkx
-git+https://github.com/StackStorm/orquesta.git@251d72113bd0586bc57529d340d0e62c8e575943#egg=orquesta
+git+https://github.com/StackStorm/orquesta.git@3028c158cbf510e1253d1988058089a6f1c343ed#egg=orquesta
 oslo.config
 paramiko
 pyyaml

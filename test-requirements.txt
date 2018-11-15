@@ -16,14 +16,14 @@ sphinx-autobuild
 rednose
 nose-timer>=0.7.2,<0.8
 # splitting tests run on a separate CI machines
-nose-parallel==0.2.1
+nose-parallel==0.3.1
 # Required by st2client tests
 pyyaml<4.0,>=3.12
 RandomWords
 gunicorn==19.7.1
 psutil==5.4.5
 webtest==2.0.25
-rstcheck>=3.3.0,<3.4
+rstcheck>=3.3.1,<3.4
 pyrabbit
 # Since StackStorm v2.8.0 we now use cryptography instead of keyczar, but we still have some tests
 # which utilize keyczar and ensure new cryptography code is fully compatible with keyczar code

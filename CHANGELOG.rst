@@ -54,6 +54,9 @@ Changed
   stevedore, tooz). #4410
 
 * Improve ``st2.conf`` migration for the new services by using prod-friendly logging settings by default #4415
+* Refactor Orquesta workflow to output on error. Depends on PR
+  https://github.com/StackStorm/orquesta/pull/101 and https://github.com/StackStorm/orquesta/pull/102
+  (improvement)
 
 Fixed
 ~~~~~
@@ -82,12 +85,14 @@ Fixed
   existing ``st2 pack show -j``.
 
   Reported by Nick Maludy (improvement) #4260
-* Fix string operations on unicode data in Orquest workflows, associated with PR
+* Fix string operations on unicode data in Orquesta workflows, associated with PR
   https://github.com/StackStorm/orquesta/pull/98. (bug fix)
+* Fix access to st2 and action context in Orquesta workflows, associated with PR
+  https://github.com/StackStorm/orquesta/pull/104. (bug fix)
 * ``st2ctl reload --register-aliases`` and ``st2ctl reload --register-all`` now spits a warning when
-  trying to register aliases with no corresponding action registered in the db.
+trying to register aliases with no corresponding action registered in the db.
 
-  Reported by nzlosh (improvement) #4372.
+Reported by nzlosh (improvement) #4372.
 
 2.9.1 - October 03, 2018
 ------------------------

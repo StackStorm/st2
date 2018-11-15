@@ -98,6 +98,8 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
 
     LOG.debug('Using logging config: %s', logging_config_path)
 
+    is_debug_enabled = (cfg.CONF.debug or cfg.CONF.system.debug)
+
     try:
         logging.setup(logging_config_path, redirect_stderr=cfg.CONF.log.redirect_stderr,
                       excludes=cfg.CONF.log.excludes)
@@ -110,14 +112,20 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
         else:
             raise e
 
-    if cfg.CONF.debug or cfg.CONF.system.debug:
+    if not is_debug_enabled:
+        # NOTE: statsd logger logs everything by default under INFO so we ignore those log
+        # messages unless verbose / debug mode is used
+        logging.ignore_statsd_log_messages()
+
+    logging.ignore_lib2to3_log_messages()
+
+    if is_debug_enabled:
         enable_debugging()
 
     if cfg.CONF.profile:
         enable_profiling()
 
-    # All other setup which requires config to be parsed and logging to
-    # be correctly setup.
+    # All other setup which requires config to be parsed and logging to be correctly setup.
     if setup_db:
         db_setup()
 

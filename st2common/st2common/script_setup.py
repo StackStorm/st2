@@ -25,7 +25,6 @@ from __future__ import absolute_import
 import logging as stdlib_logging
 
 from oslo_config import cfg
-
 from st2common import log as logging
 from st2common.database_setup import db_setup
 from st2common.database_setup import db_teardown
@@ -86,6 +85,12 @@ def setup(config, setup_db=True, register_mq_exchanges=True,
 
         for handler in handlers:
             handler.addFilter(LogLevelFilter(log_levels=exclude_log_levels))
+
+        # NOTE: statsd logger logs everything by default under INFO so we ignore those log
+        # messages unless verbose / debug mode is used
+        logging.ignore_statsd_log_messages()
+
+    logging.ignore_lib2to3_log_messages()
 
     # All other setup code which requires config to be parsed and logging to be correctly setup
     if setup_db:
