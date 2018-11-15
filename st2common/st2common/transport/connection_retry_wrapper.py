@@ -117,7 +117,6 @@ class ConnectionRetryWrapper(object):
                 wrapped_callback(connection=connection, channel=channel)
                 should_stop = True
             except connection.connection_errors + connection.channel_errors as e:
-                self._logger.exception('RabbitMQ connection or channel error: %s.' % (str(e)))
                 should_stop, wait = self._retry_context.test_should_stop()
                 # reset channel to None to avoid any channel closing errors. At this point
                 # in case of an exception there should be no channel but that is better to
@@ -161,5 +160,8 @@ class ConnectionRetryWrapper(object):
                     the kombu library.
         :type obj: Must support mixin kombu.abstract.MaybeChannelBound
         """
-        ensuring_func = connection.ensure(obj, to_ensure_func, errback=self.errback, max_retries=3)
+        ensuring_func = connection.ensure(
+            obj, to_ensure_func,
+            errback=self.errback,
+            max_retries=3)
         ensuring_func(**kwargs)

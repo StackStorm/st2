@@ -47,22 +47,11 @@ def _register_common_opts():
 def _register_rules_engine_opts():
     logging_opts = [
         cfg.StrOpt(
-            'logging', default='conf/logging.rulesengine.conf',
+            'logging', default='/etc/st2/logging.rulesengine.conf',
             help='Location of the logging configuration file.')
     ]
 
     CONF.register_opts(logging_opts, group='rulesengine')
-
-    timer_opts = [
-        cfg.StrOpt(
-            'local_timezone', default='America/Los_Angeles',
-            help='Timezone pertaining to the location where st2 is run.'),
-        cfg.BoolOpt(
-            'enable', default=True,
-            help='Specify to enable Timer.')
-    ]
-
-    CONF.register_opts(timer_opts, group='timer')
 
 
 register_opts()

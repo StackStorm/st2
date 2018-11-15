@@ -24,8 +24,11 @@ from st2common.persistence.pack import Pack
 from st2common.router import Response
 from st2common.services import packs as pack_service
 from st2api.controllers.v1.actionexecutions import ActionExecutionsControllerMixin
+from st2api.controllers.v1.packs import PacksController
 from st2api.controllers.v1.packs import ENTITIES
-from tests import FunctionalTest
+
+from tests.base import FunctionalTest
+from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
 
 from st2tests.fixturesloader import get_fixtures_base_path
 
@@ -106,7 +109,13 @@ def mock_index_get(url, *args, **kwargs):
     return mock_resp
 
 
-class PacksControllerTestCase(FunctionalTest):
+class PacksControllerTestCase(FunctionalTest,
+                              APIControllerWithIncludeAndExcludeFilterTestCase):
+    get_all_path = '/v1/packs'
+    controller_cls = PacksController
+    include_attribute_field_name = 'version'
+    exclude_attribute_field_name = 'author'
+
     @classmethod
     def setUpClass(cls):
         super(PacksControllerTestCase, cls).setUpClass()
@@ -516,14 +525,14 @@ class PacksControllerTestCase(FunctionalTest):
                                   {'packs': ['dummy_pack_1'], 'types': ['action']})
 
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json, {'actions': 1, 'runners': 15})
+        self.assertEqual(resp.json, {'actions': 1, 'runners': 18})
 
         # Verify that plural name form also works
         resp = self.app.post_json('/v1/packs/register',
                                   {'packs': ['dummy_pack_1'], 'types': ['actions']})
 
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json, {'actions': 1, 'runners': 15})
+        self.assertEqual(resp.json, {'actions': 1, 'runners': 18})
 
         # Register single resource from a single pack specified multiple times - verify that
         # resources from the same pack are only registered once
@@ -533,7 +542,7 @@ class PacksControllerTestCase(FunctionalTest):
                                    'fail_on_failure': False})
 
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json, {'actions': 1, 'runners': 15})
+        self.assertEqual(resp.json, {'actions': 1, 'runners': 18})
 
         # Register resources from a single (non-existent pack)
         resp = self.app.post_json('/v1/packs/register', {'packs': ['doesntexist']},
@@ -568,3 +577,12 @@ class PacksControllerTestCase(FunctionalTest):
         expected_msg = '\'stringa\' is not valid under any of the given schemas'
         self.assertEqual(resp.status_int, 400)
         self.assertTrue(expected_msg in resp.json['faultstring'])
+
+    def test_get_all_invalid_exclude_and_include_parameter(self):
+        pass
+
+    def _insert_mock_models(self):
+        return [self.pack_db_1['id'], self.pack_db_2['id'], self.pack_db_3['id']]
+
+    def _do_delete(self, object_ids):
+        pass

@@ -47,7 +47,7 @@ def _register_common_opts():
 def _register_notifier_opts():
     notifier_opts = [
         cfg.StrOpt(
-            'logging', default='conf/logging.notifier.conf',
+            'logging', default='/etc/st2/logging.notifier.conf',
             help='Location of the logging configuration file.')
     ]
 

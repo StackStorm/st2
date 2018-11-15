@@ -41,6 +41,7 @@ class WorkflowExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionF
     graph = stormbase.EscapedDictField()
     flow = stormbase.EscapedDictField()
     context = stormbase.EscapedDictField()
+    notify = stormbase.EscapedDictField()
     input = stormbase.EscapedDictField()
     output = stormbase.EscapedDictField()
     status = me.StringField(required=True)
@@ -62,6 +63,7 @@ class TaskExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionField
     task_name = me.StringField(required=True)
     task_id = me.StringField(required=True)
     task_spec = stormbase.EscapedDictField()
+    itemized = me.BooleanField(default=False)
     context = stormbase.EscapedDictField()
     result = stormbase.EscapedDictField()
     status = me.StringField(required=True)
@@ -71,6 +73,7 @@ class TaskExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionField
     meta = {
         'indexes': [
             {'fields': ['workflow_execution']},
+            {'fields': ['task_id']},
             {'fields': ['workflow_execution', 'task_id']}
         ]
     }

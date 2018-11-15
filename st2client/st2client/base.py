@@ -155,7 +155,7 @@ class BaseCLIApp(object):
 
         return client
 
-    def _get_config_file_options(self, args, validate_config_permissions=True):
+    def _get_config_file_options(self, args, validate_config_permissions=False):
         """
         Parse the config and return kwargs which can be passed to the Client
         constructor.
@@ -170,7 +170,7 @@ class BaseCLIApp(object):
 
         return result
 
-    def _parse_config_file(self, args, validate_config_permissions=True):
+    def _parse_config_file(self, args, validate_config_permissions=False):
         config_file_path = self._get_config_file_path(args=args)
 
         parser = CLIConfigParser(config_file_path=config_file_path,

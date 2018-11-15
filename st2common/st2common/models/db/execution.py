@@ -110,7 +110,7 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
         parameters.update(value.get('runner', {}).get('runner_parameters', {}))
 
         secret_parameters = get_secret_parameters(parameters=parameters)
-        result['parameters'] = mask_secret_parameters(parameters=result['parameters'],
+        result['parameters'] = mask_secret_parameters(parameters=result.get('parameters', {}),
                                                       secret_parameters=secret_parameters)
 
         if 'parameters' in liveaction:

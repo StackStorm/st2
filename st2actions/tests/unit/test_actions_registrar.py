@@ -30,7 +30,7 @@ MOCK_RUNNER_TYPE_DB = RunnerTypeDB(name='run-local', runner_module='st2.runners.
 
 class ActionsRegistrarTest(tests_base.DbTestCase):
     @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(return_value=True))
-    @mock.patch.object(action_validator, '_get_runner_model',
+    @mock.patch.object(action_validator, 'get_runner_model',
                        mock.MagicMock(return_value=MOCK_RUNNER_TYPE_DB))
     def test_register_all_actions(self):
         try:
@@ -53,7 +53,7 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
             pass
 
     @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(return_value=True))
-    @mock.patch.object(action_validator, '_get_runner_model',
+    @mock.patch.object(action_validator, 'get_runner_model',
                        mock.MagicMock(return_value=MOCK_RUNNER_TYPE_DB))
     def test_pack_name_missing(self):
         registrar = actions_registrar.ActionsRegistrar()
@@ -66,12 +66,12 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
             content = yaml.safe_load(fd)
             action_name = str(content['name'])
             action_db = Action.get_by_name(action_name)
-            self.assertEqual(action_db.pack, 'dummy', 'Content pack must be ' +
-                             'set to dummy')
+            expected_msg = 'Content pack must be set to dummy'
+            self.assertEqual(action_db.pack, 'dummy', expected_msg)
             Action.delete(action_db)
 
     @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(return_value=True))
-    @mock.patch.object(action_validator, '_get_runner_model',
+    @mock.patch.object(action_validator, 'get_runner_model',
                        mock.MagicMock(return_value=MOCK_RUNNER_TYPE_DB))
     def test_register_action_with_no_params(self):
         registrar = actions_registrar.ActionsRegistrar()
@@ -82,7 +82,7 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
         self.assertEqual(registrar._register_action('dummy', action_file), None)
 
     @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(return_value=True))
-    @mock.patch.object(action_validator, '_get_runner_model',
+    @mock.patch.object(action_validator, 'get_runner_model',
                        mock.MagicMock(return_value=MOCK_RUNNER_TYPE_DB))
     def test_register_action_invalid_parameter_type_attribute(self):
         registrar = actions_registrar.ActionsRegistrar()
@@ -95,7 +95,7 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
                                 registrar._register_action, 'dummy', action_file)
 
     @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(return_value=True))
-    @mock.patch.object(action_validator, '_get_runner_model',
+    @mock.patch.object(action_validator, 'get_runner_model',
                        mock.MagicMock(return_value=MOCK_RUNNER_TYPE_DB))
     def test_register_action_invalid_parameter_name(self):
         registrar = actions_registrar.ActionsRegistrar()
@@ -109,7 +109,7 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
                                 registrar._register_action, 'dummy', action_file)
 
     @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(return_value=True))
-    @mock.patch.object(action_validator, '_get_runner_model',
+    @mock.patch.object(action_validator, 'get_runner_model',
                        mock.MagicMock(return_value=MOCK_RUNNER_TYPE_DB))
     def test_invalid_params_schema(self):
         registrar = actions_registrar.ActionsRegistrar()
@@ -123,7 +123,7 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
             pass
 
     @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(return_value=True))
-    @mock.patch.object(action_validator, '_get_runner_model',
+    @mock.patch.object(action_validator, 'get_runner_model',
                        mock.MagicMock(return_value=MOCK_RUNNER_TYPE_DB))
     def test_action_update(self):
         registrar = actions_registrar.ActionsRegistrar()
@@ -138,6 +138,6 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
             content = yaml.safe_load(fd)
             action_name = str(content['name'])
             action_db = Action.get_by_name(action_name)
-            self.assertEqual(action_db.pack, 'wolfpack', 'Content pack must be ' +
-                             'set to wolfpack')
+            expected_msg = 'Content pack must be set to wolfpack'
+            self.assertEqual(action_db.pack, 'wolfpack', expected_msg)
             Action.delete(action_db)

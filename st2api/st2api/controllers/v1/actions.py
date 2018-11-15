@@ -60,7 +60,8 @@ class ActionsController(resource.ContentPackResourceController):
     access = Action
     supported_filters = {
         'name': 'name',
-        'pack': 'pack'
+        'pack': 'pack',
+        'tags': 'name'
     }
 
     query_options = {
@@ -72,22 +73,13 @@ class ActionsController(resource.ContentPackResourceController):
         'notify'
     ]
 
-    include_reference = True
-
     def __init__(self, *args, **kwargs):
         super(ActionsController, self).__init__(*args, **kwargs)
         self._trigger_dispatcher = TriggerDispatcher(LOG)
 
-    def get_all(self, exclude_attributes=None, include_attributes=None,
-                sort=None, offset=0, limit=None,
-                requester_user=None, **raw_filters):
-        exclude_fields = self._validate_exclude_fields(exclude_attributes)
-
-        if include_attributes:
-            # Note: Those fields need to be always included for API model to work
-            include_attributes += ['name', 'pack', 'runner_type']
-
-        return super(ActionsController, self)._get_all(exclude_fields=exclude_fields,
+    def get_all(self, exclude_attributes=None, include_attributes=None, sort=None, offset=0,
+                limit=None, requester_user=None, **raw_filters):
+        return super(ActionsController, self)._get_all(exclude_fields=exclude_attributes,
                                                        include_fields=include_attributes,
                                                        sort=sort,
                                                        offset=offset,

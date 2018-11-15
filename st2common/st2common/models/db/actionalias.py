@@ -45,7 +45,7 @@ class ActionAliasDB(stormbase.StormFoundationDB, stormbase.ContentPackResourceMi
         formats: Alias format strings.
     """
 
-    RESOURCE_TYPE = ResourceType.ACTION
+    RESOURCE_TYPE = ResourceType.ACTION_ALIAS
     UID_FIELDS = ['pack', 'name']
 
     name = me.StringField(required=True)
@@ -76,6 +76,8 @@ class ActionAliasDB(stormbase.StormFoundationDB, stormbase.ContentPackResourceMi
     meta = {
         'indexes': [
             {'fields': ['name']},
+            {'fields': ['enabled']},
+            {'fields': ['formats']},
         ] + stormbase.UIDFieldMixin.get_indexes()
     }
 

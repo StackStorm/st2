@@ -10,7 +10,7 @@
 
 * Install Get yourself a clean 64-bit Linux box that fits the [system requirements](https://docs.stackstorm.com/install/system_requirements.html). Run the installer script:
 
-   ```
+   ```bash
    curl -sSL https://stackstorm.com/packages/install.sh | bash -s -- --user=st2admin --password=Ch@ngeMe
    ```
 * Read the docs: [https://docs.stackstorm.com/index.html](https://docs.stackstorm.com/install/index.html)
@@ -32,6 +32,10 @@ StackStorm helps automate common operational patterns. Some examples are:
 * **Continuous deployment** - build and test with Jenkins, provision a new AWS cluster, turn on some traffic with the load balancer, and roll-forth or roll-back based on NewRelic app performance data.
 
 StackStorm helps you compose these and other operational patterns as rules and workflows or actions; and these rules and workflows - the content within the StackStorm platform - are stored *as code* which means they support the same approach to collaboration that you use today for code development and can be shared with the broader open source community via StackStorm.com/community for example.
+
+### Who is using StackStorm?
+
+See the list of known StackStorm [ADOPTERS.md](/ADOPTERS.md) and [Thought Leaders](https://stackstorm.com/stackstorm-thought-leaders/).
 
 ### How it works
 

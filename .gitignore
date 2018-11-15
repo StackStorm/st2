@@ -24,6 +24,10 @@ develop-eggs
 .installed.cfg
 lib64
 virtualenv
+virtualenv-py3
+virtualenv-osx
+virtualenv-st2client
+virtualenv-st2client-osx
 
 # Installer logs
 pip-log.txt
@@ -32,6 +36,7 @@ pip-log.txt
 .coverage
 .coverage.integration.*
 .coverage.integration
+.coverage.unit.*
 .coverage.unit
 cover
 coverage*.xml

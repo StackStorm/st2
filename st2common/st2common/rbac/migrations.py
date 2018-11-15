@@ -16,10 +16,12 @@
 from __future__ import absolute_import
 from mongoengine import NotUniqueError
 
+from st2common import log as logging
 from st2common.rbac.types import SystemRole
-from st2common.persistence.rbac import Role
 from st2common.models.db.rbac import RoleDB
 from st2common.exceptions.db import StackStormDBObjectConflictError
+
+LOG = logging.getLogger(__name__)
 
 __all__ = [
     'run_all',
@@ -38,11 +40,14 @@ def insert_system_roles():
     """
     system_roles = SystemRole.get_valid_values()
 
+    LOG.debug('Inserting system roles (%s)' % (str(system_roles)))
+
     for role_name in system_roles:
         description = role_name
         role_db = RoleDB(name=role_name, description=description, system=True)
 
         try:
-            Role.insert(role_db, log_not_unique_error_as_debug=True)
+            role_db.save()
         except (StackStormDBObjectConflictError, NotUniqueError):
+            # Role already exists error is not fatal
             pass

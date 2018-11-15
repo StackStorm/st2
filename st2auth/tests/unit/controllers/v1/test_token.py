@@ -131,6 +131,13 @@ class TestTokenController(FunctionalTest):
     @mock.patch.object(
         User, 'get_by_name',
         mock.MagicMock(return_value=UserDB(name=USERNAME)))
+    def test_token_post_no_data_in_body_text_plain_context_type_used(self):
+        response = self.app.post(TOKEN_V1_PATH, expect_errors=False, content_type='text/plain')
+        self.assertEqual(response.status_int, 201)
+
+    @mock.patch.object(
+        User, 'get_by_name',
+        mock.MagicMock(return_value=UserDB(name=USERNAME)))
     def test_token_post_set_ttl_over_policy(self):
         ttl = cfg.CONF.auth.token_ttl
         response = self.app.post_json(TOKEN_V1_PATH, {'ttl': ttl + 60}, expect_errors=True)

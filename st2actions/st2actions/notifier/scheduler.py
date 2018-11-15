@@ -37,7 +37,8 @@ LOG = logging.getLogger(__name__)
 
 
 def get_rescheduler():
-    timer = BlockingScheduler()
+    local_tz = cfg.CONF.timer.local_timezone or cfg.CONF.timersengine.local_timezone
+    timer = BlockingScheduler(timezone=local_tz)
 
     time_spec = {
         'seconds': cfg.CONF.scheduler.rescheduling_interval,

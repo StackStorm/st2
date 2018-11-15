@@ -24,6 +24,14 @@ from distutils.spawn import find_executable
 from st2common.constants.system import VERSION_STRING
 from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
 from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_LOG_LEVEL
+from st2common.constants.action import LIVEACTION_COMPLETED_STATES
+
+__all__ = [
+    'do_register_opts',
+    'do_register_cli_opts',
+
+    'parse_args'
+]
 
 
 def do_register_opts(opts, group=None, ignore_errors=False):
@@ -97,13 +105,16 @@ def register_opts(ignore_errors=False):
             'base_path', default='/opt/stackstorm',
             help='Base path to all st2 artifacts.'),
         cfg.BoolOpt(
-            'validate_trigger_parameters', default=False,
+            'validate_trigger_parameters', default=True,
             help='True to validate parameters for non-system trigger types when creating'
-                 'a rule. By default, only parameters for system triggers are validated'),
+                 'a rule. By default, only parameters for system triggers are validated.'),
         cfg.BoolOpt(
-            'validate_trigger_payload', default=False,
+            'validate_trigger_payload', default=True,
             help='True to validate payload for non-system trigger types when dispatching a trigger '
-                 'inside the sensor. By default, only payload for system triggers is validated.')
+                 'inside the sensor. By default, only payload for system triggers is validated.'),
+        cfg.BoolOpt(
+            'validate_output_schema', default=False,
+            help='True to validate action and runner output against schema.')
     ]
 
     do_register_opts(system_opts, 'system', ignore_errors)
@@ -120,13 +131,15 @@ def register_opts(ignore_errors=False):
             help='Path to the directory which contains system packs.'),
         cfg.StrOpt(
             'system_runners_base_path', default=system_runners_base_path,
-            help='Path to the directory which contains system runners.'),
+            help='Path to the directory which contains system runners. '
+                 'NOTE: This option has been deprecated and it\'s unused since StackStorm v3.0.0'),
         cfg.StrOpt(
             'packs_base_paths', default=None,
             help='Paths which will be searched for integration packs.'),
         cfg.StrOpt(
             'runners_base_paths', default=None,
-            help='Paths which will be searched for runners.'),
+            help='Paths which will be searched for runners. '
+                 'NOTE: This option has been deprecated and it\'s unused since StackStorm v3.0.0'),
         cfg.ListOpt(
             'index_url', default=['https://index.stackstorm.org/v1/index.json'],
             help='A URL pointing to the pack index. StackStorm Exchange is used by '
@@ -189,7 +202,12 @@ def register_opts(ignore_errors=False):
                  'used to validate certificates passed from MongoDB.'),
         cfg.BoolOpt(
             'ssl_match_hostname', default=True,
-            help='If True and `ssl_cert_reqs` is not None, enables hostname verification')
+            help='If True and `ssl_cert_reqs` is not None, enables hostname verification'),
+        cfg.StrOpt(
+            'authentication_mechanism', default=None,
+            help='Specifies database authentication mechanisms. '
+                 'By default, it use SCRAM-SHA-1 with MongoDB 3.0 and later, '
+                 'MONGODB-CR (MongoDB Challenge Response protocol) for older servers.')
     ]
 
     do_register_opts(db_opts, 'database', ignore_errors)
@@ -307,7 +325,7 @@ def register_opts(ignore_errors=False):
     action_runner_opts = [
         # Common runner options
         cfg.StrOpt(
-            'logging', default='conf/logging.conf',
+            'logging', default='/etc/st2/logging.actionrunner.conf',
             help='location of the logging.conf file'),
 
         # Python runner options
@@ -381,6 +399,9 @@ def register_opts(ignore_errors=False):
         cfg.BoolOpt(
             'enable', default=True,
             help='Whether to enable or disable the ability to post a trigger on action.'),
+        cfg.ListOpt(
+            'emit_when', default=LIVEACTION_COMPLETED_STATES,
+            help='List of execution statuses for which a trigger will be emitted. ')
     ]
 
     do_register_opts(action_sensor_opts, group='action_sensor')
@@ -531,9 +552,62 @@ def register_opts(ignore_errors=False):
         cfg.IntOpt(
             'port', default=8125,
             help='Destination port to connect to if driver requires connection.'),
+        cfg.StrOpt(
+            'prefix', default=None,
+            help='Optional prefix which is prepended to all the metric names. Comes handy when '
+                 'you want to submit metrics from various environment to the same metric '
+                 'backend instance.'),
+        cfg.FloatOpt(
+            'sample_rate', default=1,
+            help='Randomly sample and only send metrics for X% of metric operations to the '
+                 'backend. Default value of 1 means no sampling is done and all the metrics are '
+                 'sent to the backend. E.g. 0.1 would mean 10% of operations are sampled.')
+
     ]
 
     do_register_opts(metrics_opts, group='metrics', ignore_errors=ignore_errors)
+
+    # Common timers engine options
+    timer_logging_opts = [
+        cfg.StrOpt(
+            'logging', default=None,
+            help='Location of the logging configuration file. '
+                 'NOTE: Deprecated in favor of timersengine.logging'),
+    ]
+
+    timers_engine_logging_opts = [
+        cfg.StrOpt(
+            'logging', default='/etc/st2/logging.timersengine.conf',
+            help='Location of the logging configuration file.')
+    ]
+
+    do_register_opts(timer_logging_opts, group='timer', ignore_errors=ignore_errors)
+    do_register_opts(timers_engine_logging_opts, group='timersengine', ignore_errors=ignore_errors)
+
+    # NOTE: We default old style deprecated "timer" options to None so our code
+    # works correclty and "timersengine" has precedence over "timers"
+    # NOTE: "timer" section will be removed in v3.1
+    timer_opts = [
+        cfg.StrOpt(
+            'local_timezone', default=None,
+            help='Timezone pertaining to the location where st2 is run. '
+                 'NOTE: Deprecated in favor of timersengine.local_timezone'),
+        cfg.BoolOpt(
+            'enable', default=None,
+            help='Specify to enable timer service. '
+                 'NOTE: Deprecated in favor of timersengine.enable'),
+    ]
+
+    timers_engine_opts = [
+        cfg.StrOpt(
+            'local_timezone', default='America/Los_Angeles',
+            help='Timezone pertaining to the location where st2 is run.'),
+        cfg.BoolOpt(
+            'enable', default=True,
+            help='Specify to enable timer service.')
+    ]
+    do_register_opts(timer_opts, group='timer', ignore_errors=ignore_errors)
+    do_register_opts(timers_engine_opts, group='timersengine', ignore_errors=ignore_errors)
 
 
 def parse_args(args=None):

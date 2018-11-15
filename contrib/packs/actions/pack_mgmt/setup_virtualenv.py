@@ -88,6 +88,6 @@ class SetupVirtualEnvironmentAction(Action):
                                   proxy_config=self.proxy_config, use_python3=python3,
                                   no_download=no_download)
 
-        message = ('Successfuly set up virtualenv for the following packs: %s' %
+        message = ('Successfully set up virtualenv for the following packs: %s' %
                    (', '.join(packs)))
         return message

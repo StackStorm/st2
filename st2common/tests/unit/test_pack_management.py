@@ -29,7 +29,7 @@ sys.path.insert(0, PACK_ACTIONS_DIR)
 from st2common.util.monkey_patch import use_select_poll_workaround
 use_select_poll_workaround()
 
-from pack_mgmt.download import DownloadGitRepoAction
+from st2common.util.pack_management import eval_repo_url
 
 __all__ = [
     'InstallPackTestCase'
@@ -39,16 +39,16 @@ __all__ = [
 class InstallPackTestCase(unittest2.TestCase):
 
     def test_eval_repo(self):
-        result = DownloadGitRepoAction._eval_repo_url('stackstorm/st2contrib')
+        result = eval_repo_url('stackstorm/st2contrib')
         self.assertEqual(result, 'https://github.com/stackstorm/st2contrib')
 
-        result = DownloadGitRepoAction._eval_repo_url('git@github.com:StackStorm/st2contrib.git')
+        result = eval_repo_url('git@github.com:StackStorm/st2contrib.git')
         self.assertEqual(result, 'git@github.com:StackStorm/st2contrib.git')
 
         repo_url = 'https://github.com/StackStorm/st2contrib.git'
-        result = DownloadGitRepoAction._eval_repo_url(repo_url)
+        result = eval_repo_url(repo_url)
         self.assertEqual(result, repo_url)
 
         repo_url = 'https://git-wip-us.apache.org/repos/asf/libcloud.git'
-        result = DownloadGitRepoAction._eval_repo_url(repo_url)
+        result = eval_repo_url(repo_url)
         self.assertEqual(result, repo_url)

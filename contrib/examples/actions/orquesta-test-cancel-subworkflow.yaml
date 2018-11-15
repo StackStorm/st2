@@ -1,0 +1,14 @@
+---
+name: orquesta-test-cancel-subworkflow
+description: A sample workflow used to test the cascading cancel of subworkflow.
+pack: examples
+runner_type: orquesta
+entry_point: workflows/tests/orquesta-test-cancel-subworkflow.yaml
+enabled: true
+parameters:
+    tempfile:
+        type: string
+        required: true
+    message:
+        type: string
+        required: true

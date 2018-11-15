@@ -16,8 +16,12 @@
 import copy
 
 import six
+
 import st2common.bootstrap.sensorsregistrar as sensors_registrar
-from tests import FunctionalTest
+from st2api.controllers.v1.sensors import SensorTypeController
+
+from tests.base import FunctionalTest
+from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
 
 http_client = six.moves.http_client
 
@@ -26,7 +30,14 @@ __all__ = [
 ]
 
 
-class SensorTypeControllerTestCase(FunctionalTest):
+class SensorTypeControllerTestCase(FunctionalTest,
+                                   APIControllerWithIncludeAndExcludeFilterTestCase):
+    get_all_path = '/v1/sensortypes'
+    controller_cls = SensorTypeController
+    include_attribute_field_name = 'entry_point'
+    exclude_attribute_field_name = 'artifact_uri'
+    test_exact_object_count = False
+
     @classmethod
     def setUpClass(cls):
         super(SensorTypeControllerTestCase, cls).setUpClass()

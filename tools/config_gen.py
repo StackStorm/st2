@@ -27,6 +27,7 @@ from oslo_config import cfg
 CONFIGS = ['st2actions.config',
            'st2actions.notifier.config',
            'st2actions.resultstracker.config',
+           'st2actions.workflows.config',
            'st2api.config',
            'st2stream.config',
            'st2auth.config',
@@ -34,6 +35,7 @@ CONFIGS = ['st2actions.config',
            'st2exporter.config',
            'st2reactor.rules.config',
            'st2reactor.sensor.config',
+           'st2reactor.timer.config',
            'st2reactor.garbage_collector.config']
 
 SKIP_GROUPS = ['api_pecan', 'rbac', 'results_tracker']

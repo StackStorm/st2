@@ -65,7 +65,7 @@ class PolicyTypeAPI(BaseAPI, APIUIDMixin):
             "parameters": {
                 "type": "object",
                 "patternProperties": {
-                    "^\w+$": util_schema.get_draft_schema()
+                    r"^\w+$": util_schema.get_draft_schema()
                 },
                 'additionalProperties': False
             }
@@ -125,7 +125,7 @@ class PolicyAPI(BaseAPI, APIUIDMixin):
             "parameters": {
                 "type": "object",
                 "patternProperties": {
-                    "^\w+$": {
+                    r"^\w+$": {
                         "anyOf": [
                             {"type": "array"},
                             {"type": "boolean"},

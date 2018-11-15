@@ -1,0 +1,12 @@
+---
+name: orquesta-test-with-items
+description: A workflow for testing with items and concurrency.
+runner_type: orquesta
+entry_point: workflows/tests/orquesta-test-with-items.yaml
+enabled: true
+parameters:
+  tempfiles:
+    required: true
+    type: array
+  concurrency:
+    type: integer

@@ -16,10 +16,6 @@
 import copy
 import mock
 
-import six
-import eventlet
-import unittest2
-
 try:
     import simplejson as json
 except ImportError:
@@ -43,12 +39,14 @@ from st2common.transport.publishers import PoolPublisher
 from st2common.util import action_db as action_db_util
 from st2common.util import isotime
 from st2common.util import date as date_utils
-from st2common.stream.listener import get_listener
+from st2api.controllers.v1.actionexecutions import ActionExecutionsController
 import st2common.validators.api.action as action_validator
 from tests.base import BaseActionExecutionControllerTestCase
 from st2tests.api import SUPER_SECRET_PARAMETER
 from st2tests.api import ANOTHER_SUPER_SECRET_PARAMETER
-from tests import FunctionalTest
+
+from tests.base import FunctionalTest
+from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
 
 __all__ = [
     'ActionExecutionControllerTestCase',
@@ -62,7 +60,7 @@ ACTION_1 = {
     'enabled': True,
     'entry_point': '/tmp/test/action1.sh',
     'pack': 'sixpack',
-    'runner_type': 'run-remote',
+    'runner_type': 'remote-shell-cmd',
     'parameters': {
         'a': {
             'type': 'string',
@@ -90,7 +88,7 @@ ACTION_2 = {
     'enabled': True,
     'entry_point': '/tmp/test/action2.sh',
     'pack': 'familypack',
-    'runner_type': 'run-remote',
+    'runner_type': 'remote-shell-cmd',
     'parameters': {
         'c': {
             'type': 'object',
@@ -113,7 +111,7 @@ ACTION_3 = {
     'enabled': True,
     'entry_point': '/tmp/test/action3.sh',
     'pack': 'wolfpack',
-    'runner_type': 'run-remote',
+    'runner_type': 'remote-shell-cmd',
     'parameters': {
         'e': {},
         'f': {}
@@ -229,6 +227,18 @@ LIVE_ACTION_INQUIRY = {
         }
     }
 }
+LIVE_ACTION_WITH_SECRET_PARAM = {
+    'parameters': {
+        # action params
+        'a': 'param a',
+        'd': 'secretpassword1',
+
+        # runner params
+        'password': 'secretpassword2',
+        'hosts': 'localhost'
+    },
+    'action': 'sixpack.st2.dummy.action1'
+}
 
 # Do not add parameters to this. There are tests that will test first without params,
 # then make a copy with params.
@@ -245,7 +255,13 @@ TEST_FIXTURES = {
 
 @mock.patch.object(content_utils, 'get_pack_base_path', mock.MagicMock(return_value='/tmp/test'))
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
-class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, FunctionalTest):
+class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, FunctionalTest,
+                                        APIControllerWithIncludeAndExcludeFilterTestCase):
+    get_all_path = '/v1/executions'
+    controller_cls = ActionExecutionsController
+    include_attribute_field_name = 'status'
+    exclude_attribute_field_name = 'status'
+    test_exact_object_count = False
 
     @classmethod
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
@@ -348,10 +364,11 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
                 self.assertTrue('elapsed_seconds' in body[i])
 
     def test_get_all_invalid_offset_too_large(self):
-        resp = self.app.get('/v1/executions?offset=2147483648&limit=1', expect_errors=True)
+        offset = '2141564789454123457895412237483648'
+        resp = self.app.get('/v1/executions?offset=%s&limit=1' % (offset), expect_errors=True)
         self.assertEqual(resp.status_int, 400)
         self.assertEqual(resp.json['faultstring'],
-                         u'Offset "2147483648" specified is more than 32-bit int')
+                         u'Offset "%s" specified is more than 32-bit int' % (offset))
 
     def test_get_query(self):
         actionexecution_1_id = self._get_actionexecution_id(self._do_post(LIVE_ACTION_1))
@@ -1073,7 +1090,8 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
             updates = {'status': 'resuming'}
             put_resp = self._do_put(execution_id, updates, expect_errors=True)
             self.assertEqual(put_resp.status_int, 400)
-            self.assertIn('is not in a paused state', put_resp.json['faultstring'])
+            expected_error_message = 'it is in "pausing" state and not in "paused" state'
+            self.assertIn(expected_error_message, put_resp.json['faultstring'])
 
             get_resp = self._do_get_one(execution_id)
             self.assertEqual(get_resp.status_int, 200)
@@ -1136,16 +1154,101 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         resp = json.loads(get_resp.body)
         self.assertEqual(resp['result']['response']['secondfactor'], "supersecretvalue")
 
+    def test_get_include_attributes_and_secret_parameters(self):
+        # Verify that secret parameters are correctly masked when using ?include_attributes filter
+        self._do_post(LIVE_ACTION_WITH_SECRET_PARAM)
+
+        urls = [
+            '/v1/actionexecutions?include_attributes=parameters',
+            '/v1/actionexecutions?include_attributes=parameters,action',
+            '/v1/actionexecutions?include_attributes=parameters,runner',
+            '/v1/actionexecutions?include_attributes=parameters,action,runner'
+        ]
+
+        for url in urls:
+            resp = self.app.get(url + '&limit=1')
+
+            self.assertTrue('parameters' in resp.json[0])
+            self.assertEqual(resp.json[0]['parameters']['a'], 'param a')
+            self.assertEqual(resp.json[0]['parameters']['d'], MASKED_ATTRIBUTE_VALUE)
+            self.assertEqual(resp.json[0]['parameters']['password'], MASKED_ATTRIBUTE_VALUE)
+            self.assertEqual(resp.json[0]['parameters']['hosts'], 'localhost')
+
+        # With ?show_secrets=True
+        urls = [
+            ('/v1/actionexecutions?&include_attributes=parameters'),
+            ('/v1/actionexecutions?include_attributes=parameters,action'),
+            ('/v1/actionexecutions?include_attributes=parameters,runner'),
+            ('/v1/actionexecutions?include_attributes=parameters,action,runner')
+        ]
+
+        for url in urls:
+            resp = self.app.get(url + '&limit=1&show_secrets=True')
+
+            self.assertTrue('parameters' in resp.json[0])
+            self.assertEqual(resp.json[0]['parameters']['a'], 'param a')
+            self.assertEqual(resp.json[0]['parameters']['d'], 'secretpassword1')
+            self.assertEqual(resp.json[0]['parameters']['password'], 'secretpassword2')
+            self.assertEqual(resp.json[0]['parameters']['hosts'], 'localhost')
+
+        # NOTE: We don't allow exclusion of attributes such as "action" and "runner" because
+        # that would break secrets masking
+        urls = [
+            '/v1/actionexecutions?limit=1&exclude_attributes=action',
+            '/v1/actionexecutions?limit=1&exclude_attributes=runner',
+            '/v1/actionexecutions?limit=1&exclude_attributes=action,runner',
+        ]
+
+        for url in urls:
+            resp = self.app.get(url + '&limit=1', expect_errors=True)
+
+            self.assertEqual(resp.status_int, 400)
+            self.assertTrue('Invalid or unsupported exclude attribute specified:' in
+                            resp.json['faultstring'])
+
+    def test_get_single_attribute_success(self):
+        exec_id = self.app.get('/v1/actionexecutions?limit=1').json[0]['id']
+
+        resp = self.app.get('/v1/executions/%s/attribute/status' % (exec_id))
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, 'requested')
+
+        resp = self.app.get('/v1/executions/%s/attribute/result' % (exec_id))
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, None)
+
+        resp = self.app.get('/v1/executions/%s/attribute/trigger_instance' % (exec_id))
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, None)
+
+        data = {}
+        data['status'] = action_constants.LIVEACTION_STATUS_SUCCEEDED
+        data['result'] = {'foo': 'bar'}
+
+        resp = self.app.put_json('/v1/executions/%s' % (exec_id), data)
+        self.assertEqual(resp.status_int, 200)
+
+        resp = self.app.get('/v1/executions/%s/attribute/result' % (exec_id))
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, data['result'])
+
+    def test_get_single_attribute_failure_invalid_attribute(self):
+        exec_id = self.app.get('/v1/actionexecutions?limit=1').json[0]['id']
+
+        resp = self.app.get('/v1/executions/%s/attribute/start_timestamp' % (exec_id),
+                            expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertTrue('Invalid attribute "start_timestamp" specified.' in
+                        resp.json['faultstring'])
+
+    def _insert_mock_models(self):
+        execution_1_id = self._get_actionexecution_id(self._do_post(LIVE_ACTION_1))
+        execution_2_id = self._get_actionexecution_id(self._do_post(LIVE_ACTION_2))
+        return [execution_1_id, execution_2_id]
+
 
 class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestCase,
                                               FunctionalTest):
-    def test_get_one_id_last_no_executions_in_the_database(self):
-        ActionExecution.query().delete()
-
-        resp = self.app.get('/v1/executions/last', expect_errors=True)
-        self.assertEqual(resp.status_int, http_client.BAD_REQUEST)
-        self.assertEqual(resp.json['faultstring'], 'No executions found in the database')
-
     def test_get_output_id_last_no_executions_in_the_database(self):
         ActionExecution.query().delete()
 
@@ -1153,14 +1256,8 @@ class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestC
         self.assertEqual(resp.status_int, http_client.BAD_REQUEST)
         self.assertEqual(resp.json['faultstring'], 'No executions found in the database')
 
-    @unittest2.skipIf(six.PY3, 'Skipping under Python 3 (closed iterator read issue)')
     def test_get_output_running_execution(self):
-        # Retrieve lister instance to avoid race with listener connection not being established
-        # early enough for tests to pass.
-        # NOTE: This only affects tests where listeners are not pre-initialized.
-        listener = get_listener(name='execution_output')
-        eventlet.sleep(1.0)
-
+        # Only the output produced so far should be returned
         # Test the execution output API endpoint for execution which is running (blocking)
         status = action_constants.LIVEACTION_STATUS_RUNNING
         timestamp = date_utils.get_datetime_utc_now()
@@ -1168,7 +1265,7 @@ class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestC
                                                 end_timestamp=timestamp,
                                                 status=status,
                                                 action={'ref': 'core.local'},
-                                                runner={'name': 'run-local'},
+                                                runner={'name': 'local-shell-cmd'},
                                                 liveaction={'ref': 'foo'})
         action_execution_db = ActionExecution.add_or_update(action_execution_db)
 
@@ -1179,45 +1276,45 @@ class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestC
                              output_type='stdout',
                              data='stdout before start\n')
 
+        def insert_mock_data(data):
+            output_params['data'] = data
+            output_db = ActionExecutionOutputDB(**output_params)
+            ActionExecutionOutput.add_or_update(output_db)
+
         # Insert mock output object
         output_db = ActionExecutionOutputDB(**output_params)
         ActionExecutionOutput.add_or_update(output_db, publish=False)
 
-        def insert_mock_data():
-            output_params['data'] = 'stdout mid 1\n'
-            output_db = ActionExecutionOutputDB(**output_params)
-            ActionExecutionOutput.add_or_update(output_db)
-
-        # Since the API endpoint is blocking (connection is kept open until action finishes), we
-        # spawn an eventlet which eventually finishes the action.
-        def publish_action_finished(action_execution_db):
-            # Insert mock output object
-            output_params['data'] = 'stdout pre finish 1\n'
-            output_db = ActionExecutionOutputDB(**output_params)
-            ActionExecutionOutput.add_or_update(output_db)
-
-            eventlet.sleep(1.0)
-
-            # Transition execution to completed state so the connection closes
-            action_execution_db.status = action_constants.LIVEACTION_STATUS_SUCCEEDED
-            action_execution_db = ActionExecution.add_or_update(action_execution_db)
-
-        eventlet.spawn_after(0.2, insert_mock_data)
-        eventlet.spawn_after(1.5, publish_action_finished, action_execution_db)
-
-        # Retrieve data while execution is running - endpoint return new data once it's available
-        # and block until the execution finishes
+        # Retrieve data while execution is running - data produced so far should be retrieved
         resp = self.app.get('/v1/executions/%s/output' % (str(action_execution_db.id)),
                             expect_errors=False)
         self.assertEqual(resp.status_int, 200)
         lines = resp.text.strip().split('\n')
         lines = [line for line in lines if line.strip()]
-        self.assertEqual(len(lines), 3)
+        self.assertEqual(len(lines), 1)
+        self.assertEqual(lines[0], 'stdout before start')
+
+        # Insert more data
+        insert_mock_data('stdout mid 1\n')
+
+        # Retrieve data while execution is running - data produced so far should be retrieved
+        resp = self.app.get('/v1/executions/%s/output' % (str(action_execution_db.id)),
+                            expect_errors=False)
+        self.assertEqual(resp.status_int, 200)
+        lines = resp.text.strip().split('\n')
+        lines = [line for line in lines if line.strip()]
+        self.assertEqual(len(lines), 2)
         self.assertEqual(lines[0], 'stdout before start')
         self.assertEqual(lines[1], 'stdout mid 1')
-        self.assertEqual(lines[2], 'stdout pre finish 1')
 
-        # Once the execution is in completed state, existing output should be returned immediately
+        # Insert more data
+        insert_mock_data('stdout pre finish 1\n')
+
+        # Transition execution to completed state
+        action_execution_db.status = action_constants.LIVEACTION_STATUS_SUCCEEDED
+        action_execution_db = ActionExecution.add_or_update(action_execution_db)
+
+        # Execution has finished
         resp = self.app.get('/v1/executions/%s/output' % (str(action_execution_db.id)),
                             expect_errors=False)
 
@@ -1229,9 +1326,6 @@ class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestC
         self.assertEqual(lines[1], 'stdout mid 1')
         self.assertEqual(lines[2], 'stdout pre finish 1')
 
-        listener.shutdown()
-
-    @unittest2.skipIf(six.PY3, 'Skipping under Python 3 (closed iterator read issue)')
     def test_get_output_finished_execution(self):
         # Test the execution output API endpoint for execution which has finished
         for status in action_constants.LIVEACTION_COMPLETED_STATES:
@@ -1242,7 +1336,7 @@ class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestC
                                                     end_timestamp=timestamp,
                                                     status=status,
                                                     action={'ref': 'core.local'},
-                                                    runner={'name': 'run-local'},
+                                                    runner={'name': 'local-shell-cmd'},
                                                     liveaction={'ref': 'foo'})
             action_execution_db = ActionExecution.add_or_update(action_execution_db)
 

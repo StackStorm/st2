@@ -17,7 +17,6 @@ import copy
 import re
 import sys
 import traceback
-import itertools
 
 import six
 import jsonschema
@@ -39,7 +38,6 @@ from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.action import LiveActionCreateAPI
 from st2common.models.api.base import cast_argument_value
 from st2common.models.api.execution import ActionExecutionAPI
-from st2common.models.api.execution import ActionExecutionOutputAPI
 from st2common.models.db.auth import UserDB
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
@@ -58,7 +56,6 @@ from st2common.rbac.types import PermissionType
 from st2common.rbac import utils as rbac_utils
 from st2common.rbac.utils import assert_user_has_resource_db_permission
 from st2common.rbac.utils import assert_user_is_admin_if_user_query_param_is_provided
-from st2common.stream.listener import get_listener
 
 __all__ = [
     'ActionExecutionsController'
@@ -85,10 +82,21 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
     model = ActionExecutionAPI
     access = ActionExecution
 
+    # Those two attributes are mandatory so we can correctly determine and mask secret execution
+    # parameters
+    mandatory_include_fields_retrieve = [
+        'action.parameters',
+        'runner.runner_parameters',
+        'parameters'
+    ]
+
     # A list of attributes which can be specified using ?exclude_attributes filter
+    # NOTE: Allowing user to exclude attribute such as action and runner would break secrets
+    # masking
     valid_exclude_attributes = [
         'result',
-        'trigger_instance'
+        'trigger_instance',
+        'status'
     ]
 
     def _handle_schedule_execution(self, liveaction_api, requester_user, context_string=None,
@@ -97,7 +105,6 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         :param liveaction: LiveActionAPI object.
         :type liveaction: :class:`LiveActionAPI`
         """
-
         if not requester_user:
             requester_user = UserDB(cfg.CONF.system_user.user)
 
@@ -106,7 +113,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         action_db = action_utils.get_action_by_ref(action_ref)
 
         if not action_db:
-            message = 'Action "%s" cannot be found.' % action_ref
+            message = 'Action "%s" cannot be found.' % (action_ref)
             LOG.warning(message)
             abort(http_client.BAD_REQUEST, message)
 
@@ -125,7 +132,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
                                             user=user,
                                             context_string=context_string,
                                             show_secrets=show_secrets,
-                                            pack=action_db.pack)
+                                            action_db=action_db)
         except ValueError as e:
             LOG.exception('Unable to execute action.')
             abort(http_client.BAD_REQUEST, str(e))
@@ -140,19 +147,15 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
             LOG.exception('Unable to execute action. Unexpected error encountered.')
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
 
-    def _schedule_execution(self,
-                            liveaction,
-                            requester_user,
-                            user=None,
-                            context_string=None,
-                            show_secrets=False,
-                            pack=None):
+    def _schedule_execution(self, liveaction, requester_user, action_db, user=None,
+                            context_string=None, show_secrets=False):
         # Initialize execution context if it does not exist.
         if not hasattr(liveaction, 'context'):
             liveaction.context = dict()
 
         liveaction.context['user'] = user
-        liveaction.context['pack'] = pack
+        liveaction.context['pack'] = action_db.pack
+
         LOG.debug('User is: %s' % liveaction.context['user'])
 
         # Retrieve other st2 context from request header.
@@ -174,7 +177,6 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
 
         # Schedule the action execution.
         liveaction_db = LiveActionAPI.to_model(liveaction)
-        action_db = action_utils.get_action_by_ref(liveaction_db.action)
         runnertype_db = action_utils.get_runnertype_by_name(action_db.runner_type['name'])
 
         try:
@@ -182,9 +184,11 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
                 runnertype_db.runner_parameters, action_db.parameters, liveaction_db.parameters,
                 liveaction_db.context)
         except param_exc.ParamException:
-
             # We still need to create a request, so liveaction_db is assigned an ID
-            liveaction_db, actionexecution_db = action_service.create_request(liveaction_db)
+            liveaction_db, actionexecution_db = action_service.create_request(
+                liveaction=liveaction_db,
+                action_db=action_db,
+                runnertype_db=runnertype_db)
 
             # By this point the execution is already in the DB therefore need to mark it failed.
             _, e, tb = sys.exc_info()
@@ -198,8 +202,9 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
 
         # The request should be created after the above call to render_live_params
         # so any templates in live parameters have a chance to render.
-        liveaction_db, actionexecution_db = action_service.create_request(liveaction_db)
-        liveaction_db = LiveAction.add_or_update(liveaction_db, publish=False)
+        liveaction_db, actionexecution_db = action_service.create_request(liveaction=liveaction_db,
+            action_db=action_db,
+            runnertype_db=runnertype_db)
 
         _, actionexecution_db = action_service.publish_request(liveaction_db, actionexecution_db)
         mask_secrets = self._get_mask_secrets(requester_user, show_secrets=show_secrets)
@@ -280,7 +285,15 @@ class ActionExecutionAttributeController(BaseActionExecutionNestedController):
         :rtype: ``dict``
         """
         fields = [attribute, 'action__pack', 'action__uid']
-        fields = self._validate_exclude_fields(fields)
+
+        try:
+            fields = self._validate_exclude_fields(fields)
+        except ValueError:
+            valid_attributes = ', '.join(ActionExecutionsControllerMixin.valid_exclude_attributes)
+            msg = ('Invalid attribute "%s" specified. Valid attributes are: %s' %
+                   (attribute, valid_attributes))
+            raise ValueError(msg)
+
         action_exec_db = self.access.impl.model.objects.filter(id=id).only(*fields).get()
 
         permission_type = PermissionType.EXECUTION_VIEW
@@ -289,7 +302,7 @@ class ActionExecutionAttributeController(BaseActionExecutionNestedController):
                                                           permission_type=permission_type)
 
         result = getattr(action_exec_db, attribute, None)
-        return result
+        return Response(json=result, status=http_client.OK)
 
 
 class ActionExecutionOutputController(ActionExecutionsControllerMixin, ResourceController):
@@ -298,12 +311,8 @@ class ActionExecutionOutputController(ActionExecutionsControllerMixin, ResourceC
     }
     exclude_fields = []
 
-    CLOSE_STREAM_LIVEACTION_STATES = action_constants.LIVEACTION_COMPLETED_STATES + [
-        action_constants.LIVEACTION_STATUS_PAUSING,
-        action_constants.LIVEACTION_STATUS_RESUMING
-    ]
-
-    def get_one(self, id, output_type=None, requester_user=None):
+    def get_one(self, id, output_type='all', output_format='raw', existing_only=False,
+                requester_user=None):
         # Special case for id == "last"
         if id == 'last':
             execution_db = ActionExecution.query().order_by('-id').limit(1).first()
@@ -326,50 +335,11 @@ class ActionExecutionOutputController(ActionExecutionsControllerMixin, ResourceC
             # pylint: disable=no-member
             output_dbs = ActionExecutionOutput.query(execution_id=execution_id, **query_filters)
 
-            # Note: We return all at once instead of yield line by line to avoid multiple socket
-            # writes and to achieve better performance
             output = ''.join([output_db.data for output_db in output_dbs])
             yield six.binary_type(output.encode('utf-8'))
 
-        def new_output_iter():
-            def noop_gen():
-                yield six.binary_type('')
-
-            # Bail out if execution has already completed / been paused
-            if execution_db.status in self.CLOSE_STREAM_LIVEACTION_STATES:
-                return noop_gen()
-
-            # Wait for and return any new line which may come in
-            execution_ids = [execution_id]
-            listener = get_listener(name='execution_output')  # pylint: disable=no-member
-            gen = listener.generator(execution_ids=execution_ids)
-
-            def format(gen):
-                for pack in gen:
-                    if not pack:
-                        continue
-                    else:
-                        (_, model_api) = pack
-
-                        # Note: gunicorn wsgi handler expect bytes, not unicode
-                        # pylint: disable=no-member
-                        if isinstance(model_api, ActionExecutionOutputAPI):
-                            if output_type and model_api.output_type != output_type:
-                                continue
-
-                            yield six.binary_type(model_api.data.encode('utf-8'))
-                        elif isinstance(model_api, ActionExecutionAPI):
-                            if model_api.status in self.CLOSE_STREAM_LIVEACTION_STATES:
-                                yield six.binary_type('')
-                                break
-                        else:
-                            LOG.debug('Unrecognized message type: %s' % (model_api))
-
-            gen = format(gen)
-            return gen
-
         def make_response():
-            app_iter = itertools.chain(existing_output_iter(), new_output_iter())
+            app_iter = existing_output_iter()
             res = Response(content_type='text/plain', app_iter=app_iter)
             return res
 
@@ -517,8 +487,6 @@ class ActionExecutionsController(BaseResourceIsolationControllerMixin,
         :param exclude_attributes: List of attributes to exclude from the object.
         :type exclude_attributes: ``list``
         """
-        exclude_fields = self._validate_exclude_fields(exclude_fields=exclude_attributes)
-
         # Use a custom sort order when filtering on a timestamp so we return a correct result as
         # expected by the user
         query_options = None
@@ -530,7 +498,7 @@ class ActionExecutionsController(BaseResourceIsolationControllerMixin,
         from_model_kwargs = {
             'mask_secrets': self._get_mask_secrets(requester_user, show_secrets=show_secrets)
         }
-        return self._get_action_executions(exclude_fields=exclude_fields,
+        return self._get_action_executions(exclude_fields=exclude_attributes,
                                            include_fields=include_attributes,
                                            from_model_kwargs=from_model_kwargs,
                                            sort=sort,
@@ -728,8 +696,10 @@ class ActionExecutionsController(BaseResourceIsolationControllerMixin,
 
         limit = int(limit)
 
-        LOG.debug('Retrieving all action executions with filters=%s', raw_filters)
+        LOG.debug('Retrieving all action executions with filters=%s,exclude_fields=%s,'
+                  'include_fields=%s', raw_filters, exclude_fields, include_fields)
         return super(ActionExecutionsController, self)._get_all(exclude_fields=exclude_fields,
+                                                                include_fields=include_fields,
                                                                 from_model_kwargs=from_model_kwargs,
                                                                 sort=sort,
                                                                 offset=offset,

@@ -40,14 +40,39 @@ from st2common.util.jsonify import json_encode
 from st2common.util.jsonify import get_json_type_for_python_value
 from st2common.util.http import parse_content_type_header
 
+__all__ = [
+    'Router',
+
+    'Response',
+
+    'NotFoundException',
+
+    'abort',
+    'abort_unauthorized',
+    'exc'
+]
 
 LOG = logging.getLogger(__name__)
 
 
 def op_resolver(op_id):
+    """
+    Return controller class instance and controller method callbacle for the provided operation id.
+
+    :rtype: ``tuple``
+    """
     module_name, func_name = op_id.split(':', 1)
+    controller_name = func_name.split('.')[0]
+
     __import__(module_name)
     module = sys.modules[module_name]
+
+    controller_instance = getattr(module, controller_name)
+    method_callable = functools.reduce(getattr, func_name.split('.'), module)
+
+    return controller_instance, method_callable
+    print('xxx')
+    print(controller_instance)
     return functools.reduce(getattr, func_name.split('.'), module)
 
 
@@ -80,7 +105,7 @@ def extend_with_default(validator_class):
 def extend_with_additional_check(validator_class):
     def set_additional_check(validator, properties, instance, schema):
         ref = schema.get("x-additional-check")
-        func = op_resolver(ref)
+        _, func = op_resolver(ref)
         for error in func(validator, properties, instance, schema):
             yield error
 
@@ -146,9 +171,10 @@ class Response(webob.Response):
 
 
 class Router(object):
-    def __init__(self, arguments=None, debug=False, auth=True):
+    def __init__(self, arguments=None, debug=False, auth=True, is_gunicorn=True):
         self.debug = debug
         self.auth = auth
+        self.is_gunicorn = is_gunicorn
 
         self.arguments = arguments or {}
 
@@ -258,7 +284,7 @@ class Router(object):
                             token = None
 
                         if token:
-                            auth_func = op_resolver(definition['x-operationId'])
+                            _, auth_func = op_resolver(definition['x-operationId'])
                             auth_resp = auth_func(token)
 
                             # Include information on how user authenticated inside the context
@@ -347,14 +373,27 @@ class Router(object):
             elif source == 'request':
                 kw[argument_name] = getattr(req, name)
             elif source == 'body':
-                # Note: We also want to perform validation if no body is explicitly provided - in a
-                # lot of POST, PUT scenarios, body is mandatory
-                if not req.body:
-                    req.body = b'{}'
-
                 content_type = req.headers.get('Content-Type', 'application/json')
                 content_type = parse_content_type_header(content_type=content_type)[0]
                 schema = param['schema']
+
+                # NOTE: HACK: Workaround for eventlet wsgi server which sets Content-Type to
+                # text/plain if Content-Type is not provided in the request.
+                # All ouf our API endpoints except /v1/workflows/inspection and
+                # /exp/validation/mistral expect application/json so we explicitly set it to that
+                # if not provided (set to text/plain by the base http server) and if it's not
+                # /v1/workflows/inspection and /exp/validation/mistral API endpoints.
+                if not self.is_gunicorn and content_type == 'text/plain':
+                    operation_id = endpoint['operationId']
+
+                    if ('workflow_inspection_controller' not in operation_id and
+                            'mistral_validation_controller' not in operation_id):
+                        content_type = 'application/json'
+
+                # Note: We also want to perform validation if no body is explicitly provided - in a
+                # lot of POST, PUT scenarios, body is mandatory
+                if not req.body and content_type == 'application/json':
+                    req.body = b'{}'
 
                 try:
                     if content_type == 'application/json':
@@ -395,7 +434,7 @@ class Router(object):
 
                     if 'x-api-model' in schema:
                         input_type = schema.get('type', [])
-                        Model = op_resolver(schema['x-api-model'])
+                        _, Model = op_resolver(schema['x-api-model'])
 
                         if input_type and not isinstance(input_type, (list, tuple)):
                             input_type = [input_type]
@@ -467,7 +506,7 @@ class Router(object):
 
         # Call the controller
         try:
-            func = op_resolver(endpoint['operationId'])
+            controller_instance, func = op_resolver(endpoint['operationId'])
         except Exception as e:
             LOG.exception('Failed to load controller for operation "%s": %s' %
                           (endpoint['operationId'], str(e)))
@@ -487,6 +526,29 @@ class Router(object):
         if not hasattr(resp, '__call__'):
             resp = Response(json=resp)
 
+        operation_id = endpoint['operationId']
+
+        # Process the response removing attributes based on the exclude_attribute and
+        # include_attributes query param filter values (if specified)
+        include_attributes = kw.get('include_attributes', None)
+        exclude_attributes = kw.get('exclude_attributes', None)
+        has_include_or_exclude_attributes = bool(include_attributes) or bool(exclude_attributes)
+
+        # NOTE: We do NOT want to process stream controller response
+        is_streamming_controller = endpoint.get('x-is-streaming-endpoint',
+                                                bool('st2stream' in operation_id))
+
+        if not is_streamming_controller and resp.body and has_include_or_exclude_attributes:
+            # NOTE: We need to check for response.body attribute since resp.json throws if JSON
+            # response is not available
+            mandatory_include_fields = getattr(controller_instance,
+                                               'mandatory_include_fields_response', [])
+            data = self._process_response(data=resp.json,
+                                          mandatory_include_fields=mandatory_include_fields,
+                                          include_attributes=include_attributes,
+                                          exclude_attributes=exclude_attributes)
+            resp.json = data
+
         responses = endpoint.get('responses', {})
         response_spec = responses.get(str(resp.status_code), None)
         default_response_spec = responses.get('default', None)
@@ -500,13 +562,20 @@ class Router(object):
 
         response_spec = response_spec or default_response_spec
 
-        if response_spec and 'schema' in response_spec:
+        if response_spec and 'schema' in response_spec and not has_include_or_exclude_attributes:
+            # NOTE: We don't perform response validation when include or exclude attributes are
+            # provided because this means partial response which likely won't pass the validation
             LOG.debug('Using response spec "%s" for endpoint %s and status code %s' %
                      (response_spec_name, endpoint['operationId'], resp.status_code))
 
             try:
                 validator = CustomValidator(response_spec['schema'], resolver=self.spec_resolver)
-                validator.validate(resp.json)
+
+                response_type = response_spec['schema'].get('type', 'json')
+                if response_type == 'string':
+                    validator.validate(resp.text)
+                else:
+                    validator.validate(resp.json)
             except (jsonschema.ValidationError, ValueError):
                 LOG.exception('Response validation failed.')
                 resp.headers.add('Warning', '199 OpenAPI "Response validation failed"')
@@ -539,3 +608,69 @@ class Router(object):
             raise e
 
         return instance
+
+    def _process_response(self, data, mandatory_include_fields=None, include_attributes=None,
+                          exclude_attributes=None):
+        """
+        Process controller response data such as removing attributes based on the values of
+        exclude_attributes and include_attributes query param filters and similar.
+
+        :param data: Response data.
+        :type: data: ``list`` or ``dict``
+        """
+        mandatory_include_fields = mandatory_include_fields or []
+        include_attributes = include_attributes or []
+        exclude_attributes = exclude_attributes or []
+
+        # NOTE: include_attributes and exclude_attributes are mutually exclusive
+        if include_attributes and exclude_attributes:
+            msg = ('exclude_attributes and include_attributes arguments are mutually exclusive. '
+                   'You need to provide either one or another, but not both.')
+            raise ValueError(msg)
+
+        #  Common case - filters are not provided
+        if not include_attributes and not exclude_attributes:
+            return data
+
+        # Skip processing of error responses
+        if isinstance(data, dict) and data.get('faultstring', None):
+            return data
+
+        # We only care about the first part of the field name since deep filtering happens inside
+        # MongoDB. Deep filtering here would also be quite expensive and waste of CPU cycles.
+        cleaned_include_attributes = [attribute.split('.')[0] for attribute in include_attributes]
+
+        # Add in mandatory fields which always need to be present in the response (primary keys)
+        cleaned_include_attributes += mandatory_include_fields
+        cleaned_exclude_attributes = [attribute.split('.')[0] for attribute in exclude_attributes]
+
+        # NOTE: Since those parameters are mutually exclusive we could perform more efficient
+        # filtering when just exclude_attributes is provided. Instead of creating a new dict, we
+        # could just manipulate (delete) from the existing one.
+        def process_item(item):
+            result = {}
+            for name, value in six.iteritems(item):
+                if include_attributes and name not in cleaned_include_attributes:
+                    continue
+
+                if exclude_attributes and name in cleaned_exclude_attributes:
+                    continue
+
+                result[name] = value
+
+            return result
+
+        result = None
+        if isinstance(data, (list, tuple)):
+            # get_all response
+            result = []
+            for item in data:
+                item = process_item(item)
+                result.append(item)
+        elif isinstance(data, dict):
+            # get_one response
+            result = process_item(item)
+        else:
+            raise ValueError('Unsupported type: %s' % (type(data)))
+
+        return result

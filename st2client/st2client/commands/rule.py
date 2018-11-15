@@ -89,6 +89,11 @@ class RuleListCommand(resource.ResourceTableCommand):
             # switch attr to display the trigger and action
             args.attr = self.display_attributes_iftt
 
+        include_attributes = self._get_include_attributes(args=args)
+        if include_attributes:
+            include_attributes = ','.join(include_attributes)
+            kwargs['params'] = {'include_attributes': include_attributes}
+
         return self.manager.query_with_count(limit=args.last, **kwargs)
 
     def run_and_print(self, args, **kwargs):

@@ -4,9 +4,11 @@ prettytable
 pytz
 python-dateutil
 pyyaml
+jsonschema
 jsonpath-rw
 requests
 six
 sseclient
 python-editor
 prompt-toolkit
+cryptography

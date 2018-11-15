@@ -314,7 +314,7 @@ class WindowsScriptRunner(BaseWindowsRunner, ShellRunnerMixin):
 
         for line in lines:
             line = line.strip()
-            split = re.split('\s{3,}', line)
+            split = re.split(r'\s{3,}', line)
 
             if len(split) not in [1, 2]:
                 # Invalid line, skip it
@@ -363,4 +363,7 @@ def get_runner():
 
 
 def get_metadata():
-    return get_runner_metadata('windows_script_runner')
+    metadata = get_runner_metadata('windows_runner')
+    metadata = [runner for runner in metadata if
+                runner['runner_module'] == __name__.split('.')[-1]][0]
+    return metadata

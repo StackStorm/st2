@@ -1,0 +1,31 @@
+- aliases:
+  - orchestra
+  description: A runner for executing orquesta workflow.
+  enabled: true
+  name: orquesta
+  runner_module: orquesta_runner
+  runner_parameters:
+    notify:
+      type: "array"
+      description: List of tasks to trigger notifications for.
+      uniqueItems: true
+      items:
+        type: "string"
+        minLength: 1
+        pattern: "^\\w+$"
+      default: []
+  output_key: output
+  output_schema:
+    errors:
+      anyOf:
+        - type: "object"
+        - type: "array"
+    output:
+      anyOf:
+        - type: "object"
+        - type: "string"
+        - type: "integer"
+        - type: "number"
+        - type: "boolean"
+        - type: "array"
+        - type: "null"

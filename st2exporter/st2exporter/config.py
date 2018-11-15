@@ -59,7 +59,7 @@ def _register_app_opts():
 
     logging_opts = [
         cfg.StrOpt(
-            'logging', default='conf/logging.exporter.conf',
+            'logging', default='/etc/st2/logging.exporter.conf',
             help='location of the logging.exporter.conf file')
     ]
 

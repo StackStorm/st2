@@ -81,4 +81,7 @@ def get_runner():
 
 
 def get_metadata():
-    return get_runner_metadata('remote_command_runner')
+    metadata = get_runner_metadata('remote_runner')
+    metadata = [runner for runner in metadata if
+                runner['runner_module'] == __name__.split('.')[-1]][0]
+    return metadata

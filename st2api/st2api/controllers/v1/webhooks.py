@@ -27,7 +27,7 @@ import st2common.services.triggers as trigger_service
 from st2common.rbac.types import PermissionType
 from st2common.rbac import utils as rbac_utils
 from st2common.services.triggerwatcher import TriggerWatcher
-from st2common.transport.reactor import TriggerDispatcher
+from st2common.services.trigger_dispatcher import TriggerDispatcherService
 from st2common.router import abort
 from st2common.router import Response
 from st2common.util.jsonify import get_json_type_for_python_value
@@ -41,7 +41,7 @@ TRACE_TAG_HEADER = 'St2-Trace-Tag'
 
 class HooksHolder(object):
     """
-    Maintains a hook to Trigger mapping.
+    Maintains a hook to TriggerDB mapping.
     """
     def __init__(self):
         self._triggers_by_hook = {}
@@ -85,7 +85,7 @@ class WebhooksController(object):
         self._base_url = '/webhooks/'
         self._trigger_types = list(WEBHOOK_TRIGGER_TYPES.keys())
 
-        self._trigger_dispatcher = TriggerDispatcher(LOG)
+        self._trigger_dispatcher_service = TriggerDispatcherService(LOG)
         queue_suffix = self.__class__.__name__
         self._trigger_watcher = TriggerWatcher(create_handler=self._handle_create_trigger,
                                                update_handler=self._handle_update_trigger,
@@ -124,6 +124,7 @@ class WebhooksController(object):
                                                           permission_type=permission_type)
 
         headers = self._get_headers_as_dict(headers)
+
         # If webhook contains a trace-tag use that else create create a unique trace-tag.
         trace_context = self._create_trace_context(trace_tag=headers.pop(TRACE_TAG_HEADER, None),
                                                    hook=hook)
@@ -142,7 +143,10 @@ class WebhooksController(object):
                 msg = 'Trigger not specified.'
                 return abort(http_client.BAD_REQUEST, msg)
 
-            self._trigger_dispatcher.dispatch(trigger, payload=payload, trace_context=trace_context)
+            self._trigger_dispatcher_service.dispatch_with_context(trigger=trigger,
+                   payload=payload,
+                   trace_context=trace_context,
+                   throw_on_validation_error=True)
         else:
             if not self._is_valid_hook(hook):
                 self._log_request('Invalid hook.', headers, body)
@@ -154,10 +158,15 @@ class WebhooksController(object):
 
             payload['headers'] = headers
             payload['body'] = body
+
             # Dispatch trigger instance for each of the trigger found
-            for trigger in triggers:
-                self._trigger_dispatcher.dispatch(trigger, payload=payload,
-                    trace_context=trace_context)
+            for trigger_dict in triggers:
+                # TODO: Instead of dispatching the whole dict we should just
+                # dispatch TriggerDB.ref or similar
+                self._trigger_dispatcher_service.dispatch_with_context(trigger=trigger_dict,
+                   payload=payload,
+                   trace_context=trace_context,
+                   throw_on_validation_error=True)
 
         return Response(json=body, status=http_client.ACCEPTED)
 
@@ -176,6 +185,7 @@ class WebhooksController(object):
         return TraceContext(trace_tag=trace_tag)
 
     def add_trigger(self, trigger):
+        # NOTE: trigger is a dictionary
         # Note: Permission checking for creating and deleting a webhook is done during rule
         # creation
         url = self._get_normalized_url(trigger)

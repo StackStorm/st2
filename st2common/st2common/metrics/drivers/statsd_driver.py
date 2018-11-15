@@ -12,40 +12,91 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from numbers import Number
-from oslo_config import cfg
-import statsd
 
-from st2common.metrics.base import BaseMetricsDriver, check_key
+from numbers import Number
+
+import statsd
+from oslo_config import cfg
+
+from st2common.metrics.base import BaseMetricsDriver
+from st2common.metrics.utils import check_key
+from st2common.metrics.utils import get_full_key_name
+
+__all__ = [
+    'StatsdDriver'
+]
 
 
 class StatsdDriver(BaseMetricsDriver):
-    """ StatsD Implementation of the metrics driver
+    """
+    StatsD Implementation of the metrics driver
     """
     def __init__(self):
-        statsd.Connection.set_defaults(host=cfg.CONF.metrics.host, port=cfg.CONF.metrics.port)
-        self._counters = {}
-        self._timer = statsd.Timer('')
+        statsd.Connection.set_defaults(host=cfg.CONF.metrics.host, port=cfg.CONF.metrics.port,
+                                       sample_rate=cfg.CONF.metrics.sample_rate)
 
     def time(self, key, time):
-        """ Timer metric
+        """
+        Timer metric
         """
         check_key(key)
         assert isinstance(time, Number)
-        self._timer.send(key, time)
+
+        key = get_full_key_name(key)
+        timer = statsd.Timer('')
+        timer.send(key, time)
 
     def inc_counter(self, key, amount=1):
-        """ Increment counter
+        """
+        Increment counter
         """
         check_key(key)
         assert isinstance(amount, Number)
-        self._counters[key] = self._counters.get(key, statsd.Counter(key))
-        self._counters[key] += amount
+
+        key = get_full_key_name(key)
+        counter = statsd.Counter(key)
+        counter.increment(delta=amount)
 
     def dec_counter(self, key, amount=1):
-        """ Decrement metric
+        """
+        Decrement metric
         """
         check_key(key)
         assert isinstance(amount, Number)
-        self._counters[key] = self._counters.get(key, statsd.Counter(key))
-        self._counters[key] -= amount
+
+        key = get_full_key_name(key)
+        counter = statsd.Counter(key)
+        counter.decrement(delta=amount)
+
+    def set_gauge(self, key, value):
+        """
+        Set gauge value.
+        """
+        check_key(key)
+        assert isinstance(value, Number)
+
+        key = get_full_key_name(key)
+        gauge = statsd.Gauge(key)
+        gauge.send(None, value)
+
+    def inc_gauge(self, key, amount=1):
+        """
+        Increment gauge value.
+        """
+        check_key(key)
+        assert isinstance(amount, Number)
+
+        key = get_full_key_name(key)
+        gauge = statsd.Gauge(key)
+        gauge.increment(None, amount)
+
+    def dec_gauge(self, key, amount=1):
+        """
+        Decrement gauge value.
+        """
+        check_key(key)
+        assert isinstance(amount, Number)
+
+        key = get_full_key_name(key)
+        gauge = statsd.Gauge(key)
+        gauge.decrement(None, amount)

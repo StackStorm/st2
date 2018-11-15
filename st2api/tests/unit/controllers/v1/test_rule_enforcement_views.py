@@ -15,8 +15,11 @@
 
 import six
 
+from st2api.controllers.v1.rule_enforcement_views import RuleEnforcementViewController
 from st2tests.fixturesloader import FixturesLoader
-from tests import FunctionalTest
+
+from tests.base import FunctionalTest
+from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
 
 __all__ = [
     'RuleEnforcementViewsControllerTestCase'
@@ -33,17 +36,22 @@ TEST_FIXTURES = {
 FIXTURES_PACK = 'rule_enforcements'
 
 
-class RuleEnforcementViewsControllerTestCase(FunctionalTest):
+class RuleEnforcementViewsControllerTestCase(FunctionalTest,
+                                             APIControllerWithIncludeAndExcludeFilterTestCase):
+    get_all_path = '/v1/ruleenforcements/views'
+    controller_cls = RuleEnforcementViewController
+    include_attribute_field_name = 'enforced_at'
+    exclude_attribute_field_name = 'status'
 
     fixtures_loader = FixturesLoader()
 
     @classmethod
     def setUpClass(cls):
         super(RuleEnforcementViewsControllerTestCase, cls).setUpClass()
-        models = RuleEnforcementViewsControllerTestCase.fixtures_loader.save_fixtures_to_db(
+        cls.models = RuleEnforcementViewsControllerTestCase.fixtures_loader.save_fixtures_to_db(
             fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_FIXTURES,
             use_object_ids=True)
-        cls.ENFORCEMENT_1 = models['enforcements']['enforcement1.yaml']
+        cls.ENFORCEMENT_1 = cls.models['enforcements']['enforcement1.yaml']
 
     def test_get_all(self):
         resp = self.app.get('/v1/ruleenforcements/views')
@@ -90,3 +98,11 @@ class RuleEnforcementViewsControllerTestCase(FunctionalTest):
                         {'foo': {'type': 'string'}})
         self.assertEqual(resp.json['execution']['parameters'], {'cmd': 'echo bar'})
         self.assertEqual(resp.json['execution']['status'], 'scheduled')
+
+    def _insert_mock_models(self):
+        enfrocement_ids = [enforcement['id'] for enforcement in
+                           self.models['enforcements'].values()]
+        return enfrocement_ids
+
+    def _delete_mock_models(self, object_ids):
+        pass

@@ -40,7 +40,10 @@ __all__ = [
     'FormatNamedFileHandler',
     'ConfigurableSyslogHandler',
 
-    'LoggingStream'
+    'LoggingStream',
+
+    'ignore_lib2to3_log_messages',
+    'ignore_statsd_log_messages'
 ]
 
 logging.AUDIT = logging.CRITICAL + 10
@@ -202,3 +205,36 @@ def setup(config_file, redirect_stderr=True, excludes=None, disable_existing_log
         sys.stderr.write('ERROR: %s' % (msg))
 
         raise exc_cls(six.text_type(msg))
+
+
+def ignore_lib2to3_log_messages():
+    """
+    Work around to ignore "Generating grammar tables from" log messages which are logged under
+    INFO by default by libraries such as networkx which use 2to3.
+    """
+    import lib2to3.pgen2.driver
+
+    class MockLoggingModule(object):
+        def getLogger(self, *args, **kwargs):
+            return logging.getLogger('lib2to3')
+
+    lib2to3.pgen2.driver.logging = MockLoggingModule()
+    logging.getLogger('lib2to3').setLevel(logging.ERROR)
+
+
+def ignore_statsd_log_messages():
+    """
+    By default statsd client logs all the operations under INFO and that causes a lot of noise.
+
+    This pull request silences all the statsd INFO log messages.
+    """
+    import statsd.connection
+    import statsd.client
+
+    class MockLoggingModule(object):
+        def getLogger(self, *args, **kwargs):
+            return logging.getLogger('statsd')
+
+    statsd.connection.logging = MockLoggingModule()
+    statsd.client.logging = MockLoggingModule()
+    logging.getLogger('statsd').setLevel(logging.ERROR)

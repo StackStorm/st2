@@ -1,0 +1,7 @@
+---
+name: orquesta-fail-inspection
+description: A basic sequential workflow with syntax errors.
+pack: examples
+runner_type: orquesta
+entry_point: workflows/tests/orquesta-fail-inspection.yaml
+enabled: true
