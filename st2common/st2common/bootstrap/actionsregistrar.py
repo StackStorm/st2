@@ -116,7 +116,7 @@ class ActionsRegistrar(ResourceRegistrar):
 
         return actions
 
-    def _register_action(self, pack, action):
+    def _register_action(self, pack_base_path, pack, action):
         content = self._meta_loader.load(action)
         pack_field = content.get('pack', None)
         if not pack_field:
@@ -125,6 +125,11 @@ class ActionsRegistrar(ResourceRegistrar):
         if pack_field != pack:
             raise Exception('Model is in pack "%s" but field "pack" is different: %s' %
                             (pack, pack_field))
+
+        # Add in "metadata_file" attribute which stores path to the pack metadata file relative to
+        # the pack directory
+        metadata_file = action.replace(pack_base_path, '')
+        content['metadata_file'] = metadata_file
 
         action_api = ActionAPI(**content)
 
@@ -183,10 +188,15 @@ class ActionsRegistrar(ResourceRegistrar):
     def _register_actions_from_pack(self, pack, actions):
         registered_count = 0
 
+        pack_base_path = content_utils.get_pack_base_path(pack_name=pack)
+
+        if not pack_base_path.endswith('/'):
+            pack_base_path += '/'
+
         for action in actions:
             try:
                 LOG.debug('Loading action from %s.', action)
-                self._register_action(pack, action)
+                self._register_action(pack_base_path=pack_base_path, pack=pack, action=action)
             except Exception as e:
                 if self._fail_on_failure:
                     msg = ('Failed to register action "%s" from pack "%s": %s' % (action, pack,

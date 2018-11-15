@@ -208,6 +208,11 @@ class ActionAPI(BaseAPI, APIUIDMixin):
                 "type": "string",
                 "default": ""
             },
+            "metadata_file": {
+                "description": "Path to the metadata file relative to the pack directory.",
+                "type": "string",
+                "default": ""
+            },
             "pack": {
                 "description": "The content pack this action belongs to.",
                 "type": "string",
@@ -275,6 +280,7 @@ class ActionAPI(BaseAPI, APIUIDMixin):
         description = getattr(action, 'description', None)
         enabled = bool(getattr(action, 'enabled', True))
         entry_point = str(action.entry_point)
+        metadata_file = getattr(action, 'metadata_file', None)
         pack = str(action.pack)
         runner_type = {'name': str(action.runner_type)}
         parameters = getattr(action, 'parameters', dict())
@@ -292,7 +298,8 @@ class ActionAPI(BaseAPI, APIUIDMixin):
             notify = NotificationsHelper.to_model({})
 
         model = cls.model(name=name, description=description, enabled=enabled,
-                          entry_point=entry_point, pack=pack, runner_type=runner_type,
+                          entry_point=entry_point, metadata_file=metadata_file,
+                          pack=pack, runner_type=runner_type,
                           tags=tags, parameters=parameters, output_schema=output_schema,
                           notify=notify, ref=ref)
 

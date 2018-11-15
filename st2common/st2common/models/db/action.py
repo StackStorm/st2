@@ -67,6 +67,9 @@ class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
     entry_point = me.StringField(
         required=True,
         help_text='The entry point to the action.')
+    metadata_file = me.StringField(
+        required=False,
+        help_text='Path to the metadata file relative to the pack directory.')
     pack = me.StringField(
         required=False,
         help_text='Name of the content pack.',
