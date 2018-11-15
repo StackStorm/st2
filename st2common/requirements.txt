@@ -3,7 +3,7 @@ apscheduler==3.5.3
 cryptography==2.4.1
 eventlet==0.24.1
 flex==6.13.2
-git+https://github.com/StackStorm/orquesta.git@475667bf6d629aa5006686a4e257e0bf2abdbfb5#egg=orquesta
+git+https://github.com/StackStorm/orquesta.git@3028c158cbf510e1253d1988058089a6f1c343ed#egg=orquesta
 greenlet==0.4.15
 ipaddr
 jinja2
