@@ -58,7 +58,7 @@ class ActionsRegistrar(ResourceRegistrar):
         """
         # Register packs first
         self.register_packs(base_dirs=base_dirs)
-        print("Content cache contents: %s" % self._db_content_cache)
+        LOG.debug("Cache contents: %s", self._db_content_cache)
 
         registered_count = 0
         all_action_db_upserts = []
