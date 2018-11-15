@@ -250,6 +250,11 @@ class ContentPackResourceMixin(object):
     Mixin class provides utility methods for models which belong to a pack.
     """
 
+    metadata_file = me.StringField(
+        required=False,
+        help_text=('Path to the metadata file (file on disk which contains resource definition) '
+                   'relative to the pack directory.'))
+
     def get_pack_uid(self):
         """
         Return an UID of a pack this resource belongs to.
@@ -272,6 +277,14 @@ class ContentPackResourceMixin(object):
             ref = ResourceReference(pack=self.pack, name=self.name)
 
         return ref
+
+    @classmethod
+    def get_indexes(cls):
+        return [
+            {
+                'fields': ['metadata_file'],
+            }
+        ]
 
 
 class ChangeRevisionFieldMixin(object):

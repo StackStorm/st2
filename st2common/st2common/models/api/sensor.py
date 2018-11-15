@@ -61,6 +61,11 @@ class SensorTypeAPI(BaseAPI):
             },
             'poll_interval': {
                 'type': 'number'
+            },
+            "metadata_file": {
+                "description": "Path to the metadata file relative to the pack directory.",
+                "type": "string",
+                "default": ""
             }
         },
         'additionalProperties': False

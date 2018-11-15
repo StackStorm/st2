@@ -67,9 +67,6 @@ class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
     entry_point = me.StringField(
         required=True,
         help_text='The entry point to the action.')
-    metadata_file = me.StringField(
-        required=False,
-        help_text='Path to the metadata file relative to the pack directory.')
     pack = me.StringField(
         required=False,
         help_text='Name of the content pack.',
@@ -88,7 +85,8 @@ class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
             {'fields': ['name']},
             {'fields': ['pack']},
             {'fields': ['ref']},
-        ] + stormbase.TagsMixin.get_indices() + stormbase.UIDFieldMixin.get_indexes()
+        ] + stormbase.ContentPackResourceMixin.get_indexes() +
+            stormbase.TagsMixin.get_indices() + stormbase.UIDFieldMixin.get_indexes()
     }
 
     def __init__(self, *args, **values):

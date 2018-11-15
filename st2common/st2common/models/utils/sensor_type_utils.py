@@ -46,15 +46,18 @@ def to_sensor_db_model(sensor_api_model=None):
     trigger_types = getattr(sensor_api_model, 'trigger_types', [])
     poll_interval = getattr(sensor_api_model, 'poll_interval', None)
     enabled = getattr(sensor_api_model, 'enabled', True)
+    metadata_file = getattr(sensor_api_model, 'metadata_file', None)
 
     poll_interval = getattr(sensor_api_model, 'poll_interval', None)
     if poll_interval and (poll_interval < MINIMUM_POLL_INTERVAL):
         raise ValueError('Minimum possible poll_interval is %s seconds' %
                          (MINIMUM_POLL_INTERVAL))
 
-    # Add pack to each trigger type item
+    # Add pack and metadata fileto each trigger type item
     for trigger_type in trigger_types:
         trigger_type['pack'] = pack
+        trigger_type['metadata_file'] = metadata_file
+
     trigger_type_refs = create_trigger_types(trigger_types)
 
     return _create_sensor_type(pack=pack,
@@ -64,10 +67,11 @@ def to_sensor_db_model(sensor_api_model=None):
                                entry_point=entry_point,
                                trigger_types=trigger_type_refs,
                                poll_interval=poll_interval,
-                               enabled=enabled)
+                               enabled=enabled,
+                               metadata_file=metadata_file)
 
 
-def create_trigger_types(trigger_types):
+def create_trigger_types(trigger_types, metadata_file=None):
     if not trigger_types:
         return []
 
@@ -84,12 +88,13 @@ def create_trigger_types(trigger_types):
 
 
 def _create_sensor_type(pack=None, name=None, description=None, artifact_uri=None,
-                        entry_point=None, trigger_types=None, poll_interval=10, enabled=True):
+                        entry_point=None, trigger_types=None, poll_interval=10,
+                        enabled=True, metadata_file=None):
 
     sensor_type = SensorTypeDB(pack=pack, name=name, description=description,
                                artifact_uri=artifact_uri, entry_point=entry_point,
                                poll_interval=poll_interval, enabled=enabled,
-                               trigger_types=trigger_types)
+                               trigger_types=trigger_types, metadata_file=metadata_file)
     return sensor_type
 
 

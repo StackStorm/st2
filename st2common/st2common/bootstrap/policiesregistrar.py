@@ -115,10 +115,14 @@ class PolicyRegistrar(ResourceRegistrar):
     def _register_policies_from_pack(self, pack, policies):
         registered_count = 0
 
+        pack_base_path = content_utils.get_pack_base_path(pack_name=pack,
+                                                          include_trailing_slash=True)
+
         for policy in policies:
             try:
                 LOG.debug('Loading policy from %s.', policy)
-                self._register_policy(pack, policy)
+                self._register_policy(pack_base_path=pack_base_path, pack=pack,
+                                      policy=policy)
             except Exception as e:
                 if self._fail_on_failure:
                     msg = ('Failed to register policy "%s" from pack "%s": %s' % (policy, pack,
@@ -132,7 +136,7 @@ class PolicyRegistrar(ResourceRegistrar):
 
         return registered_count
 
-    def _register_policy(self, pack, policy):
+    def _register_policy(self, pack_base_path, pack, policy):
         content = self._meta_loader.load(policy)
         pack_field = content.get('pack', None)
         if not pack_field:
@@ -141,6 +145,11 @@ class PolicyRegistrar(ResourceRegistrar):
         if pack_field != pack:
             raise Exception('Model is in pack "%s" but field "pack" is different: %s' %
                             (pack, pack_field))
+
+        # Add in "metadata_file" attribute which stores path to the pack metadata file relative to
+        # the pack directory
+        metadata_file = policy.replace(pack_base_path, '')
+        content['metadata_file'] = metadata_file
 
         policy_api = PolicyAPI(**content)
         policy_api = policy_api.validate()

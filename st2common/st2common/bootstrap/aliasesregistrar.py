@@ -105,7 +105,7 @@ class AliasesRegistrar(ResourceRegistrar):
     def _get_aliases_from_pack(self, aliases_dir):
         return self.get_resources_from_pack(resources_dir=aliases_dir)
 
-    def _get_action_alias_db(self, pack, action_alias):
+    def _get_action_alias_db(self, pack_base_path, pack, action_alias):
         """
         Retrieve ActionAliasDB object.
         """
@@ -118,14 +118,20 @@ class AliasesRegistrar(ResourceRegistrar):
             raise Exception('Model is in pack "%s" but field "pack" is different: %s' %
                             (pack, pack_field))
 
+        # Add in "metadata_file" attribute which stores path to the pack metadata file relative to
+        # the pack directory
+        metadata_file = action_alias.replace(pack_base_path, '')
+        content['metadata_file'] = metadata_file
+
         action_alias_api = ActionAliasAPI(**content)
         action_alias_api.validate()
         action_alias_db = ActionAliasAPI.to_model(action_alias_api)
 
         return action_alias_db
 
-    def _register_action_alias(self, pack, action_alias):
-        action_alias_db = self._get_action_alias_db(pack=pack, action_alias=action_alias)
+    def _register_action_alias(self, pack_base_path, pack, action_alias):
+        action_alias_db = self._get_action_alias_db(pack_base_path=pack_base_path, pack=pack,
+                                                    action_alias=action_alias)
 
         try:
             action_alias_db.id = ActionAlias.get_by_name(action_alias_db.name).id
@@ -144,10 +150,15 @@ class AliasesRegistrar(ResourceRegistrar):
     def _register_aliases_from_pack(self, pack, aliases):
         registered_count = 0
 
+        pack_base_path = content_utils.get_pack_base_path(pack_name=pack)
+
+        if not pack_base_path.endswith('/'):
+            pack_base_path += '/'
+
         for alias in aliases:
             try:
                 LOG.debug('Loading alias from %s.', alias)
-                self._register_action_alias(pack, alias)
+                self._register_action_alias(pack_base_path, pack, alias)
             except Exception as e:
                 if self._fail_on_failure:
                     msg = ('Failed to register alias "%s" from pack "%s": %s' % (alias, pack,

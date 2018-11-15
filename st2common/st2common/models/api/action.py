@@ -208,11 +208,6 @@ class ActionAPI(BaseAPI, APIUIDMixin):
                 "type": "string",
                 "default": ""
             },
-            "metadata_file": {
-                "description": "Path to the metadata file relative to the pack directory.",
-                "type": "string",
-                "default": ""
-            },
             "pack": {
                 "description": "The content pack this action belongs to.",
                 "type": "string",
@@ -250,6 +245,11 @@ class ActionAPI(BaseAPI, APIUIDMixin):
                     "on-success": NotificationSubSchemaAPI
                 },
                 "additionalProperties": False
+            },
+            "metadata_file": {
+                "description": "Path to the metadata file relative to the pack directory.",
+                "type": "string",
+                "default": ""
             }
         },
         "additionalProperties": False
@@ -280,7 +280,6 @@ class ActionAPI(BaseAPI, APIUIDMixin):
         description = getattr(action, 'description', None)
         enabled = bool(getattr(action, 'enabled', True))
         entry_point = str(action.entry_point)
-        metadata_file = getattr(action, 'metadata_file', None)
         pack = str(action.pack)
         runner_type = {'name': str(action.runner_type)}
         parameters = getattr(action, 'parameters', dict())
@@ -297,11 +296,12 @@ class ActionAPI(BaseAPI, APIUIDMixin):
             # to use an empty document.
             notify = NotificationsHelper.to_model({})
 
+        metadata_file = getattr(action, 'metadata_file', None)
+
         model = cls.model(name=name, description=description, enabled=enabled,
-                          entry_point=entry_point, metadata_file=metadata_file,
-                          pack=pack, runner_type=runner_type,
+                          entry_point=entry_point, pack=pack, runner_type=runner_type,
                           tags=tags, parameters=parameters, output_schema=output_schema,
-                          notify=notify, ref=ref)
+                          notify=notify, ref=ref, metadata_file=metadata_file)
 
         return model
 
@@ -618,6 +618,11 @@ class ActionAliasAPI(BaseAPI, APIUIDMixin):
             "extra": {
                 "type": "object",
                 "description": "Extra parameters, usually adapter-specific."
+            },
+            "metadata_file": {
+                "description": "Path to the metadata file relative to the pack directory.",
+                "type": "string",
+                "default": ""
             }
         },
         "additionalProperties": False
@@ -635,10 +640,12 @@ class ActionAliasAPI(BaseAPI, APIUIDMixin):
         ack = getattr(alias, 'ack', None)
         result = getattr(alias, 'result', None)
         extra = getattr(alias, 'extra', None)
+        metadata_file = getattr(alias, 'metadata_file', None)
 
         model = cls.model(name=name, description=description, pack=pack, ref=ref,
                           enabled=enabled, action_ref=action_ref, formats=formats,
-                          ack=ack, result=result, extra=extra)
+                          ack=ack, result=result, extra=extra,
+                          metadata_file=metadata_file)
         return model
 
 

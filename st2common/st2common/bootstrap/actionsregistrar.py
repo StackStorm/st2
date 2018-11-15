@@ -188,10 +188,8 @@ class ActionsRegistrar(ResourceRegistrar):
     def _register_actions_from_pack(self, pack, actions):
         registered_count = 0
 
-        pack_base_path = content_utils.get_pack_base_path(pack_name=pack)
-
-        if not pack_base_path.endswith('/'):
-            pack_base_path += '/'
+        pack_base_path = content_utils.get_pack_base_path(pack_name=pack,
+                                                          include_trailing_slash=True)
 
         for action in actions:
             try:

@@ -127,7 +127,7 @@ def check_pack_content_directory_exists(pack, content_type):
     return False
 
 
-def get_pack_base_path(pack_name):
+def get_pack_base_path(pack_name, include_trailing_slash=False):
     """
     Return full absolute base path to the content pack directory.
 
@@ -140,6 +140,9 @@ def get_pack_base_path(pack_name):
     :param pack_name: Content pack name.
     :type pack_name: ``str``
 
+    :param include_trailing_slash: True to include trailing slash.
+    :type include_trailing_slash: ``bool``
+
     :rtype: ``str``
     """
     if not pack_name:
@@ -151,11 +154,18 @@ def get_pack_base_path(pack_name):
         pack_base_path = os.path.abspath(pack_base_path)
 
         if os.path.isdir(pack_base_path):
+            if include_trailing_slash and not pack_base_path.endswith(os.path.sep):
+                pack_base_path += os.path.sep
+
             return pack_base_path
 
     # Path with the provided name not found
     pack_base_path = os.path.join(packs_base_paths[0], quote_unix(pack_name))
     pack_base_path = os.path.abspath(pack_base_path)
+
+    if include_trailing_slash and not pack_base_path.endswith(os.path.sep):
+        pack_base_path += os.path.sep
+
     return pack_base_path
 
 

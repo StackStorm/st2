@@ -106,6 +106,9 @@ class RulesRegistrar(ResourceRegistrar):
     def _register_rules_from_pack(self, pack, rules):
         registered_count = 0
 
+        pack_base_path = content_utils.get_pack_base_path(pack_name=pack,
+                                                          include_trailing_slash=True)
+
         # TODO: Refactor this monstrosity
         for rule in rules:
             LOG.debug('Loading rule from %s.', rule)
@@ -118,6 +121,12 @@ class RulesRegistrar(ResourceRegistrar):
                 if pack_field != pack:
                     raise Exception('Model is in pack "%s" but field "pack" is different: %s' %
                                     (pack, pack_field))
+
+                # Add in "metadata_file" attribute which stores path to the pack metadata file
+                # relative to the pack directory
+                metadata_file = rule.replace(pack_base_path, '')
+                content['metadata_file'] = metadata_file
+
                 rule_api = RuleAPI(**content)
                 rule_api.validate()
                 rule_db = RuleAPI.to_model(rule_api)
