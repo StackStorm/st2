@@ -89,8 +89,8 @@ class MistralResultsQuerier(Querier):
 
         mistral_exec_id = query_context.get('mistral', {}).get('execution_id', None)
         if not mistral_exec_id:
-            raise Exception('[%s] Missing mistral workflow execution ID in query context. %s',
-                            execution_id, query_context)
+            raise Exception('[%s] Missing mistral workflow execution ID in query context. %s'
+                            % (execution_id, query_context))
 
         LOG.info('[%s] Querying mistral execution %s...', execution_id, mistral_exec_id)
 
