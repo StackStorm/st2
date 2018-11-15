@@ -66,7 +66,7 @@ class TestLiveActionResourceManager(unittest2.TestCase):
 
     @mock.patch.object(
         models.ResourceManager, 'get_by_id',
-        mock.MagicMock(return_vaue=models.LiveAction(**LIVE_ACTION)))
+        mock.MagicMock(return_value=models.LiveAction(**LIVE_ACTION)))
     @mock.patch.object(
         models.ResourceManager, 'get_by_ref_or_id',
         mock.MagicMock(return_value=models.Action(**ACTION)))
@@ -91,7 +91,7 @@ class TestLiveActionResourceManager(unittest2.TestCase):
 
     @mock.patch.object(
         models.ResourceManager, 'get_by_id',
-        mock.MagicMock(return_vaue=models.LiveAction(**LIVE_ACTION)))
+        mock.MagicMock(return_value=models.LiveAction(**LIVE_ACTION)))
     @mock.patch.object(
         models.ResourceManager, 'get_by_ref_or_id',
         mock.MagicMock(return_value=models.Action(**ACTION)))
@@ -124,7 +124,7 @@ class TestLiveActionResourceManager(unittest2.TestCase):
 
     @mock.patch.object(
         models.ResourceManager, 'get_by_id',
-        mock.MagicMock(return_vaue=models.LiveAction(**LIVE_ACTION)))
+        mock.MagicMock(return_value=models.LiveAction(**LIVE_ACTION)))
     @mock.patch.object(
         models.ResourceManager, 'get_by_ref_or_id',
         mock.MagicMock(return_value=models.Action(**ACTION)))
@@ -147,7 +147,7 @@ class TestLiveActionResourceManager(unittest2.TestCase):
 
     @mock.patch.object(
         models.ResourceManager, 'get_by_id',
-        mock.MagicMock(return_vaue=models.LiveAction(**LIVE_ACTION)))
+        mock.MagicMock(return_value=models.LiveAction(**LIVE_ACTION)))
     @mock.patch.object(
         models.ResourceManager, 'get_by_ref_or_id',
         mock.MagicMock(return_value=models.Action(**ACTION)))
