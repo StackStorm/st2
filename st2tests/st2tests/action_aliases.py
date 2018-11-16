@@ -118,7 +118,8 @@ class BaseActionAliasTestCase(BasePackResourceTestCase):
                                                          content_type='aliases')
         aliases = registrar._get_aliases_from_pack(aliases_dir=aliases_path)
         for alias_path in aliases:
-            action_alias_db = registrar._get_action_alias_db(pack=pack,
+            action_alias_db = registrar._get_action_alias_db(pack_base_path=base_pack_path,
+                                                             pack=pack,
                                                              action_alias=alias_path)
 
             if action_alias_db.name == name:

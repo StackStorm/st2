@@ -22,6 +22,7 @@ import st2common.bootstrap.actionsregistrar as actions_registrar
 from st2common.persistence.action import Action
 import st2common.validators.api.action as action_validator
 from st2common.models.db.runner import RunnerTypeDB
+
 import st2tests.base as tests_base
 import st2tests.fixturesloader as fixtures_loader
 
@@ -44,6 +45,10 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
             all_actions_in_db = Action.get_all()
             self.assertTrue(len(all_actions_in_db) > 0)
 
+        # Assert metadata_file field is populated
+        expected_path = 'actions/action-with-no-parameters.yaml'
+        self.assertTrue(all_actions_in_db[0].metadata_file.endswith(expected_path))
+
     def test_register_actions_from_bad_pack(self):
         packs_base_path = tests_base.get_fixtures_path()
         try:
@@ -60,7 +65,7 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
         loader = fixtures_loader.FixturesLoader()
         action_file = loader.get_fixture_file_path_abs(
             'generic', 'actions', 'action_3_pack_missing.yaml')
-        registrar._register_action('dummy', action_file)
+        registrar._register_action('/opt/stackstorm/packs/dummy', 'dummy', action_file)
         action_name = None
         with open(action_file, 'r') as fd:
             content = yaml.safe_load(fd)
@@ -79,7 +84,8 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
         action_file = loader.get_fixture_file_path_abs(
             'generic', 'actions', 'action-with-no-parameters.yaml')
 
-        self.assertEqual(registrar._register_action('dummy', action_file), None)
+        self.assertEqual(registrar._register_action('/opt/stackstorm/packs/dummy', 'dummy',
+                                                    action_file), None)
 
     @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(return_value=True))
     @mock.patch.object(action_validator, 'get_runner_model',
@@ -92,7 +98,8 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
 
         expected_msg = '\'list\' is not valid under any of the given schema'
         self.assertRaisesRegexp(jsonschema.ValidationError, expected_msg,
-                                registrar._register_action, 'dummy', action_file)
+                                registrar._register_action,
+                                '/opt/stackstorm/packs/dummy', 'dummy', action_file)
 
     @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(return_value=True))
     @mock.patch.object(action_validator, 'get_runner_model',
@@ -106,7 +113,8 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
         expected_msg = ('Parameter name "action-name" is invalid. Valid characters for '
                         'parameter name are')
         self.assertRaisesRegexp(jsonschema.ValidationError, expected_msg,
-                                registrar._register_action, 'dummy', action_file)
+                                registrar._register_action,
+                                '/opt/stackstorm/packs/dummy', 'dummy', action_file)
 
     @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(return_value=True))
     @mock.patch.object(action_validator, 'get_runner_model',
@@ -117,7 +125,7 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
         action_file = loader.get_fixture_file_path_abs(
             'generic', 'actions', 'action-invalid-schema-params.yaml')
         try:
-            registrar._register_action('dummy', action_file)
+            registrar._register_action('/opt/stackstorm/packs/dummy', 'dummy', action_file)
             self.fail('Invalid action schema. Should have failed.')
         except jsonschema.ValidationError:
             pass
@@ -130,9 +138,9 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
         loader = fixtures_loader.FixturesLoader()
         action_file = loader.get_fixture_file_path_abs(
             'generic', 'actions', 'action1.yaml')
-        registrar._register_action('wolfpack', action_file)
+        registrar._register_action('/opt/stackstorm/packs/dummy', 'wolfpack', action_file)
         # try registering again. this should not throw errors.
-        registrar._register_action('wolfpack', action_file)
+        registrar._register_action('/opt/stackstorm/packs/dummy', 'wolfpack', action_file)
         action_name = None
         with open(action_file, 'r') as fd:
             content = yaml.safe_load(fd)
