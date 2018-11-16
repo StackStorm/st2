@@ -224,7 +224,7 @@ class ContentUtilsTestCase(unittest2.TestCase):
         self.assertEqual(result, 'actions/lib/foo2.py')
 
         # 2. Invalid path - outside pack directory
-        expected_msg = 'file_path is not located inside the pack directory'
+        expected_msg = r'file_path (.*?) is not located inside the pack directory (.*?)'
 
         file_path = os.path.join(packs_base_paths, 'dummy_pack_2/actions/lib/foo.py')
         self.assertRaisesRegexp(ValueError, expected_msg, get_relative_path_to_pack_file,
