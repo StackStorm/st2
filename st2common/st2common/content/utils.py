@@ -31,7 +31,7 @@ __all__ = [
     'get_pack_directory',
     'get_pack_file_abs_path',
     'get_pack_resource_file_abs_path',
-    'get_relative_path_to_pack',
+    'get_relative_path_to_pack_file',
     'check_pack_directory_exists',
     'check_pack_content_directory_exists'
 ]
@@ -317,7 +317,7 @@ def get_pack_resource_file_abs_path(pack_ref, resource_type, file_path):
     return result
 
 
-def get_relative_path_to_pack(pack_ref, file_path):
+def get_relative_path_to_pack_file(pack_ref, file_path):
     """
     Retrieve a file path which is relative to the provided pack directory.
 
