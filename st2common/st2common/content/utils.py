@@ -41,6 +41,9 @@ Invalid file path: "%s". File path needs to be relative to the pack%sdirectory (
 For example "my_%s.py".
 """.strip().replace('\n', ' ')
 
+# Cache which stores pack name -> pack base path mappings
+PACK_NAME_TO_BASE_PATH_CACHE = {}
+
 
 def get_pack_group():
     """
@@ -127,7 +130,7 @@ def check_pack_content_directory_exists(pack, content_type):
     return False
 
 
-def get_pack_base_path(pack_name, include_trailing_slash=False):
+def get_pack_base_path(pack_name, include_trailing_slash=False, use_pack_cache=False):
     """
     Return full absolute base path to the content pack directory.
 
@@ -143,10 +146,17 @@ def get_pack_base_path(pack_name, include_trailing_slash=False):
     :param include_trailing_slash: True to include trailing slash.
     :type include_trailing_slash: ``bool``
 
+    :param use_pack_cache: True to cache base paths on per-pack basis. This help in situations
+                           where this method is called multiple times with the same pack name.
+    :type use_pack_cache`` ``bool``
+
     :rtype: ``str``
     """
     if not pack_name:
         return None
+
+    if use_pack_cache and pack_name in PACK_NAME_TO_BASE_PATH_CACHE:
+        return PACK_NAME_TO_BASE_PATH_CACHE[pack_name]
 
     packs_base_paths = get_packs_base_paths()
     for packs_base_path in packs_base_paths:
@@ -157,6 +167,7 @@ def get_pack_base_path(pack_name, include_trailing_slash=False):
             if include_trailing_slash and not pack_base_path.endswith(os.path.sep):
                 pack_base_path += os.path.sep
 
+            PACK_NAME_TO_BASE_PATH_CACHE[pack_name] = pack_base_path
             return pack_base_path
 
     # Path with the provided name not found
@@ -166,6 +177,7 @@ def get_pack_base_path(pack_name, include_trailing_slash=False):
     if include_trailing_slash and not pack_base_path.endswith(os.path.sep):
         pack_base_path += os.path.sep
 
+    PACK_NAME_TO_BASE_PATH_CACHE[pack_name] = pack_base_path
     return pack_base_path
 
 
@@ -195,7 +207,7 @@ def get_pack_directory(pack_name):
     return None
 
 
-def get_entry_point_abs_path(pack=None, entry_point=None):
+def get_entry_point_abs_path(pack=None, entry_point=None, use_pack_cache=False):
     """
     Return full absolute path of an action entry point in a pack.
 
@@ -211,7 +223,7 @@ def get_entry_point_abs_path(pack=None, entry_point=None):
         return None
 
     if os.path.isabs(entry_point):
-        pack_base_path = get_pack_base_path(pack_name=pack)
+        pack_base_path = get_pack_base_path(pack_name=pack, use_pack_cache=use_pack_cache)
         common_prefix = os.path.commonprefix([pack_base_path, entry_point])
 
         if common_prefix != pack_base_path:
@@ -226,7 +238,7 @@ def get_entry_point_abs_path(pack=None, entry_point=None):
     return entry_point_abs_path
 
 
-def get_pack_file_abs_path(pack_ref, file_path, resource_type=None):
+def get_pack_file_abs_path(pack_ref, file_path, resource_type=None, use_pack_cache=False):
     """
     Retrieve full absolute path to the pack file.
 
@@ -246,7 +258,7 @@ def get_pack_file_abs_path(pack_ref, file_path, resource_type=None):
 
     :rtype: ``str``
     """
-    pack_base_path = get_pack_base_path(pack_name=pack_ref)
+    pack_base_path = get_pack_base_path(pack_name=pack_ref, use_pack_cache=use_pack_cache)
 
     if resource_type:
         resource_type_plural = ' %ss ' % (resource_type)
@@ -317,7 +329,7 @@ def get_pack_resource_file_abs_path(pack_ref, resource_type, file_path):
     return result
 
 
-def get_relative_path_to_pack_file(pack_ref, file_path):
+def get_relative_path_to_pack_file(pack_ref, file_path, use_pack_cache=False):
     """
     Retrieve a file path which is relative to the provided pack directory.
 
@@ -329,7 +341,7 @@ def get_relative_path_to_pack_file(pack_ref, file_path):
 
     :rtype: ``str``
     """
-    pack_base_path = get_pack_base_path(pack_name=pack_ref)
+    pack_base_path = get_pack_base_path(pack_name=pack_ref, use_pack_cache=use_pack_cache)
 
     if not os.path.isabs(file_path):
         return file_path

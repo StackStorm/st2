@@ -219,7 +219,6 @@ class ContentUtilsTestCase(unittest2.TestCase):
         self.assertEqual(result, 'actions/lib/foo.py')
 
         # Already relative
-
         file_path = 'actions/lib/foo2.py'
         result = get_relative_path_to_pack_file(pack_ref=pack_ref, file_path=file_path)
         self.assertEqual(result, 'actions/lib/foo2.py')
