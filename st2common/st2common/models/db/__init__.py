@@ -20,10 +20,12 @@ import importlib
 import traceback
 import ssl as ssl_lib
 
+import bson
 import six
 import mongoengine
 from mongoengine.queryset import visitor
 from pymongo import uri_parser
+from pymongo import InsertOne, ReplaceOne
 from pymongo.errors import OperationFailure
 from pymongo.errors import ConnectionFailure
 
@@ -442,6 +444,22 @@ class MongoDBAccess(object):
 
     def aggregate(self, *args, **kwargs):
         return self.model.objects(**kwargs)._collection.aggregate(*args, **kwargs)
+
+    def bulk_upsert(self, instances):
+        db_upsert_operations = []
+        db = self.model._get_collection()
+        for instance in instances:
+            obj_id = getattr(instance, 'id', None)
+            if obj_id:
+                op = ReplaceOne(
+                    {'_id': bson.objectid.ObjectId(obj_id)},
+                    instance.to_mongo(),
+                    upsert=True
+                )
+            else:
+                op = InsertOne(instance.to_mongo())
+            db_upsert_operations.append(op)
+        db.bulk_write(db_upsert_operations)
 
     def insert(self, instance):
         instance = self.model.objects.insert(instance)
