@@ -321,6 +321,12 @@ def get_relative_path_to_pack(pack_ref, file_path):
     """
     Retrieve a file path which is relative to the provided pack directory.
 
+    :param pack_ref: Pack reference.
+    :type pack_ref: ``str``
+
+    :param file_path: Full absolute path to a pack file.
+    :type file_path: ``str``
+
     :rtype: ``str``
     """
     pack_base_path = get_pack_base_path(pack_name=pack_ref)
