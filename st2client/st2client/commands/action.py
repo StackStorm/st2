@@ -748,7 +748,7 @@ class ActionRunCommandMixin(object):
                 try:
                     action = action_mgr.get_by_ref_or_id(args.ref_or_id, **kwargs)
                     if not action:
-                        raise resource.ResourceNotFoundError('Action %s not found', args.ref_or_id)
+                        raise resource.ResourceNotFoundError('Action %s not found' % args.ref_or_id)
                     runner_mgr = self.app.client.managers['RunnerType']
                     runner = runner_mgr.get_by_name(action.runner_type, **kwargs)
                     parameters, required, optional, _ = self._get_params_types(runner,
