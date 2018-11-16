@@ -197,8 +197,8 @@ def update_liveaction_status(status=None, result=None, context=None, end_timesta
 
     if status not in LIVEACTION_STATUSES:
         raise ValueError('Attempting to set status for LiveAction "%s" '
-                         'to unknown status string. Unknown status is "%s"',
-                         liveaction_db, status)
+                         'to unknown status string. Unknown status is "%s"'
+                         % (liveaction_db, status))
 
     if result and cfg.CONF.system.validate_output_schema and status == LIVEACTION_STATUS_SUCCEEDED:
         action_db = get_action_by_ref(liveaction_db.action)

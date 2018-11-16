@@ -223,7 +223,7 @@ def metrics_initialize():
     try:
         METRICS = get_plugin_instance(PLUGIN_NAMESPACE, cfg.CONF.metrics.driver)
     except (NoMatches, MultipleMatches, NoSuchOptError) as error:
-        raise PluginLoadError('Error loading metrics driver. Check configuration: %s', error)
+        raise PluginLoadError('Error loading metrics driver. Check configuration: %s' % error)
 
     return METRICS
 
