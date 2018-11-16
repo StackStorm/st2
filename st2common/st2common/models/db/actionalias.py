@@ -78,8 +78,8 @@ class ActionAliasDB(stormbase.StormFoundationDB, stormbase.ContentPackResourceMi
             {'fields': ['name']},
             {'fields': ['enabled']},
             {'fields': ['formats']},
-        ] + stormbase.ContentPackResourceMixin().get_indexes() +
-            stormbase.UIDFieldMixin.get_indexes()
+        ] + (stormbase.ContentPackResourceMixin().get_indexes() +
+             stormbase.UIDFieldMixin.get_indexes())
     }
 
     def __init__(self, *args, **values):
