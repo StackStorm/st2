@@ -142,7 +142,6 @@ class PoliciesRegistrarTestCase(CleanDbTestCase):
 
         expected_msg = 'Referenced policy_type "action.mock_policy_error" doesnt exist'
         self.assertRaisesRegexp(ValueError, expected_msg, registrar._register_policy,
-                                pack_base_path='/opt/stackstorm/packs/dummy_pack_1',
                                 pack='dummy_pack_1', policy=policy_path)
 
     def test_make_sure_policy_parameters_are_validated_during_register(self):
@@ -154,6 +153,5 @@ class PoliciesRegistrarTestCase(CleanDbTestCase):
         expected_msg = '100 is greater than the maximum of 5'
         self.assertRaisesRegexp(jsonschema.ValidationError, expected_msg,
                                 registrar._register_policy,
-                                pack_base_path='/opt/stackstorm/packs/dummy_pack_1',
                                 pack='dummy_pack_2',
                                 policy=policy_path)

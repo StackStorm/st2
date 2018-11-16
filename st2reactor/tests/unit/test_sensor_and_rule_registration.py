@@ -27,10 +27,19 @@ from st2common.transport.publishers import PoolPublisher
 from st2common.bootstrap.sensorsregistrar import SensorsRegistrar
 from st2common.bootstrap.rulesregistrar import RulesRegistrar
 
+__all__ = [
+    'SensorRegistrationTestCase',
+    'RuleRegistrationTestCase'
+]
+
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-PACKS_DIR = os.path.join(CURRENT_DIR, '../fixtures/packs')
+PACKS_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '../fixtures/packs'))
 
 
+# NOTE: We need to perform this patching because test fixtures are located outside of the packs
+# base paths directory. This will never happen outside the context of test fixtures.
+@mock.patch('st2common.content.utils.get_pack_base_path',
+            mock.Mock(return_value=os.path.join(PACKS_DIR, 'pack_with_sensor')))
 class SensorRegistrationTestCase(DbTestCase):
 
     @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
@@ -126,6 +135,10 @@ class SensorRegistrationTestCase(DbTestCase):
         self.assertEqual(trigger_type_dbs[1].description, 'test 2')
 
 
+# NOTE: We need to perform this patching because test fixtures are located outside of the packs
+# base paths directory. This will never happen outside the context of test fixtures.
+@mock.patch('st2common.content.utils.get_pack_base_path',
+            mock.Mock(return_value=os.path.join(PACKS_DIR, 'pack_with_rules')))
 class RuleRegistrationTestCase(DbTestCase):
     def test_register_rules(self):
         # Verify DB is empty at the beginning

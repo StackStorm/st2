@@ -346,9 +346,12 @@ def get_relative_path_to_pack_file(pack_ref, file_path, use_pack_cache=False):
     if not os.path.isabs(file_path):
         return file_path
 
+    file_path = os.path.abspath(file_path)
+
     common_prefix = os.path.commonprefix([pack_base_path, file_path])
     if common_prefix != pack_base_path:
-        raise ValueError('file_path is not located inside the pack directory')
+        raise ValueError('file_path (%s) is not located inside the pack directory (%s)' %
+                         (file_path, pack_base_path))
 
     relative_path = os.path.relpath(file_path, common_prefix)
     return relative_path
