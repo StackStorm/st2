@@ -56,7 +56,7 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
 
         # Assert metadata_file field is populated
         expected_path = 'actions/action-with-no-parameters.yaml'
-        self.assertTrue(all_actions_in_db[0].metadata_file.endswith(expected_path))
+        self.assertEqual(all_actions_in_db[0].metadata_file, expected_path)
 
     def test_register_actions_from_bad_pack(self):
         packs_base_path = tests_base.get_fixtures_path()

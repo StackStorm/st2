@@ -64,12 +64,12 @@ class SensorRegistrationTestCase(DbTestCase):
         self.assertEqual(sensor_dbs[0].name, 'TestSensor')
         self.assertEqual(sensor_dbs[0].poll_interval, 10)
         self.assertTrue(sensor_dbs[0].enabled)
-        self.assertTrue(sensor_dbs[0].metadata_file.endswith('sensors/test_sensor_1.yaml'))
+        self.assertEqual(sensor_dbs[0].metadata_file, 'sensors/test_sensor_1.yaml')
 
         self.assertEqual(sensor_dbs[1].name, 'TestSensorDisabled')
         self.assertEqual(sensor_dbs[1].poll_interval, 10)
         self.assertFalse(sensor_dbs[1].enabled)
-        self.assertTrue(sensor_dbs[0].metadata_file.endswith('sensors/test_sensor_1.yaml'))
+        self.assertEqual(sensor_dbs[1].metadata_file, 'sensors/test_sensor_2.yaml')
 
         self.assertEqual(trigger_type_dbs[0].name, 'trigger_type_1')
         self.assertEqual(trigger_type_dbs[0].pack, 'pack_with_sensor')
@@ -82,8 +82,8 @@ class SensorRegistrationTestCase(DbTestCase):
 
         # Triggered which are registered via sensors have metadata_file pointing to the sensor
         # definition file
-        self.assertTrue('sensors/' in trigger_type_dbs[0].metadata_file)
-        self.assertTrue('sensors/' in trigger_type_dbs[1].metadata_file)
+        self.assertEqual(trigger_type_dbs[0].metadata_file, 'sensors/test_sensor_1.yaml')
+        self.assertEqual(trigger_type_dbs[1].metadata_file, 'sensors/test_sensor_1.yaml')
 
         # Verify second call to registration doesn't create a duplicate objects
         registrar.register_from_packs(base_dirs=[PACKS_DIR])
