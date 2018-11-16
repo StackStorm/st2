@@ -304,7 +304,7 @@ class PackRemoveCommand(PackAsyncCommand):
             pack_instance = self.app.client.managers['Pack'].get_by_ref_or_id(packs[0], **kwargs)
 
             if pack_instance:
-                raise OperationFailureException('Pack %s has not been removed properly', packs[0])
+                raise OperationFailureException('Pack %s has not been removed properly' % packs[0])
 
             removed_pack_instance = next((pack for pack in all_pack_instances
                                          if pack.name == packs[0]), None)
@@ -320,8 +320,8 @@ class PackRemoveCommand(PackAsyncCommand):
                 if pack.name in packs:
                     pack_instances.append(pack)
                 if pack in remaining_pack_instances:
-                    raise OperationFailureException('Pack %s has not been removed properly',
-                                                    pack.name)
+                    raise OperationFailureException('Pack %s has not been removed properly'
+                                                    % pack.name)
 
             self.print_output(pack_instances, table.MultiColumnTable,
                               attributes=args.attr, widths=args.width,
