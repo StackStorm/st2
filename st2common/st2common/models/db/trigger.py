@@ -55,7 +55,7 @@ class TriggerTypeDB(stormbase.StormBaseDB,
 
     meta = {
         'indexes': (stormbase.ContentPackResourceMixin.get_indexes() +
-                    stormbase.TagsMixin.get_indices() +
+                    stormbase.TagsMixin.get_indexes() +
                     stormbase.UIDFieldMixin.get_indexes())
     }
 

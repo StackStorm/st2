@@ -98,7 +98,7 @@ class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
             {'fields': ['trigger']},
             {'fields': ['context.user']},
         ] + (stormbase.ContentPackResourceMixin.get_indexes() +
-             stormbase.TagsMixin.get_indices() +
+             stormbase.TagsMixin.get_indexes() +
              stormbase.UIDFieldMixin.get_indexes())
     }
 

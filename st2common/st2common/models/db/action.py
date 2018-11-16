@@ -86,7 +86,7 @@ class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
             {'fields': ['pack']},
             {'fields': ['ref']},
         ] + (stormbase.ContentPackResourceMixin.get_indexes() +
-            stormbase.TagsMixin.get_indices() +
+            stormbase.TagsMixin.get_indexes() +
             stormbase.UIDFieldMixin.get_indexes())
     }
 
