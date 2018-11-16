@@ -165,7 +165,7 @@ class BaseDatastoreService(object):
         :rtype: ``bool``
         """
         if scope != SYSTEM_SCOPE:
-            raise ValueError('Scope %s is unsupported.', scope)
+            raise ValueError('Scope %s is unsupported.' % scope)
 
         name = self._get_full_key_name(name=name, local=local)
 
@@ -208,7 +208,7 @@ class BaseDatastoreService(object):
         :rtype: ``bool``
         """
         if scope != SYSTEM_SCOPE:
-            raise ValueError('Scope %s is unsupported.', scope)
+            raise ValueError('Scope %s is unsupported.' % scope)
 
         name = self._get_full_key_name(name=name, local=local)
 

@@ -114,8 +114,9 @@ class FileBasedPartitioner(DefaultPartitioner):
             partition_map = yaml.safe_load(f)
             sensor_refs = partition_map.get(self.sensor_node_name, None)
             if sensor_refs is None:
-                raise SensorPartitionMapMissingException('Sensor partition not found for %s in %s.',
-                                                         self.sensor_node_name, self.partition_file)
+                raise SensorPartitionMapMissingException('Sensor partition not found for %s in %s.'
+                                                         % (self.sensor_node_name,
+                                                            self.partition_file))
             self._supported_sensor_refs = set(sensor_refs)
             return self._supported_sensor_refs
 
