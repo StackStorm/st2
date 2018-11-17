@@ -62,6 +62,7 @@ class ExecutionQueueHandler(object):
         self.message_type = LiveActionDB
         self._shutdown = False
         self._coordinator = coordination.get_coordinator()
+        self._locks = {}
 
     def loop(self):
         LOG.debug('Entering scheduler loop')
@@ -72,8 +73,12 @@ class ExecutionQueueHandler(object):
                 with self._coordinator.get_lock('st2shcedulerqueue'):
                     queued_executions = _next_executions()
                     for execution in queued_executions:
-                        with metrics.Timer(key='scheduler.handle_execution'):
-                            self._handle_execution(execution)
+                        self._locks[str(execution.id)] = self._coordinator.get_lock(str(execution.id))
+            for execution in queued_executions:
+                with metrics.Timer(key='scheduler.handle_execution'):
+                    lock = self._locks[str(execution.id)]
+                    self._handle_execution(execution)
+                    lock.release()
                 # try:
                 # except Exception as error:
                 #     self._coordinator = coordination.get_coordinator()
