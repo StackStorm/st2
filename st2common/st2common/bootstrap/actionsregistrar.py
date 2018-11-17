@@ -128,14 +128,10 @@ class ActionsRegistrar(ResourceRegistrar):
 
         # Add in "metadata_file" attribute which stores path to the pack metadata file relative to
         # the pack directory
-        try:
-            metadata_file = content_utils.get_relative_path_to_pack_file(pack_ref=pack,
-                                                                         file_path=action,
-                                                                         use_pack_cache=True)
-        except ValueError:
-            LOG.exception('Failed to set metadata_file attribute for action "%s"' % (action))
-        else:
-            content['metadata_file'] = metadata_file
+        metadata_file = content_utils.get_relative_path_to_pack_file(pack_ref=pack,
+                                                                     file_path=action,
+                                                                     use_pack_cache=True)
+        content['metadata_file'] = metadata_file
 
         action_api = ActionAPI(**content)
 

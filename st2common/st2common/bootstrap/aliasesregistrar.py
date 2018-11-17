@@ -105,9 +105,13 @@ class AliasesRegistrar(ResourceRegistrar):
     def _get_aliases_from_pack(self, aliases_dir):
         return self.get_resources_from_pack(resources_dir=aliases_dir)
 
-    def _get_action_alias_db(self, pack, action_alias):
+    def _get_action_alias_db(self, pack, action_alias, ignore_metadata_file_error=False):
         """
         Retrieve ActionAliasDB object.
+
+        :param ignore_metadata_file_error: True to ignore the error when we can't infer
+                                            metadata_file attribute (e.g. inside tests).
+        :type ignore_metadata_file_error: ``bool``
         """
         content = self._meta_loader.load(action_alias)
         pack_field = content.get('pack', None)
@@ -120,10 +124,15 @@ class AliasesRegistrar(ResourceRegistrar):
 
         # Add in "metadata_file" attribute which stores path to the pack metadata file relative to
         # the pack directory
-        metadata_file = content_utils.get_relative_path_to_pack_file(pack_ref=pack,
-                                                                     file_path=action_alias,
-                                                                     use_pack_cache=True)
-        content['metadata_file'] = metadata_file
+        try:
+            metadata_file = content_utils.get_relative_path_to_pack_file(pack_ref=pack,
+                                                                         file_path=action_alias,
+                                                                         use_pack_cache=True)
+        except ValueError as e:
+            if not ignore_metadata_file_error:
+                raise e
+        else:
+            content['metadata_file'] = metadata_file
 
         action_alias_api = ActionAliasAPI(**content)
         action_alias_api.validate()
