@@ -19,7 +19,6 @@ import os
 import sys
 import signal
 
-import mock
 import psutil
 import eventlet
 from eventlet.green import subprocess
@@ -77,8 +76,8 @@ class SensorContainerTestCase(IntegrationTestCase):
             cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
             username=username, password=password, ensure_indexes=False)
 
-        # NOTE: We need to perform this patching because test fixtures are located outside of the packs
-        # base paths directory. This will never happen outside the context of test fixtures.
+        # NOTE: We need to perform this patching because test fixtures are located outside of the
+        # packs base paths directory. This will never happen outside the context of test fixtures.
         cfg.CONF.content.packs_base_paths = PACKS_BASE_PATH
 
         # Register sensors
