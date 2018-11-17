@@ -108,7 +108,6 @@ class SensorsRegistrar(ResourceRegistrar):
 
     def _register_sensors_from_pack(self, pack, sensors):
         registered_count = 0
-
         for sensor in sensors:
             try:
                 self._register_sensor_from_pack(pack=pack, sensor=sensor)
@@ -142,6 +141,13 @@ class SensorsRegistrar(ResourceRegistrar):
         entry_point = content.get('entry_point', None)
         if not entry_point:
             raise ValueError('Sensor definition missing entry_point')
+
+        # Add in "metadata_file" attribute which stores path to the pack metadata file relative to
+        # the pack directory
+        metadata_file = content_utils.get_relative_path_to_pack_file(pack_ref=pack,
+                                                                     file_path=sensor,
+                                                                     use_pack_cache=True)
+        content['metadata_file'] = metadata_file
 
         sensors_dir = os.path.dirname(sensor_metadata_file_path)
         sensor_file_path = os.path.join(sensors_dir, entry_point)

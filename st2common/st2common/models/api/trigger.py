@@ -63,6 +63,11 @@ class TriggerTypeAPI(BaseAPI):
                 'description': 'User associated metadata assigned to this object.',
                 'type': 'array',
                 'items': {'type': 'object'}
+            },
+            "metadata_file": {
+                "description": "Path to the metadata file relative to the pack directory.",
+                "type": "string",
+                "default": ""
             }
         },
         'additionalProperties': False
@@ -76,10 +81,11 @@ class TriggerTypeAPI(BaseAPI):
         payload_schema = getattr(trigger_type, 'payload_schema', {})
         parameters_schema = getattr(trigger_type, 'parameters_schema', {})
         tags = TagsHelper.to_model(getattr(trigger_type, 'tags', []))
+        metadata_file = getattr(trigger_type, 'metadata_file', None)
 
         model = cls.model(name=name, description=description, pack=pack,
                           payload_schema=payload_schema, parameters_schema=parameters_schema,
-                          tags=tags)
+                          tags=tags, metadata_file=metadata_file)
         return model
 
     @classmethod

@@ -138,6 +138,11 @@ class PolicyAPI(BaseAPI, APIUIDMixin):
                 },
                 'additionalProperties': False
 
+            },
+            "metadata_file": {
+                "description": "Path to the metadata file relative to the pack directory.",
+                "type": "string",
+                "default": ""
             }
         },
         "additionalProperties": False
@@ -175,4 +180,5 @@ class PolicyAPI(BaseAPI, APIUIDMixin):
                          enabled=getattr(instance, 'enabled', None),
                          resource_ref=str(instance.resource_ref),
                          policy_type=str(instance.policy_type),
-                         parameters=getattr(instance, 'parameters', dict()))
+                         parameters=getattr(instance, 'parameters', dict()),
+                         metadata_file=getattr(instance, 'metadata_file', None))

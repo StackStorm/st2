@@ -130,6 +130,7 @@ class PoliciesRegistrarTestCase(CleanDbTestCase):
         self.assertEqual(p1.policy_type, 'action.concurrency')
         # Verify that a default value for parameter "action" which isn't provided in the file is set
         self.assertEqual(p1.parameters['action'], 'delay')
+        self.assertEqual(p1.metadata_file, 'policies/policy_1.yaml')
 
         p2 = Policy.get_by_ref('dummy_pack_1.test_policy_2')
         self.assertEqual(p2, None)
@@ -152,5 +153,6 @@ class PoliciesRegistrarTestCase(CleanDbTestCase):
 
         expected_msg = '100 is greater than the maximum of 5'
         self.assertRaisesRegexp(jsonschema.ValidationError, expected_msg,
-                                registrar._register_policy, pack='dummy_pack_2',
+                                registrar._register_policy,
+                                pack='dummy_pack_2',
                                 policy=policy_path)

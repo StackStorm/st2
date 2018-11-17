@@ -55,7 +55,7 @@ class Migration(object):
                                   help_text=u'Flag indicating whether the rule is enabled.')
 
         meta = {
-            'indexes': stormbase.TagsMixin.get_indices()
+            'indexes': stormbase.TagsMixin.get_indexes()
         }
 
 
@@ -81,7 +81,7 @@ class RuleDB(stormbase.StormBaseDB, stormbase.TagsMixin):
                               help_text=u'Flag indicating whether the rule is enabled.')
 
     meta = {
-        'indexes': stormbase.TagsMixin.get_indices()
+        'indexes': stormbase.TagsMixin.get_indexes()
     }
 
 
