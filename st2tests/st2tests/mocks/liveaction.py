@@ -35,18 +35,29 @@ SCHEDULER_HANDLER = None
 ENTRYPOINT = None
 
 
-def setup():
+def setup(no_start_handler=False):
     global SCHEDULER_HANDLER
     global ENTRYPOINT
+
     SCHEDULER_HANDLER = handler.get_handler()
-    SCHEDULER_HANDLER.start()
+
+    if not no_start_handler:
+        SCHEDULER_HANDLER.start()
+
     ENTRYPOINT = entrypoint.get_scheduler_entrypoint()
 
 
-def teardown():
-    SCHEDULER_HANDLER.shutdown()
+def teardown(no_start_handler=False):
+    global SCHEDULER_HANDLER
+    global ENTRYPOINT
+
+    if not no_start_handler and SCHEDULER_HANDLER:
+        SCHEDULER_HANDLER.shutdown()
     for execution in ExecutionQueue.get_all():
         ExecutionQueue.delete(execution)
+
+    SCHEDULER_HANDLER = None
+    ENTRYPOINT = None
 
 
 class MockLiveActionPublisher(object):
@@ -55,7 +66,10 @@ class MockLiveActionPublisher(object):
     def publish_create(cls, payload):
         try:
             if isinstance(payload, LiveActionDB):
-                ENTRYPOINT.process(payload)
+                setup(True)
+                ex_req = ENTRYPOINT.process(payload)
+                SCHEDULER_HANDLER._handle_execution(ex_req)
+                teardown(True)
         except Exception:
             traceback.print_exc()
             print(payload)
@@ -65,7 +79,10 @@ class MockLiveActionPublisher(object):
         try:
             if isinstance(payload, LiveActionDB):
                 if state == action_constants.LIVEACTION_STATUS_REQUESTED:
-                    ENTRYPOINT.process(payload)
+                    setup(True)
+                    ex_req = ENTRYPOINT.process(payload)
+                    SCHEDULER_HANDLER._handle_execution(ex_req)
+                    teardown(True)
                 else:
                     worker.get_worker().process(payload)
         except Exception:

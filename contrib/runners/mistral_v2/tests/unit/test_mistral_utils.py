@@ -22,7 +22,6 @@ tests_config.parse_args()
 
 from st2common.runners.base import get_callback_module
 
-
 MISTRAL_RUNNER_NAME = 'mistral_v2'
 
 

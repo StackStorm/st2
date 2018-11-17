@@ -38,11 +38,23 @@ from st2common.runners import base as runners
 from st2common.services import action as action_service
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
-from st2common.runners.base import get_callback_module
+from st2common.runners import base as runner_base
 from st2tests import DbTestCase
 from st2tests import fixturesloader
 from st2tests.mocks.liveaction import MockLiveActionPublisherNonBlocking
 from st2tests.mocks import liveaction as mock_liveaction
+
+
+# Previous test disrupts state for tests in this module. We reload the import
+# to avoid this. This try/except block is for python 3 support.
+try:
+    from imp import reload
+except:
+    from importlib import reload
+
+reload(runner_base)
+reload(action_executions)
+reload(mock_liveaction)
 
 
 MISTRAL_RUNNER_NAME = 'mistral_v2'
@@ -98,7 +110,7 @@ class MistralRunnerCallbackTest(DbTestCase):
             actions_registrar.register_from_pack(pack)
 
         # Get an instance of the callback module and reference to mistral status map
-        cls.callback_module = get_callback_module(MISTRAL_RUNNER_NAME)
+        cls.callback_module = runner_base.get_callback_module(MISTRAL_RUNNER_NAME)
         cls.callback_class = cls.callback_module.get_instance()
         cls.status_map = cls.callback_module.STATUS_MAP
 
@@ -106,8 +118,8 @@ class MistralRunnerCallbackTest(DbTestCase):
     def setUp():
         mock_liveaction.setup()
 
-    @staticmethod
-    def tearDown():
+    def tearDown(self):
+        self.reset()
         mock_liveaction.teardown()
 
     @staticmethod

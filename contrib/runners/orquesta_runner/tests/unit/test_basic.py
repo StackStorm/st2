@@ -49,6 +49,16 @@ from st2common.transport import workflow as wf_ex_xport
 from st2common.transport import publishers
 from st2tests.mocks import liveaction as mock_lv_ac_xport
 from st2tests.mocks import workflow as mock_wf_ex_xport
+# Previous test disrupts state for tests in this module. We reload the import
+# to avoid this. This try/except block is for python 3 support.
+try:
+    from imp import reload
+except:
+    from importlib import reload
+
+reload(pc_svc)
+reload(ac_svc)
+reload(mock_lv_ac_xport)
 
 
 TEST_PACK = 'orquesta_tests'

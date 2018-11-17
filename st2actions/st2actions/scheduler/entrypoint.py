@@ -70,7 +70,7 @@ class SchedulerEntrypoint(consumers.MessageHandler):
         if request.status != action_constants.LIVEACTION_STATUS_REQUESTED:
             LOG.info('%s is ignoring %s (id=%s) with "%s" status.',
                      self.__class__.__name__, type(request), request.id, request.status)
-            return
+            return None
 
         try:
             liveaction_db = action_utils.get_liveaction_by_id(request.id)
@@ -97,6 +97,8 @@ class SchedulerEntrypoint(consumers.MessageHandler):
             delay=liveaction_db.delay
         )
         ExecutionQueue.add_or_update(execution_request, publish=False)
+
+        return execution_request
 
 
 def get_scheduler_entrypoint():

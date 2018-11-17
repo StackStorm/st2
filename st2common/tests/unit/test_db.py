@@ -36,6 +36,17 @@ from st2common.persistence.cleanup import db_cleanup
 from st2common.persistence.rule import Rule
 from st2common.persistence.trigger import TriggerType, Trigger, TriggerInstance
 from st2tests import DbTestCase
+from st2tests.mocks import liveaction as mock_liveaction
+
+
+# Previous test disrupts state for tests in this module. We reload the import
+# to avoid this. This try/except block is for python 3 support.
+try:
+    from imp import reload
+except:
+    from importlib import reload
+
+reload(mock_liveaction)
 
 __all__ = [
     'DbConnectionTestCase',
@@ -217,6 +228,10 @@ class DbConnectionTestCase(DbTestCase):
 
 class DbCleanupTestCase(DbTestCase):
     ensure_indexes = True
+
+    def setUp(self):
+        self.reset()
+        mock_liveaction.teardown()
 
     def test_cleanup(self):
         """

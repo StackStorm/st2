@@ -27,6 +27,7 @@ from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution_queue import ExecutionQueue
 from st2common.util import action_db as action_utils
 from st2common.services import coordination
+from st2common.metrics import base as metrics
 
 __all__ = [
     'ExecutionQueueHandler',
@@ -64,16 +65,19 @@ class ExecutionQueueHandler(object):
 
     def loop(self):
         LOG.debug('Entering scheduler loop')
+
         while self._shutdown is not True:
             eventlet.greenthread.sleep(0.1)
-            with self._coordinator.get_lock('st2shcedulerqueue'):
-                queued_executions = _next_executions()
-                for execution in queued_executions:
-                    self._handle_execution(execution)
-            # try:
-            # except Exception as error:
-            #     self._coordinator = coordination.get_coordinator()
-            #     LOG.error("Error encountered in scheduler loop: %s", error)
+            with metrics.Timer(key='scheduler.loop'):
+                with self._coordinator.get_lock('st2shcedulerqueue'):
+                    queued_executions = _next_executions()
+                    for execution in queued_executions:
+                        with metrics.Timer(key='scheduler.handle_execution'):
+                            self._handle_execution(execution)
+                # try:
+                # except Exception as error:
+                #     self._coordinator = coordination.get_coordinator()
+                #     LOG.error("Error encountered in scheduler loop: %s", error)
 
     def _handle_execution(self, execution):
         LOG.info('Scheduling liveaction: %s', execution.liveaction)
