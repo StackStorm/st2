@@ -81,7 +81,7 @@ class PackResourceCommand(resource.ResourceCommand):
         except resource.ResourceNotFoundError:
             print("No matching items found")
         except Exception as e:
-            message = e.message or str(e)
+            message = str(e)
             print('ERROR: %s' % (message))
             raise OperationFailureException(message)
 
@@ -426,6 +426,6 @@ class PackConfigCommand(resource.ResourceCommand):
             if self.app.client.debug:
                 raise
 
-            message = e.message or str(e)
+            message = str(e)
             print('ERROR: %s' % (message))
             raise OperationFailureException(message)
