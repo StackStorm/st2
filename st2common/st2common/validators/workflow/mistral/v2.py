@@ -18,7 +18,13 @@ import re
 
 import six
 import yaml
-from mistralclient.api import client as mistral
+
+try:
+    from mistralclient.api import client as mistral
+except ImportError:
+    # Likely running on installation without Mistral
+    mistral = None
+
 from oslo_config import cfg
 
 from st2common.exceptions.workflow import WorkflowDefinitionException
