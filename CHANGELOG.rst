@@ -71,6 +71,11 @@ Changed
 * Refactor Orquesta workflow to output on error. Depends on PR
   https://github.com/StackStorm/orquesta/pull/101 and https://github.com/StackStorm/orquesta/pull/102
   (improvement)
+* Rename ``st2client.liveactions`` to ``st2client.executions``. ``st2client.liveactions`` already
+  represented operations on execution objects, but it was incorrectly named.
+
+  For backward compatibility reasons, ``st2client.liveactions`` will stay as an alias for
+  ``st2client.executions`` and continue to work until it's fully removed in a future release.
 
 Fixed
 ~~~~~
