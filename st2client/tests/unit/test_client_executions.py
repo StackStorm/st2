@@ -47,7 +47,7 @@ ACTION = {
     "pack": "mocke"
 }
 
-LIVE_ACTION = {
+EXECUTION = {
     "id": 12345,
     "action": {
         "ref": "mock.foobar"
@@ -57,16 +57,16 @@ LIVE_ACTION = {
 }
 
 
-class TestLiveActionResourceManager(unittest2.TestCase):
+class TestExecutionResourceManager(unittest2.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        super(TestLiveActionResourceManager, cls).setUpClass()
+        super(TestExecutionResourceManager, cls).setUpClass()
         cls.client = client.Client()
 
     @mock.patch.object(
         models.ResourceManager, 'get_by_id',
-        mock.MagicMock(return_value=models.LiveAction(**LIVE_ACTION)))
+        mock.MagicMock(return_value=models.Execution(**EXECUTION)))
     @mock.patch.object(
         models.ResourceManager, 'get_by_ref_or_id',
         mock.MagicMock(return_value=models.Action(**ACTION)))
@@ -75,11 +75,11 @@ class TestLiveActionResourceManager(unittest2.TestCase):
         mock.MagicMock(return_value=models.RunnerType(**RUNNER)))
     @mock.patch.object(
         httpclient.HTTPClient, 'post',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(EXECUTION), 200, 'OK')))
     def test_rerun_with_no_params(self):
-        self.client.liveactions.re_run(LIVE_ACTION['id'], tasks=['foobar'])
+        self.client.executions.re_run(EXECUTION['id'], tasks=['foobar'])
 
-        endpoint = '/executions/%s/re_run' % LIVE_ACTION['id']
+        endpoint = '/executions/%s/re_run' % EXECUTION['id']
 
         data = {
             'tasks': ['foobar'],
@@ -91,7 +91,7 @@ class TestLiveActionResourceManager(unittest2.TestCase):
 
     @mock.patch.object(
         models.ResourceManager, 'get_by_id',
-        mock.MagicMock(return_value=models.LiveAction(**LIVE_ACTION)))
+        mock.MagicMock(return_value=models.Execution(**EXECUTION)))
     @mock.patch.object(
         models.ResourceManager, 'get_by_ref_or_id',
         mock.MagicMock(return_value=models.Action(**ACTION)))
@@ -100,19 +100,19 @@ class TestLiveActionResourceManager(unittest2.TestCase):
         mock.MagicMock(return_value=models.RunnerType(**RUNNER)))
     @mock.patch.object(
         httpclient.HTTPClient, 'post',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(EXECUTION), 200, 'OK')))
     def test_rerun_with_params(self):
         params = {
             'var1': 'testing...'
         }
 
-        self.client.liveactions.re_run(
-            LIVE_ACTION['id'],
+        self.client.executions.re_run(
+            EXECUTION['id'],
             tasks=['foobar'],
             parameters=params
         )
 
-        endpoint = '/executions/%s/re_run' % LIVE_ACTION['id']
+        endpoint = '/executions/%s/re_run' % EXECUTION['id']
 
         data = {
             'tasks': ['foobar'],
@@ -124,7 +124,7 @@ class TestLiveActionResourceManager(unittest2.TestCase):
 
     @mock.patch.object(
         models.ResourceManager, 'get_by_id',
-        mock.MagicMock(return_value=models.LiveAction(**LIVE_ACTION)))
+        mock.MagicMock(return_value=models.Execution(**EXECUTION)))
     @mock.patch.object(
         models.ResourceManager, 'get_by_ref_or_id',
         mock.MagicMock(return_value=models.Action(**ACTION)))
@@ -133,11 +133,11 @@ class TestLiveActionResourceManager(unittest2.TestCase):
         mock.MagicMock(return_value=models.RunnerType(**RUNNER)))
     @mock.patch.object(
         httpclient.HTTPClient, 'put',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(EXECUTION), 200, 'OK')))
     def test_pause(self):
-        self.client.liveactions.pause(LIVE_ACTION['id'])
+        self.client.executions.pause(EXECUTION['id'])
 
-        endpoint = '/executions/%s' % LIVE_ACTION['id']
+        endpoint = '/executions/%s' % EXECUTION['id']
 
         data = {
             'status': 'pausing'
@@ -147,7 +147,7 @@ class TestLiveActionResourceManager(unittest2.TestCase):
 
     @mock.patch.object(
         models.ResourceManager, 'get_by_id',
-        mock.MagicMock(return_value=models.LiveAction(**LIVE_ACTION)))
+        mock.MagicMock(return_value=models.Execution(**EXECUTION)))
     @mock.patch.object(
         models.ResourceManager, 'get_by_ref_or_id',
         mock.MagicMock(return_value=models.Action(**ACTION)))
@@ -156,11 +156,11 @@ class TestLiveActionResourceManager(unittest2.TestCase):
         mock.MagicMock(return_value=models.RunnerType(**RUNNER)))
     @mock.patch.object(
         httpclient.HTTPClient, 'put',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(EXECUTION), 200, 'OK')))
     def test_resume(self):
-        self.client.liveactions.resume(LIVE_ACTION['id'])
+        self.client.executions.resume(EXECUTION['id'])
 
-        endpoint = '/executions/%s' % LIVE_ACTION['id']
+        endpoint = '/executions/%s' % EXECUTION['id']
 
         data = {
             'status': 'resuming'
@@ -173,11 +173,11 @@ class TestLiveActionResourceManager(unittest2.TestCase):
         mock.MagicMock(return_value='executions'))
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps([LIVE_ACTION]), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps([EXECUTION]), 200, 'OK')))
     def test_get_children(self):
-        self.client.liveactions.get_children(LIVE_ACTION['id'])
+        self.client.executions.get_children(EXECUTION['id'])
 
-        endpoint = '/executions/%s/children' % LIVE_ACTION['id']
+        endpoint = '/executions/%s/children' % EXECUTION['id']
 
         data = {
             'depth': -1

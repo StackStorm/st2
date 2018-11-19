@@ -25,7 +25,7 @@ from st2client.utils import httpclient
 from st2client.models.core import ResourceManager
 from st2client.models.core import ActionAliasResourceManager
 from st2client.models.core import ActionAliasExecutionManager
-from st2client.models.core import LiveActionResourceManager
+from st2client.models.core import ExecutionResourceManager
 from st2client.models.core import InquiryResourceManager
 from st2client.models.core import TriggerInstanceResourceManager
 from st2client.models.core import PackResourceManager
@@ -129,8 +129,8 @@ class Client(object):
             models.Config, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['ConfigSchema'] = ResourceManager(
             models.ConfigSchema, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
-        self.managers['LiveAction'] = LiveActionResourceManager(
-            models.LiveAction, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        self.managers['Execution'] = ExecutionResourceManager(
+            models.Execution, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Inquiry'] = InquiryResourceManager(
             models.Inquiry, self.endpoints['exp'], cacert=self.cacert, debug=self.debug)
         self.managers['Pack'] = PackResourceManager(
@@ -200,8 +200,14 @@ class Client(object):
         return self.managers['KeyValuePair']
 
     @property
+    def executions(self):
+        return self.managers['Execution']
+
+    # NOTE: LiveAction has been deprecated in favor of Execution. It will be left here for
+    # backward compatibility reasons until v3.2.0
+    @property
     def liveactions(self):
-        return self.managers['LiveAction']
+        return self.executions
 
     @property
     def inquiries(self):
