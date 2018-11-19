@@ -56,7 +56,7 @@ class RerunWiringTest(base.TestWorkflowExecution):
         with open(path, 'w') as f:
             f.write('0')
 
-        ex = self.st2client.liveactions.re_run(orig_st2_ex_id)
+        ex = self.st2client.executions.re_run(orig_st2_ex_id)
         self.assertNotEqual(ex.id, orig_st2_ex_id)
         ex = self._wait_for_state(ex, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         self.assertNotEqual(ex.context['mistral']['execution_id'], orig_wf_ex_id)
@@ -77,7 +77,7 @@ class RerunWiringTest(base.TestWorkflowExecution):
         with open(path, 'w') as f:
             f.write('0')
 
-        ex = self.st2client.liveactions.re_run(orig_st2_ex_id, tasks=['task1'])
+        ex = self.st2client.executions.re_run(orig_st2_ex_id, tasks=['task1'])
         self.assertNotEqual(ex.id, orig_st2_ex_id)
         ex = self._wait_for_state(ex, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         self.assertEqual(ex.context['mistral']['execution_id'], orig_wf_ex_id)
@@ -99,7 +99,7 @@ class RerunWiringTest(base.TestWorkflowExecution):
         with open(path, 'w') as f:
             f.write('0')
 
-        ex = self.st2client.liveactions.re_run(orig_st2_ex_id, tasks=['task1.task1'])
+        ex = self.st2client.executions.re_run(orig_st2_ex_id, tasks=['task1.task1'])
         self.assertNotEqual(ex.id, orig_st2_ex_id)
         ex = self._wait_for_state(ex, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         self.assertEqual(ex.context['mistral']['execution_id'], orig_wf_ex_id)
@@ -121,13 +121,13 @@ class RerunWiringTest(base.TestWorkflowExecution):
         with open(path, 'w') as f:
             f.write('0')
 
-        ex = self.st2client.liveactions.re_run(orig_st2_ex_id, tasks=['task1'])
+        ex = self.st2client.executions.re_run(orig_st2_ex_id, tasks=['task1'])
         self.assertNotEqual(ex.id, orig_st2_ex_id)
         ex = self._wait_for_state(ex, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         self.assertEqual(ex.context['mistral']['execution_id'], orig_wf_ex_id)
         self.assertEqual(len(ex.result.get('tasks', [])), 1)
 
-        children = self.st2client.liveactions.get_property(ex.id, 'children')
+        children = self.st2client.executions.get_property(ex.id, 'children')
         self.assertEqual(len(children), 4)
 
     def test_rerun_and_resume_with_items_task(self):
@@ -146,7 +146,7 @@ class RerunWiringTest(base.TestWorkflowExecution):
         with open(path, 'w') as f:
             f.write('0')
 
-        ex = self.st2client.liveactions.re_run(
+        ex = self.st2client.executions.re_run(
             orig_st2_ex_id,
             tasks=['task1'],
             no_reset=['task1']
@@ -157,7 +157,7 @@ class RerunWiringTest(base.TestWorkflowExecution):
         self.assertEqual(ex.context['mistral']['execution_id'], orig_wf_ex_id)
         self.assertEqual(len(ex.result.get('tasks', [])), 1)
 
-        children = self.st2client.liveactions.get_property(ex.id, 'children')
+        children = self.st2client.executions.get_property(ex.id, 'children')
         self.assertEqual(len(children), 2)
 
     def test_rerun_subflow_and_reset_with_items_task(self):
@@ -176,13 +176,13 @@ class RerunWiringTest(base.TestWorkflowExecution):
         with open(path, 'w') as f:
             f.write('0')
 
-        ex = self.st2client.liveactions.re_run(orig_st2_ex_id, tasks=['task1.task1'])
+        ex = self.st2client.executions.re_run(orig_st2_ex_id, tasks=['task1.task1'])
         self.assertNotEqual(ex.id, orig_st2_ex_id)
         ex = self._wait_for_state(ex, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         self.assertEqual(ex.context['mistral']['execution_id'], orig_wf_ex_id)
         self.assertEqual(len(ex.result.get('tasks', [])), 1)
 
-        children = self.st2client.liveactions.get_property(ex.id, 'children')
+        children = self.st2client.executions.get_property(ex.id, 'children')
         self.assertEqual(len(children), 4)
 
     def test_rerun_subflow_and_resume_with_items_task(self):
@@ -201,7 +201,7 @@ class RerunWiringTest(base.TestWorkflowExecution):
         with open(path, 'w') as f:
             f.write('0')
 
-        ex = self.st2client.liveactions.re_run(
+        ex = self.st2client.executions.re_run(
             orig_st2_ex_id,
             tasks=['task1.task1'],
             no_reset=['task1.task1']
@@ -212,5 +212,5 @@ class RerunWiringTest(base.TestWorkflowExecution):
         self.assertEqual(ex.context['mistral']['execution_id'], orig_wf_ex_id)
         self.assertEqual(len(ex.result.get('tasks', [])), 1)
 
-        children = self.st2client.liveactions.get_property(ex.id, 'children')
+        children = self.st2client.executions.get_property(ex.id, 'children')
         self.assertEqual(len(children), 2)
