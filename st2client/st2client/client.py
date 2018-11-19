@@ -17,6 +17,7 @@ from __future__ import absolute_import
 
 import os
 import logging
+import warnings
 
 import six
 
@@ -207,6 +208,8 @@ class Client(object):
     # backward compatibility reasons until v3.2.0
     @property
     def liveactions(self):
+        warnings.warn(('st2client.liveactions has been renamed to st2client.executions, please '
+                       'update your code'), DeprecationWarning)
         return self.executions
 
     @property

@@ -14,8 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import json
 import logging
+import warnings
 import mock
 import unittest2
 
@@ -184,3 +186,13 @@ class TestExecutionResourceManager(unittest2.TestCase):
         }
 
         httpclient.HTTPClient.get.assert_called_with(url=endpoint, params=data)
+
+    def test_st2client_liveactions_has_been_deprecated_and_emits_warning(self):
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always')
+
+            self.client.liveactions.get_all()
+
+            self.assertEqual(len(w), 1)
+            self.assertTrue(issubclass(w[0].category, DeprecationWarning))
+            self.assertTrue('st2client.liveactions has been renamed' in str(w[0].message))
