@@ -38,6 +38,10 @@ LOG = logging.getLogger(__name__)
 
 
 def get_validator():
+    if not mistral:
+        # Mistral not available, likely running on distribution without Mistral
+        return None
+
     return MistralWorkflowValidator()
 
 
