@@ -71,6 +71,11 @@ PYTHON_VERSION=$(/opt/stackstorm/st2/bin/python --version 2>&1 | awk '{print $2'
 
 if [ "${PYTHON_VERSION}" = "3" ]; then
     RUN_MISTRAL_TESTS=false
+    # We ignore register errors because those could happen when actions reference an non-existent
+    # mistral-v2 runner
+    ST2CTL_RELOAD_FLAGS=" --register-no-fail-on-failure --register-all"
+else
+    ST2CTL_RELOAD_FLAGS=" --register-all"
 fi
 
 ERRORS=0
@@ -112,7 +117,8 @@ cp -Rf --preserve /usr/share/doc/st2/examples /opt/stackstorm/packs/
 
 echo "Installing asserts, fixtures, tests and examples packs."
 st2 run packs.setup_virtualenv packs=examples,tests,asserts,fixtures,webui
-st2ctl reload --register-all
+
+st2ctl reload  ${ST2CTL_RELOAD_FLAGS}
 
 echo "Deleting 'st2tests' directory from `pwd`."
 rm -R st2tests/
