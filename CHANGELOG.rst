@@ -28,6 +28,10 @@ Added
   ``sensors/`` directory or via trigger definition file in ``triggers/`` directory. If
   ``metadata_file`` attribute on TriggerTypeDB model points to ``sensors/`` directory it means that
   trigger is registered via sensor definition. (new feature) #4445
+* Add new ``st2client.executions.get_children`` method for returning children execution objects for
+  a specific (parent) execution. (new feature) #4444
+
+  Contributed by Tristan Struthers (@trstruth).
 
 Changed
 ~~~~~~~
