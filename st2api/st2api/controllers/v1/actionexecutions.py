@@ -138,7 +138,8 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
             abort(http_client.BAD_REQUEST, str(e))
         except jsonschema.ValidationError as e:
             LOG.exception('Unable to execute action. Parameter validation failed.')
-            abort(http_client.BAD_REQUEST, re.sub("u'([^']*)'", r"'\1'", e.message))
+            abort(http_client.BAD_REQUEST, re.sub("u'([^']*)'", r"'\1'",
+                                                  getattr(e, 'message', str(e))))
         except trace_exc.TraceNotFoundException as e:
             abort(http_client.BAD_REQUEST, str(e))
         except validation_exc.ValueValidationException as e:

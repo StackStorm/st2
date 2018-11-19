@@ -149,6 +149,8 @@ def write_requirements(sources=None, fixed_requirements=None, output_file=None,
     lines_to_write = []
     links = set()
     for req in requirements:
+        print(req.name)
+        print(skip)
         if req.name in skip:
             continue
 
