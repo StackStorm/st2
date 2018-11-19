@@ -368,7 +368,7 @@ class ActionRunCommandMixin(object):
             self.print_output(instance, formatter, **options)
 
     def _run_and_print_child_task_list(self, execution, args, **kwargs):
-        action_exec_mgr = self.app.client.managers['LiveAction']
+        action_exec_mgr = self.app.client.managers['Execution']
 
         instance = execution
         options = {'attributes': ['id', 'action.ref', 'parameters', 'status', 'start_timestamp',
@@ -456,7 +456,7 @@ class ActionRunCommandMixin(object):
         if args.tail:
             # Start tailing new execution
             print('Tailing execution "%s"' % (str(execution.id)))
-            execution_manager = self.app.client.managers['LiveAction']
+            execution_manager = self.app.client.managers['Execution']
             stream_manager = self.app.client.managers['Stream']
             ActionExecutionTailCommand.tail_execution(execution=execution,
                                                       execution_manager=execution_manager,
@@ -734,7 +734,7 @@ class ActionRunCommandMixin(object):
     def _print_help(self, args, **kwargs):
         # Print appropriate help message if the help option is given.
         action_mgr = self.app.client.managers['Action']
-        action_exec_mgr = self.app.client.managers['LiveAction']
+        action_exec_mgr = self.app.client.managers['Execution']
 
         if args.help:
             action_ref_or_id = getattr(args, 'ref_or_id', None)
@@ -875,9 +875,9 @@ class ActionRunCommandMixin(object):
             task_name_key = 'context.mistral.task_name'
         elif context and 'orquesta' in context:
             task_name_key = 'context.orquesta.task_name'
-        # Use LiveAction as the object so that the formatter lookup does not change.
+        # Use Execution as the object so that the formatter lookup does not change.
         # AKA HACK!
-        return models.action.LiveAction(**{
+        return models.action.Execution(**{
             'id': task.id,
             'status': task.status,
             'task': jsutil.get_value(vars(task), task_name_key),
@@ -994,7 +994,7 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
         action_parameters = self._get_action_parameters_from_args(action=action, runner=runner,
                                                                   args=args)
 
-        execution = models.LiveAction()
+        execution = models.Execution()
         execution.action = action_ref
         execution.parameters = action_parameters
         execution.user = args.user
@@ -1005,7 +1005,7 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
         if args.trace_id:
             execution.context = {'trace_context': {'id_': args.trace_id}}
 
-        action_exec_mgr = self.app.client.managers['LiveAction']
+        action_exec_mgr = self.app.client.managers['Execution']
 
         execution = action_exec_mgr.create(execution, **kwargs)
         execution = self._get_execution_result(execution=execution,
@@ -1019,7 +1019,7 @@ class ActionExecutionBranch(resource.ResourceBranch):
 
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(ActionExecutionBranch, self).__init__(
-            models.LiveAction, description, app, subparsers,
+            models.Execution, description, app, subparsers,
             parent_parser=parent_parser, read_only=True,
             commands={'list': ActionExecutionListCommand,
                       'get': ActionExecutionGetCommand})
@@ -1285,7 +1285,7 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
 
         action_mgr = self.app.client.managers['Action']
         runner_mgr = self.app.client.managers['RunnerType']
-        action_exec_mgr = self.app.client.managers['LiveAction']
+        action_exec_mgr = self.app.client.managers['Execution']
 
         action_ref = existing_execution.action['ref']
         action = action_mgr.get_by_ref_or_id(action_ref)

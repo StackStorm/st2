@@ -132,6 +132,9 @@ class Client(object):
             models.ConfigSchema, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Execution'] = ExecutionResourceManager(
             models.Execution, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        # NOTE: LiveAction has been deprecated in favor of Execution. It will be left here for
+        # backward compatibility reasons until v3.2.0
+        self.managers['LiveAction'] = self.managers['Execution']
         self.managers['Inquiry'] = InquiryResourceManager(
             models.Inquiry, self.endpoints['exp'], cacert=self.cacert, debug=self.debug)
         self.managers['Pack'] = PackResourceManager(

@@ -21,7 +21,7 @@ import yaml
 
 from st2client.models import Config
 from st2client.models import Pack
-from st2client.models import LiveAction
+from st2client.models import Execution
 from st2client.commands import resource
 from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
 from st2client.commands.action import ActionRunCommandMixin
@@ -117,7 +117,7 @@ class PackAsyncCommand(ActionRunCommandMixin, resource.ResourceCommand):
         with term.TaskIndicator() as indicator:
             events = ['st2.execution__create', 'st2.execution__update']
             for event in stream_mgr.listen(events, **kwargs):
-                execution = LiveAction(**event)
+                execution = Execution(**event)
 
                 if execution.id == parent_id \
                         and execution.status in LIVEACTION_COMPLETED_STATES:
@@ -143,7 +143,7 @@ class PackAsyncCommand(ActionRunCommandMixin, resource.ResourceCommand):
             self._print_execution_details(execution=execution, args=args, **kwargs)
             sys.exit(1)
 
-        return self.app.client.managers['LiveAction'].get_by_id(parent_id, **kwargs)
+        return self.app.client.managers['Execution'].get_by_id(parent_id, **kwargs)
 
 
 class PackListCommand(resource.ResourceListCommand):

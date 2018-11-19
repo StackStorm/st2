@@ -15,7 +15,7 @@
 
 from __future__ import absolute_import
 
-from st2client.models import Resource, Trace, TriggerInstance, Rule, LiveAction
+from st2client.models import Resource, Trace, TriggerInstance, Rule, Execution
 from st2client.exceptions.operations import OperationFailureException
 from st2client.formatters import table
 from st2client.formatters import execution as execution_formatter
@@ -94,7 +94,7 @@ class SingleTraceDisplayMixin(object):
                                for rule in trace.rules])
         if any(attr in args.attr for attr in ACTION_EXECUTION_DISPLAY_OPTIONS):
             components.extend([Resource(**{'id': execution['object_id'],
-                                           'type': LiveAction._alias.lower(),
+                                           'type': Execution._alias.lower(),
                                            'ref': execution['ref'],
                                            'updated_at': execution['updated_at']})
                                for execution in trace.action_executions])
