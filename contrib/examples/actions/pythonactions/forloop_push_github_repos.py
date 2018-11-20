@@ -9,6 +9,6 @@ class PushGithubRepos(Action):
                 # Push data to a service here
                 print(str(each_item))
         except Exception as e:
-            raise Exception("Process failed: {}".format(e.message))
+            raise Exception("Process failed: {}".format(str(e)))
 
         return (True, "Data pushed successfully")

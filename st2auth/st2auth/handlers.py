@@ -179,7 +179,7 @@ class StandaloneAuthHandler(AuthHandlerBase):
                 token = self._create_token_for_user(username=username, ttl=ttl)
             except TTLTooLargeException as e:
                 abort_request(status_code=http_client.BAD_REQUEST,
-                              message=e.message)
+                              message=str(e))
                 return
 
             # If remote group sync is enabled, sync the remote groups with local StackStorm roles

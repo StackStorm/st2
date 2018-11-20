@@ -315,7 +315,7 @@ class ApiKeyCreateCommand(resource.ResourceCommand):
             if not instance:
                 raise Exception('Server did not create instance.')
         except Exception as e:
-            message = e.message or str(e)
+            message = str(e)
             print('ERROR: %s' % (message))
             raise OperationFailureException(message)
         if args.only_key:

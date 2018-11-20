@@ -171,7 +171,7 @@ class ActionAliasExecutionController(BaseRestControllerMixin):
                         })
                 except UndefinedError as e:
                     result.update({
-                        'message': 'Cannot render "format" in field "ack" for alias. ' + e.message
+                        'message': 'Cannot render "format" in field "ack" for alias. ' + str(e)
                     })
 
                 try:
@@ -181,7 +181,7 @@ class ActionAliasExecutionController(BaseRestControllerMixin):
                         })
                 except UndefinedError as e:
                     result.update({
-                        'extra': 'Cannot render "extra" in field "ack" for alias. ' + e.message
+                        'extra': 'Cannot render "extra" in field "ack" for alias. ' + str(e)
                     })
 
             results.append(result)
