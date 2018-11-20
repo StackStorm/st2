@@ -190,12 +190,13 @@ class TestExecutionResourceManager(unittest2.TestCase):
     @mock.patch.object(
         models.ResourceManager, 'get_all',
         mock.MagicMock(return_value=[models.Execution(**EXECUTION)]))
-    def test_st2client_liveactions_has_been_deprecated_and_emits_warning(self):
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter('always')
+    @mock.patch.object(warnings, 'warn')
+    def test_st2client_liveactions_has_been_deprecated_and_emits_warning(self, mock_warn):
+        self.assertEqual(mock_warn.call_args, None)
 
-            self.client.liveactions.get_all()
+        self.client.liveactions.get_all()
 
-            self.assertEqual(len(w), 1)
-            self.assertTrue(issubclass(w[0].category, DeprecationWarning))
-            self.assertTrue('st2client.liveactions has been renamed' in str(w[0].message))
+        expected_msg = 'st2client.liveactions has been renamed'
+        self.assertTrue(len(mock_warn.call_args_list) >= 1)
+        self.assertTrue(expected_msg in mock_warn.call_args_list[0][0][0])
+        self.assertEqual(mock_warn.call_args_list[0][0][1], DeprecationWarning)
