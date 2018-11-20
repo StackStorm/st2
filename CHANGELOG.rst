@@ -100,9 +100,9 @@ Fixed
 * Fix access to st2 and action context in Orquesta workflows, associated with PR
   https://github.com/StackStorm/orquesta/pull/104. (bug fix)
 * ``st2ctl reload --register-aliases`` and ``st2ctl reload --register-all`` now spits a warning when
-trying to register aliases with no corresponding action registered in the db.
+  trying to register aliases with no corresponding action registered in the db.
 
-Reported by nzlosh (improvement) #4372.
+  Reported by nzlosh (improvement) #4372.
 
 2.9.1 - October 03, 2018
 ------------------------
