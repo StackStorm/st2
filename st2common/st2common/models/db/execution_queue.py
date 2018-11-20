@@ -32,7 +32,8 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 
-class ActionExecutionSchedulingQueueDB(stormbase.StormFoundationDB):
+class ActionExecutionSchedulingQueueDB(stormbase.StormFoundationDB,
+        stormbase.ChangeRevisionFieldMixin):
     RESOURCE_TYPE = ResourceType.EXECUTION_REQUEST
     UID_FIELDS = ['id']
     liveaction = me.StringField(required=True)
@@ -40,7 +41,6 @@ class ActionExecutionSchedulingQueueDB(stormbase.StormFoundationDB):
         default=date_utils.get_datetime_utc_now,
         help_text='The timestamp when the liveaction was created.')
     delay = me.IntField()
-    rev = me.IntField(default=0)
     handling = me.BooleanField(default=False)
 
     meta = {
