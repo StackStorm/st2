@@ -31,7 +31,7 @@ from st2common.bootstrap import runnersregistrar as runners_registrar
 from st2common.persistence.execution_queue import ExecutionQueue
 from st2tests import DbTestCase, EventletTestCase
 from st2tests.fixturesloader import FixturesLoader
-from st2tests.mocks.execution import MockExecutionPublisher, MockExecutionPublisherNonBlocking
+from st2tests.mocks.execution import MockExecutionPublisher
 from st2tests.mocks import liveaction as mock_liveaction
 from st2tests.mocks.runners import runner
 from six.moves import range
@@ -91,6 +91,7 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, DbTestCase):
         super(ConcurrencyByAttributePolicyTestCase, self).setUp()
 
         mock_liveaction.MockLiveActionPublisherNonBlocking.wait_all()
+        mock_liveaction.setup()
 
     def tearDown(self):
         mock_liveaction.MockLiveActionPublisherNonBlocking.wait_all()
@@ -103,6 +104,7 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, DbTestCase):
         for execution in ExecutionQueue.get_all():
             print(execution)
             ExecutionQueue.delete(execution)
+        mock_liveaction.teardown()
 
     @staticmethod
     def _reset():
@@ -212,6 +214,10 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, DbTestCase):
 
         # Execution is expected to be rescheduled.
         liveaction = LiveAction.get_by_id(str(delayed.id))
+        liveaction = self._wait_on_status(
+            liveaction,
+            action_constants.LIVEACTION_STATUS_SCHEDULED
+        )
         self.assertIn(liveaction.status, SCHEDULED_STATES)
         self.assertEqual(expected_num_pubs, LiveActionPublisher.publish_state.call_count)
         self.assertEqual(expected_num_exec, runner.MockActionRunner.run.call_count)
@@ -232,7 +238,7 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, DbTestCase):
     # running in the same process.
     @mock.patch.object(
         LiveActionPublisher, 'publish_update',
-        mock.MagicMock(side_effect=MockExecutionPublisherNonBlocking.publish_update))
+        mock.MagicMock(side_effect=MockExecutionPublisher.publish_update))
     def test_over_threshold_cancel_executions(self):
         self._reset()
         policy_db = Policy.get_by_ref('wolfpack.action-2.concurrency.attr.cancel')
@@ -391,6 +397,10 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, DbTestCase):
 
         # Execution is expected to be rescheduled.
         liveaction = LiveAction.get_by_id(str(delayed.id))
+        liveaction = self._wait_on_status(
+            liveaction,
+            action_constants.LIVEACTION_STATUS_SCHEDULED
+        )
         self.assertIn(liveaction.status, SCHEDULED_STATES)
         self.assertEqual(expected_num_pubs, LiveActionPublisher.publish_state.call_count)
         self.assertEqual(expected_num_exec, runner.MockActionRunner.run.call_count)

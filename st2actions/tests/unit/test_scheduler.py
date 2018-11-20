@@ -59,7 +59,7 @@ class ActionExecutionSchedulingQueueDBTest(DbTestCase):
         self.assertEqual(execution_request.delay, delay)
         self.assertEqual(execution_request.liveaction, str(live_action.id))
 
-    def test_next_executions(self):
+    def test_next_execution(self):
         self.reset()
         live_action = LiveAction.add_or_update(
             LiveActionDB(
@@ -109,7 +109,7 @@ class ActionExecutionSchedulingQueueDBTest(DbTestCase):
             date_mock.append_milliseconds_to_time = date.append_milliseconds_to_time
 
             with patch('st2actions.scheduler.handler.date', date_mock):
-                execution_request = handler._next_executions()[0]
+                execution_request = handler._next_execution()
                 ExecutionQueue.delete(execution_request)
 
             self.assertIsInstance(execution_request, ActionExecutionSchedulingQueueDB)
@@ -119,6 +119,5 @@ class ActionExecutionSchedulingQueueDBTest(DbTestCase):
 
     def test_next_executions_empty(self):
         self.reset()
-        execution_request = handler._next_executions()
-        self.assertIsInstance(execution_request, list)
-        self.assertEquals(execution_request, [])
+        execution_request = handler._next_execution()
+        self.assertEquals(execution_request, None)

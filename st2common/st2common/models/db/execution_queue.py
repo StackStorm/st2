@@ -19,7 +19,7 @@ import mongoengine as me
 
 from st2common import log as logging
 from st2common.models.db import stormbase
-from st2common.models.db import MongoDBAccess
+from st2common.models.db import ChangeRevisionMongoDBAccess
 from st2common.fields import ComplexDateTimeField
 from st2common.util import date as date_utils
 from st2common.constants.types import ResourceType
@@ -40,6 +40,8 @@ class ActionExecutionSchedulingQueueDB(stormbase.StormFoundationDB):
         default=date_utils.get_datetime_utc_now,
         help_text='The timestamp when the liveaction was created.')
     delay = me.IntField()
+    rev = me.IntField(default=0)
+    handling = me.BooleanField(default=False)
 
     meta = {
         'indexes': [
@@ -50,4 +52,4 @@ class ActionExecutionSchedulingQueueDB(stormbase.StormFoundationDB):
 
 
 MODELS = [ActionExecutionSchedulingQueueDB]
-EXECUTION_QUEUE_ACCESS = MongoDBAccess(ActionExecutionSchedulingQueueDB)
+EXECUTION_QUEUE_ACCESS = ChangeRevisionMongoDBAccess(ActionExecutionSchedulingQueueDB)

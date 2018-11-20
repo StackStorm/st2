@@ -90,6 +90,7 @@ class ConcurrencyPolicyTestCase(EventletTestCase, DbTestCase):
 
         # Wait for all threads to finish processing so there is no cross test polution
         mock_liveaction.MockLiveActionPublisherNonBlocking.wait_all()
+        self.reset()
         mock_liveaction.setup()
 
     def tearDown(self):
@@ -304,6 +305,7 @@ class ConcurrencyPolicyTestCase(EventletTestCase, DbTestCase):
         # num_state_changes = len(scheduled) * len(['requested', 'scheduled', 'running'])
         expected_num_exec = len(scheduled)
         expected_num_pubs = expected_num_exec * 3
+        mock_liveaction.MockLiveActionPublisherNonBlocking.wait_all()
         self.assertEqual(expected_num_pubs, LiveActionPublisher.publish_state.call_count)
         self.assertEqual(expected_num_exec, runner.MockActionRunner.run.call_count)
 

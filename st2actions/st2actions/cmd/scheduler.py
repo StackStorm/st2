@@ -8,10 +8,6 @@ import os
 import signal
 import sys
 
-from st2actions.scheduler import (
-    handler as scheduler_handler,
-    entrypoint as scheduler_entrypoint
-)
 from st2actions.scheduler import config
 from st2common import log as logging
 from st2common.service_setup import teardown as common_teardown
@@ -42,6 +38,12 @@ def _setup():
 
 def _run_queuer():
     LOG.info('(PID=%s) Scheduler started.', os.getpid())
+
+    # Lazy load these so that decorator metrics are in place
+    from st2actions.scheduler import (
+        handler as scheduler_handler,
+        entrypoint as scheduler_entrypoint
+    )
 
     handler = scheduler_handler.get_handler()
     entrypoint = scheduler_entrypoint.get_scheduler_entrypoint()

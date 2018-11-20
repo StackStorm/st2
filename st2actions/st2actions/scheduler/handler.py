@@ -28,6 +28,7 @@ from st2common.persistence.execution_queue import ExecutionQueue
 from st2common.util import action_db as action_utils
 from st2common.services import coordination
 from st2common.metrics import base as metrics
+from st2common.exceptions import db as db_exc
 
 __all__ = [
     'ExecutionQueueHandler',
@@ -38,31 +39,62 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 
-def _next_executions():
+def _next_execution():
     """
         Sort executions by fifo and priority and get the latest, highest priority
         item from the queue and pop it off.
     """
     query = {
         "scheduled_start_timestamp__lte": date.get_datetime_utc_now(),
+        "handling": False,
+        "limit": 1,
         "order_by": [
             "scheduled_start_timestamp",
         ]
     }
 
-    queued_executions = ExecutionQueue.query(**query)
-    if queued_executions:
-        return queued_executions
+    execution = ExecutionQueue.query(**query).first()
+    if execution:
+        execution.handling = True
+        try:
+            ExecutionQueue.add_or_update(execution, publish=False)
+            return execution
+        except db_exc.StackStormDBObjectWriteConflictError:
+            LOG.info("Execution handled by another scheduler: %s", execution.id)
 
-    return []
+    return None
 
 
 class ExecutionQueueHandler(object):
     def __init__(self):
         self.message_type = LiveActionDB
         self._shutdown = False
-        self._coordinator = coordination.get_coordinator()
-        self._locks = {}
+        self._pool = eventlet.GreenPool(size=10)
+
+    def garbageCollection(self):
+        LOG.debug('Starting scheduler garbage collection')
+
+        while self._shutdown is not True:
+            eventlet.greenthread.sleep(5)
+            query = {
+                "scheduled_start_timestamp__lte": date.append_milliseconds_to_time(
+                    date.get_datetime_utc_now(),
+                    -60000
+                ),
+                "handling": True,
+            }
+
+            executions = ExecutionQueue.query(**query)
+            if executions:
+                for execution in executions:
+                    execution.handling = False
+                    try:
+                        ExecutionQueue.add_or_update(execution, publish=False)
+                    except db_exc.StackStormDBObjectWriteConflictError:
+                        LOG.info(
+                            "Execution updated before rescheduling: %s",
+                            execution.id
+                        )
 
     def loop(self):
         LOG.debug('Entering scheduler loop')
@@ -70,26 +102,18 @@ class ExecutionQueueHandler(object):
         while self._shutdown is not True:
             eventlet.greenthread.sleep(0.1)
             with metrics.Timer(key='scheduler.loop'):
-                with self._coordinator.get_lock('st2shcedulerqueue'):
-                    queued_executions = _next_executions()
-                    for execution in queued_executions:
-                        self._locks[str(execution.id)] = self._coordinator.get_lock(str(execution.id))
-            for execution in queued_executions:
-                with metrics.Timer(key='scheduler.handle_execution'):
-                    lock = self._locks[str(execution.id)]
-                    self._handle_execution(execution)
-                    lock.release()
-                # try:
-                # except Exception as error:
-                #     self._coordinator = coordination.get_coordinator()
-                #     LOG.error("Error encountered in scheduler loop: %s", error)
+                execution = _next_execution()
+            with metrics.Timer(key='scheduler.loop.spawn_execution'):
+                if execution:
+                    self._pool.spawn(self._handle_execution, execution)
 
-    def _handle_execution(self, execution):
+    @metrics.CounterWithTimer(key='scheduler.handle_execution')
+    def _handle_execution(self, execution, metrics_timer=None):
         LOG.info('Scheduling liveaction: %s', execution.liveaction)
         try:
             liveaction_db = action_utils.get_liveaction_by_id(execution.liveaction)
         except StackStormDBObjectNotFoundError:
-            LOG.exception('Failed to find liveaction %s in the database.', execution.liveaction.id)
+            LOG.exception('Failed to find liveaction %s in the database.', execution.liveaction)
             ExecutionQueue.delete(execution)
             raise
 
@@ -114,7 +138,14 @@ class ExecutionQueueHandler(object):
                 date.get_datetime_utc_now(),
                 500
             )
-            ExecutionQueue.add_or_update(execution, publish=False)
+            try:
+                ExecutionQueue.add_or_update(execution, publish=False)
+            except db_exc.StackStormDBObjectWriteConflictError:
+                LOG.warning(
+                    "Execution update conflict during scheduling: %s",
+                    execution.id
+                )
+
             return None
 
         if (liveaction_db.status in action_constants.LIVEACTION_COMPLETED_STATES or
@@ -165,6 +196,7 @@ class ExecutionQueueHandler(object):
     def start(self):
         self._shutdown = False
         eventlet.spawn(self.loop)
+        eventlet.spawn(self.garbageCollection)
 
     def shutdown(self):
         self._shutdown = True
