@@ -187,6 +187,9 @@ class TestExecutionResourceManager(unittest2.TestCase):
 
         httpclient.HTTPClient.get.assert_called_with(url=endpoint, params=data)
 
+    @mock.patch.object(
+        models.ResourceManager, 'get_all',
+        mock.MagicMock(return_value=[models.Execution(**EXECUTION)]))
     def test_st2client_liveactions_has_been_deprecated_and_emits_warning(self):
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter('always')
