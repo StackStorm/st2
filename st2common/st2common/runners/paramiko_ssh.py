@@ -694,7 +694,7 @@ class ParamikoSSHClient(object):
         try:
             client.connect(**conninfo)
         except SSHException as e:
-            paramiko_msg = e.message
+            paramiko_msg = str(e)
 
             if conninfo.get('password', None):
                 conninfo['password'] = '<redacted>'

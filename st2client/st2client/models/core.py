@@ -436,6 +436,22 @@ class LiveActionResourceManager(ResourceManager):
 
         return self.resource.deserialize(response.json())
 
+    @add_auth_token_to_kwargs_from_env
+    def get_children(self, execution_id, **kwargs):
+        url = '/%s/%s/children' % (self.resource.get_url_path_name(), execution_id)
+
+        depth = kwargs.pop('depth', -1)
+
+        params = kwargs.pop('params', {})
+
+        if depth:
+            params['depth'] = depth
+
+        response = self.client.get(url=url, params=params, **kwargs)
+        if response.status_code != http_client.OK:
+            self.handle_error(response)
+        return [self.resource.deserialize(item) for item in response.json()]
+
 
 class InquiryResourceManager(ResourceManager):
 

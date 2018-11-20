@@ -83,7 +83,7 @@ class SensorWatcher(ConsumerMixin):
                 handler(body)
             except Exception as e:
                 LOG.exception('Handling failed. Message body: %s. Exception: %s',
-                              body, e.message)
+                              body, str(e))
         finally:
             message.ack()
 

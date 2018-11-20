@@ -139,7 +139,7 @@ class ConnectionRetryWrapper(object):
 
             except Exception as e:
                 self._logger.exception('Connections to rabbitmq cannot be re-established: %s',
-                                       e.message)
+                                       str(e))
                 # Not being able to publish a message could be a significant issue for an app.
                 raise
             finally:

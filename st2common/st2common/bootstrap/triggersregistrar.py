@@ -107,9 +107,13 @@ class TriggersRegistrar(ResourceRegistrar):
     def _register_triggers_from_pack(self, pack, triggers):
         registered_count = 0
 
+        pack_base_path = content_utils.get_pack_base_path(pack_name=pack,
+                                                          include_trailing_slash=True)
+
         for trigger in triggers:
             try:
-                self._register_trigger_from_pack(pack=pack, trigger=trigger)
+                self._register_trigger_from_pack(pack_base_path=pack_base_path, pack=pack,
+                                                 trigger=trigger)
             except Exception as e:
                 if self._fail_on_failure:
                     msg = ('Failed to register trigger "%s" from pack "%s": %s' % (trigger, pack,
@@ -123,7 +127,7 @@ class TriggersRegistrar(ResourceRegistrar):
 
         return registered_count
 
-    def _register_trigger_from_pack(self, pack, trigger):
+    def _register_trigger_from_pack(self, pack_base_path, pack, trigger):
         trigger_metadata_file_path = trigger
 
         LOG.debug('Loading trigger from %s.', trigger_metadata_file_path)
@@ -136,6 +140,11 @@ class TriggersRegistrar(ResourceRegistrar):
         if pack_field != pack:
             raise Exception('Model is in pack "%s" but field "pack" is different: %s' %
                             (pack, pack_field))
+
+        # Add in "metadata_file" attribute which stores path to the pack metadata file relative to
+        # the pack directory
+        metadata_file = trigger.replace(pack_base_path, '')
+        content['metadata_file'] = metadata_file
 
         trigger_types = [content]
         result = sensor_type_utils.create_trigger_types(trigger_types=trigger_types)

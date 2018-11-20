@@ -201,7 +201,7 @@ def create_virtualenv(virtualenv_path, logger=None, include_pip=True, include_se
         exit_code, _, stderr = run_command(cmd=cmd)
     except OSError as e:
         raise Exception('Error executing command %s. %s.' % (' '.join(cmd),
-                                                             e.message))
+                                                             str(e)))
 
     if exit_code != 0:
         raise Exception('Failed to create virtualenv in "%s": %s' %

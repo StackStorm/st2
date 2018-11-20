@@ -126,6 +126,13 @@ class ActionsRegistrar(ResourceRegistrar):
             raise Exception('Model is in pack "%s" but field "pack" is different: %s' %
                             (pack, pack_field))
 
+        # Add in "metadata_file" attribute which stores path to the pack metadata file relative to
+        # the pack directory
+        metadata_file = content_utils.get_relative_path_to_pack_file(pack_ref=pack,
+                                                                     file_path=action,
+                                                                     use_pack_cache=True)
+        content['metadata_file'] = metadata_file
+
         action_api = ActionAPI(**content)
 
         try:
@@ -182,12 +189,16 @@ class ActionsRegistrar(ResourceRegistrar):
 
     def _register_actions_from_pack(self, pack, actions):
         registered_count = 0
-
         for action in actions:
             try:
                 LOG.debug('Loading action from %s.', action)
-                self._register_action(pack, action)
+                self._register_action(pack=pack, action=action)
             except Exception as e:
+                # We ignore mistral-v2 runner not found errors since those represent installations
+                # without Mistral
+                if 'mistral-v2 is not found' in str(e):
+                    continue
+
                 if self._fail_on_failure:
                     msg = ('Failed to register action "%s" from pack "%s": %s' % (action, pack,
                                                                                   str(e)))

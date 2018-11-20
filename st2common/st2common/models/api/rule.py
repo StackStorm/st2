@@ -197,6 +197,11 @@ class RuleAPI(BaseAPI, APIUIDMixin):
                 "description": "User associated metadata assigned to this object.",
                 "type": "array",
                 "items": {"type": "object"}
+            },
+            "metadata_file": {
+                "description": "Path to the metadata file relative to the pack directory.",
+                "type": "string",
+                "default": ""
             }
         },
         'additionalProperties': False
@@ -259,6 +264,7 @@ class RuleAPI(BaseAPI, APIUIDMixin):
         kwargs['enabled'] = getattr(rule, 'enabled', False)
         kwargs['context'] = getattr(rule, 'context', dict())
         kwargs['tags'] = TagsHelper.to_model(getattr(rule, 'tags', []))
+        kwargs['metadata_file'] = getattr(rule, 'metadata_file', None)
 
         model = cls.model(**kwargs)
         return model

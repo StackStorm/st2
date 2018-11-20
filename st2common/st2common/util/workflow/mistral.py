@@ -21,7 +21,13 @@ import re
 import requests
 import six
 import yaml
-from mistralclient.api.base import APIException
+
+try:
+    from mistralclient.api.base import APIException
+except ImportError:
+    # Likely running on installation without Mistral
+    class APIException(Exception):
+        pass
 
 from st2common.exceptions.workflow import WorkflowDefinitionException
 from st2common import log as logging
