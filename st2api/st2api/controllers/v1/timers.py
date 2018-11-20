@@ -99,8 +99,8 @@ class TimersController(resource.ContentPackResourceController):
         try:
             trigger_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
         except Exception as e:
-            LOG.exception(e.message)
-            abort(http_client.NOT_FOUND, e.message)
+            LOG.exception(str(e))
+            abort(http_client.NOT_FOUND, str(e))
             return
 
         permission_type = PermissionType.TIMER_VIEW

@@ -417,7 +417,7 @@ class Router(object):
                 try:
                     CustomValidator(schema, resolver=self.spec_resolver).validate(data)
                 except (jsonschema.ValidationError, ValueError) as e:
-                    raise exc.HTTPBadRequest(detail=e.message,
+                    raise exc.HTTPBadRequest(detail=getattr(e, 'message', str(e)),
                                              comment=traceback.format_exc())
 
                 if content_type == 'text/plain':
@@ -451,7 +451,7 @@ class Router(object):
                         try:
                             instance = instance.validate()
                         except (jsonschema.ValidationError, ValueError) as e:
-                            raise exc.HTTPBadRequest(detail=e.message,
+                            raise exc.HTTPBadRequest(detail=getattr(e, 'message', str(e)),
                                                      comment=traceback.format_exc())
                     else:
                         LOG.debug('Missing x-api-model definition for %s, using generic Body '
