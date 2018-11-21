@@ -23,6 +23,7 @@ from st2common import log as logging
 from st2common.constants.meta import ALLOWED_EXTS
 from st2common.bootstrap.base import ResourceRegistrar
 from st2common.models.api.action import ActionAliasAPI
+from st2common.persistence.action import Action
 from st2common.persistence.actionalias import ActionAlias
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
@@ -148,6 +149,13 @@ class AliasesRegistrar(ResourceRegistrar):
             action_alias_db.id = ActionAlias.get_by_name(action_alias_db.name).id
         except StackStormDBObjectNotFoundError:
             LOG.debug('ActionAlias %s not found. Creating new one.', action_alias)
+
+        action_ref = action_alias_db.action_ref
+
+        action_db = Action.get_by_ref(action_ref)
+        if not action_db:
+            LOG.warning('Action %s not found in DB. Did you forget to register the action?',
+                        action_ref)
 
         try:
             action_alias_db = ActionAlias.add_or_update(action_alias_db)
