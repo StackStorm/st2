@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import copy
 import uuid
 
@@ -44,7 +45,6 @@ from st2common.util import loader
 from st2tests import DbTestCase
 from st2tests import fixturesloader
 from st2tests.mocks.liveaction import MockLiveActionPublisher
-from st2tests.mocks import liveaction as mock_liveaction
 
 
 TEST_FIXTURES = {
@@ -157,11 +157,6 @@ class MistralRunnerTest(DbTestCase):
         local_runner_cls = runners.get_runner('local-shell-cmd').__class__
         local_run_result = (action_constants.LIVEACTION_STATUS_SUCCEEDED, NON_EMPTY_RESULT, None)
         local_runner_cls.run = mock.Mock(return_value=local_run_result)
-        mock_liveaction.setup()
-
-    @staticmethod
-    def tearDown():
-        mock_liveaction.setup()
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',
@@ -201,11 +196,12 @@ class MistralRunnerTest(DbTestCase):
 
             liveaction2 = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=context)
             liveaction2, execution2 = action_service.request(liveaction2)
-            liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
+
             liveaction2 = self._wait_on_status(
                 liveaction2,
                 action_constants.LIVEACTION_STATUS_RUNNING
             )
+
             self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
             task_specs = {
@@ -258,11 +254,12 @@ class MistralRunnerTest(DbTestCase):
 
             liveaction2 = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=context)
             liveaction2, execution2 = action_service.request(liveaction2)
-            liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
+
             liveaction2 = self._wait_on_status(
                 liveaction2,
                 action_constants.LIVEACTION_STATUS_RUNNING
             )
+
             self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
             task_specs = {
@@ -311,11 +308,7 @@ class MistralRunnerTest(DbTestCase):
 
         liveaction2 = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=context)
         liveaction2, execution2 = action_service.request(liveaction2)
-        liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
-        liveaction2 = self._wait_on_status(
-            liveaction2,
-            action_constants.LIVEACTION_STATUS_FAILED
-        )
+        liveaction2 = self._wait_on_status(liveaction2, action_constants.LIVEACTION_STATUS_FAILED)
         self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_FAILED)
         self.assertIn('not in a rerunable state', liveaction2.result.get('error'))
 
@@ -354,11 +347,7 @@ class MistralRunnerTest(DbTestCase):
 
         liveaction2 = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=context)
         liveaction2, execution2 = action_service.request(liveaction2)
-        liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
-        liveaction2 = self._wait_on_status(
-            liveaction2,
-            action_constants.LIVEACTION_STATUS_FAILED
-        )
+        liveaction2 = self._wait_on_status(liveaction2, action_constants.LIVEACTION_STATUS_FAILED)
         self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_FAILED)
         self.assertIn('Unable to identify rerunable', liveaction2.result.get('error'))
 
@@ -397,11 +386,7 @@ class MistralRunnerTest(DbTestCase):
 
         liveaction2 = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=context)
         liveaction2, execution2 = action_service.request(liveaction2)
-        liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
-        liveaction2 = self._wait_on_status(
-            liveaction2,
-            action_constants.LIVEACTION_STATUS_FAILED
-        )
+        liveaction2 = self._wait_on_status(liveaction2, action_constants.LIVEACTION_STATUS_FAILED)
         self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_FAILED)
         self.assertIn('Unable to identify', liveaction2.result.get('error'))
 
@@ -462,11 +447,7 @@ class MistralRunnerTest(DbTestCase):
 
         liveaction2 = LiveActionDB(action=WB1_NAME, parameters=ACTION_PARAMS, context=context)
         liveaction2, execution2 = action_service.request(liveaction2)
-        liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
-        liveaction2 = self._wait_on_status(
-            liveaction2,
-            action_constants.LIVEACTION_STATUS_RUNNING
-        )
+        liveaction2 = self._wait_on_status(liveaction2, action_constants.LIVEACTION_STATUS_RUNNING)
         self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         expected_env = {
@@ -534,11 +515,7 @@ class MistralRunnerTest(DbTestCase):
 
         liveaction2 = LiveActionDB(action=WB1_NAME, parameters=ACTION_PARAMS, context=context)
         liveaction2, execution2 = action_service.request(liveaction2)
-        liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
-        liveaction2 = self._wait_on_status(
-            liveaction2,
-            action_constants.LIVEACTION_STATUS_FAILED
-        )
+        liveaction2 = self._wait_on_status(liveaction2, action_constants.LIVEACTION_STATUS_FAILED)
         self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_FAILED)
         self.assertIn('Unable to identify', liveaction2.result.get('error'))
 
@@ -600,11 +577,7 @@ class MistralRunnerTest(DbTestCase):
 
         liveaction2 = LiveActionDB(action=WB1_NAME, parameters=ACTION_PARAMS, context=context)
         liveaction2, execution2 = action_service.request(liveaction2)
-        liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
-        liveaction2 = self._wait_on_status(
-            liveaction2,
-            action_constants.LIVEACTION_STATUS_RUNNING
-        )
+        liveaction2 = self._wait_on_status(liveaction2, action_constants.LIVEACTION_STATUS_RUNNING)
         self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         expected_env = {

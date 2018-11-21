@@ -110,6 +110,7 @@ class ExecutionQueueHandler(object):
     @metrics.CounterWithTimer(key='scheduler.handle_execution')
     def _handle_execution(self, execution, metrics_timer=None):
         LOG.info('Scheduling liveaction: %s', execution.liveaction)
+
         try:
             liveaction_db = action_utils.get_liveaction_by_id(execution.liveaction)
         except StackStormDBObjectNotFoundError:

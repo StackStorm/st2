@@ -18,58 +18,32 @@ import eventlet
 import traceback
 
 from st2actions import worker
-from st2actions.scheduler import entrypoint, handler
+from st2actions.scheduler import entrypoint as scheduling
+from st2actions.scheduler import handler as scheduling_queue
 from st2common.constants import action as action_constants
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.persistence.execution_queue import ExecutionQueue
 
 __all__ = [
     'MockLiveActionPublisher',
-    'MockLiveActionPublisherNonBlocking',
-    'setup',
-    'teardown'
+    'MockLiveActionPublisherNonBlocking'
 ]
-
-
-SCHEDULER_HANDLER = None
-ENTRYPOINT = None
-
-
-def setup(no_start_handler=False):
-    global SCHEDULER_HANDLER
-    global ENTRYPOINT
-
-    SCHEDULER_HANDLER = handler.get_handler()
-
-    if not no_start_handler:
-        SCHEDULER_HANDLER.start()
-
-    ENTRYPOINT = entrypoint.get_scheduler_entrypoint()
-
-
-def teardown(no_start_handler=False):
-    global SCHEDULER_HANDLER
-    global ENTRYPOINT
-
-    if not no_start_handler and SCHEDULER_HANDLER:
-        SCHEDULER_HANDLER.shutdown()
-    for execution in ExecutionQueue.get_all():
-        ExecutionQueue.delete(execution)
-
-    SCHEDULER_HANDLER = None
-    ENTRYPOINT = None
 
 
 class MockLiveActionPublisher(object):
 
     @classmethod
+    def process(cls, payload):
+        ex_req = scheduling.get_scheduler_entrypoint().process(payload)
+
+        if ex_req is not None:
+            scheduling_queue.get_handler()._handle_execution(ex_req)
+
+    @classmethod
     def publish_create(cls, payload):
         try:
             if isinstance(payload, LiveActionDB):
-                setup(True)
-                ex_req = ENTRYPOINT.process(payload)
-                SCHEDULER_HANDLER._handle_execution(ex_req)
-                teardown(True)
+                cls.process(payload)
         except Exception:
             traceback.print_exc()
             print(payload)
@@ -79,10 +53,7 @@ class MockLiveActionPublisher(object):
         try:
             if isinstance(payload, LiveActionDB):
                 if state == action_constants.LIVEACTION_STATUS_REQUESTED:
-                    setup(True)
-                    ex_req = ENTRYPOINT.process(payload)
-                    SCHEDULER_HANDLER._handle_execution(ex_req)
-                    teardown(True)
+                    cls.process(payload)
                 else:
                     worker.get_worker().process(payload)
         except Exception:
@@ -94,10 +65,17 @@ class MockLiveActionPublisherNonBlocking(object):
     threads = []
 
     @classmethod
+    def process(cls, payload):
+        ex_req = scheduling.get_scheduler_entrypoint().process(payload)
+
+        if ex_req is not None:
+            scheduling_queue.get_handler()._handle_execution(ex_req)
+
+    @classmethod
     def publish_create(cls, payload):
         try:
             if isinstance(payload, LiveActionDB):
-                thread = eventlet.spawn(ENTRYPOINT.process, payload)
+                thread = eventlet.spawn(cls.process, payload)
                 cls.threads.append(thread)
         except Exception:
             traceback.print_exc()
@@ -108,7 +86,7 @@ class MockLiveActionPublisherNonBlocking(object):
         try:
             if isinstance(payload, LiveActionDB):
                 if state == action_constants.LIVEACTION_STATUS_REQUESTED:
-                    thread = eventlet.spawn(ENTRYPOINT.process, payload)
+                    thread = eventlet.spawn(cls.process, payload)
                     cls.threads.append(thread)
                 else:
                     thread = eventlet.spawn(worker.get_worker().process, payload)
