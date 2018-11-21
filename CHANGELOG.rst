@@ -28,6 +28,10 @@ Added
   ``sensors/`` directory or via trigger definition file in ``triggers/`` directory. If
   ``metadata_file`` attribute on TriggerTypeDB model points to ``sensors/`` directory it means that
   trigger is registered via sensor definition. (new feature) #4445
+* Add new ``st2client.executions.get_children`` method for returning children execution objects for
+  a specific (parent) execution. (new feature) #4444
+
+  Contributed by Tristan Struthers (@trstruth).
 
 Changed
 ~~~~~~~
@@ -67,6 +71,11 @@ Changed
 * Refactor Orquesta workflow to output on error. Depends on PR
   https://github.com/StackStorm/orquesta/pull/101 and https://github.com/StackStorm/orquesta/pull/102
   (improvement)
+* Rename ``st2client.liveactions`` to ``st2client.executions``. ``st2client.liveactions`` already
+  represented operations on execution objects, but it was incorrectly named.
+
+  For backward compatibility reasons, ``st2client.liveactions`` will stay as an alias for
+  ``st2client.executions`` and continue to work until it's fully removed in a future release.
 
 Fixed
 ~~~~~

@@ -103,7 +103,7 @@ class WithItemsWiringTest(base.TestWorkflowExecution):
         ex = self._wait_for_state(ex, [ac_const.LIVEACTION_STATUS_RUNNING])
 
         # Cancel the workflow execution.
-        self.st2client.liveactions.delete(ex)
+        self.st2client.executions.delete(ex)
 
         # Expecting the ex to be canceling, waiting for task1 to complete.
         ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_CANCELING)
@@ -149,7 +149,7 @@ class WithItemsWiringTest(base.TestWorkflowExecution):
         )
 
         # Cancel the workflow execution.
-        self.st2client.liveactions.delete(ex)
+        self.st2client.executions.delete(ex)
 
         # Expecting the ex to be canceling, waiting for task1 to complete.
         ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_CANCELING)
@@ -186,7 +186,7 @@ class WithItemsWiringTest(base.TestWorkflowExecution):
         ex = self._wait_for_state(ex, [ac_const.LIVEACTION_STATUS_RUNNING])
 
         # Pause the workflow execution.
-        self.st2client.liveactions.pause(ex.id)
+        self.st2client.executions.pause(ex.id)
 
         # Expecting the ex to be pausing, waiting for task1 to complete.
         ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_PAUSING)
@@ -208,7 +208,7 @@ class WithItemsWiringTest(base.TestWorkflowExecution):
         ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_PAUSED)
 
         # Resume the workflow execution.
-        ex = self.st2client.liveactions.resume(ex.id)
+        ex = self.st2client.executions.resume(ex.id)
 
         # Wait for completion.
         ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_SUCCEEDED)
@@ -230,7 +230,7 @@ class WithItemsWiringTest(base.TestWorkflowExecution):
         ex = self._wait_for_state(ex, [ac_const.LIVEACTION_STATUS_RUNNING])
 
         # Pause the workflow execution.
-        self.st2client.liveactions.pause(ex.id)
+        self.st2client.executions.pause(ex.id)
 
         # Expecting the ex to be pausing, waiting for task1 to complete.
         ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_PAUSING)
@@ -252,7 +252,7 @@ class WithItemsWiringTest(base.TestWorkflowExecution):
         ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_PAUSED)
 
         # Resume the workflow execution.
-        ex = self.st2client.liveactions.resume(ex.id)
+        ex = self.st2client.executions.resume(ex.id)
 
         # Delete the remaining temporary files.
         for f in self.tempfiles[concurrency:]:
