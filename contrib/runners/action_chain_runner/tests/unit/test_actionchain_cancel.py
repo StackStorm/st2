@@ -33,7 +33,6 @@ from st2common.transport.publishers import CUDPublisher
 from st2tests import DbTestCase
 from st2tests import fixturesloader
 from st2tests.mocks.liveaction import MockLiveActionPublisherNonBlocking
-from st2tests.mocks import liveaction as mock_liveaction
 from six.moves import range
 
 
@@ -97,14 +96,12 @@ class ActionChainRunnerPauseResumeTest(DbTestCase):
         # Create temporary directory used by the tests
         _, self.temp_file_path = tempfile.mkstemp()
         os.chmod(self.temp_file_path, 0o755)   # nosec
-        mock_liveaction.setup()
 
     def tearDown(self):
         if self.temp_file_path and os.path.exists(self.temp_file_path):
             os.remove(self.temp_file_path)
 
         super(ActionChainRunnerPauseResumeTest, self).tearDown()
-        mock_liveaction.teardown()
 
     def _wait_for_status(self, liveaction, status, interval=0.1, retries=100):
         # Wait until the liveaction reaches status.
@@ -147,8 +144,7 @@ class ActionChainRunnerPauseResumeTest(DbTestCase):
         liveaction, execution = action_service.request_cancellation(liveaction, USERNAME)
 
         # Wait until the liveaction is canceling.
-        liveaction = self._wait_for_status(
-            liveaction, action_constants.LIVEACTION_STATUS_CANCELING)
+        liveaction = self._wait_for_status(liveaction, action_constants.LIVEACTION_STATUS_CANCELING)
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELING)
 
         # Delete the temporary file that the action chain is waiting on.
@@ -197,8 +193,7 @@ class ActionChainRunnerPauseResumeTest(DbTestCase):
         liveaction, execution = action_service.request_cancellation(liveaction, USERNAME)
 
         # Wait until the liveaction is canceling.
-        liveaction = self._wait_for_status(
-            liveaction, action_constants.LIVEACTION_STATUS_CANCELING)
+        liveaction = self._wait_for_status(liveaction, action_constants.LIVEACTION_STATUS_CANCELING)
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELING)
         self.assertEqual(len(execution.children), 1)
 
@@ -267,8 +262,7 @@ class ActionChainRunnerPauseResumeTest(DbTestCase):
         # Wait until the subworkflow is canceling.
         task1_exec = ActionExecution.get_by_id(execution.children[0])
         task1_live = LiveAction.get_by_id(task1_exec.liveaction['id'])
-        task1_live = self._wait_for_status(
-            task1_live, action_constants.LIVEACTION_STATUS_CANCELING)
+        task1_live = self._wait_for_status(task1_live, action_constants.LIVEACTION_STATUS_CANCELING)
         self.assertEqual(task1_live.status, action_constants.LIVEACTION_STATUS_CANCELING)
 
         # Delete the temporary file that the action chain is waiting on.
