@@ -41,12 +41,10 @@ class MockLiveActionPublisher(object):
 
     @classmethod
     def publish_create(cls, payload):
-        try:
-            if isinstance(payload, LiveActionDB):
-                cls.process(payload)
-        except Exception:
-            traceback.print_exc()
-            print(payload)
+        # The scheduling entry point is only listening for status change and not on create.
+        # Therefore, no additional processing is required here otherwise this will cause
+        # duplicate processing in the unit tests.
+        pass
 
     @classmethod
     def publish_state(cls, payload, state):
@@ -54,6 +52,7 @@ class MockLiveActionPublisher(object):
             if isinstance(payload, LiveActionDB):
                 if state == action_constants.LIVEACTION_STATUS_REQUESTED:
                     cls.process(payload)
+                    pass
                 else:
                     worker.get_worker().process(payload)
         except Exception:
@@ -73,13 +72,10 @@ class MockLiveActionPublisherNonBlocking(object):
 
     @classmethod
     def publish_create(cls, payload):
-        try:
-            if isinstance(payload, LiveActionDB):
-                thread = eventlet.spawn(cls.process, payload)
-                cls.threads.append(thread)
-        except Exception:
-            traceback.print_exc()
-            print(payload)
+        # The scheduling entry point is only listening for status change and not on create.
+        # Therefore, no additional processing is required here otherwise this will cause
+        # duplicate processing in the unit tests.
+        pass
 
     @classmethod
     def publish_state(cls, payload, state):
