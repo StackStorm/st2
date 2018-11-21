@@ -71,20 +71,12 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         action_chain = ActionAPI(**copy.deepcopy(fixture.ARTIFACTS['actions']['chain']))
         action_chain.entry_point = fixture.PATH + '/chain.yaml'
         Action.add_or_update(ActionAPI.to_model(action_chain))
-        mock_liveaction.setup()
 
     def tearDown(self):
         MOCK_FAIL_EXECUTION_CREATE = False      # noqa
         super(TestActionExecutionHistoryWorker, self).tearDown()
-        mock_liveaction.teardown()
-
-    @staticmethod
-    def _reset():
-        mock_liveaction.teardown()
-        mock_liveaction.setup()
 
     def test_basic_execution(self):
-        self._reset()
         liveaction = LiveActionDB(action='executions.local', parameters={'cmd': 'uname -a'})
         liveaction, _ = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
@@ -113,12 +105,10 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         self.assertEqual(execution.liveaction['action'], liveaction.action)
 
     def test_basic_execution_history_create_failed(self):
-        self._reset()
         MOCK_FAIL_EXECUTION_CREATE = True     # noqa
         self.test_basic_execution()
 
     def test_chained_executions(self):
-        self._reset()
         liveaction = LiveActionDB(action='executions.chain')
         liveaction, _ = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
@@ -149,7 +139,6 @@ class TestActionExecutionHistoryWorker(DbTestCase):
             self.assertEqual(record.runner['name'], 'local-shell-cmd')
 
     def test_triggered_execution(self):
-        self._reset()
         docs = {
             'trigger_type': copy.deepcopy(fixture.ARTIFACTS['trigger_type']),
             'trigger': copy.deepcopy(fixture.ARTIFACTS['trigger']),

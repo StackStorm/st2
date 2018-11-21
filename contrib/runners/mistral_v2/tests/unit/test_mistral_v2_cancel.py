@@ -47,7 +47,7 @@ from st2common.transport.publishers import CUDPublisher
 from st2common.util import loader
 from st2tests import DbTestCase
 from st2tests import fixturesloader
-from st2tests.mocks.liveaction import MockLiveActionPublisherNonBlocking
+from st2tests.mocks.liveaction import MockLiveActionPublisher
 
 
 TEST_PACK = 'mistral_tests'
@@ -99,11 +99,11 @@ WF2_EXEC_CANCELLED['state'] = 'CANCELLED'
 @mock.patch.object(
     CUDPublisher,
     'publish_create',
-    mock.MagicMock(side_effect=MockLiveActionPublisherNonBlocking.publish_create))
+    mock.MagicMock(side_effect=MockLiveActionPublisher.publish_create))
 @mock.patch.object(
     LiveActionPublisher,
     'publish_state',
-    mock.MagicMock(side_effect=MockLiveActionPublisherNonBlocking.publish_state))
+    mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
 class MistralRunnerCancelTest(DbTestCase):
 
     @classmethod

@@ -86,19 +86,12 @@ class SchedulingPolicyTest(DbTestCase):
         for _, fixture in six.iteritems(FIXTURES['policies']):
             instance = PolicyAPI(**fixture)
             Policy.add_or_update(PolicyAPI.to_model(instance))
-        mock_liveaction.setup()
 
     def tearDown(self):
         # Ensure all liveactions are canceled at end of each test.
         for liveaction in LiveAction.get_all():
             action_service.update_status(
                 liveaction, action_constants.LIVEACTION_STATUS_CANCELED)
-        mock_liveaction.teardown()
-
-    @staticmethod
-    def _reset():
-        mock_liveaction.teardown()
-        mock_liveaction.setup()
 
     @mock.patch.object(
         FakeConcurrencyApplicator, 'apply_before',
@@ -117,7 +110,6 @@ class SchedulingPolicyTest(DbTestCase):
         mock.MagicMock(
             side_effect=RaiseExceptionApplicator(None, None).apply_after))
     def test_apply(self):
-        self._reset()
         liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
         liveaction, _ = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
@@ -133,7 +125,6 @@ class SchedulingPolicyTest(DbTestCase):
 
     @mock.patch.object(FakeConcurrencyApplicator, 'get_threshold', mock.MagicMock(return_value=0))
     def test_enforce(self):
-        self._reset()
         liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
         liveaction, _ = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))

@@ -42,22 +42,8 @@ class QueueConsumerTest(DbTestCase):
 
     def __init__(self, *args, **kwargs):
         super(QueueConsumerTest, self).__init__(*args, **kwargs)
-        mock_liveaction.setup()
         self.scheduler = mock_liveaction.ENTRYPOINT
         self.dispatcher = worker.get_worker()
-
-    @classmethod
-    def setUpClass(cls):
-        super(QueueConsumerTest, cls).setUpClass()
-        mock_liveaction.setup()
-
-    def tearDown(self):
-        mock_liveaction.teardown()
-
-    @staticmethod
-    def _reset():
-        mock_liveaction.teardown()
-        mock_liveaction.setup()
 
     def _get_execution_db_model(self, status=action_constants.LIVEACTION_STATUS_REQUESTED):
         start_timestamp = date_utils.get_datetime_utc_now()
@@ -69,7 +55,6 @@ class QueueConsumerTest(DbTestCase):
 
     @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(return_value={'key': 'value'}))
     def test_execute(self):
-        self._reset()
         live_action_db = self._get_execution_db_model(
             status=action_constants.LIVEACTION_STATUS_REQUESTED)
 
@@ -91,7 +76,6 @@ class QueueConsumerTest(DbTestCase):
 
     @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(side_effect=Exception('Boom!')))
     def test_execute_failure(self):
-        self._reset()
         live_action_db = self._get_execution_db_model(
             status=action_constants.LIVEACTION_STATUS_REQUESTED)
 
@@ -111,7 +95,6 @@ class QueueConsumerTest(DbTestCase):
 
     @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(return_value=None))
     def test_execute_no_result(self):
-        self._reset()
         live_action_db = self._get_execution_db_model(
             status=action_constants.LIVEACTION_STATUS_REQUESTED)
 
@@ -131,7 +114,6 @@ class QueueConsumerTest(DbTestCase):
 
     @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(return_value=None))
     def test_execute_cancelation(self):
-        self._reset()
         live_action_db = self._get_execution_db_model(
             status=action_constants.LIVEACTION_STATUS_REQUESTED)
 

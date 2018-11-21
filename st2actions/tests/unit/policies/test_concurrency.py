@@ -90,8 +90,6 @@ class ConcurrencyPolicyTestCase(EventletTestCase, DbTestCase):
 
         # Wait for all threads to finish processing so there is no cross test polution
         mock_liveaction.MockLiveActionPublisherNonBlocking.wait_all()
-        self.reset()
-        mock_liveaction.setup()
 
     def tearDown(self):
         mock_liveaction.MockLiveActionPublisherNonBlocking.wait_all()
@@ -99,12 +97,6 @@ class ConcurrencyPolicyTestCase(EventletTestCase, DbTestCase):
         for liveaction in LiveAction.get_all():
             action_service.update_status(
                 liveaction, action_constants.LIVEACTION_STATUS_CANCELED)
-        mock_liveaction.teardown()
-
-    @staticmethod
-    def _reset():
-        mock_liveaction.teardown()
-        mock_liveaction.setup()
 
     @mock.patch.object(
         runner.MockActionRunner, 'run',
@@ -119,7 +111,6 @@ class ConcurrencyPolicyTestCase(EventletTestCase, DbTestCase):
             side_effect=mock_liveaction.MockLiveActionPublisherNonBlocking.publish_state
         ))
     def test_over_threshold_delay_executions(self):
-        self._reset()
         policy_db = Policy.get_by_ref('wolfpack.action-1.concurrency')
         self.assertGreater(policy_db.parameters['threshold'], 0)
 
@@ -208,7 +199,6 @@ class ConcurrencyPolicyTestCase(EventletTestCase, DbTestCase):
         LiveActionPublisher, 'publish_update',
         mock.MagicMock(side_effect=MockExecutionPublisherNonBlocking.publish_update))
     def test_over_threshold_cancel_executions(self):
-        self._reset()
         policy_db = Policy.get_by_ref('wolfpack.action-2.concurrency.cancel')
         self.assertEqual(policy_db.parameters['action'], 'cancel')
         self.assertGreater(policy_db.parameters['threshold'], 0)
@@ -278,7 +268,6 @@ class ConcurrencyPolicyTestCase(EventletTestCase, DbTestCase):
         ActionExecutionPublisher, 'publish_update',
         mock.MagicMock(side_effect=MockExecutionPublisherNonBlocking.publish_update))
     def test_on_cancellation(self):
-        self._reset()
         policy_db = Policy.get_by_ref('wolfpack.action-1.concurrency')
         self.assertGreater(policy_db.parameters['threshold'], 0)
 

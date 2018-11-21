@@ -85,13 +85,11 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, DbTestCase):
         loader = FixturesLoader()
         loader.save_fixtures_to_db(fixtures_pack=PACK,
                                    fixtures_dict=TEST_FIXTURES)
-        mock_liveaction.setup()
 
     def setUp(self):
         super(ConcurrencyByAttributePolicyTestCase, self).setUp()
 
         mock_liveaction.MockLiveActionPublisherNonBlocking.wait_all()
-        mock_liveaction.setup()
 
     def tearDown(self):
         mock_liveaction.MockLiveActionPublisherNonBlocking.wait_all()
@@ -106,11 +104,6 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, DbTestCase):
             ExecutionQueue.delete(execution)
         mock_liveaction.teardown()
 
-    @staticmethod
-    def _reset():
-        mock_liveaction.teardown()
-        mock_liveaction.setup()
-
     @mock.patch.object(
         runner.MockActionRunner, 'run',
         mock.MagicMock(
@@ -124,7 +117,6 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, DbTestCase):
             side_effect=mock_liveaction.MockLiveActionPublisherNonBlocking.publish_state
         ))
     def test_over_threshold_delay_executions(self):
-        self._reset()
         policy_db = Policy.get_by_ref('wolfpack.action-1.concurrency.attr')
         self.assertGreater(policy_db.parameters['threshold'], 0)
         self.assertIn('actionstr', policy_db.parameters['attributes'])
@@ -240,7 +232,6 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, DbTestCase):
         LiveActionPublisher, 'publish_update',
         mock.MagicMock(side_effect=MockExecutionPublisher.publish_update))
     def test_over_threshold_cancel_executions(self):
-        self._reset()
         policy_db = Policy.get_by_ref('wolfpack.action-2.concurrency.attr.cancel')
         self.assertEqual(policy_db.parameters['action'], 'cancel')
         self.assertGreater(policy_db.parameters['threshold'], 0)
@@ -309,7 +300,6 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, DbTestCase):
             side_effect=mock_liveaction.MockLiveActionPublisherNonBlocking.publish_state
         ))
     def test_on_cancellation(self):
-        self._reset()
         policy_db = Policy.get_by_ref('wolfpack.action-1.concurrency.attr')
         self.assertGreater(policy_db.parameters['threshold'], 0)
         self.assertIn('actionstr', policy_db.parameters['attributes'])
