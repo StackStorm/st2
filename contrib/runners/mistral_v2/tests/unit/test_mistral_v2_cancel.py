@@ -48,6 +48,7 @@ from st2common.util import loader
 from st2tests import DbTestCase
 from st2tests import fixturesloader
 from st2tests.mocks.liveaction import MockLiveActionPublisher
+from st2tests.mocks.liveaction import MockLiveActionPublisherNonBlocking
 
 
 TEST_PACK = 'mistral_tests'
@@ -100,10 +101,6 @@ WF2_EXEC_CANCELLED['state'] = 'CANCELLED'
     CUDPublisher,
     'publish_create',
     mock.MagicMock(side_effect=MockLiveActionPublisher.publish_create))
-@mock.patch.object(
-    LiveActionPublisher,
-    'publish_state',
-    mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
 class MistralRunnerCancelTest(DbTestCase):
 
     @classmethod
@@ -151,6 +148,10 @@ class MistralRunnerCancelTest(DbTestCase):
     @mock.patch.object(
         action_service, 'is_children_active',
         mock.MagicMock(return_value=True))
+    @mock.patch.object(
+        LiveActionPublisher,
+        'publish_state',
+        mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
     def test_cancel(self):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
@@ -187,6 +188,10 @@ class MistralRunnerCancelTest(DbTestCase):
         mock.MagicMock(side_effect=[
             executions.Execution(None, WF2_EXEC_CANCELLED),
             executions.Execution(None, WF1_EXEC_CANCELLED)]))
+    @mock.patch.object(
+        LiveActionPublisher,
+        'publish_state',
+        mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
     def test_cancel_subworkflow_action(self):
         liveaction1 = LiveActionDB(action=WF2_NAME, parameters=ACTION_PARAMS)
         liveaction1, execution1 = action_service.request(liveaction1)
@@ -246,6 +251,10 @@ class MistralRunnerCancelTest(DbTestCase):
     @mock.patch.object(
         action_service, 'is_children_active',
         mock.MagicMock(return_value=True))
+    @mock.patch.object(
+        LiveActionPublisher,
+        'publish_state',
+        mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
     def test_cancel_retry(self):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
@@ -279,6 +288,10 @@ class MistralRunnerCancelTest(DbTestCase):
     @mock.patch.object(
         executions.ExecutionManager, 'update',
         mock.MagicMock(side_effect=requests.exceptions.ConnectionError('Connection refused')))
+    @mock.patch.object(
+        LiveActionPublisher,
+        'publish_state',
+        mock.MagicMock(side_effect=MockLiveActionPublisherNonBlocking.publish_state))
     def test_cancel_retry_exhausted(self):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
@@ -293,16 +306,9 @@ class MistralRunnerCancelTest(DbTestCase):
         requester = cfg.CONF.system_user.user
         liveaction, execution = action_service.request_cancellation(liveaction, requester)
         liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_CANCELING)
-
-        # Since the processing is non-blocking, wait until the call count reaches
-        # expected number. Set a wait threshold to avoid looping forever.
-        wait_count = 0
-        while wait_count < 50 and executions.ExecutionManager.update.call_count != 2:
-            eventlet.sleep(0.1)
-            wait_count += 1
-
-        calls = [call(WF1_EXEC.get('id'), 'CANCELLED') for i in range(0, 2)]
-        executions.ExecutionManager.update.assert_has_calls(calls)
-
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELING)
+
+        expected_call_count = 2
+        self._wait_on_call_count(executions.ExecutionManager.update, expected_call_count)
+        calls = [call(WF1_EXEC.get('id'), 'CANCELLED') for i in range(0, expected_call_count)]
+        executions.ExecutionManager.update.assert_has_calls(calls)

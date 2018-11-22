@@ -297,6 +297,16 @@ class DbTestCase(BaseDbTestCase):
                 return action_d_b
         return action_d_b
 
+    def _wait_on_call_count(self, mocked_obj, expected_count, interval=0.1, raise_exception=True):
+        wait_count = 0
+
+        while wait_count < 100 and mocked_obj.call_count != expected_count:
+            eventlet.sleep(interval)
+            wait_count += 1
+
+        if raise_exception:
+            self.assertEqual(mocked_obj.call_count, expected_count)
+
     @classmethod
     def setUpClass(cls):
         BaseDbTestCase.setUpClass()
