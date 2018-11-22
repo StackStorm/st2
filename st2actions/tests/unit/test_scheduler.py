@@ -242,3 +242,26 @@ class ActionExecutionSchedulingQueueDBTest(DbTestCase):
 
         schedule_q_db = self.scheduling_queue._get_next_execution()
         self.assertIsNotNone(schedule_q_db)
+
+    @mock.patch('st2actions.scheduler.handler.action_service')
+    @mock.patch('st2actions.scheduler.handler.ExecutionQueue.delete')
+    def test_task_skipped_on_finised_state(self, mock_execution_queue_delete, mock_action_service):
+        self.reset()
+
+        liveaction_db = LiveAction.add_or_update(
+            LiveActionDB(
+                action='wolfpack.action-1',
+                parameters={'actionstr': 'fu'},
+                status=action_constants.LIVEACTION_STATUS_REQUESTED
+            )
+        )
+        LiveAction.publish_status(liveaction_db)
+        liveaction_db.status = action_constants.LIVEACTION_STATUS_CANCELED
+        LiveAction.add_or_update(liveaction_db)
+
+        schedule_q_db = self.scheduling_queue._get_next_execution()
+        scheduling_queue.get_handler()._handle_execution(schedule_q_db)
+
+        mock_action_service.update_status.assert_not_called()
+        mock_execution_queue_delete.assert_called_once()
+        ExecutionQueue.delete(schedule_q_db)
