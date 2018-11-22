@@ -82,17 +82,18 @@ class ActionExecutionSchedulingQueueDBTest(DbTestCase):
         self.scheduler = scheduling.get_scheduler_entrypoint()
         self.scheduling_queue = scheduling_queue.get_handler()
 
-    def test_create_from_liveaction(self):
-        liveaction_db = LiveAction.add_or_update(
-            LiveActionDB(
-                action='wolfpack.action-1',
-                parameters={'actionstr': 'fu'},
-                status=action_constants.LIVEACTION_STATUS_REQUESTED
-            )
-        )
+    def _create_liveaction_db(self, status=action_constants.LIVEACTION_STATUS_REQUESTED):
+        action_ref = 'wolfpack.action-1'
+        parameters = {'actionstr': 'fu'}
+        liveaction_db = LiveActionDB(action=action_ref, parameters=parameters, status=status)
 
+        liveaction_db = LiveAction.add_or_update(liveaction_db)
         execution_service.create_execution_object(liveaction_db, publish=False)
 
+        return liveaction_db
+
+    def test_create_from_liveaction(self):
+        liveaction_db = self._create_liveaction_db()
         delay = 500
 
         schedule_q_db = self.scheduler._create_execution_request_from_liveaction(
@@ -116,16 +117,7 @@ class ActionExecutionSchedulingQueueDBTest(DbTestCase):
         test_cases = []
 
         for delay in delays:
-            liveaction_db = LiveAction.add_or_update(
-                LiveActionDB(
-                    action='wolfpack.action-1',
-                    parameters={'actionstr': 'fu'},
-                    status=action_constants.LIVEACTION_STATUS_REQUESTED
-                )
-            )
-
-            execution_service.create_execution_object(liveaction_db, publish=False)
-
+            liveaction_db = self._create_liveaction_db()
             delayed_start = date.append_milliseconds_to_time(liveaction_db.start_timestamp, delay)
 
             test_case = {
@@ -172,15 +164,7 @@ class ActionExecutionSchedulingQueueDBTest(DbTestCase):
     def test_no_double_entries(self):
         self.reset()
 
-        liveaction_db = LiveAction.add_or_update(
-            LiveActionDB(
-                action='wolfpack.action-1',
-                parameters={'actionstr': 'fu'},
-                status=action_constants.LIVEACTION_STATUS_REQUESTED
-            )
-        )
-
-        execution_service.create_execution_object(liveaction_db, publish=False)
+        liveaction_db = self._create_liveaction_db()
 
         LiveAction.publish_status(liveaction_db)
         LiveAction.publish_status(liveaction_db)
@@ -195,15 +179,7 @@ class ActionExecutionSchedulingQueueDBTest(DbTestCase):
         self.reset()
 
         for status in action_constants.LIVEACTION_STATUSES:
-            liveaction_db = LiveAction.add_or_update(
-                LiveActionDB(
-                    action='wolfpack.action-1',
-                    parameters={'actionstr': 'fu'},
-                    status=status
-                )
-            )
-
-            execution_service.create_execution_object(liveaction_db, publish=False)
+            liveaction_db = self._create_liveaction_db(status=status)
 
             LiveAction.publish_status(liveaction_db)
 
@@ -217,15 +193,7 @@ class ActionExecutionSchedulingQueueDBTest(DbTestCase):
     def test_garbage_collection(self):
         self.reset()
 
-        liveaction_db = LiveAction.add_or_update(
-            LiveActionDB(
-                action='wolfpack.action-1',
-                parameters={'actionstr': 'fu'},
-                status=action_constants.LIVEACTION_STATUS_REQUESTED
-            )
-        )
-
-        execution_service.create_execution_object(liveaction_db, publish=False)
+        liveaction_db = self._create_liveaction_db()
 
         schedule_q_db = self.scheduler._create_execution_request_from_liveaction(
             liveaction_db,
@@ -245,16 +213,11 @@ class ActionExecutionSchedulingQueueDBTest(DbTestCase):
 
     @mock.patch('st2actions.scheduler.handler.action_service')
     @mock.patch('st2actions.scheduler.handler.ExecutionQueue.delete')
-    def test_task_skipped_on_finised_state(self, mock_execution_queue_delete, mock_action_service):
+    def test_processing_when_task_completed(self, mock_execution_queue_delete, mock_action_service):
         self.reset()
 
-        liveaction_db = LiveAction.add_or_update(
-            LiveActionDB(
-                action='wolfpack.action-1',
-                parameters={'actionstr': 'fu'},
-                status=action_constants.LIVEACTION_STATUS_REQUESTED
-            )
-        )
+        liveaction_db = self._create_liveaction_db()
+
         LiveAction.publish_status(liveaction_db)
         liveaction_db.status = action_constants.LIVEACTION_STATUS_CANCELED
         LiveAction.add_or_update(liveaction_db)
