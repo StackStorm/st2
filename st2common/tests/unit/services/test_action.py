@@ -35,7 +35,6 @@ from st2common.transport.publishers import PoolPublisher
 from st2common.util import isotime
 from st2common.util import action_db
 from st2tests import DbTestCase
-from st2tests.mocks import liveaction as mock_lv_ac_xport
 from six.moves import range
 
 

@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import json
 import six
 
@@ -92,19 +93,19 @@ class ConcurrencyByAttributeApplicator(BaseConcurrencyApplicator):
         # leading to duplicate action executions.
         publish = (status == action_constants.LIVEACTION_STATUS_CANCELING)
         target = action_service.update_status(target, status, publish=publish)
-        LOG.debug('Publishing: %s', publish)
-        LOG.debug('Status: %s', status)
 
         return target
 
     def apply_before(self, target):
+        target = super(ConcurrencyByAttributeApplicator, self).apply_before(target=target)
+
         valid_states = [
             action_constants.LIVEACTION_STATUS_REQUESTED,
             action_constants.LIVEACTION_STATUS_DELAYED,
             action_constants.LIVEACTION_STATUS_POLICY_DELAYED,
         ]
 
-        # Exit if target not in valid states.
+        # Exit if target not in valid state.
         if target.status not in valid_states:
             LOG.debug('The live action is not schedulable therefore the policy '
                       '"%s" cannot be applied. %s', self._policy_ref, target)
@@ -129,11 +130,19 @@ class ConcurrencyByAttributeApplicator(BaseConcurrencyApplicator):
         # Schedule the oldest delayed executions.
         filters = self._get_filters(target)
         filters['status'] = action_constants.LIVEACTION_STATUS_DELAYED
-        requests = action_access.LiveAction.query(order_by=['start_timestamp'], limit=1, **filters)
+
+        requests = action_access.LiveAction.query(
+            order_by=['start_timestamp'],
+            limit=1,
+            **filters
+        )
 
         if requests:
             action_service.update_status(
-                requests[0], action_constants.LIVEACTION_STATUS_REQUESTED, publish=True)
+                requests[0],
+                action_constants.LIVEACTION_STATUS_REQUESTED,
+                publish=True
+            )
 
     def apply_after(self, target):
         # Warn users that the coordination service is not configured.

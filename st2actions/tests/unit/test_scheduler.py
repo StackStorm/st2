@@ -15,16 +15,26 @@
 
 from __future__ import absolute_import, print_function
 
-from mock import patch, MagicMock
+import mock
 
+import st2common
 from st2tests import DbTestCase
+from st2tests.fixturesloader import FixturesLoader
+from st2tests.mocks.liveaction import MockLiveActionPublisherSchedulingQueueOnly
+
+from st2actions.scheduler import entrypoint as scheduling
+from st2actions.scheduler import handler as scheduling_queue
+
 from st2common.util import date
+from st2common.transport.liveaction import LiveActionPublisher
+from st2common.constants import action as action_constants
+from st2common.bootstrap.policiesregistrar import register_policy_types
+from st2common.bootstrap import runnersregistrar as runners_registrar
 from st2common.models.db.execution_queue import ActionExecutionSchedulingQueueDB
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.persistence.execution_queue import ExecutionQueue
 from st2common.persistence.liveaction import LiveAction
-
-from st2actions.scheduler import handler, entrypoint
+from st2common.services import executions as execution_service
 
 
 LIVE_ACTION = {
@@ -35,89 +45,200 @@ LIVE_ACTION = {
     'status': 'requested'
 }
 
+PACK = 'generic'
+TEST_FIXTURES = {
+    'actions': [
+        'action1.yaml',
+        'action2.yaml'
+    ],
+    'policies': [
+        'policy_3.yaml',
+        'policy_7.yaml'
+    ]
+}
 
+
+@mock.patch.object(
+    LiveActionPublisher, 'publish_state',
+    mock.MagicMock(side_effect=MockLiveActionPublisherSchedulingQueueOnly.publish_state))
 class ActionExecutionSchedulingQueueDBTest(DbTestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        DbTestCase.setUpClass()
+
+        # Register runners
+        runners_registrar.register_runners()
+
+        # Register common policy types
+        register_policy_types(st2common)
+
+        loader = FixturesLoader()
+        loader.save_fixtures_to_db(fixtures_pack=PACK,
+                                   fixtures_dict=TEST_FIXTURES)
+
+    def setUp(self):
+        super(ActionExecutionSchedulingQueueDBTest, self).setUp()
+        self.scheduler = scheduling.get_scheduler_entrypoint()
+        self.scheduling_queue = scheduling_queue.get_handler()
+
     def test_create_from_liveaction(self):
-        live_action = LiveAction.add_or_update(
+        liveaction_db = LiveAction.add_or_update(
             LiveActionDB(
-                parameters=LIVE_ACTION['parameters'],
-                action=LIVE_ACTION['action'],
-                status=LIVE_ACTION['status']
+                action='wolfpack.action-1',
+                parameters={'actionstr': 'fu'},
+                status=action_constants.LIVEACTION_STATUS_REQUESTED
             )
         )
+
+        execution_service.create_execution_object(liveaction_db, publish=False)
+
         delay = 500
-        execution_request = entrypoint._create_execution_request_from_liveaction(
-            live_action,
+
+        schedule_q_db = self.scheduler._create_execution_request_from_liveaction(
+            liveaction_db,
             delay,
         )
 
-        delay_date = date.append_milliseconds_to_time(live_action.start_timestamp, delay)
+        delay_date = date.append_milliseconds_to_time(liveaction_db.start_timestamp, delay)
 
-        self.assertIsInstance(execution_request, ActionExecutionSchedulingQueueDB)
-        self.assertEqual(execution_request.scheduled_start_timestamp, delay_date)
-        self.assertEqual(execution_request.delay, delay)
-        self.assertEqual(execution_request.liveaction, str(live_action.id))
+        self.assertIsInstance(schedule_q_db, ActionExecutionSchedulingQueueDB)
+        self.assertEqual(schedule_q_db.scheduled_start_timestamp, delay_date)
+        self.assertEqual(schedule_q_db.delay, delay)
+        self.assertEqual(schedule_q_db.liveaction, str(liveaction_db.id))
 
     def test_next_execution(self):
         self.reset()
-        live_action = LiveAction.add_or_update(
-            LiveActionDB(
-                parameters=LIVE_ACTION['parameters'],
-                action=LIVE_ACTION['action'],
-                status=LIVE_ACTION['status']
+
+        schedule_q_dbs = []
+        delays = [100, 5000, 1000]
+        expected_order = [0, 2, 1]
+        test_cases = []
+
+        for delay in delays:
+            liveaction_db = LiveAction.add_or_update(
+                LiveActionDB(
+                    action='wolfpack.action-1',
+                    parameters={'actionstr': 'fu'},
+                    status=action_constants.LIVEACTION_STATUS_REQUESTED
+                )
             )
-        )
 
-        executions = [
-            {
-                "liveaction": live_action,
-                "delay": 100,
-            },
-            {
-                "liveaction": live_action,
-                "delay": 5000,
-            },
-            {
-                "liveaction": live_action,
-                "delay": 1000,
-            },
-        ]
+            execution_service.create_execution_object(liveaction_db, publish=False)
 
-        execution_requests = []
+            delayed_start = date.append_milliseconds_to_time(liveaction_db.start_timestamp, delay)
 
-        for execution in executions:
-            execution_requests.append(
+            test_case = {
+                'liveaction': liveaction_db,
+                'delay': delay,
+                'delayed_start': delayed_start
+            }
+
+            test_cases.append(test_case)
+
+        for test_case in test_cases:
+            schedule_q_dbs.append(
                 ExecutionQueue.add_or_update(
-                    entrypoint._create_execution_request_from_liveaction(
-                        execution['liveaction'],
-                        execution['delay'],
+                    self.scheduler._create_execution_request_from_liveaction(
+                        test_case['liveaction'],
+                        test_case['delay'],
                     )
                 )
             )
 
-        expected_order = [0, 2, 1]
-
         for index in expected_order:
-            delay_date = date.append_milliseconds_to_time(
-                live_action.start_timestamp,
-                executions[index]['delay']
-            )
+            test_case = test_cases[index]
 
-            date_mock = MagicMock()
-            date_mock.get_datetime_utc_now.return_value = delay_date
+            date_mock = mock.MagicMock()
+            date_mock.get_datetime_utc_now.return_value = test_case['delayed_start']
             date_mock.append_milliseconds_to_time = date.append_milliseconds_to_time
 
-            with patch('st2actions.scheduler.handler.date', date_mock):
-                execution_request = handler._next_execution()
-                ExecutionQueue.delete(execution_request)
+            with mock.patch('st2actions.scheduler.handler.date', date_mock):
+                schedule_q_db = self.scheduling_queue._get_next_execution()
+                ExecutionQueue.delete(schedule_q_db)
 
-            self.assertIsInstance(execution_request, ActionExecutionSchedulingQueueDB)
-            self.assertEqual(execution_request.scheduled_start_timestamp, delay_date)
-            self.assertEqual(execution_request.delay, executions[index]['delay'])
-            self.assertEqual(execution_request.liveaction, str(executions[index]['liveaction'].id))
+            self.assertIsInstance(schedule_q_db, ActionExecutionSchedulingQueueDB)
+            self.assertEqual(schedule_q_db.scheduled_start_timestamp, test_case['delayed_start'])
+            self.assertEqual(schedule_q_db.delay, test_case['delay'])
+            self.assertEqual(schedule_q_db.liveaction, str(test_case['liveaction'].id))
 
     def test_next_executions_empty(self):
         self.reset()
-        execution_request = handler._next_execution()
-        self.assertEquals(execution_request, None)
+
+        schedule_q_db = self.scheduling_queue._get_next_execution()
+
+        self.assertEquals(schedule_q_db, None)
+
+    def test_no_double_entries(self):
+        self.reset()
+
+        liveaction_db = LiveAction.add_or_update(
+            LiveActionDB(
+                action='wolfpack.action-1',
+                parameters={'actionstr': 'fu'},
+                status=action_constants.LIVEACTION_STATUS_REQUESTED
+            )
+        )
+
+        execution_service.create_execution_object(liveaction_db, publish=False)
+
+        LiveAction.publish_status(liveaction_db)
+        LiveAction.publish_status(liveaction_db)
+
+        schedule_q_db = self.scheduling_queue._get_next_execution()
+        self.assertIsNotNone(schedule_q_db)
+
+        schedule_q_db = self.scheduling_queue._get_next_execution()
+        self.assertIsNone(schedule_q_db)
+
+    def test_no_processing_of_non_requested_actions(self):
+        self.reset()
+
+        for status in action_constants.LIVEACTION_STATUSES:
+            liveaction_db = LiveAction.add_or_update(
+                LiveActionDB(
+                    action='wolfpack.action-1',
+                    parameters={'actionstr': 'fu'},
+                    status=status
+                )
+            )
+
+            execution_service.create_execution_object(liveaction_db, publish=False)
+
+            LiveAction.publish_status(liveaction_db)
+
+            schedule_q_db = self.scheduling_queue._get_next_execution()
+
+            if status is action_constants.LIVEACTION_STATUS_REQUESTED:
+                self.assertIsNotNone(schedule_q_db)
+            else:
+                self.assertIsNone(schedule_q_db)
+
+    def test_garbage_collection(self):
+        self.reset()
+
+        liveaction_db = LiveAction.add_or_update(
+            LiveActionDB(
+                action='wolfpack.action-1',
+                parameters={'actionstr': 'fu'},
+                status=action_constants.LIVEACTION_STATUS_REQUESTED
+            )
+        )
+
+        execution_service.create_execution_object(liveaction_db, publish=False)
+
+        schedule_q_db = self.scheduler._create_execution_request_from_liveaction(
+            liveaction_db,
+            -70000,
+        )
+
+        schedule_q_db.handling = True
+        schedule_q_db = ExecutionQueue.add_or_update(schedule_q_db)
+
+        schedule_q_db = self.scheduling_queue._get_next_execution()
+        self.assertIsNone(schedule_q_db)
+
+        self.scheduling_queue._handle_garbage_collection()
+
+        schedule_q_db = self.scheduling_queue._get_next_execution()
+        self.assertIsNotNone(schedule_q_db)

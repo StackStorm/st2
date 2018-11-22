@@ -22,7 +22,6 @@ from st2actions.scheduler import entrypoint as scheduling
 from st2actions.scheduler import handler as scheduling_queue
 from st2common.constants import action as action_constants
 from st2common.models.db.liveaction import LiveActionDB
-from st2common.persistence.execution_queue import ExecutionQueue
 
 __all__ = [
     'MockLiveActionPublisher',
@@ -52,7 +51,6 @@ class MockLiveActionPublisher(object):
             if isinstance(payload, LiveActionDB):
                 if state == action_constants.LIVEACTION_STATUS_REQUESTED:
                     cls.process(payload)
-                    pass
                 else:
                     worker.get_worker().process(payload)
         except Exception:
@@ -100,3 +98,27 @@ class MockLiveActionPublisherNonBlocking(object):
                 print(str(e))
             finally:
                 cls.threads.remove(thread)
+
+
+class MockLiveActionPublisherSchedulingQueueOnly(object):
+
+    @classmethod
+    def process(cls, payload):
+        scheduling.get_scheduler_entrypoint().process(payload)
+
+    @classmethod
+    def publish_create(cls, payload):
+        # The scheduling entry point is only listening for status change and not on create.
+        # Therefore, no additional processing is required here otherwise this will cause
+        # duplicate processing in the unit tests.
+        pass
+
+    @classmethod
+    def publish_state(cls, payload, state):
+        try:
+            if isinstance(payload, LiveActionDB):
+                if state == action_constants.LIVEACTION_STATUS_REQUESTED:
+                    cls.process(payload)
+        except Exception:
+            traceback.print_exc()
+            print(payload)

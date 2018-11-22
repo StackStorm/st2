@@ -38,21 +38,6 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 
-def _create_execution_request_from_liveaction(liveaction, delay=None,):
-    """
-        Create execution request from liveaction.
-    """
-    execution_request = ActionExecutionSchedulingQueueDB()
-    execution_request.liveaction = str(liveaction.id)
-    execution_request.scheduled_start_timestamp = date.append_milliseconds_to_time(
-        liveaction.start_timestamp,
-        delay or 0
-    )
-    execution_request.delay = delay
-
-    return execution_request
-
-
 class SchedulerEntrypoint(consumers.MessageHandler):
     """
         SchedulerEntrypoint subscribes to the Action scheduler request queue
@@ -70,20 +55,22 @@ class SchedulerEntrypoint(consumers.MessageHandler):
         if request.status != action_constants.LIVEACTION_STATUS_REQUESTED:
             LOG.info('%s is ignoring %s (id=%s) with "%s" status.',
                      self.__class__.__name__, type(request), request.id, request.status)
-            return None
+            return
 
         try:
-            liveaction_db = action_utils.get_liveaction_by_id(request.id)
+            liveaction_db = action_utils.get_liveaction_by_id(str(request.id))
         except StackStormDBObjectNotFoundError:
-            LOG.exception('Failed to find liveaction %s in the database.', request.id)
+            LOG.exception('Failed to find liveaction %s in the database.', str(request.id))
             raise
 
         query = {
             "liveaction": str(liveaction_db.id),
         }
 
-        if ExecutionQueue.query(**query):
-            return
+        queued_requests = ExecutionQueue.query(**query)
+
+        if len(queued_requests) > 0:
+            return queued_requests[0]
 
         if liveaction_db.delay > 0:
             liveaction_db = action_service.update_status(
@@ -92,11 +79,26 @@ class SchedulerEntrypoint(consumers.MessageHandler):
                 publish=False
             )
 
-        execution_request = _create_execution_request_from_liveaction(
+        execution_request = self._create_execution_request_from_liveaction(
             liveaction_db,
             delay=liveaction_db.delay
         )
+
         ExecutionQueue.add_or_update(execution_request, publish=False)
+
+        return execution_request
+
+    def _create_execution_request_from_liveaction(self, liveaction, delay=None,):
+        """
+            Create execution request from liveaction.
+        """
+        execution_request = ActionExecutionSchedulingQueueDB()
+        execution_request.liveaction = str(liveaction.id)
+        execution_request.scheduled_start_timestamp = date.append_milliseconds_to_time(
+            liveaction.start_timestamp,
+            delay or 0
+        )
+        execution_request.delay = delay
 
         return execution_request
 

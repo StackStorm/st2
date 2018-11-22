@@ -70,7 +70,6 @@ import st2common.models.db.liveaction as liveaction_model
 import st2common.models.db.actionalias as actionalias_model
 import st2common.models.db.policy as policy_model
 import st2tests.config
-from st2tests.mocks import liveaction as mock_lv_ac_xport
 
 # Imports for backward compatibility (those classes have been moved to standalone modules)
 from st2tests.actions import BaseActionTestCase
@@ -277,6 +276,15 @@ class DbTestCase(BaseDbTestCase):
             eventlet.sleep(1)
             liveaction = LiveAction.get_by_id(str(liveaction.id))
             if liveaction.status == status:
+                return liveaction
+        return liveaction
+
+    @staticmethod
+    def _wait_on_statuses(liveaction, statuses):
+        for _ in range(0, 100):
+            eventlet.sleep(1)
+            liveaction = LiveAction.get_by_id(str(liveaction.id))
+            if liveaction.status in statuses:
                 return liveaction
         return liveaction
 
@@ -549,19 +557,6 @@ class WorkflowTestCase(DbTestCase):
     """
     Base class for workflow service tests to inherit from.
     """
-
-    @classmethod
-    def setUp(cls):
-        mock_lv_ac_xport.MockLiveActionPublisherNonBlocking.wait_all()
-        mock_lv_ac_xport.setup()
-
-    @classmethod
-    def tearDown(cls):
-        mock_lv_ac_xport.MockLiveActionPublisherNonBlocking.wait_all()
-        try:
-            mock_lv_ac_xport.teardown()
-        except:
-            pass
 
     def get_wf_fixture_meta_data(self, fixture_pack_path, wf_meta_file_name):
         wf_meta_file_path = fixture_pack_path + '/actions/' + wf_meta_file_name

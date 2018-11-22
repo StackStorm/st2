@@ -36,7 +36,6 @@ from st2common.bootstrap import runnersregistrar
 from st2common.constants import action as action_constants
 from st2common.models.api.auth import TokenAPI
 from st2common.models.db.liveaction import LiveActionDB
-from st2common.persistence.liveaction import LiveAction
 from st2common.runners import base as runners
 from st2common.services import access as access_service
 from st2common.services import action as action_service

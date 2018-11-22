@@ -26,7 +26,6 @@ from st2common.services import policies as policy_service
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution_queue import ExecutionQueue
 from st2common.util import action_db as action_utils
-from st2common.services import coordination
 from st2common.metrics import base as metrics
 from st2common.exceptions import db as db_exc
 
@@ -39,73 +38,82 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 
-def _next_execution():
-    """
-        Sort executions by fifo and priority and get the latest, highest priority
-        item from the queue and pop it off.
-    """
-    query = {
-        "scheduled_start_timestamp__lte": date.get_datetime_utc_now(),
-        "handling": False,
-        "limit": 1,
-        "order_by": [
-            "scheduled_start_timestamp",
-        ]
-    }
-
-    execution = ExecutionQueue.query(**query).first()
-    if execution:
-        execution.handling = True
-        try:
-            ExecutionQueue.add_or_update(execution, publish=False)
-            return execution
-        except db_exc.StackStormDBObjectWriteConflictError:
-            LOG.info("Execution handled by another scheduler: %s", execution.id)
-
-    return None
-
-
 class ExecutionQueueHandler(object):
     def __init__(self):
         self.message_type = LiveActionDB
         self._shutdown = False
         self._pool = eventlet.GreenPool(size=10)
 
-    def garbageCollection(self):
+    def cleanup(self):
         LOG.debug('Starting scheduler garbage collection')
 
         while self._shutdown is not True:
             eventlet.greenthread.sleep(5)
-            query = {
-                "scheduled_start_timestamp__lte": date.append_milliseconds_to_time(
-                    date.get_datetime_utc_now(),
-                    -60000
-                ),
-                "handling": True,
-            }
+            self._handle_garbage_collection()
 
-            executions = ExecutionQueue.query(**query)
-            if executions:
-                for execution in executions:
-                    execution.handling = False
-                    try:
-                        ExecutionQueue.add_or_update(execution, publish=False)
-                    except db_exc.StackStormDBObjectWriteConflictError:
-                        LOG.info(
-                            "Execution updated before rescheduling: %s",
-                            execution.id
-                        )
-
-    def loop(self):
+    def run(self):
         LOG.debug('Entering scheduler loop')
 
         while self._shutdown is not True:
             eventlet.greenthread.sleep(0.1)
+
             with metrics.Timer(key='scheduler.loop'):
-                execution = _next_execution()
+                execution = self._get_next_execution()
+
             with metrics.Timer(key='scheduler.loop.spawn_execution'):
                 if execution:
                     self._pool.spawn(self._handle_execution, execution)
+
+    def _handle_garbage_collection(self):
+        query = {
+            "scheduled_start_timestamp__lte": date.append_milliseconds_to_time(
+                date.get_datetime_utc_now(),
+                -60000
+            ),
+            "handling": True,
+        }
+
+        executions = ExecutionQueue.query(**query)
+
+        if executions:
+            for execution in executions:
+                execution.handling = False
+
+                try:
+                    ExecutionQueue.add_or_update(execution, publish=False)
+                    LOG.info("Removing lock for orphaned execution: %s", execution.id)
+                except db_exc.StackStormDBObjectWriteConflictError:
+                    LOG.info(
+                        "Execution updated before rescheduling: %s",
+                        execution.id
+                    )
+
+    def _get_next_execution(self):
+        """
+            Sort executions by fifo and priority and get the latest, highest priority
+            item from the queue and pop it off.
+        """
+        query = {
+            "scheduled_start_timestamp__lte": date.get_datetime_utc_now(),
+            "handling": False,
+            "limit": 1,
+            "order_by": [
+                "scheduled_start_timestamp",
+            ]
+        }
+
+        execution = ExecutionQueue.query(**query).first()
+
+        if execution:
+            execution.handling = True
+
+            try:
+                ExecutionQueue.add_or_update(execution, publish=False)
+                return execution
+            except db_exc.StackStormDBObjectWriteConflictError:
+                LOG.info("Execution handled by another scheduler: %s", execution.id)
+
+        return None
 
     @metrics.CounterWithTimer(key='scheduler.handle_execution')
     def _handle_execution(self, execution, metrics_timer=None):
@@ -196,8 +204,8 @@ class ExecutionQueueHandler(object):
 
     def start(self):
         self._shutdown = False
-        eventlet.spawn(self.loop)
-        eventlet.spawn(self.garbageCollection)
+        eventlet.spawn(self.run)
+        eventlet.spawn(self.cleanup)
 
     def shutdown(self):
         self._shutdown = True

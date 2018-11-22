@@ -229,10 +229,6 @@ class DbConnectionTestCase(DbTestCase):
 class DbCleanupTestCase(DbTestCase):
     ensure_indexes = True
 
-    def setUp(self):
-        self.reset()
-        mock_liveaction.teardown()
-
     def test_cleanup(self):
         """
         Tests dropping the database. Requires the db server to be running.

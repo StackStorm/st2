@@ -16,11 +16,9 @@
 from __future__ import absolute_import
 
 import six
-from functools import wraps
 from oslo_config import cfg
 from tooz import coordination
 from tooz import locking
-import eventlet
 
 from st2common import log as logging
 from st2common.util import system_info

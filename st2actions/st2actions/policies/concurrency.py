@@ -14,11 +14,14 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 from st2common.constants import action as action_constants
 from st2common import log as logging
 from st2common.persistence import action as action_access
 from st2common.policies.concurrency import BaseConcurrencyApplicator
 from st2common.services import action as action_service
+from st2common.services import coordination
+
 
 __all__ = [
     'ConcurrencyApplicator'
@@ -69,9 +72,6 @@ class ConcurrencyApplicator(BaseConcurrencyApplicator):
         publish = (status == action_constants.LIVEACTION_STATUS_CANCELING)
         target = action_service.update_status(target, status, publish=publish)
 
-        LOG.debug('Publishing: %s', publish)
-        LOG.debug('Status: %s', status)
-
         return target
 
     def apply_before(self, target):
@@ -82,11 +82,16 @@ class ConcurrencyApplicator(BaseConcurrencyApplicator):
             action_constants.LIVEACTION_STATUS_DELAYED,
             action_constants.LIVEACTION_STATUS_POLICY_DELAYED,
         ]
+
         # Exit if target not in valid state.
         if target.status not in valid_states:
             LOG.debug('The live action is not in a valid state therefore the policy '
                       '"%s" cannot be applied. %s', self._policy_ref, target)
             return target
+
+        # Warn users that the coordination service is not configured.
+        if not coordination.configured():
+            LOG.warn('Coordination service is not configured. Policy enforcement is best effort.')
 
         # Acquire a distributed lock before querying the database to make sure that only one
         # scheduler is scheduling execution for this action. Even if the coordination service
@@ -101,13 +106,19 @@ class ConcurrencyApplicator(BaseConcurrencyApplicator):
 
     def _apply_after(self, target):
         # Schedule the oldest delayed executions.
-        requests = action_access.LiveAction.query(action=target.action,
-                                                  status=action_constants.LIVEACTION_STATUS_POLICY_DELAYED,
-                                                  order_by=['start_timestamp'], limit=1)
+        requests = action_access.LiveAction.query(
+            action=target.action,
+            status=action_constants.LIVEACTION_STATUS_DELAYED,
+            order_by=['start_timestamp'],
+            limit=1
+        )
 
         if requests:
             action_service.update_status(
-                requests[0], action_constants.LIVEACTION_STATUS_REQUESTED, publish=True)
+                requests[0],
+                action_constants.LIVEACTION_STATUS_REQUESTED,
+                publish=True
+            )
 
     def apply_after(self, target):
         target = super(ConcurrencyApplicator, self).apply_after(target=target)

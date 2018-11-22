@@ -35,7 +35,6 @@ from st2common.util import date as date_utils
 from st2tests import DbTestCase
 from st2tests import fixturesloader
 from st2tests.mocks.liveaction import MockLiveActionPublisherNonBlocking
-from st2tests.mocks import liveaction as mock_liveaction
 from six.moves import range
 
 
