@@ -39,7 +39,8 @@ from st2common.transport.publishers import CUDPublisher
 from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
 from st2tests.mocks.execution import MockExecutionPublisher
-from st2tests.mocks import liveaction as mock_liveaction
+from st2tests.mocks.liveaction import MockLiveActionPublisher
+from st2tests.mocks.liveaction import MockLiveActionPublisherNonBlocking
 from st2tests.mocks.runners import runner
 
 __all__ = [
@@ -88,9 +89,7 @@ class ExecutionCancellationTestCase(DbTestCase):
 
     @mock.patch.object(
         LiveActionPublisher, 'publish_state',
-        mock.MagicMock(
-            side_effect=mock_liveaction.MockLiveActionPublisherNonBlocking.publish_state
-        ))
+        mock.MagicMock(side_effect=MockLiveActionPublisherNonBlocking.publish_state))
     @mock.patch('st2common.runners.base.get_runner', mock.Mock(return_value=runner.get_runner()))
     @mock.patch('st2actions.container.base.get_runner', mock.Mock(return_value=runner.get_runner()))
     def test_basic_cancel(self):
@@ -118,13 +117,13 @@ class ExecutionCancellationTestCase(DbTestCase):
 
     @mock.patch.object(
         CUDPublisher, 'publish_create',
-        mock.MagicMock(side_effect=mock_liveaction.MockLiveActionPublisher.publish_create))
+        mock.MagicMock(side_effect=MockLiveActionPublisher.publish_create))
     @mock.patch.object(
         CUDPublisher, 'publish_update',
         mock.MagicMock(side_effect=MockExecutionPublisher.publish_update))
     @mock.patch.object(
         LiveActionPublisher, 'publish_state',
-        mock.MagicMock(side_effect=mock_liveaction.MockLiveActionPublisher.publish_state))
+        mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
     @mock.patch.object(
         runners.ActionRunner, 'cancel',
         mock.MagicMock(side_effect=Exception('Mock cancellation failure.')))

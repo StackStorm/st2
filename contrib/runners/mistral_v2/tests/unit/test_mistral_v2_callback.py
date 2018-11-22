@@ -16,7 +16,6 @@
 
 from __future__ import absolute_import
 
-import eventlet
 import six
 import mock
 import requests
@@ -41,18 +40,7 @@ from st2common.transport.publishers import CUDPublisher
 from st2common.runners import base as runner_base
 from st2tests import DbTestCase
 from st2tests import fixturesloader
-from st2tests.mocks.liveaction import MockLiveActionPublisherNonBlocking
-
-
-# Previous test disrupts state for tests in this module. We reload the import
-# to avoid this. This try/except block is for python 3 support.
-try:
-    from imp import reload
-except:
-    from importlib import reload
-
-reload(runner_base)
-reload(action_executions)
+from st2tests.mocks.liveaction import MockLiveActionPublisher
 
 
 MISTRAL_RUNNER_NAME = 'mistral_v2'
@@ -77,11 +65,11 @@ else:
 @mock.patch.object(
     CUDPublisher,
     'publish_create',
-    mock.MagicMock(side_effect=MockLiveActionPublisherNonBlocking.publish_create))
+    mock.MagicMock(side_effect=MockLiveActionPublisher.publish_create))
 @mock.patch.object(
     LiveActionPublisher,
     'publish_state',
-    mock.MagicMock(side_effect=MockLiveActionPublisherNonBlocking.publish_state))
+    mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
 class MistralRunnerCallbackTest(DbTestCase):
 
     @classmethod
@@ -534,13 +522,6 @@ class MistralRunnerCallbackTest(DbTestCase):
         liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
 
-        # Since the processing is non-blocking, wait until the call count reaches
-        # expected number. Set a wait threshold to avoid looping forever.
-        wait_count = 0
-        while wait_count < 50 and action_executions.ActionExecutionManager.update.call_count != 2:
-            eventlet.sleep(0.1)
-            wait_count += 1
-
         calls = [call('12345', state='SUCCESS', output=NON_EMPTY_RESULT) for i in range(0, 2)]
         action_executions.ActionExecutionManager.update.assert_has_calls(calls)
 
@@ -560,13 +541,6 @@ class MistralRunnerCallbackTest(DbTestCase):
         liveaction, execution = action_service.request(liveaction)
         liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
-
-        # Since the processing is non-blocking, wait until the call count reaches
-        # expected number. Set a wait threshold to avoid looping forever.
-        wait_count = 0
-        while wait_count < 50 and action_executions.ActionExecutionManager.update.call_count != 2:
-            eventlet.sleep(0.1)
-            wait_count += 1
 
         # This test initially setup mock for action_executions.ActionExecutionManager.update
         # to fail the first 4 times and return success on the 5th times. The max attempts

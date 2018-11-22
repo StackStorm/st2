@@ -31,7 +31,7 @@ from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
 from st2tests.mocks.runners import runner
 from st2tests.mocks.execution import MockExecutionPublisher
-from st2tests.mocks import liveaction as mock_liveaction
+from st2tests.mocks.liveaction import MockLiveActionPublisher
 from st2tests.policies.concurrency import FakeConcurrencyApplicator
 from st2tests.policies.mock_exception import RaiseExceptionApplicator
 
@@ -63,7 +63,7 @@ FIXTURES = LOADER.load_fixtures(fixtures_pack=PACK, fixtures_dict=TEST_FIXTURES)
     mock.MagicMock(return_value=None))
 @mock.patch.object(
     LiveActionPublisher, 'publish_state',
-    mock.MagicMock(side_effect=mock_liveaction.MockLiveActionPublisherNonBlocking.publish_state))
+    mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
 @mock.patch('st2common.runners.base.get_runner', mock.Mock(return_value=runner.get_runner()))
 @mock.patch('st2actions.container.base.get_runner', mock.Mock(return_value=runner.get_runner()))
 class SchedulingPolicyTest(DbTestCase):

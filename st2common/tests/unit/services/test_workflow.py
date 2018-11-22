@@ -76,8 +76,6 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
         for pack in PACKS:
             actions_registrar.register_from_pack(pack)
 
-        mock_lv_ac_xport.MockLiveActionPublisherNonBlocking.wait_all()
-
     def test_request(self):
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
 
