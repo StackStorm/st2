@@ -72,7 +72,7 @@ class SchedulerEntrypoint(consumers.MessageHandler):
         if len(queued_requests) > 0:
             return queued_requests[0]
 
-        if liveaction_db.delay > 0:
+        if liveaction_db.delay and liveaction_db.delay > 0:
             liveaction_db = action_service.update_status(
                 liveaction_db,
                 action_constants.LIVEACTION_STATUS_DELAYED,
