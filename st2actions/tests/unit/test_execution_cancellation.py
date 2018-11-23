@@ -99,21 +99,19 @@ class ExecutionCancellationTestCase(DbTestCase):
         with mock.patch.object(runner.MockActionRunner, 'run', mock_runner_run):
             liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
             liveaction, _ = action_service.request(liveaction)
-            liveaction = LiveAction.get_by_id(str(liveaction.id))
 
             liveaction = self._wait_on_status(
                 liveaction,
                 action_constants.LIVEACTION_STATUS_RUNNING
             )
-            self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
             # Cancel execution.
             action_service.request_cancellation(liveaction, cfg.CONF.system_user.user)
+
             liveaction = self._wait_on_status(
                 liveaction,
                 action_constants.LIVEACTION_STATUS_CANCELED
             )
-            self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELED)
 
     @mock.patch.object(
         CUDPublisher, 'publish_create',

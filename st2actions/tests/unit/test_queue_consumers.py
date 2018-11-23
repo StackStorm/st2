@@ -72,14 +72,14 @@ class QueueConsumerTest(DbTestCase):
             action_constants.LIVEACTION_STATUS_SCHEDULED
         )
         self.assertDictEqual(scheduled_liveaction_db.runner_info, {})
-        self.assertEqual(scheduled_liveaction_db.status,
-                         action_constants.LIVEACTION_STATUS_SCHEDULED)
 
         self.dispatcher._queue_consumer._process_message(scheduled_liveaction_db)
         dispatched_liveaction_db = action_db.get_liveaction_by_id(liveaction_db.id)
         self.assertGreater(len(list(dispatched_liveaction_db.runner_info.keys())), 0)
-        self.assertEqual(dispatched_liveaction_db.status,
-                         action_constants.LIVEACTION_STATUS_RUNNING)
+        self.assertEqual(
+            dispatched_liveaction_db.status,
+            action_constants.LIVEACTION_STATUS_RUNNING
+        )
 
     @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(side_effect=Exception('Boom!')))
     def test_execute_failure(self):
@@ -91,13 +91,10 @@ class QueueConsumerTest(DbTestCase):
             scheduled_liveaction_db,
             action_constants.LIVEACTION_STATUS_SCHEDULED
         )
-        self.assertEqual(scheduled_liveaction_db.status,
-                         action_constants.LIVEACTION_STATUS_SCHEDULED)
 
         self.dispatcher._queue_consumer._process_message(scheduled_liveaction_db)
         dispatched_liveaction_db = action_db.get_liveaction_by_id(liveaction_db.id)
-        self.assertEqual(dispatched_liveaction_db.status,
-                         action_constants.LIVEACTION_STATUS_FAILED)
+        self.assertEqual(dispatched_liveaction_db.status, action_constants.LIVEACTION_STATUS_FAILED)
 
     @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(return_value=None))
     def test_execute_no_result(self):
@@ -109,13 +106,10 @@ class QueueConsumerTest(DbTestCase):
             scheduled_liveaction_db,
             action_constants.LIVEACTION_STATUS_SCHEDULED
         )
-        self.assertEqual(scheduled_liveaction_db.status,
-                         action_constants.LIVEACTION_STATUS_SCHEDULED)
 
         self.dispatcher._queue_consumer._process_message(scheduled_liveaction_db)
         dispatched_liveaction_db = action_db.get_liveaction_by_id(liveaction_db.id)
-        self.assertEqual(dispatched_liveaction_db.status,
-                         action_constants.LIVEACTION_STATUS_FAILED)
+        self.assertEqual(dispatched_liveaction_db.status, action_constants.LIVEACTION_STATUS_FAILED)
 
     @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(return_value=None))
     def test_execute_cancelation(self):
@@ -127,16 +121,22 @@ class QueueConsumerTest(DbTestCase):
             scheduled_liveaction_db,
             action_constants.LIVEACTION_STATUS_SCHEDULED
         )
-        self.assertEqual(scheduled_liveaction_db.status,
-                         action_constants.LIVEACTION_STATUS_SCHEDULED)
 
-        action_db.update_liveaction_status(status=action_constants.LIVEACTION_STATUS_CANCELED,
-                                           liveaction_id=liveaction_db.id)
+        action_db.update_liveaction_status(
+            status=action_constants.LIVEACTION_STATUS_CANCELED,
+            liveaction_id=liveaction_db.id
+        )
+
         canceled_liveaction_db = action_db.get_liveaction_by_id(liveaction_db.id)
-
         self.dispatcher._queue_consumer._process_message(canceled_liveaction_db)
         dispatched_liveaction_db = action_db.get_liveaction_by_id(liveaction_db.id)
-        self.assertEqual(dispatched_liveaction_db.status,
-                         action_constants.LIVEACTION_STATUS_CANCELED)
-        self.assertDictEqual(dispatched_liveaction_db.result,
-                             {'message': 'Action execution canceled by user.'})
+
+        self.assertEqual(
+            dispatched_liveaction_db.status,
+            action_constants.LIVEACTION_STATUS_CANCELED
+        )
+
+        self.assertDictEqual(
+            dispatched_liveaction_db.result,
+            {'message': 'Action execution canceled by user.'}
+        )

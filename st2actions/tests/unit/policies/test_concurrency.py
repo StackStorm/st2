@@ -147,7 +147,6 @@ class ConcurrencyPolicyTestCase(EventletTestCase, DbTestCase):
 
         # Since states are being processed async, wait for the liveaction to go into delayed state.
         liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_DELAYED)
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_DELAYED)
 
         # Mark one of the execution as completed.
         action_service.update_status(
@@ -159,8 +158,6 @@ class ConcurrencyPolicyTestCase(EventletTestCase, DbTestCase):
 
         # Since states are being processed async, wait for the liveaction to be scheduled.
         liveaction = self._wait_on_statuses(liveaction, SCHEDULED_STATES)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertIn(liveaction.status, SCHEDULED_STATES)
         self.assertEqual(expected_num_pubs, LiveActionPublisher.publish_state.call_count)
         self.assertEqual(expected_num_exec, runner.MockActionRunner.run.call_count)
 

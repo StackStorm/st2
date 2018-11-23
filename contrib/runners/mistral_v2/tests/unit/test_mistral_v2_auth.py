@@ -167,7 +167,6 @@ class MistralAuthTest(DbTestCase):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=ACTION_CONTEXT)
         liveaction, execution = action_service.request(liveaction)
         liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_RUNNING)
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
         self.assertIsNotNone(mistral_context)
@@ -226,7 +225,6 @@ class MistralAuthTest(DbTestCase):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
         liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_RUNNING)
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
         self.assertIsNotNone(mistral_context)

@@ -171,8 +171,6 @@ class MistralRunnerPolicyTest(DbTestCase):
                 action_constants.LIVEACTION_STATUS_RUNNING
             )
 
-            self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
-
         # Check number of running instances
         running = LiveAction.count(
             action=WF1_NAME, status=action_constants.LIVEACTION_STATUS_RUNNING)
@@ -204,7 +202,6 @@ class MistralRunnerPolicyTest(DbTestCase):
                 action_constants.LIVEACTION_STATUS_CANCELING
             )
 
-            self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_CANCELING)
             mistral_runner_cls.cancel.assert_called_once_with()
 
     @mock.patch.object(
@@ -245,8 +242,6 @@ class MistralRunnerPolicyTest(DbTestCase):
                 action_constants.LIVEACTION_STATUS_RUNNING
             )
 
-            self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
-
         # Check number of running instances
         running = LiveAction.count(
             action=WF1_NAME, status=action_constants.LIVEACTION_STATUS_RUNNING,
@@ -277,5 +272,4 @@ class MistralRunnerPolicyTest(DbTestCase):
                 action_constants.LIVEACTION_STATUS_CANCELING
             )
 
-            self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_CANCELING)
             mistral_runner_cls.cancel.assert_called_once_with()

@@ -80,14 +80,13 @@ class TestActionExecutionHistoryWorker(DbTestCase):
     def test_basic_execution(self):
         liveaction = LiveActionDB(action='executions.local', parameters={'cmd': 'uname -a'})
         liveaction, _ = action_service.request(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        liveaction = self._wait_on_status(
-            liveaction,
-            action_constants.LIVEACTION_STATUS_FAILED
+        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_FAILED)
+
+        execution = self._get_action_execution(
+            liveaction__id=str(liveaction.id),
+            raise_exception=True
         )
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
-        execution = self._get_action_execution(liveaction__id=str(liveaction.id),
-                                               raise_exception=True)
+
         self.assertDictEqual(execution.trigger, {})
         self.assertDictEqual(execution.trigger_type, {})
         self.assertDictEqual(execution.trigger_instance, {})
@@ -112,14 +111,13 @@ class TestActionExecutionHistoryWorker(DbTestCase):
     def test_chained_executions(self):
         liveaction = LiveActionDB(action='executions.chain')
         liveaction, _ = action_service.request(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        liveaction = self._wait_on_status(
-            liveaction,
-            action_constants.LIVEACTION_STATUS_FAILED
+        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_FAILED)
+
+        execution = self._get_action_execution(
+            liveaction__id=str(liveaction.id),
+            raise_exception=True
         )
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
-        execution = self._get_action_execution(liveaction__id=str(liveaction.id),
-                                            raise_exception=True)
+
         action = action_utils.get_action_by_ref('executions.chain')
         self.assertDictEqual(execution.action, vars(ActionAPI.from_model(action)))
         runner = RunnerType.get_by_name(action.runner_type['name'])
@@ -133,6 +131,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         self.assertEqual(execution.liveaction['callback'], liveaction.callback)
         self.assertEqual(execution.liveaction['action'], liveaction.action)
         self.assertGreater(len(execution.children), 0)
+
         for child in execution.children:
             record = ActionExecution.get(id=child, raise_exception=True)
             self.assertEqual(record.parent, str(execution.id))
@@ -164,14 +163,13 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         # Wait for the action execution to complete and then confirm outcome.
         liveaction = LiveAction.get(context__trigger_instance__id=str(trigger_instance.id))
         self.assertIsNotNone(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        liveaction = self._wait_on_status(
-            liveaction,
-            action_constants.LIVEACTION_STATUS_FAILED
+        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_FAILED)
+
+        execution = self._get_action_execution(
+            liveaction__id=str(liveaction.id),
+            raise_exception=True
         )
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
-        execution = self._get_action_execution(liveaction__id=str(liveaction.id),
-                                               raise_exception=True)
+
         self.assertDictEqual(execution.trigger, vars(TriggerAPI.from_model(trigger)))
         self.assertDictEqual(execution.trigger_type, vars(TriggerTypeAPI.from_model(trigger_type)))
         self.assertDictEqual(execution.trigger_instance,

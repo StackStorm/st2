@@ -38,7 +38,6 @@ from st2common.bootstrap import runnersregistrar
 from st2common.constants import action as action_constants
 from st2common.models.db.execution import ActionExecutionDB
 from st2common.models.db.liveaction import LiveActionDB
-from st2common.persistence.liveaction import LiveAction
 from st2common.runners import base as runners
 from st2common.services import action as action_service
 from st2common.transport.liveaction import LiveActionPublisher
@@ -155,7 +154,6 @@ class MistralRunnerCancelTest(DbTestCase):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
         liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_RUNNING)
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
         self.assertIsNotNone(mistral_context)
@@ -166,7 +164,6 @@ class MistralRunnerCancelTest(DbTestCase):
         liveaction, execution = action_service.request_cancellation(liveaction, requester)
         liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_CANCELING)
         executions.ExecutionManager.update.assert_called_with(WF1_EXEC.get('id'), 'CANCELLED')
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELING)
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',
@@ -195,12 +192,10 @@ class MistralRunnerCancelTest(DbTestCase):
         liveaction1 = LiveActionDB(action=WF2_NAME, parameters=ACTION_PARAMS)
         liveaction1, execution1 = action_service.request(liveaction1)
         liveaction1 = self._wait_on_status(liveaction1, action_constants.LIVEACTION_STATUS_RUNNING)
-        self.assertEqual(liveaction1.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         liveaction2 = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction2, execution2 = action_service.request(liveaction2)
         liveaction2 = self._wait_on_status(liveaction2, action_constants.LIVEACTION_STATUS_RUNNING)
-        self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         # Mock the children of the parent execution to make this
         # test case has subworkflow execution.
@@ -258,7 +253,6 @@ class MistralRunnerCancelTest(DbTestCase):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
         liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_RUNNING)
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
         self.assertIsNotNone(mistral_context)
@@ -269,8 +263,6 @@ class MistralRunnerCancelTest(DbTestCase):
         liveaction, execution = action_service.request_cancellation(liveaction, requester)
         liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_CANCELING)
         executions.ExecutionManager.update.assert_called_with(WF1_EXEC.get('id'), 'CANCELLED')
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELING)
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',
@@ -295,7 +287,6 @@ class MistralRunnerCancelTest(DbTestCase):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
         liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_RUNNING)
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
         self.assertIsNotNone(mistral_context)
@@ -305,7 +296,6 @@ class MistralRunnerCancelTest(DbTestCase):
         requester = cfg.CONF.system_user.user
         liveaction, execution = action_service.request_cancellation(liveaction, requester)
         liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_CANCELING)
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELING)
 
         expected_call_count = 2
         self._wait_on_call_count(executions.ExecutionManager.update, expected_call_count)

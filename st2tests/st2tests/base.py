@@ -270,42 +270,50 @@ class DbTestCase(BaseDbTestCase):
     register_packs = False
     register_pack_configs = False
 
-    @staticmethod
-    def _wait_on_status(liveaction, status):
-        for _ in range(0, 100):
-            eventlet.sleep(1)
-            liveaction = LiveAction.get_by_id(str(liveaction.id))
-            if liveaction.status == status:
-                return liveaction
-        return liveaction
+    def _wait_on_status(self, liveaction_db, status, retries=300, delay=0.1, raise_exc=True):
+        for _ in range(0, retries):
+            eventlet.sleep(delay)
+            liveaction_db = LiveAction.get_by_id(str(liveaction_db.id))
+            if liveaction_db.status == status:
+                break
 
-    @staticmethod
-    def _wait_on_statuses(liveaction, statuses):
-        for _ in range(0, 100):
-            eventlet.sleep(1)
-            liveaction = LiveAction.get_by_id(str(liveaction.id))
-            if liveaction.status in statuses:
-                return liveaction
-        return liveaction
+        if raise_exc:
+            self.assertEqual(liveaction_db.status, status)
 
-    @staticmethod
-    def _wait_on_ac_ex_status(action_d_b, status):
-        for _ in range(0, 100):
-            eventlet.sleep(1)
-            action_d_b = ex_db_access.ActionExecution.get_by_id(str(action_d_b.id))
-            if action_d_b.status == status:
-                return action_d_b
-        return action_d_b
+        return liveaction_db
 
-    def _wait_on_call_count(self, mocked_obj, expected_count, interval=0.1, raise_exception=True):
-        wait_count = 0
+    def _wait_on_statuses(self, liveaction_db, statuses, retries=300, delay=0.1, raise_exc=True):
+        for _ in range(0, retries):
+            eventlet.sleep(delay)
+            liveaction_db = LiveAction.get_by_id(str(liveaction_db.id))
+            if liveaction_db.status in statuses:
+                break
 
-        while wait_count < 100 and mocked_obj.call_count != expected_count:
-            eventlet.sleep(interval)
-            wait_count += 1
+        if raise_exc:
+            self.assertIn(liveaction_db.status, statuses)
 
-        if raise_exception:
-            self.assertEqual(mocked_obj.call_count, expected_count)
+        return liveaction_db
+
+    def _wait_on_ac_ex_status(self, execution_db, status, retries=300, delay=0.1, raise_exc=True):
+        for _ in range(0, retries):
+            eventlet.sleep(delay)
+            execution_db = ex_db_access.ActionExecution.get_by_id(str(execution_db.id))
+            if execution_db.status == status:
+                break
+
+        if raise_exc:
+            self.assertEqual(execution_db.status, status)
+
+        return execution_db
+
+    def _wait_on_call_count(self, mocked, expected_count, retries=100, delay=0.1, raise_exc=True):
+        for _ in range(0, retries):
+            eventlet.sleep(delay)
+            if mocked.call_count == expected_count:
+                break
+
+        if raise_exc:
+            self.assertEqual(mocked.call_count, expected_count)
 
     @classmethod
     def setUpClass(cls):
@@ -649,13 +657,8 @@ class WorkflowTestCase(DbTestCase):
         task_req = {'id': task_id, 'spec': task_spec, 'ctx': ctx or {}, 'actions': task_actions}
         task_ex_db = wf_svc.request_task_execution(wf_ex_db, st2_ctx, task_req)
         ac_ex_db = self.get_action_ex(str(task_ex_db.id))
+        ac_ex_db = self._wait_on_ac_ex_status(ac_ex_db, ac_const.LIVEACTION_STATUS_SUCCEEDED)
 
-        ac_ex_db = self._wait_on_ac_ex_status(
-            ac_ex_db,
-            ac_const.LIVEACTION_STATUS_SUCCEEDED
-        )
-
-        self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         wf_svc.handle_action_execution_completion(ac_ex_db)
         task_ex_db = wf_db_access.TaskExecution.get_by_id(str(task_ex_db.id))
         self.assertEqual(task_ex_db.status, wf_lib_states.SUCCEEDED)

@@ -112,12 +112,7 @@ class SchedulingPolicyTest(DbTestCase):
     def test_apply(self):
         liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
         liveaction, _ = action_service.request(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        liveaction = self._wait_on_status(
-            liveaction,
-            action_constants.LIVEACTION_STATUS_SUCCEEDED
-        )
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         FakeConcurrencyApplicator.apply_before.assert_called_once_with(liveaction)
         RaiseExceptionApplicator.apply_before.assert_called_once_with(liveaction)
         FakeConcurrencyApplicator.apply_after.assert_called_once_with(liveaction)
@@ -127,9 +122,4 @@ class SchedulingPolicyTest(DbTestCase):
     def test_enforce(self):
         liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
         liveaction, _ = action_service.request(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        liveaction = self._wait_on_status(
-            liveaction,
-            action_constants.LIVEACTION_STATUS_CANCELED
-        )
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELED)
+        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_CANCELED)
