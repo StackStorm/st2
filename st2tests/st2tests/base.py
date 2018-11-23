@@ -272,11 +272,6 @@ class DbTestCase(BaseDbTestCase):
     register_packs = False
     register_pack_configs = False
 
-    ensure_indexes = True
-    ensure_indexes_models = [
-        ActionExecutionSchedulingQueueDB
-    ]
-
     @classmethod
     def setUpClass(cls):
         BaseDbTestCase.setUpClass()
@@ -312,6 +307,11 @@ class ExecutionDbTestCase(DbTestCase):
 
     This class offers some utility methods for waiting on execution status, etc.
     """
+
+    ensure_indexes = True
+    ensure_indexes_models = [
+        ActionExecutionSchedulingQueueDB
+    ]
 
     def _wait_on_status(self, liveaction_db, status, retries=300, delay=0.1, raise_exc=True):
         for _ in range(0, retries):
@@ -586,7 +586,7 @@ class IntegrationTestCase(TestCase):
             self.fail('Process with pid "%s" is still running' % (proc.pid))
 
 
-class WorkflowTestCase(DbTestCase):
+class WorkflowTestCase(ExecutionDbTestCase):
     """
     Base class for workflow service tests to inherit from.
     """
