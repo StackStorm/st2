@@ -25,18 +25,22 @@ from st2common.util import date as date_utils
 from st2common.constants.types import ResourceType
 
 __all__ = [
-    'ActionExecutionSchedulingQueueDB',
+    'ActionExecutionSchedulingQueueItemDB',
 ]
 
 
 LOG = logging.getLogger(__name__)
 
 
-class ActionExecutionSchedulingQueueDB(stormbase.StormFoundationDB,
+class ActionExecutionSchedulingQueueItemDB(stormbase.StormFoundationDB,
         stormbase.ChangeRevisionFieldMixin):
     """
     A model which represents a request for execution to be scheduled.
+
+    Those models are picked up by the scheduler and scheduled to be ran by an action
+    runner.
     """
+
     RESOURCE_TYPE = ResourceType.EXECUTION_REQUEST
     UID_FIELDS = ['id']
 
@@ -55,5 +59,5 @@ class ActionExecutionSchedulingQueueDB(stormbase.StormFoundationDB,
     }
 
 
-MODELS = [ActionExecutionSchedulingQueueDB]
-EXECUTION_QUEUE_ACCESS = ChangeRevisionMongoDBAccess(ActionExecutionSchedulingQueueDB)
+MODELS = [ActionExecutionSchedulingQueueItemDB]
+EXECUTION_QUEUE_ACCESS = ChangeRevisionMongoDBAccess(ActionExecutionSchedulingQueueItemDB)

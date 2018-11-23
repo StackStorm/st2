@@ -46,7 +46,7 @@ from st2common.constants.runners import COMMON_ACTION_ENV_VARIABLES
 from st2common.constants.system import AUTH_TOKEN_ENV_VARIABLE_NAME
 from st2common.exceptions.db import StackStormDBObjectConflictError
 from st2common.models.db import db_setup, db_teardown, db_ensure_indexes
-from st2common.models.db.execution_queue import ActionExecutionSchedulingQueueDB
+from st2common.models.db.execution_queue import ActionExecutionSchedulingQueueItemDB
 from st2common.bootstrap.base import ResourceRegistrar
 from st2common.bootstrap.configsregistrar import ConfigsRegistrar
 from st2common.content.utils import get_packs_base_paths
@@ -310,7 +310,7 @@ class ExecutionDbTestCase(DbTestCase):
 
     ensure_indexes = True
     ensure_indexes_models = [
-        ActionExecutionSchedulingQueueDB
+        ActionExecutionSchedulingQueueItemDB
     ]
 
     def _wait_on_status(self, liveaction_db, status, retries=300, delay=0.1, raise_exc=True):

@@ -30,7 +30,7 @@ from st2common.transport.liveaction import LiveActionPublisher
 from st2common.constants import action as action_constants
 from st2common.bootstrap.policiesregistrar import register_policy_types
 from st2common.bootstrap import runnersregistrar as runners_registrar
-from st2common.models.db.execution_queue import ActionExecutionSchedulingQueueDB
+from st2common.models.db.execution_queue import ActionExecutionSchedulingQueueItemDB
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.persistence.execution_queue import ExecutionQueue
 from st2common.persistence.liveaction import LiveAction
@@ -61,7 +61,7 @@ TEST_FIXTURES = {
 @mock.patch.object(
     LiveActionPublisher, 'publish_state',
     mock.MagicMock(side_effect=MockLiveActionPublisherSchedulingQueueOnly.publish_state))
-class ActionExecutionSchedulingQueueDBTest(ExecutionDbTestCase):
+class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -78,7 +78,7 @@ class ActionExecutionSchedulingQueueDBTest(ExecutionDbTestCase):
                                    fixtures_dict=TEST_FIXTURES)
 
     def setUp(self):
-        super(ActionExecutionSchedulingQueueDBTest, self).setUp()
+        super(ActionExecutionSchedulingQueueItemDBTest, self).setUp()
         self.scheduler = scheduling.get_scheduler_entrypoint()
         self.scheduling_queue = scheduling_queue.get_handler()
 
@@ -103,7 +103,7 @@ class ActionExecutionSchedulingQueueDBTest(ExecutionDbTestCase):
 
         delay_date = date.append_milliseconds_to_time(liveaction_db.start_timestamp, delay)
 
-        self.assertIsInstance(schedule_q_db, ActionExecutionSchedulingQueueDB)
+        self.assertIsInstance(schedule_q_db, ActionExecutionSchedulingQueueItemDB)
         self.assertEqual(schedule_q_db.scheduled_start_timestamp, delay_date)
         self.assertEqual(schedule_q_db.delay, delay)
         self.assertEqual(schedule_q_db.liveaction, str(liveaction_db.id))
@@ -149,7 +149,7 @@ class ActionExecutionSchedulingQueueDBTest(ExecutionDbTestCase):
                 schedule_q_db = self.scheduling_queue._get_next_execution()
                 ExecutionQueue.delete(schedule_q_db)
 
-            self.assertIsInstance(schedule_q_db, ActionExecutionSchedulingQueueDB)
+            self.assertIsInstance(schedule_q_db, ActionExecutionSchedulingQueueItemDB)
             self.assertEqual(schedule_q_db.scheduled_start_timestamp, test_case['delayed_start'])
             self.assertEqual(schedule_q_db.delay, test_case['delay'])
             self.assertEqual(schedule_q_db.liveaction, str(test_case['liveaction'].id))

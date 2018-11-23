@@ -45,7 +45,7 @@ from st2tests.mocks import liveaction as mock_lv_ac_xport
 from st2tests.mocks import workflow as mock_wf_ex_xport
 from st2common.models.db.workflow import WorkflowExecutionDB
 from st2common.models.db.workflow import TaskExecutionDB
-from st2common.models.db.execution_queue import ActionExecutionSchedulingQueueDB
+from st2common.models.db.execution_queue import ActionExecutionSchedulingQueueItemDB
 
 
 TEST_PACK = 'orquesta_tests'
@@ -82,7 +82,7 @@ class OrquestaErrorHandlingTest(st2tests.ExecutionDbTestCase):
     ensure_indexes_models = [
         WorkflowExecutionDB,
         TaskExecutionDB,
-        ActionExecutionSchedulingQueueDB
+        ActionExecutionSchedulingQueueItemDB
     ]
 
     @classmethod

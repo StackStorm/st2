@@ -27,7 +27,7 @@ from st2common.transport.queues import ACTIONSCHEDULER_REQUEST_QUEUE
 from st2common.util import action_db as action_utils
 from st2common.services import action as action_service
 from st2common.persistence.execution_queue import ExecutionQueue
-from st2common.models.db.execution_queue import ActionExecutionSchedulingQueueDB
+from st2common.models.db.execution_queue import ActionExecutionSchedulingQueueItemDB
 
 __all__ = [
     'SchedulerEntrypoint',
@@ -92,7 +92,7 @@ class SchedulerEntrypoint(consumers.MessageHandler):
         """
             Create execution request from liveaction.
         """
-        execution_request = ActionExecutionSchedulingQueueDB()
+        execution_request = ActionExecutionSchedulingQueueItemDB()
         execution_request.liveaction = str(liveaction.id)
         execution_request.scheduled_start_timestamp = date.append_milliseconds_to_time(
             liveaction.start_timestamp,
