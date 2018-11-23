@@ -44,6 +44,7 @@ MODEL_MODULE_NAMES = [
     'st2common.models.db.keyvalue',
     'st2common.models.db.execution',
     'st2common.models.db.executionstate',
+    'st2common.models.db.execution_queue',
     'st2common.models.db.liveaction',
     'st2common.models.db.notification',
     'st2common.models.db.pack',
