@@ -249,12 +249,14 @@ thread_pool_size = 10
 logging = /etc/st2/logging.rulesengine.conf
 
 [scheduler]
-# The frequency for rescheduling action executions.
-rescheduling_interval = 300
-# Specify to enable actions rescheduler.
-enable = True
-# The time in seconds to wait before recovering delayed action executions.
-delayed_execution_recovery = 600
+# How long to sleep between each action scheduler main loop run interval (in ms).
+sleep_interval = 0.1
+# How often to look for zombie executions before rescheduling them (in ms).
+gc_interval = 5
+# Location of the logging configuration file.
+logging = /etc/st2/logging.scheduler.conf
+# The size of the pool used by the scheduler for scheduling executions.
+pool_size = 10
 
 [schema]
 # Version of JSON schema to use.
