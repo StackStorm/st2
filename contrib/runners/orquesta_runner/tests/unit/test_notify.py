@@ -95,7 +95,7 @@ MOCK_NOTIFY = {
     wf_ex_xport.WorkflowExecutionPublisher,
     'publish_state',
     mock.MagicMock(side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_state))
-class OrquestaNotifyTest(st2tests.DbTestCase):
+class OrquestaNotifyTest(st2tests.ExecutionDbTestCase):
 
     @classmethod
     def setUpClass(cls):

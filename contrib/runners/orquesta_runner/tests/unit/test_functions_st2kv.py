@@ -51,7 +51,7 @@ class DatastoreFunctionTest(unittest2.TestCase):
         self.assertRaises(TypeError, st2kv.st2kv_, {}, [1, 2])
 
 
-class UserScopeDatastoreFunctionTest(st2tests.DbTestCase):
+class UserScopeDatastoreFunctionTest(st2tests.ExecutionDbTestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -98,7 +98,7 @@ class UserScopeDatastoreFunctionTest(st2tests.DbTestCase):
         self.assertEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'fu', decrypt=True), 'bar')
 
 
-class SystemScopeDatastoreFunctionTest(st2tests.DbTestCase):
+class SystemScopeDatastoreFunctionTest(st2tests.ExecutionDbTestCase):
 
     @classmethod
     def setUpClass(cls):

@@ -45,6 +45,7 @@ from st2tests.mocks import liveaction as mock_lv_ac_xport
 from st2tests.mocks import workflow as mock_wf_ex_xport
 from st2common.models.db.workflow import WorkflowExecutionDB
 from st2common.models.db.workflow import TaskExecutionDB
+from st2common.models.db.execution_queue import ActionExecutionSchedulingQueueDB
 
 
 TEST_PACK = 'orquesta_tests'
@@ -76,11 +77,12 @@ PACKS = [
     wf_ex_xport.WorkflowExecutionPublisher,
     'publish_state',
     mock.MagicMock(side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_state))
-class OrquestaErrorHandlingTest(st2tests.DbTestCase):
+class OrquestaErrorHandlingTest(st2tests.ExecutionDbTestCase):
     ensure_indexes = True
     ensure_indexes_models = [
         WorkflowExecutionDB,
-        TaskExecutionDB
+        TaskExecutionDB,
+        ActionExecutionSchedulingQueueDB
     ]
 
     @classmethod
