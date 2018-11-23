@@ -34,8 +34,12 @@ LOG = logging.getLogger(__name__)
 
 class ActionExecutionSchedulingQueueDB(stormbase.StormFoundationDB,
         stormbase.ChangeRevisionFieldMixin):
+    """
+    A model which represents a request for execution to be scheduled.
+    """
     RESOURCE_TYPE = ResourceType.EXECUTION_REQUEST
     UID_FIELDS = ['id']
+
     liveaction = me.StringField(required=True)
     scheduled_start_timestamp = ComplexDateTimeField(
         default=date_utils.get_datetime_utc_now,

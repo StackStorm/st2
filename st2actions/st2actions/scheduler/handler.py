@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import eventlet
 
 from st2common import log as logging
@@ -42,20 +43,20 @@ class ExecutionQueueHandler(object):
     def __init__(self):
         self.message_type = LiveActionDB
         self._shutdown = False
-        self._pool = eventlet.GreenPool(size=10)
+        self._pool = eventlet.GreenPool(size=cfg.CONF.scheduler.pool_size)
 
     def cleanup(self):
         LOG.debug('Starting scheduler garbage collection')
 
-        while self._shutdown is not True:
-            eventlet.greenthread.sleep(5)
+        while not self._shutdown:
+            eventlet.greenthread.sleep(cfg.CONF.scheduler.gc_interval)
             self._handle_garbage_collection()
 
     def run(self):
         LOG.debug('Entering scheduler loop')
 
-        while self._shutdown is not True:
-            eventlet.greenthread.sleep(0.1)
+        while not self._shutdown:
+            eventlet.greenthread.sleep(cfg.CONF.scheduler.sleep_interval)
 
             with metrics.Timer(key='scheduler.loop'):
                 execution = self._get_next_execution()
@@ -65,28 +66,33 @@ class ExecutionQueueHandler(object):
                     self._pool.spawn(self._handle_execution, execution)
 
     def _handle_garbage_collection(self):
+        """
+        Periodically look for executions which have "handling" set to "True" and haven't been
+        updated for a while (this likely indicates that an execution as picked up by a scheduler
+        process which died before finishing the processing or similar) and reset handling to
+        False so other scheduler can pick it up.
+        """
         query = {
-            "scheduled_start_timestamp__lte": date.append_milliseconds_to_time(
+            'scheduled_start_timestamp__lte': date.append_milliseconds_to_time(
                 date.get_datetime_utc_now(),
                 -60000
             ),
-            "handling": True,
+            'handling': True,
         }
 
-        executions = ExecutionQueue.query(**query)
+        executions = ExecutionQueue.query(**query) or []
 
-        if executions:
-            for execution in executions:
-                execution.handling = False
+        for execution in executions:
+            execution.handling = False
 
-                try:
-                    ExecutionQueue.add_or_update(execution, publish=False)
-                    LOG.info("Removing lock for orphaned execution: %s", execution.id)
-                except db_exc.StackStormDBObjectWriteConflictError:
-                    LOG.info(
-                        "Execution updated before rescheduling: %s",
-                        execution.id
-                    )
+            try:
+                ExecutionQueue.add_or_update(execution, publish=False)
+                LOG.info('Removing lock for orphaned execution: %s', execution.id)
+            except db_exc.StackStormDBObjectWriteConflictError:
+                LOG.info(
+                    'Execution updated before rescheduling: %s',
+                    execution.id
+                )
 
     def _get_next_execution(self):
         """
@@ -94,26 +100,26 @@ class ExecutionQueueHandler(object):
             item from the queue and pop it off.
         """
         query = {
-            "scheduled_start_timestamp__lte": date.get_datetime_utc_now(),
-            "handling": False,
-            "limit": 1,
-            "order_by": [
-                "scheduled_start_timestamp",
+            'scheduled_start_timestamp__lte': date.get_datetime_utc_now(),
+            'handling': False,
+            'limit': 1,
+            'order_by': [
+                '+scheduled_start_timestamp',
             ]
         }
 
-        execution = ExecutionQueue.query(**query).first()
+        execution_queue_db = ExecutionQueue.query(**query).first()
 
-        if execution:
-            execution.handling = True
+        if not execution_queue_db:
+            return None
 
-            try:
-                ExecutionQueue.add_or_update(execution, publish=False)
-                return execution
-            except db_exc.StackStormDBObjectWriteConflictError:
-                LOG.info("Execution handled by another scheduler: %s", execution.id)
+        execution_queue_db.handling = True
 
-        return None
+        try:
+            ExecutionQueue.add_or_update(execution_queue_db, publish=False)
+            return execution
+        except db_exc.StackStormDBObjectWriteConflictError:
+            LOG.info("Execution handled by another scheduler: %s", execution.id)
 
     @metrics.CounterWithTimer(key='scheduler.handle_execution')
     def _handle_execution(self, execution, metrics_timer=None):
