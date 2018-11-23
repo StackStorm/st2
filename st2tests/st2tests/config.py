@@ -243,12 +243,6 @@ def _register_cloudslang_opts():
 def _register_scheduler_opts():
     scheduler_opts = [
         cfg.IntOpt(
-            'delayed_execution_recovery', default=600,
-            help='The time in seconds to wait before recovering delayed action executions.'),
-        cfg.IntOpt(
-            'rescheduling_interval', default=300,
-            help='The frequency for rescheduling action executions.'),
-        cfg.IntOpt(
             'pool_size', default=10,
             help='The size of the pool used by the scheduler for scheduling executions.'),
         cfg.FloatOpt(
