@@ -53,28 +53,5 @@ def _register_notifier_opts():
 
     CONF.register_opts(notifier_opts, group='notifier')
 
-    scheduler_opts = [
-        cfg.BoolOpt(
-            'enable', default=True,
-            help='Specify to enable actions rescheduler.'),
-        cfg.IntOpt(
-            'delayed_execution_recovery', default=600,
-            help='The time in seconds to wait before recovering delayed action executions.'),
-        cfg.IntOpt(
-            'rescheduling_interval', default=300,
-            help='The frequency for rescheduling action executions.'),
-        cfg.IntOpt(
-            'pool_size', default=10,
-            help='The size of the pool used by the scheduler for scheduling executions.'),
-        cfg.FloatOpt(
-            'sleep_interval', default=0.10,
-            help='How long to sleep between each action scheduler main loop run interval (in ms).'),
-        cfg.FloatOpt(
-            'gc_interval', default=5,
-            help='How often to look for zombie executions before rescheduling them (in ms).'),
-    ]
-
-    CONF.register_opts(scheduler_opts, group='scheduler')
-
 
 register_opts()
