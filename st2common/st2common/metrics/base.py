@@ -137,7 +137,7 @@ class Timer(object):
             with self as metrics_timer:
                 if self._include_parameter:
                     kw['metrics_timer'] = metrics_timer
-                return func(*args, metrics_timer=metrics_timer, **kw)
+                return func(*args, **kw)
         return wrapper
 
 
