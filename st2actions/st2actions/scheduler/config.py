@@ -50,10 +50,12 @@ def _register_service_opts():
             help='The size of the pool used by the scheduler for scheduling executions.'),
         cfg.FloatOpt(
             'sleep_interval', default=0.10,
-            help='How long to sleep between each action scheduler main loop run interval (in ms).'),
+            help='How long (in seconds) to sleep between each action scheduler main loop run '
+                 'interval.'),
         cfg.FloatOpt(
-            'gc_interval', default=5,
-            help='How often to look for zombie executions before rescheduling them (in ms).'),
+            'gc_interval', default=10,
+            help='How often (in seconds) to look for zombie execution requests before rescheduling '
+                 'them.'),
 
     ]
 
