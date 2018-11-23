@@ -46,13 +46,6 @@ class ActionExecutionSchedulingQueueHandler(object):
         self._shutdown = False
         self._pool = eventlet.GreenPool(size=cfg.CONF.scheduler.pool_size)
 
-    def cleanup(self):
-        LOG.debug('Starting scheduler garbage collection')
-
-        while not self._shutdown:
-            eventlet.greenthread.sleep(cfg.CONF.scheduler.gc_interval)
-            self._handle_garbage_collection()
-
     def run(self):
         LOG.debug('Entering scheduler loop')
 
@@ -63,6 +56,13 @@ class ActionExecutionSchedulingQueueHandler(object):
 
             if execution_queue_item_db:
                 self._pool.spawn(self._handle_execution, execution_queue_item_db)
+
+    def cleanup(self):
+        LOG.debug('Starting scheduler garbage collection')
+
+        while not self._shutdown:
+            eventlet.greenthread.sleep(cfg.CONF.scheduler.gc_interval)
+            self._handle_garbage_collection()
 
     def _handle_garbage_collection(self):
         """

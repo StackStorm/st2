@@ -19,6 +19,7 @@ import copy
 import uuid
 
 import mock
+import eventlet
 from mock import call
 import requests
 import yaml
@@ -286,6 +287,8 @@ class MistralRunnerCancelTest(ExecutionDbTestCase):
     def test_cancel_retry_exhausted(self):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
+
+        eventlet.sleep(4)
         liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)

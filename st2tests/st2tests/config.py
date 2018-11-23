@@ -51,6 +51,7 @@ def _override_config_opts():
     _override_common_opts()
     _override_api_opts()
     _override_keyvalue_opts()
+    _override_scheduler_opts()
 
 
 def _register_config_opts():
@@ -98,6 +99,10 @@ def _override_keyvalue_opts():
     rel_enc_key_path = 'st2tests/conf/st2_kvstore_tests.crypto.key.json'
     ovr_enc_key_path = os.path.join(abs_st2_base_path, rel_enc_key_path)
     CONF.set_override(name='encryption_key_path', override=ovr_enc_key_path, group='keyvalue')
+
+
+def _override_scheduler_opts():
+    CONF.set_override(name='sleep_interval', group='scheduler', override=0.01)
 
 
 def _register_common_opts():
