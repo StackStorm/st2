@@ -58,12 +58,10 @@ class ExecutionQueueHandler(object):
         while not self._shutdown:
             eventlet.greenthread.sleep(cfg.CONF.scheduler.sleep_interval)
 
-            with metrics.Timer(key='scheduler.loop'):
-                execution = self._get_next_execution()
+            execution = self._get_next_execution()
 
-            with metrics.Timer(key='scheduler.loop.spawn_execution'):
-                if execution:
-                    self._pool.spawn(self._handle_execution, execution)
+            if execution:
+                self._pool.spawn(self._handle_execution, execution)
 
     def _handle_garbage_collection(self):
         """
@@ -94,10 +92,11 @@ class ExecutionQueueHandler(object):
                     execution.id
                 )
 
+    @metrics.Timer(key='scheduler.get_next_execution')
     def _get_next_execution(self):
         """
-            Sort executions by fifo and priority and get the latest, highest priority
-            item from the queue and pop it off.
+        Sort executions by FIFO and priority and get the latest, highest priority item from the
+        queue and pop it off.
         """
         query = {
             'scheduled_start_timestamp__lte': date.get_datetime_utc_now(),
