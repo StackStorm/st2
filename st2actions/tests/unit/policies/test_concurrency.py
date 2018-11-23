@@ -14,9 +14,11 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import eventlet
 import mock
 from mock import call
+from six.moves import range
 
 import st2common
 from st2common.bootstrap.policiesregistrar import register_policy_types
@@ -29,12 +31,13 @@ from st2common.transport.execution import ActionExecutionPublisher
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 from st2common.bootstrap import runnersregistrar as runners_registrar
+
 from st2tests import DbTestCase, EventletTestCase
+from st2tests import ExecutionDbTestCase
 from st2tests.fixturesloader import FixturesLoader
 from st2tests.mocks.execution import MockExecutionPublisher, MockExecutionPublisherNonBlocking
 from st2tests.mocks.liveaction import MockLiveActionPublisherNonBlocking
 from st2tests.mocks.runners import runner
-from six.moves import range
 
 __all__ = [
     'ConcurrencyPolicyTestCase'
@@ -69,7 +72,7 @@ SCHEDULED_STATES = [
 @mock.patch.object(
     CUDPublisher, 'publish_create',
     mock.MagicMock(return_value=None))
-class ConcurrencyPolicyTestCase(EventletTestCase, DbTestCase):
+class ConcurrencyPolicyTestCase(EventletTestCase, ExecutionDbTestCase):
     @classmethod
     def setUpClass(cls):
         EventletTestCase.setUpClass()

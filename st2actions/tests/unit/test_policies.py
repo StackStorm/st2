@@ -27,7 +27,7 @@ from st2common.services import action as action_service
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 from st2common.bootstrap import runnersregistrar as runners_registrar
-from st2tests import DbTestCase
+from st2tests import ExecutionDbTestCase
 from st2tests.fixturesloader import FixturesLoader
 from st2tests.mocks.runners import runner
 from st2tests.mocks.execution import MockExecutionPublisher
@@ -66,7 +66,7 @@ FIXTURES = LOADER.load_fixtures(fixtures_pack=PACK, fixtures_dict=TEST_FIXTURES)
     mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
 @mock.patch('st2common.runners.base.get_runner', mock.Mock(return_value=runner.get_runner()))
 @mock.patch('st2actions.container.base.get_runner', mock.Mock(return_value=runner.get_runner()))
-class SchedulingPolicyTest(DbTestCase):
+class SchedulingPolicyTest(ExecutionDbTestCase):
 
     @classmethod
     def setUpClass(cls):

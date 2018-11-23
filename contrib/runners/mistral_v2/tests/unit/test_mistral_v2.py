@@ -48,7 +48,7 @@ from st2common.services import action as action_service
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 from st2common.util import loader
-from st2tests import DbTestCase
+from st2tests import ExecutionDbTestCase
 from st2tests import fixturesloader
 from st2tests.mocks.liveaction import MockLiveActionPublisher
 
@@ -168,7 +168,7 @@ NOTIFY = [{'type': 'st2'}]
     LiveActionPublisher,
     'publish_state',
     mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
-class MistralRunnerTest(DbTestCase):
+class MistralRunnerTest(ExecutionDbTestCase):
 
     @classmethod
     def setUpClass(cls):

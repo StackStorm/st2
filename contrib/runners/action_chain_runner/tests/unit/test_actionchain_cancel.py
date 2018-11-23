@@ -30,7 +30,7 @@ from st2common.services import action as action_service
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 
-from st2tests import DbTestCase
+from st2tests import ExecutionDbTestCase
 from st2tests import fixturesloader
 from st2tests.mocks.liveaction import MockLiveActionPublisherNonBlocking
 from six.moves import range
@@ -70,7 +70,7 @@ USERNAME = 'stanley'
     LiveActionPublisher,
     'publish_state',
     mock.MagicMock(side_effect=MockLiveActionPublisherNonBlocking.publish_state))
-class ActionChainRunnerPauseResumeTest(DbTestCase):
+class ActionChainRunnerPauseResumeTest(ExecutionDbTestCase):
 
     temp_file_path = None
 

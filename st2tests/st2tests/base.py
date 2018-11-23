@@ -86,6 +86,7 @@ __all__ = [
     'CleanFilesTestCase',
     'IntegrationTestCase',
     'RunnerTestCase',
+    'ExecutionDbTestCase',
     'WorkflowTestCase',
 
     # Pack test classes
@@ -276,6 +277,42 @@ class DbTestCase(BaseDbTestCase):
         ActionExecutionSchedulingQueueDB
     ]
 
+    @classmethod
+    def setUpClass(cls):
+        BaseDbTestCase.setUpClass()
+        cls._establish_connection_and_re_create_db()
+
+        if cls.register_packs:
+            cls._register_packs()
+
+        if cls.register_pack_configs:
+            cls._register_pack_configs()
+
+    @classmethod
+    def tearDownClass(cls):
+        drop_db = True
+
+        if cls.current_result.errors or cls.current_result.failures:
+            # Don't drop DB on test failure
+            drop_db = False
+
+        if drop_db:
+            cls._drop_db()
+
+    def run(self, result=None):
+        # Remember result for use in tearDown and tearDownClass
+        self.current_result = result
+        self.__class__.current_result = result
+        super(DbTestCase, self).run(result=result)
+
+
+class ExecutionDbTestCase(DbTestCase):
+    """"
+    Base test class for tests which test various execution related code paths.
+
+    This class offers some utility methods for waiting on execution status, etc.
+    """
+
     def _wait_on_status(self, liveaction_db, status, retries=300, delay=0.1, raise_exc=True):
         for _ in range(0, retries):
             eventlet.sleep(delay)
@@ -322,37 +359,9 @@ class DbTestCase(BaseDbTestCase):
             self.assertEqual(mocked.call_count, expected_count)
 
     @classmethod
-    def setUpClass(cls):
-        BaseDbTestCase.setUpClass()
-        cls._establish_connection_and_re_create_db()
-
-        if cls.register_packs:
-            cls._register_packs()
-
-        if cls.register_pack_configs:
-            cls._register_pack_configs()
-
-    @classmethod
-    def tearDownClass(cls):
-        drop_db = True
-
-        if cls.current_result.errors or cls.current_result.failures:
-            # Don't drop DB on test failure
-            drop_db = False
-
-        if drop_db:
-            cls._drop_db()
-
-    @classmethod
     def reset(cls):
         cls.tearDownClass()
         cls.setUpClass()
-
-    def run(self, result=None):
-        # Remember result for use in tearDown and tearDownClass
-        self.current_result = result
-        self.__class__.current_result = result
-        super(DbTestCase, self).run(result=result)
 
 
 class DbModelTestCase(DbTestCase):

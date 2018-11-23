@@ -32,13 +32,13 @@ from st2common.services import executions
 from st2common.transport.publishers import PoolPublisher
 from st2common.util import action_db
 from st2common.util import date as date_utils
-from st2tests.base import DbTestCase
+from st2tests.base import ExecutionDbTestCase
 
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
 @mock.patch.object(executions, 'update_execution', mock.MagicMock())
 @mock.patch.object(Message, 'ack', mock.MagicMock())
-class QueueConsumerTest(DbTestCase):
+class QueueConsumerTest(ExecutionDbTestCase):
 
     def __init__(self, *args, **kwargs):
         super(QueueConsumerTest, self).__init__(*args, **kwargs)

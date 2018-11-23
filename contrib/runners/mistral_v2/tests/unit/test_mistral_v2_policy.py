@@ -45,7 +45,7 @@ from st2common.services import action as action_service
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 from st2common.util import loader
-from st2tests import DbTestCase
+from st2tests import ExecutionDbTestCase
 from st2tests import fixturesloader
 from st2tests.mocks.liveaction import MockLiveActionPublisher
 
@@ -85,14 +85,14 @@ WF1_EXEC = copy.deepcopy(MISTRAL_EXECUTION)
     LiveActionPublisher,
     'publish_state',
     mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
-class MistralRunnerPolicyTest(DbTestCase):
+class MistralRunnerPolicyTest(ExecutionDbTestCase):
 
     @classmethod
     def setUpClass(cls):
         super(MistralRunnerPolicyTest, cls).setUpClass()
 
         # Override the retry configuration here otherwise st2tests.config.parse_args
-        # in DbTestCase.setUpClass will reset these overrides.
+        # in ExecutionDbTestCas.setUpClass will reset these overrides.
         cfg.CONF.set_override('retry_exp_msec', 100, group='mistral')
         cfg.CONF.set_override('retry_exp_max_msec', 200, group='mistral')
         cfg.CONF.set_override('retry_stop_max_msec', 200, group='mistral')

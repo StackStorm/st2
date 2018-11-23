@@ -18,7 +18,7 @@ from __future__ import absolute_import, print_function
 import mock
 
 import st2common
-from st2tests import DbTestCase
+from st2tests import ExecutionDbTestCase
 from st2tests.fixturesloader import FixturesLoader
 from st2tests.mocks.liveaction import MockLiveActionPublisherSchedulingQueueOnly
 
@@ -61,11 +61,11 @@ TEST_FIXTURES = {
 @mock.patch.object(
     LiveActionPublisher, 'publish_state',
     mock.MagicMock(side_effect=MockLiveActionPublisherSchedulingQueueOnly.publish_state))
-class ActionExecutionSchedulingQueueDBTest(DbTestCase):
+class ActionExecutionSchedulingQueueDBTest(ExecutionDbTestCase):
 
     @classmethod
     def setUpClass(cls):
-        DbTestCase.setUpClass()
+        ExecutionDbTestCase.setUpClass()
 
         # Register runners
         runners_registrar.register_runners()

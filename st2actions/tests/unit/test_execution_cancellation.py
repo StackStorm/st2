@@ -35,7 +35,7 @@ from st2common.services import action as action_service
 from st2common.services import trace as trace_service
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
-from st2tests import DbTestCase
+from st2tests import ExecutionDbTestCase
 from st2tests.fixturesloader import FixturesLoader
 from st2tests.mocks.execution import MockExecutionPublisher
 from st2tests.mocks.liveaction import MockLiveActionPublisher
@@ -65,7 +65,7 @@ FIXTURES = LOADER.load_fixtures(fixtures_pack=PACK, fixtures_dict=TEST_FIXTURES)
 @mock.patch.object(
     CUDPublisher, 'publish_create',
     mock.MagicMock(return_value=None))
-class ExecutionCancellationTestCase(DbTestCase):
+class ExecutionCancellationTestCase(ExecutionDbTestCase):
 
     @classmethod
     def setUpClass(cls):

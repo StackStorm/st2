@@ -45,7 +45,7 @@ from st2reactor.rules.enforcer import RuleEnforcer
 from local_runner.local_shell_command_runner import LocalShellCommandRunner
 
 from st2tests.fixtures.packs import executions as fixture
-from st2tests import DbTestCase
+from st2tests import ExecutionDbTestCase
 from st2tests.mocks.liveaction import MockLiveActionPublisher
 
 
@@ -61,7 +61,7 @@ MOCK_FAIL_EXECUTION_CREATE = False
 @mock.patch.object(
     LiveActionPublisher, 'publish_state',
     mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
-class TestActionExecutionHistoryWorker(DbTestCase):
+class TestActionExecutionHistoryWorker(ExecutionDbTestCase):
 
     @classmethod
     def setUpClass(cls):
