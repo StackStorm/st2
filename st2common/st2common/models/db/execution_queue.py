@@ -44,16 +44,19 @@ class ActionExecutionSchedulingQueueItemDB(stormbase.StormFoundationDB,
     RESOURCE_TYPE = ResourceType.EXECUTION_REQUEST
     UID_FIELDS = ['id']
 
-    liveaction = me.StringField(required=True)
+    liveaction_id = me.StringField(required=True,
+        help_text='Foreign key to the LiveActionDB which is to be scheduled')
     scheduled_start_timestamp = ComplexDateTimeField(
         default=date_utils.get_datetime_utc_now,
         help_text='The timestamp when the liveaction was created.')
     delay = me.IntField()
-    handling = me.BooleanField(default=False)
+    handling = me.BooleanField(default=False,
+        help_text='Flag indicating if this item is currently being handled / '
+                   'processed by a scheduler service')
 
     meta = {
         'indexes': [
-            {'fields': ['liveaction']},
+            {'fields': ['liveaction_id']},
             {'fields': ['scheduled_start_timestamp']},
         ]
     }

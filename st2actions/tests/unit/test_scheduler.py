@@ -32,9 +32,12 @@ from st2common.bootstrap.policiesregistrar import register_policy_types
 from st2common.bootstrap import runnersregistrar as runners_registrar
 from st2common.models.db.execution_queue import ActionExecutionSchedulingQueueItemDB
 from st2common.models.db.liveaction import LiveActionDB
-from st2common.persistence.execution_queue import ExecutionQueue
+from st2common.persistence.execution_queue import ActionExecutionSchedulingQueue
 from st2common.persistence.liveaction import LiveAction
 from st2common.services import executions as execution_service
+
+from st2tests import config as test_config
+test_config.parse_args()
 
 
 LIVE_ACTION = {
@@ -96,7 +99,7 @@ class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
         liveaction_db = self._create_liveaction_db()
         delay = 500
 
-        schedule_q_db = self.scheduler._create_execution_request_from_liveaction(
+        schedule_q_db = self.scheduler._create_execution_queue_item_db_from_liveaction(
             liveaction_db,
             delay,
         )
@@ -106,7 +109,7 @@ class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
         self.assertIsInstance(schedule_q_db, ActionExecutionSchedulingQueueItemDB)
         self.assertEqual(schedule_q_db.scheduled_start_timestamp, delay_date)
         self.assertEqual(schedule_q_db.delay, delay)
-        self.assertEqual(schedule_q_db.liveaction, str(liveaction_db.id))
+        self.assertEqual(schedule_q_db.liveaction_id, str(liveaction_db.id))
 
     def test_next_execution(self):
         self.reset()
@@ -130,8 +133,8 @@ class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
 
         for test_case in test_cases:
             schedule_q_dbs.append(
-                ExecutionQueue.add_or_update(
-                    self.scheduler._create_execution_request_from_liveaction(
+                ActionExecutionSchedulingQueue.add_or_update(
+                    self.scheduler._create_execution_queue_item_db_from_liveaction(
                         test_case['liveaction'],
                         test_case['delay'],
                     )
@@ -147,12 +150,12 @@ class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
 
             with mock.patch('st2actions.scheduler.handler.date', date_mock):
                 schedule_q_db = self.scheduling_queue._get_next_execution()
-                ExecutionQueue.delete(schedule_q_db)
+                ActionExecutionSchedulingQueue.delete(schedule_q_db)
 
             self.assertIsInstance(schedule_q_db, ActionExecutionSchedulingQueueItemDB)
             self.assertEqual(schedule_q_db.scheduled_start_timestamp, test_case['delayed_start'])
             self.assertEqual(schedule_q_db.delay, test_case['delay'])
-            self.assertEqual(schedule_q_db.liveaction, str(test_case['liveaction'].id))
+            self.assertEqual(schedule_q_db.liveaction_id, str(test_case['liveaction'].id))
 
     def test_next_executions_empty(self):
         self.reset()
@@ -195,13 +198,13 @@ class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
 
         liveaction_db = self._create_liveaction_db()
 
-        schedule_q_db = self.scheduler._create_execution_request_from_liveaction(
+        schedule_q_db = self.scheduler._create_execution_queue_item_db_from_liveaction(
             liveaction_db,
             -70000,
         )
 
         schedule_q_db.handling = True
-        schedule_q_db = ExecutionQueue.add_or_update(schedule_q_db)
+        schedule_q_db = ActionExecutionSchedulingQueue.add_or_update(schedule_q_db)
 
         schedule_q_db = self.scheduling_queue._get_next_execution()
         self.assertIsNone(schedule_q_db)
@@ -212,7 +215,7 @@ class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
         self.assertIsNotNone(schedule_q_db)
 
     @mock.patch('st2actions.scheduler.handler.action_service')
-    @mock.patch('st2actions.scheduler.handler.ExecutionQueue.delete')
+    @mock.patch('st2actions.scheduler.handler.ActionExecutionSchedulingQueue.delete')
     def test_processing_when_task_completed(self, mock_execution_queue_delete, mock_action_service):
         self.reset()
 
@@ -227,4 +230,4 @@ class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
 
         mock_action_service.update_status.assert_not_called()
         mock_execution_queue_delete.assert_called_once()
-        ExecutionQueue.delete(schedule_q_db)
+        ActionExecutionSchedulingQueue.delete(schedule_q_db)

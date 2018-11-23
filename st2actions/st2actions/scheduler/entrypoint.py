@@ -26,7 +26,7 @@ from st2common.transport import utils as transport_utils
 from st2common.transport.queues import ACTIONSCHEDULER_REQUEST_QUEUE
 from st2common.util import action_db as action_utils
 from st2common.services import action as action_service
-from st2common.persistence.execution_queue import ExecutionQueue
+from st2common.persistence.execution_queue import ActionExecutionSchedulingQueue
 from st2common.models.db.execution_queue import ActionExecutionSchedulingQueueItemDB
 
 __all__ = [
@@ -40,14 +40,14 @@ LOG = logging.getLogger(__name__)
 
 class SchedulerEntrypoint(consumers.MessageHandler):
     """
-        SchedulerEntrypoint subscribes to the Action scheduler request queue
-        and places new Live Actions into the scheduling queue collection for
-        scheduling on actionrunners.
+    SchedulerEntrypoint subscribes to the Action scheduler request queue and places new Live
+    Actions into the scheduling queue collection for scheduling on action runners.
     """
     message_type = LiveActionDB
 
     def process(self, request):
-        """Adds execution into execution_queue database for scheduling
+        """
+        Adds execution into execution_scheduling database for scheduling
 
         :param request: Action execution request.
         :type request: ``st2common.models.db.liveaction.LiveActionDB``
@@ -64,12 +64,13 @@ class SchedulerEntrypoint(consumers.MessageHandler):
             raise
 
         query = {
-            "liveaction": str(liveaction_db.id),
+            'liveaction_id': str(liveaction_db.id),
         }
 
-        queued_requests = ExecutionQueue.query(**query)
+        queued_requests = ActionExecutionSchedulingQueue.query(**query)
 
         if len(queued_requests) > 0:
+            # Particular execution is already being scheduled
             return queued_requests[0]
 
         if liveaction_db.delay and liveaction_db.delay > 0:
@@ -79,28 +80,28 @@ class SchedulerEntrypoint(consumers.MessageHandler):
                 publish=False
             )
 
-        execution_request = self._create_execution_request_from_liveaction(
+        execution_queue_item_db = self._create_execution_queue_item_db_from_liveaction(
             liveaction_db,
             delay=liveaction_db.delay
         )
 
-        ExecutionQueue.add_or_update(execution_request, publish=False)
+        ActionExecutionSchedulingQueue.add_or_update(execution_queue_item_db, publish=False)
 
-        return execution_request
+        return execution_queue_item_db
 
-    def _create_execution_request_from_liveaction(self, liveaction, delay=None,):
+    def _create_execution_queue_item_db_from_liveaction(self, liveaction, delay=None):
         """
-            Create execution request from liveaction.
+        Create ActionExecutionSchedulingQueueItemDB from live action.
         """
-        execution_request = ActionExecutionSchedulingQueueItemDB()
-        execution_request.liveaction = str(liveaction.id)
-        execution_request.scheduled_start_timestamp = date.append_milliseconds_to_time(
+        execution_queue_item_db = ActionExecutionSchedulingQueueItemDB()
+        execution_queue_item_db.liveaction_id = str(liveaction.id)
+        execution_queue_item_db.scheduled_start_timestamp = date.append_milliseconds_to_time(
             liveaction.start_timestamp,
             delay or 0
         )
-        execution_request.delay = delay
+        execution_queue_item_db.delay = delay
 
-        return execution_request
+        return execution_queue_item_db
 
 
 def get_scheduler_entrypoint():
