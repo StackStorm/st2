@@ -97,8 +97,8 @@ class ActionExecutionSchedulingQueueHandler(object):
     @metrics.Timer(key='scheduler.get_next_execution')
     def _get_next_execution(self):
         """
-        Sort executions by FIFO and priority and get the latest, highest priority item from the
-        queue and pop it off.
+        Sort execution requests by FIFO and priority and get the latest, highest priority item from
+        the queue and pop it off.
         """
         query = {
             'scheduled_start_timestamp__lte': date.get_datetime_utc_now(),
@@ -114,6 +114,8 @@ class ActionExecutionSchedulingQueueHandler(object):
         if not execution_queue_item_db:
             return None
 
+        # Mark that this scheduler process is currently handling (processing) that request
+        # NOTE: This operation is atomic (CAS)
         execution_queue_item_db.handling = True
 
         try:
@@ -122,6 +124,8 @@ class ActionExecutionSchedulingQueueHandler(object):
         except db_exc.StackStormDBObjectWriteConflictError:
             LOG.info('Execution queue item handled by another scheduler: %s',
                      execution_queue_item_db.id)
+
+        return None
 
     @metrics.CounterWithTimer(key='scheduler.handle_execution')
     def _handle_execution(self, execution_queue_item_db):
@@ -222,6 +226,7 @@ class ActionExecutionSchedulingQueueHandler(object):
 
     def start(self):
         self._shutdown = False
+
         eventlet.spawn(self.run)
         eventlet.spawn(self.cleanup)
 
