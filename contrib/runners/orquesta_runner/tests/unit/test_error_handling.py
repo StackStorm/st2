@@ -43,6 +43,9 @@ from st2common.transport import workflow as wf_ex_xport
 from st2common.transport import publishers
 from st2tests.mocks import liveaction as mock_lv_ac_xport
 from st2tests.mocks import workflow as mock_wf_ex_xport
+from st2common.models.db.workflow import WorkflowExecutionDB
+from st2common.models.db.workflow import TaskExecutionDB
+from st2common.models.db.execution_queue import ActionExecutionSchedulingQueueItemDB
 
 
 TEST_PACK = 'orquesta_tests'
@@ -74,7 +77,13 @@ PACKS = [
     wf_ex_xport.WorkflowExecutionPublisher,
     'publish_state',
     mock.MagicMock(side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_state))
-class OrquestaErrorHandlingTest(st2tests.DbTestCase):
+class OrquestaErrorHandlingTest(st2tests.ExecutionDbTestCase):
+    ensure_indexes = True
+    ensure_indexes_models = [
+        WorkflowExecutionDB,
+        TaskExecutionDB,
+        ActionExecutionSchedulingQueueItemDB
+    ]
 
     @classmethod
     def setUpClass(cls):
@@ -100,6 +109,46 @@ class OrquestaErrorHandlingTest(st2tests.DbTestCase):
         return sorted(errors, key=lambda x: x.get('task_id', None))
 
     def test_fail_inspection(self):
+        expected_errors = [
+            {
+                'type': 'content',
+                'message': 'The action "std.noop" is not registered in the database.',
+                'schema_path': r'properties.tasks.patternProperties.^\w+$.properties.action',
+                'spec_path': 'tasks.task3.action'
+            },
+            {
+                'type': 'context',
+                'language': 'yaql',
+                'expression': '<% ctx().foobar %>',
+                'message': 'Variable "foobar" is referenced before assignment.',
+                'schema_path': r'properties.tasks.patternProperties.^\w+$.properties.input',
+                'spec_path': 'tasks.task1.input',
+            },
+            {
+                'type': 'expression',
+                'language': 'yaql',
+                'expression': '<% <% succeeded() %>',
+                'message': (
+                    'Parse error: unexpected \'<\' at '
+                    'position 0 of expression \'<% succeeded()\''
+                ),
+                'schema_path': (
+                    r'properties.tasks.patternProperties.^\w+$.'
+                    'properties.next.items.properties.when'
+                ),
+                'spec_path': 'tasks.task2.next[0].when'
+            },
+            {
+                'type': 'syntax',
+                'message': (
+                    '[{\'cmd\': \'echo <% ctx().macro %>\'}] is '
+                    'not valid under any of the given schemas'
+                ),
+                'schema_path': r'properties.tasks.patternProperties.^\w+$.properties.input.oneOf',
+                'spec_path': 'tasks.task2.input'
+            }
+        ]
+
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'fail-inspection.yaml')
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
@@ -107,17 +156,17 @@ class OrquestaErrorHandlingTest(st2tests.DbTestCase):
 
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_FAILED)
         self.assertIn('errors', lv_ac_db.result)
-        self.assertIn('expressions', lv_ac_db.result['errors'])
-        self.assertGreater(len(lv_ac_db.result['errors']['expressions']), 0)
-        self.assertIn('context', lv_ac_db.result['errors'])
-        self.assertGreater(len(lv_ac_db.result['errors']['context']), 0)
-        self.assertIn('syntax', lv_ac_db.result['errors'])
-        self.assertGreater(len(lv_ac_db.result['errors']['syntax']), 0)
+        self.assertListEqual(lv_ac_db.result['errors'], expected_errors)
 
     def test_fail_input_rendering(self):
         expected_errors = [
             {
-                'message': 'Unknown function "#property#value"'
+                'type': 'error',
+                'message': (
+                    'YaqlEvaluationException: Unable to evaluate expression '
+                    '\'<% abs(4).value %>\'. NoFunctionRegisteredException: '
+                    'Unknown function "#property#value"'
+                )
             }
         ]
 
@@ -146,7 +195,12 @@ class OrquestaErrorHandlingTest(st2tests.DbTestCase):
     def test_fail_vars_rendering(self):
         expected_errors = [
             {
-                'message': 'Unknown function "#property#value"'
+                'type': 'error',
+                'message': (
+                    'YaqlEvaluationException: Unable to evaluate expression '
+                    '\'<% abs(4).value %>\'. NoFunctionRegisteredException: '
+                    'Unknown function "#property#value"'
+                )
             }
         ]
 
@@ -175,7 +229,12 @@ class OrquestaErrorHandlingTest(st2tests.DbTestCase):
     def test_fail_start_task_action(self):
         expected_errors = [
             {
-                'message': 'Unknown function "#property#value"',
+                'type': 'error',
+                'message': (
+                    'YaqlEvaluationException: Unable to evaluate expression '
+                    '\'<% ctx().func.value %>\'. NoFunctionRegisteredException: '
+                    'Unknown function "#property#value"'
+                ),
                 'task_id': 'task1'
             }
         ]
@@ -205,7 +264,12 @@ class OrquestaErrorHandlingTest(st2tests.DbTestCase):
     def test_fail_start_task_input_expr_eval(self):
         expected_errors = [
             {
-                'message': 'Unknown function "#property#value"',
+                'type': 'error',
+                'message': (
+                    'YaqlEvaluationException: Unable to evaluate expression '
+                    '\'<% ctx().msg1.value %>\'. NoFunctionRegisteredException: '
+                    'Unknown function "#property#value"'
+                ),
                 'task_id': 'task1'
             }
         ]
@@ -239,8 +303,11 @@ class OrquestaErrorHandlingTest(st2tests.DbTestCase):
         else:
             msg = 'Value "{u\'x\': u\'foobar\'}" must either be a string or None. Got "dict".'
 
+        msg = 'ValueError: ' + msg
+
         expected_errors = [
             {
+                'type': 'error',
                 'message': msg,
                 'task_id': 'task1'
             }
@@ -274,7 +341,12 @@ class OrquestaErrorHandlingTest(st2tests.DbTestCase):
     def test_fail_next_task_action(self):
         expected_errors = [
             {
-                'message': 'Unknown function "#property#value"',
+                'type': 'error',
+                'message': (
+                    'YaqlEvaluationException: Unable to evaluate expression '
+                    '\'<% ctx().func.value %>\'. NoFunctionRegisteredException: '
+                    'Unknown function "#property#value"'
+                ),
                 'task_id': 'task2'
             }
         ]
@@ -314,7 +386,12 @@ class OrquestaErrorHandlingTest(st2tests.DbTestCase):
     def test_fail_next_task_input_expr_eval(self):
         expected_errors = [
             {
-                'message': 'Unknown function "#property#value"',
+                'type': 'error',
+                'message': (
+                    'YaqlEvaluationException: Unable to evaluate expression '
+                    '\'<% ctx().msg2.value %>\'. NoFunctionRegisteredException: '
+                    'Unknown function "#property#value"'
+                ),
                 'task_id': 'task2'
             }
         ]
@@ -357,8 +434,11 @@ class OrquestaErrorHandlingTest(st2tests.DbTestCase):
         else:
             msg = 'Value "{u\'x\': u\'foobar\'}" must either be a string or None. Got "dict".'
 
+        msg = 'ValueError: ' + msg
+
         expected_errors = [
             {
+                'type': 'error',
                 'message': msg,
                 'task_id': 'task2'
             }
@@ -400,11 +480,55 @@ class OrquestaErrorHandlingTest(st2tests.DbTestCase):
         self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_FAILED)
         self.assertDictEqual(ac_ex_db.result, expected_result)
 
+    def test_fail_task_execution(self):
+        expected_errors = [
+            {
+                'type': 'error',
+                'message': 'Execution failed. See result for details.',
+                'task_id': 'task1',
+                'result': {
+                    'stdout': '',
+                    'stderr': 'boom!',
+                    'return_code': 1,
+                    'failed': True,
+                    'succeeded': False
+                }
+            }
+        ]
+
+        expected_result = {'output': None, 'errors': expected_errors}
+
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'fail-task-execution.yaml')
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
+
+        # Process task1.
+        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
+        tk1_ex_db = wf_db_access.TaskExecution.query(workflow_execution=str(wf_ex_db.id))[0]
+        tk1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk1_ex_db.id))[0]
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction['id'])
+        self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_FAILED)
+        wf_svc.handle_action_execution_completion(tk1_ac_ex_db)
+
+        # Assert workflow state and result.
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(str(wf_ex_db.id))
+        self.assertEqual(wf_ex_db.status, wf_states.FAILED)
+        self.assertListEqual(self.sort_wf_runtime_errors(wf_ex_db.errors), expected_errors)
+
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_FAILED)
+        self.assertDictEqual(lv_ac_db.result, expected_result)
+
+        ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db.id))
+        self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_FAILED)
+        self.assertDictEqual(ac_ex_db.result, expected_result)
+
     def test_fail_task_transition(self):
         expected_errors = [
             {
+                'type': 'error',
                 'message': (
-                    "Unable to resolve key 'foobar' in expression "
+                    "YaqlEvaluationException: Unable to resolve key 'foobar' in expression "
                     "'<% succeeded() and result().foobar %>' from context."
                 ),
                 'task_transition_id': 'task2__0',
@@ -446,7 +570,12 @@ class OrquestaErrorHandlingTest(st2tests.DbTestCase):
     def test_fail_task_publish(self):
         expected_errors = [
             {
-                'message': 'Unknown function "foobar"',
+                'type': 'error',
+                'message': (
+                    'YaqlEvaluationException: Unable to evaluate expression '
+                    '\'<% foobar() %>\'. NoFunctionRegisteredException: '
+                    'Unknown function "foobar"'
+                ),
                 'task_transition_id': 'task2__0',
                 'task_id': 'task1'
             }
@@ -486,7 +615,12 @@ class OrquestaErrorHandlingTest(st2tests.DbTestCase):
     def test_fail_output_rendering(self):
         expected_errors = [
             {
-                'message': 'Unknown function "#property#value"'
+                'type': 'error',
+                'message': (
+                    'YaqlEvaluationException: Unable to evaluate expression '
+                    '\'<% abs(4).value %>\'. NoFunctionRegisteredException: '
+                    'Unknown function "#property#value"'
+                )
             }
         ]
 
@@ -512,6 +646,67 @@ class OrquestaErrorHandlingTest(st2tests.DbTestCase):
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
         self.assertEqual(wf_ex_db.status, wf_states.FAILED)
         self.assertListEqual(self.sort_wf_runtime_errors(wf_ex_db.errors), expected_errors)
+
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_FAILED)
+        self.assertDictEqual(lv_ac_db.result, expected_result)
+
+        ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db.id))
+        self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_FAILED)
+        self.assertDictEqual(ac_ex_db.result, expected_result)
+
+    def test_output_on_error(self):
+        expected_output = {
+            'progress': 25
+        }
+
+        expected_errors = [
+            {
+                'type': 'error',
+                'task_id': 'task2',
+                'message': 'Execution failed. See result for details.',
+                'result': {
+                    'failed': True,
+                    'return_code': 1,
+                    'stderr': '',
+                    'stdout': '',
+                    'succeeded': False
+                }
+            }
+        ]
+
+        expected_result = {
+            'errors': expected_errors,
+            'output': expected_output
+        }
+
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'output-on-error.yaml')
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
+        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
+
+        # Assert task1 is already completed and workflow execution is still running.
+        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task1'}
+        tk1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        tk1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk1_ex_db.id))[0]
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction['id'])
+        self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        wf_svc.handle_action_execution_completion(tk1_ac_ex_db)
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
+        self.assertEqual(wf_ex_db.status, wf_states.RUNNING)
+
+        # Assert task2 is already completed and workflow execution has failed.
+        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task2'}
+        tk2_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        tk2_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk2_ex_db.id))[0]
+        tk2_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk2_ac_ex_db.liveaction['id'])
+        self.assertEqual(tk2_lv_ac_db.status, ac_const.LIVEACTION_STATUS_FAILED)
+        wf_svc.handle_action_execution_completion(tk2_ac_ex_db)
+
+        # Check output and result for expected value(s).
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
+        self.assertEqual(wf_ex_db.status, wf_states.FAILED)
+        self.assertDictEqual(wf_ex_db.output, expected_output)
 
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_FAILED)

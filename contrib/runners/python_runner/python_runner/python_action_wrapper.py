@@ -15,6 +15,11 @@
 
 from __future__ import absolute_import
 
+# Ignore CryptographyDeprecationWarning warnings which appear on older versions of Python 2.7
+import warnings
+from cryptography.utils import CryptographyDeprecationWarning
+warnings.filterwarnings('ignore', category=CryptographyDeprecationWarning)
+
 import os
 import sys
 import select

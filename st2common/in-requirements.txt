@@ -9,7 +9,7 @@ jsonschema
 kombu
 mongoengine
 networkx
-git+https://github.com/StackStorm/orquesta.git@master#egg=orquesta
+git+https://github.com/StackStorm/orquesta.git@3028c158cbf510e1253d1988058089a6f1c343ed#egg=orquesta
 oslo.config
 paramiko
 pyyaml
@@ -30,3 +30,4 @@ webob
 jsonpath-rw
 python-statsd
 prometheus_client
+ujson

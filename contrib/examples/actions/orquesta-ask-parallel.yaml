@@ -1,0 +1,6 @@
+---
+name: orquesta-ask-parallel
+description: A basic workflow that demonstrates parallel inquiries.
+runner_type: orquesta
+entry_point: workflows/orquesta-ask-parallel.yaml
+enabled: true

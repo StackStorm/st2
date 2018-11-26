@@ -26,12 +26,25 @@ from st2common.content.utils import check_pack_content_directory_exists
 from st2common.models.system.common import ResourceReference
 from six.moves import range
 
+__all__ = [
+    'validate_action',
+    'get_runner_model'
+]
+
 
 LOG = logging.getLogger(__name__)
 
 
-def validate_action(action_api):
-    runner_db = _get_runner_model(action_api)
+def validate_action(action_api, runner_type_db=None):
+    """
+    :param runner_type_db: RunnerTypeDB object belonging to this action. If not provided, it's
+                           retrieved from the database.
+    :type runner_type_db: :class:`RunnerTypeDB`
+    """
+    if not runner_type_db:
+        runner_db = get_runner_model(action_api)
+    else:
+        runner_db = runner_type_db
 
     # Check if pack is valid.
     if not _is_valid_pack(action_api.pack):
@@ -47,13 +60,15 @@ def validate_action(action_api):
     _validate_parameters(action_ref, action_api.parameters, runner_db.runner_parameters)
 
 
-def _get_runner_model(action_api):
+def get_runner_model(action_api):
     runner_db = None
     # Check if runner exists.
     try:
         runner_db = get_runnertype_by_name(action_api.runner_type)
     except StackStormDBObjectNotFoundError:
-        msg = 'RunnerType %s is not found.' % action_api.runner_type
+        msg = ('RunnerType %s is not found. If you are using old and deprecated runner name, you '
+               'need to switch to a new one. For more information, please see '
+               'https://docs.stackstorm.com/upgrade_notes.html#st2-v0-9' % (action_api.runner_type))
         raise ValueValidationException(msg)
     return runner_db
 

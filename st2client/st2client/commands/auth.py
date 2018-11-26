@@ -152,11 +152,10 @@ class LoginCommand(resource.ResourceCommand):
         try:
             self.run(args, **kwargs)
         except Exception as e:
-            print('Failed to log in as %s: %s' % (args.username, str(e)))
             if self.app.client.debug:
                 raise
 
-            return
+            raise Exception('Failed to log in as %s: %s' % (args.username, str(e)))
 
         print('Logged in as %s' % (args.username))
 
@@ -316,7 +315,7 @@ class ApiKeyCreateCommand(resource.ResourceCommand):
             if not instance:
                 raise Exception('Server did not create instance.')
         except Exception as e:
-            message = e.message or str(e)
+            message = str(e)
             print('ERROR: %s' % (message))
             raise OperationFailureException(message)
         if args.only_key:

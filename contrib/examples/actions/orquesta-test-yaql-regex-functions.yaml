@@ -1,0 +1,6 @@
+---
+name: orquesta-test-yaql-regex-functions
+description: A basic workflow testing regex related functions.
+runner_type: orquesta
+entry_point: workflows/tests/orquesta-test-yaql-regex-functions.yaml
+enabled: true

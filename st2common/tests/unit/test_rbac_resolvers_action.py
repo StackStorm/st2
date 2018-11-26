@@ -83,17 +83,17 @@ class ActionPermissionsResolverTestCase(BasePermissionsResolverTestCase):
 
         # Create some mock resources on which permissions can be granted
         action_1_db = ActionDB(pack='test_pack_1', name='action1', entry_point='',
-                               runner_type={'name': 'run-local'})
+                               runner_type={'name': 'local-shell-cmd'})
         action_1_db = Action.add_or_update(action_1_db)
         self.resources['action_1'] = action_1_db
 
         action_2_db = ActionDB(pack='test_pack_1', name='action2', entry_point='',
-                               runner_type={'name': 'run-local'})
+                               runner_type={'name': 'local-shell-cmd'})
         action_2_db = Action.add_or_update(action_1_db)
         self.resources['action_2'] = action_2_db
 
         action_3_db = ActionDB(pack='test_pack_2', name='action3', entry_point='',
-                               runner_type={'name': 'run-local'})
+                               runner_type={'name': 'local-shell-cmd'})
         action_3_db = Action.add_or_update(action_3_db)
         self.resources['action_3'] = action_3_db
 

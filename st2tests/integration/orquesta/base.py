@@ -59,12 +59,27 @@ class TestWorkflowExecution(unittest2.TestCase):
     def setUpClass(cls):
         cls.st2client = st2.Client(base_url='http://127.0.0.1')
 
-    def _execute_workflow(self, action, parameters=None):
+    def _execute_workflow(self, action, parameters=None, execute_async=True,
+                          expected_status=None, expected_result=None):
+
         ex = models.LiveAction(action=action, parameters=(parameters or {}))
-        ex = self.st2client.liveactions.create(ex)
+        ex = self.st2client.executions.create(ex)
         self.assertIsNotNone(ex.id)
         self.assertEqual(ex.action['ref'], action)
         self.assertIn(ex.status, LIVEACTION_LAUNCHED_STATUSES)
+
+        if execute_async:
+            return ex
+
+        if expected_status is None:
+            expected_status = action_constants.LIVEACTION_STATUS_SUCCEEDED
+
+        self.assertIn(expected_status, action_constants.LIVEACTION_STATUSES)
+
+        ex = self._wait_for_completion(ex)
+
+        self.assertEqual(ex.status, expected_status)
+        self.assertDictEqual(ex.result, expected_result)
 
         return ex
 
@@ -80,13 +95,14 @@ class TestWorkflowExecution(unittest2.TestCase):
                 raise ValueError('Status %s is not valid.' % state)
 
         try:
-            ex = self.st2client.liveactions.get_by_id(ex.id)
+            ex = self.st2client.executions.get_by_id(ex.id)
             self.assertIn(ex.status, states)
         except:
             if ex.status in action_constants.LIVEACTION_COMPLETED_STATES:
                 raise Exception(
-                    'Execution is in completed state and does not '
-                    'match expected state(s).'
+                    'Execution is in completed state "%s" and '
+                    'does not match expected state(s). %s' %
+                    (ex.status, ex.result)
                 )
             else:
                 raise
@@ -94,31 +110,41 @@ class TestWorkflowExecution(unittest2.TestCase):
         return ex
 
     def _get_children(self, ex):
-        return self.st2client.liveactions.query(parent=ex.id)
+        return self.st2client.executions.query(parent=ex.id)
 
     @retrying.retry(
         retry_on_exception=retry_on_exceptions,
         wait_fixed=3000, stop_max_delay=900000)
-    def _wait_for_task(self, ex, task, status, num_task_exs=1):
-        ex = self.st2client.liveactions.get_by_id(ex.id)
+    def _wait_for_task(self, ex, task, status=None, num_task_exs=1):
+        ex = self.st2client.executions.get_by_id(ex.id)
 
         task_exs = [
             task_ex for task_ex in self._get_children(ex)
-            if (task_ex.context.get('orquesta', {}).get('task_name', '') == task and
-                task_ex.status == status)
+            if task_ex.context.get('orquesta', {}).get('task_name', '') == task
         ]
 
         try:
             self.assertEqual(len(task_exs), num_task_exs)
-            self.assertTrue(all([task_ex.status == status for task_ex in task_exs]))
         except:
             if ex.status in action_constants.LIVEACTION_COMPLETED_STATES:
                 raise Exception(
                     'Execution is in completed state and does not '
-                    'match expected task.'
+                    'match expected number of tasks.'
                 )
             else:
                 raise
+
+        if status is not None:
+            try:
+                self.assertTrue(all([task_ex.status == status for task_ex in task_exs]))
+            except:
+                if ex.status in action_constants.LIVEACTION_COMPLETED_STATES:
+                    raise Exception(
+                        'Execution is in completed state and not all tasks '
+                        'match expected status "%s".' % status
+                    )
+                else:
+                    raise
 
         return task_exs
 

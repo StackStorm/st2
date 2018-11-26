@@ -36,10 +36,17 @@ class Action(core.Resource):
     _repr_attributes = ['name', 'pack', 'enabled', 'runner_type']
 
 
-class LiveAction(core.Resource):
+class Execution(core.Resource):
     _alias = 'Execution'
     _display_name = 'Action Execution'
     _url_path = 'executions'
     _plural = 'ActionExecutions'
     _plural_display_name = 'Action executions'
-    _repr_attributes = ['status', 'action', 'start_timestamp', 'end_timestamp', 'parameters']
+    _repr_attributes = ['status', 'action', 'start_timestamp', 'end_timestamp', 'parameters',
+                        'delay']
+
+
+# NOTE: LiveAction has been deprecated in favor of Execution. It will be left here for
+# backward compatibility reasons until v3.2.0
+class LiveAction(Execution):
+    pass

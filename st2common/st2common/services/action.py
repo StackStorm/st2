@@ -54,16 +54,25 @@ def _get_immutable_params(parameters):
     return [k for k, v in six.iteritems(parameters) if v.get('immutable', False)]
 
 
-def create_request(liveaction):
+def create_request(liveaction, action_db=None, runnertype_db=None):
     """
     Create an action execution.
+
+    :param action_db: Action model to operate one. If not provided, one is retrieved from the
+                      database using values from "liveaction".
+    :type action_db: :class:`ActionDB`
+
+    :param runnertype_db: Runner model to operate one. If not provided, one is retrieved from the
+                          database using values from "liveaction".
+    :type runnertype_db: :class:`RunnerTypeDB`
 
     :return: (liveaction, execution)
     :rtype: tuple
     """
     # We import this here to avoid conflicts w/ runners that might import this
     # file since the runners don't have the config context by default.
-    from st2common.metrics.base import get_driver, format_metrics_key
+    from st2common.metrics.base import get_driver
+
     # Use the user context from the parent action execution. Subtasks in a workflow
     # action can be invoked by a system user and so we want to use the user context
     # from the original workflow action.
@@ -73,20 +82,23 @@ def create_request(liveaction):
         if parent_user:
             liveaction.context['user'] = parent_user
 
-    # Validate action.
-    action_db = action_utils.get_action_by_ref(liveaction.action)
+    # Validate action
+    if not action_db:
+        action_db = action_utils.get_action_by_ref(liveaction.action)
+
     if not action_db:
         raise ValueError('Action "%s" cannot be found.' % liveaction.action)
     if not action_db.enabled:
         raise ValueError('Unable to execute. Action "%s" is disabled.' % liveaction.action)
 
-    runnertype_db = action_utils.get_runnertype_by_name(action_db.runner_type['name'])
+    if not runnertype_db:
+        runnertype_db = action_utils.get_runnertype_by_name(action_db.runner_type['name'])
 
     if not hasattr(liveaction, 'parameters'):
         liveaction.parameters = dict()
 
     # Validate action parameters.
-    schema = util_schema.get_schema_for_action_parameters(action_db)
+    schema = util_schema.get_schema_for_action_parameters(action_db, runnertype_db)
     validator = util_schema.get_validator()
     util_schema.validate(liveaction.parameters, schema, validator, use_default=True,
                          allow_default_none=True)
@@ -116,7 +128,6 @@ def create_request(liveaction):
 
     # Publish creation after both liveaction and actionexecution are created.
     liveaction = LiveAction.add_or_update(liveaction, publish=False)
-
     # Get trace_db if it exists. This could throw. If it throws, we have to cleanup
     # liveaction object so we don't see things in requested mode.
     trace_db = None
@@ -126,7 +137,8 @@ def create_request(liveaction):
         _cleanup_liveaction(liveaction)
         raise trace_exc.TraceNotFoundException(str(e))
 
-    execution = executions.create_execution_object(liveaction, publish=False)
+    execution = executions.create_execution_object(liveaction=liveaction, action_db=action_db,
+                                                   runnertype_db=runnertype_db, publish=False)
 
     if trace_db:
         trace_service.add_or_update_given_trace_db(
@@ -135,12 +147,8 @@ def create_request(liveaction):
                 trace_service.get_trace_component_for_action_execution(execution, liveaction)
             ])
 
-    get_driver().inc_counter(
-        format_metrics_key(
-            action_db=action_db,
-            key='action.%s' % (liveaction.status)
-        )
-    )
+    get_driver().inc_counter('action.executions.%s' % (liveaction.status))
+
     return liveaction, execution
 
 
@@ -156,7 +164,9 @@ def publish_request(liveaction, execution):
     LiveAction.publish_status(liveaction)
     ActionExecution.publish_create(execution)
 
-    extra = {'liveaction_db': liveaction, 'execution_db': execution}
+    # TODO: This results in two queries, optimize it
+    #  extra = {'liveaction_db': liveaction, 'execution_db': execution}
+    extra = {}
     LOG.audit('Action execution requested. LiveAction.id=%s, ActionExecution.id=%s' %
               (liveaction.id, execution.id), extra=extra)
 
@@ -322,14 +332,19 @@ def request_resume(liveaction, requester):
             '"%s" runner.' % (liveaction.id, action_db.runner_type['name'])
         )
 
-    if liveaction.status == action_constants.LIVEACTION_STATUS_RUNNING:
+    running_states = [
+        action_constants.LIVEACTION_STATUS_RUNNING,
+        action_constants.LIVEACTION_STATUS_RESUMING
+    ]
+
+    if liveaction.status in running_states:
         execution = ActionExecution.get(liveaction__id=str(liveaction.id))
         return (liveaction, execution)
 
     if liveaction.status != action_constants.LIVEACTION_STATUS_PAUSED:
         raise runner_exc.UnexpectedActionExecutionStatusError(
-            'Unable to resume liveaction "%s" because it is not in a paused state.'
-            % liveaction.id
+            'Unable to resume liveaction "%s" because it is in "%s" state and '
+            'not in "paused" state.' % (liveaction.id, liveaction.status)
         )
 
     liveaction = update_status(liveaction, action_constants.LIVEACTION_STATUS_RESUMING)
@@ -337,6 +352,45 @@ def request_resume(liveaction, requester):
     execution = ActionExecution.get(liveaction__id=str(liveaction.id))
 
     return (liveaction, execution)
+
+
+def get_parent_liveaction(liveaction_db):
+    """Get the liveaction for the parent workflow
+
+    Useful for finding the parent workflow. Pass in any LiveActionDB instance,
+    and this function will return the liveaction of the parent workflow.
+
+    :param liveaction_db: The LiveActionDB instance for which to find the parent.
+    :rtype: LiveActionDB
+    """
+
+    parent = liveaction_db.context.get('parent')
+
+    if not parent:
+        return None
+
+    parent_execution_db = ActionExecution.get(id=parent['execution_id'])
+    parent_liveaction_db = LiveAction.get(id=parent_execution_db.liveaction['id'])
+
+    return parent_liveaction_db
+
+
+def get_parent_execution(execution_db):
+    """Get the action execution for the parent workflow
+
+    Useful for finding the parent workflow. Pass in any ActionExecutionDB instance,
+    and this function will return the action execution of the parent workflow.
+
+    :param execution_db: The ActionExecutionDB instance for which to find the parent.
+    :rtype: ActionExecutionDB
+    """
+
+    if not execution_db.parent:
+        return None
+
+    parent_execution_db = ActionExecution.get(id=execution_db.parent)
+
+    return parent_execution_db
 
 
 def get_root_liveaction(liveaction_db):
@@ -350,33 +404,25 @@ def get_root_liveaction(liveaction_db):
     :rtype: LiveActionDB
     """
 
-    parent = liveaction_db.context.get('parent')
+    parent_liveaction_db = get_parent_liveaction(liveaction_db)
 
-    if not parent:
-        return liveaction_db
-
-    parent_execution = ActionExecution.get(id=parent['execution_id'])
-    parent_liveaction = LiveAction.get(id=parent_execution.liveaction['id'])
-    return get_root_liveaction(parent_liveaction)
+    return get_root_liveaction(parent_liveaction_db) if parent_liveaction_db else liveaction_db
 
 
-def get_root_execution(ac_ex_db):
+def get_root_execution(execution_db):
     """Recursively ascends until the root action execution is found
 
     Useful for finding an original parent workflow. Pass in any ActionExecutionDB instance,
     and this function will eventually return the top-most action execution, even if the two
     are one and the same.
 
-    :param ac_ex_db: The ActionExecutionDB instance for which to find the root parent.
+    :param execution_db: The ActionExecutionDB instance for which to find the root parent.
     :rtype: ActionExecutionDB
     """
 
-    if not ac_ex_db.parent:
-        return ac_ex_db
+    parent_execution_db = get_parent_execution(execution_db)
 
-    parent_ac_ex_db = ActionExecution.get(id=ac_ex_db.parent)
-
-    return get_root_execution(parent_ac_ex_db)
+    return get_root_execution(parent_execution_db) if parent_execution_db else execution_db
 
 
 def store_execution_output_data(execution_db, action_db, data, output_type='output',
@@ -411,7 +457,7 @@ def is_children_active(liveaction_id):
 
     inactive_statuses = (
         action_constants.LIVEACTION_COMPLETED_STATES +
-        [action_constants.LIVEACTION_STATUS_PAUSED]
+        [action_constants.LIVEACTION_STATUS_PAUSED, action_constants.LIVEACTION_STATUS_PENDING]
     )
 
     completed = [

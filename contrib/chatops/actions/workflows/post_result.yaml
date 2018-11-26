@@ -1,20 +1,47 @@
----
-chain:
-  -
-    name: "format_execution_result"
-    ref: "chatops.format_execution_result"
-    parameters:
-      execution_id: "{{execution_id}}"
-    publish:
-      message: "{{format_execution_result.result.message}}"
-      extra: "{% if 'extra' in format_execution_result.result %}{{format_execution_result.result.extra}}{% else %}{}{% endif %}"
-    on-success: "post_message"
-  -
-    name: "post_message"
-    ref: "chatops.post_message"
-    parameters:
-      user: "{{user}}"
-      channel: "{{channel}}"
-      whisper: "{{whisper}}"
-      message: "{{message}}"
-      extra: "{{extra}}"
+version: 1.0
+
+description: "Post an execution result to stream for chatops"
+
+input:
+  - user
+  - whisper
+  - execution_id
+  - channel
+
+tasks:
+    format_execution_result:
+      action: chatops.format_execution_result
+      input:
+        execution_id: "{{ ctx('execution_id') }}"
+      next:
+        -
+          when: "{{ result().result.enabled == true }}"
+          publish:
+            - message: "{{ result().result.message }}"
+            - extra: "{% if 'extra' in result().result %}{{ result().result.extra }}{% else %}{}{% endif %}"
+          do:
+            - post_message
+        -
+          when: "{{ result().result.enabled == false }}"
+          do:
+            - result_disabled
+
+    post_message:
+      action: chatops.post_message
+      input:
+        user: "{{ ctx('user') }}"
+        channel: "{{ ctx('channel') }}"
+        whisper: "{{ ctx('whisper') }}"
+        message: "{{ ctx('message') }}"
+        extra: "{{ ctx('extra') }}"
+      next:
+        - publish:
+            - msg: "Execution result has been posted."
+
+    result_disabled:
+      action: core.noop
+      next:
+        - publish:
+            - msg: "Execution result is disabled."
+output:
+  - note: "{{ ctx('msg') }}"

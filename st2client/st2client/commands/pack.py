@@ -21,7 +21,7 @@ import yaml
 
 from st2client.models import Config
 from st2client.models import Pack
-from st2client.models import LiveAction
+from st2client.models import Execution
 from st2client.commands import resource
 from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
 from st2client.commands.action import ActionRunCommandMixin
@@ -81,7 +81,7 @@ class PackResourceCommand(resource.ResourceCommand):
         except resource.ResourceNotFoundError:
             print("No matching items found")
         except Exception as e:
-            message = e.message or str(e)
+            message = str(e)
             print('ERROR: %s' % (message))
             raise OperationFailureException(message)
 
@@ -117,7 +117,7 @@ class PackAsyncCommand(ActionRunCommandMixin, resource.ResourceCommand):
         with term.TaskIndicator() as indicator:
             events = ['st2.execution__create', 'st2.execution__update']
             for event in stream_mgr.listen(events, **kwargs):
-                execution = LiveAction(**event)
+                execution = Execution(**event)
 
                 if execution.id == parent_id \
                         and execution.status in LIVEACTION_COMPLETED_STATES:
@@ -143,7 +143,7 @@ class PackAsyncCommand(ActionRunCommandMixin, resource.ResourceCommand):
             self._print_execution_details(execution=execution, args=args, **kwargs)
             sys.exit(1)
 
-        return self.app.client.managers['LiveAction'].get_by_id(parent_id, **kwargs)
+        return self.app.client.managers['Execution'].get_by_id(parent_id, **kwargs)
 
 
 class PackListCommand(resource.ResourceListCommand):
@@ -195,7 +195,13 @@ class PackInstallCommand(PackAsyncCommand):
                                  help='Force pack installation.')
 
     def run(self, args, **kwargs):
-        self._get_content_counts_for_pack(args, **kwargs)
+        is_structured_output = args.json or args.yaml
+
+        # If structured output is requested, do not print information about contents of pack
+        # This information is already exposed via st2 pack show ${pack_name} -j
+        if not is_structured_output:
+            self._get_content_counts_for_pack(args, **kwargs)
+
         return self.manager.install(args.packs, python3=args.python3, force=args.force, **kwargs)
 
     def _get_content_counts_for_pack(self, args, **kwargs):
@@ -298,7 +304,7 @@ class PackRemoveCommand(PackAsyncCommand):
             pack_instance = self.app.client.managers['Pack'].get_by_ref_or_id(packs[0], **kwargs)
 
             if pack_instance:
-                raise OperationFailureException('Pack %s has not been removed properly', packs[0])
+                raise OperationFailureException('Pack %s has not been removed properly' % packs[0])
 
             removed_pack_instance = next((pack for pack in all_pack_instances
                                          if pack.name == packs[0]), None)
@@ -314,8 +320,8 @@ class PackRemoveCommand(PackAsyncCommand):
                 if pack.name in packs:
                     pack_instances.append(pack)
                 if pack in remaining_pack_instances:
-                    raise OperationFailureException('Pack %s has not been removed properly',
-                                                    pack.name)
+                    raise OperationFailureException('Pack %s has not been removed properly'
+                                                    % pack.name)
 
             self.print_output(pack_instances, table.MultiColumnTable,
                               attributes=args.attr, widths=args.width,
@@ -420,6 +426,6 @@ class PackConfigCommand(resource.ResourceCommand):
             if self.app.client.debug:
                 raise
 
-            message = e.message or str(e)
+            message = str(e)
             print('ERROR: %s' % (message))
             raise OperationFailureException(message)

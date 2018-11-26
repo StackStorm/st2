@@ -61,7 +61,7 @@ class BaseDatastoreService(object):
 
         :rtype: ``dict``
         """
-        client = self._get_api_client()
+        client = self.get_api_client()
 
         self._logger.debug('Retrieving user information')
 
@@ -84,7 +84,7 @@ class BaseDatastoreService(object):
 
         :rtype: ``list`` of :class:`KeyValuePair`
         """
-        client = self._get_api_client()
+        client = self.get_api_client()
         self._logger.debug('Retrieving all the values from the datastore')
 
         key_prefix = self._get_full_key_prefix(local=local, prefix=prefix)
@@ -117,7 +117,7 @@ class BaseDatastoreService(object):
 
         name = self._get_full_key_name(name=name, local=local)
 
-        client = self._get_api_client()
+        client = self.get_api_client()
         self._logger.debug('Retrieving value from the datastore (name=%s)', name)
 
         try:
@@ -165,12 +165,12 @@ class BaseDatastoreService(object):
         :rtype: ``bool``
         """
         if scope != SYSTEM_SCOPE:
-            raise ValueError('Scope %s is unsupported.', scope)
+            raise ValueError('Scope %s is unsupported.' % scope)
 
         name = self._get_full_key_name(name=name, local=local)
 
         value = str(value)
-        client = self._get_api_client()
+        client = self.get_api_client()
 
         self._logger.debug('Setting value in the datastore (name=%s)', name)
 
@@ -208,11 +208,11 @@ class BaseDatastoreService(object):
         :rtype: ``bool``
         """
         if scope != SYSTEM_SCOPE:
-            raise ValueError('Scope %s is unsupported.', scope)
+            raise ValueError('Scope %s is unsupported.' % scope)
 
         name = self._get_full_key_name(name=name, local=local)
 
-        client = self._get_api_client()
+        client = self.get_api_client()
 
         instance = KeyValuePair()
         instance.id = name
@@ -233,11 +233,11 @@ class BaseDatastoreService(object):
 
         return True
 
-    def _get_api_client(self):
+    def get_api_client(self):
         """
         Retrieve API client instance.
         """
-        raise NotImplementedError('_get_api_client() not implemented')
+        raise NotImplementedError('get_api_client() not implemented')
 
     def _get_full_key_name(self, name, local):
         """
@@ -305,7 +305,7 @@ class ActionDatastoreService(BaseDatastoreService):
         self._auth_token = auth_token
         self._client = None
 
-    def _get_api_client(self):
+    def get_api_client(self):
         """
         Retrieve API client instance.
         """
@@ -335,7 +335,7 @@ class SensorDatastoreService(BaseDatastoreService):
         self._api_username = api_username
         self._token_expire = get_datetime_utc_now()
 
-    def _get_api_client(self):
+    def get_api_client(self):
         """
         Retrieve API client instance.
         """

@@ -220,8 +220,8 @@ class KeyValuePairDeleteCommand(resource.ResourceDeleteCommand):
         instance = self.get_resource(resource_id, **kwargs)
 
         if not instance:
-            raise resource.ResourceNotFoundError('KeyValuePair with id "%s" not found',
-                                                 resource_id)
+            raise resource.ResourceNotFoundError('KeyValuePair with id "%s" not found'
+                                                 % resource_id)
 
         instance.id = resource_id  # TODO: refactor and get rid of id
         self.manager.delete(instance, **kwargs)
@@ -294,12 +294,16 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
         # load the data (JSON/YAML) from the file
         kvps = resource.load_meta_file(file_path)
 
+        instances = []
+        # bail out if file was empty
+        if not kvps:
+            return instances
+
         # if the data is not a list (ie. it's a single entry)
         # then make it a list so our process loop is generic
         if not isinstance(kvps, list):
             kvps = [kvps]
 
-        instances = []
         for item in kvps:
             # parse required KeyValuePair properties
             name = item['name']

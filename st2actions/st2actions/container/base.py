@@ -33,7 +33,7 @@ from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
 from st2common.util.action_db import (update_liveaction_status, get_liveaction_by_id)
 from st2common.util import param as param_utils
 from st2common.util.config_loader import ContentPackConfigLoader
-from st2common.metrics.base import CounterWithTimer, format_metrics_key
+from st2common.metrics.base import CounterWithTimer
 from st2common.util import jsonify
 
 from st2common.runners.base import get_runner
@@ -82,7 +82,7 @@ class RunnerContainer(object):
                 'in an unsupported status of "%s".' % liveaction_db.status
             )
 
-        with CounterWithTimer(key="st2.action.executions"):
+        with CounterWithTimer(key="action.executions"):
             liveaction_db = funcs[liveaction_db.status](runner)
 
         return liveaction_db.result
@@ -122,9 +122,10 @@ class RunnerContainer(object):
             extra = {'runner': runner, 'parameters': resolved_action_params}
             LOG.debug('Performing run for runner: %s' % (runner.runner_id), extra=extra)
 
-            with CounterWithTimer(key=format_metrics_key(action_db=runner.action, key='action')):
-                (status, result, context) = runner.run(action_params)
-                result = jsonify.try_loads(result)
+            with CounterWithTimer(key='action.executions'):
+                with CounterWithTimer(key='action.%s.executions' % (runner.action.ref)):
+                    (status, result, context) = runner.run(action_params)
+                    result = jsonify.try_loads(result)
 
             action_completed = status in action_constants.LIVEACTION_COMPLETED_STATES
 
@@ -334,14 +335,14 @@ class RunnerContainer(object):
         config = None
 
         # Note: Right now configs are only supported by the Python runner actions
-        if runner_type_db.runner_module == 'python_runner':
+        if (runner_type_db.name == 'python-script' or
+                runner_type_db.runner_module == 'python_runner'):
             LOG.debug('Loading config from pack for python runner.')
             config_loader = ContentPackConfigLoader(pack_name=action_db.pack, user=user)
             config = config_loader.get_config()
 
         runner = get_runner(
-            package_name=runner_type_db.runner_package,
-            module_name=runner_type_db.runner_module,
+            name=runner_type_db.name,
             config=config)
 
         # TODO: Pass those arguments to the constructor instead of late

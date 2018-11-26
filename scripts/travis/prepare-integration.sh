@@ -11,7 +11,6 @@ fi
 TYPE='debs'
 SYSTEMUSER='stanley'
 STAN="/home/${SYSTEMUSER}/${TYPE}"
-RUNNERS=$(ls -d contrib/runners/*)
 mkdir -p ${STAN}
 
 VIRTUALENV_DIR=virtualenv
@@ -43,18 +42,6 @@ create_user() {
   fi
 }
 
-install_runners() {
-    echo "==========================================================="
-    echo "Installing runners"
-    echo "==========================================================="
-	for component in $RUNNERS; do
-		echo "==========================================================="
-		echo "Installing runner:" $component
-		echo "==========================================================="
-        (. $VIRTUALENV_DIR/bin/activate; cd $component; python setup.py develop)
-	done
-}
-
 create_user
 
 # install screen
@@ -66,9 +53,6 @@ source ./virtualenv/bin/activate
 # install st2 client
 python ./st2client/setup.py develop
 st2 --version
-
-# install runners
-install_runners
 
 # start dev environment in screens
 ./tools/launchdev.sh start -x

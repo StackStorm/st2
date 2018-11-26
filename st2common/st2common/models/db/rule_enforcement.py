@@ -75,7 +75,7 @@ class RuleEnforcementDB(stormbase.StormFoundationDB, stormbase.TagsMixin):
             {'fields': ['-enforced_at']},
             {'fields': ['-enforced_at', 'rule.ref']},
             {'fields': ['status']},
-        ] + stormbase.TagsMixin.get_indices()
+        ] + stormbase.TagsMixin.get_indexes()
     }
 
     def __init__(self, *args, **values):

@@ -106,10 +106,24 @@ class RunnerTypeAPI(BaseAPI):
                 "description": "Input parameters for the action runner.",
                 "type": "object",
                 "patternProperties": {
-                    "^\w+$": util_schema.get_action_parameters_schema()
+                    r"^\w+$": util_schema.get_action_parameters_schema()
                 },
                 'additionalProperties': False
-            }
+            },
+            "output_key": {
+                "description": "Default key to expect results to be published to.",
+                "type": "string",
+                "required": False
+            },
+            "output_schema": {
+                "description": "Schema for the runner's output.",
+                "type": "object",
+                "patternProperties": {
+                    r"^\w+$": util_schema.get_action_output_schema()
+                },
+                'additionalProperties': False,
+                "default": {}
+            },
         },
         "additionalProperties": False
     }
@@ -135,12 +149,14 @@ class RunnerTypeAPI(BaseAPI):
         runner_package = getattr(runner_type, 'runner_package', runner_type.runner_module)
         runner_module = str(runner_type.runner_module)
         runner_parameters = getattr(runner_type, 'runner_parameters', dict())
+        output_key = getattr(runner_type, 'output_key', None)
+        output_schema = getattr(runner_type, 'output_schema', dict())
         query_module = getattr(runner_type, 'query_module', None)
 
         model = cls.model(name=name, description=description, enabled=enabled,
                           runner_package=runner_package, runner_module=runner_module,
-                          runner_parameters=runner_parameters,
-                          query_module=query_module)
+                          runner_parameters=runner_parameters, output_schema=output_schema,
+                          query_module=query_module, output_key=output_key)
 
         return model
 
@@ -201,7 +217,16 @@ class ActionAPI(BaseAPI, APIUIDMixin):
                 "description": "Input parameters for the action.",
                 "type": "object",
                 "patternProperties": {
-                    "^\w+$": util_schema.get_action_parameters_schema()
+                    r"^\w+$": util_schema.get_action_parameters_schema()
+                },
+                'additionalProperties': False,
+                "default": {}
+            },
+            "output_schema": {
+                "description": "Schema for the action's output.",
+                "type": "object",
+                "patternProperties": {
+                    r"^\w+$": util_schema.get_action_output_schema()
                 },
                 'additionalProperties': False,
                 "default": {}
@@ -220,6 +245,11 @@ class ActionAPI(BaseAPI, APIUIDMixin):
                     "on-success": NotificationSubSchemaAPI
                 },
                 "additionalProperties": False
+            },
+            "metadata_file": {
+                "description": "Path to the metadata file relative to the pack directory.",
+                "type": "string",
+                "default": ""
             }
         },
         "additionalProperties": False
@@ -236,7 +266,7 @@ class ActionAPI(BaseAPI, APIUIDMixin):
     @classmethod
     def from_model(cls, model, mask_secrets=False):
         action = cls._from_model(model)
-        action['runner_type'] = action['runner_type']['name']
+        action['runner_type'] = action.get('runner_type', {}).get('name', None)
         action['tags'] = TagsHelper.from_model(model.tags)
 
         if getattr(model, 'notify', None):
@@ -253,6 +283,7 @@ class ActionAPI(BaseAPI, APIUIDMixin):
         pack = str(action.pack)
         runner_type = {'name': str(action.runner_type)}
         parameters = getattr(action, 'parameters', dict())
+        output_schema = getattr(action, 'output_schema', dict())
         tags = TagsHelper.to_model(getattr(action, 'tags', []))
         ref = ResourceReference.to_string_reference(pack=pack, name=name)
 
@@ -265,10 +296,12 @@ class ActionAPI(BaseAPI, APIUIDMixin):
             # to use an empty document.
             notify = NotificationsHelper.to_model({})
 
+        metadata_file = getattr(action, 'metadata_file', None)
+
         model = cls.model(name=name, description=description, enabled=enabled,
                           entry_point=entry_point, pack=pack, runner_type=runner_type,
-                          tags=tags, parameters=parameters, notify=notify,
-                          ref=ref)
+                          tags=tags, parameters=parameters, output_schema=output_schema,
+                          notify=notify, ref=ref, metadata_file=metadata_file)
 
         return model
 
@@ -349,7 +382,7 @@ class LiveActionAPI(BaseAPI):
                 "description": "Input parameters for the action.",
                 "type": "object",
                 "patternProperties": {
-                    "^\w+$": {
+                    r"^\w+$": {
                         "anyOf": [
                             {"type": "array"},
                             {"type": "boolean"},
@@ -389,6 +422,11 @@ class LiveActionAPI(BaseAPI):
                     "on-success": NotificationSubSchemaAPI
                 },
                 "additionalProperties": False
+            },
+            "delay": {
+                "description": ("How long (in milliseconds) to delay the execution before"
+                                "scheduling."),
+                "type": "integer",
             }
         },
         "additionalProperties": False
@@ -426,6 +464,7 @@ class LiveActionAPI(BaseAPI):
         context = getattr(live_action, 'context', dict())
         callback = getattr(live_action, 'callback', dict())
         result = getattr(live_action, 'result', None)
+        delay = getattr(live_action, 'delay', None)
 
         if getattr(live_action, 'notify', None):
             notify = NotificationsHelper.to_model(live_action.notify)
@@ -435,7 +474,7 @@ class LiveActionAPI(BaseAPI):
         model = cls.model(action=action,
                           start_timestamp=start_timestamp, end_timestamp=end_timestamp,
                           status=status, parameters=parameters, context=context,
-                          callback=callback, result=result, notify=notify)
+                          callback=callback, result=result, notify=notify, delay=delay)
 
         return model
 
@@ -585,6 +624,11 @@ class ActionAliasAPI(BaseAPI, APIUIDMixin):
             "extra": {
                 "type": "object",
                 "description": "Extra parameters, usually adapter-specific."
+            },
+            "metadata_file": {
+                "description": "Path to the metadata file relative to the pack directory.",
+                "type": "string",
+                "default": ""
             }
         },
         "additionalProperties": False
@@ -602,10 +646,12 @@ class ActionAliasAPI(BaseAPI, APIUIDMixin):
         ack = getattr(alias, 'ack', None)
         result = getattr(alias, 'result', None)
         extra = getattr(alias, 'extra', None)
+        metadata_file = getattr(alias, 'metadata_file', None)
 
         model = cls.model(name=name, description=description, pack=pack, ref=ref,
                           enabled=enabled, action_ref=action_ref, formats=formats,
-                          ack=ack, result=result, extra=extra)
+                          ack=ack, result=result, extra=extra,
+                          metadata_file=metadata_file)
         return model
 
 

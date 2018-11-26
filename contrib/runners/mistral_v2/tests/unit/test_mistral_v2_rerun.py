@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import copy
 import uuid
 
@@ -35,13 +36,12 @@ from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar
 from st2common.constants import action as action_constants
 from st2common.models.db.liveaction import LiveActionDB
-from st2common.persistence.liveaction import LiveAction
 from st2common.runners import base as runners
 from st2common.services import action as action_service
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 from st2common.util import loader
-from st2tests import DbTestCase
+from st2tests import ExecutionDbTestCase
 from st2tests import fixturesloader
 from st2tests.mocks.liveaction import MockLiveActionPublisher
 
@@ -124,14 +124,14 @@ WF1_TASKS = [tasks.Task(None, WF1_TASK1), tasks.Task(None, WF1_TASK2)]
     LiveActionPublisher,
     'publish_state',
     mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
-class MistralRunnerTest(DbTestCase):
+class MistralRunnerTest(ExecutionDbTestCase):
 
     @classmethod
     def setUpClass(cls):
         super(MistralRunnerTest, cls).setUpClass()
 
         # Override the retry configuration here otherwise st2tests.config.parse_args
-        # in DbTestCase.setUpClass will reset these overrides.
+        # in ExecutionDbTestCase.setUpClass will reset these overrides.
         cfg.CONF.set_override('retry_exp_msec', 100, group='mistral')
         cfg.CONF.set_override('retry_exp_max_msec', 200, group='mistral')
         cfg.CONF.set_override('retry_stop_max_msec', 200, group='mistral')
@@ -153,13 +153,9 @@ class MistralRunnerTest(DbTestCase):
         super(MistralRunnerTest, self).setUp()
 
         # Mock the local runner run method.
-        local_runner_cls = self.get_runner_class('local_runner', 'local_shell_command_runner')
+        local_runner_cls = runners.get_runner('local-shell-cmd').__class__
         local_run_result = (action_constants.LIVEACTION_STATUS_SUCCEEDED, NON_EMPTY_RESULT, None)
         local_runner_cls.run = mock.Mock(return_value=local_run_result)
-
-    @classmethod
-    def get_runner_class(cls, package_name, module_name):
-        return runners.get_runner(package_name, module_name).__class__
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',
@@ -174,7 +170,7 @@ class MistralRunnerTest(DbTestCase):
         executions.ExecutionManager, 'create',
         mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC)))
     def test_resume_option(self):
-        patched_mistral_runner = self.get_runner_class('mistral_v2', 'mistral_v2')
+        patched_mistral_runner = runners.get_runner('mistral-v2').__class__
 
         mock_resume_result = (
             action_constants.LIVEACTION_STATUS_RUNNING,
@@ -199,8 +195,11 @@ class MistralRunnerTest(DbTestCase):
 
             liveaction2 = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=context)
             liveaction2, execution2 = action_service.request(liveaction2)
-            liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
-            self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_RUNNING)
+
+            liveaction2 = self._wait_on_status(
+                liveaction2,
+                action_constants.LIVEACTION_STATUS_RUNNING
+            )
 
             task_specs = {
                 'x': {
@@ -226,7 +225,7 @@ class MistralRunnerTest(DbTestCase):
         executions.ExecutionManager, 'create',
         mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC)))
     def test_resume_option_reset_tasks(self):
-        patched_mistral_runner = self.get_runner_class('mistral_v2', 'mistral_v2')
+        patched_mistral_runner = runners.get_runner('mistral-v2').__class__
 
         mock_resume_result = (
             action_constants.LIVEACTION_STATUS_RUNNING,
@@ -252,8 +251,11 @@ class MistralRunnerTest(DbTestCase):
 
             liveaction2 = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=context)
             liveaction2, execution2 = action_service.request(liveaction2)
-            liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
-            self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_RUNNING)
+
+            liveaction2 = self._wait_on_status(
+                liveaction2,
+                action_constants.LIVEACTION_STATUS_RUNNING
+            )
 
             task_specs = {
                 'x': {
@@ -301,8 +303,7 @@ class MistralRunnerTest(DbTestCase):
 
         liveaction2 = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=context)
         liveaction2, execution2 = action_service.request(liveaction2)
-        liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
-        self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_FAILED)
+        liveaction2 = self._wait_on_status(liveaction2, action_constants.LIVEACTION_STATUS_FAILED)
         self.assertIn('not in a rerunable state', liveaction2.result.get('error'))
 
     @mock.patch.object(
@@ -340,8 +341,7 @@ class MistralRunnerTest(DbTestCase):
 
         liveaction2 = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=context)
         liveaction2, execution2 = action_service.request(liveaction2)
-        liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
-        self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_FAILED)
+        liveaction2 = self._wait_on_status(liveaction2, action_constants.LIVEACTION_STATUS_FAILED)
         self.assertIn('Unable to identify rerunable', liveaction2.result.get('error'))
 
     @mock.patch.object(
@@ -379,8 +379,7 @@ class MistralRunnerTest(DbTestCase):
 
         liveaction2 = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=context)
         liveaction2, execution2 = action_service.request(liveaction2)
-        liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
-        self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_FAILED)
+        liveaction2 = self._wait_on_status(liveaction2, action_constants.LIVEACTION_STATUS_FAILED)
         self.assertIn('Unable to identify', liveaction2.result.get('error'))
 
     @mock.patch.object(
@@ -440,9 +439,7 @@ class MistralRunnerTest(DbTestCase):
 
         liveaction2 = LiveActionDB(action=WB1_NAME, parameters=ACTION_PARAMS, context=context)
         liveaction2, execution2 = action_service.request(liveaction2)
-        liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
-
-        self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        liveaction2 = self._wait_on_status(liveaction2, action_constants.LIVEACTION_STATUS_RUNNING)
 
         expected_env = {
             'st2_liveaction_id': str(liveaction2.id),
@@ -509,8 +506,7 @@ class MistralRunnerTest(DbTestCase):
 
         liveaction2 = LiveActionDB(action=WB1_NAME, parameters=ACTION_PARAMS, context=context)
         liveaction2, execution2 = action_service.request(liveaction2)
-        liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
-        self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_FAILED)
+        liveaction2 = self._wait_on_status(liveaction2, action_constants.LIVEACTION_STATUS_FAILED)
         self.assertIn('Unable to identify', liveaction2.result.get('error'))
 
     @mock.patch.object(
@@ -571,9 +567,7 @@ class MistralRunnerTest(DbTestCase):
 
         liveaction2 = LiveActionDB(action=WB1_NAME, parameters=ACTION_PARAMS, context=context)
         liveaction2, execution2 = action_service.request(liveaction2)
-        liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
-
-        self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        liveaction2 = self._wait_on_status(liveaction2, action_constants.LIVEACTION_STATUS_RUNNING)
 
         expected_env = {
             'st2_liveaction_id': str(liveaction2.id),

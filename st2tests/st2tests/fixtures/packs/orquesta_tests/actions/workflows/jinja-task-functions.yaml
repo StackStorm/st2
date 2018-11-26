@@ -1,0 +1,60 @@
+version: 1.0
+
+description: A basic workflow testing task related functions.
+
+vars:
+  - loop: True
+
+tasks:
+  # Test basic task function.
+  task1:
+    action: core.echo message="foobar"
+    next:
+      - publish:
+          - this_task_no_arg: '{{ task().task_id }}'
+          - this_task_by_name: '{{ task("task1").task_id }}'
+
+  # Test task function in a cycle.
+  task2:
+    action: core.noop
+    next:
+      - do: task3
+  task3:
+    action: core.local
+    input:
+      cmd: 'echo "{{ ctx("loop") }}"; sleep 1'
+    next:
+      - when: '{{ ctx("loop") == true }}'
+        publish:
+          - loop: False
+        do: task3
+      - when: '{{ ctx("loop") != true }}'
+        do: task4
+  task4:
+    action: core.noop
+
+  # Test task function in a reuse (split).
+  task4:
+    action: core.noop
+    next:
+      - do: task6
+  task5:
+    action: core.noop
+    next:
+      - do: task6
+  task6:
+    action: core.noop
+    next:
+      - do: task7
+  task7:
+    action: core.echo
+    input:
+      message: '{{ task("task6").task_id }}'
+
+output:
+  - this_task_no_arg: '{{ ctx("this_task_no_arg") }}'
+  - this_task_by_name: '{{ ctx("this_task_by_name") }}'
+  - that_task_by_name: '{{ task("task1").task_id }}'
+  - last_task3_result: '{{ task("task3").result.stdout }}'
+  - task7__1__parent: '{{ task("task7__1").result.stdout }}'
+  - task7__2__parent: '{{ task("task7__2").result.stdout }}'

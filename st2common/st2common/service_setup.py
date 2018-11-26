@@ -28,6 +28,8 @@ from oslo_config import cfg
 from st2common import log as logging
 from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
 from st2common.transport.bootstrap_utils import register_exchanges_with_retry
+from st2common.transport.bootstrap_utils import register_kombu_serializers
+from st2common.bootstrap import runnersregistrar
 from st2common.signal_handlers import register_common_signal_handlers
 from st2common.util.debugging import enable_debugging
 from st2common.models.utils.profiling import enable_profiling
@@ -55,7 +57,7 @@ LOG = logging.getLogger(__name__)
 
 def setup(service, config, setup_db=True, register_mq_exchanges=True,
           register_signal_handlers=True, register_internal_trigger_types=False,
-          run_migrations=True, config_args=None):
+          run_migrations=True, register_runners=True, config_args=None):
     """
     Common setup function.
 
@@ -68,6 +70,7 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
     4. Registers RabbitMQ exchanges
     5. Registers common signal handlers
     6. Register internal trigger types
+    7. Register all the runners which are installed inside StackStorm virtualenv.
 
     :param service: Name of the service.
     :param config: Config object to use to parse args.
@@ -95,6 +98,8 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
 
     LOG.debug('Using logging config: %s', logging_config_path)
 
+    is_debug_enabled = (cfg.CONF.debug or cfg.CONF.system.debug)
+
     try:
         logging.setup(logging_config_path, redirect_stderr=cfg.CONF.log.redirect_stderr,
                       excludes=cfg.CONF.log.excludes)
@@ -107,14 +112,20 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
         else:
             raise e
 
-    if cfg.CONF.debug or cfg.CONF.system.debug:
+    if not is_debug_enabled:
+        # NOTE: statsd logger logs everything by default under INFO so we ignore those log
+        # messages unless verbose / debug mode is used
+        logging.ignore_statsd_log_messages()
+
+    logging.ignore_lib2to3_log_messages()
+
+    if is_debug_enabled:
         enable_debugging()
 
     if cfg.CONF.profile:
         enable_profiling()
 
-    # All other setup which requires config to be parsed and logging to
-    # be correctly setup.
+    # All other setup which requires config to be parsed and logging to be correctly setup.
     if setup_db:
         db_setup()
 
@@ -130,6 +141,11 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
     # TODO: This is a "not so nice" workaround until we have a proper migration system in place
     if run_migrations:
         run_all_rbac_migrations()
+
+    if register_runners:
+        runnersregistrar.register_runners()
+
+    register_kombu_serializers()
 
     metrics_initialize()
 

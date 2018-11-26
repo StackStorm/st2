@@ -47,25 +47,11 @@ def _register_common_opts():
 def _register_notifier_opts():
     notifier_opts = [
         cfg.StrOpt(
-            'logging', default='conf/logging.notifier.conf',
+            'logging', default='/etc/st2/logging.notifier.conf',
             help='Location of the logging configuration file.')
     ]
 
     CONF.register_opts(notifier_opts, group='notifier')
-
-    scheduler_opts = [
-        cfg.BoolOpt(
-            'enable', default=True,
-            help='Specify to enable actions rescheduler.'),
-        cfg.IntOpt(
-            'delayed_execution_recovery', default=600,
-            help='The time in seconds to wait before recovering delayed action executions.'),
-        cfg.IntOpt(
-            'rescheduling_interval', default=300,
-            help='The frequency for rescheduling action executions.')
-    ]
-
-    CONF.register_opts(scheduler_opts, group='scheduler')
 
 
 register_opts()

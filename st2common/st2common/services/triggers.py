@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import six
 
 from st2common import log as logging
@@ -32,6 +33,7 @@ __all__ = [
     'get_trigger_db_by_ref',
     'get_trigger_db_by_id',
     'get_trigger_db_by_uid',
+    'get_trigger_db_by_ref_or_dict',
     'get_trigger_db_given_type_and_params',
     'get_trigger_type_db',
 
@@ -94,6 +96,41 @@ def get_trigger_db_given_type_and_params(type=None, parameters=None):
         LOG.debug('Database lookup for type="%s" parameters="%s" resulted ' +
                   'in exception : %s.', type, parameters, e, exc_info=True)
         return None
+
+
+def get_trigger_db_by_ref_or_dict(trigger):
+    """
+    Retrieve TriggerDB object based on the trigger reference of based on a
+    provided dictionary with trigger attributes.
+    """
+    # TODO: This is nasty, this should take a unique reference and not a dict
+    if isinstance(trigger, six.string_types):
+        trigger_db = get_trigger_db_by_ref(trigger)
+    else:
+        # If id / uid is available we try to look up Trigger by id. This way we can avoid bug in
+        # pymongo / mongoengine related to "parameters" dictionary lookups
+        trigger_id = trigger.get('id', None)
+        trigger_uid = trigger.get('uid', None)
+
+        # TODO: Remove parameters dictionary look up when we can confirm each trigger dictionary
+        # passed to this method always contains id or uid
+        if trigger_id:
+            LOG.debug('Looking up TriggerDB by id: %s', trigger_id)
+            trigger_db = get_trigger_db_by_id(id=trigger_id)
+        elif trigger_uid:
+            LOG.debug('Looking up TriggerDB by uid: %s', trigger_uid)
+            trigger_db = get_trigger_db_by_uid(uid=trigger_uid)
+        else:
+            # Last resort - look it up by parameters
+            trigger_type = trigger.get('type', None)
+            parameters = trigger.get('parameters', {})
+
+            LOG.debug('Looking up TriggerDB by type and parameters: type=%s, parameters=%s',
+                      trigger_type, parameters)
+            trigger_db = get_trigger_db_given_type_and_params(type=trigger_type,
+                                                              parameters=parameters)
+
+    return trigger_db
 
 
 def get_trigger_db_by_id(id):
@@ -381,14 +418,15 @@ def create_or_update_trigger_type_db(trigger_type):
 
 
 def _create_trigger_type(pack, name, description=None, payload_schema=None,
-                         parameters_schema=None, tags=None):
+                         parameters_schema=None, tags=None, metadata_file=None):
     trigger_type = {
         'name': name,
         'pack': pack,
         'description': description,
         'payload_schema': payload_schema,
         'parameters_schema': parameters_schema,
-        'tags': tags
+        'tags': tags,
+        'metadata_file': metadata_file
     }
 
     return create_or_update_trigger_type_db(trigger_type=trigger_type)
@@ -437,6 +475,7 @@ def _add_trigger_models(trigger_type):
     parameters_schema = trigger_type['parameters_schema'] \
         if 'parameters_schema' in trigger_type else {}
     tags = trigger_type.get('tags', [])
+    metadata_file = trigger_type.get('metadata_file', None)
 
     trigger_type = _create_trigger_type(
         pack=pack,
@@ -444,7 +483,8 @@ def _add_trigger_models(trigger_type):
         description=description,
         payload_schema=payload_schema,
         parameters_schema=parameters_schema,
-        tags=tags
+        tags=tags,
+        metadata_file=metadata_file,
     )
     trigger = _create_trigger(trigger_type=trigger_type)
     return (trigger_type, trigger)

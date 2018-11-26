@@ -14,11 +14,17 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import socket
 
+import six
 import retrying
 from oslo_config import cfg
 from kombu import Connection
+from kombu.serialization import register
+from kombu.serialization import pickle
+from kombu.serialization import pickle_protocol
+from kombu.serialization import pickle_loads
 
 from st2common import log as logging
 from st2common.transport import utils as transport_utils
@@ -49,6 +55,8 @@ LOG = logging.getLogger('st2common.transport.bootstrap')
 
 __all__ = [
     'register_exchanges',
+    'register_exchanges_with_retry',
+    'register_kombu_serializers',
 
     'EXCHANGES',
     'QUEUES'
@@ -161,3 +169,36 @@ def register_exchanges_with_retry():
         stop_max_attempt_number=cfg.CONF.messaging.connection_retries
     )
     return retrying_obj.call(register_exchanges)
+
+
+def register_kombu_serializers():
+    """
+    Register our custom pickle serializer which knows how to handle UTF-8 (non
+    ascii) messages.
+
+    Default kombu pickle de-serializer calls .encode() on the bytes object without providing an
+    encoding. This means it default to "ascii" and fail with UnicodeDecode error.
+
+    https://github.com/celery/kombu/blob/3.0/kombu/utils/encoding.py#L47
+    """
+    def pickle_dumps(obj, dumper=pickle.dumps):
+        return dumper(obj, protocol=pickle_protocol)
+
+    if six.PY3:
+        def str_to_bytes(s):
+            if isinstance(s, str):
+                return s.encode('utf-8')
+            return s
+
+        def unpickle(s):
+            return pickle_loads(str_to_bytes(s))
+    else:
+        def str_to_bytes(s):                # noqa
+            if isinstance(s, unicode):
+                return s.encode('utf-8')
+            return s
+        unpickle = pickle_loads  # noqa
+
+    register('pickle', pickle_dumps, unpickle,
+             content_type='application/x-python-serialize',
+             content_encoding='binary')

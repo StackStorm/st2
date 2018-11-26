@@ -26,6 +26,9 @@ lib64
 virtualenv
 virtualenv-py3
 virtualenv-osx
+virtualenv-st2client
+virtualenv-st2client-osx
+.venv-st2devbox
 
 # Installer logs
 pip-log.txt

@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import copy
 import uuid
 
@@ -31,19 +32,23 @@ from oslo_config import cfg
 import st2tests.config as tests_config
 tests_config.parse_args()
 
+# NOTE: This has to be done before importing MistralRunner
+cfg.CONF.set_override('retry_exp_msec', 100, group='mistral')
+cfg.CONF.set_override('retry_exp_max_msec', 200, group='mistral')
+cfg.CONF.set_override('retry_stop_max_msec', 200, group='mistral')
+
 from mistral_v2.mistral_v2 import MistralRunner
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar
 from st2common.constants import action as action_constants
 from st2common.models.api.notification import NotificationsHelper
 from st2common.models.db.liveaction import LiveActionDB
-from st2common.persistence.liveaction import LiveAction
 from st2common.runners import base as runners
 from st2common.services import action as action_service
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 from st2common.util import loader
-from st2tests import DbTestCase
+from st2tests import ExecutionDbTestCase
 from st2tests import fixturesloader
 from st2tests.mocks.liveaction import MockLiveActionPublisher
 
@@ -163,17 +168,12 @@ NOTIFY = [{'type': 'st2'}]
     LiveActionPublisher,
     'publish_state',
     mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
-class MistralRunnerTest(DbTestCase):
+class MistralRunnerTest(ExecutionDbTestCase):
 
     @classmethod
     def setUpClass(cls):
         super(MistralRunnerTest, cls).setUpClass()
 
-        # Override the retry configuration here otherwise st2tests.config.parse_args
-        # in DbTestCase.setUpClass will reset these overrides.
-        cfg.CONF.set_override('retry_exp_msec', 100, group='mistral')
-        cfg.CONF.set_override('retry_exp_max_msec', 200, group='mistral')
-        cfg.CONF.set_override('retry_stop_max_msec', 200, group='mistral')
         cfg.CONF.set_override('api_url', 'http://0.0.0.0:9101', group='auth')
 
         # Register runners.
@@ -241,8 +241,7 @@ class MistralRunnerTest(DbTestCase):
     def test_launch_workflow(self):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
         self.assertIsNotNone(mistral_context)
@@ -306,8 +305,7 @@ class MistralRunnerTest(DbTestCase):
 
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=ac_ctx)
         liveaction, execution = action_service.request(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
         self.assertIsNotNone(mistral_context)
@@ -387,8 +385,7 @@ class MistralRunnerTest(DbTestCase):
 
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=ac_ctx)
         liveaction, execution = action_service.request(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
         self.assertIsNotNone(mistral_context)
@@ -451,8 +448,7 @@ class MistralRunnerTest(DbTestCase):
 
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=ac_ctx)
         liveaction, execution = action_service.request(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
         self.assertIsNotNone(mistral_context)
@@ -503,8 +499,7 @@ class MistralRunnerTest(DbTestCase):
 
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=ac_ctx)
         liveaction, execution = action_service.request(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
         self.assertIsNotNone(mistral_context)
@@ -557,8 +552,7 @@ class MistralRunnerTest(DbTestCase):
 
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
         self.assertIsNotNone(mistral_context)
@@ -609,8 +603,7 @@ class MistralRunnerTest(DbTestCase):
 
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, notify=notify_data)
         liveaction, execution = action_service.request(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
         self.assertIsNotNone(mistral_context)
@@ -649,8 +642,7 @@ class MistralRunnerTest(DbTestCase):
     def test_launch_workflow_mistral_offline(self):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
+        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_FAILED)
         self.assertIn('Connection refused', liveaction.result['error'])
 
     @mock.patch.object(
@@ -668,8 +660,7 @@ class MistralRunnerTest(DbTestCase):
     def test_launch_workflow_mistral_retry(self):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
         self.assertIsNotNone(mistral_context)
@@ -691,8 +682,7 @@ class MistralRunnerTest(DbTestCase):
     def test_launch_workflow_duplicate_error(self):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
         self.assertIsNotNone(mistral_context)
@@ -717,8 +707,7 @@ class MistralRunnerTest(DbTestCase):
     def test_launch_when_workflow_definition_changed(self):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
         self.assertIsNotNone(mistral_context)
@@ -743,8 +732,7 @@ class MistralRunnerTest(DbTestCase):
     def test_launch_when_workflow_not_exists(self):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
         self.assertIsNotNone(mistral_context)
@@ -760,8 +748,7 @@ class MistralRunnerTest(DbTestCase):
     def test_launch_workflow_with_many_workflows(self):
         liveaction = LiveActionDB(action=WF2_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
+        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_FAILED)
         self.assertIn('Multiple workflows is not supported.', liveaction.result['error'])
 
     @mock.patch.object(
@@ -774,8 +761,7 @@ class MistralRunnerTest(DbTestCase):
         action_ref = TEST_PACK + '.workflow_v2_name_mismatch'
         liveaction = LiveActionDB(action=action_ref, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
+        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_FAILED)
         self.assertIn('Name of the workflow must be the same', liveaction.result['error'])
 
     @mock.patch.object(
@@ -796,8 +782,7 @@ class MistralRunnerTest(DbTestCase):
     def test_launch_workbook(self):
         liveaction = LiveActionDB(action=WB1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
         self.assertIsNotNone(mistral_context)
@@ -822,8 +807,7 @@ class MistralRunnerTest(DbTestCase):
     def test_launch_workbook_with_many_workflows(self):
         liveaction = LiveActionDB(action=WB2_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
         self.assertIsNotNone(mistral_context)
@@ -848,8 +832,7 @@ class MistralRunnerTest(DbTestCase):
     def test_launch_workbook_with_many_workflows_no_default(self):
         liveaction = LiveActionDB(action=WB3_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
+        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_FAILED)
         self.assertIn('Default workflow cannot be determined.', liveaction.result['error'])
 
     @mock.patch.object(
@@ -870,8 +853,7 @@ class MistralRunnerTest(DbTestCase):
     def test_launch_when_workbook_definition_changed(self):
         liveaction = LiveActionDB(action=WB1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
         self.assertIsNotNone(mistral_context)
@@ -896,8 +878,7 @@ class MistralRunnerTest(DbTestCase):
     def test_launch_when_workbook_not_exists(self):
         liveaction = LiveActionDB(action=WB1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
         self.assertIsNotNone(mistral_context)
@@ -914,6 +895,5 @@ class MistralRunnerTest(DbTestCase):
         action_ref = TEST_PACK + '.workbook_v2_name_mismatch'
         liveaction = LiveActionDB(action=action_ref, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
+        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_FAILED)
         self.assertIn('Name of the workbook must be the same', liveaction.result['error'])

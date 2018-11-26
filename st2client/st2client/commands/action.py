@@ -33,6 +33,7 @@ from six.moves import range
 from st2client import models
 from st2client.commands import resource
 from st2client.commands.resource import ResourceNotFoundError
+from st2client.commands.resource import ResourceViewCommand
 from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
 from st2client.formatters import table
 from st2client.formatters import execution as execution_formatter
@@ -158,17 +159,18 @@ def format_execution_status(instance):
     executions which are in running state and execution total run time for all the executions
     which have finished.
     """
+    status = getattr(instance, 'status', None)
     start_timestamp = getattr(instance, 'start_timestamp', None)
     end_timestamp = getattr(instance, 'end_timestamp', None)
 
-    if instance.status == LIVEACTION_STATUS_RUNNING and start_timestamp:
+    if status == LIVEACTION_STATUS_RUNNING and start_timestamp:
         start_timestamp = instance.start_timestamp
         start_timestamp = parse_isotime(start_timestamp)
         start_timestamp = calendar.timegm(start_timestamp.timetuple())
         now = int(time.time())
         elapsed_seconds = (now - start_timestamp)
         instance.status = '%s (%ss elapsed)' % (instance.status, elapsed_seconds)
-    elif instance.status in LIVEACTION_COMPLETED_STATES and start_timestamp and end_timestamp:
+    elif status in LIVEACTION_COMPLETED_STATES and start_timestamp and end_timestamp:
         start_timestamp = parse_isotime(start_timestamp)
         start_timestamp = calendar.timegm(start_timestamp.timetuple())
         end_timestamp = parse_isotime(end_timestamp)
@@ -277,6 +279,10 @@ class ActionRunCommandMixin(object):
 
         # Display options
         task_list_arg_grp = root_arg_grp.add_argument_group()
+        task_list_arg_grp.add_argument('--with-schema',
+                                 default=False, action='store_true',
+                                 help=('Show schema_ouput suggestion with action.'))
+
         task_list_arg_grp.add_argument('--raw', action='store_true',
                                        help='Raw output, don\'t show sub-tasks for workflows.')
         task_list_arg_grp.add_argument('--show-tasks', action='store_true',
@@ -356,11 +362,13 @@ class ActionRunCommandMixin(object):
                 options = {'attributes': attr}
 
             options['json'] = args.json
+            options['yaml'] = args.yaml
+            options['with_schema'] = args.with_schema
             options['attribute_transform_functions'] = self.attribute_transform_functions
             self.print_output(instance, formatter, **options)
 
     def _run_and_print_child_task_list(self, execution, args, **kwargs):
-        action_exec_mgr = self.app.client.managers['LiveAction']
+        action_exec_mgr = self.app.client.managers['Execution']
 
         instance = execution
         options = {'attributes': ['id', 'action.ref', 'parameters', 'status', 'start_timestamp',
@@ -448,7 +456,7 @@ class ActionRunCommandMixin(object):
         if args.tail:
             # Start tailing new execution
             print('Tailing execution "%s"' % (str(execution.id)))
-            execution_manager = self.manager
+            execution_manager = self.app.client.managers['Execution']
             stream_manager = self.app.client.managers['Stream']
             ActionExecutionTailCommand.tail_execution(execution=execution,
                                                       execution_manager=execution_manager,
@@ -726,7 +734,7 @@ class ActionRunCommandMixin(object):
     def _print_help(self, args, **kwargs):
         # Print appropriate help message if the help option is given.
         action_mgr = self.app.client.managers['Action']
-        action_exec_mgr = self.app.client.managers['LiveAction']
+        action_exec_mgr = self.app.client.managers['Execution']
 
         if args.help:
             action_ref_or_id = getattr(args, 'ref_or_id', None)
@@ -740,7 +748,7 @@ class ActionRunCommandMixin(object):
                 try:
                     action = action_mgr.get_by_ref_or_id(args.ref_or_id, **kwargs)
                     if not action:
-                        raise resource.ResourceNotFoundError('Action %s not found', args.ref_or_id)
+                        raise resource.ResourceNotFoundError('Action %s not found' % args.ref_or_id)
                     runner_mgr = self.app.client.managers['RunnerType']
                     runner = runner_mgr.get_by_name(action.runner_type, **kwargs)
                     parameters, required, optional, _ = self._get_params_types(runner,
@@ -867,9 +875,9 @@ class ActionRunCommandMixin(object):
             task_name_key = 'context.mistral.task_name'
         elif context and 'orquesta' in context:
             task_name_key = 'context.orquesta.task_name'
-        # Use LiveAction as the object so that the formatter lookup does not change.
+        # Use Execution as the object so that the formatter lookup does not change.
         # AKA HACK!
-        return models.action.LiveAction(**{
+        return models.action.Execution(**{
             'id': task.id,
             'status': task.status,
             'task': jsutil.get_value(vars(task), task_name_key),
@@ -952,6 +960,9 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
             self.parser.add_argument('-a', '--async',
                                      action='store_true', dest='action_async',
                                      help='Do not wait for action to finish.')
+            self.parser.add_argument('--delay', type=int, default=None,
+                                     help=('How long (in milliseconds) to delay the '
+                                           'execution before scheduling.'))
             self.parser.add_argument('-e', '--inherit-env',
                                      action='store_true', dest='inherit_env',
                                      help='Pass all the environment variables '
@@ -986,10 +997,13 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
         action_parameters = self._get_action_parameters_from_args(action=action, runner=runner,
                                                                   args=args)
 
-        execution = models.LiveAction()
+        execution = models.Execution()
         execution.action = action_ref
         execution.parameters = action_parameters
         execution.user = args.user
+
+        if args.delay:
+            execution.delay = args.delay
 
         if not args.trace_id and args.trace_tag:
             execution.context = {'trace_context': {'trace_tag': args.trace_tag}}
@@ -997,12 +1011,13 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
         if args.trace_id:
             execution.context = {'trace_context': {'id_': args.trace_id}}
 
-        action_exec_mgr = self.app.client.managers['LiveAction']
+        action_exec_mgr = self.app.client.managers['Execution']
 
         execution = action_exec_mgr.create(execution, **kwargs)
         execution = self._get_execution_result(execution=execution,
                                                action_exec_mgr=action_exec_mgr,
                                                args=args, **kwargs)
+
         return execution
 
 
@@ -1010,7 +1025,7 @@ class ActionExecutionBranch(resource.ResourceBranch):
 
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(ActionExecutionBranch, self).__init__(
-            models.LiveAction, description, app, subparsers,
+            models.Execution, description, app, subparsers,
             parent_parser=parent_parser, read_only=True,
             commands={'list': ActionExecutionListCommand,
                       'get': ActionExecutionGetCommand})
@@ -1033,39 +1048,7 @@ POSSIBLE_ACTION_STATUS_VALUES = ('succeeded', 'running', 'scheduled', 'paused', 
                                  'canceling', 'canceled')
 
 
-class ActionExecutionReadCommand(resource.ResourceCommand):
-    """
-    Base class for read / view commands (list and get).
-    """
-
-    @classmethod
-    def _get_exclude_attributes(cls, args):
-        """
-        Retrieve a list of exclude attributes for particular command line arguments.
-        """
-        exclude_attributes = []
-
-        result_included = False
-        trigger_instance_included = False
-
-        for attr in args.attr:
-            # Note: We perform startswith check so we correctly detected child attribute properties
-            # (e.g. result, result.stdout, result.stderr, etc.)
-            if attr.startswith('result'):
-                result_included = True
-
-            if attr.startswith('trigger_instance'):
-                trigger_instance_included = True
-
-        if not result_included:
-            exclude_attributes.append('result')
-        if not trigger_instance_included:
-            exclude_attributes.append('trigger_instance')
-
-        return exclude_attributes
-
-
-class ActionExecutionListCommand(ActionExecutionReadCommand):
+class ActionExecutionListCommand(ResourceViewCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'status', 'start_timestamp',
                           'end_timestamp']
     attribute_transform_functions = {
@@ -1149,11 +1132,10 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
             elif args.sort_order in ['desc', 'descending']:
                 kwargs['sort_desc'] = True
 
-        # We exclude "result" and "trigger_instance" attributes which can contain a lot of data
-        # since they are not displayed nor used which speeds the common operation substantially.
-        exclude_attributes = self._get_exclude_attributes(args=args)
-        exclude_attributes = ','.join(exclude_attributes)
-        kwargs['exclude_attributes'] = exclude_attributes
+        # We only retrieve attributes which are needed to speed things up
+        include_attributes = self._get_include_attributes(args=args)
+        if include_attributes:
+            kwargs['include_attributes'] = ','.join(include_attributes)
 
         return self.manager.query_with_count(limit=args.last, **kwargs)
 
@@ -1180,7 +1162,7 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
                 table.SingleRowTable.note_box(self.resource_name, args.last)
 
 
-class ActionExecutionGetCommand(ActionRunCommandMixin, ActionExecutionReadCommand):
+class ActionExecutionGetCommand(ActionRunCommandMixin, ResourceViewCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'parameters', 'status',
                           'start_timestamp', 'end_timestamp', 'result', 'liveaction']
 
@@ -1198,12 +1180,11 @@ class ActionExecutionGetCommand(ActionRunCommandMixin, ActionExecutionReadComman
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        # We exclude "result" and / or "trigger_instance" attribute if it's not explicitly
-        # requested by user either via "--attr" flag or by default.
-        exclude_attributes = self._get_exclude_attributes(args=args)
-        exclude_attributes = ','.join(exclude_attributes)
-
-        kwargs['params'] = {'exclude_attributes': exclude_attributes}
+        # We only retrieve attributes which are needed to speed things up
+        include_attributes = self._get_include_attributes(args=args)
+        if include_attributes:
+            include_attributes = ','.join(include_attributes)
+            kwargs['params'] = {'include_attributes': include_attributes}
 
         execution = self.get_resource_by_id(id=args.id, **kwargs)
         return execution
@@ -1310,7 +1291,7 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
 
         action_mgr = self.app.client.managers['Action']
         runner_mgr = self.app.client.managers['RunnerType']
-        action_exec_mgr = self.app.client.managers['LiveAction']
+        action_exec_mgr = self.app.client.managers['Execution']
 
         action_ref = existing_execution.action['ref']
         action = action_mgr.get_by_ref_or_id(action_ref)
@@ -1332,7 +1313,7 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
         return execution
 
 
-class ActionExecutionPauseCommand(ActionRunCommandMixin, ActionExecutionReadCommand):
+class ActionExecutionPauseCommand(ActionRunCommandMixin, ResourceViewCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'parameters', 'status',
                           'start_timestamp', 'end_timestamp', 'result', 'liveaction']
 
@@ -1375,7 +1356,7 @@ class ActionExecutionPauseCommand(ActionRunCommandMixin, ActionExecutionReadComm
         return self._print_execution_details(execution=execution, args=args, **kwargs)
 
 
-class ActionExecutionResumeCommand(ActionRunCommandMixin, ActionExecutionReadCommand):
+class ActionExecutionResumeCommand(ActionRunCommandMixin, ResourceViewCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'parameters', 'status',
                           'start_timestamp', 'end_timestamp', 'result', 'liveaction']
 
@@ -1476,12 +1457,22 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
                        include_metadata=False, **kwargs):
         execution_id = str(execution.id)
 
+        # Indicates if the execution we are tailing is a child execution in a workflow
+        context = cls.get_normalized_context_execution_task_event(execution.__dict__)
+        has_parent_attribute = bool(getattr(execution, 'parent', None))
+        has_parent_execution_id = bool(context['parent_execution_id'])
+
+        is_tailing_execution_child_execution = bool(has_parent_attribute or
+                                                    has_parent_execution_id)
+
         # Note: For non-workflow actions child_execution_id always matches parent_execution_id so
         # we don't need to do any other checks to determine if executions represents a workflow
-        # action
+        # action.
         parent_execution_id = execution_id  # noqa
 
-        # Execution has already finished
+        # Execution has already finished show existing output.
+        # NOTE: This doesn't recurse down into child executions if user is tailing a workflow
+        # execution
         if execution.status in LIVEACTION_COMPLETED_STATES:
             output = execution_manager.get_output(execution_id=execution_id,
                                                   output_type=output_type)
@@ -1489,21 +1480,46 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
             print('Execution %s has completed (status=%s).' % (execution_id, execution.status))
             return
 
-        events = ['st2.execution__update', 'st2.execution.output__create']
+        # We keep track of all the workflow executions which could contain children.
+        # For simplicity, we simply keep track of all the execution ids which belong to a
+        # particular workflow.
+        workflow_execution_ids = set([parent_execution_id])
 
+        # Retrieve parent execution object so we can keep track of any existing children
+        # executions (only applies to already running executions).
+        filters = {
+            'params': {
+                'include_attributes': 'id,children'
+            }
+        }
+        execution = execution_manager.get_by_id(id=execution_id, **filters)
+
+        children_execution_ids = getattr(execution, 'children', [])
+        workflow_execution_ids.update(children_execution_ids)
+
+        events = ['st2.execution__update', 'st2.execution.output__create']
         for event in stream_manager.listen(events, **kwargs):
             status = event.get('status', None)
             is_execution_event = status is not None
 
-            # NOTE: Right now only a single level deep / nested workflows are supported
             if is_execution_event:
-                context = cls.get_normalized_context_execution_task_event(event=event)
+                context = cls.get_normalized_context_execution_task_event(event)
                 task_execution_id = context['execution_id']
                 task_name = context['task_name']
                 task_parent_execution_id = context['parent_execution_id']
 
                 # An execution is considered a child execution if it has parent execution id
                 is_child_execution = bool(task_parent_execution_id)
+
+                # Ignore executions which are not part of the execution we are tailing
+                if is_child_execution and not is_tailing_execution_child_execution:
+                    if task_parent_execution_id not in workflow_execution_ids:
+                        continue
+                else:
+                    if task_execution_id not in workflow_execution_ids:
+                        continue
+
+                workflow_execution_ids.add(task_execution_id)
 
                 if is_child_execution:
                     if status == LIVEACTION_STATUS_RUNNING:
@@ -1515,12 +1531,19 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
                         print('')
                         print('Child execution (task=%s) %s has finished (status=%s).' %
                               (task_name, task_execution_id, status))
-                        continue
+
+                        if is_tailing_execution_child_execution:
+                            # User is tailing a child execution inside a workflow, stop the command.
+                            break
+                        else:
+                            continue
                     else:
                         # We don't care about other child events so we simply skip then
                         continue
                 else:
-                    if status == LIVEACTION_STATUS_RUNNING:
+                    # NOTE: In some situations execution update event with "running" status is
+                    # dispatched twice so we ignore any duplicated events
+                    if status == LIVEACTION_STATUS_RUNNING and not event.get('children', []):
                         print('Execution %s has started.' % (execution_id))
                         print('')
                         continue
@@ -1532,6 +1555,11 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
                     else:
                         # We don't care about other execution events
                         continue
+
+            # Ignore events for executions which don't belong to the one we are tailing
+            event_execution_id = event['execution_id']
+            if event_execution_id not in workflow_execution_ids:
+                continue
 
             # Filter on output_type if provided
             event_output_type = event.get('output_type', None)
@@ -1547,8 +1575,7 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
     @classmethod
     def get_normalized_context_execution_task_event(cls, event):
         """
-        Return a dictionary with normalized context attributes for Action-Chain and Mistral
-        workflows.
+        Return a dictionary with normalized context attributes for execution event or object.
         """
         context = event.get('context', {})
 
@@ -1563,6 +1590,10 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
             result['parent_execution_id'] = context.get('parent', {}).get('execution_id', None)
             result['execution_id'] = event['id']
             result['task_name'] = context.get('mistral', {}).get('task_name', 'unknown')
+        elif 'orquesta' in context:
+            result['parent_execution_id'] = context.get('parent', {}).get('execution_id', None)
+            result['execution_id'] = event['id']
+            result['task_name'] = context.get('orquesta', {}).get('task_name', 'unknown')
         else:
             # Action chain workflow
             result['parent_execution_id'] = context.get('parent', {}).get('execution_id', None)

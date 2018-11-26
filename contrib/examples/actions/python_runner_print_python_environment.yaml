@@ -1,0 +1,7 @@
+---
+name: python_runner_print_python_environment
+runner_type: python-script
+description: Action which prints Python action environment information.
+enabled: true
+entry_point: pythonactions/print_python_environment.py
+parameters: {}
