@@ -170,9 +170,9 @@ class ConcurrencyPolicyTestCase(EventletTestCase, ExecutionDbTestCase):
         liveaction = self._wait_on_statuses(liveaction, SCHEDULED_STATES)
         self.assertEqual(expected_num_pubs, LiveActionPublisher.publish_state.call_count)
 
-        print(runner.MockActionRunner.run.call_args_list)
         print(expected_num_exec)
         print(runner.MockActionRunner.run.call_count)
+        print(runner.MockActionRunner.run.call_args_list)
         self.assertEqual(expected_num_exec, runner.MockActionRunner.run.call_count)
 
     @mock.patch.object(
