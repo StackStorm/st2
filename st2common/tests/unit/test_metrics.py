@@ -366,7 +366,7 @@ class TestTimerDecorator(unittest2.TestCase):
         ]
         test_key = "test_key"
 
-        @base.Timer(test_key)
+        @base.Timer(test_key, include_parameter=True)
         def _get_tested(metrics_timer=None):
             self.assertTrue(isinstance(metrics_timer._start_time, datetime))
             metrics_patch.time.assert_not_called()

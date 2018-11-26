@@ -37,6 +37,7 @@ from st2common.persistence.rule import Rule
 from st2common.persistence.trigger import TriggerType, Trigger, TriggerInstance
 from st2tests import DbTestCase
 
+
 __all__ = [
     'DbConnectionTestCase',
     'DbConnectionTestCase',

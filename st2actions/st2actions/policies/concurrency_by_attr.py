@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import json
 import six
 
@@ -78,7 +79,7 @@ class ConcurrencyByAttributeApplicator(BaseConcurrencyApplicator):
             LOG.debug('There are %s instances of %s in scheduled or running status. '
                       'Threshold of %s is not reached. Action execution will be scheduled.',
                       count, target.action, self._policy_ref)
-            status = action_constants.LIVEACTION_STATUS_SCHEDULED
+            status = action_constants.LIVEACTION_STATUS_REQUESTED
         else:
             action = 'delayed' if self.policy_action == 'delay' else 'canceled'
             LOG.debug('There are %s instances of %s in scheduled or running status. '
@@ -96,8 +97,16 @@ class ConcurrencyByAttributeApplicator(BaseConcurrencyApplicator):
         return target
 
     def apply_before(self, target):
-        # Exit if target not in schedulable state.
-        if target.status != action_constants.LIVEACTION_STATUS_REQUESTED:
+        target = super(ConcurrencyByAttributeApplicator, self).apply_before(target=target)
+
+        valid_states = [
+            action_constants.LIVEACTION_STATUS_REQUESTED,
+            action_constants.LIVEACTION_STATUS_DELAYED,
+            action_constants.LIVEACTION_STATUS_POLICY_DELAYED,
+        ]
+
+        # Exit if target not in valid state.
+        if target.status not in valid_states:
             LOG.debug('The live action is not schedulable therefore the policy '
                       '"%s" cannot be applied. %s', self._policy_ref, target)
             return target
@@ -121,11 +130,19 @@ class ConcurrencyByAttributeApplicator(BaseConcurrencyApplicator):
         # Schedule the oldest delayed executions.
         filters = self._get_filters(target)
         filters['status'] = action_constants.LIVEACTION_STATUS_DELAYED
-        requests = action_access.LiveAction.query(order_by=['start_timestamp'], limit=1, **filters)
+
+        requests = action_access.LiveAction.query(
+            order_by=['start_timestamp'],
+            limit=1,
+            **filters
+        )
 
         if requests:
             action_service.update_status(
-                requests[0], action_constants.LIVEACTION_STATUS_REQUESTED, publish=True)
+                requests[0],
+                action_constants.LIVEACTION_STATUS_REQUESTED,
+                publish=True
+            )
 
     def apply_after(self, target):
         # Warn users that the coordination service is not configured.

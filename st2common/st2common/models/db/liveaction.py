@@ -70,6 +70,9 @@ class LiveActionDB(stormbase.StormFoundationDB):
         default={},
         help_text='Information about the runner which executed this live action (hostname, pid).')
     notify = me.EmbeddedDocumentField(NotificationSchema)
+    delay = me.IntField(
+        help_text='How long (in milliseconds) to delay the execution before scheduling.'
+    )
 
     meta = {
         'indexes': [

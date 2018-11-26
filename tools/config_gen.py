@@ -25,6 +25,7 @@ from oslo_config import cfg
 
 
 CONFIGS = ['st2actions.config',
+           'st2actions.scheduler.config',
            'st2actions.notifier.config',
            'st2actions.resultstracker.config',
            'st2actions.workflows.config',

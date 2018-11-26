@@ -51,6 +51,7 @@ def _override_config_opts():
     _override_common_opts()
     _override_api_opts()
     _override_keyvalue_opts()
+    _override_scheduler_opts()
 
 
 def _register_config_opts():
@@ -98,6 +99,10 @@ def _override_keyvalue_opts():
     rel_enc_key_path = 'st2tests/conf/st2_kvstore_tests.crypto.key.json'
     ovr_enc_key_path = os.path.join(abs_st2_base_path, rel_enc_key_path)
     CONF.set_override(name='encryption_key_path', override=ovr_enc_key_path, group='keyvalue')
+
+
+def _override_scheduler_opts():
+    CONF.set_override(name='sleep_interval', group='scheduler', override=0.01)
 
 
 def _register_common_opts():
@@ -243,11 +248,15 @@ def _register_cloudslang_opts():
 def _register_scheduler_opts():
     scheduler_opts = [
         cfg.IntOpt(
-            'delayed_execution_recovery', default=600,
-            help='The time in seconds to wait before recovering delayed action executions.'),
-        cfg.IntOpt(
-            'rescheduling_interval', default=300,
-            help='The frequency for rescheduling action executions.')
+            'pool_size', default=10,
+            help='The size of the pool used by the scheduler for scheduling executions.'),
+        cfg.FloatOpt(
+            'sleep_interval', default=0.10,
+            help='How long to sleep between each action scheduler main loop run interval (in ms).'),
+        cfg.FloatOpt(
+            'gc_interval', default=5,
+            help='How often to look for zombie executions before rescheduling them (in ms).'),
+
     ]
 
     _register_opts(scheduler_opts, group='scheduler')

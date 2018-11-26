@@ -15,17 +15,18 @@
 
 from __future__ import absolute_import
 
-from st2tests.base import EventletTestCase
-from st2tests.base import DbTestCase
-from st2tests.base import ExecutionDbTestCase
-from st2tests.base import DbModelTestCase
-from st2tests.base import WorkflowTestCase
-
+from st2common.models.db.execution_queue import EXECUTION_QUEUE_ACCESS
+from st2common.persistence import base as persistence
 
 __all__ = [
-    'EventletTestCase',
-    'DbTestCase',
-    'ExecutionDbTestCase',
-    'DbModelTestCase',
-    'WorkflowTestCase'
+    'ActionExecutionSchedulingQueue'
 ]
+
+
+class ActionExecutionSchedulingQueue(persistence.Access):
+    impl = EXECUTION_QUEUE_ACCESS
+    publisher = None
+
+    @classmethod
+    def _get_impl(cls):
+        return cls.impl

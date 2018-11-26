@@ -72,7 +72,7 @@ PACKS = [
     wf_ex_xport.WorkflowExecutionPublisher,
     'publish_state',
     mock.MagicMock(side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_state))
-class OrquestaContextTest(st2tests.DbTestCase):
+class OrquestaContextTest(st2tests.ExecutionDbTestCase):
 
     @classmethod
     def setUpClass(cls):

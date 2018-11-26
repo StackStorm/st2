@@ -960,6 +960,9 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
             self.parser.add_argument('-a', '--async',
                                      action='store_true', dest='action_async',
                                      help='Do not wait for action to finish.')
+            self.parser.add_argument('--delay', type=int, default=None,
+                                     help=('How long (in milliseconds) to delay the '
+                                           'execution before scheduling.'))
             self.parser.add_argument('-e', '--inherit-env',
                                      action='store_true', dest='inherit_env',
                                      help='Pass all the environment variables '
@@ -998,6 +1001,9 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
         execution.action = action_ref
         execution.parameters = action_parameters
         execution.user = args.user
+
+        if args.delay:
+            execution.delay = args.delay
 
         if not args.trace_id and args.trace_tag:
             execution.context = {'trace_context': {'trace_tag': args.trace_tag}}

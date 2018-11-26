@@ -46,6 +46,7 @@ from st2common.constants.runners import COMMON_ACTION_ENV_VARIABLES
 from st2common.constants.system import AUTH_TOKEN_ENV_VARIABLE_NAME
 from st2common.exceptions.db import StackStormDBObjectConflictError
 from st2common.models.db import db_setup, db_teardown, db_ensure_indexes
+from st2common.models.db.execution_queue import ActionExecutionSchedulingQueueItemDB
 from st2common.bootstrap.base import ResourceRegistrar
 from st2common.bootstrap.configsregistrar import ConfigsRegistrar
 from st2common.content.utils import get_packs_base_paths
@@ -53,6 +54,7 @@ from st2common.content.loader import MetaLoader
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.persistence import execution as ex_db_access
 from st2common.persistence import workflow as wf_db_access
+from st2common.persistence.action import LiveAction
 from st2common.services import workflows as wf_svc
 from st2common.util import api as api_util
 from st2common.util import loader
@@ -84,6 +86,7 @@ __all__ = [
     'CleanFilesTestCase',
     'IntegrationTestCase',
     'RunnerTestCase',
+    'ExecutionDbTestCase',
     'WorkflowTestCase',
 
     # Pack test classes
@@ -296,6 +299,69 @@ class DbTestCase(BaseDbTestCase):
         self.current_result = result
         self.__class__.current_result = result
         super(DbTestCase, self).run(result=result)
+
+
+class ExecutionDbTestCase(DbTestCase):
+    """"
+    Base test class for tests which test various execution related code paths.
+
+    This class offers some utility methods for waiting on execution status, etc.
+    """
+
+    ensure_indexes = True
+    ensure_indexes_models = [
+        ActionExecutionSchedulingQueueItemDB
+    ]
+
+    def _wait_on_status(self, liveaction_db, status, retries=300, delay=0.1, raise_exc=True):
+        for _ in range(0, retries):
+            eventlet.sleep(delay)
+            liveaction_db = LiveAction.get_by_id(str(liveaction_db.id))
+            if liveaction_db.status == status:
+                break
+
+        if raise_exc:
+            self.assertEqual(liveaction_db.status, status)
+
+        return liveaction_db
+
+    def _wait_on_statuses(self, liveaction_db, statuses, retries=300, delay=0.1, raise_exc=True):
+        for _ in range(0, retries):
+            eventlet.sleep(delay)
+            liveaction_db = LiveAction.get_by_id(str(liveaction_db.id))
+            if liveaction_db.status in statuses:
+                break
+
+        if raise_exc:
+            self.assertIn(liveaction_db.status, statuses)
+
+        return liveaction_db
+
+    def _wait_on_ac_ex_status(self, execution_db, status, retries=300, delay=0.1, raise_exc=True):
+        for _ in range(0, retries):
+            eventlet.sleep(delay)
+            execution_db = ex_db_access.ActionExecution.get_by_id(str(execution_db.id))
+            if execution_db.status == status:
+                break
+
+        if raise_exc:
+            self.assertEqual(execution_db.status, status)
+
+        return execution_db
+
+    def _wait_on_call_count(self, mocked, expected_count, retries=100, delay=0.1, raise_exc=True):
+        for _ in range(0, retries):
+            eventlet.sleep(delay)
+            if mocked.call_count == expected_count:
+                break
+
+        if raise_exc:
+            self.assertEqual(mocked.call_count, expected_count)
+
+    @classmethod
+    def reset(cls):
+        cls.tearDownClass()
+        cls.setUpClass()
 
 
 class DbModelTestCase(DbTestCase):
@@ -520,7 +586,7 @@ class IntegrationTestCase(TestCase):
             self.fail('Process with pid "%s" is still running' % (proc.pid))
 
 
-class WorkflowTestCase(DbTestCase):
+class WorkflowTestCase(ExecutionDbTestCase):
     """
     Base class for workflow service tests to inherit from.
     """
@@ -606,7 +672,8 @@ class WorkflowTestCase(DbTestCase):
         task_req = {'id': task_id, 'spec': task_spec, 'ctx': ctx or {}, 'actions': task_actions}
         task_ex_db = wf_svc.request_task_execution(wf_ex_db, st2_ctx, task_req)
         ac_ex_db = self.get_action_ex(str(task_ex_db.id))
-        self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        ac_ex_db = self._wait_on_ac_ex_status(ac_ex_db, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+
         wf_svc.handle_action_execution_completion(ac_ex_db)
         task_ex_db = wf_db_access.TaskExecution.get_by_id(str(task_ex_db.id))
         self.assertEqual(task_ex_db.status, wf_lib_states.SUCCEEDED)

@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import copy
 import uuid
 
@@ -40,7 +41,7 @@ from st2common.services import action as action_service
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 from st2common.util import loader
-from st2tests import DbTestCase
+from st2tests import ExecutionDbTestCase
 from st2tests import fixturesloader
 from st2tests.mocks.liveaction import MockLiveActionPublisher
 
@@ -99,14 +100,14 @@ WF2_EXEC_PAUSED['state'] = 'PAUSED'
     LiveActionPublisher,
     'publish_state',
     mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
-class MistralRunnerPauseResumeTest(DbTestCase):
+class MistralRunnerPauseResumeTest(ExecutionDbTestCase):
 
     @classmethod
     def setUpClass(cls):
         super(MistralRunnerPauseResumeTest, cls).setUpClass()
 
         # Override the retry configuration here otherwise st2tests.config.parse_args
-        # in DbTestCase.setUpClass will reset these overrides.
+        # in ExecutionDbTestCas.setUpClass will reset these overrides.
         cfg.CONF.set_override('retry_exp_msec', 100, group='mistral')
         cfg.CONF.set_override('retry_exp_max_msec', 200, group='mistral')
         cfg.CONF.set_override('retry_stop_max_msec', 200, group='mistral')
@@ -150,8 +151,7 @@ class MistralRunnerPauseResumeTest(DbTestCase):
         # Launch the workflow execution.
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
         self.assertIsNotNone(mistral_context)
@@ -162,8 +162,7 @@ class MistralRunnerPauseResumeTest(DbTestCase):
         requester = cfg.CONF.system_user.user
         liveaction, execution = action_service.request_pause(liveaction, requester)
         executions.ExecutionManager.update.assert_called_with(WF1_EXEC.get('id'), 'PAUSED')
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSING)
+        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_PAUSING)
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',
@@ -189,8 +188,7 @@ class MistralRunnerPauseResumeTest(DbTestCase):
         # Launch the workflow execution.
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
         self.assertIsNotNone(mistral_context)
@@ -201,20 +199,17 @@ class MistralRunnerPauseResumeTest(DbTestCase):
         requester = cfg.CONF.system_user.user
         liveaction, execution = action_service.request_pause(liveaction, requester)
         executions.ExecutionManager.update.assert_called_with(WF1_EXEC.get('id'), 'PAUSED')
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSING)
+        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_PAUSING)
 
         # Manually update the liveaction from pausing to paused. The paused state
         # is usually updated by the mistral querier.
         action_service.update_status(liveaction, action_constants.LIVEACTION_STATUS_PAUSED)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_PAUSED)
+        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_PAUSED)
 
         # Resume the workflow execution.
         liveaction, execution = action_service.request_resume(liveaction, requester)
         executions.ExecutionManager.update.assert_called_with(WF1_EXEC.get('id'), 'RUNNING')
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_RUNNING)
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',
@@ -245,13 +240,12 @@ class MistralRunnerPauseResumeTest(DbTestCase):
 
         liveaction1 = LiveActionDB(action=WF2_NAME, parameters=ACTION_PARAMS)
         liveaction1, execution1 = action_service.request(liveaction1)
-        liveaction1 = LiveAction.get_by_id(str(liveaction1.id))
-        self.assertEqual(liveaction1.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        liveaction1 = self._wait_on_status(liveaction1, action_constants.LIVEACTION_STATUS_RUNNING)
 
         liveaction2 = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction2, execution2 = action_service.request(liveaction2)
         liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
-        self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        liveaction2 = self._wait_on_status(liveaction2, action_constants.LIVEACTION_STATUS_RUNNING)
 
         # Mock the children of the parent execution to make this
         # test case has subworkflow execution.
@@ -343,7 +337,7 @@ class MistralRunnerPauseResumeTest(DbTestCase):
         liveaction1 = LiveActionDB(action=WF2_NAME, parameters=ACTION_PARAMS)
         liveaction1, execution1 = action_service.request(liveaction1)
         liveaction1 = LiveAction.get_by_id(str(liveaction1.id))
-        self.assertEqual(liveaction1.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        liveaction1 = self._wait_on_status(liveaction1, action_constants.LIVEACTION_STATUS_RUNNING)
 
         # Mock the children of the parent execution to make this
         # test case has subworkflow execution.
@@ -404,13 +398,11 @@ class MistralRunnerPauseResumeTest(DbTestCase):
 
         liveaction1 = LiveActionDB(action=WF2_NAME, parameters=ACTION_PARAMS)
         liveaction1, execution1 = action_service.request(liveaction1)
-        liveaction1 = LiveAction.get_by_id(str(liveaction1.id))
-        self.assertEqual(liveaction1.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        liveaction1 = self._wait_on_status(liveaction1, action_constants.LIVEACTION_STATUS_RUNNING)
 
         liveaction2 = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction2, execution2 = action_service.request(liveaction2)
-        liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
-        self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        liveaction2 = self._wait_on_status(liveaction2, action_constants.LIVEACTION_STATUS_RUNNING)
 
         # Mock the children of the parent execution to make this
         # test case has subworkflow execution.

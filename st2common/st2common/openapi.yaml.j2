@@ -4790,6 +4790,9 @@ definitions:
             status:
               type: string
               enum: {{ LIVEACTION_STATUSES }}
+      delay:
+        description: How long (in milliseconds) to delay the execution before scheduling.
+        type: integer
     required:
       - id
     additionalProperties: False
@@ -5140,6 +5143,9 @@ definitions:
           on-failure: {$ref: '#/definitions/NotificationPropertySubSchema'}
           on-success: {$ref: '#/definitions/NotificationPropertySubSchema'}
         additionalProperties: False
+      delay:
+        description: How long (in milliseconds) to delay the execution before scheduling.
+        type: integer
     required:
       - action
   Webhook:

@@ -34,7 +34,7 @@ from st2common.persistence.runner import RunnerType
 from st2common.services import action as action_service
 from st2common.util import action_db as action_db_util
 from st2common.exceptions.action import ParameterRenderingFailedException
-from st2tests import DbTestCase
+from st2tests import ExecutionDbTestCase
 from st2tests.fixturesloader import FixturesLoader
 
 
@@ -130,7 +130,7 @@ CHAIN_NOTIFY_DB = NotificationsHelper.to_model(CHAIN_NOTIFY_API)
     action_service,
     'is_action_paused_or_pausing',
     mock.MagicMock(return_value=False))
-class TestActionChainRunner(DbTestCase):
+class TestActionChainRunner(ExecutionDbTestCase):
 
     def test_runner_creation(self):
         runner = acr.get_runner()

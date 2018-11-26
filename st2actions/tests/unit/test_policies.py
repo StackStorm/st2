@@ -27,7 +27,7 @@ from st2common.services import action as action_service
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 from st2common.bootstrap import runnersregistrar as runners_registrar
-from st2tests import DbTestCase
+from st2tests import ExecutionDbTestCase
 from st2tests.fixturesloader import FixturesLoader
 from st2tests.mocks.runners import runner
 from st2tests.mocks.execution import MockExecutionPublisher
@@ -66,7 +66,7 @@ FIXTURES = LOADER.load_fixtures(fixtures_pack=PACK, fixtures_dict=TEST_FIXTURES)
     mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
 @mock.patch('st2common.runners.base.get_runner', mock.Mock(return_value=runner.get_runner()))
 @mock.patch('st2actions.container.base.get_runner', mock.Mock(return_value=runner.get_runner()))
-class SchedulingPolicyTest(DbTestCase):
+class SchedulingPolicyTest(ExecutionDbTestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -87,6 +87,12 @@ class SchedulingPolicyTest(DbTestCase):
             instance = PolicyAPI(**fixture)
             Policy.add_or_update(PolicyAPI.to_model(instance))
 
+    def tearDown(self):
+        # Ensure all liveactions are canceled at end of each test.
+        for liveaction in LiveAction.get_all():
+            action_service.update_status(
+                liveaction, action_constants.LIVEACTION_STATUS_CANCELED)
+
     @mock.patch.object(
         FakeConcurrencyApplicator, 'apply_before',
         mock.MagicMock(
@@ -106,8 +112,7 @@ class SchedulingPolicyTest(DbTestCase):
     def test_apply(self):
         liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
         liveaction, _ = action_service.request(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         FakeConcurrencyApplicator.apply_before.assert_called_once_with(liveaction)
         RaiseExceptionApplicator.apply_before.assert_called_once_with(liveaction)
         FakeConcurrencyApplicator.apply_after.assert_called_once_with(liveaction)
@@ -117,5 +122,4 @@ class SchedulingPolicyTest(DbTestCase):
     def test_enforce(self):
         liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
         liveaction, _ = action_service.request(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELED)
+        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_CANCELED)

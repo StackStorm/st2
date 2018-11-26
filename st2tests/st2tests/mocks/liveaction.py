@@ -13,37 +13,44 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 import eventlet
 import traceback
 
 from st2actions import worker
-from st2actions.scheduler import scheduler
+from st2actions.scheduler import entrypoint as scheduling
+from st2actions.scheduler import handler as scheduling_queue
 from st2common.constants import action as action_constants
 from st2common.models.db.liveaction import LiveActionDB
 
 __all__ = [
-    'MockLiveActionPublisher'
+    'MockLiveActionPublisher',
+    'MockLiveActionPublisherNonBlocking'
 ]
 
 
 class MockLiveActionPublisher(object):
 
     @classmethod
+    def process(cls, payload):
+        ex_req = scheduling.get_scheduler_entrypoint().process(payload)
+
+        if ex_req is not None:
+            scheduling_queue.get_handler()._handle_execution(ex_req)
+
+    @classmethod
     def publish_create(cls, payload):
-        try:
-            if isinstance(payload, LiveActionDB):
-                scheduler.get_scheduler().process(payload)
-        except Exception:
-            traceback.print_exc()
-            print(payload)
+        # The scheduling entry point is only listening for status change and not on create.
+        # Therefore, no additional processing is required here otherwise this will cause
+        # duplicate processing in the unit tests.
+        pass
 
     @classmethod
     def publish_state(cls, payload, state):
         try:
             if isinstance(payload, LiveActionDB):
                 if state == action_constants.LIVEACTION_STATUS_REQUESTED:
-                    scheduler.get_scheduler().process(payload)
+                    cls.process(payload)
                 else:
                     worker.get_worker().process(payload)
         except Exception:
@@ -55,21 +62,25 @@ class MockLiveActionPublisherNonBlocking(object):
     threads = []
 
     @classmethod
+    def process(cls, payload):
+        ex_req = scheduling.get_scheduler_entrypoint().process(payload)
+
+        if ex_req is not None:
+            scheduling_queue.get_handler()._handle_execution(ex_req)
+
+    @classmethod
     def publish_create(cls, payload):
-        try:
-            if isinstance(payload, LiveActionDB):
-                thread = eventlet.spawn(scheduler.get_scheduler().process, payload)
-                cls.threads.append(thread)
-        except Exception:
-            traceback.print_exc()
-            print(payload)
+        # The scheduling entry point is only listening for status change and not on create.
+        # Therefore, no additional processing is required here otherwise this will cause
+        # duplicate processing in the unit tests.
+        pass
 
     @classmethod
     def publish_state(cls, payload, state):
         try:
             if isinstance(payload, LiveActionDB):
                 if state == action_constants.LIVEACTION_STATUS_REQUESTED:
-                    thread = eventlet.spawn(scheduler.get_scheduler().process, payload)
+                    thread = eventlet.spawn(cls.process, payload)
                     cls.threads.append(thread)
                 else:
                     thread = eventlet.spawn(worker.get_worker().process, payload)
@@ -87,3 +98,27 @@ class MockLiveActionPublisherNonBlocking(object):
                 print(str(e))
             finally:
                 cls.threads.remove(thread)
+
+
+class MockLiveActionPublisherSchedulingQueueOnly(object):
+
+    @classmethod
+    def process(cls, payload):
+        scheduling.get_scheduler_entrypoint().process(payload)
+
+    @classmethod
+    def publish_create(cls, payload):
+        # The scheduling entry point is only listening for status change and not on create.
+        # Therefore, no additional processing is required here otherwise this will cause
+        # duplicate processing in the unit tests.
+        pass
+
+    @classmethod
+    def publish_state(cls, payload, state):
+        try:
+            if isinstance(payload, LiveActionDB):
+                if state == action_constants.LIVEACTION_STATUS_REQUESTED:
+                    cls.process(payload)
+        except Exception:
+            traceback.print_exc()
+            print(payload)

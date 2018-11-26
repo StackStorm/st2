@@ -59,7 +59,7 @@ function init(){
         ST2_REPO=${CURRENT_DIR}/${COMMAND_PATH}/..
     fi
 
-    VIRTUALENV=${VIRTUALENV:-${ST2_REPO}/virtualenv}
+    VIRTUALENV=${VIRTUALENV_DIR:-${ST2_REPO}/virtualenv}
     PY=${VIRTUALENV}/bin/python
     PYTHON_VERSION=$(${PY} --version 2>&1)
 

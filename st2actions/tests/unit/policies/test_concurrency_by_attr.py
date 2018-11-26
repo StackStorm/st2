@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import eventlet
 import mock
 from mock import call
@@ -28,7 +29,7 @@ from st2common.services import action as action_service
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 from st2common.bootstrap import runnersregistrar as runners_registrar
-from st2tests import DbTestCase, EventletTestCase
+from st2tests import ExecutionDbTestCase, EventletTestCase
 from st2tests.fixturesloader import FixturesLoader
 from st2tests.mocks.execution import MockExecutionPublisher, MockExecutionPublisherNonBlocking
 from st2tests.mocks.liveaction import MockLiveActionPublisherNonBlocking
@@ -68,12 +69,12 @@ SCHEDULED_STATES = [
 @mock.patch.object(
     CUDPublisher, 'publish_create',
     mock.MagicMock(return_value=None))
-class ConcurrencyByAttributePolicyTestCase(EventletTestCase, DbTestCase):
+class ConcurrencyByAttributePolicyTestCase(EventletTestCase, ExecutionDbTestCase):
 
     @classmethod
     def setUpClass(cls):
         EventletTestCase.setUpClass()
-        DbTestCase.setUpClass()
+        ExecutionDbTestCase.setUpClass()
 
         # Register runners
         runners_registrar.register_runners()

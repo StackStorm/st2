@@ -35,10 +35,11 @@ from st2common.services import action as action_service
 from st2common.services import trace as trace_service
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
-from st2tests import DbTestCase
+from st2tests import ExecutionDbTestCase
 from st2tests.fixturesloader import FixturesLoader
 from st2tests.mocks.execution import MockExecutionPublisher
 from st2tests.mocks.liveaction import MockLiveActionPublisher
+from st2tests.mocks.liveaction import MockLiveActionPublisherNonBlocking
 from st2tests.mocks.runners import runner
 
 __all__ = [
@@ -56,7 +57,15 @@ LOADER = FixturesLoader()
 FIXTURES = LOADER.load_fixtures(fixtures_pack=PACK, fixtures_dict=TEST_FIXTURES)
 
 
-class ExecutionCancellationTestCase(DbTestCase):
+@mock.patch('st2common.runners.base.get_runner', mock.Mock(return_value=runner.get_runner()))
+@mock.patch('st2actions.container.base.get_runner', mock.Mock(return_value=runner.get_runner()))
+@mock.patch.object(
+    CUDPublisher, 'publish_update',
+    mock.MagicMock(side_effect=MockExecutionPublisher.publish_update))
+@mock.patch.object(
+    CUDPublisher, 'publish_create',
+    mock.MagicMock(return_value=None))
+class ExecutionCancellationTestCase(ExecutionDbTestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -78,14 +87,8 @@ class ExecutionCancellationTestCase(DbTestCase):
         return runners.get_runner(runner_name).__class__
 
     @mock.patch.object(
-        CUDPublisher, 'publish_create',
-        mock.MagicMock(side_effect=MockLiveActionPublisher.publish_create))
-    @mock.patch.object(
-        CUDPublisher, 'publish_update',
-        mock.MagicMock(side_effect=MockExecutionPublisher.publish_update))
-    @mock.patch.object(
         LiveActionPublisher, 'publish_state',
-        mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
+        mock.MagicMock(side_effect=MockLiveActionPublisherNonBlocking.publish_state))
     @mock.patch('st2common.runners.base.get_runner', mock.Mock(return_value=runner.get_runner()))
     @mock.patch('st2actions.container.base.get_runner', mock.Mock(return_value=runner.get_runner()))
     def test_basic_cancel(self):
@@ -95,13 +98,19 @@ class ExecutionCancellationTestCase(DbTestCase):
         with mock.patch.object(runner.MockActionRunner, 'run', mock_runner_run):
             liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
             liveaction, _ = action_service.request(liveaction)
-            liveaction = LiveAction.get_by_id(str(liveaction.id))
-            self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+
+            liveaction = self._wait_on_status(
+                liveaction,
+                action_constants.LIVEACTION_STATUS_RUNNING
+            )
 
             # Cancel execution.
             action_service.request_cancellation(liveaction, cfg.CONF.system_user.user)
-            liveaction = LiveAction.get_by_id(str(liveaction.id))
-            self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELED)
+
+            liveaction = self._wait_on_status(
+                liveaction,
+                action_constants.LIVEACTION_STATUS_CANCELED
+            )
 
     @mock.patch.object(
         CUDPublisher, 'publish_create',
@@ -123,8 +132,11 @@ class ExecutionCancellationTestCase(DbTestCase):
         with mock.patch.object(runner.MockActionRunner, 'run', mock_runner_run):
             liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
             liveaction, _ = action_service.request(liveaction)
-            liveaction = LiveAction.get_by_id(str(liveaction.id))
-            self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+
+            liveaction = self._wait_on_status(
+                liveaction,
+                action_constants.LIVEACTION_STATUS_RUNNING
+            )
 
             # Cancel execution.
             action_service.request_cancellation(liveaction, cfg.CONF.system_user.user)
