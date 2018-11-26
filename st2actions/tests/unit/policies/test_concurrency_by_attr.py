@@ -86,11 +86,13 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, ExecutionDbTestCase
         loader.save_fixtures_to_db(fixtures_pack=PACK,
                                    fixtures_dict=TEST_FIXTURES)
 
+    @mock.patch('st2actions.container.base.get_runner', mock.Mock(return_value=runner.get_runner()))
     def setUp(self):
         super(ConcurrencyByAttributePolicyTestCase, self).setUp()
 
         MockLiveActionPublisherNonBlocking.wait_all()
 
+    @mock.patch('st2actions.container.base.get_runner', mock.Mock(return_value=runner.get_runner()))
     def tearDown(self):
         MockLiveActionPublisherNonBlocking.wait_all()
 
