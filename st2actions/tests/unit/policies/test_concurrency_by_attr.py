@@ -87,7 +87,7 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, ExecutionDbTestCase
                                    fixtures_dict=TEST_FIXTURES)
 
     # NOTE: This monkey patch needs to happen again here because during tests for some reason this
-    # method gets unpatcked (test doing reload() or similar)
+    # method gets unpatched (test doing reload() or similar)
     @mock.patch('st2actions.container.base.get_runner', mock.Mock(return_value=runner.get_runner()))
     def setUp(self):
         super(ConcurrencyByAttributePolicyTestCase, self).setUp()
@@ -95,7 +95,7 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, ExecutionDbTestCase
         MockLiveActionPublisherNonBlocking.wait_all()
 
     # NOTE: This monkey patch needs to happen again here because during tests for some reason this
-    # method gets unpatcked (test doing reload() or similar)
+    # method gets unpatched (test doing reload() or similar)
     @mock.patch('st2actions.container.base.get_runner', mock.Mock(return_value=runner.get_runner()))
     def tearDown(self):
         MockLiveActionPublisherNonBlocking.wait_all()

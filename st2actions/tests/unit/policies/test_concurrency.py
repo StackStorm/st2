@@ -89,7 +89,7 @@ class ConcurrencyPolicyTestCase(EventletTestCase, ExecutionDbTestCase):
                                    fixtures_dict=TEST_FIXTURES)
 
     # NOTE: This monkey patch needs to happen again here because during tests for some reason this
-    # method gets unpatcked (test doing reload() or similar)
+    # method gets unpatched (test doing reload() or similar)
     @mock.patch('st2actions.container.base.get_runner', mock.Mock(return_value=runner.get_runner()))
     def setUp(self):
         super(ConcurrencyPolicyTestCase, self).setUp()
@@ -98,7 +98,7 @@ class ConcurrencyPolicyTestCase(EventletTestCase, ExecutionDbTestCase):
         MockLiveActionPublisherNonBlocking.wait_all()
 
     # NOTE: This monkey patch needs to happen again here because during tests for some reason this
-    # method gets unpatcked (test doing reload() or similar)
+    # method gets unpatched (test doing reload() or similar)
     @mock.patch('st2actions.container.base.get_runner', mock.Mock(return_value=runner.get_runner()))
     def tearDown(self):
         MockLiveActionPublisherNonBlocking.wait_all()
@@ -169,10 +169,6 @@ class ConcurrencyPolicyTestCase(EventletTestCase, ExecutionDbTestCase):
         # Since states are being processed async, wait for the liveaction to be scheduled.
         liveaction = self._wait_on_statuses(liveaction, SCHEDULED_STATES)
         self.assertEqual(expected_num_pubs, LiveActionPublisher.publish_state.call_count)
-
-        print(expected_num_exec)
-        print(runner.MockActionRunner.run.call_count)
-        print(runner.MockActionRunner.run.call_args_list)
         self.assertEqual(expected_num_exec, runner.MockActionRunner.run.call_count)
 
     @mock.patch.object(
