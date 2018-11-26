@@ -86,12 +86,16 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, ExecutionDbTestCase
         loader.save_fixtures_to_db(fixtures_pack=PACK,
                                    fixtures_dict=TEST_FIXTURES)
 
+    # NOTE: This monkey patch needs to happen again here because during tests for some reason this
+    # method gets unpatcked (test doing reload() or similar)
     @mock.patch('st2actions.container.base.get_runner', mock.Mock(return_value=runner.get_runner()))
     def setUp(self):
         super(ConcurrencyByAttributePolicyTestCase, self).setUp()
 
         MockLiveActionPublisherNonBlocking.wait_all()
 
+    # NOTE: This monkey patch needs to happen again here because during tests for some reason this
+    # method gets unpatcked (test doing reload() or similar)
     @mock.patch('st2actions.container.base.get_runner', mock.Mock(return_value=runner.get_runner()))
     def tearDown(self):
         MockLiveActionPublisherNonBlocking.wait_all()
@@ -116,7 +120,8 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, ExecutionDbTestCase
         self.assertIn('actionstr', policy_db.parameters['attributes'])
 
         for i in range(0, policy_db.parameters['threshold']):
-            liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'fu'})
+            liveaction = LiveActionDB(action='wolfpack.action-1',
+                                      parameters={'actionstr': 'fu-' + str(i)})
             action_service.request(liveaction)
 
         MockLiveActionPublisherNonBlocking.wait_all()
@@ -143,7 +148,7 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, ExecutionDbTestCase
         self.assertEqual(expected_num_exec, runner.MockActionRunner.run.call_count)
 
         # Execution is expected to be delayed since concurrency threshold is reached.
-        liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'fu'})
+        liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'fu-last'})
         liveaction, _ = action_service.request(liveaction)
         expected_num_pubs += 1  # Tally requested state.
 
@@ -154,6 +159,8 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, ExecutionDbTestCase
             liveaction = LiveAction.get_by_id(str(liveaction.id))
             if liveaction.status == action_constants.LIVEACTION_STATUS_DELAYED:
                 break
+
+        MockLiveActionPublisherNonBlocking.wait_all()
 
         # Assert the action is delayed.
         delayed = LiveAction.get_by_id(str(liveaction.id))
@@ -176,6 +183,8 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, ExecutionDbTestCase
             if liveaction.status in SCHEDULED_STATES:
                 break
 
+        MockLiveActionPublisherNonBlocking.wait_all()
+
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertIn(liveaction.status, SCHEDULED_STATES)
         self.assertEqual(expected_num_pubs, LiveActionPublisher.publish_state.call_count)
@@ -197,6 +206,8 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, ExecutionDbTestCase
             liveaction = LiveAction.get_by_id(str(liveaction.id))
             if liveaction.status in SCHEDULED_STATES:
                 break
+
+        MockLiveActionPublisherNonBlocking.wait_all()
 
         # Execution is expected to be rescheduled.
         liveaction = LiveAction.get_by_id(str(delayed.id))
@@ -228,6 +239,8 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, ExecutionDbTestCase
         for i in range(0, policy_db.parameters['threshold']):
             liveaction = LiveActionDB(action='wolfpack.action-2', parameters={'actionstr': 'fu'})
             action_service.request(liveaction)
+
+        MockLiveActionPublisherNonBlocking.wait_all()
 
         # Since states are being processed asynchronously, wait for the
         # liveactions to go into scheduled states.
@@ -263,6 +276,8 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, ExecutionDbTestCase
                     action_constants.LIVEACTION_STATUS_CANCELING,
                     action_constants.LIVEACTION_STATUS_CANCELED]:
                 break
+
+        MockLiveActionPublisherNonBlocking.wait_all()
 
         # Assert the canceling state is being published.
         calls = [call(liveaction, action_constants.LIVEACTION_STATUS_CANCELING)]
@@ -329,6 +344,8 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, ExecutionDbTestCase
             if liveaction.status == action_constants.LIVEACTION_STATUS_DELAYED:
                 break
 
+        MockLiveActionPublisherNonBlocking.wait_all()
+
         # Assert the action is delayed.
         delayed = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(delayed.status, action_constants.LIVEACTION_STATUS_DELAYED)
@@ -341,6 +358,8 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, ExecutionDbTestCase
         liveaction, _ = action_service.request(liveaction)
         expected_num_exec += 1  # This request is expected to be executed.
         expected_num_pubs += 3  # Tally requested, scheduled, and running states.
+
+        MockLiveActionPublisherNonBlocking.wait_all()
 
         # Since states are being processed asynchronously, wait for the
         # liveaction to go into scheduled state.
@@ -370,6 +389,8 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, ExecutionDbTestCase
             liveaction = LiveAction.get_by_id(str(liveaction.id))
             if liveaction.status in SCHEDULED_STATES:
                 break
+
+        MockLiveActionPublisherNonBlocking.wait_all()
 
         # Execution is expected to be rescheduled.
         liveaction = LiveAction.get_by_id(str(delayed.id))
