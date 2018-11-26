@@ -35,6 +35,7 @@ from st2common.models.db.liveaction import LiveActionDB
 from st2common.persistence.execution_queue import ActionExecutionSchedulingQueue
 from st2common.persistence.liveaction import LiveAction
 from st2common.services import executions as execution_service
+from st2common.exceptions import db as db_exc
 
 from st2tests import config as test_config
 test_config.parse_args()
@@ -230,4 +231,31 @@ class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
 
         mock_action_service.update_status.assert_not_called()
         mock_execution_queue_delete.assert_called_once()
+        ActionExecutionSchedulingQueue.delete(schedule_q_db)
+
+    @mock.patch('st2actions.scheduler.handler.LOG')
+    def test_failed_next_item(self, mocked_logger):
+        self.reset()
+
+        liveaction_db = self._create_liveaction_db()
+
+        schedule_q_db = self.scheduler._create_execution_queue_item_db_from_liveaction(
+            liveaction_db,
+        )
+
+        schedule_q_db = ActionExecutionSchedulingQueue.add_or_update(schedule_q_db)
+
+        with mock.patch(
+            'st2actions.scheduler.handler.ActionExecutionSchedulingQueue.add_or_update',
+            side_effect=db_exc.StackStormDBObjectWriteConflictError(schedule_q_db)
+        ):
+            schedule_q_db = self.scheduling_queue._get_next_execution()
+            self.assertIsNone(schedule_q_db)
+
+        mocked_logger.info.assert_called_once()
+        call_args = mocked_logger.info.call_args_list[0][0]
+        self.assertEqual(r'Execution queue item handled by another scheduler: %s', call_args[0])
+
+        schedule_q_db = self.scheduling_queue._get_next_execution()
+        self.assertIsNotNone(schedule_q_db)
         ActionExecutionSchedulingQueue.delete(schedule_q_db)
