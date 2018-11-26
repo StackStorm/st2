@@ -419,9 +419,17 @@ virtualenv:
 
 	# Setup PYTHONPATH in bash activate script...
 	# Delete existing entries (if any)
+ifeq ($(OS),Darwin)
+	echo 'Setting up virtualenv on $(OS)...'
+	sed -i '' '/_OLD_PYTHONPATHp/d' $(VIRTUALENV_DIR)/bin/activate
+	sed -i '' '/PYTHONPATH=/d' $(VIRTUALENV_DIR)/bin/activate
+	sed -i '' '/export PYTHONPATH/d' $(VIRTUALENV_DIR)/bin/activate
+else
+	echo 'Setting up virtualenv on $(OS)...'
 	sed -i '/_OLD_PYTHONPATHp/d' $(VIRTUALENV_DIR)/bin/activate
 	sed -i '/PYTHONPATH=/d' $(VIRTUALENV_DIR)/bin/activate
 	sed -i '/export PYTHONPATH/d' $(VIRTUALENV_DIR)/bin/activate
+endif
 
 	echo '_OLD_PYTHONPATH=$$PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate
 	#echo 'PYTHONPATH=$$_OLD_PYTHONPATH:$(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_DIR)/bin/activate
