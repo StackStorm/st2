@@ -47,6 +47,10 @@ LOG = logging.getLogger(__name__)
 # "handling=False" so some other scheduler process can pick it up.
 EXECUTION_SCHEDUELING_TIMEOUT_THRESHOLD_MS = (60 * 1000)
 
+# When a policy delayed execution is detected it will be try to be rescheduled by the scheduler
+# again in this amount of milliseconds.
+POLICY_DELAYED_EXECUTION_RESCHEDULE_TIME_MS = 1500
+
 
 class ActionExecutionSchedulingQueueHandler(object):
     def __init__(self):
@@ -188,7 +192,7 @@ class ActionExecutionSchedulingQueueHandler(object):
             )
             execution_queue_item_db.scheduled_start_timestamp = date.append_milliseconds_to_time(
                 date.get_datetime_utc_now(),
-                500
+                POLICY_DELAYED_EXECUTION_RESCHEDULE_TIME_MS
             )
             try:
                 ActionExecutionSchedulingQueue.add_or_update(execution_queue_item_db, publish=False)

@@ -314,6 +314,8 @@ class ExecutionDbTestCase(DbTestCase):
     ]
 
     def _wait_on_status(self, liveaction_db, status, retries=300, delay=0.1, raise_exc=True):
+        assert isinstance(status, six.string_types), '%s is not of text type' % (status)
+
         for _ in range(0, retries):
             eventlet.sleep(delay)
             liveaction_db = LiveAction.get_by_id(str(liveaction_db.id))
@@ -326,6 +328,8 @@ class ExecutionDbTestCase(DbTestCase):
         return liveaction_db
 
     def _wait_on_statuses(self, liveaction_db, statuses, retries=300, delay=0.1, raise_exc=True):
+        assert isinstance(statuses, (list, tuple)), '%s is not of list type' % (statuses)
+
         for _ in range(0, retries):
             eventlet.sleep(delay)
             liveaction_db = LiveAction.get_by_id(str(liveaction_db.id))
