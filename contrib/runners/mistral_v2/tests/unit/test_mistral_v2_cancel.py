@@ -22,6 +22,7 @@ import mock
 from mock import call
 import requests
 import yaml
+import eventlet
 
 from mistralclient.api.v2 import executions
 from mistralclient.api.v2 import workflows
@@ -288,6 +289,7 @@ class MistralRunnerCancelTest(ExecutionDbTestCase):
         liveaction, execution = action_service.request(liveaction)
 
         MockLiveActionPublisherNonBlocking.wait_all()
+        eventlet.sleep(4)
         liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
