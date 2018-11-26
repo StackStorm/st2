@@ -94,9 +94,8 @@ class ActionExecutionSchedulingQueueHandler(object):
                     execution_queue_item_db.id
                 )
 
-    # TODO: This causes too much noise under DEBUG level and too many metrics send to the metrics
-    # backend. We should sample it
-    #@metrics.Timer(key='scheduler.get_next_execution')
+    # NOTE: This method call is intentionally not instrumented since it causes too much overhead
+    # and noise under DEBUG log level
     def _get_next_execution(self):
         """
         Sort execution requests by FIFO and priority and get the latest, highest priority item from
@@ -173,8 +172,7 @@ class ActionExecutionSchedulingQueueHandler(object):
         }
 
         LOG.info('Liveaction (%s) Status Pre-Run: %s (%s)', liveaction_id, liveaction_db.status,
-                                                            queue_item_id,
-                                                            extra=extra)
+                 queue_item_id, extra=extra)
 
         if liveaction_db.status is action_constants.LIVEACTION_STATUS_POLICY_DELAYED:
             liveaction_db = action_service.update_status(
