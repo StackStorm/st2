@@ -172,9 +172,9 @@ class ConcurrencyPolicyTestCase(EventletTestCase, ExecutionDbTestCase):
 
         MockLiveActionPublisherNonBlocking.wait_all()
 
-        print runner.MockActionRunner.run.call_args_list
-        print expected_num_exec
-        print runner.MockActionRunner.run.call_count
+        print(runner.MockActionRunner.run.call_args_list)
+        print(expected_num_exec)
+        print(runner.MockActionRunner.run.call_count)
         self.assertEqual(expected_num_exec, runner.MockActionRunner.run.call_count)
 
     @mock.patch.object(
