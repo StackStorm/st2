@@ -163,11 +163,12 @@ class ConcurrencyPolicyTestCase(EventletTestCase, ExecutionDbTestCase):
         # Once capacity freed up, the delayed execution is published as requested again.
         expected_num_pubs += 3  # Tally requested, scheduled, and running state.
 
+        MockLiveActionPublisherNonBlocking.wait_all()
+        eventlet.sleep(2)
+
         # Since states are being processed async, wait for the liveaction to be scheduled.
         liveaction = self._wait_on_statuses(liveaction, SCHEDULED_STATES)
         self.assertEqual(expected_num_pubs, LiveActionPublisher.publish_state.call_count)
-
-        MockLiveActionPublisherNonBlocking.wait_all()
 
         print(runner.MockActionRunner.run.call_args_list)
         print(expected_num_exec)
