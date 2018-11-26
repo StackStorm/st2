@@ -133,9 +133,6 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, ExecutionDbTestCase
             if len(scheduled) == policy_db.parameters['threshold']:
                 break
 
-        MockLiveActionPublisherNonBlocking.wait_all()
-
-        scheduled = [item for item in LiveAction.get_all() if item.status in SCHEDULED_STATES]
         self.assertEqual(len(scheduled), policy_db.parameters['threshold'])
 
         # Assert the correct number of published states and action executions. This is to avoid
@@ -235,7 +232,6 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, ExecutionDbTestCase
             if len(scheduled) == policy_db.parameters['threshold']:
                 break
 
-        scheduled = [item for item in LiveAction.get_all() if item.status in SCHEDULED_STATES]
         self.assertEqual(len(scheduled), policy_db.parameters['threshold'])
 
         # Assert the correct number of published states and action executions. This is to avoid
@@ -304,9 +300,6 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, ExecutionDbTestCase
             if len(scheduled) == policy_db.parameters['threshold']:
                 break
 
-        MockLiveActionPublisherNonBlocking.wait_all()
-
-        scheduled = [item for item in LiveAction.get_all() if item.status in SCHEDULED_STATES]
         self.assertEqual(len(scheduled), policy_db.parameters['threshold'])
 
         # duplicate executions caused by accidental publishing of state in the concurrency policies.
@@ -364,6 +357,7 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, ExecutionDbTestCase
         liveaction = self._wait_on_statuses(liveaction, SCHEDULED_STATES)
 
         MockLiveActionPublisherNonBlocking.wait_all()
+        eventlet.sleep(2)
 
         # Execution is expected to be rescheduled.
         liveaction = LiveAction.get_by_id(str(delayed.id))

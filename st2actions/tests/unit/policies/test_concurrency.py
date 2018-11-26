@@ -136,9 +136,6 @@ class ConcurrencyPolicyTestCase(EventletTestCase, ExecutionDbTestCase):
             if len(scheduled) == policy_db.parameters['threshold']:
                 break
 
-        MockLiveActionPublisherNonBlocking.wait_all()
-
-        scheduled = [item for item in LiveAction.get_all() if item.status in SCHEDULED_STATES]
         self.assertEqual(len(scheduled), policy_db.parameters['threshold'])
 
         # Assert the correct number of published states and action executions. This is to avoid
@@ -211,9 +208,6 @@ class ConcurrencyPolicyTestCase(EventletTestCase, ExecutionDbTestCase):
             if len(scheduled) == policy_db.parameters['threshold']:
                 break
 
-        MockLiveActionPublisherNonBlocking.wait_all()
-
-        scheduled = [item for item in LiveAction.get_all() if item.status in SCHEDULED_STATES]
         self.assertEqual(len(scheduled), policy_db.parameters['threshold'])
 
         # duplicate executions caused by accidental publishing of state in the concurrency policies.
@@ -281,9 +275,6 @@ class ConcurrencyPolicyTestCase(EventletTestCase, ExecutionDbTestCase):
             if len(scheduled) == policy_db.parameters['threshold']:
                 break
 
-        MockLiveActionPublisherNonBlocking.wait_all()
-
-        scheduled = [item for item in LiveAction.get_all() if item.status in SCHEDULED_STATES]
         self.assertEqual(len(scheduled), policy_db.parameters['threshold'])
 
         # duplicate executions caused by accidental publishing of state in the concurrency policies.
