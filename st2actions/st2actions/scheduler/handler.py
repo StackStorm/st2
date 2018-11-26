@@ -39,6 +39,14 @@ __all__ = [
 
 LOG = logging.getLogger(__name__)
 
+# If an ActionExecutionSchedulingQueueItemDB object hasn't been updated fore more than this amount
+# of milliseconds, it will be marked as "handled=False".
+# As soon as an item is picked by scheduler to be processed, it should be processed very fast
+# (< 5 seconds). If an item is still being marked as processing it likely indicates that the
+# scheduler process which was processing that item crashed or similar so we need to mark it as
+# "handling=False" so some other scheduler process can pick it up.
+EXECUTION_SCHEDUELING_TIMEOUT_THRESHOLD_MS = (60 * 1000)
+
 
 class ActionExecutionSchedulingQueueHandler(object):
     def __init__(self):
@@ -74,9 +82,9 @@ class ActionExecutionSchedulingQueueHandler(object):
         query = {
             'scheduled_start_timestamp__lte': date.append_milliseconds_to_time(
                 date.get_datetime_utc_now(),
-                -60000
+                -EXECUTION_SCHEDUELING_TIMEOUT_THRESHOLD_MS
             ),
-            'handling': True,
+            'handling': True
         }
 
         execution_queue_item_dbs = ActionExecutionSchedulingQueue.query(**query) or []
