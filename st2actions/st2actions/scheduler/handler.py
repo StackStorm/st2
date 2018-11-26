@@ -129,14 +129,22 @@ class ActionExecutionSchedulingQueueHandler(object):
 
     @metrics.CounterWithTimer(key='scheduler.handle_execution')
     def _handle_execution(self, execution_queue_item_db):
-        liveaction_id = execution_queue_item_db.liveaction_id
+        liveaction_id = str(execution_queue_item_db.liveaction_id)
+        queue_item_id = str(execution_queue_item_db.id)
 
-        LOG.info('Scheduling liveaction: %s', liveaction_id)
+        extra = {
+            'liveaction_id': liveaction_id,
+            'queue_item_id': queue_item_id
+        }
+
+        LOG.info('Scheduling liveaction: %s (queue_item_id=%s)', liveaction_id,
+                 queue_item_id, extra=extra)
 
         try:
             liveaction_db = action_utils.get_liveaction_by_id(liveaction_id)
         except StackStormDBObjectNotFoundError:
-            LOG.exception('Failed to find liveaction %s in the database.', liveaction_id)
+            LOG.exception('Failed to find liveaction %s in the database (queue_item_id=%s).',
+                          liveaction_id, queue_item_id, extra=extra)
             ActionExecutionSchedulingQueue.delete(execution_queue_item_db)
             raise
 
@@ -153,7 +161,18 @@ class ActionExecutionSchedulingQueueHandler(object):
         # Apply policies defined for the action.
         liveaction_db = policy_service.apply_pre_run_policies(liveaction_db)
 
-        LOG.info('Liveaction Status Pre-Run: %s', liveaction_db.status)
+        liveaction_id = str(liveaction_db.id)
+        queue_item_id = str(execution_queue_item_db.id)
+
+        extra = {
+            'liveaction_id': liveaction_id,
+            'liveaction_status': liveaction_db.status,
+            'queue_item_id': queue_item_id
+        }
+
+        LOG.info('Liveaction (%s) Status Pre-Run: %s (%s)', liveaction_id, liveaction_db.status,
+                                                            queue_item_id,
+                                                            extra=extra)
 
         if liveaction_db.status is action_constants.LIVEACTION_STATUS_POLICY_DELAYED:
             liveaction_db = action_service.update_status(
@@ -167,7 +186,7 @@ class ActionExecutionSchedulingQueueHandler(object):
                 ActionExecutionSchedulingQueue.add_or_update(execution_queue_item_db, publish=False)
             except db_exc.StackStormDBObjectWriteConflictError:
                 LOG.warning(
-                    "Execution queue item update conflict during scheduling: %s",
+                    'Execution queue item update conflict during scheduling: %s',
                     execution_queue_item_db.id
                 )
 
@@ -208,8 +227,19 @@ class ActionExecutionSchedulingQueueHandler(object):
 
     @staticmethod
     def _update_to_scheduled(liveaction_db, execution_queue_item_db):
+        liveaction_id = str(liveaction_db.id)
+        queue_item_id = str(execution_queue_item_db.id)
+
+        extra = {
+            'liveaction_id': liveaction_id,
+            'liveaction_status': liveaction_db.status,
+            'queue_item_id': queue_item_id
+        }
+
         # Update liveaction status to "scheduled".
-        LOG.info('Liveaction Status Update to Scheduled 1: %s', liveaction_db.status)
+        LOG.info('Liveaction (%s) Status Update to Scheduled 1: %s (%s)',
+                liveaction_id, liveaction_db.status, queue_item_id, extra=extra)
+
         if liveaction_db.status in [action_constants.LIVEACTION_STATUS_REQUESTED,
                                     action_constants.LIVEACTION_STATUS_DELAYED]:
             liveaction_db = action_service.update_status(
@@ -220,9 +250,12 @@ class ActionExecutionSchedulingQueueHandler(object):
         # of the liveaction completes first.
         LiveAction.publish_status(liveaction_db)
 
+        extra['liveaction_status'] = liveaction_db.status
+
         # Delete execution queue entry only after status is published.
         ActionExecutionSchedulingQueue.delete(execution_queue_item_db)
-        LOG.info('Liveaction Status Update to Scheduled 2: %s', liveaction_db.status)
+        LOG.info('Liveaction (%s) Status Update to Scheduled 2: %s (%s)',
+                liveaction_id, liveaction_db.status, queue_item_id)
 
     def start(self):
         self._shutdown = False
