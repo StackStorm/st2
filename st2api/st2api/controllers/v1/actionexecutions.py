@@ -415,9 +415,14 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
             raise ValueError('Task option is only supported for Mistral workflows.')
 
         # Merge in any parameters provided by the user
+        old_parameters = getattr(existing_execution, 'parameters', {})
+        old_parameters.pop('delay', None)
+
         new_parameters = {}
+
         if not no_merge:
-            new_parameters.update(getattr(existing_execution, 'parameters', {}))
+            new_parameters.update(old_parameters)
+
         new_parameters.update(spec_api.parameters)
 
         # Create object for the new execution

@@ -581,6 +581,30 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id), data)
         self.assertEqual(re_run_resp.status_int, 201)
 
+    def test_re_run_previously_delayed(self):
+        # Make a copy of the mock live action and add a delay.
+        live_action_with_delay = copy.deepcopy(LIVE_ACTION_1)
+        live_action_with_delay['parameters']['delay'] = 300
+
+        # Create a new execution and make sure delay is included.
+        post_resp = self._do_post(LIVE_ACTION_1)
+        self.assertEqual(post_resp.status_int, 201)
+        self.assertIn('delay', post_resp.json['parameters'])
+        execution_id = self._get_actionexecution_id(post_resp)
+
+        # Re-run created execution and make sure delay is not included.
+        data = {}
+        re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id), data)
+        self.assertEqual(re_run_resp.status_int, 201)
+        self.assertNotIn('delay', re_run_resp.json['parameters'])
+
+        # Re-run created execution and give a new delay.
+        data = {'parameters': {'delay': 600}}
+        re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id), data)
+        self.assertEqual(re_run_resp.status_int, 201)
+        self.assertIn('delay', re_run_resp.json['parameters'])
+        self.assertEqual(data['parameters']['delay'], re_run_resp.json['parameters']['delay'])
+
     def test_re_run_failure_execution_doesnt_exist(self):
         # Create a new execution
         post_resp = self._do_post(LIVE_ACTION_1)
