@@ -753,7 +753,7 @@ def update_task_flow(task_ex_id, ac_ex_status, ac_ex_result=None, ac_ex_ctx=None
 
     # Replace/Simplify specific states.
     states_to_collapse = {
-        ac_const.LIVEACTION_STATUS_DELAYED: ac_const.LIVEACTION_STATUS_DELAYED
+        ac_const.LIVEACTION_STATUS_POLICY_DELAYED: ac_const.LIVEACTION_STATUS_DELAYED
     }
 
     if ac_ex_status in states_to_collapse:
