@@ -1222,6 +1222,9 @@ paths:
               user:
                 type: string
                 default: ''
+              delay:
+                description: How long (in milliseconds) to delay the execution before scheduling.
+                type: integer
         - name: show_secrets
           in: query
           description: Show secrets in plain text
@@ -4670,6 +4673,9 @@ definitions:
           extra:
             type: object
             description: Extra parameters, usually adapter-specific
+          delay:
+            description: How long (in milliseconds) to delay the execution before scheduling.
+            type: integer
       execution:
         type: object
         description: Execution result

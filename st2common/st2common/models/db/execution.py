@@ -179,7 +179,7 @@ class ActionExecutionOutputDB(stormbase.StormFoundationDB):
     runner_ref = me.StringField(required=True)
     timestamp = ComplexDateTimeField(required=True, default=date_utils.get_datetime_utc_now)
     output_type = me.StringField(required=True, default='output')
-    delay = me.IntField(required=True, default=0)
+    delay = me.IntField()
 
     data = me.StringField()
 

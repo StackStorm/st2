@@ -86,7 +86,8 @@ class TestExecutionResourceManager(unittest2.TestCase):
         data = {
             'tasks': ['foobar'],
             'reset': ['foobar'],
-            'parameters': {}
+            'parameters': {},
+            'delay': 0
         }
 
         httpclient.HTTPClient.post.assert_called_with(endpoint, data)
@@ -119,7 +120,8 @@ class TestExecutionResourceManager(unittest2.TestCase):
         data = {
             'tasks': ['foobar'],
             'reset': ['foobar'],
-            'parameters': params
+            'parameters': params,
+            'delay': 0
         }
 
         httpclient.HTTPClient.post.assert_called_with(endpoint, data)

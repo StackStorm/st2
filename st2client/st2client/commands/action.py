@@ -309,6 +309,9 @@ class ActionRunCommandMixin(object):
                                     help=('If result is type of JSON, then print specific '
                                           'key-value pair; dot notation for nested JSON is '
                                           'supported.'))
+        result_arg_grp.add_argument('--delay', type=int, default=None,
+                                    help=('How long (in milliseconds) to delay the '
+                                          'execution before scheduling.'))
 
         # Other options
         detail_arg_grp.add_argument('--tail', action='store_true',
@@ -960,9 +963,6 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
             self.parser.add_argument('-a', '--async',
                                      action='store_true', dest='action_async',
                                      help='Do not wait for action to finish.')
-            self.parser.add_argument('--delay', type=int, default=None,
-                                     help=('How long (in milliseconds) to delay the '
-                                           'execution before scheduling.'))
             self.parser.add_argument('-e', '--inherit-env',
                                      action='store_true', dest='inherit_env',
                                      help='Pass all the environment variables '
@@ -1278,7 +1278,6 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
         self.parser.add_argument('-h', '--help',
                                  action='store_true', dest='help',
                                  help='Print usage for the given action.')
-
         self._add_common_options()
 
     @add_auth_token_to_kwargs_from_cli
@@ -1304,6 +1303,7 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
                                            parameters=action_parameters,
                                            tasks=args.tasks,
                                            no_reset=args.no_reset,
+                                           delay=args.delay if args.delay else 0,
                                            **kwargs)
 
         execution = self._get_execution_result(execution=execution,
