@@ -32,6 +32,7 @@ Added
   a specific (parent) execution. (new feature) #4444
 
   Contributed by Tristan Struthers (@trstruth).
+* Add support for task delay in Orquesta workflows. (new feature)
 
 Changed
 ~~~~~~~
