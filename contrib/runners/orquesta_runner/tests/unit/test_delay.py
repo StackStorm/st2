@@ -72,7 +72,7 @@ PACKS = [
     wf_ex_xport.WorkflowExecutionPublisher,
     'publish_state',
     mock.MagicMock(side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_state))
-class OrquestaRunnerDelayTest(st2tests.DbTestCase):
+class OrquestaRunnerDelayTest(st2tests.ExecutionDbTestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -98,8 +98,7 @@ class OrquestaRunnerDelayTest(st2tests.DbTestCase):
         wf_input = {'delay': expected_delay_sec}
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=wf_input)
         lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
-        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        lv_ac_db = self._wait_on_status(lv_ac_db, action_constants.LIVEACTION_STATUS_RUNNING)
 
         # Identify records for the main workflow.
         wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
@@ -123,8 +122,7 @@ class OrquestaRunnerDelayTest(st2tests.DbTestCase):
         lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
 
         # Assert action execution is running.
-        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        lv_ac_db = self._wait_on_status(lv_ac_db, action_constants.LIVEACTION_STATUS_RUNNING)
         wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
         self.assertEqual(wf_ex_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
@@ -174,8 +172,7 @@ class OrquestaRunnerDelayTest(st2tests.DbTestCase):
         lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
 
         # Assert action execution is running.
-        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        lv_ac_db = self._wait_on_status(lv_ac_db, action_constants.LIVEACTION_STATUS_RUNNING)
         wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
         self.assertEqual(wf_ex_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
