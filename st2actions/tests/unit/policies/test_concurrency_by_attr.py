@@ -27,6 +27,7 @@ from st2common.persistence.action import LiveAction
 from st2common.persistence.execution_queue import ActionExecutionSchedulingQueue
 from st2common.persistence.policy import Policy
 from st2common.services import action as action_service
+from st2common.services import coordination
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 from st2common.bootstrap import runnersregistrar as runners_registrar
@@ -81,6 +82,7 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, ExecutionDbTestCase
 
         # Override the coordinator to use the noop driver otherwise the tests will be blocked.
         tests_config.parse_args(coordinator_noop=True)
+        coordination.COORDINATOR = None
 
         # Register runners
         runners_registrar.register_runners()
@@ -91,6 +93,13 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, ExecutionDbTestCase
         loader = FixturesLoader()
         loader.save_fixtures_to_db(fixtures_pack=PACK,
                                    fixtures_dict=TEST_FIXTURES)
+
+    @classmethod
+    def tearDownClass(cls):
+        # Reset the coordinator.
+        coordination.COORDINATOR = None
+
+        super(ConcurrencyByAttributePolicyTestCase, cls).tearDownClass()
 
     # NOTE: This monkey patch needs to happen again here because during tests for some reason this
     # method gets unpatched (test doing reload() or similar)
