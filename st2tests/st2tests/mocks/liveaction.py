@@ -123,6 +123,8 @@ class MockLiveActionPublisherSchedulingQueueOnly(object):
             if isinstance(payload, LiveActionDB):
                 if state == action_constants.LIVEACTION_STATUS_REQUESTED:
                     cls.process(payload)
+                else:
+                    worker.get_worker().process(payload)
         except Exception:
             traceback.print_exc()
             print(payload)

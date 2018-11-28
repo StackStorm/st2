@@ -28,12 +28,12 @@ CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
 
 
-def parse_args():
-    _setup_config_opts()
+def parse_args(coordinator_noop=False):
+    _setup_config_opts(coordinator_noop=coordinator_noop)
     CONF(args=[])
 
 
-def _setup_config_opts():
+def _setup_config_opts(coordinator_noop=False):
     cfg.CONF.reset()
 
     try:
@@ -43,15 +43,17 @@ def _setup_config_opts():
         # Some scripts register the options themselves which means registering them again will
         # cause a non-fatal exception
         return
-    _override_config_opts()
+
+    _override_config_opts(coordinator_noop=coordinator_noop)
 
 
-def _override_config_opts():
+def _override_config_opts(coordinator_noop=False):
     _override_db_opts()
     _override_common_opts()
     _override_api_opts()
     _override_keyvalue_opts()
     _override_scheduler_opts()
+    _override_coordinator_opts(noop=coordinator_noop)
 
 
 def _register_config_opts():
@@ -80,8 +82,6 @@ def _override_common_opts():
     CONF.set_override(name='packs_base_paths', override=packs_base_path, group='content')
     CONF.set_override(name='api_url', override='http://127.0.0.1', group='auth')
     CONF.set_override(name='mask_secrets', override=True, group='log')
-    CONF.set_override(name='url', override='zake://', group='coordination')
-    CONF.set_override(name='lock_timeout', override=1, group='coordination')
     CONF.set_override(name='jitter_interval', override=0, group='mistral')
     CONF.set_override(name='query_interval', override=0.1, group='resultstracker')
     CONF.set_override(name='stream_output', override=False, group='actionrunner')
@@ -103,6 +103,12 @@ def _override_keyvalue_opts():
 
 def _override_scheduler_opts():
     CONF.set_override(name='sleep_interval', group='scheduler', override=0.01)
+
+
+def _override_coordinator_opts(noop=False):
+    driver = None if noop else 'zake://'
+    CONF.set_override(name='url', override=driver, group='coordination')
+    CONF.set_override(name='lock_timeout', override=1, group='coordination')
 
 
 def _register_common_opts():
