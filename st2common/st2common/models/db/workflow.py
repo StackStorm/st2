@@ -63,6 +63,7 @@ class TaskExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionField
     task_name = me.StringField(required=True)
     task_id = me.StringField(required=True)
     task_spec = stormbase.EscapedDictField()
+    delay = me.IntField(min_value=0)
     itemized = me.BooleanField(default=False)
     context = stormbase.EscapedDictField()
     result = stormbase.EscapedDictField()

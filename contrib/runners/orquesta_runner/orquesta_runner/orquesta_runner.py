@@ -118,6 +118,15 @@ class OrquestaRunner(runners.AsyncActionRunner):
 
         return (status, partial_results, ctx)
 
+    @staticmethod
+    def task_pauseable(ac_ex):
+        wf_ex_pauseable = (
+            ac_ex.runner['name'] in ac_const.WORKFLOW_RUNNER_TYPES and
+            ac_ex.status == ac_const.LIVEACTION_STATUS_RUNNING
+        )
+
+        return wf_ex_pauseable
+
     def pause(self):
         # Pause the target workflow.
         wf_ex_db = wf_svc.request_pause(self.execution)
@@ -125,8 +134,7 @@ class OrquestaRunner(runners.AsyncActionRunner):
         # Request pause of tasks that are workflows and still running.
         for child_ex_id in self.execution.children:
             child_ex = ex_db_access.ActionExecution.get(id=child_ex_id)
-            if (child_ex.runner['name'] in ac_const.WORKFLOW_RUNNER_TYPES and
-                    child_ex.status == ac_const.LIVEACTION_STATUS_RUNNING):
+            if self.task_pauseable(child_ex):
                 ac_svc.request_pause(
                     lv_db_access.LiveAction.get(id=child_ex.liveaction['id']),
                     self.context.get('user', None)
@@ -144,6 +152,15 @@ class OrquestaRunner(runners.AsyncActionRunner):
             self.liveaction.context
         )
 
+    @staticmethod
+    def task_resumeable(ac_ex):
+        wf_ex_resumeable = (
+            ac_ex.runner['name'] in ac_const.WORKFLOW_RUNNER_TYPES and
+            ac_ex.status == ac_const.LIVEACTION_STATUS_PAUSED
+        )
+
+        return wf_ex_resumeable
+
     def resume(self):
         # Resume the target workflow.
         wf_ex_db = wf_svc.request_resume(self.execution)
@@ -151,8 +168,7 @@ class OrquestaRunner(runners.AsyncActionRunner):
         # Request resume of tasks that are workflows and still running.
         for child_ex_id in self.execution.children:
             child_ex = ex_db_access.ActionExecution.get(id=child_ex_id)
-            if (child_ex.runner['name'] in ac_const.WORKFLOW_RUNNER_TYPES and
-                    child_ex.status == ac_const.LIVEACTION_STATUS_PAUSED):
+            if self.task_resumeable(child_ex):
                 ac_svc.request_resume(
                     lv_db_access.LiveAction.get(id=child_ex.liveaction['id']),
                     self.context.get('user', None)
@@ -164,6 +180,20 @@ class OrquestaRunner(runners.AsyncActionRunner):
             self.liveaction.context
         )
 
+    @staticmethod
+    def task_cancelable(ac_ex):
+        wf_ex_cancelable = (
+            ac_ex.runner['name'] in ac_const.WORKFLOW_RUNNER_TYPES and
+            ac_ex.status in ac_const.LIVEACTION_CANCELABLE_STATES
+        )
+
+        ac_ex_cancelable = (
+            ac_ex.runner['name'] not in ac_const.WORKFLOW_RUNNER_TYPES and
+            ac_ex.status in ac_const.LIVEACTION_DELAYED_STATES
+        )
+
+        return wf_ex_cancelable or ac_ex_cancelable
+
     def cancel(self):
         # Cancel the target workflow.
         wf_svc.request_cancellation(self.execution)
@@ -171,8 +201,7 @@ class OrquestaRunner(runners.AsyncActionRunner):
         # Request cancellation of tasks that are workflows and still running.
         for child_ex_id in self.execution.children:
             child_ex = ex_db_access.ActionExecution.get(id=child_ex_id)
-            if (child_ex.runner['name'] in ac_const.WORKFLOW_RUNNER_TYPES and
-                    child_ex.status in ac_const.LIVEACTION_CANCELABLE_STATES):
+            if self.task_cancelable(child_ex):
                 ac_svc.request_cancellation(
                     lv_db_access.LiveAction.get(id=child_ex.liveaction['id']),
                     self.context.get('user', None)

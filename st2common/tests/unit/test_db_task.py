@@ -36,6 +36,7 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         initial.task_name = 't1'
         initial.task_id = 't1'
         initial.task_spec = {'tasks': {'t1': 'some task'}}
+        initial.delay = 180
         initial.status = 'requested'
         initial.context = {'var1': 'foobar'}
 
@@ -50,6 +51,7 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         self.assertEqual(created.task_name, retrieved.task_name)
         self.assertEqual(created.task_id, retrieved.task_id)
         self.assertDictEqual(created.task_spec, retrieved.task_spec)
+        self.assertEqual(created.delay, retrieved.delay)
         self.assertFalse(created.itemized)
         self.assertEqual(created.status, retrieved.status)
         self.assertIsNotNone(created.start_timestamp)
@@ -66,6 +68,7 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         self.assertEqual(updated.task_name, retrieved.task_name)
         self.assertEqual(updated.task_id, retrieved.task_id)
         self.assertDictEqual(updated.task_spec, retrieved.task_spec)
+        self.assertEqual(updated.delay, retrieved.delay)
         self.assertEqual(updated.itemized, retrieved.itemized)
         self.assertEqual(updated.status, retrieved.status)
         self.assertIsNotNone(updated.start_timestamp)
@@ -84,6 +87,7 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         self.assertEqual(updated.task_name, retrieved.task_name)
         self.assertEqual(updated.task_id, retrieved.task_id)
         self.assertDictEqual(updated.task_spec, retrieved.task_spec)
+        self.assertEqual(updated.delay, retrieved.delay)
         self.assertEqual(updated.itemized, retrieved.itemized)
         self.assertEqual(updated.status, retrieved.status)
         self.assertIsNotNone(updated.start_timestamp)
@@ -106,6 +110,7 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         initial.task_name = 't1'
         initial.task_id = 't1'
         initial.task_spec = {'tasks': {'t1': 'some task'}}
+        initial.delay = 180
         initial.itemized = True
         initial.status = 'requested'
         initial.context = {'var1': 'foobar'}
@@ -121,6 +126,7 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         self.assertEqual(created.task_name, retrieved.task_name)
         self.assertEqual(created.task_id, retrieved.task_id)
         self.assertDictEqual(created.task_spec, retrieved.task_spec)
+        self.assertEqual(created.delay, retrieved.delay)
         self.assertTrue(created.itemized)
         self.assertEqual(created.status, retrieved.status)
         self.assertIsNotNone(created.start_timestamp)
@@ -137,6 +143,7 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         self.assertEqual(updated.task_name, retrieved.task_name)
         self.assertEqual(updated.task_id, retrieved.task_id)
         self.assertDictEqual(updated.task_spec, retrieved.task_spec)
+        self.assertEqual(updated.delay, retrieved.delay)
         self.assertEqual(updated.itemized, retrieved.itemized)
         self.assertEqual(updated.status, retrieved.status)
         self.assertIsNotNone(updated.start_timestamp)
@@ -155,6 +162,7 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         self.assertEqual(updated.task_name, retrieved.task_name)
         self.assertEqual(updated.task_id, retrieved.task_id)
         self.assertDictEqual(updated.task_spec, retrieved.task_spec)
+        self.assertEqual(updated.delay, retrieved.delay)
         self.assertEqual(updated.itemized, retrieved.itemized)
         self.assertEqual(updated.status, retrieved.status)
         self.assertIsNotNone(updated.start_timestamp)
@@ -177,6 +185,7 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         initial.task_name = 't1'
         initial.task_id = 't1'
         initial.task_spec = {'tasks': {'t1': 'some task'}}
+        initial.delay = 180
         initial.status = 'requested'
         initial.context = {'var1': 'foobar'}
 
@@ -199,6 +208,7 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         self.assertEqual(updated.task_name, retrieved1.task_name)
         self.assertEqual(updated.task_id, retrieved1.task_id)
         self.assertDictEqual(updated.task_spec, retrieved1.task_spec)
+        self.assertEqual(updated.delay, retrieved1.delay)
         self.assertEqual(updated.itemized, retrieved1.itemized)
         self.assertEqual(updated.status, retrieved1.status)
         self.assertIsNotNone(updated.start_timestamp)

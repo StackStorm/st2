@@ -71,7 +71,7 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
     parent = me.StringField()
     children = me.ListField(field=me.StringField())
     log = me.ListField(field=me.DictField())
-    delay = me.IntField()
+    delay = me.IntField(min_value=0)
     # Do not use URLField for web_url. If host doesn't have FQDN set, URLField validation blows.
     web_url = me.StringField(required=False)
 

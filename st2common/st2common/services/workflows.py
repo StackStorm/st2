@@ -398,12 +398,13 @@ def request_cancellation(ac_ex_db):
     return wf_ex_db
 
 
-def request_task_execution(wf_ex_db, st2_ctx, task_req):
+def request_task_execution(wf_ex_db, st2_ctx, task_ex_req):
     wf_ac_ex_id = wf_ex_db.action_execution
-    task_id = task_req['id']
-    task_spec = task_req['spec']
-    task_ctx = task_req['ctx']
-    task_actions = task_req['actions']
+    task_id = task_ex_req['id']
+    task_spec = task_ex_req['spec']
+    task_ctx = task_ex_req['ctx']
+    task_actions = task_ex_req['actions']
+    task_delay = task_ex_req.get('delay')
 
     LOG.info('[%s] Processing task execution request for "%s".', wf_ac_ex_id, task_id)
 
@@ -427,6 +428,7 @@ def request_task_execution(wf_ex_db, st2_ctx, task_req):
             task_name=task_spec.name or task_id,
             task_id=task_id,
             task_spec=task_spec.serialize(),
+            delay=task_delay,
             itemized=task_spec.has_items(),
             context=task_ctx,
             status=states.REQUESTED
@@ -434,7 +436,7 @@ def request_task_execution(wf_ex_db, st2_ctx, task_req):
 
         # Prepare the result format for itemized task execution.
         if task_ex_db.itemized:
-            task_ex_db.result = {'items': [None] * task_req['items_count']}
+            task_ex_db.result = {'items': [None] * task_ex_req['items_count']}
 
         # Insert new record into the database.
         task_ex_db = wf_db_access.TaskExecution.insert(task_ex_db, publish=False)
@@ -459,8 +461,9 @@ def request_task_execution(wf_ex_db, st2_ctx, task_req):
             return wf_db_access.TaskExecution.get_by_id(str(task_ex_db.id))
 
         # Request action execution for each actions in the task request.
-        for action in task_actions:
-            request_action_execution(wf_ex_db, task_ex_db, st2_ctx, action)
+        for ac_ex_req in task_actions:
+            ac_ex_delay = eval_action_execution_delay(task_ex_req, ac_ex_req, task_ex_db.itemized)
+            request_action_execution(wf_ex_db, task_ex_db, st2_ctx, ac_ex_req, delay=ac_ex_delay)
             task_ex_db = wf_db_access.TaskExecution.get_by_id(str(task_ex_db.id))
     except Exception as e:
         msg = '[%s] Failed action execution(s) for task "%s". %s'
@@ -473,8 +476,28 @@ def request_task_execution(wf_ex_db, st2_ctx, task_req):
     return task_ex_db
 
 
+def eval_action_execution_delay(task_ex_req, ac_ex_req, itemized=False):
+    task_ex_delay = task_ex_req.get('delay')
+    items_concurrency = task_ex_req.get('concurrency')
+
+    # If there is a task delay and not with items, return the delay value.
+    if task_ex_delay and not itemized:
+        return task_ex_delay
+
+    # If there is a task delay and task has items but no concurrency, return the delay value.
+    if task_ex_delay and itemized and not items_concurrency:
+        return task_ex_delay
+
+    # If there is a task delay and task has items with concurrency,
+    # return the delay value up if item id is less than the concurrency value.
+    if task_ex_delay and itemized and ac_ex_req['item_id'] < items_concurrency:
+        return task_ex_delay
+
+    return None
+
+
 @retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
-def request_action_execution(wf_ex_db, task_ex_db, st2_ctx, ac_ex_req):
+def request_action_execution(wf_ex_db, task_ex_db, st2_ctx, ac_ex_req, delay=None):
     wf_ac_ex_id = wf_ex_db.action_execution
     action_ref = ac_ex_req['action']
     action_input = ac_ex_req['input']
@@ -521,10 +544,16 @@ def request_action_execution(wf_ex_db, task_ex_db, st2_ctx, ac_ex_req):
         ac_ex_ctx
     )
 
+    # The delay spec is in seconds and scheduler expects milliseconds.
+    if delay is not None and delay > 0:
+        delay = delay * 1000
+
+    # Instantiate the live action record.
     lv_ac_db = lv_db_models.LiveActionDB(
         action=action_ref,
         workflow_execution=str(wf_ex_db.id),
         task_execution=str(task_ex_db.id),
+        delay=delay,
         context=ac_ex_ctx,
         parameters=ac_ex_params
     )
@@ -714,10 +743,21 @@ def refresh_conductor(wf_ex_id):
 @retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
 def update_task_flow(task_ex_id, ac_ex_status, ac_ex_result=None, ac_ex_ctx=None, publish=True):
     # Return if action execution status is not in the list of states to process.
-    states_to_process = states.COMPLETED_STATES + [states.PAUSED, states.PENDING]
+    states_to_process = (
+        copy.copy(ac_const.LIVEACTION_COMPLETED_STATES) +
+        [ac_const.LIVEACTION_STATUS_PAUSED, ac_const.LIVEACTION_STATUS_PENDING]
+    )
 
     if ac_ex_status not in states_to_process:
         return
+
+    # Replace/Simplify specific states.
+    states_to_collapse = {
+        ac_const.LIVEACTION_STATUS_POLICY_DELAYED: ac_const.LIVEACTION_STATUS_DELAYED
+    }
+
+    if ac_ex_status in states_to_collapse:
+        ac_ex_status = states_to_collapse[ac_ex_status]
 
     # Refresh records
     task_ex_db = wf_db_access.TaskExecution.get_by_id(task_ex_id)
