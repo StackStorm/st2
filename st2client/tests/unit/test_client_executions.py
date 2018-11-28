@@ -86,7 +86,8 @@ class TestExecutionResourceManager(unittest2.TestCase):
         data = {
             'tasks': ['foobar'],
             'reset': ['foobar'],
-            'parameters': {}
+            'parameters': {},
+            'delay': 0
         }
 
         httpclient.HTTPClient.post.assert_called_with(endpoint, data)
@@ -119,7 +120,34 @@ class TestExecutionResourceManager(unittest2.TestCase):
         data = {
             'tasks': ['foobar'],
             'reset': ['foobar'],
-            'parameters': params
+            'parameters': params,
+            'delay': 0
+        }
+
+        httpclient.HTTPClient.post.assert_called_with(endpoint, data)
+
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_id',
+        mock.MagicMock(return_value=models.Execution(**EXECUTION)))
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_ref_or_id',
+        mock.MagicMock(return_value=models.Action(**ACTION)))
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_name',
+        mock.MagicMock(return_value=models.RunnerType(**RUNNER)))
+    @mock.patch.object(
+        httpclient.HTTPClient, 'post',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(EXECUTION), 200, 'OK')))
+    def test_rerun_with_delay(self):
+        self.client.executions.re_run(EXECUTION['id'], tasks=['foobar'], delay=100)
+
+        endpoint = '/executions/%s/re_run' % EXECUTION['id']
+
+        data = {
+            'tasks': ['foobar'],
+            'reset': ['foobar'],
+            'parameters': {},
+            'delay': 100
         }
 
         httpclient.HTTPClient.post.assert_called_with(endpoint, data)

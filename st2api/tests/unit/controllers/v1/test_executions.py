@@ -190,6 +190,17 @@ LIVE_ACTION_4 = {
     'action': 'starterpack.st2.dummy.action4',
 }
 
+LIVE_ACTION_DELAY = {
+    'action': 'sixpack.st2.dummy.action1',
+    'parameters': {
+        'hosts': 'localhost',
+        'cmd': 'uname -a',
+        'd': SUPER_SECRET_PARAMETER
+    },
+    'delay': 100
+}
+
+
 LIVE_ACTION_INQUIRY = {
     'parameters': {
         'route': 'developers',
@@ -580,6 +591,51 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         data = {'parameters': {'a': 'val1'}}
         re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id), data)
         self.assertEqual(re_run_resp.status_int, 201)
+
+    def test_re_run_with_delay(self):
+        post_resp = self._do_post(LIVE_ACTION_1)
+        self.assertEqual(post_resp.status_int, 201)
+        execution_id = self._get_actionexecution_id(post_resp)
+
+        delay_time = 100
+        data = {'delay': delay_time}
+        re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id), data)
+        self.assertEqual(re_run_resp.status_int, 201)
+        resp = json.loads(re_run_resp.body)
+        self.assertEqual(resp['delay'], delay_time)
+
+    def test_re_run_with_incorrect_delay(self):
+        post_resp = self._do_post(LIVE_ACTION_1)
+        self.assertEqual(post_resp.status_int, 201)
+        execution_id = self._get_actionexecution_id(post_resp)
+
+        delay_time = 'sudo apt -y upgrade winson'
+        data = {'delay': delay_time}
+        re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id),
+                                         data, expect_errors=True)
+        self.assertEqual(re_run_resp.status_int, 400)
+
+    def test_re_run_with_very_large_delay(self):
+        post_resp = self._do_post(LIVE_ACTION_1)
+        self.assertEqual(post_resp.status_int, 201)
+        execution_id = self._get_actionexecution_id(post_resp)
+
+        delay_time = 10 ** 10
+        data = {'delay': delay_time}
+        re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id), data)
+        self.assertEqual(re_run_resp.status_int, 201)
+
+    def test_re_run_delayed_aciton_with_no_delay(self):
+        post_resp = self._do_post(LIVE_ACTION_DELAY)
+        self.assertEqual(post_resp.status_int, 201)
+        execution_id = self._get_actionexecution_id(post_resp)
+
+        delay_time = 0
+        data = {'delay': delay_time}
+        re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id), data)
+        self.assertEqual(re_run_resp.status_int, 201)
+        resp = json.loads(re_run_resp.body)
+        self.assertNotIn('delay', resp.keys())
 
     def test_re_run_failure_execution_doesnt_exist(self):
         # Create a new execution

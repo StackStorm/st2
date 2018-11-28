@@ -406,6 +406,11 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
         if list(set(spec_api.reset) - set(spec_api.tasks)):
             raise ValueError('List of tasks to reset does not match the tasks to rerun.')
 
+        delay = None
+
+        if hasattr(spec_api, "delay") and isinstance(spec_api.delay, int):
+            delay = spec_api.delay
+
         no_merge = cast_argument_value(value_type=bool, value=no_merge)
         existing_execution = self._get_one_by_id(id=id, exclude_fields=self.exclude_fields,
                                                  requester_user=requester_user,
@@ -446,7 +451,8 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
         new_liveaction_api = LiveActionCreateAPI(action=action_ref,
                                                  context=context,
                                                  parameters=new_parameters,
-                                                 user=spec_api.user)
+                                                 user=spec_api.user,
+                                                 delay=delay)
 
         return self._handle_schedule_execution(liveaction_api=new_liveaction_api,
                                                requester_user=requester_user,
