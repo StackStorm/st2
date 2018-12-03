@@ -100,6 +100,12 @@ class PackAPI(BaseAPI):
                                '">=1.8.0, <2.2.0"',
                 'pattern': ST2_VERSION_REGEX,
             },
+            'python_version': {
+                'type': 'string',
+                'description': 'Python version supported by this pack. Examples: "=> 2.7.0",'
+                               '">=3.5.0,<=3.7.0"',
+                'pattern': ST2_VERSION_REGEX,
+            },
             'author': {
                 'type': 'string',
                 'description': 'Pack author or authors.',
