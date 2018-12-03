@@ -58,7 +58,7 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 CONFIG_FILE = 'config.yaml'
-CURRENT_STACKSTROM_VERSION = get_stackstorm_version()
+CURRENT_STACKSTORM_VERSION = get_stackstorm_version()
 
 
 def download_pack(pack, abs_repo_base='/opt/stackstorm/packs', verify_ssl=True, force=False,
@@ -379,9 +379,9 @@ def verify_pack_version(pack_dir):
     # If stackstorm_version attribute is speficied, verify that the pack works with currently
     # running version of StackStorm
     if required_stackstorm_version:
-        if not complex_semver_match(CURRENT_STACKSTROM_VERSION, required_stackstorm_version):
+        if not complex_semver_match(CURRENT_STACKSTORM_VERSION, required_stackstorm_version):
             msg = ('Pack "%s" requires StackStorm "%s", but current version is "%s". ' %
-                   (pack_name, required_stackstorm_version, CURRENT_STACKSTROM_VERSION),
+                   (pack_name, required_stackstorm_version, CURRENT_STACKSTORM_VERSION),
                    'You can override this restriction by providing the "force" flag, but ',
                    'the pack is not guaranteed to work.')
             raise ValueError(msg)
