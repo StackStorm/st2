@@ -19,6 +19,7 @@ from __future__ import absolute_import
 import six
 import mock
 
+from st2common.constants.keyvalue import FULL_USER_SCOPE
 from st2common.exceptions.param import ParamException
 from st2common.models.system.common import ResourceReference
 from st2common.models.db.liveaction import LiveActionDB
@@ -152,7 +153,7 @@ class ParamsUtilsTest(DbTestCase):
         params = {}
         runner_param_info = {}
         action_param_info = {}
-        action_context = {}
+        action_context = {'user': None}
         r_runner_params, r_action_params = param_utils.get_finalized_params(
             runner_param_info, action_param_info, params, action_context)
         self.assertEqual(r_runner_params, params)
@@ -249,7 +250,7 @@ class ParamsUtilsTest(DbTestCase):
         }
         runner_param_info = {'r1': {'type': 'boolean'}, 'r2': {'type': 'integer'}, 'r3': {}}
         action_param_info = {'a1': {'type': 'boolean'}, 'a2': {'type': 'array'}, 'a3': {}}
-        action_context = {}
+        action_context = {'user': None}
         r_runner_params, r_action_params = param_utils.get_finalized_params(
             runner_param_info, action_param_info, params, action_context)
         self.assertEqual(r_runner_params, {'r1': True, 'r2': 1, 'r3': 1})
@@ -334,7 +335,7 @@ class ParamsUtilsTest(DbTestCase):
         runner_param_info = {}
         action_param_info = {'a1': {'type': 'string'}}
 
-        action_context = {}
+        action_context = {'user': None}
 
         r_runner_params, r_action_params = param_utils.get_finalized_params(
             runner_param_info, action_param_info, params, action_context)
@@ -387,7 +388,7 @@ class ParamsUtilsTest(DbTestCase):
             },
         }
         r_runner_params, r_action_params = param_utils.get_finalized_params(
-            runner_param_info, action_param_info, params, {})
+            runner_param_info, action_param_info, params, {'user': None})
         self.assertEqual(
             r_runner_params, {'r1': {'r2.1': 1}, 'r2': {'r2.1': 1}})
         self.assertEqual(
@@ -445,7 +446,7 @@ class ParamsUtilsTest(DbTestCase):
             'a7': {'type': 'integer'},
         }
         r_runner_params, r_action_params = param_utils.get_finalized_params(
-            runner_param_info, action_param_info, params, {})
+            runner_param_info, action_param_info, params, {'user': None})
         self.assertEqual(r_runner_params, {'r1': ['1', '2'], 'r2': ['1', '2']})
         self.assertEqual(
             r_action_params,
@@ -474,7 +475,10 @@ class ParamsUtilsTest(DbTestCase):
         action_param_info = {}
         test_pass = True
         try:
-            param_utils.get_finalized_params(runner_param_info, action_param_info, params, {})
+            param_utils.get_finalized_params(runner_param_info,
+                                             action_param_info,
+                                             params,
+                                             {'user': None})
             test_pass = False
         except ParamException as e:
             test_pass = str(e).find('Cyclic') == 0
@@ -486,7 +490,10 @@ class ParamsUtilsTest(DbTestCase):
         action_param_info = {}
         test_pass = True
         try:
-            param_utils.get_finalized_params(runner_param_info, action_param_info, params, {})
+            param_utils.get_finalized_params(runner_param_info,
+                                             action_param_info,
+                                             params,
+                                             {'user': None})
             test_pass = False
         except ParamException as e:
             test_pass = str(e).find('Dependency') == 0
@@ -497,7 +504,10 @@ class ParamsUtilsTest(DbTestCase):
         action_param_info = {}
         test_pass = True
         try:
-            param_utils.get_finalized_params(runner_param_info, action_param_info, params, {})
+            param_utils.get_finalized_params(runner_param_info,
+                                             action_param_info,
+                                             params,
+                                             {'user': None})
             test_pass = False
         except ParamException as e:
             test_pass = str(e).find('Dependency') == 0
@@ -511,7 +521,8 @@ class ParamsUtilsTest(DbTestCase):
         action_param_info = {}
         action_context = {
             'h1': '{',
-            'h2': '{ missing }}'
+            'h2': '{ missing }}',
+            'user': None
         }
         r_runner_params, r_action_params = param_utils.get_finalized_params(
             runner_param_info, action_param_info, params, action_context)
@@ -522,7 +533,7 @@ class ParamsUtilsTest(DbTestCase):
         params = {'cmd': 'echo {{"1.6.0" | version_bump_minor}}'}
         runner_param_info = {'r1': {}}
         action_param_info = {'cmd': {}}
-        action_context = {}
+        action_context = {'user': None}
 
         r_runner_params, r_action_params = param_utils.get_finalized_params(
             runner_param_info, action_param_info, params, action_context)
@@ -540,7 +551,7 @@ class ParamsUtilsTest(DbTestCase):
                                 runnertype_parameter_info={},
                                 action_parameter_info=action_param_info,
                                 liveaction_parameters=params,
-                                action_context={})
+                                action_context={'user': None})
 
     def test_get_finalized_param_object_contains_template_notation_in_the_value(self):
         runner_param_info = {'r1': {}}
@@ -557,7 +568,7 @@ class ParamsUtilsTest(DbTestCase):
             'host': 'lolcathost',
             'port': 5555
         }
-        action_context = {}
+        action_context = {'user': None}
 
         r_runner_params, r_action_params = param_utils.get_finalized_params(
             runner_param_info, action_param_info, params, action_context)
@@ -636,6 +647,40 @@ class ParamsUtilsTest(DbTestCase):
 
         return liveaction_db
 
+    def test_get_value_from_datastore_through_render_live_params(self):
+        KeyValuePair.add_or_update(KeyValuePairDB(name='test_key', value='foo'))
+        KeyValuePair.add_or_update(KeyValuePairDB(name='user1:test_key',
+                                                  value='bar',
+                                                  scope=FULL_USER_SCOPE))
+
+        runner_param_info = {}
+        action_param_info = {
+            'system_value': {'default': '{{ st2kv.system.test_key }}'},
+            'user_value': {'default': '{{ st2kv.user.test_key }}'},
+        }
+        params = {}
+
+        # Assert that datastore value can be got via the Jinja expression from individual scopes.
+        action_context = {'user': 'user1'}
+        live_params = param_utils.render_live_params(runner_param_info,
+                                                     action_param_info,
+                                                     params,
+                                                     action_context)
+
+        self.assertEqual(live_params['system_value'], 'foo')
+        self.assertEqual(live_params['user_value'], 'bar')
+
+        # Assert that datastore value in the user-scope that is registered by user1
+        # cannot be got by the operation of user2.
+        action_context = {'user': 'user2'}
+        live_params = param_utils.render_live_params(runner_param_info,
+                                                     action_param_info,
+                                                     params,
+                                                     action_context)
+
+        self.assertEqual(live_params['system_value'], 'foo')
+        self.assertEqual(live_params['user_value'], '')
+
     def test_get_live_params_with_additional_context(self):
         runner_param_info = {
             'r1': {
@@ -651,7 +696,7 @@ class ParamsUtilsTest(DbTestCase):
             'r3': 'lolcathost',
             'r1': '{{ additional.stuff }}'
         }
-        action_context = {}
+        action_context = {'user': None}
         additional_contexts = {
             'additional': {
                 'stuff': 'generic'
@@ -686,7 +731,7 @@ class ParamsUtilsTest(DbTestCase):
             'cyclic': '{{ cyclic }}',
             'morecyclic': '{{ morecyclic }}'
         }
-        action_context = {}
+        action_context = {'user': None}
 
         expected_msg = 'Cyclic dependency found in the following variables: cyclic, morecyclic'
         self.assertRaisesRegexp(ParamException, expected_msg, param_utils.render_live_params,
@@ -707,7 +752,7 @@ class ParamsUtilsTest(DbTestCase):
             'r3': 'lolcathost',
             'r4': '{{ variable_not_defined }}',
         }
-        action_context = {}
+        action_context = {'user': None}
 
         expected_msg = 'Dependency unsatisfied in variable "variable_not_defined"'
         self.assertRaisesRegexp(ParamException, expected_msg, param_utils.render_live_params,
