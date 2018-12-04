@@ -71,7 +71,8 @@ STACKSTORM_VIRTUALENV_PYTHON_BINARY="${STACKSTORM_VIRTUALENV_BIN}/python"
 ####################
 
 function usage() {
-    echo "Usage: $0  [-c] [-j] [-t] [-v] [-x] -p <path to pack>" >&2
+    echo "Usage: $0  [-c] [-j] [-t] [-v] [-x] -p <path to pack> [-m <test file path>]" >&2
+    echo "  -m : Run a specific test file or test" >&2
     echo "  -c : Run tests with code coverage reporting enabled" >&2
     echo "  -j : Just run tests. Use previously installed dependencies" >&2
     echo "       and virtualenv, if any, for subsequent test runs." >&2
@@ -80,10 +81,13 @@ function usage() {
     echo "  -x : Do not create virtualenv for test for tests, e.g. when running in existing one." >&2
 }
 
-while getopts ":p:xjvct" o; do
+while getopts ":p:m:xjvct" o; do
     case "${o}" in
         p)
             PACK_PATH=${OPTARG}
+            ;;
+        m)
+            TEST_LOCATION=${OPTARG}
             ;;
         x)
             CREATE_VIRTUALENV=false
@@ -273,6 +277,11 @@ if [ ! -z "${PYTHONPATH}" ]; then
     TESTS_PYTHON_PATH+=("${PYTHONPATH}")
 fi
 
+# 4. Add in tests path if test file is provided
+if [ ! -z "${TEST_LOCATION}" ]; then
+    TESTS_PYTHON_PATH+=("${PACK_TESTS_PATH}")
+fi
+
 TESTS_PYTHON_PATH="$(join ":" ${TESTS_PYTHON_PATH[@]})"
 
 export PYTHONPATH="${TESTS_PYTHON_PATH}"
@@ -325,7 +334,13 @@ fi
 pushd ${PACK_PATH} > /dev/null
 
 # Execute the tests
-nosetests ${NOSE_OPTS[@]} ${PACK_TESTS_PATH}
+if [ "${TEST_LOCATION}" ]; then
+    # Run a specific test file, class or method
+    nosetests ${NOSE_OPTS[@]} ${TEST_LOCATION}
+else
+    # Run all tests inside the pack
+    nosetests ${NOSE_OPTS[@]} ${PACK_TESTS_PATH}
+fi
 TESTS_EXIT_CODE=$?
 
 popd  > /dev/null # ${PACK_PATH}
