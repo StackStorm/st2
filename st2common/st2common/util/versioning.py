@@ -46,8 +46,14 @@ def complex_semver_match(version, version_specifier):
     Custom semver match function which also supports complex semver specifiers
     such as >=1.6, <2.0, etc.
 
+    NOTE: This function also supports special "all" version specifier. When "all"
+    is specified, any version provided will be considered valid.
+
     :rtype: ``bool``
     """
+    if version_specifier == 'all':
+        return True
+
     split_version_specifier = version_specifier.split(',')
 
     if len(split_version_specifier) == 1:
