@@ -276,6 +276,70 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         result = action.run(packs=['test3'], abs_repo_base=self.repo_base, force=True)
         self.assertEqual(result['test3'], 'Success.')
 
+    def test_download_pack_python_version_check(self):
+        action = self.get_action_instance()
+
+        # No python_version attribute specified in the metadata file
+        st2common.util.pack_management.CURRENT_PYTHON_VERSION = '2.7.11'
+
+        with mock.patch('st2common.util.pack_management.get_pack_metadata') as \
+                mock_get_pack_metadata:
+            mock_get_pack_metadata.return_value = {
+                'name': 'test3',
+                'stackstorm_version': '',
+                'python_version': ''
+            }
+
+            result = action.run(packs=['test3'], abs_repo_base=self.repo_base, force=False)
+            self.assertEqual(result['test3'], 'Success.')
+
+        # Pack works with Python 2.7 installation is running 2.7
+        with mock.patch('st2common.util.pack_management.get_pack_metadata') as \
+                mock_get_pack_metadata:
+            mock_get_pack_metadata.return_value = {
+                'name': 'test3',
+                'stackstorm_version': '',
+                'python_version': '>=2.7.0, <2.8.0'
+            }
+
+            st2common.util.pack_management.CURRENT_PYTHON_VERSION = '2.7.5'
+
+            result = action.run(packs=['test3'], abs_repo_base=self.repo_base, force=False)
+            self.assertequal(result['test3'], 'success.')
+
+            st2common.util.pack_management.CURRENT_PYTHON_VERSION = '2.7.12'
+
+            result = action.run(packs=['test3'], abs_repo_base=self.repo_base, force=False)
+            self.assertEqual(result['test3'], 'Success.')
+
+        # Pack works with Python 2.7 installation is running 3.5
+        with mock.patch('st2common.util.pack_management.get_pack_metadata') as \
+                mock_get_pack_metadata:
+            mock_get_pack_metadata.return_value = {
+                'name': 'test3',
+                'stackstorm_version': '',
+                'python_version': '>=2.7.0, <2.8.0'
+            }
+
+            st2common.util.pack_management.CURRENT_PYTHON_VERSION = '3.5.2'
+
+            result = action.run(packs=['test3'], abs_repo_base=self.repo_base, force=False)
+            self.assertEqual(result['test3'], 'Success.')
+
+        # Pack works with Python 3.5 installation is running 2.7
+        with mock.patch('st2common.util.pack_management.get_pack_metadata') as \
+                mock_get_pack_metadata:
+            mock_get_pack_metadata.return_value = {
+                'name': 'test3',
+                'stackstorm_version': '',
+                'python_version': '>=3.5.0, <3.6.0'
+            }
+
+            st2common.util.pack_management.CURRENT_PYTHON_VERSION = '2.7.2'
+
+            result = action.run(packs=['test3'], abs_repo_base=self.repo_base, force=False)
+            self.assertTrue('Failure:' in result['test3'])
+
     def test_resolve_urls(self):
         url = eval_repo_url(
             "https://github.com/StackStorm-Exchange/stackstorm-test")
