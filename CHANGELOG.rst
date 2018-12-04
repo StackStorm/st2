@@ -9,6 +9,9 @@ Added
 
 * Added ``notify`` runner parameter to Orquesta that allows user to specify which task(s) to get
   notified on completion.
+* Add support for task delay in Orquesta workflows. #4459 (new feature)
+* Add support for task with items in Orquesta workflows. #4400 (new feature)
+* Add support for workflow output on error in Orquesta workflows. #4436 (new feature)
 * Added ``-o`` and ``-m`` CLI options to ``st2-self-check`` script, to skip Orquesta and/or Mistral
   tests. #4347
 * Allow user to specify new ``database.authentication_mechanism`` config option in
@@ -32,7 +35,6 @@ Added
   a specific (parent) execution. (new feature) #4444
 
   Contributed by Tristan Struthers (@trstruth).
-* Add support for task delay in Orquesta workflows. #4459 (new feature)
 * Allow user to run a subset of pack tests by utilizing the new ``-f`` command line option in the
   ``st2-run-pack-tests`` script.
 
@@ -55,6 +57,9 @@ Added
 Changed
 ~~~~~~~
 
+* Redesigned and rewritten the action execution scheduler. Requested executions are put in a
+  persistent queue for scheduler to process. Architecture is put into place for more complex
+  execution scheduling. Action execution can be delayed on request. (improvement)
 * ``core.http`` action now supports additional HTTP methods: OPTIONS, TRACE, PATCH, PURGE.
 
   Contributed by @emptywee (improvement) #4379
