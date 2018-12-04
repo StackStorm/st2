@@ -216,12 +216,12 @@ fi
 if [ ${ST2_REPO_PATH} ]; then
     ST2_REPO_PATH=${ST2_REPO_PATH:-/tmp/st2}
     ST2_COMPONENTS=$(find ${ST2_REPO_PATH}/* -maxdepth 0 -name "st2*" -type d)
-    ST2_RUNNERS=$(find ${ST2_REPO_PATH}/contrib/runners/* -maxdepth 0 -type d)
+    ST2_RUNNERS=$(find ${ST2_REPO_PATH}/contrib/runners/* -maxdepth 0 -type d 2> /dev/null)
     PACK_PYTHONPATH="$(join ":" ${ST2_COMPONENTS}):$(join ":" ${ST2_RUNNERS}):${SENSORS_PATH}:${ACTIONS_PATH}:${ETC_PATH}"
 else
     # ST2_REPO_PATH not provided, assume all the st2 component packages are
     # already in PYTHONPATH
-    ST2_RUNNERS=$(find /opt/stackstorm/runners/* -maxdepth 0 -type d)
+    ST2_RUNNERS=$(find /opt/stackstorm/runners/* -maxdepth 0 -type d 2> /dev/null)
     PACK_PYTHONPATH="$(join ":" ${ST2_COMPONENTS}):$(join ":" ${ST2_RUNNERS}):${SENSORS_PATH}:${ACTIONS_PATH}:${ETC_PATH}"
 fi
 
