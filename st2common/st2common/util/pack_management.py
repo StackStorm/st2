@@ -42,6 +42,7 @@ from st2common.util.pack import get_pack_ref_from_metadata
 from st2common.util.green import shell
 from st2common.util.versioning import complex_semver_match
 from st2common.util.versioning import get_stackstorm_version
+from st2common.util.versioning import get_python_version
 
 __all__ = [
     'download_pack',
@@ -59,6 +60,7 @@ LOG = logging.getLogger(__name__)
 
 CONFIG_FILE = 'config.yaml'
 CURRENT_STACKSTORM_VERSION = get_stackstorm_version()
+CURRENT_PYTHON_VERSION = get_python_version()
 
 
 def download_pack(pack, abs_repo_base='/opt/stackstorm/packs', verify_ssl=True, force=False,
@@ -375,6 +377,7 @@ def verify_pack_version(pack_dir):
     pack_metadata = get_pack_metadata(pack_dir=pack_dir)
     pack_name = pack_metadata.get('name', None)
     required_stackstorm_version = pack_metadata.get('stackstorm_version', None)
+    supported_python_version = pack_metadata.get('python_version', None)
 
     # If stackstorm_version attribute is speficied, verify that the pack works with currently
     # running version of StackStorm
@@ -385,6 +388,15 @@ def verify_pack_version(pack_dir):
                    'You can override this restriction by providing the "force" flag, but ',
                    'the pack is not guaranteed to work.')
             raise ValueError(msg)
+
+    if supported_python_version:
+        if not complex_semver_match(CURRENT_STACKSTORM_VERSION, supported_python_version):
+            if not complex_semver_match(CURRENT_STACKSTORM_VERSION, required_stackstorm_version):
+                msg = ('Pack "%s" requires Python "%s", but current version is "%s". ' %
+                       (pack_name, supported_python_version, CURRENT_PYTHON_VERSION),
+                       'You can override this restriction by providing the "force" flag, but ',
+                       'the pack is not guaranteed to work.')
+                raise ValueError(msg)
 
     return True
 

@@ -18,12 +18,16 @@ Module containing various versioning utils.
 """
 
 from __future__ import absolute_import
+
+import sys
+
 import semver
 
 from st2common import __version__ as stackstorm_version
 
 __all__ = [
     'get_stackstorm_version',
+    'get_python_version',
 
     'complex_semver_match'
 ]
@@ -39,6 +43,14 @@ def get_stackstorm_version():
         return version
 
     return stackstorm_version
+
+
+def get_python_version():
+    """
+    Return Python version used by this installation.
+    """
+    version_info = sys.version_info
+    return '%s.%s.%s' % (version_info.major, version_info.minor, version_info.micro)
 
 
 def complex_semver_match(version, version_specifier):
