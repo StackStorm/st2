@@ -241,38 +241,38 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         action = self.get_action_instance()
 
         # Version is satisfied
-        st2common.util.pack_management.CURRENT_STACKSTROM_VERSION = '2.0.0'
+        st2common.util.pack_management.CURRENT_STACKSTORM_VERSION = '2.0.0'
 
         result = action.run(packs=['test3'], abs_repo_base=self.repo_base)
         self.assertEqual(result['test3'], 'Success.')
 
         # Pack requires a version which is not satisfied by current StackStorm version
-        st2common.util.pack_management.CURRENT_STACKSTROM_VERSION = '2.2.0'
+        st2common.util.pack_management.CURRENT_STACKSTORM_VERSION = '2.2.0'
         expected_msg = ('Pack "test3" requires StackStorm ">=1.6.0, <2.2.0", but '
                         'current version is "2.2.0"')
         self.assertRaisesRegexp(ValueError, expected_msg, action.run, packs=['test3'],
                                 abs_repo_base=self.repo_base)
 
-        st2common.util.pack_management.CURRENT_STACKSTROM_VERSION = '2.3.0'
+        st2common.util.pack_management.CURRENT_STACKSTORM_VERSION = '2.3.0'
         expected_msg = ('Pack "test3" requires StackStorm ">=1.6.0, <2.2.0", but '
                         'current version is "2.3.0"')
         self.assertRaisesRegexp(ValueError, expected_msg, action.run, packs=['test3'],
                                 abs_repo_base=self.repo_base)
 
-        st2common.util.pack_management.CURRENT_STACKSTROM_VERSION = '1.5.9'
+        st2common.util.pack_management.CURRENT_STACKSTORM_VERSION = '1.5.9'
         expected_msg = ('Pack "test3" requires StackStorm ">=1.6.0, <2.2.0", but '
                         'current version is "1.5.9"')
         self.assertRaisesRegexp(ValueError, expected_msg, action.run, packs=['test3'],
                                 abs_repo_base=self.repo_base)
 
-        st2common.util.pack_management.CURRENT_STACKSTROM_VERSION = '1.5.0'
+        st2common.util.pack_management.CURRENT_STACKSTORM_VERSION = '1.5.0'
         expected_msg = ('Pack "test3" requires StackStorm ">=1.6.0, <2.2.0", but '
                         'current version is "1.5.0"')
         self.assertRaisesRegexp(ValueError, expected_msg, action.run, packs=['test3'],
                                 abs_repo_base=self.repo_base)
 
         # Version is not met, but force=true parameter is provided
-        st2common.util.pack_management.CURRENT_STACKSTROM_VERSION = '1.5.0'
+        st2common.util.pack_management.CURRENT_STACKSTORM_VERSION = '1.5.0'
         result = action.run(packs=['test3'], abs_repo_base=self.repo_base, force=True)
         self.assertEqual(result['test3'], 'Success.')
 
