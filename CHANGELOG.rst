@@ -33,17 +33,24 @@ Added
 
   Contributed by Tristan Struthers (@trstruth).
 * Add support for task delay in Orquesta workflows. #4459 (new feature)
-* Allow user to run a subset of pack tests by utilizing the new ``-m`` command line option in the
+* Allow user to run a subset of pack tests by utilizing the new ``-f`` command line option in the
   ``st2-run-pack-tests`` script.
 
   For example:
 
   1. Run all tests in a test file (module):
-     st2-run-pack-tests -j -x -p contrib/packs/ -m test_action_download
+
+     st2-run-pack-tests -j -x -p contrib/packs/ -f test_action_download
+
   2. Run a single test class
-     st2-run-pack-tests -j -x -p contrib/packs/ -m test_action_download:DownloadGitRepoActionTestCase
+
+     st2-run-pack-tests -j -x -p contrib/packs/ -f test_action_download:DownloadGitRepoActionTestCase
+
   3. Run a single test class method
-     st2-run-pack-tests -j -x -p contrib/packs/ -m test_action_download:DownloadGitRepoActionTestCase.test_run_pack_download
+
+     st2-run-pack-tests -j -x -p contrib/packs/ -f test_action_download:DownloadGitRepoActionTestCase.test_run_pack_download
+
+  (new feature) #4464
 
 Changed
 ~~~~~~~

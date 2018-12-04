@@ -71,8 +71,8 @@ STACKSTORM_VIRTUALENV_PYTHON_BINARY="${STACKSTORM_VIRTUALENV_BIN}/python"
 ####################
 
 function usage() {
-    echo "Usage: $0  [-c] [-j] [-t] [-v] [-x] -p <path to pack> [-m <test file module / class / method>]" >&2
-    echo "  -m : Run a specific test file or test class method (e.g. -m test_action_download:DownloadGitRepoActionTestCase.test_run_pack_download)" >&2
+    echo "Usage: $0  [-c] [-j] [-t] [-v] [-x] -p <path to pack> [-f <test file module / class / method>]" >&2
+    echo "  -f : Run a specific test file or test class method (e.g. -f test_action_download:DownloadGitRepoActionTestCase.test_run_pack_download)" >&2
     echo "  -c : Run tests with code coverage reporting enabled" >&2
     echo "  -j : Just run tests. Use previously installed dependencies" >&2
     echo "       and virtualenv, if any, for subsequent test runs." >&2
@@ -81,12 +81,12 @@ function usage() {
     echo "  -x : Do not create virtualenv for test for tests, e.g. when running in existing one." >&2
 }
 
-while getopts ":p:m:xjvct" o; do
+while getopts ":p:f:xjvct" o; do
     case "${o}" in
         p)
             PACK_PATH=${OPTARG}
             ;;
-        m)
+        f)
             TEST_LOCATION=${OPTARG}
             ;;
         x)
