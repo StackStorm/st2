@@ -33,7 +33,9 @@ class FunctionsWiringTest(base.TestWorkflowExecution):
             'data_json_obj_4': {'foo': {'bar': 'foobar'}},
             'data_yaml_str_1': 'foo:\n  bar: foobar\n',
             'data_yaml_str_2': 'foo:\n  bar: foobar\n',
-            'data_query_1': ['foobar']
+            'data_query_1': ['foobar'],
+            'data_none_str': '%*****__%NONE%__*****%',
+            'data_str': 'foobar'
         }
 
         expected_result = {'output': expected_output}
@@ -54,7 +56,9 @@ class FunctionsWiringTest(base.TestWorkflowExecution):
             'data_yaml_str_1': 'foo:\n  bar: foobar\n',
             'data_yaml_str_2': 'foo:\n  bar: foobar\n',
             'data_query_1': ['foobar'],
-            'data_pipe_str_1': '{"foo": {"bar": "foobar"}}'
+            'data_pipe_str_1': '{"foo": {"bar": "foobar"}}',
+            'data_none_str': '%*****__%NONE%__*****%',
+            'data_str': 'foobar'
         }
 
         expected_result = {'output': expected_output}
