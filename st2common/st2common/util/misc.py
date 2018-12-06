@@ -60,7 +60,7 @@ def compare_path_file_name(file_path_a, file_path_b):
     file_name_a = os.path.basename(file_path_a)
     file_name_b = os.path.basename(file_path_b)
 
-    return file_name_a < file_name_b
+    return (file_name_a > file_name_b) - (file_name_a < file_name_b)
 
 
 def strip_shell_chars(input_str):
