@@ -19,6 +19,7 @@ from __future__ import absolute_import
 import six
 import mock
 
+from oslo_config import cfg
 from st2common.constants.keyvalue import FULL_USER_SCOPE
 from st2common.exceptions.param import ParamException
 from st2common.models.system.common import ResourceReference
@@ -648,38 +649,50 @@ class ParamsUtilsTest(DbTestCase):
         return liveaction_db
 
     def test_get_value_from_datastore_through_render_live_params(self):
-        KeyValuePair.add_or_update(KeyValuePairDB(name='test_key', value='foo'))
-        KeyValuePair.add_or_update(KeyValuePairDB(name='user1:test_key',
-                                                  value='bar',
-                                                  scope=FULL_USER_SCOPE))
+        # Register datastore value to be refered by this test-case
+        register_kwargs = [
+            {'name': 'test_key', 'value': 'foo'},
+            {'name': 'user1:test_key', 'value': 'bar', 'scope': FULL_USER_SCOPE},
+            {'name': '%s:test_key' % cfg.CONF.system_user.user, 'value': 'baz',
+             'scope': FULL_USER_SCOPE},
+        ]
+        for kwargs in register_kwargs:
+            KeyValuePair.add_or_update(KeyValuePairDB(**kwargs))
 
-        runner_param_info = {}
-        action_param_info = {
+        # Assert that datastore value can be got via the Jinja expression from individual scopes.
+        context = {'user': 'user1'}
+        param = {
             'system_value': {'default': '{{ st2kv.system.test_key }}'},
             'user_value': {'default': '{{ st2kv.user.test_key }}'},
         }
-        params = {}
-
-        # Assert that datastore value can be got via the Jinja expression from individual scopes.
-        action_context = {'user': 'user1'}
-        live_params = param_utils.render_live_params(runner_param_info,
-                                                     action_param_info,
-                                                     params,
-                                                     action_context)
+        live_params = param_utils.render_live_params(runner_parameters={},
+                                                     action_parameters=param,
+                                                     params={},
+                                                     action_context=context)
 
         self.assertEqual(live_params['system_value'], 'foo')
         self.assertEqual(live_params['user_value'], 'bar')
 
         # Assert that datastore value in the user-scope that is registered by user1
         # cannot be got by the operation of user2.
-        action_context = {'user': 'user2'}
-        live_params = param_utils.render_live_params(runner_param_info,
-                                                     action_param_info,
-                                                     params,
-                                                     action_context)
+        context = {'user': 'user2'}
+        param = {'user_value': {'default': '{{ st2kv.user.test_key }}'}}
+        live_params = param_utils.render_live_params(runner_parameters={},
+                                                     action_parameters=param,
+                                                     params={},
+                                                     action_context=context)
 
-        self.assertEqual(live_params['system_value'], 'foo')
         self.assertEqual(live_params['user_value'], '')
+
+        # Assert that system-user's scope is selected when user and api_user parameter specified
+        context = {}
+        param = {'user_value': {'default': '{{ st2kv.user.test_key }}'}}
+        live_params = param_utils.render_live_params(runner_parameters={},
+                                                     action_parameters=param,
+                                                     params={},
+                                                     action_context=context)
+
+        self.assertEqual(live_params['user_value'], 'baz')
 
     def test_get_live_params_with_additional_context(self):
         runner_param_info = {

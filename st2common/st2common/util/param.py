@@ -20,6 +20,7 @@ import six
 import networkx as nx
 
 from jinja2 import meta
+from oslo_config import cfg
 from st2common import log as logging
 from st2common.util.config_loader import get_config
 from st2common.util.jinja import is_jinja_expression
@@ -86,9 +87,13 @@ def _create_graph(action_context, config):
     # If both 'user' and 'api_user' are specified, this prioritize 'api_user'
     user = action_context['user'] if 'user' in action_context else None
     user = action_context['api_user'] if 'api_user' in action_context else user
-    if user:
-        system_keyvalue_context[USER_SCOPE] = UserKeyValueLookup(scope=FULL_USER_SCOPE, user=user)
+    if not user:
+        # When no user is not specified, this selects system-user's scope by default.
+        user = cfg.CONF.system_user.user
+        LOG.info('No user is speicifed, '
+                 'thus system_user (%s) represents to get user-scope data item' % user)
 
+    system_keyvalue_context[USER_SCOPE] = UserKeyValueLookup(scope=FULL_USER_SCOPE, user=user)
     G.add_node(DATASTORE_PARENT_SCOPE, value=system_keyvalue_context)
     G.add_node(ACTION_CONTEXT_KV_PREFIX, value=action_context)
     G.add_node(PACK_CONFIG_CONTEXT_KV_PREFIX, value=config)
