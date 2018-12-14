@@ -20,11 +20,14 @@ class FibonacciSensor(PollingSensor):
         self.a = 0
         self.b = 1
         self.count = 2
+
         self.logger = self.sensor_service.get_logger(name=self.__class__.__name__)
 
     def poll(self):
         # Reset a and b if there are large enough to avoid integer overflow problems
         if self.a > 10000 or self.b > 10000:
+            self.logger.debug('Reseting values to avoid integer overflow issues')
+
             self.a = 0
             self.b = 1
             self.count = 2
