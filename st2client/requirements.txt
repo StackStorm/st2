@@ -1,6 +1,6 @@
 # Don't edit this file. It's generated automatically!
 argcomplete
-cryptography==2.4.1
+cryptography==2.4.2
 jsonpath-rw==1.4.0
 jsonschema==2.6.0
 prettytable
@@ -10,5 +10,5 @@ python-editor==1.0.3
 pytz==2018.7
 pyyaml==3.13
 requests[security]<2.15,>=2.14.1
-six==1.11.0
+six==1.12.0
 sseclient==0.0.19
