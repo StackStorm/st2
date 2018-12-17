@@ -111,9 +111,12 @@ class BaseFunctionalTest(DbTestCase):
     def tearDown(self):
         super(BaseFunctionalTest, self).tearDown()
 
+        # Reset mock context for API requests
         if getattr(self, 'request_context_mock', None):
             self.request_context_mock.stop()
-            del(Router.mock_context)
+
+            if hasattr(Router, 'mock_context'):
+                del(Router.mock_context)
 
     @classmethod
     def _do_setUpClass(cls):
@@ -201,10 +204,3 @@ class BaseAPIControllerWithRBACTestCase(BaseFunctionalTest, CleanDbTestCase):
             user=user_2_db.name, role=SystemRole.ADMIN,
             source='assignments/%s.yaml' % user_2_db.name)
         UserRoleAssignment.add_or_update(role_assignment_db)
-
-    def tearDown(self):
-        super(BaseAPIControllerWithRBACTestCase, self).tearDown()
-
-        if getattr(self, 'request_context_mock', None):
-            self.request_context_mock.stop()
-            del(Router.mock_context)
