@@ -21,7 +21,7 @@ from mongoengine import ValidationError
 
 from st2api.controllers.resource import ResourceController
 from st2common import log as logging
-from st2common.constants.keyvalue import ALL_SCOPE, FULL_SYSTEM_SCOPE
+from st2common.constants.keyvalue import ALL_SCOPE, FULL_SYSTEM_SCOPE, SYSTEM_SCOPE
 from st2common.constants.keyvalue import FULL_USER_SCOPE, USER_SCOPE, ALLOWED_SCOPES
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.keyvalue import CryptoKeyNotSetupException, InvalidScopeException
@@ -135,6 +135,7 @@ class KeyValuePairController(ResourceController):
         self._validate_decrypt_query_parameter(decrypt=decrypt, scope=scope, is_admin=is_admin,
                                                requester_user=requester_user)
 
+        user_query_param_filter = bool(user)
         user = user or requester_user.name
 
         # Validate that the authenticated user is admin if user query param is provided
@@ -147,21 +148,69 @@ class KeyValuePairController(ResourceController):
             self._validate_scope(scope=scope)
             raw_filters['scope'] = scope
 
-        if scope == USER_SCOPE or scope == FULL_USER_SCOPE:
+        if scope == ALL_SCOPE:
+            # Special case for ALL_SCOPE
+            # 1. Retrieve system scoped values
+            raw_filters['scope'] = FULL_SYSTEM_SCOPE
+
+            assert 'scope' in raw_filters
+            kvp_apis_system = super(KeyValuePairController, self)._get_all(
+                from_model_kwargs=from_model_kwargs,
+                sort=sort,
+                offset=offset,
+                limit=limit,
+                raw_filters=raw_filters,
+                requester_user=requester_user)
+
+            # 2. Retrieve user scoped items for current user or for all the users (depending if the
+            # authenticated user is admin and if ?user is provided)
+            raw_filters['scope'] = FULL_USER_SCOPE
+
+            if not is_admin or (is_admin and user_query_param_filter):
+                # Retrieve values scoped to the current or the provided user
+                prefix = get_key_reference(name=prefix or '', scope=USER_SCOPE, user=user)
+                raw_filters['prefix'] = prefix
+
+            assert 'scope' in raw_filters
+            kvp_apis_user = super(KeyValuePairController, self)._get_all(
+                from_model_kwargs=from_model_kwargs,
+                sort=sort,
+                offset=offset,
+                limit=limit,
+                raw_filters=raw_filters,
+                requester_user=requester_user)
+
+            # Combine the result
+            kvp_apis = []
+            kvp_apis.extend(kvp_apis_system.json or [])
+            kvp_apis.extend(kvp_apis_user.json or [])
+        elif scope in [USER_SCOPE, FULL_USER_SCOPE]:
             # Make sure we only returned values scoped to current user
-            if prefix:
-                prefix = get_key_reference(name=prefix, scope=scope, user=user)
-            else:
-                prefix = get_key_reference(name='', scope=scope, user=user)
+            prefix = get_key_reference(name=prefix or '', scope=scope, user=user)
+            raw_filters['prefix'] = prefix
 
-        raw_filters['prefix'] = prefix
+            assert 'scope' in raw_filters
+            kvp_apis = super(KeyValuePairController, self)._get_all(
+                from_model_kwargs=from_model_kwargs,
+                sort=sort,
+                offset=offset,
+                limit=limit,
+                raw_filters=raw_filters,
+                requester_user=requester_user)
+        elif scope in [SYSTEM_SCOPE, FULL_SYSTEM_SCOPE]:
+            raw_filters['prefix'] = prefix
 
-        kvp_apis = super(KeyValuePairController, self)._get_all(from_model_kwargs=from_model_kwargs,
-                                                                sort=sort,
-                                                                offset=offset,
-                                                                limit=limit,
-                                                                raw_filters=raw_filters,
-                                                                requester_user=requester_user)
+            assert 'scope' in raw_filters
+            kvp_apis = super(KeyValuePairController, self)._get_all(
+                from_model_kwargs=from_model_kwargs,
+                sort=sort,
+                offset=offset,
+                limit=limit,
+                raw_filters=raw_filters,
+                requester_user=requester_user)
+        else:
+            raise ValueError('Invalid scope: %s' % (scope))
+
         return kvp_apis
 
     def put(self, kvp, name, requester_user, scope=FULL_SYSTEM_SCOPE):
