@@ -168,6 +168,11 @@ class KeyValuePairController(ResourceController):
             # authenticated user is admin and if ?user is provided)
             raw_filters['scope'] = FULL_USER_SCOPE
 
+            if not cfg.CONF.rbac.enable:
+                # Retrieve values scoped to the current user
+                prefix = get_key_reference(name=prefix or '', scope=USER_SCOPE, user=user)
+                raw_filters['prefix'] = prefix
+
             if not is_admin or (is_admin and user_query_param_filter):
                 # Retrieve values scoped to the current or the provided user
                 prefix = get_key_reference(name=prefix or '', scope=USER_SCOPE, user=user)
