@@ -154,6 +154,7 @@ class KeyValuePairController(ResourceController):
             # Special case for ALL_SCOPE
             # 1. Retrieve system scoped values
             raw_filters['scope'] = FULL_SYSTEM_SCOPE
+            raw_filters['prefix'] = prefix
 
             assert 'scope' in raw_filters
             kvp_apis_system = super(KeyValuePairController, self)._get_all(
@@ -172,8 +173,7 @@ class KeyValuePairController(ResourceController):
                 # Retrieve values scoped to the current user
                 prefix = get_key_reference(name=prefix or '', scope=USER_SCOPE, user=user)
                 raw_filters['prefix'] = prefix
-
-            if not is_admin or (is_admin and user_query_param_filter):
+            elif not is_admin or (is_admin and user_query_param_filter):
                 # Retrieve values scoped to the current or the provided user
                 prefix = get_key_reference(name=prefix or '', scope=USER_SCOPE, user=user)
                 raw_filters['prefix'] = prefix
