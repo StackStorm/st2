@@ -43,6 +43,7 @@ PACK_PATH_13 = os.path.join(get_fixtures_base_path(), 'packs/dummy_pack_13')
 PACK_PATH_14 = os.path.join(get_fixtures_base_path(), 'packs/dummy_pack_14')
 PACK_PATH_17 = os.path.join(get_fixtures_base_path(), 'packs_invalid/dummy_pack_17')
 PACK_PATH_18 = os.path.join(get_fixtures_base_path(), 'packs_invalid/dummy_pack_18')
+PACK_PATH_20 = os.path.join(get_fixtures_base_path(), 'packs/dummy_pack_20')
 
 
 class ResourceRegistrarTestCase(CleanDbTestCase):
@@ -88,6 +89,23 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
 
         for excluded_file in excluded_files:
             self.assertTrue(excluded_file not in pack_db.files)
+
+    def test_register_pack_arbitrary_properties_are_allowed(self):
+        # Test registering a pack which has "arbitrary" properties in pack.yaml
+        # We support this use-case (ignore properties which are not defined on the PackAPI model)
+        # so we can add new attributes in a new version without breaking existing installations.
+        registrar = ResourceRegistrar(use_pack_cache=False)
+        registrar._pack_loader.get_packs = mock.Mock()
+        registrar._pack_loader.get_packs.return_value = {
+            'dummy_pack_20': PACK_PATH_20,
+        }
+        packs_base_paths = content_utils.get_packs_base_paths()
+        registrar.register_packs(base_dirs=packs_base_paths)
+
+        # Ref is provided
+        pack_db = Pack.get_by_name('dummy_pack_20')
+        self.assertEqual(pack_db.ref, 'dummy_pack_20_ref')
+        self.assertEqual(len(pack_db.contributors), 0)
 
     def test_register_pack_pack_ref(self):
         # Verify DB is empty
