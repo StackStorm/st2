@@ -108,6 +108,13 @@ class BaseFunctionalTest(DbTestCase):
         super(BaseFunctionalTest, cls).setUpClass()
         cls._do_setUpClass()
 
+    def tearDown(self):
+        super(BaseFunctionalTest, self).tearDown()
+
+        if getattr(self, 'request_context_mock', None):
+            self.request_context_mock.stop()
+            del(Router.mock_context)
+
     @classmethod
     def _do_setUpClass(cls):
         tests_config.parse_args()
@@ -122,6 +129,23 @@ class BaseFunctionalTest(DbTestCase):
             runners_registrar.register_runners()
 
         cls.app = TestApp(cls.app_module.setup_app())
+
+    def use_user(self, user_db):
+        """
+        Select a user which is to be used by the HTTP request following this call.
+        """
+        if not user_db:
+            raise ValueError('"user_db" is mandatory')
+
+        mock_context = {
+            'user': user_db,
+            'auth_info': {
+                'method': 'authentication token',
+                'location': 'header'
+            }
+        }
+        self.request_context_mock = mock.PropertyMock(return_value=mock_context)
+        Router.mock_context = self.request_context_mock
 
 
 class BaseAPIControllerWithRBACTestCase(BaseFunctionalTest, CleanDbTestCase):
@@ -184,20 +208,3 @@ class BaseAPIControllerWithRBACTestCase(BaseFunctionalTest, CleanDbTestCase):
         if getattr(self, 'request_context_mock', None):
             self.request_context_mock.stop()
             del(Router.mock_context)
-
-    def use_user(self, user_db):
-        """
-        Select a user which is to be used by the HTTP request following this call.
-        """
-        if not user_db:
-            raise ValueError('"user_db" is mandatory')
-
-        mock_context = {
-            'user': user_db,
-            'auth_info': {
-                'method': 'authentication token',
-                'location': 'header'
-            }
-        }
-        self.request_context_mock = mock.PropertyMock(return_value=mock_context)
-        Router.mock_context = self.request_context_mock
