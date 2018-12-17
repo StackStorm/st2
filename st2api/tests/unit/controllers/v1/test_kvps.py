@@ -15,6 +15,14 @@
 
 from tests import FunctionalTest
 
+from st2common.models.db.auth import UserDB
+
+from six.moves import http_client
+
+__all__ = [
+    'KeyValuePairControllerTestCase'
+]
+
 KVP = {
     'name': 'keystone_endpoint',
     'value': 'http://127.0.0.1:5000/v3'
@@ -63,7 +71,7 @@ SECRET_KVP = {
 }
 
 
-class TestKeyValuePairController(FunctionalTest):
+class KeyValuePairControllerTestCase(FunctionalTest):
 
     def test_get_all(self):
         resp = self.app.get('/v1/keys')
@@ -76,6 +84,155 @@ class TestKeyValuePairController(FunctionalTest):
         self.assertEqual(get_resp.status_int, 200)
         self.assertEqual(self.__get_kvp_id(get_resp), kvp_id)
         self.__do_delete(kvp_id)
+
+    def test_get_all_all_scope(self):
+        user_db_1 = UserDB(name='user1')
+        user_db_2 = UserDB(name='user2')
+
+        # Insert some mock data
+        # System scoped keys
+        put_resp = self.__do_put('system1', {'name': 'system1', 'value': 'val1',
+                                             'scope': 'st2kv.system'})
+        self.assertEqual(put_resp.status_int, 200)
+        self.assertEqual(put_resp.json['name'], 'system1')
+        self.assertEqual(put_resp.json['scope'], 'st2kv.system')
+
+        put_resp = self.__do_put('system2', {'name': 'system2', 'value': 'val2',
+                                             'scope': 'st2kv.system'})
+        self.assertEqual(put_resp.status_int, 200)
+        self.assertEqual(put_resp.json['name'], 'system2')
+        self.assertEqual(put_resp.json['scope'], 'st2kv.system')
+
+        # user1 scoped keys
+        print('1111111111')
+        self.use_user(user_db_1)
+
+        put_resp = self.__do_put('user1', {'name': 'user1', 'value': 'user1',
+                                           'scope': 'st2kv.user'})
+        self.assertEqual(put_resp.status_int, 200)
+        self.assertEqual(put_resp.json['name'], 'user1')
+        self.assertEqual(put_resp.json['scope'], 'st2kv.user')
+        self.assertEqual(put_resp.json['value'], 'user1')
+
+        put_resp = self.__do_put('userkey', {'name': 'userkey', 'value': 'user1',
+                                           'scope': 'st2kv.user'})
+        self.assertEqual(put_resp.status_int, 200)
+        self.assertEqual(put_resp.json['name'], 'userkey')
+        self.assertEqual(put_resp.json['scope'], 'st2kv.user')
+        self.assertEqual(put_resp.json['value'], 'user1')
+
+        # user2 scoped keys
+        self.use_user(user_db_2)
+
+        put_resp = self.__do_put('user2', {'name': 'user2', 'value': 'user2',
+                                           'scope': 'st2kv.user'})
+        self.assertEqual(put_resp.status_int, 200)
+        self.assertEqual(put_resp.json['name'], 'user2')
+        self.assertEqual(put_resp.json['scope'], 'st2kv.user')
+        self.assertEqual(put_resp.json['value'], 'user2')
+
+        put_resp = self.__do_put('userkey', {'name': 'userkey', 'value': 'user2',
+                                           'scope': 'st2kv.user'})
+        self.assertEqual(put_resp.status_int, 200)
+        self.assertEqual(put_resp.json['name'], 'userkey')
+        self.assertEqual(put_resp.json['scope'], 'st2kv.user')
+        self.assertEqual(put_resp.json['value'], 'user2')
+
+        # 1. "all" scope as user1 - should only be able to view system + current user items
+        self.use_user(user_db_1)
+
+        resp = self.app.get('/v1/keys?scope=all')
+        self.assertEqual(len(resp.json), 2 + 2)  # 2 system, 2 user
+
+        self.assertEqual(resp.json[0]['name'], 'system1')
+        self.assertEqual(resp.json[0]['scope'], 'st2kv.system')
+
+        self.assertEqual(resp.json[1]['name'], 'system2')
+        self.assertEqual(resp.json[1]['scope'], 'st2kv.system')
+
+        self.assertEqual(resp.json[2]['name'], 'user1')
+        self.assertEqual(resp.json[2]['scope'], 'st2kv.user')
+        self.assertEqual(resp.json[2]['user'], 'user1')
+
+        self.assertEqual(resp.json[3]['name'], 'userkey')
+        self.assertEqual(resp.json[3]['scope'], 'st2kv.user')
+        self.assertEqual(resp.json[3]['user'], 'user1')
+
+        # Verify user can't retrieve values for other users by manipulating "prefix"
+        resp = self.app.get('/v1/keys?scope=all&prefix=user2:')
+        self.assertEqual(resp.json, [])
+
+        resp = self.app.get('/v1/keys?scope=all&prefix=user')
+        self.assertEqual(len(resp.json), 2)  # 2 user
+
+        self.assertEqual(resp.json[0]['name'], 'user1')
+        self.assertEqual(resp.json[0]['scope'], 'st2kv.user')
+        self.assertEqual(resp.json[0]['user'], 'user1')
+
+        self.assertEqual(resp.json[1]['name'], 'userkey')
+        self.assertEqual(resp.json[1]['scope'], 'st2kv.user')
+        self.assertEqual(resp.json[1]['user'], 'user1')
+
+        # 2. "all" scope user user2  - should only be able to view system + current user items
+        self.use_user(user_db_2)
+
+        resp = self.app.get('/v1/keys?scope=all')
+        self.assertEqual(len(resp.json), 2 + 2)  # 2 system, 2 user
+
+        self.assertEqual(resp.json[0]['name'], 'system1')
+        self.assertEqual(resp.json[0]['scope'], 'st2kv.system')
+
+        self.assertEqual(resp.json[1]['name'], 'system2')
+        self.assertEqual(resp.json[1]['scope'], 'st2kv.system')
+
+        self.assertEqual(resp.json[2]['name'], 'user2')
+        self.assertEqual(resp.json[2]['scope'], 'st2kv.user')
+        self.assertEqual(resp.json[2]['user'], 'user2')
+
+        self.assertEqual(resp.json[3]['name'], 'userkey')
+        self.assertEqual(resp.json[3]['scope'], 'st2kv.user')
+        self.assertEqual(resp.json[3]['user'], 'user2')
+
+        # Verify user can't retrieve values for other users by manipulating "prefix"
+        resp = self.app.get('/v1/keys?scope=all&prefix=user1:')
+        self.assertEqual(resp.json, [])
+
+        resp = self.app.get('/v1/keys?scope=all&prefix=user')
+        self.assertEqual(len(resp.json), 2)  # 2 user
+
+        self.assertEqual(resp.json[0]['name'], 'user2')
+        self.assertEqual(resp.json[0]['scope'], 'st2kv.user')
+        self.assertEqual(resp.json[0]['user'], 'user2')
+
+        self.assertEqual(resp.json[1]['name'], 'userkey')
+        self.assertEqual(resp.json[1]['scope'], 'st2kv.user')
+        self.assertEqual(resp.json[1]['user'], 'user2')
+
+        # Clean up
+        self.__do_delete('system1')
+        self.__do_delete('system2')
+
+        self.use_user(user_db_1)
+        self.__do_delete('user1?scope=user')
+        self.__do_delete('userkey?scope=user')
+
+        self.use_user(user_db_2)
+        self.__do_delete('user2?scope=user')
+        self.__do_delete('userkey?scope=user')
+
+    def test_get_all_user_query_param_can_only_be_used_with_rbac(self):
+        resp = self.app.get('/v1/keys?user=foousera', expect_errors=True)
+
+        expected_error = '"user" attribute can only be provided by admins when RBAC is enabled'
+        self.assertEqual(resp.status_int, http_client.FORBIDDEN)
+        self.assertEqual(resp.json['faultstring'], expected_error)
+
+    def test_get_one_user_query_param_can_only_be_used_with_rbac(self):
+        resp = self.app.get('/v1/keys/keystone_endpoint?user=foousera', expect_errors=True)
+
+        expected_error = '"user" attribute can only be provided by admins when RBAC is enabled'
+        self.assertEqual(resp.status_int, http_client.FORBIDDEN)
+        self.assertEqual(resp.json['faultstring'], expected_error)
 
     def test_get_all_prefix_filtering(self):
         put_resp1 = self.__do_put(KVP['name'], KVP)
