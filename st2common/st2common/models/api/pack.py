@@ -150,7 +150,10 @@ class PackAPI(BaseAPI):
                 'description': 'Location of the pack on disk in st2 system.',
                 'required': False
             }
-        }
+        },
+        # NOTE: We add this here explicitly so we can gracefuly add new attributs to pack.yaml
+        # without breaking existing installations
+        'additionalProperties': True
     }
 
     def __init__(self, **values):
