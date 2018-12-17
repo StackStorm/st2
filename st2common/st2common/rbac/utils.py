@@ -225,16 +225,22 @@ def assert_user_has_rule_trigger_and_action_permission(user_db, rule_api):
     return True
 
 
-def assert_user_is_admin_if_user_query_param_is_provided(user_db, user):
+def assert_user_is_admin_if_user_query_param_is_provided(user_db, user, require_rbac=False):
     """
     Function which asserts that the request user is administator if "user" query parameter is
     provided and doesn't match the current user.
     """
     is_admin = user_is_admin(user_db=user_db)
+    is_rbac_enabled = bool(cfg.CONF.rbac.enable)
 
-    if user != user_db.name and not is_admin:
-        msg = '"user" attribute can only be provided by admins'
-        raise AccessDeniedError(message=msg, user_db=user_db)
+    if user != user_db.name:
+        if require_rbac and not is_rbac_enabled:
+            msg = '"user" attribute can only be provided by admins when RBAC is enabled'
+            raise AccessDeniedError(message=msg, user_db=user_db)
+
+        if not is_admin:
+            msg = '"user" attribute can only be provided by admins'
+            raise AccessDeniedError(message=msg, user_db=user_db)
 
 
 def user_is_admin(user_db):

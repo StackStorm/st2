@@ -93,7 +93,8 @@ class KeyValuePairController(ResourceController):
 
         # Validate that the authenticated user is admin if user query param is provided
         assert_user_is_admin_if_user_query_param_is_provided(user_db=requester_user,
-                                                             user=user)
+                                                             user=user,
+                                                             require_rbac=True)
 
         key_ref = get_key_reference(scope=scope, name=name, user=user)
         from_model_kwargs = {'mask_secrets': not decrypt}
@@ -140,7 +141,8 @@ class KeyValuePairController(ResourceController):
 
         # Validate that the authenticated user is admin if user query param is provided
         assert_user_is_admin_if_user_query_param_is_provided(user_db=requester_user,
-                                                             user=user)
+                                                             user=user,
+                                                             require_rbac=True)
 
         from_model_kwargs = {'mask_secrets': not decrypt}
 
@@ -231,7 +233,8 @@ class KeyValuePairController(ResourceController):
 
         # Validate that the authenticated user is admin if user query param is provided
         assert_user_is_admin_if_user_query_param_is_provided(user_db=requester_user,
-                                                             user=user)
+                                                             user=user,
+                                                             require_rbac=True)
 
         key_ref = get_key_reference(scope=scope, name=name, user=user)
         lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
@@ -301,7 +304,8 @@ class KeyValuePairController(ResourceController):
 
         # Validate that the authenticated user is admin if user query param is provided
         assert_user_is_admin_if_user_query_param_is_provided(user_db=requester_user,
-                                                             user=user)
+                                                             user=user,
+                                                             require_rbac=True)
 
         key_ref = get_key_reference(scope=scope, name=name, user=user)
         lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
