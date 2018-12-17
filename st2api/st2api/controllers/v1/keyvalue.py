@@ -83,10 +83,8 @@ class KeyValuePairController(ResourceController):
         scope = get_datastore_full_scope(scope)
         self._validate_scope(scope=scope)
 
-        is_admin = rbac_utils.user_is_admin(user_db=requester_user)
-
         # User needs to be either admin or requesting item for itself
-        self._validate_decrypt_query_parameter(decrypt=decrypt, scope=scope, is_admin=is_admin,
+        self._validate_decrypt_query_parameter(decrypt=decrypt, scope=scope,
                                                requester_user=requester_user)
 
         user = user or requester_user.name
@@ -125,15 +123,13 @@ class KeyValuePairController(ResourceController):
             requester_user = UserDB(cfg.CONF.system_user.user)
 
         scope = get_datastore_full_scope(scope)
-        is_all_scope = (scope == ALL_SCOPE)
-
         is_admin = rbac_utils.user_is_admin(user_db=requester_user)
-        if is_all_scope and not is_admin:
-            msg = '"all" scope requires administrator access'
-            raise AccessDeniedError(message=msg, user_db=requester_user)
+
+        # "all" scope can only be used by the admins (on RBAC installations)
+        self._validate_all_scope(scope=scope, requester_user=requester_user)
 
         # User needs to be either admin or requesting items for themselves
-        self._validate_decrypt_query_parameter(decrypt=decrypt, scope=scope, is_admin=is_admin,
+        self._validate_decrypt_query_parameter(decrypt=decrypt, scope=scope,
                                                requester_user=requester_user)
 
         user_query_param_filter = bool(user)
@@ -352,12 +348,26 @@ class KeyValuePairController(ResourceController):
         lock_name = six.b('kvp-crud-%s.%s' % (scope, name))
         return lock_name
 
-    def _validate_decrypt_query_parameter(self, decrypt, scope, is_admin, requester_user):
+    def _validate_all_scope(self, scope, requester_user):
+        """
+        Validate that "all" scope can only be provided by admins on RBAC installations.
+        """
+        scope = get_datastore_full_scope(scope)
+        is_all_scope = (scope == ALL_SCOPE)
+        is_admin = rbac_utils.user_is_admin(user_db=requester_user)
+
+        if is_all_scope and not is_admin:
+            msg = '"all" scope requires administrator access'
+            raise AccessDeniedError(message=msg, user_db=requester_user)
+
+    def _validate_decrypt_query_parameter(self, decrypt, scope, requester_user):
         """
         Validate that the provider user is either admin or requesting to decrypt value for
         themselves.
         """
+        is_admin = rbac_utils.user_is_admin(user_db=requester_user)
         is_user_scope = (scope == USER_SCOPE or scope == FULL_USER_SCOPE)
+
         if decrypt and (not is_user_scope and not is_admin):
             msg = 'Decrypt option requires administrator access'
             raise AccessDeniedError(message=msg, user_db=requester_user)
