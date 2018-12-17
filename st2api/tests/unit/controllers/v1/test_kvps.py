@@ -104,7 +104,6 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         self.assertEqual(put_resp.json['scope'], 'st2kv.system')
 
         # user1 scoped keys
-        print('1111111111')
         self.use_user(user_db_1)
 
         put_resp = self.__do_put('user1', {'name': 'user1', 'value': 'user1',
