@@ -5,8 +5,7 @@ from st2reactor.sensor.base import PollingSensor
 
 class FibonacciSensor(PollingSensor):
 
-    def __init__(self, sensor_service, config,
-                 poll_interval=5):
+    def __init__(self, sensor_service, config, poll_interval=20):
         super(FibonacciSensor, self).__init__(
             sensor_service=sensor_service,
             config=config,
@@ -21,11 +20,20 @@ class FibonacciSensor(PollingSensor):
         self.a = 0
         self.b = 1
         self.count = 2
+
         self.logger = self.sensor_service.get_logger(name=self.__class__.__name__)
 
     def poll(self):
-        fib = self.a + self.b
-        self.logger.debug('Count: %d, a: %d, b: %d', self.count, self.a, self.b)
+        # Reset a and b if there are large enough to avoid integer overflow problems
+        if self.a > 10000 or self.b > 10000:
+            self.logger.debug('Reseting values to avoid integer overflow issues')
+
+            self.a = 0
+            self.b = 1
+            self.count = 2
+
+        fib = (self.a + self.b)
+        self.logger.debug('Count: %d, a: %d, b: %d, fib: %s', self.count, self.a, self.b, fib)
 
         payload = {
             "count": self.count,

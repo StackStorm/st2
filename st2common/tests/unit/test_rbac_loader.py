@@ -253,3 +253,30 @@ class RBACDefinitionsLoaderTestCase(unittest2.TestCase):
         self.assertEqual(role_mapping_api.description, 'Grant 3 roles to stormers group members')
         self.assertFalse(role_mapping_api.enabled)
         self.assertEqual(role_mapping_api.file_path, 'mappings/mapping_two.yaml')
+
+    @mock.patch('glob.glob')
+    def test_file_paths_sorting(self, mock_glob):
+        mock_glob.return_value = [
+            '/tmp/bar/d.yaml',
+            '/tmp/bar/c.yaml',
+            '/tmp/foo/a.yaml',
+            '/tmp/a/f.yaml'
+        ]
+
+        expected_result = [
+            '/tmp/foo/a.yaml',
+            '/tmp/bar/c.yaml',
+            '/tmp/bar/d.yaml',
+            '/tmp/a/f.yaml'
+        ]
+
+        loader = RBACDefinitionsLoader()
+
+        file_paths = loader._get_role_definitions_file_paths()
+        self.assertEqual(file_paths, expected_result)
+
+        file_paths = loader._get_role_assiginments_file_paths()
+        self.assertEqual(file_paths, expected_result)
+
+        file_paths = loader._get_group_to_role_maps_file_paths()
+        self.assertEqual(file_paths, expected_result)
