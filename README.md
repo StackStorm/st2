@@ -75,6 +75,16 @@ For information on how to contribute, style guide, coding conventions and more,
 please visit the [Development section](https://docs.stackstorm.com/development/index.html)
 in our documentation.
 
+## Security
+
+If you believe you found a security issue or a vulnerability, please send a description of it to
+our private mailing list at info [at] stackstorm [dot] com.
+
+Once you've submitted an issue, you should receive an acknowledgment from one our of team members
+in 48 hours or less. If further action is necessary, you may receive additional follow-up emails.
+
+For more information, please refer to https://docs.stackstorm.com/latest/security.html
+
 ## Copyright, License, and Contributors Agreement
 
 Copyright 2014-2018 StackStorm, Inc.
