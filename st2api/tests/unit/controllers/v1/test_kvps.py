@@ -86,8 +86,11 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         self.__do_delete(kvp_id)
 
     def test_get_all_all_scope(self):
+        # Test which cases various scenarios which ensure non-admin users can't read / view keys
+        # from other users
         user_db_1 = UserDB(name='user1')
         user_db_2 = UserDB(name='user2')
+        user_db_3 = UserDB(name='user3')
 
         # Insert some mock data
         # System scoped keys
@@ -136,6 +139,23 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         self.assertEqual(put_resp.json['name'], 'userkey')
         self.assertEqual(put_resp.json['scope'], 'st2kv.user')
         self.assertEqual(put_resp.json['value'], 'user2')
+
+        # user3 scoped keys
+        self.use_user(user_db_3)
+
+        put_resp = self.__do_put('user3', {'name': 'user3', 'value': 'user3',
+                                           'scope': 'st2kv.user'})
+        self.assertEqual(put_resp.status_int, 200)
+        self.assertEqual(put_resp.json['name'], 'user3')
+        self.assertEqual(put_resp.json['scope'], 'st2kv.user')
+        self.assertEqual(put_resp.json['value'], 'user3')
+
+        put_resp = self.__do_put('userkey', {'name': 'userkey', 'value': 'user3',
+                                           'scope': 'st2kv.user'})
+        self.assertEqual(put_resp.status_int, 200)
+        self.assertEqual(put_resp.json['name'], 'userkey')
+        self.assertEqual(put_resp.json['scope'], 'st2kv.user')
+        self.assertEqual(put_resp.json['value'], 'user3')
 
         # 1. "all" scope as user1 - should only be able to view system + current user items
         self.use_user(user_db_1)
@@ -207,6 +227,47 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         self.assertEqual(resp.json[1]['scope'], 'st2kv.user')
         self.assertEqual(resp.json[1]['user'], 'user2')
 
+        # Verify non-admon user can't retrieve key for an arbitrary users
+        resp = self.app.get('/v1/keys?scope=user&user=user1', expect_errors=True)
+        expected_error = '"user" attribute can only be provided by admins when RBAC is enabled'
+        self.assertEqual(resp.status_int, http_client.FORBIDDEN)
+        self.assertEqual(resp.json['faultstring'], expected_error)
+
+        # 3. "all" scope user user3  - should only be able to view system + current user items
+        self.use_user(user_db_3)
+
+        resp = self.app.get('/v1/keys?scope=all')
+        self.assertEqual(len(resp.json), 2 + 2)  # 2 system, 2 user
+
+        self.assertEqual(resp.json[0]['name'], 'system1')
+        self.assertEqual(resp.json[0]['scope'], 'st2kv.system')
+
+        self.assertEqual(resp.json[1]['name'], 'system2')
+        self.assertEqual(resp.json[1]['scope'], 'st2kv.system')
+
+        self.assertEqual(resp.json[2]['name'], 'user3')
+        self.assertEqual(resp.json[2]['scope'], 'st2kv.user')
+        self.assertEqual(resp.json[2]['user'], 'user3')
+
+        self.assertEqual(resp.json[3]['name'], 'userkey')
+        self.assertEqual(resp.json[3]['scope'], 'st2kv.user')
+        self.assertEqual(resp.json[3]['user'], 'user3')
+
+        # Verify user can't retrieve values for other users by manipulating "prefix"
+        resp = self.app.get('/v1/keys?scope=all&prefix=user1:')
+        self.assertEqual(resp.json, [])
+
+        resp = self.app.get('/v1/keys?scope=all&prefix=user')
+        self.assertEqual(len(resp.json), 2)  # 2 user
+
+        self.assertEqual(resp.json[0]['name'], 'user3')
+        self.assertEqual(resp.json[0]['scope'], 'st2kv.user')
+        self.assertEqual(resp.json[0]['user'], 'user3')
+
+        self.assertEqual(resp.json[1]['name'], 'userkey')
+        self.assertEqual(resp.json[1]['scope'], 'st2kv.user')
+        self.assertEqual(resp.json[1]['user'], 'user3')
+
         # Clean up
         self.__do_delete('system1')
         self.__do_delete('system2')
@@ -217,6 +278,10 @@ class KeyValuePairControllerTestCase(FunctionalTest):
 
         self.use_user(user_db_2)
         self.__do_delete('user2?scope=user')
+        self.__do_delete('userkey?scope=user')
+
+        self.use_user(user_db_3)
+        self.__do_delete('user3?scope=user')
         self.__do_delete('userkey?scope=user')
 
     def test_get_all_user_query_param_can_only_be_used_with_rbac(self):
