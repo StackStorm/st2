@@ -350,9 +350,6 @@ requirements: virtualenv .sdist-requirements install-runners
 		$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s $$component/in-requirements.txt -f fixed-requirements.txt -o $$component/requirements.txt; \
 	done
 
-	# Fix for Travis CI race
-	$(VIRTUALENV_DIR)/bin/pip install "six==1.11.0"
-
 	# Fix for Travis CI caching issue
 	$(VIRTUALENV_DIR)/bin/pip uninstall -y "pytz" || echo "not installed"
 	$(VIRTUALENV_DIR)/bin/pip uninstall -y "python-dateutil" || echo "not installed"
