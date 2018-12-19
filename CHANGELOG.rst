@@ -1,8 +1,22 @@
 Changelog
 =========
 
+in development
+--------------
+
 2.9.1 - October 03, 2018
 ------------------------
+
+Fixed
+~~~~~
+
+* Fix an issue with ``GET /v1/keys`` API endpoint not correctly handling ``?scope=all`` and
+  ``?user=<username>`` query filter parameter inside the open-source edition. This would allow
+  user A to retrieve datastore values from user B and similar.
+
+  NOTE: Enterprise edition with RBAC was not affected, because in RBAC version, correct check is
+  in place which only allows users with an admin role to use ``?scope=all`` and retrieve / view
+  datastore values for arbitrary system users. (security issue bug fix)
 
 Changed
 ~~~~~~~
