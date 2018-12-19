@@ -1,15 +1,8 @@
 Changelog
 =========
 
-In development
---------------
-
-
 2.9.2 - December 19, 2018
 -------------------------
-
-2.9.1 - October 03, 2018
-------------------------
 
 Fixed
 ~~~~~
@@ -21,6 +14,9 @@ Fixed
   NOTE: Enterprise edition with RBAC was not affected, because in RBAC version, correct check is
   in place which only allows users with an admin role to use ``?scope=all`` and retrieve / view
   datastore values for arbitrary system users. (security issue bug fix)
+
+2.9.1 - October 03, 2018
+------------------------
 
 Changed
 ~~~~~~~
