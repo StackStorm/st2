@@ -1,8 +1,12 @@
 Changelog
 =========
 
-in development
+In development
 --------------
+
+
+2.10.1 - December 19, 2018
+--------------------------
 
 Fixed
 ~~~~~
