@@ -430,13 +430,15 @@ def request_task_execution(wf_ex_db, st2_ctx, task_ex_req):
             task_spec=task_spec.serialize(),
             delay=task_delay,
             itemized=task_spec.has_items(),
+            items_count=task_ex_req.get('items_count'),
+            items_concurrency=task_ex_req.get('concurrency'),
             context=task_ctx,
             status=states.REQUESTED
         )
 
         # Prepare the result format for itemized task execution.
         if task_ex_db.itemized:
-            task_ex_db.result = {'items': [None] * task_ex_req['items_count']}
+            task_ex_db.result = {'items': [None] * task_ex_db.items_count}
 
         # Insert new record into the database.
         task_ex_db = wf_db_access.TaskExecution.insert(task_ex_db, publish=False)
@@ -448,6 +450,21 @@ def request_task_execution(wf_ex_db, st2_ctx, task_ex_req):
         # Return here if no action is specified in task spec.
         if task_spec.action is None:
             LOG.info('[%s] Task "%s" is action less and succeed by default.', wf_ac_ex_id, task_id)
+
+            # Set the task execution to running.
+            task_ex_db.status = states.RUNNING
+            task_ex_db = wf_db_access.TaskExecution.update(task_ex_db, publish=False)
+
+            # Fast forward task execution to completion.
+            update_task_execution(str(task_ex_db.id), states.SUCCEEDED)
+            update_task_flow(str(task_ex_db.id), states.SUCCEEDED, publish=False)
+
+            # Refresh and return the task execution
+            return wf_db_access.TaskExecution.get_by_id(str(task_ex_db.id))
+
+        # Return here for task with items but the items list is empty.
+        if task_ex_db.itemized and task_ex_db.items_count == 0:
+            LOG.info('[%s] Task "%s" has no items and succeed by default.', wf_ac_ex_id, task_id)
 
             # Set the task execution to running.
             task_ex_db.status = states.RUNNING
@@ -832,6 +849,14 @@ def request_next_tasks(wf_ex_db, task_ex_id=None):
             msg = '[%s] Mark task "%s" in conductor as running.'
             LOG.info(msg, wf_ac_ex_id, task['id'])
 
+            # If task has items and items list is empty, then actions under the next task is empty
+            # and will not be processed in the for loop below. Handle this use case separately and
+            # mark it as running in the conductor. The task will be completed automatically when
+            # it is requested for task execution.
+            if task['spec'].has_items() and 'items_count' in task and task['items_count'] == 0:
+                ac_ex_event = events.ActionExecutionEvent(states.RUNNING)
+                conductor.update_task_flow(task['id'], ac_ex_event)
+
             # If task contains multiple action execution (i.e. with items),
             # then mark each item individually.
             for action in task['actions']:
@@ -893,7 +918,8 @@ def update_task_execution(task_ex_id, ac_ex_status, ac_ex_result=None, ac_ex_ctx
     task_ex_db = wf_db_access.TaskExecution.get_by_id(task_ex_id)
     wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(task_ex_db.workflow_execution)
 
-    if not task_ex_db.itemized:
+    # Treat the update of task with items but items list is empty like a normal task execution.
+    if not task_ex_db.itemized or (task_ex_db.itemized and task_ex_db.items_count == 0):
         if ac_ex_status != task_ex_db.status:
             msg = '[%s] Updating task execution from state "%s" to "%s".'
             LOG.debug(msg, wf_ex_db.action_execution, task_ex_db.status, ac_ex_status)

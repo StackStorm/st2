@@ -28,8 +28,6 @@ __all__ = [
     'is_jinja_expression'
 ]
 
-# Magic string to which None type is serialized when using use_none filter
-NONE_MAGIC_VALUE = '%*****__%NONE%__*****%'
 
 JINJA_EXPRESSIONS_START_MARKERS = [
     '{{',
@@ -43,13 +41,6 @@ JINJA_BLOCK_REGEX_PTRN = re.compile(JINJA_BLOCK_REGEX)
 
 
 LOG = logging.getLogger(__name__)
-
-
-def use_none(value):
-    if value is None:
-        return NONE_MAGIC_VALUE
-
-    return value
 
 
 def get_filters():
@@ -91,7 +82,7 @@ def get_filters():
         'version_bump_minor': version.version_bump_minor,
         'version_bump_patch': version.version_bump_patch,
         'version_strip_patch': version.version_strip_patch,
-        'use_none': use_none,
+        'use_none': data.use_none,
 
         'basename': path.basename,
         'dirname': path.dirname
