@@ -121,6 +121,7 @@ jobs:
       - ST2_PACKAGES: "st2"
       - ST2_CHECKOUT: 0
       - ST2_GITDIR: /tmp/st2
+      - CIRCLE_BRANCH: "remove_windows_and_cloudslang_runner"
       - BASH_ENV: ~/.buildenv
     steps:
       - checkout
