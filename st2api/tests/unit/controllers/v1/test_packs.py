@@ -547,7 +547,7 @@ class PacksControllerTestCase(FunctionalTest,
                                    'fail_on_failure': False})
 
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json, {'actions': 1, 'runners': 18})
+        self.assertEqual(resp.json, {'actions': 1, 'runners': 15})
 
         # Register resources from a single (non-existent pack)
         resp = self.app.post_json('/v1/packs/register', {'packs': ['doesntexist']},
