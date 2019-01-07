@@ -63,7 +63,6 @@ def _register_config_opts():
     _register_auth_opts()
     _register_action_sensor_opts()
     _register_ssh_runner_opts()
-    _register_cloudslang_opts()
     _register_scheduler_opts()
     _register_exporter_opts()
     _register_sensor_container_opts()
@@ -239,16 +238,6 @@ def _register_ssh_runner_opts():
     ]
 
     _register_opts(ssh_runner_opts, group='ssh_runner')
-
-
-def _register_cloudslang_opts():
-    cloudslang_opts = [
-        cfg.StrOpt(
-            'home_dir', default='/opt/cslang',
-            help='CloudSlang home directory.')
-    ]
-
-    _register_opts(cloudslang_opts, group='cloudslang')
 
 
 def _register_scheduler_opts():

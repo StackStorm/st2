@@ -9,7 +9,7 @@ ipaddr
 jinja2
 jsonpath-rw==1.4.0
 jsonschema==2.6.0
-kombu==4.2.2
+kombu==4.2.2.post1
 mongoengine==0.16.3
 networkx==1.11
 oslo.config<1.13,>=1.12.1
