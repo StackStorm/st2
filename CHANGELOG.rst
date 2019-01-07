@@ -4,6 +4,13 @@ Changelog
 in development
 --------------
 
+Added
+~~~~~
+
+* Allow access to user-scoped datastore items using ``{{ st2kv.user.<key name> }}`` Jinja template
+  notation inside the action parameter default values. (improvement) #4463
+  
+  Contributed by Hiroyasu OHYAMA (@userlocalhost).
 
 2.10.0 - December 13, 2018
 --------------------------
