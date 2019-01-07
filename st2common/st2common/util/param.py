@@ -87,12 +87,12 @@ def _create_graph(action_context, config):
     # If both 'user' and 'api_user' are specified, this prioritize 'api_user'
     user = action_context['user'] if 'user' in action_context else None
     user = action_context['api_user'] if 'api_user' in action_context else user
-    
+
     if not user:
         # When no user is not specified, this selects system-user's scope by default.
         user = cfg.CONF.system_user.user
         LOG.info('Unable to retrieve user / api_user value from action_context. Falling back '
-                 'to system_user (%s).' % (user))
+                 'to and using system_user (%s).' % (user))
 
     system_keyvalue_context[USER_SCOPE] = UserKeyValueLookup(scope=FULL_USER_SCOPE, user=user)
     G.add_node(DATASTORE_PARENT_SCOPE, value=system_keyvalue_context)
