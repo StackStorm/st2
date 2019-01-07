@@ -30,6 +30,7 @@ from tests.unit import base
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar
 from st2common.constants import action as ac_const
+from st2common.expressions.functions import data as data_funcs
 from st2common.models.db import liveaction as lv_db_models
 from st2common.persistence import execution as ex_db_access
 from st2common.persistence import liveaction as lv_db_access
@@ -140,7 +141,9 @@ class OrquestaFunctionTest(st2tests.ExecutionDbTestCase):
             'data_json_obj_4': {'foo': {'bar': 'foobar'}},
             'data_yaml_str_1': 'foo:\n  bar: foobar\n',
             'data_yaml_str_2': 'foo:\n  bar: foobar\n',
-            'data_query_1': ['foobar']
+            'data_query_1': ['foobar'],
+            'data_none_str': data_funcs.NONE_MAGIC_VALUE,
+            'data_str': 'foobar'
         }
 
         self._execute_workflow(wf_name, expected_output)
@@ -159,7 +162,9 @@ class OrquestaFunctionTest(st2tests.ExecutionDbTestCase):
             'data_yaml_str_1': 'foo:\n  bar: foobar\n',
             'data_yaml_str_2': 'foo:\n  bar: foobar\n',
             'data_query_1': ['foobar'],
-            'data_pipe_str_1': '{"foo": {"bar": "foobar"}}'
+            'data_pipe_str_1': '{"foo": {"bar": "foobar"}}',
+            'data_none_str': data_funcs.NONE_MAGIC_VALUE,
+            'data_str': 'foobar'
         }
 
         self._execute_workflow(wf_name, expected_output)
