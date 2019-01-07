@@ -92,7 +92,7 @@ def _create_graph(action_context, config):
         # When no user is not specified, this selects system-user's scope by default.
         user = cfg.CONF.system_user.user
         LOG.info('Unable to retrieve user / api_user value from action_context. Falling back '
-                 'to system_user (%s).' % (user))
+                 'to and using system_user (%s).' % (user))
 
     system_keyvalue_context[USER_SCOPE] = UserKeyValueLookup(scope=FULL_USER_SCOPE, user=user)
     G.add_node(DATASTORE_PARENT_SCOPE, value=system_keyvalue_context)
