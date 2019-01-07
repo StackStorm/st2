@@ -386,14 +386,6 @@ def register_opts(ignore_errors=False):
 
     do_register_opts(ssh_runner_opts, group='ssh_runner')
 
-    cloudslang_opts = [
-        cfg.StrOpt(
-            'home_dir', default='/opt/cslang',
-            help='CloudSlang home directory.'),
-    ]
-
-    do_register_opts(cloudslang_opts, group='cloudslang')
-
     # Common options (used by action runner and sensor container)
     action_sensor_opts = [
         cfg.BoolOpt(
