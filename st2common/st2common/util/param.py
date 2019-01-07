@@ -91,7 +91,7 @@ def _create_graph(action_context, config):
     if not user:
         # When no user is not specified, this selects system-user's scope by default.
         user = cfg.CONF.system_user.user
-        LOG.info('Unable to retrieve user / api_user value from action_context. Falling back, '
+        LOG.info('Unable to retrieve user / api_user value from action_context. Falling back '
                  'to system_user (%s).' % (user))
 
     system_keyvalue_context[USER_SCOPE] = UserKeyValueLookup(scope=FULL_USER_SCOPE, user=user)
