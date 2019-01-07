@@ -113,7 +113,7 @@ def validate_trigger_payload(trigger_type_ref, payload, throw_on_inexistent_trig
     """
     This function validates trigger payload parameters for system and user-defined triggers.
 
-    :param trigger_type_ref: Reference of a trigger type or a trigger dictionary object.
+    :param trigger_type_ref: Reference of a trigger type / trigger / trigger dictionary object.
     :type trigger_type_ref: ``str``
 
     :param payload: Trigger payload.
@@ -144,9 +144,20 @@ def validate_trigger_payload(trigger_type_ref, payload, throw_on_inexistent_trig
         # System trigger
         payload_schema = SYSTEM_TRIGGER_TYPES[trigger_type_ref]['payload_schema']
     else:
+        # 1. First assume we received TriggerType reference
         trigger_type_db = triggers.get_trigger_type_db(trigger_type_ref)
+
         if not trigger_type_db:
+            # 2. If TriggerType was not found, assume we received a Trigger reference
             # Trigger doesn't exist in the database
+            trigger_db = triggers.get_trigger_db_by_ref(trigger_type_ref)
+
+            if trigger_db:
+                trigger_type_db = triggers.get_trigger_type_db(trigger_db.type)
+            else:
+                trigger_type_db = None
+
+        if not trigger_type_db:
             if throw_on_inexistent_trigger:
                 msg = ('Trigger type with reference "%s" doesn\'t exist in the database' %
                        (trigger_type_ref))

@@ -12,7 +12,6 @@ class FileWatchSensor(Sensor):
         super(FileWatchSensor, self).__init__(sensor_service=sensor_service,
                                               config=config)
         self._trigger = None
-        self._trigger_type_ref = 'linux.file_watch.line'
         self._logger = self._sensor_service.get_logger(__name__)
         self._tail = None
 
@@ -67,7 +66,7 @@ class FileWatchSensor(Sensor):
         self._logger.info('Removed file "%s"' % (file_path))
 
     def _handle_line(self, file_path, line):
-        trigger = self._trigger_type_ref
+        trigger = self._trigger
         payload = {
             'file_path': file_path,
             'file_name': os.path.basename(file_path),
