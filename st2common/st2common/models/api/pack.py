@@ -208,6 +208,7 @@ class PackAPI(BaseAPI):
         version = str(pack.version)
 
         stackstorm_version = getattr(pack, 'stackstorm_version', None)
+        python_versions = getattr(pack, 'python_versions', [])
         author = pack.author
         email = pack.email
         contributors = getattr(pack, 'contributors', [])
@@ -219,7 +220,8 @@ class PackAPI(BaseAPI):
         model = cls.model(ref=ref, name=name, description=description, keywords=keywords,
                           version=version, author=author, email=email, contributors=contributors,
                           files=files, dependencies=dependencies, system=system,
-                          stackstorm_version=stackstorm_version, path=pack_dir)
+                          stackstorm_version=stackstorm_version, path=pack_dir,
+                          python_versions=python_versions)
         return model
 
 

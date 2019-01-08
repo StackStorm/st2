@@ -14,3 +14,6 @@ this :
   is : a
   test : of
 future : arguments
+python_versions:
+  - "2"
+  - "3"

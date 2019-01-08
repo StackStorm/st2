@@ -44,6 +44,7 @@ PACK_PATH_14 = os.path.join(get_fixtures_base_path(), 'packs/dummy_pack_14')
 PACK_PATH_17 = os.path.join(get_fixtures_base_path(), 'packs_invalid/dummy_pack_17')
 PACK_PATH_18 = os.path.join(get_fixtures_base_path(), 'packs_invalid/dummy_pack_18')
 PACK_PATH_20 = os.path.join(get_fixtures_base_path(), 'packs/dummy_pack_20')
+PACK_PATH_21 = os.path.join(get_fixtures_base_path(), 'packs/dummy_pack_21')
 
 
 class ResourceRegistrarTestCase(CleanDbTestCase):
@@ -180,6 +181,7 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         self.assertEqual(pack_db.dependencies, ['core=0.2.0'])
         self.assertEqual(pack_db.stackstorm_version, '>=1.6.0, <2.2.0')
         self.assertEqual(pack_db.system, {'centos': {'foo': '>= 1.0'}})
+        self.assertEqual(pack_db.python_versions, ['2', '3'])
 
         # Note: We only store parameters which are defined in the schema, all other custom user
         # defined attributes are ignored
@@ -208,5 +210,15 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         packs_base_paths = content_utils.get_packs_base_paths()
 
         expected_msg = r'Additional properties are not allowed \(\'invalid\' was unexpected\)'
+        self.assertRaisesRegexp(ValueError, expected_msg, registrar.register_packs,
+                                base_dirs=packs_base_paths)
+
+    def test_register_pack_invalid_python_versions_attribute(self):
+        registrar = ResourceRegistrar(use_pack_cache=False, fail_on_failure=True)
+        registrar._pack_loader.get_packs = mock.Mock()
+        registrar._pack_loader.get_packs.return_value = {'dummy_pack_21': PACK_PATH_21}
+        packs_base_paths = content_utils.get_packs_base_paths()
+
+        expected_msg = r"'4' is not one of \['2', '3'\]"
         self.assertRaisesRegexp(ValueError, expected_msg, registrar.register_packs,
                                 base_dirs=packs_base_paths)
