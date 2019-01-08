@@ -40,7 +40,7 @@ class TriggerDispatcherService(object):
         """
         Method which dispatches the trigger.
 
-        :param trigger: Reference to the TriggerType (<pack>.<name>).
+        :param trigger: Reference to the TriggerTypeDB (<pack>.<name>) or TriggerDB object.
         :type trigger: ``str``
 
         :param payload: Trigger payload.
@@ -64,7 +64,7 @@ class TriggerDispatcherService(object):
         """
         Method which dispatches the trigger.
 
-        :param trigger: Reference to the TriggerType (<pack>.<name>).
+        :param trigger: Reference to the TriggerTypeDB (<pack>.<name>) or TriggerDB object.
         :type trigger: ``str``
 
         :param payload: Trigger payload.
