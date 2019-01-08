@@ -102,7 +102,7 @@ class PackAPI(BaseAPI):
             },
             'python_versions': {
                 'type': 'array',
-                'description': ('Major Python versiosn supported by this pack. E.g. '
+                'description': ('Major Python versions supported by this pack. E.g. '
                                 '"2" for Python 2.7.x and "3" for Python 3.6.x'),
                 'items': {
                     'type': 'string',
