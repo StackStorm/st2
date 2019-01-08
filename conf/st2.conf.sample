@@ -80,10 +80,6 @@ port = 9100
 # Authentication backend to use in a standalone mode. Available backends: flat_file.
 backend = flat_file
 
-[cloudslang]
-# CloudSlang home directory.
-home_dir = /opt/cslang
-
 [content]
 # A URL pointing to the pack index. StackStorm Exchange is used by default. Use a comma-separated list for multiple indexes if you want to get other packs discovered with "st2 pack search".
 index_url = https://index.stackstorm.org/v1/index.json # comma separated list allowed here.

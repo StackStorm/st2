@@ -1,5 +1,7 @@
 import os
 
+import eventlet
+
 from logshipper.tail import Tail
 
 from st2reactor.sensor.base import Sensor
@@ -41,6 +43,9 @@ class FileWatchSensor(Sensor):
 
         if not self._trigger:
             raise Exception('Trigger %s did not contain a ref.' % trigger)
+
+        # Wait a bit to avoid initialization race in logshipper library
+        eventlet.sleep(1.0)
 
         self._tail.add_file(filename=file_path)
         self._logger.info('Added file "%s"' % (file_path))

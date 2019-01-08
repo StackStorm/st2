@@ -105,3 +105,11 @@ def jsonpath_query(value, query):
 
 def to_complex(value):
     return json.dumps(value)
+
+
+# Magic string to which None type is serialized when using use_none filter
+NONE_MAGIC_VALUE = '%*****__%NONE%__*****%'
+
+
+def use_none(value):
+    return NONE_MAGIC_VALUE if value is None else value

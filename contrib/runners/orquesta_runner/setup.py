@@ -70,6 +70,7 @@ setup(
                 'st2common.expressions.functions.time:to_human_time_from_seconds'),
             'to_json_string = st2common.expressions.functions.data:to_json_string',
             'to_yaml_string = st2common.expressions.functions.data:to_yaml_string',
+            'use_none = st2common.expressions.functions.data:use_none',
             'version_compare = st2common.expressions.functions.version:version_compare',
             'version_more_than = st2common.expressions.functions.version:version_more_than',
             'version_less_than = st2common.expressions.functions.version:version_less_than',

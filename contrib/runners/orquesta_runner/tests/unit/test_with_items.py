@@ -152,6 +152,36 @@ class OrquestaWithItemsTest(st2tests.ExecutionDbTestCase):
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
 
+    def test_with_items_empty_list(self):
+        items = []
+        num_items = len(items)
+        wf_input = {'members': items}
+
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'with-items.yaml')
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=wf_input)
+        lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
+
+        # Wait for the liveaction to complete.
+        lv_ac_db = self._wait_on_status(lv_ac_db, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+
+        # Retrieve records from database.
+        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
+        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task1'}
+        t1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        t1_ac_ex_dbs = ex_db_access.ActionExecution.query(task_execution=str(t1_ex_db.id))
+
+        # Ensure there is no action executions for the task and the task is already completed.
+        self.assertEqual(len(t1_ac_ex_dbs), num_items)
+        self.assertEqual(t1_ex_db.status, wf_states.SUCCEEDED)
+        self.assertDictEqual(t1_ex_db.result, {'items': []})
+
+        # Assert the main workflow is completed.
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
+        self.assertEqual(wf_ex_db.status, wf_states.SUCCEEDED)
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertDictEqual(lv_ac_db.result, {'output': {'items': []}})
+
     def test_with_items_concurrency(self):
         num_items = 3
         concurrency = 2

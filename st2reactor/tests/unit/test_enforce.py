@@ -21,6 +21,7 @@ from st2common.constants import action as action_constants
 from st2common.constants.keyvalue import FULL_SYSTEM_SCOPE
 from st2common.constants.rule_enforcement import RULE_ENFORCEMENT_STATUS_SUCCEEDED
 from st2common.constants.rule_enforcement import RULE_ENFORCEMENT_STATUS_FAILED
+from st2common.expressions.functions import data
 from st2common.models.db.trigger import TriggerInstanceDB
 from st2common.models.db.execution import ActionExecutionDB
 from st2common.models.db.liveaction import LiveActionDB
@@ -32,7 +33,6 @@ from st2common.bootstrap import runnersregistrar as runners_registrar
 from st2common.util import casts
 from st2common.util import reference
 from st2common.util import date as date_utils
-from st2common.util.jinja import NONE_MAGIC_VALUE
 from st2reactor.rules.enforcer import RuleEnforcer
 
 from st2tests import DbTestCase
@@ -189,7 +189,7 @@ class RuleEnforcerTestCase(BaseRuleEnforcerTestCase):
         mock_trigger_instance.payload = {'t1_p': None}
 
         def mock_cast_string(x):
-            assert x == NONE_MAGIC_VALUE
+            assert x == data.NONE_MAGIC_VALUE
             return casts._cast_string(x)
         casts.CASTS['string'] = mock_cast_string
 
