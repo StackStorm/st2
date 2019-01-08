@@ -100,11 +100,21 @@ class PackAPI(BaseAPI):
                                '">=1.8.0, <2.2.0"',
                 'pattern': ST2_VERSION_REGEX,
             },
-            'python_version': {
-                'type': 'string',
-                'description': 'Python version supported by this pack. Examples: "=> 2.7.0",'
-                               '">=3.5.0,<=3.7.0"',
-                'pattern': ST2_VERSION_REGEX,
+            'python_versions': {
+                'type': 'array',
+                'description': ('Major Python versiosn supported by this pack. E.g. '
+                                '"2" for Python 2.7.x and "3" for Python 3.6.x'),
+                'items': {
+                    'type': 'string',
+                    'enum': [
+                        '2',
+                        '3'
+                    ]
+                },
+                'minItems': 1,
+                'maxItems': 2,
+                'uniqueItems': True,
+                'additionalItems': True
             },
             'author': {
                 'type': 'string',

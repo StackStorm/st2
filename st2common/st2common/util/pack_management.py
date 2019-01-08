@@ -26,6 +26,7 @@ import hashlib
 import stat
 import re
 
+import six
 from git.repo import Repo
 from gitdb.exc import BadName, BadObject
 from lockfile import LockFile
@@ -377,26 +378,29 @@ def verify_pack_version(pack_dir):
     pack_metadata = get_pack_metadata(pack_dir=pack_dir)
     pack_name = pack_metadata.get('name', None)
     required_stackstorm_version = pack_metadata.get('stackstorm_version', None)
-    supported_python_version = pack_metadata.get('python_version', None)
+    supported_python_versions = pack_metadata.get('python_versions', None)
 
-    # If stackstorm_version attribute is speficied, verify that the pack works with currently
+    # If stackstorm_version attribute is specified, verify that the pack works with currently
     # running version of StackStorm
     if required_stackstorm_version:
         if not complex_semver_match(CURRENT_STACKSTORM_VERSION, required_stackstorm_version):
             msg = ('Pack "%s" requires StackStorm "%s", but current version is "%s". ' %
                    (pack_name, required_stackstorm_version, CURRENT_STACKSTORM_VERSION),
-                   'You can override this restriction by providing the "force" flag, but ',
+                   'You can override this restriction by providing the "force" flag, but '
                    'the pack is not guaranteed to work.')
             raise ValueError(msg)
 
-    if supported_python_version:
-        if not complex_semver_match(CURRENT_STACKSTORM_VERSION, supported_python_version):
-            if not complex_semver_match(CURRENT_STACKSTORM_VERSION, required_stackstorm_version):
-                msg = ('Pack "%s" requires Python "%s", but current version is "%s". ' %
-                       (pack_name, supported_python_version, CURRENT_PYTHON_VERSION),
-                       'You can override this restriction by providing the "force" flag, but ',
-                       'the pack is not guaranteed to work.')
-                raise ValueError(msg)
+    if supported_python_versions:
+        if set(supported_python_versions) == set(['2']) and not six.PY2:
+            msg = ('Pack "%s" requires Python 2.x, but current Python version is "%s". '
+                   'You can override this restriction by providing the "force" flag, but '
+                   'the pack is not guaranteed to work.' % (pack_name, CURRENT_PYTHON_VERSION))
+            raise ValueError(msg)
+        elif set(supported_python_versions) == set(['3']) and not six.PY3:
+            msg = ('Pack "%s" requires Python 3.x, but current Python version is "%s". '
+                   'You can override this restriction by providing the "force" flag, but '
+                   'the pack is not guaranteed to work.' % (pack_name, CURRENT_PYTHON_VERSION))
+            raise ValueError(msg)
 
     return True
 
