@@ -5,7 +5,7 @@ greenlet==0.4.15
 # depend on rely
 eventlet==0.24.1
 gunicorn==19.9.0
-kombu==4.2.2
+kombu==4.2.2.post1
 # Note: amqp is used by kombu
 amqp==2.3.2
 # NOTE: Recent version substantially affect the performance and add big import time overhead
