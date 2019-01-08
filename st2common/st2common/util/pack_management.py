@@ -384,10 +384,10 @@ def verify_pack_version(pack_dir):
     # running version of StackStorm
     if required_stackstorm_version:
         if not complex_semver_match(CURRENT_STACKSTORM_VERSION, required_stackstorm_version):
-            msg = ('Pack "%s" requires StackStorm "%s", but current version is "%s". ' %
-                   (pack_name, required_stackstorm_version, CURRENT_STACKSTORM_VERSION),
+            msg = ('Pack "%s" requires StackStorm "%s", but current version is "%s". '
                    'You can override this restriction by providing the "force" flag, but '
-                   'the pack is not guaranteed to work.')
+                   'the pack is not guaranteed to work.' %
+                   (pack_name, required_stackstorm_version, CURRENT_STACKSTORM_VERSION))
             raise ValueError(msg)
 
     if supported_python_versions:
@@ -401,6 +401,9 @@ def verify_pack_version(pack_dir):
                    'You can override this restriction by providing the "force" flag, but '
                    'the pack is not guaranteed to work.' % (pack_name, CURRENT_PYTHON_VERSION))
             raise ValueError(msg)
+        else:
+            # Pack support Python 2.x and 3.x so no check is needed
+            pass
 
     return True
 
