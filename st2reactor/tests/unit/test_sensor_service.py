@@ -28,9 +28,14 @@ TEST_SCHEMA = {
 }
 
 
-class TriggerTypeMock(object):
-    def __init__(self, schema={}):
-        self.payload_schema = schema
+class TriggerTypeDBMock(object):
+    def __init__(self, schema=None):
+        self.payload_schema = schema or {}
+
+
+class TriggerDBMock(object):
+    def __init__(self, type=None):
+        self.type = type
 
 
 class SensorServiceTestCase(unittest2.TestCase):
@@ -54,7 +59,7 @@ class SensorServiceTestCase(unittest2.TestCase):
         cfg.CONF.system.validate_trigger_payload = self.validate_trigger_payload
 
     @mock.patch('st2common.services.triggers.get_trigger_type_db',
-                mock.MagicMock(return_value=TriggerTypeMock(TEST_SCHEMA)))
+                mock.MagicMock(return_value=TriggerTypeDBMock(TEST_SCHEMA)))
     def test_dispatch_success_valid_payload_validation_enabled(self):
         cfg.CONF.system.validate_trigger_payload = True
 
@@ -75,7 +80,33 @@ class SensorServiceTestCase(unittest2.TestCase):
         self.assertEqual(self._dispatched_count, 1)
 
     @mock.patch('st2common.services.triggers.get_trigger_type_db',
-                mock.MagicMock(return_value=TriggerTypeMock(TEST_SCHEMA)))
+                mock.MagicMock(return_value=TriggerTypeDBMock(TEST_SCHEMA)))
+    @mock.patch('st2common.services.triggers.get_trigger_db_by_ref',
+                mock.MagicMock(return_value=TriggerDBMock(type='trigger-type-ref')))
+    def test_dispatch_success_with_validation_enabled_trigger_reference(self):
+        # Test a scenario where a Trigger ref and not TriggerType ref is provided
+        cfg.CONF.system.validate_trigger_payload = True
+
+        # define a valid payload
+        payload = {
+            'name': 'John Doe',
+            'age': 25,
+            'career': ['foo, Inc.', 'bar, Inc.'],
+            'married': True,
+            'awards': {'2016': ['hoge prize', 'fuga prize']},
+            'income': 50000
+        }
+
+        self.assertEqual(self._dispatched_count, 0)
+
+        # dispatching a trigger
+        self.sensor_service.dispatch('pack.86582f21-1fbc-44ea-88cb-0cd2b610e93b', payload)
+
+        # This assumed that the target tirgger dispatched
+        self.assertEqual(self._dispatched_count, 1)
+
+    @mock.patch('st2common.services.triggers.get_trigger_type_db',
+                mock.MagicMock(return_value=TriggerTypeDBMock(TEST_SCHEMA)))
     def test_dispatch_success_with_validation_disabled_and_invalid_payload(self):
         """
         Tests that an invalid payload still results in dispatch success with default config
@@ -108,7 +139,7 @@ class SensorServiceTestCase(unittest2.TestCase):
         self.assertEqual(self._dispatched_count, 1)
 
     @mock.patch('st2common.services.triggers.get_trigger_type_db',
-                mock.MagicMock(return_value=TriggerTypeMock(TEST_SCHEMA)))
+                mock.MagicMock(return_value=TriggerTypeDBMock(TEST_SCHEMA)))
     def test_dispatch_failure_caused_by_incorrect_type(self):
         # define a invalid payload (the type of 'age' is incorrect)
         payload = {
@@ -131,7 +162,7 @@ class SensorServiceTestCase(unittest2.TestCase):
         self.assertEqual(self._dispatched_count, 1)
 
     @mock.patch('st2common.services.triggers.get_trigger_type_db',
-                mock.MagicMock(return_value=TriggerTypeMock(TEST_SCHEMA)))
+                mock.MagicMock(return_value=TriggerTypeDBMock(TEST_SCHEMA)))
     def test_dispatch_failure_caused_by_lack_of_required_parameter(self):
         # define a invalid payload (lack of required property)
         payload = {
@@ -149,7 +180,7 @@ class SensorServiceTestCase(unittest2.TestCase):
         self.assertEqual(self._dispatched_count, 1)
 
     @mock.patch('st2common.services.triggers.get_trigger_type_db',
-                mock.MagicMock(return_value=TriggerTypeMock(TEST_SCHEMA)))
+                mock.MagicMock(return_value=TriggerTypeDBMock(TEST_SCHEMA)))
     def test_dispatch_failure_caused_by_extra_parameter(self):
         # define a invalid payload ('hobby' is extra)
         payload = {
@@ -162,7 +193,7 @@ class SensorServiceTestCase(unittest2.TestCase):
         self.assertEqual(self._dispatched_count, 0)
 
     @mock.patch('st2common.services.triggers.get_trigger_type_db',
-                mock.MagicMock(return_value=TriggerTypeMock(TEST_SCHEMA)))
+                mock.MagicMock(return_value=TriggerTypeDBMock(TEST_SCHEMA)))
     def test_dispatch_success_with_multiple_type_value(self):
         payload = {
             'name': 'John Doe',
@@ -180,7 +211,7 @@ class SensorServiceTestCase(unittest2.TestCase):
         self.assertEqual(self._dispatched_count, 2)
 
     @mock.patch('st2common.services.triggers.get_trigger_type_db',
-                mock.MagicMock(return_value=TriggerTypeMock(TEST_SCHEMA)))
+                mock.MagicMock(return_value=TriggerTypeDBMock(TEST_SCHEMA)))
     def test_dispatch_success_with_null(self):
         payload = {
             'name': 'John Doe',
@@ -193,7 +224,7 @@ class SensorServiceTestCase(unittest2.TestCase):
         self.assertEqual(self._dispatched_count, 1)
 
     @mock.patch('st2common.services.triggers.get_trigger_type_db',
-                mock.MagicMock(return_value=TriggerTypeMock()))
+                mock.MagicMock(return_value=TriggerTypeDBMock()))
     def test_dispatch_success_without_payload_schema(self):
         # the case trigger has no property
         self.sensor_service.dispatch('trigger-name', {})
