@@ -5,9 +5,6 @@ description : dummy pack
 version : 0.1.0
 author : st2-dev
 email : info@stackstorm.com
-attribute1: value1
-attribute2: value2
-attribute3: value3
 python_versions:
   - "4"
   - "5"
