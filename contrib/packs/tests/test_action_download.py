@@ -280,10 +280,6 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         action = self.get_action_instance()
 
         # No python_versions attribute specified in the metadata file
-        st2common.util.pack_management.six.PY2 = True
-        st2common.util.pack_management.six.PY3 = False
-        st2common.util.pack_management.CURRENT_PYTHON_VERSION = '2.7.11'
-
         with mock.patch('st2common.util.pack_management.get_pack_metadata') as \
                 mock_get_pack_metadata:
             mock_get_pack_metadata.return_value = {
@@ -291,6 +287,10 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
                 'stackstorm_version': '',
                 'python_versions': []
             }
+
+            st2common.util.pack_management.six.PY2 = True
+            st2common.util.pack_management.six.PY3 = False
+            st2common.util.pack_management.CURRENT_PYTHON_VERSION = '2.7.11'
 
             result = action.run(packs=['test3'], abs_repo_base=self.repo_base, force=False)
             self.assertEqual(result['test3'], 'Success.')
@@ -353,7 +353,28 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
             self.assertRaisesRegexp(ValueError, expected_msg, action.run,
                                     packs=['test3'], abs_repo_base=self.repo_base, force=False)
 
-        # Pack works with Python 2.x and 3.x installation is running 2.7
+        # Pack works with Python 2.x and 3.x installation is running 2.7 and 3.6.1
+        with mock.patch('st2common.util.pack_management.get_pack_metadata') as \
+                mock_get_pack_metadata:
+            mock_get_pack_metadata.return_value = {
+                'name': 'test3',
+                'stackstorm_version': '',
+                'python_versions': ['2', '3']
+            }
+
+            st2common.util.pack_management.six.PY2 = True
+            st2common.util.pack_management.six.PY3 = False
+            st2common.util.pack_management.CURRENT_PYTHON_VERSION = '2.7.5'
+
+            result = action.run(packs=['test3'], abs_repo_base=self.repo_base, force=False)
+            self.assertEqual(result['test3'], 'Success.')
+
+            st2common.util.pack_management.six.PY2 = False
+            st2common.util.pack_management.six.PY3 = True
+            st2common.util.pack_management.CURRENT_PYTHON_VERSION = '3.6.1'
+
+            result = action.run(packs=['test3'], abs_repo_base=self.repo_base, force=False)
+            self.assertEqual(result['test3'], 'Success.')
 
     def test_resolve_urls(self):
         url = eval_repo_url(
