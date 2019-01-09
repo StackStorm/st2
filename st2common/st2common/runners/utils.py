@@ -96,7 +96,8 @@ def get_logger_for_python_runner_action(action_name, log_level='debug'):
         console = stdlib_logging.StreamHandler()
         console.setLevel(log_level_constant)
 
-        formatter = stdlib_logging.Formatter('%(asctime)s: %(levelname)-8s %(message)s')
+        formatter = stdlib_logging.Formatter(
+            '%(asctime)s | %(filename)s:%(lineno)d (%(levelname)s) - %(message)s')
         console.setFormatter(formatter)
         logger.addHandler(console)
         logger.setLevel(log_level_constant)
