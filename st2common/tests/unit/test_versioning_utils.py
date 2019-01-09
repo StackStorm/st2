@@ -29,6 +29,11 @@ class VersioningUtilsTestCase(unittest2.TestCase):
         self.assertTrue(complex_semver_match('2.1.0', '>=1.6.0, <2.2.0'))
         self.assertTrue(complex_semver_match('2.1.9', '>=1.6.0, <2.2.0'))
 
+        self.assertTrue(complex_semver_match('1.6.0', 'all'))
+        self.assertTrue(complex_semver_match('1.6.1', 'all'))
+        self.assertTrue(complex_semver_match('2.0.0', 'all'))
+        self.assertTrue(complex_semver_match('2.1.0', 'all'))
+
         self.assertTrue(complex_semver_match('1.6.0', '>=1.6.0'))
         self.assertTrue(complex_semver_match('1.6.1', '>=1.6.0'))
         self.assertTrue(complex_semver_match('2.1.0', '>=1.6.0'))
