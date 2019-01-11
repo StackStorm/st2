@@ -1361,9 +1361,9 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /api/exp/inquiries:
+  /api/v1/inquiries:
     get:
-      operationId: st2api.controllers.exp.inquiries:inquiries_controller.get_all
+      operationId: st2api.controllers.v1.inquiries:inquiries_controller.get_all
       x-permissions: inquiry_list
       description: Returns a list of all inquiries
       parameters:
@@ -1401,9 +1401,9 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /api/exp/inquiries/{inquiry_id}:
+  /api/v1/inquiries/{inquiry_id}:
     get:
-      operationId: st2api.controllers.exp.inquiries:inquiries_controller.get_one
+      operationId: st2api.controllers.v1.inquiries:inquiries_controller.get_one
       description: |
         Get a specific Inquiry based on ID.
       parameters:
@@ -1427,7 +1427,7 @@ paths:
           schema:
             $ref: '#/definitions/Error'
     put:
-      operationId: st2api.controllers.exp.inquiries:inquiries_controller.put
+      operationId: st2api.controllers.v1.inquiries:inquiries_controller.put
       description: |
         Respond to an Inquiry.
       parameters:

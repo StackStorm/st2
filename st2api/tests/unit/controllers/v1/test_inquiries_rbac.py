@@ -29,7 +29,7 @@ from st2common.validators.api import action as action_validator
 from st2tests import fixturesloader
 
 from tests import base as api_tests_base
-from tests.unit.controllers.exp import test_inquiries
+from tests.unit.controllers.v1 import test_inquiries
 
 
 SCHEMA_DEFAULT = copy.deepcopy(test_inquiries.SCHEMA_DEFAULT)

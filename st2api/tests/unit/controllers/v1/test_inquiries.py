@@ -22,7 +22,7 @@ from oslo_config import cfg
 from six.moves import http_client
 
 from st2common.transport.publishers import PoolPublisher
-from st2api.controllers.exp.inquiries import InquiriesController
+from st2api.controllers.v1.inquiries import InquiriesController
 from st2common.constants import action as action_constants
 from st2common import log as logging
 import st2common.validators.api.action as action_validator
@@ -166,7 +166,7 @@ ROOT_LIVEACTION_DB = lv_db_models.LiveActionDB(
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
 class InquiryControllerTestCase(BaseInquiryControllerTestCase,
                                 APIControllerWithIncludeAndExcludeFilterTestCase):
-    get_all_path = '/exp/inquiries'
+    get_all_path = '/v1/inquiries'
     controller_cls = InquiriesController
     include_attribute_field_name = 'ttl'
     exclude_attribute_field_name = 'ttl'

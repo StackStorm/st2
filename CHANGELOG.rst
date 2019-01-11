@@ -12,6 +12,11 @@ Added
   
   Contributed by Hiroyasu OHYAMA (@userlocalhost).
 
+Changed
+~~~~~~~
+
+* Changed the ``inquiries`` API path from ``/exp`` to ``/api/v1``
+
 2.10.0 - December 13, 2018
 --------------------------
 
