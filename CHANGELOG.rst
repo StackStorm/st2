@@ -15,7 +15,7 @@ Added
 Changed
 ~~~~~~~
 
-* Changed the ``inquiries`` API path from ``/exp`` to ``/api/v1``
+* Changed the ``inquiries`` API path from ``/exp`` to ``/api/v1`` #4495
 
 2.10.0 - December 13, 2018
 --------------------------
