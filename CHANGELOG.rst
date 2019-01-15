@@ -9,8 +9,14 @@ Added
 
 * Allow access to user-scoped datastore items using ``{{ st2kv.user.<key name> }}`` Jinja template
   notation inside the action parameter default values. (improvement) #4463
-  
+
   Contributed by Hiroyasu OHYAMA (@userlocalhost).
+* Add support for new ``python_versions`` (``list`` of ``string``) attribute to pack metadata file
+  (``pack.yaml``). With this attribute pack declares which major Python versions it supports and
+  works with (e.g. ``2`` and ``3``).
+
+   For backward compatibility reasons, if pack metadata file doesn't contain that attribute, it's
+   assumed it only works with Python 2. (new feature) #4474
 
 Changed
 ~~~~~~~
