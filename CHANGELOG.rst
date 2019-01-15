@@ -18,6 +18,11 @@ Added
    For backward compatibility reasons, if pack metadata file doesn't contain that attribute, it's
    assumed it only works with Python 2. (new feature) #4474
 
+Changed
+~~~~~~~
+
+* Changed the ``inquiries`` API path from ``/exp`` to ``/api/v1`` #4495
+
 2.10.0 - December 13, 2018
 --------------------------
 

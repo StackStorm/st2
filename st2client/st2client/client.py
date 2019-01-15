@@ -136,7 +136,7 @@ class Client(object):
         # backward compatibility reasons until v3.2.0
         self.managers['LiveAction'] = self.managers['Execution']
         self.managers['Inquiry'] = InquiryResourceManager(
-            models.Inquiry, self.endpoints['exp'], cacert=self.cacert, debug=self.debug)
+            models.Inquiry, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Pack'] = PackResourceManager(
             models.Pack, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Policy'] = ResourceManager(
