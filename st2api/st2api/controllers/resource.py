@@ -265,13 +265,16 @@ class ResourceController(object):
         return item
 
     def _get_one_by_id(self, id, requester_user, permission_type, exclude_fields=None,
-                       from_model_kwargs=None):
+                       include_fields=None, from_model_kwargs=None):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
+        :param include_fields: A list of object fields to include.
+        :type include_fields: ``list``
         """
 
-        instance = self._get_by_id(resource_id=id, exclude_fields=exclude_fields)
+        instance = self._get_by_id(resource_id=id, exclude_fields=exclude_fields,
+                                   include_fields=include_fields)
 
         if permission_type:
             rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
@@ -299,13 +302,16 @@ class ResourceController(object):
         return result
 
     def _get_one_by_name_or_id(self, name_or_id, requester_user, permission_type,
-                               exclude_fields=None, from_model_kwargs=None):
+                               exclude_fields=None, include_fields=None, from_model_kwargs=None):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
+        :param include_fields: A list of object fields to include.
+        :type include_fields: ``list``
         """
 
-        instance = self._get_by_name_or_id(name_or_id=name_or_id, exclude_fields=exclude_fields)
+        instance = self._get_by_name_or_id(name_or_id=name_or_id, exclude_fields=exclude_fields,
+                                           include_fields=include_fields)
 
         if permission_type:
             rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
