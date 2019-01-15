@@ -1073,6 +1073,20 @@ paths:
           description: Entity id
           type: string
           required: true
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
+          required: false
         - name: show_secrets
           in: query
           description: Show secrets in plain text
