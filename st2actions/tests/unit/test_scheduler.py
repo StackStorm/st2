@@ -116,7 +116,7 @@ class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
         self.reset()
 
         schedule_q_dbs = []
-        delays = [100, 5000, 1000]
+        delays = [3000, 10000, 7000]
         expected_order = [0, 2, 1]
         test_cases = []
 
@@ -153,8 +153,12 @@ class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
                 schedule_q_db = self.scheduling_queue._get_next_execution()
                 ActionExecutionSchedulingQueue.delete(schedule_q_db)
 
+            scheduled_start_timestamp = schedule_q_db.scheduled_start_timestamp \
+                    .replace(microsecond=0)
+            test_case_start_timestamp = test_case['delayed_start'].replace(microsecond=0)
+
             self.assertIsInstance(schedule_q_db, ActionExecutionSchedulingQueueItemDB)
-            self.assertEqual(schedule_q_db.scheduled_start_timestamp, test_case['delayed_start'])
+            self.assertEqual(scheduled_start_timestamp, test_case_start_timestamp)
             self.assertEqual(schedule_q_db.delay, test_case['delay'])
             self.assertEqual(schedule_q_db.liveaction_id, str(test_case['liveaction'].id))
 
