@@ -27,7 +27,7 @@ python-gnupg==0.4.3
 jsonpath-rw==1.4.0
 pyinotify==0.9.6
 semver==2.8.1
-pytz==2018.7
+pytz==2018.9
 stevedore==1.30.0
 paramiko==2.4.2
 networkx==1.11
