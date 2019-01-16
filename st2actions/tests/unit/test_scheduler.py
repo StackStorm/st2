@@ -16,6 +16,7 @@
 from __future__ import absolute_import, print_function
 
 import mock
+import datetime
 
 import st2common
 from st2tests import ExecutionDbTestCase
@@ -153,14 +154,16 @@ class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
                 schedule_q_db = self.scheduling_queue._get_next_execution()
                 ActionExecutionSchedulingQueue.delete(schedule_q_db)
 
-            scheduled_start_timestamp = schedule_q_db.scheduled_start_timestamp \
-                    .replace(microsecond=0)
-            test_case_start_timestamp = test_case['delayed_start'].replace(microsecond=0)
-
             self.assertIsInstance(schedule_q_db, ActionExecutionSchedulingQueueItemDB)
-            self.assertEqual(scheduled_start_timestamp, test_case_start_timestamp)
             self.assertEqual(schedule_q_db.delay, test_case['delay'])
             self.assertEqual(schedule_q_db.liveaction_id, str(test_case['liveaction'].id))
+
+            # NOTE: We can't directly assert on the timestamp due to the delays on the code and
+            # timing variance
+            scheduled_start_timestamp = schedule_q_db.scheduled_start_timestamp
+            test_case_start_timestamp = test_case['delayed_start']
+            start_timestamp_diff = (scheduled_start_timestamp - test_case_start_timestamp)
+            self.assertTrue(start_timestamp_diff <= datetime.timedelta(seconds=2))
 
     def test_next_executions_empty(self):
         self.reset()
