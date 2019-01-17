@@ -1,4 +1,4 @@
-coverage==4.5.2
+coverage==5.0a4
 pep8==1.7.1
 flake8==3.6.0
 astroid==1.6.5
