@@ -15,8 +15,9 @@
 
 from __future__ import absolute_import, print_function
 
-import mock
 import datetime
+import mock
+import eventlet
 
 import st2common
 from st2tests import ExecutionDbTestCase
@@ -117,7 +118,7 @@ class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
         self.reset()
 
         schedule_q_dbs = []
-        delays = [100, 5000, 1000]
+        delays = [1000, 3000, 2000]
         expected_order = [0, 2, 1]
         test_cases = []
 
@@ -143,6 +144,9 @@ class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
                 )
             )
 
+        # Wait maximum delay seconds so the query works as expected
+        eventlet.sleep(3.2)
+
         for index in expected_order:
             test_case = test_cases[index]
 
@@ -163,7 +167,7 @@ class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
             scheduled_start_timestamp = schedule_q_db.scheduled_start_timestamp
             test_case_start_timestamp = test_case['delayed_start']
             start_timestamp_diff = (scheduled_start_timestamp - test_case_start_timestamp)
-            self.assertTrue(start_timestamp_diff <= datetime.timedelta(seconds=2))
+            self.assertTrue(start_timestamp_diff <= datetime.timedelta(seconds=1))
 
     def test_next_executions_empty(self):
         self.reset()
