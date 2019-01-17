@@ -11,9 +11,9 @@ branches:
 
 env:
   global:
-    # NOTE: We only enable coverage for master builds and not pull requests
-    # since it has huge performance overhead (etests are 50% or so slower)
-    - ENABLE_COVERAGE=$([ "${TRAVIS_PULL_REQUEST}" = "false" ] && echo "yes" || echo "no")
+    # NOTE: We don't run coverage for master builds anymore on every merge since it adds to much
+    # # overhead and it's very slow. Instead we run it as part ofa nightly build.
+    - ENABLE_COVERAGE=$([ "${TRAVIS_EVENT_TYPE}" = "cron" ] && echo "yes" || echo "no")
     # We need to explicitly specify terminal width otherwise some CLI tests fail on container
     # environments where small terminal size is used.
     - COLUMNS=120
