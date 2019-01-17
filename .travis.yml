@@ -20,7 +20,8 @@ env:
     - PYLINT_CONCURRENCY=2
     # We only run tests with "--with-timer" flag on master and not for PRs since it adds 1-2
     # # minutes of overhead to each build.
-    - NOSE_TIME=$([ "${TRAVIS_PULL_REQUEST}" = "false" ] && echo "yes" || echo "no")
+    - NOSE_TIME=yes
+    #- NOSE_TIME=$([ "${TRAVIS_PULL_REQUEST}" = "false" ] && echo "yes" || echo "no")
 matrix:
   include:
     # NOTE: We combine builds because Travis offers a maximum of 5 concurrent
