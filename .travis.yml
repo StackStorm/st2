@@ -83,6 +83,8 @@ before_install:
   - echo "deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.4 multiverse" | sudo tee -a /etc/apt/sources.list
   # Work around for Travis timeout issues, see https://github.com/travis-ci/travis-ci/issues/9112
   - sudo apt-get update --option Acquire::Retries=100 --option Acquire::http::Timeout="60"
+  # 2. Install latest openssl
+  - sudo apt-get install openssl
   - sudo apt-get install mongodb-org-server mongodb-org-shell git libffi-dev -y
   - pip install --upgrade "pip>=9.0,<9.1"
   - sudo pip install --upgrade "virtualenv==15.1.0"
