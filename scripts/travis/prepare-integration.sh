@@ -38,7 +38,7 @@ create_user() {
   # Enable passwordless sudo
   local STANLEY_SUDOERS="stanley    ALL=(ALL)       NOPASSWD: SETENV: ALL"
   if ! grep -s -q ^"${STANLEY_SUDOERS}" /etc/sudoers.d/st2; then
-    echo '${STANLEY_SUDOERS}' >> /etc/sudoers.d/st2
+    echo "${STANLEY_SUDOERS}" >> /etc/sudoers.d/st2
   fi
 
   chmod 0440 /etc/sudoers.d/st2
