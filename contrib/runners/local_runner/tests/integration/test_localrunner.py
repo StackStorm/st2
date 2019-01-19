@@ -435,6 +435,7 @@ class LocalShellScriptRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.post_run(status, result)
 
         print('done debug')
+        print(result)
         print(output)
 
         self.assertEqual(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
@@ -612,6 +613,7 @@ class LocalShellScriptRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         status, result, output = runner.run({'chars': char_count})
         runner.post_run(status, result)
         print('done debug')
+        print(result)
         print(output)
         self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         self.assertEquals(len(result['stdout']), char_count)
