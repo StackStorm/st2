@@ -7,41 +7,43 @@ if [ "$(whoami)" != 'root' ]; then
 fi
 
 # create and configure user
-# proudly stolen from `./tools/st2_deploy.sh`
-TYPE='debs'
-SYSTEMUSER='stanley'
-STAN="/home/${SYSTEMUSER}/${TYPE}"
-mkdir -p ${STAN}
-
 VIRTUALENV_DIR=virtualenv
 
 create_user() {
-  if [ $(id -u ${SYSTEMUSER} &> /dev/null; echo $?) != 0 ]
-  then
-    echo "###########################################################################################"
-    echo "# Creating system user: ${SYSTEMUSER}"
-    useradd ${SYSTEMUSER}
-    mkdir -p /home/${SYSTEMUSER}/.ssh
-    rm -Rf ${STAN}/*
-    chmod 0700 /home/${SYSTEMUSER}/.ssh
-    mkdir -p /home/${SYSTEMUSER}/${TYPE}
-    echo "###########################################################################################"
-    echo "# Generating system user ssh keys"
-    ssh-keygen -f /home/${SYSTEMUSER}/.ssh/stanley_rsa -P ""
-    cat /home/${SYSTEMUSER}/.ssh/stanley_rsa.pub >> /home/${SYSTEMUSER}/.ssh/authorized_keys
-    chmod 0600 /home/${SYSTEMUSER}/.ssh/authorized_keys
-    chown -R ${SYSTEMUSER}:${SYSTEMUSER} /home/${SYSTEMUSER}
-  else
-    echo "Stanley system user already exists, skipping addition."
+  echo "###########################################################################################"
+  echo "# Creating system user: stanley"
+
+  if (! id stanley 2>/dev/null); then
+    useradd stanley
   fi
 
-  if [ $(grep 'stanley' /etc/sudoers.d/* &> /dev/null; echo $?) != 0 ]
-  then
-    echo "${SYSTEMUSER}    ALL=(ALL)       NOPASSWD: SETENV: ALL" >> /etc/sudoers.d/st2
-    chmod 0440 /etc/sudoers.d/st2
+  SYSTEM_HOME=$(echo ~stanley)
+
+  mkdir -p ${SYSTEM_HOME}/.ssh
+
+  if ! test -s ${SYSTEM_HOME}/.ssh/stanley_rsa; then
+    ssh-keygen -f ${SYSTEM_HOME}/.ssh/stanley_rsa -P ""
   fi
 
-  # make sure requiretty is disabled.
+  if ! grep -s -q -f ${SYSTEM_HOME}/.ssh/stanley_rsa.pub ${SYSTEM_HOME}/.ssh/authorized_keys;
+  then
+    # Authorize key-base access
+    cat ${SYSTEM_HOME}/.ssh/stanley_rsa.pub >> ${SYSTEM_HOME}/.ssh/authorized_keys
+  fi
+
+  chmod 0600 ${SYSTEM_HOME}/.ssh/authorized_keys
+  chmod 0700 ${SYSTEM_HOME}/.ssh
+  chown -R stanley:stanley ${SYSTEM_HOME}
+
+  # Enable passwordless sudo
+  local STANLEY_SUDOERS="stanley    ALL=(ALL)       NOPASSWD: SETENV: ALL"
+  if ! grep -s -q ^"${STANLEY_SUDOERS}" /etc/sudoers.d/st2; then
+    echo '${STANLEY_SUDOERS}' >> /etc/sudoers.d/st2
+  fi
+
+  chmod 0440 /etc/sudoers.d/st2
+
+  # Disable requiretty for all users
   sed -i -r "s/^Defaults\s+\+?requiretty/# Defaults requiretty/g" /etc/sudoers
 }
 
@@ -64,6 +66,3 @@ st2 --version
 # as root can't write to logs/ directory and tests fail
 chmod 777 logs/
 chmod 777 logs/*
-
-# Work around for travis
-chmod -R 777 st2tests/st2tests/fixtures
