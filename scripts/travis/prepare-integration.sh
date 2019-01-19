@@ -16,7 +16,7 @@ mkdir -p ${STAN}
 VIRTUALENV_DIR=virtualenv
 
 create_user() {
-  if [ $(id -u ${SYSTEMUSER} &> /devnull; echo $?) != 0 ]
+  if [ $(id -u ${SYSTEMUSER} &> /dev/null; echo $?) != 0 ]
   then
     echo "###########################################################################################"
     echo "# Creating system user: ${SYSTEMUSER}"
