@@ -30,7 +30,6 @@ oslo.utils<=3.37.0,>=3.36.2
 paramiko==2.4.2
 passlib==1.7.1
 prettytable
-prometheus_client==0.1.1
 prompt-toolkit==1.0.15
 psutil==5.4.8
 pyinotify==0.9.6
