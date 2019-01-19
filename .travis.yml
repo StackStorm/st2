@@ -125,3 +125,4 @@ script:
 # Alternative: use strict pip pinning, including git-based pip packages
 before_cache:
   - if [ ${TRAVIS_PULL_REQUEST} = 'false' ]; then rm -rf virtualenv/; fi
+  - cat logs/*.log
