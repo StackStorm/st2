@@ -60,9 +60,6 @@ matrix:
       python: 3.6
       name: "Integration Tests (Python 3.6)"
 
-services:
-  - rabbitmq
-
 cache:
   pip: true
   directories:
@@ -80,9 +77,10 @@ before_install:
   - sudo add-apt-repository -y ppa:git-core/ppa
   - curl https://www.mongodb.org/static/pgp/server-3.4.asc | sudo apt-key add -
   - echo "deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.4 multiverse" | sudo tee -a /etc/apt/sources.list
+  # 2. Install RabbitMQ server
   # Work around for Travis timeout issues, see https://github.com/travis-ci/travis-ci/issues/9112
   - sudo apt-get update --option Acquire::Retries=100 --option Acquire::http::Timeout="60"
-  - sudo apt-get install mongodb-org-server mongodb-org-shell git libffi-dev -y
+  - sudo apt-get install mongodb-org-server mongodb-org-shell rabbitmq-server git libffi-dev -y
   - pip install --upgrade "pip>=9.0,<9.1"
   - sudo pip install --upgrade "virtualenv==15.1.0"
 
