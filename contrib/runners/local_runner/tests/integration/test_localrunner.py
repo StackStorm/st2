@@ -434,6 +434,7 @@ class LocalShellScriptRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         status, result, output = runner.run(action_parameters=action_parameters)
         runner.post_run(status, result)
 
+        print('done debug')
         print(output)
 
         self.assertEqual(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
@@ -610,6 +611,7 @@ class LocalShellScriptRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         char_count = 10 ** 6  # Note 10^7 succeeds but ends up being slow.
         status, result, output = runner.run({'chars': char_count})
         runner.post_run(status, result)
+        print('done debug')
         print(output)
         self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         self.assertEquals(len(result['stdout']), char_count)
