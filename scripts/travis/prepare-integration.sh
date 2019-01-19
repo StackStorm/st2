@@ -38,7 +38,9 @@ create_user() {
     fi
 
     # make sure requiretty is disabled.
-    sed -i "s/^Defaults\s\+requiretty/# Defaults requiretty/g" /etc/sudoers
+    sed -i -r "s/^Defaults\s+\+?requiretty/# Defaults requiretty/g" /etc/sudoers
+  else
+    echo "Stanley system user already exists, skipping addition."
   fi
 }
 
