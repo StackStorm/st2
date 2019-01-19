@@ -31,17 +31,18 @@ create_user() {
     cat /home/${SYSTEMUSER}/.ssh/stanley_rsa.pub >> /home/${SYSTEMUSER}/.ssh/authorized_keys
     chmod 0600 /home/${SYSTEMUSER}/.ssh/authorized_keys
     chown -R ${SYSTEMUSER}:${SYSTEMUSER} /home/${SYSTEMUSER}
-    if [ $(grep 'stanley' /etc/sudoers.d/* &> /dev/null; echo $?) != 0 ]
-    then
-      echo "${SYSTEMUSER}    ALL=(ALL)       NOPASSWD: SETENV: ALL" >> /etc/sudoers.d/st2
-      chmod 0440 /etc/sudoers.d/st2
-    fi
-
-    # make sure requiretty is disabled.
-    sed -i -r "s/^Defaults\s+\+?requiretty/# Defaults requiretty/g" /etc/sudoers
   else
     echo "Stanley system user already exists, skipping addition."
   fi
+
+  if [ $(grep 'stanley' /etc/sudoers.d/* &> /dev/null; echo $?) != 0 ]
+  then
+    echo "${SYSTEMUSER}    ALL=(ALL)       NOPASSWD: SETENV: ALL" >> /etc/sudoers.d/st2
+    chmod 0440 /etc/sudoers.d/st2
+  fi
+
+  # make sure requiretty is disabled.
+  sed -i -r "s/^Defaults\s+\+?requiretty/# Defaults requiretty/g" /etc/sudoers
 }
 
 create_user

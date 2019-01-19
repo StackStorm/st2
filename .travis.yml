@@ -111,6 +111,7 @@ before_script:
   - make play
 
 script:
+  # Clean up egg-info directories which get created when installing runners
   # NOTE: We enable code coverage and per test timing information on master so build can take twice
   # as long as PR builds
   - if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then COMMAND_THRESHOLD=$(expr ${COMMAND_THRESHOLD} \* 2); fi; ./scripts/travis/time-command.sh "make ${TASK}" ${COMMAND_THRESHOLD}
