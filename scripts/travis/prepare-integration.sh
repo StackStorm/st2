@@ -61,3 +61,6 @@ st2 --version
 # as root can't write to logs/ directory and tests fail
 chmod 777 logs/
 chmod 777 logs/*
+
+# Work around for travis
+chmod -R 777 st2tests/st2tests/fixtures
