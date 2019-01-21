@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import eventlet
 
 __all__ = ['ConnectionRetryWrapper', 'ClusterRetryContext']
@@ -39,8 +40,9 @@ class ClusterRetryContext(object):
         # Special workaround for "(504) CHANNEL_ERROR - second 'channel.open' seen" which happens
         # during tests on Travis and block and slown down the tests
         # NOTE: This error is not fatal during tests and we can simply switch to a next connection
+        # without sleeping.
         if "CHANNEL_ERROR - second 'channel.open' seen" in e:
-            return False, 0
+            return False, -1
 
         should_stop = True
         if self._nodes_attempted > self.cluster_size * self.cluster_retry:
@@ -132,7 +134,10 @@ class ConnectionRetryWrapper(object):
                 # be notified so raise.
                 if should_stop:
                     raise
+
                 # -1, 0 and 1+ are handled properly by eventlet.sleep
+                self._logger.debug('Received RabbitMQ server error, sleeping for %s seconds '
+                                   'before retrying: %s' % (wait, str(e)))
                 eventlet.sleep(wait)
 
                 connection.close()
