@@ -67,5 +67,6 @@ st2 --version
 chmod 777 logs/
 chmod 777 logs/*
 
-# Workaround for Travis on Ubuntu Xenial
-chown -R stanley:stanley /home/travis
+# Workaround for Travis on Ubuntu Xenial so local runner integration tests work
+# when executing them under user "stanley"
+chmod 777 -R stanley:stanley /home/travis
