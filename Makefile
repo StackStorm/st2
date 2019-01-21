@@ -273,7 +273,7 @@ bandit: requirements .bandit
 lint: requirements .lint
 
 .PHONY: .lint
-.lint: .generate-api-spec .flake8 .pylint .bandit .st2client-dependencies-check .st2common-circular-dependencies-check .rst-check .st2client-install-check
+.lint: .generate-api-spec .flake8 .pylint .st2client-dependencies-check .st2common-circular-dependencies-check .rst-check .st2client-install-check
 
 .PHONY: clean
 clean: .cleanpycs
@@ -827,7 +827,7 @@ debs:
 ci: ci-checks ci-unit ci-integration ci-mistral ci-packs-tests
 
 .PHONY: ci-checks
-ci-checks: compile .generated-files-check .pylint .flake8 .bandit .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check
+ci-checks: compile .generated-files-check .pylint .flake8 .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check
 
 .PHONY: ci-py3-unit
 ci-py3-unit:
