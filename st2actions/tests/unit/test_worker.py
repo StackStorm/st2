@@ -114,7 +114,7 @@ class WorkerTestCase(DbTestCase):
             runner_thread = eventlet.spawn(action_worker._run_action, liveaction_db)
 
             # Wait for the worker up to 10s to add the liveaction to _running_liveactions.
-            for i in range(0, int(20 / 0.1)):
+            for i in range(0, int(10 / 0.1)):
                 eventlet.sleep(0.1)
                 if len(action_worker._running_liveactions) > 0:
                     break
