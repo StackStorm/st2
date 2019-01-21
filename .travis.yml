@@ -70,7 +70,7 @@ cache:
     - virtualenv/
     # NOTE: Caching .tox speeds up py3 build for 30-60 seconds, but causes issues when dependencies
     # are updated so it's disabled
-    #- .tox/
+    - .tox/
 
 before_install:
   # 1. Install MongoDB 3.4 and latest version of git
