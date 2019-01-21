@@ -11,17 +11,16 @@ branches:
 
 env:
   global:
-    # NOTE: We don't run coverage for master builds anymore on every merge since it adds to much
-    # # overhead and it's very slow. Instead we run it as part ofa nightly build.
-    - ENABLE_COVERAGE=$([ "${TRAVIS_EVENT_TYPE}" = "cron" ] && echo "yes" || echo "no")
+    # NOTE: We only enable coverage for master builds and not pull requests
+    # since it has huge performance overhead (etests are 50% or so slower)
+    - ENABLE_COVERAGE=$([ "${TRAVIS_PULL_REQUEST}" = "false" ] && echo "yes" || echo "no")
     # We need to explicitly specify terminal width otherwise some CLI tests fail on container
     # environments where small terminal size is used.
     - COLUMNS=120
     - PYLINT_CONCURRENCY=2
     # We only run tests with "--with-timer" flag on master and not for PRs since it adds 1-2
     # # minutes of overhead to each build.
-    - NOSE_TIME=yes
-    #- NOSE_TIME=$([ "${TRAVIS_PULL_REQUEST}" = "false" ] && echo "yes" || echo "no")
+    - NOSE_TIME=$([ "${TRAVIS_PULL_REQUEST}" = "false" ] && echo "yes" || echo "no")
 matrix:
   include:
     # NOTE: We combine builds because Travis offers a maximum of 5 concurrent
@@ -83,8 +82,6 @@ before_install:
   - echo "deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.4 multiverse" | sudo tee -a /etc/apt/sources.list
   # Work around for Travis timeout issues, see https://github.com/travis-ci/travis-ci/issues/9112
   - sudo apt-get update --option Acquire::Retries=100 --option Acquire::http::Timeout="60"
-  # 2. Install latest openssl
-  - sudo apt-get install openssl
   - sudo apt-get install mongodb-org-server mongodb-org-shell git libffi-dev -y
   - pip install --upgrade "pip>=9.0,<9.1"
   - sudo pip install --upgrade "virtualenv==15.1.0"
