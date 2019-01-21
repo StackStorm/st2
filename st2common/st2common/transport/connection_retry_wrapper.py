@@ -126,7 +126,7 @@ class ConnectionRetryWrapper(object):
                 should_stop = True
             except connection.connection_errors + connection.channel_errors as e:
                 self._logger.exception('RabbitMQ connection or channel error: %s.' % (str(e)))
-                should_stop, wait = self._retry_context.test_should_stop()
+                should_stop, wait = self._retry_context.test_should_stop(e)
                 # reset channel to None to avoid any channel closing errors. At this point
                 # in case of an exception there should be no channel but that is better to
                 # guarantee.
