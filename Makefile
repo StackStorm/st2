@@ -134,8 +134,12 @@ play:
 .PHONY: check
 check: requirements flake8 checklogs
 
+# NOTE: We pass --no-deps to the script so we don't install all the
+# package dependencies which are already installed as part of "requirements"
+# make targets. This speeds up the build
 .PHONY: install-runners
 install-runners:
+
 	@echo ""
 	@echo "================== INSTALL RUNNERS ===================="
 	@echo ""
@@ -143,7 +147,7 @@ install-runners:
 		echo "==========================================================="; \
 		echo "Installing runner:" $$component; \
 		echo "==========================================================="; \
-        (. $(VIRTUALENV_DIR)/bin/activate; cd $$component; python setup.py develop); \
+		(. $(VIRTUALENV_DIR)/bin/activate; cd $$component; python setup.py develop --no-deps); \
 	done
 
 .PHONY: checklogs
@@ -392,7 +396,10 @@ requirements: virtualenv .sdist-requirements install-runners
 	done
 
 	# Install st2common package to load drivers defined in st2common setup.py
-	(cd st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop)
+	# NOTE: We pass --no-deps to the script so we don't install all the
+	# package dependencies which are already installed as part of "requirements"
+	# make targets. This speeds up the build
+	(cd st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
 
 
 	# Note: We install prance here and not as part of any component
@@ -401,7 +408,10 @@ requirements: virtualenv .sdist-requirements install-runners
 	$(VIRTUALENV_DIR)/bin/pip install "prance==0.6.1"
 
 	# Install st2common to register metrics drivers
-	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop)
+	# NOTE: We pass --no-deps to the script so we don't install all the
+	# package dependencies which are already installed as part of "requirements"
+	# make targets. This speeds up the build
+	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
 
 	# Some of the tests rely on submodule so we need to make sure submodules are check out
 	git submodule update --init --recursive
