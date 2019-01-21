@@ -61,6 +61,3 @@ st2 --version
 # as root can't write to logs/ directory and tests fail
 chmod 777 logs/
 chmod 777 logs/*
-
-# Workaround for Travis on Ubuntu Xenial
-chown -R stanley:stanley /home/travis
