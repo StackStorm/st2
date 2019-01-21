@@ -239,7 +239,11 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
 
         # Give it some time to perform garbage collection and kill it
         eventlet.sleep(12)
+        print('======== log1')
+        print(process.stdout.read())
+        print(process.stderr.read())
         process.send_signal(signal.SIGKILL)
+        print('======== log')
         print(process.stdout.read())
         print(process.stderr.read())
         self.remove_process(process=process)
