@@ -431,13 +431,8 @@ class LocalShellScriptRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
         runner = self._get_runner(action_db=action_db, entry_point=entry_point)
         runner.pre_run()
-        status, result, output = runner.run(action_parameters=action_parameters)
+        status, result, _ = runner.run(action_parameters=action_parameters)
         runner.post_run(status, result)
-
-        print('done debug')
-        print(result)
-        print(output)
-
         self.assertEqual(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         self.assertTrue('PARAM_STRING=test string' in result['stdout'])
         self.assertTrue('PARAM_INTEGER=1' in result['stdout'])
@@ -610,11 +605,8 @@ class LocalShellScriptRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner = self._get_runner(action_db, entry_point=entry_point)
         runner.pre_run()
         char_count = 10 ** 6  # Note 10^7 succeeds but ends up being slow.
-        status, result, output = runner.run({'chars': char_count})
+        status, result, _ = runner.run({'chars': char_count})
         runner.post_run(status, result)
-        print('done debug')
-        print(result)
-        print(output)
         self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         self.assertEquals(len(result['stdout']), char_count)
 

@@ -28,7 +28,7 @@ CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
 
 
-def parse_args(coordinator_noop=True):
+def parse_args(coordinator_noop=False):
     _setup_config_opts(coordinator_noop=coordinator_noop)
     CONF(args=[])
 
