@@ -41,7 +41,7 @@ class ClusterRetryContext(object):
         # during tests on Travis and block and slown down the tests
         # NOTE: This error is not fatal during tests and we can simply switch to a next connection
         # without sleeping.
-        if "CHANNEL_ERROR - second 'channel.open' seen" in e:
+        if "second 'channel.open' seen" in str(e):
             return False, -1
 
         should_stop = True
