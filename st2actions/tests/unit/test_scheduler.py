@@ -118,7 +118,7 @@ class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
         self.reset()
 
         schedule_q_dbs = []
-        delays = [1000, 3000, 2000]
+        delays = [2000, 5000, 4000]
         expected_order = [0, 2, 1]
         test_cases = []
 
