@@ -267,7 +267,7 @@ bandit: requirements .bandit
 	@echo
 	@echo "==================== bandit ===================="
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; bandit -r $(COMPONENTS_WITH_RUNNERS) -lll
+	. $(VIRTUALENV_DIR)/bin/activate; bandit -r $(COMPONENTS_WITH_RUNNERS) -lll -x build,dist
 
 .PHONY: lint
 lint: requirements .lint
