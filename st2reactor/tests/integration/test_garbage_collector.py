@@ -190,8 +190,6 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
         # Give it some time to perform garbage collection and kill it
         eventlet.sleep(15)
         process.send_signal(signal.SIGKILL)
-        print(process.stdout.read())
-        print(process.stderr.read())
         self.remove_process(process=process)
 
         # Old executions and corresponding objects should have been garbage collected
@@ -240,9 +238,6 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
         # Give it some time to perform garbage collection and kill it
         eventlet.sleep(15)
         process.send_signal(signal.SIGKILL)
-        print('======== log')
-        print(process.stdout.read())
-        print(process.stderr.read())
         self.remove_process(process=process)
 
         # Expired Inquiries should have been garbage collected
