@@ -581,7 +581,7 @@ endif
 		echo "-----------------------------------------------------------"; \
 		. $(VIRTUALENV_DIR)/bin/activate; \
 		    COVERAGE_FILE=.coverage.integration.$$(echo $$component | tr '/' '.') \
-		    nosetests $(NOSE_OPTS) -s -v $(NOSE_COVERAGE_FLAGS) \
+		    nosetests $(NOSE_OPTS) -s -v --exe $(NOSE_COVERAGE_FLAGS) \
 		    $(NOSE_COVERAGE_PACKAGES) \
 		    $$component/tests/integration || exit 1; \
 		echo "-----------------------------------------------------------"; \

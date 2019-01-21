@@ -69,4 +69,5 @@ chmod 777 logs/*
 
 # Workaround for Travis on Ubuntu Xenial so local runner integration tests work
 # when executing them under user "stanley"
+# NOTE: We need to pass "--exe" flag to nosetests when using this workaround.
 chmod 777 -R /home/travis
