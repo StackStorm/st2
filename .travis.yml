@@ -1,7 +1,7 @@
 # Used old infrastructure, needed for integration tests:
 # http://docs.travis-ci.com/user/workers/standard-infrastructure/
 sudo: required
-dist: xenial
+dist: precise
 language: python
 
 branches:
