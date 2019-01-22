@@ -30,3 +30,6 @@ webob
 jsonpath-rw
 python-statsd
 ujson
+# Note: amqp is used by kombu, this needs to be added here to be picked up by
+# requirements fixate script.
+amqp
