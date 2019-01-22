@@ -60,6 +60,20 @@ matrix:
       python: 3.6
       name: "Integration Tests (Python 3.6)"
 
+addons:
+  apt:
+    sources:
+      - mongodb-upstart
+      - sourceline: 'deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.4 multiverse'
+        key_url: 'https://www.mongodb.org/static/pgp/server-3.4.asc'
+      - sourceline: 'ppa:git-core/ppa'
+    packages:
+      - mongodb-org-server
+      - mongodb-org-shell
+      - rabbitmq-server
+      - git
+      - libffi-dev
+
 cache:
   pip: true
   directories:
@@ -73,14 +87,8 @@ cache:
     #- .tox/
 
 before_install:
-  # 1. Install MongoDB 3.4 and latest version of git
-  - sudo add-apt-repository -y ppa:git-core/ppa
-  - curl https://www.mongodb.org/static/pgp/server-3.4.asc | sudo apt-key add -
-  - echo "deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.4 multiverse" | sudo tee -a /etc/apt/sources.list
-  # 2. Install RabbitMQ server
-  # Work around for Travis timeout issues, see https://github.com/travis-ci/travis-ci/issues/9112
-  - sudo apt-get update --option Acquire::Retries=100 --option Acquire::http::Timeout="60"
-  - sudo apt-get install mongodb-org-server mongodb-org-shell rabbitmq-server git libffi-dev -y
+  # Work around for apt Travis timeout issues, see https://github.com/travis-ci/travis-ci/issues/9112
+  #- sudo apt-get update --option Acquire::Retries=100 --option Acquire::http::Timeout="60"
   - pip install --upgrade "pip>=9.0,<9.1"
   - sudo pip install --upgrade "virtualenv==15.1.0"
 
