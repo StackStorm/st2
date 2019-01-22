@@ -1,7 +1,7 @@
 # Used old infrastructure, needed for integration tests:
 # http://docs.travis-ci.com/user/workers/standard-infrastructure/
 sudo: required
-dist: xenial
+dist: trusty
 language: python
 
 branches:
@@ -67,10 +67,15 @@ addons:
       - sourceline: 'deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.4 multiverse'
         key_url: 'https://www.mongodb.org/static/pgp/server-3.4.asc'
       - sourceline: 'ppa:git-core/ppa'
+      - sourceline: deb https://packages.erlang-solutions.com/ubuntu trusty contrib
+        key_url: https://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc
+      - sourceline: deb https://dl.bintray.com/rabbitmq/debian trusty main
+        key_url: https://dl.bintray.com/rabbitmq/Keys/rabbitmq-release-signing-key.asc
     packages:
       - mongodb-org-server
       - mongodb-org-shell
-      - rabbitmq-server
+      - esl-erlang=1:20.1
+      - rabbitmq-server=3.7.0-1
       - git
       - libffi-dev
 
