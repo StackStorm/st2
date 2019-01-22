@@ -25,7 +25,7 @@ tooz
 zake
 ipaddr
 routes
-flex
+git+https://github.com/StackStorm/flex.git@pyyaml_pin_fix#egg=flex
 webob
 jsonpath-rw
 python-statsd
