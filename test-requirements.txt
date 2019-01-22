@@ -20,8 +20,8 @@ nose-parallel==0.3.1
 # Required by st2client tests
 pyyaml<4.0,>=3.12
 RandomWords
-gunicorn==19.7.1
-psutil==5.4.5
+gunicorn==19.9.0
+psutil==5.4.8
 webtest==2.0.25
 rstcheck>=3.3.1,<3.4
 pyrabbit
