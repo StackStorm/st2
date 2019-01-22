@@ -1,4 +1,5 @@
 # Don't edit this file. It's generated automatically!
+amqp==2.3.2
 apscheduler==3.5.3
 cryptography==2.4.2
 eventlet==0.24.1
