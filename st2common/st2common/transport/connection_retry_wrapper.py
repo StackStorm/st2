@@ -91,9 +91,12 @@ class ConnectionRetryWrapper(object):
             retry_wrapper.run(connection=connection, wrapped_callback=wrapped_callback)
 
     """
-    def __init__(self, cluster_size, logger):
+    def __init__(self, cluster_size, logger, ensure_max_retries=3):
         self._retry_context = ClusterRetryContext(cluster_size=cluster_size)
         self._logger = logger
+        # How many times to try to retrying establishing a connection in a place where we are
+        # calling connection.ensure_connection
+        self._ensure_max_retries = ensure_max_retries
 
     def errback(self, exc, interval):
         self._logger.error('Rabbitmq connection error: %s', exc.message)
@@ -139,13 +142,14 @@ class ConnectionRetryWrapper(object):
                 # ends up talking to separate nodes in a cluster.
 
                 def log_error_on_conn_failure(exc, interval):
-                    self._logger.debug('Failed to re-establish connection to RabbitMQ server: %s' %
-                                       (str(e)))
+                    self._logger.debug('Failed to re-establish connection to RabbitMQ server, '
+                                       'retrying in %s seconds: %s' % (interval, str(e)))
 
                 try:
                     # NOTE: This function blocks and tries to restablish a connection for
                     # indefinetly if "max_retries" argument is not specified
-                    connection.ensure_connection(max_retries=5, errback=log_error_on_conn_failure)
+                    connection.ensure_connection(max_retries=self._ensure_max_retries,
+                                                 errback=log_error_on_conn_failure)
                 except Exception:
                     self._logger.exception('Connections to RabbitMQ cannot be re-established: %s',
                                            str(e))
