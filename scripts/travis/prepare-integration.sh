@@ -6,6 +6,8 @@ if [ "$(whoami)" != 'root' ]; then
     exit 2
 fi
 
+UBUNTU_VERSION=`lsb_release -a 2>&1 | grep Codename | grep -v "LSB" | awk '{print $2}'`
+
 # Activate the virtualenv created during make requirements phase
 source ./virtualenv/bin/activate
 
@@ -25,4 +27,7 @@ chmod 777 logs/*
 # when executing them under user "stanley" (by default Travis checks out the
 # code and runs tests under a different system user).
 # NOTE: We need to pass "--exe" flag to nosetests when using this workaround.
-chmod 777 -R /home/travis
+if [ "${UBUNTU_VERSION}" == "xenial" ]; then
+  echo "Applying workaround for stanley user permissions issue to /home/travis on Xenial"
+  chmod 777 -R /home/travis
+fi
