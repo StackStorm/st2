@@ -401,7 +401,6 @@ requirements: virtualenv .sdist-requirements install-runners
 	# make targets. This speeds up the build
 	(cd st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
 
-
 	# Note: We install prance here and not as part of any component
 	# requirements.txt because it has a conflict with our dependency (requires
 	# new version of requests) which we cant resolve at this moment
