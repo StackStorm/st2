@@ -1,6 +1,7 @@
 # Used old infrastructure, needed for integration tests:
 # http://docs.travis-ci.com/user/workers/standard-infrastructure/
 sudo: required
+# NOTE: We use precise because tests finish faster than on Xenial
 dist: precise
 language: python
 
