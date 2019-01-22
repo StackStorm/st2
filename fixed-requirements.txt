@@ -9,12 +9,11 @@ kombu==4.2.1
 # Note: amqp is used by kombu
 amqp==2.3.2
 # NOTE: Recent version substantially affect the performance and add big import time overhead
-# See https://github.com/StackStorm/st2/issues/4160#issuecomment-394386433 for
-details
+# See https://github.com/StackStorm/st2/issues/4160#issuecomment-394386433 for details
 oslo.config>=1.12.1,<1.13
 oslo.utils>=3.36.2,<=3.37.0
-six==1.11.0
-pyyaml==3.13
+six==1.12.0
+pyyaml==4.2b4
 requests[security]<2.15,>=2.14.1
 apscheduler==3.5.3
 gitpython==2.1.11
