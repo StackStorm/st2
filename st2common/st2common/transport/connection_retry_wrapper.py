@@ -139,7 +139,6 @@ class ConnectionRetryWrapper(object):
                     raise
 
                 # -1, 0 and 1+ are handled properly by eventlet.sleep
-                wait = 1
                 self._logger.debug('Received RabbitMQ server error, sleeping for %s seconds '
                                    'before retrying: %s' % (wait, str(e)))
                 eventlet.sleep(wait)
