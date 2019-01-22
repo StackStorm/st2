@@ -127,6 +127,8 @@ class ConnectionRetryWrapper(object):
                 if should_stop:
                     raise
                 # -1, 0 and 1+ are handled properly by eventlet.sleep
+                self._logger.debug('Received RabbitMQ server error, sleeping for %s seconds '
+                                   'before retrying: %s' % (wait, str(e)))
                 eventlet.sleep(wait)
 
                 connection.close()
@@ -135,10 +137,21 @@ class ConnectionRetryWrapper(object):
                 # entire ConnectionPool simultaneously but that would require writing our own
                 # ConnectionPool. If a server recovers it could happen that the same process
                 # ends up talking to separate nodes in a cluster.
-                connection.ensure_connection()
 
+                def log_error_on_conn_failure(exc, interval):
+                    self._logger.debug('Failed to re-establish connection to RabbitMQ server: %s' %
+                                       (str(e)))
+
+                try:
+                    # NOTE: This function blocks and tries to restablish a connection for
+                    # indefinetly if "max_retries" argument is not specified
+                    connection.ensure_connection(max_retries=5, errback=log_error_on_conn_failure)
+                except Exception:
+                    self._logger.exception('Connections to RabbitMQ cannot be re-established: %s',
+                                           str(e))
+                    raise
             except Exception as e:
-                self._logger.exception('Connections to rabbitmq cannot be re-established: %s',
+                self._logger.exception('Connections to RabbitMQ cannot be re-established: %s',
                                        str(e))
                 # Not being able to publish a message could be a significant issue for an app.
                 raise
