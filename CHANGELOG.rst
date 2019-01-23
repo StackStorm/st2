@@ -15,6 +15,15 @@ Fixed
   in place which only allows users with an admin role to use ``?scope=all`` and retrieve / view
   datastore values for arbitrary system users. (security issue bug fix)
 
+Fixed
+~~~~~
+
+* Fixed the ``packs.pack_install`` / ``!pack install {{ packs }}`` action-alias to not have
+  redundant patterns. Previously this prevented it from being executed via
+  ``st2 action-alias execute 'pack install xxx'``. #4511
+
+  Contributed by Nick Maludy (Encore Technologies)
+  
 2.10.0 - December 13, 2018
 --------------------------
 
