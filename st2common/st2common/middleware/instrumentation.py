@@ -55,7 +55,15 @@ class RequestInstrumentationMiddleware(object):
         # other endpoints because this would result in a lot of unique metrics which is an
         # anti-pattern and causes unnecessary load on the metrics server.
         submit_metrics = endpoint.get('x-submit-metrics', True)
-        if not submit_metrics:
+        operation_id = endpoint.get('operationId', None)
+        is_get_one_endpoint = (operation_id.endswith('.get') or operation_id.endswith('.get_one'))
+
+        if is_get_one_endpoint:
+            # NOTE: We don't submit metrics for any get one API endpoint since this would result
+            # in potentially too many unique metrics
+            submit_metrics = False
+
+        if not submit_metrics or ():
             LOG.debug('Not submitting request metrics for path: %s' % (request.path))
             return self.app(environ, start_response)
 
