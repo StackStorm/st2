@@ -60,6 +60,33 @@ def setup_logging():
     root.addHandler(handler)
 
 
+
+def get_name_for_stackstorm_service(pinfo):
+    """
+    Return friendly name used inside the metrics key for the StackStorm service.
+
+    If the provided process don't refer to a StackStorm service it returns False instead.
+    """
+    # General stackstorm service (st2actionrunner, st2timersengine, etc)
+    if pinfo['name'].startswith('st2'):
+        return pinfo['name']
+    elif pinfo['name'] == 'python':
+        # Sensor container sensor process
+        if 'sensor_wrapper.py' in ' '.join(pinfo['cmdline']):
+            for arg in pinfo['cmdline']:
+                if arg.startswith('--class-name'):
+                    sensor_name = arg.split('--class-name')[-1].lower()
+                    name = 'sensor_process.%s' % (sensor_name)
+                    return name
+    elif pinfo['name'] == 'gunicorn':
+        # st2api / st2auth / st2stream process
+        for arg in pinfo['cmdline']:
+            if arg.endswith('.wsgi:application'):
+                return arg.split('.wsgi:application')[0]
+
+    return False
+
+
 def get_stackstorm_services_pids():
     """
     Return pids for StackStorm service processes.
@@ -69,10 +96,10 @@ def get_stackstorm_services_pids():
         pinfo = proc.as_dict(attrs=['pid', 'name', 'cmdline'])
 
         # General stackstorm service (st2actionrunner, st2timersengine, etc)
-        if pinfo['name'].startswith('st2'):
-            result.append(pinfo['pid'])
+        is_stackstorm_service = bool(get_name_for_stackstorm_service(pinfo))
 
-        continue
+        if is_stackstorm_service:
+            result.append(pinfo['pid'])
 
     return result
 
@@ -104,7 +131,11 @@ def get_metrics_for_process(pid):
     }
 
     with p.oneshot():
-        data['name'] = p.name()
+        pinfo = {
+            'name': p.name(),
+            'cmdline': p.cmdline()
+        }
+        data['name'] = get_name_for_stackstorm_service(pinfo)
         data['pid'] = pid
 
         data['cpu']['percentage'] = p.cpu_percent()
@@ -133,7 +164,7 @@ def submit_metrics_to_statsd():
     for service_pid in service_pids:
         metrics = get_metrics_for_process(service_pid)
 
-        LOG.debug('Submitting metrics for process %s@%s' % (metrics['name'], hostname))
+        LOG.debug('\nSubmitting metrics for process %s@%s\n' % (metrics['name'], hostname))
 
         for key in ['cpu', 'memory', 'io']:
             items = metrics[key]
