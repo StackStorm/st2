@@ -198,7 +198,7 @@ if [ "${CREATE_VIRTUALENV}" = true ]; then
         activate_virtualenv
 
         # Make sure virtualenv is using latest pip version
-        ${VIRTUALENV_DIR}/bin/pip install --upgrade "pip>=9.0,<9.1"
+        ${VIRTUALENV_DIR}/bin/pip install --upgrade "pip>=19.0.1,<20.0"
     fi
 
     if [ ! -d "${VIRTUALENV_DIR}" ]; then
