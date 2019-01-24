@@ -200,6 +200,10 @@ class SensorWrapper(object):
 
         if '--debug' in parent_args:
             set_log_level_for_all_loggers()
+        else:
+            # NOTE: statsd logger logs everything by default under INFO so we ignore those log
+            # messages unless verbose / debug mode is used
+            logging.ignore_statsd_log_messages()
 
         self._sensor_instance = self._get_sensor_instance()
 
