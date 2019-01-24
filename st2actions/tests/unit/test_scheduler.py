@@ -15,7 +15,9 @@
 
 from __future__ import absolute_import, print_function
 
+import datetime
 import mock
+import eventlet
 
 import st2common
 from st2tests import ExecutionDbTestCase
@@ -116,7 +118,7 @@ class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
         self.reset()
 
         schedule_q_dbs = []
-        delays = [100, 5000, 1000]
+        delays = [2000, 5000, 4000]
         expected_order = [0, 2, 1]
         test_cases = []
 
@@ -142,6 +144,9 @@ class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
                 )
             )
 
+        # Wait maximum delay seconds so the query works as expected
+        eventlet.sleep(3.2)
+
         for index in expected_order:
             test_case = test_cases[index]
 
@@ -154,9 +159,15 @@ class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
                 ActionExecutionSchedulingQueue.delete(schedule_q_db)
 
             self.assertIsInstance(schedule_q_db, ActionExecutionSchedulingQueueItemDB)
-            self.assertEqual(schedule_q_db.scheduled_start_timestamp, test_case['delayed_start'])
             self.assertEqual(schedule_q_db.delay, test_case['delay'])
             self.assertEqual(schedule_q_db.liveaction_id, str(test_case['liveaction'].id))
+
+            # NOTE: We can't directly assert on the timestamp due to the delays on the code and
+            # timing variance
+            scheduled_start_timestamp = schedule_q_db.scheduled_start_timestamp
+            test_case_start_timestamp = test_case['delayed_start']
+            start_timestamp_diff = (scheduled_start_timestamp - test_case_start_timestamp)
+            self.assertTrue(start_timestamp_diff <= datetime.timedelta(seconds=1))
 
     def test_next_executions_empty(self):
         self.reset()
