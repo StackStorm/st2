@@ -153,7 +153,7 @@ def get_metrics_for_process(pid):
         data['io']['write_count'] = io_counters.write_count
 
     # NOTE: To get a valid value this needs to happen outside p.oneshot() context manager
-    data['cpu']['percentage'] = p.cpu_percent(interval=0.2)
+    data['cpu']['percentage'] = p.cpu_percent(interval=0.1)
 
     return data
 
