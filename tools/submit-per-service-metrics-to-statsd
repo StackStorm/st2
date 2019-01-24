@@ -138,7 +138,6 @@ def get_metrics_for_process(pid):
         data['name'] = get_name_for_stackstorm_service(pinfo)
         data['pid'] = pid
 
-        data['cpu']['percentage'] = p.cpu_percent()
 
         cpu_times = p.cpu_times()
         data['cpu']['system_time'] = cpu_times.system
@@ -152,6 +151,9 @@ def get_metrics_for_process(pid):
         io_counters = p.io_counters()
         data['io']['read_count'] = io_counters.read_count
         data['io']['write_count'] = io_counters.write_count
+
+    # NOTE: To get a valid value this needs to happen outside p.oneshot() context manager
+    data['cpu']['percentage'] = p.cpu_percent(interval=0.2)
 
     return data
 
