@@ -74,8 +74,8 @@ def get_name_for_stackstorm_service(pinfo):
         # Sensor container sensor process
         if 'sensor_wrapper.py' in ' '.join(pinfo['cmdline']):
             for arg in pinfo['cmdline']:
-                if arg.startswith('--class-name'):
-                    sensor_name = arg.split('--class-name')[-1].lower()
+                if arg.startswith('--class-name='):
+                    sensor_name = arg.split('--class-name=')[-1].lower()
                     name = 'sensor_process.%s' % (sensor_name)
                     return name
     elif pinfo['name'] == 'gunicorn':
