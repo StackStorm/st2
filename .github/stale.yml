@@ -12,7 +12,8 @@ exemptLabels:
   - WIP
   - work in progress
   - important
-  - feature-request
+  - feature
+  - bug
 
 # Set to true to ignore issues in a project (defaults to false)
 exemptProjects: true
