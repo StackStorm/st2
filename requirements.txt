@@ -38,7 +38,7 @@ pymongo==3.7.2
 pyrabbit
 python-dateutil==2.7.5
 python-editor==1.0.3
-python-gnupg==0.4.3
+python-gnupg==0.4.4
 python-json-logger
 python-statsd==2.1.0
 pytz==2018.7
