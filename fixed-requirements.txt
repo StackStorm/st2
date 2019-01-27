@@ -22,7 +22,7 @@ pymongo==3.7.2
 mongoengine==0.16.3
 passlib==1.7.1
 lockfile==0.12.2
-python-gnupg==0.4.3
+python-gnupg==0.4.4
 jsonpath-rw==1.4.0
 pyinotify==0.9.6
 semver==2.8.1
