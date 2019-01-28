@@ -433,7 +433,6 @@ class LocalShellScriptRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         status, result, _ = runner.run(action_parameters=action_parameters)
         runner.post_run(status, result)
-
         self.assertEqual(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         self.assertTrue('PARAM_STRING=test string' in result['stdout'])
         self.assertTrue('PARAM_INTEGER=1' in result['stdout'])
