@@ -23,6 +23,15 @@ Changed
 
 * Changed the ``inquiries`` API path from ``/exp`` to ``/api/v1`` #4495
 
+Fixed
+~~~~~
+
+* Fixed the ``packs.pack_install`` / ``!pack install {{ packs }}`` action-alias to not have
+  redundant patterns. Previously this prevented it from being executed via
+  ``st2 action-alias execute 'pack install xxx'``. #4511
+
+  Contributed by Nick Maludy (Encore Technologies)
+  
 2.10.0 - December 13, 2018
 --------------------------
 

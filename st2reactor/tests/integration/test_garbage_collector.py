@@ -188,7 +188,7 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
         process = self._start_garbage_collector()
 
         # Give it some time to perform garbage collection and kill it
-        eventlet.sleep(10)
+        eventlet.sleep(15)
         process.send_signal(signal.SIGKILL)
         self.remove_process(process=process)
 
@@ -236,7 +236,7 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
         process = self._start_garbage_collector()
 
         # Give it some time to perform garbage collection and kill it
-        eventlet.sleep(10)
+        eventlet.sleep(15)
         process.send_signal(signal.SIGKILL)
         self.remove_process(process=process)
 
