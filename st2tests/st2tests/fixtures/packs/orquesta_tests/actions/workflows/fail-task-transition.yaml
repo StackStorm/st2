@@ -1,4 +1,4 @@
-version: 1.0
+version: '1.0'
 
 description: A basic workflow with error while evaluating task transition.
 
