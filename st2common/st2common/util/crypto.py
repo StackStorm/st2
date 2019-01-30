@@ -216,6 +216,10 @@ def cryptography_symmetric_encrypt(encrypt_key, plaintext):
     assert isinstance(aes_key_bytes, six.binary_type)
     assert isinstance(hmac_key_bytes, six.binary_type)
 
+    # Convert data to bytes
+    if isinstance(plaintext, (six.text_type, six.string_types)):
+        plaintext = plaintext.encode('utf-8')
+
     # Pad data
     data = pkcs5_pad(plaintext)
 
@@ -229,11 +233,6 @@ def cryptography_symmetric_encrypt(encrypt_key, plaintext):
     # NOTE: We don't care about actual Keyczar header value, we only care about the length (5
     # bytes) so we simply add 5 0's
     header_bytes = b'00000'
-
-    if isinstance(data, (six.text_type, six.string_types)):
-        # Convert data to bytes
-        data = data.encode('utf-8')
-
     ciphertext_bytes = encryptor.update(data) + encryptor.finalize()
     msg_bytes = header_bytes + iv_bytes + ciphertext_bytes
 
