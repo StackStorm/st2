@@ -15,6 +15,7 @@ exemptLabels:
   - important
   - feature
   - bug
+  - enhancement
 
 # Set to true to ignore issues in a project (defaults to false)
 exemptProjects: true
