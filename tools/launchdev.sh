@@ -1,21 +1,29 @@
 #!/usr/bin/env bash
 
 function usage() {
-    echo "Usage: $0 [start|stop|restart|startclean] [-r runner_count] [-g] [-x] [-c] [-6] [-m]" >&2
+    echo "Usage: $0 [start|stop|restart|startclean] [-r runner_count] [-s scheduler_count] [-w workflow_engine_count] [-g] [-x] [-c] [-6] [-m]" >&2
 }
 
 subcommand=$1; shift
 runner_count=1
+scheduler_count=1
+workflow_engine_count=1
 use_gunicorn=true
 copy_examples=false
 load_content=true
 use_ipv6=false
 include_mistral=false
 
-while getopts ":r:gxcu6m" o; do
+while getopts ":r:s:w:gxcu6m" o; do
     case "${o}" in
         r)
             runner_count=${OPTARG}
+            ;;
+        s)
+            scheduler_count=${OPTARG}
+            ;;
+        w)
+            workflow_engine_count=${OPTARG}
             ;;
         g)
             use_gunicorn=false
@@ -249,13 +257,20 @@ function st2start(){
     fi
 
     # Run the workflow engine server
-    echo 'Starting screen session st2-workflow'
-    screen -d -m -S st2-workflow ${VIRTUALENV}/bin/python \
-        ./st2actions/bin/st2workflowengine \
-        --config-file $ST2_CONF
+    echo 'Starting screen session st2-workflow(s)'
+    WORKFLOW_ENGINE_SCREENS=()
+    for i in $(seq 1 $workflow_engine_count)
+    do
+        WORKFLOW_ENGINE_NAME=st2-workflow-$i
+        WORKFLOW_ENGINE_SCREENS+=($WORKFLOW_ENGINE_NAME)
+        echo '  starting '$WORKFLOW_ENGINE_NAME'...'
+        screen -d -m -S $WORKFLOW_ENGINE_NAME ${VIRTUALENV}/bin/python \
+            ./st2actions/bin/st2workflowengine \
+            --config-file $ST2_CONF
+    done
 
     # Start a screen for every runner
-    echo 'Starting screen sessions for st2-actionrunner(s)...'
+    echo 'Starting screen sessions for st2-actionrunner(s)'
     RUNNER_SCREENS=()
     for i in $(seq 1 $runner_count)
     do
@@ -274,10 +289,17 @@ function st2start(){
         --config-file $ST2_CONF
 
     # Run the scheduler server
-    echo 'Starting screen session st2-scheduler'
-    screen -d -m -S st2-scheduler ${VIRTUALENV}/bin/python \
-        ./st2actions/bin/st2scheduler \
-        --config-file $ST2_CONF
+    echo 'Starting screen session st2-scheduler(s)'
+    SCHEDULER_SCREENS=()
+    for i in $(seq 1 $scheduler_count)
+    do
+        SCHEDULER_NAME=st2-scheduler-$i
+        SCHEDULER_SCREENS+=($SCHEDULER_NAME)
+        echo '  starting '$SCHEDULER_NAME'...'
+        screen -d -m -S $SCHEDULER_NAME ${VIRTUALENV}/bin/python \
+            ./st2actions/bin/st2scheduler \
+            --config-file $ST2_CONF
+    done
 
     # Run the sensor container server
     echo 'Starting screen session st2-sensorcontainer'
@@ -357,7 +379,8 @@ function st2start(){
     # Check whether screen sessions are started
     SCREENS=(
         "st2-api"
-        "st2-workflow"
+        "${WORKFLOW_ENGINE_SCREENS[@]}"
+        "${SCHEDULER_SCREENS[@]}"
         "${RUNNER_SCREENS[@]}"
         "st2-sensorcontainer"
         "st2-rulesengine"
@@ -365,7 +388,6 @@ function st2start(){
         "st2-notifier"
         "st2-auth"
         "st2-timersengine"
-        "st2-scheduler"
         "st2-garbagecollector"
     )
 
