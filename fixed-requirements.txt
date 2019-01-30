@@ -13,7 +13,7 @@ amqp==2.3.2
 oslo.config>=1.12.1,<1.13
 oslo.utils>=3.36.2,<=3.37.0
 six==1.12.0
-pyyaml==4.2b4
+pyyaml>=4.2b4,<5.2
 requests[security]<2.15,>=2.14.1
 apscheduler==3.5.3
 gitpython==2.1.11

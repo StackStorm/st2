@@ -6,8 +6,8 @@ argcomplete
 bcrypt
 cryptography==2.4.2
 eventlet==0.24.1
+flex>=6.13.2,<6.13.4
 git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper
-git+https://github.com/StackStorm/flex.git@pyyaml_pin_fix#egg=flex
 git+https://github.com/StackStorm/orquesta.git@v0.3#egg=orquesta
 git+https://github.com/StackStorm/python-mistralclient.git#egg=python-mistralclient
 git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2-auth-backend-flat-file
@@ -43,7 +43,7 @@ python-json-logger
 python-statsd==2.1.0
 pytz==2018.7
 pywinrm==0.3.0
-pyyaml==4.2b4
+pyyaml>=4.2b4,<5.2
 rednose
 requests[security]<2.15,>=2.14.1
 retrying==1.3.3
