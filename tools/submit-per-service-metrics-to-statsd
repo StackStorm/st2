@@ -104,7 +104,7 @@ def get_stackstorm_services_pids():
     return result
 
 
-def get_metrics_for_process(pid):
+def get_metrics_for_process(pid, cpu_poll_interval=0.1):
     """
     Return metrics for a provided process id.
 
@@ -153,18 +153,18 @@ def get_metrics_for_process(pid):
         data['io']['write_count'] = io_counters.write_count
 
     # NOTE: To get a valid value this needs to happen outside p.oneshot() context manager
-    data['cpu']['percentage'] = p.cpu_percent(interval=0.1)
+    data['cpu']['percentage'] = p.cpu_percent(interval=cpu_poll_interval)
 
     return data
 
-def submit_metrics_to_statsd():
+def submit_metrics_to_statsd(cpu_poll_interval=0.1):
     service_pids = get_stackstorm_services_pids()
 
     hostname = socket.gethostname()
 
 
     for service_pid in service_pids:
-        metrics = get_metrics_for_process(service_pid)
+        metrics = get_metrics_for_process(service_pid, cpu_poll_interval=cpu_poll_interval)
 
         LOG.debug('\nSubmitting metrics for process %s@%s\n' % (metrics['name'], hostname))
 
@@ -193,6 +193,9 @@ def main():
                         help='Statsd hostname')
     parser.add_argument('--statsd-port', type=int, default=8125,
                         help='Statsd port')
+    parser.add_argument('--cpu-poll-interval', type=float, default=0.2,
+                        help='Poll interval for p.cpu_percent() function. Lower means faster '
+                        'completion but lower accuracy')
 
     args = parser.parse_args()
 
@@ -203,7 +206,7 @@ def main():
     setup_logging()
 
     # Submit metrics to statsd
-    submit_metrics_to_statsd()
+    submit_metrics_to_statsd(cpu_poll_interval=args.cpu_poll_interval)
 
 
 if __name__ == '__main__':
