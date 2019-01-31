@@ -182,6 +182,7 @@ class ActionExecutionOutputDB(stormbase.StormFoundationDB):
     delay = me.IntField()
 
     data = me.StringField()
+    next_tasks = me.StringField()
 
     meta = {
         'indexes': [

@@ -41,6 +41,8 @@ from st2client.utils import jsutil
 from st2client.utils.date import format_isodate_for_user_timezone
 from st2client.utils.date import parse as parse_isotime
 from st2client.utils.color import format_status
+from st2common.persistence import execution as ex_db_access
+from st2common.persistence import workflow as wf_db_access
 
 LOG = logging.getLogger(__name__)
 
@@ -180,6 +182,11 @@ def format_execution_status(instance):
         instance.status = '%s (%ss elapsed)' % (instance.status, elapsed_seconds)
 
     return instance
+
+
+def get_date():
+        import datetime
+        return datetime.datetime.utcnow()
 
 
 class ActionBranch(resource.ResourceBranch):
@@ -458,7 +465,7 @@ class ActionRunCommandMixin(object):
 
         if args.tail:
             # Start tailing new execution
-            print('Tailing execution "%s"' % (str(execution.id)))
+            print('%s Tailing action execution "%s".' % (get_date(), str(execution.id)))
             execution_manager = self.app.client.managers['Execution']
             stream_manager = self.app.client.managers['Stream']
             ActionExecutionTailCommand.tail_execution(execution=execution,
@@ -1474,16 +1481,14 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
         # NOTE: This doesn't recurse down into child executions if user is tailing a workflow
         # execution
         if execution.status in LIVEACTION_COMPLETED_STATES:
-            output = execution_manager.get_output(execution_id=execution_id,
-                                                  output_type=output_type)
-            print(output)
-            print('Execution %s has completed (status=%s).' % (execution_id, execution.status))
+            cls.tail_completed_execution(execution_manager, execution_id, execution.status,
+                                         output_type)
             return
 
         # We keep track of all the workflow executions which could contain children.
         # For simplicity, we simply keep track of all the execution ids which belong to a
         # particular workflow.
-        workflow_execution_ids = set([parent_execution_id])
+        action_execution_ids = set([parent_execution_id])
 
         # Retrieve parent execution object so we can keep track of any existing children
         # executions (only applies to already running executions).
@@ -1495,8 +1500,9 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
         execution = execution_manager.get_by_id(id=execution_id, **filters)
 
         children_execution_ids = getattr(execution, 'children', [])
-        workflow_execution_ids.update(children_execution_ids)
+        action_execution_ids.update(children_execution_ids)
 
+        workflow_execution_id = None
         events = ['st2.execution__update', 'st2.execution.output__create']
         for event in stream_manager.listen(events, **kwargs):
             status = event.get('status', None)
@@ -1504,39 +1510,72 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
 
             if is_execution_event:
                 context = cls.get_normalized_context_execution_task_event(event)
-                task_execution_id = context['execution_id']
+                action_execution_id = context['execution_id']
                 task_name = context['task_name']
-                task_parent_execution_id = context['parent_execution_id']
+                action_parent_execution_id = context['parent_execution_id']
+                task_id = context['task_execution_id']
+
+                # always returns None, is not used
+                # workflow_execution_id = str(context['workflow_execution_id'])
+
+                # get workflow execution id
+                if task_id:
+                    task_ex_db = wf_db_access.TaskExecution.get_by_id(task_id)
+                    if task_ex_db:
+                        task_status = task_ex_db.status
+                        if workflow_execution_id is None:
+                            workflow_execution_id = str(task_ex_db.workflow_execution)
+                            print('%s Workflow execution "%s" is "requested".' % (
+                                get_date(), workflow_execution_id))
+                            print('%s Workflow execution "%s" is "running".' % (
+                                get_date(), workflow_execution_id))
 
                 # An execution is considered a child execution if it has parent execution id
-                is_child_execution = bool(task_parent_execution_id)
+                is_child_execution = bool(action_parent_execution_id)
 
                 # Ignore executions which are not part of the execution we are tailing
                 if is_child_execution and not is_tailing_execution_child_execution:
-                    if task_parent_execution_id not in workflow_execution_ids:
+                    if action_parent_execution_id not in action_execution_ids:
                         continue
                 else:
-                    if task_execution_id not in workflow_execution_ids:
+                    if action_execution_id not in action_execution_ids:
                         continue
 
-                workflow_execution_ids.add(task_execution_id)
+                action_execution_ids.add(action_execution_id)
 
                 if is_child_execution:
-                    if status == LIVEACTION_STATUS_RUNNING:
-                        print('Child execution (task=%s) %s has started.' % (task_name,
-                                                                             task_execution_id))
-                        print('')
-                        continue
-                    elif status in LIVEACTION_COMPLETED_STATES:
-                        print('')
-                        print('Child execution (task=%s) %s has finished (status=%s).' %
-                              (task_name, task_execution_id, status))
+                    # get next execution task list, at this stage, it is not setup yet.
+                    #ex_output_db = ex_db_access.ActionExecutionOutput.get(
+                    #    execution_id=action_execution_id)
+                    #if ex_output_db:
+                    #    next_tasks = ex_output_db.next_tasks
+                    #    if next_tasks and next_tasks != "":
+                    #        print('%s Identified the following set of tasks to execute next:  '
+                    #              '"%s".' % (get_date(), next_tasks))
 
-                        if is_tailing_execution_child_execution:
-                            # User is tailing a child execution inside a workflow, stop the command.
-                            break
-                        else:
-                            continue
+                    # is case of print task running status more once task status always
+                    # returns running
+                    if status == LIVEACTION_STATUS_RUNNING:
+                        print('%s Task execution "%s" for task "%s" is "%s".' % (
+                            get_date(), str(task_id), task_name, task_status))
+
+                    if status == LIVEACTION_STATUS_SUCCEEDED:
+                        print('%s Task execution "%s" for task "%s" is "%s".' % (
+                            get_date(), str(task_id), task_name, status))
+
+                    if (status == LIVEACTION_STATUS_REQUESTED) \
+                            or (status == LIVEACTION_STATUS_SCHEDULED) \
+                            or (status == LIVEACTION_STATUS_RUNNING) \
+                            or (status == LIVEACTION_STATUS_SUCCEEDED) \
+                            or (status in LIVEACTION_COMPLETED_STATES):
+                        print('%s Action execution "%s" for task "%s" is "%s".'
+                              % (get_date(), str(action_execution_id), task_name, status))
+
+                    if status in LIVEACTION_COMPLETED_STATES and \
+                            is_tailing_execution_child_execution:
+                        # User is tailing a child execution inside a workflow, stop the command.
+                        break
+
                     else:
                         # We don't care about other child events so we simply skip then
                         continue
@@ -1544,13 +1583,16 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
                     # NOTE: In some situations execution update event with "running" status is
                     # dispatched twice so we ignore any duplicated events
                     if status == LIVEACTION_STATUS_RUNNING and not event.get('children', []):
-                        print('Execution %s has started.' % (execution_id))
-                        print('')
+                        print('%s Action execution "%s" is "started".' %
+                              (get_date(), parent_execution_id))
                         continue
                     elif status in LIVEACTION_COMPLETED_STATES:
                         # Bail out once parent execution has finished
-                        print('')
-                        print('Execution %s has completed (status=%s).' % (execution_id, status))
+                        print ('')
+                        print('%s Workflow execution "%s" is completed. "%s".'
+                              % (get_date(), workflow_execution_id, status))
+                        print('%s Action execution "%s" is completed "%s".'
+                              % (get_date(), parent_execution_id, status))
                         break
                     else:
                         # We don't care about other execution events
@@ -1558,7 +1600,7 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
 
             # Ignore events for executions which don't belong to the one we are tailing
             event_execution_id = event['execution_id']
-            if event_execution_id not in workflow_execution_ids:
+            if event_execution_id not in action_execution_ids:
                 continue
 
             # Filter on output_type if provided
@@ -1569,8 +1611,17 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
             if include_metadata:
                 sys.stdout.write('[%s][%s] %s' % (event['timestamp'], event['output_type'],
                                                   event['data']))
+                print ''
             else:
                 sys.stdout.write(event['data'])
+                print ''
+
+    @classmethod
+    def tail_completed_execution(cls, execution_manager, execution_id, status, output_type):
+        
+        output = execution_manager.get_output(execution_id=execution_id, output_type=output_type)
+        print(output)
+        print('%s Action execution "%s" has completed "%s".' % (get_date(), execution_id, status))
 
     @classmethod
     def get_normalized_context_execution_task_event(cls, event):
@@ -1582,7 +1633,9 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
         result = {
             'parent_execution_id': None,
             'execution_id': None,
-            'task_name': None
+            'task_name': None,
+            'task_execution_id': None,
+            'workflow_execution_id': None
         }
 
         if 'mistral' in context:
@@ -1590,14 +1643,23 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
             result['parent_execution_id'] = context.get('parent', {}).get('execution_id', None)
             result['execution_id'] = event['id']
             result['task_name'] = context.get('mistral', {}).get('task_name', 'unknown')
+            result['task_execution_id'] = context.get('mistral', {}).get('task_execution_id', None)
+            result['workflow_execution_id'] = context.get('mistral', {}).get(
+                'workflow_execution_id', None)
         elif 'orquesta' in context:
             result['parent_execution_id'] = context.get('parent', {}).get('execution_id', None)
             result['execution_id'] = event['id']
             result['task_name'] = context.get('orquesta', {}).get('task_name', 'unknown')
+            result['task_execution_id'] = context.get('orquesta', {}).get('task_execution_id', None)
+            result['workflow_execution_id'] = context.get('orquesta', {}).get(
+                'workflow_execution_id', None)
         else:
             # Action chain workflow
             result['parent_execution_id'] = context.get('parent', {}).get('execution_id', None)
             result['execution_id'] = event['id']
             result['task_name'] = context.get('chain', {}).get('name', 'unknown')
+            result['task_execution_id'] = context.get('chain', {}).get('task_execution_id', None)
+            result['workflow_execution_id'] = context.get('chain', {}).get(
+                'workflow_execution_id', None)
 
         return result

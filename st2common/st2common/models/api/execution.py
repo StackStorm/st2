@@ -224,6 +224,9 @@ class ActionExecutionOutputAPI(BaseAPI):
             },
             'delay': {
                 'type': 'integer'
+            },
+            'next_tasks': {
+                'type': 'string'
             }
         },
         'additionalProperties': False

@@ -72,6 +72,7 @@ class TaskExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionField
     status = me.StringField(required=True)
     start_timestamp = db_field_types.ComplexDateTimeField(default=date_utils.get_datetime_utc_now)
     end_timestamp = db_field_types.ComplexDateTimeField()
+    log = me.ListField(field=me.DictField())
 
     meta = {
         'indexes': [

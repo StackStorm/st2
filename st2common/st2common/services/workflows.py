@@ -422,6 +422,7 @@ def request_task_execution(wf_ex_db, st2_ctx, task_ex_req):
         msg = '[%s] Task execution "%s" retrieved for task "%s".'
         LOG.info(msg, wf_ac_ex_id, task_ex_id, task_id)
     else:
+        log = [_create_task_execution_log_entry(states.REQUESTED)]
         # Create a record for task execution.
         task_ex_db = wf_db_models.TaskExecutionDB(
             workflow_execution=str(wf_ex_db.id),
@@ -433,7 +434,8 @@ def request_task_execution(wf_ex_db, st2_ctx, task_ex_req):
             items_count=task_ex_req.get('items_count'),
             items_concurrency=task_ex_req.get('concurrency'),
             context=task_ctx,
-            status=states.REQUESTED
+            status=states.REQUESTED,
+            log=log
         )
 
         # Prepare the result format for itemized task execution.
@@ -453,6 +455,8 @@ def request_task_execution(wf_ex_db, st2_ctx, task_ex_req):
 
             # Set the task execution to running.
             task_ex_db.status = states.RUNNING
+            task_ex_db.log.append(_create_task_execution_log_entry(task_ex_db.status))
+
             task_ex_db = wf_db_access.TaskExecution.update(task_ex_db, publish=False)
 
             # Fast forward task execution to completion.
@@ -468,6 +472,7 @@ def request_task_execution(wf_ex_db, st2_ctx, task_ex_req):
 
             # Set the task execution to running.
             task_ex_db.status = states.RUNNING
+            task_ex_db.log.append(_create_task_execution_log_entry(task_ex_db.status))
             task_ex_db = wf_db_access.TaskExecution.update(task_ex_db, publish=False)
 
             # Fast forward task execution to completion.
@@ -487,6 +492,7 @@ def request_task_execution(wf_ex_db, st2_ctx, task_ex_req):
         LOG.exception(msg, wf_ac_ex_id, task_id, str(e))
         message = '%s: %s' % (type(e).__name__, str(e))
         result = {'errors': [{'type': 'error', 'message': message, 'task_id': task_ex_db.task_id}]}
+        task_ex_db.log.append(_create_task_execution_log_entry(states.FAILED))
         update_task_execution(str(task_ex_db.id), states.FAILED, result)
         raise e
 
@@ -584,6 +590,7 @@ def request_action_execution(wf_ex_db, task_ex_db, st2_ctx, ac_ex_req, delay=Non
     # where the action execution finishes first and the completion handler
     # conflicts with this status update.
     task_ex_db.status = states.RUNNING
+    task_ex_db.log.append(_create_task_execution_log_entry(task_ex_db.status))
     task_ex_db = wf_db_access.TaskExecution.update(task_ex_db, publish=False)
 
     # Request action execution.
@@ -729,7 +736,7 @@ def handle_action_execution_completion(ac_ex_db):
     )
 
     # Request the next set of tasks if workflow execution is not complete.
-    request_next_tasks(wf_ex_db, task_ex_id=task_ex_id)
+    request_next_tasks(wf_ex_db, task_ex_id, str(ac_ex_db.id))
 
     # Update workflow execution if completed.
     update_workflow_execution(wf_ex_id)
@@ -799,7 +806,7 @@ def update_task_flow(task_ex_id, ac_ex_status, ac_ex_result=None, ac_ex_ctx=None
 
 
 @retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
-def request_next_tasks(wf_ex_db, task_ex_id=None):
+def request_next_tasks(wf_ex_db, task_ex_id=None, execution_id=None):
     iteration = 0
 
     # Refresh records.
@@ -819,6 +826,13 @@ def request_next_tasks(wf_ex_db, task_ex_id=None):
         LOG.info(msg, wf_ac_ex_id, str(iteration), task_ex_db.task_id)
         LOG.debug('[%s] %s', wf_ac_ex_id, conductor.serialize())
         next_tasks = conductor.get_next_tasks()
+
+        if next_tasks and execution_id:
+            output_db = ex_db_access.ActionExecutionOutput.get(execution_id=execution_id)
+            if output_db:
+                output_db.next_tasks = ', '.join([task['id'] for task in next_tasks])
+                output_db.timestamp = date_utils.get_datetime_utc_now()
+                ex_db_access.ActionExecutionOutput.add_or_update(output_db, publish=False)
     else:
         msg = '[%s] Identifying next set (%s) of tasks for workflow execution in state "%s".'
         LOG.info(msg, wf_ac_ex_id, str(iteration), conductor.get_workflow_state())
@@ -923,6 +937,7 @@ def update_task_execution(task_ex_id, ac_ex_status, ac_ex_result=None, ac_ex_ctx
         if ac_ex_status != task_ex_db.status:
             msg = '[%s] Updating task execution from state "%s" to "%s".'
             LOG.debug(msg, wf_ex_db.action_execution, task_ex_db.status, ac_ex_status)
+            task_ex_db.log.append(_create_task_execution_log_entry(ac_ex_status))
 
         task_ex_db.status = ac_ex_status
         task_ex_db.result = ac_ex_result if ac_ex_result else task_ex_db.result
@@ -954,6 +969,7 @@ def update_task_execution(task_ex_id, ac_ex_status, ac_ex_result=None, ac_ex_ctx
             msg = '[%s] Updating task execution from state "%s" to "%s".'
             LOG.debug(msg, wf_ex_db.action_execution, task_ex_db.status, new_task_status)
             task_ex_db.status = new_task_status
+            task_ex_db.log.append(_create_task_execution_log_entry(task_ex_db.status))
         else:
             msg = '[%s] Task execution is not complete because not all items are complete: %s'
             LOG.debug(msg, wf_ex_db.action_execution, ', '.join(statuses))
@@ -963,6 +979,16 @@ def update_task_execution(task_ex_id, ac_ex_status, ac_ex_result=None, ac_ex_ctx
 
     wf_db_access.TaskExecution.update(task_ex_db, publish=False)
 
+
+
+def _create_task_execution_log_entry(status):
+    """
+    Create task execution log entry object for the provided execution status.
+    """
+    return {
+        'timestamp': date_utils.get_datetime_utc_now(),
+        'status': status
+    }
 
 @retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
 def resume_task_execution(task_ex_id):
@@ -974,6 +1000,7 @@ def resume_task_execution(task_ex_id):
     LOG.debug(msg, wf_ex_db.action_execution, task_ex_db.status, states.RUNNING)
 
     task_ex_db.status = states.RUNNING
+    task_ex_db.log.append(_create_task_execution_log_entry(task_ex_db.status))
 
     # Write update to the database.
     wf_db_access.TaskExecution.update(task_ex_db, publish=False)

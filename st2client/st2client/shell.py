@@ -63,6 +63,8 @@ from st2client.exceptions.operations import OperationFailureException
 from st2client.utils.logging import LogLevelFilter, set_log_level_for_all_loggers
 from st2client.commands.auth import TokenCreateCommand
 from st2client.commands.auth import LoginCommand
+from st2common.database_setup import db_setup
+from st2common.database_setup import db_teardown
 
 
 __all__ = [
@@ -389,6 +391,7 @@ class Shell(BaseCLIApp):
 
             # Set up client.
             self.client = self.get_client(args=args, debug=debug)
+            self.client.db_access = db_setup()
 
             # TODO: This is not so nice work-around for Python 3 because of a breaking change in
             # Python 3 - https://bugs.python.org/issue16308
@@ -415,6 +418,8 @@ class Shell(BaseCLIApp):
                 self._print_debug_info(args=args)
 
             return exit_code
+        finally:
+            db_teardown()
 
     def _print_config(self, args):
         config = self._parse_config_file(args=args)
