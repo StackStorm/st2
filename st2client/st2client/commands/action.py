@@ -1514,21 +1514,22 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
                 task_name = context['task_name']
                 action_parent_execution_id = context['parent_execution_id']
                 task_id = context['task_execution_id']
+                wf_ex_id = context['workflow_execution_id']
 
-                # always returns None, is not used
-                # workflow_execution_id = str(context['workflow_execution_id'])
+                if wf_ex_id and workflow_execution_id is None:
+                    workflow_execution_id = str(wf_ex_id)
+                    wf_ex_db = wf_db_access.WorkflowExecution.query(id=workflow_execution_id)[0]
+                    if wf_ex_db:
+                        print('%s Workflow execution "%s" is "requested".' % (
+                            get_date(), workflow_execution_id))
+                        print('%s Workflow execution "%s" is "%s".' % (
+                            get_date(), workflow_execution_id, str(wf_ex_db.status)))
 
                 # get workflow execution id
                 if task_id:
                     task_ex_db = wf_db_access.TaskExecution.get_by_id(task_id)
                     if task_ex_db:
                         task_status = task_ex_db.status
-                        if workflow_execution_id is None:
-                            workflow_execution_id = str(task_ex_db.workflow_execution)
-                            print('%s Workflow execution "%s" is "requested".' % (
-                                get_date(), workflow_execution_id))
-                            print('%s Workflow execution "%s" is "running".' % (
-                                get_date(), workflow_execution_id))
 
                 # An execution is considered a child execution if it has parent execution id
                 is_child_execution = bool(action_parent_execution_id)
@@ -1589,9 +1590,14 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
                     elif status in LIVEACTION_COMPLETED_STATES:
                         # Bail out once parent execution has finished
                         print ('')
-                        print('%s Workflow execution "%s" is completed. "%s".'
-                              % (get_date(), workflow_execution_id, status))
-                        print('%s Action execution "%s" is completed "%s".'
+                        if workflow_execution_id:
+                            wf_ex_db = wf_db_access.WorkflowExecution.query(
+                                id=workflow_execution_id)[0]
+                            if wf_ex_db:
+                                print('%s Workflow execution "%s" is "%s".' % (
+                                    get_date(), str(workflow_execution_id), str(wf_ex_db.status)))
+
+                        print('%s Action execution "%s" is "%s".'
                               % (get_date(), parent_execution_id, status))
                         break
                     else:
@@ -1618,7 +1624,7 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
 
     @classmethod
     def tail_completed_execution(cls, execution_manager, execution_id, status, output_type):
-        
+
         output = execution_manager.get_output(execution_id=execution_id, output_type=output_type)
         print(output)
         print('%s Action execution "%s" has completed "%s".' % (get_date(), execution_id, status))
