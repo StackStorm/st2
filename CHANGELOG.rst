@@ -31,7 +31,11 @@ Fixed
   ``st2 action-alias execute 'pack install xxx'``. #4511
 
   Contributed by Nick Maludy (Encore Technologies)
-  
+* Fix datastore value encryption and make sure it also works correctly for unicode (non-ascii)
+  values.
+
+  Reported by @dswebbthg, @nickbaum. (bug fix) #4513 #4527 #4528
+
 2.10.0 - December 13, 2018
 --------------------------
 
