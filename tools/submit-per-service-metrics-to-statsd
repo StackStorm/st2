@@ -192,6 +192,8 @@ def submit_metrics_to_statsd(prefix=None, cpu_poll_interval=0.1):
 
                 gauge = statsd.Gauge(metric_key)
                 gauge.send(None, item_value)
+    else:
+        LOG.debug('No StackStorm services found')
 
 
 def main():
