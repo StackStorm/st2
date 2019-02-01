@@ -104,7 +104,7 @@ def get_stackstorm_services_pids():
     return result
 
 
-def get_metrics_for_process(pid):
+def get_metrics_for_process(pid, cpu_poll_interval=0.1):
     """
     Return metrics for a provided process id.
 
@@ -153,20 +153,20 @@ def get_metrics_for_process(pid):
         data['io']['write_count'] = io_counters.write_count
 
     # NOTE: To get a valid value this needs to happen outside p.oneshot() context manager
-    data['cpu']['percentage'] = p.cpu_percent(interval=0.1)
+    data['cpu']['percentage'] = p.cpu_percent(interval=cpu_poll_interval)
 
     return data
 
-def submit_metrics_to_statsd():
+def submit_metrics_to_statsd(prefix=None, cpu_poll_interval=0.1):
     service_pids = get_stackstorm_services_pids()
 
     hostname = socket.gethostname()
 
 
     for service_pid in service_pids:
-        metrics = get_metrics_for_process(service_pid)
+        metrics = get_metrics_for_process(service_pid, cpu_poll_interval=cpu_poll_interval)
 
-        LOG.debug('\nSubmitting metrics for process %s@%s\n' % (metrics['name'], hostname))
+        LOG.debug('\n\nSubmitting metrics for process %s@%s\n' % (metrics['name'], hostname))
 
         for key in ['cpu', 'memory', 'io']:
             items = metrics[key]
@@ -176,14 +176,24 @@ def submit_metrics_to_statsd():
                 if not item_value or item_value == 0.0:
                     continue
 
-                # E.g. st2.st2api.1110.cpu.percentage
                 name = metrics['name']
-                pid = metrics['pid']
-                metric_key = '%s.%s.%s.%s.%s' % (name, hostname, pid, key,
-                                                 item_name)
+
+                # For example:
+                # - st2.<prefix>.svc.cpu.percentage
+                # - st2.<prefix>.svc.st2workflowengine.memory.rss
+                # - st2.<prefix>.svc.st2workflowengine.memory.vss
+
+                # NOTE: We don't include pid in the metric name since this would result in too
+                # many unique metric names
+                if prefix:
+                    metric_key = 'st2.%s.svc.%s.%s.%s' % (prefix, name, key, item_name)
+                else:
+                    metric_key = 'st2.svc.%s.%s.%s' % (name, key, item_name)
 
                 gauge = statsd.Gauge(metric_key)
                 gauge.send(None, item_value)
+    else:
+        LOG.debug('No StackStorm services found')
 
 
 def main():
@@ -193,6 +203,11 @@ def main():
                         help='Statsd hostname')
     parser.add_argument('--statsd-port', type=int, default=8125,
                         help='Statsd port')
+    parser.add_argument('--prefix', type=str, default=None,
+                        help='Prefix for metrics names (optional).')
+    parser.add_argument('--cpu-poll-interval', type=float, default=0.2,
+                        help='Poll interval for p.cpu_percent() function. Lower means faster '
+                        'completion but lower accuracy')
 
     args = parser.parse_args()
 
@@ -203,7 +218,7 @@ def main():
     setup_logging()
 
     # Submit metrics to statsd
-    submit_metrics_to_statsd()
+    submit_metrics_to_statsd(prefix=args.prefix, cpu_poll_interval=args.cpu_poll_interval)
 
 
 if __name__ == '__main__':
