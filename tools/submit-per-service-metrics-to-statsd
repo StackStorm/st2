@@ -176,18 +176,17 @@ def submit_metrics_to_statsd(prefix=None, cpu_poll_interval=0.1):
                 if not item_value or item_value == 0.0:
                     continue
 
-                # E.g. st2.st2api.1110.cpu.percentage
                 name = metrics['name']
 
                 # For example:
-                # - st2.st2api.cpu.percentage
-                # - st2.st2workflowengine.memory.rss
-                # - st2.st2workflowengine.memory.vss
+                # - st2.<prefix>.svc.cpu.percentage
+                # - st2.<prefix>.svc.st2workflowengine.memory.rss
+                # - st2.<prefix>.svc.st2workflowengine.memory.vss
 
-                # NOTE: We don't include pid in the metric name since this would
-                # result in too many unique metric names
+                # NOTE: We don't include pid in the metric name since this would result in too
+                # many unique metric names
                 if prefix:
-                    metric_key = 'st2.svc.%s.%s.%s.%s' % (prefix, name, key, item_name)
+                    metric_key = 'st2.%s.svc.%s.%s.%s' % (prefix, name, key, item_name)
                 else:
                     metric_key = 'st2.svc.%s.%s.%s' % (name, key, item_name)
 
