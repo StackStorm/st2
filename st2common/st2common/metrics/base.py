@@ -137,7 +137,7 @@ class Timer(object):
             with self as metrics_timer:
                 if self._include_parameter:
                     kw['metrics_timer'] = metrics_timer
-                return func(*args, metrics_timer=metrics_timer, **kw)
+                return func(*args, **kw)
         return wrapper
 
 
@@ -223,7 +223,7 @@ def metrics_initialize():
     try:
         METRICS = get_plugin_instance(PLUGIN_NAMESPACE, cfg.CONF.metrics.driver)
     except (NoMatches, MultipleMatches, NoSuchOptError) as error:
-        raise PluginLoadError('Error loading metrics driver. Check configuration: %s', error)
+        raise PluginLoadError('Error loading metrics driver. Check configuration: %s' % error)
 
     return METRICS
 

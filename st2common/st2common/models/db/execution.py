@@ -71,6 +71,7 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
     parent = me.StringField()
     children = me.ListField(field=me.StringField())
     log = me.ListField(field=me.DictField())
+    delay = me.IntField(min_value=0)
     # Do not use URLField for web_url. If host doesn't have FQDN set, URLField validation blows.
     web_url = me.StringField(required=False)
 
@@ -110,7 +111,7 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
         parameters.update(value.get('runner', {}).get('runner_parameters', {}))
 
         secret_parameters = get_secret_parameters(parameters=parameters)
-        result['parameters'] = mask_secret_parameters(parameters=result['parameters'],
+        result['parameters'] = mask_secret_parameters(parameters=result.get('parameters', {}),
                                                       secret_parameters=secret_parameters)
 
         if 'parameters' in liveaction:
@@ -178,6 +179,7 @@ class ActionExecutionOutputDB(stormbase.StormFoundationDB):
     runner_ref = me.StringField(required=True)
     timestamp = ComplexDateTimeField(required=True, default=date_utils.get_datetime_utc_now)
     output_type = me.StringField(required=True, default='output')
+    delay = me.IntField()
 
     data = me.StringField()
 

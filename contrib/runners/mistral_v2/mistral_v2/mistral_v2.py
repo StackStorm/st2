@@ -219,6 +219,11 @@ class MistralRunner(PollingAsyncActionRunner):
         if not self.is_polling_enabled():
             options['notify'] = [{'type': 'st2'}]
 
+        # Only used on reverse type workflows
+        task_name = self.runner_parameters.get('task_name', None)
+        if task_name is not None:
+            options['task_name'] = task_name
+
         return options
 
     def _get_resume_options(self):
@@ -556,4 +561,4 @@ def get_runner():
 
 
 def get_metadata():
-    return get_runner_metadata('mistral_v2')
+    return get_runner_metadata('mistral_v2')[0]

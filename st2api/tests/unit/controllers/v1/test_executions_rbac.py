@@ -18,6 +18,7 @@ from oslo_config import cfg
 
 from six.moves import http_client
 
+from st2common.bootstrap import runnersregistrar as runners_registrar
 from st2common.validators.api import action as action_validator
 from st2common.rbac.types import PermissionType
 from st2common.rbac.types import ResourceType
@@ -37,7 +38,6 @@ from st2tests.fixturesloader import FixturesLoader
 
 FIXTURES_PACK = 'generic'
 TEST_FIXTURES = {
-    'runners': ['testrunner1.yaml'],
     'actions': ['action1.yaml', 'local.yaml']
 }
 
@@ -52,6 +52,8 @@ class ActionExecutionRBACControllerTestCase(BaseActionExecutionControllerTestCas
         return_value=True))
     def setUp(self):
         super(ActionExecutionRBACControllerTestCase, self).setUp()
+
+        runners_registrar.register_runners()
 
         self.fixtures_loader.save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
                                                  fixtures_dict=TEST_FIXTURES)

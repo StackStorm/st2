@@ -26,4 +26,4 @@ parameters:
     immutable: true
   runnerimmutable:
     default: failed_override
-runner_type: test-runner-1
+runner_type: local-shell-cmd

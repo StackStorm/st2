@@ -11,3 +11,4 @@ six
 sseclient
 python-editor
 prompt-toolkit
+cryptography

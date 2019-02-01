@@ -20,14 +20,16 @@ import six
 import networkx as nx
 
 from jinja2 import meta
+from oslo_config import cfg
 from st2common import log as logging
 from st2common.util.config_loader import get_config
 from st2common.util.jinja import is_jinja_expression
 from st2common.constants.action import ACTION_CONTEXT_KV_PREFIX
 from st2common.constants.pack import PACK_CONFIG_CONTEXT_KV_PREFIX
 from st2common.constants.keyvalue import DATASTORE_PARENT_SCOPE, SYSTEM_SCOPE, FULL_SYSTEM_SCOPE
+from st2common.constants.keyvalue import USER_SCOPE, FULL_USER_SCOPE
 from st2common.exceptions.param import ParamException
-from st2common.services.keyvalues import KeyValueLookup
+from st2common.services.keyvalues import KeyValueLookup, UserKeyValueLookup
 from st2common.util.casts import get_cast
 from st2common.util.compat import to_unicode
 from st2common.util import jinja as jinja_utils
@@ -81,6 +83,18 @@ def _create_graph(action_context, config):
     '''
     G = nx.DiGraph()
     system_keyvalue_context = {SYSTEM_SCOPE: KeyValueLookup(scope=FULL_SYSTEM_SCOPE)}
+
+    # If both 'user' and 'api_user' are specified, this prioritize 'api_user'
+    user = action_context['user'] if 'user' in action_context else None
+    user = action_context['api_user'] if 'api_user' in action_context else user
+
+    if not user:
+        # When no user is not specified, this selects system-user's scope by default.
+        user = cfg.CONF.system_user.user
+        LOG.info('Unable to retrieve user / api_user value from action_context. Falling back '
+                 'to and using system_user (%s).' % (user))
+
+    system_keyvalue_context[USER_SCOPE] = UserKeyValueLookup(scope=FULL_USER_SCOPE, user=user)
     G.add_node(DATASTORE_PARENT_SCOPE, value=system_keyvalue_context)
     G.add_node(ACTION_CONTEXT_KV_PREFIX, value=action_context)
     G.add_node(PACK_CONFIG_CONTEXT_KV_PREFIX, value=config)

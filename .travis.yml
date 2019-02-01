@@ -1,6 +1,7 @@
 # Used old infrastructure, needed for integration tests:
 # http://docs.travis-ci.com/user/workers/standard-infrastructure/
 sudo: required
+# NOTE: We use precise because tests finish faster than on Xenial
 dist: precise
 language: python
 
@@ -60,6 +61,22 @@ matrix:
       python: 3.6
       name: "Integration Tests (Python 3.6)"
 
+addons:
+  apt:
+    sources:
+      - mongodb-upstart
+      - sourceline: 'deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.4 multiverse'
+        key_url: 'https://www.mongodb.org/static/pgp/server-3.4.asc'
+      - sourceline: 'ppa:git-core/ppa'
+    packages:
+      - mongodb-org-server
+      - mongodb-org-shell
+      # NOTE: Uncomment below for Xenial
+      # -rabbitmq-server
+      - git
+      - libffi-dev
+
+# NOTE: Remove / comment services section below for Xenial
 services:
   - rabbitmq
 
@@ -76,14 +93,8 @@ cache:
     #- .tox/
 
 before_install:
-  # Work around for Travis timeout issues, see https://github.com/travis-ci/travis-ci/issues/9112
-  - sudo apt-get update --option Acquire::Retries=100 --option Acquire::http::Timeout="60"
-  # 1. Install MongoDB 3.4 and latest version of git
-  - sudo add-apt-repository -y ppa:git-core/ppa
-  - curl https://www.mongodb.org/static/pgp/server-3.4.asc | sudo apt-key add -
-  - echo "deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.4 multiverse" | sudo tee -a /etc/apt/sources.list
-  - sudo apt-get update -qq
-  - sudo apt-get install mongodb-org-server mongodb-org-shell git -y
+  # Work around for apt Travis timeout issues, see https://github.com/travis-ci/travis-ci/issues/9112
+  #- sudo apt-get update --option Acquire::Retries=100 --option Acquire::http::Timeout="60"
   - pip install --upgrade "pip>=9.0,<9.1"
   - sudo pip install --upgrade "virtualenv==15.1.0"
 
@@ -101,7 +112,7 @@ before_script:
   - sudo rm -rf /var/lib/mongodb ; sudo mkdir /var/lib/mongodb ; sudo chown -R mongodb:mongodb /var/lib/mongodb
   - sudo service mongod restart ; sleep 5
   - sudo service mongod status
-  - tail -30 /var/log/mongodb/mongod.log
+  - sudo tail -30 /var/log/mongodb/mongod.log
   - mongod --version
   - git --version
   - pip --version
@@ -114,6 +125,7 @@ before_script:
   - make play
 
 script:
+  # Clean up egg-info directories which get created when installing runners
   # NOTE: We enable code coverage and per test timing information on master so build can take twice
   # as long as PR builds
   - if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then COMMAND_THRESHOLD=$(expr ${COMMAND_THRESHOLD} \* 2); fi; ./scripts/travis/time-command.sh "make ${TASK}" ${COMMAND_THRESHOLD}

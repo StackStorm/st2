@@ -54,9 +54,17 @@ def _get_immutable_params(parameters):
     return [k for k, v in six.iteritems(parameters) if v.get('immutable', False)]
 
 
-def create_request(liveaction):
+def create_request(liveaction, action_db=None, runnertype_db=None):
     """
     Create an action execution.
+
+    :param action_db: Action model to operate one. If not provided, one is retrieved from the
+                      database using values from "liveaction".
+    :type action_db: :class:`ActionDB`
+
+    :param runnertype_db: Runner model to operate one. If not provided, one is retrieved from the
+                          database using values from "liveaction".
+    :type runnertype_db: :class:`RunnerTypeDB`
 
     :return: (liveaction, execution)
     :rtype: tuple
@@ -74,20 +82,23 @@ def create_request(liveaction):
         if parent_user:
             liveaction.context['user'] = parent_user
 
-    # Validate action.
-    action_db = action_utils.get_action_by_ref(liveaction.action)
+    # Validate action
+    if not action_db:
+        action_db = action_utils.get_action_by_ref(liveaction.action)
+
     if not action_db:
         raise ValueError('Action "%s" cannot be found.' % liveaction.action)
     if not action_db.enabled:
         raise ValueError('Unable to execute. Action "%s" is disabled.' % liveaction.action)
 
-    runnertype_db = action_utils.get_runnertype_by_name(action_db.runner_type['name'])
+    if not runnertype_db:
+        runnertype_db = action_utils.get_runnertype_by_name(action_db.runner_type['name'])
 
     if not hasattr(liveaction, 'parameters'):
         liveaction.parameters = dict()
 
     # Validate action parameters.
-    schema = util_schema.get_schema_for_action_parameters(action_db)
+    schema = util_schema.get_schema_for_action_parameters(action_db, runnertype_db)
     validator = util_schema.get_validator()
     util_schema.validate(liveaction.parameters, schema, validator, use_default=True,
                          allow_default_none=True)
@@ -117,7 +128,6 @@ def create_request(liveaction):
 
     # Publish creation after both liveaction and actionexecution are created.
     liveaction = LiveAction.add_or_update(liveaction, publish=False)
-
     # Get trace_db if it exists. This could throw. If it throws, we have to cleanup
     # liveaction object so we don't see things in requested mode.
     trace_db = None
@@ -127,7 +137,8 @@ def create_request(liveaction):
         _cleanup_liveaction(liveaction)
         raise trace_exc.TraceNotFoundException(str(e))
 
-    execution = executions.create_execution_object(liveaction, publish=False)
+    execution = executions.create_execution_object(liveaction=liveaction, action_db=action_db,
+                                                   runnertype_db=runnertype_db, publish=False)
 
     if trace_db:
         trace_service.add_or_update_given_trace_db(
@@ -153,7 +164,9 @@ def publish_request(liveaction, execution):
     LiveAction.publish_status(liveaction)
     ActionExecution.publish_create(execution)
 
-    extra = {'liveaction_db': liveaction, 'execution_db': execution}
+    # TODO: This results in two queries, optimize it
+    #  extra = {'liveaction_db': liveaction, 'execution_db': execution}
+    extra = {}
     LOG.audit('Action execution requested. LiveAction.id=%s, ActionExecution.id=%s' %
               (liveaction.id, execution.id), extra=extra)
 
@@ -319,14 +332,19 @@ def request_resume(liveaction, requester):
             '"%s" runner.' % (liveaction.id, action_db.runner_type['name'])
         )
 
-    if liveaction.status == action_constants.LIVEACTION_STATUS_RUNNING:
+    running_states = [
+        action_constants.LIVEACTION_STATUS_RUNNING,
+        action_constants.LIVEACTION_STATUS_RESUMING
+    ]
+
+    if liveaction.status in running_states:
         execution = ActionExecution.get(liveaction__id=str(liveaction.id))
         return (liveaction, execution)
 
     if liveaction.status != action_constants.LIVEACTION_STATUS_PAUSED:
         raise runner_exc.UnexpectedActionExecutionStatusError(
-            'Unable to resume liveaction "%s" because it is not in a paused state.'
-            % liveaction.id
+            'Unable to resume liveaction "%s" because it is in "%s" state and '
+            'not in "paused" state.' % (liveaction.id, liveaction.status)
         )
 
     liveaction = update_status(liveaction, action_constants.LIVEACTION_STATUS_RESUMING)

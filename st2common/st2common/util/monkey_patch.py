@@ -31,17 +31,23 @@ USE_DEBUGGER_FLAG = '--use-debugger'
 PARENT_ARGS_FLAG = '--parent-args='
 
 
-def monkey_patch():
+def monkey_patch(patch_thread=None):
     """
     Function which performs eventlet monkey patching and also takes into account "--use-debugger"
     argument in the command line arguments.
 
     If this argument is found, no monkey patching is performed for the thread module. This allows
     user to use remote debuggers.
+
+    :param patch_thread: True to also patch the thread module. If not provided, thread module is
+                         patched unless debugger is used.
+    :type patch_thread: ``bool``
     """
     import eventlet
 
-    patch_thread = not is_use_debugger_flag_provided()
+    if patch_thread is None:
+        patch_thread = not is_use_debugger_flag_provided()
+
     eventlet.monkey_patch(os=True, select=True, socket=True, thread=patch_thread, time=True)
 
 

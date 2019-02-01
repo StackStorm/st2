@@ -26,6 +26,7 @@ import hashlib
 import stat
 import re
 
+import six
 from git.repo import Repo
 from gitdb.exc import BadName, BadObject
 from lockfile import LockFile
@@ -42,6 +43,7 @@ from st2common.util.pack import get_pack_ref_from_metadata
 from st2common.util.green import shell
 from st2common.util.versioning import complex_semver_match
 from st2common.util.versioning import get_stackstorm_version
+from st2common.util.versioning import get_python_version
 
 __all__ = [
     'download_pack',
@@ -58,7 +60,8 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 CONFIG_FILE = 'config.yaml'
-CURRENT_STACKSTROM_VERSION = get_stackstorm_version()
+CURRENT_STACKSTORM_VERSION = get_stackstorm_version()
+CURRENT_PYTHON_VERSION = get_python_version()
 
 
 def download_pack(pack, abs_repo_base='/opt/stackstorm/packs', verify_ssl=True, force=False,
@@ -96,7 +99,7 @@ def download_pack(pack, abs_repo_base='/opt/stackstorm/packs', verify_ssl=True, 
 
     result = [pack_url, None, None]
 
-    temp_dir_name = hashlib.md5(pack_url).hexdigest()
+    temp_dir_name = hashlib.md5(pack_url.encode()).hexdigest()
     lock_file = LockFile('/tmp/%s' % (temp_dir_name))
     lock_file_path = lock_file.lock_file
 
@@ -151,7 +154,22 @@ def clone_repo(temp_dir, repo_url, verify_ssl=True, ref='master'):
     # because we want the user to work with the repo in the
     # future.
     repo = Repo.clone_from(repo_url, temp_dir)
-    active_branch = repo.active_branch
+
+    is_local_repo = repo_url.startswith('file://')
+
+    try:
+        active_branch = repo.active_branch
+    except TypeError as e:
+        if is_local_repo:
+            active_branch = None
+        else:
+            raise e
+
+    # Special case for local git repos - we allow users to install from repos which are checked out
+    # at a specific commit (aka detached HEAD)
+    if is_local_repo and not active_branch and not ref:
+        LOG.debug('Installing pack from git repo on disk, skipping branch checkout')
+        return temp_dir
 
     use_branch = False
 
@@ -360,16 +378,32 @@ def verify_pack_version(pack_dir):
     pack_metadata = get_pack_metadata(pack_dir=pack_dir)
     pack_name = pack_metadata.get('name', None)
     required_stackstorm_version = pack_metadata.get('stackstorm_version', None)
+    supported_python_versions = pack_metadata.get('python_versions', None)
 
-    # If stackstorm_version attribute is speficied, verify that the pack works with currently
+    # If stackstorm_version attribute is specified, verify that the pack works with currently
     # running version of StackStorm
     if required_stackstorm_version:
-        if not complex_semver_match(CURRENT_STACKSTROM_VERSION, required_stackstorm_version):
-            msg = ('Pack "%s" requires StackStorm "%s", but current version is "%s". ' %
-                   (pack_name, required_stackstorm_version, CURRENT_STACKSTROM_VERSION),
-                   'You can override this restriction by providing the "force" flag, but ',
-                   'the pack is not guaranteed to work.')
+        if not complex_semver_match(CURRENT_STACKSTORM_VERSION, required_stackstorm_version):
+            msg = ('Pack "%s" requires StackStorm "%s", but current version is "%s". '
+                   'You can override this restriction by providing the "force" flag, but '
+                   'the pack is not guaranteed to work.' %
+                   (pack_name, required_stackstorm_version, CURRENT_STACKSTORM_VERSION))
             raise ValueError(msg)
+
+    if supported_python_versions:
+        if set(supported_python_versions) == set(['2']) and not six.PY2:
+            msg = ('Pack "%s" requires Python 2.x, but current Python version is "%s". '
+                   'You can override this restriction by providing the "force" flag, but '
+                   'the pack is not guaranteed to work.' % (pack_name, CURRENT_PYTHON_VERSION))
+            raise ValueError(msg)
+        elif set(supported_python_versions) == set(['3']) and not six.PY3:
+            msg = ('Pack "%s" requires Python 3.x, but current Python version is "%s". '
+                   'You can override this restriction by providing the "force" flag, but '
+                   'the pack is not guaranteed to work.' % (pack_name, CURRENT_PYTHON_VERSION))
+            raise ValueError(msg)
+        else:
+            # Pack support Python 2.x and 3.x so no check is needed
+            pass
 
     return True
 

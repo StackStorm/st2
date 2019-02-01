@@ -216,8 +216,14 @@ def cryptography_symmetric_encrypt(encrypt_key, plaintext):
     assert isinstance(aes_key_bytes, six.binary_type)
     assert isinstance(hmac_key_bytes, six.binary_type)
 
+    if isinstance(plaintext, (six.text_type, six.string_types)):
+        # Convert data to bytes
+        data = plaintext.encode('utf-8')
+    else:
+        data = plaintext
+
     # Pad data
-    data = pkcs5_pad(plaintext)
+    data = pkcs5_pad(data)
 
     # Generate IV
     iv_bytes = os.urandom(KEYCZAR_AES_BLOCK_SIZE)
@@ -229,10 +235,6 @@ def cryptography_symmetric_encrypt(encrypt_key, plaintext):
     # NOTE: We don't care about actual Keyczar header value, we only care about the length (5
     # bytes) so we simply add 5 0's
     header_bytes = b'00000'
-
-    if isinstance(data, (six.text_type, six.string_types)):
-        # Convert data to bytes
-        data = data.encode('utf-8')
 
     ciphertext_bytes = encryptor.update(data) + encryptor.finalize()
     msg_bytes = header_bytes + iv_bytes + ciphertext_bytes
@@ -368,7 +370,7 @@ def pkcs5_pad(data):
     Pad data using PKCS5
     """
     pad = KEYCZAR_AES_BLOCK_SIZE - len(data) % KEYCZAR_AES_BLOCK_SIZE
-    data = data + pad * chr(pad)
+    data = data + pad * chr(pad).encode('utf-8')
     return data
 
 

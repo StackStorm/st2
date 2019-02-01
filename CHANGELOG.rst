@@ -7,6 +7,202 @@ in development
 Added
 ~~~~~
 
+* Allow access to user-scoped datastore items using ``{{ st2kv.user.<key name> }}`` Jinja template
+  notation inside the action parameter default values. (improvement) #4463
+
+  Contributed by Hiroyasu OHYAMA (@userlocalhost).
+* Add support for new ``python_versions`` (``list`` of ``string``) attribute to pack metadata file
+  (``pack.yaml``). With this attribute pack declares which major Python versions it supports and
+  works with (e.g. ``2`` and ``3``).
+
+   For backward compatibility reasons, if pack metadata file doesn't contain that attribute, it's
+   assumed it only works with Python 2. (new feature) #4474
+
+Changed
+~~~~~~~
+
+* Changed the ``inquiries`` API path from ``/exp`` to ``/api/v1`` #4495
+
+Fixed
+~~~~~
+
+* Fixed the ``packs.pack_install`` / ``!pack install {{ packs }}`` action-alias to not have
+  redundant patterns. Previously this prevented it from being executed via
+  ``st2 action-alias execute 'pack install xxx'``. #4511
+
+  Contributed by Nick Maludy (Encore Technologies)
+* Fix datastore value encryption and make sure it also works correctly for unicode (non-ascii)
+  values.
+
+  Reported by @dswebbthg, @nickbaum. (bug fix) #4513 #4527 #4528
+
+2.10.0 - December 13, 2018
+--------------------------
+
+Added
+~~~~~
+
+* Added ``notify`` runner parameter to Orquesta that allows user to specify which task(s) to get
+  notified on completion.
+* Add support for task delay in Orquesta workflows. #4459 (new feature)
+* Add support for task with items in Orquesta workflows. #4400 (new feature)
+* Add support for workflow output on error in Orquesta workflows. #4436 (new feature)
+* Added ``-o`` and ``-m`` CLI options to ``st2-self-check`` script, to skip Orquesta and/or Mistral
+  tests. #4347
+* Allow user to specify new ``database.authentication_mechanism`` config option in
+  ``/etc/st2/st2.conf``.
+
+  By default, SCRAM-SHA-1 is used with MongoDB 3.0 and later and MONGODB-CR (MongoDB Challenge
+  Response protocol) for older servers.
+
+  Contributed by @aduca85 #4373
+* Add new ``metadata_file`` attribute to the following models: Action, Action Alias, Rule, Sensor,
+  TriggerType. Value of this attribute points to a metadata file for a specific resource (YAML file
+  which contains actual resource definition). Path is relative to the pack directory (e.g.
+  ``actions/my_action1.meta.yaml``, ``aliases/my_alias.yaml``, ``sensors/my_sensor.yaml``,
+  ``rules/my_rule.yaml``, ``triggers/my_trigger.yaml`` etc.).
+
+  Keep in mind that triggers can be registered in two ways - either via sensor definition file in
+  ``sensors/`` directory or via trigger definition file in ``triggers/`` directory. If
+  ``metadata_file`` attribute on TriggerTypeDB model points to ``sensors/`` directory it means that
+  trigger is registered via sensor definition. (new feature) #4445
+* Add new ``st2client.executions.get_children`` method for returning children execution objects for
+  a specific (parent) execution. (new feature) #4444
+
+  Contributed by Tristan Struthers (@trstruth).
+* Allow user to run a subset of pack tests by utilizing the new ``-f`` command line option in the
+  ``st2-run-pack-tests`` script.
+
+  For example:
+
+  1. Run all tests in a test file (module):
+
+     st2-run-pack-tests -j -x -p contrib/packs/ -f test_action_download
+
+  2. Run a single test class
+
+     st2-run-pack-tests -j -x -p contrib/packs/ -f test_action_download:DownloadGitRepoActionTestCase
+
+  3. Run a single test class method
+
+     st2-run-pack-tests -j -x -p contrib/packs/ -f test_action_download:DownloadGitRepoActionTestCase.test_run_pack_download
+
+  (new feature) #4464
+
+Changed
+~~~~~~~
+
+* Redesigned and rewritten the action execution scheduler. Requested executions are put in a
+  persistent queue for scheduler to process. Architecture is put into place for more complex
+  execution scheduling. Action execution can be delayed on request. (improvement)
+* ``core.http`` action now supports additional HTTP methods: OPTIONS, TRACE, PATCH, PURGE.
+
+  Contributed by @emptywee (improvement) #4379
+* Runner loading code has been updated so it utilizes new "runner as Python package" functionality
+  which has been introduced in a previous release. This means that the runner loading is now fully
+  automatic and dynamic.
+
+  All the available / installed runners are automatically loaded and registering on each StackStorm
+  service startup.
+
+  This means that ``st2ctl reload --register-runners`` flag is now obsolete because runners are
+  automatically registered on service start up. In addition to that,
+  ``content.system_runners_base_path`` and ``content.runners_base_paths`` config options are now
+  also deprecated and unused.
+
+  For users who wish to develop and user custom action runners, they simply need to ensure they are
+  packaged as Python packages and available / installed in StackStorm virtual environment
+  (``/opt/stackstorm/st2``). (improvement) #4217
+* Old runner names which have been deprecated in StackStorm v0.9.0 have been removed (run-local,
+  run-local-script, run-remote, run-remote-script, run-python, http-runner). If you are still using
+  actions which reference runners using old names, you need to update them to keep it working.
+  #4217
+* Update various CLI commands to only retrieve attributes which are displayed in the CLI from the
+  API (``st2 execution list``, ``st2 execution get``, ``st2 action list``, ``st2 rule list``,
+  ``st2 sensor list``). This speeds up run-time and means now those commands now finish faster.
+
+  If user wants to retrieve and view all the attributes, they can use ``--attr all`` CLI command
+  argument (same as before). (improvement) #4396
+* Update various internal dependencies to latest stable versions (greenlet, pymongo, pytz,
+  stevedore, tooz). #4410
+
+* Improve ``st2.conf`` migration for the new services by using prod-friendly logging settings by default #4415
+* Refactor Orquesta workflow to output on error. Depends on PR
+  https://github.com/StackStorm/orquesta/pull/101 and https://github.com/StackStorm/orquesta/pull/102
+  (improvement)
+* Rename ``st2client.liveactions`` to ``st2client.executions``. ``st2client.liveactions`` already
+  represented operations on execution objects, but it was incorrectly named.
+
+  For backward compatibility reasons, ``st2client.liveactions`` will stay as an alias for
+  ``st2client.executions`` and continue to work until it's fully removed in a future release.
+
+Fixed
+~~~~~
+
+* ``st2 login`` CLI commands now exits with non zero exit code when login fails due to invalid
+  credentials. (improvement) #4338
+* Fix ``st2 key load`` that errors when importing an empty file #43
+* Fixed warning in ``st2-run-pack-tests`` about invalid format for ``pip list``. (bug fix)
+
+  Contributed by Nick Maludy (Encore Technologies). #4380
+* Fix a bug with ``st2 execution get`` / ``st2 run`` CLI command throwing an exception if the
+  result field contained a double backslash string which looked like an unicode escape sequence.
+  CLI incorrectly tried to parse that string as unicode escape sequence.
+
+  Reported by James E. King III @jeking3 (bug fix) #4407
+* Fix a bug so ``timersengine`` config section in ``st2.conf`` has precedence over ``timer``
+  section if explicitly specified in the config file.
+
+  Also fix a bug with default config values for ``timer`` section being used if user only
+  specified ``timersengine`` section in the config. Previously user options were incorrectly
+  ignored in favor of the default values. (bug fix) #4424
+* ``st2 pack install -j`` now only spits JSON output. Similarly, ``st2 pack install -y`` only spits
+  YAML output. This change would enable the output to be parsed by tools.
+  The behavior of ``st2 pack install`` hasn't changed and is human friendly. If you want to get meta
+  information about the pack as JSON (count of actions, sensors etc), you should rely on already
+  existing ``st2 pack show -j``.
+
+  Reported by Nick Maludy (improvement) #4260
+* Fix string operations on unicode data in Orquesta workflows, associated with PR
+  https://github.com/StackStorm/orquesta/pull/98. (bug fix)
+* Fix access to st2 and action context in Orquesta workflows, associated with PR
+  https://github.com/StackStorm/orquesta/pull/104. (bug fix)
+* ``st2ctl reload --register-aliases`` and ``st2ctl reload --register-all`` now spits a warning when
+  trying to register aliases with no corresponding action registered in the db.
+
+  Reported by nzlosh (improvement) #4372.
+
+2.9.1 - October 03, 2018
+------------------------
+
+Changed
+~~~~~~~
+
+* Speed up pack registration through the ``/v1/packs/register`` API endpoint. (improvement) #4342
+* Triggertypes API now sorts by trigger ref by default. ``st2 trigger list`` will now show a sorted
+  list. (#4348)
+* Update ``st2-self-check`` script to include per-test timing information. (improvement) #4359
+
+Fixed
+~~~~~
+
+* Update ``st2sensorcontainer`` service to throw if user wants to run a sensor from a pack which is
+  using Python 3 virtual environment.
+
+  We only support running Python runner actions from packs which use mixed Python environments
+  (StackStorm components are running under Python 2 and particular a pack virtual environment is
+  using Python 3). #4354
+* Update ``st2-pack-install`` and ``st2 pack install`` command so it works with local git repos
+  (``file://<path to local git repo>``) which are in a detached head state (e.g. specific revision
+  is checked out). (improvement) #4366
+* Fix a race which occurs when there are multiple concurrent requests to resume a workflow. #4369
+
+2.9.0 - September 16, 2018
+--------------------------
+
+Added
+~~~~~
+
 * Add new runners: ``winrm-cmd``, ``winrm-ps-cmd`` and ``winrm-ps-script``.
   The ``winrm-cmd`` runner executes Command Prompt commands remotely on Windows hosts using the
   WinRM protocol. The ``winrm-ps-cmd`` and ``winrm-ps-script`` runners execute PowerShell commands
@@ -45,6 +241,24 @@ Added
 
   Keep in mind that the trigger which is to be injected must be registered and exist in the system.
   (new feature) #4231 #4259
+* Add support for ``?include_attributes`` query param filter to all the content pack resource
+  get all (list) API endpoints (actions, rules, trigger, executions, etc.). With this query
+  parameter user can control which API model attributes (fields) to receive in the response. In
+  situations where user is only interested in a subset of the model attributes, this allows for a
+  significantly reduced response size and for a better performance. (new feature) (improvement)
+  #4300
+* Add new ``action_sensor.emit_when`` config option which allows user to specify action status for
+  which actiontrigger is emitted. For backward compatibility reasons it defaults to all the action
+  completed states. (improvement) #4312 #4315
+
+  Contributed by Shu Sugimoto.
+* Improve performance of schedule action execution (``POST /v1/executions``) API endpoint.
+
+  Performance was improved by reducing the number of duplicated database queries, using atomic
+  partial document updates instead of full document updates and by improving database document
+  serialization and de-serialization performance. (improvement) #4030 #4331
+* Ported existing YAQL and Jinja functions from st2common to Orquesta. (new feature)
+* Add error entry in Orquesta workflow result on action execution failure. (improvement)
 
 Changed
 ~~~~~~~
@@ -66,7 +280,10 @@ Changed
   This way we are not mixing non-streaming (short lived) and streaming (long lived) connections
   inside a single service (st2api). (improvement)
 * Upgrade ``mongoengine`` (0.15.3) and ``pymongo`` (3.7.1) to the latest stable version. Those
-  changes will allow us to support MongoDB 3.6 in the near future. (improvement) #4292
+  changes will allow us to support MongoDB 3.6 in the near future.
+
+  New version of ``mongoengine`` should also offer better performance when inserting and updating
+  larger database objects (e.g. executions). (improvement) #4292
 * Trigger parameters and payload schema validation is now enabled by default
   (``system.validate_trigger_parameters`` and ``system.validate_trigger_payload`` config options
   now default to ``True``).
@@ -90,6 +307,12 @@ Changed
   which is prepended to each metric key (name). This comes handy in scenarios where user wants to
   submit metrics from multiple environments / deployments (e.g. testing, staging, dev) to the same
   backend instance. (improvement) #4310
+* Improve ``st2 execution tail`` CLI command so it also supports Orquesta workflows and arbitrarily
+  nested workflows. Also fix the command so it doesn't include data from other unrelated running
+  executions. (improvement) #4328
+* Change default NGINX configuration to use HTTP 308 redirect, rather than 301, for plaintext requests.
+  #4335
+* Improve performance of the ``GET /v1/actions/views/overview`` API endpoint. (improvement) #4337
 
 Fixed
 ~~~~~
@@ -97,6 +320,15 @@ Fixed
 * Fix an issue with ``AttributeError: module 'enum' has no attribute 'IntFlag'`` error which would
   appear when using Python 3 for a particular pack virtual environment and running on RHEL /
   CentOS. (bug fix) #4297
+* Fix a bug with action runner throwing an exception and failing to run an action if there was an
+  empty pack config inside ``/opt/stackstorm/configs/``. (bug fix) #4325
+* Fix ``action_sensor.enable`` config option so it works correctly if user sets this option to a
+  non-default value of ``True``. (bug fix) #4312 #4315
+
+  Contributed by Shu Sugimoto.
+* Update ``GET /v1/actions/views/entry_point/<action ref>`` to return correct ``Content-Type``
+  response header based on the entry point type / file extension. Previously it would always
+  incorrectly return ``application/json``. (improvement) #4327
 
 Deprecated
 ~~~~~~~~~~
@@ -105,6 +337,10 @@ Deprecated
   StackStorm codebase. The runner code will be moved to a separate repository, and no longer
   maintained by the core StackStorm team. Users will still be able to install and use this runner,
   but it will require additional steps to install.
+* The ``winexe``-based Windows runners are now deprecated. They will be removed in StackStorm 3.1.
+  They have been replaced by ``pywinrm``-based Windows runners. See
+  https://docs.stackstorm.com/latest/reference/runners.html#winrm-command-runner-winrm-cmd
+  for more on using these new runners.
 
 2.8.1 - July 18, 2018
 ---------------------
@@ -146,7 +382,7 @@ Fixed
   Reported by @jjm
 
   Contributed by Nick Maludy (Encore Technologies).
-* Mark ``password`` ``http-runner`` parameter as a secret. (bug fix) #4245
+* Mark ``password`` ``http-request`` parameter as a secret. (bug fix) #4245
 
   Reported by @daniel-mckenna
 

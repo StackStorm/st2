@@ -47,6 +47,7 @@ class PackDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin,
     keywords = me.ListField(field=me.StringField())
     version = me.StringField(regex=PACK_VERSION_REGEX, required=True)
     stackstorm_version = me.StringField(regex=ST2_VERSION_REGEX)
+    python_versions = me.ListField(field=me.StringField())
     author = me.StringField(required=True)
     email = me.EmailField()
     contributors = me.ListField(field=me.StringField())
@@ -86,7 +87,8 @@ class ConfigDB(stormbase.StormFoundationDB):
         unique=True,
         help_text='Name of the content pack this config belongs to.')
     values = stormbase.EscapedDynamicField(
-        help_text='Config values.')
+        help_text='Config values.',
+        default={})
 
     def mask_secrets(self, value):
         """

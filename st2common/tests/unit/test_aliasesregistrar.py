@@ -17,7 +17,14 @@ from __future__ import absolute_import
 import os
 
 from st2common.bootstrap import aliasesregistrar
-from st2tests import DbTestCase, fixturesloader
+from st2common.persistence.action import ActionAlias
+
+from st2tests import DbTestCase
+from st2tests import fixturesloader
+
+__all__ = [
+    'TestAliasRegistrar'
+]
 
 
 ALIASES_FIXTURE_PACK_PATH = os.path.join(fixturesloader.get_fixtures_packs_base_path(),
@@ -31,3 +38,6 @@ class TestAliasRegistrar(DbTestCase):
         count = aliasesregistrar.register_aliases(pack_dir=ALIASES_FIXTURE_PACK_PATH)
         # expect all files to contain be aliases
         self.assertEqual(count, len(os.listdir(ALIASES_FIXTURE_PATH)))
+
+        action_alias_dbs = ActionAlias.get_all()
+        self.assertEqual(action_alias_dbs[0].metadata_file, 'aliases/alias1.yaml')

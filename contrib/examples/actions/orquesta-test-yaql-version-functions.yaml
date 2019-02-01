@@ -1,0 +1,6 @@
+---
+name: orquesta-test-yaql-version-functions
+description: A basic workflow testing version related functions.
+runner_type: orquesta
+entry_point: workflows/tests/orquesta-test-yaql-version-functions.yaml
+enabled: true

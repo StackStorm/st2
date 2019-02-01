@@ -7,12 +7,9 @@ greenlet
 jinja2
 jsonschema
 kombu
-# Our fork contains a fix / revert of a change which was introduced in v0.13.0
-# and introduces a large regression in memory usage
-# See https://github.com/MongoEngine/mongoengine/pull/1833
-git+https://github.com/StackStorm/mongoengine.git@stackstorm_patched#egg=mongoengine
+mongoengine
 networkx
-git+https://github.com/StackStorm/orquesta.git@master#egg=orquesta
+git+https://github.com/StackStorm/orquesta.git@v0.3#egg=orquesta
 oslo.config
 paramiko
 pyyaml
@@ -32,4 +29,7 @@ flex
 webob
 jsonpath-rw
 python-statsd
-prometheus_client
+ujson
+# Note: amqp is used by kombu, this needs to be added here to be picked up by
+# requirements fixate script.
+amqp

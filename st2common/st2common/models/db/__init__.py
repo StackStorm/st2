@@ -29,6 +29,7 @@ from pymongo.errors import ConnectionFailure
 
 from st2common import log as logging
 from st2common.util import isotime
+from st2common.util.misc import get_field_name_from_mongoengine_error
 from st2common.models.db import stormbase
 from st2common.models.utils.profiling import log_query_and_profile_data_for_queryset
 from st2common.exceptions import db as db_exc
@@ -43,6 +44,7 @@ MODEL_MODULE_NAMES = [
     'st2common.models.db.keyvalue',
     'st2common.models.db.execution',
     'st2common.models.db.executionstate',
+    'st2common.models.db.execution_queue',
     'st2common.models.db.liveaction',
     'st2common.models.db.notification',
     'st2common.models.db.pack',
@@ -54,7 +56,8 @@ MODEL_MODULE_NAMES = [
     'st2common.models.db.sensor',
     'st2common.models.db.trace',
     'st2common.models.db.trigger',
-    'st2common.models.db.webhook'
+    'st2common.models.db.webhook',
+    'st2common.models.db.workflow'
 ]
 
 # A list of model names for which we don't perform extra index cleanup
@@ -89,8 +92,8 @@ def get_model_classes():
 
 
 def _db_connect(db_name, db_host, db_port, username=None, password=None,
-             ssl=False, ssl_keyfile=None, ssl_certfile=None,
-             ssl_cert_reqs=None, ssl_ca_certs=None, ssl_match_hostname=True):
+             ssl=False, ssl_keyfile=None, ssl_certfile=None, ssl_cert_reqs=None,
+             ssl_ca_certs=None, authentication_mechanism=None, ssl_match_hostname=True):
 
     if '://' in db_host:
         # Hostname is provided as a URI string. Make sure we don't log the password in case one is
@@ -117,6 +120,7 @@ def _db_connect(db_name, db_host, db_port, username=None, password=None,
 
     ssl_kwargs = _get_ssl_kwargs(ssl=ssl, ssl_keyfile=ssl_keyfile, ssl_certfile=ssl_certfile,
                                  ssl_cert_reqs=ssl_cert_reqs, ssl_ca_certs=ssl_ca_certs,
+                                 authentication_mechanism=authentication_mechanism,
                                  ssl_match_hostname=ssl_match_hostname)
 
     connection = mongoengine.connection.connect(db_name, host=db_host,
@@ -144,12 +148,14 @@ def _db_connect(db_name, db_host, db_port, username=None, password=None,
 
 def db_setup(db_name, db_host, db_port, username=None, password=None, ensure_indexes=True,
              ssl=False, ssl_keyfile=None, ssl_certfile=None,
-             ssl_cert_reqs=None, ssl_ca_certs=None, ssl_match_hostname=True):
+             ssl_cert_reqs=None, ssl_ca_certs=None,
+             authentication_mechanism=None, ssl_match_hostname=True):
 
     connection = _db_connect(db_name, db_host, db_port, username=username,
                              password=password, ssl=ssl, ssl_keyfile=ssl_keyfile,
                              ssl_certfile=ssl_certfile,
                              ssl_cert_reqs=ssl_cert_reqs, ssl_ca_certs=ssl_ca_certs,
+                             authentication_mechanism=authentication_mechanism,
                              ssl_match_hostname=ssl_match_hostname)
 
     # Create all the indexes upfront to prevent race-conditions caused by
@@ -271,12 +277,14 @@ def db_teardown():
 
 def db_cleanup(db_name, db_host, db_port, username=None, password=None,
                ssl=False, ssl_keyfile=None, ssl_certfile=None,
-               ssl_cert_reqs=None, ssl_ca_certs=None, ssl_match_hostname=True):
+               ssl_cert_reqs=None, ssl_ca_certs=None,
+               authentication_mechanism=None, ssl_match_hostname=True):
 
     connection = _db_connect(db_name, db_host, db_port, username=username,
                              password=password, ssl=ssl, ssl_keyfile=ssl_keyfile,
                              ssl_certfile=ssl_certfile,
                              ssl_cert_reqs=ssl_cert_reqs, ssl_ca_certs=ssl_ca_certs,
+                             authentication_mechanism=authentication_mechanism,
                              ssl_match_hostname=ssl_match_hostname)
 
     LOG.info('Dropping database "%s" @ "%s:%s" as user "%s".',
@@ -287,7 +295,7 @@ def db_cleanup(db_name, db_host, db_port, username=None, password=None,
 
 
 def _get_ssl_kwargs(ssl=False, ssl_keyfile=None, ssl_certfile=None, ssl_cert_reqs=None,
-                    ssl_ca_certs=None, ssl_match_hostname=True):
+                    ssl_ca_certs=None, authentication_mechanism=None, ssl_match_hostname=True):
     ssl_kwargs = {
         'ssl': ssl,
     }
@@ -308,6 +316,9 @@ def _get_ssl_kwargs(ssl=False, ssl_keyfile=None, ssl_certfile=None, ssl_cert_req
     if ssl_ca_certs:
         ssl_kwargs['ssl'] = True
         ssl_kwargs['ssl_ca_certs'] = ssl_ca_certs
+    if authentication_mechanism:
+        ssl_kwargs['ssl'] = True
+        ssl_kwargs['authentication_mechanism'] = authentication_mechanism
     if ssl_kwargs.get('ssl', False):
         # pass in ssl_match_hostname only if ssl is True. The right default value
         # for ssl_match_hostname in almost all cases is True.
@@ -351,7 +362,7 @@ class MongoDBAccess(object):
         if only_fields:
             try:
                 instances = instances.only(*only_fields)
-            except mongoengine.errors.LookUpError as e:
+            except (mongoengine.errors.LookUpError, AttributeError) as e:
                 msg = ('Invalid or unsupported include attribute specified: %s' % str(e))
                 raise ValueError(msg)
 
@@ -400,13 +411,19 @@ class MongoDBAccess(object):
         result = self.model.objects(*args, **filters)
 
         if exclude_fields:
-            result = result.exclude(*exclude_fields)
+            try:
+                result = result.exclude(*exclude_fields)
+            except (mongoengine.errors.LookUpError, AttributeError) as e:
+                field = get_field_name_from_mongoengine_error(e)
+                msg = ('Invalid or unsupported exclude attribute specified: %s' % field)
+                raise ValueError(msg)
 
         if only_fields:
             try:
                 result = result.only(*only_fields)
-            except mongoengine.errors.LookUpError as e:
-                msg = ('Invalid or unsupported include attribute specified: %s' % str(e))
+            except (mongoengine.errors.LookUpError, AttributeError) as e:
+                field = get_field_name_from_mongoengine_error(e)
+                msg = ('Invalid or unsupported include attribute specified: %s' % field)
                 raise ValueError(msg)
 
         if no_dereference:
@@ -431,8 +448,8 @@ class MongoDBAccess(object):
         instance = self.model.objects.insert(instance)
         return self._undo_dict_field_escape(instance)
 
-    def add_or_update(self, instance):
-        instance.save()
+    def add_or_update(self, instance, validate=True):
+        instance.save(validate=validate)
         return self._undo_dict_field_escape(instance)
 
     def update(self, instance, **kwargs):
@@ -538,8 +555,8 @@ class ChangeRevisionMongoDBAccess(MongoDBAccess):
 
         return self._undo_dict_field_escape(instance)
 
-    def add_or_update(self, instance):
-        return self.save(instance)
+    def add_or_update(self, instance, validate=True):
+        return self.save(instance, validate=validate)
 
     def update(self, instance, **kwargs):
         for k, v in six.iteritems(kwargs):
@@ -547,14 +564,14 @@ class ChangeRevisionMongoDBAccess(MongoDBAccess):
 
         return self.save(instance)
 
-    def save(self, instance):
+    def save(self, instance, validate=True):
         if not hasattr(instance, 'id') or not instance.id:
             return self.insert(instance)
         else:
             try:
                 save_condition = {'id': instance.id, 'rev': instance.rev}
                 instance.rev = instance.rev + 1
-                instance.save(save_condition=save_condition)
+                instance.save(save_condition=save_condition, validate=validate)
             except mongoengine.SaveConditionError:
                 raise db_exc.StackStormDBObjectWriteConflictError(instance)
 

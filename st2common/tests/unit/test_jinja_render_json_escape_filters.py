@@ -32,7 +32,7 @@ class JinjaUtilsJsonEscapeTestCase(unittest2.TestCase):
     def test_backslashes(self):
         env = jinja_utils.get_jinja_environment()
         template = '{{ test_str | json_escape }}'
-        actual = env.from_string(template).render({'test_str': 'foo \ bar'})
+        actual = env.from_string(template).render({'test_str': r'foo \ bar'})
         expected = 'foo \\\\ bar'
         self.assertEqual(actual, expected)
 

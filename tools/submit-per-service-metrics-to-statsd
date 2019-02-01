@@ -1,0 +1,225 @@
+#!/usr/bin/env python
+# Licensed to the StackStorm, Inc ('StackStorm') under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""
+Script which submits per StackStorm service (process) metrics to statsd.
+
+Metrics include:
+
+  * CPU usage
+  * Memory usage
+  * IO / disks usage
+"""
+
+import sys
+import socket
+import logging
+import argparse
+
+import six
+
+try:
+    import psutil
+except ImportError:
+    msg = ('psutil library is not available you can install it using:\n'
+           'pip install psutil')
+    raise ImportError(msg)
+
+try:
+    import statsd
+except ImportError:
+    msg = ('python-statsd library is not available you can install it using:\n'
+           'pip install python-statsd')
+    raise ImportError(msg)
+
+
+LOG = logging.getLogger(__name__)
+
+
+def setup_logging():
+    root = logging.getLogger()
+    root.setLevel(logging.DEBUG)
+
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    root.addHandler(handler)
+
+
+
+def get_name_for_stackstorm_service(pinfo):
+    """
+    Return friendly name used inside the metrics key for the StackStorm service.
+
+    If the provided process don't refer to a StackStorm service it returns False instead.
+    """
+    # General stackstorm service (st2actionrunner, st2timersengine, etc)
+    if pinfo['name'].startswith('st2'):
+        return pinfo['name']
+    elif pinfo['name'] == 'python':
+        # Sensor container sensor process
+        if 'sensor_wrapper.py' in ' '.join(pinfo['cmdline']):
+            for arg in pinfo['cmdline']:
+                if arg.startswith('--class-name='):
+                    sensor_name = arg.split('--class-name=')[-1].lower()
+                    name = 'sensor_process.%s' % (sensor_name)
+                    return name
+    elif pinfo['name'] == 'gunicorn':
+        # st2api / st2auth / st2stream process
+        for arg in pinfo['cmdline']:
+            if arg.endswith('.wsgi:application'):
+                return arg.split('.wsgi:application')[0]
+
+    return False
+
+
+def get_stackstorm_services_pids():
+    """
+    Return pids for StackStorm service processes.
+    """
+    result = []
+    for proc in psutil.process_iter():
+        pinfo = proc.as_dict(attrs=['pid', 'name', 'cmdline'])
+
+        # General stackstorm service (st2actionrunner, st2timersengine, etc)
+        is_stackstorm_service = bool(get_name_for_stackstorm_service(pinfo))
+
+        if is_stackstorm_service:
+            result.append(pinfo['pid'])
+
+    return result
+
+
+def get_metrics_for_process(pid, cpu_poll_interval=0.1):
+    """
+    Return metrics for a provided process id.
+
+    :rtype: ``dict``
+    """
+    p = psutil.Process(pid)
+
+    data = {
+        'name': None,
+        'cpu': {
+            'percentage': None,
+            'system_time': None,
+            'user_time': None
+        },
+        'memory': {
+            'rss': None,
+            'vms': None,
+            'swap': None
+        },
+        'io': {
+            'read_count': None,
+            'write_count': None
+        }
+    }
+
+    with p.oneshot():
+        pinfo = {
+            'name': p.name(),
+            'cmdline': p.cmdline()
+        }
+        data['name'] = get_name_for_stackstorm_service(pinfo)
+        data['pid'] = pid
+
+
+        cpu_times = p.cpu_times()
+        data['cpu']['system_time'] = cpu_times.system
+        data['cpu']['user_time'] = cpu_times.user
+
+        memory_info = p.memory_full_info()
+        data['memory']['rss'] = memory_info.rss
+        data['memory']['vms'] = memory_info.vms
+        data['memory']['swap'] = memory_info.swap
+
+        io_counters = p.io_counters()
+        data['io']['read_count'] = io_counters.read_count
+        data['io']['write_count'] = io_counters.write_count
+
+    # NOTE: To get a valid value this needs to happen outside p.oneshot() context manager
+    data['cpu']['percentage'] = p.cpu_percent(interval=cpu_poll_interval)
+
+    return data
+
+def submit_metrics_to_statsd(prefix=None, cpu_poll_interval=0.1):
+    service_pids = get_stackstorm_services_pids()
+
+    hostname = socket.gethostname()
+
+
+    for service_pid in service_pids:
+        metrics = get_metrics_for_process(service_pid, cpu_poll_interval=cpu_poll_interval)
+
+        LOG.debug('\n\nSubmitting metrics for process %s@%s\n' % (metrics['name'], hostname))
+
+        for key in ['cpu', 'memory', 'io']:
+            items = metrics[key]
+
+            for item_name, item_value in six.iteritems(items):
+                # Skip empty / invalid values:
+                if not item_value or item_value == 0.0:
+                    continue
+
+                name = metrics['name']
+
+                # For example:
+                # - st2.<prefix>.svc.cpu.percentage
+                # - st2.<prefix>.svc.st2workflowengine.memory.rss
+                # - st2.<prefix>.svc.st2workflowengine.memory.vss
+
+                # NOTE: We don't include pid in the metric name since this would result in too
+                # many unique metric names
+                if prefix:
+                    metric_key = 'st2.%s.svc.%s.%s.%s' % (prefix, name, key, item_name)
+                else:
+                    metric_key = 'st2.svc.%s.%s.%s' % (name, key, item_name)
+
+                gauge = statsd.Gauge(metric_key)
+                gauge.send(None, item_value)
+    else:
+        LOG.debug('No StackStorm services found')
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Script which submits per StackStorm service '
+                                                 'metrics to statsd')
+    parser.add_argument('--statsd-host', required=True,
+                        help='Statsd hostname')
+    parser.add_argument('--statsd-port', type=int, default=8125,
+                        help='Statsd port')
+    parser.add_argument('--prefix', type=str, default=None,
+                        help='Prefix for metrics names (optional).')
+    parser.add_argument('--cpu-poll-interval', type=float, default=0.2,
+                        help='Poll interval for p.cpu_percent() function. Lower means faster '
+                        'completion but lower accuracy')
+
+    args = parser.parse_args()
+
+    # Initialize statsd connection
+    statsd.Connection.set_defaults(host=args.statsd_host, port=args.statsd_port)
+
+    # Initialize logging
+    setup_logging()
+
+    # Submit metrics to statsd
+    submit_metrics_to_statsd(prefix=args.prefix, cpu_poll_interval=args.cpu_poll_interval)
+
+
+if __name__ == '__main__':
+    main()

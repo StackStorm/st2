@@ -22,18 +22,18 @@ from oslo_config import cfg, types
 from st2common import log as logging
 import st2common.config as common_config
 from st2common.constants.sensors import DEFAULT_PARTITION_LOADER
-from st2tests.fixturesloader import get_fixtures_packs_base_path, get_fixtures_runners_base_path
+from st2tests.fixturesloader import get_fixtures_packs_base_path
 
 CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
 
 
-def parse_args():
-    _setup_config_opts()
+def parse_args(coordinator_noop=False):
+    _setup_config_opts(coordinator_noop=coordinator_noop)
     CONF(args=[])
 
 
-def _setup_config_opts():
+def _setup_config_opts(coordinator_noop=False):
     cfg.CONF.reset()
 
     try:
@@ -43,14 +43,17 @@ def _setup_config_opts():
         # Some scripts register the options themselves which means registering them again will
         # cause a non-fatal exception
         return
-    _override_config_opts()
+
+    _override_config_opts(coordinator_noop=coordinator_noop)
 
 
-def _override_config_opts():
+def _override_config_opts(coordinator_noop=False):
     _override_db_opts()
     _override_common_opts()
     _override_api_opts()
     _override_keyvalue_opts()
+    _override_scheduler_opts()
+    _override_coordinator_opts(noop=coordinator_noop)
 
 
 def _register_config_opts():
@@ -60,7 +63,6 @@ def _register_config_opts():
     _register_auth_opts()
     _register_action_sensor_opts()
     _register_ssh_runner_opts()
-    _register_cloudslang_opts()
     _register_scheduler_opts()
     _register_exporter_opts()
     _register_sensor_container_opts()
@@ -73,16 +75,12 @@ def _override_db_opts():
 
 def _override_common_opts():
     packs_base_path = get_fixtures_packs_base_path()
-    runners_base_path = get_fixtures_runners_base_path()
     CONF.set_override(name='base_path', override=packs_base_path, group='system')
+    CONF.set_override(name='validate_output_schema', override=True, group='system')
     CONF.set_override(name='system_packs_base_path', override=packs_base_path, group='content')
     CONF.set_override(name='packs_base_paths', override=packs_base_path, group='content')
-    CONF.set_override(name='system_runners_base_path', override=runners_base_path, group='content')
-    CONF.set_override(name='runners_base_paths', override=runners_base_path, group='content')
     CONF.set_override(name='api_url', override='http://127.0.0.1', group='auth')
     CONF.set_override(name='mask_secrets', override=True, group='log')
-    CONF.set_override(name='url', override='zake://', group='coordination')
-    CONF.set_override(name='lock_timeout', override=1, group='coordination')
     CONF.set_override(name='jitter_interval', override=0, group='mistral')
     CONF.set_override(name='query_interval', override=0.1, group='resultstracker')
     CONF.set_override(name='stream_output', override=False, group='actionrunner')
@@ -100,6 +98,16 @@ def _override_keyvalue_opts():
     rel_enc_key_path = 'st2tests/conf/st2_kvstore_tests.crypto.key.json'
     ovr_enc_key_path = os.path.join(abs_st2_base_path, rel_enc_key_path)
     CONF.set_override(name='encryption_key_path', override=ovr_enc_key_path, group='keyvalue')
+
+
+def _override_scheduler_opts():
+    CONF.set_override(name='sleep_interval', group='scheduler', override=0.01)
+
+
+def _override_coordinator_opts(noop=False):
+    driver = None if noop else 'zake://'
+    CONF.set_override(name='url', override=driver, group='coordination')
+    CONF.set_override(name='lock_timeout', override=1, group='coordination')
 
 
 def _register_common_opts():
@@ -232,24 +240,17 @@ def _register_ssh_runner_opts():
     _register_opts(ssh_runner_opts, group='ssh_runner')
 
 
-def _register_cloudslang_opts():
-    cloudslang_opts = [
-        cfg.StrOpt(
-            'home_dir', default='/opt/cslang',
-            help='CloudSlang home directory.')
-    ]
-
-    _register_opts(cloudslang_opts, group='cloudslang')
-
-
 def _register_scheduler_opts():
     scheduler_opts = [
         cfg.IntOpt(
-            'delayed_execution_recovery', default=600,
-            help='The time in seconds to wait before recovering delayed action executions.'),
-        cfg.IntOpt(
-            'rescheduling_interval', default=300,
-            help='The frequency for rescheduling action executions.')
+            'pool_size', default=10,
+            help='The size of the pool used by the scheduler for scheduling executions.'),
+        cfg.FloatOpt(
+            'sleep_interval', default=0.01,
+            help='How long to sleep between each action scheduler main loop run interval (in ms).'),
+        cfg.FloatOpt(
+            'gc_interval', default=5,
+            help='How often to look for zombie executions before rescheduling them (in ms).'),
     ]
 
     _register_opts(scheduler_opts, group='scheduler')

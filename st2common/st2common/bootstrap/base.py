@@ -23,7 +23,6 @@ from st2common import log as logging
 from st2common.constants.pack import CONFIG_SCHEMA_FILE_NAME
 from st2common.content.loader import MetaLoader
 from st2common.content.loader import ContentPackLoader
-from st2common.content.loader import RunnersLoader
 from st2common.models.api.pack import PackAPI
 from st2common.models.api.pack import ConfigSchemaAPI
 from st2common.persistence.pack import Pack
@@ -54,21 +53,28 @@ EXCLUDE_FILE_PATTERNS = [
 class ResourceRegistrar(object):
     ALLOWED_EXTENSIONS = []
 
-    def __init__(self, use_pack_cache=True, fail_on_failure=False):
+    def __init__(self, use_pack_cache=True, use_runners_cache=False, fail_on_failure=False):
         """
         :param use_pack_cache: True to cache which packs have been registered in memory and making
                                 sure packs are only registered once.
         :type use_pack_cache: ``bool``
 
+        :param use_runners_cache: True to cache RunnerTypeDB objects in memory to reduce load on
+                                  the database.
+        :type use_runners_cache: ``bool``
+
         :param fail_on_failure: Throw an exception if resource registration fails.
         :type fail_on_failure: ``bool``
         """
         self._use_pack_cache = use_pack_cache
+        self._use_runners_cache = use_runners_cache
         self._fail_on_failure = fail_on_failure
 
         self._meta_loader = MetaLoader()
         self._pack_loader = ContentPackLoader()
-        self._runner_loader = RunnersLoader()
+
+        # Maps runner name -> RunnerTypeDB
+        self._runner_type_db_cache = {}
 
     def get_resources_from_pack(self, resources_dir):
         resources = []
@@ -216,6 +222,3 @@ class ResourceRegistrar(object):
         config_schema_db = ConfigSchema.add_or_update(config_schema_db)
         LOG.debug('Config schema for pack %s registered.' % (pack_name))
         return config_schema_db
-
-    def register_runner(self):
-        pass

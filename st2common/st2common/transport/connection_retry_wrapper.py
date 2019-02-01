@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import eventlet
 
 __all__ = ['ConnectionRetryWrapper', 'ClusterRetryContext']
@@ -35,7 +36,14 @@ class ClusterRetryContext(object):
         # No of nodes attempted. Starts at 1 since the
         self._nodes_attempted = 1
 
-    def test_should_stop(self):
+    def test_should_stop(self, e=None):
+        # Special workaround for "(504) CHANNEL_ERROR - second 'channel.open' seen" which happens
+        # during tests on Travis and block and slown down the tests
+        # NOTE: This error is not fatal during tests and we can simply switch to a next connection
+        # without sleeping.
+        if "second 'channel.open' seen" in str(e):
+            return False, -1
+
         should_stop = True
         if self._nodes_attempted > self.cluster_size * self.cluster_retry:
             return should_stop, -1
@@ -91,9 +99,12 @@ class ConnectionRetryWrapper(object):
             retry_wrapper.run(connection=connection, wrapped_callback=wrapped_callback)
 
     """
-    def __init__(self, cluster_size, logger):
+    def __init__(self, cluster_size, logger, ensure_max_retries=3):
         self._retry_context = ClusterRetryContext(cluster_size=cluster_size)
         self._logger = logger
+        # How many times to try to retrying establishing a connection in a place where we are
+        # calling connection.ensure_connection
+        self._ensure_max_retries = ensure_max_retries
 
     def errback(self, exc, interval):
         self._logger.error('Rabbitmq connection error: %s', exc.message)
@@ -117,8 +128,7 @@ class ConnectionRetryWrapper(object):
                 wrapped_callback(connection=connection, channel=channel)
                 should_stop = True
             except connection.connection_errors + connection.channel_errors as e:
-                self._logger.exception('RabbitMQ connection or channel error: %s.' % (str(e)))
-                should_stop, wait = self._retry_context.test_should_stop()
+                should_stop, wait = self._retry_context.test_should_stop(e)
                 # reset channel to None to avoid any channel closing errors. At this point
                 # in case of an exception there should be no channel but that is better to
                 # guarantee.
@@ -127,7 +137,10 @@ class ConnectionRetryWrapper(object):
                 # be notified so raise.
                 if should_stop:
                     raise
+
                 # -1, 0 and 1+ are handled properly by eventlet.sleep
+                self._logger.debug('Received RabbitMQ server error, sleeping for %s seconds '
+                                   'before retrying: %s' % (wait, str(e)))
                 eventlet.sleep(wait)
 
                 connection.close()
@@ -136,11 +149,23 @@ class ConnectionRetryWrapper(object):
                 # entire ConnectionPool simultaneously but that would require writing our own
                 # ConnectionPool. If a server recovers it could happen that the same process
                 # ends up talking to separate nodes in a cluster.
-                connection.ensure_connection()
 
+                def log_error_on_conn_failure(exc, interval):
+                    self._logger.debug('Failed to re-establish connection to RabbitMQ server, '
+                                       'retrying in %s seconds: %s' % (interval, str(e)))
+
+                try:
+                    # NOTE: This function blocks and tries to restablish a connection for
+                    # indefinetly if "max_retries" argument is not specified
+                    connection.ensure_connection(max_retries=self._ensure_max_retries,
+                                                 errback=log_error_on_conn_failure)
+                except Exception:
+                    self._logger.exception('Connections to RabbitMQ cannot be re-established: %s',
+                                           str(e))
+                    raise
             except Exception as e:
-                self._logger.exception('Connections to rabbitmq cannot be re-established: %s',
-                                       e.message)
+                self._logger.exception('Connections to RabbitMQ cannot be re-established: %s',
+                                       str(e))
                 # Not being able to publish a message could be a significant issue for an app.
                 raise
             finally:
@@ -161,5 +186,8 @@ class ConnectionRetryWrapper(object):
                     the kombu library.
         :type obj: Must support mixin kombu.abstract.MaybeChannelBound
         """
-        ensuring_func = connection.ensure(obj, to_ensure_func, errback=self.errback, max_retries=3)
+        ensuring_func = connection.ensure(
+            obj, to_ensure_func,
+            errback=self.errback,
+            max_retries=3)
         ensuring_func(**kwargs)

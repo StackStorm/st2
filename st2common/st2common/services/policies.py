@@ -42,7 +42,7 @@ def apply_pre_run_policies(lv_ac_db):
             message = 'An exception occurred while applying policy "%s" (%s) for liveaction "%s".'
             LOG.exception(message % (policy_db.ref, policy_db.policy_type, str(lv_ac_db.id)))
 
-        if lv_ac_db.status == ac_const.LIVEACTION_STATUS_DELAYED:
+        if lv_ac_db.status == ac_const.LIVEACTION_STATUS_POLICY_DELAYED:
             break
 
     return lv_ac_db

@@ -15,7 +15,6 @@
 
 from __future__ import absolute_import
 
-import copy
 import uuid
 
 from oslo_config import cfg
@@ -25,13 +24,14 @@ from orquesta import states as wf_states
 
 from st2common.constants import action as ac_const
 from st2common import log as logging
+from st2common.models.api import notification as notify_api_models
 from st2common.persistence import execution as ex_db_access
 from st2common.persistence import liveaction as lv_db_access
 from st2common.runners import base as runners
 from st2common.services import action as ac_svc
 from st2common.services import workflows as wf_svc
 from st2common.util import api as api_util
-
+from st2common.util import ujson
 
 __all__ = [
     'OrquestaRunner',
@@ -50,8 +50,15 @@ class OrquestaRunner(runners.AsyncActionRunner):
         with open(entry_point, 'r') as def_file:
             return def_file.read()
 
+    def _get_notify_config(self):
+        return (
+            notify_api_models.NotificationsHelper.from_model(notify_model=self.liveaction.notify)
+            if self.liveaction.notify
+            else None
+        )
+
     def _construct_context(self, wf_ex):
-        ctx = copy.deepcopy(self.context)
+        ctx = ujson.fast_deepcopy(self.context)
         ctx['workflow_execution'] = str(wf_ex.id)
 
         return ctx
@@ -59,11 +66,14 @@ class OrquestaRunner(runners.AsyncActionRunner):
     def _construct_st2_context(self):
         st2_ctx = {
             'st2': {
-                'api_url': api_util.get_full_public_api_url(),
                 'action_execution_id': str(self.execution.id),
+                'api_url': api_util.get_full_public_api_url(),
                 'user': self.execution.context.get('user', cfg.CONF.system_user.user)
             }
         }
+
+        if self.execution.context.get('api_user'):
+            st2_ctx['st2']['api_user'] = self.execution.context.get('api_user')
 
         if self.execution.context:
             st2_ctx['parent'] = self.execution.context
@@ -77,14 +87,28 @@ class OrquestaRunner(runners.AsyncActionRunner):
         try:
             # Request workflow execution.
             st2_ctx = self._construct_st2_context()
-            wf_ex_db = wf_svc.request(wf_def, self.execution, st2_ctx)
+            notify_cfg = self._get_notify_config()
+            wf_ex_db = wf_svc.request(wf_def, self.execution, st2_ctx, notify_cfg)
         except wf_exc.WorkflowInspectionError as e:
             status = ac_const.LIVEACTION_STATUS_FAILED
             result = {'errors': e.args[1], 'output': None}
             return (status, result, self.context)
         except Exception as e:
             status = ac_const.LIVEACTION_STATUS_FAILED
-            result = {'errors': str(e), 'output': None}
+            result = {'errors': [{'message': str(e)}], 'output': None}
+            return (status, result, self.context)
+
+        if wf_ex_db.status in wf_states.COMPLETED_STATES:
+            status = wf_ex_db.status
+            result = {'output': wf_ex_db.output or None}
+
+            if wf_ex_db.status in wf_states.ABENDED_STATES:
+                result['errors'] = wf_ex_db.errors
+
+            for wf_ex_error in wf_ex_db.errors:
+                msg = '[%s] Workflow execution completed with errors.'
+                LOG.error(msg, str(self.execution.id), extra=wf_ex_error)
+
             return (status, result, self.context)
 
         # Set return values.
@@ -94,6 +118,15 @@ class OrquestaRunner(runners.AsyncActionRunner):
 
         return (status, partial_results, ctx)
 
+    @staticmethod
+    def task_pauseable(ac_ex):
+        wf_ex_pauseable = (
+            ac_ex.runner['name'] in ac_const.WORKFLOW_RUNNER_TYPES and
+            ac_ex.status == ac_const.LIVEACTION_STATUS_RUNNING
+        )
+
+        return wf_ex_pauseable
+
     def pause(self):
         # Pause the target workflow.
         wf_ex_db = wf_svc.request_pause(self.execution)
@@ -101,8 +134,7 @@ class OrquestaRunner(runners.AsyncActionRunner):
         # Request pause of tasks that are workflows and still running.
         for child_ex_id in self.execution.children:
             child_ex = ex_db_access.ActionExecution.get(id=child_ex_id)
-            if (child_ex.runner['name'] in ac_const.WORKFLOW_RUNNER_TYPES and
-                    child_ex.status == ac_const.LIVEACTION_STATUS_RUNNING):
+            if self.task_pauseable(child_ex):
                 ac_svc.request_pause(
                     lv_db_access.LiveAction.get(id=child_ex.liveaction['id']),
                     self.context.get('user', None)
@@ -120,25 +152,47 @@ class OrquestaRunner(runners.AsyncActionRunner):
             self.liveaction.context
         )
 
+    @staticmethod
+    def task_resumeable(ac_ex):
+        wf_ex_resumeable = (
+            ac_ex.runner['name'] in ac_const.WORKFLOW_RUNNER_TYPES and
+            ac_ex.status == ac_const.LIVEACTION_STATUS_PAUSED
+        )
+
+        return wf_ex_resumeable
+
     def resume(self):
         # Resume the target workflow.
-        wf_svc.request_resume(self.execution)
+        wf_ex_db = wf_svc.request_resume(self.execution)
 
         # Request resume of tasks that are workflows and still running.
         for child_ex_id in self.execution.children:
             child_ex = ex_db_access.ActionExecution.get(id=child_ex_id)
-            if (child_ex.runner['name'] in ac_const.WORKFLOW_RUNNER_TYPES and
-                    child_ex.status == ac_const.LIVEACTION_STATUS_PAUSED):
+            if self.task_resumeable(child_ex):
                 ac_svc.request_resume(
                     lv_db_access.LiveAction.get(id=child_ex.liveaction['id']),
                     self.context.get('user', None)
                 )
 
         return (
-            ac_const.LIVEACTION_STATUS_RUNNING,
+            wf_ex_db.status if wf_ex_db else ac_const.LIVEACTION_STATUS_RUNNING,
             self.liveaction.result,
             self.liveaction.context
         )
+
+    @staticmethod
+    def task_cancelable(ac_ex):
+        wf_ex_cancelable = (
+            ac_ex.runner['name'] in ac_const.WORKFLOW_RUNNER_TYPES and
+            ac_ex.status in ac_const.LIVEACTION_CANCELABLE_STATES
+        )
+
+        ac_ex_cancelable = (
+            ac_ex.runner['name'] not in ac_const.WORKFLOW_RUNNER_TYPES and
+            ac_ex.status in ac_const.LIVEACTION_DELAYED_STATES
+        )
+
+        return wf_ex_cancelable or ac_ex_cancelable
 
     def cancel(self):
         # Cancel the target workflow.
@@ -147,8 +201,7 @@ class OrquestaRunner(runners.AsyncActionRunner):
         # Request cancellation of tasks that are workflows and still running.
         for child_ex_id in self.execution.children:
             child_ex = ex_db_access.ActionExecution.get(id=child_ex_id)
-            if (child_ex.runner['name'] in ac_const.WORKFLOW_RUNNER_TYPES and
-                    child_ex.status in ac_const.LIVEACTION_CANCELABLE_STATES):
+            if self.task_cancelable(child_ex):
                 ac_svc.request_cancellation(
                     lv_db_access.LiveAction.get(id=child_ex.liveaction['id']),
                     self.context.get('user', None)
@@ -172,4 +225,4 @@ def get_runner():
 
 
 def get_metadata():
-    return runners.get_metadata('orquesta_runner')
+    return runners.get_metadata('orquesta_runner')[0]

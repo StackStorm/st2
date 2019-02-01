@@ -54,7 +54,7 @@ class PauseResumeWiringTest(base.TestWorkflowExecution):
 
         # Pause the workflow before the temp file is created. The workflow will be paused
         # but task1 will still be running to allow for graceful exit.
-        ex = self.st2client.liveactions.pause(ex.id)
+        ex = self.st2client.executions.pause(ex.id)
 
         # Expecting the ex to be pausing, waiting for task1 to be completed.
         ex = self._wait_for_state(ex, action_constants.LIVEACTION_STATUS_PAUSING)
@@ -67,7 +67,7 @@ class PauseResumeWiringTest(base.TestWorkflowExecution):
         ex = self._wait_for_state(ex, action_constants.LIVEACTION_STATUS_PAUSED)
 
         # Resume the ex.
-        ex = self.st2client.liveactions.resume(ex.id)
+        ex = self.st2client.executions.resume(ex.id)
 
         # Wait for completion.
         ex = self._wait_for_state(ex, action_constants.LIVEACTION_STATUS_SUCCEEDED)
@@ -81,7 +81,7 @@ class PauseResumeWiringTest(base.TestWorkflowExecution):
         ex = self._wait_for_state(ex, action_constants.LIVEACTION_STATUS_PAUSED)
 
         # Resume the ex.
-        ex = self.st2client.liveactions.resume(ex.id)
+        ex = self.st2client.executions.resume(ex.id)
 
         # Wait for completion.
         ex = self._wait_for_state(ex, action_constants.LIVEACTION_STATUS_SUCCEEDED)
@@ -96,7 +96,7 @@ class PauseResumeWiringTest(base.TestWorkflowExecution):
         ex = self._wait_for_state(ex, action_constants.LIVEACTION_STATUS_PAUSED)
 
         # Resume the ex.
-        ex = self.st2client.liveactions.resume(ex.id)
+        ex = self.st2client.executions.resume(ex.id)
 
         # Wait for completion.
         ex = self._wait_for_state(ex, action_constants.LIVEACTION_STATUS_SUCCEEDED)
@@ -115,7 +115,7 @@ class PauseResumeWiringTest(base.TestWorkflowExecution):
         self.assertEqual(len(task_exs), 1)
 
         # Resume the ex.
-        ex = self.st2client.liveactions.resume(ex.id)
+        ex = self.st2client.executions.resume(ex.id)
 
         # Wait for completion.
         ex = self._wait_for_state(ex, action_constants.LIVEACTION_STATUS_SUCCEEDED)
@@ -137,7 +137,7 @@ class PauseResumeWiringTest(base.TestWorkflowExecution):
 
         # Pause the workflow before the temp file is created. The workflow will be paused
         # but task1 will still be running to allow for graceful exit.
-        ex = self.st2client.liveactions.pause(ex.id)
+        ex = self.st2client.executions.pause(ex.id)
 
         # Expecting the ex to be pausing, waiting for task1 to be completed.
         ex = self._wait_for_state(ex, action_constants.LIVEACTION_STATUS_PAUSING)
@@ -152,7 +152,7 @@ class PauseResumeWiringTest(base.TestWorkflowExecution):
         ex = self._wait_for_state(ex, action_constants.LIVEACTION_STATUS_PAUSED)
 
         # Resume the parent ex.
-        ex = self.st2client.liveactions.resume(ex.id)
+        ex = self.st2client.executions.resume(ex.id)
 
         # Wait for completion.
         subwf_ex = self._wait_for_state(subwf_ex, action_constants.LIVEACTION_STATUS_SUCCEEDED)
@@ -177,7 +177,7 @@ class PauseResumeWiringTest(base.TestWorkflowExecution):
 
         # Pause the main workflow before the temp file is created.
         # The subworkflow will also pause.
-        ex = self.st2client.liveactions.pause(ex.id)
+        ex = self.st2client.executions.pause(ex.id)
 
         # Expecting the ex to be pausing, waiting for task1 to be completed.
         ex = self._wait_for_state(ex, action_constants.LIVEACTION_STATUS_PAUSING)
@@ -191,7 +191,7 @@ class PauseResumeWiringTest(base.TestWorkflowExecution):
         ex = self._wait_for_state(ex, action_constants.LIVEACTION_STATUS_PAUSED)
 
         # Resume the parent ex.
-        ex = self.st2client.liveactions.resume(ex.id)
+        ex = self.st2client.executions.resume(ex.id)
 
         # Wait for completion.
         ex = self._wait_for_state(ex, action_constants.LIVEACTION_STATUS_SUCCEEDED)
@@ -211,7 +211,7 @@ class PauseResumeWiringTest(base.TestWorkflowExecution):
 
         # Pause the workflow before the temp file is created. The workflow will be paused
         # but task1 will still be running to allow for graceful exit.
-        ex = self.st2client.liveactions.pause(ex.id)
+        ex = self.st2client.executions.pause(ex.id)
 
         # Expecting the ex to be pausing, waiting for task1 to be completed.
         ex = self._wait_for_state(ex, action_constants.LIVEACTION_STATUS_PAUSING)
@@ -226,7 +226,7 @@ class PauseResumeWiringTest(base.TestWorkflowExecution):
         ex = self._wait_for_state(ex, action_constants.LIVEACTION_STATUS_PAUSED)
 
         # Resume the parent ex.
-        ex = self.st2client.liveactions.resume(ex.id)
+        ex = self.st2client.executions.resume(ex.id)
 
         # Wait for completion.
         subwf_ex = self._wait_for_state(subwf_ex, action_constants.LIVEACTION_STATUS_SUCCEEDED)
@@ -251,7 +251,7 @@ class PauseResumeWiringTest(base.TestWorkflowExecution):
 
         # Pause the workflow before the temp file is created. The workflow will be paused
         # but task1 will still be running to allow for graceful exit.
-        ex = self.st2client.liveactions.pause(ex.id)
+        ex = self.st2client.executions.pause(ex.id)
 
         # Expecting the ex to be pausing, waiting for task1 to be completed.
         subwf_ex = self._wait_for_state(subwf_ex, action_constants.LIVEACTION_STATUS_PAUSING)
@@ -266,7 +266,7 @@ class PauseResumeWiringTest(base.TestWorkflowExecution):
         ex = self._wait_for_state(ex, action_constants.LIVEACTION_STATUS_PAUSED)
 
         # Resume the parent ex.
-        ex = self.st2client.liveactions.resume(ex.id)
+        ex = self.st2client.executions.resume(ex.id)
 
         # Wait for completion.
         subwf_ex = self._wait_for_state(subwf_ex, action_constants.LIVEACTION_STATUS_SUCCEEDED)

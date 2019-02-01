@@ -94,7 +94,7 @@ class ActionExecutionAPI(BaseAPI):
                 "description": "Input parameters for the action.",
                 "type": "object",
                 "patternProperties": {
-                    "^\w+$": {
+                    r"^\w+$": {
                         "anyOf": [
                             {"type": "array"},
                             {"type": "boolean"},
@@ -140,6 +140,11 @@ class ActionExecutionAPI(BaseAPI):
                         }
                     }
                 }
+            },
+            "delay": {
+                "description": ("How long (in milliseconds) to delay the execution before"
+                                "scheduling."),
+                "type": "integer",
             }
         },
         "additionalProperties": False
@@ -216,6 +221,9 @@ class ActionExecutionOutputAPI(BaseAPI):
             },
             'data': {
                 'type': 'string'
+            },
+            'delay': {
+                'type': 'integer'
             }
         },
         'additionalProperties': False

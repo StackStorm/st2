@@ -39,11 +39,14 @@ from st2common.transport.publishers import PoolPublisher
 from st2common.util import action_db as action_db_util
 from st2common.util import isotime
 from st2common.util import date as date_utils
+from st2api.controllers.v1.actionexecutions import ActionExecutionsController
 import st2common.validators.api.action as action_validator
 from tests.base import BaseActionExecutionControllerTestCase
 from st2tests.api import SUPER_SECRET_PARAMETER
 from st2tests.api import ANOTHER_SUPER_SECRET_PARAMETER
-from tests import FunctionalTest
+
+from tests.base import FunctionalTest
+from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
 
 __all__ = [
     'ActionExecutionControllerTestCase',
@@ -57,7 +60,7 @@ ACTION_1 = {
     'enabled': True,
     'entry_point': '/tmp/test/action1.sh',
     'pack': 'sixpack',
-    'runner_type': 'run-remote',
+    'runner_type': 'remote-shell-cmd',
     'parameters': {
         'a': {
             'type': 'string',
@@ -85,7 +88,7 @@ ACTION_2 = {
     'enabled': True,
     'entry_point': '/tmp/test/action2.sh',
     'pack': 'familypack',
-    'runner_type': 'run-remote',
+    'runner_type': 'remote-shell-cmd',
     'parameters': {
         'c': {
             'type': 'object',
@@ -108,7 +111,7 @@ ACTION_3 = {
     'enabled': True,
     'entry_point': '/tmp/test/action3.sh',
     'pack': 'wolfpack',
-    'runner_type': 'run-remote',
+    'runner_type': 'remote-shell-cmd',
     'parameters': {
         'e': {},
         'f': {}
@@ -187,6 +190,17 @@ LIVE_ACTION_4 = {
     'action': 'starterpack.st2.dummy.action4',
 }
 
+LIVE_ACTION_DELAY = {
+    'action': 'sixpack.st2.dummy.action1',
+    'parameters': {
+        'hosts': 'localhost',
+        'cmd': 'uname -a',
+        'd': SUPER_SECRET_PARAMETER
+    },
+    'delay': 100
+}
+
+
 LIVE_ACTION_INQUIRY = {
     'parameters': {
         'route': 'developers',
@@ -224,6 +238,18 @@ LIVE_ACTION_INQUIRY = {
         }
     }
 }
+LIVE_ACTION_WITH_SECRET_PARAM = {
+    'parameters': {
+        # action params
+        'a': 'param a',
+        'd': 'secretpassword1',
+
+        # runner params
+        'password': 'secretpassword2',
+        'hosts': 'localhost'
+    },
+    'action': 'sixpack.st2.dummy.action1'
+}
 
 # Do not add parameters to this. There are tests that will test first without params,
 # then make a copy with params.
@@ -240,7 +266,13 @@ TEST_FIXTURES = {
 
 @mock.patch.object(content_utils, 'get_pack_base_path', mock.MagicMock(return_value='/tmp/test'))
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
-class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, FunctionalTest):
+class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, FunctionalTest,
+                                        APIControllerWithIncludeAndExcludeFilterTestCase):
+    get_all_path = '/v1/executions'
+    controller_cls = ActionExecutionsController
+    include_attribute_field_name = 'status'
+    exclude_attribute_field_name = 'status'
+    test_exact_object_count = False
 
     @classmethod
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
@@ -410,32 +442,6 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         resp = self.app.get('/v1/executions/100', expect_errors=True)
         self.assertEqual(resp.status_int, 404)
 
-    def test_get_all_include_attributes_filter(self):
-        # 1. Invalid field
-        resp = self.app.get('/v1/executions?include_attributes=invalid', expect_errors=True)
-
-        expected_msg = ('Invalid or unsupported include attribute specified: '
-                        'Cannot resolve field "invalid"')
-        self.assertEqual(resp.status_int, 400)
-        self.assertEqual(resp.json['faultstring'], expected_msg)
-
-        # NOTE: start_timestamp attribute is always included since we sort on it
-
-        # 2. Valid field (single)
-        resp = self.app.get('/v1/executions?include_attributes=id&limit=1')
-        self.assertEqual(len(resp.json), 1)
-        self.assertEqual(len(resp.json[0].keys()), 2)
-        self.assertTrue('id' in resp.json[0])
-        self.assertTrue('start_timestamp' in resp.json[0])
-
-        # 3. Valid field (single)
-        resp = self.app.get('/v1/executions?include_attributes=id,status&limit=1')
-        self.assertEqual(len(resp.json), 1)
-        self.assertEqual(len(resp.json[0].keys()), 3)
-        self.assertTrue('id' in resp.json[0])
-        self.assertTrue('start_timestamp' in resp.json[0])
-        self.assertTrue('status' in resp.json[0])
-
     def test_post_delete(self):
         post_resp = self._do_post(LIVE_ACTION_1)
         self.assertEqual(post_resp.status_int, 201)
@@ -585,6 +591,51 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         data = {'parameters': {'a': 'val1'}}
         re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id), data)
         self.assertEqual(re_run_resp.status_int, 201)
+
+    def test_re_run_with_delay(self):
+        post_resp = self._do_post(LIVE_ACTION_1)
+        self.assertEqual(post_resp.status_int, 201)
+        execution_id = self._get_actionexecution_id(post_resp)
+
+        delay_time = 100
+        data = {'delay': delay_time}
+        re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id), data)
+        self.assertEqual(re_run_resp.status_int, 201)
+        resp = json.loads(re_run_resp.body)
+        self.assertEqual(resp['delay'], delay_time)
+
+    def test_re_run_with_incorrect_delay(self):
+        post_resp = self._do_post(LIVE_ACTION_1)
+        self.assertEqual(post_resp.status_int, 201)
+        execution_id = self._get_actionexecution_id(post_resp)
+
+        delay_time = 'sudo apt -y upgrade winson'
+        data = {'delay': delay_time}
+        re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id),
+                                         data, expect_errors=True)
+        self.assertEqual(re_run_resp.status_int, 400)
+
+    def test_re_run_with_very_large_delay(self):
+        post_resp = self._do_post(LIVE_ACTION_1)
+        self.assertEqual(post_resp.status_int, 201)
+        execution_id = self._get_actionexecution_id(post_resp)
+
+        delay_time = 10 ** 10
+        data = {'delay': delay_time}
+        re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id), data)
+        self.assertEqual(re_run_resp.status_int, 201)
+
+    def test_re_run_delayed_aciton_with_no_delay(self):
+        post_resp = self._do_post(LIVE_ACTION_DELAY)
+        self.assertEqual(post_resp.status_int, 201)
+        execution_id = self._get_actionexecution_id(post_resp)
+
+        delay_time = 0
+        data = {'delay': delay_time}
+        re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id), data)
+        self.assertEqual(re_run_resp.status_int, 201)
+        resp = json.loads(re_run_resp.body)
+        self.assertNotIn('delay', resp.keys())
 
     def test_re_run_failure_execution_doesnt_exist(self):
         # Create a new execution
@@ -1095,7 +1146,8 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
             updates = {'status': 'resuming'}
             put_resp = self._do_put(execution_id, updates, expect_errors=True)
             self.assertEqual(put_resp.status_int, 400)
-            self.assertIn('is not in a paused state', put_resp.json['faultstring'])
+            expected_error_message = 'it is in "pausing" state and not in "paused" state'
+            self.assertIn(expected_error_message, put_resp.json['faultstring'])
 
             get_resp = self._do_get_one(execution_id)
             self.assertEqual(get_resp.status_int, 200)
@@ -1158,6 +1210,98 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         resp = json.loads(get_resp.body)
         self.assertEqual(resp['result']['response']['secondfactor'], "supersecretvalue")
 
+    def test_get_include_attributes_and_secret_parameters(self):
+        # Verify that secret parameters are correctly masked when using ?include_attributes filter
+        self._do_post(LIVE_ACTION_WITH_SECRET_PARAM)
+
+        urls = [
+            '/v1/actionexecutions?include_attributes=parameters',
+            '/v1/actionexecutions?include_attributes=parameters,action',
+            '/v1/actionexecutions?include_attributes=parameters,runner',
+            '/v1/actionexecutions?include_attributes=parameters,action,runner'
+        ]
+
+        for url in urls:
+            resp = self.app.get(url + '&limit=1')
+
+            self.assertTrue('parameters' in resp.json[0])
+            self.assertEqual(resp.json[0]['parameters']['a'], 'param a')
+            self.assertEqual(resp.json[0]['parameters']['d'], MASKED_ATTRIBUTE_VALUE)
+            self.assertEqual(resp.json[0]['parameters']['password'], MASKED_ATTRIBUTE_VALUE)
+            self.assertEqual(resp.json[0]['parameters']['hosts'], 'localhost')
+
+        # With ?show_secrets=True
+        urls = [
+            ('/v1/actionexecutions?&include_attributes=parameters'),
+            ('/v1/actionexecutions?include_attributes=parameters,action'),
+            ('/v1/actionexecutions?include_attributes=parameters,runner'),
+            ('/v1/actionexecutions?include_attributes=parameters,action,runner')
+        ]
+
+        for url in urls:
+            resp = self.app.get(url + '&limit=1&show_secrets=True')
+
+            self.assertTrue('parameters' in resp.json[0])
+            self.assertEqual(resp.json[0]['parameters']['a'], 'param a')
+            self.assertEqual(resp.json[0]['parameters']['d'], 'secretpassword1')
+            self.assertEqual(resp.json[0]['parameters']['password'], 'secretpassword2')
+            self.assertEqual(resp.json[0]['parameters']['hosts'], 'localhost')
+
+        # NOTE: We don't allow exclusion of attributes such as "action" and "runner" because
+        # that would break secrets masking
+        urls = [
+            '/v1/actionexecutions?limit=1&exclude_attributes=action',
+            '/v1/actionexecutions?limit=1&exclude_attributes=runner',
+            '/v1/actionexecutions?limit=1&exclude_attributes=action,runner',
+        ]
+
+        for url in urls:
+            resp = self.app.get(url + '&limit=1', expect_errors=True)
+
+            self.assertEqual(resp.status_int, 400)
+            self.assertTrue('Invalid or unsupported exclude attribute specified:' in
+                            resp.json['faultstring'])
+
+    def test_get_single_attribute_success(self):
+        exec_id = self.app.get('/v1/actionexecutions?limit=1').json[0]['id']
+
+        resp = self.app.get('/v1/executions/%s/attribute/status' % (exec_id))
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, 'requested')
+
+        resp = self.app.get('/v1/executions/%s/attribute/result' % (exec_id))
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, None)
+
+        resp = self.app.get('/v1/executions/%s/attribute/trigger_instance' % (exec_id))
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, None)
+
+        data = {}
+        data['status'] = action_constants.LIVEACTION_STATUS_SUCCEEDED
+        data['result'] = {'foo': 'bar'}
+
+        resp = self.app.put_json('/v1/executions/%s' % (exec_id), data)
+        self.assertEqual(resp.status_int, 200)
+
+        resp = self.app.get('/v1/executions/%s/attribute/result' % (exec_id))
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, data['result'])
+
+    def test_get_single_attribute_failure_invalid_attribute(self):
+        exec_id = self.app.get('/v1/actionexecutions?limit=1').json[0]['id']
+
+        resp = self.app.get('/v1/executions/%s/attribute/start_timestamp' % (exec_id),
+                            expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertTrue('Invalid attribute "start_timestamp" specified.' in
+                        resp.json['faultstring'])
+
+    def _insert_mock_models(self):
+        execution_1_id = self._get_actionexecution_id(self._do_post(LIVE_ACTION_1))
+        execution_2_id = self._get_actionexecution_id(self._do_post(LIVE_ACTION_2))
+        return [execution_1_id, execution_2_id]
+
 
 class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestCase,
                                               FunctionalTest):
@@ -1177,7 +1321,7 @@ class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestC
                                                 end_timestamp=timestamp,
                                                 status=status,
                                                 action={'ref': 'core.local'},
-                                                runner={'name': 'run-local'},
+                                                runner={'name': 'local-shell-cmd'},
                                                 liveaction={'ref': 'foo'})
         action_execution_db = ActionExecution.add_or_update(action_execution_db)
 
@@ -1248,7 +1392,7 @@ class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestC
                                                     end_timestamp=timestamp,
                                                     status=status,
                                                     action={'ref': 'core.local'},
-                                                    runner={'name': 'run-local'},
+                                                    runner={'name': 'local-shell-cmd'},
                                                     liveaction={'ref': 'foo'})
             action_execution_db = ActionExecution.add_or_update(action_execution_db)
 

@@ -118,6 +118,12 @@ class RulesRegistrar(ResourceRegistrar):
                 if pack_field != pack:
                     raise Exception('Model is in pack "%s" but field "pack" is different: %s' %
                                     (pack, pack_field))
+
+                metadata_file = content_utils.get_relative_path_to_pack_file(pack_ref=pack,
+                                                                     file_path=rule,
+                                                                     use_pack_cache=True)
+                content['metadata_file'] = metadata_file
+
                 rule_api = RuleAPI(**content)
                 rule_api.validate()
                 rule_db = RuleAPI.to_model(rule_api)

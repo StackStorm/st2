@@ -36,6 +36,8 @@ class PolicyTypeController(resource.ResourceController):
     model = PolicyTypeAPI
     access = PolicyType
 
+    mandatory_include_fields_retrieve = ['id', 'name', 'resource_type']
+
     supported_filters = {
         'resource_type': 'resource_type'
     }
@@ -44,13 +46,14 @@ class PolicyTypeController(resource.ResourceController):
         'sort': ['resource_type', 'name']
     }
 
-    include_reference = False
-
     def get_one(self, ref_or_id, requester_user):
         return self._get_one(ref_or_id, requester_user=requester_user)
 
-    def get_all(self, sort=None, offset=0, limit=None, requester_user=None, **raw_filters):
-        return self._get_all(sort=sort,
+    def get_all(self, exclude_attributes=None, include_attributes=None, sort=None, offset=0,
+                limit=None, requester_user=None, **raw_filters):
+        return self._get_all(exclude_fields=exclude_attributes,
+                             include_fields=include_attributes,
+                             sort=sort,
                              offset=offset,
                              limit=limit,
                              raw_filters=raw_filters,
@@ -65,18 +68,14 @@ class PolicyTypeController(resource.ResourceController):
                                                           permission_type=permission_type)
 
         result = self.model.from_model(instance)
-
-        if result and self.include_reference:
-            resource_type = getattr(result, 'resource_type', None)
-            name = getattr(result, 'name', None)
-            result.ref = PolicyTypeReference(resource_type=resource_type, name=name).ref
-
         return result
 
-    def _get_all(self, exclude_fields=None, sort=None, offset=0, limit=None, query_options=None,
-                 from_model_kwargs=None, raw_filters=None, requester_user=None):
+    def _get_all(self, exclude_fields=None, include_fields=None, sort=None, offset=0, limit=None,
+                 query_options=None, from_model_kwargs=None, raw_filters=None,
+                 requester_user=None):
 
         resp = super(PolicyTypeController, self)._get_all(exclude_fields=exclude_fields,
+                                                          include_fields=include_fields,
                                                           sort=sort,
                                                           offset=offset,
                                                           limit=limit,
@@ -84,14 +83,6 @@ class PolicyTypeController(resource.ResourceController):
                                                           from_model_kwargs=from_model_kwargs,
                                                           raw_filters=raw_filters,
                                                           requester_user=requester_user)
-
-        if self.include_reference:
-            result = resp.json
-            for item in result:
-                resource_type = item.get('resource_type', None)
-                name = item.get('name', None)
-                item['ref'] = PolicyTypeReference(resource_type=resource_type, name=name).ref
-            resp.json = result
 
         return resp
 
@@ -139,8 +130,11 @@ class PolicyController(resource.ContentPackResourceController):
         'sort': ['pack', 'name']
     }
 
-    def get_all(self, sort=None, offset=0, limit=None, requester_user=None, **raw_filters):
-        return self._get_all(sort=sort,
+    def get_all(self, exclude_attributes=None, include_attributes=None, sort=None, offset=0,
+                limit=None, requester_user=None, **raw_filters):
+        return self._get_all(exclude_fields=exclude_attributes,
+                             include_fields=include_attributes,
+                             sort=sort,
                              offset=offset,
                              limit=limit,
                              raw_filters=raw_filters,

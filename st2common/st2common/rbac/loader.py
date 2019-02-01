@@ -18,8 +18,10 @@ Module for loading RBAC role definitions and grants from the filesystem.
 """
 
 from __future__ import absolute_import
+
 import os
 import glob
+import functools
 
 from oslo_config import cfg
 
@@ -204,7 +206,7 @@ class RBACDefinitionsLoader(object):
         """
         glob_str = self._role_definitions_path + '*.yaml'
         file_paths = glob.glob(glob_str)
-        file_paths = sorted(file_paths, cmp=compare_path_file_name)
+        file_paths = sorted(file_paths, key=functools.cmp_to_key(compare_path_file_name))
         return file_paths
 
     def _get_role_assiginments_file_paths(self):
@@ -217,7 +219,7 @@ class RBACDefinitionsLoader(object):
         """
         glob_str = self._role_assignments_path + '*.yaml'
         file_paths = glob.glob(glob_str)
-        file_paths = sorted(file_paths, cmp=compare_path_file_name)
+        file_paths = sorted(file_paths, key=functools.cmp_to_key(compare_path_file_name))
         return file_paths
 
     def _get_group_to_role_maps_file_paths(self):
@@ -228,5 +230,5 @@ class RBACDefinitionsLoader(object):
         """
         glob_str = self._role_maps_path + '*.yaml'
         file_paths = glob.glob(glob_str)
-        file_paths = sorted(file_paths, cmp=compare_path_file_name)
+        file_paths = sorted(file_paths, key=functools.cmp_to_key(compare_path_file_name))
         return file_paths

@@ -33,6 +33,10 @@ StackStorm helps automate common operational patterns. Some examples are:
 
 StackStorm helps you compose these and other operational patterns as rules and workflows or actions; and these rules and workflows - the content within the StackStorm platform - are stored *as code* which means they support the same approach to collaboration that you use today for code development and can be shared with the broader open source community via StackStorm.com/community for example.
 
+### Who is using StackStorm?
+
+See the list of known StackStorm [ADOPTERS.md](/ADOPTERS.md) and [Thought Leaders](https://stackstorm.com/stackstorm-thought-leaders/).
+
 ### How it works
 
 ![stackstorm component diagram](https://cloud.githubusercontent.com/assets/20028/5688946/fabef9ec-9822-11e4-859e-29bbb67df85b.jpg)
@@ -70,6 +74,16 @@ To set up dev environment and run StackStorm from sources, follow [these instruc
 For information on how to contribute, style guide, coding conventions and more,
 please visit the [Development section](https://docs.stackstorm.com/development/index.html)
 in our documentation.
+
+## Security
+
+If you believe you found a security issue or a vulnerability, please send a description of it to
+our private mailing list at info [at] stackstorm [dot] com.
+
+Once you've submitted an issue, you should receive an acknowledgment from one our of team members
+in 48 hours or less. If further action is necessary, you may receive additional follow-up emails.
+
+For more information, please refer to https://docs.stackstorm.com/latest/security.html
 
 ## Copyright, License, and Contributors Agreement
 

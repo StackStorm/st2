@@ -28,6 +28,7 @@ from st2common.content.utils import get_pack_resource_file_abs_path
 from st2common.content.utils import get_pack_file_abs_path
 from st2common.content.utils import get_entry_point_abs_path
 from st2common.content.utils import get_action_libs_abs_path
+from st2common.content.utils import get_relative_path_to_pack_file
 from st2tests import config as tests_config
 from st2tests.fixturesloader import get_fixtures_packs_base_path
 
@@ -119,8 +120,8 @@ class ContentUtilsTestCase(unittest2.TestCase):
                      '../../foo.py']
         for file_path in file_paths:
             # action resource_type
-            expected_msg = ('Invalid file path: ".*%s"\. File path needs to be relative to the '
-                            'pack actions directory (.*). For example "my_action.py"\.' %
+            expected_msg = (r'Invalid file path: ".*%s"\. File path needs to be relative to the '
+                            r'pack actions directory (.*). For example "my_action.py"\.' %
                             (file_path))
             self.assertRaisesRegexp(ValueError, expected_msg, get_pack_resource_file_abs_path,
                                     pack_ref='dummy_pack_1',
@@ -128,8 +129,8 @@ class ContentUtilsTestCase(unittest2.TestCase):
                                     file_path=file_path)
 
             # sensor resource_type
-            expected_msg = ('Invalid file path: ".*%s"\. File path needs to be relative to the '
-                            'pack sensors directory (.*). For example "my_sensor.py"\.' %
+            expected_msg = (r'Invalid file path: ".*%s"\. File path needs to be relative to the '
+                            r'pack sensors directory (.*). For example "my_sensor.py"\.' %
                             (file_path))
             self.assertRaisesRegexp(ValueError, expected_msg, get_pack_resource_file_abs_path,
                                     pack_ref='dummy_pack_1',
@@ -137,8 +138,8 @@ class ContentUtilsTestCase(unittest2.TestCase):
                                     file_path=file_path)
 
             # no resource type
-            expected_msg = ('Invalid file path: ".*%s"\. File path needs to be relative to the '
-                            'pack directory (.*). For example "my_action.py"\.' %
+            expected_msg = (r'Invalid file path: ".*%s"\. File path needs to be relative to the '
+                            r'pack directory (.*). For example "my_action.py"\.' %
                             (file_path))
             self.assertRaisesRegexp(ValueError, expected_msg, get_pack_file_abs_path,
                                     pack_ref='dummy_pack_1',
@@ -198,3 +199,45 @@ class ContentUtilsTestCase(unittest2.TestCase):
         expected_path = os.path.join('/tests/packs/foo/tmp', ACTION_LIBS_DIR)
         self.assertEqual(acutal_path, expected_path, 'Action libs path doesn\'t match.')
         cfg.CONF.content.system_packs_base_path = orig_path
+
+    def test_get_relative_path_to_pack_file(self):
+        packs_base_paths = get_fixtures_packs_base_path()
+
+        pack_ref = 'dummy_pack_1'
+
+        # 1. Valid paths
+        file_path = os.path.join(packs_base_paths, 'dummy_pack_1/pack.yaml')
+        result = get_relative_path_to_pack_file(pack_ref=pack_ref, file_path=file_path)
+        self.assertEqual(result, 'pack.yaml')
+
+        file_path = os.path.join(packs_base_paths, 'dummy_pack_1/actions/action.meta.yaml')
+        result = get_relative_path_to_pack_file(pack_ref=pack_ref, file_path=file_path)
+        self.assertEqual(result, 'actions/action.meta.yaml')
+
+        file_path = os.path.join(packs_base_paths, 'dummy_pack_1/actions/lib/foo.py')
+        result = get_relative_path_to_pack_file(pack_ref=pack_ref, file_path=file_path)
+        self.assertEqual(result, 'actions/lib/foo.py')
+
+        # Already relative
+        file_path = 'actions/lib/foo2.py'
+        result = get_relative_path_to_pack_file(pack_ref=pack_ref, file_path=file_path)
+        self.assertEqual(result, 'actions/lib/foo2.py')
+
+        # 2. Invalid path - outside pack directory
+        expected_msg = r'file_path (.*?) is not located inside the pack directory (.*?)'
+
+        file_path = os.path.join(packs_base_paths, 'dummy_pack_2/actions/lib/foo.py')
+        self.assertRaisesRegexp(ValueError, expected_msg, get_relative_path_to_pack_file,
+                                pack_ref=pack_ref, file_path=file_path)
+
+        file_path = '/tmp/foo/bar.py'
+        self.assertRaisesRegexp(ValueError, expected_msg, get_relative_path_to_pack_file,
+                                pack_ref=pack_ref, file_path=file_path)
+
+        file_path = os.path.join(packs_base_paths, '../dummy_pack_1/pack.yaml')
+        self.assertRaisesRegexp(ValueError, expected_msg, get_relative_path_to_pack_file,
+                                pack_ref=pack_ref, file_path=file_path)
+
+        file_path = os.path.join(packs_base_paths, '../../dummy_pack_1/pack.yaml')
+        self.assertRaisesRegexp(ValueError, expected_msg, get_relative_path_to_pack_file,
+                                pack_ref=pack_ref, file_path=file_path)

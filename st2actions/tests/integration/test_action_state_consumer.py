@@ -14,6 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
+import os
+import imp
+
 import mock
 
 from kombu import Connection
@@ -31,7 +35,20 @@ FIXTURES_PACK = 'generic'
 FIXTURES = {'liveactions': ['liveaction1.yaml']}
 loader = FixturesLoader()
 
+CURRENT_DIR = os.path.dirname(__file__)
+ST2CONTENT_DIR = os.path.join(CURRENT_DIR, '../../../st2tests/st2tests/fixtures/packs/runners')
 
+MOCK_RUNNER_NAME = 'test_querymodule'
+
+MOCK_QUERIER_PATH = '{0}/{1}/query/{1}.py'.format(ST2CONTENT_DIR, MOCK_RUNNER_NAME)
+MOCK_QUERIER_PATH = os.path.abspath(MOCK_QUERIER_PATH)
+MOCK_QUERIER_MODULE = imp.load_source(MOCK_RUNNER_NAME + '.query', MOCK_QUERIER_PATH)
+
+
+@mock.patch('st2common.runners.base.get_query_module',
+            mock.Mock(return_value=MOCK_QUERIER_MODULE))
+@mock.patch('st2actions.resultstracker.resultstracker.get_query_module',
+            mock.Mock(return_value=MOCK_QUERIER_MODULE))
 class ActionStateConsumerTests(EventletTestCase, DbTestCase):
     models = None
     liveactions = None

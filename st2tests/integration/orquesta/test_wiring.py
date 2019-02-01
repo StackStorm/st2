@@ -111,3 +111,36 @@ class WiringTest(base.TestWorkflowExecution):
         self._wait_for_task(t2_ex, 'task3', ac_const.LIVEACTION_STATUS_SUCCEEDED)
 
         self._wait_for_task(ex, 'finish', ac_const.LIVEACTION_STATUS_SUCCEEDED)
+
+    def test_output_on_error(self):
+        wf_name = 'examples.orquesta-output-on-error'
+
+        ex = self._execute_workflow(wf_name)
+        ex = self._wait_for_completion(ex)
+
+        expected_output = {
+            'progress': 25
+        }
+
+        expected_errors = [
+            {
+                'type': 'error',
+                'task_id': 'task2',
+                'message': 'Execution failed. See result for details.',
+                'result': {
+                    'failed': True,
+                    'return_code': 1,
+                    'stderr': '',
+                    'stdout': '',
+                    'succeeded': False
+                }
+            }
+        ]
+
+        expected_result = {
+            'errors': expected_errors,
+            'output': expected_output
+        }
+
+        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
+        self.assertDictEqual(ex.result, expected_result)

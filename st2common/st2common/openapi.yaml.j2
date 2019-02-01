@@ -148,7 +148,7 @@ info:
     # -------- begin 37703888 request ----------
     curl -X GET -H  'Connection: keep-alive' -H  'Accept-Encoding: gzip, deflate' -H  'Accept: */*' -H  'User-Agent: python-requests/2.11.1' -H  'X-Auth-Token: b99d3f74a16e471992f2a10935637916' 'http://127.0.0.1:9101/v1/actions?pack=chatops'
     # -------- begin 37703888 response ----------
-    [{"name": "format_execution_result", "parameters": {"execution_id": {"required": true, "type": "string", "description": "Id of execution to format"}}, "tags": [], "description": "Format an execution result for chatops", "enabled": true, "entry_point": "format_execution_result.py", "notify": {}, "uid": "action:chatops:format_execution_result", "pack": "chatops", "ref": "chatops.format_execution_result", "id": "58b7089ac4da5f6aa779b847", "runner_type": "run-python"}, {"name": "post_message", "parameters": {"extra": {"type": "object", "description": "Extra adapter-specific parameters."}, "whisper": {"default": false, "type": "boolean", "description": "Send a private message to user"}, "route": {"default": "chatops"}, "experimental": {"default": true, "immutable": true}, "user": {"type": "string", "description": "Explicitly notify a user"}, "message": {"required": true, "type": "string", "description": "Message to send."}, "channel": {"required": true, "type": "string", "description": "Channel to post to"}}, "tags": [], "description": "Post a message to stream for chatops", "enabled": true, "entry_point": "", "notify": {}, "uid": "action:chatops:post_message", "pack": "chatops", "ref": "chatops.post_message", "id": "58b7089ac4da5f6aa779b848", "runner_type": "announcement"}, {"name": "post_result", "parameters": {"whisper": {"default": false, "type": "boolean", "description": "Send a private message to user"}, "user": {"type": "string", "description": "Explicitly notify a user"}, "execution_id": {"required": true, "type": "string", "description": "ID of an execution to send"}, "channel": {"required": true, "type": "string", "description": "Channel to post to"}}, "tags": [], "description": "Post an execution result to stream for chatops", "enabled": true, "entry_point": "workflows/post_result.yaml", "notify": {}, "uid": "action:chatops:post_result", "pack": "chatops", "ref": "chatops.post_result", "id": "58b7089ac4da5f6aa779b849", "runner_type": "action-chain"}]
+    [{"name": "format_execution_result", "parameters": {"execution_id": {"required": true, "type": "string", "description": "Id of execution to format"}}, "tags": [], "description": "Format an execution result for chatops", "enabled": true, "entry_point": "format_execution_result.py", "notify": {}, "uid": "action:chatops:format_execution_result", "pack": "chatops", "ref": "chatops.format_execution_result", "id": "58b7089ac4da5f6aa779b847", "runner_type": "python-script"}, {"name": "post_message", "parameters": {"extra": {"type": "object", "description": "Extra adapter-specific parameters."}, "whisper": {"default": false, "type": "boolean", "description": "Send a private message to user"}, "route": {"default": "chatops"}, "experimental": {"default": true, "immutable": true}, "user": {"type": "string", "description": "Explicitly notify a user"}, "message": {"required": true, "type": "string", "description": "Message to send."}, "channel": {"required": true, "type": "string", "description": "Channel to post to"}}, "tags": [], "description": "Post a message to stream for chatops", "enabled": true, "entry_point": "", "notify": {}, "uid": "action:chatops:post_message", "pack": "chatops", "ref": "chatops.post_message", "id": "58b7089ac4da5f6aa779b848", "runner_type": "announcement"}, {"name": "post_result", "parameters": {"whisper": {"default": false, "type": "boolean", "description": "Send a private message to user"}, "user": {"type": "string", "description": "Explicitly notify a user"}, "execution_id": {"required": true, "type": "string", "description": "ID of an execution to send"}, "channel": {"required": true, "type": "string", "description": "Channel to post to"}}, "tags": [], "description": "Post an execution result to stream for chatops", "enabled": true, "entry_point": "workflows/post_result.yaml", "notify": {}, "uid": "action:chatops:post_result", "pack": "chatops", "ref": "chatops.post_result", "id": "58b7089ac4da5f6aa779b849", "runner_type": "action-chain"}]
     # -------- end 37703888 response ------------
 
     +---------------------------------+---------+--------------------------------------------+
@@ -246,6 +246,7 @@ paths:
       operationId: st2api.controllers.v1.actions:actions_controller.get_all
       x-permissions: {{ PERMISSION_TYPE.ACTION_LIST }}
       description: Returns a list of all actions.
+      x-log-result: false
       parameters:
         - name: exclude_attributes
           in: query
@@ -456,6 +457,7 @@ paths:
       operationId: st2api.controllers.v1.action_views:overview_controller.get_all
       x-permissions: {{ PERMISSION_TYPE.ACTION_LIST }}
       description: Returns a list of all the actions with runner parameters included.
+      x-log-result: false
       parameters:
         - name: exclude_attributes
           in: query
@@ -579,6 +581,19 @@ paths:
       description: |
           Get list of action-aliases.
       parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
         - name: name
           in: query
           description: Entity name filter
@@ -1049,6 +1064,7 @@ paths:
     get:
       operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.get_one
       x-log-result: false
+      x-submit-metrics: false
       description: |
         Get one execution.
       parameters:
@@ -1145,6 +1161,7 @@ paths:
     get:
       operationId: st2api.controllers.v1.actionexecutions:action_execution_output_controller.get_one
       x-log-result: false
+      x-submit-metrics: false
       description: |
         Retrieve execution output.
       parameters:
@@ -1178,6 +1195,7 @@ paths:
     post:
       operationId: st2api.controllers.v1.actionexecutions:action_execution_rerun_controller.post
       x-log-result: false
+      x-submit-metrics: false
       description: |
         Create a new execution.
       parameters:
@@ -1204,6 +1222,9 @@ paths:
               user:
                 type: string
                 default: ''
+              delay:
+                description: How long (in milliseconds) to delay the execution before scheduling.
+                type: integer
         - name: show_secrets
           in: query
           description: Show secrets in plain text
@@ -1233,6 +1254,7 @@ paths:
     get:
       operationId: st2api.controllers.v1.actionexecutions:action_execution_attribute_controller.get
       x-log-result: false
+      x-submit-metrics: false
       description: |
         Get one execution.
       parameters:
@@ -1267,6 +1289,7 @@ paths:
     get:
       operationId: st2api.controllers.v1.actionexecutions:action_execution_children_controller.get_one
       x-log-result: false
+      x-submit-metrics: false
       description: |
         Get one execution.
       parameters:
@@ -1334,15 +1357,28 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /api/exp/inquiries:
+  /api/v1/inquiries:
     get:
-      operationId: st2api.controllers.exp.inquiries:inquiries_controller.get_all
+      operationId: st2api.controllers.v1.inquiries:inquiries_controller.get_all
       x-permissions: {{ PERMISSION_TYPE.INQUIRY_LIST }}
       description: Returns a list of all inquiries
       parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
         - name: limit
           in: query
-          description: Number of executions to get
+          description: Number of inquiries to get
           type: integer
           default: 20
       x-parameters:
@@ -1361,9 +1397,9 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /api/exp/inquiries/{inquiry_id}:
+  /api/v1/inquiries/{inquiry_id}:
     get:
-      operationId: st2api.controllers.exp.inquiries:inquiries_controller.get_one
+      operationId: st2api.controllers.v1.inquiries:inquiries_controller.get_one
       description: |
         Get a specific Inquiry based on ID.
       parameters:
@@ -1387,7 +1423,7 @@ paths:
           schema:
             $ref: '#/definitions/Error'
     put:
-      operationId: st2api.controllers.exp.inquiries:inquiries_controller.put
+      operationId: st2api.controllers.v1.inquiries:inquiries_controller.put
       description: |
         Respond to an Inquiry.
       parameters:
@@ -1594,6 +1630,19 @@ paths:
       x-permissions: {{ PERMISSION_TYPE.PACK_LIST }}
       description: Get list of installed packs.
       parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
         - name: limit
           in: query
           description: Number of packs to get
@@ -1857,6 +1906,7 @@ paths:
       x-requirements:
         file_path: .*
       x-log-result: false
+      x-submit-metrics: false
       description: Get information about an installed pack.
       parameters:
         - name: ref_or_id
@@ -2099,6 +2149,19 @@ paths:
       x-permissions: {{ PERMISSION_TYPE.POLICY_TYPE_LIST }}
       description: Returns a list of all the policy types.
       parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
         - name: resource_type
           in: query
           description: Policy type resource type
@@ -2184,6 +2247,19 @@ paths:
       description: |
         List of policies
       parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
         - name: pack
           in: query
           description: Policies pack
@@ -2972,6 +3048,13 @@ paths:
           items:
             type: string
           required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
+          required: false
         - name: limit
           in: query
           description: Number of entities to get
@@ -3242,6 +3325,19 @@ paths:
       x-permissions: {{ PERMISSION_TYPE.RULE_ENFORCEMENT_LIST }}
       description: Returns a list of all the rule enforcements.
       parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
         - name: limit
           in: query
           description: List N most recent rule enforcements.
@@ -3322,6 +3418,19 @@ paths:
       x-permissions: {{ PERMISSION_TYPE.RULE_ENFORCEMENT_LIST }}
       description: Returns a list of all the rule enforcements.
       parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
         - name: limit
           in: query
           description: List N most recent rule enforcements.
@@ -3512,6 +3621,19 @@ paths:
       x-permissions: {{ PERMISSION_TYPE.TRACE_LIST }}
       description: Returns a list of all the traces.
       parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
         - name: limit
           in: query
           description: Number of traces to get
@@ -3617,6 +3739,19 @@ paths:
       operationId: st2api.controllers.v1.triggers:triggertype_controller.get_all
       description: Returns a list of all trigger types.
       parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
         - name: limit
           in: query
           description: Number of trigger types to get
@@ -3880,6 +4015,19 @@ paths:
       operationId: st2api.controllers.v1.triggers:triggerinstance_controller.get_all
       description: Returns a list of all trigger instances.
       parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
         - name: limit
           in: query
           description: Number of trigger instances to get
@@ -4233,6 +4381,7 @@ paths:
   /stream/v1/stream:
     get:
       operationId: st2stream.controllers.v1.stream:stream_controller.get_all
+      x-is-streaming-endpoint: true
       x-permissions: {{ PERMISSION_TYPE.STREAM_VIEW }}
       description: |
         Event stream endpoint.
@@ -4277,6 +4426,7 @@ paths:
   /stream/v1/executions/{id}/output:
     get:
       operationId: st2stream.controllers.v1.executions:action_execution_output_controller.get_one
+      x-is-streaming-endpoint: true
       x-permissions: {{ PERMISSION_TYPE.STREAM_VIEW }}
       description: |
         Action execution output event stream endpoint.
@@ -4523,6 +4673,9 @@ definitions:
           extra:
             type: object
             description: Extra parameters, usually adapter-specific
+          delay:
+            description: How long (in milliseconds) to delay the execution before scheduling.
+            type: integer
       execution:
         type: object
         description: Execution result
@@ -4643,6 +4796,9 @@ definitions:
             status:
               type: string
               enum: {{ LIVEACTION_STATUSES }}
+      delay:
+        description: How long (in milliseconds) to delay the execution before scheduling.
+        type: integer
     required:
       - id
     additionalProperties: False
@@ -4993,6 +5149,9 @@ definitions:
           on-failure: {$ref: '#/definitions/NotificationPropertySubSchema'}
           on-success: {$ref: '#/definitions/NotificationPropertySubSchema'}
         additionalProperties: False
+      delay:
+        description: How long (in milliseconds) to delay the execution before scheduling.
+        type: integer
     required:
       - action
   Webhook:

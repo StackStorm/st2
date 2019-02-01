@@ -82,10 +82,21 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
     model = ActionExecutionAPI
     access = ActionExecution
 
+    # Those two attributes are mandatory so we can correctly determine and mask secret execution
+    # parameters
+    mandatory_include_fields_retrieve = [
+        'action.parameters',
+        'runner.runner_parameters',
+        'parameters'
+    ]
+
     # A list of attributes which can be specified using ?exclude_attributes filter
+    # NOTE: Allowing user to exclude attribute such as action and runner would break secrets
+    # masking
     valid_exclude_attributes = [
         'result',
-        'trigger_instance'
+        'trigger_instance',
+        'status'
     ]
 
     def _handle_schedule_execution(self, liveaction_api, requester_user, context_string=None,
@@ -94,7 +105,6 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         :param liveaction: LiveActionAPI object.
         :type liveaction: :class:`LiveActionAPI`
         """
-
         if not requester_user:
             requester_user = UserDB(cfg.CONF.system_user.user)
 
@@ -103,7 +113,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         action_db = action_utils.get_action_by_ref(action_ref)
 
         if not action_db:
-            message = 'Action "%s" cannot be found.' % action_ref
+            message = 'Action "%s" cannot be found.' % (action_ref)
             LOG.warning(message)
             abort(http_client.BAD_REQUEST, message)
 
@@ -122,13 +132,14 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
                                             user=user,
                                             context_string=context_string,
                                             show_secrets=show_secrets,
-                                            pack=action_db.pack)
+                                            action_db=action_db)
         except ValueError as e:
             LOG.exception('Unable to execute action.')
             abort(http_client.BAD_REQUEST, str(e))
         except jsonschema.ValidationError as e:
             LOG.exception('Unable to execute action. Parameter validation failed.')
-            abort(http_client.BAD_REQUEST, re.sub("u'([^']*)'", r"'\1'", e.message))
+            abort(http_client.BAD_REQUEST, re.sub("u'([^']*)'", r"'\1'",
+                                                  getattr(e, 'message', str(e))))
         except trace_exc.TraceNotFoundException as e:
             abort(http_client.BAD_REQUEST, str(e))
         except validation_exc.ValueValidationException as e:
@@ -137,19 +148,15 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
             LOG.exception('Unable to execute action. Unexpected error encountered.')
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
 
-    def _schedule_execution(self,
-                            liveaction,
-                            requester_user,
-                            user=None,
-                            context_string=None,
-                            show_secrets=False,
-                            pack=None):
+    def _schedule_execution(self, liveaction, requester_user, action_db, user=None,
+                            context_string=None, show_secrets=False):
         # Initialize execution context if it does not exist.
         if not hasattr(liveaction, 'context'):
             liveaction.context = dict()
 
         liveaction.context['user'] = user
-        liveaction.context['pack'] = pack
+        liveaction.context['pack'] = action_db.pack
+
         LOG.debug('User is: %s' % liveaction.context['user'])
 
         # Retrieve other st2 context from request header.
@@ -171,7 +178,6 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
 
         # Schedule the action execution.
         liveaction_db = LiveActionAPI.to_model(liveaction)
-        action_db = action_utils.get_action_by_ref(liveaction_db.action)
         runnertype_db = action_utils.get_runnertype_by_name(action_db.runner_type['name'])
 
         try:
@@ -179,9 +185,11 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
                 runnertype_db.runner_parameters, action_db.parameters, liveaction_db.parameters,
                 liveaction_db.context)
         except param_exc.ParamException:
-
             # We still need to create a request, so liveaction_db is assigned an ID
-            liveaction_db, actionexecution_db = action_service.create_request(liveaction_db)
+            liveaction_db, actionexecution_db = action_service.create_request(
+                liveaction=liveaction_db,
+                action_db=action_db,
+                runnertype_db=runnertype_db)
 
             # By this point the execution is already in the DB therefore need to mark it failed.
             _, e, tb = sys.exc_info()
@@ -195,8 +203,9 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
 
         # The request should be created after the above call to render_live_params
         # so any templates in live parameters have a chance to render.
-        liveaction_db, actionexecution_db = action_service.create_request(liveaction_db)
-        liveaction_db = LiveAction.add_or_update(liveaction_db, publish=False)
+        liveaction_db, actionexecution_db = action_service.create_request(liveaction=liveaction_db,
+            action_db=action_db,
+            runnertype_db=runnertype_db)
 
         _, actionexecution_db = action_service.publish_request(liveaction_db, actionexecution_db)
         mask_secrets = self._get_mask_secrets(requester_user, show_secrets=show_secrets)
@@ -277,7 +286,15 @@ class ActionExecutionAttributeController(BaseActionExecutionNestedController):
         :rtype: ``dict``
         """
         fields = [attribute, 'action__pack', 'action__uid']
-        fields = self._validate_exclude_fields(fields)
+
+        try:
+            fields = self._validate_exclude_fields(fields)
+        except ValueError:
+            valid_attributes = ', '.join(ActionExecutionsControllerMixin.valid_exclude_attributes)
+            msg = ('Invalid attribute "%s" specified. Valid attributes are: %s' %
+                   (attribute, valid_attributes))
+            raise ValueError(msg)
+
         action_exec_db = self.access.impl.model.objects.filter(id=id).only(*fields).get()
 
         permission_type = PermissionType.EXECUTION_VIEW
@@ -286,7 +303,7 @@ class ActionExecutionAttributeController(BaseActionExecutionNestedController):
                                                           permission_type=permission_type)
 
         result = getattr(action_exec_db, attribute, None)
-        return result
+        return Response(json=result, status=http_client.OK)
 
 
 class ActionExecutionOutputController(ActionExecutionsControllerMixin, ResourceController):
@@ -389,6 +406,11 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
         if list(set(spec_api.reset) - set(spec_api.tasks)):
             raise ValueError('List of tasks to reset does not match the tasks to rerun.')
 
+        delay = None
+
+        if hasattr(spec_api, "delay") and isinstance(spec_api.delay, int):
+            delay = spec_api.delay
+
         no_merge = cast_argument_value(value_type=bool, value=no_merge)
         existing_execution = self._get_one_by_id(id=id, exclude_fields=self.exclude_fields,
                                                  requester_user=requester_user,
@@ -429,7 +451,8 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
         new_liveaction_api = LiveActionCreateAPI(action=action_ref,
                                                  context=context,
                                                  parameters=new_parameters,
-                                                 user=spec_api.user)
+                                                 user=spec_api.user,
+                                                 delay=delay)
 
         return self._handle_schedule_execution(liveaction_api=new_liveaction_api,
                                                requester_user=requester_user,
@@ -471,8 +494,6 @@ class ActionExecutionsController(BaseResourceIsolationControllerMixin,
         :param exclude_attributes: List of attributes to exclude from the object.
         :type exclude_attributes: ``list``
         """
-        exclude_fields = self._validate_exclude_fields(exclude_fields=exclude_attributes)
-
         # Use a custom sort order when filtering on a timestamp so we return a correct result as
         # expected by the user
         query_options = None
@@ -484,7 +505,7 @@ class ActionExecutionsController(BaseResourceIsolationControllerMixin,
         from_model_kwargs = {
             'mask_secrets': self._get_mask_secrets(requester_user, show_secrets=show_secrets)
         }
-        return self._get_action_executions(exclude_fields=exclude_fields,
+        return self._get_action_executions(exclude_fields=exclude_attributes,
                                            include_fields=include_attributes,
                                            from_model_kwargs=from_model_kwargs,
                                            sort=sort,
