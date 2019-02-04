@@ -268,7 +268,16 @@ def serialize_positional_argument(argument_type, argument_value):
     serialized).
     """
     if argument_type in ['string', 'number', 'float']:
-        argument_value = str(argument_value) if argument_value else ''
+        if isinstance(argument_value, (int, float)):
+            argument_value = str(argument_value)
+
+        if not argument_value:
+            argument_value = ''
+            return argument_value
+
+        if not isinstance(argument_value, six.text_type):
+            # cast string non-unicode values to unicode
+            argument_value = argument_value.decode('utf-8')
     elif argument_type == 'boolean':
         # Booleans are serialized as string "1" and "0"
         if argument_value is not None:
@@ -285,8 +294,8 @@ def serialize_positional_argument(argument_type, argument_value):
         # None / null is serialized as en empty string
         argument_value = ''
     else:
-        # Other values are simply cast to strings
-        argument_value = str(argument_value) if argument_value else ''
+        # Other values are simply cast to unicode string
+        argument_value = six.text_type(argument_value) if argument_value else ''
 
     return argument_value
 
