@@ -27,6 +27,13 @@ Fixed
   values.
 
   Reported by @dswebbthg, @nickbaum. (bug fix) #4513 #4527 #4528
+* Fix a bug with action positional parameter serialization used in local and remote script runner
+  not working correctly with non-ascii (unicode) values.
+
+  This would prevent actions such as ``core.sendmail`` which utilize positional parameters from
+  working correctly when a unicode value was provided.
+
+  Reported by @johandahlberg (bug fix) #4533
 
 2.10.0 - December 13, 2018
 --------------------------
