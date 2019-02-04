@@ -268,12 +268,12 @@ def serialize_positional_argument(argument_type, argument_value):
     serialized).
     """
     if argument_type in ['string', 'number', 'float']:
+        if argument_value is None:
+            argument_value = six.text_type('')
+            return argument_value
+
         if isinstance(argument_value, (int, float)):
             argument_value = str(argument_value)
-
-        if not argument_value:
-            argument_value = ''
-            return argument_value
 
         if not isinstance(argument_value, six.text_type):
             # cast string non-unicode values to unicode
