@@ -76,11 +76,11 @@ def create_request(liveaction, action_db=None, runnertype_db=None):
     # Use the user context from the parent action execution. Subtasks in a workflow
     # action can be invoked by a system user and so we want to use the user context
     # from the original workflow action.
-    parent_context = executions.get_parent_context(liveaction)
-    if parent_context:
-        parent_user = parent_context.get('user', None)
-        if parent_user:
-            liveaction.context['user'] = parent_user
+    parent_context = executions.get_parent_context(liveaction) or {}
+    parent_user = parent_context.get('user', None)
+
+    if parent_user:
+        liveaction.context['user'] = parent_user
 
     # Validate action
     if not action_db:
@@ -96,6 +96,9 @@ def create_request(liveaction, action_db=None, runnertype_db=None):
 
     if not hasattr(liveaction, 'parameters'):
         liveaction.parameters = dict()
+
+    # For consistency add pack to the context here in addition to RunnerContainer.dispatch() method
+    liveaction.context['pack'] = action_db.pack
 
     # Validate action parameters.
     schema = util_schema.get_schema_for_action_parameters(action_db, runnertype_db)
