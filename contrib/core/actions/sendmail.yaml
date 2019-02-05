@@ -29,7 +29,7 @@ parameters:
     default: True
   content_type:
     type: string
-    description: Content type of message to be sent
+    description: Content type of message to be sent without the charset (charset is set to UTF-8 inside the script).
     default: "text/html"
     position: 4
   body:
