@@ -92,13 +92,15 @@ class Notifier(consumers.MessageHandler):
                 with CounterWithTimer(key='notifier.apply_post_run_policies'):
                     policy_service.apply_post_run_policies(liveaction_db)
 
-            if liveaction_db.notify is not None:
+            if liveaction_db.notify:
                 with CounterWithTimer(key='notifier.notify_trigger.post'):
                     self._post_notify_triggers(liveaction_db=liveaction_db,
                                                execution_db=execution_db)
 
-        with CounterWithTimer(key='notifier.generic_trigger.post'):
-            self._post_generic_trigger(liveaction_db=liveaction_db, execution_db=execution_db)
+            if cfg.CONF.action_sensor.enable:
+                with CounterWithTimer(key='notifier.generic_trigger.post'):
+                    self._post_generic_trigger(liveaction_db=liveaction_db,
+                                               execution_db=execution_db)
 
     def _get_execution_for_liveaction(self, liveaction):
         execution = ActionExecution.get(liveaction__id=str(liveaction.id))
