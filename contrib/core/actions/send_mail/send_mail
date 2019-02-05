@@ -52,7 +52,7 @@ if [[ -z $trimmed && $SEND_EMPTY_BODY -eq 1 ]] || [[ -n $trimmed ]]; then
 cat <<EOF
 TO: ${TO}
 FROM: ${FROM}
-SUBJECT: =?UTF-8?q?${SUBJECT}?=
+SUBJECT: =?UTF-8?B?$(echo ${SUBJECT} | base64)?=
 EOF
 
 if [[ -n $ATTACHMENTS ]]; then
