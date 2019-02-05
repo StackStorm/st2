@@ -92,7 +92,7 @@ EOF
 else
 
   cat <<EOF
-Content-Type: ${CONTENT_TYPE}
+Content-Type: ${CONTENT_TYPE}; charset=UTF-8
 
 EOF
 
