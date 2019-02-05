@@ -537,6 +537,7 @@ def request_action_execution(wf_ex_db, task_ex_db, st2_ctx, ac_ex_req, delay=Non
 
     # Set context for the action execution.
     ac_ex_ctx = {
+        'pack': st2_ctx.get('pack'),
         'user': st2_ctx.get('user'),
         'parent': st2_ctx,
         'orquesta': {
@@ -887,7 +888,11 @@ def request_next_tasks(wf_ex_db, task_ex_id=None):
 
                 # Pass down appropriate st2 context to the task and action execution(s).
                 root_st2_ctx = wf_ex_db.context.get('st2', {})
-                st2_ctx = {'execution_id': wf_ac_ex_id, 'user': root_st2_ctx.get('user')}
+                st2_ctx = {
+                    'execution_id': wf_ac_ex_id,
+                    'user': root_st2_ctx.get('user'),
+                    'pack': root_st2_ctx.get('pack')
+                }
                 if root_st2_ctx.get('api_user'):
                     st2_ctx['api_user'] = root_st2_ctx.get('api_user')
 
