@@ -56,7 +56,7 @@ matrix:
       name: "Lint Checks, Packs Tests (Python 2.7)"
     - env: TASK="compilepy3 ci-py3-unit" CACHE_NAME=py3 COMMAND_THRESHOLD=680
       python: 3.6
-      name: "Unit Tests (Python 3.6)"
+      name: "Unit Tests, Pack Tests (Python 3.6)"
     - env: TASK="ci-py3-integration" CACHE_NAME=py3 COMMAND_THRESHOLD=310
       python: 3.6
       name: "Integration Tests (Python 3.6)"
