@@ -35,9 +35,9 @@ Fixed
 
   Reported by @johandahlberg (bug fix) #4533
 * Fix ``core.sendmail`` action so it specifies ``charset=UTF-8`` in the ``Content-Type`` email
-  header. This way it works correctly when an email body contains unicode data.
-
-  Reported by @johandahlberg (bug fix) #4533
+  header. This way it works correctly when an email subject and / or body contains unicode data.
+ 
+  Reported by @johandahlberg (bug fix) #4533 4534
 
 2.10.0 - December 13, 2018
 --------------------------
