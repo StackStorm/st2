@@ -41,6 +41,10 @@ MOCK_EXECUTION.id = '598dbf0c0640fd54bffc688b'
 
 
 class SendmailActionTestCase(RunnerTestCase, CleanDbTestCase, CleanFilesTestCase):
+    """
+    NOTE: Those tests rely on stanley user being available on the system and having paswordless
+    sudo access.
+    """
     fixtures_loader = FixturesLoader()
 
     def test_sendmail_default_text_html_content_type(self):
