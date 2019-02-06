@@ -22,6 +22,7 @@ from __future__ import absolute_import
 import os
 import sys
 import traceback
+import logging as stdlib_logging
 
 from oslo_config import cfg
 
@@ -35,6 +36,7 @@ from st2common.util.debugging import enable_debugging
 from st2common.models.utils.profiling import enable_profiling
 from st2common import triggers
 from st2common.rbac.migrations import run_all as run_all_rbac_migrations
+from st2common.logging.filters import LogLevelFilter
 
 # Note: This is here for backward compatibility.
 # Function has been moved in a standalone module to avoid expensive in-direct
@@ -111,6 +113,20 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
             raise KeyError(msg)
         else:
             raise e
+
+    exclude_log_levels = [stdlib_logging.AUDIT]
+    handlers = stdlib_logging.getLoggerClass().manager.root.handlers
+
+    for handler in handlers:
+        # If log level is not set to DEBUG we filter out "AUDIT" log messages. This way we avoid
+        # duplicate "AUDIT" messages in production deployments where default service log level is
+        # set to "INFO" and we already log messages with level AUDIT to a special dedicated log
+        # file.
+        ignore_audit_log_messages = (handler.level >= stdlib_logging.INFO and
+                                     handler.level < stdlib_logging.AUDIT)
+        if not is_debug_enabled and ignore_audit_log_messages:
+            LOG.debug('Excluding log messages with level "AUDIT" for handler "%s"' % (handler))
+            handler.addFilter(LogLevelFilter(log_levels=exclude_log_levels))
 
     if not is_debug_enabled:
         # NOTE: statsd logger logs everything by default under INFO so we ignore those log

@@ -46,6 +46,9 @@ __all__ = [
     'ignore_statsd_log_messages'
 ]
 
+# NOTE: We set AUDIT to the highest log level which means AUDIT log messages will always be
+# included (e.g. also if log level is set to INFO). To avoid that, we need to explicitly filter
+# out AUDIT log level in service setup code.
 logging.AUDIT = logging.CRITICAL + 10
 logging.addLevelName(logging.AUDIT, 'AUDIT')
 
