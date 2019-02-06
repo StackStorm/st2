@@ -23,12 +23,14 @@ Changed
 
 * Changed the ``inquiries`` API path from ``/exp`` to ``/api/v1``. #4495
 * Update logging code so we exclude log messages with log level ``AUDIT`` from a default service
-  log file. Log messages with level ``AUDIT`` are already logged in a dedicated
-  ``<service>.audit.log`` file so there is no need for them to be duplicated in regular service log
-  file.
+  log file (e.g. ``st2api.log``). Log messages with level ``AUDIT`` are already logged in a
+  dedicated service audit log file (e.g. ``st2api.audit.log``) so there is no need for them to also
+  be duplicated and included in regular service log file.
 
   NOTE: To aid with debugging, audit log messages are also included in a regular log file when log
-  level is set to DEBUG. (improvement)
+  level is set to ``DEBUG`` or ``system.debug`` config option is set to ``True``.
+
+  Reported by Nick Maludy. (improvement) #4538 #4502
 
 Fixed
 ~~~~~
