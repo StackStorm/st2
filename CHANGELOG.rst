@@ -17,6 +17,8 @@ Added
 
    For backward compatibility reasons, if pack metadata file doesn't contain that attribute, it's
    assumed it only works with Python 2. (new feature) #4474
+* Add metrics instrumentation to the ``st2notifier`` service. For the available / exposed metrics,
+  please refer to https://docs.stackstorm.com/reference/metrics.html. (improvement) #4536
 
 Changed
 ~~~~~~~
