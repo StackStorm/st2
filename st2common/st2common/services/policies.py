@@ -35,7 +35,7 @@ def has_policies(lv_ac_db, policy_types=None):
 
     policy_dbs = pc_db_access.Policy.query(**query_params)
 
-    return len(policy_dbs) > 0
+    return policy_dbs.count() > 0
 
 
 def apply_pre_run_policies(lv_ac_db):
