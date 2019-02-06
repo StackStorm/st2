@@ -65,7 +65,7 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         process.send_signal(signal.SIGKILL)
 
         # First 3 log lines are debug messages about the environment which are always logged
-        stdout = '\n'.join(process.stdout.read().split('\n')[3:])
+        stdout = '\n'.join(process.stdout.read().decode('utf-8').split('\n')[3:])
 
         self.assertTrue('INFO [-]' in stdout)
         self.assertTrue('DEBUG [-]' not in stdout)
@@ -80,7 +80,7 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         process.send_signal(signal.SIGKILL)
 
         # First 3 log lines are debug messages about the environment which are always logged
-        stdout = '\n'.join(process.stdout.read().split('\n')[3:])
+        stdout = '\n'.join(process.stdout.read().decode('utf-8').split('\n')[3:])
 
         self.assertTrue('INFO [-]' in stdout)
         self.assertTrue('DEBUG [-]' in stdout)
@@ -95,7 +95,7 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         process.send_signal(signal.SIGKILL)
 
         # First 3 log lines are debug messages about the environment which are always logged
-        stdout = '\n'.join(process.stdout.read().split('\n')[3:])
+        stdout = '\n'.join(process.stdout.read().decode('utf-8').split('\n')[3:])
 
         self.assertTrue('INFO [-]' not in stdout)
         self.assertTrue('DEBUG [-]' not in stdout)
@@ -110,7 +110,7 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         process.send_signal(signal.SIGKILL)
 
         # First 3 log lines are debug messages about the environment which are always logged
-        stdout = '\n'.join(process.stdout.read().split('\n')[3:])
+        stdout = '\n'.join(process.stdout.read().decode('utf-8').split('\n')[3:])
 
         self.assertTrue('INFO [-]' in stdout)
         self.assertTrue('DEBUG [-]' in stdout)
