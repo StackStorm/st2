@@ -47,6 +47,7 @@ from st2common.constants.keyvalue import FULL_SYSTEM_SCOPE, SYSTEM_SCOPE, DATAST
 from st2common.services.keyvalues import KeyValueLookup
 from st2common.transport.queues import NOTIFIER_ACTIONUPDATE_WORK_QUEUE
 from st2common.metrics.base import CounterWithTimer
+from st2common.metrics.base import Timer
 
 __all__ = [
     'Notifier',
@@ -136,7 +137,7 @@ class Notifier(consumers.MessageHandler):
                                          notify_subsection=None,
                                          default_message_suffix=None):
         routes = (getattr(notify_subsection, 'routes') or
-                  getattr(notify_subsection, 'channels', None))
+                  getattr(notify_subsection, 'channels', [])) or []
 
         execution_id = str(execution_db.id)
 
@@ -151,14 +152,14 @@ class Notifier(consumers.MessageHandler):
             )
 
             try:
-                with CounterWithTimer(key='notifier.transform_message'):
+                with Timer(key='notifier.transform_message'):
                     message = self._transform_message(message=message,
                                                       context=jinja_context)
             except:
                 LOG.exception('Failed (Jinja) transforming `message`.')
 
             try:
-                with CounterWithTimer(key='notifier.transform_data'):
+                with Timer(key='notifier.transform_data'):
                     data = self._transform_data(data=data, context=jinja_context)
             except:
                 LOG.exception('Failed (Jinja) transforming `data`.')
