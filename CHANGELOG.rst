@@ -31,6 +31,9 @@ Changed
   level is set to ``DEBUG`` or ``system.debug`` config option is set to ``True``.
 
   Reported by Nick Maludy. (improvement) #4538 #4502
+* Moved the lock from concurrency policies into the scheduler to fix a race condition when there
+  are multiple scheduler instances scheduling execution for action with concurrency policies.
+  #4481 (bug fix)
 
 Fixed
 ~~~~~
