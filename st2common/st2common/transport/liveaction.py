@@ -26,9 +26,10 @@ LIVEACTION_STATUS_MGMT_XCHG = Exchange('st2.liveaction.status', type='topic')
 
 class LiveActionPublisher(publishers.CUDPublisher, publishers.StatePublisherMixin):
 
-    def __init__(self, urls):
-        publishers.CUDPublisher.__init__(self, urls, LIVEACTION_XCHG)
-        publishers.StatePublisherMixin.__init__(self, urls, LIVEACTION_STATUS_MGMT_XCHG)
+    def __init__(self, urls=None):
+        publishers.CUDPublisher.__init__(self, exchange=LIVEACTION_XCHG, urls=urls)
+        publishers.StatePublisherMixin.__init__(self, exchange=LIVEACTION_STATUS_MGMT_XCHG,
+                                                urls=urls)
 
 
 def get_queue(name, routing_key):

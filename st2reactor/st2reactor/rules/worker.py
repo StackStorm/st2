@@ -15,8 +15,6 @@
 
 from __future__ import absolute_import
 
-from kombu import Connection
-
 from st2common import log as logging
 from st2common.constants.trace import TRACE_CONTEXT, TRACE_ID
 from st2common.constants import triggers as trigger_constants
@@ -119,5 +117,5 @@ class TriggerInstanceDispatcher(consumers.StagedMessageHandler):
 
 
 def get_worker():
-    with Connection(transport_utils.get_messaging_urls()) as conn:
+    with transport_utils.get_connection() as conn:
         return TriggerInstanceDispatcher(conn, [RULESENGINE_WORK_QUEUE])

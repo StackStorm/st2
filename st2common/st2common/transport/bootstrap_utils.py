@@ -20,7 +20,6 @@ import socket
 import six
 import retrying
 from oslo_config import cfg
-from kombu import Connection
 from kombu.serialization import register
 from kombu.serialization import pickle
 from kombu.serialization import pickle_protocol
@@ -141,7 +140,8 @@ def _do_predeclare_queue(channel, queue):
 def register_exchanges():
     LOG.debug('Registering exchanges...')
     connection_urls = transport_utils.get_messaging_urls()
-    with Connection(connection_urls) as conn:
+
+    with transport_utils.get_connection() as conn:
         # Use ConnectionRetryWrapper to deal with rmq clustering etc.
         retry_wrapper = ConnectionRetryWrapper(cluster_size=len(connection_urls), logger=LOG)
 
