@@ -20,7 +20,6 @@ from st2common import log as logging
 from st2common.constants.trace import TRACE_CONTEXT
 from st2common.models.api.trace import TraceContext
 from st2common.transport import publishers
-from st2common.transport import utils as transport_utils
 
 __all__ = [
     'TriggerCUDPublisher',
@@ -50,8 +49,9 @@ class SensorCUDPublisher(publishers.CUDPublisher):
     Publisher responsible for publishing Trigger model CUD events.
     """
 
-    def __init__(self, urls):
-        super(SensorCUDPublisher, self).__init__(urls, SENSOR_CUD_XCHG)
+    def __init__(self, urls=None):
+        super(SensorCUDPublisher, self).__init__(exchange=SENSOR_CUD_XCHG,
+                                                 urls=urls)
 
 
 class TriggerCUDPublisher(publishers.CUDPublisher):
@@ -60,11 +60,12 @@ class TriggerCUDPublisher(publishers.CUDPublisher):
     """
 
     def __init__(self, urls):
-        super(TriggerCUDPublisher, self).__init__(urls, TRIGGER_CUD_XCHG)
+        super(TriggerCUDPublisher, self).__init__(exchange=TRIGGER_CUD_XCHG,
+                                                  urls=urls)
 
 
 class TriggerInstancePublisher(object):
-    def __init__(self, urls):
+    def __init__(self, urls=None):
         self._publisher = publishers.PoolPublisher(urls=urls)
 
     def publish_trigger(self, payload=None, routing_key=None):
@@ -78,7 +79,7 @@ class TriggerDispatcher(object):
     """
 
     def __init__(self, logger=LOG):
-        self._publisher = TriggerInstancePublisher(urls=transport_utils.get_messaging_urls())
+        self._publisher = TriggerInstancePublisher()
         self._logger = logger
 
     def dispatch(self, trigger, payload=None, trace_context=None):

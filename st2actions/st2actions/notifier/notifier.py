@@ -18,7 +18,6 @@ from __future__ import absolute_import
 from datetime import datetime
 import json
 
-from kombu import Connection
 from oslo_config import cfg
 
 from st2common import log as logging
@@ -284,6 +283,6 @@ class Notifier(consumers.MessageHandler):
 
 
 def get_notifier():
-    with Connection(transport_utils.get_messaging_urls()) as conn:
+    with transport_utils.get_connection() as conn:
         return Notifier(conn, [NOTIFIER_ACTIONUPDATE_WORK_QUEUE],
                         trigger_dispatcher=TriggerDispatcher(LOG))

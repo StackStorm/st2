@@ -14,10 +14,14 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 from st2common import transport
 from st2common.models.db.liveaction import liveaction_access
 from st2common.persistence import base as persistence
-from st2common.transport import utils as transport_utils
+
+__all__ = [
+    'LiveAction'
+]
 
 
 class LiveAction(persistence.StatusBasedResource):
@@ -31,8 +35,7 @@ class LiveAction(persistence.StatusBasedResource):
     @classmethod
     def _get_publisher(cls):
         if not cls.publisher:
-            cls.publisher = transport.liveaction.LiveActionPublisher(
-                urls=transport_utils.get_messaging_urls())
+            cls.publisher = transport.liveaction.LiveActionPublisher()
         return cls.publisher
 
     @classmethod

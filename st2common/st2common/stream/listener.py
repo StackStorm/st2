@@ -18,7 +18,6 @@ import fnmatch
 
 import eventlet
 
-from kombu import Connection
 from kombu.mixins import ConsumerMixin
 from oslo_config import cfg
 
@@ -233,13 +232,13 @@ def get_listener(name):
 
     if name == 'stream':
         if not _stream_listener:
-            with Connection(transport_utils.get_messaging_urls()) as conn:
+            with transport_utils.get_connection() as conn:
                 _stream_listener = StreamListener(conn)
                 eventlet.spawn_n(listen, _stream_listener)
         return _stream_listener
     elif name == 'execution_output':
         if not _execution_output_listener:
-            with Connection(transport_utils.get_messaging_urls()) as conn:
+            with transport_utils.get_connection() as conn:
                 _execution_output_listener = ExecutionOutputListener(conn)
                 eventlet.spawn_n(listen, _execution_output_listener)
         return _execution_output_listener

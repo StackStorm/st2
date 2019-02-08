@@ -26,7 +26,8 @@ ACTIONEXECUTIONSTATE_XCHG = Exchange('st2.actionexecutionstate',
 class ActionExecutionStatePublisher(publishers.CUDPublisher):
 
     def __init__(self, urls):
-        super(ActionExecutionStatePublisher, self).__init__(urls, ACTIONEXECUTIONSTATE_XCHG)
+        super(ActionExecutionStatePublisher, self).__init__(exchange=ACTIONEXECUTIONSTATE_XCHG,
+                                                            urls=urls)
 
 
 def get_queue(name, routing_key):

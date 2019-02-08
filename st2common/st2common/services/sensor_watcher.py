@@ -20,7 +20,6 @@
 from __future__ import absolute_import
 import eventlet
 from kombu.mixins import ConsumerMixin
-from kombu import Connection
 
 from st2common import log as logging
 from st2common.transport import reactor, publishers
@@ -89,7 +88,7 @@ class SensorWatcher(ConsumerMixin):
 
     def start(self):
         try:
-            self.connection = Connection(transport_utils.get_messaging_urls())
+            self.connection = transport_utils.get_connection()
             self._updates_thread = eventlet.spawn(self.run)
         except:
             LOG.exception('Failed to start sensor_watcher.')
