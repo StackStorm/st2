@@ -47,6 +47,17 @@ Fixed
   values.
 
   Reported by @dswebbthg, @nickbaum. (bug fix) #4513 #4527 #4528
+* Fix a bug with action positional parameter serialization used in local and remote script runner
+  not working correctly with non-ascii (unicode) values.
+
+  This would prevent actions such as ``core.sendmail`` which utilize positional parameters from
+  working correctly when a unicode value was provided.
+
+  Reported by @johandahlberg (bug fix) #4533
+* Fix ``core.sendmail`` action so it specifies ``charset=UTF-8`` in the ``Content-Type`` email
+  header. This way it works correctly when an email subject and / or body contains unicode data.
+ 
+  Reported by @johandahlberg (bug fix) #4533 4534
 
 2.10.0 - December 13, 2018
 --------------------------
