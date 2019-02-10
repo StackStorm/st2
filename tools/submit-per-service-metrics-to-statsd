@@ -79,10 +79,15 @@ def get_name_for_stackstorm_service(pinfo):
                     name = 'sensor_process.%s' % (sensor_name)
                     return name
     elif pinfo['name'] == 'gunicorn':
-        # st2api / st2auth / st2stream process
+        # st2api / st2auth / st2stream, mistral-api process
+        if 'mistral.api.wsgi' in ' '.join(pinfo['cmdline']):
+            return 'mistral-api'
+
         for arg in pinfo['cmdline']:
             if arg.endswith('.wsgi:application'):
                 return arg.split('.wsgi:application')[0]
+    elif pinfo['name'] in ['mistral-server']:
+        return pinfo['name']
 
     return False
 
