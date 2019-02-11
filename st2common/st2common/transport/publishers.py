@@ -116,7 +116,7 @@ class CUDPublisher(object):
 
     def publish_create(self, payload):
         with Timer(key='amqp.publish.create'):
-            self._publisher.publgish(payload, self._exchange, CREATE_RK)
+            self._publisher.publish(payload, self._exchange, CREATE_RK)
 
     def publish_update(self, payload):
         with Timer(key='amqp.publish.update'):
