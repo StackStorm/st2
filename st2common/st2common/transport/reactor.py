@@ -59,7 +59,7 @@ class TriggerCUDPublisher(publishers.CUDPublisher):
     Publisher responsible for publishing Trigger model CUD events.
     """
 
-    def __init__(self, urls):
+    def __init__(self, urls=None):
         super(TriggerCUDPublisher, self).__init__(exchange=TRIGGER_CUD_XCHG,
                                                   urls=urls)
 
