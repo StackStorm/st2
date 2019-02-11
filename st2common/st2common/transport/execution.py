@@ -38,7 +38,7 @@ class ActionExecutionPublisher(publishers.CUDPublisher):
 
 
 class ActionExecutionOutputPublisher(publishers.CUDPublisher):
-    def __init__(self, urls):
+    def __init__(self, urls=None):
         super(ActionExecutionOutputPublisher, self).__init__(exchange=EXECUTION_OUTPUT_XCHG,
                                                              urls=urls)
 

@@ -25,7 +25,7 @@ ACTIONEXECUTIONSTATE_XCHG = Exchange('st2.actionexecutionstate',
 
 class ActionExecutionStatePublisher(publishers.CUDPublisher):
 
-    def __init__(self, urls):
+    def __init__(self, urls=None):
         super(ActionExecutionStatePublisher, self).__init__(exchange=ACTIONEXECUTIONSTATE_XCHG,
                                                             urls=urls)
 
