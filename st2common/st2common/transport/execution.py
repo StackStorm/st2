@@ -32,15 +32,13 @@ EXECUTION_OUTPUT_XCHG = Exchange('st2.execution.output', type='topic')
 
 
 class ActionExecutionPublisher(publishers.CUDPublisher):
-    def __init__(self, urls=None):
-        super(ActionExecutionPublisher, self).__init__(exchange=EXECUTION_XCHG,
-                                                       urls=urls)
+    def __init__(self):
+        super(ActionExecutionPublisher, self).__init__(exchange=EXECUTION_XCHG)
 
 
 class ActionExecutionOutputPublisher(publishers.CUDPublisher):
-    def __init__(self, urls=None):
-        super(ActionExecutionOutputPublisher, self).__init__(exchange=EXECUTION_OUTPUT_XCHG,
-                                                             urls=urls)
+    def __init__(self):
+        super(ActionExecutionOutputPublisher, self).__init__(exchange=EXECUTION_OUTPUT_XCHG)
 
 
 def get_queue(name=None, routing_key=None, exclusive=False, auto_delete=False):
