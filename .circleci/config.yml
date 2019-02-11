@@ -125,10 +125,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-          reusable: true    # default - false
-          exclusive: true   # default - true
-          # Temporary workaround for Circle CI issue
-          # https://discuss.circleci.com/t/setup-remote-docker-connection-failures/26434
+          docker_layer_caching: true     # default - false
           version: 18.05.0-ce
       - run:
           name: Docker version
