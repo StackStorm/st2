@@ -49,9 +49,8 @@ class SensorCUDPublisher(publishers.CUDPublisher):
     Publisher responsible for publishing Trigger model CUD events.
     """
 
-    def __init__(self, urls=None):
-        super(SensorCUDPublisher, self).__init__(exchange=SENSOR_CUD_XCHG,
-                                                 urls=urls)
+    def __init__(self):
+        super(SensorCUDPublisher, self).__init__(exchange=SENSOR_CUD_XCHG)
 
 
 class TriggerCUDPublisher(publishers.CUDPublisher):
@@ -59,14 +58,13 @@ class TriggerCUDPublisher(publishers.CUDPublisher):
     Publisher responsible for publishing Trigger model CUD events.
     """
 
-    def __init__(self, urls=None):
-        super(TriggerCUDPublisher, self).__init__(exchange=TRIGGER_CUD_XCHG,
-                                                  urls=urls)
+    def __init__(self):
+        super(TriggerCUDPublisher, self).__init__(exchange=TRIGGER_CUD_XCHG)
 
 
 class TriggerInstancePublisher(object):
-    def __init__(self, urls=None):
-        self._publisher = publishers.PoolPublisher(urls=urls)
+    def __init__(self):
+        self._publisher = publishers.PoolPublisher()
 
     def publish_trigger(self, payload=None, routing_key=None):
         # TODO: We should use trigger reference as a routing key

@@ -42,7 +42,7 @@ LOG = logging.getLogger(__name__)
 class PoolPublisher(object):
     def __init__(self, urls=None):
         """
-        :param urls: Connection URLs to use. If not provided it uses a default value from the
+        :param urls: Connection URLs to use. If not provided it uses a default value from th
                      config.
         :type urls: ``list``
         """
@@ -109,8 +109,8 @@ class SharedPoolPublishers(object):
 
 
 class CUDPublisher(object):
-    def __init__(self, exchange, urls=None):
-        urls = urls or transport_utils.get_messaging_urls()
+    def __init__(self, exchange):
+        urls = transport_utils.get_messaging_urls()
         self._publisher = SharedPoolPublishers().get_publisher(urls=urls)
         self._exchange = exchange
 
@@ -128,8 +128,8 @@ class CUDPublisher(object):
 
 
 class StatePublisherMixin(object):
-    def __init__(self, exchange, urls=None):
-        urls = urls or transport_utils.get_messaging_urls()
+    def __init__(self, exchange):
+        urls = transport_utils.get_messaging_urls()
         self._state_publisher = SharedPoolPublishers().get_publisher(urls=urls)
         self._state_exchange = exchange
 

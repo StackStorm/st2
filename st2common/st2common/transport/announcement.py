@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 from kombu import Exchange, Queue
 
 from st2common import log as logging
@@ -21,20 +22,22 @@ from st2common.constants.trace import TRACE_CONTEXT
 from st2common.models.api.trace import TraceContext
 from st2common.transport import publishers
 
+__all__ = [
+    'AnnouncementPublisher',
+    'AnnouncementDispatcher',
+
+    'get_queue'
+]
+
 LOG = logging.getLogger(__name__)
 
 # Exchange for Announcements
 ANNOUNCEMENT_XCHG = Exchange('st2.announcement', type='topic')
 
-__all__ = [
-    'AnnouncementPublisher',
-    'AnnouncementDispatcher'
-]
-
 
 class AnnouncementPublisher(object):
-    def __init__(self, urls=None):
-        self._publisher = publishers.PoolPublisher(urls=urls)
+    def __init__(self):
+        self._publisher = publishers.PoolPublisher()
 
     def publish(self, payload, routing_key):
         self._publisher.publish(payload, ANNOUNCEMENT_XCHG, routing_key)

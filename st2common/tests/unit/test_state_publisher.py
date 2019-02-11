@@ -31,9 +31,8 @@ FAKE_STATE_MGMT_XCHG = kombu.Exchange('st2.fake.state', type='topic')
 
 
 class FakeModelPublisher(publishers.StatePublisherMixin):
-    def __init__(self, urls=None):
-        super(FakeModelPublisher, self).__init__(exchange=FAKE_STATE_MGMT_XCHG,
-                                                 urls=urls)
+    def __init__(self):
+        super(FakeModelPublisher, self).__init__(exchange=FAKE_STATE_MGMT_XCHG)
 
 
 class FakeModelDB(stormbase.StormBaseDB):
