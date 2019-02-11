@@ -115,47 +115,6 @@ class ConcurrencyByAttributeApplicator(BaseConcurrencyApplicator):
         if not coordination.configured():
             LOG.warn('Coordination service is not configured. Policy enforcement is best effort.')
 
-        # Acquire a distributed lock before querying the database to make sure that only one
-        # scheduler is scheduling execution for this action. Even if the coordination service
-        # is not configured, the fake driver using zake or the file driver can still acquire
-        # a lock for the local process or server respectively.
-        lock_uid = self._get_lock_uid(target)
-        LOG.debug('%s is attempting to acquire lock "%s".', self.__class__.__name__, lock_uid)
-        with self.coordinator.get_lock(lock_uid):
-            target = self._apply_before(target)
-
-        return target
-
-    def _apply_after(self, target):
-        # Schedule the oldest delayed executions.
-        filters = self._get_filters(target)
-        filters['status'] = action_constants.LIVEACTION_STATUS_DELAYED
-
-        requests = action_access.LiveAction.query(
-            order_by=['start_timestamp'],
-            limit=1,
-            **filters
-        )
-
-        if requests:
-            action_service.update_status(
-                requests[0],
-                action_constants.LIVEACTION_STATUS_REQUESTED,
-                publish=True
-            )
-
-    def apply_after(self, target):
-        # Warn users that the coordination service is not configured.
-        if not coordination.configured():
-            LOG.warn('Coordination service is not configured. Policy enforcement is best effort.')
-
-        # Acquire a distributed lock before querying the database to make sure that only one
-        # scheduler is scheduling execution for this action. Even if the coordination service
-        # is not configured, the fake driver using zake or the file driver can still acquire
-        # a lock for the local process or server respectively.
-        lock_uid = self._get_lock_uid(target)
-        LOG.debug('%s is attempting to acquire lock "%s".', self.__class__.__name__, lock_uid)
-        with self.coordinator.get_lock(lock_uid):
-            self._apply_after(target)
+        target = self._apply_before(target)
 
         return target
