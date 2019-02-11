@@ -51,7 +51,9 @@ def _run_queuer():
     try:
         handler.start()
         entrypoint.start()
-        entrypoint.wait()
+
+        # Wait on handler first since entrypoint is more durable.
+        handler.wait() or entrypoint.wait()
     except (KeyboardInterrupt, SystemExit):
         LOG.info('(PID=%s) Scheduler stopped.', os.getpid())
 
@@ -68,6 +70,13 @@ def _run_queuer():
             return 1
     except:
         LOG.exception('(PID=%s) Scheduler unexpectedly stopped.', os.getpid())
+
+        try:
+            handler.shutdown()
+            entrypoint.shutdown()
+        except:
+            pass
+
         return 1
 
     return 0
