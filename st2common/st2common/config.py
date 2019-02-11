@@ -229,7 +229,7 @@ def register_opts(ignore_errors=False):
             help='How long should we wait between connection retries.'),
         cfg.BoolOpt(
             'ssl', default=False,
-            help='Use SSL / TLS to connection to the messaging server. Same as '
+            help='Use SSL / TLS to connect to the messaging server. Same as '
                  'appending "?ssl=true" at the end of the connection URL string.'),
         cfg.StrOpt(
             'ssl_keyfile', default=None,
