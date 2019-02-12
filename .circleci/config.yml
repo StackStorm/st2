@@ -108,9 +108,8 @@ jobs:
   # Build & Test st2 packages
   packages:
     parallelism: 5
-    # 8CPUs & 16GB RAM CircleCI machine
-    # sadly, it doesn't work with 'setup_remote_docker'
-    resource_class: xlarge
+    # 3CPUs & 6GB RAM CircleCI machine
+    resource_class: medium+
     docker:
       # The primary container is an instance of the first list image listed. Your build commands run in this container.
       - image: circleci/python:2.7
