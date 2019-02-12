@@ -68,6 +68,9 @@ Fixed
  
   Reported by @johandahlberg (bug fix) #4533 4534
 
+* Fix CLI ``st2 apikey load`` not being idempotent and API endpoint ``/api/v1/apikeys`` not
+  honoring desired ``ID`` for the new record creation. #4542
+
 2.10.0 - December 13, 2018
 --------------------------
 
