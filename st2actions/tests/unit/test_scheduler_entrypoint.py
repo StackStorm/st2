@@ -26,48 +26,17 @@ __all__ = [
     'SchedulerServiceEntryPointTestCase'
 ]
 
+
 def mock_handler_run(self):
     # NOTE: We use eventlet.sleep to emulate async nature of this process
     eventlet.sleep(0.2)
     raise Exception('handler run exception')
 
 
-def mock_handler_start_wait(self):
-    """
-    This method emulates exception being throw in async nature in cls.process()
-    method.
-    """
-    # NOTE: We use eventlet.sleep to emulate async nature of this process
-    eventlet.sleep(0.2)
-
-    # Mock call to process() to emulate .wait() and not .start() throwing
-    eventlet.spawn(self.process, mock.Mock())
-
-
-def mock_handler_process(self, request):
-    # NOTE: We use eventlet.sleep to emulate async nature of this process
-    eventlet.sleep(0.2)
-    raise Exception('handler process exception')
-
-
 def mock_entrypoint_start(self):
     # NOTE: We use eventlet.sleep to emulate async nature of this process
     eventlet.sleep(0.2)
     raise Exception('entrypoint start exception')
-
-
-def mock_entrypoint_start_wait(self):
-    # NOTE: We use eventlet.sleep to emulate async nature of this process
-    eventlet.sleep(0.2)
-
-    # Mock call to process() to emulate .wait() and not .start() throwing
-    eventlet.spawn(self.process, mock.Mock())
-
-
-def mock_entrypoint_process(self, request):
-    # NOTE: We use eventlet.sleep to emulate async nature of this process
-    eventlet.sleep(0.2)
-    raise Exception('entrypoint process exception')
 
 
 class SchedulerServiceEntryPointTestCase(CleanDbTestCase):
@@ -82,34 +51,9 @@ class SchedulerServiceEntryPointTestCase(CleanDbTestCase):
         mock_log_exception_call = mock_log.exception.call_args_list[0][0][0]
         self.assertTrue('Scheduler unexpectedly stopped' in mock_log_exception_call)
 
-    @mock.patch.object(ActionExecutionSchedulingQueueHandler, 'start', mock_handler_start_wait)
-    @mock.patch.object(ActionExecutionSchedulingQueueHandler, 'process', mock_handler_process)
-    @mock.patch('st2actions.cmd.scheduler.LOG')
-    def test_service_exits_correctly_on_fatal_exception_in_handler_process(self, mock_log):
-        run_thread = eventlet.spawn(_run_scheduler)
-        result = run_thread.wait()
-
-        self.assertEqual(result, 1)
-
-        mock_log_exception_call = mock_log.exception.call_args_list[0][0][0]
-        self.assertTrue('Scheduler unexpectedly stopped' in mock_log_exception_call)
-
-
     @mock.patch.object(SchedulerEntrypoint, 'start', mock_entrypoint_start)
     @mock.patch('st2actions.cmd.scheduler.LOG')
     def test_service_exits_correctly_on_fatal_exception_in_entrypoint_start(self, mock_log):
-        run_thread = eventlet.spawn(_run_scheduler)
-        result = run_thread.wait()
-
-        self.assertEqual(result, 1)
-
-        mock_log_exception_call = mock_log.exception.call_args_list[0][0][0]
-        self.assertTrue('Scheduler unexpectedly stopped' in mock_log_exception_call)
-
-    @mock.patch.object(SchedulerEntrypoint, 'start', mock_entrypoint_start_wait)
-    @mock.patch.object(SchedulerEntrypoint, 'process', mock_entrypoint_process)
-    @mock.patch('st2actions.cmd.scheduler.LOG')
-    def test_service_exits_correctly_on_fatal_exception_in_entrypoint_process(self, mock_log):
         run_thread = eventlet.spawn(_run_scheduler)
         result = run_thread.wait()
 
