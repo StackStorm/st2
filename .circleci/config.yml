@@ -108,8 +108,8 @@ jobs:
   # Build & Test st2 packages
   packages:
     parallelism: 5
-    # 2CPUs & 4GB RAM CircleCI machine
-    resource_class: medium
+    # 1CPU & 2GB RAM CircleCI machine
+    resource_class: small
     docker:
       # The primary container is an instance of the first list image listed. Your build commands run in this container.
       - image: circleci/python:2.7
