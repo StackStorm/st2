@@ -245,14 +245,18 @@ thread_pool_size = 10
 logging = /etc/st2/logging.rulesengine.conf
 
 [scheduler]
-# How long (in seconds) to sleep between each action scheduler main loop run interval.
-sleep_interval = 0.1
-# How often (in seconds) to look for zombie execution requests before rescheduling them.
-gc_interval = 10
+# The maximum number of attempts that the scheduler retries on error.
+retry_max_attempt = 10
 # Location of the logging configuration file.
 logging = /etc/st2/logging.scheduler.conf
+# How long (in seconds) to sleep between each action scheduler main loop run interval.
+sleep_interval = 0.1
 # The size of the pool used by the scheduler for scheduling executions.
 pool_size = 10
+# The number of milliseconds to wait in between retries.
+retry_wait_msec = 3000
+# How often (in seconds) to look for zombie execution requests before rescheduling them.
+gc_interval = 10
 
 [schema]
 # Version of JSON schema to use.
