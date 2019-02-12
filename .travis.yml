@@ -68,10 +68,10 @@ addons:
       - sourceline: 'deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.4 multiverse'
         key_url: 'https://www.mongodb.org/static/pgp/server-3.4.asc'
       # NOTE: Precise repo doesn't contain Erlang 20.x, latest version is 19.x so we need to use RabbitMQ 3.7.6
-      - sourceline: 'deb [arch=amd64] http://packages.erlang-solutions.com/ubuntu precise contrib'
-        key_url: 'https://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc'
-      - sourceline: 'deb [arch=amd64] https://dl.bintray.com/rabbitmq/debian precise rabbitmq-server-v3.6.x'
-        key_url: 'https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc'
+      #- sourceline: 'deb [arch=amd64] http://packages.erlang-solutions.com/ubuntu precise contrib'
+      #  key_url: 'https://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc'
+      #- sourceline: 'deb [arch=amd64] https://dl.bintray.com/rabbitmq/debian precise rabbitmq-server-v3.6.x'
+      #  key_url: 'https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc'
       - sourceline: 'ppa:git-core/ppa'
     packages:
       - mongodb-org-server
@@ -116,6 +116,7 @@ before_script:
   # Use custom RabbitMQ config which enables SSL / TLS listener on port 5671 with test certs
   - sudo cp scripts/travis/rabbitmq.config /etc/rabbitmq/rabbitmq.config
   # Install rabbitmq_management RabbitMQ plugin
+  - sudo service rabbitmq-server restart ; sleep 5
   - sudo rabbitmq-plugins enable rabbitmq_management
   - sudo wget http://guest:guest@localhost:15672/cli/rabbitmqadmin -O /usr/local/bin/rabbitmqadmin
   - sudo chmod +x /usr/local/bin/rabbitmqadmin
