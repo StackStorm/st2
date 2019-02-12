@@ -51,7 +51,7 @@ def _setup():
     _setup_sigterm_handler()
 
 
-def _run_queuer():
+def _run_scheduler():
     LOG.info('(PID=%s) Scheduler started.', os.getpid())
 
     # Lazy load these so that decorator metrics are in place
@@ -104,7 +104,7 @@ def _teardown():
 def main():
     try:
         _setup()
-        return _run_queuer()
+        return _run_scheduler()
     except SystemExit as exit_code:
         sys.exit(exit_code)
     except:
