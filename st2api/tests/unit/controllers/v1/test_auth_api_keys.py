@@ -210,7 +210,7 @@ class TestApiKeyController(FunctionalTest):
 
         self.assertEqual(resp1.json['id'], api_key['id'], 'PK ID of created API should match.')
         self.assertEqual(api_key_db.key_hash, api_key['key_hash'], 'Key_hash should match.')
-        self.assertEqual(api_key_db.user, api_key['user'], 'Key_hash should match.')
+        self.assertEqual(api_key_db.user, api_key['user'], 'User should match.')
 
         resp = self.app.delete('/v1/apikeys/%s' % resp1.json['id'])
         self.assertEqual(resp.status_int, 204)
