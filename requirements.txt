@@ -5,7 +5,7 @@ argcomplete
 bcrypt
 cryptography==2.4.1
 eventlet==0.24.1
-flex>=6.13.2,<6.13.4
+flex>=6.13.2,<6.15.0
 git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper
 git+https://github.com/StackStorm/orquesta.git@v0.3#egg=orquesta
 git+https://github.com/StackStorm/python-mistralclient.git@st2-2.10.1#egg=python-mistralclient
