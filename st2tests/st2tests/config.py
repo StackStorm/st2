@@ -150,7 +150,34 @@ def _register_api_opts():
             help='URL of the messaging server.'),
         cfg.ListOpt(
             'cluster_urls', default=[],
-            help='URL of all the nodes in a messaging service cluster.')
+            help='URL of all the nodes in a messaging service cluster.'),
+        cfg.IntOpt(
+            'connection_retries', default=10,
+            help='How many times should we retry connection before failing.'),
+        cfg.IntOpt(
+            'connection_retry_wait', default=10000,
+            help='How long should we wait between connection retries.'),
+        cfg.BoolOpt(
+            'ssl', default=False,
+            help='Use SSL / TLS to connect to the messaging server. Same as '
+                 'appending "?ssl=true" at the end of the connection URL string.'),
+        cfg.StrOpt(
+            'ssl_keyfile', default=None,
+            help='Private keyfile used to identify the local connection against RabbitMQ.'),
+        cfg.StrOpt(
+            'ssl_certfile', default=None,
+            help='Certificate file used to identify the local connection (client).'),
+        cfg.StrOpt(
+            'ssl_cert_reqs', default=None, choices='none, optional, required',
+            help='Specifies whether a certificate is required from the other side of the '
+                 'connection, and whether it will be validated if provided.'),
+        cfg.StrOpt(
+            'ssl_ca_certs', default=None,
+            help='ca_certs file contains a set of concatenated CA certificates, which are '
+                 'used to validate certificates passed from RabbitMQ.'),
+        cfg.StrOpt(
+            'login_method', default=None,
+            help='Login method to use (AMQPLAIN, PLAIN, EXTERNAL, etc.).')
     ]
 
     _register_opts(messaging_opts, group='messaging')
