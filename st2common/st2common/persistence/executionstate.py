@@ -14,10 +14,14 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 from st2common import transport
 from st2common.models.db.executionstate import actionexecstate_access
 from st2common.persistence import base as persistence
-from st2common.transport import utils as transport_utils
+
+__all__ = [
+    'ActionExecutionState'
+]
 
 
 class ActionExecutionState(persistence.Access):
@@ -31,6 +35,5 @@ class ActionExecutionState(persistence.Access):
     @classmethod
     def _get_publisher(cls):
         if not cls.publisher:
-            cls.publisher = transport.actionexecutionstate.ActionExecutionStatePublisher(
-                urls=transport_utils.get_messaging_urls())
+            cls.publisher = transport.actionexecutionstate.ActionExecutionStatePublisher()
         return cls.publisher
