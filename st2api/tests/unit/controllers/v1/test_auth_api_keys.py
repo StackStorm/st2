@@ -197,6 +197,7 @@ class TestApiKeyController(FunctionalTest):
 
     def test_post_delete_same_key_hash(self):
         api_key = {
+            'id': '5c5dbb576cb8de06a2d79a4d',
             'user': 'herge',
             'key_hash': 'ABCDE'
         }
@@ -207,6 +208,7 @@ class TestApiKeyController(FunctionalTest):
         # drop into the DB since API will be masking this value.
         api_key_db = ApiKey.get_by_id(resp1.json['id'])
 
+        self.assertEqual(resp1.json['id'], api_key['id'], 'PK ID of created API should match.')
         self.assertEqual(api_key_db.key_hash, api_key['key_hash'], 'Key_hash should match.')
         self.assertEqual(api_key_db.user, api_key['user'], 'Key_hash should match.')
 
