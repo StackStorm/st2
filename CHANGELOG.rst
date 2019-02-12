@@ -17,11 +17,32 @@ Added
 
    For backward compatibility reasons, if pack metadata file doesn't contain that attribute, it's
    assumed it only works with Python 2. (new feature) #4474
+* Add support for various new SSL / TLS related config options (``ssl_keyfile``, ``ssl_certfile``,
+  ``ssl_ca_certs``, ``ssl_certfile``, ``authentication_mechanism``) to the ``messaging`` section in
+  ``st2.conf`` config file.
+
+  With those config options, user can configure things such as client based certificate
+  authentication, client side verification of a server certificate against a specific CA bundle, etc.
+
+  NOTE: Those options are only supported when using a default and officially supported AMQP backend
+  with RabbitMQ server. (new feature) #4541
 
 Changed
 ~~~~~~~
 
-* Changed the ``inquiries`` API path from ``/exp`` to ``/api/v1`` #4495
+* Changed the ``inquiries`` API path from ``/exp`` to ``/api/v1``. #4495
+* Update logging code so we exclude log messages with log level ``AUDIT`` from a default service
+  log file (e.g. ``st2api.log``). Log messages with level ``AUDIT`` are already logged in a
+  dedicated service audit log file (e.g. ``st2api.audit.log``) so there is no need for them to also
+  be duplicated and included in regular service log file.
+
+  NOTE: To aid with debugging, audit log messages are also included in a regular log file when log
+  level is set to ``DEBUG`` or ``system.debug`` config option is set to ``True``.
+
+  Reported by Nick Maludy. (improvement) #4538 #4502
+* Moved the lock from concurrency policies into the scheduler to fix a race condition when there
+  are multiple scheduler instances scheduling execution for action with concurrency policies.
+  #4481 (bug fix)
 
 Fixed
 ~~~~~
@@ -31,7 +52,25 @@ Fixed
   ``st2 action-alias execute 'pack install xxx'``. #4511
 
   Contributed by Nick Maludy (Encore Technologies)
-  
+* Fix datastore value encryption and make sure it also works correctly for unicode (non-ascii)
+  values.
+
+  Reported by @dswebbthg, @nickbaum. (bug fix) #4513 #4527 #4528
+* Fix a bug with action positional parameter serialization used in local and remote script runner
+  not working correctly with non-ascii (unicode) values.
+
+  This would prevent actions such as ``core.sendmail`` which utilize positional parameters from
+  working correctly when a unicode value was provided.
+
+  Reported by @johandahlberg (bug fix) #4533
+* Fix ``core.sendmail`` action so it specifies ``charset=UTF-8`` in the ``Content-Type`` email
+  header. This way it works correctly when an email subject and / or body contains unicode data.
+ 
+  Reported by @johandahlberg (bug fix) #4533 4534
+
+* Fix CLI ``st2 apikey load`` not being idempotent and API endpoint ``/api/v1/apikeys`` not
+  honoring desired ``ID`` for the new record creation. #4542
+
 2.10.0 - December 13, 2018
 --------------------------
 

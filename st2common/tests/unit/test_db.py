@@ -14,8 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import jsonschema
 
+import ssl
+
+import jsonschema
 import mock
 import mongoengine.connection
 from oslo_config import cfg
@@ -77,6 +79,55 @@ class DbConnectionTestCase(DbTestCase):
             'ssl': True,
             'ssl_match_hostname': True,
             'authentication_mechanism': 'MONGODB-X509'
+        })
+
+        # 3. ssl_keyfile provided
+        ssl_kwargs = _get_ssl_kwargs(ssl_keyfile='/tmp/keyfile')
+        self.assertEqual(ssl_kwargs, {
+            'ssl': True,
+            'ssl_keyfile': '/tmp/keyfile',
+            'ssl_match_hostname': True
+        })
+
+        # 4. ssl_certfile provided
+        ssl_kwargs = _get_ssl_kwargs(ssl_certfile='/tmp/certfile')
+        self.assertEqual(ssl_kwargs, {
+            'ssl': True,
+            'ssl_certfile': '/tmp/certfile',
+            'ssl_match_hostname': True
+        })
+
+        # 5. ssl_ca_certs provided
+        ssl_kwargs = _get_ssl_kwargs(ssl_ca_certs='/tmp/ca_certs')
+        self.assertEqual(ssl_kwargs, {
+            'ssl': True,
+            'ssl_ca_certs': '/tmp/ca_certs',
+            'ssl_match_hostname': True
+        })
+
+        # 6. ssl_ca_certs and ssl_cert_reqs combinations
+        ssl_kwargs = _get_ssl_kwargs(ssl_ca_certs='/tmp/ca_certs', ssl_cert_reqs='none')
+        self.assertEqual(ssl_kwargs, {
+            'ssl': True,
+            'ssl_ca_certs': '/tmp/ca_certs',
+            'ssl_cert_reqs': ssl.CERT_NONE,
+            'ssl_match_hostname': True
+        })
+
+        ssl_kwargs = _get_ssl_kwargs(ssl_ca_certs='/tmp/ca_certs', ssl_cert_reqs='optional')
+        self.assertEqual(ssl_kwargs, {
+            'ssl': True,
+            'ssl_ca_certs': '/tmp/ca_certs',
+            'ssl_cert_reqs': ssl.CERT_OPTIONAL,
+            'ssl_match_hostname': True
+        })
+
+        ssl_kwargs = _get_ssl_kwargs(ssl_ca_certs='/tmp/ca_certs', ssl_cert_reqs='required')
+        self.assertEqual(ssl_kwargs, {
+            'ssl': True,
+            'ssl_ca_certs': '/tmp/ca_certs',
+            'ssl_cert_reqs': ssl.CERT_REQUIRED,
+            'ssl_match_hostname': True
         })
 
     @mock.patch('st2common.models.db.mongoengine')

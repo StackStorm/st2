@@ -115,7 +115,8 @@ class OrquestaContextTest(st2tests.ExecutionDbTestCase):
         expected_st2_ctx = {
             'action_execution_id': str(ac_ex_db.id),
             'api_url': 'http://127.0.0.1/v1',
-            'user': 'stanley'
+            'user': 'stanley',
+            'pack': 'orquesta_tests'
         }
 
         expected_st2_ctx_with_wf_ex_id = copy.deepcopy(expected_st2_ctx)

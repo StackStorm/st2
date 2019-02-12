@@ -117,7 +117,10 @@ def get_sandbox_python_path(inherit_from_parent=True, inherit_parent_virtualenv=
     if inherit_parent_virtualenv and hasattr(sys, 'real_prefix'):
         # We are running inside virtualenv
         site_packages_dir = get_python_lib()
-        assert sys.prefix in site_packages_dir
+
+        sys_prefix = os.path.abspath(sys.prefix)
+        assert sys_prefix in site_packages_dir
+
         sandbox_python_path.append(site_packages_dir)
 
     sandbox_python_path = ':'.join(sandbox_python_path)

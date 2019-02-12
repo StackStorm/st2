@@ -41,7 +41,7 @@ CONFIGS = ['st2actions.config',
 
 SKIP_GROUPS = ['api_pecan', 'rbac', 'results_tracker']
 
-# We group auth options together to nake it a bit more clear what applies where
+# We group auth options together to make it a bit more clear what applies where
 AUTH_OPTIONS = {
     'common': [
         'enable',
@@ -63,7 +63,7 @@ AUTH_OPTIONS = {
     ]
 }
 
-# Some of the config values change depenending on the environment where this script is ran so we
+# Some of the config values change depending on the environment where this script is ran so we
 # set them to static values to ensure consistent and stable output
 STATIC_OPTION_VALUES = {
     'actionrunner': {

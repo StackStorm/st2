@@ -143,11 +143,13 @@ class ApiKeyAPI(BaseAPI, APIUIDMixin):
 
     @classmethod
     def to_model(cls, instance):
+        # If PrimaryKey ID is provided, - we want to work with existing ST2 API key
+        id = getattr(instance, 'id', None)
         user = str(instance.user) if instance.user else None
         key_hash = getattr(instance, 'key_hash', None)
         metadata = getattr(instance, 'metadata', {})
         enabled = bool(getattr(instance, 'enabled', True))
-        model = cls.model(user=user, key_hash=key_hash, metadata=metadata, enabled=enabled)
+        model = cls.model(id=id, user=user, key_hash=key_hash, metadata=metadata, enabled=enabled)
         return model
 
 
