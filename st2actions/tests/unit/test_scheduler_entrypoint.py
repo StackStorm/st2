@@ -33,6 +33,12 @@ def mock_handler_run(self):
     raise Exception('handler run exception')
 
 
+def mock_handler_cleanup(self):
+    # NOTE: We use eventlet.sleep to emulate async nature of this process
+    eventlet.sleep(0.2)
+    raise Exception('handler clean exception')
+
+
 def mock_entrypoint_start(self):
     # NOTE: We use eventlet.sleep to emulate async nature of this process
     eventlet.sleep(0.2)
@@ -43,6 +49,17 @@ class SchedulerServiceEntryPointTestCase(CleanDbTestCase):
     @mock.patch.object(ActionExecutionSchedulingQueueHandler, 'run', mock_handler_run)
     @mock.patch('st2actions.cmd.scheduler.LOG')
     def test_service_exits_correctly_on_fatal_exception_in_handler_run(self, mock_log):
+        run_thread = eventlet.spawn(_run_scheduler)
+        result = run_thread.wait()
+
+        self.assertEqual(result, 1)
+
+        mock_log_exception_call = mock_log.exception.call_args_list[0][0][0]
+        self.assertTrue('Scheduler unexpectedly stopped' in mock_log_exception_call)
+
+    @mock.patch.object(ActionExecutionSchedulingQueueHandler, 'cleanup', mock_handler_cleanup)
+    @mock.patch('st2actions.cmd.scheduler.LOG')
+    def test_service_exits_correctly_on_fatal_exception_in_handler_cleanup(self, mock_log):
         run_thread = eventlet.spawn(_run_scheduler)
         result = run_thread.wait()
 
