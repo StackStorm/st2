@@ -26,6 +26,11 @@ Added
 
   NOTE: Those options are only supported when using a default and officially supported AMQP backend
   with RabbitMQ server. (new feature) #4541
+* Update service bootstrap code and make sure all the services register in a service registry once
+  they come online and become available.
+
+  This functionality is only used internally and will only work if configuration backend is
+  correctly configured in ``st2.conf`` (new feature) #4548
 
 Changed
 ~~~~~~~
