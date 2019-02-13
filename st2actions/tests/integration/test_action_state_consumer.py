@@ -20,8 +20,6 @@ import imp
 
 import mock
 
-from kombu import Connection
-
 from st2common.transport.queues import RESULTSTRACKER_ACTIONSTATE_WORK_QUEUE
 from st2actions.resultstracker.resultstracker import ResultsTracker
 from st2common.models.db.executionstate import ActionExecutionStateDB
@@ -63,7 +61,7 @@ class ActionStateConsumerTests(EventletTestCase, DbTestCase):
 
     @mock.patch.object(TestQuerier, 'query', mock.MagicMock(return_value=(False, {})))
     def test_process_message(self):
-        with Connection(transport_utils.get_messaging_urls()) as conn:
+        with transport_utils.get_connection() as conn:
             tracker = ResultsTracker(conn, [RESULTSTRACKER_ACTIONSTATE_WORK_QUEUE])
             tracker._bootstrap()
             state = ActionStateConsumerTests.get_state(

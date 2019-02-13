@@ -67,18 +67,19 @@ addons:
       - mongodb-upstart
       - sourceline: 'deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.4 multiverse'
         key_url: 'https://www.mongodb.org/static/pgp/server-3.4.asc'
+      # NOTE: Precise repo doesn't contain Erlang 20.x, latest version is 19.x so we need to use RabbitMQ 3.7.6
+      #- sourceline: 'deb [arch=amd64] http://packages.erlang-solutions.com/ubuntu precise contrib'
+      #  key_url: 'https://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc'
+      #- sourceline: 'deb [arch=amd64] https://dl.bintray.com/rabbitmq/debian precise rabbitmq-server-v3.6.x'
+      #  key_url: 'https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc'
       - sourceline: 'ppa:git-core/ppa'
     packages:
       - mongodb-org-server
       - mongodb-org-shell
-      # NOTE: Uncomment below for Xenial
-      # -rabbitmq-server
+      - erlang
+      - rabbitmq-server
       - git
       - libffi-dev
-
-# NOTE: Remove / comment services section below for Xenial
-services:
-  - rabbitmq
 
 cache:
   pip: true
@@ -105,22 +106,27 @@ install:
 # Let's enable rabbitmqadmin
 # See https://github.com/messagebus/lapine/wiki/Testing-on-Travis.
 before_script:
-  # key_url no longer works for APT addon
   # Use a custom mongod.conf which uses various speed optimizations
   - sudo cp scripts/travis/mongod.conf /etc/mongod.conf
   # Clean up any old MongoDB 3.4 data files laying around and make sure mongodb user can write to it
   - sudo rm -rf /var/lib/mongodb ; sudo mkdir /var/lib/mongodb ; sudo chown -R mongodb:mongodb /var/lib/mongodb
   - sudo service mongod restart ; sleep 5
   - sudo service mongod status
-  - sudo tail -30 /var/log/mongodb/mongod.log
-  - mongod --version
-  - git --version
-  - pip --version
-  - virtualenv --version
+  - sudo tail -n 30 /var/log/mongodb/mongod.log
+  # Use custom RabbitMQ config which enables SSL / TLS listener on port 5671 with test certs
+  - sudo cp scripts/travis/rabbitmq.config /etc/rabbitmq/rabbitmq.config
+  # Install rabbitmq_management RabbitMQ plugin
+  - sudo service rabbitmq-server restart ; sleep 5
   - sudo rabbitmq-plugins enable rabbitmq_management
   - sudo wget http://guest:guest@localhost:15672/cli/rabbitmqadmin -O /usr/local/bin/rabbitmqadmin
   - sudo chmod +x /usr/local/bin/rabbitmqadmin
   - sudo service rabbitmq-server restart
+  - sudo tail -n 30 /var/log/rabbitmq/*
+  # Print various binary versions
+  - mongod --version
+  - git --version
+  - pip --version
+  - virtualenv --version
   # Print out various environment variables info
   - make play
 

@@ -306,11 +306,11 @@ def _get_ssl_kwargs(ssl=False, ssl_keyfile=None, ssl_certfile=None, ssl_cert_req
         ssl_kwargs['ssl'] = True
         ssl_kwargs['ssl_certfile'] = ssl_certfile
     if ssl_cert_reqs:
-        if ssl_cert_reqs is 'none':
+        if ssl_cert_reqs == 'none':
             ssl_cert_reqs = ssl_lib.CERT_NONE
-        elif ssl_cert_reqs is 'optional':
+        elif ssl_cert_reqs == 'optional':
             ssl_cert_reqs = ssl_lib.CERT_OPTIONAL
-        elif ssl_cert_reqs is 'required':
+        elif ssl_cert_reqs == 'required':
             ssl_cert_reqs = ssl_lib.CERT_REQUIRED
         ssl_kwargs['ssl_cert_reqs'] = ssl_cert_reqs
     if ssl_ca_certs:

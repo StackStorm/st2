@@ -14,14 +14,22 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import copy
 
-from kombu import Connection
 from kombu.messaging import Producer
 
 from st2common import log as logging
 from st2common.metrics.base import Timer
+from st2common.transport import utils as transport_utils
 from st2common.transport.connection_retry_wrapper import ConnectionRetryWrapper
+
+__all__ = [
+    'PoolPublisher',
+    'SharedPoolPublishers',
+    'CUDPublisher',
+    'StatePublisherMixin'
+]
 
 ANY_RK = '*'
 CREATE_RK = 'create'
@@ -32,8 +40,17 @@ LOG = logging.getLogger(__name__)
 
 
 class PoolPublisher(object):
-    def __init__(self, urls):
-        self.pool = Connection(urls, failover_strategy='round-robin').Pool(limit=10)
+    def __init__(self, urls=None):
+        """
+        :param urls: Connection URLs to use. If not provided it uses a default value from th
+                     config.
+        :type urls: ``list``
+        """
+        urls = urls or transport_utils.get_messaging_urls()
+        connection = transport_utils.get_connection(urls=urls,
+                                                    connection_kwargs={'failover_strategy':
+                                                                       'round-robin'})
+        self.pool = connection.Pool(limit=10)
         self.cluster_size = len(urls)
 
     def errback(self, exc, interval):
@@ -92,7 +109,8 @@ class SharedPoolPublishers(object):
 
 
 class CUDPublisher(object):
-    def __init__(self, urls, exchange):
+    def __init__(self, exchange):
+        urls = transport_utils.get_messaging_urls()
         self._publisher = SharedPoolPublishers().get_publisher(urls=urls)
         self._exchange = exchange
 
@@ -110,7 +128,8 @@ class CUDPublisher(object):
 
 
 class StatePublisherMixin(object):
-    def __init__(self, urls, exchange):
+    def __init__(self, exchange):
+        urls = transport_utils.get_messaging_urls()
         self._state_publisher = SharedPoolPublishers().get_publisher(urls=urls)
         self._state_exchange = exchange
 

@@ -14,11 +14,11 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import eventlet
 import six
 
 from collections import defaultdict
-from kombu import Connection
 
 from st2common.query.base import QueryContext
 from st2common import log as logging
@@ -111,5 +111,5 @@ class ResultsTracker(consumers.MessageHandler):
 
 
 def get_tracker():
-    with Connection(transport_utils.get_messaging_urls()) as conn:
+    with transport_utils.get_connection() as conn:
         return ResultsTracker(conn, [RESULTSTRACKER_ACTIONSTATE_WORK_QUEUE])
