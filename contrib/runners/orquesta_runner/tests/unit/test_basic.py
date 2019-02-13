@@ -21,6 +21,7 @@ import mock
 import six
 
 from orquesta import states as wf_states
+from oslo_config import cfg
 
 import st2tests
 
@@ -107,7 +108,7 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         'invoke_post_run',
         mock.MagicMock(return_value=None))
     def test_run_workflow(self):
-        username = 'stanley'
+        username = cfg.CONF.system_user.user
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
         wf_input = {'who': 'Thanos'}
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=wf_input)

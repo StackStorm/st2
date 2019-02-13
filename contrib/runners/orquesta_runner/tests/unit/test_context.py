@@ -19,6 +19,7 @@ import copy
 import mock
 
 from orquesta import states as wf_states
+from oslo_config import cfg
 
 import st2tests
 
@@ -115,7 +116,7 @@ class OrquestaContextTest(st2tests.ExecutionDbTestCase):
         expected_st2_ctx = {
             'action_execution_id': str(ac_ex_db.id),
             'api_url': 'http://127.0.0.1/v1',
-            'user': 'stanley',
+            'user': cfg.CONF.system_user.user,
             'pack': 'orquesta_tests'
         }
 
