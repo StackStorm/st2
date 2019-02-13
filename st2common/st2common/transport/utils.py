@@ -67,11 +67,11 @@ def get_connection(urls=None, connection_kwargs=None):
     # NOTE: "connection_kwargs" argument passed to this function has precedence over config values
     if len(ssl_kwargs) == 1 and ssl_kwargs['ssl'] is True:
         kwargs.update({'ssl': True})
-        kwargs['ssl']['ssl_version'] = ssl_lib.PROTOCOL_TLSv1
+        kwargs['ssl']['ssl_version'] = ssl_lib.PROTOCOL_TLSv1_1
     elif len(ssl_kwargs) >= 2:
         ssl_kwargs.pop('ssl')
         kwargs.update({'ssl': ssl_kwargs})
-        kwargs['ssl']['ssl_version'] = ssl_lib.PROTOCOL_TLSv1
+        kwargs['ssl']['ssl_version'] = ssl_lib.PROTOCOL_TLSv1_1
 
     kwargs['login_method'] = cfg.CONF.messaging.login_method
 
