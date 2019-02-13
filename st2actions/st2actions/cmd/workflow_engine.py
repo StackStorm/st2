@@ -60,7 +60,7 @@ def setup():
         config=config,
         setup_db=True,
         register_mq_exchanges=True,
-        register_signal_handlers=True
+        register_signal_handlers=True,
         service_registry=True,
         capabilities=capabilities
     )

@@ -31,7 +31,7 @@ def main(group_id=None):
 
     if not group_id:
         group_ids = list(coordinator.get_groups().get())
-        group_ids = [group_id.decode('utf-8') for group_id in group_ids]
+        group_ids = [group_id_.decode('utf-8') for group_id_ in group_ids]
 
         print('Available groups (%s):' % (len(group_ids)))
         for group_id in group_ids:
