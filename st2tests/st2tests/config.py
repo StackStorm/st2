@@ -278,6 +278,12 @@ def _register_scheduler_opts():
         cfg.FloatOpt(
             'gc_interval', default=5,
             help='How often to look for zombie executions before rescheduling them (in ms).'),
+        cfg.IntOpt(
+            'retry_max_attempt', default=3,
+            help='The maximum number of attempts that the scheduler retries on error.'),
+        cfg.IntOpt(
+            'retry_wait_msec', default=100,
+            help='The number of milliseconds to wait in between retries.')
     ]
 
     _register_opts(scheduler_opts, group='scheduler')
