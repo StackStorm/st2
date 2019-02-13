@@ -62,6 +62,7 @@ matrix:
       name: "Integration Tests (Python 3.6)"
 
 addons:
+  hostname: localhost
   apt:
     sources:
       - mongodb-upstart
@@ -101,6 +102,8 @@ before_install:
 
 install:
   - ./scripts/travis/install-requirements.sh
+  # Work around for old openssl issues on Ubuntu Precise
+  - virtualenv/bin/pip install "ndg-httpsclient"
   - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ] || [ "${TASK}" = 'ci-checks ci-packs-tests' ] || [ "${TASK}" = 'compilepy3 ci-py3-unit' ] || [ "${TASK}" = 'ci-py3-integration' ]; then sudo .circle/add-itest-user.sh; fi
 
 # Let's enable rabbitmqadmin

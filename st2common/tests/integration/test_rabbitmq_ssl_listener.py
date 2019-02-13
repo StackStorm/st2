@@ -41,8 +41,7 @@ SSL_LISTENER_PORT = 5671
 # expose RabbitMQ SSL listener by default
 # TODO: Re-enable once we upgrade Travis from Precise to Xenial where latest version of RabbitMQ
 # and OpenSSL is available
-@unittest2.skip('Skipping until we upgrade to Xenial on Travis')
-# @unittest2.skipIf(not ON_TRAVIS, 'Skipping tests because not running on Travis')
+@unittest2.skipIf(not ON_TRAVIS, 'Skipping tests because not running on Travis')
 class RabbitMQTLSListenerTestCase(unittest2.TestCase):
 
     def setUp(self):
