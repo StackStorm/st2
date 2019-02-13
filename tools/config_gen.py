@@ -73,6 +73,9 @@ STATIC_OPTION_VALUES = {
     },
     'webui': {
         'webui_base_url': 'https://localhost'
+    },
+    'system_user': {
+        'user': 'stanley'
     }
 }
 
@@ -167,10 +170,11 @@ def _print_options(opt_group, options):
 
 def main(args):
     opt_groups = {}
+
     for config in CONFIGS:
         mod = _import_config(config)
         mod.register_opts()
-        _read_current_config(opt_groups)
+       _read_current_config(opt_groups)
         _clear_config()
     _read_groups(opt_groups)
 
