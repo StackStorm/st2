@@ -23,6 +23,7 @@ except ImportError:
 
 from six.moves import filter
 from six.moves import http_client
+from oslo_config import cfg
 
 from st2common.constants import action as action_constants
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
@@ -448,7 +449,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         delete_resp = self._do_delete(self._get_actionexecution_id(post_resp))
         self.assertEqual(delete_resp.status_int, 200)
         self.assertEqual(delete_resp.json['status'], 'canceled')
-        expected_result = {'message': 'Action canceled by user.', 'user': 'stanley'}
+        expected_result = {'message': 'Action canceled by user.', 'user': cfg.CONF.system_user.user}
         self.assertDictEqual(delete_resp.json['result'], expected_result)
 
     def test_post_delete_duplicate(self):
@@ -464,7 +465,8 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
             delete_resp = self._do_delete(self._get_actionexecution_id(post_resp))
             self.assertEqual(delete_resp.status_int, 200)
             self.assertEqual(delete_resp.json['status'], 'canceled')
-            expected_result = {'message': 'Action canceled by user.', 'user': 'stanley'}
+            expected_result = {'message': 'Action canceled by user.',
+                               'user': cfg.CONF.system_user.user}
             self.assertDictEqual(delete_resp.json['result'], expected_result)
 
     def test_post_delete_trace(self):
@@ -702,7 +704,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         trace = trace_service.get_trace_db_by_action_execution(action_execution_id=execution_id)
 
         expected_context = {
-            'user': 'stanley',
+            'user': cfg.CONF.system_user.user,
             'pack': 'starterpack',
             're-run': {
                 'ref': execution_id
@@ -732,7 +734,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
 
         expected_context = {
             'pack': 'starterpack',
-            'user': 'stanley',
+            'user': cfg.CONF.system_user.user,
             're-run': {
                 'ref': execution_id,
                 'tasks': data['tasks']
@@ -762,7 +764,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
 
         expected_context = {
             'pack': 'starterpack',
-            'user': 'stanley',
+            'user': cfg.CONF.system_user.user,
             're-run': {
                 'ref': execution_id,
                 'tasks': data['tasks']
@@ -792,7 +794,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
 
         expected_context = {
             'pack': 'starterpack',
-            'user': 'stanley',
+            'user': cfg.CONF.system_user.user,
             're-run': {
                 'ref': execution_id,
                 'tasks': data['tasks'],
