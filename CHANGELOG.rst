@@ -17,6 +17,16 @@ Added
 
    For backward compatibility reasons, if pack metadata file doesn't contain that attribute, it's
    assumed it only works with Python 2. (new feature) #4474
+* Added a new flag ``-d/--decrypt`` to ``st2 key set`` that allows users to pass in values
+  in encrypted format using the system's crypto keys. This flag informs the API that the
+  value transmitted is encrypted and it must be decrypted prior to working with it. Similarly
+  a keys file given to ``st2 key load`` can contain the property ``decrypt: true`` in any of
+  its keys and it will have the same effect. This results in keys files being able to contain
+  encrypted data that no longer needs to be decrypted prior to working with the CLI.
+  The corresponding ``decrypt`` option has been added to the API endpoint
+  ``PUT /api/v1/keys/{name}``. (new feature) #4545
+
+  Contributed by Nick Maludy (Encore Technologies)  
 
 Changed
 ~~~~~~~

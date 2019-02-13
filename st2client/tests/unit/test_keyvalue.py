@@ -51,6 +51,15 @@ KEYVALUE_SECRET = {
     'secret': True
 }
 
+KEYVALUE_DECRYPT = {
+    'id': 'kv_name',
+    'name': 'kv_name.',
+    'value': 'AAABBBCCC1234',
+    'scope': 'system',
+    'secret': True,
+    'decrypt': True
+}
+
 KEYVALUE_TTL = {
     'id': 'kv_name',
     'name': 'kv_name.',
@@ -69,10 +78,11 @@ KEYVALUE_OBJECT = {
 KEYVALUE_ALL = {
     'id': 'kv_name',
     'name': 'kv_name.',
-    'value': 'super cool value',
+    'value': 'AAAAABBBBBCCCCCCDDDDD11122345',
     'scope': 'system',
     'user': 'stanley',
     'secret': True,
+    'decrypt': True,
     'ttl': 100
 }
 
@@ -106,6 +116,25 @@ class TestKeyValueBase(base.BaseCLITestCase):
 
     def tearDown(self):
         super(TestKeyValueBase, self).tearDown()
+
+
+class TestKeyValueSet(TestKeyValueBase):
+
+    @mock.patch.object(
+        requests, 'put',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(KEYVALUE_DECRYPT), 200, 'OK')))
+    def test_set_keyvalue(self):
+        """Test setting key/value pair with optional derypt field
+        """
+        # short format
+        args = ['key', 'set', '-d', 'kv_name', 'AAABBBCCC1234']
+        retcode = self.shell.run(args)
+        self.assertEqual(retcode, 0)
+
+        # long format
+        args = ['key', 'set', '--decrypt', 'kv_name', 'AAABBBCCC1234']
+        retcode = self.shell.run(args)
+        self.assertEqual(retcode, 0)
 
 
 class TestKeyValueLoad(TestKeyValueBase):
@@ -174,6 +203,24 @@ class TestKeyValueLoad(TestKeyValueBase):
         try:
             with open(path, 'a') as f:
                 f.write(json.dumps(KEYVALUE_SECRET, indent=4))
+
+            args = ['key', 'load', path]
+            retcode = self.shell.run(args)
+            self.assertEqual(retcode, 0)
+        finally:
+            os.close(fd)
+            os.unlink(path)
+
+    @mock.patch.object(
+        requests, 'put',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(KEYVALUE_DECRYPT), 200, 'OK')))
+    def test_load_keyvalue_decrypt(self):
+        """Test loading of key/value pair with the optional decrypt field
+        """
+        fd, path = tempfile.mkstemp(suffix='.json')
+        try:
+            with open(path, 'a') as f:
+                f.write(json.dumps(KEYVALUE_DECRYPT, indent=4))
 
             args = ['key', 'load', path]
             retcode = self.shell.run(args)

@@ -84,7 +84,7 @@ class KeyValuePairListCommand(resource.ResourceTableCommand):
         # Filter options
         self.parser.add_argument('--prefix', help=('Only return values with names starting with '
                                                    'the provided prefix.'))
-        self.parser.add_argument('--decrypt', action='store_true',
+        self.parser.add_argument('-d', '--decrypt', action='store_true',
                                  help='Decrypt secrets and displays plain text.')
         self.parser.add_argument('-s', '--scope', default=DEFAULT_LIST_SCOPE, dest='scope',
                                  help='Scope item is under. Example: "user".')
@@ -168,6 +168,12 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
         self.parser.add_argument('-e', '--encrypt', dest='secret',
                                  action='store_true',
                                  help='Encrypt value before saving.')
+        self.parser.add_argument('-d', '--decrypt', dest='decrypt',
+                                 action='store_true',
+                                 help=('Value provided is encrypted and must be decrypted'
+                                       ' before saving. This allows values to be entered in on'
+                                       ' the CLI and transmitted to the API in encrypted'
+                                       ' format.'))
         self.parser.add_argument('-s', '--scope', dest='scope', default=DEFAULT_CUD_SCOPE,
                                  help='Specify the scope under which you want ' +
                                       'to place the item.')
@@ -185,6 +191,9 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
 
         if args.secret:
             instance.secret = args.secret
+
+        if args.decrypt:
+            instance.decrypt = args.decrypt
 
         if args.ttl:
             instance.ttl = args.ttl
@@ -313,6 +322,7 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
             scope = item.get('scope', DEFAULT_CUD_SCOPE)
             user = item.get('user', None)
             secret = item.get('secret', False)
+            decrypt = item.get('decrypt', False)
             ttl = item.get('ttl', None)
 
             # if the value is not a string, convert it to JSON
@@ -336,6 +346,8 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
                 instance.user = user
             if secret:
                 instance.secret = secret
+            if decrypt:
+                instance.decrypt = decrypt
             if ttl:
                 instance.ttl = ttl
 

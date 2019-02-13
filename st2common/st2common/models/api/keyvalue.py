@@ -67,6 +67,11 @@ class KeyValuePairAPI(BaseAPI):
                 'required': False,
                 'default': False
             },
+            'decrypt': {
+                'type': 'boolean',
+                'required': False,
+                'default': False
+            },
             'encrypted': {
                 'type': 'boolean',
                 'required': False,
@@ -158,6 +163,7 @@ class KeyValuePairAPI(BaseAPI):
         description = getattr(kvp, 'description', None)
         value = kvp.value
         secret = False
+        decrypt = False
 
         if getattr(kvp, 'ttl', None):
             expire_timestamp = (date_utils.get_datetime_utc_now() +
@@ -165,7 +171,18 @@ class KeyValuePairAPI(BaseAPI):
         else:
             expire_timestamp = None
 
+        decrypt = getattr(kvp, 'decrypt', False)
         secret = getattr(kvp, 'secret', False)
+
+        # if the user transmitted the value in encrypted format and is requesting
+        # that we decrypt the value prior to processing (may get re-encrypted when saved
+        # if secret=True).
+        if decrypt:
+            if not KeyValuePairAPI.crypto_key:
+                msg = ('Crypto key not found in %s. Unable to encrypt value for key %s.' %
+                       (KeyValuePairAPI.crypto_key_path, name))
+                raise CryptoKeyNotSetupException(msg)
+            value = symmetric_decrypt(KeyValuePairAPI.crypto_key, value)
 
         if secret:
             if not KeyValuePairAPI.crypto_key:
