@@ -32,7 +32,7 @@ __all__ = [
     'configured',
 
     'get_coordinator',
-    'get_memeber_id',
+    'get_member_id',
 
     'coordinator_setup',
     'coordinator_teardown'
@@ -51,6 +51,14 @@ class NoOpLock(locking.Lock):
 
     def heartbeat(self):
         return True
+
+
+class NoOpAsyncResult(object):
+    def __init__(self, result=None):
+        self._result = result
+
+    def get(self):
+        return self._result
 
 
 class NoOpDriver(coordination.CoordinationDriver):
@@ -87,27 +95,27 @@ class NoOpDriver(coordination.CoordinationDriver):
 
     @staticmethod
     def create_group(group_id):
-        return None
+        return NoOpAsyncResult()
 
     @staticmethod
     def get_groups():
-        return None
+        return NoOpAsyncResult(result=[])
 
     @staticmethod
     def join_group(group_id, capabilities=''):
-        return None
+        return NoOpAsyncResult()
 
     @staticmethod
     def leave_group(group_id):
-        return None
+        return NoOpAsyncResult()
 
     @staticmethod
     def delete_group(group_id):
-        return None
+        return NoOpAsyncResult()
 
     @staticmethod
     def get_members(group_id):
-        return None
+        return NoOpAsyncResult(result=[])
 
     @staticmethod
     def get_member_capabilities(group_id, member_id):
