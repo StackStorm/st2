@@ -16,8 +16,6 @@
 
 from __future__ import absolute_import
 
-import six
-
 from oslo_config import cfg
 
 from st2common import config
@@ -27,13 +25,15 @@ from st2common.services import coordination
 Tool which lists all the services registered in the service registry and their capabilities.
 """
 
+
 def main(group_id=None):
     coordinator = coordination.get_coordinator()
 
     if not group_id:
         group_ids = list(coordinator.get_groups().get())
+        group_ids = [group_id.decode('utf-8') for group_id in group_ids]
 
-        print('Available groups:')
+        print('Available groups (%s):' % (len(group_ids)))
         for group_id in group_ids:
             print(' - %s' % (group_id))
         print('')
@@ -41,8 +41,10 @@ def main(group_id=None):
         group_ids = [group_id]
 
     for group_id in group_ids:
-        print('Members in group "%s":' % (group_id))
         member_ids = list(coordinator.get_members(group_id).get())
+        member_ids = [member_id.decode('utf-8') for member_id in member_ids]
+
+        print('Members in group "%s" (%s):' % (group_id, len(member_ids)))
 
         for member_id in member_ids:
             capabilities = coordinator.get_member_capabilities(group_id, member_id).get()
@@ -61,7 +63,7 @@ def do_register_cli_opts(opts, ignore_errors=False):
 if __name__ == '__main__':
     cli_opts = [
         cfg.StrOpt('group-id', default=None,
-                    help='If provided, only list members for that group.'),
+                   help='If provided, only list members for that group.'),
 
     ]
     do_register_cli_opts(cli_opts)
