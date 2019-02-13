@@ -33,6 +33,8 @@ __all__ = [
     'parse_args'
 ]
 
+ON_TRAVIS = (os.environ.get('TRAVIS', 'false') == 'true')
+
 
 def do_register_opts(opts, group=None, ignore_errors=False):
     try:
@@ -75,9 +77,15 @@ def register_opts(ignore_errors=False):
 
     do_register_opts(rbac_opts, 'rbac', ignore_errors)
 
+    if ON_TRAVIS:
+        # Work around for Travis Ubuntu Xenial permission issues
+        system_user = 'travis'
+    else:
+        system_user = 'stanley'
+
     system_user_opts = [
         cfg.StrOpt(
-            'user', default='stanley',
+            'user', default=system_user,
             help='Default system user.'),
         cfg.StrOpt(
             'ssh_key_file', default='/home/stanley/.ssh/stanley_rsa',

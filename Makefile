@@ -14,7 +14,6 @@ else
 endif
 
 PYTHON_VERSION ?= python2.7
-NOSE_INCLUDE_EXE := 1
 
 BINARIES := bin
 
