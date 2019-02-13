@@ -19,6 +19,10 @@ from oslo_config import cfg
 
 from st2common import config as common_config
 from st2common.constants import system as sys_constants
+from st2common import log as logging
+
+
+LOG = logging.getLogger(__name__)
 
 
 def parse_args(args=None):
@@ -62,4 +66,7 @@ def _register_service_opts():
     cfg.CONF.register_opts(scheduler_opts, group='scheduler')
 
 
-register_opts()
+try:
+    register_opts()
+except cfg.DuplicateOptError:
+    LOG.exception('The scheduler configuration options are already parsed and loaded.')
