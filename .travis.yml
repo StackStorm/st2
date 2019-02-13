@@ -120,7 +120,9 @@ before_script:
   - sudo wget http://guest:guest@localhost:15672/cli/rabbitmqadmin -O /usr/local/bin/rabbitmqadmin
   - sudo chmod +x /usr/local/bin/rabbitmqadmin
   - sudo service rabbitmq-server restart
-    #- sudo tail -n 30 /var/log/rabbitmq/*
+  - sudo ls -la /var/log/
+  - sudo ls -la /var/log/rabbitmq
+  - sudo tail -n 30 /var/log/rabbitmq/*
   # Print various binary versions
   - mongod --version
   - git --version

@@ -174,7 +174,7 @@ def main(args):
     for config in CONFIGS:
         mod = _import_config(config)
         mod.register_opts()
-       _read_current_config(opt_groups)
+        _read_current_config(opt_groups)
         _clear_config()
     _read_groups(opt_groups)
 
