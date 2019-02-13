@@ -14,13 +14,20 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 from kombu import Exchange, Queue
 
 from st2common import log as logging
 from st2common.constants.trace import TRACE_CONTEXT
 from st2common.models.api.trace import TraceContext
 from st2common.transport import publishers
-from st2common.transport import utils as transport_utils
+
+__all__ = [
+    'AnnouncementPublisher',
+    'AnnouncementDispatcher',
+
+    'get_queue'
+]
 
 LOG = logging.getLogger(__name__)
 
@@ -29,8 +36,8 @@ ANNOUNCEMENT_XCHG = Exchange('st2.announcement', type='topic')
 
 
 class AnnouncementPublisher(object):
-    def __init__(self, urls):
-        self._publisher = publishers.PoolPublisher(urls=urls)
+    def __init__(self):
+        self._publisher = publishers.PoolPublisher()
 
     def publish(self, payload, routing_key):
         self._publisher.publish(payload, ANNOUNCEMENT_XCHG, routing_key)
@@ -42,7 +49,7 @@ class AnnouncementDispatcher(object):
     """
 
     def __init__(self, logger=LOG):
-        self._publisher = AnnouncementPublisher(urls=transport_utils.get_messaging_urls())
+        self._publisher = AnnouncementPublisher()
         self._logger = logger
 
     def dispatch(self, routing_key, payload, trace_context=None):

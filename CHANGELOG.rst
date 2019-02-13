@@ -17,6 +17,15 @@ Added
 
    For backward compatibility reasons, if pack metadata file doesn't contain that attribute, it's
    assumed it only works with Python 2. (new feature) #4474
+* Add support for various new SSL / TLS related config options (``ssl_keyfile``, ``ssl_certfile``,
+  ``ssl_ca_certs``, ``ssl_certfile``, ``authentication_mechanism``) to the ``messaging`` section in
+  ``st2.conf`` config file.
+
+  With those config options, user can configure things such as client based certificate
+  authentication, client side verification of a server certificate against a specific CA bundle, etc.
+
+  NOTE: Those options are only supported when using a default and officially supported AMQP backend
+  with RabbitMQ server. (new feature) #4541
 * Added a new flag ``-d/--decrypt`` to ``st2 key set`` that allows users to pass in values
   in encrypted format using the system's crypto keys. This flag informs the API that the
   value transmitted is encrypted and it must be decrypted prior to working with it. Similarly
@@ -26,7 +35,7 @@ Added
   The corresponding ``decrypt`` option has been added to the API endpoint
   ``PUT /api/v1/keys/{name}``. (new feature) #4545
 
-  Contributed by Nick Maludy (Encore Technologies)  
+  Contributed by Nick Maludy (Encore Technologies)
 
 Changed
 ~~~~~~~
@@ -57,6 +66,20 @@ Fixed
   values.
 
   Reported by @dswebbthg, @nickbaum. (bug fix) #4513 #4527 #4528
+* Fix a bug with action positional parameter serialization used in local and remote script runner
+  not working correctly with non-ascii (unicode) values.
+
+  This would prevent actions such as ``core.sendmail`` which utilize positional parameters from
+  working correctly when a unicode value was provided.
+
+  Reported by @johandahlberg (bug fix) #4533
+* Fix ``core.sendmail`` action so it specifies ``charset=UTF-8`` in the ``Content-Type`` email
+  header. This way it works correctly when an email subject and / or body contains unicode data.
+ 
+  Reported by @johandahlberg (bug fix) #4533 4534
+
+* Fix CLI ``st2 apikey load`` not being idempotent and API endpoint ``/api/v1/apikeys`` not
+  honoring desired ``ID`` for the new record creation. #4542
 
 2.10.0 - December 13, 2018
 --------------------------

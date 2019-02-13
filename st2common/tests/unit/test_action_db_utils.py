@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -398,6 +399,27 @@ class ActionDBUtilsTestCase(DbTestCase):
         pos_args, _ = action_db_utils.get_args(params, ActionDBUtilsTestCase.action_db)
         self.assertListEqual(pos_args, expected_pos_args,
                              'Positional args not parsed / serialized correctly.')
+
+        # Test unicode values
+        params = {
+            'actionstr': 'bar č š hello đ č p ž Ž a 💩😁',
+            'actionint': 20,
+            'runnerint': 555
+        }
+        expected_pos_args = [
+            '20',
+            '',
+            u'bar č š hello đ č p ž Ž a 💩😁',
+            '',
+            '',
+            '',
+            ''
+        ]
+        pos_args, named_args = action_db_utils.get_args(params, ActionDBUtilsTestCase.action_db)
+        self.assertListEqual(pos_args, expected_pos_args, 'Positional args not parsed correctly.')
+        self.assertTrue('actionint' not in named_args)
+        self.assertTrue('actionstr' not in named_args)
+        self.assertEqual(named_args.get('runnerint'), 555)
 
     @classmethod
     def _setup_test_models(cls):
