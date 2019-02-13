@@ -275,7 +275,7 @@ class RunnerContainerTest(DbTestCase):
 
         # Assert that context is written correctly.
         context = {
-            'user': 'stanley',
+            'user': cfg.CONF.system_user.user,
             'third_party_system': {
                 'ref_id': '1234'
             }

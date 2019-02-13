@@ -88,7 +88,7 @@ def register_opts(ignore_errors=False):
             'user', default=system_user,
             help='Default system user.'),
         cfg.StrOpt(
-            'ssh_key_file', default='/home/stanley/.ssh/stanley_rsa',
+            'ssh_key_file', default='/home/%s/.ssh/%s_rsa' % (system_user, system_user),
             help='SSH private key for the system user.')
     ]
 
