@@ -62,6 +62,8 @@ matrix:
       name: "Integration Tests (Python 3.6)"
 
 addons:
+  hosts:
+    - localhost
   apt:
     sources:
       - mongodb-upstart
