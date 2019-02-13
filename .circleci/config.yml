@@ -124,7 +124,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-          docker_layer_caching: false     # default - false
+          docker_layer_caching: true     # default - false
       - run:
           name: Docker version
           command: |
