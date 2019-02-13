@@ -7,6 +7,8 @@ if [ "$(whoami)" != 'root' ]; then
     exit 2
 fi
 
+UBUNTU_VERSION=`lsb_release -a 2>&1 | grep Codename | grep -v "LSB" | awk '{print $2}'`
+
 # Create an SSH system user (default `stanley` user may be already created)
 if (! id stanley 2>/dev/null); then
   useradd stanley
@@ -28,3 +30,12 @@ sh -c 'echo "circleci    ALL=(ALL)       NOPASSWD: SETENV: ALL" >> /etc/sudoers.
 # Enable passwordless sudo for 'stanley' user
 sh -c 'echo "stanley    ALL=(ALL)       NOPASSWD: SETENV: ALL" >> /etc/sudoers.d/st2'
 chmod 0440 /etc/sudoers.d/st2
+
+# Workaround for Travis on Ubuntu Xenial so local runner integration tests work
+# when executing them under user "stanley" (by default Travis checks out the
+# code and runs tests under a different system user).
+# NOTE: We need to pass "--exe" flag to nosetests when using this workaround.
+if [ "${TRAVIS}" = "true" ] && [ "${UBUNTU_VERSION}" == "xenial" ]; then
+  echo "Applying workaround for stanley user permissions issue to /home/travis on Xenial"
+  chmod 777 -R /home/travis
+fi
