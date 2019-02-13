@@ -31,8 +31,13 @@ def _setup_sigterm_handler():
 
 
 def _setup():
+    capabilities = {
+        'name': 'scheduler',
+        'type': 'passive'
+    }
     common_setup(service='scheduler', config=config, setup_db=True, register_mq_exchanges=True,
-                 register_signal_handlers=True)
+                 register_signal_handlers=True, service_registry=True, capabilities=capabilities)
+
     _setup_sigterm_handler()
 
 

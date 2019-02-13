@@ -33,8 +33,13 @@ def _setup_sigterm_handler():
 
 
 def _setup():
+    capabilities = {
+        'name': 'actionrunner',
+        'type': 'passive'
+    }
     common_setup(service='actionrunner', config=config, setup_db=True, register_mq_exchanges=True,
-                 register_signal_handlers=True)
+                 register_signal_handlers=True, service_registry=True, capabilities=capabilities)
+
     _setup_sigterm_handler()
 
 
