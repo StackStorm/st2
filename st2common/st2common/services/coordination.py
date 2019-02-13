@@ -30,7 +30,9 @@ COORDINATOR = None
 
 __all__ = [
     'configured',
+
     'get_coordinator',
+    'get_memeber_id',
 
     'coordinator_setup',
     'coordinator_teardown'
@@ -137,7 +139,7 @@ def configured():
     return backend_configured and not mock_backend
 
 
-def coordinator_setup():
+def coordinator_setup(start_heart=False):
     """
     Sets up the client for the coordination service.
 
@@ -149,8 +151,7 @@ def coordinator_setup():
     """
     url = cfg.CONF.coordination.url
     lock_timeout = cfg.CONF.coordination.lock_timeout
-    proc_info = system_info.get_process_info()
-    member_id = six.b('%s_%d' % (proc_info['hostname'], proc_info['pid']))
+    member_id = get_member_id()
 
     if url:
         coordinator = coordination.get_coordinator(url, member_id, lock_timeout=lock_timeout)
@@ -161,7 +162,7 @@ def coordinator_setup():
         # to work
         coordinator = NoOpDriver(member_id)
 
-    coordinator.start()
+    coordinator.start(start_heart=start_heart)
     return coordinator
 
 
@@ -169,7 +170,7 @@ def coordinator_teardown(coordinator):
     coordinator.stop()
 
 
-def get_coordinator():
+def get_coordinator(start_heart=False):
     global COORDINATOR
 
     if not configured():
@@ -177,6 +178,15 @@ def get_coordinator():
                  'service will use best effort approach and race conditions are possible.')
 
     if not COORDINATOR:
-        COORDINATOR = coordinator_setup()
+        COORDINATOR = coordinator_setup(start_heart=start_heart)
 
     return COORDINATOR
+
+
+def get_member_id():
+    """
+    Retrieve member if for the current process.
+    """
+    proc_info = system_info.get_process_info()
+    member_id = six.b('%s_%d' % (proc_info['hostname'], proc_info['pid']))
+    return member_id
