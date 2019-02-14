@@ -48,6 +48,8 @@ Changed
 * Moved the lock from concurrency policies into the scheduler to fix a race condition when there
   are multiple scheduler instances scheduling execution for action with concurrency policies.
   #4481 (bug fix)
+* Add retries to scheduler to handle temporary hiccup in DB connection. Refactor scheduler
+  service to return proper exit code when there is a failure. #4539 (bug fix)
 
 Fixed
 ~~~~~

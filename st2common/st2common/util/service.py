@@ -1,4 +1,3 @@
-#!/usr/bin/env python2.7
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -14,9 +13,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
-from st2actions.cmd import scheduler
+from __future__ import absolute_import
+
+import pymongo
+
+from st2common import log as logging
 
 
-if __name__ == '__main__':
-    sys.exit(scheduler.main())
+LOG = logging.getLogger(__name__)
+
+
+def retry_on_exceptions(exc):
+    LOG.warning('Evaluating retry on exception %s. %s', type(exc), str(exc))
+
+    is_mongo_connection_error = isinstance(exc, pymongo.errors.ConnectionFailure)
+
+    retrying = is_mongo_connection_error
+
+    if retrying:
+        LOG.warning('Retrying on exception %s.', type(exc))
+
+    return retrying

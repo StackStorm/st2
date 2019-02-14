@@ -60,7 +60,12 @@ def _register_service_opts():
             'gc_interval', default=10,
             help='How often (in seconds) to look for zombie execution requests before rescheduling '
                  'them.'),
-
+        cfg.IntOpt(
+            'retry_max_attempt', default=10,
+            help='The maximum number of attempts that the scheduler retries on error.'),
+        cfg.IntOpt(
+            'retry_wait_msec', default=3000,
+            help='The number of milliseconds to wait in between retries.')
     ]
 
     cfg.CONF.register_opts(scheduler_opts, group='scheduler')
