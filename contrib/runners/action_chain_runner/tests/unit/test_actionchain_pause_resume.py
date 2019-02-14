@@ -19,6 +19,9 @@ import mock
 import os
 import tempfile
 
+from st2tests import config as test_config
+test_config.parse_args()
+
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar
 

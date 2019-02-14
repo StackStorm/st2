@@ -16,10 +16,12 @@
 from __future__ import absolute_import
 
 import eventlet
+import retrying
 from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.util import date
+from st2common.util import service as service_utils
 from st2common.constants import action as action_constants
 from st2common.constants import policy as policy_constants
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
@@ -60,25 +62,37 @@ class ActionExecutionSchedulingQueueHandler(object):
         self._shutdown = False
         self._pool = eventlet.GreenPool(size=cfg.CONF.scheduler.pool_size)
         self._coordinator = coordination_service.get_coordinator()
+        self._main_thread = None
+        self._cleanup_thread = None
 
     def run(self):
-        LOG.debug('Entering scheduler loop')
+        LOG.debug('Starting scheduler handler...')
 
         while not self._shutdown:
             eventlet.greenthread.sleep(cfg.CONF.scheduler.sleep_interval)
+            self.process()
 
-            execution_queue_item_db = self._get_next_execution()
+    @retrying.retry(
+        retry_on_exception=service_utils.retry_on_exceptions,
+        stop_max_attempt_number=cfg.CONF.scheduler.retry_max_attempt,
+        wait_fixed=cfg.CONF.scheduler.retry_wait_msec)
+    def process(self):
+        execution_queue_item_db = self._get_next_execution()
 
-            if execution_queue_item_db:
-                self._pool.spawn(self._handle_execution, execution_queue_item_db)
+        if execution_queue_item_db:
+            self._pool.spawn(self._handle_execution, execution_queue_item_db)
 
     def cleanup(self):
-        LOG.debug('Starting scheduler garbage collection')
+        LOG.debug('Starting scheduler garbage collection...')
 
         while not self._shutdown:
             eventlet.greenthread.sleep(cfg.CONF.scheduler.gc_interval)
             self._handle_garbage_collection()
 
+    @retrying.retry(
+        retry_on_exception=service_utils.retry_on_exceptions,
+        stop_max_attempt_number=cfg.CONF.scheduler.retry_max_attempt,
+        wait_fixed=cfg.CONF.scheduler.retry_wait_msec)
     def _handle_garbage_collection(self):
         """
         Periodically look for executions which have "handling" set to "True" and haven't been
@@ -328,11 +342,24 @@ class ActionExecutionSchedulingQueueHandler(object):
     def start(self):
         self._shutdown = False
 
-        eventlet.spawn(self.run)
-        eventlet.spawn(self.cleanup)
+        # Spawn the worker threads.
+        self._main_thread = eventlet.spawn(self.run)
+        self._cleanup_thread = eventlet.spawn(self.cleanup)
 
-    def shutdown(self):
-        self._shutdown = True
+        # Link the threads to the shutdown function. If either of the threads exited with error,
+        # then initiate shutdown which will allow the waits below to throw exception to the
+        # main process.
+        self._main_thread.link(self.shutdown)
+        self._cleanup_thread.link(self.shutdown)
+
+    def shutdown(self, *args, **kwargs):
+        if not self._shutdown:
+            self._shutdown = True
+
+    def wait(self):
+        # Wait for the worker threads to complete. If there is an exception thrown in the thread,
+        # then the exception will be propagated to the main process for a proper return code.
+        self._main_thread.wait() or self._cleanup_thread.wait()
 
 
 def get_handler():
