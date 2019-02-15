@@ -132,7 +132,7 @@ play:
 	@echo
 
 .PHONY: check
-check: requirements flake8 checklogs
+check: requirements flake8 checkrequirements checklogs
 
 # NOTE: We pass --no-deps to the script so we don't install all the
 # package dependencies which are already installed as part of "requirements"
@@ -149,6 +149,14 @@ install-runners:
 		echo "==========================================================="; \
 		(. $(VIRTUALENV_DIR)/bin/activate; cd $$component; python setup.py develop --no-deps); \
 	done
+
+.PHONY: checkrequirements
+checkrequirements: requirements
+	@echo
+	@echo "============== CHECKING REQUIREMENTS =============="
+	@echo
+	# Update requirements and then make sure no files were changed
+	git status -- *requirements.txt */*requirements.txt | grep -q "nothing to commit, working tree clean"
 
 .PHONY: checklogs
 checklogs:
