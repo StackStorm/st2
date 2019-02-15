@@ -67,5 +67,6 @@ class ServiceRegistryGroupMembersController(object):
 
         return result
 
+
 groups_controller = ServiceRegistryGroupsController()
 members_controller = ServiceRegistryGroupMembersController()

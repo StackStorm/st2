@@ -115,9 +115,7 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
     @classmethod
     def setUpClass(cls):
         super(APIControllersRBACTestCase, cls).setUpClass()
-
-        # NOTE: We mock call common_setup to emulate service being registered in the service
-        # registry during bootstrap phase
+        # Register mock service in the service registry for testing purposes
         register_service_in_service_registry(service='mock_service',
                                              capabilities={'key1': 'value1',
                                                            'name': 'mock_service'},
