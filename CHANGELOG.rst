@@ -31,6 +31,12 @@ Added
 
   This functionality is only used internally and will only work if configuration backend is
   correctly configured in ``st2.conf`` (new feature) #4548
+* Add new ``GET /v1/service_registry/groups`` and
+  ``GET /v1/service_registry/groups/<group_id>/members`` API endpoint for listing available service
+  registry groups and members.
+
+  NOTE: This API endpoint is behind a RBAC control check and can only be views by the admins.
+  (new feature) #4548
 
 Changed
 ~~~~~~~
