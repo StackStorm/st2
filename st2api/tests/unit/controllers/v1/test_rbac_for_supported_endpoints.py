@@ -23,8 +23,8 @@ with mock.patch.object(trigger_service, 'create_trigger_type_db', mock.MagicMock
     from st2api.controllers.v1.webhooks import HooksHolder
 from st2common.persistence.rbac import UserRoleAssignment
 from st2common.models.db.rbac import UserRoleAssignmentDB
-from st2common.service_setup import teardown as common_teardown
 from st2common.service_setup import register_service_in_service_registry
+from st2common.services import coordination
 
 from st2tests.fixturesloader import FixturesLoader
 from tests.base import APIControllerWithRBACTestCase
@@ -126,7 +126,9 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
     @classmethod
     def tearDownClass(cls):
         super(APIControllersRBACTestCase, cls).tearDownClass()
-        common_teardown()
+
+        coordinator = coordination.get_coordinator()
+        coordination.coordinator_teardown(coordinator)
 
     def setUp(self):
         super(APIControllersRBACTestCase, self).setUp()

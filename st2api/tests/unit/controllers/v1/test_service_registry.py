@@ -13,10 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.service_setup import teardown as common_teardown
 from st2common.service_setup import register_service_in_service_registry
 from st2common.util import system_info
 from st2common.services.coordination import get_member_id
+from st2common.services import coordination
 
 from st2tests import config as tests_config
 
@@ -45,7 +45,9 @@ class ServiceyRegistryControllerTestCase(FunctionalTest):
     @classmethod
     def tearDownClass(cls):
         super(ServiceyRegistryControllerTestCase, cls).tearDownClass()
-        common_teardown()
+
+        coordinator = coordination.get_coordinator()
+        coordination.coordinator_teardown(coordinator)
 
     def test_get_groups(self):
         list_resp = self.app.get('/v1/service_registry/groups')
