@@ -23,6 +23,8 @@ with mock.patch.object(trigger_service, 'create_trigger_type_db', mock.MagicMock
     from st2api.controllers.v1.webhooks import HooksHolder
 from st2common.persistence.rbac import UserRoleAssignment
 from st2common.models.db.rbac import UserRoleAssignmentDB
+from st2common.service_setup import teardown as common_teardown
+from st2common.service_setup import register_service_in_service_registry
 
 from st2tests.fixturesloader import FixturesLoader
 from tests.base import APIControllerWithRBACTestCase
@@ -109,6 +111,22 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
 
     register_packs = True
     fixtures_loader = FixturesLoader()
+
+    @classmethod
+    def setUpClass(cls):
+        super(APIControllersRBACTestCase, cls).setUpClass()
+
+        # NOTE: We mock call common_setup to emulate service being registered in the service
+        # registry during bootstrap phase
+        register_service_in_service_registry(service='mock_service',
+                                             capabilities={'key1': 'value1',
+                                                           'name': 'mock_service'},
+                                             start_heart=True)
+
+    @classmethod
+    def tearDownClass(cls):
+        super(APIControllersRBACTestCase, cls).tearDownClass()
+        common_teardown()
 
     def setUp(self):
         super(APIControllersRBACTestCase, self).setUp()
@@ -448,6 +466,17 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             # Rule views
             {
                 'path': '/v1/rules/views',
+                'method': 'GET',
+                'is_getall': True
+            },
+            # Service registry
+            {
+                'path': '/v1/service_registry/groups',
+                'method': 'GET',
+                'is_getall': True
+            },
+            {
+                'path': '/v1/service_registry/groups/mock_service/members',
                 'method': 'GET',
                 'is_getall': True
             }
