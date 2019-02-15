@@ -55,7 +55,9 @@ __all__ = [
     'teardown',
 
     'db_setup',
-    'db_teardown'
+    'db_teardown',
+
+    'register_service_in_service_registry'
 ]
 
 LOG = logging.getLogger(__name__)
@@ -176,27 +178,8 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
     # Register service in the service registry
     if service_registry:
         # NOTE: It's important that we pass start_heart=True to start the hearbeat process
-        coordinator = coordination.get_coordinator(start_heart=True)
-
-        member_id = coordination.get_member_id()
-
-        # 1. Create a group with the name of the service
-        group_id = six.binary_type(six.text_type(service).encode('ascii'))
-
-        try:
-            coordinator.create_group(group_id).get()
-        except GroupAlreadyExist:
-            pass
-
-        # Include common capabilities such as hostname and process ID
-        proc_info = system_info.get_process_info()
-        capabilities['hostname'] = proc_info['hostname']
-        capabilities['pid'] = proc_info['pid']
-
-        # 1. Join the group as a member
-        LOG.debug('Joining service registry group "%s" as member_id "%s" with capabilities "%s"' %
-                  (group_id, member_id, capabilities))
-        coordinator.join_group(group_id, capabilities=capabilities).get()
+        register_service_in_service_registry(service=service, capabilities=capabilities,
+                                             start_heart=True)
 
 
 def teardown():
@@ -209,3 +192,37 @@ def teardown():
     # 2. Tear down the coordinator
     coordinator = coordination.get_coordinator()
     coordination.coordinator_teardown(coordinator)
+
+
+def register_service_in_service_registry(service, capabilities=None, start_heart=True):
+    """
+    Register provided service in the service registry and start the heartbeat process.
+
+    :param service: Service name which will also be used for a group name (e.g. "api").
+    :type service: ``str``
+
+    :param capabilities: Optional metadata associated with the service.
+    :type capabilities: ``dict``
+    """
+    # NOTE: It's important that we pass start_heart=True to start the hearbeat process
+    coordinator = coordination.get_coordinator(start_heart=start_heart)
+
+    member_id = coordination.get_member_id()
+
+    # 1. Create a group with the name of the service
+    group_id = six.binary_type(six.text_type(service).encode('ascii'))
+
+    try:
+        coordinator.create_group(group_id).get()
+    except GroupAlreadyExist:
+        pass
+
+    # Include common capabilities such as hostname and process ID
+    proc_info = system_info.get_process_info()
+    capabilities['hostname'] = proc_info['hostname']
+    capabilities['pid'] = proc_info['pid']
+
+    # 1. Join the group as a member
+    LOG.debug('Joining service registry group "%s" as member_id "%s" with capabilities "%s"' %
+              (group_id, member_id, capabilities))
+    return coordinator.join_group(group_id, capabilities=capabilities).get()
