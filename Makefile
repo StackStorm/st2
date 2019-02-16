@@ -132,8 +132,11 @@ play:
 	@echo
 
 .PHONY: check
-check: requirements flake8 checkrequirements checklogs
+check: check-requirements flake8 checklogs
 
+# NOTE: We pass --no-deps to the script so we don't install all the
+# package dependencies which are already installed as part of "requirements"
+# make targets. This speeds up the build
 .PHONY: install-runners
 install-runners:
 	@echo ""
@@ -143,16 +146,17 @@ install-runners:
 		echo "==========================================================="; \
 		echo "Installing runner:" $$component; \
 		echo "==========================================================="; \
-        (. $(VIRTUALENV_DIR)/bin/activate; cd $$component; python setup.py develop); \
+		(. $(VIRTUALENV_DIR)/bin/activate; cd $$component; python setup.py develop --no-deps); \
 	done
 
-.PHONY: checkrequirements
-checkrequirements: requirements
+.PHONY: check-requirements
+check-requirements: requirements
 	@echo
 	@echo "============== CHECKING REQUIREMENTS =============="
 	@echo
 	# Update requirements and then make sure no files were changed
-	git status -- *requirements.txt */*requirements.txt | grep -q "nothing to commit, working tree clean"
+	git status -- *requirements.txt */*requirements.txt | grep -q "nothing to commit"
+	@echo "All requirements files up-to-date!"
 
 .PHONY: checklogs
 checklogs:
@@ -848,7 +852,7 @@ debs:
 ci: ci-checks ci-unit ci-integration ci-mistral ci-packs-tests
 
 .PHONY: ci-checks
-ci-checks: compile .generated-files-check .pylint .flake8 .bandit .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check
+ci-checks: compile .generated-files-check .pylint .flake8 check-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check
 
 .PHONY: ci-py3-unit
 ci-py3-unit:
