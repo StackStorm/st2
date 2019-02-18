@@ -31,11 +31,16 @@ Changed
   level is set to ``DEBUG`` or ``system.debug`` config option is set to ``True``.
 
   Reported by Nick Maludy. (improvement) #4538 #4502
-* Moved the lock from concurrency policies into the scheduler to fix a race condition when there
-  are multiple scheduler instances scheduling execution for action with concurrency policies.
-  #4481 (bug fix)
-* Add retries to scheduler to handle temporary hiccup in DB connection. Refactor scheduler
-  service to return proper exit code when there is a failure. #4539 (bug fix)
+* Update ``pyyaml`` dependency to the latest version. This latest version fixes an issue which
+  could result in a code execution vulnerability if code uses ``yaml.load`` in an unsafe manner
+  on untrusted input.
+
+  NOTE: StackStorm platform itself is not affected, because we already used ``yaml.safe_load``
+  everywhere.
+
+  Only custom packs which use ``yaml.load`` with non trusted user input could potentially be
+  affected. (improvement) #4510 #4552 #4554
+* Update Orquesta to ``v0.4``. #4551
 
 Fixed
 ~~~~~
@@ -62,6 +67,11 @@ Fixed
   Reported by @johandahlberg (bug fix) #4533 4534
 * Fix CLI ``st2 apikey load`` not being idempotent and API endpoint ``/api/v1/apikeys`` not
   honoring desired ``ID`` for the new record creation. #4542
+* Moved the lock from concurrency policies into the scheduler to fix a race condition when there
+  are multiple scheduler instances scheduling execution for action with concurrency policies.
+  #4481 (bug fix)
+* Add retries to scheduler to handle temporary hiccup in DB connection. Refactor scheduler
+  service to return proper exit code when there is a failure. #4539 (bug fix)
 
 2.10.1 - December 19, 2018
 --------------------------
