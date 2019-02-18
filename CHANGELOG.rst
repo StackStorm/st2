@@ -26,6 +26,8 @@ Added
 
   NOTE: Those options are only supported when using a default and officially supported AMQP backend
   with RabbitMQ server. (new feature) #4541
+* Add metrics instrumentation to the ``st2notifier`` service. For the available / exposed metrics,
+  please refer to https://docs.stackstorm.com/reference/metrics.html. (improvement) #4536
 
 Changed
 ~~~~~~~
