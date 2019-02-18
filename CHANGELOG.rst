@@ -1,19 +1,41 @@
 Changelog
 =========
 
-2.10.1 - December 19, 2018
---------------------------
+in development
+--------------
 
-Fixed
+Added
 ~~~~~
 
-* Fix an issue with ``GET /v1/keys`` API endpoint not correctly handling ``?scope=all`` and
-  ``?user=<username>`` query filter parameter inside the open-source edition. This would allow
-  user A to retrieve datastore values from user B and similar.
+* Add support for various new SSL / TLS related config options (``ssl_keyfile``, ``ssl_certfile``,
+  ``ssl_ca_certs``, ``ssl_certfile``, ``authentication_mechanism``) to the ``messaging`` section in
+  ``st2.conf`` config file.
 
-  NOTE: Enterprise edition with RBAC was not affected, because in RBAC version, correct check is
-  in place which only allows users with an admin role to use ``?scope=all`` and retrieve / view
-  datastore values for arbitrary system users. (security issue bug fix)
+  With those config options, user can configure things such as client based certificate
+  authentication, client side verification of a server certificate against a specific CA bundle, etc.
+
+  NOTE: Those options are only supported when using a default and officially supported AMQP backend
+  with RabbitMQ server. (new feature) #4541
+* Add metrics instrumentation to the ``st2notifier`` service. For the available / exposed metrics,
+  please refer to https://docs.stackstorm.com/reference/metrics.html. (improvement) #4536
+
+Changed
+~~~~~~~
+
+* Update logging code so we exclude log messages with log level ``AUDIT`` from a default service
+  log file (e.g. ``st2api.log``). Log messages with level ``AUDIT`` are already logged in a
+  dedicated service audit log file (e.g. ``st2api.audit.log``) so there is no need for them to also
+  be duplicated and included in regular service log file.
+
+  NOTE: To aid with debugging, audit log messages are also included in a regular log file when log
+  level is set to ``DEBUG`` or ``system.debug`` config option is set to ``True``.
+
+  Reported by Nick Maludy. (improvement) #4538 #4502
+* Moved the lock from concurrency policies into the scheduler to fix a race condition when there
+  are multiple scheduler instances scheduling execution for action with concurrency policies.
+  #4481 (bug fix)
+* Add retries to scheduler to handle temporary hiccup in DB connection. Refactor scheduler
+  service to return proper exit code when there is a failure. #4539 (bug fix)
 
 Fixed
 ~~~~~
@@ -36,8 +58,24 @@ Fixed
   Reported by @johandahlberg (bug fix) #4533
 * Fix ``core.sendmail`` action so it specifies ``charset=UTF-8`` in the ``Content-Type`` email
   header. This way it works correctly when an email subject and / or body contains unicode data.
- 
+
   Reported by @johandahlberg (bug fix) #4533 4534
+* Fix CLI ``st2 apikey load`` not being idempotent and API endpoint ``/api/v1/apikeys`` not
+  honoring desired ``ID`` for the new record creation. #4542
+
+2.10.1 - December 19, 2018
+--------------------------
+
+Fixed
+~~~~~
+
+* Fix an issue with ``GET /v1/keys`` API endpoint not correctly handling ``?scope=all`` and
+  ``?user=<username>`` query filter parameter inside the open-source edition. This would allow
+  user A to retrieve datastore values from user B and similar.
+
+  NOTE: Enterprise edition with RBAC was not affected, because in RBAC version, correct check is
+  in place which only allows users with an admin role to use ``?scope=all`` and retrieve / view
+  datastore values for arbitrary system users. (security issue bug fix)
 
 2.10.0 - December 13, 2018
 --------------------------
