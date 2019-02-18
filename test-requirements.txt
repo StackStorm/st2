@@ -1,4 +1,5 @@
-coverage
+# NOTE: codecov only supports coverage==4.5.2
+coverage==4.5.2
 pep8==1.7.1
 flake8==3.6.0
 astroid==1.6.5
@@ -18,7 +19,7 @@ nose-timer>=0.7.2,<0.8
 # splitting tests run on a separate CI machines
 nose-parallel==0.3.1
 # Required by st2client tests
-pyyaml<4.0,>=3.12
+pyyaml>=4.2b4,<5.2
 RandomWords
 gunicorn==19.7.1
 psutil==5.4.5

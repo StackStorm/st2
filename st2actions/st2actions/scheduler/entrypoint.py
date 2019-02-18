@@ -14,7 +14,6 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-from kombu import Connection
 
 from st2common import log as logging
 from st2common.util import date
@@ -105,5 +104,5 @@ class SchedulerEntrypoint(consumers.MessageHandler):
 
 
 def get_scheduler_entrypoint():
-    with Connection(transport_utils.get_messaging_urls()) as conn:
+    with transport_utils.get_connection() as conn:
         return SchedulerEntrypoint(conn, [ACTIONSCHEDULER_REQUEST_QUEUE])

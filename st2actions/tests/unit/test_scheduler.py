@@ -17,6 +17,9 @@ from __future__ import absolute_import, print_function
 
 import mock
 
+from st2tests import config as test_config
+test_config.parse_args()
+
 import st2common
 from st2tests import ExecutionDbTestCase
 from st2tests.fixturesloader import FixturesLoader
@@ -36,9 +39,6 @@ from st2common.persistence.execution_queue import ActionExecutionSchedulingQueue
 from st2common.persistence.liveaction import LiveAction
 from st2common.services import executions as execution_service
 from st2common.exceptions import db as db_exc
-
-from st2tests import config as test_config
-test_config.parse_args()
 
 
 LIVE_ACTION = {

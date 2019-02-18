@@ -16,14 +16,18 @@
 from __future__ import absolute_import
 
 import eventlet
+import retrying
 from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.util import date
+from st2common.util import service as service_utils
 from st2common.constants import action as action_constants
+from st2common.constants import policy as policy_constants
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.services import action as action_service
+from st2common.services import coordination as coordination_service
 from st2common.services import policies as policy_service
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution_queue import ActionExecutionSchedulingQueue
@@ -57,25 +61,38 @@ class ActionExecutionSchedulingQueueHandler(object):
         self.message_type = LiveActionDB
         self._shutdown = False
         self._pool = eventlet.GreenPool(size=cfg.CONF.scheduler.pool_size)
+        self._coordinator = coordination_service.get_coordinator()
+        self._main_thread = None
+        self._cleanup_thread = None
 
     def run(self):
-        LOG.debug('Entering scheduler loop')
+        LOG.debug('Starting scheduler handler...')
 
         while not self._shutdown:
             eventlet.greenthread.sleep(cfg.CONF.scheduler.sleep_interval)
+            self.process()
 
-            execution_queue_item_db = self._get_next_execution()
+    @retrying.retry(
+        retry_on_exception=service_utils.retry_on_exceptions,
+        stop_max_attempt_number=cfg.CONF.scheduler.retry_max_attempt,
+        wait_fixed=cfg.CONF.scheduler.retry_wait_msec)
+    def process(self):
+        execution_queue_item_db = self._get_next_execution()
 
-            if execution_queue_item_db:
-                self._pool.spawn(self._handle_execution, execution_queue_item_db)
+        if execution_queue_item_db:
+            self._pool.spawn(self._handle_execution, execution_queue_item_db)
 
     def cleanup(self):
-        LOG.debug('Starting scheduler garbage collection')
+        LOG.debug('Starting scheduler garbage collection...')
 
         while not self._shutdown:
             eventlet.greenthread.sleep(cfg.CONF.scheduler.gc_interval)
             self._handle_garbage_collection()
 
+    @retrying.retry(
+        retry_on_exception=service_utils.retry_on_exceptions,
+        stop_max_attempt_number=cfg.CONF.scheduler.retry_max_attempt,
+        wait_fixed=cfg.CONF.scheduler.retry_wait_msec)
     def _handle_garbage_collection(self):
         """
         Periodically look for executions which have "handling" set to "True" and haven't been
@@ -161,16 +178,41 @@ class ActionExecutionSchedulingQueueHandler(object):
             ActionExecutionSchedulingQueue.delete(execution_queue_item_db)
             raise
 
-        liveaction_db = self._apply_pre_run(liveaction_db, execution_queue_item_db)
+        # Identify if the action has policies that require locking.
+        action_has_policies_require_lock = policy_service.has_policies(
+            liveaction_db,
+            policy_types=policy_constants.POLICY_TYPES_REQUIRING_LOCK
+        )
 
-        if not liveaction_db:
-            return
+        # Acquire a distributed lock if the referenced action has specific policies attached.
+        if action_has_policies_require_lock:
+            # Warn users that the coordination service is not configured.
+            if not coordination_service.configured():
+                LOG.warn(
+                    'Coordination backend is not configured. '
+                    'Policy enforcement is best effort.'
+                )
 
-        if self._is_execution_queue_item_runnable(liveaction_db, execution_queue_item_db):
-            self._update_to_scheduled(liveaction_db, execution_queue_item_db)
+            # Acquire a distributed lock before querying the database to make sure that only one
+            # scheduler is scheduling execution for this action. Even if the coordination service
+            # is not configured, the fake driver using zake or the file driver can still acquire
+            # a lock for the local process or server respectively.
+            lock_uid = liveaction_db.action
+            LOG.debug('%s is attempting to acquire lock "%s".', self.__class__.__name__, lock_uid)
+            lock = self._coordinator.get_lock(lock_uid)
 
-    @staticmethod
-    def _apply_pre_run(liveaction_db, execution_queue_item_db):
+            try:
+                if lock.acquire(blocking=False):
+                    self._regulate_and_schedule(liveaction_db, execution_queue_item_db)
+                else:
+                    self._delay(liveaction_db, execution_queue_item_db)
+            finally:
+                lock.release()
+        else:
+            # Otherwise if there is no policy, then schedule away.
+            self._schedule(liveaction_db, execution_queue_item_db)
+
+    def _regulate_and_schedule(self, liveaction_db, execution_queue_item_db):
         # Apply policies defined for the action.
         liveaction_db = policy_service.apply_pre_run_policies(liveaction_db)
 
@@ -190,10 +232,13 @@ class ActionExecutionSchedulingQueueHandler(object):
             liveaction_db = action_service.update_status(
                 liveaction_db, action_constants.LIVEACTION_STATUS_DELAYED, publish=False
             )
+
+            execution_queue_item_db.handling = False
             execution_queue_item_db.scheduled_start_timestamp = date.append_milliseconds_to_time(
                 date.get_datetime_utc_now(),
                 POLICY_DELAYED_EXECUTION_RESCHEDULE_TIME_MS
             )
+
             try:
                 ActionExecutionSchedulingQueue.add_or_update(execution_queue_item_db, publish=False)
             except db_exc.StackStormDBObjectWriteConflictError:
@@ -202,16 +247,40 @@ class ActionExecutionSchedulingQueueHandler(object):
                     execution_queue_item_db.id
                 )
 
-            return None
+            return
 
         if (liveaction_db.status in action_constants.LIVEACTION_COMPLETED_STATES or
                 liveaction_db.status in action_constants.LIVEACTION_CANCEL_STATES):
             ActionExecutionSchedulingQueue.delete(execution_queue_item_db)
-            return None
+            return
 
-        return liveaction_db
+        self._schedule(liveaction_db, execution_queue_item_db)
 
-    def _is_execution_queue_item_runnable(self, liveaction_db, execution_queue_item_db):
+    def _delay(self, liveaction_db, execution_queue_item_db):
+        liveaction_db = action_service.update_status(
+            liveaction_db, action_constants.LIVEACTION_STATUS_DELAYED, publish=False
+        )
+
+        execution_queue_item_db.scheduled_start_timestamp = date.append_milliseconds_to_time(
+            date.get_datetime_utc_now(),
+            POLICY_DELAYED_EXECUTION_RESCHEDULE_TIME_MS
+        )
+
+        try:
+            execution_queue_item_db.handling = False
+            ActionExecutionSchedulingQueue.add_or_update(execution_queue_item_db, publish=False)
+        except db_exc.StackStormDBObjectWriteConflictError:
+            LOG.warning(
+                'Execution queue item update conflict during scheduling: %s',
+                execution_queue_item_db.id
+            )
+
+    def _schedule(self, liveaction_db, execution_queue_item_db):
+        if self._is_execution_queue_item_runnable(liveaction_db, execution_queue_item_db):
+            self._update_to_scheduled(liveaction_db, execution_queue_item_db)
+
+    @staticmethod
+    def _is_execution_queue_item_runnable(liveaction_db, execution_queue_item_db):
         """
         Return True if a particular execution request is runnable.
 
@@ -228,13 +297,14 @@ class ActionExecutionSchedulingQueueHandler(object):
             return True
 
         LOG.info(
-            '%s is ignoring %s (id=%s) with "%s" status after policies are applied.',
-            self.__class__.__name__,
+            'Scheduler is ignoring %s (id=%s) with "%s" status after policies are applied.',
             type(execution_queue_item_db),
             execution_queue_item_db.id,
             liveaction_db.status
         )
+
         ActionExecutionSchedulingQueue.delete(execution_queue_item_db)
+
         return False
 
     @staticmethod
@@ -272,11 +342,24 @@ class ActionExecutionSchedulingQueueHandler(object):
     def start(self):
         self._shutdown = False
 
-        eventlet.spawn(self.run)
-        eventlet.spawn(self.cleanup)
+        # Spawn the worker threads.
+        self._main_thread = eventlet.spawn(self.run)
+        self._cleanup_thread = eventlet.spawn(self.cleanup)
 
-    def shutdown(self):
-        self._shutdown = True
+        # Link the threads to the shutdown function. If either of the threads exited with error,
+        # then initiate shutdown which will allow the waits below to throw exception to the
+        # main process.
+        self._main_thread.link(self.shutdown)
+        self._cleanup_thread.link(self.shutdown)
+
+    def shutdown(self, *args, **kwargs):
+        if not self._shutdown:
+            self._shutdown = True
+
+    def wait(self):
+        # Wait for the worker threads to complete. If there is an exception thrown in the thread,
+        # then the exception will be propagated to the main process for a proper return code.
+        self._main_thread.wait() or self._cleanup_thread.wait()
 
 
 def get_handler():
