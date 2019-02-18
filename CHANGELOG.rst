@@ -17,6 +17,15 @@ Added
 
    For backward compatibility reasons, if pack metadata file doesn't contain that attribute, it's
    assumed it only works with Python 2. (new feature) #4474
+* Add support for various new SSL / TLS related config options (``ssl_keyfile``, ``ssl_certfile``,
+  ``ssl_ca_certs``, ``ssl_certfile``, ``authentication_mechanism``) to the ``messaging`` section in
+  ``st2.conf`` config file.
+
+  With those config options, user can configure things such as client based certificate
+  authentication, client side verification of a server certificate against a specific CA bundle, etc.
+
+  NOTE: Those options are only supported when using a default and officially supported AMQP backend
+  with RabbitMQ server. (new feature) #4541
 * Add metrics instrumentation to the ``st2notifier`` service. For the available / exposed metrics,
   please refer to https://docs.stackstorm.com/reference/metrics.html. (improvement) #4536
 
@@ -36,6 +45,8 @@ Changed
 * Moved the lock from concurrency policies into the scheduler to fix a race condition when there
   are multiple scheduler instances scheduling execution for action with concurrency policies.
   #4481 (bug fix)
+* Add retries to scheduler to handle temporary hiccup in DB connection. Refactor scheduler
+  service to return proper exit code when there is a failure. #4539 (bug fix)
 
 Fixed
 ~~~~~
@@ -60,6 +71,9 @@ Fixed
   header. This way it works correctly when an email subject and / or body contains unicode data.
  
   Reported by @johandahlberg (bug fix) #4533 4534
+
+* Fix CLI ``st2 apikey load`` not being idempotent and API endpoint ``/api/v1/apikeys`` not
+  honoring desired ``ID`` for the new record creation. #4542
 
 2.10.0 - December 13, 2018
 --------------------------
