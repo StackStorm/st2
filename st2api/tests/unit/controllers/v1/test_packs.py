@@ -530,14 +530,14 @@ class PacksControllerTestCase(FunctionalTest,
                                   {'packs': ['dummy_pack_1'], 'types': ['action']})
 
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json, {'actions': 1, 'runners': 15})
+        self.assertEqual(resp.json, {'actions': 1, 'runners': 18})
 
         # Verify that plural name form also works
         resp = self.app.post_json('/v1/packs/register',
                                   {'packs': ['dummy_pack_1'], 'types': ['actions']})
 
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json, {'actions': 1, 'runners': 15})
+        self.assertEqual(resp.json, {'actions': 1, 'runners': 18})
 
         # Register single resource from a single pack specified multiple times - verify that
         # resources from the same pack are only registered once
