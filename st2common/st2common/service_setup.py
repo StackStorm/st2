@@ -37,6 +37,7 @@ from st2common.models.utils.profiling import enable_profiling
 from st2common import triggers
 from st2common.rbac.migrations import run_all as run_all_rbac_migrations
 from st2common.logging.filters import LogLevelFilter
+from st2common.logging.misc import add_global_filters_for_all_loggers
 
 # Note: This is here for backward compatibility.
 # Function has been moved in a standalone module to avoid expensive in-direct
@@ -137,6 +138,10 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
 
     if is_debug_enabled:
         enable_debugging()
+    else:
+        # Add global ignore filters, such as "heartbeat_tick" messages which are logged every 2
+        # ms which cause too much noise
+        add_global_filters_for_all_loggers()
 
     if cfg.CONF.profile:
         enable_profiling()
