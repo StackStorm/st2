@@ -109,9 +109,6 @@ def set_log_level_for_all_loggers(level=logging.DEBUG):
 
         logger = add_filters_for_logger(logger=logger, filters=GLOBAL_FILTERS)
 
-        if hasattr(logger, 'addFilter'):
-            logger.addFilter(LoggerFunctionNameExclusionFilter(exclusions=IGNORED_FUNCTION_NAMES))
-
         if logger.name in SPECIAL_LOGGERS:
             set_log_level_for_all_handlers(logger=logger, level=SPECIAL_LOGGERS.get(logger.name))
         else:
@@ -150,6 +147,9 @@ def add_filters_for_logger(logger, filters):
     :param filter: List of Logger filter instances.
     :type filter: ``list`` of :class:`logging.Filter`
     """
+    if not isinstance(logger, logging.Logger):
+        return logger
+
     if not hasattr(logger, 'addFilter'):
         return logger
 
