@@ -72,6 +72,13 @@ Fixed
   #4481 (bug fix)
 * Add retries to scheduler to handle temporary hiccup in DB connection. Refactor scheduler
   service to return proper exit code when there is a failure. #4539 (bug fix)
+* Update service setup code so we always ignore ``kombu`` library ``heartbeat_tick`` debug log
+  messages.
+
+  Previously if ``DEBUG`` log level was set in service logging config file, but ``--debug``
+  service CLI flag / ``system.debug = True`` config option was not used, those messages were
+  still logged which caused a lot of noise which made actual useful log messages hard to find.
+  (improvement) #4557
 
 2.10.1 - December 19, 2018
 --------------------------
