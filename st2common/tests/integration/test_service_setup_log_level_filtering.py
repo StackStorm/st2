@@ -46,6 +46,9 @@ ST2_CONFIG_SYSTEM_DEBUG_PATH = os.path.join(FIXTURES_DIR,
                                             'conf/st2.tests.api.system_debug_true.conf')
 ST2_CONFIG_SYSTEM_DEBUG_PATH = os.path.abspath(ST2_CONFIG_SYSTEM_DEBUG_PATH)
 
+ST2_CONFIG_SYSTEM_LL_DEBUG_PATH = os.path.join(FIXTURES_DIR,
+    'conf/st2.tests.api.system_debug_true_logging_debug.conf')
+
 PYTHON_BINARY = sys.executable
 
 ST2API_BINARY = os.path.join(BASE_DIR, '../../../st2api/bin/st2api')
@@ -116,8 +119,34 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         self.assertTrue('DEBUG [-]' in stdout)
         self.assertTrue('AUDIT [-]' in stdout)
 
+    def test_kombu_heartbeat_tick_log_messages_are_excluded(self):
+        # 1. system.debug = True config option is set, verify heartbeat_tick message is not logged
+        process = self._start_process(config_path=ST2_CONFIG_SYSTEM_LL_DEBUG_PATH)
+        self.add_process(process=process)
+
+        # Give it some time to start up
+        eventlet.sleep(5)
+        process.send_signal(signal.SIGKILL)
+
+        stdout = '\n'.join(process.stdout.read().decode('utf-8').split('\n'))
+        self.assertTrue('heartbeat_tick' not in stdout)
+
+        # 2. system.debug = False, log level is set to debug
+        process = self._start_process(config_path=ST2_CONFIG_DEBUG_LL_PATH)
+        self.add_process(process=process)
+
+        # Give it some time to start up
+        eventlet.sleep(5)
+        process.send_signal(signal.SIGKILL)
+
+        stdout = '\n'.join(process.stdout.read().decode('utf-8').split('\n'))
+        self.assertTrue('heartbeat_tick' not in stdout)
+
     def _start_process(self, config_path):
         cmd = CMD + [config_path]
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        cwd = os.path.abspath(os.path.join(BASE_DIR, '../../../'))
+        cwd = os.path.abspath(cwd)
+        process = subprocess.Popen(cmd, cwd=cwd,
+                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                    shell=False, preexec_fn=os.setsid)
         return process
