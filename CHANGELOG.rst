@@ -82,6 +82,20 @@ Fixed
 * Fix CLI ``st2 apikey load`` not being idempotent and API endpoint ``/api/v1/apikeys`` not
   honoring desired ``ID`` for the new record creation. #4542
 
+2.10.1 - December 19, 2018
+--------------------------
+
+Fixed
+~~~~~
+
+* Fix an issue with ``GET /v1/keys`` API endpoint not correctly handling ``?scope=all`` and
+  ``?user=<username>`` query filter parameter inside the open-source edition. This would allow
+  user A to retrieve datastore values from user B and similar.
+
+  NOTE: Enterprise edition with RBAC was not affected, because in RBAC version, correct check is
+  in place which only allows users with an admin role to use ``?scope=all`` and retrieve / view
+  datastore values for arbitrary system users. (security issue bug fix)
+
 2.10.0 - December 13, 2018
 --------------------------
 
