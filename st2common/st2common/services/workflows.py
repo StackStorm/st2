@@ -357,7 +357,7 @@ def request_resume(ac_ex_db):
 @retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
 def request_cancellation(ac_ex_db):
     wf_ac_ex_id = str(ac_ex_db.id)
-    LOG.info('[%s] Processing cancelation request for workflow.', wf_ac_ex_id)
+    LOG.info('[%s] Processing cancellation request for workflow.', wf_ac_ex_id)
 
     wf_ex_dbs = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))
 
@@ -388,12 +388,15 @@ def request_cancellation(ac_ex_db):
     root_ac_ex_db = ac_svc.get_root_execution(ac_ex_db)
 
     if root_ac_ex_db != ac_ex_db and root_ac_ex_db.status not in ac_const.LIVEACTION_CANCEL_STATES:
-        LOG.info('[%s] Cascading cancelation request to parent workflow.', wf_ac_ex_id)
+        LOG.info('[%s] Cascading cancellation request to parent workflow.', wf_ac_ex_id)
+        root_lv_ac_db = lv_db_access.LiveAction.get(id=root_ac_ex_db.liveaction['id'])
+        ac_svc.request_cancellation(root_lv_ac_db, None)
+    elif root_ac_ex_db == ac_ex_db and root_ac_ex_db.status == ac_const.LIVEACTION_STATUS_CANCELING:
         root_lv_ac_db = lv_db_access.LiveAction.get(id=root_ac_ex_db.liveaction['id'])
         ac_svc.request_cancellation(root_lv_ac_db, None)
 
     LOG.debug('[%s] %s', wf_ac_ex_id, conductor.serialize())
-    LOG.info('[%s] Completed processing cancelation request for workflow.', wf_ac_ex_id)
+    LOG.info('[%s] Completed processing cancellation request for workflow.', wf_ac_ex_id)
 
     return wf_ex_db
 

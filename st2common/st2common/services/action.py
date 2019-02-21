@@ -260,6 +260,12 @@ def request_cancellation(liveaction, requester):
 
     # Run cancelation sequence for liveaction that is in running state or
     # if the liveaction is operating under a workflow.
+    if 'parent' not in liveaction.context and action_constants.LIVEACTION_STATUS_RUNNING:
+        status = action_constants.LIVEACTION_STATUS_CANCELED
+        liveaction = update_status(liveaction, status, result=result)
+        execution = ActionExecution.get(liveaction__id=str(liveaction.id))
+        return (liveaction, execution)
+
     if ('parent' in liveaction.context or
             liveaction.status in action_constants.LIVEACTION_STATUS_RUNNING):
         status = action_constants.LIVEACTION_STATUS_CANCELING
