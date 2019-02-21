@@ -224,7 +224,7 @@ class ContentPackConfigLoader(object):
 def get_config(pack, user):
     """Returns config for given pack and user.
     """
-    LOG.debug('Attempting to get config')
+    LOG.debug('Attempting to get config for pack "%s" and user "%s"' % (pack, user))
     if pack and user:
         LOG.debug('Pack and user found. Loading config.')
         config_loader = ContentPackConfigLoader(

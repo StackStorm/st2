@@ -68,7 +68,8 @@ class OrquestaRunner(runners.AsyncActionRunner):
             'st2': {
                 'action_execution_id': str(self.execution.id),
                 'api_url': api_util.get_full_public_api_url(),
-                'user': self.execution.context.get('user', cfg.CONF.system_user.user)
+                'user': self.execution.context.get('user', cfg.CONF.system_user.user),
+                'pack': self.execution.context.get('pack', None)
             }
         }
 

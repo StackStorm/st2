@@ -132,7 +132,7 @@ play:
 	@echo
 
 .PHONY: check
-check: requirements flake8 checklogs
+check: check-requirements flake8 checklogs
 
 # NOTE: We pass --no-deps to the script so we don't install all the
 # package dependencies which are already installed as part of "requirements"
@@ -149,6 +149,15 @@ install-runners:
 		echo "==========================================================="; \
 		(. $(VIRTUALENV_DIR)/bin/activate; cd $$component; python setup.py develop --no-deps); \
 	done
+
+.PHONY: check-requirements
+check-requirements: requirements
+	@echo
+	@echo "============== CHECKING REQUIREMENTS =============="
+	@echo
+	# Update requirements and then make sure no files were changed
+	git status -- *requirements.txt */*requirements.txt | grep -q "nothing to commit"
+	@echo "All requirements files up-to-date!"
 
 .PHONY: checklogs
 checklogs:
@@ -179,6 +188,19 @@ configgen: requirements .configgen
 	@echo "================== pylint ===================="
 	@echo
 	# Lint st2 components
+	@for component in $(COMPONENTS); do\
+		echo "==========================================================="; \
+		echo "Running pylint on" $$component; \
+		echo "==========================================================="; \
+		. $(VIRTUALENV_DIR)/bin/activate ; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models --load-plugins=pylint_plugins.db_models $$component/$$component || exit 1; \
+	done
+	# Lint runner modules and packages
+	@for component in $(COMPONENTS_RUNNERS); do\
+		echo "==========================================================="; \
+		echo "Running pylint on" $$component; \
+		echo "==========================================================="; \
+		. $(VIRTUALENV_DIR)/bin/activate ; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models --load-plugins=pylint_plugins.db_models $$component/*.py || exit 1; \
+	done
 	# Lint Python pack management actions
 	. $(VIRTUALENV_DIR)/bin/activate; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models contrib/packs/actions/*.py || exit 1;
 	. $(VIRTUALENV_DIR)/bin/activate; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models contrib/packs/actions/*/*.py || exit 1;
@@ -836,7 +858,7 @@ debs:
 ci: ci-checks ci-unit ci-integration ci-mistral ci-packs-tests
 
 .PHONY: ci-checks
-ci-checks: compile .generated-files-check .pylint .flake8 .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check
+ci-checks: compile .generated-files-check .pylint .flake8 check-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check
 
 .PHONY: ci-py3-unit
 ci-py3-unit:

@@ -14,12 +14,18 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 from st2common import log as logging
 from st2common import transport
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.db.trigger import triggertype_access, trigger_access, triggerinstance_access
 from st2common.persistence.base import (Access, ContentPackResource)
-from st2common.transport import utils as transport_utils
+
+__all__ = [
+    'TriggerType',
+    'Trigger',
+    'TriggerInstance'
+]
 
 LOG = logging.getLogger(__name__)
 
@@ -43,8 +49,7 @@ class Trigger(ContentPackResource):
     @classmethod
     def _get_publisher(cls):
         if not cls.publisher:
-            cls.publisher = transport.reactor.TriggerCUDPublisher(
-                urls=transport_utils.get_messaging_urls())
+            cls.publisher = transport.reactor.TriggerCUDPublisher()
         return cls.publisher
 
     @classmethod

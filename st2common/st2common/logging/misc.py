@@ -22,8 +22,11 @@ from st2common.logging.filters import LoggerFunctionNameExclusionFilter
 
 __all__ = [
     'reopen_log_files',
+
     'set_log_level_for_all_handlers',
-    'set_log_level_for_all_loggers'
+    'set_log_level_for_all_loggers',
+
+    'add_global_filters_for_all_loggers'
 ]
 
 LOG = logging.getLogger(__name__)
@@ -38,6 +41,11 @@ SPECIAL_LOGGERS = {
 IGNORED_FUNCTION_NAMES = [
     # Used by pyamqp, logs every heartbit tick every 2 ms by default
     'heartbeat_tick'
+]
+
+# List of global filters which apply to all the loggers
+GLOBAL_FILTERS = [
+    LoggerFunctionNameExclusionFilter(exclusions=IGNORED_FUNCTION_NAMES)
 ]
 
 
@@ -99,13 +107,56 @@ def set_log_level_for_all_loggers(level=logging.DEBUG):
         if not isinstance(logger, logging.Logger):
             continue
 
-        if hasattr(logger, 'addFilter'):
-            logger.addFilter(LoggerFunctionNameExclusionFilter(exclusions=IGNORED_FUNCTION_NAMES))
+        logger = add_filters_for_logger(logger=logger, filters=GLOBAL_FILTERS)
 
         if logger.name in SPECIAL_LOGGERS:
             set_log_level_for_all_handlers(logger=logger, level=SPECIAL_LOGGERS.get(logger.name))
         else:
             set_log_level_for_all_handlers(logger=logger, level=level)
+
+    return loggers
+
+
+def add_global_filters_for_all_loggers():
+    """
+    Add global filters to all the loggers.
+
+    This way we ensure "spamy" messages like heartbeat_tick are excluded also when --debug flag /
+    system.debug config option is not set, but log level is set to DEBUG.
+    """
+    root_logger = logging.getLogger()
+    loggers = list(logging.Logger.manager.loggerDict.values())
+    loggers += [root_logger]
+
+    for logger in loggers:
+        if not isinstance(logger, logging.Logger):
+            continue
+
+        logger = add_filters_for_logger(logger=logger, filters=GLOBAL_FILTERS)
+
+    return loggers
+
+
+def add_filters_for_logger(logger, filters):
+    """
+    Add provided exclusion filters to the provided logger instance.
+
+    :param logger: Logger class instance.
+    :type logger: :class:`logging.Filter`
+
+    :param filter: List of Logger filter instances.
+    :type filter: ``list`` of :class:`logging.Filter`
+    """
+    if not isinstance(logger, logging.Logger):
+        return logger
+
+    if not hasattr(logger, 'addFilter'):
+        return logger
+
+    for logger_filter in filters:
+        logger.addFilter(logger_filter)
+
+    return logger
 
 
 def get_logger_name_for_module(module, exclude_module_name=False):

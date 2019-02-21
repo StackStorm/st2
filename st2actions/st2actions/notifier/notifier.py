@@ -14,10 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 from datetime import datetime
 import json
 
-from kombu import Connection
 from oslo_config import cfg
 
 from st2common import log as logging
@@ -45,6 +45,8 @@ from st2common.constants.action import ACTION_RESULTS_KV_PREFIX
 from st2common.constants.keyvalue import FULL_SYSTEM_SCOPE, SYSTEM_SCOPE, DATASTORE_PARENT_SCOPE
 from st2common.services.keyvalues import KeyValueLookup
 from st2common.transport.queues import NOTIFIER_ACTIONUPDATE_WORK_QUEUE
+from st2common.metrics.base import CounterWithTimer
+from st2common.metrics.base import Timer
 
 __all__ = [
     'Notifier',
@@ -73,6 +75,7 @@ class Notifier(consumers.MessageHandler):
             pack=ACTION_TRIGGER_TYPE['pack'],
             name=ACTION_TRIGGER_TYPE['name'])
 
+    @CounterWithTimer(key='notifier.action.executions')
     def process(self, execution_db):
         execution_id = str(execution_db.id)
         extra = {'execution': execution_db}
@@ -86,12 +89,18 @@ class Notifier(consumers.MessageHandler):
             # action execution will be applied by the workflow engine. A policy may affect the
             # final state of the action execution thereby impacting the state of the workflow.
             if not workflow_service.is_action_execution_under_workflow_context(execution_db):
-                policy_service.apply_post_run_policies(liveaction_db)
+                with CounterWithTimer(key='notifier.apply_post_run_policies'):
+                    policy_service.apply_post_run_policies(liveaction_db)
 
-            if liveaction_db.notify is not None:
-                self._post_notify_triggers(liveaction_db=liveaction_db, execution_db=execution_db)
+            if liveaction_db.notify:
+                with CounterWithTimer(key='notifier.notify_trigger.post'):
+                    self._post_notify_triggers(liveaction_db=liveaction_db,
+                                               execution_db=execution_db)
 
-        self._post_generic_trigger(liveaction_db=liveaction_db, execution_db=execution_db)
+            if cfg.CONF.action_sensor.enable:
+                with CounterWithTimer(key='notifier.generic_trigger.post'):
+                    self._post_generic_trigger(liveaction_db=liveaction_db,
+                                               execution_db=execution_db)
 
     def _get_execution_for_liveaction(self, liveaction):
         execution = ActionExecution.get(liveaction__id=str(liveaction.id))
@@ -127,7 +136,7 @@ class Notifier(consumers.MessageHandler):
                                          notify_subsection=None,
                                          default_message_suffix=None):
         routes = (getattr(notify_subsection, 'routes') or
-                  getattr(notify_subsection, 'channels', None))
+                  getattr(notify_subsection, 'channels', [])) or []
 
         execution_id = str(execution_db.id)
 
@@ -142,13 +151,15 @@ class Notifier(consumers.MessageHandler):
             )
 
             try:
-                message = self._transform_message(message=message,
-                                                  context=jinja_context)
+                with Timer(key='notifier.transform_message'):
+                    message = self._transform_message(message=message,
+                                                      context=jinja_context)
             except:
                 LOG.exception('Failed (Jinja) transforming `message`.')
 
             try:
-                data = self._transform_data(data=data, context=jinja_context)
+                with Timer(key='notifier.transform_data'):
+                    data = self._transform_data(data=data, context=jinja_context)
             except:
                 LOG.exception('Failed (Jinja) transforming `data`.')
 
@@ -187,8 +198,10 @@ class Notifier(consumers.MessageHandler):
                     payload['channel'] = route
                     LOG.debug('POSTing %s for %s. Payload - %s.', NOTIFY_TRIGGER_TYPE['name'],
                               liveaction_db.id, payload)
-                    self._trigger_dispatcher.dispatch(self._notify_trigger, payload=payload,
-                                                      trace_context=trace_context)
+
+                    with CounterWithTimer(key='notifier.notify_trigger.dispatch'):
+                        self._trigger_dispatcher.dispatch(self._notify_trigger, payload=payload,
+                                                          trace_context=trace_context)
                 except:
                     failed_routes.append(route)
 
@@ -254,8 +267,10 @@ class Notifier(consumers.MessageHandler):
         trace_context = self._get_trace_context(execution_id=execution_id)
         LOG.debug('POSTing %s for %s. Payload - %s. TraceContext - %s',
                   ACTION_TRIGGER_TYPE['name'], liveaction_db.id, payload, trace_context)
-        self._trigger_dispatcher.dispatch(self._action_trigger, payload=payload,
-                                          trace_context=trace_context)
+
+        with CounterWithTimer(key='notifier.generic_trigger.dispatch'):
+            self._trigger_dispatcher.dispatch(self._action_trigger, payload=payload,
+                                              trace_context=trace_context)
 
     def _get_runner_ref(self, action_ref):
         """
@@ -268,6 +283,6 @@ class Notifier(consumers.MessageHandler):
 
 
 def get_notifier():
-    with Connection(transport_utils.get_messaging_urls()) as conn:
+    with transport_utils.get_connection() as conn:
         return Notifier(conn, [NOTIFIER_ACTIONUPDATE_WORK_QUEUE],
                         trigger_dispatcher=TriggerDispatcher(LOG))

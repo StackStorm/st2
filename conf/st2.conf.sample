@@ -171,14 +171,26 @@ mask_secrets_blacklist =  # comma separated list allowed here.
 mask_secrets = True
 
 [messaging]
-# URL of the messaging server.
-url = amqp://guest:guest@127.0.0.1:5672//
-# How long should we wait between connection retries.
-connection_retry_wait = 10000
+# Certificate file used to identify the local connection (client).
+ssl_certfile = None
 # How many times should we retry connection before failing.
 connection_retries = 10
+# Use SSL / TLS to connect to the messaging server. Same as appending "?ssl=true" at the end of the connection URL string.
+ssl = False
+# URL of the messaging server.
+url = amqp://guest:guest@127.0.0.1:5672//
+# Specifies whether a certificate is required from the other side of the connection, and whether it will be validated if provided.
+ssl_cert_reqs = None
 # URL of all the nodes in a messaging service cluster.
 cluster_urls =  # comma separated list allowed here.
+# How long should we wait between connection retries.
+connection_retry_wait = 10000
+# Private keyfile used to identify the local connection against RabbitMQ.
+ssl_keyfile = None
+# ca_certs file contains a set of concatenated CA certificates, which are used to validate certificates passed from RabbitMQ.
+ssl_ca_certs = None
+# Login method to use (AMQPLAIN, PLAIN, EXTERNAL, etc.).
+login_method = None
 
 [metrics]
 # Randomly sample and only send metrics for X% of metric operations to the backend. Default value of 1 means no sampling is done and all the metrics are sent to the backend. E.g. 0.1 would mean 10% of operations are sampled.
@@ -245,14 +257,18 @@ thread_pool_size = 10
 logging = /etc/st2/logging.rulesengine.conf
 
 [scheduler]
-# How long (in seconds) to sleep between each action scheduler main loop run interval.
-sleep_interval = 0.1
-# How often (in seconds) to look for zombie execution requests before rescheduling them.
-gc_interval = 10
+# The maximum number of attempts that the scheduler retries on error.
+retry_max_attempt = 10
 # Location of the logging configuration file.
 logging = /etc/st2/logging.scheduler.conf
+# How long (in seconds) to sleep between each action scheduler main loop run interval.
+sleep_interval = 0.1
 # The size of the pool used by the scheduler for scheduling executions.
 pool_size = 10
+# The number of milliseconds to wait in between retries.
+retry_wait_msec = 3000
+# How often (in seconds) to look for zombie execution requests before rescheduling them.
+gc_interval = 10
 
 [schema]
 # Version of JSON schema to use.
