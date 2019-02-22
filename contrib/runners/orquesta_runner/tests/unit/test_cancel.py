@@ -236,3 +236,33 @@ class OrquestaRunnerCancelTest(st2tests.ExecutionDbTestCase):
         # Assert the main workflow is canceling.
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_CANCELED)
+
+    def test_cancel_workflow_cascade_down_to_subworkflow_while_still_launching(self):
+       wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'subworkflow.yaml')
+       lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
+       lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
+       lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+       self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result)
+
+       # Identify the records for the subworkflow.
+       wf_ex_dbs = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))
+       self.assertEqual(len(wf_ex_dbs), 1)
+
+       tk_ex_dbs = wf_db_access.TaskExecution.query(workflow_execution=str(wf_ex_dbs[0].id))
+       self.assertEqual(len(tk_ex_dbs), 1)
+
+       tk_ac_ex_dbs = ex_db_access.ActionExecution.query(task_execution=str(tk_ex_dbs[0].id))
+       self.assertEqual(len(tk_ac_ex_dbs), 1)
+
+       tk_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk_ac_ex_dbs[0].liveaction['id'])
+       self.assertEqual(tk_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
+
+       # Cancel the main workflow.
+       requester = cfg.CONF.system_user.user
+       lv_ac_db, ac_ex_db = ac_svc.request_cancellation(lv_ac_db, requester)
+       self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_CANCELING)
+
+       # Re-run cancel the main workflow in case of workflow is stuck in canceling.
+       lv_ac_db, ac_ex_db = ac_svc.request_cancellation(lv_ac_db, requester)
+       self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_CANCELED)
+

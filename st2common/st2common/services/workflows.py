@@ -377,8 +377,6 @@ def request_cancellation(ac_ex_db):
     if conductor.get_workflow_state() in states.COMPLETED_STATES:
         raise wf_exc.WorkflowExecutionIsCompletedException(str(wf_ex_db.id))
 
-    conductor.request_workflow_state(states.CANCELED)
-
     # Write the updated workflow state and task flow to the database.
     wf_ex_db.status = conductor.get_workflow_state()
     wf_ex_db.flow = conductor.flow.serialize()
@@ -389,9 +387,7 @@ def request_cancellation(ac_ex_db):
 
     if root_ac_ex_db != ac_ex_db and root_ac_ex_db.status not in ac_const.LIVEACTION_CANCEL_STATES:
         LOG.info('[%s] Cascading cancellation request to parent workflow.', wf_ac_ex_id)
-        root_lv_ac_db = lv_db_access.LiveAction.get(id=root_ac_ex_db.liveaction['id'])
-        ac_svc.request_cancellation(root_lv_ac_db, None)
-    elif root_ac_ex_db == ac_ex_db and root_ac_ex_db.status == ac_const.LIVEACTION_STATUS_CANCELING:
+        conductor.request_workflow_state(states.CANCELED)
         root_lv_ac_db = lv_db_access.LiveAction.get(id=root_ac_ex_db.liveaction['id'])
         ac_svc.request_cancellation(root_lv_ac_db, None)
 
