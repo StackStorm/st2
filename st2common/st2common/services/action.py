@@ -244,15 +244,12 @@ def request_cancellation(liveaction, requester):
     :return: (liveaction, execution)
     :rtype: tuple
     """
-    # Run cancellation for parent if it is in CANCELING status
+    # If action stuck in canceling, allow user to re-run cancel command
     if liveaction.status == action_constants.LIVEACTION_STATUS_CANCELING:
-        if 'parent' not in liveaction.context:
-            status = action_constants.LIVEACTION_STATUS_CANCELED
-            liveaction = update_status(liveaction, status)
-            execution = ActionExecution.get(liveaction__id=str(liveaction.id))
-            return (liveaction, execution)
-        else:
-            return liveaction
+        status = action_constants.LIVEACTION_STATUS_CANCELED
+        liveaction = update_status(liveaction, status)
+        execution = ActionExecution.get(liveaction__id=str(liveaction.id))
+        return (liveaction, execution)
 
     if liveaction.status not in action_constants.LIVEACTION_CANCELABLE_STATES:
         raise Exception(
