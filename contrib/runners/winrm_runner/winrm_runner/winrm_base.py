@@ -15,11 +15,14 @@
 
 from __future__ import absolute_import
 
+import base64
+import os
 import re
 import six
 import time
 
 from base64 import b64encode
+from contextlib import contextmanager
 from st2common import log as logging
 from st2common.constants import action as action_constants
 from st2common.constants import exit_codes as exit_code_constants
@@ -46,10 +49,13 @@ RUNNER_TRANSPORT = "transport"
 RUNNER_USERNAME = "username"
 RUNNER_VERIFY_SSL = "verify_ssl_cert"
 
+WINRM_DEFAULT_TMP_DIR_PS = '[System.IO.Path]::GetTempPath()'
 WINRM_HTTPS_PORT = 5986
 WINRM_HTTP_PORT = 5985
 # explicity made so that it does not equal SUCCESS so a failure is returned
 WINRM_TIMEOUT_EXIT_CODE = exit_code_constants.SUCCESS_EXIT_CODE - 1
+# number of bytes in each chunk when uploading data via WinRM to a target host
+WINRM_UPLOAD_CHUNK_SIZE_BYTES = 400
 
 DEFAULT_KWARG_OP = "-"
 DEFAULT_PORT = WINRM_HTTPS_PORT
@@ -92,6 +98,7 @@ class WinRmBaseRunner(ActionRunner):
         super(WinRmBaseRunner, self).pre_run()
 
         # common connection parameters
+        self._session = None
         self._host = self.runner_parameters[RUNNER_HOST]
         self._username = self.runner_parameters[RUNNER_USERNAME]
         self._password = self.runner_parameters[RUNNER_PASSWORD]
@@ -121,16 +128,17 @@ class WinRmBaseRunner(ActionRunner):
         self._env = self._env or {}
         self._kwarg_op = self.runner_parameters.get(RUNNER_KWARG_OP, DEFAULT_KWARG_OP)
 
-    def _create_session(self):
-        # create the session
-        LOG.info("Connecting via WinRM to url: {}".format(self._winrm_url))
-        session = Session(self._winrm_url,
-                          auth=(self._username, self._password),
-                          transport=self._transport,
-                          server_cert_validation=self._server_cert_validation,
-                          operation_timeout_sec=self._timeout,
-                          read_timeout_sec=self._read_timeout)
-        return session
+    def _get_session(self):
+        # cache session (only create if it doesn't exist yet)
+        if not self._session:
+            LOG.info("Connecting via WinRM to url: {}".format(self._winrm_url))
+            self._session = Session(self._winrm_url,
+                                    auth=(self._username, self._password),
+                                    transport=self._transport,
+                                    server_cert_validation=self._server_cert_validation,
+                                    operation_timeout_sec=self._timeout,
+                                    read_timeout_sec=self._read_timeout)
+        return self._session
 
     def _winrm_get_command_output(self, protocol, shell_id, command_id):
         # NOTE: this is copied from pywinrm because it doesn't support
@@ -224,9 +232,81 @@ class WinRmBaseRunner(ActionRunner):
         # objects so they can be used natively
         return (status, jsonify.json_loads(result, RESULT_KEYS_TO_TRANSFORM), None)
 
+    def _make_tmp_dir(self, parent):
+        LOG.info("Creating temporary directory for WinRM script in parent: {}".format(parent))
+        ps = """$parent = {parent}
+$name = [System.IO.Path]::GetRandomFileName()
+$path = Join-Path $parent $name
+New-Item -ItemType Directory -Path $path | Out-Null
+$path""".format(parent=parent)
+        response = self.run_ps(ps)
+        result = response[1]
+        if result['failed']:
+            raise RuntimeError(("Unable to make temporary directory for powershell script:\n"
+                                "stdout = {}\n\n"
+                                "stderr = {}").format(result['stdout'], result['stderr']))
+        # strip to remove trailing newline and whitespace (if any)
+        return result['stdout'].strip()
+
+    def _rm_dir(self, directory):
+        ps = 'Remove-Item -Force -Recurse -Path "{}"'.format(directory)
+        response = self.run_ps(ps)
+        result = response[1]
+        if result['failed']:
+            raise RuntimeError(("Unable to remove temporary directory for powershell script:\n"
+                                "stdout = {}\n\n"
+                                "stderr = {}").format(result['stdout'], result['stderr']))
+
+    def _upload(self, src_path_or_data, dst_path):
+        src_data = None
+        if os.path.exists(src_path_or_data):
+            LOG.info("WinRM uploading local file: {}".format(src_path_or_data))
+            with open(src_path_or_data, 'r') as src_file:
+                src_data = src_file.read()
+        else:
+            LOG.info("WinRM data")
+            src_data = src_path_or_data
+
+        for i in range(0, len(src_data), WINRM_UPLOAD_CHUNK_SIZE_BYTES):
+            LOG.info("WinRM data: {}-{}".format(i, (i + WINRM_UPLOAD_CHUNK_SIZE_BYTES)))
+            self._upload_chunk(dst_path, src_data[i:(i + WINRM_UPLOAD_CHUNK_SIZE_BYTES)])
+
+    def _upload_chunk(self, dst_path, src_data):
+        # adapted/copied from https://github.com/diyan/pywinrm/issues/18
+        ps = """$filePath = "{dst_path}"
+$s = @"
+{b64_data}
+"@
+$data = [System.Convert]::FromBase64String($s)
+Add-Content -value $data -encoding byte -path $filePath
+""".format(dst_path=dst_path,
+           b64_data=base64.b64encode(src_data))
+
+        response = self.run_ps(ps)
+        result = response[1]
+        if result['failed']:
+            raise RuntimeError(("Failed to upload chunk of powershell script:\n"
+                                "stdout = {}\n\n"
+                                "stderr = {}").format(result['stdout'], result['stderr']))
+
+    @contextmanager
+    def _tmp_script(self, parent, script):
+        tmp_dir = None
+        try:
+            tmp_dir = self._make_tmp_dir(parent)
+            LOG.info("WinRM Tmp directory created: {}".format(tmp_dir))
+            tmp_script = tmp_dir + "\\script.ps1"
+            LOG.info("Uploading WinRM script to: {}".format(tmp_script))
+            self._upload(script, tmp_script)
+            yield tmp_script
+        finally:
+            if tmp_dir:
+                LOG.info("Removing WinRM script: {}".format(tmp_dir))
+                self._rm_dir(tmp_dir)
+
     def run_cmd(self, cmd):
         # connect
-        session = self._create_session()
+        session = self._get_session()
         # execute
         response = self._winrm_run_cmd(session, cmd, env=self._env, cwd=self._cwd)
         # create triplet from WinRM response
@@ -234,9 +314,27 @@ class WinRmBaseRunner(ActionRunner):
 
     def run_ps(self, powershell):
         # connect
-        session = self._create_session()
+        session = self._get_session()
         # execute
         response = self._winrm_run_ps(session, powershell, env=self._env, cwd=self._cwd)
+        # create triplet from WinRM response
+        return self._translate_response(response)
+
+    def run_ps_script(self, script, params):
+        # connect
+        session = self._get_session()
+        # temporary directory for the powershell script
+        tmp_dir = WINRM_DEFAULT_TMP_DIR_PS
+
+        # creates a temporary file, uploads the script and handles
+        # deletion of the temp file on exit
+        with self._tmp_script(tmp_dir, script) as tmp_script:
+            # the following wraps the script (from the file) in a script block ( {} )
+            # executes it, passing in the parameters built above
+            # https://docs.microsoft.com/en-us/powershell/scripting/core-powershell/console/powershell.exe-command-line-help
+            ps = "& {%s} %s" % (tmp_script, params)
+            response = self._winrm_run_ps(session, ps, env=self._env, cwd=self._cwd)
+
         # create triplet from WinRM response
         return self._translate_response(response)
 

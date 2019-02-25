@@ -54,6 +54,15 @@ Changed
   service CLI flag / ``system.debug = True`` config option was not used, those messages were
   still logged which caused a lot of noise which made actual useful log messages hard to find.
   (improvement) #4557
+* Improved the way that the ``winrm-ps-script`` runner sends scripts to the target Windows
+  host. Previously the script was read from the local filesystem and serialized as one long
+  command executed on the command line. This failed when the script was longer than either
+  2047 or 8191 bytes (depending on Windows version) as the Windows command line uses this
+  as its maximum length. To overcome this, the ``winrm-ps-script`` runner now uploads the
+  script into a temporary directory on the target host, then executes the script.
+  (improvement) #4514
+
+  Contributed by Nick Maludy (Encore Technologies)
 
 Fixed
 ~~~~~
