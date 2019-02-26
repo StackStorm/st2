@@ -106,16 +106,10 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
 
         # Skip if task execution is already in completed state.
         if task_ex_db.status in states.COMPLETED_STATES:
-            LOG.info(
-                '[%s] Action execution "%s" for task "%s" is not processed because '
-                'task execution "%s" is already in completed state "%s".',
-                wf_ac_ex_id,
-                str(ac_ex_db.id),
-                task_ex_db.task_id,
-                str(task_ex_db.id),
-                task_ex_db.status
-            )
-
+            msg = ('[%s] Action execution "%s" for task "%s (%s)", route "%s", is not processed '
+                   'because task execution "%s" is already in completed state "%s".')
+            LOG.info(msg, wf_ac_ex_id, str(ac_ex_db.id), task_ex_db.task_id,
+                     str(task_ex_db.task_route), str(task_ex_db.id), task_ex_db.status)
             return
 
         # Process pending request on the action execution.
