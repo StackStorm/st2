@@ -26,6 +26,10 @@ Changed
 Fixed
 ~~~~~
 
+* Refactored orquesta execution graph to fix performance issue for workflows with many
+  references to non-join tasks. st2workflowengine and DB models are refactored accordingly.
+  (improvement) StackStorm/orquesta#122.
+
 2.10.2 - February 21, 2019
 --------------------------
 
