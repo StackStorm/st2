@@ -111,7 +111,8 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
                     '\'<% ctx().name.value %>\'. NoFunctionRegisteredException: '
                     'Unknown function "#property#value"'
                 ),
-                'task_id': 'task1'
+                'task_id': 'task1',
+                'route': 0
             }
         ]
 
@@ -128,8 +129,9 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
                     'YaqlEvaluationException: Unable to resolve key \'value\' '
                     'in expression \'<% succeeded() and result().value %>\' from context.'
                 ),
-                'task_transition_id': 'task2__0',
-                'task_id': 'task1'
+                'task_transition_id': 'task2__t0',
+                'task_id': 'task1',
+                'route': 0
             }
         ]
 
@@ -150,8 +152,9 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
                     'YaqlEvaluationException: Unable to resolve key \'value\' '
                     'in expression \'<% result().value %>\' from context.'
                 ),
-                'task_transition_id': 'task2__0',
-                'task_id': 'task1'
+                'task_transition_id': 'task2__t0',
+                'task_id': 'task1',
+                'route': 0
             }
         ]
 
