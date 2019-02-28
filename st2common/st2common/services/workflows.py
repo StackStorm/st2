@@ -535,6 +535,9 @@ def request_action_execution(wf_ex_db, task_ex_db, st2_ctx, ac_ex_req, delay=Non
     # Identify the runner for the action.
     runner_type_db = action_utils.get_runnertype_by_name(action_db.runner_type['name'])
 
+    # Identify action reference
+    action_ref = task_ex_db.task_spec.get('spec').get('action')
+
     # Set context for the action execution.
     ac_ex_ctx = {
         'pack': st2_ctx.get('pack'),
@@ -545,7 +548,8 @@ def request_action_execution(wf_ex_db, task_ex_db, st2_ctx, ac_ex_req, delay=Non
             'task_execution_id': str(task_ex_db.id),
             'task_name': task_ex_db.task_name,
             'task_id': task_ex_db.task_id
-        }
+        },
+        'ref': action_ref
     }
 
     if st2_ctx.get('api_user'):
