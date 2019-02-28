@@ -290,7 +290,6 @@ def render_live_params(runner_parameters, action_parameters, params, action_cont
 
     pack = action_context.get('pack')
     user = action_context.get('user')
-    action_ref = action_context.get('ref')
 
     try:
         config = get_config(pack, user)
@@ -299,17 +298,6 @@ def render_live_params(runner_parameters, action_parameters, params, action_cont
         config = {}
 
     G = _create_graph(action_context, config)
-
-    # Retrieve config for action pack if it is different with parent
-    if action_ref:
-        action_pack = action_ref.split('.')[0]
-        if pack != action_pack:
-            try:
-                action_config = get_config(action_pack, user)
-                G = _create_graph(action_context, action_config)
-            except Exception as e:
-                LOG.info('Failed to retrieve action config for pack %s and user %s: %s' % (
-                    action_pack, user, str(e)))
 
     # Additional contexts are applied after all other contexts (see _create_graph), but before any
     # of the dependencies have been resolved.
