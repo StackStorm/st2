@@ -1,2 +1,2 @@
 # Don't edit this file. It's generated automatically!
-git+https://github.com/StackStorm/orquesta.git@5151f38877ac7d05d0576c183900f780a7556539#egg=orquesta
+git+https://github.com/StackStorm/orquesta.git@d038caf217cf63bca2364905160bab7655f81d99#egg=orquesta
