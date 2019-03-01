@@ -20,6 +20,7 @@ import warnings
 from cryptography.utils import CryptographyDeprecationWarning
 warnings.filterwarnings('ignore', category=CryptographyDeprecationWarning)
 
+import distutils.sysconfig
 import os
 import sys
 import select
@@ -36,6 +37,11 @@ if __name__ == '__main__':
     script_path = sys.path[0]
     if RUNNERS_PATH_SUFFIX in script_path:
         sys.path.pop(0)
+
+    # This puts priority on loading virtualenv library in the pack's action. This is necessary
+    # for the situation that both st2 and pack require to load same name libraries with different
+    # version. Without this statement, action may call library method with unexpected dependencies.
+    sys.path.insert(0, distutils.sysconfig.get_python_lib())
 
 import sys
 import json
