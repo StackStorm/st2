@@ -194,12 +194,20 @@ class WinRmBaseRunner(ActionRunner):
         session.protocol.close_shell(shell_id)
         return rs
 
-    def _winrm_run_ps(self, session, script, env=None, cwd=None):
+    def _winrm_encode(self, script):
+        return b64encode(script.encode('utf_16_le')).decode('ascii')
+
+    def _winrm_ps_cmd(self, encoded_ps):
+        return 'powershell -encodedcommand {0}'.format(encoded_ps)
+
+    def _winrm_run_ps(self, session, script, env=None, cwd=None, is_b64=False):
         # NOTE: this is copied from pywinrm because it doesn't support
         # passing env and working_directory from the Session.run_ps
-        encoded_ps = b64encode(script.encode('utf_16_le')).decode('ascii')
+
+        # encode the script in UTF only if it isn't passed in encoded
+        encoded_ps = script if is_b64 else self._winrm_encode(script)
         rs = self._winrm_run_cmd(session,
-                                 'powershell -encodedcommand {0}'.format(encoded_ps),
+                                 self._winrm_ps_cmd(encoded_ps),
                                  env=env,
                                  cwd=cwd)
         if len(rs.std_err):
@@ -318,40 +326,55 @@ Add-Content -value $data -encoding byte -path $filePath
         return self._translate_response(response)
 
     def run_ps(self, powershell):
-        # if the powershell command is longer than the max allowed size, then put the
-        # command into a script file on the remote host and run the script.
-        # else, just run the command directly (faster this way)
-        if len(powershell) > WINRM_MAX_CMD_LENGTH:
+        # if the powershell command smaller than the max allowed size,
+        # then just run the command (faster)
+        # else put command into a script file on the remote host and run the script.
+        encoded_ps = self._winrm_encode(powershell)
+        ps_cmd = self._winrm_ps_cmd(encoded_ps)
+        if len(ps_cmd) <= WINRM_MAX_CMD_LENGTH:
             return self.run_ps_script(powershell)
         else:
-            return self._run_ps(powershell)
+            return self._run_ps(encoded_ps, is_b64=True)
 
-    def _run_ps(self, powershell):
+    def _run_ps(self, powershell, is_b64=False):
         """Executes a powershell command, no checks for length are done in this version.
         The lack of checks here is intentional so that we don't run into an infinte loop
         when converting a long command to a script"""
         # connect
         session = self._get_session()
         # execute
-        response = self._winrm_run_ps(session, powershell, env=self._env, cwd=self._cwd)
+        response = self._winrm_run_ps(session, powershell, env=self._env, cwd=self._cwd,
+                                      is_b64=is_b64)
         # create triplet from WinRM response
         return self._translate_response(response)
 
     def run_ps_script(self, script, params=None):
         # temporary directory for the powershell script
         tmp_dir = WINRM_DEFAULT_TMP_DIR_PS
+        powershell = '& {%s}' % (script)
+        if params:
+            powershell += ' ' + params
+        encoded_ps = self._winrm_encode(powershell)
+        ps_cmd = self._winrm_ps_cmd(encoded_ps)
 
-        # creates a temporary file,
-        # uploads the contents of 'script' to the temporary file
-        # handles deletion of the temporary file on exit of the with block
-        with self._tmp_script(tmp_dir, script) as tmp_script:
-            # the following wraps the script (from the file) in a script block ( {} )
-            # executes it, passing in the parameters built above
-            # https://docs.microsoft.com/en-us/powershell/scripting/core-powershell/console/powershell.exe-command-line-help
-            ps = "& {%s}" % (tmp_script)
-            if params:
-                ps += " " + params
-            return self._run_ps(ps)
+        # if the powershell script is small enough to fit in one command
+        # then run it as a single command (faster)
+        # else we need to upload the script to a temporary file and execute it,
+        # then remove the temporary file
+        if len(ps_cmd) < WINRM_MAX_CMD_LENGTH:
+            return self._run_ps(encoded_ps, is_b64=True)
+        else:
+            # creates a temporary file,
+            # upload the contents of 'script' to the temporary file
+            # handle deletion of the temporary file on exit of the with block
+            with self._tmp_script(tmp_dir, script) as tmp_script:
+                # the following wraps the script (from the file) in a script block ( {} )
+                # executes it, passing in the parameters built above
+                # https://docs.microsoft.com/en-us/powershell/scripting/core-powershell/console/powershell.exe-command-line-help
+                ps = "& {%s}" % (tmp_script)
+                if params:
+                    ps += " " + params
+                return self._run_ps(ps)
 
     def _multireplace(self, string, replacements):
         """
