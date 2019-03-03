@@ -42,6 +42,7 @@ tooz==1.63.1
 zake==0.2.2
 routes==2.4.1
 webob==1.8.4
+flex==6.14.0
 prance==0.9.0
 pywinrm==0.3.0
 # test requirements below

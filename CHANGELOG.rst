@@ -1,7 +1,7 @@
 Changelog
 =========
 
-in development
+In development
 --------------
 
 Added
@@ -17,15 +17,6 @@ Added
 
    For backward compatibility reasons, if pack metadata file doesn't contain that attribute, it's
    assumed it only works with Python 2. (new feature) #4474
-* Add support for various new SSL / TLS related config options (``ssl_keyfile``, ``ssl_certfile``,
-  ``ssl_ca_certs``, ``ssl_certfile``, ``authentication_mechanism``) to the ``messaging`` section in
-  ``st2.conf`` config file.
-
-  With those config options, user can configure things such as client based certificate
-  authentication, client side verification of a server certificate against a specific CA bundle, etc.
-
-  NOTE: Those options are only supported when using a default and officially supported AMQP backend
-  with RabbitMQ server. (new feature) #4541
 * Update service bootstrap code and make sure all the services register in a service registry once
   they come online and become available.
 
@@ -42,6 +33,35 @@ Changed
 ~~~~~~~
 
 * Changed the ``inquiries`` API path from ``/exp`` to ``/api/v1``. #4495
+
+Fixed
+~~~~~
+
+* Refactored orquesta execution graph to fix performance issue for workflows with many
+  references to non-join tasks. st2workflowengine and DB models are refactored accordingly.
+  (improvement) StackStorm/orquesta#122.
+
+2.10.2 - February 21, 2019
+--------------------------
+
+Added
+~~~~~
+
+* Add support for various new SSL / TLS related config options (``ssl_keyfile``, ``ssl_certfile``,
+  ``ssl_ca_certs``, ``ssl_certfile``, ``authentication_mechanism``) to the ``messaging`` section in
+  ``st2.conf`` config file.
+
+  With those config options, user can configure things such as client based certificate
+  authentication, client side verification of a server certificate against a specific CA bundle, etc.
+
+  NOTE: Those options are only supported when using a default and officially supported AMQP backend
+  with RabbitMQ server. (new feature) #4541
+* Add metrics instrumentation to the ``st2notifier`` service. For the available / exposed metrics,
+  please refer to https://docs.stackstorm.com/reference/metrics.html. (improvement) #4536
+
+Changed
+~~~~~~~
+
 * Update logging code so we exclude log messages with log level ``AUDIT`` from a default service
   log file (e.g. ``st2api.log``). Log messages with level ``AUDIT`` are already logged in a
   dedicated service audit log file (e.g. ``st2api.audit.log``) so there is no need for them to also
@@ -51,11 +71,16 @@ Changed
   level is set to ``DEBUG`` or ``system.debug`` config option is set to ``True``.
 
   Reported by Nick Maludy. (improvement) #4538 #4502
-* Moved the lock from concurrency policies into the scheduler to fix a race condition when there
-  are multiple scheduler instances scheduling execution for action with concurrency policies.
-  #4481 (bug fix)
-* Add retries to scheduler to handle temporary hiccup in DB connection. Refactor scheduler
-  service to return proper exit code when there is a failure. #4539 (bug fix)
+* Update ``pyyaml`` dependency to the latest version. This latest version fixes an issue which
+  could result in a code execution vulnerability if code uses ``yaml.load`` in an unsafe manner
+  on untrusted input.
+
+  NOTE: StackStorm platform itself is not affected, because we already used ``yaml.safe_load``
+  everywhere.
+
+  Only custom packs which use ``yaml.load`` with non trusted user input could potentially be
+  affected. (improvement) #4510 #4552 #4554
+* Update Orquesta to ``v0.4``. #4551
 
 Fixed
 ~~~~~
@@ -83,6 +108,32 @@ Fixed
 
 * Fix CLI ``st2 apikey load`` not being idempotent and API endpoint ``/api/v1/apikeys`` not
   honoring desired ``ID`` for the new record creation. #4542
+* Moved the lock from concurrency policies into the scheduler to fix a race condition when there
+  are multiple scheduler instances scheduling execution for action with concurrency policies.
+  #4481 (bug fix)
+* Add retries to scheduler to handle temporary hiccup in DB connection. Refactor scheduler
+  service to return proper exit code when there is a failure. #4539 (bug fix)
+* Update service setup code so we always ignore ``kombu`` library ``heartbeat_tick`` debug log
+  messages.
+
+  Previously if ``DEBUG`` log level was set in service logging config file, but ``--debug``
+  service CLI flag / ``system.debug = True`` config option was not used, those messages were
+  still logged which caused a lot of noise which made actual useful log messages hard to find.
+  (improvement) #4557
+
+2.10.1 - December 19, 2018
+--------------------------
+
+Fixed
+~~~~~
+
+* Fix an issue with ``GET /v1/keys`` API endpoint not correctly handling ``?scope=all`` and
+  ``?user=<username>`` query filter parameter inside the open-source edition. This would allow
+  user A to retrieve datastore values from user B and similar.
+
+  NOTE: Enterprise edition with RBAC was not affected, because in RBAC version, correct check is
+  in place which only allows users with an admin role to use ``?scope=all`` and retrieve / view
+  datastore values for arbitrary system users. (security issue bug fix)
 
 2.10.0 - December 13, 2018
 --------------------------

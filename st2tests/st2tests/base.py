@@ -644,7 +644,7 @@ class WorkflowTestCase(ExecutionDbTestCase):
 
         for task in conductor.get_next_tasks():
             ac_ex_event = events.ActionExecutionEvent(wf_lib_states.RUNNING)
-            conductor.update_task_flow(task['id'], ac_ex_event)
+            conductor.update_task_flow(task['id'], task['route'], ac_ex_event)
 
         wf_ex_db.status = conductor.get_workflow_state()
         wf_ex_db.flow = conductor.flow.serialize()
@@ -652,8 +652,8 @@ class WorkflowTestCase(ExecutionDbTestCase):
 
         return wf_ex_db
 
-    def get_task_ex(self, task_id):
-        task_ex_dbs = wf_db_access.TaskExecution.query(task_id=task_id)
+    def get_task_ex(self, task_id, route):
+        task_ex_dbs = wf_db_access.TaskExecution.query(task_id=task_id, task_route=route)
         self.assertGreater(len(task_ex_dbs), 0)
         return task_ex_dbs[0]
 
@@ -667,13 +667,21 @@ class WorkflowTestCase(ExecutionDbTestCase):
         self.assertEqual(len(ac_ex_dbs), 1)
         return ac_ex_dbs[0]
 
-    def run_workflow_step(self, wf_ex_db, task_id, ctx=None):
+    def run_workflow_step(self, wf_ex_db, task_id, route, ctx=None):
         spec_module = specs_loader.get_spec_module(wf_ex_db.spec['catalog'])
         wf_spec = spec_module.WorkflowSpec.deserialize(wf_ex_db.spec)
         st2_ctx = {'execution_id': wf_ex_db.action_execution}
         task_spec = wf_spec.tasks.get_task(task_id)
         task_actions = [{'action': task_spec.action, 'input': getattr(task_spec, 'input', {})}]
-        task_req = {'id': task_id, 'spec': task_spec, 'ctx': ctx or {}, 'actions': task_actions}
+
+        task_req = {
+            'id': task_id,
+            'route': route,
+            'spec': task_spec,
+            'ctx': ctx or {},
+            'actions': task_actions
+        }
+
         task_ex_db = wf_svc.request_task_execution(wf_ex_db, st2_ctx, task_req)
         ac_ex_db = self.get_action_ex(str(task_ex_db.id))
         ac_ex_db = self._wait_on_ac_ex_status(ac_ex_db, ac_const.LIVEACTION_STATUS_SUCCEEDED)
@@ -682,13 +690,14 @@ class WorkflowTestCase(ExecutionDbTestCase):
         task_ex_db = wf_db_access.TaskExecution.get_by_id(str(task_ex_db.id))
         self.assertEqual(task_ex_db.status, wf_lib_states.SUCCEEDED)
 
-    def assert_task_not_started(self, task_id):
-        task_ex_dbs = wf_db_access.TaskExecution.query(task_id=task_id)
+    def assert_task_not_started(self, task_id, route):
+        task_ex_dbs = wf_db_access.TaskExecution.query(task_id=task_id, task_route=route)
         self.assertEqual(len(task_ex_dbs), 0)
 
-    def assert_task_running(self, task_id):
-        task_ex_db = self.get_task_ex(task_id)
+    def assert_task_running(self, task_id, route):
+        task_ex_db = self.get_task_ex(task_id, route)
         self.assertEqual(task_ex_db.task_id, task_id)
+        self.assertEqual(task_ex_db.task_route, route)
         self.assertEqual(task_ex_db.status, wf_lib_states.RUNNING)
 
     def assert_workflow_completed(self, wf_ex_id, state=None):
