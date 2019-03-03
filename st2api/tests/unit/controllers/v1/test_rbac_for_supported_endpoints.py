@@ -26,7 +26,9 @@ from st2common.models.db.rbac import UserRoleAssignmentDB
 from st2common.service_setup import register_service_in_service_registry
 from st2common.services import coordination
 
+from st2tests import config as tests_config
 from st2tests.fixturesloader import FixturesLoader
+
 from tests.base import APIControllerWithRBACTestCase
 from tests.unit.controllers.v1.test_webhooks import DUMMY_TRIGGER_DICT
 
@@ -116,6 +118,8 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
 
     @classmethod
     def setUpClass(cls):
+        tests_config.parse_args(coordinator_noop=True)
+
         super(APIControllersRBACTestCase, cls).setUpClass()
 
         cls.coordinator = coordination.get_coordinator()

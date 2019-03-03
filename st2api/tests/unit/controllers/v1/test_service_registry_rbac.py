@@ -18,6 +18,8 @@ import six
 from st2common.service_setup import register_service_in_service_registry
 from st2common.services import coordination
 
+from st2tests import config as tests_config
+
 from tests.base import APIControllerWithRBACTestCase
 
 http_client = six.moves.http_client
@@ -33,6 +35,8 @@ class ServiceRegistryControllerRBACTestCase(APIControllerWithRBACTestCase):
 
     @classmethod
     def setUpClass(cls):
+        tests_config.parse_args(coordinator_noop=True)
+
         super(ServiceRegistryControllerRBACTestCase, cls).setUpClass()
 
         cls.coordinator = coordination.get_coordinator()

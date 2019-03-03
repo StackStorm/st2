@@ -16,9 +16,11 @@
 from __future__ import absolute_import
 
 import six
+
 from oslo_config import cfg
 from tooz import coordination
 from tooz import locking
+from tooz.coordination import GroupNotCreated
 
 from st2common import log as logging
 from st2common.util import system_info
@@ -68,8 +70,14 @@ class NoOpDriver(coordination.CoordinationDriver):
     This driver is used if coordination service is not configured.
     """
 
+    groups = {}
+
     def __init__(self, member_id, parsed_url=None, options=None):
         super(NoOpDriver, self).__init__(member_id, parsed_url, options)
+
+    @classmethod
+    def stop(cls):
+        cls.groups = {}
 
     def watch_join_group(self, group_id, callback):
         self._hooks_join_group[group_id].append(callback)
@@ -93,33 +101,47 @@ class NoOpDriver(coordination.CoordinationDriver):
     def stand_down_group_leader(group_id):
         return None
 
-    @staticmethod
-    def create_group(group_id):
+    @classmethod
+    def create_group(cls, group_id):
+        cls.groups[group_id] = {'members': {}}
         return NoOpAsyncResult()
 
-    @staticmethod
-    def get_groups():
-        return NoOpAsyncResult(result=[])
+    @classmethod
+    def get_groups(cls):
+        return NoOpAsyncResult(result=cls.groups.keys())
 
-    @staticmethod
-    def join_group(group_id, capabilities=''):
+    @classmethod
+    def join_group(cls, group_id, capabilities=''):
+        member_id = get_member_id()
+
+        cls.groups[group_id]['members'][member_id] = {'capabilities': capabilities}
         return NoOpAsyncResult()
 
-    @staticmethod
-    def leave_group(group_id):
+    @classmethod
+    def leave_group(cls, group_id):
+        member_id = get_member_id()
+
+        del cls.groups[group_id]['members'][member_id]
         return NoOpAsyncResult()
 
-    @staticmethod
-    def delete_group(group_id):
+    @classmethod
+    def delete_group(cls, group_id):
+        del cls.groups[group_id]
         return NoOpAsyncResult()
 
-    @staticmethod
-    def get_members(group_id):
-        return NoOpAsyncResult(result=[])
+    @classmethod
+    def get_members(cls, group_id):
+        try:
+            member_ids = cls.groups[group_id]['members'].keys()
+        except KeyError:
+            raise GroupNotCreated('Group doesnt exist')
 
-    @staticmethod
-    def get_member_capabilities(group_id, member_id):
-        return None
+        return NoOpAsyncResult(result=member_ids)
+
+    @classmethod
+    def get_member_capabilities(cls, group_id, member_id):
+        member_capabiliteis = cls.groups[group_id]['members'][member_id]['capabilities']
+        return NoOpAsyncResult(result=member_capabiliteis)
 
     @staticmethod
     def update_capabilities(group_id, capabilities):
@@ -186,7 +208,7 @@ def get_coordinator(start_heart=False):
                  'service will use best effort approach and race conditions are possible.')
 
     if not COORDINATOR:
-        COORDINATOR = coordinator_setup(start_heart=start_heart)
+        COORDINATOR = coordinator_setup(start_heart=False)
 
     return COORDINATOR
 

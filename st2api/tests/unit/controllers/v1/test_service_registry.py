@@ -35,7 +35,7 @@ class ServiceyRegistryControllerTestCase(FunctionalTest):
     def setUpClass(cls):
         super(ServiceyRegistryControllerTestCase, cls).setUpClass()
 
-        tests_config.parse_args()
+        tests_config.parse_args(coordinator_noop=True)
 
         cls.coordinator = coordination.get_coordinator()
 
