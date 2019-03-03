@@ -28,9 +28,15 @@ __all__ = [
 
 
 class ServiceRegistryControllerRBACTestCase(APIControllerWithRBACTestCase):
+
+    coordinator = None
+
     @classmethod
     def setUpClass(cls):
         super(ServiceRegistryControllerRBACTestCase, cls).setUpClass()
+
+        cls.coordinator = coordination.get_coordinator()
+
         # Register mock service in the service registry for testing purposes
         register_service_in_service_registry(service='mock_service',
                                              capabilities={'key1': 'value1',
@@ -41,8 +47,7 @@ class ServiceRegistryControllerRBACTestCase(APIControllerWithRBACTestCase):
     def tearDownClass(cls):
         super(ServiceRegistryControllerRBACTestCase, cls).tearDownClass()
 
-        coordinator = coordination.get_coordinator()
-        coordination.coordinator_teardown(coordinator)
+        coordination.coordinator_teardown(cls.coordinator)
 
     def test_get_groups(self):
         # Non admin users can't access that API endpoint

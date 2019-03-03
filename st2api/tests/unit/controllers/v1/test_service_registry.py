@@ -29,11 +29,15 @@ __all__ = [
 
 class ServiceyRegistryControllerTestCase(FunctionalTest):
 
+    coordinator = None
+
     @classmethod
     def setUpClass(cls):
         super(ServiceyRegistryControllerTestCase, cls).setUpClass()
 
         tests_config.parse_args()
+
+        cls.coordinator = coordination.get_coordinator()
 
         # NOTE: We mock call common_setup to emulate service being registered in the service
         # registry during bootstrap phase
@@ -46,8 +50,7 @@ class ServiceyRegistryControllerTestCase(FunctionalTest):
     def tearDownClass(cls):
         super(ServiceyRegistryControllerTestCase, cls).tearDownClass()
 
-        coordinator = coordination.get_coordinator()
-        coordination.coordinator_teardown(coordinator)
+        coordination.coordinator_teardown(cls.coordinator)
 
     def test_get_groups(self):
         list_resp = self.app.get('/v1/service_registry/groups')

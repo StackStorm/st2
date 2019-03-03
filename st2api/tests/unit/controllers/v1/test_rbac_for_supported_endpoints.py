@@ -112,9 +112,14 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
     register_packs = True
     fixtures_loader = FixturesLoader()
 
+    coordinator = None
+
     @classmethod
     def setUpClass(cls):
         super(APIControllersRBACTestCase, cls).setUpClass()
+
+        cls.coordinator = coordination.get_coordinator()
+
         # Register mock service in the service registry for testing purposes
         register_service_in_service_registry(service='mock_service',
                                              capabilities={'key1': 'value1',
@@ -125,8 +130,7 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
     def tearDownClass(cls):
         super(APIControllersRBACTestCase, cls).tearDownClass()
 
-        coordinator = coordination.get_coordinator()
-        coordination.coordinator_teardown(coordinator)
+        coordination.coordinator_teardown(cls.coordinator)
 
     def setUp(self):
         super(APIControllersRBACTestCase, self).setUp()
