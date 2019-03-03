@@ -20,11 +20,12 @@ import warnings
 from cryptography.utils import CryptographyDeprecationWarning
 warnings.filterwarnings('ignore', category=CryptographyDeprecationWarning)
 
-import distutils.sysconfig
 import os
 import sys
 import select
 import traceback
+
+import distutils.sysconfig
 
 # Note: This work-around is required to fix the issue with other Python modules which live
 # inside this directory polluting and masking sys.path for Python runner actions.
