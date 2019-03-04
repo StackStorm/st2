@@ -76,7 +76,9 @@ class CorsMiddleware(object):
             response_headers_allowed = ['Content-Type', 'X-Limit', 'X-Total-Count',
                                         REQUEST_ID_HEADER]
 
-            headers['Access-Control-Allow-Origin'] = origin_allowed
+            if origin_allowed is not 'null':
+                headers['Access-Control-Allow-Origin'] = origin_allowed
+
             headers['Access-Control-Allow-Methods'] = ','.join(methods_allowed)
             headers['Access-Control-Allow-Headers'] = ','.join(request_headers_allowed)
             headers['Access-Control-Allow-Credentials'] = 'true'
