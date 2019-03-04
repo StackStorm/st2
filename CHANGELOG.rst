@@ -31,6 +31,8 @@ Fixed
   (improvement) StackStorm/orquesta#122.
 * Fix orquesta workflow stuck in running status when one or more items failed execution for a
   with items task. (bug fix) #4523
+* Fix orquesta workflow bug where context variables are being overwritten on task join.
+  (bug fix) StackStorm/orquesta#112
 
 2.10.2 - February 21, 2019
 --------------------------
