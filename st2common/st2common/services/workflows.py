@@ -258,7 +258,7 @@ def request(wf_def, ac_ex_db, st2_ctx, notify_cfg=None):
     # Publish the workflow execution requested state to the message bus.
     if wf_ex_db.status not in states.COMPLETED_STATES:
         wf_ex_db.context['st2']['workflow_execution_id'] = str(wf_ex_db.id)
-        wf_ex_db.flow['contexts'][0]['value']['st2']['workflow_execution_id'] = str(wf_ex_db.id)
+        wf_ex_db.flow['contexts'][0]['st2']['workflow_execution_id'] = str(wf_ex_db.id)
         wf_ex_db = wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
         wf_db_access.WorkflowExecution.publish_status(wf_ex_db)
         msg = '[%s] Workflow execution "%s" is published.'
