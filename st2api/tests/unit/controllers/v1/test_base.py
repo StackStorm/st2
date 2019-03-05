@@ -51,8 +51,8 @@ class TestBase(FunctionalTest):
             'origin': 'http://xss'
         })
         self.assertEqual(response.status_int, 200)
-        self.assertEqual(response.headers['Access-Control-Allow-Origin'],
-                         'null')
+        self.assertEqual(response.headers.get('Access-Control-Allow-Origin'),
+                        'http://127.0.0.1:3000')
 
     def test_wildcard_origin(self):
         try:
