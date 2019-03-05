@@ -66,7 +66,7 @@ class CorsMiddleware(object):
                     origin_allowed = origin
                 else:
                     # See http://www.w3.org/TR/cors/#access-control-allow-origin-response-header
-                    origin_allowed = origin if origin in origins else 'null'
+                    origin_allowed = origin if origin in origins else list(origins)[0]
             else:
                 origin_allowed = list(origins)[0]
 
