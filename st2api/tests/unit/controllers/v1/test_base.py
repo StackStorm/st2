@@ -47,12 +47,30 @@ class TestBase(FunctionalTest):
                          'http://dev')
 
     def test_wrong_origin(self):
+        # Invalid origin  (not specified in the config), we return first allowed origin specified
+        # in the config
         response = self.app.get('/', headers={
             'origin': 'http://xss'
         })
         self.assertEqual(response.status_int, 200)
         self.assertEqual(response.headers.get('Access-Control-Allow-Origin'),
                         'http://127.0.0.1:3000')
+
+        invalid_origins = [
+            'http://',
+            'https://',
+            'https://www.example.com',
+            'null',
+            '*'
+        ]
+
+        for origin in invalid_origins:
+            response = self.app.get('/', headers={
+                'origin': origin
+            })
+            self.assertEqual(response.status_int, 200)
+            self.assertEqual(response.headers.get('Access-Control-Allow-Origin'),
+                            'http://127.0.0.1:3000')
 
     def test_wildcard_origin(self):
         try:
