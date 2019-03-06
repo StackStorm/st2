@@ -198,7 +198,7 @@ lint-api-spec: requirements .lint-api-spec
 generate-api-spec: requirements .generate-api-spec
 
 .PHONY: .generate-api-spec
-.generate-api-spec: .lint-api-spec
+.generate-api-spec:
 	@echo
 	@echo "================== Generate openapi.yaml file ===================="
 	@echo
@@ -363,12 +363,6 @@ requirements: virtualenv .sdist-requirements install-runners
 
 	# Install st2common package to load drivers defined in st2common setup.py
 	(cd st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop)
-
-
-	# Note: We install prance here and not as part of any component
-	# requirements.txt because it has a conflict with our dependency (requires
-	# new version of requests) which we cant resolve at this moment
-	$(VIRTUALENV_DIR)/bin/pip install "prance==0.6.1"
 
 	# Install st2common to register metrics drivers
 	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop)
@@ -789,7 +783,7 @@ debs:
 ci: ci-checks ci-unit ci-integration ci-mistral ci-packs-tests
 
 .PHONY: ci-checks
-ci-checks: compile .generated-files-check .pylint .flake8 .bandit .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check
+ci-checks: compile .generated-files-check .pylint .flake8 .bandit .st2client-dependencies-check .st2common-circular-dependencies-check .rst-check
 
 .PHONY: ci-py3-unit
 ci-py3-unit:
