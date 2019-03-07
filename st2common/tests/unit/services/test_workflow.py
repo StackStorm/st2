@@ -28,10 +28,10 @@ from st2common.bootstrap import runnersregistrar
 from st2common.exceptions import action as action_exc
 from st2common.models.db import liveaction as lv_db_models
 from st2common.models.db import execution as ex_db_models
-from st2common.models.db.pack import ConfigDB
+from st2common.models.db import pack as pk_db_models
 from st2common.persistence import execution as ex_db_access
+from st2common.persistence import pack as pk_db_access
 from st2common.persistence import workflow as wf_db_access
-from st2common.persistence.pack import Config
 from st2common.services import action as action_service
 from st2common.services import workflows as workflow_service
 from st2common.transport import liveaction as lv_ac_xport
@@ -45,13 +45,9 @@ TEST_PACK_PATH = st2tests.fixturesloader.get_fixtures_packs_base_path() + '/' + 
 PACK_7 = 'dummy_pack_7'
 PACK_7_PATH = st2tests.fixturesloader.get_fixtures_packs_base_path() + '/' + PACK_7
 
-PACK_20 = 'dummy_pack_20'
-PACK_20_PATH = st2tests.fixturesloader.get_fixtures_packs_base_path() + '/' + PACK_20
-
 PACKS = [
     TEST_PACK_PATH,
     PACK_7_PATH,
-    PACK_20_PATH,
     st2tests.fixturesloader.get_fixtures_packs_base_path() + '/core'
 ]
 
@@ -363,18 +359,18 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
         value = {
             "config_item_one": output
         }
-        config_db = ConfigDB(pack=PACK_7, values=value)
-        config = Config.add_or_update(config_db)
+        config_db = pk_db_models.ConfigDB(pack=PACK_7, values=value)
+        config = pk_db_access.Config.add_or_update(config_db)
         self.assertEqual(len(config), 3)
 
-        wf_meta = self.get_wf_fixture_meta_data(PACK_20_PATH, 'render_config_context.yaml')
+        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, 'render_config_context.yaml')
 
         # Manually create the liveaction and action execution objects without publishing.
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = action_service.create_request(lv_ac_db)
 
         # Request the workflow execution.
-        wf_def = self.get_wf_def(PACK_20_PATH, wf_meta)
+        wf_def = self.get_wf_def(TEST_PACK_PATH, wf_meta)
         st2_ctx = self.mock_st2_context(ac_ex_db)
         wf_ex_db = workflow_service.request(wf_def, ac_ex_db, st2_ctx)
         spec_module = specs_loader.get_spec_module(wf_ex_db.spec['catalog'])

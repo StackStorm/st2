@@ -1,6 +1,6 @@
 ---
 name: render_config_context
-pack: dummy_pack_20
+pack: orquesta_tests
 description: Run render config context workflow
 runner_type: orquesta
 entry_point: workflows/render_config_context.yaml
