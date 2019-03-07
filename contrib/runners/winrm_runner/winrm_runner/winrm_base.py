@@ -59,7 +59,7 @@ WINRM_HTTP_PORT = 5985
 WINRM_TIMEOUT_EXIT_CODE = exit_code_constants.SUCCESS_EXIT_CODE - 1
 # number of bytes in each chunk when uploading data via WinRM to a target host
 # this was chosen arbitrarily and could probably use some tuning
-WINRM_UPLOAD_CHUNK_SIZE_BYTES = 1024
+WINRM_UPLOAD_CHUNK_SIZE_BYTES = 2048
 
 DEFAULT_KWARG_OP = "-"
 DEFAULT_PORT = WINRM_HTTPS_PORT
@@ -205,9 +205,12 @@ class WinRmBaseRunner(ActionRunner):
         # passing env and working_directory from the Session.run_ps
 
         # encode the script in UTF only if it isn't passed in encoded
+        LOG.info('_winrm_run_ps() - script size = {}'.format(len(script)))
         encoded_ps = script if is_b64 else self._winrm_encode(script)
+        ps_cmd = self._winrm_ps_cmd(encoded_ps)
+        LOG.info('_winrm_run_ps() - ps cmd size = {}'.format(len(ps_cmd)))
         rs = self._winrm_run_cmd(session,
-                                 self._winrm_ps_cmd(encoded_ps),
+                                 ps_cmd,
                                  env=env,
                                  cwd=cwd)
         if len(rs.std_err):
@@ -244,51 +247,44 @@ class WinRmBaseRunner(ActionRunner):
         # objects so they can be used natively
         return (status, jsonify.json_loads(result, RESULT_KEYS_TO_TRANSFORM), None)
 
-    def _raise_if_error(self, result, msg):
-        if result['failed']:
-            raise RuntimeError(("{}:\n"
-                                "stdout = {}\n\n"
-                                "stderr = {}").format(msg, result['stdout'], result['stderr']))
-
     def _make_tmp_dir(self, parent):
-        LOG.info("Creating temporary directory for WinRM script in parent: {}".format(parent))
+        LOG.debug("Creating temporary directory for WinRM script in parent: {}".format(parent))
         ps = """$parent = {parent}
 $name = [System.IO.Path]::GetRandomFileName()
 $path = Join-Path $parent $name
 New-Item -ItemType Directory -Path $path | Out-Null
 $path""".format(parent=parent)
-        response = self._run_ps(ps)
-        result = response[1]
-        self._raise_if_error(result, "Unable to make temporary directory for powershell script")
+        result = self._run_ps_or_raise(ps, ("Unable to make temporary directory for"
+                                            " powershell script"))
         # strip to remove trailing newline and whitespace (if any)
         return result['stdout'].strip()
 
     def _rm_dir(self, directory):
         ps = 'Remove-Item -Force -Recurse -Path "{}"'.format(directory)
-        response = self._run_ps(ps)
-        result = response[1]
-        self._raise_if_error(result, "Unable to remove temporary directory for powershell script")
+        self._run_ps_or_raise(ps, "Unable to remove temporary directory for powershell script")
 
     def _upload(self, src_path_or_data, dst_path):
         src_data = None
         # detect if this is a path or a string containing data
         # if this is a path, then read the data from the path
         if os.path.exists(src_path_or_data):
-            LOG.info("WinRM uploading local file: {}".format(src_path_or_data))
+            LOG.debug("WinRM uploading local file: {}".format(src_path_or_data))
             with open(src_path_or_data, 'r') as src_file:
                 src_data = src_file.read()
         else:
-            LOG.info("WinRM data")
+            print "hello world 2"
+            LOG.debug("WinRM uploading data from a string")
             src_data = src_path_or_data
 
         # upload the data in chunks such that each chunk doesn't exceed the
         # max command size of the windows command line
         for i in range(0, len(src_data), WINRM_UPLOAD_CHUNK_SIZE_BYTES):
-            LOG.info("WinRM data: {}-{}".format(i, (i + WINRM_UPLOAD_CHUNK_SIZE_BYTES)))
+            LOG.debug("WinRM uploading data bytes: {}-{}".
+                      format(i, (i + WINRM_UPLOAD_CHUNK_SIZE_BYTES)))
             self._upload_chunk(dst_path, src_data[i:(i + WINRM_UPLOAD_CHUNK_SIZE_BYTES)])
 
     def _upload_chunk(self, dst_path, src_data):
-        # adapted/copied from https://github.com/diyan/pywinrm/issues/18
+        # adapted from https://github.com/diyan/pywinrm/issues/18
         ps = """$filePath = "{dst_path}"
 $s = @"
 {b64_data}
@@ -297,24 +293,22 @@ $data = [System.Convert]::FromBase64String($s)
 Add-Content -value $data -encoding byte -path $filePath
 """.format(dst_path=dst_path,
            b64_data=base64.b64encode(src_data))
-
-        response = self._run_ps(ps)
-        result = response[1]
-        self._raise_if_error(result, "Failed to upload chunk of powershell script")
+        LOG.debug('WinRM uploading chunk, size = {}'.format(len(ps)))
+        self._run_ps_or_raise(ps, "Failed to upload chunk of powershell script")
 
     @contextmanager
     def _tmp_script(self, parent, script):
         tmp_dir = None
         try:
             tmp_dir = self._make_tmp_dir(parent)
-            LOG.info("WinRM Tmp directory created: {}".format(tmp_dir))
+            LOG.debug("WinRM Tmp directory created: {}".format(tmp_dir))
             tmp_script = tmp_dir + "\\script.ps1"
-            LOG.info("Uploading WinRM script to: {}".format(tmp_script))
+            LOG.debug("WinRM Uploading script to: {}".format(tmp_script))
             self._upload(script, tmp_script)
             yield tmp_script
         finally:
             if tmp_dir:
-                LOG.info("Removing WinRM script: {}".format(tmp_dir))
+                LOG.debug("WinRM Removing script: {}".format(tmp_dir))
                 self._rm_dir(tmp_dir)
 
     def run_cmd(self, cmd):
@@ -325,16 +319,23 @@ Add-Content -value $data -encoding byte -path $filePath
         # create triplet from WinRM response
         return self._translate_response(response)
 
-    def run_ps(self, powershell):
-        # if the powershell command smaller than the max allowed size,
-        # then just run the command (faster)
-        # else put command into a script file on the remote host and run the script.
+    def run_ps(self, script, params=None):
+        # temporary directory for the powershell script
+        if params:
+            powershell = '& {%s} %s' % (script, params)
+        else:
+            powershell = script
         encoded_ps = self._winrm_encode(powershell)
         ps_cmd = self._winrm_ps_cmd(encoded_ps)
+
+        # if the powershell script is small enough to fit in one command
+        # then run it as a single command (faster)
+        # else we need to upload the script to a temporary file and execute it,
+        # then remove the temporary file
         if len(ps_cmd) <= WINRM_MAX_CMD_LENGTH:
-            return self.run_ps_script(powershell)
-        else:
             return self._run_ps(encoded_ps, is_b64=True)
+        else:
+            return self._run_ps_script(script, params)
 
     def _run_ps(self, powershell, is_b64=False):
         """Executes a powershell command, no checks for length are done in this version.
@@ -348,33 +349,30 @@ Add-Content -value $data -encoding byte -path $filePath
         # create triplet from WinRM response
         return self._translate_response(response)
 
-    def run_ps_script(self, script, params=None):
-        # temporary directory for the powershell script
+    def _run_ps_script(self, script, params=None):
         tmp_dir = WINRM_DEFAULT_TMP_DIR_PS
-        powershell = '& {%s}' % (script)
-        if params:
-            powershell += ' ' + params
-        encoded_ps = self._winrm_encode(powershell)
-        ps_cmd = self._winrm_ps_cmd(encoded_ps)
+        # creates a temporary file,
+        # upload the contents of 'script' to the temporary file
+        # handle deletion of the temporary file on exit of the with block
+        with self._tmp_script(tmp_dir, script) as tmp_script:
+            # the following wraps the script (from the file) in a script block ( {} )
+            # executes it, passing in the parameters built above
+            # https://docs.microsoft.com/en-us/powershell/scripting/core-powershell/console/powershell.exe-command-line-help
+            ps = "& {%s}" % (tmp_script)
+            if params:
+                ps += " " + params
+            return self._run_ps(ps)
 
-        # if the powershell script is small enough to fit in one command
-        # then run it as a single command (faster)
-        # else we need to upload the script to a temporary file and execute it,
-        # then remove the temporary file
-        if len(ps_cmd) < WINRM_MAX_CMD_LENGTH:
-            return self._run_ps(encoded_ps, is_b64=True)
-        else:
-            # creates a temporary file,
-            # upload the contents of 'script' to the temporary file
-            # handle deletion of the temporary file on exit of the with block
-            with self._tmp_script(tmp_dir, script) as tmp_script:
-                # the following wraps the script (from the file) in a script block ( {} )
-                # executes it, passing in the parameters built above
-                # https://docs.microsoft.com/en-us/powershell/scripting/core-powershell/console/powershell.exe-command-line-help
-                ps = "& {%s}" % (tmp_script)
-                if params:
-                    ps += " " + params
-                return self._run_ps(ps)
+    def _run_ps_or_raise(self, ps, error_msg):
+        response = self._run_ps(ps)
+        result = response[1]
+        if result['failed']:
+            raise RuntimeError(("{}:\n"
+                                "stdout = {}\n\n"
+                                "stderr = {}").format(error_msg,
+                                                      result['stdout'],
+                                                      result['stderr']))
+        return result
 
     def _multireplace(self, string, replacements):
         """

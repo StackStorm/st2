@@ -25,8 +25,8 @@ from winrm.exceptions import WinRMOperationTimeoutError
 from st2common.runners.base import ActionRunner
 from st2tests.base import RunnerTestCase
 from winrm_runner.winrm_base import WinRmBaseRunner, WinRmRunnerTimoutError
-from winrm_runner.winrm_base import WINRM_TIMEOUT_EXIT_CODE
 from winrm_runner.winrm_base import PS_ESCAPE_SEQUENCES
+from winrm_runner.winrm_base import WINRM_TIMEOUT_EXIT_CODE
 from winrm_runner import winrm_ps_command_runner
 
 
@@ -72,6 +72,7 @@ class WinRmBaseTestCase(RunnerTestCase):
         self._runner.runner_parameters = runner_parameters
         self._runner.pre_run()
         mock_pre_run.assert_called_with()
+        self.assertEquals(self._runner._session, None)
         self.assertEquals(self._runner._host, 'host@domain.tld')
         self.assertEquals(self._runner._username, 'user@domain.tld')
         self.assertEquals(self._runner._password, 'abc123')
@@ -174,7 +175,8 @@ class WinRmBaseTestCase(RunnerTestCase):
         self.assertEquals(self._runner._server_cert_validation, 'ignore')
 
     @mock.patch('winrm_runner.winrm_base.Session')
-    def test_create_session(self, mock_session):
+    def test_get_session(self, mock_session):
+        self._runner._session = None
         self._runner._winrm_url = 'https://host@domain.tld:5986/wsman'
         self._runner._username = 'user@domain.tld'
         self._runner._password = 'abc123'
@@ -184,8 +186,9 @@ class WinRmBaseTestCase(RunnerTestCase):
         self._runner._read_timeout = 61
         mock_session.return_value = "session"
 
-        result = self._runner._create_session()
+        result = self._runner._get_session()
         self.assertEquals(result, "session")
+        self.assertEquals(result, self._runner._session)
         mock_session.assert_called_with('https://host@domain.tld:5986/wsman',
                                         auth=('user@domain.tld', 'abc123'),
                                         transport='ntlm',
@@ -193,7 +196,12 @@ class WinRmBaseTestCase(RunnerTestCase):
                                         operation_timeout_sec=60,
                                         read_timeout_sec=61)
 
-    def test_get_command_output(self):
+        # ensure calling _get_session again doesn't create a new one, it reuses the existing
+        old_session = self._runner._session
+        result = self._runner._get_session()
+        self.assertEquals(result, old_session)
+
+    def test_winrm_get_command_output(self):
         self._runner._timeout = 0
         mock_protocol = mock.MagicMock()
         mock_protocol._raw_get_command_output.side_effect = [
@@ -211,7 +219,7 @@ class WinRmBaseTestCase(RunnerTestCase):
             mock.call(567, 890)
         ]
 
-    def test_get_command_output_timeout(self):
+    def test_winrm_get_command_output_timeout(self):
         self._runner._timeout = 0.1
 
         mock_protocol = mock.MagicMock()
@@ -231,7 +239,7 @@ class WinRmBaseTestCase(RunnerTestCase):
         self.assertEqual(timeout_exception.response.status_code, WINRM_TIMEOUT_EXIT_CODE)
         mock_protocol._raw_get_command_output.assert_called_with(567, 890)
 
-    def test_get_command_output_operation_timeout(self):
+    def test_winrm_get_command_output_operation_timeout(self):
         self._runner._timeout = 0.1
 
         mock_protocol = mock.MagicMock()
@@ -297,6 +305,15 @@ class WinRmBaseTestCase(RunnerTestCase):
         mock_protocol.cleanup_command.assert_called_with(123, 456)
         mock_protocol.close_shell.assert_called_with(123)
 
+    def test_winrm_encode(self):
+        result = self._runner._winrm_encode('hello world')
+        # result translated into UTF-16 little-endian
+        self.assertEquals(result, 'aABlAGwAbABvACAAdwBvAHIAbABkAA==')
+
+    def test_winrm_ps_cmd(self):
+        result = self._runner._winrm_ps_cmd('abc123==')
+        self.assertEquals(result, 'powershell -encodedcommand abc123==')
+
     @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._winrm_run_cmd')
     def test_winrm_run_ps(self, mock_run_cmd):
         mock_run_cmd.return_value = Response(('output', '', 3))
@@ -335,6 +352,153 @@ class WinRmBaseTestCase(RunnerTestCase):
                                         env={'PATH': 'C:\\st2\\bin'},
                                         cwd='C:\\st2')
         mock_session._clean_error_msg.assert_called_with('error')
+
+    def test_translate_response_success(self):
+        response = Response(('output1', 'error1', 0))
+        response.timeout = False
+
+        result = self._runner._translate_response(response)
+        self.assertEquals(result, ('succeeded',
+                                   {'failed': False,
+                                    'succeeded': True,
+                                    'return_code': 0,
+                                    'stdout': 'output1',
+                                    'stderr': 'error1'},
+                                   None))
+
+    def test_translate_response_failure(self):
+        response = Response(('output1', 'error1', 123))
+        response.timeout = False
+
+        result = self._runner._translate_response(response)
+        self.assertEquals(result, ('failed',
+                                   {'failed': True,
+                                    'succeeded': False,
+                                    'return_code': 123,
+                                    'stdout': 'output1',
+                                    'stderr': 'error1'},
+
+                                   None))
+
+    def test_translate_response_timeout(self):
+        response = Response(('output1', 'error1', 123))
+        response.timeout = True
+
+        result = self._runner._translate_response(response)
+        self.assertEquals(result, ('timeout',
+                                   {'failed': True,
+                                    'succeeded': False,
+                                    'return_code': -1,
+                                    'stdout': 'output1',
+                                    'stderr': 'error1'},
+                                   None))
+
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._run_ps_or_raise')
+    def test_make_tmp_dir(self, mock_run_ps_or_raise):
+        mock_run_ps_or_raise.return_value = {'stdout': ' expected \n'}
+
+        result = self._runner._make_tmp_dir('C:\\Windows\\Temp')
+        self.assertEquals(result, 'expected')
+        mock_run_ps_or_raise.assert_called_with('''$parent = C:\\Windows\\Temp
+$name = [System.IO.Path]::GetRandomFileName()
+$path = Join-Path $parent $name
+New-Item -ItemType Directory -Path $path | Out-Null
+$path''',
+                                                ("Unable to make temporary directory for"
+                                                 " powershell script"))
+
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._run_ps_or_raise')
+    def test_rm_dir(self, mock_run_ps_or_raise):
+        self._runner._rm_dir('C:\\Windows\\Temp\\testtmpdir')
+        mock_run_ps_or_raise.assert_called_with(
+            'Remove-Item -Force -Recurse -Path "C:\\Windows\\Temp\\testtmpdir"',
+            "Unable to remove temporary directory for powershell script")
+
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._upload_chunk')
+    @mock.patch('winrm_runner.winrm_base.open')
+    @mock.patch('os.path.exists')
+    def test_upload_chunk_file(self, mock_os_path_exists, mock_open, mock_upload_chunk):
+        mock_os_path_exists.return_value = True
+        mock_src_file = mock.MagicMock()
+        mock_src_file.read.return_value = "test data"
+        mock_open.return_value.__enter__.return_value = mock_src_file
+
+        self._runner._upload('/opt/data/test.ps1', 'C:\\Windows\\Temp\\test.ps1')
+        mock_os_path_exists.assert_called_with('/opt/data/test.ps1')
+        mock_open.assert_called_with('/opt/data/test.ps1', 'r')
+        mock_src_file.read.assert_called_with()
+        mock_upload_chunk.assert_has_calls([
+            mock.call('C:\\Windows\\Temp\\test.ps1', 'test data')
+        ])
+
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._upload_chunk')
+    @mock.patch('os.path.exists')
+    def test_upload_chunk_data(self, mock_os_path_exists, mock_upload_chunk):
+        mock_os_path_exists.return_value = False
+
+        self._runner._upload('test data', 'C:\\Windows\\Temp\\test.ps1')
+        mock_os_path_exists.assert_called_with('test data')
+        mock_upload_chunk.assert_has_calls([
+            mock.call('C:\\Windows\\Temp\\test.ps1', 'test data')
+        ])
+
+    @mock.patch('winrm_runner.winrm_base.WINRM_UPLOAD_CHUNK_SIZE_BYTES', 2)
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._upload_chunk')
+    @mock.patch('os.path.exists')
+    def test_upload_chunk_multiple_chunks(self, mock_os_path_exists, mock_upload_chunk):
+        mock_os_path_exists.return_value = False
+
+        self._runner._upload('test data', 'C:\\Windows\\Temp\\test.ps1')
+        mock_os_path_exists.assert_called_with('test data')
+        mock_upload_chunk.assert_has_calls([
+            mock.call('C:\\Windows\\Temp\\test.ps1', 'te'),
+            mock.call('C:\\Windows\\Temp\\test.ps1', 'st'),
+            mock.call('C:\\Windows\\Temp\\test.ps1', ' d'),
+            mock.call('C:\\Windows\\Temp\\test.ps1', 'at'),
+            mock.call('C:\\Windows\\Temp\\test.ps1', 'a'),
+        ])
+
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._run_ps_or_raise')
+    def test_upload_chunk(self, mock_run_ps_or_raise):
+        self._runner._upload_chunk('C:\\Windows\\Temp\\testtmp.ps1', 'hello world')
+        mock_run_ps_or_raise.assert_called_with(
+            '''$filePath = "C:\\Windows\\Temp\\testtmp.ps1"
+$s = @"
+aGVsbG8gd29ybGQ=
+"@
+$data = [System.Convert]::FromBase64String($s)
+Add-Content -value $data -encoding byte -path $filePath
+''',
+            "Failed to upload chunk of powershell script")
+
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._rm_dir')
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._upload')
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._make_tmp_dir')
+    def test_tmp_script(self, mock_make_tmp_dir, mock_upload, mock_rm_dir):
+        mock_make_tmp_dir.return_value = 'C:\\Windows\\Temp\\abc123'
+
+        with self._runner._tmp_script('C:\\Windows\\Temp', 'Get-ChildItem') as tmp:
+            self.assertEquals(tmp, 'C:\\Windows\\Temp\\abc123\\script.ps1')
+        mock_make_tmp_dir.assert_called_with('C:\\Windows\\Temp')
+        mock_upload.assert_called_with('Get-ChildItem',
+                                       'C:\\Windows\\Temp\\abc123\\script.ps1')
+        mock_rm_dir.assert_called_with('C:\\Windows\\Temp\\abc123')
+
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._rm_dir')
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._upload')
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._make_tmp_dir')
+    def test_tmp_script_cleansup_when_raises(self, mock_make_tmp_dir, mock_upload,
+                                             mock_rm_dir):
+        mock_make_tmp_dir.return_value = 'C:\\Windows\\Temp\\abc123'
+        mock_upload.side_effect = RuntimeError
+
+        with self.assertRaises(RuntimeError):
+            with self._runner._tmp_script('C:\\Windows\\Temp', 'Get-ChildItem') as tmp:
+                self.assertEquals(tmp, "can never get here")
+        mock_make_tmp_dir.assert_called_with('C:\\Windows\\Temp')
+        mock_upload.assert_called_with('Get-ChildItem',
+                                       'C:\\Windows\\Temp\\abc123\\script.ps1')
+        mock_rm_dir.assert_called_with('C:\\Windows\\Temp\\abc123')
 
     @mock.patch('winrm.Protocol')
     def test_run_cmd(self, mock_protocol_init):
@@ -457,46 +621,6 @@ class WinRmBaseTestCase(RunnerTestCase):
                                     'succeeded': False,
                                     'return_code': -1,
                                     'stdout': b'output1',
-                                    'stderr': 'error1'},
-                                   None))
-
-    def test_translate_response_success(self):
-        response = Response(('output1', 'error1', 0))
-        response.timeout = False
-
-        result = self._runner._translate_response(response)
-        self.assertEquals(result, ('succeeded',
-                                   {'failed': False,
-                                    'succeeded': True,
-                                    'return_code': 0,
-                                    'stdout': 'output1',
-                                    'stderr': 'error1'},
-                                   None))
-
-    def test_translate_response_failure(self):
-        response = Response(('output1', 'error1', 123))
-        response.timeout = False
-
-        result = self._runner._translate_response(response)
-        self.assertEquals(result, ('failed',
-                                   {'failed': True,
-                                    'succeeded': False,
-                                    'return_code': 123,
-                                    'stdout': 'output1',
-                                    'stderr': 'error1'},
-
-                                   None))
-
-    def test_translate_response_timeout(self):
-        response = Response(('output1', 'error1', 123))
-        response.timeout = True
-
-        result = self._runner._translate_response(response)
-        self.assertEquals(result, ('timeout',
-                                   {'failed': True,
-                                    'succeeded': False,
-                                    'return_code': -1,
-                                    'stdout': 'output1',
                                     'stderr': 'error1'},
                                    None))
 

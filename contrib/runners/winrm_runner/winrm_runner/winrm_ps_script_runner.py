@@ -49,7 +49,7 @@ class WinRmPsScriptRunner(WinRmBaseRunner, ShellRunnerMixin):
         ps_params = self.create_ps_params_string(positional_args, named_args)
 
         # execute
-        return self.run_ps_script(ps_script, ps_params)
+        return self.run_ps(ps_script, ps_params)
 
 
 def get_runner():
