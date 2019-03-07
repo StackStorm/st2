@@ -618,7 +618,8 @@ class WorkflowTestCase(ExecutionDbTestCase):
         st2_ctx = {
             'st2': {
                 'api_url': api_util.get_full_public_api_url(),
-                'action_execution_id': str(ac_ex_db.id)
+                'action_execution_id': str(ac_ex_db.id),
+                'user': 'stanley'
             }
         }
 
