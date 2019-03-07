@@ -34,6 +34,28 @@ Fixed
 * Fix orquesta workflow bug where context variables are being overwritten on task join.
   (bug fix) StackStorm/orquesta#112
 
+2.10.3 - March 06, 2019
+-----------------------
+
+Fixed
+~~~~~
+
+* Fix improper CORS where request from an origin not listed in ``allowed_origins`` will be responded
+  with ``null`` for the ``Access-Control-Allow-Origin`` header. The fix returns the first of our
+  allowed origins if the requesting origin is not a supported origin. Reported by Barak Tawily.
+  (bug fix)
+  
+2.9.3 - March 06, 2019
+-----------------------
+
+Fixed
+~~~~~
+
+* Fix improper CORS where request from an origin not listed in ``allowed_origins`` will be responded
+  with ``null`` for the ``Access-Control-Allow-Origin`` header. The fix returns the first of our
+  allowed origins if the requesting origin is not a supported origin. Reported by Barak Tawily.
+  (bug fix)
+
 2.10.2 - February 21, 2019
 --------------------------
 
