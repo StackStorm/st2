@@ -542,8 +542,7 @@ def request_action_execution(wf_ex_db, task_ex_db, st2_ctx, ac_ex_req, delay=Non
     runner_type_db = action_utils.get_runnertype_by_name(action_db.runner_type['name'])
 
     # Identify action pack name
-    spec_action = task_ex_db.task_spec.get('spec').get('action')
-    pack_name = spec_action.split('.')[0] if spec_action else st2_ctx.get('pack')
+    pack_name = action_ref.split('.')[0] if action_ref else st2_ctx.get('pack')
 
     # Set context for the action execution.
     ac_ex_ctx = {
