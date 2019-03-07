@@ -17,7 +17,7 @@ from __future__ import absolute_import
 
 import mock
 
-from orquesta import states as wf_states
+from orquesta import statuses as wf_statuses
 
 import st2tests
 
@@ -91,7 +91,7 @@ class OrquestaFunctionTest(st2tests.ExecutionDbTestCase):
             actions_registrar.register_from_pack(pack)
 
     def _execute_workflow(self, wf_name, expected_task_sequence, expected_output,
-                          expected_status=wf_states.SUCCEEDED, expected_errors=None):
+                          expected_status=wf_statuses.SUCCEEDED, expected_errors=None):
         wf_file = wf_name + '.yaml'
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, wf_file)
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
