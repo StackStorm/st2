@@ -63,7 +63,7 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
                               include_pip=False, include_setuptools=False, include_wheel=False)
 
         # Verify that virtualenv has been created
-        self.assertVirtulenvExists(pack_virtualenv_dir)
+        self.assertVirtualenvExists(pack_virtualenv_dir)
 
     def test_setup_pack_virtualenv_already_exists(self):
         # Test a scenario where virtualenv already exists
@@ -78,14 +78,14 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
                               include_pip=False, include_setuptools=False, include_wheel=False)
 
         # Verify that virtualenv has been created
-        self.assertVirtulenvExists(pack_virtualenv_dir)
+        self.assertVirtualenvExists(pack_virtualenv_dir)
 
         # Re-create virtualenv
         setup_pack_virtualenv(pack_name=pack_name, update=False,
                               include_pip=False, include_setuptools=False, include_wheel=False)
 
         # Verify virtrualenv is still there
-        self.assertVirtulenvExists(pack_virtualenv_dir)
+        self.assertVirtualenvExists(pack_virtualenv_dir)
 
     def test_setup_virtualenv_update(self):
         # Test a virtualenv update with pack which has requirements.txt
@@ -100,14 +100,14 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
                               include_setuptools=False, include_wheel=False)
 
         # Verify that virtualenv has been created
-        self.assertVirtulenvExists(pack_virtualenv_dir)
+        self.assertVirtualenvExists(pack_virtualenv_dir)
 
         # Update it
         setup_pack_virtualenv(pack_name=pack_name, update=True,
                               include_setuptools=False, include_wheel=False)
 
         # Verify virtrualenv is still there
-        self.assertVirtulenvExists(pack_virtualenv_dir)
+        self.assertVirtualenvExists(pack_virtualenv_dir)
 
     def test_setup_virtualenv_invalid_dependency_in_requirements_file(self):
         pack_name = 'pack_invalid_requirements'
@@ -333,7 +333,7 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
         actual_cmd = ' '.join(actual_cmd)
         self.assertTrue('pip install' in actual_cmd)
 
-    def assertVirtulenvExists(self, virtualenv_dir):
+    def assertVirtualenvExists(self, virtualenv_dir):
         self.assertTrue(os.path.exists(virtualenv_dir))
         self.assertTrue(os.path.isdir(virtualenv_dir))
         self.assertTrue(os.path.isdir(os.path.join(virtualenv_dir, 'bin/')))

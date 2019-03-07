@@ -3,14 +3,8 @@ version: 1.0
 description: A basic workflow that demonstrate branching and join.
 
 vars:
-  - messages: null
-
-output:
-  - messages:
-     - <% ctx().msg1 %>
-     - <% ctx().msg2 %>
-     - <% ctx().msg3 %>
-     - <% ctx().msg4 %>
+  - msg1: foobar
+  - msg2: fubar
 
 tasks:
   task1:
@@ -73,8 +67,14 @@ tasks:
         publish: msg4="I'll grind his bones to make my bread"
         do: task10
 
-
   # converge branches
   task10:
     join: all
     action: core.noop
+
+output:
+  - messages:
+     - <% ctx().msg1 %>
+     - <% ctx().msg2 %>
+     - <% ctx().msg3 %>
+     - <% ctx().msg4 %>

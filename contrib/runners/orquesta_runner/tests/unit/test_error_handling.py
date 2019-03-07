@@ -235,7 +235,8 @@ class OrquestaErrorHandlingTest(st2tests.ExecutionDbTestCase):
                     '\'<% ctx().func.value %>\'. NoFunctionRegisteredException: '
                     'Unknown function "#property#value"'
                 ),
-                'task_id': 'task1'
+                'task_id': 'task1',
+                'route': 0
             }
         ]
 
@@ -270,7 +271,8 @@ class OrquestaErrorHandlingTest(st2tests.ExecutionDbTestCase):
                     '\'<% ctx().msg1.value %>\'. NoFunctionRegisteredException: '
                     'Unknown function "#property#value"'
                 ),
-                'task_id': 'task1'
+                'task_id': 'task1',
+                'route': 0
             }
         ]
 
@@ -309,7 +311,8 @@ class OrquestaErrorHandlingTest(st2tests.ExecutionDbTestCase):
             {
                 'type': 'error',
                 'message': msg,
-                'task_id': 'task1'
+                'task_id': 'task1',
+                'route': 0
             }
         ]
 
@@ -347,7 +350,8 @@ class OrquestaErrorHandlingTest(st2tests.ExecutionDbTestCase):
                     '\'<% ctx().func.value %>\'. NoFunctionRegisteredException: '
                     'Unknown function "#property#value"'
                 ),
-                'task_id': 'task2'
+                'task_id': 'task2',
+                'route': 0
             }
         ]
 
@@ -392,7 +396,8 @@ class OrquestaErrorHandlingTest(st2tests.ExecutionDbTestCase):
                     '\'<% ctx().msg2.value %>\'. NoFunctionRegisteredException: '
                     'Unknown function "#property#value"'
                 ),
-                'task_id': 'task2'
+                'task_id': 'task2',
+                'route': 0
             }
         ]
 
@@ -440,7 +445,8 @@ class OrquestaErrorHandlingTest(st2tests.ExecutionDbTestCase):
             {
                 'type': 'error',
                 'message': msg,
-                'task_id': 'task2'
+                'task_id': 'task2',
+                'route': 0
             }
         ]
 
@@ -531,8 +537,9 @@ class OrquestaErrorHandlingTest(st2tests.ExecutionDbTestCase):
                     "YaqlEvaluationException: Unable to resolve key 'foobar' in expression "
                     "'<% succeeded() and result().foobar %>' from context."
                 ),
-                'task_transition_id': 'task2__0',
-                'task_id': 'task1'
+                'task_transition_id': 'task2__t0',
+                'task_id': 'task1',
+                'route': 0
             }
         ]
 
@@ -576,8 +583,9 @@ class OrquestaErrorHandlingTest(st2tests.ExecutionDbTestCase):
                     '\'<% foobar() %>\'. NoFunctionRegisteredException: '
                     'Unknown function "foobar"'
                 ),
-                'task_transition_id': 'task2__0',
-                'task_id': 'task1'
+                'task_transition_id': 'task2__t0',
+                'task_id': 'task1',
+                'route': 0
             }
         ]
 

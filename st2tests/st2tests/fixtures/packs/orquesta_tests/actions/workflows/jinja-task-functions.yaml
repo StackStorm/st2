@@ -29,9 +29,6 @@ tasks:
           - loop: False
         do: task3
       - when: '{{ ctx("loop") != true }}'
-        do: task4
-  task4:
-    action: core.noop
 
   # Test task function in a reuse (split).
   task4:
@@ -49,12 +46,12 @@ tasks:
   task7:
     action: core.echo
     input:
-      message: '{{ task("task6").task_id }}'
+      message: '{{ task("task6").task_id + "__" + task("task6").route|string }}'
 
 output:
   - this_task_no_arg: '{{ ctx("this_task_no_arg") }}'
   - this_task_by_name: '{{ ctx("this_task_by_name") }}'
   - that_task_by_name: '{{ task("task1").task_id }}'
   - last_task3_result: '{{ task("task3").result.stdout }}'
-  - task7__1__parent: '{{ task("task7__1").result.stdout }}'
-  - task7__2__parent: '{{ task("task7__2").result.stdout }}'
+  - task7__2__parent: '{{ task("task7", route=2).result.stdout }}'
+  - task7__3__parent: '{{ task("task7", route=3).result.stdout }}'
