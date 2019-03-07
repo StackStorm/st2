@@ -15,6 +15,7 @@
 
 from __future__ import absolute_import
 
+import copy
 import mock
 
 from orquesta import exceptions as orquesta_exc
@@ -22,6 +23,9 @@ from orquesta.specs import loader as specs_loader
 from orquesta import states as wf_states
 
 import st2tests
+
+import st2tests.config as tests_config
+tests_config.parse_args()
 
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar
@@ -225,6 +229,7 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
         wf_spec = spec_module.WorkflowSpec.deserialize(wf_ex_db.spec)
 
         # Manually request task execution.
+        task_route = 0
         task_id = 'task1'
         task_spec = wf_spec.tasks.get_task(task_id)
         task_ctx = {'foo': 'bar'}
@@ -232,6 +237,7 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
 
         task_ex_req = {
             'id': task_id,
+            'route': task_route,
             'spec': task_spec,
             'ctx': task_ctx,
             'actions': [
@@ -275,6 +281,7 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
         wf_spec = spec_module.WorkflowSpec.deserialize(wf_ex_db.spec)
 
         # Manually request task execution.
+        task_route = 0
         task_id = 'task1'
         task_spec = wf_spec.tasks.get_task(task_id)
         task_ctx = {'foo': 'bar'}
@@ -282,6 +289,7 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
 
         task_ex_req = {
             'id': task_id,
+            'route': task_route,
             'spec': task_spec,
             'ctx': task_ctx,
             'actions': [
@@ -311,38 +319,47 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
         wf_ex_db = self.prep_wf_ex(wf_ex_db)
 
         # Manually request task execution.
-        self.run_workflow_step(wf_ex_db, 'task1', ctx={'foo': 'bar'})
+        self.run_workflow_step(wf_ex_db, 'task1', 0, ctx={'foo': 'bar'})
 
         # Check that a new task is executed.
-        self.assert_task_running('task2')
+        self.assert_task_running('task2', 0)
 
     def test_evaluate_action_execution_delay(self):
+        base_task_ex_req = {'task_id': 'task1', 'task_name': 'task1', 'route': 0}
+
         # No task delay.
-        task_ex_req = {'task_id': 'task1', 'task_name': 'task1'}
+        task_ex_req = copy.deepcopy(base_task_ex_req)
         ac_ex_req = {'action': 'core.noop', 'input': None}
         actual_delay = workflow_service.eval_action_execution_delay(task_ex_req, ac_ex_req)
         self.assertIsNone(actual_delay)
 
         # Simple task delay.
-        task_ex_req = {'task_id': 'task1', 'task_name': 'task1', 'delay': 180}
+        task_ex_req = copy.deepcopy(base_task_ex_req)
+        task_ex_req['delay'] = 180
         ac_ex_req = {'action': 'core.noop', 'input': None}
         actual_delay = workflow_service.eval_action_execution_delay(task_ex_req, ac_ex_req)
         self.assertEqual(actual_delay, 180)
 
         # Task delay for with items task and with no concurrency.
-        task_ex_req = {'task_id': 'task1', 'task_name': 'task1', 'delay': 180, 'concurrency': None}
+        task_ex_req = copy.deepcopy(base_task_ex_req)
+        task_ex_req['delay'] = 180
+        task_ex_req['concurrency'] = None
         ac_ex_req = {'action': 'core.noop', 'input': None, 'items_id': 0}
         actual_delay = workflow_service.eval_action_execution_delay(task_ex_req, ac_ex_req, True)
         self.assertEqual(actual_delay, 180)
 
         # Task delay for with items task, with concurrency, and evaluate first item.
-        task_ex_req = {'task_id': 'task1', 'task_name': 'task1', 'delay': 180, 'concurrency': 1}
+        task_ex_req = copy.deepcopy(base_task_ex_req)
+        task_ex_req['delay'] = 180
+        task_ex_req['concurrency'] = 1
         ac_ex_req = {'action': 'core.noop', 'input': None, 'item_id': 0}
         actual_delay = workflow_service.eval_action_execution_delay(task_ex_req, ac_ex_req, True)
         self.assertEqual(actual_delay, 180)
 
         # Task delay for with items task, with concurrency, and evaluate later items.
-        task_ex_req = {'task_id': 'task1', 'task_name': 'task1', 'delay': 180, 'concurrency': 1}
+        task_ex_req = copy.deepcopy(base_task_ex_req)
+        task_ex_req['delay'] = 180
+        task_ex_req['concurrency'] = 1
         ac_ex_req = {'action': 'core.noop', 'input': None, 'item_id': 1}
         actual_delay = workflow_service.eval_action_execution_delay(task_ex_req, ac_ex_req, True)
         self.assertIsNone(actual_delay)

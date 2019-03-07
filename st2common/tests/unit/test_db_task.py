@@ -35,6 +35,7 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         initial.workflow_execution = uuid.uuid4().hex
         initial.task_name = 't1'
         initial.task_id = 't1'
+        initial.task_route = 0
         initial.task_spec = {'tasks': {'t1': 'some task'}}
         initial.delay = 180
         initial.status = 'requested'
@@ -50,6 +51,7 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         self.assertEqual(created.workflow_execution, retrieved.workflow_execution)
         self.assertEqual(created.task_name, retrieved.task_name)
         self.assertEqual(created.task_id, retrieved.task_id)
+        self.assertEqual(created.task_route, retrieved.task_route)
         self.assertDictEqual(created.task_spec, retrieved.task_spec)
         self.assertEqual(created.delay, retrieved.delay)
         self.assertFalse(created.itemized)
@@ -67,6 +69,7 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         self.assertEqual(updated.workflow_execution, retrieved.workflow_execution)
         self.assertEqual(updated.task_name, retrieved.task_name)
         self.assertEqual(updated.task_id, retrieved.task_id)
+        self.assertEqual(updated.task_route, retrieved.task_route)
         self.assertDictEqual(updated.task_spec, retrieved.task_spec)
         self.assertEqual(updated.delay, retrieved.delay)
         self.assertEqual(updated.itemized, retrieved.itemized)
@@ -86,6 +89,7 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         self.assertEqual(updated.workflow_execution, retrieved.workflow_execution)
         self.assertEqual(updated.task_name, retrieved.task_name)
         self.assertEqual(updated.task_id, retrieved.task_id)
+        self.assertEqual(updated.task_route, retrieved.task_route)
         self.assertDictEqual(updated.task_spec, retrieved.task_spec)
         self.assertEqual(updated.delay, retrieved.delay)
         self.assertEqual(updated.itemized, retrieved.itemized)
@@ -109,6 +113,7 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         initial.workflow_execution = uuid.uuid4().hex
         initial.task_name = 't1'
         initial.task_id = 't1'
+        initial.task_route = 0
         initial.task_spec = {'tasks': {'t1': 'some task'}}
         initial.delay = 180
         initial.itemized = True
@@ -125,6 +130,7 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         self.assertEqual(created.workflow_execution, retrieved.workflow_execution)
         self.assertEqual(created.task_name, retrieved.task_name)
         self.assertEqual(created.task_id, retrieved.task_id)
+        self.assertEqual(created.task_route, retrieved.task_route)
         self.assertDictEqual(created.task_spec, retrieved.task_spec)
         self.assertEqual(created.delay, retrieved.delay)
         self.assertTrue(created.itemized)
@@ -142,6 +148,7 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         self.assertEqual(updated.workflow_execution, retrieved.workflow_execution)
         self.assertEqual(updated.task_name, retrieved.task_name)
         self.assertEqual(updated.task_id, retrieved.task_id)
+        self.assertEqual(updated.task_route, retrieved.task_route)
         self.assertDictEqual(updated.task_spec, retrieved.task_spec)
         self.assertEqual(updated.delay, retrieved.delay)
         self.assertEqual(updated.itemized, retrieved.itemized)
@@ -161,6 +168,7 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         self.assertEqual(updated.workflow_execution, retrieved.workflow_execution)
         self.assertEqual(updated.task_name, retrieved.task_name)
         self.assertEqual(updated.task_id, retrieved.task_id)
+        self.assertEqual(updated.task_route, retrieved.task_route)
         self.assertDictEqual(updated.task_spec, retrieved.task_spec)
         self.assertEqual(updated.delay, retrieved.delay)
         self.assertEqual(updated.itemized, retrieved.itemized)
@@ -184,6 +192,7 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         initial.workflow_execution = uuid.uuid4().hex
         initial.task_name = 't1'
         initial.task_id = 't1'
+        initial.task_route = 0
         initial.task_spec = {'tasks': {'t1': 'some task'}}
         initial.delay = 180
         initial.status = 'requested'
@@ -207,6 +216,7 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         self.assertEqual(updated.workflow_execution, retrieved1.workflow_execution)
         self.assertEqual(updated.task_name, retrieved1.task_name)
         self.assertEqual(updated.task_id, retrieved1.task_id)
+        self.assertEqual(updated.task_route, retrieved1.task_route)
         self.assertDictEqual(updated.task_spec, retrieved1.task_spec)
         self.assertEqual(updated.delay, retrieved1.delay)
         self.assertEqual(updated.itemized, retrieved1.itemized)

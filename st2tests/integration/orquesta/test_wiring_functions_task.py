@@ -27,8 +27,8 @@ class FunctionsWiringTest(base.TestWorkflowExecution):
 
         expected_output = {
             'last_task3_result': 'False',
-            'task7__1__parent': 'task6__1',
             'task7__2__parent': 'task6__2',
+            'task7__3__parent': 'task6__3',
             'that_task_by_name': 'task1',
             'this_task_by_name': 'task1',
             'this_task_no_arg': 'task1'
@@ -43,8 +43,8 @@ class FunctionsWiringTest(base.TestWorkflowExecution):
 
         expected_output = {
             'last_task3_result': 'False',
-            'task7__1__parent': 'task6__1',
             'task7__2__parent': 'task6__2',
+            'task7__3__parent': 'task6__3',
             'that_task_by_name': 'task1',
             'this_task_by_name': 'task1',
             'this_task_no_arg': 'task1'
@@ -67,8 +67,9 @@ class FunctionsWiringTest(base.TestWorkflowExecution):
                     '\'<% task("task0") %>\'. ExpressionEvaluationException: '
                     'Unable to find task execution for "task0".'
                 ),
-                'task_transition_id': 'noop__0',
-                'task_id': 'task1'
+                'task_transition_id': 'noop__t0',
+                'task_id': 'task1',
+                'route': 0
             }
         ]
 
@@ -94,8 +95,9 @@ class FunctionsWiringTest(base.TestWorkflowExecution):
                     '\'{{ task("task0") }}\'. ExpressionEvaluationException: '
                     'Unable to find task execution for "task0".'
                 ),
-                'task_transition_id': 'noop__0',
-                'task_id': 'task1'
+                'task_transition_id': 'noop__t0',
+                'task_id': 'task1',
+                'route': 0
             }
         ]
 

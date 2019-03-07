@@ -23,6 +23,9 @@ from orquesta import states as wf_lib_states
 
 import st2tests
 
+import st2tests.config as tests_config
+tests_config.parse_args()
+
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar
 from st2common.exceptions import db as db_exc
@@ -123,20 +126,21 @@ class WorkflowExecutionWriteConflictTest(st2tests.WorkflowTestCase):
         wf_ex_db = self.prep_wf_ex(wf_ex_db)
 
         # Manually request task executions.
-        self.run_workflow_step(wf_ex_db, 'task1')
-        self.assert_task_running('task2')
-        self.assert_task_running('task4')
-        self.run_workflow_step(wf_ex_db, 'task2')
-        self.assert_task_running('task3')
-        self.run_workflow_step(wf_ex_db, 'task4')
-        self.assert_task_running('task5')
-        self.run_workflow_step(wf_ex_db, 'task3')
-        self.assert_task_not_started('task6')
-        self.run_workflow_step(wf_ex_db, 'task5')
-        self.assert_task_running('task6')
-        self.run_workflow_step(wf_ex_db, 'task6')
-        self.assert_task_running('task7')
-        self.run_workflow_step(wf_ex_db, 'task7')
+        task_route = 0
+        self.run_workflow_step(wf_ex_db, 'task1', task_route)
+        self.assert_task_running('task2', task_route)
+        self.assert_task_running('task4', task_route)
+        self.run_workflow_step(wf_ex_db, 'task2', task_route)
+        self.assert_task_running('task3', task_route)
+        self.run_workflow_step(wf_ex_db, 'task4', task_route)
+        self.assert_task_running('task5', task_route)
+        self.run_workflow_step(wf_ex_db, 'task3', task_route)
+        self.assert_task_not_started('task6', task_route)
+        self.run_workflow_step(wf_ex_db, 'task5', task_route)
+        self.assert_task_running('task6', task_route)
+        self.run_workflow_step(wf_ex_db, 'task6', task_route)
+        self.assert_task_running('task7', task_route)
+        self.run_workflow_step(wf_ex_db, 'task7', task_route)
         self.assert_workflow_completed(str(wf_ex_db.id), state=wf_lib_states.SUCCEEDED)
 
         # Ensure retry happened.

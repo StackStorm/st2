@@ -62,6 +62,7 @@ class TaskExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionField
     workflow_execution = me.StringField(required=True)
     task_name = me.StringField(required=True)
     task_id = me.StringField(required=True)
+    task_route = me.IntField(required=True, min_value=0)
     task_spec = stormbase.EscapedDictField()
     delay = me.IntField(min_value=0)
     itemized = me.BooleanField(default=False)
@@ -77,7 +78,9 @@ class TaskExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionField
         'indexes': [
             {'fields': ['workflow_execution']},
             {'fields': ['task_id']},
-            {'fields': ['workflow_execution', 'task_id']}
+            {'fields': ['task_id', 'task_route']},
+            {'fields': ['workflow_execution', 'task_id']},
+            {'fields': ['workflow_execution', 'task_id', 'task_route']}
         ]
     }
 

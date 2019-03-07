@@ -17,6 +17,7 @@ from __future__ import absolute_import
 
 import logging
 
+from orquesta import constants
 from orquesta import exceptions as exc
 from orquesta.expressions.functions import workflow as workflow_functions
 
@@ -34,8 +35,9 @@ def format_task_result(instances):
     return {
         'task_execution_id': str(instance.id),
         'workflow_execution_id': instance.workflow_execution,
-        'task_name': instance.task_name,
+        'task_name': instance.task_id,
         'task_id': instance.task_id,
+        'route': instance.task_route,
         'result': instance.result,
         'status': instance.status,
         'start_timestamp': str(instance.start_timestamp),
@@ -43,57 +45,59 @@ def format_task_result(instances):
     }
 
 
-def task(context, task_name=None, task_id=None):
+def task(context, task_id=None, route=None):
     instances = None
-    st2_ctx = context['__vars']['st2']
-    workflow_execution_id = st2_ctx['workflow_execution_id']
 
     try:
         current_task = workflow_functions._get_current_task(context)
     except:
-        current_task = None
+        current_task = {}
 
-    def parse_path_id(task_name, task_id):
-        return task_id[len(task_name):] if task_id.startswith(task_name) else ''
-
-    # First try using task name as task id.
-    if task_name:
-        query_filters = {'workflow_execution': workflow_execution_id, 'task_id': task_name}
-        instances = wf_db_access.TaskExecution.query(**query_filters)
-
-    # Default to current task if task name is not provided.
-    if not instances and current_task and not task_name:
+    if task_id is None:
         task_id = current_task['id']
-        query_filters = {'workflow_execution': workflow_execution_id, 'task_id': task_id}
-        instances = wf_db_access.TaskExecution.query(**query_filters)
 
-    # Try to query next with task name and path id.
-    if not instances and current_task:
-        current_task_path = parse_path_id(current_task['name'], current_task['id'])
-        task_id = task_name + current_task_path
-        query_filters = {'workflow_execution': workflow_execution_id, 'task_id': task_id}
-        instances = wf_db_access.TaskExecution.query(**query_filters)
+    if route is None:
+        route = current_task.get('route', 0)
 
-    # If there is no match, try with just task name.
-    if not instances and task_name:
-        query_filters = {'workflow_execution': workflow_execution_id, 'task_name': task_name}
-        instances = wf_db_access.TaskExecution.query(**query_filters)
+    try:
+        task_flow = context['__flow'] or {}
+    except KeyError:
+        task_flow = {}
+
+    task_flow_pointers = task_flow.get('tasks') or {}
+    task_flow_task_uid = constants.TASK_FLOW_ROUTE_FORMAT % (task_id, str(route))
+    task_flow_item_idx = task_flow_pointers.get(task_flow_task_uid)
+
+    # If unable to identify the task flow entry and if there are other routes, then
+    # use an earlier route before the split to find the specific task.
+    if task_flow_item_idx is None:
+        if route > 0:
+            current_route_details = task_flow['routes'][route]
+            # Reverse the list because we want to start with the next longest route.
+            for idx, prev_route_details in enumerate(reversed(task_flow['routes'][:route])):
+                if len(set(prev_route_details) - set(current_route_details)) == 0:
+                    # The index is from a reversed list so need to calculate
+                    # the index of the item in the list before the reverse.
+                    prev_route = route - idx - 1
+                    return task(context, task_id=task_id, route=prev_route)
+    else:
+        # Otherwise, get the task flow entry and use the
+        # task id and route to query the database.
+        task_flow_seqs = task_flow.get('sequence') or []
+        task_flow_item = task_flow_seqs[task_flow_item_idx]
+        route = task_flow_item['route']
+        st2_ctx = context['__vars']['st2']
+        workflow_execution_id = st2_ctx['workflow_execution_id']
+
+        # Query the database by the workflow execution ID, task ID, and task route.
+        instances = wf_db_access.TaskExecution.query(
+            workflow_execution=workflow_execution_id,
+            task_id=task_id,
+            task_route=route
+        )
 
     if not instances:
-        message = 'Unable to find task execution for "%s".' % task_name
+        message = 'Unable to find task execution for "%s".' % task_id
         raise exc.ExpressionEvaluationException(message)
 
-    # Sort the instances by ascending start_timestamp and get the latest instance.
-    instances = sorted(instances, key=lambda x: x.start_timestamp)
-    instance = instances[-1]
-
-    return {
-        'task_execution_id': str(instance.id),
-        'workflow_execution_id': instance.workflow_execution,
-        'task_name': instance.task_name,
-        'task_id': instance.task_id,
-        'result': instance.result,
-        'status': instance.status,
-        'start_timestamp': str(instance.start_timestamp),
-        'end_timestamp': str(instance.end_timestamp)
-    }
+    return format_task_result(instances)
