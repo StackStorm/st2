@@ -22,6 +22,9 @@ Changed
 ~~~~~~~
 
 * Changed the ``inquiries`` API path from ``/exp`` to ``/api/v1``. #4495
+* Refactored workflow state in orquesta workflow engine. Previously, state in the workflow engine
+  is not status to be consistent with st2. Other terminologies used in the engine are also revised
+  to make it easier for developers to understand. (improvement)
 
 Fixed
 ~~~~~
