@@ -13,13 +13,16 @@ tasks:
       - publish:
           - this_task_no_arg: '<% task().task_id %>'
           - this_task_by_name: '<% task("task1").task_id %>'
-
-  # Test task function in a cycle.
+        do: task2
   task2:
     action: core.noop
-    next:
-      - do: task3
+
+  # Test task function in a cycle.
   task3:
+    action: core.noop
+    next:
+      - do: task4
+  task4:
     action: core.local
     input:
       cmd: 'echo "<% ctx("loop") %>"; sleep 1'
@@ -27,31 +30,34 @@ tasks:
       - when: '<% ctx("loop") = true %>'
         publish:
           - loop: False
-        do: task3
+        do: task4
       - when: '<% ctx("loop") != true %>'
-
-  # Test task function in a reuse (split).
-  task4:
-    action: core.noop
-    next:
-      - do: task6
+        do: task5
   task5:
     action: core.noop
-    next:
-      - do: task6
+
+  # Test task function in a reuse (split).
   task6:
     action: core.noop
     next:
-      - do: task7
+      - do: task8
   task7:
+    action: core.noop
+    next:
+      - do: task8
+  task8:
+    action: core.noop
+    next:
+      - do: task9
+  task9:
     action: core.echo
     input:
-      message: '<% task("task6").task_id + "__" + str(task("task6").route) %>'
+      message: '<% task("task8").task_id + "__" + str(task("task8").route) %>'
 
 output:
   - this_task_no_arg: '<% ctx("this_task_no_arg") %>'
   - this_task_by_name: '<% ctx("this_task_by_name") %>'
   - that_task_by_name: '<% task("task1").task_id %>'
-  - last_task3_result: '<% task("task3").result.stdout %>'
-  - task7__2__parent: '<% task("task7", route=>2).result.stdout %>'
-  - task7__3__parent: '<% task("task7", route=>3).result.stdout %>'
+  - last_task4_result: '<% task("task4").result.stdout %>'
+  - task9__1__parent: '<% task("task9", route=>1).result.stdout %>'
+  - task9__2__parent: '<% task("task9", route=>2).result.stdout %>'
