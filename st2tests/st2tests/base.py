@@ -47,8 +47,10 @@ from st2common.constants.system import AUTH_TOKEN_ENV_VARIABLE_NAME
 from st2common.exceptions.db import StackStormDBObjectConflictError
 from st2common.models.db import db_setup, db_teardown, db_ensure_indexes
 from st2common.models.db.execution_queue import ActionExecutionSchedulingQueueItemDB
+from st2common.bootstrap.actionsregistrar import ActionsRegistrar
 from st2common.bootstrap.base import ResourceRegistrar
 from st2common.bootstrap.configsregistrar import ConfigsRegistrar
+from st2common.bootstrap import runnersregistrar
 from st2common.content.utils import get_packs_base_paths
 from st2common.content.loader import MetaLoader
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
@@ -58,6 +60,7 @@ from st2common.persistence.action import LiveAction
 from st2common.services import workflows as wf_svc
 from st2common.util import api as api_util
 from st2common.util import loader
+from st2common.util.virtualenvs import setup_pack_virtualenv
 import st2common.models.db.rule as rule_model
 import st2common.models.db.rule_enforcement as rule_enforcement_model
 import st2common.models.db.sensor as sensor_model
@@ -83,6 +86,7 @@ __all__ = [
     'DbTestCase',
     'DbModelTestCase',
     'CleanDbTestCase',
+    'InstallFixturesPacks',
     'CleanFilesTestCase',
     'IntegrationTestCase',
     'RunnerTestCase',
@@ -463,6 +467,69 @@ class CleanDbTestCase(BaseDbTestCase):
 
         if self.register_pack_configs:
             self._register_pack_configs()
+
+
+class InstallFixturesPacks(DbTestCase):
+    """
+    Class installs Fixtures packs according to passed pack list
+    """
+    def install_packs(self, packs):
+        self._setup_env()
+        self._create_pack_virtualenv(packs)
+        self._register_packs(packs)
+        self._register_pack_configs(packs)
+
+    def delete_files(self):
+        try:
+            shutil.rmtree(self.virtualenvs_path)
+        except Exception:
+            pass
+
+    def _setup_env(self):
+        self.pack_path = get_packs_base_paths()[0]
+        self.virtualenvs_path = os.path.join(self.pack_path, 'virtualenvs/')
+
+    def _create_pack_virtualenv(self, packs):
+        self._create_virtual_path()
+
+        for pack_name in packs:
+            # Create virtualenv
+            setup_pack_virtualenv(pack_name=pack_name, update=False, include_pip=False,
+                                  include_setuptools=False, include_wheel=False)
+
+    def _register_packs(self, packs, validate_configs=False):
+        """
+        Register all the packs inside the fixtures directory.
+        """
+        # Register runners.
+        runnersregistrar.register_runners()
+
+        # Register actions.
+        actions_registrar = ActionsRegistrar(use_pack_cache=False, fail_on_failure=True)
+        for pack_name in packs:
+            actions_registrar.register_from_pack(self.pack_path + '/' + pack_name)
+
+        # Register packs.
+        registrar = ResourceRegistrar(use_pack_cache=False, use_runners_cache=True)
+        for pack_name in packs:
+            registrar._register_pack_db(pack_name=pack_name, pack_dir=self.pack_path + '/' +
+                                                                      pack_name)
+
+    def _register_pack_configs(self, packs, validate_configs=False):
+        """
+        Register all the packs inside the fixtures directory.
+        """
+        registrar = ConfigsRegistrar(use_pack_cache=False, validate_configs=validate_configs)
+        for pack_name in packs:
+            config_path = registrar._get_config_path_for_pack(pack_name)
+            if os.path.exists(config_path):
+                registrar._register_config_for_pack(pack=pack_name, config_path=config_path)
+
+    def _create_virtual_path(self):
+        if os.path.isdir(self.virtualenvs_path):
+            self.delete_files()
+
+        os.mkdir(self.virtualenvs_path)
 
 
 class CleanFilesTestCase(TestCase):
