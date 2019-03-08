@@ -18,6 +18,9 @@ Added
    For backward compatibility reasons, if pack metadata file doesn't contain that attribute, it's
    assumed it only works with Python 2. (new feature) #4474
 
+* Adding ``Cache-Control`` header to all API responses so clients will favor
+  refresh from API instead of using cached version.
+
 Changed
 ~~~~~~~
 
