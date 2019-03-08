@@ -17,11 +17,14 @@
 
 from __future__ import absolute_import
 
+import mock
+
 from integration.orquesta import base
 
 from st2common.constants import action as ac_const
 
 
+@mock.patch('st2common.util.virtualenvs.BASE_PACK_REQUIREMENTS', [])
 class WiringTest(base.TestWorkflowExecution):
 
     def test_sequential(self):
@@ -143,4 +146,20 @@ class WiringTest(base.TestWorkflowExecution):
         }
 
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
+        self.assertDictEqual(ex.result, expected_result)
+
+    def test_config_context_renders(self):
+        packs = ["orquesta_tests", "dummy_pack_7"]
+
+        self.install_packs(packs)
+        config_value = "testing"
+        wf_name = 'orquesta_tests.render_config_context'
+
+        expected_output = {'context_value': config_value}
+        expected_result = {'output': expected_output}
+
+        ex = self._execute_workflow(wf_name)
+        ex = self._wait_for_completion(ex)
+
+        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         self.assertDictEqual(ex.result, expected_result)
