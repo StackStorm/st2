@@ -25,7 +25,6 @@ import unittest2
 from st2client import client as st2
 from st2client import models
 from st2common.constants import action as action_constants
-from st2tests.base import InstallFixturesPacks
 
 
 LIVEACTION_LAUNCHED_STATUSES = [
@@ -54,19 +53,11 @@ class WorkflowControlTestCaseMixin(object):
                 os.remove(temp_file_path)
 
 
-class TestWorkflowExecution(InstallFixturesPacks):
+class TestWorkflowExecution(unittest2.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        super(TestWorkflowExecution, cls).setUpClass()
         cls.st2client = st2.Client(base_url='http://127.0.0.1')
-
-    def tearDown(self):
-        super(TestWorkflowExecution, self).tearDown()
-        super(TestWorkflowExecution, self).delete_files()
-
-    def install_packs(self, packs):
-        super(TestWorkflowExecution, self).install_packs(packs)
 
     def _execute_workflow(self, action, parameters=None, execute_async=True,
                           expected_status=None, expected_result=None):
