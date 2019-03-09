@@ -212,6 +212,8 @@ function st2start(){
     if [ "$copy_examples" = true ]; then
         echo "Copying examples from ./contrib/examples to $PACKS_BASE_DIR"
         cp -Rp ./contrib/examples $PACKS_BASE_DIR
+        cp -Rp ./st2tests/st2tests/fixtures/packs/dummy_pack_7 $PACKS_BASE_DIR
+        cp -p ./st2tests/st2tests/fixtures/packs/configs/dummy_pack_7.yaml $CONFIG_BASE_DIR
     fi
 
     # activate virtualenv to set PYTHONPATH
@@ -374,6 +376,10 @@ function st2start(){
             --server api \
             --config-file $MISTRAL_CONF \
             --log-file "$LOGDIR/mistral-api.log"
+    fi
+
+    if [ "$copy_examples" = true ]; then
+        st2 run packs.setup_virtualenv packs=dummy_pack_7
     fi
 
     # Check whether screen sessions are started
