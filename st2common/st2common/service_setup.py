@@ -195,7 +195,7 @@ def teardown():
     db_teardown()
 
     # 2. Tear down the coordinator
-    coordinator = coordination.get_coordinator(start_heart=False)
+    coordinator = coordination.get_coordinator()
     coordination.coordinator_teardown(coordinator)
 
 
