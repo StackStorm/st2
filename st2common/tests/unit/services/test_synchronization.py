@@ -30,7 +30,7 @@ class SynchronizationTest(unittest2.TestCase):
     def setUpClass(cls):
         super(SynchronizationTest, cls).setUpClass()
         tests_config.parse_args(coordinator_noop=False)
-        cls.coordinator = coordination.get_coordinator()
+        cls.coordinator = coordination.get_coordinator(use_cache=False)
 
     @classmethod
     def tearDownClass(cls):

@@ -200,12 +200,23 @@ def coordinator_teardown(coordinator):
     coordinator.stop()
 
 
-def get_coordinator(start_heart=False):
+def get_coordinator(start_heart=False, use_cache=True):
+    """
+    :param start_heart: True to start heartbeating process.
+    :type start_heart: ``bool``
+
+    :param use_cache: True to use cached coordinator instance. False should only be used in tests.
+    :type use_cache: ``bool``
+    """
     global COORDINATOR
 
     if not configured():
         LOG.warn('Coordination backend is not configured. Code paths which use coordination '
                  'service will use best effort approach and race conditions are possible.')
+
+    if not use_cache:
+        coordinator = coordinator_setup(start_heart=start_heart)
+        return coordinator
 
     if not COORDINATOR:
         COORDINATOR = coordinator_setup(start_heart=start_heart)

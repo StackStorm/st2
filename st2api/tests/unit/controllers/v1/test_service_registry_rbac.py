@@ -39,7 +39,7 @@ class ServiceRegistryControllerRBACTestCase(APIControllerWithRBACTestCase):
 
         super(ServiceRegistryControllerRBACTestCase, cls).setUpClass()
 
-        cls.coordinator = coordination.get_coordinator()
+        cls.coordinator = coordination.get_coordinator(use_cache=False)
 
         # Register mock service in the service registry for testing purposes
         register_service_in_service_registry(service='mock_service',

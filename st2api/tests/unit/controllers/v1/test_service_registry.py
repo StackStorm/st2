@@ -37,7 +37,7 @@ class ServiceyRegistryControllerTestCase(FunctionalTest):
 
         tests_config.parse_args(coordinator_noop=True)
 
-        cls.coordinator = coordination.get_coordinator()
+        cls.coordinator = coordination.get_coordinator(use_cache=False)
 
         # NOTE: We mock call common_setup to emulate service being registered in the service
         # registry during bootstrap phase
