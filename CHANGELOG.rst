@@ -29,6 +29,9 @@ Added
   NOTE: This API endpoint is behind a RBAC control check and can only be views by the admins.
   (new feature) #4548
 
+  Also add corresponding CLI commands - ``st2 service-registry group list``,
+  ``st2 service registry member list [--group-id=<group id>]``
+
 * Adding ``Cache-Control`` header to all API responses so clients will favor
   refresh from API instead of using cached version.
 
