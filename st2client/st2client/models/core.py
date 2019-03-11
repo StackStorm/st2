@@ -682,3 +682,51 @@ class WorkflowManager(object):
             self.handle_error(response)
 
         return response.json()
+
+
+class ServiceRegistryGroupsManager(ResourceManager):
+    @add_auth_token_to_kwargs_from_env
+    def list(self, **kwargs):
+        url = '/service_registry/groups'
+
+        headers = {}
+        response = self.client.get(url, headers=headers, **kwargs)
+
+        if response.status_code != http_client.OK:
+            self.handle_error(response)
+
+        groups = response.json()['groups']
+
+        result = []
+        for group in groups:
+            item = self.resource.deserialize({'group_id': group})
+            result.append(item)
+
+        return result
+
+
+class ServiceRegistryMembersManager(ResourceManager):
+
+    @add_auth_token_to_kwargs_from_env
+    def list(self, group_id, **kwargs):
+        url = '/service_registry/groups/%s/members' % (group_id)
+
+        headers = {}
+        response = self.client.get(url, headers=headers, **kwargs)
+
+        if response.status_code != http_client.OK:
+            self.handle_error(response)
+
+        members = response.json()['members']
+
+        result = []
+        for member in members:
+            data = {
+                'group_id': group_id,
+                'member_id': member['member_id'],
+                'capabilities': member['capabilities']
+            }
+            item = self.resource.deserialize(data)
+            result.append(item)
+
+        return result
