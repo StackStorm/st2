@@ -18,10 +18,16 @@ Added
    For backward compatibility reasons, if pack metadata file doesn't contain that attribute, it's
    assumed it only works with Python 2. (new feature) #4474
 
+* Adding ``Cache-Control`` header to all API responses so clients will favor
+  refresh from API instead of using cached version.
+
 Changed
 ~~~~~~~
 
 * Changed the ``inquiries`` API path from ``/exp`` to ``/api/v1``. #4495
+* Refactored workflow state in orquesta workflow engine. Previously, state in the workflow engine
+  is not status to be consistent with st2. Other terminologies used in the engine are also revised
+  to make it easier for developers to understand. (improvement)
 * Update Python runner code so it prioritizes libraries from pack virtual environment over StackStorm
   system dependencies.
   
@@ -39,6 +45,32 @@ Fixed
 * Refactored orquesta execution graph to fix performance issue for workflows with many
   references to non-join tasks. st2workflowengine and DB models are refactored accordingly.
   (improvement) StackStorm/orquesta#122.
+* Fix orquesta workflow stuck in running status when one or more items failed execution for a
+  with items task. (bug fix) #4523
+* Fix orquesta workflow bug where context variables are being overwritten on task join.
+  (bug fix) StackStorm/orquesta#112
+
+2.10.3 - March 06, 2019
+-----------------------
+
+Fixed
+~~~~~
+
+* Fix improper CORS where request from an origin not listed in ``allowed_origins`` will be responded
+  with ``null`` for the ``Access-Control-Allow-Origin`` header. The fix returns the first of our
+  allowed origins if the requesting origin is not a supported origin. Reported by Barak Tawily.
+  (bug fix)
+  
+2.9.3 - March 06, 2019
+-----------------------
+
+Fixed
+~~~~~
+
+* Fix improper CORS where request from an origin not listed in ``allowed_origins`` will be responded
+  with ``null`` for the ``Access-Control-Allow-Origin`` header. The fix returns the first of our
+  allowed origins if the requesting origin is not a supported origin. Reported by Barak Tawily.
+  (bug fix)
 
 2.10.2 - February 21, 2019
 --------------------------

@@ -16,6 +16,8 @@
 from oslo_config import cfg
 from tests import FunctionalTest
 
+from st2common.constants.api import CACHE_CONTROL_HEADER
+
 
 class TestBase(FunctionalTest):
     def test_defaults(self):
@@ -47,12 +49,30 @@ class TestBase(FunctionalTest):
                          'http://dev')
 
     def test_wrong_origin(self):
+        # Invalid origin  (not specified in the config), we return first allowed origin specified
+        # in the config
         response = self.app.get('/', headers={
             'origin': 'http://xss'
         })
         self.assertEqual(response.status_int, 200)
-        self.assertEqual(response.headers['Access-Control-Allow-Origin'],
-                         'null')
+        self.assertEqual(response.headers.get('Access-Control-Allow-Origin'),
+                        'http://127.0.0.1:3000')
+
+        invalid_origins = [
+            'http://',
+            'https://',
+            'https://www.example.com',
+            'null',
+            '*'
+        ]
+
+        for origin in invalid_origins:
+            response = self.app.get('/', headers={
+                'origin': origin
+            })
+            self.assertEqual(response.status_int, 200)
+            self.assertEqual(response.headers.get('Access-Control-Allow-Origin'),
+                            'http://127.0.0.1:3000')
 
     def test_wildcard_origin(self):
         try:
@@ -75,3 +95,11 @@ class TestBase(FunctionalTest):
         resp = self.app.get('/v1/executions/577f775b0640fd1451f2030b/re_run/a/b',
                             expect_errors=True)
         self.assertEqual(resp.status_int, 404)
+
+    def test_cache_control_present(self):
+        resp = self.app.options('/v1/executions/')
+        self.assertEqual(resp.status_int, 200)
+
+        self.assertIsInstance(CACHE_CONTROL_HEADER, str)
+        self.assertEqual(resp.headers['Cache-Control'],
+                         CACHE_CONTROL_HEADER)

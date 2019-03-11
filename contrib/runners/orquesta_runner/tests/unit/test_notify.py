@@ -18,7 +18,7 @@ from __future__ import absolute_import
 import jsonschema
 import mock
 
-from orquesta import states as wf_states
+from orquesta import statuses as wf_statuses
 
 import st2tests
 
@@ -283,9 +283,9 @@ class OrquestaNotifyTest(st2tests.ExecutionDbTestCase):
         # Handle task1 completion.
         workflow_service.handle_action_execution_completion(tk1_ac_ex_db)
         tk1_ex_db = wf_db_access.TaskExecution.get_by_id(tk1_ex_db.id)
-        self.assertEqual(tk1_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(tk1_ex_db.status, wf_statuses.SUCCEEDED)
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
 
         # Assert task2 notify is set.
         query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task2'}
@@ -301,9 +301,9 @@ class OrquestaNotifyTest(st2tests.ExecutionDbTestCase):
         # Handle task2 completion.
         workflow_service.handle_action_execution_completion(tk2_ac_ex_db)
         tk2_ex_db = wf_db_access.TaskExecution.get_by_id(tk2_ex_db.id)
-        self.assertEqual(tk2_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(tk2_ex_db.status, wf_statuses.SUCCEEDED)
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
 
         # Assert task3 notify is not set.
         query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task3'}
@@ -318,11 +318,11 @@ class OrquestaNotifyTest(st2tests.ExecutionDbTestCase):
         # Handle task3 completion.
         workflow_service.handle_action_execution_completion(tk3_ac_ex_db)
         tk3_ex_db = wf_db_access.TaskExecution.get_by_id(tk3_ex_db.id)
-        self.assertEqual(tk3_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(tk3_ex_db.status, wf_statuses.SUCCEEDED)
 
         # Assert workflow is completed.
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(wf_ex_db.status, wf_statuses.SUCCEEDED)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db.id))
