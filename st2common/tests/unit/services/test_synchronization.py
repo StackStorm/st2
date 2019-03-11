@@ -29,7 +29,7 @@ class SynchronizationTest(unittest2.TestCase):
     @classmethod
     def setUpClass(cls):
         super(SynchronizationTest, cls).setUpClass()
-        tests_config.parse_args()
+        tests_config.parse_args(coordinator_noop=False)
         cls.coordinator = coordination.get_coordinator()
 
     @classmethod
