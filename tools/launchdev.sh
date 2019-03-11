@@ -68,6 +68,7 @@ function init(){
     fi
 
     VIRTUALENV=${VIRTUALENV_DIR:-${ST2_REPO}/virtualenv}
+    VIRTUALENV=$(realpath ${VIRTUALENV})
     PY=${VIRTUALENV}/bin/python
     PYTHON_VERSION=$(${PY} --version 2>&1)
 
@@ -77,6 +78,8 @@ function init(){
     if [ -z "$ST2_CONF" ]; then
         ST2_CONF=${ST2_REPO}/conf/st2.dev.conf
     fi
+
+    ST2_CONF=$(realpath ${ST2_CONF})
     echo "Using st2 config file: $ST2_CONF"
 
     if [ ! -f "$ST2_CONF" ]; then
