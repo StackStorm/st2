@@ -1,0 +1,6 @@
+---
+name: orquesta-test-with-items-failure
+description: A workflow for testing items failure.
+runner_type: orquesta
+entry_point: workflows/tests/orquesta-test-with-items-failure.yaml
+enabled: true

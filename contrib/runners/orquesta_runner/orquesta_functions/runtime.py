@@ -60,21 +60,21 @@ def task(context, task_id=None, route=None):
         route = current_task.get('route', 0)
 
     try:
-        task_flow = context['__flow'] or {}
+        workflow_state = context['__state'] or {}
     except KeyError:
-        task_flow = {}
+        workflow_state = {}
 
-    task_flow_pointers = task_flow.get('tasks') or {}
-    task_flow_task_uid = constants.TASK_FLOW_ROUTE_FORMAT % (task_id, str(route))
-    task_flow_item_idx = task_flow_pointers.get(task_flow_task_uid)
+    task_state_pointers = workflow_state.get('tasks') or {}
+    task_state_entry_uid = constants.TASK_STATE_ROUTE_FORMAT % (task_id, str(route))
+    task_state_entry_idx = task_state_pointers.get(task_state_entry_uid)
 
     # If unable to identify the task flow entry and if there are other routes, then
     # use an earlier route before the split to find the specific task.
-    if task_flow_item_idx is None:
+    if task_state_entry_idx is None:
         if route > 0:
-            current_route_details = task_flow['routes'][route]
+            current_route_details = workflow_state['routes'][route]
             # Reverse the list because we want to start with the next longest route.
-            for idx, prev_route_details in enumerate(reversed(task_flow['routes'][:route])):
+            for idx, prev_route_details in enumerate(reversed(workflow_state['routes'][:route])):
                 if len(set(prev_route_details) - set(current_route_details)) == 0:
                     # The index is from a reversed list so need to calculate
                     # the index of the item in the list before the reverse.
@@ -83,9 +83,9 @@ def task(context, task_id=None, route=None):
     else:
         # Otherwise, get the task flow entry and use the
         # task id and route to query the database.
-        task_flow_seqs = task_flow.get('sequence') or []
-        task_flow_item = task_flow_seqs[task_flow_item_idx]
-        route = task_flow_item['route']
+        task_state_seqs = workflow_state.get('sequence') or []
+        task_state_entry = task_state_seqs[task_state_entry_idx]
+        route = task_state_entry['route']
         st2_ctx = context['__vars']['st2']
         workflow_execution_id = st2_ctx['workflow_execution_id']
 

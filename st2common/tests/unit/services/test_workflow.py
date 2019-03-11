@@ -20,7 +20,7 @@ import mock
 
 from orquesta import exceptions as orquesta_exc
 from orquesta.specs import loader as specs_loader
-from orquesta import states as wf_states
+from orquesta import statuses as wf_statuses
 
 import st2tests
 
@@ -101,7 +101,7 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
         self.assertIsNotNone(wf_ex_db.id)
         self.assertGreater(wf_ex_db.rev, 0)
         self.assertEqual(wf_ex_db.action_execution, str(ac_ex_db.id))
-        self.assertEqual(wf_ex_db.status, wf_states.REQUESTED)
+        self.assertEqual(wf_ex_db.status, wf_statuses.REQUESTED)
 
     def test_request_with_input(self):
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
@@ -124,7 +124,7 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
         self.assertIsNotNone(wf_ex_db.id)
         self.assertGreater(wf_ex_db.rev, 0)
         self.assertEqual(wf_ex_db.action_execution, str(ac_ex_db.id))
-        self.assertEqual(wf_ex_db.status, wf_states.REQUESTED)
+        self.assertEqual(wf_ex_db.status, wf_statuses.REQUESTED)
 
         # Check input and context.
         expected_input = {
@@ -256,7 +256,7 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
         self.assertIsNotNone(task_ex_db.id)
         self.assertGreater(task_ex_db.rev, 0)
         self.assertEqual(task_ex_db.workflow_execution, str(wf_ex_db.id))
-        self.assertEqual(task_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(task_ex_db.status, wf_statuses.RUNNING)
 
         # Check action execution for the task query with task execution ID.
         ac_ex_dbs = ex_db_access.ActionExecution.query(task_execution=str(task_ex_db.id))
