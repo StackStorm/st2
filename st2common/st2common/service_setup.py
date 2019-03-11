@@ -215,7 +215,10 @@ def register_service_in_service_registry(service, capabilities=None, start_heart
     member_id = coordination.get_member_id()
 
     # 1. Create a group with the name of the service
-    group_id = six.binary_type(six.text_type(service).encode('ascii'))
+    if not isinstance(service, six.binary_type):
+        group_id = service.encode('utf-8')
+    else:
+        group_id = service
 
     try:
         coordinator.create_group(group_id).get()

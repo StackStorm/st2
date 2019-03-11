@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import six
+
 from tooz.coordination import GroupNotCreated
 
 from st2common.services import coordination
@@ -47,11 +49,11 @@ class ServiceRegistryGroupMembersController(object):
         coordinator = coordination.get_coordinator()
 
         try:
+            group_id = six.binary_type(six.text_type(group_id).encode('ascii'))
             member_ids = list(coordinator.get_members(group_id).get())
         except GroupNotCreated:
             msg = ('Group with ID "%s" not found.' % (group_id))
             raise StackStormDBObjectNotFoundError(msg)
-        member_ids = [member_id.decode('utf-8') for member_id in member_ids]
 
         result = {
             'members': []
@@ -60,7 +62,7 @@ class ServiceRegistryGroupMembersController(object):
         for member_id in member_ids:
             capabilities = coordinator.get_member_capabilities(group_id, member_id).get()
             item = {
-                'member_id': member_id,
+                'member_id': member_id.decode('utf-8'),
                 'capabilities': capabilities
             }
             result['members'].append(item)

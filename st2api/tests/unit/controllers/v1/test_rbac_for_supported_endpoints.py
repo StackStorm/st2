@@ -125,7 +125,8 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
         cls.coordinator = coordination.get_coordinator(use_cache=False)
 
         # Register mock service in the service registry for testing purposes
-        register_service_in_service_registry(service='mock_service',
+        service = six.binary_type(six.text_type('mock_service').encode('ascii'))
+        register_service_in_service_registry(service=service,
                                              capabilities={'key1': 'value1',
                                                            'name': 'mock_service'},
                                              start_heart=True)
