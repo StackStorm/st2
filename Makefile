@@ -409,6 +409,7 @@ requirements: virtualenv .sdist-requirements install-runners
 	# Fix for Travis CI caching issue
 	$(VIRTUALENV_DIR)/bin/pip uninstall -y "pytz" || echo "not installed"
 	$(VIRTUALENV_DIR)/bin/pip uninstall -y "python-dateutil" || echo "not installed"
+	$(VIRTUALENV_DIR)/bin/pip uninstall -y "orquesta" || echo "not installed"
 
 	# Install requirements
 	#
