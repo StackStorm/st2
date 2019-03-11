@@ -227,6 +227,8 @@ def get_coordinator(start_heart=False, use_cache=True):
 def get_member_id():
     """
     Retrieve member if for the current process.
+
+    :rtype: ``bytes``
     """
     proc_info = system_info.get_process_info()
     member_id = six.b('%s_%d' % (proc_info['hostname'], proc_info['pid']))

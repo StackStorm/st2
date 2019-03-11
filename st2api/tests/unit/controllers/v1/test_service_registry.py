@@ -72,7 +72,8 @@ class ServiceyRegistryControllerTestCase(FunctionalTest):
         self.assertEqual(resp.json, {
             'members': [
                 {
-                    'member_id': member_id,
+                    'group_id': 'mock_service',
+                    'member_id': member_id.decode('utf-8'),
                     'capabilities': {
                         'key1': 'value1',
                         'name': 'mock_service',

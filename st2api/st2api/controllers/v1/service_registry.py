@@ -48,11 +48,13 @@ class ServiceRegistryGroupMembersController(object):
 
         coordinator = coordination.get_coordinator()
 
+        if not isinstance(group_id, six.binary_type):
+            group_id = group_id.encode('utf-8')
+
         try:
-            group_id = six.binary_type(six.text_type(group_id).encode('ascii'))
             member_ids = list(coordinator.get_members(group_id).get())
         except GroupNotCreated:
-            msg = ('Group with ID "%s" not found.' % (group_id))
+            msg = ('Group with ID "%s" not found.' % (group_id.decode('utf-8')))
             raise StackStormDBObjectNotFoundError(msg)
 
         result = {
@@ -62,6 +64,7 @@ class ServiceRegistryGroupMembersController(object):
         for member_id in member_ids:
             capabilities = coordinator.get_member_capabilities(group_id, member_id).get()
             item = {
+                'group_id': group_id.decode('utf-8'),
                 'member_id': member_id.decode('utf-8'),
                 'capabilities': capabilities
             }
