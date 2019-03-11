@@ -208,7 +208,7 @@ def get_coordinator(start_heart=False):
                  'service will use best effort approach and race conditions are possible.')
 
     if not COORDINATOR:
-        COORDINATOR = coordinator_setup(start_heart=False)
+        COORDINATOR = coordinator_setup(start_heart=start_heart)
 
     return COORDINATOR
 
