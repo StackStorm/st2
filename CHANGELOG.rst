@@ -28,6 +28,16 @@ Changed
 * Refactored workflow state in orquesta workflow engine. Previously, state in the workflow engine
   is not status to be consistent with st2. Other terminologies used in the engine are also revised
   to make it easier for developers to understand. (improvement)
+* Update Python runner code so it prioritizes libraries from pack virtual environment over StackStorm
+  system dependencies.
+  
+  For example, if pack depends on ``six==1.11.0`` in pack ``requirements.txt``, but StackStorm depends
+  on ``six==1.10.0``, ``six==1.11.0`` will be used when running Python actions from that pack.
+  
+  Keep in mind that will not work correctly if pack depends on a library which brakes functionality used
+  by Python action wrapper code.
+  
+  Contributed by Hiroyasu OHYAMA (@userlocalhost). #4571
 
 Fixed
 ~~~~~
