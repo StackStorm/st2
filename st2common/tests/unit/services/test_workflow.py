@@ -396,7 +396,7 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
             'spec': task_spec,
             'ctx': task_ctx,
             'actions': [
-                {'action': 'dummy_pack_7.render', 'input': None}
+                {'action': 'dummy_pack_7.render_config_context', 'input': None}
             ]
         }
         workflow_service.request_task_execution(wf_ex_db, st2_ctx, task_ex_req)

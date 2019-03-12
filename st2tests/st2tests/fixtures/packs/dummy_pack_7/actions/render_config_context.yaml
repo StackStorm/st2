@@ -1,12 +1,12 @@
 ---
-name: render
+name: render_config_context
 runner_type: python-script
 description: Action that uses config context
 enabled: true
-entry_point: render.py
+entry_point: render_config_context.py
 parameters:
   value1:
-    description: Input for action1. Defaults to config_context value.
+    description: Input for render_config_context. Defaults to config_context value.
     required: false
     type: "string"
     default: "{{ config_context.config_item_one }}"

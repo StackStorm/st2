@@ -7,7 +7,7 @@ function usage() {
 subcommand=$1; shift
 runner_count=1
 use_gunicorn=true
-copy_examples=false
+copy_test_packs=false
 load_content=true
 use_ipv6=false
 include_mistral=false
@@ -21,7 +21,7 @@ while getopts ":r:gxcu6m" o; do
             use_gunicorn=false
             ;;
         x)
-            copy_examples=true
+            copy_test_packs=true
             ;;
         c)
             load_content=false
@@ -201,11 +201,10 @@ function st2start(){
     cp -Rp ./contrib/core/ $PACKS_BASE_DIR
     cp -Rp ./contrib/packs/ $PACKS_BASE_DIR
 
-    if [ "$copy_examples" = true ]; then
-        echo "Copying examples from ./contrib/examples to $PACKS_BASE_DIR"
+    if [ "$copy_test_packs" = true ]; then
+        echo "Copying test packs examples and tests to $PACKS_BASE_DIR"
         cp -Rp ./contrib/examples $PACKS_BASE_DIR
-        cp -Rp ./st2tests/tests $PACKS_BASE_DIR
-        cp -p ./st2tests/tests/configs/tests.yaml $CONFIG_BASE_DIR
+        cp -Rp ./st2tests/packs/tests $PACKS_BASE_DIR
     fi
 
     # activate virtualenv to set PYTHONPATH
@@ -393,8 +392,24 @@ function st2start(){
             --config-file $ST2_CONF --register-all
     fi
 
-    if [ "$copy_examples" = true ]; then
-        st2 run packs.setup_virtualenv packs=tests
+    if [ "$copy_test_packs" = true ]; then
+        # Check if authentication is enabled
+        while read -r line; do
+            if [ "$line" == "[auth]" ]; then
+                found_auth=true
+            fi
+
+            if [ "$found_auth" = true ]; then
+                typeset -l line
+                if [ "$line" = "enable = true" ]; then
+                    echo "Warning: Please setup virtualenv for pack \"tests\" before run integration test"
+                    break
+                elif [ "$line" = "enable = false" ]; then
+                    st2 run packs.setup_virtualenv packs=tests
+                    break
+                fi
+            fi
+        done < "$ST2_CONF"
     fi
 
     # List screen sessions
