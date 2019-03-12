@@ -212,7 +212,17 @@ function st2start(){
     if [ "$copy_test_packs" = true ]; then
         echo "Copying test packs examples and tests to $PACKS_BASE_DIR"
         cp -Rp ./contrib/examples $PACKS_BASE_DIR
-        cp -Rp ./st2tests/packs/tests $PACKS_BASE_DIR
+        # Clone st2tests in /tmp directory.
+        pushd /tmp
+        git clone https://github.com/StackStorm/st2tests.git
+        ret=$?
+        if [ ${ret} -eq 0 ]; then
+            cp -Rp ./st2tests/packs/tests $PACKS_BASE_DIR
+            rm -R st2tests/
+        else
+            echo "Failed to clone st2tests repo"
+        fi
+        popd
     fi
 
     # activate virtualenv to set PYTHONPATH
