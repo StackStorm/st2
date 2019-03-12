@@ -17,8 +17,6 @@
 
 from __future__ import absolute_import
 
-import mock
-
 from integration.orquesta import base
 
 from st2common.constants import action as ac_const
