@@ -33,8 +33,8 @@ Fixed
   with items task. (bug fix) #4523
 * Fix orquesta workflow bug where context variables are being overwritten on task join.
   (bug fix) StackStorm/orquesta#112
-* Fix `config_context` renders against incorrect pack 
-  (bug fix) StackStorm/st2#4570  
+* Fix rendering of config_context in orquesta task that references action in different pack 
+  (bug fix) #4570
 
 2.10.3 - March 06, 2019
 -----------------------

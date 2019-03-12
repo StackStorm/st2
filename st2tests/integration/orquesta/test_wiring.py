@@ -148,7 +148,7 @@ class WiringTest(base.TestWorkflowExecution):
         self.assertDictEqual(ex.result, expected_result)
 
     def test_config_context_renders(self):
-        config_value = "testing"
+        config_value = "Testing"
         wf_name = 'examples.render_config_context'
 
         expected_output = {'context_value': config_value}
