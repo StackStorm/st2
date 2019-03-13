@@ -19,10 +19,18 @@ import types
 import itertools
 
 from st2common.constants.api import REQUEST_ID_HEADER
+from st2common.constants.auth import QUERY_PARAM_ATTRIBUTE_NAME
+from st2common.constants.auth import QUERY_PARAM_API_KEY_ATTRIBUTE_NAME
+from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 from st2common import log as logging
 from st2common.router import Request, NotFoundException
 
 LOG = logging.getLogger(__name__)
+
+SECRET_QUERY_PARAMS = [
+    QUERY_PARAM_ATTRIBUTE_NAME,
+    QUERY_PARAM_API_KEY_ATTRIBUTE_NAME
+]
 
 try:
     clock = time.perf_counter
@@ -46,12 +54,19 @@ class LoggingMiddleware(object):
 
         request = Request(environ)
 
+        query_params = request.GET.dict_of_lists()
+
+        # Mask secret / sensitive query params
+        for param_name in SECRET_QUERY_PARAMS:
+            if param_name in query_params:
+                query_params[param_name] = MASKED_ATTRIBUTE_VALUE
+
         # Log the incoming request
         values = {
             'method': request.method,
             'path': request.path,
             'remote_addr': request.remote_addr,
-            'query': request.GET.dict_of_lists(),
+            'query': query_params,
             'request_id': request.headers.get(REQUEST_ID_HEADER, None)
         }
 
