@@ -403,23 +403,10 @@ function st2start(){
     fi
 
     if [ "$copy_test_packs" = true ]; then
-        # Check if authentication is enabled
-        while read -r line; do
-            if [ "$line" == "[auth]" ]; then
-                found_auth=true
-            fi
-
-            if [ "$found_auth" = true ]; then
-                typeset -l line
-                if [ "$line" = "enable = true" ]; then
-                    echo "Warning: Please setup virtualenv for pack \"tests\" before run integration test"
-                    break
-                elif [ "$line" = "enable = false" ]; then
-                    st2 run packs.setup_virtualenv packs=tests
-                    break
-                fi
-            fi
-        done < "$ST2_CONF"
+        st2 run packs.setup_virtualenv packs=tests
+        if [ $? != 0 ]; then
+            echo "Warning: Please setup virtualenv for pack \"tests\" before run integration test"
+        fi
     fi
 
     # List screen sessions
