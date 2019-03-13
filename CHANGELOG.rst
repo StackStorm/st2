@@ -51,6 +51,7 @@ Fixed
   StackStorm/orquesta#112
 * Make sure we don't log auth token and api key inside st2api log file if those values are provided
   via query parameter and not header (``?x-auth-token=foo``, ``?st2-api-key=bar``). (bug fix) #4592
+  #4589
 
 2.10.3 - March 06, 2019
 -----------------------
