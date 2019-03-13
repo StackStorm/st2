@@ -49,6 +49,10 @@ Fixed
   items task. (bug fix) #4523
 * Fix orquesta workflow bug where context variables are being overwritten on task join. (bug fix)
   StackStorm/orquesta#112
+* Fix inadvertent regression in notifier service which would cause generic action trigger to only
+  be dispatched for completed states even if custom states were specified using
+  ``action_sensor.emit_when`` config option. (bug fix)
+  Reported by Shu Sugimoto (@shusugmt). #4591
 * Make sure we don't log auth token and api key inside st2api log file if those values are provided
   via query parameter and not header (``?x-auth-token=foo``, ``?st2-api-key=bar``). (bug fix) #4592
   #4589
