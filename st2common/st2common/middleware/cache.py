@@ -13,13 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__all__ = [
-    'DEFAULT_API_VERSION'
-]
+from __future__ import absolute_import
+from webob.headers import ResponseHeaders
+
+from st2common.constants.api import CACHE_CONTROL_HEADER
 
 
-DEFAULT_API_VERSION = 'v1'
+class CacheMiddleware(object):
+    def __init__(self, app):
+        self.app = app
 
-REQUEST_ID_HEADER = 'X-Request-ID'
+    def __call__(self, environ, start_response):
+        def custom_start_response(status, headers, exc_info=None):
+            headers = ResponseHeaders(headers)
 
-CACHE_CONTROL_HEADER = 'no-cache'
+            headers['Cache-Control'] = CACHE_CONTROL_HEADER
+
+            return start_response(status, headers._items, exc_info)
+
+        return self.app(environ, custom_start_response)

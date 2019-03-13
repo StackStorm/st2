@@ -17,7 +17,7 @@ from __future__ import absolute_import
 
 import mock
 
-from orquesta import states as wf_lib_states
+from orquesta import statuses as wf_statuses
 
 import st2tests
 
@@ -104,12 +104,12 @@ class WorkflowExecutionCancellationTest(st2tests.WorkflowTestCase):
         # Cancel the workflow when there is still active task(s).
         wf_ex_db = wf_svc.request_cancellation(ac_ex_db)
         conductor, wf_ex_db = wf_svc.refresh_conductor(str(wf_ex_db.id))
-        self.assertEqual(conductor.get_workflow_state(), wf_lib_states.CANCELING)
-        self.assertEqual(wf_ex_db.status, wf_lib_states.CANCELING)
+        self.assertEqual(conductor.get_workflow_status(), wf_statuses.CANCELING)
+        self.assertEqual(wf_ex_db.status, wf_statuses.CANCELING)
 
         # Manually complete the task and ensure workflow is canceled.
         self.run_workflow_step(wf_ex_db, 'task2', task_route)
         self.assert_task_not_started('task3', task_route)
         conductor, wf_ex_db = wf_svc.refresh_conductor(str(wf_ex_db.id))
-        self.assertEqual(conductor.get_workflow_state(), wf_lib_states.CANCELED)
-        self.assertEqual(wf_ex_db.status, wf_lib_states.CANCELED)
+        self.assertEqual(conductor.get_workflow_status(), wf_statuses.CANCELED)
+        self.assertEqual(wf_ex_db.status, wf_statuses.CANCELED)
