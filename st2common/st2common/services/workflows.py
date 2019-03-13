@@ -40,6 +40,7 @@ from st2common.persistence import execution as ex_db_access
 from st2common.persistence import workflow as wf_db_access
 from st2common.runners import utils as runners_utils
 from st2common.services import action as ac_svc
+from st2common.services import coordination as coord_svc
 from st2common.services import executions as ex_svc
 from st2common.util import action_db as action_utils
 from st2common.util import date as date_utils
@@ -722,36 +723,38 @@ def handle_action_execution_completion(ac_ex_db):
     wf_ex_id = ac_ex_db.context['orquesta']['workflow_execution_id']
     task_ex_id = ac_ex_db.context['orquesta']['task_execution_id']
 
-    # Get execution records for logging purposes.
-    wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
-    task_ex_db = wf_db_access.TaskExecution.get_by_id(task_ex_id)
+    # Acquire lock before write operations.
+    with coord_svc.get_coordinator().get_lock(wf_ex_id):
+        # Get execution records for logging purposes.
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
+        task_ex_db = wf_db_access.TaskExecution.get_by_id(task_ex_id)
 
-    msg = ('[%s] Handling completion of action execution "%s" '
-           'in status "%s" for task "%s", route "%s".')
-    LOG.info(msg, wf_ex_db.action_execution, str(ac_ex_db.id), ac_ex_db.status,
-             task_ex_db.task_id, str(task_ex_db.task_route))
+        msg = ('[%s] Handling completion of action execution "%s" '
+               'in status "%s" for task "%s", route "%s".')
+        LOG.info(msg, wf_ex_db.action_execution, str(ac_ex_db.id), ac_ex_db.status,
+                 task_ex_db.task_id, str(task_ex_db.task_route))
 
-    # If task is currently paused and the action execution is skipped to
-    # completion, then transition task status to running first.
-    if task_ex_db.status == ac_const.LIVEACTION_STATUS_PAUSED:
-        resume_task_execution(task_ex_id)
+        # If task is currently paused and the action execution is skipped to
+        # completion, then transition task status to running first.
+        if task_ex_db.status == ac_const.LIVEACTION_STATUS_PAUSED:
+            resume_task_execution(task_ex_id)
 
-    # Update task execution if completed.
-    update_task_execution(task_ex_id, ac_ex_db.status, ac_ex_db.result, ac_ex_db.context)
+        # Update task execution if completed.
+        update_task_execution(task_ex_id, ac_ex_db.status, ac_ex_db.result, ac_ex_db.context)
 
-    # Update task flow in the workflow execution.
-    update_task_state(
-        task_ex_id,
-        ac_ex_db.status,
-        ac_ex_result=ac_ex_db.result,
-        ac_ex_ctx=ac_ex_db.context.get('orquesta')
-    )
+        # Update task flow in the workflow execution.
+        update_task_state(
+            task_ex_id,
+            ac_ex_db.status,
+            ac_ex_result=ac_ex_db.result,
+            ac_ex_ctx=ac_ex_db.context.get('orquesta')
+        )
 
-    # Request the next set of tasks if workflow execution is not complete.
-    request_next_tasks(wf_ex_db, task_ex_id=task_ex_id)
+        # Request the next set of tasks if workflow execution is not complete.
+        request_next_tasks(wf_ex_db, task_ex_id=task_ex_id)
 
-    # Update workflow execution if completed.
-    update_workflow_execution(wf_ex_id)
+        # Update workflow execution if completed.
+        update_workflow_execution(wf_ex_id)
 
 
 def deserialize_conductor(wf_ex_db):
