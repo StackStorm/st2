@@ -405,7 +405,7 @@ function st2start(){
     if [ "$copy_test_packs" = true ]; then
         st2 run packs.setup_virtualenv packs=tests
         if [ $? != 0 ]; then
-            echo "Warning: Please setup virtualenv for pack \"tests\" before run integration test"
+            echo "Warning: Unable to setup virtualenv for the \"tests\" pack. Please setup virtualenv for the \"tests\" pack before running integration tests"
         fi
     fi
 
