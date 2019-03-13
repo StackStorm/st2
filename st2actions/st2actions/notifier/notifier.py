@@ -97,10 +97,10 @@ class Notifier(consumers.MessageHandler):
                     self._post_notify_triggers(liveaction_db=liveaction_db,
                                                execution_db=execution_db)
 
-            if cfg.CONF.action_sensor.enable:
-                with CounterWithTimer(key='notifier.generic_trigger.post'):
-                    self._post_generic_trigger(liveaction_db=liveaction_db,
-                                               execution_db=execution_db)
+        if cfg.CONF.action_sensor.enable:
+            with CounterWithTimer(key='notifier.generic_trigger.post'):
+                self._post_generic_trigger(liveaction_db=liveaction_db,
+                                           execution_db=execution_db)
 
     def _get_execution_for_liveaction(self, liveaction):
         execution = ActionExecution.get(liveaction__id=str(liveaction.id))
