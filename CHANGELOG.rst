@@ -30,25 +30,27 @@ Changed
   to make it easier for developers to understand. (improvement)
 * Update Python runner code so it prioritizes libraries from pack virtual environment over StackStorm
   system dependencies.
-  
+
   For example, if pack depends on ``six==1.11.0`` in pack ``requirements.txt``, but StackStorm depends
   on ``six==1.10.0``, ``six==1.11.0`` will be used when running Python actions from that pack.
-  
+
   Keep in mind that will not work correctly if pack depends on a library which brakes functionality used
   by Python action wrapper code.
-  
+
   Contributed by Hiroyasu OHYAMA (@userlocalhost). #4571
 
 Fixed
 ~~~~~
 
-* Refactored orquesta execution graph to fix performance issue for workflows with many
-  references to non-join tasks. st2workflowengine and DB models are refactored accordingly.
-  (improvement) StackStorm/orquesta#122.
-* Fix orquesta workflow stuck in running status when one or more items failed execution for a
-  with items task. (bug fix) #4523
-* Fix orquesta workflow bug where context variables are being overwritten on task join.
-  (bug fix) StackStorm/orquesta#112
+* Refactored orquesta execution graph to fix performance issue for workflows with many references
+  to non-join tasks. st2workflowengine and DB models are refactored accordingly. (improvement)
+  StackStorm/orquesta#122.
+* Fix orquesta workflow stuck in running status when one or more items failed execution for a with
+  items task. (bug fix) #4523
+* Fix orquesta workflow bug where context variables are being overwritten on task join. (bug fix)
+  StackStorm/orquesta#112
+* Make sure we don't log auth token and api key inside st2api log file if those values are provided
+  via query parameter and not header (``?x-auth-token=foo``, ``?st2-api-key=bar``). (bug fix) #4592
 
 2.10.3 - March 06, 2019
 -----------------------
@@ -60,7 +62,7 @@ Fixed
   with ``null`` for the ``Access-Control-Allow-Origin`` header. The fix returns the first of our
   allowed origins if the requesting origin is not a supported origin. Reported by Barak Tawily.
   (bug fix)
-  
+
 2.9.3 - March 06, 2019
 -----------------------
 
@@ -134,7 +136,7 @@ Fixed
   Reported by @johandahlberg (bug fix) #4533
 * Fix ``core.sendmail`` action so it specifies ``charset=UTF-8`` in the ``Content-Type`` email
   header. This way it works correctly when an email subject and / or body contains unicode data.
- 
+
   Reported by @johandahlberg (bug fix) #4533 4534
 
 * Fix CLI ``st2 apikey load`` not being idempotent and API endpoint ``/api/v1/apikeys`` not
