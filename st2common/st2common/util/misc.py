@@ -179,6 +179,8 @@ def ignore_and_log_exception(exc_classes=(Exception,), logger=None, level=loggin
     Decorator which catches the provided exception classes and logs them instead of letting them
     bubble all the way up.
     """
+    exc_classes = tuple(exc_classes)
+
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
