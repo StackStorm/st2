@@ -32,6 +32,8 @@ LOG = logging.getLogger(__name__)
 # Which exceptions thrown by statsd library should be considered as non-fatal
 NON_FATAL_EXC_CLASSES = [
     socket.error,
+    IOError,
+    OSError
 ]
 
 __all__ = [

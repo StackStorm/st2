@@ -12,9 +12,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from datetime import datetime, timedelta
+
+import socket
+from datetime import datetime
+from datetime import timedelta
 
 import unittest2
+import mock
 from mock import patch, MagicMock
 
 from oslo_config import cfg
@@ -199,6 +203,52 @@ class TestStatsDMetricsDriver(unittest2.TestCase):
 
         result = get_full_key_name('api.requests')
         self.assertEqual(result, 'st2.prod.api.requests')
+
+    @patch('st2common.metrics.drivers.statsd_driver.LOG')
+    @patch('st2common.metrics.drivers.statsd_driver.statsd')
+    def test_driver_socket_exceptions_are_not_fatal(self, statsd, mock_log):
+        # Socket errors such as DNS resolution errors should be considered non fatal and ignored
+        mock_logger = mock.Mock()
+        StatsdDriver.logger = mock_logger
+
+        # 1. timer
+        mock_timer = MagicMock(side_effect=socket.error('error 1'))
+        statsd.Timer('').send.side_effect = mock_timer
+        params = ('test', 10)
+        self._driver.time(*params)
+        statsd.Timer('').send.assert_called_with('st2.test', 10)
+
+        # 2. counter
+        key = 'test'
+        mock_counter = MagicMock(side_effect=socket.error('error 2'))
+        statsd.Counter(key).increment.side_effect = mock_counter
+        self._driver.inc_counter(key)
+        mock_counter.assert_called_once_with(delta=1)
+
+        key = 'test'
+        mock_counter = MagicMock(side_effect=socket.error('error 3'))
+        statsd.Counter(key).decrement.side_effect = mock_counter
+        self._driver.dec_counter(key)
+        mock_counter.assert_called_once_with(delta=1)
+
+        # 3. gauge
+        params = ('key', 100)
+        mock_gauge = MagicMock(side_effect=socket.error('error 4'))
+        statsd.Gauge().send.side_effect = mock_gauge
+        self._driver.set_gauge(*params)
+        mock_gauge.assert_called_once_with(None, params[1])
+
+        params = ('key1',)
+        mock_gauge = MagicMock(side_effect=socket.error('error 5'))
+        statsd.Gauge().increment.side_effect = mock_gauge
+        self._driver.inc_gauge(*params)
+        mock_gauge.assert_called_once_with(None, 1)
+
+        params = ('key1',)
+        mock_gauge = MagicMock(side_effect=socket.error('error 6'))
+        statsd.Gauge().decrement.side_effect = mock_gauge
+        self._driver.dec_gauge(*params)
+        mock_gauge.assert_called_once_with(None, 1)
 
 
 class TestCounterContextManager(unittest2.TestCase):
