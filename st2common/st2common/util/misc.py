@@ -187,7 +187,12 @@ def ignore_and_log_exception(exc_classes=(Exception,), logger=None, level=loggin
             try:
                 return func(*args, **kwargs)
             except exc_classes as e:
-                message = ('Exception in fuction "%s": %s' % (func.__name__, str(e)))
+                if len(args) >= 1 and getattr(args[0], '__class__', None):
+                    func_name = '%s.%s' % (args[0].__class__.__name__, func.__name__)
+                else:
+                    func_name = func.__name__
+
+                message = ('Exception in fuction "%s": %s' % (func_name, str(e)))
                 logger.log(level, message)
 
         return wrapper
