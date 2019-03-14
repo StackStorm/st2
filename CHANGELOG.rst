@@ -1,7 +1,7 @@
 Changelog
 =========
 
-in development
+In development
 --------------
 
 Added
@@ -17,15 +17,9 @@ Added
 
    For backward compatibility reasons, if pack metadata file doesn't contain that attribute, it's
    assumed it only works with Python 2. (new feature) #4474
-* Add support for various new SSL / TLS related config options (``ssl_keyfile``, ``ssl_certfile``,
-  ``ssl_ca_certs``, ``ssl_certfile``, ``authentication_mechanism``) to the ``messaging`` section in
-  ``st2.conf`` config file.
 
-  With those config options, user can configure things such as client based certificate
-  authentication, client side verification of a server certificate against a specific CA bundle, etc.
-
-  NOTE: Those options are only supported when using a default and officially supported AMQP backend
-  with RabbitMQ server. (new feature) #4541
+* Adding ``Cache-Control`` header to all API responses so clients will favor
+  refresh from API instead of using cached version.
 * Added a new flag ``-d/--decrypt`` to ``st2 key set`` that allows users to pass in values
   in encrypted format using the system's crypto keys. This flag informs the API that the
   value transmitted is encrypted and it must be decrypted prior to working with it. Similarly
@@ -35,12 +29,101 @@ Added
   The corresponding ``decrypt`` option has been added to the API endpoint
   ``PUT /api/v1/keys/{name}``. (new feature) #4545
 
-  Contributed by Nick Maludy (Encore Technologies)
+  Contributed by Nick Maludy (Encore Technologies
 
 Changed
 ~~~~~~~
 
 * Changed the ``inquiries`` API path from ``/exp`` to ``/api/v1``. #4495
+* Refactored workflow state in orquesta workflow engine. Previously, state in the workflow engine
+  is not status to be consistent with st2. Other terminologies used in the engine are also revised
+  to make it easier for developers to understand. (improvement)
+* Update Python runner code so it prioritizes libraries from pack virtual environment over StackStorm
+  system dependencies.
+
+  For example, if pack depends on ``six==1.11.0`` in pack ``requirements.txt``, but StackStorm depends
+  on ``six==1.10.0``, ``six==1.11.0`` will be used when running Python actions from that pack.
+
+  Keep in mind that will not work correctly if pack depends on a library which brakes functionality used
+  by Python action wrapper code.
+
+  Contributed by Hiroyasu OHYAMA (@userlocalhost). #4571
+
+Fixed
+~~~~~
+
+* Refactored orquesta execution graph to fix performance issue for workflows with many references
+  to non-join tasks. st2workflowengine and DB models are refactored accordingly. (improvement)
+  StackStorm/orquesta#122.
+* Fix orquesta workflow stuck in running status when one or more items failed execution for a with
+  items task. (bug fix) #4523
+* Fix orquesta workflow bug where context variables are being overwritten on task join. (bug fix)
+  StackStorm/orquesta#112
+* Fix orquesta with items task performance issue. Workflow runtime increase significantly when a
+  with items task has many items and result in many retries on write conflicts. A distributed lock
+  is acquired before write operations to avoid write conflicts. (bug fix) Stackstorm/orquesta#125
+* Fix inadvertent regression in notifier service which would cause generic action trigger to only
+  be dispatched for completed states even if custom states were specified using
+  ``action_sensor.emit_when`` config option. (bug fix)
+  Reported by Shu Sugimoto (@shusugmt). #4591
+* Make sure we don't log auth token and api key inside st2api log file if those values are provided
+  via query parameter and not header (``?x-auth-token=foo``, ``?st2-api-key=bar``). (bug fix) #4592
+  #4589
+* Fix rendering of config_context in orquesta task that references action in different pack.
+  (bug fix) #4570
+* Add missing default config location (``/etc/st2/st2.conf``) to the following services:
+  ``st2actionrunner``, ``st2scheduler``, ``st2workflowengine``. (bug fix) #4596
+* Update statsd metrics driver so any exception thrown by statsd library is treated as non fatal.
+
+  Previously there was an edge case if user used a hostname instead of an IP address for metrics
+  backend server address. In such scenario, if hostname DNS resolution failed, statsd driver would
+  throw the exception which would propagate all the way up and break the application. (bug fix) #4597
+
+  Reported by Chris McKenzie.
+
+2.10.3 - March 06, 2019
+-----------------------
+
+Fixed
+~~~~~
+
+* Fix improper CORS where request from an origin not listed in ``allowed_origins`` will be responded
+  with ``null`` for the ``Access-Control-Allow-Origin`` header. The fix returns the first of our
+  allowed origins if the requesting origin is not a supported origin. Reported by Barak Tawily.
+  (bug fix)
+
+2.9.3 - March 06, 2019
+-----------------------
+
+Fixed
+~~~~~
+
+* Fix improper CORS where request from an origin not listed in ``allowed_origins`` will be responded
+  with ``null`` for the ``Access-Control-Allow-Origin`` header. The fix returns the first of our
+  allowed origins if the requesting origin is not a supported origin. Reported by Barak Tawily.
+  (bug fix)
+
+2.10.2 - February 21, 2019
+--------------------------
+
+Added
+~~~~~
+
+* Add support for various new SSL / TLS related config options (``ssl_keyfile``, ``ssl_certfile``,
+  ``ssl_ca_certs``, ``ssl_certfile``, ``authentication_mechanism``) to the ``messaging`` section in
+  ``st2.conf`` config file.
+
+  With those config options, user can configure things such as client based certificate
+  authentication, client side verification of a server certificate against a specific CA bundle, etc.
+
+  NOTE: Those options are only supported when using a default and officially supported AMQP backend
+  with RabbitMQ server. (new feature) #4541
+* Add metrics instrumentation to the ``st2notifier`` service. For the available / exposed metrics,
+  please refer to https://docs.stackstorm.com/reference/metrics.html. (improvement) #4536
+
+Changed
+~~~~~~~
+
 * Update logging code so we exclude log messages with log level ``AUDIT`` from a default service
   log file (e.g. ``st2api.log``). Log messages with level ``AUDIT`` are already logged in a
   dedicated service audit log file (e.g. ``st2api.audit.log``) so there is no need for them to also
@@ -50,11 +133,16 @@ Changed
   level is set to ``DEBUG`` or ``system.debug`` config option is set to ``True``.
 
   Reported by Nick Maludy. (improvement) #4538 #4502
-* Moved the lock from concurrency policies into the scheduler to fix a race condition when there
-  are multiple scheduler instances scheduling execution for action with concurrency policies.
-  #4481 (bug fix)
-* Add retries to scheduler to handle temporary hiccup in DB connection. Refactor scheduler
-  service to return proper exit code when there is a failure. #4539 (bug fix)
+* Update ``pyyaml`` dependency to the latest version. This latest version fixes an issue which
+  could result in a code execution vulnerability if code uses ``yaml.load`` in an unsafe manner
+  on untrusted input.
+
+  NOTE: StackStorm platform itself is not affected, because we already used ``yaml.safe_load``
+  everywhere.
+
+  Only custom packs which use ``yaml.load`` with non trusted user input could potentially be
+  affected. (improvement) #4510 #4552 #4554
+* Update Orquesta to ``v0.4``. #4551
 
 Fixed
 ~~~~~
@@ -77,11 +165,37 @@ Fixed
   Reported by @johandahlberg (bug fix) #4533
 * Fix ``core.sendmail`` action so it specifies ``charset=UTF-8`` in the ``Content-Type`` email
   header. This way it works correctly when an email subject and / or body contains unicode data.
- 
+
   Reported by @johandahlberg (bug fix) #4533 4534
 
 * Fix CLI ``st2 apikey load`` not being idempotent and API endpoint ``/api/v1/apikeys`` not
   honoring desired ``ID`` for the new record creation. #4542
+* Moved the lock from concurrency policies into the scheduler to fix a race condition when there
+  are multiple scheduler instances scheduling execution for action with concurrency policies.
+  #4481 (bug fix)
+* Add retries to scheduler to handle temporary hiccup in DB connection. Refactor scheduler
+  service to return proper exit code when there is a failure. #4539 (bug fix)
+* Update service setup code so we always ignore ``kombu`` library ``heartbeat_tick`` debug log
+  messages.
+
+  Previously if ``DEBUG`` log level was set in service logging config file, but ``--debug``
+  service CLI flag / ``system.debug = True`` config option was not used, those messages were
+  still logged which caused a lot of noise which made actual useful log messages hard to find.
+  (improvement) #4557
+
+2.10.1 - December 19, 2018
+--------------------------
+
+Fixed
+~~~~~
+
+* Fix an issue with ``GET /v1/keys`` API endpoint not correctly handling ``?scope=all`` and
+  ``?user=<username>`` query filter parameter inside the open-source edition. This would allow
+  user A to retrieve datastore values from user B and similar.
+
+  NOTE: Enterprise edition with RBAC was not affected, because in RBAC version, correct check is
+  in place which only allows users with an admin role to use ``?scope=all`` and retrieve / view
+  datastore values for arbitrary system users. (security issue bug fix)
 
 2.10.0 - December 13, 2018
 --------------------------

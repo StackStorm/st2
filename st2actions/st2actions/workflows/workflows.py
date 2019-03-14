@@ -17,7 +17,7 @@ from __future__ import absolute_import
 
 import kombu
 
-from orquesta import states
+from orquesta import statuses
 
 from st2common.constants import action as ac_const
 from st2common import log as logging
@@ -105,17 +105,11 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
         LOG.info(msg, wf_ac_ex_id, str(ac_ex_db.id), task_ex_db.task_id, ac_ex_db.status)
 
         # Skip if task execution is already in completed state.
-        if task_ex_db.status in states.COMPLETED_STATES:
-            LOG.info(
-                '[%s] Action execution "%s" for task "%s" is not processed because '
-                'task execution "%s" is already in completed state "%s".',
-                wf_ac_ex_id,
-                str(ac_ex_db.id),
-                task_ex_db.task_id,
-                str(task_ex_db.id),
-                task_ex_db.status
-            )
-
+        if task_ex_db.status in statuses.COMPLETED_STATUSES:
+            msg = ('[%s] Action execution "%s" for task "%s (%s)", route "%s", is not processed '
+                   'because task execution "%s" is already in completed state "%s".')
+            LOG.info(msg, wf_ac_ex_id, str(ac_ex_db.id), task_ex_db.task_id,
+                     str(task_ex_db.task_route), str(task_ex_db.id), task_ex_db.status)
             return
 
         # Process pending request on the action execution.

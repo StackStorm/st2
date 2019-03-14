@@ -20,7 +20,7 @@ from __future__ import absolute_import
 import mock
 import six
 
-from orquesta import states as wf_states
+from orquesta import statuses as wf_statuses
 
 import st2tests
 
@@ -162,11 +162,11 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertIn('nodes', wf_ex_db.graph)
         self.assertIn('adjacency', wf_ex_db.graph)
 
-        # Check task flow.
-        self.assertIsNotNone(wf_ex_db.flow)
-        self.assertTrue(isinstance(wf_ex_db.flow, dict))
-        self.assertIn('tasks', wf_ex_db.flow)
-        self.assertIn('sequence', wf_ex_db.flow)
+        # Check task states.
+        self.assertIsNotNone(wf_ex_db.state)
+        self.assertTrue(isinstance(wf_ex_db.state, dict))
+        self.assertIn('tasks', wf_ex_db.state)
+        self.assertIn('sequence', wf_ex_db.state)
 
         # Check input.
         self.assertDictEqual(wf_ex_db.input, wf_input)
@@ -185,9 +185,9 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
 
         # Assert task1 succeeded and workflow is still running.
         tk1_ex_db = wf_db_access.TaskExecution.get_by_id(tk1_ex_db.id)
-        self.assertEqual(tk1_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(tk1_ex_db.status, wf_statuses.SUCCEEDED)
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
 
         # Assert task2 is already completed.
         query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task2'}
@@ -203,9 +203,9 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
 
         # Assert task2 succeeded and workflow is still running.
         tk2_ex_db = wf_db_access.TaskExecution.get_by_id(tk2_ex_db.id)
-        self.assertEqual(tk2_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(tk2_ex_db.status, wf_statuses.SUCCEEDED)
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
 
         # Assert task3 is already completed.
         query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task3'}
@@ -221,7 +221,7 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
 
         # Assert workflow is completed.
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(wf_ex_db.status, wf_statuses.SUCCEEDED)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db.id))
@@ -257,7 +257,7 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         wf_svc.handle_action_execution_completion(tk1_ac_ex_db)
         tk1_ex_db = wf_db_access.TaskExecution.get_by_id(tk1_ex_db.id)
-        self.assertEqual(tk1_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(tk1_ex_db.status, wf_statuses.SUCCEEDED)
 
         # Process task2.
         query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task2'}
@@ -267,7 +267,7 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(tk2_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         wf_svc.handle_action_execution_completion(tk2_ac_ex_db)
         tk2_ex_db = wf_db_access.TaskExecution.get_by_id(tk2_ex_db.id)
-        self.assertEqual(tk2_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(tk2_ex_db.status, wf_statuses.SUCCEEDED)
 
         # Process task3.
         query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task3'}
@@ -277,11 +277,11 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(tk3_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         wf_svc.handle_action_execution_completion(tk3_ac_ex_db)
         tk3_ex_db = wf_db_access.TaskExecution.get_by_id(tk3_ex_db.id)
-        self.assertEqual(tk3_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(tk3_ex_db.status, wf_statuses.SUCCEEDED)
 
         # Assert workflow is completed.
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(wf_ex_db.status, wf_statuses.SUCCEEDED)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db.id))
@@ -323,7 +323,7 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
 
         # Assert workflow is completed.
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(wf_ex_db.status, wf_statuses.SUCCEEDED)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db.id))
@@ -349,7 +349,7 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         tk1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
         tk1_ac_ex_dbs = ex_db_access.ActionExecution.query(task_execution=str(tk1_ex_db.id))
         self.assertEqual(len(tk1_ac_ex_dbs), 0)
-        self.assertEqual(tk1_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(tk1_ex_db.status, wf_statuses.SUCCEEDED)
 
         # Assert task2 is already completed.
         query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task2'}
@@ -376,7 +376,7 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         tk4_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
         tk4_ac_ex_dbs = ex_db_access.ActionExecution.query(task_execution=str(tk4_ex_db.id))
         self.assertEqual(len(tk4_ac_ex_dbs), 0)
-        self.assertEqual(tk4_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(tk4_ex_db.status, wf_statuses.SUCCEEDED)
 
         # Assert task5 is already completed.
         query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task5'}
@@ -390,7 +390,7 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
 
         # Assert workflow is completed.
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(wf_ex_db.status, wf_statuses.SUCCEEDED)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db.id))
@@ -427,7 +427,7 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         t1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk_ex_dbs[0].id))[0]
         t1_wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(t1_ac_ex_db.id))[0]
         self.assertEqual(t1_ac_ex_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
-        self.assertEqual(t1_wf_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(t1_wf_ex_db.status, wf_statuses.RUNNING)
 
         # Manually notify action execution completion for the tasks.
         # Assert policies are not applied in the notifier.

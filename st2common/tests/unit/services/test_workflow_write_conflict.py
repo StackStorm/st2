@@ -19,9 +19,12 @@ import mock
 import os
 import tempfile
 
-from orquesta import states as wf_lib_states
+from orquesta import statuses as wf_statuses
 
 import st2tests
+
+import st2tests.config as tests_config
+tests_config.parse_args()
 
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar
@@ -57,10 +60,10 @@ TEMP_DIR_PATH = tempfile.mkdtemp()
 
 
 def mock_wf_db_update_conflict(wf_ex_db, publish=True, dispatch_trigger=True, **kwargs):
-    seq_len = len(wf_ex_db.flow['sequence'])
+    seq_len = len(wf_ex_db.state['sequence'])
 
     if seq_len > 0:
-        current_task_id = wf_ex_db.flow['sequence'][seq_len - 1:][0]['id']
+        current_task_id = wf_ex_db.state['sequence'][seq_len - 1:][0]['id']
         temp_file_path = TEMP_DIR_PATH + '/' + current_task_id
 
         if os.path.exists(temp_file_path):
@@ -123,21 +126,22 @@ class WorkflowExecutionWriteConflictTest(st2tests.WorkflowTestCase):
         wf_ex_db = self.prep_wf_ex(wf_ex_db)
 
         # Manually request task executions.
-        self.run_workflow_step(wf_ex_db, 'task1')
-        self.assert_task_running('task2')
-        self.assert_task_running('task4')
-        self.run_workflow_step(wf_ex_db, 'task2')
-        self.assert_task_running('task3')
-        self.run_workflow_step(wf_ex_db, 'task4')
-        self.assert_task_running('task5')
-        self.run_workflow_step(wf_ex_db, 'task3')
-        self.assert_task_not_started('task6')
-        self.run_workflow_step(wf_ex_db, 'task5')
-        self.assert_task_running('task6')
-        self.run_workflow_step(wf_ex_db, 'task6')
-        self.assert_task_running('task7')
-        self.run_workflow_step(wf_ex_db, 'task7')
-        self.assert_workflow_completed(str(wf_ex_db.id), state=wf_lib_states.SUCCEEDED)
+        task_route = 0
+        self.run_workflow_step(wf_ex_db, 'task1', task_route)
+        self.assert_task_running('task2', task_route)
+        self.assert_task_running('task4', task_route)
+        self.run_workflow_step(wf_ex_db, 'task2', task_route)
+        self.assert_task_running('task3', task_route)
+        self.run_workflow_step(wf_ex_db, 'task4', task_route)
+        self.assert_task_running('task5', task_route)
+        self.run_workflow_step(wf_ex_db, 'task3', task_route)
+        self.assert_task_not_started('task6', task_route)
+        self.run_workflow_step(wf_ex_db, 'task5', task_route)
+        self.assert_task_running('task6', task_route)
+        self.run_workflow_step(wf_ex_db, 'task6', task_route)
+        self.assert_task_running('task7', task_route)
+        self.run_workflow_step(wf_ex_db, 'task7', task_route)
+        self.assert_workflow_completed(str(wf_ex_db.id), status=wf_statuses.SUCCEEDED)
 
         # Ensure retry happened.
         self.assertFalse(os.path.exists(temp_file_path))

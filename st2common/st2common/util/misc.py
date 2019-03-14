@@ -15,10 +15,13 @@
 
 from __future__ import absolute_import
 
+import logging
+
 import os
 import re
 import sys
 import collections
+import functools
 
 import six
 
@@ -26,7 +29,8 @@ __all__ = [
     'prefix_dict_keys',
     'compare_path_file_name',
     'lowercase_value',
-    'get_field_name_from_mongoengine_error'
+    'get_field_name_from_mongoengine_error',
+
 ]
 
 
@@ -168,3 +172,28 @@ def get_field_name_from_mongoengine_error(exc):
         return match.groups()[0]
 
     return msg
+
+
+def ignore_and_log_exception(exc_classes=(Exception,), logger=None, level=logging.WARNING):
+    """
+    Decorator which catches the provided exception classes and logs them instead of letting them
+    bubble all the way up.
+    """
+    exc_classes = tuple(exc_classes)
+
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except exc_classes as e:
+                if len(args) >= 1 and getattr(args[0], '__class__', None):
+                    func_name = '%s.%s' % (args[0].__class__.__name__, func.__name__)
+                else:
+                    func_name = func.__name__
+
+                message = ('Exception in fuction "%s": %s' % (func_name, str(e)))
+                logger.log(level, message)
+
+        return wrapper
+    return decorator

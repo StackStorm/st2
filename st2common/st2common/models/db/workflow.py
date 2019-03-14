@@ -39,12 +39,12 @@ class WorkflowExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionF
     action_execution = me.StringField(required=True)
     spec = stormbase.EscapedDictField()
     graph = stormbase.EscapedDictField()
-    flow = stormbase.EscapedDictField()
-    context = stormbase.EscapedDictField()
-    notify = stormbase.EscapedDictField()
     input = stormbase.EscapedDictField()
-    output = stormbase.EscapedDictField()
+    notify = stormbase.EscapedDictField()
+    context = stormbase.EscapedDictField()
+    state = stormbase.EscapedDictField()
     status = me.StringField(required=True)
+    output = stormbase.EscapedDictField()
     errors = stormbase.EscapedDynamicField()
     start_timestamp = db_field_types.ComplexDateTimeField(default=date_utils.get_datetime_utc_now)
     end_timestamp = db_field_types.ComplexDateTimeField()
@@ -62,14 +62,15 @@ class TaskExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionField
     workflow_execution = me.StringField(required=True)
     task_name = me.StringField(required=True)
     task_id = me.StringField(required=True)
+    task_route = me.IntField(required=True, min_value=0)
     task_spec = stormbase.EscapedDictField()
     delay = me.IntField(min_value=0)
     itemized = me.BooleanField(default=False)
     items_count = me.IntField(min_value=0)
     items_concurrency = me.IntField(min_value=1)
     context = stormbase.EscapedDictField()
-    result = stormbase.EscapedDictField()
     status = me.StringField(required=True)
+    result = stormbase.EscapedDictField()
     start_timestamp = db_field_types.ComplexDateTimeField(default=date_utils.get_datetime_utc_now)
     end_timestamp = db_field_types.ComplexDateTimeField()
 
@@ -77,7 +78,9 @@ class TaskExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionField
         'indexes': [
             {'fields': ['workflow_execution']},
             {'fields': ['task_id']},
-            {'fields': ['workflow_execution', 'task_id']}
+            {'fields': ['task_id', 'task_route']},
+            {'fields': ['workflow_execution', 'task_id']},
+            {'fields': ['workflow_execution', 'task_id', 'task_route']}
         ]
     }
 
