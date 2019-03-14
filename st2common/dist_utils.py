@@ -20,9 +20,16 @@ import os
 import re
 import sys
 
-import six
-
 from distutils.version import StrictVersion
+
+# NOTE: This script can't rely on any 3rd party dependency so we need to use this code here
+PY2 = sys.version_info[0] == 2
+PY3 = sys.version_info[0] == 3
+
+if PY3:
+    text_type = str
+else:
+    text_type = unicode
 
 GET_PIP = 'curl https://bootstrap.pypa.io/get-pip.py | python'
 
@@ -30,7 +37,7 @@ try:
     import pip
     from pip import __version__ as pip_version
 except ImportError as e:
-    print('Failed to import pip: %s' % (six.text_type(e)))
+    print('Failed to import pip: %s' % (text_type(e)))
     print('')
     print('Download pip:\n%s' % (GET_PIP))
     sys.exit(1)
@@ -44,7 +51,7 @@ except ImportError:
     try:
         from pip._internal.req.req_file import parse_requirements
     except ImportError as e:
-        print('Failed to import parse_requirements from pip: %s' % (six.text_type(e)))
+        print('Failed to import parse_requirements from pip: %s' % (text_type(e)))
         print('Using pip: %s' % (str(pip_version)))
         sys.exit(1)
 
