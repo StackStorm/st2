@@ -63,6 +63,13 @@ Fixed
   (bug fix) #4570
 * Add missing default config location (``/etc/st2/st2.conf``) to the following services:
   ``st2actionrunner``, ``st2scheduler``, ``st2workflowengine``. (bug fix) #4596
+* Update statsd metrics driver so any exception thrown by statsd library is treated as non fatal.
+
+  Previously there was an edge case if user used a hostname instead of an IP address for metrics
+  backend server address. In such scenario, if hostname DNS resolution failed, statsd driver would
+  throw the exception which would propagate all the way up and break the application. (bug fix) #4597
+
+  Reported by Chris McKenzie.
 
 2.10.3 - March 06, 2019
 -----------------------
