@@ -14,12 +14,14 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 import json
 import atexit
 import argparse
 import traceback
 
+import six
 from oslo_config import cfg
 
 from st2common import log as logging
@@ -229,7 +231,7 @@ class SensorWrapper(object):
         except Exception as e:
             # Include traceback
             msg = ('Sensor "%s" run method raised an exception: %s.' %
-                   (self._class_name, str(e)))
+                   (self._class_name, six.text_type(e)))
             self._logger.warn(msg, exc_info=True)
             raise Exception(msg)
 
@@ -288,7 +290,7 @@ class SensorWrapper(object):
         except Exception as e:
             tb_msg = traceback.format_exc()
             msg = ('Failed to load sensor class from file "%s" (sensor file most likely doesn\'t '
-                   'exist or contains invalid syntax): %s' % (self._file_path, str(e)))
+                   'exist or contains invalid syntax): %s' % (self._file_path, six.text_type(e)))
             msg += '\n\n' + tb_msg
             exc_cls = type(e)
             raise exc_cls(msg)

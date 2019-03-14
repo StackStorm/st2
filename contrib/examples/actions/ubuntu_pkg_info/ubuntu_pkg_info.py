@@ -14,7 +14,7 @@ def main(args):
     try:
         payload = transformer.to_json(command_stdout, command_stderr, command_exitcode)
     except Exception as e:
-        sys.stderr.write('JSON conversion failed. %s' % str(e))
+        sys.stderr.write('JSON conversion failed. %s' % six.text_type(e))
         sys.exit(1)
 
     sys.stdout.write(payload)

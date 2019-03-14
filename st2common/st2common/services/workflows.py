@@ -496,8 +496,8 @@ def request_task_execution(wf_ex_db, st2_ctx, task_ex_req):
             task_ex_db = wf_db_access.TaskExecution.get_by_id(str(task_ex_db.id))
     except Exception as e:
         msg = '[%s] Failed action execution(s) for task "%s", route "%s". %s'
-        LOG.exception(msg, wf_ac_ex_id, task_id, str(task_route), str(e))
-        message = '%s: %s' % (type(e).__name__, str(e))
+        LOG.exception(msg, wf_ac_ex_id, task_id, str(task_route), six.text_type(e))
+        message = '%s: %s' % (type(e).__name__, six.text_type(e))
         error = {'type': 'error', 'message': message, 'task_id': task_id, 'route': task_route}
         update_task_execution(str(task_ex_db.id), statuses.FAILED, {'errors': [error]})
         raise e

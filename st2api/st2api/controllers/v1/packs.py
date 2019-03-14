@@ -192,8 +192,8 @@ class PackRegisterController(object):
                             result[name] += registered_count
                         except ValueError as e:
                             # Throw more user-friendly exception if requsted pack doesn't exist
-                            if re.match('Directory ".*?" doesn\'t exist', str(e)):
-                                msg = 'Pack "%s" not found on disk: %s' % (pack, str(e))
+                            if re.match('Directory ".*?" doesn\'t exist', six.text_type(e)):
+                                msg = 'Pack "%s" not found on disk: %s' % (pack, six.text_type(e))
                                 raise ValueError(msg)
 
                             raise e

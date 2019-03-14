@@ -28,11 +28,14 @@ where version of packages are fixed according to fixed-requirements.txt.
 """
 
 from __future__ import absolute_import, print_function
+
 import argparse
 import os
 import os.path
 import sys
 from distutils.version import StrictVersion
+
+import six
 
 OSCWD = os.path.abspath(os.curdir)
 GET_PIP = '    curl https://bootstrap.pypa.io/get-pip.py | python'
@@ -41,7 +44,7 @@ try:
     import pip
     from pip import __version__ as pip_version
 except ImportError as e:
-    print('Failed to import pip: %s' % (str(e)))
+    print('Failed to import pip: %s' % (six.text_type(e)))
     print('')
     print('Download pip:\n%s' % (GET_PIP))
     sys.exit(1)
@@ -55,7 +58,7 @@ except ImportError:
     try:
         from pip._internal.req.req_file import parse_requirements
     except ImportError as e:
-        print('Failed to import parse_requirements from pip: %s' % (str(e)))
+        print('Failed to import parse_requirements from pip: %s' % (six.text_type(e)))
         print('Using pip: %s' % (str(pip_version)))
         sys.exit(1)
 

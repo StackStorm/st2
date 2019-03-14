@@ -84,7 +84,7 @@ class SensorTypeController(resource.ContentPackResourceController):
         try:
             validate_not_part_of_system_pack(sensor_type_db)
         except ValueValidationException as e:
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
             return
 
         if not getattr(sensor_type, 'pack', None):
@@ -96,7 +96,7 @@ class SensorTypeController(resource.ContentPackResourceController):
             sensor_type_db = SensorType.add_or_update(sensor_type_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Unable to update sensor_type data=%s', sensor_type)
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
             return
 
         extra = {

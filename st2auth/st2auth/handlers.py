@@ -119,7 +119,7 @@ class ProxyAuthHandler(AuthHandlerBase):
                                                     ttl=ttl)
             except TTLTooLargeException as e:
                 abort_request(status_code=http_client.BAD_REQUEST,
-                              message=str(e))
+                              message=six.text_type(e))
             return token
 
         LOG.audit('Access denied to anonymous user.', extra=extra)
@@ -179,7 +179,7 @@ class StandaloneAuthHandler(AuthHandlerBase):
                 token = self._create_token_for_user(username=username, ttl=ttl)
             except TTLTooLargeException as e:
                 abort_request(status_code=http_client.BAD_REQUEST,
-                              message=str(e))
+                              message=six.text_type(e))
                 return
 
             # If remote group sync is enabled, sync the remote groups with local StackStorm roles

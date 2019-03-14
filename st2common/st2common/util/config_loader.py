@@ -206,7 +206,7 @@ class ContentPackConfigLoader(object):
         except Exception as e:
             # Throw a more user-friendly exception on failed render
             exc_class = type(e)
-            original_msg = str(e)
+            original_msg = six.text_type(e)
             msg = ('Failed to render dynamic configuration value for key "%s" with value '
                    '"%s" for pack "%s" config: %s %s ' % (key, value, self.pack_name,
                                                           exc_class, original_msg))

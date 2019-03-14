@@ -706,7 +706,7 @@ class ActionRunCommandMixin(object):
                 except Exception as e:
                     # TODO: Move transformers in a separate module and handle
                     # exceptions there
-                    if 'malformed string' in str(e):
+                    if 'malformed string' in six.text_type(e):
                         message = ('Invalid value for boolean parameter. '
                                    'Valid values are: true, false')
                         raise ValueError(message)

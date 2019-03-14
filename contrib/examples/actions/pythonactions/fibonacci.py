@@ -21,4 +21,4 @@ if __name__ == '__main__':
         print(results)
     except Exception as e:
         traceback.print_exc(file=sys.stderr)
-        sys.exit(str(e))
+        sys.exit(six.text_type(e))

@@ -18,6 +18,7 @@ from __future__ import absolute_import
 import sys
 import traceback
 
+import six
 from oslo_config import cfg
 
 from st2common import log as logging
@@ -107,7 +108,7 @@ class RunnerContainer(object):
 
                 runner.runner_parameters = runner_params
             except ParamException as e:
-                raise actionrunner.ActionRunnerException(str(e))
+                raise actionrunner.ActionRunnerException(six.text_type(e))
 
             LOG.debug('Performing pre-run for runner: %s', runner.runner_id)
             runner.pre_run()

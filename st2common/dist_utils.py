@@ -15,9 +15,12 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 import re
 import sys
+
+import six
 
 from distutils.version import StrictVersion
 
@@ -27,7 +30,7 @@ try:
     import pip
     from pip import __version__ as pip_version
 except ImportError as e:
-    print('Failed to import pip: %s' % (str(e)))
+    print('Failed to import pip: %s' % (six.text_type(e)))
     print('')
     print('Download pip:\n%s' % (GET_PIP))
     sys.exit(1)
@@ -41,7 +44,7 @@ except ImportError:
     try:
         from pip._internal.req.req_file import parse_requirements
     except ImportError as e:
-        print('Failed to import parse_requirements from pip: %s' % (str(e)))
+        print('Failed to import parse_requirements from pip: %s' % (six.text_type(e)))
         print('Using pip: %s' % (str(pip_version)))
         sys.exit(1)
 
