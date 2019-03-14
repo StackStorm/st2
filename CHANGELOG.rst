@@ -16,6 +16,8 @@ Fixed
   #4589
 * Fix rendering of ``{{ config_context. }}`` in orquesta task that references action from a
   different pack (bug fix) #4570 #4567
+* Add missing default config location (``/etc/st2/st2.conf``) to the following services:
+  ``st2actionrunner``, ``st2scheduler``, ``st2workflowengine``. (bug fix) #4596
 
 2.10.3 - March 06, 2019
 -----------------------
