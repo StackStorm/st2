@@ -535,9 +535,12 @@ def request_action_execution(wf_ex_db, task_ex_db, st2_ctx, ac_ex_req, delay=Non
     # Identify the runner for the action.
     runner_type_db = action_utils.get_runnertype_by_name(action_db.runner_type['name'])
 
+    # Identify action pack name
+    pack_name = action_ref.split('.')[0] if action_ref else st2_ctx.get('pack')
+
     # Set context for the action execution.
     ac_ex_ctx = {
-        'pack': st2_ctx.get('pack'),
+        'pack': pack_name,
         'user': st2_ctx.get('user'),
         'parent': st2_ctx,
         'orquesta': {
@@ -545,7 +548,7 @@ def request_action_execution(wf_ex_db, task_ex_db, st2_ctx, ac_ex_req, delay=Non
             'task_execution_id': str(task_ex_db.id),
             'task_name': task_ex_db.task_name,
             'task_id': task_ex_db.task_id
-        }
+        },
     }
 
     if st2_ctx.get('api_user'):
