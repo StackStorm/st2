@@ -71,7 +71,6 @@ def op_resolver(op_id):
     method_callable = functools.reduce(getattr, func_name.split('.'), module)
 
     return controller_instance, method_callable
-    return functools.reduce(getattr, func_name.split('.'), module)
 
 
 def abort(status_code=exc.HTTPInternalServerError.code, message='Unhandled exception'):

@@ -23,7 +23,6 @@ import sys
 from distutils.version import StrictVersion
 
 # NOTE: This script can't rely on any 3rd party dependency so we need to use this code here
-PY2 = sys.version_info[0] == 2
 PY3 = sys.version_info[0] == 3
 
 if PY3:
