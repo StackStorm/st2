@@ -52,6 +52,8 @@ Fixed
 * Fix orquesta with items task performance issue. Workflow runtime increase significantly when a
   with items task has many items and result in many retries on write conflicts. A distributed lock
   is acquired before write operations to avoid write conflicts. (bug fix) Stackstorm/orquesta#125
+* Fix a bug with some API endpoints returning 500 internal server error when an exception contained
+  unicode data. (bug fix) #4598
 
 2.10.4 - March 15, 2019
 -----------------------
