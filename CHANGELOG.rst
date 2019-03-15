@@ -4,6 +4,10 @@ Changelog
 In development
 --------------
 
+
+2.10.4 - March 15, 2019
+-----------------------
+
 Fixed
 ~~~~~
 
