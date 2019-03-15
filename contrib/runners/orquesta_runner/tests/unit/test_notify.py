@@ -18,6 +18,7 @@ from __future__ import absolute_import
 import jsonschema
 import mock
 
+import six
 from orquesta import statuses as wf_statuses
 
 import st2tests
@@ -214,7 +215,7 @@ class OrquestaNotifyTest(st2tests.ExecutionDbTestCase):
                     lv_ac_db
                 )
             except Exception as e:
-                raise AssertionError('%s: %s' % (str(e), notify_tasks))
+                raise AssertionError('%s: %s' % (six.text_type(e), notify_tasks))
 
     def test_notify_task_list_nonexistent_task(self):
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')

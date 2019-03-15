@@ -17,6 +17,7 @@ from __future__ import absolute_import
 
 import os
 
+import six
 import jsonschema
 import mock
 import yaml
@@ -48,7 +49,7 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
             all_actions_in_db = Action.get_all()
             actions_registrar.register_actions(packs_base_paths=[packs_base_path])
         except Exception as e:
-            print(str(e))
+            print(six.text_type(e))
             self.fail('All actions must be registered without exceptions.')
         else:
             all_actions_in_db = Action.get_all()

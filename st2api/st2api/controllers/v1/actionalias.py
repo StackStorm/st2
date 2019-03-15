@@ -85,7 +85,7 @@ class ActionAliasController(resource.ContentPackResourceController):
             format_ = get_matching_alias(command=command)
         except ActionAliasAmbiguityException as e:
             LOG.exception('Command "%s" matched (%s) patterns.', e.command, len(e.matches))
-            return abort(http_client.BAD_REQUEST, str(e))
+            return abort(http_client.BAD_REQUEST, six.text_type(e))
 
         # Convert ActionAliasDB to API
         action_alias_api = ActionAliasAPI.from_model(format_['alias'])
@@ -107,8 +107,8 @@ class ActionAliasController(resource.ContentPackResourceController):
             aliases = [ActionAliasAPI(**alias) for alias in aliases_resp.json]
             return generate_helpstring_result(aliases, filter, pack, int(limit), int(offset))
         except (TypeError) as e:
-            LOG.exception('Helpstring request contains an invalid data type: %s.', str(e))
-            return abort(http_client.BAD_REQUEST, str(e))
+            LOG.exception('Helpstring request contains an invalid data type: %s.', six.text_type(e))
+            return abort(http_client.BAD_REQUEST, six.text_type(e))
 
     def post(self, action_alias, requester_user):
         """
@@ -130,7 +130,7 @@ class ActionAliasController(resource.ContentPackResourceController):
             action_alias_db = ActionAlias.add_or_update(action_alias_db)
         except (ValidationError, ValueError, ValueValidationException) as e:
             LOG.exception('Validation failed for action alias data=%s.', action_alias)
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
             return
 
         extra = {'action_alias_db': action_alias_db}
@@ -169,7 +169,7 @@ class ActionAliasController(resource.ContentPackResourceController):
             action_alias_db = ActionAlias.add_or_update(action_alias_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for action alias data=%s', action_alias)
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
             return
 
         extra = {'old_action_alias_db': old_action_alias_db, 'new_action_alias_db': action_alias_db}
@@ -199,7 +199,7 @@ class ActionAliasController(resource.ContentPackResourceController):
         except Exception as e:
             LOG.exception('Database delete encountered exception during delete of id="%s".',
                           ref_or_id)
-            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+            abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
             return
 
         extra = {'action_alias_db': action_alias_db}

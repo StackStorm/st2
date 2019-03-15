@@ -17,6 +17,7 @@ from __future__ import absolute_import
 
 import uuid
 
+import six
 from oslo_config import cfg
 
 from orquesta import exceptions as wf_exc
@@ -96,7 +97,7 @@ class OrquestaRunner(runners.AsyncActionRunner):
             return (status, result, self.context)
         except Exception as e:
             status = ac_const.LIVEACTION_STATUS_FAILED
-            result = {'errors': [{'message': str(e)}], 'output': None}
+            result = {'errors': [{'message': six.text_type(e)}], 'output': None}
             return (status, result, self.context)
 
         if wf_ex_db.status in wf_statuses.COMPLETED_STATUSES:

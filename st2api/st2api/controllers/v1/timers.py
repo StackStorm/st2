@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import six
 from six import iteritems
 from six.moves import http_client
 
@@ -99,8 +100,8 @@ class TimersController(resource.ContentPackResourceController):
         try:
             trigger_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
         except Exception as e:
-            LOG.exception(str(e))
-            abort(http_client.NOT_FOUND, str(e))
+            LOG.exception(six.text_type(e))
+            abort(http_client.NOT_FOUND, six.text_type(e))
             return
 
         permission_type = PermissionType.TIMER_VIEW

@@ -277,7 +277,7 @@ class BaseCLIApp(object):
             expire_timestamp = data['expire_timestamp']
         except Exception as e:
             msg = ('File "%s" with cached token is corrupted or invalid (%s). Please delete '
-                   ' this file' % (cached_token_path, str(e)))
+                   ' this file' % (cached_token_path, six.text_type(e)))
             raise ValueError(msg)
 
         now = int(time.time())

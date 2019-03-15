@@ -132,7 +132,7 @@ def cast_params(action_ref, params, cast_overrides=None):
             v_type = type(v).__name__
             msg = ('Failed to cast value "%s" (type: %s) for parameter "%s" of type "%s": %s. '
                    'Perhaps the value is of an invalid type?' %
-                   (v, v_type, k, parameter_type, str(e)))
+                   (v, v_type, k, parameter_type, six.text_type(e)))
             raise ValueError(msg)
 
     return params

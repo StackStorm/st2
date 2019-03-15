@@ -425,7 +425,7 @@ class ResourceCreateCommand(ResourceCommand):
             self.print_output(instance, table.PropertyValueTable,
                               attributes=['all'], json=args.json, yaml=args.yaml)
         except Exception as e:
-            message = str(e)
+            message = six.text_type(e)
             print('ERROR: %s' % (message))
             raise OperationFailureException(message)
 
@@ -473,8 +473,8 @@ class ResourceUpdateCommand(ResourceCommand):
             self.print_output(instance, table.PropertyValueTable,
                               attributes=['all'], json=args.json, yaml=args.yaml)
         except Exception as e:
-            print('ERROR: %s' % (str(e)))
-            raise OperationFailureException(str(e))
+            print('ERROR: %s' % (six.text_type(e)))
+            raise OperationFailureException(six.text_type(e))
 
 
 class ContentPackResourceUpdateCommand(ResourceUpdateCommand):

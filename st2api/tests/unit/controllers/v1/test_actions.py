@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -427,6 +428,23 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
         self.assertDictContainsSubset({'enabled': False}, data)
 
         self.__do_delete(self.__get_action_id(post_resp))
+
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    def test_post_name_unicode_action_already_exists(self):
+        # Verify that exception messages containing unicode characters don't result in internal
+        # server errors
+        action = copy.deepcopy(ACTION_1)
+        action['name'] = 'žactionćšžž'
+
+        # 1. Initial creation
+        post_resp = self.__do_post(action, expect_errors=True)
+        self.assertEqual(post_resp.status_int, 201)
+
+        # 2. Action already exists
+        post_resp = self.__do_post(action, expect_errors=True)
+        self.assertEqual(post_resp.status_int, 409)
+        self.assertTrue('Tried to save duplicate unique keys' in post_resp.json['faultstring'])
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
