@@ -27,9 +27,9 @@ __all__ = [
 
 class ServiceRegistry(core.Resource):
     _alias = 'service-registry'
-    _display_name = 'service registry'
-    _plural = 'service registry'
-    _plural_display_name = 'service registry'
+    _display_name = 'Service Registry'
+    _plural = 'Service Registry'
+    _plural_display_name = 'Service Registry'
 
 
 class ServiceRegistryGroup(core.Resource):
