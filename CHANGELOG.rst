@@ -113,7 +113,7 @@ Fixed
 
 * Fix improper CORS where request from an origin not listed in ``allowed_origins`` will be responded
   with ``null`` for the ``Access-Control-Allow-Origin`` header. The fix returns the first of our
-  Bllowed origins if the requesting origin is not a supported origin. Reported by Barak Tawily.
+  allowed origins if the requesting origin is not a supported origin. Reported by Barak Tawily.
   (bug fix)
 
 2.10.2 - February 21, 2019
