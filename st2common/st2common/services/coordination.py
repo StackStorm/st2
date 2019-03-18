@@ -174,7 +174,7 @@ def configured():
     return backend_configured and not mock_backend
 
 
-def coordinator_setup(start_heart=False):
+def coordinator_setup(start_heart=True):
     """
     Sets up the client for the coordination service.
 
@@ -206,7 +206,7 @@ def coordinator_teardown(coordinator=None):
         coordinator.stop()
 
 
-def get_coordinator(start_heart=False, use_cache=True):
+def get_coordinator(start_heart=True, use_cache=True):
     """
     :param start_heart: True to start heartbeating process.
     :type start_heart: ``bool``
@@ -226,6 +226,7 @@ def get_coordinator(start_heart=False, use_cache=True):
 
     if not COORDINATOR:
         COORDINATOR = coordinator_setup(start_heart=start_heart)
+        LOG.debug('Initializing and caching new coordinator instance: %s' % (str(COORDINATOR)))
     else:
         LOG.debug('Using cached coordinator instance: %s' % (str(COORDINATOR)))
 
