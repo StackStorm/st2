@@ -168,7 +168,7 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
         self.parser.add_argument('-e', '--encrypt', dest='secret',
                                  action='store_true',
                                  help='Encrypt value before saving.')
-        self.parser.add_argument('--pre-encrypted', dest='pre_encrypted',
+        self.parser.add_argument('--encrypted', dest='encrypted',
                                  action='store_true',
                                  help=('Value provided is already encrypted with the instance '
                                  'crypto key and should be stored as-is.'))
@@ -180,8 +180,8 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        if args.secret and args.pre_encrypted:
-            raise ValueError('--encrypt and --pre-encrypted arguments are mutually exclusive')
+        if args.secret and args.encrypted:
+            raise ValueError('--encrypt and --encrypted arguments are mutually exclusive')
 
         instance = KeyValuePair()
         instance.id = args.name  # TODO: refactor and get rid of id
@@ -193,8 +193,8 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
         if args.secret:
             instance.secret = args.secret
 
-        if args.pre_encrypted:
-            instance.pre_encrypted = args.pre_encrypted
+        if args.encrypted:
+            instance.encrypted = args.encrypted
 
         if args.ttl:
             instance.ttl = args.ttl
@@ -324,7 +324,6 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
             user = item.get('user', None)
             encrypted = item.get('encrypted', False)
             secret = item.get('secret', False)
-            pre_encrypted = item.get('pre_encrypted', False)
             ttl = item.get('ttl', None)
 
             # if the value is not a string, convert it to JSON
@@ -351,15 +350,13 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
                 instance.encrypted = encrypted
             if secret:
                 instance.secret = secret
-            if pre_encrypted:
-                instance.pre_encrypted = pre_encrypted
             if ttl:
                 instance.ttl = ttl
 
             # encrypted=True and secret=True implies that the value is already encrypted and should
             # be used as such
             if encrypted and secret:
-                instance.pre_encrypted = True
+                instance.encrypted = True
 
             # call the API to create/update the KeyValuePair
             self.manager.update(instance, **kwargs)

@@ -76,7 +76,7 @@ ENCRYPTED_KVP = {
     'name': 'secret_key1',
     'value': ('3030303030298D848B45A24EDCD1A82FAB4E831E3FCE6E60956817A48A180E4C040801E'
               'B30170DACF79498F30520236A629912C3584847098D'),
-    'pre_encrypted': True
+    'encrypted': True
 }
 
 ENCRYPTED_KVP_SECRET_FALSE = {
@@ -84,7 +84,7 @@ ENCRYPTED_KVP_SECRET_FALSE = {
     'value': ('3030303030298D848B45A24EDCD1A82FAB4E831E3FCE6E60956817A48A180E4C040801E'
               'B30170DACF79498F30520236A629912C3584847098D'),
     'secret': True,
-    'pre_encrypted': True
+    'encrypted': True
 }
 
 
@@ -485,8 +485,8 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         self.__do_delete(kvp_id_1)
         self.__do_delete(kvp_id_2)
 
-    def test_put_pre_encrypted_value(self):
-        # 1. pre_encrypted=True, secret=True
+    def test_put_encrypted_value(self):
+        # 1. encrypted=True, secret=True
         put_resp = self.__do_put('secret_key1', ENCRYPTED_KVP)
         kvp_id = self.__get_kvp_id(put_resp)
 
@@ -513,8 +513,8 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         self.assertEqual(get_resp.json['value'], 'S3cret!Value')
         self.__do_delete(self.__get_kvp_id(put_resp))
 
-        # 2. pre_encrypted=True, secret=False
-        # pre_encrypted should always imply secret=True
+        # 2. encrypted=True, secret=False
+        # encrypted should always imply secret=True
         put_resp = self.__do_put('secret_key2', ENCRYPTED_KVP_SECRET_FALSE)
         kvp_id = self.__get_kvp_id(put_resp)
 

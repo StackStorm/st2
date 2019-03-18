@@ -20,8 +20,8 @@ Added
 
 * Adding ``Cache-Control`` header to all API responses so clients will favor
   refresh from API instead of using cached version.
-* Add new ``--pre-encrypted`` flag to ``st2 key set`` CLI command that allows users to pass in
-  values which are already encrypted.
+* Add new ``--encrypted`` flag to ``st2 key set`` CLI command that allows users to pass in values
+  which are already encrypted.
 
   This attribute signals the API that the value is already encrypted and should be used as-is.
 

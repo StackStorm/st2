@@ -67,11 +67,6 @@ class KeyValuePairAPI(BaseAPI):
                 'required': False,
                 'default': False
             },
-            'pre_encrypted': {
-                'type': 'boolean',
-                'required': False,
-                'default': False
-            },
             'encrypted': {
                 'type': 'boolean',
                 'required': False,
@@ -171,15 +166,15 @@ class KeyValuePairAPI(BaseAPI):
         else:
             expire_timestamp = None
 
-        pre_encrypted = getattr(kvp, 'pre_encrypted', False)
+        encrypted = getattr(kvp, 'encrypted', False)
         secret = getattr(kvp, 'secret', False)
 
         # If user transmitted the value in an pre-encrypted format, we perform the decryption here
         # to ensure data integrity. Besides that, we store data as-is.
-        # Keep in mind that pre_encrypted=True also always implies secret=True. If we didn't do
-        # that and supported pre_encrypted=True, secret=False, this would allow users to decrypt
+        # Keep in mind that encrypted=True also always implies secret=True. If we didn't do
+        # that and supported encrypted=True, secret=False, this would allow users to decrypt
         # any encrypted value.
-        if pre_encrypted:
+        if encrypted:
             secret = True
 
             cls._verif_key_is_set_up(name=name)
@@ -206,10 +201,10 @@ class KeyValuePairAPI(BaseAPI):
                 scope, ALLOWED_SCOPES)
             )
 
-        # NOTE: For security reasons, pre_encrypted always implies secret=True. See comment
+        # NOTE: For security reasons, encrypted always implies secret=True. See comment
         # above for explanation.
-        if pre_encrypted and not secret:
-            raise ValueError('pre_encrypted option can only be used in combination with secret '
+        if encrypted and not secret:
+            raise ValueError('encrypted option can only be used in combination with secret '
                              'option')
 
         model = cls.model(id=kvp_id, name=name, description=description, value=value,
