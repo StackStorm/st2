@@ -79,8 +79,8 @@ ENCRYPTED_KVP = {
     'pre_encrypted': True
 }
 
-ENCRYPTED_SECRET_KVP = {
-    'name': 'secret_key1',
+ENCRYPTED_KVP_SECRET_FALSE = {
+    'name': 'secret_key2',
     'value': ('3030303030298D848B45A24EDCD1A82FAB4E831E3FCE6E60956817A48A180E4C040801E'
               'B30170DACF79498F30520236A629912C3584847098D'),
     'secret': True,
@@ -485,32 +485,58 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         self.__do_delete(kvp_id_1)
         self.__do_delete(kvp_id_2)
 
-    def test_put_pre_encrypted_balue(self):
+    def test_put_pre_encrypted_value(self):
+        # 1. pre_encrypted=True, secret=True
         put_resp = self.__do_put('secret_key1', ENCRYPTED_KVP)
         kvp_id = self.__get_kvp_id(put_resp)
 
-        # ensure that the data was decrypted prior to be stored in the datastore
-        get_resp = self.__do_get_one(kvp_id)
+        # Verify there is no secrets leakage
+        self.assertEqual(put_resp.status_code, 200)
+        self.assertEqual(put_resp.json['name'], 'secret_key1')
+        self.assertEqual(put_resp.json['scope'], 'st2kv.system')
+        self.assertEqual(put_resp.json['encrypted'], True)
+        self.assertEqual(put_resp.json['secret'], True)
+        self.assertEqual(put_resp.json['value'], ENCRYPTED_KVP['value'])
+        self.assertTrue(put_resp.json['value'] != 'S3cret!Value')
+        self.assertTrue(len(put_resp.json['value']) > len('S3cret!Value') * 2)
+
+        get_resp = self.__do_get_one(kvp_id + '?decrypt=True')
+        self.assertEqual(put_resp.json['name'], 'secret_key1')
+        self.assertEqual(put_resp.json['scope'], 'st2kv.system')
+        self.assertEqual(put_resp.json['encrypted'], True)
+        self.assertEqual(put_resp.json['secret'], True)
+        self.assertEqual(put_resp.json['value'], ENCRYPTED_KVP['value'])
+
+        # Verify data integrity post decryption
+        get_resp = self.__do_get_one(kvp_id + '?decrypt=True')
         self.assertFalse(get_resp.json['encrypted'])
         self.assertEqual(get_resp.json['value'], 'S3cret!Value')
         self.__do_delete(self.__get_kvp_id(put_resp))
 
-    def test_put_pre_encreypted_and_secret(self):
-        put_resp = self.__do_put('secret_key1', ENCRYPTED_SECRET_KVP)
+        # 2. pre_encrypted=True, secret=False
+        # pre_encrypted should always imply secret=True
+        put_resp = self.__do_put('secret_key2', ENCRYPTED_KVP_SECRET_FALSE)
         kvp_id = self.__get_kvp_id(put_resp)
 
-        # ensure the value was decrypted and re-encrypted, meaning a different salt
-        # and resulting in a uniquely encrypted value in the datastore
-        get_resp = self.__do_get_one(kvp_id)
-        self.assertTrue(get_resp.json['encrypted'])
-        crypto_val = get_resp.json['value']
-        self.assertNotEqual(ENCRYPTED_KVP['value'], crypto_val)
+        # Verify there is no secrets leakage
+        self.assertEqual(put_resp.status_code, 200)
+        self.assertEqual(put_resp.json['name'], 'secret_key2')
+        self.assertEqual(put_resp.json['scope'], 'st2kv.system')
+        self.assertEqual(put_resp.json['encrypted'], True)
+        self.assertEqual(put_resp.json['secret'], True)
+        self.assertEqual(put_resp.json['value'], ENCRYPTED_KVP['value'])
+        self.assertTrue(put_resp.json['value'] != 'S3cret!Value')
+        self.assertTrue(len(put_resp.json['value']) > len('S3cret!Value') * 2)
 
-        # ensure that the data was decrypted prior to be stored in the datastore
-        get_resp = self.app.get('/v1/keys/secret_key1?decrypt=true')
-        self.assertEqual(get_resp.status_int, 200)
-        self.assertEqual(self.__get_kvp_id(get_resp), kvp_id)
-        self.assertTrue(get_resp.json['secret'])
+        get_resp = self.__do_get_one(kvp_id + '?decrypt=True')
+        self.assertEqual(put_resp.json['name'], 'secret_key2')
+        self.assertEqual(put_resp.json['scope'], 'st2kv.system')
+        self.assertEqual(put_resp.json['encrypted'], True)
+        self.assertEqual(put_resp.json['secret'], True)
+        self.assertEqual(put_resp.json['value'], ENCRYPTED_KVP['value'])
+
+        # Verify data integrity post decryption
+        get_resp = self.__do_get_one(kvp_id + '?decrypt=True')
         self.assertFalse(get_resp.json['encrypted'])
         self.assertEqual(get_resp.json['value'], 'S3cret!Value')
         self.__do_delete(self.__get_kvp_id(put_resp))

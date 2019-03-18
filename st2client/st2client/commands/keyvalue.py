@@ -355,7 +355,7 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
 
             # encrypted=True and secret=True implies that the value is already encrypted and should
             # be used as such
-            if instance.encrypted and instance.secret:
+            if encrypted and secret:
                 instance.pre_encrypted = True
 
             # call the API to create/update the KeyValuePair

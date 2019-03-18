@@ -51,13 +51,13 @@ KEYVALUE_SECRET = {
     'secret': True
 }
 
-KEYVALUE_DECRYPT = {
+KEYVALUE_PRE_ENCRYPTED = {
     'id': 'kv_name',
     'name': 'kv_name.',
     'value': 'AAABBBCCC1234',
     'scope': 'system',
-    'secret': True,
-    'pre_encrypted': True
+    'encrypted': True,
+    'secret': True
 }
 
 KEYVALUE_TTL = {
@@ -82,7 +82,7 @@ KEYVALUE_ALL = {
     'scope': 'system',
     'user': 'stanley',
     'secret': True,
-    'decrypt': True,
+    'encrypted': True,
     'ttl': 100
 }
 
@@ -122,11 +122,11 @@ class TestKeyValueSet(TestKeyValueBase):
 
     @mock.patch.object(
         requests, 'put',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(KEYVALUE_DECRYPT), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(KEYVALUE_PRE_ENCRYPTED), 200,
+                                                      'OK')))
     def test_set_keyvalue(self):
-        """Test setting key/value pair with optional derypt field
+        """Test setting key/value pair with optional pre_encrypted field
         """
-        # long format
         args = ['key', 'set', '--pre-encrypted', 'kv_name', 'AAABBBCCC1234']
         retcode = self.shell.run(args)
         self.assertEqual(retcode, 0)
@@ -208,14 +208,15 @@ class TestKeyValueLoad(TestKeyValueBase):
 
     @mock.patch.object(
         requests, 'put',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(KEYVALUE_DECRYPT), 200, 'OK')))
-    def test_load_keyvalue_decrypt(self):
-        """Test loading of key/value pair with the optional decrypt field
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(KEYVALUE_PRE_ENCRYPTED), 200,
+                                                      'OK')))
+    def test_load_keyvalue_already_encrypted(self):
+        """Test loading of key/value pair with the pre-encrypted value
         """
         fd, path = tempfile.mkstemp(suffix='.json')
         try:
             with open(path, 'a') as f:
-                f.write(json.dumps(KEYVALUE_DECRYPT, indent=4))
+                f.write(json.dumps(KEYVALUE_PRE_ENCRYPTED, indent=4))
 
             args = ['key', 'load', path]
             retcode = self.shell.run(args)
