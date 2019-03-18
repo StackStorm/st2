@@ -20,16 +20,16 @@ Added
 
 * Adding ``Cache-Control`` header to all API responses so clients will favor
   refresh from API instead of using cached version.
-* Added a new flag ``-d/--decrypt`` to ``st2 key set`` that allows users to pass in values
-  in encrypted format using the system's crypto keys. This flag informs the API that the
-  value transmitted is encrypted and it must be decrypted prior to working with it. Similarly
-  a keys file given to ``st2 key load`` can contain the property ``decrypt: true`` in any of
-  its keys and it will have the same effect. This results in keys files being able to contain
-  encrypted data that no longer needs to be decrypted prior to working with the CLI.
-  The corresponding ``decrypt`` option has been added to the API endpoint
-  ``PUT /api/v1/keys/{name}``. (new feature) #4545
+* Add new ``--pre-encrypted`` flag to ``st2 key set`` CLI command that allows users to pass in
+  values which are already encrypted. Similarly, a keys file given to ``st2 key load`` CLI command
+  can contain the property ``pre_encrypted: true`` in any of its keys and it will have the same
+  effect.
 
-  Contributed by Nick Maludy (Encore Technologies
+  This attribute signals the API that the value is already encrypted and should be used as-is. The
+  most common use case for this feature is migrating / restoring datastore values from one
+  StackStorm instance to another which uses the same crypto key.
+
+  Contributed by Nick Maludy (Encore Technologies)
 
 Changed
 ~~~~~~~
