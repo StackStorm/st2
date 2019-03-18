@@ -221,8 +221,7 @@ def get_coordinator(start_heart=True, use_cache=True):
                  'service will use best effort approach and race conditions are possible.')
 
     if not use_cache:
-        coordinator = coordinator_setup(start_heart=start_heart)
-        return coordinator
+        return coordinator_setup(start_heart=start_heart)
 
     if not COORDINATOR:
         COORDINATOR = coordinator_setup(start_heart=start_heart)
