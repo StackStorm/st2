@@ -34,6 +34,7 @@ __all__ = [
     'configured',
 
     'get_coordinator',
+    'get_coordinator_if_set',
     'get_member_id',
 
     'coordinator_setup',
@@ -200,8 +201,9 @@ def coordinator_setup(start_heart=False):
     return coordinator
 
 
-def coordinator_teardown(coordinator):
-    coordinator.stop()
+def coordinator_teardown(coordinator=None):
+    if coordinator:
+        coordinator.stop()
 
 
 def get_coordinator(start_heart=False, use_cache=True):
@@ -224,7 +226,17 @@ def get_coordinator(start_heart=False, use_cache=True):
 
     if not COORDINATOR:
         COORDINATOR = coordinator_setup(start_heart=start_heart)
+    else:
+        LOG.debug('Using cached coordinator instance: %s' % (str(COORDINATOR)))
 
+    return COORDINATOR
+
+
+def get_coordinator_if_set():
+    """
+    Return a coordinator instance if one has been initialized, None otherwise.
+    """
+    global COORDINATOR
     return COORDINATOR
 
 
