@@ -180,6 +180,9 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
+        if args.secret and args.pre_encrypted:
+            raise ValueError('--encrypt and --pre-encrypted arguments are mutually exclusive')
+
         instance = KeyValuePair()
         instance.id = args.name  # TODO: refactor and get rid of id
         instance.name = args.name

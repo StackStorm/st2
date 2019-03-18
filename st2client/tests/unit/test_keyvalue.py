@@ -131,6 +131,17 @@ class TestKeyValueSet(TestKeyValueBase):
         retcode = self.shell.run(args)
         self.assertEqual(retcode, 0)
 
+    def test_encrypt_and_pre_encrypted_are_mutually_exclusive(self):
+        args = ['key', 'set', '--encrypt', '--pre-encrypted', 'kv_name', 'AAABBBCCC1234']
+        retcode = self.shell.run(args)
+        self.assertEqual(retcode, 1)
+
+        self.stdout.seek(0)
+        stdout = self.stdout.read()
+
+        expected_msg = ('ERROR: --encrypt and --pre-encrypted arguments are mutually exclusive')
+        self.assertTrue(expected_msg in stdout)
+
 
 class TestKeyValueLoad(TestKeyValueBase):
 
