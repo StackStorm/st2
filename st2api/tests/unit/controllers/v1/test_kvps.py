@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
+
 from tests import FunctionalTest
 
 from st2common.models.db.auth import UserDB
@@ -540,6 +542,25 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         self.assertFalse(get_resp.json['encrypted'])
         self.assertEqual(get_resp.json['value'], 'S3cret!Value')
         self.__do_delete(self.__get_kvp_id(put_resp))
+
+    def test_put_encrypted_value_integrity_check_failed(self):
+        data = copy.deepcopy(ENCRYPTED_KVP)
+        data['value'] = 'corrupted'
+        put_resp = self.__do_put('secret_key1', data, expect_errors=True)
+        self.assertEqual(put_resp.status_code, 400)
+
+        expected_error = ('Failed to verify the integrity of the provided value for key '
+                          '"secret_key1".')
+        self.assertTrue(expected_error in put_resp.json['faultstring'])
+
+        data = copy.deepcopy(ENCRYPTED_KVP)
+        data['value'] = str(data['value'][:-2])
+        put_resp = self.__do_put('secret_key1', data, expect_errors=True)
+        self.assertEqual(put_resp.status_code, 400)
+
+        expected_error = ('Failed to verify the integrity of the provided value for key '
+                          '"secret_key1".')
+        self.assertTrue(expected_error in put_resp.json['faultstring'])
 
     def test_put_delete(self):
         put_resp = self.__do_put('key1', KVP)
