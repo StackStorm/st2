@@ -24,6 +24,7 @@ import sys
 import traceback
 import logging as stdlib_logging
 
+import six
 from oslo_config import cfg
 
 from st2common import log as logging
@@ -110,7 +111,7 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
         tb_msg = traceback.format_exc()
         if 'log.setLevel' in tb_msg:
             msg = 'Invalid log level selected. Log level names need to be all uppercase.'
-            msg += '\n\n' + getattr(e, 'message', str(e))
+            msg += '\n\n' + getattr(e, 'message', six.text_type(e))
             raise KeyError(msg)
         else:
             raise e

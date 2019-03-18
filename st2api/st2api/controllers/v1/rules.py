@@ -130,11 +130,11 @@ class RuleController(BaseResourceIsolationControllerMixin, ContentPackResourceCo
             increment_trigger_ref_count(rule_api=rule)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for rule data=%s.', rule)
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
             return
         except (ValueValidationException, jsonschema.ValidationError) as e:
             LOG.exception('Validation failed for rule data=%s.', rule)
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
             return
         except TriggerDoesNotExistException as e:
             msg = ('Trigger "%s" defined in the rule does not exist in system or it\'s missing '
@@ -179,7 +179,7 @@ class RuleController(BaseResourceIsolationControllerMixin, ContentPackResourceCo
             try:
                 rule_db = RuleAPI.to_model(rule)
             except TriggerDoesNotExistException as e:
-                abort(http_client.BAD_REQUEST, str(e))
+                abort(http_client.BAD_REQUEST, six.text_type(e))
                 return
 
             # Check referenced trigger and action permissions
@@ -195,7 +195,7 @@ class RuleController(BaseResourceIsolationControllerMixin, ContentPackResourceCo
             increment_trigger_ref_count(rule_api=rule)
         except (ValueValidationException, jsonschema.ValidationError, ValueError) as e:
             LOG.exception('Validation failed for rule data=%s', rule)
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
             return
 
         # use old_rule_db for cleanup.
@@ -227,7 +227,7 @@ class RuleController(BaseResourceIsolationControllerMixin, ContentPackResourceCo
         except Exception as e:
             LOG.exception('Database delete encountered exception during delete of id="%s".',
                           rule_ref_or_id)
-            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+            abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
             return
 
         # use old_rule_db for cleanup.

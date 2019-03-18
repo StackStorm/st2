@@ -16,6 +16,7 @@
 import traceback
 import json
 
+import six
 from oslo_config import cfg
 
 from st2common import log as logging
@@ -68,7 +69,7 @@ def get_backend_instance(name):
             kwargs = json.loads(backend_kwargs)
         except ValueError as e:
             raise ValueError('Failed to JSON parse backend settings for backend "%s": %s' %
-                             (name, str(e)))
+                             (name, six.text_type(e)))
     else:
         kwargs = {}
 
@@ -80,7 +81,7 @@ def get_backend_instance(name):
         tb_msg = traceback.format_exc()
         class_name = cls.__name__
         msg = ('Failed to instantiate auth backend "%s" (class %s) with backend settings '
-               '"%s": %s' % (name, class_name, str(kwargs), str(e)))
+               '"%s": %s' % (name, class_name, str(kwargs), six.text_type(e)))
         msg += '\n\n' + tb_msg
         exc_cls = type(e)
         raise exc_cls(msg)
