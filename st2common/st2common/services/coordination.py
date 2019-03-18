@@ -56,6 +56,10 @@ class NoOpLock(locking.Lock):
 
 
 class NoOpAsyncResult(object):
+    """
+    In most scenarios, tooz library returns an async result, a future and this
+    class wrapper is here to correctly mimic tooz API and behavior.
+    """
     def __init__(self, result=None):
         self._result = result
 
