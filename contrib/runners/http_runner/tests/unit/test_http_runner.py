@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -14,11 +15,19 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
+import six
 import mock
 import unittest2
 
 from http_runner.http_runner import HTTPClient
 import st2tests.config as tests_config
+
+
+if six.PY2:
+    EXPECTED_DATA = ''
+else:
+    EXPECTED_DATA = b''
 
 
 class MockResult(object):
@@ -101,9 +110,14 @@ class HTTPRunnerTestCase(unittest2.TestCase):
 
         self.assertTrue(client.verify)
 
+        if six.PY2:
+            data = ''
+        else:
+            data = b''
+
         mock_requests.request.assert_called_with(
             'GET', url, allow_redirects=False, auth=None, cookies=None,
-            data='', files=None, headers={}, params=None, proxies=None,
+            data=data, files=None, headers={}, params=None, proxies=None,
             timeout=60, verify=True)
 
     @mock.patch('http_runner.http_runner.requests')
@@ -123,7 +137,7 @@ class HTTPRunnerTestCase(unittest2.TestCase):
 
         mock_requests.request.assert_called_with(
             'GET', url, allow_redirects=False, auth=None, cookies=None,
-            data='', files=None, headers={}, params=None, proxies=None,
+            data=EXPECTED_DATA, files=None, headers={}, params=None, proxies=None,
             timeout=60, verify=False)
 
     @mock.patch('http_runner.http_runner.requests')
@@ -145,5 +159,57 @@ class HTTPRunnerTestCase(unittest2.TestCase):
 
         mock_requests.request.assert_called_once_with(
             'GET', url, allow_redirects=False, auth=client.auth, cookies=None,
-            data='', files=None, headers={}, params=None, proxies=None,
+            data=EXPECTED_DATA, files=None, headers={}, params=None, proxies=None,
             timeout=60, verify=False)
+
+    @mock.patch('http_runner.http_runner.requests')
+    def test_http_unicode_body_data(self, mock_requests):
+        url = 'http://127.0.0.1:8888'
+        method = 'POST'
+        mock_result = MockResult()
+
+        # 1. String data
+        headers = {}
+        body = 'žžžžž'
+        client = HTTPClient(url=url, method=method, headers=headers, body=body, timeout=0.1)
+
+        mock_result.text = '{"foo": "bar"}'
+        mock_result.headers = {'Content-Type': 'application/json'}
+        mock_result.status_code = 200
+        mock_requests.request.return_value = mock_result
+
+        result = client.run()
+        self.assertEqual(result['status_code'], 200)
+
+        call_kwargs = mock_requests.request.call_args_list[0][1]
+
+        expected_data = u'žžžžž'.encode('utf-8')
+        self.assertEqual(call_kwargs['data'], expected_data)
+
+        # 1. Object / JSON data
+        body = {
+            'foo': u'ažž'
+        }
+        headers = {
+            'Content-Type': 'application/json; charset=utf-8'
+        }
+        client = HTTPClient(url=url, method=method, headers=headers, body=body, timeout=0.1)
+
+        mock_result.text = '{"foo": "bar"}'
+        mock_result.headers = {'Content-Type': 'application/json'}
+        mock_result.status_code = 200
+        mock_requests.request.return_value = mock_result
+
+        result = client.run()
+        self.assertEqual(result['status_code'], 200)
+
+        call_kwargs = mock_requests.request.call_args_list[1][1]
+
+        if six.PY2:
+            expected_data = {
+                'foo': u'a\u017e\u017e'
+            }
+        else:
+            expected_data = body
+
+        self.assertEqual(call_kwargs['data'], expected_data)
