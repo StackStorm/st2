@@ -119,6 +119,6 @@ class MistralWorkflowValidator(WorkflowValidator):
             # Run custom DSL transformer to check action parameters.
             utils.transform_definition(def_dict)
         except WorkflowDefinitionException as e:
-            return [self.parse(str(e))]
+            return [self.parse(six.text_type(e))]
 
         return []

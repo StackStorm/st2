@@ -217,7 +217,7 @@ class ResourceController(object):
                     self.model.model._lookup_field(path)
                     filters['__'.join(path)] = v
                 except LookUpError as e:
-                    raise ValueError(str(e))
+                    raise ValueError(six.text_type(e))
 
         instances = self.access.query(exclude_fields=exclude_fields, only_fields=include_fields,
                                       **filters)
@@ -513,8 +513,8 @@ class ContentPackResourceController(ResourceController):
             instance = self._get_by_ref_or_id(ref_or_id=ref_or_id, exclude_fields=exclude_fields,
                                               include_fields=include_fields)
         except Exception as e:
-            LOG.exception(str(e))
-            abort(http_client.NOT_FOUND, str(e))
+            LOG.exception(six.text_type(e))
+            abort(http_client.NOT_FOUND, six.text_type(e))
             return
 
         if permission_type:

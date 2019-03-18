@@ -306,15 +306,15 @@ class KeyValuePairController(ResourceController):
                 kvp_db = KeyValuePair.add_or_update(kvp_db)
             except (ValidationError, ValueError) as e:
                 LOG.exception('Validation failed for key value data=%s', kvp)
-                abort(http_client.BAD_REQUEST, str(e))
+                abort(http_client.BAD_REQUEST, six.text_type(e))
                 return
             except CryptoKeyNotSetupException as e:
-                LOG.exception(str(e))
-                abort(http_client.BAD_REQUEST, str(e))
+                LOG.exception(six.text_type(e))
+                abort(http_client.BAD_REQUEST, six.text_type(e))
                 return
             except InvalidScopeException as e:
-                LOG.exception(str(e))
-                abort(http_client.BAD_REQUEST, str(e))
+                LOG.exception(six.text_type(e))
+                abort(http_client.BAD_REQUEST, six.text_type(e))
                 return
         extra = {'kvp_db': kvp_db}
         LOG.audit('KeyValuePair updated. KeyValuePair.id=%s' % (kvp_db.id), extra=extra)
@@ -367,7 +367,7 @@ class KeyValuePairController(ResourceController):
             except Exception as e:
                 LOG.exception('Database delete encountered exception during '
                               'delete of name="%s". ', name)
-                abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+                abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
                 return
 
         extra = {'kvp_db': kvp_db}

@@ -2,6 +2,7 @@
 
 import time
 
+import six
 from oslo_config import cfg
 
 from st2common.runners.base_action import Action
@@ -31,7 +32,7 @@ class BaseAction(Action):
                 return True
             except Exception as e:
                 self.logger.info('Attempt %s failed (%s), sleeping for %s seconds...' %
-                                 (attempt, str(e), sleep_delay))
+                                 (attempt, six.text_type(e), sleep_delay))
                 time.sleep(sleep_delay)
 
         raise Exception('Exceeded max retries (%s)' % (retries))

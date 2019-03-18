@@ -18,6 +18,8 @@
 # XXX: Refactor.
 
 from __future__ import absolute_import
+
+import six
 import eventlet
 from kombu.mixins import ConsumerMixin
 
@@ -82,7 +84,7 @@ class SensorWatcher(ConsumerMixin):
                 handler(body)
             except Exception as e:
                 LOG.exception('Handling failed. Message body: %s. Exception: %s',
-                              body, str(e))
+                              body, six.text_type(e))
         finally:
             message.ack()
 

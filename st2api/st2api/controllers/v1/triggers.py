@@ -83,7 +83,7 @@ class TriggerTypeController(resource.ContentPackResourceController):
             triggertype_db = TriggerType.add_or_update(triggertype_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for triggertype data=%s.', triggertype)
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
             return
         else:
             extra = {'triggertype_db': triggertype_db}
@@ -102,7 +102,7 @@ class TriggerTypeController(resource.ContentPackResourceController):
         try:
             validate_not_part_of_system_pack(triggertype_db)
         except ValueValidationException as e:
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
 
         try:
             triggertype_db = TriggerTypeAPI.to_model(triggertype)
@@ -115,7 +115,7 @@ class TriggerTypeController(resource.ContentPackResourceController):
             triggertype_db = TriggerType.add_or_update(triggertype_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for triggertype data=%s', triggertype)
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
             return
 
         extra = {'old_triggertype_db': old_triggertype_db, 'new_triggertype_db': triggertype_db}
@@ -141,14 +141,14 @@ class TriggerTypeController(resource.ContentPackResourceController):
         try:
             validate_not_part_of_system_pack(triggertype_db)
         except ValueValidationException as e:
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
 
         try:
             TriggerType.delete(triggertype_db)
         except Exception as e:
             LOG.exception('Database delete encountered exception during delete of id="%s". ',
                           triggertype_id)
-            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+            abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
             return
         else:
             extra = {'triggertype': triggertype_db}
@@ -177,7 +177,7 @@ class TriggerTypeController(resource.ContentPackResourceController):
             return
         except StackStormDBObjectConflictError as e:
             LOG.warn('Trigger creation of "%s" failed with uniqueness conflict. Exception: %s',
-                     trigger, str(e))
+                     trigger, six.text_type(e))
             # Not aborting as this is convenience.
             return
 
@@ -238,7 +238,7 @@ class TriggerController(object):
             trigger_db = TriggerService.create_trigger_db(trigger)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for trigger data=%s.', trigger)
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
             return
 
         extra = {'trigger': trigger_db}
@@ -258,7 +258,7 @@ class TriggerController(object):
             trigger_db = Trigger.add_or_update(trigger_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for trigger data=%s', trigger)
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
             return
 
         extra = {'old_trigger_db': trigger, 'new_trigger_db': trigger_db}
@@ -281,7 +281,7 @@ class TriggerController(object):
         except Exception as e:
             LOG.exception('Database delete encountered exception during delete of id="%s". ',
                           trigger_id)
-            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+            abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
             return
 
         extra = {'trigger_db': trigger_db}
@@ -355,7 +355,7 @@ class TriggerInstanceResendController(TriggerInstanceControllerMixin, resource.R
                 'payload': new_payload
             }
         except Exception as e:
-            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+            abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
 
 
 class TriggerInstanceController(TriggerInstanceControllerMixin, resource.ResourceController):

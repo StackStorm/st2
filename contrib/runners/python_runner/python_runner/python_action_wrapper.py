@@ -48,6 +48,8 @@ import sys
 import json
 import argparse
 
+import six
+
 from st2common import log as logging
 from st2common import config as st2common_config
 from st2common.runners.base_action import Action
@@ -177,7 +179,7 @@ class PythonActionWrapper(object):
             st2common_config.parse_args(args=self._parent_args)
         except Exception as e:
             LOG.debug('Failed to parse config using parent args (parent_args=%s): %s' %
-                      (str(self._parent_args), str(e)))
+                      (str(self._parent_args), six.text_type(e)))
 
         # Note: We can only set a default user value if one is not provided after parsing the
         # config
@@ -237,7 +239,7 @@ class PythonActionWrapper(object):
         except Exception as e:
             tb_msg = traceback.format_exc()
             msg = ('Failed to load action class from file "%s" (action file most likely doesn\'t '
-                   'exist or contains invalid syntax): %s' % (self._file_path, str(e)))
+                   'exist or contains invalid syntax): %s' % (self._file_path, six.text_type(e)))
             msg += '\n\n' + tb_msg
             exc_cls = type(e)
             raise exc_cls(msg)
@@ -313,7 +315,7 @@ if __name__ == '__main__':
             stdin_parameters = stdin_parameters.get('parameters', {})
         except Exception as e:
             msg = ('Failed to parse parameters from stdin. Expected a JSON object with '
-                   '"parameters" attribute: %s' % (str(e)))
+                   '"parameters" attribute: %s' % (six.text_type(e)))
             raise ValueError(msg)
 
         parameters.update(stdin_parameters)

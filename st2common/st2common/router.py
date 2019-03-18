@@ -71,9 +71,6 @@ def op_resolver(op_id):
     method_callable = functools.reduce(getattr, func_name.split('.'), module)
 
     return controller_instance, method_callable
-    print('xxx')
-    print(controller_instance)
-    return functools.reduce(getattr, func_name.split('.'), module)
 
 
 def abort(status_code=exc.HTTPInternalServerError.code, message='Unhandled exception'):
@@ -316,26 +313,26 @@ class Router(object):
                     raise auth_exc.NoAuthSourceProvidedError('One of Token or API key required.')
             except (auth_exc.NoAuthSourceProvidedError,
                     auth_exc.MultipleAuthSourcesError) as e:
-                LOG.error(str(e))
-                return abort_unauthorized(str(e))
+                LOG.error(six.text_type(e))
+                return abort_unauthorized(six.text_type(e))
             except auth_exc.TokenNotProvidedError as e:
                 LOG.exception('Token is not provided.')
-                return abort_unauthorized(str(e))
+                return abort_unauthorized(six.text_type(e))
             except auth_exc.TokenNotFoundError as e:
                 LOG.exception('Token is not found.')
-                return abort_unauthorized(str(e))
+                return abort_unauthorized(six.text_type(e))
             except auth_exc.TokenExpiredError as e:
                 LOG.exception('Token has expired.')
-                return abort_unauthorized(str(e))
+                return abort_unauthorized(six.text_type(e))
             except auth_exc.ApiKeyNotProvidedError as e:
                 LOG.exception('API key is not provided.')
-                return abort_unauthorized(str(e))
+                return abort_unauthorized(six.text_type(e))
             except auth_exc.ApiKeyNotFoundError as e:
                 LOG.exception('API key is not found.')
-                return abort_unauthorized(str(e))
+                return abort_unauthorized(six.text_type(e))
             except auth_exc.ApiKeyDisabledError as e:
                 LOG.exception('API key is disabled.')
-                return abort_unauthorized(str(e))
+                return abort_unauthorized(six.text_type(e))
 
             if cfg.CONF.rbac.enable:
                 user_db = context['user']
@@ -406,7 +403,7 @@ class Router(object):
                     else:
                         raise ValueError('Unsupported Content-Type: "%s"' % (content_type))
                 except Exception as e:
-                    detail = 'Failed to parse request body: %s' % str(e)
+                    detail = 'Failed to parse request body: %s' % six.text_type(e)
                     raise exc.HTTPBadRequest(detail=detail)
 
                 # Special case for Python 3
@@ -417,7 +414,7 @@ class Router(object):
                 try:
                     CustomValidator(schema, resolver=self.spec_resolver).validate(data)
                 except (jsonschema.ValidationError, ValueError) as e:
-                    raise exc.HTTPBadRequest(detail=getattr(e, 'message', str(e)),
+                    raise exc.HTTPBadRequest(detail=getattr(e, 'message', six.text_type(e)),
                                              comment=traceback.format_exc())
 
                 if content_type == 'text/plain':
@@ -451,7 +448,7 @@ class Router(object):
                         try:
                             instance = instance.validate()
                         except (jsonschema.ValidationError, ValueError) as e:
-                            raise exc.HTTPBadRequest(detail=getattr(e, 'message', str(e)),
+                            raise exc.HTTPBadRequest(detail=getattr(e, 'message', six.text_type(e)),
                                                      comment=traceback.format_exc())
                     else:
                         LOG.debug('Missing x-api-model definition for %s, using generic Body '
@@ -509,14 +506,14 @@ class Router(object):
             controller_instance, func = op_resolver(endpoint['operationId'])
         except Exception as e:
             LOG.exception('Failed to load controller for operation "%s": %s' %
-                          (endpoint['operationId'], str(e)))
+                          (endpoint['operationId'], six.text_type(e)))
             raise e
 
         try:
             resp = func(**kw)
         except Exception as e:
             LOG.exception('Failed to call controller function "%s" for operation "%s": %s' %
-                          (func.__name__, endpoint['operationId'], str(e)))
+                          (func.__name__, endpoint['operationId'], six.text_type(e)))
             raise e
 
         # Handle response
@@ -600,7 +597,7 @@ class Router(object):
             instance = model_cls(**data)
         except TypeError as e:
             # Throw a more user-friendly exception when input data is not an object
-            if 'type object argument after ** must be a mapping, not' in str(e):
+            if 'type object argument after ** must be a mapping, not' in six.text_type(e):
                 type_string = get_json_type_for_python_value(data)
                 msg = ('Input body needs to be an object, got: %s' % (type_string))
                 raise ValueError(msg)
