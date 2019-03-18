@@ -195,14 +195,18 @@ class ResourceManager(object):
                 for item in response.json()]
 
     @add_auth_token_to_kwargs_from_env
-    def get_by_id(self, id, **kwargs):
+    def get_by_id(self, id, self_deserialize=True, **kwargs):
         url = '/%s/%s' % (self.resource.get_url_path_name(), id)
         response = self.client.get(url, **kwargs)
         if response.status_code == http_client.NOT_FOUND:
             return None
         if response.status_code != http_client.OK:
             self.handle_error(response)
-        return self.resource.deserialize(response.json())
+
+        if self_deserialize:
+            return self.resource.deserialize(response.json())
+        else:
+            return response.json()
 
     @add_auth_token_to_kwargs_from_env
     def get_property(self, id_, property_name, self_deserialize=True, **kwargs):
@@ -411,7 +415,7 @@ class ExecutionResourceManager(ResourceManager):
         if response.status_code != http_client.OK:
             self.handle_error(response)
 
-        return response.text
+        return response.json()
 
     @add_auth_token_to_kwargs_from_env
     def pause(self, execution_id, **kwargs):
@@ -678,6 +682,18 @@ class WorkflowManager(object):
 
         response = self.client.post_raw(url, definition, **kwargs)
 
+        if response.status_code != http_client.OK:
+            self.handle_error(response)
+
+        return response.json()
+
+    @add_auth_token_to_kwargs_from_env
+    def get_tasks_executions(self, id, self_deserialize=True, **kwargs):
+        url = '/taskexecutions/{0}'.format(str(id))
+
+        response = self.client.get(url, **kwargs)
+        if response.status_code == http_client.NOT_FOUND:
+            return None
         if response.status_code != http_client.OK:
             self.handle_error(response)
 

@@ -4270,6 +4270,30 @@ paths:
           schema:
             $ref: '#/definitions/Error'
 
+  /api/v1/workflows/taskexecutions/{id}:
+    get:
+      operationId: st2api.controllers.v1.workflow:workflow_execution_controller.get_all
+      description: |
+        Get all Task Executions.
+      parameters:
+        - name: id
+          in: path
+          description: Workflow Execution ID
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Task Execution requested
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
   /api/exp/validation/mistral:
     post:
       operationId: st2api.controllers.exp.validation:mistral_validation_controller.post

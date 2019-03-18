@@ -24,12 +24,14 @@ from oslo_config import cfg
 from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.execution import ActionExecutionAPI
 from st2common.models.api.execution import ActionExecutionOutputAPI
+from st2common.models.api.workflow import TaskExecutionAPI
 from st2common.transport import utils as transport_utils
 from st2common.transport.queues import STREAM_ANNOUNCEMENT_WORK_QUEUE
 from st2common.transport.queues import STREAM_EXECUTION_ALL_WORK_QUEUE
 from st2common.transport.queues import STREAM_EXECUTION_UPDATE_WORK_QUEUE
 from st2common.transport.queues import STREAM_LIVEACTION_WORK_QUEUE
 from st2common.transport.queues import STREAM_EXECUTION_OUTPUT_QUEUE
+from st2common.transport.queues import STREAM_EXECUTION_TASK_UPDATE_QUEUE
 from st2common import log as logging
 
 __all__ = [
@@ -169,6 +171,8 @@ class BaseListener(ConsumerMixin):
             execution_id = None
         elif isinstance(body, (ActionExecutionOutputAPI)):
             execution_id = body.execution_id
+        elif isinstance(body, TaskExecutionAPI):
+            execution_id = str(body.id)
 
         return execution_id
 
@@ -196,7 +200,11 @@ class StreamListener(BaseListener):
 
             consumer(queues=[STREAM_EXECUTION_OUTPUT_QUEUE],
                      accept=['pickle'],
-                     callbacks=[self.processor(ActionExecutionOutputAPI)])
+                     callbacks=[self.processor(ActionExecutionOutputAPI)]),
+
+            consumer(queues=[STREAM_EXECUTION_TASK_UPDATE_QUEUE],
+                     accept=['pickle'],
+                     callbacks=[self.processor(TaskExecutionAPI)])
         ]
 
 

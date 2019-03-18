@@ -23,9 +23,11 @@ from st2common.transport import publishers
 
 __all__ = [
     'WorkflowExecutionPublisher',
+    'TaskExecutionPublisher',
 
     'get_queue',
-    'get_status_management_queue'
+    'get_status_management_queue',
+    'get_task_queue'
 ]
 
 WORKFLOW_EXECUTION_XCHG = kombu.Exchange('st2.workflow', type='topic')
@@ -39,9 +41,18 @@ class WorkflowExecutionPublisher(publishers.CUDPublisher, publishers.StatePublis
         publishers.StatePublisherMixin.__init__(self, exchange=WORKFLOW_EXECUTION_STATUS_MGMT_XCHG)
 
 
+class TaskExecutionPublisher(publishers.CUDPublisher):
+    def __init__(self):
+        publishers.CUDPublisher.__init__(self, exchange=WORKFLOW_EXECUTION_XCHG)
+
+
 def get_queue(name, routing_key):
     return kombu.Queue(name, WORKFLOW_EXECUTION_XCHG, routing_key=routing_key)
 
 
 def get_status_management_queue(name, routing_key):
     return kombu.Queue(name, WORKFLOW_EXECUTION_STATUS_MGMT_XCHG, routing_key=routing_key)
+
+
+def get_task_queue(name, routing_key):
+    return kombu.Queue(name, WORKFLOW_EXECUTION_XCHG, routing_key=routing_key)

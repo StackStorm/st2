@@ -55,7 +55,8 @@ __all__ = [
     'STREAM_LIVEACTION_WORK_QUEUE',
 
     'WORKFLOW_EXECUTION_WORK_QUEUE',
-    'WORKFLOW_EXECUTION_RESUME_QUEUE'
+    'WORKFLOW_EXECUTION_RESUME_QUEUE',
+    'STREAM_EXECUTION_TASK_UPDATE_QUEUE'
 ]
 
 
@@ -138,6 +139,10 @@ STREAM_EXECUTION_OUTPUT_QUEUE = execution.get_output_queue(
     exclusive=True,
     auto_delete=True)
 
+STREAM_EXECUTION_TASK_UPDATE_QUEUE = workflow.get_task_queue(
+    name='st2.workflow',
+    routing_key=publishers.UPDATE_RK
+)
 
 # Used by the workflow engine service
 WORKFLOW_EXECUTION_WORK_QUEUE = workflow.get_status_management_queue(

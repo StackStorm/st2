@@ -36,6 +36,7 @@ from bson.objectid import ObjectId
 
 from st2common import log as logging
 from st2common.util import date as date_utils
+from st2common.util import isotime as isotime_utils
 from st2common.util import reference
 import st2common.util.action_db as action_utils
 from st2common.constants import action as action_constants
@@ -95,8 +96,9 @@ def _create_execution_log_entry(status):
     """
     Create execution log entry object for the provided execution status.
     """
+    timestamp = str(isotime_utils.parse(date_utils.get_datetime_utc_now()))
     return {
-        'timestamp': date_utils.get_datetime_utc_now(),
+        'timestamp': timestamp,
         'status': status
     }
 

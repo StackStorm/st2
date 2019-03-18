@@ -50,3 +50,10 @@ class TaskExecution(persistence.StatusBasedResource):
     @classmethod
     def _get_impl(cls):
         return cls.impl
+
+    @classmethod
+    def _get_publisher(cls):
+        if not cls.publisher:
+            cls.publisher = transport.workflow.TaskExecutionPublisher()
+
+        return cls.publisher

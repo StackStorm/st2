@@ -49,6 +49,7 @@ from st2common.transport.queues import STREAM_LIVEACTION_WORK_QUEUE
 from st2common.transport.queues import STREAM_EXECUTION_OUTPUT_QUEUE
 from st2common.transport.queues import WORKFLOW_EXECUTION_WORK_QUEUE
 from st2common.transport.queues import WORKFLOW_EXECUTION_RESUME_QUEUE
+from st2common.transport.queues import STREAM_EXECUTION_TASK_UPDATE_QUEUE
 
 LOG = logging.getLogger('st2common.transport.bootstrap')
 
@@ -90,6 +91,7 @@ QUEUES = [
     STREAM_EXECUTION_ALL_WORK_QUEUE,
     STREAM_LIVEACTION_WORK_QUEUE,
     STREAM_EXECUTION_OUTPUT_QUEUE,
+    STREAM_EXECUTION_TASK_UPDATE_QUEUE,
 
     WORKFLOW_EXECUTION_WORK_QUEUE,
     WORKFLOW_EXECUTION_RESUME_QUEUE,

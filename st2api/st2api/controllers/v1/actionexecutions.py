@@ -38,6 +38,7 @@ from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.action import LiveActionCreateAPI
 from st2common.models.api.base import cast_argument_value
 from st2common.models.api.execution import ActionExecutionAPI
+from st2common.models.api.execution import ActionExecutionOutputAPI
 from st2common.models.db.auth import UserDB
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
@@ -337,13 +338,13 @@ class ActionExecutionOutputController(ActionExecutionsControllerMixin, ResourceC
             # pylint: disable=no-member
             output_dbs = ActionExecutionOutput.query(execution_id=execution_id, **query_filters)
 
-            output = ''.join([output_db.data for output_db in output_dbs])
-            yield six.binary_type(output.encode('utf-8'))
+            output = [ActionExecutionOutputAPI.from_model(output_db) for output_db in output_dbs]
+            return output
 
         def make_response():
             app_iter = existing_output_iter()
-            res = Response(content_type='text/plain', app_iter=app_iter)
-            return res
+            response_value = Response(json=app_iter, status=http_client.OK)
+            return response_value
 
         res = make_response()
         return res
