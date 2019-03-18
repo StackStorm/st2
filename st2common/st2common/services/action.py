@@ -428,14 +428,20 @@ def get_root_execution(execution_db):
     return get_root_execution(parent_execution_db) if parent_execution_db else execution_db
 
 
-def store_execution_output_data(execution_db, action_db, data, output_type='output',
+def store_execution_output_data(execution_db_id, action_db, data, output_type='output',
                                 timestamp=None):
     """
     Store output from an execution as a new document in the collection.
     """
-    execution_id = str(execution_db.id)
-    action_ref = action_db.ref
-    runner_ref = getattr(action_db, 'runner_type', {}).get('name', 'unknown')
+    execution_id = str(execution_db_id)
+
+    if action_db:
+        action_ref = action_db.ref
+        runner_ref = getattr(action_db, 'runner_type', {}).get('name', 'unknown')
+    else:
+        action_ref = ''
+        runner_ref = ''
+
     timestamp = timestamp or date_utils.get_datetime_utc_now()
 
     output_db = ActionExecutionOutputDB(execution_id=execution_id,

@@ -142,6 +142,9 @@ class ResourceCommand(commands.Command):
         resource_name = self.resource.get_display_name().lower()
         return '%s-id' % resource_name.replace(' ', '-')
 
+    def get_workflow_manager(self):
+        return self.app.client.managers['Workflow']
+
     def print_not_found(self, name):
         print('%s "%s" is not found.\n' %
               (self.resource.get_display_name(), name))

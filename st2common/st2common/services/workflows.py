@@ -44,6 +44,7 @@ from st2common.services import coordination as coord_svc
 from st2common.services import executions as ex_svc
 from st2common.util import action_db as action_utils
 from st2common.util import date as date_utils
+from st2common.util import isotime as isotime_utils
 from st2common.util import param as param_utils
 
 
@@ -432,6 +433,7 @@ def request_task_execution(wf_ex_db, st2_ctx, task_ex_req):
         msg = '[%s] Task execution "%s" retrieved for task "%s", route "%s".'
         LOG.info(msg, wf_ac_ex_id, task_ex_id, task_id, str(task_route))
     else:
+        log = [_create_task_execution_log_entry(statuses.REQUESTED)]
         # Create a record for task execution.
         task_ex_db = wf_db_models.TaskExecutionDB(
             workflow_execution=str(wf_ex_db.id),
@@ -444,7 +446,8 @@ def request_task_execution(wf_ex_db, st2_ctx, task_ex_req):
             items_count=task_ex_req.get('items_count'),
             items_concurrency=task_ex_req.get('concurrency'),
             context=task_ctx,
-            status=statuses.REQUESTED
+            status=statuses.REQUESTED,
+            log=log
         )
 
         # Prepare the result format for itemized task execution.
@@ -465,7 +468,10 @@ def request_task_execution(wf_ex_db, st2_ctx, task_ex_req):
 
             # Set the task execution to running.
             task_ex_db.status = statuses.RUNNING
-            task_ex_db = wf_db_access.TaskExecution.update(task_ex_db, publish=False)
+            task_ex_db.end_timestamp = date_utils.get_datetime_utc_now()
+            task_ex_db.log.append(_create_task_execution_log_entry(task_ex_db.status, 
+                                                                   task_ex_db.end_timestamp))
+            task_ex_db = wf_db_access.TaskExecution.update(task_ex_db, publish=True)
 
             # Fast forward task execution to completion.
             update_task_execution(str(task_ex_db.id), statuses.SUCCEEDED)
@@ -481,7 +487,10 @@ def request_task_execution(wf_ex_db, st2_ctx, task_ex_req):
 
             # Set the task execution to running.
             task_ex_db.status = statuses.RUNNING
-            task_ex_db = wf_db_access.TaskExecution.update(task_ex_db, publish=False)
+            task_ex_db.end_timestamp = date_utils.get_datetime_utc_now()
+            task_ex_db.log.append(_create_task_execution_log_entry(task_ex_db.status,
+                                                                   task_ex_db.end_timestamp))
+            task_ex_db = wf_db_access.TaskExecution.update(task_ex_db, publish=True)
 
             # Fast forward task execution to completion.
             update_task_execution(str(task_ex_db.id), statuses.SUCCEEDED)
@@ -500,6 +509,9 @@ def request_task_execution(wf_ex_db, st2_ctx, task_ex_req):
         LOG.exception(msg, wf_ac_ex_id, task_id, str(task_route), six.text_type(e))
         message = '%s: %s' % (type(e).__name__, six.text_type(e))
         error = {'type': 'error', 'message': message, 'task_id': task_id, 'route': task_route}
+        task_ex_db.end_timestamp = date_utils.get_datetime_utc_now()
+        task_ex_db.log.append(_create_task_execution_log_entry(statuses.FAILED,
+                                                               task_ex_db.end_timestamp))
         update_task_execution(str(task_ex_db.id), statuses.FAILED, {'errors': [error]})
         raise e
 
@@ -602,7 +614,10 @@ def request_action_execution(wf_ex_db, task_ex_db, st2_ctx, ac_ex_req, delay=Non
     # where the action execution finishes first and the completion handler
     # conflicts with this status update.
     task_ex_db.status = statuses.RUNNING
-    task_ex_db = wf_db_access.TaskExecution.update(task_ex_db, publish=False)
+    task_ex_db.end_timestamp = date_utils.get_datetime_utc_now()
+    task_ex_db.log.append(_create_task_execution_log_entry(task_ex_db.status,
+                                                           task_ex_db.end_timestamp))
+    task_ex_db = wf_db_access.TaskExecution.update(task_ex_db, publish=True)
 
     # Request action execution.
     lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
@@ -869,6 +884,9 @@ def request_next_tasks(wf_ex_db, task_ex_id=None):
         tasks_list = ', '.join(["%s (route %s)" % (t['id'], str(t['route'])) for t in next_tasks])
         LOG.info(msg, wf_ac_ex_id, tasks_list)
 
+        ac_svc.store_execution_output_data(wf_ac_ex_id, None, tasks_list, output_type='next_tasks',
+                                           timestamp=None)
+
         # Mark the tasks as running in the task flow before actual task execution.
         for task in next_tasks:
             msg = '[%s] Mark task "%s", route "%s", in conductor as running.'
@@ -954,6 +972,7 @@ def update_task_execution(task_ex_id, ac_ex_status, ac_ex_result=None, ac_ex_ctx
         if ac_ex_status != task_ex_db.status:
             msg = '[%s] Updating task execution from status "%s" to "%s".'
             LOG.debug(msg, wf_ex_db.action_execution, task_ex_db.status, ac_ex_status)
+            task_ex_db.log.append(_create_task_execution_log_entry(ac_ex_status))
 
         task_ex_db.status = ac_ex_status
         task_ex_db.result = ac_ex_result if ac_ex_result else task_ex_db.result
@@ -986,6 +1005,7 @@ def update_task_execution(task_ex_id, ac_ex_status, ac_ex_result=None, ac_ex_ctx
             msg = '[%s] Updating task execution from status "%s" to "%s".'
             LOG.debug(msg, wf_ex_db.action_execution, task_ex_db.status, new_task_status)
             task_ex_db.status = new_task_status
+            task_ex_db.log.append(_create_task_execution_log_entry(task_ex_db.status))
         else:
             msg = '[%s] Task execution is not complete because not all items are complete: %s'
             LOG.debug(msg, wf_ex_db.action_execution, ', '.join(item_statuses))
@@ -1006,6 +1026,7 @@ def resume_task_execution(task_ex_id):
     LOG.debug(msg, wf_ex_db.action_execution, task_ex_db.status, statuses.RUNNING)
 
     task_ex_db.status = statuses.RUNNING
+    task_ex_db.log.append(_create_task_execution_log_entry(task_ex_db.status))
 
     # Write update to the database.
     wf_db_access.TaskExecution.update(task_ex_db, publish=False)
@@ -1123,3 +1144,14 @@ def update_execution_records(wf_ex_db, conductor, update_lv_ac_on_statuses=None,
     if status_changed and wf_lv_ac_db.status in ac_const.LIVEACTION_COMPLETED_STATES:
         LOG.info('[%s] Workflow action execution is completed and invoking post run.', wf_ac_ex_id)
         runners_utils.invoke_post_run(wf_lv_ac_db)
+
+
+def _create_task_execution_log_entry(status, timestamp=None):
+    """
+    Create task execution log entry object for the provided task execution status.
+    """
+    timestamp = str(isotime_utils.parse(timestamp or date_utils.get_datetime_utc_now()))
+    return {
+        'timestamp': timestamp,
+        'status': status
+    }
