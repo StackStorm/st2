@@ -79,6 +79,8 @@ Fixed
   throw the exception which would propagate all the way up and break the application. (bug fix) #4597
 
   Reported by Chris McKenzie.
+* Add support of streaming and tailing output for a workflow/action execution command progress entries.
+  (improvement) #4602
 
 2.10.3 - March 06, 2019
 -----------------------

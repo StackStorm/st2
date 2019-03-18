@@ -8,7 +8,7 @@ info:
   version: "1.0.0"
   title: StackStorm API
   description: |
-    
+
     ## Welcome
 
     Welcome to the StackStorm API Reference documentation! You can use the StackStorm API to integrate StackStorm with 3rd-party systems and custom applications. Example integrations include writing your own self-service user portal, or integrating with other orquestation systems.
@@ -197,7 +197,7 @@ info:
     Join our [Slack Community](https://stackstorm.com/community-signup) to get help from the engineering team and fellow users. You can also create issues against the main [StackStorm GitHub repo](https://github.com/StackStorm/st2/issues), or the [st2apidocs repo](https://github.com/StackStorm/st2apidocs) for documentation-specific issues.
 
     We also recommend reviewing the main [StackStorm documentation](https://docs.stackstorm.com/).
-    
+
 
 paths:
   /api/v1/:
@@ -1463,7 +1463,7 @@ paths:
   /api/v1/keys:
     get:
       operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.get_all
-      x-permissions: 
+      x-permissions:
       description: Returns a list of all key value pairs.
       parameters:
         - name: prefix
@@ -4269,6 +4269,30 @@ paths:
                 message: "[{'cmd': 'echo <% ctx().macro %>'}] is not of type 'object'"
                 schema_path: "properties.tasks.patternProperties.^\\w+$.properties.input.type"
                 spec_path: "tasks.task2.input"
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /api/v1/workflows/taskexecutions/{id}:
+    get:
+      operationId: st2api.controllers.v1.workflow:workflow_execution_controller.get_all
+      description: |
+        Get all Task Executions.
+      parameters:
+        - name: id
+          in: path
+          description: Workflow Execution ID
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Task Execution requested
         default:
           description: Unexpected error
           schema:

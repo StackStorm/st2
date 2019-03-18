@@ -1593,10 +1593,10 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
                 if include_metadata:
                     sys.stdout.write('[%s][%s] %s' % (event['timestamp'], event['output_type'],
                                                       event['data']))
-                    print ''
+                    print ('')
                 else:
                     sys.stdout.write(event['data'])
-                    print ''
+                    print ('')
 
     @classmethod
     def tail_task_execution_event(cls, event):
