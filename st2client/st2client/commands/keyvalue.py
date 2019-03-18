@@ -168,12 +168,10 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
         self.parser.add_argument('-e', '--encrypt', dest='secret',
                                  action='store_true',
                                  help='Encrypt value before saving.')
-        self.parser.add_argument('-d', '--decrypt', dest='decrypt',
+        self.parser.add_argument('--pre-encrypted', dest='pre_encrypted',
                                  action='store_true',
-                                 help=('Value provided is encrypted and must be decrypted'
-                                       ' before saving. This allows values to be entered in on'
-                                       ' the CLI and transmitted to the API in encrypted'
-                                       ' format.'))
+                                 help=('Value provided is already encrypted with the instance '
+                                 'crypto key and should be stored as-is.'))
         self.parser.add_argument('-s', '--scope', dest='scope', default=DEFAULT_CUD_SCOPE,
                                  help='Specify the scope under which you want ' +
                                       'to place the item.')
@@ -192,8 +190,8 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
         if args.secret:
             instance.secret = args.secret
 
-        if args.decrypt:
-            instance.decrypt = args.decrypt
+        if args.pre_encrypted:
+            instance.pre_encrypted = args.pre_encrypted
 
         if args.ttl:
             instance.ttl = args.ttl
@@ -322,7 +320,7 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
             scope = item.get('scope', DEFAULT_CUD_SCOPE)
             user = item.get('user', None)
             secret = item.get('secret', False)
-            decrypt = item.get('decrypt', False)
+            pre_encrypted = item.get('pre_encrypted', False)
             ttl = item.get('ttl', None)
 
             # if the value is not a string, convert it to JSON
@@ -346,8 +344,8 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
                 instance.user = user
             if secret:
                 instance.secret = secret
-            if decrypt:
-                instance.decrypt = decrypt
+            if pre_encrypted:
+                instance.pre_encrypted = pre_encrypted
             if ttl:
                 instance.ttl = ttl
 

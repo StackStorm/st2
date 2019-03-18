@@ -57,7 +57,7 @@ KEYVALUE_DECRYPT = {
     'value': 'AAABBBCCC1234',
     'scope': 'system',
     'secret': True,
-    'decrypt': True
+    'pre_encrypted': True
 }
 
 KEYVALUE_TTL = {
@@ -126,13 +126,8 @@ class TestKeyValueSet(TestKeyValueBase):
     def test_set_keyvalue(self):
         """Test setting key/value pair with optional derypt field
         """
-        # short format
-        args = ['key', 'set', '-d', 'kv_name', 'AAABBBCCC1234']
-        retcode = self.shell.run(args)
-        self.assertEqual(retcode, 0)
-
         # long format
-        args = ['key', 'set', '--decrypt', 'kv_name', 'AAABBBCCC1234']
+        args = ['key', 'set', '--pre-encrypted', 'kv_name', 'AAABBBCCC1234']
         retcode = self.shell.run(args)
         self.assertEqual(retcode, 0)
 

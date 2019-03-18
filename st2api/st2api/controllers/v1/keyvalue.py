@@ -274,6 +274,11 @@ class KeyValuePairController(ResourceController):
                                                              user=user,
                                                              require_rbac=True)
 
+        # Validate that pre_encrypted option can only be used by admins
+        pre_encrypted = getattr(kvp, 'pre_encrypted', False)
+        self._validate_pre_encrypted_query_parameter(pre_encrypted=pre_encrypted, scope=scope,
+                                                     requester_user=requester_user)
+
         key_ref = get_key_reference(scope=scope, name=name, user=user)
         lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
         LOG.debug('PUT scope: %s, name: %s', scope, name)
@@ -407,6 +412,12 @@ class KeyValuePairController(ResourceController):
 
         if decrypt and (not is_user_scope and not is_admin):
             msg = 'Decrypt option requires administrator access'
+            raise AccessDeniedError(message=msg, user_db=requester_user)
+
+    def _validate_pre_encrypted_query_parameter(self, pre_encrypted, scope, requester_user):
+        is_admin = rbac_utils.user_is_admin(user_db=requester_user)
+        if pre_encrypted and not is_admin:
+            msg = 'Pre-encrypted option requires administrator access'
             raise AccessDeniedError(message=msg, user_db=requester_user)
 
     def _validate_scope(self, scope):

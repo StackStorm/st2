@@ -76,7 +76,7 @@ ENCRYPTED_KVP = {
     'name': 'secret_key1',
     'value': ('3030303030298D848B45A24EDCD1A82FAB4E831E3FCE6E60956817A48A180E4C040801E'
               'B30170DACF79498F30520236A629912C3584847098D'),
-    'decrypt': True,
+    'pre_encrypted': True
 }
 
 ENCRYPTED_SECRET_KVP = {
@@ -84,7 +84,7 @@ ENCRYPTED_SECRET_KVP = {
     'value': ('3030303030298D848B45A24EDCD1A82FAB4E831E3FCE6E60956817A48A180E4C040801E'
               'B30170DACF79498F30520236A629912C3584847098D'),
     'secret': True,
-    'decrypt': True,
+    'pre_encrypted': True
 }
 
 
@@ -485,7 +485,7 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         self.__do_delete(kvp_id_1)
         self.__do_delete(kvp_id_2)
 
-    def test_put_decrypt(self):
+    def test_put_pre_encrypted_balue(self):
         put_resp = self.__do_put('secret_key1', ENCRYPTED_KVP)
         kvp_id = self.__get_kvp_id(put_resp)
 
@@ -495,7 +495,7 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         self.assertEqual(get_resp.json['value'], 'S3cret!Value')
         self.__do_delete(self.__get_kvp_id(put_resp))
 
-    def test_put_decrypt_and_secret(self):
+    def test_put_pre_encreypted_and_secret(self):
         put_resp = self.__do_put('secret_key1', ENCRYPTED_SECRET_KVP)
         kvp_id = self.__get_kvp_id(put_resp)
 

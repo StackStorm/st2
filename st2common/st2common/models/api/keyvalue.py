@@ -67,7 +67,7 @@ class KeyValuePairAPI(BaseAPI):
                 'required': False,
                 'default': False
             },
-            'decrypt': {
+            'pre_encrypted': {
                 'type': 'boolean',
                 'required': False,
                 'default': False
@@ -162,8 +162,8 @@ class KeyValuePairAPI(BaseAPI):
         name = getattr(kvp, 'name', None)
         description = getattr(kvp, 'description', None)
         value = kvp.value
+        original_value = value
         secret = False
-        decrypt = False
 
         if getattr(kvp, 'ttl', None):
             expire_timestamp = (date_utils.get_datetime_utc_now() +
@@ -171,30 +171,32 @@ class KeyValuePairAPI(BaseAPI):
         else:
             expire_timestamp = None
 
-        decrypt = getattr(kvp, 'decrypt', False)
+        pre_encrypted = getattr(kvp, 'pre_encrypted', False)
         secret = getattr(kvp, 'secret', False)
 
-        # if the user transmitted the value in encrypted format and is requesting
-        # that we decrypt the value prior to processing (may get re-encrypted when saved
-        # if secret=True).
-        if decrypt:
-            if not KeyValuePairAPI.crypto_key:
-                msg = ('Crypto key not found in %s. Unable to encrypt value for key %s.' %
-                       (KeyValuePairAPI.crypto_key_path, name))
-                raise CryptoKeyNotSetupException(msg)
+        # If user transmitted the value in an pre-encrypted format, we perform the decryption here
+        # to ensure data integrity. Besides that, we store data as-is.
+        # Keep in mind that pre_encrypted=True also always implies secret=True. If we didn't do
+        # that and supported pre_encrypted=True, secret=False, this would allow users to decrypt
+        # any encrypted value.
+        if pre_encrypted:
+            secret = True
+
+            cls._verif_key_is_set_up(name=name)
 
             try:
-                value = symmetric_decrypt(KeyValuePairAPI.crypto_key, value)
+                symmetric_decrypt(KeyValuePairAPI.crypto_key, value)
             except Exception:
-                msg = ('Failed to decrypt the provided value. Ensure that the value is encrypted'
-                       ' with the correct key and not corrupted.')
+                msg = ('Failed to verify the integrity of the provided value for key "%s". Ensure '
+                       'that the value is encrypted with the correct key and not corrupted.' %
+                       (name))
                 raise ValueError(msg)
 
-        if secret:
-            if not KeyValuePairAPI.crypto_key:
-                msg = ('Crypto key not found in %s. Unable to encrypt value for key %s.' %
-                       (KeyValuePairAPI.crypto_key_path, name))
-                raise CryptoKeyNotSetupException(msg)
+            # Additional safety check to ensure that the value hasn't been decrypted
+            assert value == original_value
+        elif secret:
+            cls._verif_key_is_set_up(name=name)
+
             value = symmetric_encrypt(KeyValuePairAPI.crypto_key, value)
 
         scope = getattr(kvp, 'scope', FULL_SYSTEM_SCOPE)
@@ -204,11 +206,24 @@ class KeyValuePairAPI(BaseAPI):
                 scope, ALLOWED_SCOPES)
             )
 
+        # NOTE: For security reasons, pre_encrypted always implies secret=True. See comment
+        # above for explanation.
+        if pre_encrypted and not secret:
+            raise ValueError('pre_encrypted option can only be used in combination with secret '
+                             'option')
+
         model = cls.model(id=kvp_id, name=name, description=description, value=value,
                           secret=secret, scope=scope,
                           expire_timestamp=expire_timestamp)
 
         return model
+
+    @classmethod
+    def _verif_key_is_set_up(cls, name):
+        if not KeyValuePairAPI.crypto_key:
+            msg = ('Crypto key not found in %s. Unable to encrypt / decrypt value for key %s.' %
+                   (KeyValuePairAPI.crypto_key_path, name))
+            raise CryptoKeyNotSetupException(msg)
 
 
 class KeyValuePairSetAPI(KeyValuePairAPI):
