@@ -15,6 +15,8 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
+import six
 import mongoengine as me
 
 from st2common import config
@@ -130,7 +132,7 @@ def migrate_rules():
             print('Migrating rule: %s to rule: %s' % (rule.name, rule_with_pack.ref))
             RuleWithPack.add_or_update(rule_with_pack)
     except Exception as e:
-        print('Migration failed. %s' % str(e))
+        print('Migration failed. %s' % six.text_type(e))
 
 
 def main():

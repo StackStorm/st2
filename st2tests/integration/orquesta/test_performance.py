@@ -42,3 +42,21 @@ class WiringTest(base.TestWorkflowExecution):
             self.assertEqual(e.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
             self.assertIn('output', e.result)
             self.assertIn('vm_id', e.result['output'])
+
+    def test_with_items_load(self):
+        wf_name = 'examples.orquesta-with-items-concurrency'
+
+        num_items = 10
+        concurrency = 10
+        members = [str(i).zfill(5) for i in range(0, num_items)]
+        wf_input = {'members': members, 'concurrency': concurrency}
+
+        message = '%s, resistance is futile!'
+        expected_output = {'items': [message % i for i in members]}
+        expected_result = {'output': expected_output}
+
+        ex = self._execute_workflow(wf_name, wf_input)
+        ex = self._wait_for_completion(ex)
+
+        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertDictEqual(ex.result, expected_result)

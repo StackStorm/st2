@@ -14,7 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
+
+import six
 
 from st2common.content.loader import ContentPackLoader
 from st2common.content.loader import MetaLoader
@@ -90,7 +93,7 @@ class BaseActionAliasTestCase(BasePackResourceTestCase):
             try:
                 self.assertEqual(extracted_params, parameters)
             except AssertionError as e:
-                msg += str(e)
+                msg += six.text_type(e)
 
             raise AssertionError(msg)
 

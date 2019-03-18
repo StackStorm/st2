@@ -89,7 +89,7 @@ def get_runner(name, config=None):
                    (name, available_runners))
             LOG.exception(msg)
 
-            raise exc.ActionRunnerCreateError('%s\n\n%s' % (msg, str(e)))
+            raise exc.ActionRunnerCreateError('%s\n\n%s' % (msg, six.text_type(e)))
 
     LOG.debug('Instance of runner module: %s', module)
 

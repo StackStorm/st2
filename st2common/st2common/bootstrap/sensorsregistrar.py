@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 
 import six
@@ -67,7 +68,7 @@ class SensorsRegistrar(ResourceRegistrar):
                     raise e
 
                 LOG.exception('Failed registering all sensors from pack "%s": %s', sensors_dir,
-                              str(e))
+                              six.text_type(e))
 
         return registered_count
 
@@ -99,7 +100,8 @@ class SensorsRegistrar(ResourceRegistrar):
             if self._fail_on_failure:
                 raise e
 
-            LOG.exception('Failed registering all sensors from pack "%s": %s', sensors_dir, str(e))
+            LOG.exception('Failed registering all sensors from pack "%s": %s', sensors_dir,
+                          six.text_type(e))
 
         return registered_count
 
@@ -114,10 +116,10 @@ class SensorsRegistrar(ResourceRegistrar):
             except Exception as e:
                 if self._fail_on_failure:
                     msg = ('Failed to register sensor "%s" from pack "%s": %s' % (sensor, pack,
-                                                                                  str(e)))
+                                                                                  six.text_type(e)))
                     raise ValueError(msg)
 
-                LOG.debug('Failed to register sensor "%s": %s', sensor, str(e))
+                LOG.debug('Failed to register sensor "%s": %s', sensor, six.text_type(e))
             else:
                 LOG.debug('Sensor "%s" successfully registered', sensor)
                 registered_count += 1

@@ -110,7 +110,7 @@ def validate_response(inquiry, response):
     except Exception as e:
         msg = 'Response for inquiry "%s" did not pass schema validation.'
         LOG.exception(msg % str(inquiry.id))
-        raise inquiry_exceptions.InvalidInquiryResponse(str(inquiry.id), str(e))
+        raise inquiry_exceptions.InvalidInquiryResponse(str(inquiry.id), six.text_type(e))
 
 
 def respond(inquiry, response, requester=None):

@@ -14,8 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import sys
 
+import six
 from gunicorn.workers.sync import SyncWorker
 
 __all__ = [
@@ -40,7 +42,7 @@ class EventletSyncWorker(SyncWorker):
         try:
             return super(EventletSyncWorker, self).handle_quit(sig=sig, frame=frame)
         except AssertionError as e:
-            msg = str(e)
+            msg = six.text_type(e)
 
             if 'do not call blocking functions from the mainloop' in msg:
                 # Workaround for "do not call blocking functions from the mainloop" issue

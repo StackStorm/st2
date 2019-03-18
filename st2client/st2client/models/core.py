@@ -162,7 +162,7 @@ class ResourceManager(object):
                 response.reason += '\nMESSAGE: %s' % fault
         except Exception as e:
             response.reason += ('\nUnable to retrieve detailed message '
-                                'from the HTTP response. %s\n' % str(e))
+                                'from the HTTP response. %s\n' % six.text_type(e))
         response.raise_for_status()
 
     @add_auth_token_to_kwargs_from_env
@@ -660,7 +660,7 @@ class WorkflowManager(object):
         except Exception as e:
             response.reason += (
                 '\nUnable to retrieve detailed message '
-                'from the HTTP response. %s\n' % str(e)
+                'from the HTTP response. %s\n' % six.text_type(e)
             )
 
         response.raise_for_status()

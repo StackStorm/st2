@@ -87,7 +87,7 @@ class ApiKeyController(BaseRestControllerMixin):
             return ApiKeyAPI.from_model(api_key_db, mask_secrets=mask_secrets)
         except (ValidationError, ValueError) as e:
             LOG.exception('Failed to serialize API key.')
-            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+            abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
 
     @property
     def max_limit(self):
@@ -158,7 +158,7 @@ class ApiKeyController(BaseRestControllerMixin):
             api_key_db = ApiKey.add_or_update(ApiKeyAPI.to_model(api_key_api))
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for api_key data=%s.', api_key_api)
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
 
         extra = {'api_key_db': api_key_db}
         LOG.audit('ApiKey created. ApiKey.id=%s' % (api_key_db.id), extra=extra)

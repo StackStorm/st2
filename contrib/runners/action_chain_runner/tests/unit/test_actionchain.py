@@ -687,7 +687,7 @@ class TestActionChainRunner(ExecutionDbTestCase):
             # rendering failure
             expected_error = ('Failed rendering value for publish parameter "p1" in '
                               'task "c2" (template string={{ not_defined }}):')
-            self.assertTrue(expected_error in str(e))
+            self.assertTrue(expected_error in six.text_type(e))
             pass
         else:
             self.fail('Exception was not thrown')

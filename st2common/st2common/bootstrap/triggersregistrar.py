@@ -64,7 +64,7 @@ class TriggersRegistrar(ResourceRegistrar):
                     raise e
 
                 LOG.exception('Failed registering all triggers from pack "%s": %s', triggers_dir,
-                              str(e))
+                              six.text_type(e))
 
         return registered_count
 
@@ -97,7 +97,7 @@ class TriggersRegistrar(ResourceRegistrar):
                 raise e
 
             LOG.exception('Failed registering all triggers from pack "%s": %s', triggers_dir,
-                          str(e))
+                          six.text_type(e))
 
         return registered_count
 
@@ -117,10 +117,10 @@ class TriggersRegistrar(ResourceRegistrar):
             except Exception as e:
                 if self._fail_on_failure:
                     msg = ('Failed to register trigger "%s" from pack "%s": %s' % (trigger, pack,
-                                                                                   str(e)))
+                        six.text_type(e)))
                     raise ValueError(msg)
 
-                LOG.debug('Failed to register trigger "%s": %s', trigger, str(e))
+                LOG.debug('Failed to register trigger "%s": %s', trigger, six.text_type(e))
             else:
                 LOG.debug('Trigger "%s" successfully registered', trigger)
                 registered_count += 1
