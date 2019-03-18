@@ -1672,7 +1672,7 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
 
         sorted_output_messages = sorted(output_messages, key=lambda k: k['timestamp'])
         for log in sorted_output_messages:
-            print log['msg']
+            print (log['msg'])
 
         print('%s Workflow execution "%s" is "%s".' % (
             cls.convert_time(wf_end_timestamp), wf_execution_id, wf_status))
