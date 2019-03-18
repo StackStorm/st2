@@ -319,6 +319,7 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
             # parse optional KeyValuePair properties
             scope = item.get('scope', DEFAULT_CUD_SCOPE)
             user = item.get('user', None)
+            encrypted = item.get('encrypted', False)
             secret = item.get('secret', False)
             pre_encrypted = item.get('pre_encrypted', False)
             ttl = item.get('ttl', None)
@@ -340,14 +341,22 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
             instance.name = name
             instance.value = value
             instance.scope = scope
+
             if user:
                 instance.user = user
+            if encrypted:
+                instance.encrypted = encrypted
             if secret:
                 instance.secret = secret
             if pre_encrypted:
                 instance.pre_encrypted = pre_encrypted
             if ttl:
                 instance.ttl = ttl
+
+            # encrypted=True and secret=True implies that the value is already encrypted and should
+            # be used as such
+            if instance.encrypted and instance.secret:
+                instance.pre_encrypted = True
 
             # call the API to create/update the KeyValuePair
             self.manager.update(instance, **kwargs)
