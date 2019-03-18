@@ -159,19 +159,24 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
             *args, **kwargs
         )
 
+        # --encrypt and --encrypted options are mutually exclusive.
+        # --encrypt implies provided value is plain text and should be encrypted whereas
+        # --encrypted implies value is already encrypted and should be treated as-is.
+        encryption_group = self.parser.add_mutually_exclusive_group()
+        encryption_group.add_argument('-e', '--encrypt', dest='secret',
+                                      action='store_true',
+                                      help='Encrypt value before saving.')
+        encryption_group.add_argument('--encrypted', dest='encrypted',
+                                      action='store_true',
+                                      help=('Value provided is already encrypted with the '
+                                            'instance crypto key and should be stored as-is.'))
+
         self.parser.add_argument('name',
                                  metavar='name',
                                  help='Name of the key value pair.')
         self.parser.add_argument('value', help='Value paired with the key.')
         self.parser.add_argument('-l', '--ttl', dest='ttl', type=int, default=None,
                                  help='TTL (in seconds) for this value.')
-        self.parser.add_argument('-e', '--encrypt', dest='secret',
-                                 action='store_true',
-                                 help='Encrypt value before saving.')
-        self.parser.add_argument('--encrypted', dest='encrypted',
-                                 action='store_true',
-                                 help=('Value provided is already encrypted with the instance '
-                                 'crypto key and should be stored as-is.'))
         self.parser.add_argument('-s', '--scope', dest='scope', default=DEFAULT_CUD_SCOPE,
                                  help='Specify the scope under which you want ' +
                                       'to place the item.')
@@ -180,9 +185,6 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        if args.secret and args.encrypted:
-            raise ValueError('--encrypt and --encrypted arguments are mutually exclusive')
-
         instance = KeyValuePair()
         instance.id = args.name  # TODO: refactor and get rid of id
         instance.name = args.name
