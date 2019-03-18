@@ -182,7 +182,13 @@ class KeyValuePairAPI(BaseAPI):
                 msg = ('Crypto key not found in %s. Unable to encrypt value for key %s.' %
                        (KeyValuePairAPI.crypto_key_path, name))
                 raise CryptoKeyNotSetupException(msg)
-            value = symmetric_decrypt(KeyValuePairAPI.crypto_key, value)
+
+            try:
+                value = symmetric_decrypt(KeyValuePairAPI.crypto_key, value)
+            except Exception:
+                msg = ('Failed to decrypt the provided value. Ensure that the value is encrypted'
+                       ' with the correct key and not corrupted.')
+                raise ValueError(msg)
 
         if secret:
             if not KeyValuePairAPI.crypto_key:
