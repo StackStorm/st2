@@ -54,6 +54,10 @@ Fixed
   is acquired before write operations to avoid write conflicts. (bug fix) Stackstorm/orquesta#125
 * Fix a bug with some API endpoints returning 500 internal server error when an exception contained
   unicode data. (bug fix) #4598
+* Fix HTTP runner (``http-request``) so it works correctly with unicode (non-ascii) body payloads.
+  (bug fix) #4601 #4599
+
+  Reported by Carlos Santana (@kknyxkk) and Rafael Martins (@rsmartins78).
 
 2.10.4 - March 15, 2019
 -----------------------
