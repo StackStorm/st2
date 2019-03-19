@@ -31,8 +31,9 @@ Added
 
   Also add corresponding CLI commands - ``st2 service-registry group list``,
   ``st2 service registry member list [--group-id=<group id>]``
- * Add support for ``include_attributes`` and ``exclude_attributes`` for the API endpoint
-  ``GET /api/v1/executions/{id}``. (new feature) #4497
+ * Add support for ``include_attributes`` and ``exclude_attributes`` to the API endpoint
+  ``GET /api/v1/executions/{id}``. Also update ``st2 execution get`` CLI command so it only
+  retrieves attributes which are displayed. (new feature) #4497
 
   Contributed by Nick Maludy (@nmaludy Encore Technologies)
 
