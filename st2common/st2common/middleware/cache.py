@@ -16,8 +16,6 @@
 from __future__ import absolute_import
 from webob.headers import ResponseHeaders
 
-from st2common.constants.api import CACHE_CONTROL_HEADER
-
 
 class CacheMiddleware(object):
     def __init__(self, app):
@@ -27,7 +25,7 @@ class CacheMiddleware(object):
         def custom_start_response(status, headers, exc_info=None):
             headers = ResponseHeaders(headers)
 
-            headers['Cache-Control'] = CACHE_CONTROL_HEADER
+            headers['Cache-Control'] = 'no-cache'
 
             return start_response(status, headers._items, exc_info)
 

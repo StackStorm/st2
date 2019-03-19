@@ -16,8 +16,6 @@
 from oslo_config import cfg
 from tests import FunctionalTest
 
-from st2common.constants.api import CACHE_CONTROL_HEADER
-
 
 class TestBase(FunctionalTest):
     def test_defaults(self):
@@ -95,11 +93,3 @@ class TestBase(FunctionalTest):
         resp = self.app.get('/v1/executions/577f775b0640fd1451f2030b/re_run/a/b',
                             expect_errors=True)
         self.assertEqual(resp.status_int, 404)
-
-    def test_cache_control_present(self):
-        resp = self.app.options('/v1/executions/')
-        self.assertEqual(resp.status_int, 200)
-
-        self.assertIsInstance(CACHE_CONTROL_HEADER, str)
-        self.assertEqual(resp.headers['Cache-Control'],
-                         CACHE_CONTROL_HEADER)
