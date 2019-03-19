@@ -21,5 +21,3 @@ __all__ = [
 DEFAULT_API_VERSION = 'v1'
 
 REQUEST_ID_HEADER = 'X-Request-ID'
-
-CACHE_CONTROL_HEADER = 'no-cache'

@@ -36,8 +36,7 @@ Added
   only retrieves attributes which are displayed. (new feature) #4497
 
   Contributed by Nick Maludy (@nmaludy Encore Technologies)
-* Adding ``Cache-Control`` header to all API responses so clients will favor
-  refresh from API instead of using cached version.
+
 * Add new ``--encrypted`` flag to ``st2 key set`` CLI command that allows users to pass in values
   which are already encrypted.
 
