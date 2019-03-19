@@ -36,6 +36,23 @@ Added
   retrieves attributes which are displayed. (new feature) #4497
 
   Contributed by Nick Maludy (@nmaludy Encore Technologies)
+* Adding ``Cache-Control`` header to all API responses so clients will favor
+  refresh from API instead of using cached version.
+* Add new ``--encrypted`` flag to ``st2 key set`` CLI command that allows users to pass in values
+  which are already encrypted.
+
+  This attribute signals the API that the value is already encrypted and should be used as-is.
+
+  ``st2 key load`` CLI command has also been updated so it knows how to work with values which are
+  already encrypted. This means that ``st2 key list -n 100 -j < data.json ; st2 key load
+  data.json`` will now also work out of the box for encrypted datastore values (value which have
+  ``encrypted: True`` and ``secret: True`` attributes will be treated as pre-encrypted values as
+  treated as such).
+
+  The most common use case for this feature is migrating / restoring datastore values from one
+  StackStorm instance to another which uses the same crypto key.
+
+  Contributed by Nick Maludy (Encore Technologies)
 
 Changed
 ~~~~~~~
