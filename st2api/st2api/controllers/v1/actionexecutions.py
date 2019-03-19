@@ -517,7 +517,8 @@ class ActionExecutionsController(BaseResourceIsolationControllerMixin,
                                            advanced_filters=advanced_filters,
                                            requester_user=requester_user)
 
-    def get_one(self, id, requester_user, exclude_attributes=None, show_secrets=False):
+    def get_one(self, id, requester_user, exclude_attributes=None, include_attributes=None,
+                show_secrets=False):
         """
         Retrieve a single execution.
 
@@ -528,6 +529,7 @@ class ActionExecutionsController(BaseResourceIsolationControllerMixin,
         :type exclude_attributes: ``list``
         """
         exclude_fields = self._validate_exclude_fields(exclude_fields=exclude_attributes)
+        include_fields = self._validate_include_fields(include_fields=include_attributes)
 
         from_model_kwargs = {
             'mask_secrets': self._get_mask_secrets(requester_user, show_secrets=show_secrets)
@@ -543,6 +545,7 @@ class ActionExecutionsController(BaseResourceIsolationControllerMixin,
             id = str(execution_db.id)
 
         return self._get_one_by_id(id=id, exclude_fields=exclude_fields,
+                                   include_fields=include_fields,
                                    requester_user=requester_user,
                                    from_model_kwargs=from_model_kwargs,
                                    permission_type=PermissionType.EXECUTION_VIEW)
