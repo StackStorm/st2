@@ -51,6 +51,15 @@ KEYVALUE_SECRET = {
     'secret': True
 }
 
+KEYVALUE_PRE_ENCRYPTED = {
+    'id': 'kv_name',
+    'name': 'kv_name.',
+    'value': 'AAABBBCCC1234',
+    'scope': 'system',
+    'encrypted': True,
+    'secret': True
+}
+
 KEYVALUE_TTL = {
     'id': 'kv_name',
     'name': 'kv_name.',
@@ -69,10 +78,11 @@ KEYVALUE_OBJECT = {
 KEYVALUE_ALL = {
     'id': 'kv_name',
     'name': 'kv_name.',
-    'value': 'super cool value',
+    'value': 'AAAAABBBBBCCCCCCDDDDD11122345',
     'scope': 'system',
     'user': 'stanley',
     'secret': True,
+    'encrypted': True,
     'ttl': 100
 }
 
@@ -106,6 +116,31 @@ class TestKeyValueBase(base.BaseCLITestCase):
 
     def tearDown(self):
         super(TestKeyValueBase, self).tearDown()
+
+
+class TestKeyValueSet(TestKeyValueBase):
+
+    @mock.patch.object(
+        requests, 'put',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(KEYVALUE_PRE_ENCRYPTED), 200,
+                                                      'OK')))
+    def test_set_keyvalue(self):
+        """Test setting key/value pair with optional pre_encrypted field
+        """
+        args = ['key', 'set', '--encrypted', 'kv_name', 'AAABBBCCC1234']
+        retcode = self.shell.run(args)
+        self.assertEqual(retcode, 0)
+
+    def test_encrypt_and_encrypted_flags_are_mutually_exclusive(self):
+        args = ['key', 'set', '--encrypt', '--encrypted', 'kv_name', 'AAABBBCCC1234']
+
+        self.assertRaisesRegexp(SystemExit, '2', self.shell.run, args)
+
+        self.stderr.seek(0)
+        stderr = self.stderr.read()
+
+        expected_msg = ('error: argument --encrypted: not allowed with argument -e/--encrypt')
+        self.assertTrue(expected_msg in stderr)
 
 
 class TestKeyValueLoad(TestKeyValueBase):
@@ -174,6 +209,25 @@ class TestKeyValueLoad(TestKeyValueBase):
         try:
             with open(path, 'a') as f:
                 f.write(json.dumps(KEYVALUE_SECRET, indent=4))
+
+            args = ['key', 'load', path]
+            retcode = self.shell.run(args)
+            self.assertEqual(retcode, 0)
+        finally:
+            os.close(fd)
+            os.unlink(path)
+
+    @mock.patch.object(
+        requests, 'put',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(KEYVALUE_PRE_ENCRYPTED), 200,
+                                                      'OK')))
+    def test_load_keyvalue_already_encrypted(self):
+        """Test loading of key/value pair with the pre-encrypted value
+        """
+        fd, path = tempfile.mkstemp(suffix='.json')
+        try:
+            with open(path, 'a') as f:
+                f.write(json.dumps(KEYVALUE_PRE_ENCRYPTED, indent=4))
 
             args = ['key', 'load', path]
             retcode = self.shell.run(args)

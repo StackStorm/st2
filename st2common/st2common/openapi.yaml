@@ -4932,6 +4932,9 @@ definitions:
       secret:
         description: Encrypt value before saving the value.
         type: boolean
+      encrypted:
+        description: Value provided is already encrypted with this instances crypto key and should be stored as-is. This is useful when migrating / loading keys from one StackStorm instance to another.
+        type: boolean
       scope:
         description: "Scope the item is under. Example: 'user'."
         type: string

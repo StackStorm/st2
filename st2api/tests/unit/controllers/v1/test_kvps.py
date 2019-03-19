@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
+
 from tests import FunctionalTest
 
 from st2common.models.db.auth import UserDB
@@ -68,6 +70,23 @@ SECRET_KVP = {
     'name': 'secret_key1',
     'value': 'secret_value1',
     'secret': True
+}
+
+# value = S3cret!Value
+# encrypted with st2tests/conf/st2_kvstore_tests.crypto.key.json
+ENCRYPTED_KVP = {
+    'name': 'secret_key1',
+    'value': ('3030303030298D848B45A24EDCD1A82FAB4E831E3FCE6E60956817A48A180E4C040801E'
+              'B30170DACF79498F30520236A629912C3584847098D'),
+    'encrypted': True
+}
+
+ENCRYPTED_KVP_SECRET_FALSE = {
+    'name': 'secret_key2',
+    'value': ('3030303030298D848B45A24EDCD1A82FAB4E831E3FCE6E60956817A48A180E4C040801E'
+              'B30170DACF79498F30520236A629912C3584847098D'),
+    'secret': True,
+    'encrypted': True
 }
 
 
@@ -467,6 +486,81 @@ class KeyValuePairControllerTestCase(FunctionalTest):
             self.assertEqual(exp_kvp['value'], stored_kvp['value'])
         self.__do_delete(kvp_id_1)
         self.__do_delete(kvp_id_2)
+
+    def test_put_encrypted_value(self):
+        # 1. encrypted=True, secret=True
+        put_resp = self.__do_put('secret_key1', ENCRYPTED_KVP)
+        kvp_id = self.__get_kvp_id(put_resp)
+
+        # Verify there is no secrets leakage
+        self.assertEqual(put_resp.status_code, 200)
+        self.assertEqual(put_resp.json['name'], 'secret_key1')
+        self.assertEqual(put_resp.json['scope'], 'st2kv.system')
+        self.assertEqual(put_resp.json['encrypted'], True)
+        self.assertEqual(put_resp.json['secret'], True)
+        self.assertEqual(put_resp.json['value'], ENCRYPTED_KVP['value'])
+        self.assertTrue(put_resp.json['value'] != 'S3cret!Value')
+        self.assertTrue(len(put_resp.json['value']) > len('S3cret!Value') * 2)
+
+        get_resp = self.__do_get_one(kvp_id + '?decrypt=True')
+        self.assertEqual(put_resp.json['name'], 'secret_key1')
+        self.assertEqual(put_resp.json['scope'], 'st2kv.system')
+        self.assertEqual(put_resp.json['encrypted'], True)
+        self.assertEqual(put_resp.json['secret'], True)
+        self.assertEqual(put_resp.json['value'], ENCRYPTED_KVP['value'])
+
+        # Verify data integrity post decryption
+        get_resp = self.__do_get_one(kvp_id + '?decrypt=True')
+        self.assertFalse(get_resp.json['encrypted'])
+        self.assertEqual(get_resp.json['value'], 'S3cret!Value')
+        self.__do_delete(self.__get_kvp_id(put_resp))
+
+        # 2. encrypted=True, secret=False
+        # encrypted should always imply secret=True
+        put_resp = self.__do_put('secret_key2', ENCRYPTED_KVP_SECRET_FALSE)
+        kvp_id = self.__get_kvp_id(put_resp)
+
+        # Verify there is no secrets leakage
+        self.assertEqual(put_resp.status_code, 200)
+        self.assertEqual(put_resp.json['name'], 'secret_key2')
+        self.assertEqual(put_resp.json['scope'], 'st2kv.system')
+        self.assertEqual(put_resp.json['encrypted'], True)
+        self.assertEqual(put_resp.json['secret'], True)
+        self.assertEqual(put_resp.json['value'], ENCRYPTED_KVP['value'])
+        self.assertTrue(put_resp.json['value'] != 'S3cret!Value')
+        self.assertTrue(len(put_resp.json['value']) > len('S3cret!Value') * 2)
+
+        get_resp = self.__do_get_one(kvp_id + '?decrypt=True')
+        self.assertEqual(put_resp.json['name'], 'secret_key2')
+        self.assertEqual(put_resp.json['scope'], 'st2kv.system')
+        self.assertEqual(put_resp.json['encrypted'], True)
+        self.assertEqual(put_resp.json['secret'], True)
+        self.assertEqual(put_resp.json['value'], ENCRYPTED_KVP['value'])
+
+        # Verify data integrity post decryption
+        get_resp = self.__do_get_one(kvp_id + '?decrypt=True')
+        self.assertFalse(get_resp.json['encrypted'])
+        self.assertEqual(get_resp.json['value'], 'S3cret!Value')
+        self.__do_delete(self.__get_kvp_id(put_resp))
+
+    def test_put_encrypted_value_integrity_check_failed(self):
+        data = copy.deepcopy(ENCRYPTED_KVP)
+        data['value'] = 'corrupted'
+        put_resp = self.__do_put('secret_key1', data, expect_errors=True)
+        self.assertEqual(put_resp.status_code, 400)
+
+        expected_error = ('Failed to verify the integrity of the provided value for key '
+                          '"secret_key1".')
+        self.assertTrue(expected_error in put_resp.json['faultstring'])
+
+        data = copy.deepcopy(ENCRYPTED_KVP)
+        data['value'] = str(data['value'][:-2])
+        put_resp = self.__do_put('secret_key1', data, expect_errors=True)
+        self.assertEqual(put_resp.status_code, 400)
+
+        expected_error = ('Failed to verify the integrity of the provided value for key '
+                          '"secret_key1".')
+        self.assertTrue(expected_error in put_resp.json['faultstring'])
 
     def test_put_delete(self):
         put_resp = self.__do_put('key1', KVP)
