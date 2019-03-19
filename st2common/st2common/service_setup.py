@@ -26,6 +26,7 @@ import logging as stdlib_logging
 
 import six
 from oslo_config import cfg
+from tooz.coordination import GroupAlreadyExist
 
 from st2common import log as logging
 from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
@@ -38,6 +39,8 @@ from st2common.models.utils.profiling import enable_profiling
 from st2common import triggers
 from st2common.rbac.migrations import run_all as run_all_rbac_migrations
 from st2common.logging.filters import LogLevelFilter
+from st2common.util import system_info
+from st2common.services import coordination
 from st2common.logging.misc import add_global_filters_for_all_loggers
 
 # Note: This is here for backward compatibility.
@@ -53,7 +56,9 @@ __all__ = [
     'teardown',
 
     'db_setup',
-    'db_teardown'
+    'db_teardown',
+
+    'register_service_in_service_registry'
 ]
 
 LOG = logging.getLogger(__name__)
@@ -61,7 +66,8 @@ LOG = logging.getLogger(__name__)
 
 def setup(service, config, setup_db=True, register_mq_exchanges=True,
           register_signal_handlers=True, register_internal_trigger_types=False,
-          run_migrations=True, register_runners=True, config_args=None):
+          run_migrations=True, register_runners=True, service_registry=False,
+          capabilities=None, config_args=None):
     """
     Common setup function.
 
@@ -75,10 +81,13 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
     5. Registers common signal handlers
     6. Register internal trigger types
     7. Register all the runners which are installed inside StackStorm virtualenv.
+    8. Register service in the service registry with the provided capabilities
 
     :param service: Name of the service.
     :param config: Config object to use to parse args.
     """
+    capabilities = capabilities or {}
+
     # Set up logger which logs everything which happens during and before config
     # parsing to sys.stdout
     logging.setup(DEFAULT_LOGGING_CONF_PATH, excludes=None)
@@ -171,9 +180,57 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
 
     metrics_initialize()
 
+    # Register service in the service registry
+    if service_registry:
+        # NOTE: It's important that we pass start_heart=True to start the hearbeat process
+        register_service_in_service_registry(service=service, capabilities=capabilities,
+                                             start_heart=True)
+
 
 def teardown():
     """
     Common teardown function.
     """
+    # 1. Tear down the database
     db_teardown()
+
+    # 2. Tear down the coordinator
+    coordinator = coordination.get_coordinator_if_set()
+    coordination.coordinator_teardown(coordinator)
+
+
+def register_service_in_service_registry(service, capabilities=None, start_heart=True):
+    """
+    Register provided service in the service registry and start the heartbeat process.
+
+    :param service: Service name which will also be used for a group name (e.g. "api").
+    :type service: ``str``
+
+    :param capabilities: Optional metadata associated with the service.
+    :type capabilities: ``dict``
+    """
+    # NOTE: It's important that we pass start_heart=True to start the hearbeat process
+    coordinator = coordination.get_coordinator(start_heart=start_heart)
+
+    member_id = coordination.get_member_id()
+
+    # 1. Create a group with the name of the service
+    if not isinstance(service, six.binary_type):
+        group_id = service.encode('utf-8')
+    else:
+        group_id = service
+
+    try:
+        coordinator.create_group(group_id).get()
+    except GroupAlreadyExist:
+        pass
+
+    # Include common capabilities such as hostname and process ID
+    proc_info = system_info.get_process_info()
+    capabilities['hostname'] = proc_info['hostname']
+    capabilities['pid'] = proc_info['pid']
+
+    # 1. Join the group as a member
+    LOG.debug('Joining service registry group "%s" as member_id "%s" with capabilities "%s"' %
+              (group_id, member_id, capabilities))
+    return coordinator.join_group(group_id, capabilities=capabilities).get()

@@ -17,6 +17,20 @@ Added
 
    For backward compatibility reasons, if pack metadata file doesn't contain that attribute, it's
    assumed it only works with Python 2. (new feature) #4474
+* Update service bootstrap code and make sure all the services register in a service registry once
+  they come online and become available.
+
+  This functionality is only used internally and will only work if configuration backend is
+  correctly configured in ``st2.conf`` (new feature) #4548
+* Add new ``GET /v1/service_registry/groups`` and
+  ``GET /v1/service_registry/groups/<group_id>/members`` API endpoint for listing available service
+  registry groups and members.
+
+  NOTE: This API endpoint is behind a RBAC control check and can only be views by the admins.
+  (new feature) #4548
+
+  Also add corresponding CLI commands - ``st2 service-registry group list``,
+  ``st2 service registry member list [--group-id=<group id>]``
 
 * Adding ``Cache-Control`` header to all API responses so clients will favor
   refresh from API instead of using cached version.

@@ -43,15 +43,25 @@ def setup_app(config={}):
         # including shutdown
         monkey_patch()
 
+        st2auth_config.register_opts()
+        capabilities = {
+            'name': 'auth',
+            'listen_host': cfg.CONF.auth.host,
+            'listen_port': cfg.CONF.auth.port,
+            'listen_ssl': cfg.CONF.auth.use_ssl,
+            'type': 'active'
+        }
+
         # This should be called in gunicorn case because we only want
         # workers to connect to db, rabbbitmq etc. In standalone HTTP
         # server case, this setup would have already occurred.
-        st2auth_config.register_opts()
         common_setup(service='auth', config=st2auth_config, setup_db=True,
                      register_mq_exchanges=False,
                      register_signal_handlers=True,
                      register_internal_trigger_types=False,
                      run_migrations=False,
+                     service_registry=True,
+                     capabilities=capabilities,
                      config_args=config.get('config_args', None))
 
     # Additional pre-run time checks
