@@ -666,7 +666,7 @@ class Router(object):
                 result.append(item)
         elif isinstance(data, dict):
             # get_one response
-            result = process_item(item)
+            result = process_item(data)
         else:
             raise ValueError('Unsupported type: %s' % (type(data)))
 

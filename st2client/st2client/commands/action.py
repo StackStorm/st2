@@ -1165,6 +1165,8 @@ class ActionExecutionListCommand(ResourceViewCommand):
 class ActionExecutionGetCommand(ActionRunCommandMixin, ResourceViewCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'parameters', 'status',
                           'start_timestamp', 'end_timestamp', 'result', 'liveaction']
+    include_attributes = ['action.ref', 'action.runner_type', 'start_timestamp',
+                          'end_timestamp']
 
     def __init__(self, resource, *args, **kwargs):
         super(ActionExecutionGetCommand, self).__init__(
@@ -1181,7 +1183,8 @@ class ActionExecutionGetCommand(ActionRunCommandMixin, ResourceViewCommand):
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         # We only retrieve attributes which are needed to speed things up
-        include_attributes = self._get_include_attributes(args=args)
+        include_attributes = self._get_include_attributes(args=args,
+                                                          extra_attributes=self.include_attributes)
         if include_attributes:
             include_attributes = ','.join(include_attributes)
             kwargs['params'] = {'include_attributes': include_attributes}

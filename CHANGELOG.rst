@@ -15,8 +15,8 @@ Added
   (``pack.yaml``). With this attribute pack declares which major Python versions it supports and
   works with (e.g. ``2`` and ``3``).
 
-   For backward compatibility reasons, if pack metadata file doesn't contain that attribute, it's
-   assumed it only works with Python 2. (new feature) #4474
+  For backward compatibility reasons, if pack metadata file doesn't contain that attribute, it's
+  assumed it only works with Python 2. (new feature) #4474
 * Update service bootstrap code and make sure all the services register in a service registry once
   they come online and become available.
 
@@ -26,12 +26,16 @@ Added
   ``GET /v1/service_registry/groups/<group_id>/members`` API endpoint for listing available service
   registry groups and members.
 
-  NOTE: This API endpoint is behind a RBAC control check and can only be views by the admins.
-  (new feature) #4548
+  Also add corresponding CLI commands - ``st2 service-registry group list``, ``st2 service registry
+  member list [--group-id=<group id>]``
 
-  Also add corresponding CLI commands - ``st2 service-registry group list``,
-  ``st2 service registry member list [--group-id=<group id>]``
+  NOTE: This API endpoint is behind an RBAC wall and can only be viewed by the admins. (new feature)
+  #4548
+* Add support for ``?include_attributes`` and ``?exclude_attributes`` query param filter to the
+  ``GET /api/v1/executions/{id}`` API endpoint. Also update ``st2 execution get`` CLI command so it
+  only retrieves attributes which are displayed. (new feature) #4497
 
+  Contributed by Nick Maludy (@nmaludy Encore Technologies)
 * Adding ``Cache-Control`` header to all API responses so clients will favor
   refresh from API instead of using cached version.
 * Add new ``--encrypted`` flag to ``st2 key set`` CLI command that allows users to pass in values
@@ -41,14 +45,14 @@ Added
 
   ``st2 key load`` CLI command has also been updated so it knows how to work with values which are
   already encrypted. This means that ``st2 key list -n 100 -j < data.json ; st2 key load
-  data.json`` will now also work out of the box for encrypted datastore values (value which have
-  ``encrypted: True`` and ``secret: True`` attributes will be treated as pre-encrypted values as
-  treated as such).
+  data.json`` will now also work out of the box for encrypted datastore values (values which have
+  ``encrypted: True`` and ``secret: True`` attribute will be treated as already encrypted and used
+  as-is).
 
   The most common use case for this feature is migrating / restoring datastore values from one
   StackStorm instance to another which uses the same crypto key.
 
-  Contributed by Nick Maludy (Encore Technologies)
+  Contributed by Nick Maludy (Encore Technologies) #4547
 
 Changed
 ~~~~~~~

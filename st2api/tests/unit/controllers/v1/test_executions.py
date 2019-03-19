@@ -1297,6 +1297,98 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         self.assertTrue('Invalid attribute "start_timestamp" specified.' in
                         resp.json['faultstring'])
 
+    def test_get_single_include_attributes_and_secret_parameters(self):
+        # Verify that secret parameters are correctly masked when using ?include_attributes filter
+        self._do_post(LIVE_ACTION_WITH_SECRET_PARAM)
+        exec_id = self.app.get('/v1/actionexecutions?limit=1').json[0]['id']
+
+        # FYI, the response always contains the 'id' parameter
+        urls = [
+            {
+                'url': '/v1/executions/%s?include_attributes=parameters' % (exec_id),
+                'expected_parameters': ['id', 'parameters'],
+            },
+            {
+                'url': '/v1/executions/%s?include_attributes=parameters,action' % (exec_id),
+                'expected_parameters': ['id', 'parameters', 'action'],
+            },
+            {
+                'url': '/v1/executions/%s?include_attributes=parameters,runner' % (exec_id),
+                'expected_parameters': ['id', 'parameters', 'runner'],
+            },
+            {
+                'url': '/v1/executions/%s?include_attributes=parameters,action,runner' % (exec_id),
+                'expected_parameters': ['id', 'parameters', 'action', 'runner'],
+            }
+        ]
+
+        for item in urls:
+            url = item['url']
+            resp = self.app.get(url)
+
+            self.assertTrue('parameters' in resp.json)
+            self.assertEqual(resp.json['parameters']['a'], 'param a')
+            self.assertEqual(resp.json['parameters']['d'], MASKED_ATTRIBUTE_VALUE)
+            self.assertEqual(resp.json['parameters']['password'], MASKED_ATTRIBUTE_VALUE)
+            self.assertEqual(resp.json['parameters']['hosts'], 'localhost')
+
+            # ensure that the response has only the keys we epect, no more, no less
+            resp_keys = set(resp.json.keys())
+            expected_params = set(item['expected_parameters'])
+            diff = resp_keys.symmetric_difference(expected_params)
+            self.assertEqual(diff, set())
+
+        # With ?show_secrets=True
+        urls = [
+            {
+                'url': '/v1/executions/%s?&include_attributes=parameters' % (exec_id),
+                'expected_parameters': ['id', 'parameters'],
+            },
+            {
+                'url': '/v1/executions/%s?include_attributes=parameters,action' % (exec_id),
+                'expected_parameters': ['id', 'parameters', 'action'],
+            },
+            {
+                'url': '/v1/executions/%s?include_attributes=parameters,runner' % (exec_id),
+                'expected_parameters': ['id', 'parameters', 'runner'],
+            },
+            {
+                'url': '/v1/executions/%s?include_attributes=parameters,action,runner' % (exec_id),
+                'expected_parameters': ['id', 'parameters', 'action', 'runner'],
+            },
+        ]
+
+        for item in urls:
+            url = item['url']
+            resp = self.app.get(url + '&show_secrets=True')
+
+            self.assertTrue('parameters' in resp.json)
+            self.assertEqual(resp.json['parameters']['a'], 'param a')
+            self.assertEqual(resp.json['parameters']['d'], 'secretpassword1')
+            self.assertEqual(resp.json['parameters']['password'], 'secretpassword2')
+            self.assertEqual(resp.json['parameters']['hosts'], 'localhost')
+
+            # ensure that the response has only the keys we epect, no more, no less
+            resp_keys = set(resp.json.keys())
+            expected_params = set(item['expected_parameters'])
+            diff = resp_keys.symmetric_difference(expected_params)
+            self.assertEqual(diff, set())
+
+        # NOTE: We don't allow exclusion of attributes such as "action" and "runner" because
+        # that would break secrets masking
+        urls = [
+            '/v1/executions/%s?limit=1&exclude_attributes=action',
+            '/v1/executions/%s?limit=1&exclude_attributes=runner',
+            '/v1/executions/%s?limit=1&exclude_attributes=action,runner',
+        ]
+
+        for url in urls:
+            resp = self.app.get(url, expect_errors=True)
+
+            self.assertEqual(resp.status_int, 400)
+            self.assertTrue('Invalid or unsupported exclude attribute specified:' in
+                            resp.json['faultstring'])
+
     def _insert_mock_models(self):
         execution_1_id = self._get_actionexecution_id(self._do_post(LIVE_ACTION_1))
         execution_2_id = self._get_actionexecution_id(self._do_post(LIVE_ACTION_2))
