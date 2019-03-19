@@ -1,0 +1,22 @@
+[tool.black]
+line-length = 100
+skip-string-normalization = true
+target_version = ['py27', 'py36', 'py37', 'py38']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+  | virtualenv
+  | virtualenv-py3
+  | virtualenv-st2client
+)/
+
