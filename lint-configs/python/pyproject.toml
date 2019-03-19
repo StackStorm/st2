@@ -1,6 +1,6 @@
 [tool.black]
 line-length = 100
-skip-string-normalization = true
+skip_string_normalization = true
 target_version = ['py27', 'py36', 'py37', 'py38']
 include = '\.pyi?$'
 exclude = '''
@@ -18,5 +18,6 @@ exclude = '''
   | virtualenv
   | virtualenv-py3
   | virtualenv-st2client
+  | test_content_version
 )/
 
