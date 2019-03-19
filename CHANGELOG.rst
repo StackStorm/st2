@@ -31,9 +31,10 @@ Added
 
   Also add corresponding CLI commands - ``st2 service-registry group list``,
   ``st2 service registry member list [--group-id=<group id>]``
+ * Add support for ``include_attributes`` and ``exclude_attributes`` for the API endpoint
+  ``GET /api/v1/executions/{id}``. (new feature) #4497
 
-* Adding ``Cache-Control`` header to all API responses so clients will favor
-  refresh from API instead of using cached version.
+  Contributed by Nick Maludy (@nmaludy Encore Technologies)
 
 Changed
 ~~~~~~~
