@@ -34,7 +34,7 @@ class ServiceRegistryGroupsController(object):
         coordinator = coordination.get_coordinator()
 
         group_ids = list(coordinator.get_groups().get())
-        group_ids = [group_id_.decode('utf-8') for group_id_ in group_ids]
+        group_ids = [item.decode('utf-8') for item in group_ids]
 
         result = {
             'groups': group_ids
