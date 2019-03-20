@@ -284,6 +284,9 @@ $path""".format(parent=parent)
 
     def _upload_chunk(self, dst_path, src_data):
         # adapted from https://github.com/diyan/pywinrm/issues/18
+        if not isinstance(src_data, six.binary_type):
+            src_data = src_data.encode('utf-8')
+
         ps = """$filePath = "{dst_path}"
 $s = @"
 {b64_data}
@@ -291,7 +294,8 @@ $s = @"
 $data = [System.Convert]::FromBase64String($s)
 Add-Content -value $data -encoding byte -path $filePath
 """.format(dst_path=dst_path,
-           b64_data=base64.b64encode(src_data))
+           b64_data=base64.b64encode(src_data).decode('utf-8'))
+
         LOG.debug('WinRM uploading chunk, size = {}'.format(len(ps)))
         self._run_ps_or_raise(ps, "Failed to upload chunk of powershell script")
 
