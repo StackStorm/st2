@@ -243,6 +243,13 @@ class WinRmBaseRunner(ActionRunner):
             'stderr': response.std_err
         }
 
+        # Ensure stdout and stderr is always a string
+        if isinstance(result['stdout'], six.binary_type):
+            result['stdout'] = result['stdout'].decode('utf-8')
+
+        if isinstance(result['stderr'], six.binary_type):
+            result['stderr'] = result['stderr'].decode('utf-8')
+
         # automatically convert result stdout/stderr from JSON strings to
         # objects so they can be used natively
         return (status, jsonify.json_loads(result, RESULT_KEYS_TO_TRANSFORM), None)

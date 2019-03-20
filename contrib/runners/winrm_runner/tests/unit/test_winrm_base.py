@@ -517,8 +517,8 @@ Add-Content -value $data -encoding byte -path $filePath
                                    {'failed': False,
                                     'succeeded': True,
                                     'return_code': 0,
-                                    'stdout': b'output1output2output3',
-                                    'stderr': b'error1error2error3'},
+                                    'stdout': 'output1output2output3',
+                                    'stderr': 'error1error2error3'},
                                    None))
 
     @mock.patch('winrm.Protocol')
@@ -537,8 +537,8 @@ Add-Content -value $data -encoding byte -path $filePath
                                    {'failed': True,
                                     'succeeded': False,
                                     'return_code': 1,
-                                    'stdout': b'output1output2output3',
-                                    'stderr': b'error1error2error3'},
+                                    'stdout': 'output1output2output3',
+                                    'stderr': 'error1error2error3'},
                                    None))
 
     @mock.patch('winrm.Protocol')
@@ -559,8 +559,8 @@ Add-Content -value $data -encoding byte -path $filePath
                                    {'failed': True,
                                     'succeeded': False,
                                     'return_code': -1,
-                                    'stdout': b'output1',
-                                    'stderr': b'error1'},
+                                    'stdout': 'output1',
+                                    'stderr': 'error1'},
                                    None))
 
     @mock.patch('winrm.Protocol')
@@ -579,7 +579,7 @@ Add-Content -value $data -encoding byte -path $filePath
                                    {'failed': False,
                                     'succeeded': True,
                                     'return_code': 0,
-                                    'stdout': b'output1output2output3',
+                                    'stdout': 'output1output2output3',
                                     'stderr': 'error1error2error3'},
                                    None))
 
@@ -599,7 +599,7 @@ Add-Content -value $data -encoding byte -path $filePath
                                    {'failed': True,
                                     'succeeded': False,
                                     'return_code': 1,
-                                    'stdout': b'output1output2output3',
+                                    'stdout': 'output1output2output3',
                                     'stderr': 'error1error2error3'},
                                    None))
 
@@ -621,7 +621,7 @@ Add-Content -value $data -encoding byte -path $filePath
                                    {'failed': True,
                                     'succeeded': False,
                                     'return_code': -1,
-                                    'stdout': b'output1',
+                                    'stdout': 'output1',
                                     'stderr': 'error1'},
                                    None))
 
@@ -671,7 +671,7 @@ Add-Content -value $data -encoding byte -path $filePath
                                    {'failed': False,
                                     'succeeded': True,
                                     'return_code': 0,
-                                    'stdout': b'output1output2output3',
+                                    'stdout': 'output1output2output3',
                                     'stderr': 'error1error2error3'},
                                    None))
 
@@ -691,7 +691,7 @@ Add-Content -value $data -encoding byte -path $filePath
                                    {'failed': True,
                                     'succeeded': False,
                                     'return_code': 1,
-                                    'stdout': b'output1output2output3',
+                                    'stdout': 'output1output2output3',
                                     'stderr': 'error1error2error3'},
                                    None))
 
@@ -713,7 +713,7 @@ Add-Content -value $data -encoding byte -path $filePath
                                    {'failed': True,
                                     'succeeded': False,
                                     'return_code': -1,
-                                    'stdout': b'output1',
+                                    'stdout': 'output1',
                                     'stderr': 'error1'},
                                    None))
 
