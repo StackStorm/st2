@@ -25,8 +25,9 @@ from winrm.exceptions import WinRMOperationTimeoutError
 from st2common.runners.base import ActionRunner
 from st2tests.base import RunnerTestCase
 from winrm_runner.winrm_base import WinRmBaseRunner, WinRmRunnerTimoutError
-from winrm_runner.winrm_base import WINRM_TIMEOUT_EXIT_CODE
 from winrm_runner.winrm_base import PS_ESCAPE_SEQUENCES
+from winrm_runner.winrm_base import WINRM_MAX_CMD_LENGTH
+from winrm_runner.winrm_base import WINRM_TIMEOUT_EXIT_CODE
 from winrm_runner import winrm_ps_command_runner
 
 
@@ -72,6 +73,7 @@ class WinRmBaseTestCase(RunnerTestCase):
         self._runner.runner_parameters = runner_parameters
         self._runner.pre_run()
         mock_pre_run.assert_called_with()
+        self.assertEquals(self._runner._session, None)
         self.assertEquals(self._runner._host, 'host@domain.tld')
         self.assertEquals(self._runner._username, 'user@domain.tld')
         self.assertEquals(self._runner._password, 'abc123')
@@ -174,7 +176,8 @@ class WinRmBaseTestCase(RunnerTestCase):
         self.assertEquals(self._runner._server_cert_validation, 'ignore')
 
     @mock.patch('winrm_runner.winrm_base.Session')
-    def test_create_session(self, mock_session):
+    def test_get_session(self, mock_session):
+        self._runner._session = None
         self._runner._winrm_url = 'https://host@domain.tld:5986/wsman'
         self._runner._username = 'user@domain.tld'
         self._runner._password = 'abc123'
@@ -184,8 +187,9 @@ class WinRmBaseTestCase(RunnerTestCase):
         self._runner._read_timeout = 61
         mock_session.return_value = "session"
 
-        result = self._runner._create_session()
+        result = self._runner._get_session()
         self.assertEquals(result, "session")
+        self.assertEquals(result, self._runner._session)
         mock_session.assert_called_with('https://host@domain.tld:5986/wsman',
                                         auth=('user@domain.tld', 'abc123'),
                                         transport='ntlm',
@@ -193,7 +197,12 @@ class WinRmBaseTestCase(RunnerTestCase):
                                         operation_timeout_sec=60,
                                         read_timeout_sec=61)
 
-    def test_get_command_output(self):
+        # ensure calling _get_session again doesn't create a new one, it reuses the existing
+        old_session = self._runner._session
+        result = self._runner._get_session()
+        self.assertEquals(result, old_session)
+
+    def test_winrm_get_command_output(self):
         self._runner._timeout = 0
         mock_protocol = mock.MagicMock()
         mock_protocol._raw_get_command_output.side_effect = [
@@ -211,7 +220,7 @@ class WinRmBaseTestCase(RunnerTestCase):
             mock.call(567, 890)
         ]
 
-    def test_get_command_output_timeout(self):
+    def test_winrm_get_command_output_timeout(self):
         self._runner._timeout = 0.1
 
         mock_protocol = mock.MagicMock()
@@ -231,7 +240,7 @@ class WinRmBaseTestCase(RunnerTestCase):
         self.assertEqual(timeout_exception.response.status_code, WINRM_TIMEOUT_EXIT_CODE)
         mock_protocol._raw_get_command_output.assert_called_with(567, 890)
 
-    def test_get_command_output_operation_timeout(self):
+    def test_winrm_get_command_output_operation_timeout(self):
         self._runner._timeout = 0.1
 
         mock_protocol = mock.MagicMock()
@@ -297,6 +306,15 @@ class WinRmBaseTestCase(RunnerTestCase):
         mock_protocol.cleanup_command.assert_called_with(123, 456)
         mock_protocol.close_shell.assert_called_with(123)
 
+    def test_winrm_encode(self):
+        result = self._runner._winrm_encode('hello world')
+        # result translated into UTF-16 little-endian
+        self.assertEquals(result, 'aABlAGwAbABvACAAdwBvAHIAbABkAA==')
+
+    def test_winrm_ps_cmd(self):
+        result = self._runner._winrm_ps_cmd('abc123==')
+        self.assertEquals(result, 'powershell -encodedcommand abc123==')
+
     @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._winrm_run_cmd')
     def test_winrm_run_ps(self, mock_run_cmd):
         mock_run_cmd.return_value = Response(('output', '', 3))
@@ -335,130 +353,6 @@ class WinRmBaseTestCase(RunnerTestCase):
                                         env={'PATH': 'C:\\st2\\bin'},
                                         cwd='C:\\st2')
         mock_session._clean_error_msg.assert_called_with('error')
-
-    @mock.patch('winrm.Protocol')
-    def test_run_cmd(self, mock_protocol_init):
-        mock_protocol = mock.MagicMock()
-        mock_protocol._raw_get_command_output.side_effect = [
-            (b'output1', b'error1', 0, False),
-            (b'output2', b'error2', 0, False),
-            (b'output3', b'error3', 0, True)
-        ]
-        mock_protocol_init.return_value = mock_protocol
-
-        self._init_runner()
-        result = self._runner.run_cmd("ipconfig /all")
-        self.assertEquals(result, ('succeeded',
-                                   {'failed': False,
-                                    'succeeded': True,
-                                    'return_code': 0,
-                                    'stdout': b'output1output2output3',
-                                    'stderr': b'error1error2error3'},
-                                   None))
-
-    @mock.patch('winrm.Protocol')
-    def test_run_cmd_failed(self, mock_protocol_init):
-        mock_protocol = mock.MagicMock()
-        mock_protocol._raw_get_command_output.side_effect = [
-            (b'output1', b'error1', 0, False),
-            (b'output2', b'error2', 0, False),
-            (b'output3', b'error3', 1, True)
-        ]
-        mock_protocol_init.return_value = mock_protocol
-
-        self._init_runner()
-        result = self._runner.run_cmd("ipconfig /all")
-        self.assertEquals(result, ('failed',
-                                   {'failed': True,
-                                    'succeeded': False,
-                                    'return_code': 1,
-                                    'stdout': b'output1output2output3',
-                                    'stderr': b'error1error2error3'},
-                                   None))
-
-    @mock.patch('winrm.Protocol')
-    def test_run_cmd_timeout(self, mock_protocol_init):
-        mock_protocol = mock.MagicMock()
-        self._init_runner()
-        self._runner._timeout = 0.1
-
-        def sleep_for_timeout_then_raise(*args, **kwargs):
-            time.sleep(0.2)
-            return (b'output1', b'error1', 123, False)
-
-        mock_protocol._raw_get_command_output.side_effect = sleep_for_timeout_then_raise
-        mock_protocol_init.return_value = mock_protocol
-
-        result = self._runner.run_cmd("ipconfig /all")
-        self.assertEquals(result, ('timeout',
-                                   {'failed': True,
-                                    'succeeded': False,
-                                    'return_code': -1,
-                                    'stdout': b'output1',
-                                    'stderr': b'error1'},
-                                   None))
-
-    @mock.patch('winrm.Protocol')
-    def test_run_ps(self, mock_protocol_init):
-        mock_protocol = mock.MagicMock()
-        mock_protocol._raw_get_command_output.side_effect = [
-            (b'output1', b'error1', 0, False),
-            (b'output2', b'error2', 0, False),
-            (b'output3', b'error3', 0, True)
-        ]
-        mock_protocol_init.return_value = mock_protocol
-
-        self._init_runner()
-        result = self._runner.run_ps("Get-Location")
-        self.assertEquals(result, ('succeeded',
-                                   {'failed': False,
-                                    'succeeded': True,
-                                    'return_code': 0,
-                                    'stdout': b'output1output2output3',
-                                    'stderr': 'error1error2error3'},
-                                   None))
-
-    @mock.patch('winrm.Protocol')
-    def test_run_ps_failed(self, mock_protocol_init):
-        mock_protocol = mock.MagicMock()
-        mock_protocol._raw_get_command_output.side_effect = [
-            (b'output1', b'error1', 0, False),
-            (b'output2', b'error2', 0, False),
-            (b'output3', b'error3', 1, True)
-        ]
-        mock_protocol_init.return_value = mock_protocol
-
-        self._init_runner()
-        result = self._runner.run_ps("Get-Location")
-        self.assertEquals(result, ('failed',
-                                   {'failed': True,
-                                    'succeeded': False,
-                                    'return_code': 1,
-                                    'stdout': b'output1output2output3',
-                                    'stderr': 'error1error2error3'},
-                                   None))
-
-    @mock.patch('winrm.Protocol')
-    def test_run_ps_timeout(self, mock_protocol_init):
-        mock_protocol = mock.MagicMock()
-        self._init_runner()
-        self._runner._timeout = 0.1
-
-        def sleep_for_timeout_then_raise(*args, **kwargs):
-            time.sleep(0.2)
-            return (b'output1', b'error1', 123, False)
-
-        mock_protocol._raw_get_command_output.side_effect = sleep_for_timeout_then_raise
-        mock_protocol_init.return_value = mock_protocol
-
-        result = self._runner.run_ps("Get-Location")
-        self.assertEquals(result, ('timeout',
-                                   {'failed': True,
-                                    'succeeded': False,
-                                    'return_code': -1,
-                                    'stdout': b'output1',
-                                    'stderr': 'error1'},
-                                   None))
 
     def test_translate_response_success(self):
         response = Response(('output1', 'error1', 0))
@@ -499,6 +393,435 @@ class WinRmBaseTestCase(RunnerTestCase):
                                     'stdout': 'output1',
                                     'stderr': 'error1'},
                                    None))
+
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._run_ps_or_raise')
+    def test_make_tmp_dir(self, mock_run_ps_or_raise):
+        mock_run_ps_or_raise.return_value = {'stdout': ' expected \n'}
+
+        result = self._runner._make_tmp_dir('C:\\Windows\\Temp')
+        self.assertEquals(result, 'expected')
+        mock_run_ps_or_raise.assert_called_with('''$parent = C:\\Windows\\Temp
+$name = [System.IO.Path]::GetRandomFileName()
+$path = Join-Path $parent $name
+New-Item -ItemType Directory -Path $path | Out-Null
+$path''',
+                                                ("Unable to make temporary directory for"
+                                                 " powershell script"))
+
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._run_ps_or_raise')
+    def test_rm_dir(self, mock_run_ps_or_raise):
+        self._runner._rm_dir('C:\\Windows\\Temp\\testtmpdir')
+        mock_run_ps_or_raise.assert_called_with(
+            'Remove-Item -Force -Recurse -Path "C:\\Windows\\Temp\\testtmpdir"',
+            "Unable to remove temporary directory for powershell script")
+
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._upload_chunk')
+    @mock.patch('winrm_runner.winrm_base.open')
+    @mock.patch('os.path.exists')
+    def test_upload_chunk_file(self, mock_os_path_exists, mock_open, mock_upload_chunk):
+        mock_os_path_exists.return_value = True
+        mock_src_file = mock.MagicMock()
+        mock_src_file.read.return_value = "test data"
+        mock_open.return_value.__enter__.return_value = mock_src_file
+
+        self._runner._upload('/opt/data/test.ps1', 'C:\\Windows\\Temp\\test.ps1')
+        mock_os_path_exists.assert_called_with('/opt/data/test.ps1')
+        mock_open.assert_called_with('/opt/data/test.ps1', 'r')
+        mock_src_file.read.assert_called_with()
+        mock_upload_chunk.assert_has_calls([
+            mock.call('C:\\Windows\\Temp\\test.ps1', 'test data')
+        ])
+
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._upload_chunk')
+    @mock.patch('os.path.exists')
+    def test_upload_chunk_data(self, mock_os_path_exists, mock_upload_chunk):
+        mock_os_path_exists.return_value = False
+
+        self._runner._upload('test data', 'C:\\Windows\\Temp\\test.ps1')
+        mock_os_path_exists.assert_called_with('test data')
+        mock_upload_chunk.assert_has_calls([
+            mock.call('C:\\Windows\\Temp\\test.ps1', 'test data')
+        ])
+
+    @mock.patch('winrm_runner.winrm_base.WINRM_UPLOAD_CHUNK_SIZE_BYTES', 2)
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._upload_chunk')
+    @mock.patch('os.path.exists')
+    def test_upload_chunk_multiple_chunks(self, mock_os_path_exists, mock_upload_chunk):
+        mock_os_path_exists.return_value = False
+
+        self._runner._upload('test data', 'C:\\Windows\\Temp\\test.ps1')
+        mock_os_path_exists.assert_called_with('test data')
+        mock_upload_chunk.assert_has_calls([
+            mock.call('C:\\Windows\\Temp\\test.ps1', 'te'),
+            mock.call('C:\\Windows\\Temp\\test.ps1', 'st'),
+            mock.call('C:\\Windows\\Temp\\test.ps1', ' d'),
+            mock.call('C:\\Windows\\Temp\\test.ps1', 'at'),
+            mock.call('C:\\Windows\\Temp\\test.ps1', 'a'),
+        ])
+
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._run_ps_or_raise')
+    def test_upload_chunk(self, mock_run_ps_or_raise):
+        self._runner._upload_chunk('C:\\Windows\\Temp\\testtmp.ps1', 'hello world')
+        mock_run_ps_or_raise.assert_called_with(
+            '''$filePath = "C:\\Windows\\Temp\\testtmp.ps1"
+$s = @"
+aGVsbG8gd29ybGQ=
+"@
+$data = [System.Convert]::FromBase64String($s)
+Add-Content -value $data -encoding byte -path $filePath
+''',
+            "Failed to upload chunk of powershell script")
+
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._rm_dir')
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._upload')
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._make_tmp_dir')
+    def test_tmp_script(self, mock_make_tmp_dir, mock_upload, mock_rm_dir):
+        mock_make_tmp_dir.return_value = 'C:\\Windows\\Temp\\abc123'
+
+        with self._runner._tmp_script('C:\\Windows\\Temp', 'Get-ChildItem') as tmp:
+            self.assertEquals(tmp, 'C:\\Windows\\Temp\\abc123\\script.ps1')
+        mock_make_tmp_dir.assert_called_with('C:\\Windows\\Temp')
+        mock_upload.assert_called_with('Get-ChildItem',
+                                       'C:\\Windows\\Temp\\abc123\\script.ps1')
+        mock_rm_dir.assert_called_with('C:\\Windows\\Temp\\abc123')
+
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._rm_dir')
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._upload')
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._make_tmp_dir')
+    def test_tmp_script_cleans_up_when_raises(self, mock_make_tmp_dir, mock_upload,
+                                              mock_rm_dir):
+        mock_make_tmp_dir.return_value = 'C:\\Windows\\Temp\\abc123'
+        mock_upload.side_effect = RuntimeError
+
+        with self.assertRaises(RuntimeError):
+            with self._runner._tmp_script('C:\\Windows\\Temp', 'Get-ChildItem') as tmp:
+                self.assertEquals(tmp, "can never get here")
+        mock_make_tmp_dir.assert_called_with('C:\\Windows\\Temp')
+        mock_upload.assert_called_with('Get-ChildItem',
+                                       'C:\\Windows\\Temp\\abc123\\script.ps1')
+        mock_rm_dir.assert_called_with('C:\\Windows\\Temp\\abc123')
+
+    @mock.patch('winrm.Protocol')
+    def test_run_cmd(self, mock_protocol_init):
+        mock_protocol = mock.MagicMock()
+        mock_protocol._raw_get_command_output.side_effect = [
+            (b'output1', b'error1', 0, False),
+            (b'output2', b'error2', 0, False),
+            (b'output3', b'error3', 0, True)
+        ]
+        mock_protocol_init.return_value = mock_protocol
+
+        self._init_runner()
+        result = self._runner.run_cmd("ipconfig /all")
+        self.assertEquals(result, ('succeeded',
+                                   {'failed': False,
+                                    'succeeded': True,
+                                    'return_code': 0,
+                                    'stdout': 'output1output2output3',
+                                    'stderr': 'error1error2error3'},
+                                   None))
+
+    @mock.patch('winrm.Protocol')
+    def test_run_cmd_failed(self, mock_protocol_init):
+        mock_protocol = mock.MagicMock()
+        mock_protocol._raw_get_command_output.side_effect = [
+            (b'output1', b'error1', 0, False),
+            (b'output2', b'error2', 0, False),
+            (b'output3', b'error3', 1, True)
+        ]
+        mock_protocol_init.return_value = mock_protocol
+
+        self._init_runner()
+        result = self._runner.run_cmd("ipconfig /all")
+        self.assertEquals(result, ('failed',
+                                   {'failed': True,
+                                    'succeeded': False,
+                                    'return_code': 1,
+                                    'stdout': 'output1output2output3',
+                                    'stderr': 'error1error2error3'},
+                                   None))
+
+    @mock.patch('winrm.Protocol')
+    def test_run_cmd_timeout(self, mock_protocol_init):
+        mock_protocol = mock.MagicMock()
+        self._init_runner()
+        self._runner._timeout = 0.1
+
+        def sleep_for_timeout_then_raise(*args, **kwargs):
+            time.sleep(0.2)
+            return (b'output1', b'error1', 123, False)
+
+        mock_protocol._raw_get_command_output.side_effect = sleep_for_timeout_then_raise
+        mock_protocol_init.return_value = mock_protocol
+
+        result = self._runner.run_cmd("ipconfig /all")
+        self.assertEquals(result, ('timeout',
+                                   {'failed': True,
+                                    'succeeded': False,
+                                    'return_code': -1,
+                                    'stdout': 'output1',
+                                    'stderr': 'error1'},
+                                   None))
+
+    @mock.patch('winrm.Protocol')
+    def test_run_ps(self, mock_protocol_init):
+        mock_protocol = mock.MagicMock()
+        mock_protocol._raw_get_command_output.side_effect = [
+            (b'output1', b'error1', 0, False),
+            (b'output2', b'error2', 0, False),
+            (b'output3', b'error3', 0, True)
+        ]
+        mock_protocol_init.return_value = mock_protocol
+
+        self._init_runner()
+        result = self._runner.run_ps("Get-Location")
+        self.assertEquals(result, ('succeeded',
+                                   {'failed': False,
+                                    'succeeded': True,
+                                    'return_code': 0,
+                                    'stdout': 'output1output2output3',
+                                    'stderr': 'error1error2error3'},
+                                   None))
+
+    @mock.patch('winrm.Protocol')
+    def test_run_ps_failed(self, mock_protocol_init):
+        mock_protocol = mock.MagicMock()
+        mock_protocol._raw_get_command_output.side_effect = [
+            (b'output1', b'error1', 0, False),
+            (b'output2', b'error2', 0, False),
+            (b'output3', b'error3', 1, True)
+        ]
+        mock_protocol_init.return_value = mock_protocol
+
+        self._init_runner()
+        result = self._runner.run_ps("Get-Location")
+        self.assertEquals(result, ('failed',
+                                   {'failed': True,
+                                    'succeeded': False,
+                                    'return_code': 1,
+                                    'stdout': 'output1output2output3',
+                                    'stderr': 'error1error2error3'},
+                                   None))
+
+    @mock.patch('winrm.Protocol')
+    def test_run_ps_timeout(self, mock_protocol_init):
+        mock_protocol = mock.MagicMock()
+        self._init_runner()
+        self._runner._timeout = 0.1
+
+        def sleep_for_timeout_then_raise(*args, **kwargs):
+            time.sleep(0.2)
+            return (b'output1', b'error1', 123, False)
+
+        mock_protocol._raw_get_command_output.side_effect = sleep_for_timeout_then_raise
+        mock_protocol_init.return_value = mock_protocol
+
+        result = self._runner.run_ps("Get-Location")
+        self.assertEquals(result, ('timeout',
+                                   {'failed': True,
+                                    'succeeded': False,
+                                    'return_code': -1,
+                                    'stdout': 'output1',
+                                    'stderr': 'error1'},
+                                   None))
+
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._run_ps')
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._winrm_encode')
+    def test_run_ps_params(self, mock_winrm_encode, mock_run_ps):
+        mock_winrm_encode.return_value = 'xyz123=='
+        mock_run_ps.return_value = "expected"
+
+        self._init_runner()
+        result = self._runner.run_ps("Get-Location", '-param1 value1 arg1')
+
+        self.assertEquals(result, "expected")
+        mock_winrm_encode.assert_called_with('& {Get-Location} -param1 value1 arg1')
+        mock_run_ps.assert_called_with('xyz123==', is_b64=True)
+
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._winrm_ps_cmd')
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._run_ps_script')
+    def test_run_ps_large_command_convert_to_script(self, mock_run_ps_script,
+                                                    mock_winrm_ps_cmd):
+        mock_run_ps_script.return_value = "expected"
+
+        # max length of a command in powershelll
+        script = 'powershell -encodedcommand '
+        script += '#' * (WINRM_MAX_CMD_LENGTH + 1 - len(script))
+        mock_winrm_ps_cmd.return_value = script
+
+        self._init_runner()
+        result = self._runner.run_ps('$PSVersionTable')
+
+        self.assertEquals(result, "expected")
+        mock_run_ps_script.assert_called_with('$PSVersionTable', None)
+
+    @mock.patch('winrm.Protocol')
+    def test__run_ps(self, mock_protocol_init):
+        mock_protocol = mock.MagicMock()
+        mock_protocol._raw_get_command_output.side_effect = [
+            (b'output1', b'error1', 0, False),
+            (b'output2', b'error2', 0, False),
+            (b'output3', b'error3', 0, True)
+        ]
+        mock_protocol_init.return_value = mock_protocol
+
+        self._init_runner()
+        result = self._runner._run_ps("Get-Location")
+        self.assertEquals(result, ('succeeded',
+                                   {'failed': False,
+                                    'succeeded': True,
+                                    'return_code': 0,
+                                    'stdout': 'output1output2output3',
+                                    'stderr': 'error1error2error3'},
+                                   None))
+
+    @mock.patch('winrm.Protocol')
+    def test__run_ps_failed(self, mock_protocol_init):
+        mock_protocol = mock.MagicMock()
+        mock_protocol._raw_get_command_output.side_effect = [
+            (b'output1', b'error1', 0, False),
+            (b'output2', b'error2', 0, False),
+            (b'output3', b'error3', 1, True)
+        ]
+        mock_protocol_init.return_value = mock_protocol
+
+        self._init_runner()
+        result = self._runner._run_ps("Get-Location")
+        self.assertEquals(result, ('failed',
+                                   {'failed': True,
+                                    'succeeded': False,
+                                    'return_code': 1,
+                                    'stdout': 'output1output2output3',
+                                    'stderr': 'error1error2error3'},
+                                   None))
+
+    @mock.patch('winrm.Protocol')
+    def test__run_ps_timeout(self, mock_protocol_init):
+        mock_protocol = mock.MagicMock()
+        self._init_runner()
+        self._runner._timeout = 0.1
+
+        def sleep_for_timeout_then_raise(*args, **kwargs):
+            time.sleep(0.2)
+            return (b'output1', b'error1', 123, False)
+
+        mock_protocol._raw_get_command_output.side_effect = sleep_for_timeout_then_raise
+        mock_protocol_init.return_value = mock_protocol
+
+        result = self._runner._run_ps("Get-Location")
+        self.assertEquals(result, ('timeout',
+                                   {'failed': True,
+                                    'succeeded': False,
+                                    'return_code': -1,
+                                    'stdout': 'output1',
+                                    'stderr': 'error1'},
+                                   None))
+
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._winrm_run_ps')
+    def test__run_ps_b64_default(self, mock_winrm_run_ps):
+        mock_winrm_run_ps.return_value = mock.MagicMock(status_code=0,
+                                                        timeout=False,
+                                                        std_out='output1',
+                                                        std_err='error1')
+
+        self._init_runner()
+        result = self._runner._run_ps("$PSVersionTable")
+        self.assertEquals(result, ('succeeded',
+                                   {'failed': False,
+                                    'succeeded': True,
+                                    'return_code': 0,
+                                    'stdout': 'output1',
+                                    'stderr': 'error1'},
+                                   None))
+        mock_winrm_run_ps.assert_called_with(self._runner._session,
+                                             '$PSVersionTable',
+                                             env={},
+                                             cwd=None,
+                                             is_b64=False)
+
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._winrm_run_ps')
+    def test__run_ps_b64_true(self, mock_winrm_run_ps):
+        mock_winrm_run_ps.return_value = mock.MagicMock(status_code=0,
+                                                        timeout=False,
+                                                        std_out='output1',
+                                                        std_err='error1')
+
+        self._init_runner()
+        result = self._runner._run_ps("xyz123", is_b64=True)
+        self.assertEquals(result, ('succeeded',
+                                   {'failed': False,
+                                    'succeeded': True,
+                                    'return_code': 0,
+                                    'stdout': 'output1',
+                                    'stderr': 'error1'},
+                                   None))
+        mock_winrm_run_ps.assert_called_with(self._runner._session,
+                                             'xyz123',
+                                             env={},
+                                             cwd=None,
+                                             is_b64=True)
+
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._run_ps')
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._tmp_script')
+    def test__run_ps_script(self, mock_tmp_script, mock_run_ps):
+        mock_tmp_script.return_value.__enter__.return_value = 'C:\\tmpscript.ps1'
+        mock_run_ps.return_value = 'expected'
+
+        self._init_runner()
+        result = self._runner._run_ps_script("$PSVersionTable")
+        self.assertEquals(result, 'expected')
+        mock_tmp_script.assert_called_with('[System.IO.Path]::GetTempPath()',
+                                           '$PSVersionTable')
+        mock_run_ps.assert_called_with('& {C:\\tmpscript.ps1}')
+
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._run_ps')
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._tmp_script')
+    def test__run_ps_script_with_params(self, mock_tmp_script, mock_run_ps):
+        mock_tmp_script.return_value.__enter__.return_value = 'C:\\tmpscript.ps1'
+        mock_run_ps.return_value = 'expected'
+
+        self._init_runner()
+        result = self._runner._run_ps_script("Get-ChildItem", '-param1 value1 arg1')
+        self.assertEquals(result, 'expected')
+        mock_tmp_script.assert_called_with('[System.IO.Path]::GetTempPath()',
+                                           'Get-ChildItem')
+        mock_run_ps.assert_called_with('& {C:\\tmpscript.ps1} -param1 value1 arg1')
+
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._run_ps')
+    def test__run_ps_or_raise(self, mock_run_ps):
+        mock_run_ps.return_value = ('success',
+                                    {
+                                        'failed': False,
+                                        'succeeded': True,
+                                        'return_code': 0,
+                                        'stdout': 'output',
+                                        'stderr': 'error',
+                                    },
+                                    None)
+        self._init_runner()
+        result = self._runner._run_ps_or_raise('Get-ChildItem', 'my error message')
+        self.assertEquals(result, {
+            'failed': False,
+            'succeeded': True,
+            'return_code': 0,
+            'stdout': 'output',
+            'stderr': 'error',
+        })
+
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._run_ps')
+    def test__run_ps_or_raise_raises_on_failure(self, mock_run_ps):
+        mock_run_ps.return_value = ('success',
+                                    {
+                                        'failed': True,
+                                        'succeeded': False,
+                                        'return_code': 1,
+                                        'stdout': 'output',
+                                        'stderr': 'error',
+                                    },
+                                    None)
+        self._init_runner()
+        with self.assertRaises(RuntimeError):
+            self._runner._run_ps_or_raise('Get-ChildItem', 'my error message')
 
     def test_multireplace(self):
         multireplace_map = {'a': 'x',
