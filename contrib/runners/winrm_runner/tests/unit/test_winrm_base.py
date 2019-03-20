@@ -26,6 +26,7 @@ from st2common.runners.base import ActionRunner
 from st2tests.base import RunnerTestCase
 from winrm_runner.winrm_base import WinRmBaseRunner, WinRmRunnerTimoutError
 from winrm_runner.winrm_base import PS_ESCAPE_SEQUENCES
+from winrm_runner.winrm_base import WINRM_MAX_CMD_LENGTH
 from winrm_runner.winrm_base import WINRM_TIMEOUT_EXIT_CODE
 from winrm_runner import winrm_ps_command_runner
 
@@ -487,8 +488,8 @@ Add-Content -value $data -encoding byte -path $filePath
     @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._rm_dir')
     @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._upload')
     @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._make_tmp_dir')
-    def test_tmp_script_cleansup_when_raises(self, mock_make_tmp_dir, mock_upload,
-                                             mock_rm_dir):
+    def test_tmp_script_cleans_up_when_raises(self, mock_make_tmp_dir, mock_upload,
+                                              mock_rm_dir):
         mock_make_tmp_dir.return_value = 'C:\\Windows\\Temp\\abc123'
         mock_upload.side_effect = RuntimeError
 
@@ -623,6 +624,204 @@ Add-Content -value $data -encoding byte -path $filePath
                                     'stdout': b'output1',
                                     'stderr': 'error1'},
                                    None))
+
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._run_ps')
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._winrm_encode')
+    def test_run_ps_params(self, mock_winrm_encode, mock_run_ps):
+        mock_winrm_encode.return_value = 'xyz123=='
+        mock_run_ps.return_value = "expected"
+
+        self._init_runner()
+        result = self._runner.run_ps("Get-Location", '-param1 value1 arg1')
+
+        self.assertEquals(result, "expected")
+        mock_winrm_encode.assert_called_with('& {Get-Location} -param1 value1 arg1')
+        mock_run_ps.assert_called_with('xyz123==', is_b64=True)
+
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._winrm_ps_cmd')
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._run_ps_script')
+    def test_run_ps_large_command_convert_to_script(self, mock_run_ps_script,
+                                                    mock_winrm_ps_cmd):
+        mock_run_ps_script.return_value = "expected"
+
+        # max length of a command in powershelll
+        script = 'powershell -encodedcommand '
+        script += '#' * (WINRM_MAX_CMD_LENGTH + 1 - len(script))
+        mock_winrm_ps_cmd.return_value = script
+
+        self._init_runner()
+        result = self._runner.run_ps('$PSVersionTable')
+
+        self.assertEquals(result, "expected")
+        mock_run_ps_script.assert_called_with('$PSVersionTable', None)
+
+    @mock.patch('winrm.Protocol')
+    def test__run_ps(self, mock_protocol_init):
+        mock_protocol = mock.MagicMock()
+        mock_protocol._raw_get_command_output.side_effect = [
+            (b'output1', b'error1', 0, False),
+            (b'output2', b'error2', 0, False),
+            (b'output3', b'error3', 0, True)
+        ]
+        mock_protocol_init.return_value = mock_protocol
+
+        self._init_runner()
+        result = self._runner._run_ps("Get-Location")
+        self.assertEquals(result, ('succeeded',
+                                   {'failed': False,
+                                    'succeeded': True,
+                                    'return_code': 0,
+                                    'stdout': b'output1output2output3',
+                                    'stderr': 'error1error2error3'},
+                                   None))
+
+    @mock.patch('winrm.Protocol')
+    def test__run_ps_failed(self, mock_protocol_init):
+        mock_protocol = mock.MagicMock()
+        mock_protocol._raw_get_command_output.side_effect = [
+            (b'output1', b'error1', 0, False),
+            (b'output2', b'error2', 0, False),
+            (b'output3', b'error3', 1, True)
+        ]
+        mock_protocol_init.return_value = mock_protocol
+
+        self._init_runner()
+        result = self._runner._run_ps("Get-Location")
+        self.assertEquals(result, ('failed',
+                                   {'failed': True,
+                                    'succeeded': False,
+                                    'return_code': 1,
+                                    'stdout': b'output1output2output3',
+                                    'stderr': 'error1error2error3'},
+                                   None))
+
+    @mock.patch('winrm.Protocol')
+    def test__run_ps_timeout(self, mock_protocol_init):
+        mock_protocol = mock.MagicMock()
+        self._init_runner()
+        self._runner._timeout = 0.1
+
+        def sleep_for_timeout_then_raise(*args, **kwargs):
+            time.sleep(0.2)
+            return (b'output1', b'error1', 123, False)
+
+        mock_protocol._raw_get_command_output.side_effect = sleep_for_timeout_then_raise
+        mock_protocol_init.return_value = mock_protocol
+
+        result = self._runner._run_ps("Get-Location")
+        self.assertEquals(result, ('timeout',
+                                   {'failed': True,
+                                    'succeeded': False,
+                                    'return_code': -1,
+                                    'stdout': b'output1',
+                                    'stderr': 'error1'},
+                                   None))
+
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._winrm_run_ps')
+    def test__run_ps_b64_default(self, mock_winrm_run_ps):
+        mock_winrm_run_ps.return_value = mock.MagicMock(status_code=0,
+                                                        timeout=False,
+                                                        std_out='output1',
+                                                        std_err='error1')
+
+        self._init_runner()
+        result = self._runner._run_ps("$PSVersionTable")
+        self.assertEquals(result, ('succeeded',
+                                   {'failed': False,
+                                    'succeeded': True,
+                                    'return_code': 0,
+                                    'stdout': 'output1',
+                                    'stderr': 'error1'},
+                                   None))
+        mock_winrm_run_ps.assert_called_with(self._runner._session,
+                                             '$PSVersionTable',
+                                             env={},
+                                             cwd=None,
+                                             is_b64=False)
+
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._winrm_run_ps')
+    def test__run_ps_b64_true(self, mock_winrm_run_ps):
+        mock_winrm_run_ps.return_value = mock.MagicMock(status_code=0,
+                                                        timeout=False,
+                                                        std_out='output1',
+                                                        std_err='error1')
+
+        self._init_runner()
+        result = self._runner._run_ps("xyz123", is_b64=True)
+        self.assertEquals(result, ('succeeded',
+                                   {'failed': False,
+                                    'succeeded': True,
+                                    'return_code': 0,
+                                    'stdout': 'output1',
+                                    'stderr': 'error1'},
+                                   None))
+        mock_winrm_run_ps.assert_called_with(self._runner._session,
+                                             'xyz123',
+                                             env={},
+                                             cwd=None,
+                                             is_b64=True)
+
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._run_ps')
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._tmp_script')
+    def test__run_ps_script(self, mock_tmp_script, mock_run_ps):
+        mock_tmp_script.return_value.__enter__.return_value = 'C:\\tmpscript.ps1'
+        mock_run_ps.return_value = 'expected'
+
+        self._init_runner()
+        result = self._runner._run_ps_script("$PSVersionTable")
+        self.assertEquals(result, 'expected')
+        mock_tmp_script.assert_called_with('[System.IO.Path]::GetTempPath()',
+                                           '$PSVersionTable')
+        mock_run_ps.assert_called_with('& {C:\\tmpscript.ps1}')
+
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._run_ps')
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._tmp_script')
+    def test__run_ps_script_with_params(self, mock_tmp_script, mock_run_ps):
+        mock_tmp_script.return_value.__enter__.return_value = 'C:\\tmpscript.ps1'
+        mock_run_ps.return_value = 'expected'
+
+        self._init_runner()
+        result = self._runner._run_ps_script("Get-ChildItem", '-param1 value1 arg1')
+        self.assertEquals(result, 'expected')
+        mock_tmp_script.assert_called_with('[System.IO.Path]::GetTempPath()',
+                                           'Get-ChildItem')
+        mock_run_ps.assert_called_with('& {C:\\tmpscript.ps1} -param1 value1 arg1')
+
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._run_ps')
+    def test__run_ps_or_raise(self, mock_run_ps):
+        mock_run_ps.return_value = ('success',
+                                    {
+                                        'failed': False,
+                                        'succeeded': True,
+                                        'return_code': 0,
+                                        'stdout': 'output',
+                                        'stderr': 'error',
+                                    },
+                                    None)
+        self._init_runner()
+        result = self._runner._run_ps_or_raise('Get-ChildItem', 'my error message')
+        self.assertEquals(result, {
+            'failed': False,
+            'succeeded': True,
+            'return_code': 0,
+            'stdout': 'output',
+            'stderr': 'error',
+        })
+
+    @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._run_ps')
+    def test__run_ps_or_raise_raises_on_failure(self, mock_run_ps):
+        mock_run_ps.return_value = ('success',
+                                    {
+                                        'failed': True,
+                                        'succeeded': False,
+                                        'return_code': 1,
+                                        'stdout': 'output',
+                                        'stderr': 'error',
+                                    },
+                                    None)
+        self._init_runner()
+        with self.assertRaises(RuntimeError):
+            self._runner._run_ps_or_raise('Get-ChildItem', 'my error message')
 
     def test_multireplace(self):
         multireplace_map = {'a': 'x',

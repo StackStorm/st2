@@ -135,7 +135,7 @@ class WinRmBaseRunner(ActionRunner):
     def _get_session(self):
         # cache session (only create if it doesn't exist yet)
         if not self._session:
-            LOG.info("Connecting via WinRM to url: {}".format(self._winrm_url))
+            LOG.debug("Connecting via WinRM to url: {}".format(self._winrm_url))
             self._session = Session(self._winrm_url,
                                     auth=(self._username, self._password),
                                     transport=self._transport,
@@ -205,10 +205,10 @@ class WinRmBaseRunner(ActionRunner):
         # passing env and working_directory from the Session.run_ps
 
         # encode the script in UTF only if it isn't passed in encoded
-        LOG.info('_winrm_run_ps() - script size = {}'.format(len(script)))
+        LOG.debug('_winrm_run_ps() - script size = {}'.format(len(script)))
         encoded_ps = script if is_b64 else self._winrm_encode(script)
         ps_cmd = self._winrm_ps_cmd(encoded_ps)
-        LOG.info('_winrm_run_ps() - ps cmd size = {}'.format(len(ps_cmd)))
+        LOG.debug('_winrm_run_ps() - ps cmd size = {}'.format(len(ps_cmd)))
         rs = self._winrm_run_cmd(session,
                                  ps_cmd,
                                  env=env,
@@ -272,7 +272,6 @@ $path""".format(parent=parent)
             with open(src_path_or_data, 'r') as src_file:
                 src_data = src_file.read()
         else:
-            print "hello world 2"
             LOG.debug("WinRM uploading data from a string")
             src_data = src_path_or_data
 
@@ -300,15 +299,18 @@ Add-Content -value $data -encoding byte -path $filePath
     def _tmp_script(self, parent, script):
         tmp_dir = None
         try:
+            LOG.info("WinRM Script - Making temporary directory")
             tmp_dir = self._make_tmp_dir(parent)
-            LOG.debug("WinRM Tmp directory created: {}".format(tmp_dir))
+            LOG.debug("WinRM Script - Tmp directory created: {}".format(tmp_dir))
+            LOG.info("WinRM Script = Upload starting")
             tmp_script = tmp_dir + "\\script.ps1"
             LOG.debug("WinRM Uploading script to: {}".format(tmp_script))
             self._upload(script, tmp_script)
+            LOG.info("WinRM Script - Upload complete")
             yield tmp_script
         finally:
             if tmp_dir:
-                LOG.debug("WinRM Removing script: {}".format(tmp_dir))
+                LOG.debug("WinRM Script - Removing script: {}".format(tmp_dir))
                 self._rm_dir(tmp_dir)
 
     def run_cmd(self, cmd):
@@ -333,6 +335,9 @@ Add-Content -value $data -encoding byte -path $filePath
         # else we need to upload the script to a temporary file and execute it,
         # then remove the temporary file
         if len(ps_cmd) <= WINRM_MAX_CMD_LENGTH:
+            LOG.info(("WinRM powershell command size {} is > {}, the max size of a"
+                      " powershell command. Converting to a script execution.")
+                     .format(WINRM_MAX_CMD_LENGTH, len(ps_cmd)))
             return self._run_ps(encoded_ps, is_b64=True)
         else:
             return self._run_ps_script(script, params)
@@ -365,6 +370,7 @@ Add-Content -value $data -encoding byte -path $filePath
 
     def _run_ps_or_raise(self, ps, error_msg):
         response = self._run_ps(ps)
+        # response is a tuple: (status, result, None)
         result = response[1]
         if result['failed']:
             raise RuntimeError(("{}:\n"
