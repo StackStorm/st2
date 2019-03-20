@@ -74,7 +74,7 @@ class TestApp(webtest.TestApp):
             try:
                 body = res.body
             except AssertionError as e:
-                if 'Iterator read after closed' in str(e):
+                if 'Iterator read after closed' in six.text_type(e):
                     body = b''
                 else:
                     raise e

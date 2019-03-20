@@ -23,8 +23,12 @@ with mock.patch.object(trigger_service, 'create_trigger_type_db', mock.MagicMock
     from st2api.controllers.v1.webhooks import HooksHolder
 from st2common.persistence.rbac import UserRoleAssignment
 from st2common.models.db.rbac import UserRoleAssignmentDB
+from st2common.service_setup import register_service_in_service_registry
+from st2common.services import coordination
 
+from st2tests import config as tests_config
 from st2tests.fixturesloader import FixturesLoader
+
 from tests.base import APIControllerWithRBACTestCase
 from tests.unit.controllers.v1.test_webhooks import DUMMY_TRIGGER_DICT
 
@@ -109,6 +113,29 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
 
     register_packs = True
     fixtures_loader = FixturesLoader()
+
+    coordinator = None
+
+    @classmethod
+    def setUpClass(cls):
+        tests_config.parse_args(coordinator_noop=True)
+
+        super(APIControllersRBACTestCase, cls).setUpClass()
+
+        cls.coordinator = coordination.get_coordinator(use_cache=False)
+
+        # Register mock service in the service registry for testing purposes
+        service = six.binary_type(six.text_type('mock_service').encode('ascii'))
+        register_service_in_service_registry(service=service,
+                                             capabilities={'key1': 'value1',
+                                                           'name': 'mock_service'},
+                                             start_heart=True)
+
+    @classmethod
+    def tearDownClass(cls):
+        super(APIControllersRBACTestCase, cls).tearDownClass()
+
+        coordination.coordinator_teardown(cls.coordinator)
 
     def setUp(self):
         super(APIControllersRBACTestCase, self).setUp()
@@ -448,6 +475,17 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             # Rule views
             {
                 'path': '/v1/rules/views',
+                'method': 'GET',
+                'is_getall': True
+            },
+            # Service registry
+            {
+                'path': '/v1/service_registry/groups',
+                'method': 'GET',
+                'is_getall': True
+            },
+            {
+                'path': '/v1/service_registry/groups/mock_service/members',
                 'method': 'GET',
                 'is_getall': True
             }

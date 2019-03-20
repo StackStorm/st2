@@ -263,3 +263,83 @@ class NotifierTestCase(CleanDbTestCase):
                                             payload=exp, trace_context={})
 
         self.assertEqual(dispatch.call_count, 3)
+
+    @mock.patch('oslo_config.cfg.CONF.action_sensor.enable', mock.MagicMock(
+        return_value=True))
+    @mock.patch.object(Notifier, '_get_runner_ref', mock.MagicMock(
+        return_value='local-shell-cmd'))
+    @mock.patch.object(Notifier, '_get_trace_context', mock.MagicMock(
+        return_value={}))
+    @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
+    @mock.patch('st2actions.notifier.notifier.LiveAction')
+    @mock.patch('st2actions.notifier.notifier.policy_service.apply_post_run_policies', mock.Mock())
+    def test_process_post_generic_notify_trigger_on_completed_state_default(self,
+            mock_LiveAction, mock_dispatch):
+        # Verify that generic action trigger is posted on all completed states when action sensor
+        # is enabled
+        for status in LIVEACTION_STATUSES:
+            notifier = Notifier(connection=None, queues=[])
+
+            liveaction_db = LiveActionDB(id=bson.ObjectId(), action='core.local')
+            liveaction_db.status = status
+            execution = MOCK_EXECUTION
+            execution.liveaction = vars(LiveActionAPI.from_model(liveaction_db))
+            execution.status = liveaction_db.status
+
+            mock_LiveAction.get_by_id.return_value = liveaction_db
+
+            notifier = Notifier(connection=None, queues=[])
+            notifier.process(execution)
+
+            if status in LIVEACTION_COMPLETED_STATES:
+                exp = {'status': status,
+                       'start_timestamp': str(liveaction_db.start_timestamp),
+                       'result': {}, 'parameters': {},
+                       'action_ref': u'core.local',
+                       'runner_ref': 'local-shell-cmd',
+                       'execution_id': str(MOCK_EXECUTION.id),
+                       'action_name': u'core.local'}
+                mock_dispatch.assert_called_with('core.st2.generic.actiontrigger',
+                                                 payload=exp, trace_context={})
+
+        self.assertEqual(mock_dispatch.call_count, len(LIVEACTION_COMPLETED_STATES))
+
+    @mock.patch('oslo_config.cfg.CONF.action_sensor', mock.MagicMock(
+        enable=True, emit_when=['scheduled', 'pending', 'abandoned']))
+    @mock.patch.object(Notifier, '_get_runner_ref', mock.MagicMock(
+        return_value='local-shell-cmd'))
+    @mock.patch.object(Notifier, '_get_trace_context', mock.MagicMock(
+        return_value={}))
+    @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
+    @mock.patch('st2actions.notifier.notifier.LiveAction')
+    @mock.patch('st2actions.notifier.notifier.policy_service.apply_post_run_policies', mock.Mock())
+    def test_process_post_generic_notify_trigger_on_custom_emit_when_states(self,
+            mock_LiveAction, mock_dispatch):
+        # Verify that generic action trigger is posted on all completed states when action sensor
+        # is enabled
+        for status in LIVEACTION_STATUSES:
+            notifier = Notifier(connection=None, queues=[])
+
+            liveaction_db = LiveActionDB(id=bson.ObjectId(), action='core.local')
+            liveaction_db.status = status
+            execution = MOCK_EXECUTION
+            execution.liveaction = vars(LiveActionAPI.from_model(liveaction_db))
+            execution.status = liveaction_db.status
+
+            mock_LiveAction.get_by_id.return_value = liveaction_db
+
+            notifier = Notifier(connection=None, queues=[])
+            notifier.process(execution)
+
+            if status in ['scheduled', 'pending', 'abandoned']:
+                exp = {'status': status,
+                       'start_timestamp': str(liveaction_db.start_timestamp),
+                       'result': {}, 'parameters': {},
+                       'action_ref': u'core.local',
+                       'runner_ref': 'local-shell-cmd',
+                       'execution_id': str(MOCK_EXECUTION.id),
+                       'action_name': u'core.local'}
+                mock_dispatch.assert_called_with('core.st2.generic.actiontrigger',
+                                                 payload=exp, trace_context={})
+
+        self.assertEqual(mock_dispatch.call_count, 3)

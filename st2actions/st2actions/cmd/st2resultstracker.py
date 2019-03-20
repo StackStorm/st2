@@ -20,8 +20,12 @@ LOG = logging.getLogger(__name__)
 
 
 def _setup():
-    common_setup(service='resultstracker', config=config, setup_db=True,
-                 register_mq_exchanges=True, register_signal_handlers=True)
+    capabilities = {
+        'name': 'resultstracker',
+        'type': 'passive'
+    }
+    common_setup(service='resultstracker', config=config, setup_db=True, register_mq_exchanges=True,
+                 register_signal_handlers=True, service_registry=True, capabilities=capabilities)
 
 
 def _run_worker():

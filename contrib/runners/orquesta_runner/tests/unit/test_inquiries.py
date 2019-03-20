@@ -17,7 +17,7 @@ from __future__ import absolute_import
 
 import mock
 
-from orquesta import states as wf_states
+from orquesta import statuses as wf_statuses
 
 import st2tests
 
@@ -111,11 +111,11 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(t1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         workflows.get_engine().process(t1_ac_ex_db)
         t1_ex_db = wf_db_access.TaskExecution.get_by_id(t1_ex_db.id)
-        self.assertEqual(t1_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(t1_ex_db.status, wf_statuses.SUCCEEDED)
 
         # Assert the main workflow is still running.
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
 
         # Assert get approval task is already pending.
         query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'get_approval'}
@@ -125,11 +125,11 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(t2_lv_ac_db.status, action_constants.LIVEACTION_STATUS_PENDING)
         workflows.get_engine().process(t2_ac_ex_db)
         t2_ex_db = wf_db_access.TaskExecution.get_by_id(t2_ex_db.id)
-        self.assertEqual(t2_ex_db.status, wf_states.PENDING)
+        self.assertEqual(t2_ex_db.status, wf_statuses.PENDING)
 
         # Assert the main workflow is paused since it has no other active tasks.
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.PAUSED)
+        self.assertEqual(wf_ex_db.status, wf_statuses.PAUSED)
 
         # Respond to the inquiry and check status.
         inquiry_api = inqy_api_models.InquiryAPI.from_model(t2_ac_ex_db)
@@ -145,7 +145,7 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
 
         # Assert the main workflow is paused since it has no other active tasks.
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
 
         # Assert the final task is completed.
         query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'finish'}
@@ -155,11 +155,11 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(t3_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         workflows.get_engine().process(t3_ac_ex_db)
         t3_ex_db = wf_db_access.TaskExecution.get_by_id(t3_ex_db.id)
-        self.assertEqual(t3_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(t3_ex_db.status, wf_statuses.SUCCEEDED)
 
         # Assert the main workflow is completed
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(wf_ex_db.status, wf_statuses.SUCCEEDED)
 
     def test_consecutive_inquiries(self):
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'ask-consecutive-approvals.yaml')
@@ -180,11 +180,11 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(t1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         workflows.get_engine().process(t1_ac_ex_db)
         t1_ex_db = wf_db_access.TaskExecution.get_by_id(t1_ex_db.id)
-        self.assertEqual(t1_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(t1_ex_db.status, wf_statuses.SUCCEEDED)
 
         # Assert the main workflow is still running.
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
 
         # Assert get approval task is already pending.
         query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'get_approval'}
@@ -194,11 +194,11 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(t2_lv_ac_db.status, action_constants.LIVEACTION_STATUS_PENDING)
         workflows.get_engine().process(t2_ac_ex_db)
         t2_ex_db = wf_db_access.TaskExecution.get_by_id(t2_ex_db.id)
-        self.assertEqual(t2_ex_db.status, wf_states.PENDING)
+        self.assertEqual(t2_ex_db.status, wf_statuses.PENDING)
 
         # Assert the main workflow is paused since it has no other active tasks.
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.PAUSED)
+        self.assertEqual(wf_ex_db.status, wf_statuses.PAUSED)
 
         # Respond to the inquiry and check status.
         inquiry_api = inqy_api_models.InquiryAPI.from_model(t2_ac_ex_db)
@@ -214,7 +214,7 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
 
         # Assert the main workflow is paused since it has no other active tasks.
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
 
         # Assert the final task is completed.
         query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'get_confirmation'}
@@ -224,11 +224,11 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(t3_lv_ac_db.status, action_constants.LIVEACTION_STATUS_PENDING)
         workflows.get_engine().process(t3_ac_ex_db)
         t3_ex_db = wf_db_access.TaskExecution.get_by_id(t3_ex_db.id)
-        self.assertEqual(t3_ex_db.status, wf_states.PENDING)
+        self.assertEqual(t3_ex_db.status, wf_statuses.PENDING)
 
         # Assert the main workflow is completed
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.PAUSED)
+        self.assertEqual(wf_ex_db.status, wf_statuses.PAUSED)
 
         # Respond to the inquiry and check status.
         inquiry_api = inqy_api_models.InquiryAPI.from_model(t3_ac_ex_db)
@@ -244,7 +244,7 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
 
         # Assert the main workflow is completed
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
 
         # Assert the final task is completed.
         query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'finish'}
@@ -254,11 +254,11 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(t4_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         workflows.get_engine().process(t4_ac_ex_db)
         t4_ex_db = wf_db_access.TaskExecution.get_by_id(t4_ex_db.id)
-        self.assertEqual(t4_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(t4_ex_db.status, wf_statuses.SUCCEEDED)
 
         # Assert the main workflow is completed
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(wf_ex_db.status, wf_statuses.SUCCEEDED)
 
     def test_parallel_inquiries(self):
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'ask-parallel-approvals.yaml')
@@ -279,11 +279,11 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(t1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         workflows.get_engine().process(t1_ac_ex_db)
         t1_ex_db = wf_db_access.TaskExecution.get_by_id(t1_ex_db.id)
-        self.assertEqual(t1_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(t1_ex_db.status, wf_statuses.SUCCEEDED)
 
         # Assert the main workflow is still running.
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
 
         # Assert get approval task is already pending.
         query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'ask_jack'}
@@ -293,11 +293,11 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(t2_lv_ac_db.status, action_constants.LIVEACTION_STATUS_PENDING)
         workflows.get_engine().process(t2_ac_ex_db)
         t2_ex_db = wf_db_access.TaskExecution.get_by_id(t2_ex_db.id)
-        self.assertEqual(t2_ex_db.status, wf_states.PENDING)
+        self.assertEqual(t2_ex_db.status, wf_statuses.PENDING)
 
         # Assert the main workflow is paused since it has no other active tasks.
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.PAUSING)
+        self.assertEqual(wf_ex_db.status, wf_statuses.PAUSING)
 
         # Assert get approval task is already pending.
         query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'ask_jill'}
@@ -307,11 +307,11 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(t3_lv_ac_db.status, action_constants.LIVEACTION_STATUS_PENDING)
         workflows.get_engine().process(t3_ac_ex_db)
         t3_ex_db = wf_db_access.TaskExecution.get_by_id(t3_ex_db.id)
-        self.assertEqual(t3_ex_db.status, wf_states.PENDING)
+        self.assertEqual(t3_ex_db.status, wf_statuses.PENDING)
 
         # Assert the main workflow is paused since it has no other active tasks.
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.PAUSED)
+        self.assertEqual(wf_ex_db.status, wf_statuses.PAUSED)
 
         # Respond to the inquiry and check status.
         inquiry_api = inqy_api_models.InquiryAPI.from_model(t2_ac_ex_db)
@@ -328,7 +328,7 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         # Assert the main workflow is paused because we are still waiting for
         # the other pending task and there are no other active tasks.
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.PAUSED)
+        self.assertEqual(wf_ex_db.status, wf_statuses.PAUSED)
 
         # Respond to the inquiry and check status.
         inquiry_api = inqy_api_models.InquiryAPI.from_model(t3_ac_ex_db)
@@ -344,7 +344,7 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
 
         # Assert the main workflow resumed running.
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
 
         # Assert the final task is completed.
         query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'finish'}
@@ -354,11 +354,11 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(t4_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         workflows.get_engine().process(t4_ac_ex_db)
         t4_ex_db = wf_db_access.TaskExecution.get_by_id(t4_ex_db.id)
-        self.assertEqual(t4_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(t4_ex_db.status, wf_statuses.SUCCEEDED)
 
         # Assert the main workflow is completed
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(wf_ex_db.status, wf_statuses.SUCCEEDED)
 
     def test_nested_inquiry(self):
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'ask-nested-approval.yaml')
@@ -379,11 +379,11 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(t1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         workflows.get_engine().process(t1_ac_ex_db)
         t1_ex_db = wf_db_access.TaskExecution.get_by_id(t1_ex_db.id)
-        self.assertEqual(t1_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(t1_ex_db.status, wf_statuses.SUCCEEDED)
 
         # Assert the main workflow is still running.
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
 
         # Assert the subworkflow is already started.
         query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'get_approval'}
@@ -393,9 +393,9 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(t2_lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
         workflows.get_engine().process(t2_ac_ex_db)
         t2_ex_db = wf_db_access.TaskExecution.get_by_id(t2_ex_db.id)
-        self.assertEqual(t2_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(t2_ex_db.status, wf_statuses.RUNNING)
         t2_wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(t2_ac_ex_db.id))[0]
-        self.assertEqual(t2_wf_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(t2_wf_ex_db.status, wf_statuses.RUNNING)
 
         # Process task1 of subworkflow.
         query_filters = {'workflow_execution': str(t2_wf_ex_db.id), 'task_id': 'start'}
@@ -405,9 +405,9 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(t2_t1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         workflows.get_engine().process(t2_t1_ac_ex_db)
         t2_t1_ex_db = wf_db_access.TaskExecution.get_by_id(t2_t1_ex_db.id)
-        self.assertEqual(t2_t1_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(t2_t1_ex_db.status, wf_statuses.SUCCEEDED)
         t2_wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(str(t2_wf_ex_db.id))
-        self.assertEqual(t2_wf_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(t2_wf_ex_db.status, wf_statuses.RUNNING)
 
         # Process inquiry task of subworkflow and assert the subworkflow is paused.
         query_filters = {'workflow_execution': str(t2_wf_ex_db.id), 'task_id': 'get_approval'}
@@ -417,9 +417,9 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(t2_t2_lv_ac_db.status, action_constants.LIVEACTION_STATUS_PENDING)
         workflows.get_engine().process(t2_t2_ac_ex_db)
         t2_t2_ex_db = wf_db_access.TaskExecution.get_by_id(t2_t2_ex_db.id)
-        self.assertEqual(t2_t2_ex_db.status, wf_states.PENDING)
+        self.assertEqual(t2_t2_ex_db.status, wf_statuses.PENDING)
         t2_wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(str(t2_wf_ex_db.id))
-        self.assertEqual(t2_wf_ex_db.status, wf_states.PAUSED)
+        self.assertEqual(t2_wf_ex_db.status, wf_statuses.PAUSED)
 
         # Process the corresponding task in parent workflow and assert the task is paused.
         t2_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t2_ex_db.id))[0]
@@ -427,11 +427,11 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(t2_lv_ac_db.status, action_constants.LIVEACTION_STATUS_PAUSED)
         workflows.get_engine().process(t2_ac_ex_db)
         t2_ex_db = wf_db_access.TaskExecution.get_by_id(t2_ex_db.id)
-        self.assertEqual(t2_ex_db.status, wf_states.PAUSED)
+        self.assertEqual(t2_ex_db.status, wf_statuses.PAUSED)
 
         # Assert the main workflow is paused.
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.PAUSED)
+        self.assertEqual(wf_ex_db.status, wf_statuses.PAUSED)
 
         # Respond to the inquiry and check status.
         inquiry_api = inqy_api_models.InquiryAPI.from_model(t2_t2_ac_ex_db)
@@ -447,7 +447,7 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
 
         # Assert the main workflow is running again.
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
 
         # Complete the rest of the subworkflow
         query_filters = {'workflow_execution': str(t2_wf_ex_db.id), 'task_id': 'finish'}
@@ -457,17 +457,17 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(t2_t3_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         workflows.get_engine().process(t2_t3_ac_ex_db)
         t2_t3_ex_db = wf_db_access.TaskExecution.get_by_id(t2_t3_ex_db.id)
-        self.assertEqual(t2_t3_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(t2_t3_ex_db.status, wf_statuses.SUCCEEDED)
         t2_wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(str(t2_wf_ex_db.id))
-        self.assertEqual(t2_wf_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(t2_wf_ex_db.status, wf_statuses.SUCCEEDED)
         t2_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t2_ex_db.id))[0]
         t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction['id'])
         self.assertEqual(t2_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         workflows.get_engine().process(t2_ac_ex_db)
         t2_ex_db = wf_db_access.TaskExecution.get_by_id(t2_ex_db.id)
-        self.assertEqual(t2_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(t2_ex_db.status, wf_statuses.SUCCEEDED)
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
 
         # Complete the rest of the main workflow
         query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'finish'}
@@ -477,6 +477,6 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(t3_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         workflows.get_engine().process(t3_ac_ex_db)
         t3_ex_db = wf_db_access.TaskExecution.get_by_id(t3_ex_db.id)
-        self.assertEqual(t3_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(t3_ex_db.status, wf_statuses.SUCCEEDED)
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(wf_ex_db.status, wf_statuses.SUCCEEDED)

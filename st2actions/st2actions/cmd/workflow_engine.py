@@ -51,12 +51,18 @@ def setup_sigterm_handler():
 
 
 def setup():
+    capabilities = {
+        'name': 'workflowengine',
+        'type': 'passive'
+    }
     common_setup(
         service='workflow_engine',
         config=config,
         setup_db=True,
         register_mq_exchanges=True,
-        register_signal_handlers=True
+        register_signal_handlers=True,
+        service_registry=True,
+        capabilities=capabilities
     )
 
     setup_sigterm_handler()

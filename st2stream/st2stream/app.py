@@ -53,6 +53,12 @@ def setup_app(config={}):
         monkey_patch()
 
         st2stream_config.register_opts()
+        capabilities = {
+            'name': 'stream',
+            'listen_host': cfg.CONF.stream.host,
+            'listen_port': cfg.CONF.stream.port,
+            'type': 'active'
+        }
         # This should be called in gunicorn case because we only want
         # workers to connect to db, rabbbitmq etc. In standalone HTTP
         # server case, this setup would have already occurred.
@@ -61,6 +67,8 @@ def setup_app(config={}):
                      register_signal_handlers=True,
                      register_internal_trigger_types=False,
                      run_migrations=False,
+                     service_registry=True,
+                     capabilities=capabilities,
                      config_args=config.get('config_args', None))
 
     router = Router(debug=cfg.CONF.stream.debug, auth=cfg.CONF.auth.enable,

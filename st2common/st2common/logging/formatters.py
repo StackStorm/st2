@@ -264,7 +264,7 @@ class GelfLogFormatter(BaseExtraLogFormatter):
             # Include exception information
             exc_type, exc_value, exc_tb = exc_info
             tb_str = ''.join(traceback.format_tb(exc_tb))
-            data['_exception'] = str(exc_value)
+            data['_exception'] = six.text_type(exc_value)
             data['_traceback'] = tb_str
 
         # Include common Python log record attributes

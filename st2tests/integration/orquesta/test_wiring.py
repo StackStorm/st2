@@ -144,3 +144,16 @@ class WiringTest(base.TestWorkflowExecution):
 
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
         self.assertDictEqual(ex.result, expected_result)
+
+    def test_config_context_renders(self):
+        config_value = "Testing"
+        wf_name = 'examples.render_config_context'
+
+        expected_output = {'context_value': config_value}
+        expected_result = {'output': expected_output}
+
+        ex = self._execute_workflow(wf_name)
+        ex = self._wait_for_completion(ex)
+
+        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertDictEqual(ex.result, expected_result)

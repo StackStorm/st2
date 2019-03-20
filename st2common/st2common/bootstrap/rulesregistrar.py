@@ -172,7 +172,7 @@ class RulesRegistrar(ResourceRegistrar):
             except Exception as e:
                 if self._fail_on_failure:
                     msg = ('Failed to register rule "%s" from pack "%s": %s' % (rule, pack,
-                                                                                str(e)))
+                                                                                six.text_type(e)))
                     raise ValueError(msg)
 
                 LOG.exception('Failed registering rule from %s.', rule)

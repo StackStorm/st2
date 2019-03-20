@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import six
 from mongoengine import ValidationError
 from six.moves import http_client
 
@@ -187,7 +188,7 @@ class PolicyController(resource.ContentPackResourceController):
             validate_not_part_of_system_pack(db_model)
         except ValueValidationException as e:
             LOG.exception('%s unable to update object from system pack.', op)
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
 
         if not getattr(instance, 'pack', None):
             instance.pack = db_model.pack
@@ -198,7 +199,7 @@ class PolicyController(resource.ContentPackResourceController):
             db_model = self.access.add_or_update(db_model)
         except (ValidationError, ValueError) as e:
             LOG.exception('%s unable to update object: %s', op, db_model)
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
             return
 
         LOG.debug('%s updated object: %s', op, db_model)
@@ -230,13 +231,13 @@ class PolicyController(resource.ContentPackResourceController):
             validate_not_part_of_system_pack(db_model)
         except ValueValidationException as e:
             LOG.exception('%s unable to delete object from system pack.', op)
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
 
         try:
             self.access.delete(db_model)
         except Exception as e:
             LOG.exception('%s unable to delete object: %s', op, db_model)
-            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+            abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
             return
 
         LOG.debug('%s deleted object: %s', op, db_model)

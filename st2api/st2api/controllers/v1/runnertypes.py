@@ -82,7 +82,7 @@ class RunnerTypesController(ResourceController):
             runner_type_db = RunnerType.add_or_update(runner_type_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for runner type data=%s', runner_type_api)
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
             return
 
         extra = {'old_runner_type_db': old_runner_type_db, 'new_runner_type_db': runner_type_db}
