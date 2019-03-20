@@ -20,7 +20,7 @@ import mock
 
 from orquesta import exceptions as orquesta_exc
 from orquesta.specs import loader as specs_loader
-from orquesta import states as wf_states
+from orquesta import statuses as wf_statuses
 
 import st2tests
 
@@ -32,7 +32,9 @@ from st2common.bootstrap import runnersregistrar
 from st2common.exceptions import action as action_exc
 from st2common.models.db import liveaction as lv_db_models
 from st2common.models.db import execution as ex_db_models
+from st2common.models.db import pack as pk_db_models
 from st2common.persistence import execution as ex_db_access
+from st2common.persistence import pack as pk_db_access
 from st2common.persistence import workflow as wf_db_access
 from st2common.services import action as action_service
 from st2common.services import workflows as workflow_service
@@ -44,8 +46,12 @@ from st2tests.mocks import liveaction as mock_lv_ac_xport
 TEST_PACK = 'orquesta_tests'
 TEST_PACK_PATH = st2tests.fixturesloader.get_fixtures_packs_base_path() + '/' + TEST_PACK
 
+PACK_7 = 'dummy_pack_7'
+PACK_7_PATH = st2tests.fixturesloader.get_fixtures_packs_base_path() + '/' + PACK_7
+
 PACKS = [
     TEST_PACK_PATH,
+    PACK_7_PATH,
     st2tests.fixturesloader.get_fixtures_packs_base_path() + '/core'
 ]
 
@@ -101,7 +107,7 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
         self.assertIsNotNone(wf_ex_db.id)
         self.assertGreater(wf_ex_db.rev, 0)
         self.assertEqual(wf_ex_db.action_execution, str(ac_ex_db.id))
-        self.assertEqual(wf_ex_db.status, wf_states.REQUESTED)
+        self.assertEqual(wf_ex_db.status, wf_statuses.REQUESTED)
 
     def test_request_with_input(self):
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
@@ -124,7 +130,7 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
         self.assertIsNotNone(wf_ex_db.id)
         self.assertGreater(wf_ex_db.rev, 0)
         self.assertEqual(wf_ex_db.action_execution, str(ac_ex_db.id))
-        self.assertEqual(wf_ex_db.status, wf_states.REQUESTED)
+        self.assertEqual(wf_ex_db.status, wf_statuses.REQUESTED)
 
         # Check input and context.
         expected_input = {
@@ -256,7 +262,7 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
         self.assertIsNotNone(task_ex_db.id)
         self.assertGreater(task_ex_db.rev, 0)
         self.assertEqual(task_ex_db.workflow_execution, str(wf_ex_db.id))
-        self.assertEqual(task_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(task_ex_db.status, wf_statuses.RUNNING)
 
         # Check action execution for the task query with task execution ID.
         ac_ex_dbs = ex_db_access.ActionExecution.query(task_execution=str(task_ex_db.id))
@@ -363,3 +369,67 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
         ac_ex_req = {'action': 'core.noop', 'input': None, 'item_id': 1}
         actual_delay = workflow_service.eval_action_execution_delay(task_ex_req, ac_ex_req, True)
         self.assertIsNone(actual_delay)
+
+    def test_request_action_execution_render(self):
+        # Manually create ConfigDB
+        output = 'Testing'
+        value = {
+            "config_item_one": output
+        }
+        config_db = pk_db_models.ConfigDB(pack=PACK_7, values=value)
+        config = pk_db_access.Config.add_or_update(config_db)
+        self.assertEqual(len(config), 3)
+
+        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, 'render_config_context.yaml')
+
+        # Manually create the liveaction and action execution objects without publishing.
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        lv_ac_db, ac_ex_db = action_service.create_request(lv_ac_db)
+
+        # Request the workflow execution.
+        wf_def = self.get_wf_def(TEST_PACK_PATH, wf_meta)
+        st2_ctx = self.mock_st2_context(ac_ex_db)
+        wf_ex_db = workflow_service.request(wf_def, ac_ex_db, st2_ctx)
+        spec_module = specs_loader.get_spec_module(wf_ex_db.spec['catalog'])
+        wf_spec = spec_module.WorkflowSpec.deserialize(wf_ex_db.spec)
+
+        # Pass down appropriate st2 context to the task and action execution(s).
+        root_st2_ctx = wf_ex_db.context.get('st2', {})
+        st2_ctx = {
+            'execution_id': wf_ex_db.action_execution,
+            'user': root_st2_ctx.get('user'),
+            'pack': root_st2_ctx.get('pack')
+        }
+
+        # Manually request task execution.
+        task_route = 0
+        task_id = 'task1'
+        task_spec = wf_spec.tasks.get_task(task_id)
+        task_ctx = {'foo': 'bar'}
+
+        task_ex_req = {
+            'id': task_id,
+            'route': task_route,
+            'spec': task_spec,
+            'ctx': task_ctx,
+            'actions': [
+                {'action': 'dummy_pack_7.render_config_context', 'input': None}
+            ]
+        }
+        workflow_service.request_task_execution(wf_ex_db, st2_ctx, task_ex_req)
+
+        # Check task execution is saved to the database.
+        task_ex_dbs = wf_db_access.TaskExecution.query(workflow_execution=str(wf_ex_db.id))
+        self.assertEqual(len(task_ex_dbs), 1)
+        workflow_service.request_task_execution(wf_ex_db, st2_ctx, task_ex_req)
+
+        # Manually request action execution
+        task_ex_db = task_ex_dbs[0]
+        action_ex_db = workflow_service.request_action_execution(wf_ex_db, task_ex_db, st2_ctx,
+                                                                 task_ex_req['actions'][0])
+
+        # Check required attributes.
+        self.assertIsNotNone(str(action_ex_db.id))
+        self.assertEqual(task_ex_db.workflow_execution, str(wf_ex_db.id))
+        expected_parameters = {'value1': output}
+        self.assertEqual(expected_parameters, action_ex_db.parameters)

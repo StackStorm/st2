@@ -15,13 +15,61 @@ Added
   (``pack.yaml``). With this attribute pack declares which major Python versions it supports and
   works with (e.g. ``2`` and ``3``).
 
-   For backward compatibility reasons, if pack metadata file doesn't contain that attribute, it's
-   assumed it only works with Python 2. (new feature) #4474
+  For backward compatibility reasons, if pack metadata file doesn't contain that attribute, it's
+  assumed it only works with Python 2. (new feature) #4474
+* Update service bootstrap code and make sure all the services register in a service registry once
+  they come online and become available.
+
+  This functionality is only used internally and will only work if configuration backend is
+  correctly configured in ``st2.conf`` (new feature) #4548
+* Add new ``GET /v1/service_registry/groups`` and
+  ``GET /v1/service_registry/groups/<group_id>/members`` API endpoint for listing available service
+  registry groups and members.
+
+  Also add corresponding CLI commands - ``st2 service-registry group list``, ``st2 service registry
+  member list [--group-id=<group id>]``
+
+  NOTE: This API endpoint is behind an RBAC wall and can only be viewed by the admins. (new feature)
+  #4548
+* Add support for ``?include_attributes`` and ``?exclude_attributes`` query param filter to the
+  ``GET /api/v1/executions/{id}`` API endpoint. Also update ``st2 execution get`` CLI command so it
+  only retrieves attributes which are displayed. (new feature) #4497
+
+  Contributed by Nick Maludy (@nmaludy Encore Technologies)
+
+* Add new ``--encrypted`` flag to ``st2 key set`` CLI command that allows users to pass in values
+  which are already encrypted.
+
+  This attribute signals the API that the value is already encrypted and should be used as-is.
+
+  ``st2 key load`` CLI command has also been updated so it knows how to work with values which are
+  already encrypted. This means that ``st2 key list -n 100 -j < data.json ; st2 key load
+  data.json`` will now also work out of the box for encrypted datastore values (values which have
+  ``encrypted: True`` and ``secret: True`` attribute will be treated as already encrypted and used
+  as-is).
+
+  The most common use case for this feature is migrating / restoring datastore values from one
+  StackStorm instance to another which uses the same crypto key.
+
+  Contributed by Nick Maludy (Encore Technologies) #4547
 
 Changed
 ~~~~~~~
 
 * Changed the ``inquiries`` API path from ``/exp`` to ``/api/v1``. #4495
+* Refactored workflow state in orquesta workflow engine. Previously, state in the workflow engine
+  is not status to be consistent with st2. Other terminologies used in the engine are also revised
+  to make it easier for developers to understand. (improvement)
+* Update Python runner code so it prioritizes libraries from pack virtual environment over StackStorm
+  system dependencies.
+
+  For example, if pack depends on ``six==1.11.0`` in pack ``requirements.txt``, but StackStorm depends
+  on ``six==1.10.0``, ``six==1.11.0`` will be used when running Python actions from that pack.
+
+  Keep in mind that will not work correctly if pack depends on a library which brakes functionality used
+  by Python action wrapper code.
+
+  Contributed by Hiroyasu OHYAMA (@userlocalhost). #4571
 * Improved the way that the ``winrm-ps-script`` runner sends scripts to the target Windows
   host. Previously the script was read from the local filesystem and serialized as one long
   command executed on the command line. This failed when the script was longer than either
@@ -35,13 +83,65 @@ Changed
 Fixed
 ~~~~~
 
-* Refactored orquesta execution graph to fix performance issue for workflows with many
-  references to non-join tasks. st2workflowengine and DB models are refactored accordingly.
-  (improvement) StackStorm/orquesta#122.
-* Fix orquesta workflow stuck in running status when one or more items failed execution for a
-  with items task. (bug fix) #4523
-* Fix orquesta workflow bug where context variables are being overwritten on task join.
-  (bug fix) StackStorm/orquesta#112
+* Refactored orquesta execution graph to fix performance issue for workflows with many references
+  to non-join tasks. st2workflowengine and DB models are refactored accordingly. (improvement)
+  StackStorm/orquesta#122.
+* Fix orquesta workflow stuck in running status when one or more items failed execution for a with
+  items task. (bug fix) #4523
+* Fix orquesta workflow bug where context variables are being overwritten on task join. (bug fix)
+  StackStorm/orquesta#112
+* Fix orquesta with items task performance issue. Workflow runtime increase significantly when a
+  with items task has many items and result in many retries on write conflicts. A distributed lock
+  is acquired before write operations to avoid write conflicts. (bug fix) Stackstorm/orquesta#125
+* Fix a bug with some API endpoints returning 500 internal server error when an exception contained
+  unicode data. (bug fix) #4598
+
+2.10.4 - March 15, 2019
+-----------------------
+
+Fixed
+~~~~~
+
+* Fix inadvertent regression in notifier service which would cause generic action trigger to only
+  be dispatched for completed states even if custom states were specified using
+  ``action_sensor.emit_when`` config option. (bug fix)
+  Reported by Shu Sugimoto (@shusugmt). #4591
+* Make sure we don't log auth token and api key inside st2api log file if those values are provided
+  via query parameter and not header (``?x-auth-token=foo``, ``?st2-api-key=bar``). (bug fix) #4592
+  #4589
+* Fix rendering of ``{{ config_context. }}`` in orquesta task that references action from a
+  different pack (bug fix) #4570 #4567
+* Add missing default config location (``/etc/st2/st2.conf``) to the following services:
+  ``st2actionrunner``, ``st2scheduler``, ``st2workflowengine``. (bug fix) #4596
+* Update statsd metrics driver so any exception thrown by statsd library is treated as non fatal.
+
+  Previously there was an edge case if user used a hostname instead of an IP address for metrics
+  backend server address. In such scenario, if hostname DNS resolution failed, statsd driver would
+  throw the exception which would propagate all the way up and break the application. (bug fix) #4597
+
+  Reported by Chris McKenzie.
+
+2.10.3 - March 06, 2019
+-----------------------
+
+Fixed
+~~~~~
+
+* Fix improper CORS where request from an origin not listed in ``allowed_origins`` will be responded
+  with ``null`` for the ``Access-Control-Allow-Origin`` header. The fix returns the first of our
+  allowed origins if the requesting origin is not a supported origin. Reported by Barak Tawily.
+  (bug fix)
+
+2.9.3 - March 06, 2019
+-----------------------
+
+Fixed
+~~~~~
+
+* Fix improper CORS where request from an origin not listed in ``allowed_origins`` will be responded
+  with ``null`` for the ``Access-Control-Allow-Origin`` header. The fix returns the first of our
+  allowed origins if the requesting origin is not a supported origin. Reported by Barak Tawily.
+  (bug fix)
 
 2.10.2 - February 21, 2019
 --------------------------
@@ -105,7 +205,7 @@ Fixed
   Reported by @johandahlberg (bug fix) #4533
 * Fix ``core.sendmail`` action so it specifies ``charset=UTF-8`` in the ``Content-Type`` email
   header. This way it works correctly when an email subject and / or body contains unicode data.
- 
+
   Reported by @johandahlberg (bug fix) #4533 4534
 
 * Fix CLI ``st2 apikey load`` not being idempotent and API endpoint ``/api/v1/apikeys`` not

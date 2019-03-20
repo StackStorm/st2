@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 import sys
 
@@ -40,9 +41,14 @@ LOG = logging.getLogger(LOGGER_NAME)
 
 
 def _setup():
+    capabilities = {
+        'name': 'garbagecollector',
+        'type': 'passive'
+    }
     common_setup(service='garbagecollector', config=config, setup_db=True,
                  register_mq_exchanges=True, register_signal_handlers=True,
-                 register_runners=False)
+                 register_runners=False, service_registry=True,
+                 capabilities=capabilities)
 
 
 def _teardown():

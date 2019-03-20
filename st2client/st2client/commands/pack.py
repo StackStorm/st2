@@ -14,8 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import sys
 
+import six
 import editor
 import yaml
 
@@ -81,7 +83,7 @@ class PackResourceCommand(resource.ResourceCommand):
         except resource.ResourceNotFoundError:
             print("No matching items found")
         except Exception as e:
-            message = str(e)
+            message = six.text_type(e)
             print('ERROR: %s' % (message))
             raise OperationFailureException(message)
 
@@ -401,7 +403,7 @@ class PackConfigCommand(resource.ResourceCommand):
                 modified = editor.edit(contents=contents)
                 config = yaml.safe_load(modified)
             except editor.EditorError as e:
-                print(str(e))
+                print(six.text_type(e))
 
         message = '---\nDo you want me to save it?'
         save_dialog = interactive.Question(message, {'default': 'y'})
@@ -426,6 +428,6 @@ class PackConfigCommand(resource.ResourceCommand):
             if self.app.client.debug:
                 raise
 
-            message = str(e)
+            message = six.text_type(e)
             print('ERROR: %s' % (message))
             raise OperationFailureException(message)

@@ -43,8 +43,16 @@ WSGI_SERVER_REQUEST_SHUTDOWN_TIME = 2
 
 
 def _setup():
+    capabilities = {
+        'name': 'api',
+        'listen_host': cfg.CONF.api.host,
+        'listen_port': cfg.CONF.api.port,
+        'type': 'active'
+    }
+
     common_setup(service='api', config=config, setup_db=True, register_mq_exchanges=True,
-                 register_signal_handlers=True, register_internal_trigger_types=True)
+                 register_signal_handlers=True, register_internal_trigger_types=True,
+                 service_registry=True, capabilities=capabilities)
 
     # Additional pre-run time checks
     validate_rbac_is_correctly_configured()

@@ -111,7 +111,7 @@ class ActionsController(resource.ContentPackResourceController):
         except (ValidationError, ValueError,
                 ValueValidationException, InvalidActionParameterException) as e:
             LOG.exception('Unable to create action data=%s', action)
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
             return
 
         # Write pack data files to disk (if any are provided)
@@ -172,7 +172,7 @@ class ActionsController(resource.ContentPackResourceController):
             LOG.debug('/actions/ PUT after add_or_update: %s', action_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Unable to update action data=%s', action)
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
             return
 
         # Dispatch an internal trigger for each written data file. This way user
@@ -206,7 +206,7 @@ class ActionsController(resource.ContentPackResourceController):
         try:
             validate_not_part_of_system_pack(action_db)
         except ValueValidationException as e:
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
 
         LOG.debug('DELETE /actions/ lookup with ref_or_id=%s found object: %s',
                   ref_or_id, action_db)
@@ -216,7 +216,7 @@ class ActionsController(resource.ContentPackResourceController):
         except Exception as e:
             LOG.error('Database delete encountered exception during delete of id="%s". '
                       'Exception was %s', action_id, e)
-            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+            abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
             return
 
         extra = {'action_db': action_db}

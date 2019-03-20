@@ -16,6 +16,7 @@
 import jsonschema
 from jinja2.exceptions import UndefinedError
 from oslo_config import cfg
+
 import six
 
 from st2api.controllers.base import BaseRestControllerMixin
@@ -67,7 +68,7 @@ class ActionAliasExecutionController(BaseRestControllerMixin):
             format_ = get_matching_alias(command=command)
         except ActionAliasAmbiguityException as e:
             LOG.exception('Command "%s" matched (%s) patterns.', e.command, len(e.matches))
-            return abort(http_client.BAD_REQUEST, str(e))
+            return abort(http_client.BAD_REQUEST, six.text_type(e))
 
         action_alias_db = format_['alias']
         representation = format_['representation']
@@ -171,7 +172,8 @@ class ActionAliasExecutionController(BaseRestControllerMixin):
                         })
                 except UndefinedError as e:
                     result.update({
-                        'message': 'Cannot render "format" in field "ack" for alias. ' + str(e)
+                        'message': ('Cannot render "format" in field "ack" for alias. ' +
+                                    six.text_type(e))
                     })
 
                 try:
@@ -181,7 +183,8 @@ class ActionAliasExecutionController(BaseRestControllerMixin):
                         })
                 except UndefinedError as e:
                     result.update({
-                        'extra': 'Cannot render "extra" in field "ack" for alias. ' + str(e)
+                        'extra': ('Cannot render "extra" in field "ack" for alias. ' +
+                                  six.text_type(e))
                     })
 
             results.append(result)
@@ -237,13 +240,13 @@ class ActionAliasExecutionController(BaseRestControllerMixin):
             return ActionExecutionAPI.from_model(action_execution_db, mask_secrets=mask_secrets)
         except ValueError as e:
             LOG.exception('Unable to execute action.')
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
         except jsonschema.ValidationError as e:
             LOG.exception('Unable to execute action. Parameter validation failed.')
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
         except Exception as e:
             LOG.exception('Unable to execute action. Unexpected error encountered.')
-            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+            abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
 
 
 action_alias_execution_controller = ActionAliasExecutionController()

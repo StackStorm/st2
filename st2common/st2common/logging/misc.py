@@ -18,6 +18,8 @@ from __future__ import absolute_import
 import os.path
 import logging
 
+import six
+
 from st2common.logging.filters import LoggerFunctionNameExclusionFilter
 
 __all__ = [
@@ -74,7 +76,7 @@ def reopen_log_files(handlers):
             try:
                 handler.release()
             except RuntimeError as e:
-                if 'cannot release' in str(e):
+                if 'cannot release' in six.text_type(e):
                     # Release failed which most likely indicates that acquire failed
                     # and lock was never acquired
                     LOG.warn('Failed to release lock', exc_info=True)

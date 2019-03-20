@@ -17,10 +17,11 @@ from __future__ import absolute_import
 
 import uuid
 
+import six
 from oslo_config import cfg
 
 from orquesta import exceptions as wf_exc
-from orquesta import states as wf_states
+from orquesta import statuses as wf_statuses
 
 from st2common.constants import action as ac_const
 from st2common import log as logging
@@ -96,14 +97,14 @@ class OrquestaRunner(runners.AsyncActionRunner):
             return (status, result, self.context)
         except Exception as e:
             status = ac_const.LIVEACTION_STATUS_FAILED
-            result = {'errors': [{'message': str(e)}], 'output': None}
+            result = {'errors': [{'message': six.text_type(e)}], 'output': None}
             return (status, result, self.context)
 
-        if wf_ex_db.status in wf_states.COMPLETED_STATES:
+        if wf_ex_db.status in wf_statuses.COMPLETED_STATUSES:
             status = wf_ex_db.status
             result = {'output': wf_ex_db.output or None}
 
-            if wf_ex_db.status in wf_states.ABENDED_STATES:
+            if wf_ex_db.status in wf_statuses.ABENDED_STATUSES:
                 result['errors'] = wf_ex_db.errors
 
             for wf_ex_error in wf_ex_db.errors:
@@ -141,11 +142,10 @@ class OrquestaRunner(runners.AsyncActionRunner):
                     self.context.get('user', None)
                 )
 
-        status = (
-            ac_const.LIVEACTION_STATUS_PAUSING
-            if wf_ex_db.status == wf_states.PAUSING or ac_svc.is_children_active(self.liveaction.id)
-            else ac_const.LIVEACTION_STATUS_PAUSED
-        )
+        if wf_ex_db.status == wf_statuses.PAUSING or ac_svc.is_children_active(self.liveaction.id):
+            status = ac_const.LIVEACTION_STATUS_PAUSING
+        else:
+            status = ac_const.LIVEACTION_STATUS_PAUSED
 
         return (
             status,

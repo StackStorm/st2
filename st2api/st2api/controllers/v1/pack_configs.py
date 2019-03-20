@@ -106,7 +106,7 @@ class PackConfigsController(ResourceController, BaseRestControllerMixin):
             config_api = ConfigAPI(pack=pack_ref, values=vars(pack_config_content))
             config_api.validate(validate_against_schema=True)
         except jsonschema.ValidationError as e:
-            raise ValueValidationException(str(e))
+            raise ValueValidationException(six.text_type(e))
 
         self._dump_config_to_disk(config_api)
 

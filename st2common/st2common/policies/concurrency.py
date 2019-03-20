@@ -30,7 +30,7 @@ class BaseConcurrencyApplicator(base.ResourcePolicyApplicator):
         self.threshold = threshold
         self.policy_action = action
 
-        self.coordinator = coordination.get_coordinator()
+        self.coordinator = coordination.get_coordinator(start_heart=True)
 
     def _get_status_for_policy_action(self, action):
         if action == 'delay':

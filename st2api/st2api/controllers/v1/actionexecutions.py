@@ -135,18 +135,18 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
                                             action_db=action_db)
         except ValueError as e:
             LOG.exception('Unable to execute action.')
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
         except jsonschema.ValidationError as e:
             LOG.exception('Unable to execute action. Parameter validation failed.')
             abort(http_client.BAD_REQUEST, re.sub("u'([^']*)'", r"'\1'",
-                                                  getattr(e, 'message', str(e))))
+                                                  getattr(e, 'message', six.text_type(e))))
         except trace_exc.TraceNotFoundException as e:
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
         except validation_exc.ValueValidationException as e:
             raise e
         except Exception as e:
             LOG.exception('Unable to execute action. Unexpected error encountered.')
-            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+            abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
 
     def _schedule_execution(self, liveaction, requester_user, action_db, user=None,
                             context_string=None, show_secrets=False):
@@ -196,10 +196,11 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
             action_service.update_status(
                 liveaction=liveaction_db,
                 new_status=action_constants.LIVEACTION_STATUS_FAILED,
-                result={'error': str(e), 'traceback': ''.join(traceback.format_tb(tb, 20))})
+                result={'error': six.text_type(e),
+                        'traceback': ''.join(traceback.format_tb(tb, 20))})
             # Might be a good idea to return the actual ActionExecution rather than bubble up
             # the exception.
-            raise validation_exc.ValueValidationException(str(e))
+            raise validation_exc.ValueValidationException(six.text_type(e))
 
         # The request should be created after the above call to render_live_params
         # so any templates in live parameters have a chance to render.
@@ -516,7 +517,8 @@ class ActionExecutionsController(BaseResourceIsolationControllerMixin,
                                            advanced_filters=advanced_filters,
                                            requester_user=requester_user)
 
-    def get_one(self, id, requester_user, exclude_attributes=None, show_secrets=False):
+    def get_one(self, id, requester_user, exclude_attributes=None, include_attributes=None,
+                show_secrets=False):
         """
         Retrieve a single execution.
 
@@ -527,6 +529,7 @@ class ActionExecutionsController(BaseResourceIsolationControllerMixin,
         :type exclude_attributes: ``list``
         """
         exclude_fields = self._validate_exclude_fields(exclude_fields=exclude_attributes)
+        include_fields = self._validate_include_fields(include_fields=include_attributes)
 
         from_model_kwargs = {
             'mask_secrets': self._get_mask_secrets(requester_user, show_secrets=show_secrets)
@@ -542,6 +545,7 @@ class ActionExecutionsController(BaseResourceIsolationControllerMixin,
             id = str(execution_db.id)
 
         return self._get_one_by_id(id=id, exclude_fields=exclude_fields,
+                                   include_fields=include_fields,
                                    requester_user=requester_user,
                                    from_model_kwargs=from_model_kwargs,
                                    permission_type=PermissionType.EXECUTION_VIEW)
@@ -620,13 +624,13 @@ class ActionExecutionsController(BaseResourceIsolationControllerMixin,
             else:
                 liveaction_db, actionexecution_db = update_status(liveaction_api, liveaction_db)
         except runner_exc.InvalidActionRunnerOperationError as e:
-            LOG.exception('Failed updating liveaction %s. %s', liveaction_db.id, str(e))
-            abort(http_client.BAD_REQUEST, 'Failed updating execution. %s' % str(e))
+            LOG.exception('Failed updating liveaction %s. %s', liveaction_db.id, six.text_type(e))
+            abort(http_client.BAD_REQUEST, 'Failed updating execution. %s' % six.text_type(e))
         except runner_exc.UnexpectedActionExecutionStatusError as e:
-            LOG.exception('Failed updating liveaction %s. %s', liveaction_db.id, str(e))
-            abort(http_client.BAD_REQUEST, 'Failed updating execution. %s' % str(e))
+            LOG.exception('Failed updating liveaction %s. %s', liveaction_db.id, six.text_type(e))
+            abort(http_client.BAD_REQUEST, 'Failed updating execution. %s' % six.text_type(e))
         except Exception as e:
-            LOG.exception('Failed updating liveaction %s. %s', liveaction_db.id, str(e))
+            LOG.exception('Failed updating liveaction %s. %s', liveaction_db.id, six.text_type(e))
             abort(
                 http_client.INTERNAL_SERVER_ERROR,
                 'Failed updating execution due to unexpected error.'

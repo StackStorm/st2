@@ -14,9 +14,11 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 import tempfile
 
+import six
 import mock
 from oslo_config import cfg
 
@@ -121,8 +123,9 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
             setup_pack_virtualenv(pack_name=pack_name, update=False,
                                   include_setuptools=False, include_wheel=False)
         except Exception as e:
-            self.assertTrue('Failed to install requirements from' in str(e))
-            self.assertTrue('No matching distribution found for someinvalidname' in str(e))
+            self.assertTrue('Failed to install requirements from' in six.text_type(e))
+            self.assertTrue('No matching distribution found for someinvalidname' in
+                            six.text_type(e))
         else:
             self.fail('Exception not thrown')
 
