@@ -78,4 +78,4 @@ Write-Output "p_obj = $($p_obj | ConvertTo-Json -Compress)"
 Write-Output "p_pos0 = $p_pos0"
 Write-Output "p_pos1 = $p_pos1"
 ''',
-                                              '-d @{"test" = @("`r", $true, 3)} 1 "abc"')
+                                       '-d @{"test" = @("`r", $true, 3)} 1 "abc"')
