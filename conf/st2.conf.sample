@@ -97,6 +97,8 @@ packs_base_paths = None
 [coordination]
 # Endpoint for the coordination server.
 url = None
+# True to register StackStorm services in a service registry.
+service_registry = False
 # TTL for the lock if backend suports it.
 lock_timeout = 60
 
