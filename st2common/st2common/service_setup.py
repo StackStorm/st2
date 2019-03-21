@@ -181,7 +181,7 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
     metrics_initialize()
 
     # Register service in the service registry
-    if service_registry:
+    if cfg.CONF.coordination.service_registry and service_registry:
         # NOTE: It's important that we pass start_heart=True to start the hearbeat process
         register_service_in_service_registry(service=service, capabilities=capabilities,
                                              start_heart=True)
