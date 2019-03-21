@@ -52,7 +52,7 @@ semver==2.8.1
 six==1.12.0
 sseclient==0.0.19
 stevedore==1.30.0
-tooz==1.63.1
+tooz==1.64.2
 ujson==1.35
 unittest2
 webob==1.8.4
