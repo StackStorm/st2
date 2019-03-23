@@ -78,7 +78,7 @@ class ActionAliasExecutionController(BaseRestControllerMixin):
             'format': representation,
             'command': command,
             'user': input_api.user,
-            'source_channel': input_api.source_channel
+            'source_channel': input_api.source_channel,
         }
 
         # Add in any additional parameters provided by the user
@@ -145,7 +145,7 @@ class ActionAliasExecutionController(BaseRestControllerMixin):
             'action_alias_ref': reference.get_ref_from_model(action_alias_db),
             'api_user': payload.user,
             'user': requester_user.name,
-            'source_channel': payload.source_channel
+            'source_channel': payload.source_channel,
         }
 
         results = []
@@ -206,7 +206,7 @@ class ActionAliasExecutionController(BaseRestControllerMixin):
         on_complete.routes = [route]
         on_complete.data = {
             'user': payload.user,
-            'source_channel': payload.source_channel
+            'source_channel': payload.source_channel,
         }
         notify = NotificationSchema()
         notify.on_complete = on_complete
