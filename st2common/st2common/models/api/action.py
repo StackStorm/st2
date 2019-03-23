@@ -691,6 +691,13 @@ class AliasExecutionAPI(BaseAPI):
                                "channel as defined by the notification system.",
                 "required": True
             },
+            "source_context": {
+                "type": "object",
+                "description": "ALL data included with the message (also called the message "
+                               "envelope). This is currently only used by the Microsoft Teams "
+                               "adapter.",
+                "required": False
+            },
             "notification_channel": {
                 "type": "string",
                 "description": "StackStorm notification channel to use to respond.",

@@ -7,6 +7,7 @@ input:
   - whisper
   - execution_id
   - channel
+  - context
 
 tasks:
   format_execution_result:
@@ -33,6 +34,7 @@ tasks:
       channel: "{{ ctx('channel') }}"
       whisper: "{{ ctx('whisper') }}"
       message: "{{ ctx('message') }}"
+      context: "{{ ctx('context') }}"
       extra: "{{ ctx('extra') }}"
     next:
       - publish:

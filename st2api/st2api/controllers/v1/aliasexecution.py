@@ -145,7 +145,6 @@ class ActionAliasExecutionController(BaseRestControllerMixin):
             'action_alias_ref': reference.get_ref_from_model(action_alias_db),
             'api_user': payload.user,
             'user': requester_user.name,
-            'source_channel': payload.source_channel,
         }
 
         results = []
@@ -207,6 +206,7 @@ class ActionAliasExecutionController(BaseRestControllerMixin):
         on_complete.data = {
             'user': payload.user,
             'source_channel': payload.source_channel,
+            'source_context': getattr(payload, 'source_context', None),
         }
         notify = NotificationSchema()
         notify.on_complete = on_complete
