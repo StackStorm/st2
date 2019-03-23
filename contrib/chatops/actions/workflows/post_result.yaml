@@ -9,39 +9,39 @@ input:
   - channel
 
 tasks:
-    format_execution_result:
-      action: chatops.format_execution_result
-      input:
-        execution_id: "{{ ctx('execution_id') }}"
-      next:
-        -
-          when: "{{ result().result.enabled == true }}"
-          publish:
-            - message: "{{ result().result.message }}"
-            - extra: "{% if 'extra' in result().result %}{{ result().result.extra }}{% else %}{}{% endif %}"
-          do:
-            - post_message
-        -
-          when: "{{ result().result.enabled == false }}"
-          do:
-            - result_disabled
+  format_execution_result:
+    action: chatops.format_execution_result
+    input:
+      execution_id: "{{ ctx('execution_id') }}"
+    next:
+      -
+        when: "{{ result().result.enabled == true }}"
+        publish:
+          - message: "{{ result().result.message }}"
+          - extra: "{% if 'extra' in result().result %}{{ result().result.extra }}{% else %}{}{% endif %}"
+        do:
+          - post_message
+      -
+        when: "{{ result().result.enabled == false }}"
+        do:
+          - result_disabled
 
-    post_message:
-      action: chatops.post_message
-      input:
-        user: "{{ ctx('user') }}"
-        channel: "{{ ctx('channel') }}"
-        whisper: "{{ ctx('whisper') }}"
-        message: "{{ ctx('message') }}"
-        extra: "{{ ctx('extra') }}"
-      next:
-        - publish:
-            - msg: "Execution result has been posted."
+  post_message:
+    action: chatops.post_message
+    input:
+      user: "{{ ctx('user') }}"
+      channel: "{{ ctx('channel') }}"
+      whisper: "{{ ctx('whisper') }}"
+      message: "{{ ctx('message') }}"
+      extra: "{{ ctx('extra') }}"
+    next:
+      - publish:
+          - msg: "Execution result has been posted."
 
-    result_disabled:
-      action: core.noop
-      next:
-        - publish:
-            - msg: "Execution result is disabled."
+  result_disabled:
+    action: core.noop
+    next:
+      - publish:
+          - msg: "Execution result is disabled."
 output:
   - note: "{{ ctx('msg') }}"
