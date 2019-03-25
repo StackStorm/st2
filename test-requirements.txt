@@ -3,7 +3,7 @@ coverage==4.5.2
 pep8==1.7.1
 flake8==3.7.7
 astroid==1.6.5
-pylint==1.9.3
+pylint==1.9.4
 pylint-plugin-utils>=0.4
 bandit==1.5.1
 ipython<6.0.0
