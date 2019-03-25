@@ -5,29 +5,29 @@ greenlet==0.4.15
 # depend on rely
 eventlet==0.24.1
 gunicorn==19.9.0
-kombu==4.2.2.post1
+kombu==4.4.0
 # Note: amqp is used by kombu
-amqp==2.3.2
+amqp==2.4.2
 # NOTE: Recent version substantially affect the performance and add big import time overhead
 # See https://github.com/StackStorm/st2/issues/4160#issuecomment-394386433 for details
 oslo.config>=1.12.1,<1.13
 oslo.utils>=3.36.2,<=3.37.0
 six==1.12.0
-pyyaml>=4.2b4,<5.2
+pyyaml==5.1
 requests[security]<2.15,>=2.14.1
-apscheduler==3.5.3
+apscheduler==3.6.0
 gitpython==2.1.11
 jsonschema==2.6.0
 pymongo==3.7.2
-mongoengine==0.16.3
+mongoengine==0.17.0
 passlib==1.7.1
 lockfile==0.12.2
 python-gnupg==0.4.4
 jsonpath-rw==1.4.0
 pyinotify==0.9.6
 semver==2.8.1
-pytz==2018.7
-stevedore==1.30.0
+pytz==2018.9
+stevedore==1.30.1
 paramiko==2.4.2
 networkx==1.11
 python-keyczar==0.716
@@ -35,8 +35,8 @@ cryptography==2.4.2
 retrying==1.3.3
 # Note: We use latest version of virtualenv which uses pip 9.0
 virtualenv==15.1.0
-sseclient==0.0.19
-python-editor==1.0.3
+sseclient==0.0.23
+python-editor==1.0.4
 prompt-toolkit==1.0.15
 tooz==1.63.1
 zake==0.2.2
@@ -46,9 +46,9 @@ flex==6.14.0
 prance==0.9.0
 pywinrm==0.3.0
 # test requirements below
-nose-timer==0.7.3
-nose-parallel==0.2.1
-psutil==5.4.8
+nose-timer==0.7.5
+nose-parallel==0.3.1
+psutil==5.6.1
 python-statsd==2.1.0
 prometheus_client==0.1.1
 mock==2.0.0

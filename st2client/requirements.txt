@@ -6,9 +6,9 @@ jsonschema==2.6.0
 prettytable
 prompt-toolkit==1.0.15
 python-dateutil==2.7.5
-python-editor==1.0.3
-pytz==2018.7
-pyyaml<5.2,>=4.2b4
+python-editor==1.0.4
+pytz==2018.9
+pyyaml==5.1
 requests[security]<2.15,>=2.14.1
 six==1.12.0
-sseclient==0.0.19
+sseclient==0.0.23
