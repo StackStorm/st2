@@ -68,7 +68,10 @@ setup(
         'st2common.metrics.driver': [
             'statsd = st2common.metrics.drivers.statsd_driver:StatsdDriver',
             'noop = st2common.metrics.drivers.noop_driver:NoopDriver',
-            'echo = st2common.metrics.drivers.echo_driver:EchoDriver',
+            'echo = st2common.metrics.drivers.echo_driver:EchoDriver'
+        ],
+        'st2common.rbac.backend': [
+            'noop = st2common.rbac.backends.noop:NoOpRBACBackend'
         ],
     }
 )
