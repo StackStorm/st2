@@ -290,7 +290,7 @@ def serialize_positional_argument(argument_type, argument_value):
     elif argument_type == 'object':
         # Objects are serialized as JSON
         argument_value = json.dumps(argument_value) if argument_value else ''
-    elif argument_type is 'null':
+    elif argument_type == 'null':
         # None / null is serialized as en empty string
         argument_value = ''
     else:

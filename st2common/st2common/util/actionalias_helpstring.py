@@ -60,14 +60,14 @@ def generate_helpstring_result(aliases, filter=None, pack=None, limit=0, offset=
                     continue
                 # Skip over help strings not within the requested offset/limit range.
                 if (offset == 0 and limit > 0) and count >= limit:
-                        count += 1
-                        continue
+                    count += 1
+                    continue
                 elif (offset > 0 and limit == 0) and count < offset:
-                        count += 1
-                        continue
+                    count += 1
+                    continue
                 elif (offset > 0 and limit > 0) and (count < offset or count >= offset + limit):
-                        count += 1
-                        continue
+                    count += 1
+                    continue
 
                 matches.append({
                     "pack": alias.pack,

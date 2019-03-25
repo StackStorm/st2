@@ -41,13 +41,13 @@ LOG = logging.getLogger(__name__)
 
 def setup_sigterm_handler():
 
-        def sigterm_handler(signum=None, frame=None):
-            # This will cause SystemExit to be throw and allow for component cleanup.
-            sys.exit(0)
+    def sigterm_handler(signum=None, frame=None):
+        # This will cause SystemExit to be throw and allow for component cleanup.
+        sys.exit(0)
 
-        # Register a SIGTERM signal handler which calls sys.exit which causes SystemExit to
-        # be thrown. We catch SystemExit and handle cleanup there.
-        signal.signal(signal.SIGTERM, sigterm_handler)
+    # Register a SIGTERM signal handler which calls sys.exit which causes SystemExit to
+    # be thrown. We catch SystemExit and handle cleanup there.
+    signal.signal(signal.SIGTERM, sigterm_handler)
 
 
 def setup():

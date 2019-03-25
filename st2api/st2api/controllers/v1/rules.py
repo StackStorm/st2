@@ -171,7 +171,7 @@ class RuleController(BaseResourceIsolationControllerMixin, ContentPackResourceCo
         rule.context['user'] = user
 
         try:
-            if rule.id is not None and rule.id is not '' and rule.id != rule_ref_or_id:
+            if rule.id is not None and rule.id != '' and rule.id != rule_ref_or_id:
                 LOG.warning('Discarding mismatched id=%s found in payload and using uri_id=%s.',
                             rule.id, rule_ref_or_id)
             old_rule_db = rule_db

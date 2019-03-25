@@ -250,7 +250,7 @@ class TriggerController(object):
     def put(self, trigger, trigger_id):
         trigger_db = TriggerController.__get_by_id(trigger_id)
         try:
-            if trigger.id is not None and trigger.id is not '' and trigger.id != trigger_id:
+            if trigger.id is not None and trigger.id != '' and trigger.id != trigger_id:
                 LOG.warning('Discarding mismatched id=%s found in payload and using uri_id=%s.',
                             trigger.id, trigger_id)
             trigger_db = TriggerAPI.to_model(trigger)

@@ -159,7 +159,7 @@ class ActionAliasController(resource.ContentPackResourceController):
             action_alias.id = None
 
         try:
-            if action_alias.id is not None and action_alias.id is not '' and \
+            if action_alias.id is not None and action_alias.id != '' and \
                action_alias.id != ref_or_id:
                 LOG.warning('Discarding mismatched id=%s found in payload and using uri_id=%s.',
                             action_alias.id, ref_or_id)
