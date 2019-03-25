@@ -62,6 +62,9 @@ def register_opts(ignore_errors=False):
             'enable', default=False,
             help='Enable RBAC.'),
         cfg.BoolOpt(
+            'backend', default='noop',
+            help='RBAC backend to use.'),
+        cfg.BoolOpt(
             'sync_remote_groups', default=False,
             help='True to synchronize remote groups returned by the auth backed for each '
                  'StackStorm user with local StackStorm roles based on the group to role '
