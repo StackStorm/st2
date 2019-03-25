@@ -80,7 +80,7 @@ Changed
 
   Contributed by Nick Maludy (Encore Technologies)
 * Update various internal dependencies to latest stable versions (apscheduler, pyyaml, kombu,
-  mongoengine, pytz, stevedore, sseclient, python-editor).
+  mongoengine, pytz, stevedore, sseclient, python-editor). #4610
 
 Fixed
 ~~~~~
