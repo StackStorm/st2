@@ -18,6 +18,7 @@ RBAC related utility functions.
 """
 
 from __future__ import absolute_import
+
 import six
 
 from oslo_config import cfg
@@ -30,7 +31,7 @@ from st2common.exceptions.rbac import ResourceAccessDeniedError
 from st2common.rbac.types import PermissionType
 from st2common.rbac.types import ResourceType
 from st2common.rbac.types import SystemRole
-from st2common.rbac import resolvers
+from st2common.rbac.backends import get_backend_instance
 from st2common.services import rbac as rbac_services
 from st2common.util import action_db as action_utils
 
@@ -151,7 +152,9 @@ def user_has_rule_trigger_permission(user_db, trigger):
     if not cfg.CONF.rbac.enable:
         return True
 
-    rules_resolver = resolvers.get_resolver_for_resource_type(ResourceType.RULE)
+    rbac_backend = get_backend_instance(cfg.CONF.rbac.backend)
+
+    rules_resolver = rbac_backend.get_resolver_for_resource_type(ResourceType.RULE)
     has_trigger_permission = rules_resolver.user_has_trigger_permission(user_db=user_db,
                                                                         trigger=trigger)
 
@@ -179,7 +182,9 @@ def user_has_rule_action_permission(user_db, action_ref):
         ref = ResourceReference.from_string_reference(ref=action_ref)
         action_db = ActionDB(pack=ref.pack, name=ref.name, ref=action_ref)
 
-    action_resolver = resolvers.get_resolver_for_resource_type(ResourceType.ACTION)
+    rbac_backend = get_backend_instance(cfg.CONF.rbac.backend)
+
+    action_resolver = rbac_backend.get_resolver_for_resource_type(ResourceType.ACTION)
     has_action_permission = action_resolver.user_has_resource_db_permission(
         user_db=user_db, resource_db=action_db, permission_type=PermissionType.ACTION_EXECUTE)
 
@@ -305,7 +310,9 @@ def user_has_permission(user_db, permission_type):
         return True
 
     # TODO Verify permission type for the provided resource type
-    resolver = resolvers.get_resolver_for_permission_type(permission_type=permission_type)
+    rbac_backend = get_backend_instance(cfg.CONF.rbac.backend)
+
+    resolver = rbac_backend.get_resolver_for_permission_type(permission_type=permission_type)
     result = resolver.user_has_permission(user_db=user_db, permission_type=permission_type)
     return result
 
@@ -318,7 +325,9 @@ def user_has_resource_api_permission(user_db, resource_api, permission_type):
         return True
 
     # TODO Verify permission type for the provided resource type
-    resolver = resolvers.get_resolver_for_permission_type(permission_type=permission_type)
+    rbac_backend = get_backend_instance(cfg.CONF.rbac.backend)
+
+    resolver = rbac_backend.get_resolver_for_permission_type(permission_type=permission_type)
     result = resolver.user_has_resource_api_permission(user_db=user_db, resource_api=resource_api,
                                                        permission_type=permission_type)
     return result
@@ -332,7 +341,9 @@ def user_has_resource_db_permission(user_db, resource_db, permission_type):
         return True
 
     # TODO Verify permission type for the provided resource type
-    resolver = resolvers.get_resolver_for_permission_type(permission_type=permission_type)
+    rbac_backend = get_backend_instance(cfg.CONF.rbac.backend)
+
+    resolver = rbac_backend.get_resolver_for_permission_type(permission_type=permission_type)
     result = resolver.user_has_resource_db_permission(user_db=user_db, resource_db=resource_db,
                                                       permission_type=permission_type)
     return result
