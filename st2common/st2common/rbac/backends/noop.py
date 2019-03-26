@@ -15,10 +15,12 @@
 
 from st2common.rbac.backends.base import BaseRBACBackend
 from st2common.rbac.backends.base import BaseRBACPermissionResolver
+from st2common.rbac.backends.base import BaseRBACRemoteGroupToRoleSyncer
 
 __all__ = [
     'NoOpRBACBackend',
-    'NoOpRBACPermissionResolver'
+    'NoOpRBACPermissionResolver',
+    'NoOpRBACRemoteGroupToRoleSyncer'
 ]
 
 
@@ -31,6 +33,9 @@ class NoOpRBACBackend(BaseRBACBackend):
 
     def get_resolver_for_permission_type(permission_type):
         return NoOpRBACPermissionResolver()
+
+    def get_remote_group_to_role_syncer(self):
+        pass
 
 
 class NoOpRBACPermissionResolver(BaseRBACPermissionResolver):
@@ -46,3 +51,8 @@ class NoOpRBACPermissionResolver(BaseRBACPermissionResolver):
 
     def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
         return True
+
+
+class NoOpRBACRemoteGroupToRoleSyncer(BaseRBACRemoteGroupToRoleSyncer):
+    def sync(self, user_db, groups):
+        return []

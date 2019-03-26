@@ -20,7 +20,8 @@ import six
 
 __all__ = [
     'BaseRBACBackend',
-    'BaseRBACPermissionResolver'
+    'BaseRBACPermissionResolver',
+    'BaseRBACRemoteGroupToRoleSyncer'
 ]
 
 
@@ -35,6 +36,12 @@ class BaseRBACBackend(object):
     def get_resolver_for_permission_type(resource_type):
         """
         Method which returns PermissionResolver class for the provided permission type.
+        """
+        raise NotImplementedError()
+
+    def get_remote_group_to_role_syncer(self):
+        """
+        Return instance of RBACRemoteGroupToRoleSyncer class.
         """
         raise NotImplementedError()
 
@@ -59,5 +66,21 @@ class BaseRBACPermissionResolver(object):
         """
         Method for checking user permissions on an existing resource (e.g. get one, edit, delete
         operations).
+        """
+        raise NotImplementedError()
+
+
+@six.add_metaclass(abc.ABCMeta)
+class BaseRBACRemoteGroupToRoleSyncer(object):
+    def sync(self, user_db, groups):
+        """
+        :param user_db: User to sync the assignments for.
+        :type user: :class:`UserDB`
+
+        :param groups: A list of remote groups user is a member of.
+        :type groups: ``list`` of ``str``
+
+        :return: A list of mappings which have been created.
+        :rtype: ``list`` of :class:`UserRoleAssignmentDB`
         """
         raise NotImplementedError()
