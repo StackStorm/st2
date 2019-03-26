@@ -29,8 +29,8 @@ import st2common.validators.api.action as action_validator
 from st2common.models.db import liveaction as lv_db_models
 from st2common.services import action as action_service
 
-from tests.base import BaseInquiryControllerTestCase
-from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
+from st2tests.api import BaseInquiryControllerTestCase
+from st2tests.api import APIControllerWithIncludeAndExcludeFilterTestCase
 
 LOG = logging.getLogger(__name__)
 

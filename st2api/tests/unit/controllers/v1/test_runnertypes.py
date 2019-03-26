@@ -15,8 +15,8 @@
 
 from st2api.controllers.v1.runnertypes import RunnerTypesController
 
-from tests.base import FunctionalTest
-from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
+from st2tests.api import FunctionalTest
+from st2tests.api import APIControllerWithIncludeAndExcludeFilterTestCase
 
 __all__ = [
     'RunnerTypesControllerTestCase'

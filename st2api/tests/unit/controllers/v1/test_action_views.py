@@ -20,8 +20,8 @@ import st2common.validators.api.action as action_validator
 from st2common.util.compat import mock_open_name
 from st2api.controllers.v1.action_views import OverviewController
 
-from tests import FunctionalTest
-from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
+from st2tests.api import FunctionalTest
+from st2tests.api import APIControllerWithIncludeAndExcludeFilterTestCase
 
 # ACTION_1: Good action definition.
 ACTION_1 = {

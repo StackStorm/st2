@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from tests import FunctionalTest
+from st2tests.api import FunctionalTest
 
 __all__ = [
     'RootControllerTestCase'

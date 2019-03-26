@@ -20,7 +20,7 @@ from st2common.services import coordination
 
 from st2tests import config as tests_config
 
-from tests.base import FunctionalTest
+from st2tests.api import FunctionalTest
 
 __all__ = [
     'ServiceyRegistryControllerTestCase'

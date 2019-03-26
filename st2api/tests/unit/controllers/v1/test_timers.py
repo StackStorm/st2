@@ -26,7 +26,7 @@ from st2tests.fixturesloader import FixturesLoader
 from st2common.constants.triggers import INTERVAL_TIMER_TRIGGER_REF, DATE_TIMER_TRIGGER_REF
 from st2common.constants.triggers import CRON_TIMER_TRIGGER_REF
 
-from tests import FunctionalTest
+from st2tests.api import FunctionalTest
 
 PACK = 'timers'
 FIXTURES = {

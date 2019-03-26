@@ -28,8 +28,8 @@ from st2api.controllers.v1.actionexecutions import ActionExecutionsControllerMix
 from st2api.controllers.v1.packs import PacksController
 from st2api.controllers.v1.packs import ENTITIES
 
-from tests.base import FunctionalTest
-from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
+from st2tests.api import FunctionalTest
+from st2tests.api import APIControllerWithIncludeAndExcludeFilterTestCase
 
 from st2tests.fixturesloader import get_fixtures_base_path
 

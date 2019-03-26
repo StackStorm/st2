@@ -23,7 +23,7 @@ from st2common.models.db.auth import UserDB
 from st2common.models.db.rbac import RoleDB
 from st2common.models.db.rbac import UserRoleAssignmentDB
 from st2common.models.db.rbac import PermissionGrantDB
-from tests.base import APIControllerWithRBACTestCase
+from st2tests.api import APIControllerWithRBACTestCase
 
 
 class RBACControllerTestCase(APIControllerWithRBACTestCase):

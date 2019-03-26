@@ -64,7 +64,7 @@ def get_mock_backend(name):
     return MockAuthBackend()
 
 
-@mock.patch('st2auth.handlers.get_backend_instance', get_mock_backend)
+@mock.patch('st2auth.handlers.get_auth_backend_instance', get_mock_backend)
 class HandlerTestCase(CleanDbTestCase):
     def setUp(self):
         super(HandlerTestCase, self).setUp()

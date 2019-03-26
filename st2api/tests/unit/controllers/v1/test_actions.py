@@ -36,8 +36,8 @@ from st2api.controllers.v1.actions import ActionsController
 from st2tests.fixturesloader import get_fixtures_packs_base_path
 from st2tests.base import CleanFilesTestCase
 
-from tests.base import FunctionalTest
-from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
+from st2tests.api import FunctionalTest
+from st2tests.api import APIControllerWithIncludeAndExcludeFilterTestCase
 
 # ACTION_1: Good action definition.
 ACTION_1 = {

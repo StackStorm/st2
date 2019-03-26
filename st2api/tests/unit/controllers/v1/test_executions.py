@@ -41,12 +41,12 @@ from st2common.util import isotime
 from st2common.util import date as date_utils
 from st2api.controllers.v1.actionexecutions import ActionExecutionsController
 import st2common.validators.api.action as action_validator
-from tests.base import BaseActionExecutionControllerTestCase
+from st2tests.api import BaseActionExecutionControllerTestCase
 from st2tests.api import SUPER_SECRET_PARAMETER
 from st2tests.api import ANOTHER_SUPER_SECRET_PARAMETER
 
-from tests.base import FunctionalTest
-from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
+from st2tests.api import FunctionalTest
+from st2tests.api import APIControllerWithIncludeAndExcludeFilterTestCase
 
 __all__ = [
     'ActionExecutionControllerTestCase',

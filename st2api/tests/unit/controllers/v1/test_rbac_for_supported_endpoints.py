@@ -29,7 +29,7 @@ from st2common.services import coordination
 from st2tests import config as tests_config
 from st2tests.fixturesloader import FixturesLoader
 
-from tests.base import APIControllerWithRBACTestCase
+from st2tests.api import APIControllerWithRBACTestCase
 from tests.unit.controllers.v1.test_webhooks import DUMMY_TRIGGER_DICT
 
 http_client = six.moves.http_client

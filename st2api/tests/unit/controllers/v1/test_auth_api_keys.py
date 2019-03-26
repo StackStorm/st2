@@ -20,7 +20,7 @@ from six.moves import http_client
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 from st2common.persistence.auth import ApiKey
 from st2tests.fixturesloader import FixturesLoader
-from tests import FunctionalTest
+from st2tests.api import FunctionalTest
 
 FIXTURES_PACK = 'generic'
 

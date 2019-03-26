@@ -27,8 +27,8 @@ from st2common.transport.publishers import PoolPublisher
 from st2api.controllers.v1.rules import RuleController
 from st2tests.fixturesloader import FixturesLoader
 
-from tests.base import FunctionalTest
-from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
+from st2tests.api import FunctionalTest
+from st2tests.api import APIControllerWithIncludeAndExcludeFilterTestCase
 
 http_client = six.moves.http_client
 

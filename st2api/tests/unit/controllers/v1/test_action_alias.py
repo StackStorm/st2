@@ -18,8 +18,8 @@ from st2api.controllers.v1.actionalias import ActionAliasController
 
 from st2tests.fixturesloader import FixturesLoader
 
-from tests.base import FunctionalTest
-from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
+from st2tests.api import FunctionalTest
+from st2tests.api import APIControllerWithIncludeAndExcludeFilterTestCase
 
 FIXTURES_PACK = 'aliases'
 

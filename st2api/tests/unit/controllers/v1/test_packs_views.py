@@ -18,7 +18,7 @@ import mock
 from six.moves import http_client
 import st2common.bootstrap.actionsregistrar as actions_registrar
 from st2common.persistence.pack import Pack
-from tests import FunctionalTest
+from st2tests.api import FunctionalTest
 
 
 @mock.patch('st2common.bootstrap.base.REGISTERED_PACKS_CACHE', {})
