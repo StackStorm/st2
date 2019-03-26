@@ -61,7 +61,7 @@ def register_opts(ignore_errors=False):
         cfg.BoolOpt(
             'enable', default=False,
             help='Enable RBAC.'),
-        cfg.BoolOpt(
+        cfg.StrOpt(
             'backend', default='noop',
             help='RBAC backend to use.'),
         cfg.BoolOpt(
