@@ -49,7 +49,6 @@ setup(
         'bin/st2-bootstrap-rmq',
         'bin/st2-cleanup-db',
         'bin/st2-register-content',
-        'bin/st2-apply-rbac-definitions',
         'bin/st2-purge-executions',
         'bin/st2-purge-trigger-instances',
         'bin/st2-run-pack-tests',
