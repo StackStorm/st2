@@ -29,8 +29,8 @@ from st2common.router import abort
 from st2common.services.access import create_token
 from st2common.models.api.auth import TokenAPI
 from st2common.models.db.auth import UserDB
-from st2common.rbac.syncer import RBACRemoteGroupToRoleSyncer
-from st2auth.backends import get_backend_instance
+from st2common.rbac.backends import get_backend_instance as get_rbac_backend_instance
+from st2auth.backends import get_backend_instance as get_auth_backend_instance
 
 LOG = logging.getLogger(__name__)
 
@@ -128,7 +128,7 @@ class ProxyAuthHandler(AuthHandlerBase):
 
 class StandaloneAuthHandler(AuthHandlerBase):
     def __init__(self, *args, **kwargs):
-        self._auth_backend = get_backend_instance(name=cfg.CONF.auth.backend)
+        self._auth_backend = get_auth_backend_instance(name=cfg.CONF.auth.backend)
         super(StandaloneAuthHandler, self).__init__(*args, **kwargs)
 
     def handle_auth(self, request, headers=None, remote_addr=None, remote_user=None,
@@ -183,7 +183,7 @@ class StandaloneAuthHandler(AuthHandlerBase):
                 return
 
             # If remote group sync is enabled, sync the remote groups with local StackStorm roles
-            if cfg.CONF.rbac.sync_remote_groups:
+            if cfg.CONF.rbac.sync_remote_groups and cfg.CONF.rbac.backend != 'noop':
                 LOG.debug('Retrieving auth backend groups for user "%s"' % (username),
                           extra=extra)
                 try:
@@ -203,8 +203,11 @@ class StandaloneAuthHandler(AuthHandlerBase):
                 LOG.debug('Found "%s" groups for user "%s"' % (len(user_groups), username),
                           extra=extra)
 
+
                 user_db = UserDB(name=username)
-                syncer = RBACRemoteGroupToRoleSyncer()
+
+                rbac_backend = get_rbac_backend_instance(cfg.CONF.rbac.backend)
+                syncer = rbac_backend.get_remote_group_to_role_syncer()
 
                 try:
                     syncer.sync(user_db=user_db, groups=user_groups)

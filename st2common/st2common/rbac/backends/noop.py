@@ -35,7 +35,7 @@ class NoOpRBACBackend(BaseRBACBackend):
         return NoOpRBACPermissionResolver()
 
     def get_remote_group_to_role_syncer(self):
-        pass
+        return NoOpRBACRemoteGroupToRoleSyncer()
 
 
 class NoOpRBACPermissionResolver(BaseRBACPermissionResolver):
