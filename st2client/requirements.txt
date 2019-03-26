@@ -11,4 +11,4 @@ pytz==2018.9
 pyyaml==5.1
 requests[security]<2.15,>=2.14.1
 six==1.12.0
-sseclient==0.0.23
+sseclient==0.0.19
