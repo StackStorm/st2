@@ -27,13 +27,13 @@ __all__ = [
 
 @six.add_metaclass(abc.ABCMeta)
 class BaseRBACBackend(object):
-    def get_resolver_for_resource_type(resource_type):
+    def get_resolver_for_resource_type(self, resource_type):
         """
         Method which returns PermissionResolver class for the provided resource type.
         """
         raise NotImplementedError()
 
-    def get_resolver_for_permission_type(resource_type):
+    def get_resolver_for_permission_type(self, permission_type):
         """
         Method which returns PermissionResolver class for the provided permission type.
         """
