@@ -95,6 +95,7 @@ Fixed
   is acquired before write operations to avoid write conflicts. (bug fix) Stackstorm/orquesta#125
 * Fix a bug with some API endpoints returning 500 internal server error when an exception contained
   unicode data. (bug fix) #4598
+* Added missing parameter types to ``linux.wait_for_ssh`` action metadata. (bug fix) #4611
 
 2.10.4 - March 15, 2019
 -----------------------
