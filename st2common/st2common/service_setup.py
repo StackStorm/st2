@@ -186,6 +186,13 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
         register_service_in_service_registry(service=service, capabilities=capabilities,
                                              start_heart=True)
 
+    # RBAC backend check
+    if cfg.CONF.rbac.enable and cfg.CONF.rbac.backend != 'enterprise':
+        msg = ('You have enabled RBAC, but RBAC backend is not set to "enterprise". '
+               'For RBAC to work, you need to install "bwc-enterprise" package and set '
+               '"rbac.backend" config option to "enterprise".')
+        LOG.warn(msg)
+
 
 def teardown():
     """
