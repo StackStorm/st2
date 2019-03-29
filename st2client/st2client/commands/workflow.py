@@ -21,6 +21,7 @@ import os
 import yaml
 
 from st2client import commands
+from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
 
 
 LOG = logging.getLogger(__name__)
@@ -79,6 +80,7 @@ class WorkflowInspectionCommand(commands.Command):
 
         return content
 
+    @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         wf_def_file = args.file
 
@@ -98,6 +100,7 @@ class WorkflowInspectionCommand(commands.Command):
 
         return self.manager.inspect(wf_def, **kwargs)
 
+    @add_auth_token_to_kwargs_from_cli
     def run_and_print(self, args, **kwargs):
         errors = self.run(args, **kwargs)
 
