@@ -15,6 +15,8 @@
 
 from st2common import log as logging
 
+from st2common.util import driver_loader
+
 
 __all__ = [
     'get_available_backends',
@@ -27,37 +29,8 @@ BACKENDS_NAMESPACE = 'st2common.rbac.backend'
 
 
 def get_available_backends():
-    """
-    Return names of the available / installed backends.
-
-    :rtype: ``list`` of ``str``
-    """
-    from stevedore.extension import ExtensionManager
-
-    manager = ExtensionManager(namespace=BACKENDS_NAMESPACE, invoke_on_load=False)
-    return manager.names()
+    return driver_loader.get_available_backends(namespace=BACKENDS_NAMESPACE)
 
 
 def get_backend_instance(name):
-    """
-    Retrieve a class instance for the provided backend.
-
-    :param name: Backend name.
-    :type name: ``str``
-    """
-    from stevedore.driver import DriverManager
-
-    LOG.debug('Retrieving backend instance for backend "%s"' % (name))
-
-    try:
-        manager = DriverManager(namespace=BACKENDS_NAMESPACE, name=name,
-                                invoke_on_load=False)
-    except RuntimeError:
-        message = 'Invalid RBAC backend specified: %s' % (name)
-        LOG.exception(message)
-        raise ValueError(message)
-
-    cls = manager.driver
-    cls_instance = cls()
-
-    return cls_instance
+    return driver_loader.get_backend_instance(namespace=BACKENDS_NAMESPACE, name=name)
