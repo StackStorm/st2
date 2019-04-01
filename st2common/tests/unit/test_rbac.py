@@ -14,11 +14,16 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
+import unittest2
 from oslo_config import cfg
 
 from st2tests import config
 from st2tests.base import CleanDbTestCase
 from st2common.rbac import utils
+from st2common.rbac.types import PermissionType
+from st2common.rbac.types import ResourceType
+from st2common.rbac.backends import get_backend_instance
 from st2common.models.db.auth import UserDB
 from st2common.models.db.rbac import RoleDB
 from st2common.persistence.rbac import Role
@@ -94,3 +99,22 @@ class RBACRoleDBTestCase(CleanDbTestCase):
         created = Role.insert(role_db)
         retrieved = Role.get_by_id(created.id)
         self.assertEqual(retrieved.name, role_db.name, 'Failed to save RoleDB object.')
+
+
+class NoOpRBACBackendTestCase(unittest2.TestCase):
+    def test_noop_backend(self):
+        backend = get_backend_instance(name='noop')
+
+        resolver = backend.get_resolver_for_permission_type(
+            permission_type=PermissionType.ACTION_VIEW)
+        self.assertTrue(resolver.user_has_permission(None, None))
+        self.assertTrue(resolver.user_has_resource_api_permission(None, None, None))
+        self.assertTrue(resolver.user_has_resource_db_permission(None, None, None))
+
+        resolver = backend.get_resolver_for_resource_type(resource_type=ResourceType.ACTION)
+        self.assertTrue(resolver.user_has_permission(None, None))
+        self.assertTrue(resolver.user_has_resource_api_permission(None, None, None))
+        self.assertTrue(resolver.user_has_resource_db_permission(None, None, None))
+
+        remote_group_syncer = backend.get_remote_group_to_role_syncer()
+        self.assertEqual(remote_group_syncer.sync(None, None), [])
