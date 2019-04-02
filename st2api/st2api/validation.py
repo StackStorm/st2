@@ -21,9 +21,28 @@ __all__ = [
 
 
 def validate_rbac_is_correctly_configured():
-    if cfg.CONF.rbac.enable and not cfg.CONF.auth.enable:
+    if not cfg.CONF.rbac.enable:
+        return True
+
+    from st2common.rbac.backends import get_available_backends
+    available_rbac_backends = get_available_backends()
+
+    # 1. Verify auth is enabled
+    if not cfg.CONF.auth.enable:
         msg = ('Authentication is not enabled. RBAC only works when authentication is enabled. '
                'You can either enable authentication or disable RBAC.')
         raise ValueError(msg)
 
-    return True
+    # 2. Verify enterprise backend is set
+    if cfg.CONF.rbac.backend != 'enterprise':
+        msg = ('You have enabled RBAC, but RBAC backend is not set to "enterprise". '
+               'For RBAC to work, you need to install "bwc-enterprise" package, set '
+               '"rbac.backend" config option to "enterprise" and restart st2api service.')
+        raise ValueError(msg)
+
+    # 2. Verify enterprise bits are available
+    if 'enterprise' not in available_rbac_backends:
+        msg = ('"enterprise" RBAC backend is not available. Make sure '
+               '"bwc-enterprise" and "st2-rbac-backend" system packages are '
+               'installed.')
+        raise ValueError(msg)
