@@ -152,21 +152,3 @@ class ServiceSetupTestCase(CleanFilesTestCase):
                                 register_signal_handlers=False,
                                 register_internal_trigger_types=False,
                                 run_migrations=False)
-
-    @mock.patch('st2common.constants.system.DEFAULT_CONFIG_FILE_PATH',
-            MOCK_DEFAULT_CONFIG_FILE_PATH)
-    @mock.patch('st2common.service_setup.logging', mock.Mock())
-    def test_service_setup_rbac_not_properly_configured(self):
-
-        cfg.CONF.reset()
-
-        expected_msg = 'You have enabled RBAC, but RBAC backend is not set to "enterprise"'
-        self.assertRaisesRegexp(ValueError, expected_msg, service_setup.setup,
-                                service='api',
-                                config=st2common_config,
-                                config_args=[],
-                                setup_db=False, register_mq_exchanges=False,
-                                register_signal_handlers=False,
-                                register_internal_trigger_types=False,
-                                register_runners=False,
-                                run_migrations=False)

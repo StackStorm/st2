@@ -21,6 +21,9 @@ __all__ = [
 
 
 def validate_rbac_is_correctly_configured():
+    """
+    Function which verifies that RBAC is correctly set up and configured.
+    """
     if not cfg.CONF.rbac.enable:
         return True
 
