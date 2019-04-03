@@ -29,7 +29,7 @@ from st2common.router import abort
 from st2common.services.access import create_token
 from st2common.models.api.auth import TokenAPI
 from st2common.models.db.auth import UserDB
-from st2common.rbac.backends import get_backend_instance as get_rbac_backend_instance
+from st2common.rbac.backends import get_rbac_backend
 from st2auth.backends import get_backend_instance as get_auth_backend_instance
 
 LOG = logging.getLogger(__name__)
@@ -203,10 +203,9 @@ class StandaloneAuthHandler(AuthHandlerBase):
                 LOG.debug('Found "%s" groups for user "%s"' % (len(user_groups), username),
                           extra=extra)
 
-
                 user_db = UserDB(name=username)
 
-                rbac_backend = get_rbac_backend_instance(cfg.CONF.rbac.backend)
+                rbac_backend = get_rbac_backend()
                 syncer = rbac_backend.get_remote_group_to_role_syncer()
 
                 try:

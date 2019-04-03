@@ -151,7 +151,13 @@ class BaseRBACUtilsClass(object):
         Function which asserts that the request user is administator if "user" query parameter is
         provided and doesn't match the current user.
         """
-        raise NotImplementedError()
+        # To avoid potential security issues when RBAC is disabled, we don't support ?user=foo
+        # query param when RBAC is disabled
+        is_rbac_enabled = bool(cfg.CONF.rbac.enable)
+
+        if user != user_db.name and require_rbac and not is_rbac_enabled:
+            msg = '"user" attribute can only be provided by admins when RBAC is enabled'
+            raise AccessDeniedError(message=msg, user_db=user_db)
 
     # Regular methods
     @staticmethod

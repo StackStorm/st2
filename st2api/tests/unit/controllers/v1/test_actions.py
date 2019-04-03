@@ -344,7 +344,8 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
         self.__do_delete(action_1_id)
         self.__do_delete(action_2_id)
 
-    @mock.patch('st2common.rbac.backends.noop.NoOpRBACUtilsClass.user_is_admin', mock.Mock(return_value=False))
+    @mock.patch('st2common.rbac.backends.noop.NoOpRBACUtilsClass.user_is_admin',
+                mock.Mock(return_value=False))
     def test_get_all_invalid_limit_too_large_none_admin(self):
         # limit > max_page_size, but user is not admin
         resp = self.app.get('/v1/actions?limit=1000', expect_errors=True)
