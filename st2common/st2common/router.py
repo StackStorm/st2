@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import copy
 import functools
 import re
@@ -34,7 +35,7 @@ from st2common.exceptions import rbac as rbac_exc
 from st2common.exceptions import auth as auth_exc
 from st2common import log as logging
 from st2common.persistence.auth import User
-from st2common.rbac.backends import get_backend_instance
+from st2common.rbac.backends import get_rbac_backend
 from st2common.util import date as date_utils
 from st2common.util.jsonify import json_encode
 from st2common.util.jsonify import get_json_type_for_python_value
@@ -339,7 +340,7 @@ class Router(object):
 
                 permission_type = endpoint.get('x-permissions', None)
                 if permission_type:
-                    rbac_backend = get_backend_instance(cfg.CONF.rbac.backend)
+                    rbac_backend = get_rbac_backend()
 
                     resolver = rbac_backend.get_resolver_for_permission_type(permission_type)
                     has_permission = resolver.user_has_permission(user_db, permission_type)
