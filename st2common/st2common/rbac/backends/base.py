@@ -25,6 +25,8 @@ from st2common.exceptions.rbac import AccessDeniedError
 __all__ = [
     'BaseRBACBackend',
     'BaseRBACPermissionResolver',
+    'BaseRBACService',
+    'BaseRBACUtils',
     'BaseRBACRemoteGroupToRoleSyncer'
 ]
 
@@ -47,6 +49,12 @@ class BaseRBACBackend(object):
     def get_remote_group_to_role_syncer(self):
         """
         Return instance of RBACRemoteGroupToRoleSyncer class.
+        """
+        raise NotImplementedError()
+
+    def get_service_class(self):
+        """
+        Method which returns reference to the service class instance.
         """
         raise NotImplementedError()
 
@@ -78,6 +86,29 @@ class BaseRBACPermissionResolver(object):
         Method for checking user permissions on an existing resource (e.g. get one, edit, delete
         operations).
         """
+        raise NotImplementedError()
+
+
+class BaseRBACService(abc.ABCMeta):
+    """
+    Class which contains RBAC related service methods (methods for manipulating the database).
+    """
+
+    def get_roles_for_user(user_db, include_remote=True):
+        """
+        Retrieve all the roles assigned to the provided user.
+
+        :param user_db: User to retrieve the roles for.
+        :type user_db: :class:`UserDB`
+
+        :param include_remote: True to also include remote role assignments.
+        :type include_remote: ``bool``
+
+        :rtype: ``list`` of :class:`RoleDB`
+        """
+        raise NotImplementedError()
+
+    def validate_roles_exists(role_names):
         raise NotImplementedError()
 
 

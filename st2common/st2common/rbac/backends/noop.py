@@ -19,6 +19,7 @@ from oslo_config import cfg
 
 from st2common.rbac.backends.base import BaseRBACBackend
 from st2common.rbac.backends.base import BaseRBACPermissionResolver
+from st2common.rbac.backends.base import BaseRBACService
 from st2common.rbac.backends.base import BaseRBACUtils
 from st2common.rbac.backends.base import BaseRBACRemoteGroupToRoleSyncer
 from st2common.exceptions.rbac import AccessDeniedError
@@ -26,6 +27,7 @@ from st2common.exceptions.rbac import AccessDeniedError
 __all__ = [
     'NoOpRBACBackend',
     'NoOpRBACPermissionResolver',
+    'NoOpRBACService',
     'NoOpRBACUtils',
     'NoOpRBACRemoteGroupToRoleSyncer'
 ]
@@ -44,6 +46,9 @@ class NoOpRBACBackend(BaseRBACBackend):
     def get_remote_group_to_role_syncer(self):
         return NoOpRBACRemoteGroupToRoleSyncer()
 
+    def get_service_class(self):
+        return NoOpRBACService
+
     def get_utils_class(self):
         return NoOpRBACUtils
 
@@ -60,6 +65,16 @@ class NoOpRBACPermissionResolver(BaseRBACPermissionResolver):
         return True
 
     def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
+        return True
+
+
+class NoOpRBACService(BaseRBACService):
+    @staticmethod
+    def get_roles_for_user(user_db, include_remote=True):
+        return []
+
+    @staticmethod
+    def validate_roles_exists(role_names):
         return True
 
 
