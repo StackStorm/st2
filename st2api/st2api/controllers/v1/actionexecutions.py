@@ -47,7 +47,6 @@ from st2common.router import Response
 from st2common.services import action as action_service
 from st2common.services import executions as execution_service
 from st2common.services import trace as trace_service
-from st2common.services import rbac as rbac_service
 from st2common.util import isotime
 from st2common.util import action_db as action_utils
 from st2common.util import param as param_utils
@@ -170,6 +169,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         # Include RBAC context (if RBAC is available and enabled)
         if cfg.CONF.rbac.enable:
             user_db = UserDB(name=user)
+            rbac_service = get_rbac_backend().get_service_class()
             role_dbs = rbac_service.get_roles_for_user(user_db=user_db, include_remote=True)
             roles = [role_db.name for role_db in role_dbs]
             liveaction.context['rbac'] = {
