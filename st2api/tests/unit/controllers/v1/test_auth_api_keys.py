@@ -104,7 +104,7 @@ class TestApiKeyController(FunctionalTest):
         retrieved_ids = [apikey['id'] for apikey in resp.json]
         self.assertEqual(retrieved_ids, [str(self.apikey1.id), str(self.apikey2.id)])
 
-    @mock.patch('st2common.rbac.backends.noop.NoOpRBACUtilsClass.user_is_admin',
+    @mock.patch('st2common.rbac.backends.noop.NoOpRBACUtils.user_is_admin',
                 mock.Mock(return_value=False))
     def test_get_all_invalid_limit_too_large_none_admin(self):
         # limit > max_page_size, but user is not admin
