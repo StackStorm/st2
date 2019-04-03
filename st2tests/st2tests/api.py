@@ -158,7 +158,7 @@ class FunctionalTest(BaseFunctionalTest):
     app_module = app
 
 
- # pylint: disable=no-member
+# pylint: disable=no-member
 class APIControllerWithIncludeAndExcludeFilterTestCase(object):
     """
     Base class which is to be inherited from the API controller test cases which support
