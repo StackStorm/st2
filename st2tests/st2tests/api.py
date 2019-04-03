@@ -158,6 +158,7 @@ class FunctionalTest(BaseFunctionalTest):
     app_module = app
 
 
+ # pylint: disable=no-member
 class APIControllerWithIncludeAndExcludeFilterTestCase(object):
     """
     Base class which is to be inherited from the API controller test cases which support
@@ -315,6 +316,9 @@ class APIControllerWithIncludeAndExcludeFilterTestCase(object):
         for object_id in object_ids:
             self._do_delete(object_id)
 
+    def _do_delete(self, object_id):
+        pass
+
 
 class FakeResponse(object):
 
@@ -331,6 +335,7 @@ class FakeResponse(object):
 
 
 class BaseActionExecutionControllerTestCase(object):
+    app = None
 
     @staticmethod
     def _get_actionexecution_id(resp):
