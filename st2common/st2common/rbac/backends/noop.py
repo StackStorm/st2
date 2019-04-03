@@ -19,14 +19,14 @@ from oslo_config import cfg
 
 from st2common.rbac.backends.base import BaseRBACBackend
 from st2common.rbac.backends.base import BaseRBACPermissionResolver
-from st2common.rbac.backends.base import BaseRBACUtilsClass
+from st2common.rbac.backends.base import BaseRBACUtils
 from st2common.rbac.backends.base import BaseRBACRemoteGroupToRoleSyncer
 from st2common.exceptions.rbac import AccessDeniedError
 
 __all__ = [
     'NoOpRBACBackend',
     'NoOpRBACPermissionResolver',
-    'NoOpRBACUtilsClass',
+    'NoOpRBACUtils',
     'NoOpRBACRemoteGroupToRoleSyncer'
 ]
 
@@ -45,7 +45,7 @@ class NoOpRBACBackend(BaseRBACBackend):
         return NoOpRBACRemoteGroupToRoleSyncer()
 
     def get_utils_class(self):
-        return NoOpRBACUtilsClass
+        return NoOpRBACUtils
 
 
 class NoOpRBACPermissionResolver(BaseRBACPermissionResolver):
@@ -63,7 +63,7 @@ class NoOpRBACPermissionResolver(BaseRBACPermissionResolver):
         return True
 
 
-class NoOpRBACUtilsClass(BaseRBACUtilsClass):
+class NoOpRBACUtils(BaseRBACUtils):
 
     @staticmethod
     def assert_user_is_admin(user_db):
@@ -90,7 +90,6 @@ class NoOpRBACUtilsClass(BaseRBACUtilsClass):
         which belongs to that user.
         """
         return True
-        raise NotImplementedError()
 
     @staticmethod
     def assert_user_has_permission(user_db, permission_type):

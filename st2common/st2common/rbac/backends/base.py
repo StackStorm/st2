@@ -17,8 +17,8 @@ from __future__ import absolute_import
 
 import abc
 
-from oslo_config import cfg
 import six
+from oslo_config import cfg
 
 from st2common.exceptions.rbac import AccessDeniedError
 
@@ -82,7 +82,7 @@ class BaseRBACPermissionResolver(object):
 
 
 @six.add_metaclass(abc.ABCMeta)
-class BaseRBACUtilsClass(object):
+class BaseRBACUtils(object):
 
     # Assertion methods which throw an exception if assertion fails
     @staticmethod
