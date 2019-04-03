@@ -29,7 +29,7 @@ from st2common.models.utils import action_param_utils
 from st2common.persistence.action import Action
 from st2common.persistence.runner import RunnerType
 from st2common.rbac.types import PermissionType
-from st2common.rbac import utils as rbac_utils
+from st2common.rbac.backends import get_rbac_backend
 from st2common.router import abort
 from st2common.router import Response
 
@@ -90,6 +90,7 @@ class ParametersViewController(object):
         action_db = LookupUtils._get_action_by_id(action_id)
 
         permission_type = PermissionType.ACTION_VIEW
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=action_db,
                                                           permission_type=permission_type)
@@ -210,6 +211,7 @@ class EntryPointController(resource.ContentPackResourceController):
         action_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
 
         permission_type = PermissionType.ACTION_VIEW
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=action_db,
                                                           permission_type=permission_type)

@@ -20,7 +20,7 @@ from st2common.models.api.rbac import UserRoleAssignmentAPI
 from st2common.persistence.rbac import Role
 from st2common.rbac.types import get_resource_permission_types_with_descriptions
 from st2common.persistence.rbac import UserRoleAssignment
-from st2common.rbac import utils as rbac_utils
+from st2common.rbac.backends import get_rbac_backend
 from st2common.router import exc
 
 __all__ = [
@@ -43,6 +43,7 @@ class RolesController(ResourceController):
     }
 
     def get_one(self, name_or_id, requester_user):
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_is_admin(user_db=requester_user)
 
         return self._get_one_by_name_or_id(name_or_id=name_or_id,
@@ -50,7 +51,6 @@ class RolesController(ResourceController):
                                            requester_user=requester_user)
 
     def get_all(self, requester_user, sort=None, offset=0, limit=None, **raw_filters):
-        rbac_utils.assert_user_is_admin(user_db=requester_user)
         return self._get_all(sort=sort,
                              offset=offset,
                              limit=limit,
@@ -73,6 +73,7 @@ class RoleAssignmentsController(ResourceController):
 
     def get_all(self, requester_user, sort=None, offset=0, limit=None, **raw_filters):
         user = raw_filters.get('user', None)
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_is_admin_or_operating_on_own_resource(user_db=requester_user,
                                                                      user=user)
 
@@ -88,6 +89,7 @@ class RoleAssignmentsController(ResourceController):
                                    permission_type=None)
         user = getattr(result, 'user', None)
 
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_is_admin_or_operating_on_own_resource(user_db=requester_user,
                                                                      user=user)
 
@@ -106,6 +108,7 @@ class PermissionTypesController(object):
             Handles requests:
                 GET /rbac/permission_types
         """
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_is_admin(user_db=requester_user)
 
         result = get_resource_permission_types_with_descriptions()
@@ -118,6 +121,7 @@ class PermissionTypesController(object):
             Handles requests:
                 GET /rbac/permission_types/<resource type>
         """
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_is_admin(user_db=requester_user)
 
         all_permission_types = get_resource_permission_types_with_descriptions()

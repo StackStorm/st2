@@ -15,7 +15,7 @@
 
 from oslo_config import cfg
 
-from st2common.rbac import utils as rbac_utils
+from st2common.rbac.backends import get_rbac_backend
 from st2common.services.rbac import get_roles_for_user
 
 __all__ = [
@@ -40,6 +40,7 @@ class UserController(object):
         else:
             roles = []
 
+        rbac_utils = get_rbac_backend().get_utils_class()
         data = {
             'username': requester_user.name,
             'authentication': {

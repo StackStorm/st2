@@ -53,9 +53,7 @@ from st2common.util import action_db as action_utils
 from st2common.util import param as param_utils
 from st2common.util.jsonify import try_loads
 from st2common.rbac.types import PermissionType
-from st2common.rbac import utils as rbac_utils
-from st2common.rbac.utils import assert_user_has_resource_db_permission
-from st2common.rbac.utils import assert_user_is_admin_if_user_query_param_is_provided
+from st2common.rbac.backends import get_rbac_backend
 
 __all__ = [
     'ActionExecutionsController'
@@ -118,13 +116,16 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
             abort(http_client.BAD_REQUEST, message)
 
         # Assert the permissions
-        assert_user_has_resource_db_permission(user_db=requester_user, resource_db=action_db,
-                                               permission_type=PermissionType.ACTION_EXECUTE)
+        permission_type = PermissionType.ACTION_EXECUTE
+        rbac_utils = get_rbac_backend().get_utils_class()
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=action_db,
+                                                          permission_type=permission_type)
 
         # Validate that the authenticated user is admin if user query param is provided
         user = liveaction_api.user or requester_user.name
-        assert_user_is_admin_if_user_query_param_is_provided(user_db=requester_user,
-                                                             user=user)
+        rbac_utils.assert_user_is_admin_if_user_query_param_is_provided(user_db=requester_user,
+                                                                        user=user)
 
         try:
             return self._schedule_execution(liveaction=liveaction_api,
@@ -299,6 +300,7 @@ class ActionExecutionAttributeController(BaseActionExecutionNestedController):
         action_exec_db = self.access.impl.model.objects.filter(id=id).only(*fields).get()
 
         permission_type = PermissionType.EXECUTION_VIEW
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=action_exec_db,
                                                           permission_type=permission_type)
