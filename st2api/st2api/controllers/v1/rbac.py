@@ -51,6 +51,9 @@ class RolesController(ResourceController):
                                            requester_user=requester_user)
 
     def get_all(self, requester_user, sort=None, offset=0, limit=None, **raw_filters):
+        rbac_utils = get_rbac_backend().get_utils_class()
+        rbac_utils.assert_user_is_admin(user_db=requester_user)
+
         return self._get_all(sort=sort,
                              offset=offset,
                              limit=limit,
