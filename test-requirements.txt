@@ -25,6 +25,7 @@ gunicorn==19.9.0
 psutil==5.4.8
 webtest==2.0.25
 rstcheck>=3.3.1,<3.4
+tox==3.7.0
 pyrabbit
 # Since StackStorm v2.8.0 we now use cryptography instead of keyczar, but we still have some tests
 # which utilize keyczar and ensure new cryptography code is fully compatible with keyczar code

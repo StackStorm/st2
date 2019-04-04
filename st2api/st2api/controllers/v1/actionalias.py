@@ -23,8 +23,7 @@ from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.models.api.action import ActionAliasAPI
 from st2common.persistence.actionalias import ActionAlias
 from st2common.rbac.types import PermissionType
-from st2common.rbac import utils as rbac_utils
-
+from st2common.rbac.backends import get_rbac_backend
 from st2common.router import abort
 from st2common.router import Response
 from st2common.util.actionalias_matching import get_matching_alias
@@ -119,6 +118,7 @@ class ActionAliasController(resource.ContentPackResourceController):
         """
 
         permission_type = PermissionType.ACTION_ALIAS_CREATE
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_api_permission(user_db=requester_user,
                                                            resource_api=action_alias,
                                                            permission_type=permission_type)
@@ -151,6 +151,7 @@ class ActionAliasController(resource.ContentPackResourceController):
                   action_alias_db)
 
         permission_type = PermissionType.ACTION_ALIAS_MODIFY
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=action_alias_db,
                                                           permission_type=permission_type)
@@ -190,6 +191,7 @@ class ActionAliasController(resource.ContentPackResourceController):
                   action_alias_db)
 
         permission_type = PermissionType.ACTION_ALIAS_DELETE
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=action_alias_db,
                                                           permission_type=permission_type)

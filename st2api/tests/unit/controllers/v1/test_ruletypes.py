@@ -14,7 +14,7 @@
 # limitations under the License.
 
 import st2common.bootstrap.ruletypesregistrar as ruletypes_registrar
-from tests import FunctionalTest
+from st2tests.api import FunctionalTest
 
 
 class TestRuleTypesController(FunctionalTest):

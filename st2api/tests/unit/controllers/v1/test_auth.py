@@ -19,7 +19,7 @@ import datetime
 import bson
 import mock
 
-from tests import FunctionalTest
+from st2tests.api import FunctionalTest
 from st2common.util import date as date_utils
 from st2common.models.db.auth import ApiKeyDB, TokenDB, UserDB
 from st2common.persistence.auth import ApiKey, Token, User
