@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 if [ "${TASK}" = 'compilepy3 ci-py3-unit' ] || [ "${TASK}" = 'ci-py3-integration' ]; then
-    pip install "tox==3.7.0"
+    pip install "tox==3.8.6"
 
     # Install runners
     . virtualenv/bin/activate

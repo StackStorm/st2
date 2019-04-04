@@ -21,3 +21,7 @@ parameters:
     type: "string"
     description: "Channel to post to"
     required: true
+  context:
+    type: "object"
+    description: "Context for channel (includes type of channel, user, etc.)"
+    required: false

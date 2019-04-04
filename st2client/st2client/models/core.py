@@ -665,6 +665,7 @@ class WorkflowManager(object):
 
         response.raise_for_status()
 
+    @add_auth_token_to_kwargs_from_env
     def inspect(self, definition, **kwargs):
         url = '/inspect'
 
