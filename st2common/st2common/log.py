@@ -110,7 +110,7 @@ def decorate_log_method(func):
             # See:
             # - https://docs.python.org/release/2.7.3/library/logging.html#logging.Logger.exception
             # - https://docs.python.org/release/2.7.7/library/logging.html#logging.Logger.exception
-            if 'got an unexpected keyword argument \'extra\'' in str(e):
+            if 'got an unexpected keyword argument \'extra\'' in six.text_type(e):
                 kwargs.pop('extra', None)
                 return func(*args, **kwargs)
             raise e

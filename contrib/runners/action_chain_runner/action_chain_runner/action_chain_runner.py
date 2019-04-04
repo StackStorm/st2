@@ -14,11 +14,13 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import eventlet
 import traceback
 import uuid
 import datetime
 
+import six
 from jsonschema import exceptions as json_schema_exc
 
 from st2common.runners.base import ActionRunner
@@ -259,7 +261,7 @@ class ActionChainRunner(ActionRunner):
                                                expected_type=dict)
         except Exception as e:
             message = ('Failed to parse action chain definition from "%s": %s' %
-                       (chainspec_file, str(e)))
+                       (chainspec_file, six.text_type(e)))
             LOG.exception('Failed to load action chain definition.')
             raise runner_exc.ActionRunnerPreRunError(message)
 
@@ -268,11 +270,11 @@ class ActionChainRunner(ActionRunner):
         except json_schema_exc.ValidationError as e:
             # preserve the whole nasty jsonschema message as that is better to get to the
             # root cause
-            message = str(e)
+            message = six.text_type(e)
             LOG.exception('Failed to instantiate ActionChain.')
             raise runner_exc.ActionRunnerPreRunError(message)
         except Exception as e:
-            message = str(e)
+            message = six.text_type(e)
             LOG.exception('Failed to instantiate ActionChain.')
             raise runner_exc.ActionRunnerPreRunError(message)
 
@@ -288,7 +290,7 @@ class ActionChainRunner(ActionRunner):
         try:
             self.chain_holder.validate()
         except Exception as e:
-            raise runner_exc.ActionRunnerPreRunError(str(e))
+            raise runner_exc.ActionRunnerPreRunError(six.text_type(e))
 
     def run(self, action_parameters):
         # Run the action chain.
@@ -610,7 +612,7 @@ class ActionChainRunner(ActionRunner):
 
     def _format_error(self, e, msg):
         return {
-            'error': '%s. %s' % (msg, str(e)),
+            'error': '%s. %s' % (msg, six.text_type(e)),
             'traceback': traceback.format_exc(10)
         }
 
@@ -657,7 +659,7 @@ class ActionChainRunner(ActionRunner):
             key = getattr(e, 'key', None)
             value = getattr(e, 'value', None)
             msg = ('Failed rendering value for publish parameter "%s" in task "%s" '
-                   '(template string=%s): %s' % (key, action_node.name, value, str(e)))
+                   '(template string=%s): %s' % (key, action_node.name, value, six.text_type(e)))
             raise action_exc.ParameterRenderingFailedException(msg)
 
         return rendered_result
@@ -699,7 +701,7 @@ class ActionChainRunner(ActionRunner):
             key = getattr(e, 'key', None)
             value = getattr(e, 'value', None)
             msg = ('Failed rendering value for action parameter "%s" in task "%s" '
-                   '(template string=%s): %s') % (key, action_node.name, value, str(e))
+                   '(template string=%s): %s') % (key, action_node.name, value, six.text_type(e))
             raise action_exc.ParameterRenderingFailedException(msg)
         LOG.debug('Rendered params: %s: Type: %s', rendered_params, type(rendered_params))
         return rendered_params

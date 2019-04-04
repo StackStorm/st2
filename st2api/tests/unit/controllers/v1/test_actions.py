@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -35,8 +36,8 @@ from st2api.controllers.v1.actions import ActionsController
 from st2tests.fixturesloader import get_fixtures_packs_base_path
 from st2tests.base import CleanFilesTestCase
 
-from tests.base import FunctionalTest
-from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
+from st2tests.api import FunctionalTest
+from st2tests.api import APIControllerWithIncludeAndExcludeFilterTestCase
 
 # ACTION_1: Good action definition.
 ACTION_1 = {
@@ -343,7 +344,8 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
         self.__do_delete(action_1_id)
         self.__do_delete(action_2_id)
 
-    @mock.patch('st2common.rbac.utils.user_is_admin', mock.Mock(return_value=False))
+    @mock.patch('st2common.rbac.backends.noop.NoOpRBACUtils.user_is_admin',
+                mock.Mock(return_value=False))
     def test_get_all_invalid_limit_too_large_none_admin(self):
         # limit > max_page_size, but user is not admin
         resp = self.app.get('/v1/actions?limit=1000', expect_errors=True)
@@ -427,6 +429,23 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
         self.assertDictContainsSubset({'enabled': False}, data)
 
         self.__do_delete(self.__get_action_id(post_resp))
+
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    def test_post_name_unicode_action_already_exists(self):
+        # Verify that exception messages containing unicode characters don't result in internal
+        # server errors
+        action = copy.deepcopy(ACTION_1)
+        action['name'] = 'žactionćšžž'
+
+        # 1. Initial creation
+        post_resp = self.__do_post(action, expect_errors=True)
+        self.assertEqual(post_resp.status_int, 201)
+
+        # 2. Action already exists
+        post_resp = self.__do_post(action, expect_errors=True)
+        self.assertEqual(post_resp.status_int, 409)
+        self.assertTrue('Tried to save duplicate unique keys' in post_resp.json['faultstring'])
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))

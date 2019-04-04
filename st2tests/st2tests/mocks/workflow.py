@@ -15,6 +15,7 @@
 
 from __future__ import absolute_import
 
+import six
 import eventlet
 import traceback
 
@@ -77,6 +78,6 @@ class MockWorkflowExecutionPublisherNonBlocking(object):
             try:
                 thread.wait()
             except Exception as e:
-                print(str(e))
+                print(six.text_type(e))
             finally:
                 cls.threads.remove(thread)

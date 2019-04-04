@@ -308,7 +308,7 @@ class ParamsUtilsTest(DbTestCase):
         except ParamException as e:
             error_msg = 'Failed to render parameter "a2": \'dict object\' ' + \
                         'has no attribute \'lorem_ipsum\''
-            self.assertTrue(error_msg in str(e))
+            self.assertTrue(error_msg in six.text_type(e))
             pass
 
     def test_unicode_value_casting(self):
@@ -482,7 +482,7 @@ class ParamsUtilsTest(DbTestCase):
                                              {'user': None})
             test_pass = False
         except ParamException as e:
-            test_pass = str(e).find('Cyclic') == 0
+            test_pass = six.text_type(e).find('Cyclic') == 0
         self.assertTrue(test_pass)
 
     def test_get_finalized_params_with_missing_dependency(self):
@@ -497,7 +497,7 @@ class ParamsUtilsTest(DbTestCase):
                                              {'user': None})
             test_pass = False
         except ParamException as e:
-            test_pass = str(e).find('Dependency') == 0
+            test_pass = six.text_type(e).find('Dependency') == 0
         self.assertTrue(test_pass)
 
         params = {}
@@ -511,7 +511,7 @@ class ParamsUtilsTest(DbTestCase):
                                              {'user': None})
             test_pass = False
         except ParamException as e:
-            test_pass = str(e).find('Dependency') == 0
+            test_pass = six.text_type(e).find('Dependency') == 0
         self.assertTrue(test_pass)
 
     def test_get_finalized_params_no_double_rendering(self):

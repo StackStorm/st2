@@ -17,7 +17,7 @@ from __future__ import absolute_import
 
 import mock
 
-from orquesta import states as wf_states
+from orquesta import statuses as wf_statuses
 
 import st2tests
 
@@ -91,7 +91,7 @@ class OrquestaFunctionTest(st2tests.ExecutionDbTestCase):
             actions_registrar.register_from_pack(pack)
 
     def _execute_workflow(self, wf_name, expected_task_sequence, expected_output,
-                          expected_status=wf_states.SUCCEEDED, expected_errors=None):
+                          expected_status=wf_statuses.SUCCEEDED, expected_errors=None):
         wf_file = wf_name + '.yaml'
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, wf_file)
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
@@ -147,21 +147,23 @@ class OrquestaFunctionTest(st2tests.ExecutionDbTestCase):
 
         expected_task_sequence = [
             ('task1', 0),
+            ('task3', 0),
+            ('task6', 0),
+            ('task7', 0),
             ('task2', 0),
             ('task4', 0),
-            ('task5', 0),
-            ('task3', 0),
-            ('task6', 2),
-            ('task6', 3),
-            ('task3', 0),
-            ('task7', 2),
-            ('task7', 3)
+            ('task8', 1),
+            ('task8', 2),
+            ('task4', 0),
+            ('task9', 1),
+            ('task9', 2),
+            ('task5', 0)
         ]
 
         expected_output = {
-            'last_task3_result': 'False',
-            'task7__2__parent': 'task6__2',
-            'task7__3__parent': 'task6__3',
+            'last_task4_result': 'False',
+            'task9__1__parent': 'task8__1',
+            'task9__2__parent': 'task8__2',
             'that_task_by_name': 'task1',
             'this_task_by_name': 'task1',
             'this_task_no_arg': 'task1'
@@ -174,21 +176,23 @@ class OrquestaFunctionTest(st2tests.ExecutionDbTestCase):
 
         expected_task_sequence = [
             ('task1', 0),
+            ('task3', 0),
+            ('task6', 0),
+            ('task7', 0),
             ('task2', 0),
             ('task4', 0),
-            ('task5', 0),
-            ('task3', 0),
-            ('task6', 2),
-            ('task6', 3),
-            ('task3', 0),
-            ('task7', 2),
-            ('task7', 3)
+            ('task8', 1),
+            ('task8', 2),
+            ('task4', 0),
+            ('task9', 1),
+            ('task9', 2),
+            ('task5', 0)
         ]
 
         expected_output = {
-            'last_task3_result': 'False',
-            'task7__2__parent': 'task6__2',
-            'task7__3__parent': 'task6__3',
+            'last_task4_result': 'False',
+            'task9__1__parent': 'task8__1',
+            'task9__2__parent': 'task8__2',
             'that_task_by_name': 'task1',
             'this_task_by_name': 'task1',
             'this_task_no_arg': 'task1'

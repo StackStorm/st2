@@ -176,7 +176,7 @@ def read_crypto_key(key_path):
                          mode=content['mode'].upper(),
                          size=content['size'])
     except KeyError as e:
-        msg = 'Invalid or malformed key file "%s": %s' % (key_path, str(e))
+        msg = 'Invalid or malformed key file "%s": %s' % (key_path, six.text_type(e))
         raise KeyError(msg)
 
     return aes_key
@@ -442,4 +442,4 @@ def Base64WSDecode(s):
         return base64.urlsafe_b64decode(s)
     except TypeError as e:
         # Decoding raises TypeError if s contains invalid characters.
-        raise ValueError('Base64 decoding error: %s' % (str(e)))
+        raise ValueError('Base64 decoding error: %s' % (six.text_type(e)))

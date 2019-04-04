@@ -16,6 +16,8 @@
 import os
 import yaml
 
+import six
+
 from git.repo import Repo
 from git.exc import InvalidGitRepositoryError
 
@@ -57,7 +59,8 @@ class GetInstalled(Action):
         try:
             details = self._parse_yaml_file(metadata_file)
         except Exception as e:
-            error = ('Pack "%s" doesn\'t contain a valid pack.yaml file: %s' % (pack, str(e)))
+            error = ('Pack "%s" doesn\'t contain a valid pack.yaml file: %s' % (pack,
+                                                                                six.text_type(e)))
             raise Exception(error)
 
         try:

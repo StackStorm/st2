@@ -12,3 +12,5 @@ parameters:
       - Lakshmi
       - Lindsay
       - Tomaz
+  concurrency:
+    type: integer

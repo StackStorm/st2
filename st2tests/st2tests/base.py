@@ -38,7 +38,7 @@ import unittest2
 from orquesta import conducting
 from orquesta import events
 from orquesta.specs import loader as specs_loader
-from orquesta import states as wf_lib_states
+from orquesta import statuses as wf_statuses
 
 from st2common.util.api import get_full_public_api_url
 from st2common.constants import action as ac_const
@@ -618,7 +618,8 @@ class WorkflowTestCase(ExecutionDbTestCase):
         st2_ctx = {
             'st2': {
                 'api_url': api_util.get_full_public_api_url(),
-                'action_execution_id': str(ac_ex_db.id)
+                'action_execution_id': str(ac_ex_db.id),
+                'user': 'stanley'
             }
         }
 
@@ -631,23 +632,22 @@ class WorkflowTestCase(ExecutionDbTestCase):
         data = {
             'spec': wf_ex_db.spec,
             'graph': wf_ex_db.graph,
-            'state': wf_ex_db.status,
-            'flow': wf_ex_db.flow,
-            'context': wf_ex_db.context,
             'input': wf_ex_db.input,
+            'context': wf_ex_db.context,
+            'state': wf_ex_db.state,
             'output': wf_ex_db.output,
             'errors': wf_ex_db.errors
         }
 
         conductor = conducting.WorkflowConductor.deserialize(data)
-        conductor.request_workflow_state(wf_lib_states.RUNNING)
+        conductor.request_workflow_status(wf_statuses.RUNNING)
 
         for task in conductor.get_next_tasks():
-            ac_ex_event = events.ActionExecutionEvent(wf_lib_states.RUNNING)
-            conductor.update_task_flow(task['id'], task['route'], ac_ex_event)
+            ac_ex_event = events.ActionExecutionEvent(wf_statuses.RUNNING)
+            conductor.update_task_state(task['id'], task['route'], ac_ex_event)
 
-        wf_ex_db.status = conductor.get_workflow_state()
-        wf_ex_db.flow = conductor.flow.serialize()
+        wf_ex_db.status = conductor.get_workflow_status()
+        wf_ex_db.state = conductor.workflow_state.serialize()
         wf_ex_db = wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
 
         return wf_ex_db
@@ -688,7 +688,7 @@ class WorkflowTestCase(ExecutionDbTestCase):
 
         wf_svc.handle_action_execution_completion(ac_ex_db)
         task_ex_db = wf_db_access.TaskExecution.get_by_id(str(task_ex_db.id))
-        self.assertEqual(task_ex_db.status, wf_lib_states.SUCCEEDED)
+        self.assertEqual(task_ex_db.status, wf_statuses.SUCCEEDED)
 
     def assert_task_not_started(self, task_id, route):
         task_ex_dbs = wf_db_access.TaskExecution.query(task_id=task_id, task_route=route)
@@ -698,15 +698,15 @@ class WorkflowTestCase(ExecutionDbTestCase):
         task_ex_db = self.get_task_ex(task_id, route)
         self.assertEqual(task_ex_db.task_id, task_id)
         self.assertEqual(task_ex_db.task_route, route)
-        self.assertEqual(task_ex_db.status, wf_lib_states.RUNNING)
+        self.assertEqual(task_ex_db.status, wf_statuses.RUNNING)
 
-    def assert_workflow_completed(self, wf_ex_id, state=None):
+    def assert_workflow_completed(self, wf_ex_id, status=None):
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
-        self.assertIn(wf_ex_db.status, wf_lib_states.COMPLETED_STATES)
+        self.assertIn(wf_ex_db.status, wf_statuses.COMPLETED_STATUSES)
 
-        if state:
-            self.assertIn(state, wf_lib_states.COMPLETED_STATES)
-            self.assertEqual(wf_ex_db.status, state)
+        if status:
+            self.assertIn(status, wf_statuses.COMPLETED_STATUSES)
+            self.assertEqual(wf_ex_db.status, status)
 
 
 class FakeResponse(object):

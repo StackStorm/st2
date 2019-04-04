@@ -19,7 +19,7 @@ import mock
 import os
 import tempfile
 
-from orquesta import states as wf_lib_states
+from orquesta import statuses as wf_statuses
 
 import st2tests
 
@@ -60,10 +60,10 @@ TEMP_DIR_PATH = tempfile.mkdtemp()
 
 
 def mock_wf_db_update_conflict(wf_ex_db, publish=True, dispatch_trigger=True, **kwargs):
-    seq_len = len(wf_ex_db.flow['sequence'])
+    seq_len = len(wf_ex_db.state['sequence'])
 
     if seq_len > 0:
-        current_task_id = wf_ex_db.flow['sequence'][seq_len - 1:][0]['id']
+        current_task_id = wf_ex_db.state['sequence'][seq_len - 1:][0]['id']
         temp_file_path = TEMP_DIR_PATH + '/' + current_task_id
 
         if os.path.exists(temp_file_path):
@@ -141,7 +141,7 @@ class WorkflowExecutionWriteConflictTest(st2tests.WorkflowTestCase):
         self.run_workflow_step(wf_ex_db, 'task6', task_route)
         self.assert_task_running('task7', task_route)
         self.run_workflow_step(wf_ex_db, 'task7', task_route)
-        self.assert_workflow_completed(str(wf_ex_db.id), state=wf_lib_states.SUCCEEDED)
+        self.assert_workflow_completed(str(wf_ex_db.id), status=wf_statuses.SUCCEEDED)
 
         # Ensure retry happened.
         self.assertFalse(os.path.exists(temp_file_path))

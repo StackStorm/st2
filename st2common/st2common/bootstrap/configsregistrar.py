@@ -14,8 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 
+import six
 from oslo_config import cfg
 
 from st2common import log as logging
@@ -76,10 +78,11 @@ class ConfigsRegistrar(ResourceRegistrar):
                 if self._fail_on_failure:
                     msg = ('Failed to register config "%s" for pack "%s": %s' % (config_path,
                                                                                  pack_name,
-                                                                                 str(e)))
+                                                                                 six.text_type(e)))
                     raise ValueError(msg)
 
-                LOG.exception('Failed to register config for pack "%s": %s', pack_name, str(e))
+                LOG.exception('Failed to register config for pack "%s": %s', pack_name,
+                              six.text_type(e))
             else:
                 registered_count += 1
 

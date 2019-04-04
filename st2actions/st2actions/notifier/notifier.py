@@ -97,10 +97,7 @@ class Notifier(consumers.MessageHandler):
                     self._post_notify_triggers(liveaction_db=liveaction_db,
                                                execution_db=execution_db)
 
-            if cfg.CONF.action_sensor.enable:
-                with CounterWithTimer(key='notifier.generic_trigger.post'):
-                    self._post_generic_trigger(liveaction_db=liveaction_db,
-                                               execution_db=execution_db)
+        self._post_generic_trigger(liveaction_db=liveaction_db, execution_db=execution_db)
 
     def _get_execution_for_liveaction(self, liveaction):
         execution = ActionExecution.get(liveaction__id=str(liveaction.id))
@@ -252,25 +249,26 @@ class Notifier(consumers.MessageHandler):
             LOG.debug(msg % (execution_id, execution_db.status, target_statuses), extra=extra)
             return
 
-        payload = {'execution_id': execution_id,
-                   'status': liveaction_db.status,
-                   'start_timestamp': str(liveaction_db.start_timestamp),
-                   # deprecate 'action_name' at some point and switch to 'action_ref'
-                   'action_name': liveaction_db.action,
-                   'action_ref': liveaction_db.action,
-                   'runner_ref': self._get_runner_ref(liveaction_db.action),
-                   'parameters': liveaction_db.get_masked_parameters(),
-                   'result': liveaction_db.result}
-        # Use execution_id to extract trace rather than liveaction. execution_id
-        # will look-up an exact TraceDB while liveaction depending on context
-        # may not end up going to the DB.
-        trace_context = self._get_trace_context(execution_id=execution_id)
-        LOG.debug('POSTing %s for %s. Payload - %s. TraceContext - %s',
-                  ACTION_TRIGGER_TYPE['name'], liveaction_db.id, payload, trace_context)
+        with CounterWithTimer(key='notifier.generic_trigger.post'):
+            payload = {'execution_id': execution_id,
+                       'status': liveaction_db.status,
+                       'start_timestamp': str(liveaction_db.start_timestamp),
+                       # deprecate 'action_name' at some point and switch to 'action_ref'
+                       'action_name': liveaction_db.action,
+                       'action_ref': liveaction_db.action,
+                       'runner_ref': self._get_runner_ref(liveaction_db.action),
+                       'parameters': liveaction_db.get_masked_parameters(),
+                       'result': liveaction_db.result}
+            # Use execution_id to extract trace rather than liveaction. execution_id
+            # will look-up an exact TraceDB while liveaction depending on context
+            # may not end up going to the DB.
+            trace_context = self._get_trace_context(execution_id=execution_id)
+            LOG.debug('POSTing %s for %s. Payload - %s. TraceContext - %s',
+                      ACTION_TRIGGER_TYPE['name'], liveaction_db.id, payload, trace_context)
 
-        with CounterWithTimer(key='notifier.generic_trigger.dispatch'):
-            self._trigger_dispatcher.dispatch(self._action_trigger, payload=payload,
-                                              trace_context=trace_context)
+            with CounterWithTimer(key='notifier.generic_trigger.dispatch'):
+                self._trigger_dispatcher.dispatch(self._action_trigger, payload=payload,
+                                                  trace_context=trace_context)
 
     def _get_runner_ref(self, action_ref):
         """

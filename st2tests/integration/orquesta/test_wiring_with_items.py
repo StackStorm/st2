@@ -55,6 +55,16 @@ class WithItemsWiringTest(base.TestWorkflowExecution):
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         self.assertDictEqual(ex.result, expected_result)
 
+    def test_with_items_failure(self):
+        wf_name = 'examples.orquesta-test-with-items-failure'
+
+        ex = self._execute_workflow(wf_name)
+        ex = self._wait_for_completion(ex)
+
+        self._wait_for_task(ex, 'task1', num_task_exs=10)
+
+        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
+
     def test_with_items_concurrency(self):
         wf_name = 'examples.orquesta-test-with-items'
 

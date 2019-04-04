@@ -20,7 +20,7 @@ from six.moves import http_client
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 from st2common.persistence.auth import ApiKey
 from st2tests.fixturesloader import FixturesLoader
-from tests import FunctionalTest
+from st2tests.api import FunctionalTest
 
 FIXTURES_PACK = 'generic'
 
@@ -104,7 +104,8 @@ class TestApiKeyController(FunctionalTest):
         retrieved_ids = [apikey['id'] for apikey in resp.json]
         self.assertEqual(retrieved_ids, [str(self.apikey1.id), str(self.apikey2.id)])
 
-    @mock.patch('st2common.rbac.utils.user_is_admin', mock.Mock(return_value=False))
+    @mock.patch('st2common.rbac.backends.noop.NoOpRBACUtils.user_is_admin',
+                mock.Mock(return_value=False))
     def test_get_all_invalid_limit_too_large_none_admin(self):
         # limit > max_page_size, but user is not admin
         resp = self.app.get('/v1/apikeys?offset=2&limit=1000', expect_errors=True)

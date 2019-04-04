@@ -225,7 +225,7 @@ def _resolve_dependencies(G):
 
         except Exception as e:
             LOG.debug('Failed to render %s: %s', name, e, exc_info=True)
-            msg = 'Failed to render parameter "%s": %s' % (name, str(e))
+            msg = 'Failed to render parameter "%s": %s' % (name, six.text_type(e))
             raise ParamException(msg)
 
     return context
@@ -294,7 +294,8 @@ def render_live_params(runner_parameters, action_parameters, params, action_cont
     try:
         config = get_config(pack, user)
     except Exception as e:
-        LOG.info('Failed to retrieve config for pack %s and user %s: %s' % (pack, user, str(e)))
+        LOG.info('Failed to retrieve config for pack %s and user %s: %s' % (pack, user,
+                 six.text_type(e)))
         config = {}
 
     G = _create_graph(action_context, config)

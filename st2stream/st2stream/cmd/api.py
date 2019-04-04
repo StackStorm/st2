@@ -49,9 +49,15 @@ WSGI_SERVER_REQUEST_SHUTDOWN_TIME = 2
 
 
 def _setup():
+    capabilities = {
+        'name': 'stream',
+        'listen_host': cfg.CONF.stream.host,
+        'listen_port': cfg.CONF.stream.port,
+        'type': 'active'
+    }
     common_setup(service='stream', config=config, setup_db=True, register_mq_exchanges=True,
                  register_signal_handlers=True, register_internal_trigger_types=False,
-                 run_migrations=False)
+                 run_migrations=False, service_registry=True, capabilities=capabilities)
 
 
 def _run_server():

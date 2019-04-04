@@ -41,7 +41,8 @@ def st2kv_(context, key, decrypt=False):
     try:
         user_db = auth_db_access.User.get(username)
     except Exception as e:
-        raise Exception('Failed to retrieve User object for user "%s" % (username)' % (str(e)))
+        raise Exception('Failed to retrieve User object for user "%s" % (username)' %
+                        (six.text_type(e)))
 
     kvp = kvp_util.get_key(key=key, user_db=user_db, decrypt=decrypt)
 

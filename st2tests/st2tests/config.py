@@ -28,12 +28,12 @@ CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
 
 
-def parse_args(coordinator_noop=False):
+def parse_args(coordinator_noop=True):
     _setup_config_opts(coordinator_noop=coordinator_noop)
     CONF(args=[])
 
 
-def _setup_config_opts(coordinator_noop=False):
+def _setup_config_opts(coordinator_noop=True):
     cfg.CONF.reset()
 
     try:

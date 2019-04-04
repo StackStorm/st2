@@ -133,7 +133,7 @@ def get_action_class_instance(action_cls, config=None, action_service=None):
     try:
         action_instance = action_cls(**kwargs)
     except TypeError as e:
-        if 'unexpected keyword argument \'action_service\'' not in str(e):
+        if 'unexpected keyword argument \'action_service\'' not in six.text_type(e):
             raise e
 
         LOG.debug('Action class (%s) constructor doesn\'t take "action_service" argument, '

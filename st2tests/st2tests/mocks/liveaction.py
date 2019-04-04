@@ -16,6 +16,7 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
+import six
 import eventlet
 import traceback
 
@@ -97,7 +98,7 @@ class MockLiveActionPublisherNonBlocking(object):
             try:
                 thread.wait()
             except Exception as e:
-                print(str(e))
+                print(six.text_type(e))
             finally:
                 cls.threads.remove(thread)
 

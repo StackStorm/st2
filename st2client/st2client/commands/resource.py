@@ -242,14 +242,22 @@ class ResourceViewCommand(ResourceCommand):
     """
 
     @classmethod
-    def _get_include_attributes(cls, args):
+    def _get_include_attributes(cls, args, extra_attributes=None):
         """
         Return a list of attributes to send to the API using ?include_attributes filter.
 
         If None / empty list is returned it's assumed no filtering is to be performed and all
         attributes are to be retrieved.
+
+        :param extra_attributes: Additional include attributes which should always be included.
+        :type extra_attributes: ``list`` of ``str``
         """
+        extra_attributes = extra_attributes or []
+
         include_attributes = []
+
+        if extra_attributes:
+            include_attributes.extend(extra_attributes)
 
         # If user specifies which attributes to retrieve via CLI --attr / -a argument, take that
         # into account
@@ -425,7 +433,7 @@ class ResourceCreateCommand(ResourceCommand):
             self.print_output(instance, table.PropertyValueTable,
                               attributes=['all'], json=args.json, yaml=args.yaml)
         except Exception as e:
-            message = str(e)
+            message = six.text_type(e)
             print('ERROR: %s' % (message))
             raise OperationFailureException(message)
 
@@ -473,8 +481,8 @@ class ResourceUpdateCommand(ResourceCommand):
             self.print_output(instance, table.PropertyValueTable,
                               attributes=['all'], json=args.json, yaml=args.yaml)
         except Exception as e:
-            print('ERROR: %s' % (str(e)))
-            raise OperationFailureException(str(e))
+            print('ERROR: %s' % (six.text_type(e)))
+            raise OperationFailureException(six.text_type(e))
 
 
 class ContentPackResourceUpdateCommand(ResourceUpdateCommand):

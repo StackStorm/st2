@@ -41,3 +41,21 @@ class ValidationUtilsTestCase(unittest2.TestCase):
                         'enabled. You can either enable authentication or disable RBAC.')
         self.assertRaisesRegexp(ValueError, expected_msg,
                                 validate_rbac_is_correctly_configured)
+
+    def test_validate_rbac_is_correctly_configured_non_enterprise_backend_set(self):
+        cfg.CONF.set_override(group='rbac', name='enable', override=True)
+        cfg.CONF.set_override(group='rbac', name='backend', override='invalid')
+        cfg.CONF.set_override(group='auth', name='enable', override=True)
+
+        expected_msg = ('You have enabled RBAC, but RBAC backend is not set to "enterprise".')
+        self.assertRaisesRegexp(ValueError, expected_msg,
+                                validate_rbac_is_correctly_configured)
+
+    def test_validate_rbac_is_correctly_configured_enterprise_backend_not_available(self):
+        cfg.CONF.set_override(group='rbac', name='enable', override=True)
+        cfg.CONF.set_override(group='rbac', name='backend', override='enterprise')
+        cfg.CONF.set_override(group='auth', name='enable', override=True)
+
+        expected_msg = ('"enterprise" RBAC backend is not available. ')
+        self.assertRaisesRegexp(ValueError, expected_msg,
+                                validate_rbac_is_correctly_configured)

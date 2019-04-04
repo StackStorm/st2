@@ -18,10 +18,12 @@ Pack virtual environment related utility functions.
 """
 
 from __future__ import absolute_import
+
 import os
 import re
 import shutil
 
+import six
 from oslo_config import cfg
 
 from st2common import log as logging
@@ -201,7 +203,7 @@ def create_virtualenv(virtualenv_path, logger=None, include_pip=True, include_se
         exit_code, _, stderr = run_command(cmd=cmd)
     except OSError as e:
         raise Exception('Error executing command %s. %s.' % (' '.join(cmd),
-                                                             str(e)))
+                                                             six.text_type(e)))
 
     if exit_code != 0:
         raise Exception('Failed to create virtualenv in "%s": %s' %

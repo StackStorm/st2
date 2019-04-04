@@ -261,7 +261,7 @@ class ProcessSensorContainer(object):
             try:
                 self._spawn_sensor_process(sensor=sensor_obj)
             except Exception as e:
-                LOG.warning(str(e), exc_info=True)
+                LOG.warning(six.text_type(e), exc_info=True)
 
                 # Disable sensor which we are unable to start
                 del self._sensors[sensor_id]
@@ -355,7 +355,7 @@ class ProcessSensorContainer(object):
         except Exception as e:
             cmd = ' '.join(args)
             message = ('Failed to spawn process for sensor %s ("%s"): %s' %
-                       (sensor_id, cmd, str(e)))
+                       (sensor_id, cmd, six.text_type(e)))
             raise Exception(message)
 
         self._processes[sensor_id] = process
@@ -440,7 +440,7 @@ class ProcessSensorContainer(object):
         try:
             self._spawn_sensor_process(sensor=sensor)
         except Exception as e:
-            LOG.warning(str(e), exc_info=True)
+            LOG.warning(six.text_type(e), exc_info=True)
 
             # Disable sensor which we are unable to start
             del self._sensors[sensor_id]

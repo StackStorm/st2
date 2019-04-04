@@ -20,8 +20,8 @@ import six
 import st2common.bootstrap.sensorsregistrar as sensors_registrar
 from st2api.controllers.v1.sensors import SensorTypeController
 
-from tests.base import FunctionalTest
-from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
+from st2tests.api import FunctionalTest
+from st2tests.api import APIControllerWithIncludeAndExcludeFilterTestCase
 
 http_client = six.moves.http_client
 

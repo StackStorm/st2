@@ -21,7 +21,7 @@ from oslo_config import cfg
 
 from st2common.constants.keyvalue import ALL_SCOPE, DATASTORE_PARENT_SCOPE
 from st2common.constants.keyvalue import DATASTORE_SCOPE_SEPARATOR
-from st2common.rbac import utils as rbac_utils
+from st2common.rbac.backends import get_rbac_backend
 from st2common.persistence.keyvalue import KeyValuePair
 from st2common.services.config import deserialize_key_value
 from st2common.constants.keyvalue import (FULL_SYSTEM_SCOPE, FULL_USER_SCOPE, USER_SCOPE,
@@ -104,6 +104,7 @@ def get_key(key=None, user_db=None, scope=None, decrypt=False):
 
     _validate_scope(scope=scope)
 
+    rbac_utils = get_rbac_backend().get_utils_class()
     is_admin = rbac_utils.user_is_admin(user_db=user_db)
 
     # User needs to be either admin or requesting item for itself

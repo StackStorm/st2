@@ -19,6 +19,7 @@ import os
 import ssl
 import socket
 
+import six
 import unittest2
 from oslo_config import cfg
 
@@ -64,7 +65,8 @@ class RabbitMQTLSListenerTestCase(unittest2.TestCase):
         except Exception as e:
             self.assertFalse(connection.connected)
             self.assertTrue(isinstance(e, (IOError, socket.error)))
-            self.assertTrue(expected_msg_1 in str(e) or expected_msg_2 in str(e))
+            self.assertTrue(expected_msg_1 in six.text_type(e) or expected_msg_2 in
+                            six.text_type(e))
         else:
             self.fail('Exception was not thrown')
 

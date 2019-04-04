@@ -25,8 +25,8 @@ from st2common.util import date as date_utils
 from st2common.util import isotime
 from st2api.controllers.v1.triggers import TriggerInstanceController
 
-from tests.base import FunctionalTest
-from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
+from st2tests.api import FunctionalTest
+from st2tests.api import APIControllerWithIncludeAndExcludeFilterTestCase
 
 http_client = six.moves.http_client
 

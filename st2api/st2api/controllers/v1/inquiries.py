@@ -16,6 +16,7 @@
 import copy
 import json
 
+import six
 from oslo_config import cfg
 from six.moves import http_client
 
@@ -28,7 +29,7 @@ from st2common import log as logging
 from st2common.models.api import inquiry as inqy_api_models
 from st2common.persistence import execution as ex_db_access
 from st2common.rbac import types as rbac_types
-from st2common.rbac import utils as rbac_utils
+from st2common.rbac.backends import get_rbac_backend
 from st2common import router as api_router
 from st2common.services import inquiry as inquiry_service
 
@@ -113,18 +114,18 @@ class InquiriesController(ResourceController):
             )
         except db_exceptions.StackStormDBObjectNotFoundError as e:
             LOG.exception('Unable to identify inquiry with id "%s".' % inquiry_id)
-            api_router.abort(http_client.NOT_FOUND, str(e))
+            api_router.abort(http_client.NOT_FOUND, six.text_type(e))
         except rbac_exceptions.ResourceAccessDeniedError as e:
             LOG.exception('User is denied access to inquiry "%s".' % inquiry_id)
-            api_router.abort(http_client.FORBIDDEN, str(e))
+            api_router.abort(http_client.FORBIDDEN, six.text_type(e))
         except Exception as e:
             LOG.exception('Unable to get record for inquiry "%s".' % inquiry_id)
-            api_router.abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+            api_router.abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
 
         try:
             inquiry_service.check_inquiry(inquiry)
         except Exception as e:
-            api_router.abort(http_client.BAD_REQUEST, str(e))
+            api_router.abort(http_client.BAD_REQUEST, six.text_type(e))
 
         return inqy_api_models.InquiryResponseAPI.from_inquiry_api(inquiry)
 
@@ -154,41 +155,41 @@ class InquiriesController(ResourceController):
             )
         except db_exceptions.StackStormDBObjectNotFoundError as e:
             LOG.exception('Unable to identify inquiry with id "%s".' % inquiry_id)
-            api_router.abort(http_client.NOT_FOUND, str(e))
+            api_router.abort(http_client.NOT_FOUND, six.text_type(e))
         except rbac_exceptions.ResourceAccessDeniedError as e:
             LOG.exception('User is denied access to inquiry "%s".' % inquiry_id)
-            api_router.abort(http_client.FORBIDDEN, str(e))
+            api_router.abort(http_client.FORBIDDEN, six.text_type(e))
         except Exception as e:
             LOG.exception('Unable to get record for inquiry "%s".' % inquiry_id)
-            api_router.abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+            api_router.abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
 
         # Check if inquiry can still be respond to.
         try:
             inquiry_service.check_inquiry(inquiry)
         except Exception as e:
             LOG.exception('Fail checking validity of inquiry "%s".' % inquiry_id)
-            api_router.abort(http_client.BAD_REQUEST, str(e))
+            api_router.abort(http_client.BAD_REQUEST, six.text_type(e))
 
         # Check if user has permission to respond to this inquiry.
         try:
             inquiry_service.check_permission(inquiry, requester_user)
         except Exception as e:
             LOG.exception('Fail checking permission for inquiry "%s".' % inquiry_id)
-            api_router.abort(http_client.FORBIDDEN, str(e))
+            api_router.abort(http_client.FORBIDDEN, six.text_type(e))
 
         # Validate the body of the response against the schema parameter for this inquiry.
         try:
             inquiry_service.validate_response(inquiry, response_data.response)
         except Exception as e:
             LOG.exception('Fail checking response for inquiry "%s".' % inquiry_id)
-            api_router.abort(http_client.BAD_REQUEST, str(e))
+            api_router.abort(http_client.BAD_REQUEST, six.text_type(e))
 
         # Respond to inquiry and update if there is a partial response.
         try:
             inquiry_service.respond(inquiry, response_data.response, requester=requester_user)
         except Exception as e:
             LOG.exception('Fail to update response for inquiry "%s".' % inquiry_id)
-            api_router.abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+            api_router.abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
 
         return {
             'id': inquiry_id,
@@ -221,6 +222,7 @@ class InquiriesController(ResourceController):
         LOG.debug('Checking permission on inquiry "%s".' % id)
 
         if permission_type:
+            rbac_utils = get_rbac_backend().get_utils_class()
             rbac_utils.assert_user_has_resource_db_permission(
                 user_db=requester_user,
                 resource_db=execution_db,

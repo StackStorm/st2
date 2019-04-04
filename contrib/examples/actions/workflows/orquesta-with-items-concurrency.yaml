@@ -4,12 +4,13 @@ description: A workflow demonstrating with items and concurrent processing.
 
 input:
   - members
+  - concurrency: 2
 
 tasks:
   task1:
     with:
       items: <% ctx(members) %>
-      concurrency: 2
+      concurrency: <% ctx(concurrency) %>
     action: core.echo message="<% item() %>, resistance is futile!"
 
 output:

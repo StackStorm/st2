@@ -15,6 +15,7 @@
 
 from __future__ import absolute_import
 
+import six
 from oslo_config import cfg
 from jsonschema import ValidationError
 
@@ -84,13 +85,14 @@ class TriggerDispatcherService(object):
                                      throw_on_inexistent_trigger=True)
         except (ValidationError, ValueError, Exception) as e:
             self._logger.warn('Failed to validate payload (%s) for trigger "%s": %s' %
-                              (str(payload), trigger, str(e)))
+                              (str(payload), trigger, six.text_type(e)))
 
             # If validation is disabled, still dispatch a trigger even if it failed validation
             # This condition prevents unexpected restriction.
             if cfg.CONF.system.validate_trigger_payload:
                 msg = ('Trigger payload validation failed and validation is enabled, not '
-                       'dispatching a trigger "%s" (%s): %s' % (trigger, str(payload), str(e)))
+                       'dispatching a trigger "%s" (%s): %s' % (trigger, str(payload),
+                                                                six.text_type(e)))
 
                 if throw_on_validation_error:
                     raise ValueError(msg)

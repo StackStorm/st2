@@ -25,7 +25,7 @@ from st2common.models.api.trigger import TriggerAPI
 from st2common.models.db.webhook import WebhookDB
 import st2common.services.triggers as trigger_service
 from st2common.rbac.types import PermissionType
-from st2common.rbac import utils as rbac_utils
+from st2common.rbac.backends import get_rbac_backend
 from st2common.services.triggerwatcher import TriggerWatcher
 from st2common.services.trigger_dispatcher import TriggerDispatcherService
 from st2common.router import abort
@@ -108,6 +108,7 @@ class WebhooksController(object):
             return
 
         permission_type = PermissionType.WEBHOOK_VIEW
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=WebhookDB(name=url),
                                                           permission_type=permission_type)
@@ -119,6 +120,7 @@ class WebhooksController(object):
         body = webhook_body_api.data
 
         permission_type = PermissionType.WEBHOOK_SEND
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=WebhookDB(name=hook),
                                                           permission_type=permission_type)

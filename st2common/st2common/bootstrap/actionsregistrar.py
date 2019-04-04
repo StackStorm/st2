@@ -139,7 +139,7 @@ class ActionsRegistrar(ResourceRegistrar):
             action_api.validate()
         except jsonschema.ValidationError as e:
             # We throw a more user-friendly exception on invalid parameter name
-            msg = str(e)
+            msg = six.text_type(e)
 
             is_invalid_parameter_name = 'does not match any of the regexes: ' in msg
 
@@ -196,12 +196,12 @@ class ActionsRegistrar(ResourceRegistrar):
             except Exception as e:
                 # We ignore mistral-v2 runner not found errors since those represent installations
                 # without Mistral
-                if 'mistral-v2 is not found' in str(e):
+                if 'mistral-v2 is not found' in six.text_type(e):
                     continue
 
                 if self._fail_on_failure:
                     msg = ('Failed to register action "%s" from pack "%s": %s' % (action, pack,
-                                                                                  str(e)))
+                                                                                  six.text_type(e)))
                     raise ValueError(msg)
 
                 LOG.exception('Unable to register action: %s', action)

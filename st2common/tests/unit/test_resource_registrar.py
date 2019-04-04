@@ -14,8 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 
+import six
 import mock
 from jsonschema import ValidationError
 
@@ -155,7 +157,7 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         try:
             registrar._register_pack_db(pack_name=None, pack_dir=PACK_PATH_13)
         except ValidationError as e:
-            self.assertTrue("'invalid-has-dash' does not match '^[a-z0-9_]+$'" in str(e))
+            self.assertTrue("'invalid-has-dash' does not match '^[a-z0-9_]+$'" in six.text_type(e))
         else:
             self.fail('Exception not thrown')
 

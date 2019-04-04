@@ -9,7 +9,7 @@ runner_count=1
 scheduler_count=1
 workflow_engine_count=1
 use_gunicorn=true
-copy_examples=false
+copy_test_packs=false
 load_content=true
 use_ipv6=false
 include_mistral=false
@@ -29,7 +29,7 @@ while getopts ":r:s:w:gxcu6m" o; do
             use_gunicorn=false
             ;;
         x)
-            copy_examples=true
+            copy_test_packs=true
             ;;
         c)
             load_content=false
@@ -68,6 +68,7 @@ function init(){
     fi
 
     VIRTUALENV=${VIRTUALENV_DIR:-${ST2_REPO}/virtualenv}
+    VIRTUALENV=$(readlink -f ${VIRTUALENV})
     PY=${VIRTUALENV}/bin/python
     PYTHON_VERSION=$(${PY} --version 2>&1)
 
@@ -77,6 +78,8 @@ function init(){
     if [ -z "$ST2_CONF" ]; then
         ST2_CONF=${ST2_REPO}/conf/st2.dev.conf
     fi
+
+    ST2_CONF=$(readlink -f ${ST2_CONF})
     echo "Using st2 config file: $ST2_CONF"
 
     if [ ! -f "$ST2_CONF" ]; then
@@ -209,9 +212,20 @@ function st2start(){
     cp -Rp ./contrib/core/ $PACKS_BASE_DIR
     cp -Rp ./contrib/packs/ $PACKS_BASE_DIR
 
-    if [ "$copy_examples" = true ]; then
-        echo "Copying examples from ./contrib/examples to $PACKS_BASE_DIR"
+    if [ "$copy_test_packs" = true ]; then
+        echo "Copying test packs examples and tests to $PACKS_BASE_DIR"
         cp -Rp ./contrib/examples $PACKS_BASE_DIR
+        # Clone st2tests in /tmp directory.
+        pushd /tmp
+        git clone https://github.com/StackStorm/st2tests.git
+        ret=$?
+        if [ ${ret} -eq 0 ]; then
+            cp -Rp ./st2tests/packs/tests $PACKS_BASE_DIR
+            rm -R st2tests/
+        else
+            echo "Failed to clone st2tests repo"
+        fi
+        popd
     fi
 
     # activate virtualenv to set PYTHONPATH
@@ -411,6 +425,13 @@ function st2start(){
         ${VIRTUALENV}/bin/python \
             ./st2common/bin/st2-register-content \
             --config-file $ST2_CONF --register-all
+    fi
+
+    if [ "$copy_test_packs" = true ]; then
+        st2 run packs.setup_virtualenv packs=tests
+        if [ $? != 0 ]; then
+            echo "Warning: Unable to setup virtualenv for the \"tests\" pack. Please setup virtualenv for the \"tests\" pack before running integration tests"
+        fi
     fi
 
     # List screen sessions

@@ -14,8 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 
+import six
 import jsonschema
 from oslo_config import cfg
 
@@ -180,7 +182,7 @@ class PackAPI(BaseAPI):
         try:
             super(PackAPI, self).validate()
         except jsonschema.ValidationError as e:
-            msg = str(e)
+            msg = six.text_type(e)
 
             # Invalid version
             if "Failed validating 'pattern' in schema['properties']['version']" in msg:

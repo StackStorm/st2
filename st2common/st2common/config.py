@@ -61,6 +61,9 @@ def register_opts(ignore_errors=False):
         cfg.BoolOpt(
             'enable', default=False,
             help='Enable RBAC.'),
+        cfg.StrOpt(
+            'backend', default='noop',
+            help='RBAC backend to use.'),
         cfg.BoolOpt(
             'sync_remote_groups', default=False,
             help='True to synchronize remote groups returned by the auth backed for each '
@@ -441,7 +444,10 @@ def register_opts(ignore_errors=False):
             help='Endpoint for the coordination server.'),
         cfg.IntOpt(
             'lock_timeout', default=60,
-            help='TTL for the lock if backend suports it.')
+            help='TTL for the lock if backend suports it.'),
+        cfg.BoolOpt(
+            'service_registry', default=False,
+            help='True to register StackStorm services in a service registry.'),
     ]
 
     do_register_opts(coord_opts, 'coordination', ignore_errors)
