@@ -28,9 +28,12 @@ import six
 __all__ = [
     'prefix_dict_keys',
     'compare_path_file_name',
-    'lowercase_value',
     'get_field_name_from_mongoengine_error',
 
+    'sanitize_output',
+    'strip_shell_chars',
+    'rstrip_last_char',
+    'lowercase_value'
 ]
 
 
@@ -65,6 +68,30 @@ def compare_path_file_name(file_path_a, file_path_b):
     file_name_b = os.path.basename(file_path_b)
 
     return (file_name_a > file_name_b) - (file_name_a < file_name_b)
+
+
+def sanitize_output(input_str, uses_pty=False):
+    """
+    Function which sanitizes paramiko output (stdout / stderr).
+
+    It strips trailing carriage return and new line characters and if pty is used, it also replaces
+    all occurrences of \r\n with \n.
+
+    By default when pty is used, all \n characters are convered to \r\n and that's not desired
+    in our remote runner action output.
+
+    :param input_str: Input string to be sanitized.
+    :type input_str: ``str``
+
+    :rtype: ``str``
+
+    """
+    output = strip_shell_chars(input_str)
+
+    if uses_pty:
+        output = output.replace('\r\n', '\n')
+
+    return output
 
 
 def strip_shell_chars(input_str):
