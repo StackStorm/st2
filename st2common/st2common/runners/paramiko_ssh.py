@@ -363,7 +363,13 @@ class ParamikoSSHClient(object):
         if cmd.startswith('sudo'):
             # Note that fabric does this as well. If you set pty, stdout and stderr
             # streams will be combined into one.
+            # NOTE: If pty is used, every new line character \n will be converted to \r\n which
+            # isn't desired. Because of that we sanitize the output and replace \r\n with \n at the
+            # bottom of this method
+            uses_pty = True
             chan.get_pty()
+        else:
+            uses_pty = False
         chan.exec_command(cmd)
 
         stdout = StringIO()
@@ -404,8 +410,8 @@ class ParamikoSSHClient(object):
                 # TODO: Is this the right way to clean up?
                 chan.close()
 
-                stdout = strip_shell_chars(stdout.getvalue())
-                stderr = strip_shell_chars(stderr.getvalue())
+                stdout = self._sanitize_output(stdout.getvalue(), uses_pty=uses_pty)
+                stderr = self._sanitize_output(stderr.getvalue(), uses_pty=uses_pty)
                 raise SSHCommandTimeoutError(cmd=cmd, timeout=timeout, stdout=stdout,
                                              stderr=stderr)
 
@@ -434,8 +440,8 @@ class ParamikoSSHClient(object):
         # Receive the exit status code of the command we ran.
         status = chan.recv_exit_status()
 
-        stdout = strip_shell_chars(stdout.getvalue())
-        stderr = strip_shell_chars(stderr.getvalue())
+        stdout = self._sanitize_output(stdout.getvalue(), uses_pty=uses_pty)
+        stderr = self._sanitize_output(stderr.getvalue(), uses_pty=uses_pty)
 
         extra = {'_status': status, '_stdout': stdout, '_stderr': stderr}
         self.logger.debug('Command finished', extra=extra)
@@ -735,6 +741,20 @@ class ParamikoSSHClient(object):
                 ssh_config_info['sock'] = paramiko.ProxyCommand(ssh_config['proxycommand'])
 
         return ssh_config_info
+
+    def _sanitize_output(self, output, uses_pty=False):
+        """
+        Function which sanitizes the output (stdout / stderr).
+
+        It strips trailing carriage return and new line characters and if pty is used, it also
+        replaces all occurances of \r\n with \n.
+        """
+        output = strip_shell_chars(output)
+
+        if uses_pty:
+            output = output.replace('\r\n', '\n')
+
+        return output
 
     @staticmethod
     def _is_key_file_needs_passphrase(file):
