@@ -220,7 +220,7 @@ function st2start(){
         git clone https://github.com/StackStorm/st2tests.git
         ret=$?
         if [ ${ret} -eq 0 ]; then
-            cp -Rp ./st2tests/packs/tests $PACKS_BASE_DIR
+            cp -Rp ./st2tests/packs/fixtures $PACKS_BASE_DIR
             rm -R st2tests/
         else
             echo "Failed to clone st2tests repo"
@@ -428,7 +428,7 @@ function st2start(){
     fi
 
     if [ "$copy_test_packs" = true ]; then
-        st2 run packs.setup_virtualenv packs=tests
+        st2 run packs.setup_virtualenv packs=fixtures
         if [ $? != 0 ]; then
             echo "Warning: Unable to setup virtualenv for the \"tests\" pack. Please setup virtualenv for the \"tests\" pack before running integration tests"
         fi
