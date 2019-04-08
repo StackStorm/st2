@@ -213,7 +213,7 @@ function st2start(){
     cp -Rp ./contrib/packs/ $PACKS_BASE_DIR
 
     if [ "$copy_test_packs" = true ]; then
-        echo "Copying test packs examples and tests to $PACKS_BASE_DIR"
+        echo "Copying test packs examples and fixtures to $PACKS_BASE_DIR"
         cp -Rp ./contrib/examples $PACKS_BASE_DIR
         # Clone st2tests in /tmp directory.
         pushd /tmp
