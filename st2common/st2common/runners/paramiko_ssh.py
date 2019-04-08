@@ -747,7 +747,7 @@ class ParamikoSSHClient(object):
         Function which sanitizes the output (stdout / stderr).
 
         It strips trailing carriage return and new line characters and if pty is used, it also
-        replaces all occurances of \r\n with \n.
+        replaces all occurrences of \r\n with \n.
         """
         output = strip_shell_chars(output)
 
