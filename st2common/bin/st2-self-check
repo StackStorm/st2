@@ -135,7 +135,7 @@ do
         continue
     fi
 
-    if [ ${RUN_WINDOWS_TESTS} = "false" ] && [ ${TEST} = "test_winrm_large_script" ]; then
+    if [ ${RUN_WINDOWS_TESTS} = "false" ] && [ ${TEST} = "tests.test_winrm_large_script" ]; then
         echo "Skipping ${TEST}..."
         continue
     fi
