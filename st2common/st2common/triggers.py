@@ -42,8 +42,8 @@ def _register_internal_trigger_type(trigger_definition):
                                                  log_not_unique_error_as_debug=True)
     except (NotUniqueError, StackStormDBObjectConflictError):
         # We ignore conflict error since this operation is idempotent and race is not an issue
-        LOG.debug('Internal trigger type "%s" already exists, ignoring...' %
-                  (trigger_definition['name']), exc_info=True)
+        LOG.debug('Internal trigger type "%s" already exists, ignoring error...' %
+                  (trigger_definition['name']))
 
         ref = ResourceReference.to_string_reference(name=trigger_definition['name'],
                                                     pack=trigger_definition['pack'])
