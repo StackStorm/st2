@@ -96,8 +96,8 @@ class MiscUtilTestCase(unittest2.TestCase):
             self.assertEqual(result, value)
             self.assertEqual(result, expected_value)
 
-    def test_sanitize_output(self):
-        # 1. pty is not used, \r\n shouldn't be replaced with \n
+    def test_sanitize_output_use_pyt_false(self):
+        # pty is not used, \r\n shouldn't be replaced with \n
         input_strs = [
             'foo',
             'foo\n',
@@ -117,7 +117,8 @@ class MiscUtilTestCase(unittest2.TestCase):
             output = sanitize_output(input_str, uses_pty=False)
             self.assertEqual(expected_output, output)
 
-        # 2. pty is used, \r\n should be replaced with \n
+    def test_sanitize_output_use_pyt_true(self):
+        # pty is used, \r\n should be replaced with \n
         input_strs = [
             'foo',
             'foo\n',
