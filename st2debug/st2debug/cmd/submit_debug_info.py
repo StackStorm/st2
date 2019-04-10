@@ -131,7 +131,7 @@ def setup_logging():
 class DebugInfoCollector(object):
     def __init__(self, include_logs, include_configs, include_content, include_system_info,
                  include_shell_commands=False, user_info=None, debug=False, config_file=None,
-                 output_path=None):
+                 output_path=None, time_modified=0):
         """
         Initialize a DebugInfoCollector object.
 
@@ -153,6 +153,8 @@ class DebugInfoCollector(object):
         :type config_file: ``dict``
         :param output_path: Path to write output file to. (optional)
         :type output_path: ``str``
+        :param time_modified: Base time to start filtering log files by modification time
+        :type time_modified: ''float'' or ``str``
         """
         self.include_logs = include_logs
         self.include_configs = include_configs
@@ -162,6 +164,8 @@ class DebugInfoCollector(object):
         self.user_info = user_info
         self.debug = debug
         self.output_path = output_path
+        self.time_modified = (
+            float(time_modified) if isinstance(time_modified, str) else time_modified)
 
         config_file = config_file or {}
         self.tmp_dir_prefix = config_file.get('st2_debug_tmp_path', None)
@@ -330,6 +334,14 @@ class DebugInfoCollector(object):
             LOG.exception('Failed to upload tarball to %s' % self.company_name, exc_info=True)
             raise e
 
+    def filter_by_modification_time(self, log_file_list):
+        filtered_log_file_list = []
+        for file_path in log_file_list:
+            file_time = os.path.getmtime(file_path)
+            if self.time_modified == 0 or file_time >= self.time_modified:
+                filtered_log_file_list.append(file_path)
+        return filtered_log_file_list
+
     def collect_logs(self, output_path):
         """
         Copy log files to the output path.
@@ -340,7 +352,8 @@ class DebugInfoCollector(object):
         LOG.debug('Including log files')
         for file_path_glob in self.log_file_paths:
             log_file_list = get_full_file_list(file_path_glob=file_path_glob)
-            copy_files(file_paths=log_file_list, destination=output_path)
+            filtered_log_file_list = self.filter_by_modification_time(log_file_list)
+            copy_files(file_paths=filtered_log_file_list, destination=output_path)
 
     def collect_config_files(self, output_path):
         """
@@ -494,9 +507,9 @@ class DebugInfoCollector(object):
         :rtype: ``str``
         """
         if six.PY3:
-            cmd = cmd.translate(cmd.maketrans('', '', r""" !@#$%^&*()[]{};:,./<>?\|`~=+"'"""))
+            cmd = cmd.translate(cmd.maketrans('', '', """ !@#$%^&*()[]{};:,./<>?\|`~=+"'"""))
         else:
-            cmd = cmd.translate(None, r""" !@#$%^&*()[]{};:,./<>?\|`~=+"'""")
+            cmd = cmd.translate(None, """ !@#$%^&*()[]{};:,./<>?\|`~=+"'""")
 
         return cmd
 
@@ -614,6 +627,8 @@ def main():
                         help='Specify output file path')
     parser.add_argument('--existing-file', action='store', default=None,
                         help='Specify an existing file to operate on')
+    parser.add_argument('--time-modified', action='store', default=0,
+                        help='Specify a time in seconds to filter log files by modification time')
     args = parser.parse_args()
 
     setup_logging()
@@ -690,6 +705,7 @@ def main():
                                          user_info=user_info,
                                          debug=args.debug,
                                          config_file=config_file,
-                                         output_path=args.output)
+                                         output_path=args.output,
+                                         time_modified=args.time_modified)
 
     debug_collector.run(encrypt=encrypt, upload=upload, existing_file=args.existing_file)
