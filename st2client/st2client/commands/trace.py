@@ -182,7 +182,7 @@ class TraceListCommand(resource.ResourceCommand, SingleTraceDisplayMixin):
 
             if not args.json and not args.yaml:
                 if args.last and count and count > args.last:
-                        table.SingleRowTable.note_box(self.resource_name, 1)
+                    table.SingleRowTable.note_box(self.resource_name, 1)
         else:
             if args.json or args.yaml:
                 self.print_output(instances, table.MultiColumnTable,

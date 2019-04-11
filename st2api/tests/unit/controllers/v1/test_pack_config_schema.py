@@ -15,7 +15,7 @@
 
 import glob
 
-from tests import FunctionalTest
+from st2tests.api import FunctionalTest
 
 from st2tests.fixturesloader import get_fixtures_packs_base_path
 

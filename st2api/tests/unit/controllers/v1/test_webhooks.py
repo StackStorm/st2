@@ -30,7 +30,7 @@ from st2common.models.db.trigger import TriggerDB
 from st2common.models.db.trigger import TriggerTypeDB
 from st2common.transport.reactor import TriggerInstancePublisher
 
-from tests import FunctionalTest
+from st2tests.api import FunctionalTest
 
 http_client = six.moves.http_client
 

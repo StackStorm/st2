@@ -29,7 +29,7 @@ from st2common import log as logging
 from st2common.models.api import inquiry as inqy_api_models
 from st2common.persistence import execution as ex_db_access
 from st2common.rbac import types as rbac_types
-from st2common.rbac import utils as rbac_utils
+from st2common.rbac.backends import get_rbac_backend
 from st2common import router as api_router
 from st2common.services import inquiry as inquiry_service
 
@@ -222,6 +222,7 @@ class InquiriesController(ResourceController):
         LOG.debug('Checking permission on inquiry "%s".' % id)
 
         if permission_type:
+            rbac_utils = get_rbac_backend().get_utils_class()
             rbac_utils.assert_user_has_resource_db_permission(
                 user_db=requester_user,
                 resource_db=execution_db,

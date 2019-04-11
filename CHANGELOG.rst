@@ -81,6 +81,8 @@ Changed
   (improvement) #4514
 
   Contributed by Nick Maludy (Encore Technologies)
+* Update various internal dependencies to latest stable versions (apscheduler, pyyaml, kombu,
+  mongoengine, pytz, stevedore, sseclient, python-editor). #4610
 
 Fixed
 ~~~~~
@@ -97,7 +99,10 @@ Fixed
   is acquired before write operations to avoid write conflicts. (bug fix) Stackstorm/orquesta#125
 * Fix a bug with some API endpoints returning 500 internal server error when an exception contained
   unicode data. (bug fix) #4598
-* Fix the ``st2 workflow inspect`` command so it correctly passes authentication token. (bug fix) #4615
+* Fix the ``st2 workflow inspect`` command so it correctly passes authentication token. (bug fix)
+  #4615
+* Fix an issue with new line characters (``\n``) being converted to ``\r\n`` in remote shell
+  command and script actions which use sudo. (bug fix) #4623
 
 2.10.4 - March 15, 2019
 -----------------------

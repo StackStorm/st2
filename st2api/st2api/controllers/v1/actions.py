@@ -33,7 +33,7 @@ from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
 from st2common.persistence.pack import Pack
 from st2common.rbac.types import PermissionType
-from st2common.rbac import utils as rbac_utils
+from st2common.rbac.backends import get_rbac_backend
 from st2common.router import abort
 from st2common.router import Response
 from st2common.validators.api.misc import validate_not_part_of_system_pack
@@ -100,6 +100,7 @@ class ActionsController(resource.ContentPackResourceController):
         """
 
         permission_type = PermissionType.ACTION_CREATE
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_api_permission(user_db=requester_user,
                                                            resource_api=action,
                                                            permission_type=permission_type)
@@ -144,6 +145,7 @@ class ActionsController(resource.ContentPackResourceController):
 
         # Assert permissions
         permission_type = PermissionType.ACTION_MODIFY
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=action_db,
                                                           permission_type=permission_type)
@@ -199,6 +201,7 @@ class ActionsController(resource.ContentPackResourceController):
         action_id = action_db.id
 
         permission_type = PermissionType.ACTION_DELETE
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=action_db,
                                                           permission_type=permission_type)

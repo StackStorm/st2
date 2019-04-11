@@ -33,7 +33,7 @@ from st2common.persistence.auth import User
 from st2common.transport.publishers import PoolPublisher
 from st2tests.api import SUPER_SECRET_PARAMETER
 from st2tests.fixturesloader import FixturesLoader
-from tests import FunctionalTest
+from st2tests.api import FunctionalTest
 
 
 ACTION_1 = {
