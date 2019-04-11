@@ -110,6 +110,8 @@ Fixed
   #4615
 * Fix an issue with new line characters (``\n``) being converted to ``\r\n`` in remote shell
   command and script actions which use sudo. (bug fix) #4623
+* Update service bootstrap and ``st2-register-content`` script code so non-fatal errors are
+  suppressed by default and only logged under ``DEBUG`` log level. (bug fix) #3933 #4626 #4630
 
 2.10.4 - March 15, 2019
 -----------------------
