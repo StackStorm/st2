@@ -23,7 +23,7 @@ from st2common.models.api.action import ActionAPI, RunnerTypeAPI
 from st2common.persistence.action import Action
 from st2common.persistence.runner import RunnerType
 from st2tests.fixturesloader import FixturesLoader
-from tests import FunctionalTest
+from st2tests.api import FunctionalTest
 
 
 WB_PRE_XFORM_FILE = 'wb_pre_xform.yaml'

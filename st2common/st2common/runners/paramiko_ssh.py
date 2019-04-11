@@ -31,6 +31,7 @@ from paramiko.ssh_exception import SSHException
 
 from st2common.log import logging
 from st2common.util.misc import strip_shell_chars
+from st2common.util.misc import sanitize_output
 from st2common.util.shell import quote_unix
 from st2common.constants.runners import DEFAULT_SSH_PORT, REMOTE_RUNNER_PRIVATE_KEY_HEADER
 import six
@@ -363,7 +364,13 @@ class ParamikoSSHClient(object):
         if cmd.startswith('sudo'):
             # Note that fabric does this as well. If you set pty, stdout and stderr
             # streams will be combined into one.
+            # NOTE: If pty is used, every new line character \n will be converted to \r\n which
+            # isn't desired. Because of that we sanitize the output and replace \r\n with \n at the
+            # bottom of this method
+            uses_pty = True
             chan.get_pty()
+        else:
+            uses_pty = False
         chan.exec_command(cmd)
 
         stdout = StringIO()
@@ -404,8 +411,8 @@ class ParamikoSSHClient(object):
                 # TODO: Is this the right way to clean up?
                 chan.close()
 
-                stdout = strip_shell_chars(stdout.getvalue())
-                stderr = strip_shell_chars(stderr.getvalue())
+                stdout = sanitize_output(stdout.getvalue(), uses_pty=uses_pty)
+                stderr = sanitize_output(stderr.getvalue(), uses_pty=uses_pty)
                 raise SSHCommandTimeoutError(cmd=cmd, timeout=timeout, stdout=stdout,
                                              stderr=stderr)
 
@@ -434,8 +441,8 @@ class ParamikoSSHClient(object):
         # Receive the exit status code of the command we ran.
         status = chan.recv_exit_status()
 
-        stdout = strip_shell_chars(stdout.getvalue())
-        stderr = strip_shell_chars(stderr.getvalue())
+        stdout = sanitize_output(stdout.getvalue(), uses_pty=uses_pty)
+        stderr = sanitize_output(stderr.getvalue(), uses_pty=uses_pty)
 
         extra = {'_status': status, '_stdout': stdout, '_stderr': stderr}
         self.logger.debug('Command finished', extra=extra)

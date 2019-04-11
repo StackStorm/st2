@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from oslo_config import cfg
-from tests import FunctionalTest
+from st2tests.api import FunctionalTest
 
 
 class TestBase(FunctionalTest):

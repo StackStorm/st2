@@ -24,7 +24,7 @@ from st2common.validators.api.misc import validate_not_part_of_system_pack
 from st2api.controllers import resource
 from st2api.controllers.controller_transforms import transform_to_bool
 from st2common.rbac.types import PermissionType
-from st2common.rbac import utils as rbac_utils
+from st2common.rbac.backends import get_rbac_backend
 from st2common.router import abort
 
 http_client = six.moves.http_client
@@ -75,6 +75,7 @@ class SensorTypeController(resource.ContentPackResourceController):
         sensor_type_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
 
         permission_type = PermissionType.SENSOR_MODIFY
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=sensor_type_db,
                                                           permission_type=permission_type)

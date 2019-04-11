@@ -21,7 +21,7 @@ from st2common.models.api.action import RunnerTypeAPI
 from st2common.persistence.runner import RunnerType
 from st2api.controllers.resource import ResourceController
 from st2common.rbac.types import PermissionType
-from st2common.rbac import utils as rbac_utils
+from st2common.rbac.backends import get_rbac_backend
 from st2common.router import abort
 
 http_client = six.moves.http_client
@@ -65,6 +65,7 @@ class RunnerTypesController(ResourceController):
         runner_type_db = self._get_by_name_or_id(name_or_id=name_or_id)
 
         permission_type = PermissionType.RUNNER_MODIFY
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=runner_type_db,
                                                           permission_type=permission_type)

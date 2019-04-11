@@ -61,6 +61,9 @@ def register_opts(ignore_errors=False):
         cfg.BoolOpt(
             'enable', default=False,
             help='Enable RBAC.'),
+        cfg.StrOpt(
+            'backend', default='noop',
+            help='RBAC backend to use.'),
         cfg.BoolOpt(
             'sync_remote_groups', default=False,
             help='True to synchronize remote groups returned by the auth backed for each '

@@ -28,7 +28,7 @@ from st2common.exceptions.auth import ApiKeyNotFoundError
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.persistence.auth import ApiKey, User
 from st2common.rbac.types import PermissionType
-from st2common.rbac import utils as rbac_utils
+from st2common.rbac.backends import get_rbac_backend
 from st2common.router import abort
 from st2common.router import Response
 from st2common.util import auth as auth_util
@@ -77,6 +77,7 @@ class ApiKeyController(BaseRestControllerMixin):
             abort(http_client.NOT_FOUND, msg)
 
         permission_type = PermissionType.API_KEY_VIEW
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=api_key_db,
                                                           permission_type=permission_type)
@@ -127,6 +128,7 @@ class ApiKeyController(BaseRestControllerMixin):
         """
 
         permission_type = PermissionType.API_KEY_CREATE
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_api_permission(user_db=requester_user,
                                                            resource_api=api_key_api,
                                                            permission_type=permission_type)
@@ -175,6 +177,7 @@ class ApiKeyController(BaseRestControllerMixin):
         api_key_db = ApiKey.get_by_key_or_id(api_key_id_or_key)
 
         permission_type = PermissionType.API_KEY_MODIFY
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=api_key_db,
                                                           permission_type=permission_type)
@@ -221,6 +224,7 @@ class ApiKeyController(BaseRestControllerMixin):
         api_key_db = ApiKey.get_by_key_or_id(api_key_id_or_key)
 
         permission_type = PermissionType.API_KEY_DELETE
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=api_key_db,
                                                           permission_type=permission_type)

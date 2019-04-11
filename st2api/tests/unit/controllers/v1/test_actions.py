@@ -36,8 +36,8 @@ from st2api.controllers.v1.actions import ActionsController
 from st2tests.fixturesloader import get_fixtures_packs_base_path
 from st2tests.base import CleanFilesTestCase
 
-from tests.base import FunctionalTest
-from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
+from st2tests.api import FunctionalTest
+from st2tests.api import APIControllerWithIncludeAndExcludeFilterTestCase
 
 # ACTION_1: Good action definition.
 ACTION_1 = {
@@ -344,7 +344,8 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
         self.__do_delete(action_1_id)
         self.__do_delete(action_2_id)
 
-    @mock.patch('st2common.rbac.utils.user_is_admin', mock.Mock(return_value=False))
+    @mock.patch('st2common.rbac.backends.noop.NoOpRBACUtils.user_is_admin',
+                mock.Mock(return_value=False))
     def test_get_all_invalid_limit_too_large_none_admin(self):
         # limit > max_page_size, but user is not admin
         resp = self.app.get('/v1/actions?limit=1000', expect_errors=True)

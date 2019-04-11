@@ -49,7 +49,6 @@ setup(
         'bin/st2-bootstrap-rmq',
         'bin/st2-cleanup-db',
         'bin/st2-register-content',
-        'bin/st2-apply-rbac-definitions',
         'bin/st2-purge-executions',
         'bin/st2-purge-trigger-instances',
         'bin/st2-run-pack-tests',
@@ -68,7 +67,10 @@ setup(
         'st2common.metrics.driver': [
             'statsd = st2common.metrics.drivers.statsd_driver:StatsdDriver',
             'noop = st2common.metrics.drivers.noop_driver:NoopDriver',
-            'echo = st2common.metrics.drivers.echo_driver:EchoDriver',
+            'echo = st2common.metrics.drivers.echo_driver:EchoDriver'
+        ],
+        'st2common.rbac.backend': [
+            'noop = st2common.rbac.backends.noop:NoOpRBACBackend'
         ],
     }
 )

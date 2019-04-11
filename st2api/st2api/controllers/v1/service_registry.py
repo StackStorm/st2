@@ -19,7 +19,7 @@ from tooz.coordination import GroupNotCreated
 
 from st2common.services import coordination
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
-from st2common.rbac import utils as rbac_utils
+from st2common.rbac.backends import get_rbac_backend
 
 __all__ = [
     'ServiceRegistryGroupsController',
@@ -29,6 +29,7 @@ __all__ = [
 
 class ServiceRegistryGroupsController(object):
     def get_all(self, requester_user):
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_is_admin(user_db=requester_user)
 
         coordinator = coordination.get_coordinator()
@@ -44,6 +45,7 @@ class ServiceRegistryGroupsController(object):
 
 class ServiceRegistryGroupMembersController(object):
     def get_one(self, group_id, requester_user):
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_is_admin(user_db=requester_user)
 
         coordinator = coordination.get_coordinator()

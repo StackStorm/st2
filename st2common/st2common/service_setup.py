@@ -93,7 +93,7 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
     logging.setup(DEFAULT_LOGGING_CONF_PATH, excludes=None)
 
     # Parse args to setup config.
-    if config_args:
+    if config_args is not None:
         config.parse_args(config_args)
     else:
         config.parse_args()

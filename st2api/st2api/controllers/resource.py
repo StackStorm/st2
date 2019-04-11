@@ -27,7 +27,7 @@ from st2common import log as logging
 from st2common.models.system.common import ResourceReference
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.rbac import ResourceAccessDeniedPermissionIsolationError
-from st2common.rbac import utils as rbac_utils
+from st2common.rbac.backends import get_rbac_backend
 from st2common.exceptions.rbac import AccessDeniedError
 from st2common.util import schema as util_schema
 from st2common.router import abort
@@ -277,6 +277,7 @@ class ResourceController(object):
                                    include_fields=include_fields)
 
         if permission_type:
+            rbac_utils = get_rbac_backend().get_utils_class()
             rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                               resource_db=instance,
                                                               permission_type=permission_type)
@@ -314,6 +315,7 @@ class ResourceController(object):
                                            include_fields=include_fields)
 
         if permission_type:
+            rbac_utils = get_rbac_backend().get_utils_class()
             rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                               resource_db=instance,
                                                               permission_type=permission_type)
@@ -485,6 +487,7 @@ class BaseResourceIsolationControllerMixin(object):
 
             return result
 
+        rbac_utils = get_rbac_backend().get_utils_class()
         user_is_admin = rbac_utils.user_is_admin(user_db=requester_user)
         user_is_system_user = (requester_user.name == cfg.CONF.system_user.user)
 
@@ -524,6 +527,7 @@ class ContentPackResourceController(ResourceController):
             return
 
         if permission_type:
+            rbac_utils = get_rbac_backend().get_utils_class()
             rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                               resource_db=instance,
                                                               permission_type=permission_type)
@@ -617,6 +621,7 @@ def validate_limit_query_param(limit, requester_user=None):
     Note: We only perform max_page_size check for non-admin users. Admin users
     can provide arbitrary limit value.
     """
+    rbac_utils = get_rbac_backend().get_utils_class()
     user_is_admin = rbac_utils.user_is_admin(user_db=requester_user)
 
     if limit:

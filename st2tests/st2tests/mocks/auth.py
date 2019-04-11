@@ -13,25 +13,46 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Note: Imports are in-line to avoid large import time overhead
-
 from __future__ import absolute_import
 
-from st2common.util import driver_loader
+from st2auth.backends.base import BaseAuthenticationBackend
+
+# auser:apassword in b64
+DUMMY_CREDS = 'YXVzZXI6YXBhc3N3b3Jk'
 
 __all__ = [
-    'BACKENDS_NAMESPACE',
+    'DUMMY_CREDS',
 
-    'get_available_backends',
-    'get_backend_driver'
+    'MockAuthBackend',
+    'MockRequest',
+
+    'get_mock_backend'
 ]
 
-BACKENDS_NAMESPACE = 'st2common.runners.runner'
+
+class MockAuthBackend(BaseAuthenticationBackend):
+    groups = []
+
+    def authenticate(self, username, password):
+        return ((username == 'auser' and password == 'apassword') or
+                (username == 'username' and password == 'password:password'))
+
+    def get_user(self, username):
+        return username
+
+    def get_user_groups(self, username):
+        return self.groups
 
 
-def get_available_backends():
-    return driver_loader.get_available_backends(namespace=BACKENDS_NAMESPACE)
+class MockRequest():
+    def __init__(self, ttl):
+        self.ttl = ttl
+
+    user = None
+    ttl = None
+    impersonate_user = None
+    nickname_origin = None
 
 
-def get_backend_driver(name):
-    return driver_loader.get_backend_driver(namespace=BACKENDS_NAMESPACE, name=name)
+def get_mock_backend(name):
+    return MockAuthBackend()
