@@ -16,7 +16,7 @@
 from __future__ import absolute_import
 from oslo_config import cfg
 
-from st2common.services.keyvalues import KeyValueLookup
+from st2common.services.keyvalues import KeyValueLookup, UserKeyValueLookup
 from st2common.util.crypto import read_crypto_key, symmetric_decrypt
 
 __all__ = [
@@ -25,7 +25,7 @@ __all__ = [
 
 
 def decrypt_kv(value):
-    if isinstance(value, KeyValueLookup):
+    if isinstance(value, KeyValueLookup) or isinstance(value, UserKeyValueLookup):
         # Since this is a filter the incoming value is still a KeyValueLookup
         # object as the jinja rendering is not yet complete. So we cast
         # the KeyValueLookup object to a simple string before decrypting.
