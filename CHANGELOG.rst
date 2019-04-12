@@ -90,6 +90,9 @@ Changed
   level is set to ``DEBUG`` or ``system.debug`` config option is set to ``True``.
 
   Reported by Nick Maludy. (improvement) #4538 #4502 #4621
+* Add missing ``--user`` argument to ``st2 execution list`` CLI command. (improvement) #4632
+
+  Contributed by Tristan Struthers (@trstruth).
 
 Fixed
 ~~~~~
