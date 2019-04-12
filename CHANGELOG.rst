@@ -81,6 +81,18 @@ Changed
   Contributed by Nick Maludy (Encore Technologies)
 * Update various internal dependencies to latest stable versions (apscheduler, pyyaml, kombu,
   mongoengine, pytz, stevedore, sseclient, python-editor). #4610
+* Update logging code so we exclude log messages with log level ``AUDIT`` from a default service
+  log file (e.g. ``st2api.log``). Log messages with level ``AUDIT`` are already logged in a
+  dedicated service audit log file (e.g. ``st2api.audit.log``) so there is no need for them to also
+  be duplicated and included in regular service log file.
+
+  NOTE: To aid with debugging, audit log messages are also included in a regular log file when log
+  level is set to ``DEBUG`` or ``system.debug`` config option is set to ``True``.
+
+  Reported by Nick Maludy. (improvement) #4538 #4502 #4621
+* Add missing ``--user`` argument to ``st2 execution list`` CLI command. (improvement) #4632
+
+  Contributed by Tristan Struthers (@trstruth).
 
 Fixed
 ~~~~~
@@ -97,7 +109,12 @@ Fixed
   is acquired before write operations to avoid write conflicts. (bug fix) Stackstorm/orquesta#125
 * Fix a bug with some API endpoints returning 500 internal server error when an exception contained
   unicode data. (bug fix) #4598
-* Fix the ``st2 workflow inspect`` command so it correctly passes authentication token. (bug fix) #4615
+* Fix the ``st2 workflow inspect`` command so it correctly passes authentication token. (bug fix)
+  #4615
+* Fix an issue with new line characters (``\n``) being converted to ``\r\n`` in remote shell
+  command and script actions which use sudo. (bug fix) #4623
+* Update service bootstrap and ``st2-register-content`` script code so non-fatal errors are
+  suppressed by default and only logged under ``DEBUG`` log level. (bug fix) #3933 #4626 #4630
 
 2.10.4 - March 15, 2019
 -----------------------
