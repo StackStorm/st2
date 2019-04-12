@@ -1086,7 +1086,7 @@ class ActionExecutionListCommand(ResourceViewCommand):
                                                   \'%s\', \'%s\', \'%s\', \'%s\' or \'%s\''
                                                   '.' % POSSIBLE_ACTION_STATUS_VALUES))
         self.group.add_argument('--user',
-                                help='Only return executions created by provided the user.')
+                                help='Only return executions created by the provided user.')
         self.group.add_argument('--trigger_instance',
                                 help='Trigger instance id to filter the list.')
         self.parser.add_argument('-tg', '--timestamp-gt', type=str, dest='timestamp_gt',
