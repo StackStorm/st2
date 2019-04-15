@@ -62,7 +62,8 @@ def decrypt_kv(value):
         key_name_parts.append(key_name)
         key_name = '.'.join(key_name_parts)
 
-        raise ValueError('Referenced datastore item "%s" doesn\'t exist' % (key_name))
+        raise ValueError('Referenced datastore item "%s" doesn\'t exist or it contains an empty '
+                         'string' % (key_name))
 
     crypto_key_path = cfg.CONF.keyvalue.encryption_key_path
     crypto_key = read_crypto_key(key_path=crypto_key_path)
