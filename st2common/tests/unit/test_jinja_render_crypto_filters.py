@@ -59,6 +59,22 @@ class JinjaUtilsDecryptTestCase(CleanDbTestCase):
         actual = self.env.from_string(template).render(context)
         self.assertEqual(actual, self.secret)
 
+    def test_filter_decrypt_kv_datastore_value_doesnt_exist(self):
+        context = {}
+        context.update({SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)})
+        context.update({
+            DATASTORE_PARENT_SCOPE: {
+                SYSTEM_SCOPE: KeyValueLookup(scope=FULL_SYSTEM_SCOPE)
+            }
+        })
+
+        template = '{{st2kv.system.doesnt_exist | decrypt_kv}}'
+
+        expected_msg = ('Referenced datastore item "st2kv.system.doesnt_exist" doesn\'t exist or '
+                        'it contains an empty string')
+        self.assertRaisesRegexp(ValueError, expected_msg, self.env.from_string(template).render,
+                                context)
+
     def test_filter_decrypt_kv_with_user_scope_value(self):
         KeyValuePair.add_or_update(KeyValuePairDB(name='stanley:k8', value=self.secret_value,
                                                   scope=FULL_USER_SCOPE,
@@ -75,3 +91,19 @@ class JinjaUtilsDecryptTestCase(CleanDbTestCase):
         template = '{{st2kv.user.k8 | decrypt_kv}}'
         actual = self.env.from_string(template).render(context)
         self.assertEqual(actual, self.secret)
+
+    def test_filter_decrypt_kv_with_user_scope_value_datastore_value_doesnt_exist(self):
+        context = {}
+        context.update({SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)})
+        context.update({
+            DATASTORE_PARENT_SCOPE: {
+                USER_SCOPE: UserKeyValueLookup(user='stanley', scope=FULL_USER_SCOPE)
+            }
+        })
+
+        template = '{{st2kv.user.doesnt_exist | decrypt_kv}}'
+
+        expected_msg = ('Referenced datastore item "st2kv.user.doesnt_exist" doesn\'t exist or '
+                        'it contains an empty string')
+        self.assertRaisesRegexp(ValueError, expected_msg, self.env.from_string(template).render,
+                                context)
