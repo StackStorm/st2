@@ -507,7 +507,7 @@ class DebugInfoCollector(object):
         :rtype: ``str``
         """
         if six.PY3:
-            cmd = cmd.translate(cmd.maketrans('', '', """ !@#$%^&*()[]{};:,./<>?\|`~=+"'"""))
+            cmd = cmd.translate(cmd.maketrans('', '', r""" !@#$%^&*()[]{};:,./<>?\|`~=+"'"""))
         else:
             cmd = cmd.translate(None, """ !@#$%^&*()[]{};:,./<>?\|`~=+"'""")
 
