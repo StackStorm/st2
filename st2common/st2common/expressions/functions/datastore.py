@@ -19,10 +19,8 @@ from oslo_config import cfg
 
 from st2common.services.keyvalues import KeyValueLookup
 from st2common.services.keyvalues import UserKeyValueLookup
-from st2common.constants.keyvalue import DATASTORE_PARENT_SCOPE
-from st2common.constants.keyvalue import SYSTEM_SCOPE
-from st2common.constants.keyvalue import USER_SCOPE
-from st2common.util.crypto import read_crypto_key, symmetric_decrypt
+from st2common.util.crypto import read_crypto_key
+from st2common.util.crypto import symmetric_decrypt
 
 __all__ = [
     'decrypt_kv'
@@ -45,23 +43,7 @@ def decrypt_kv(value):
     # user-friendly error
     if is_kv_item and value == '':
         # Build original key name
-        key_name_parts = [DATASTORE_PARENT_SCOPE]
-
-        if isinstance(original_value, KeyValueLookup):
-            key_name_parts.append(SYSTEM_SCOPE)
-        elif isinstance(original_value, UserKeyValueLookup):
-            key_name_parts.append(USER_SCOPE)
-
-        key_name = original_value.__dict__.get('_key_prefix').split(':', 1)
-
-        if len(key_name) == 1:
-            key_name = key_name[0]
-        else:
-            key_name = key_name[1]
-
-        key_name_parts.append(key_name)
-        key_name = '.'.join(key_name_parts)
-
+        key_name = original_value.get_key_name()
         raise ValueError('Referenced datastore item "%s" doesn\'t exist or it contains an empty '
                          'string' % (key_name))
 
