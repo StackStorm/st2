@@ -112,7 +112,11 @@ Fixed
   command and script actions which use sudo. (bug fix) #4623
 * Update service bootstrap and ``st2-register-content`` script code so non-fatal errors are
   suppressed by default and only logged under ``DEBUG`` log level. (bug fix) #3933 #4626 #4630
+* Fix a bug with not being able to decrypt user-scoped datastore values inside Jinja expressions 
+  using ``decrypt_kv`` Jinja filter. (bug fix) #4634
 
+  Contributed by Hiroyasu OHYAMA (@userlocalhost).
+  
 2.10.4 - March 15, 2019
 -----------------------
 
