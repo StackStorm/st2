@@ -3,8 +3,8 @@ RandomWords
 amqp==2.4.2
 apscheduler==3.6.0
 argcomplete
-bcrypt
-cryptography==2.4.2
+bcrypt==3.1.6
+cryptography==2.6.1
 eventlet==0.24.1
 flex==6.14.0
 git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper
@@ -36,12 +36,12 @@ psutil==5.6.1
 pyinotify==0.9.6
 pymongo==3.7.2
 pyrabbit
-python-dateutil==2.7.5
+python-dateutil==2.8.0
 python-editor==1.0.4
 python-gnupg==0.4.4
 python-json-logger
 python-statsd==2.1.0
-pytz==2018.9
+pytz==2019.1
 pywinrm==0.3.0
 pyyaml==5.1
 rednose
