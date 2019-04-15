@@ -1294,3 +1294,52 @@ def identify_orphaned_workflows():
             continue
 
     return orphaned
+
+
+@retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
+def request_rerun(wf_ex_id, ac_ex_id, st2_ctx, rerun_options):
+    LOG.info('[%s] Processing rerun request for workflow.', ac_ex_id)
+    wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
+
+    if not wf_ex_db:
+        raise wf_exc.WorkflowExecutionNotFoundException(ac_ex_id)
+
+    if wf_ex_db.status != statuses.FAILED:
+        msg = '[%s] Workflow execution "%s" is not rerunable because its status is not "%s".'
+        LOG.info(msg, ac_ex_id, wf_ex_id, statuses.FAILED)
+        return
+
+    if wf_ex_db.status in statuses.RUNNING_STATUSES:
+        msg = '[%s] Workflow execution "%s" is not rerunable because it is already active.'
+        LOG.info(msg, ac_ex_id, ac_ex_id)
+        return
+
+    wf_ex_db.result = {}
+    wf_ex_db.error = {}
+    wf_ex_db.action_execution = ac_ex_id
+    wf_ex_db.context['st2'] = st2_ctx['st2']
+    wf_ex_db.context['parent'] = st2_ctx['parent']
+
+    conductor = deserialize_conductor(wf_ex_db)
+    conductor.request_workflow_rerun(rerun_options)
+    data = conductor.serialize()
+    status = data['state']['status']
+
+    if status in statuses.COMPLETED_STATUSES:
+        raise wf_exc.WorkflowExecutionIsCompletedException(str(wf_ex_db.id))
+
+    if status != statuses.RUNNING:
+        msg = '[%s] Workflow execution "%s" is not reran because it is not running.'
+        LOG.info(msg, ac_ex_id, str(wf_ex_db.id))
+        return
+
+    wf_ex_db.status = status
+    wf_ex_db.spec = data['spec']
+    wf_ex_db.graph = data['graph']
+    wf_ex_db.state = data['state']
+
+    wf_ex_db = wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
+
+    request_next_tasks(wf_ex_db)
+
+    return wf_ex_db

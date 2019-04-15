@@ -1,0 +1,11 @@
+---
+name: orquesta-test-rerun
+description: A sample workflow used to test the rerun feature.
+pack: examples
+runner_type: orquesta
+entry_point: workflows/tests/orquesta-test-rerun.yaml
+enabled: true
+parameters:
+    tempfile:
+        type: string
+        required: true
