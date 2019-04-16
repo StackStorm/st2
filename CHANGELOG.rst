@@ -93,6 +93,9 @@ Changed
 * Add missing ``--user`` argument to ``st2 execution list`` CLI command. (improvement) #4632
 
   Contributed by Tristan Struthers (@trstruth).
+* Update ``decrypt_kv`` Jinja template filter so it to throws a more user-friendly error message
+  when decryption fails because the variable references a datastore value which doesn't exist.
+  (improvement) #4634
 
 Fixed
 ~~~~~
@@ -115,6 +118,12 @@ Fixed
   command and script actions which use sudo. (bug fix) #4623
 * Update service bootstrap and ``st2-register-content`` script code so non-fatal errors are
   suppressed by default and only logged under ``DEBUG`` log level. (bug fix) #3933 #4626 #4630
+* Fix a bug with not being able to decrypt user-scoped datastore values inside Jinja expressions
+  using ``decrypt_kv`` Jinja filter. (bug fix) #4634
+
+  Contributed by Hiroyasu OHYAMA (@userlocalhost).
+* Fix a bug with user-scoped datastore values not working inside action-chain workflows. (bug fix)
+  #4634
 
 2.10.4 - March 15, 2019
 -----------------------
