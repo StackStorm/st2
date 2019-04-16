@@ -94,8 +94,8 @@ Changed
 
   Contributed by Tristan Struthers (@trstruth).
 * Update ``decrypt_kv`` Jinja template filter so it to throws a more user-friendly error message
-  when decryption fails because the variable references a datastore value which doesn't exist in
-  the datastore. (improvement) #4634
+  when decryption fails because the variable references a datastore value which doesn't exist.
+  (improvement) #4634
 
 Fixed
 ~~~~~
@@ -122,7 +122,7 @@ Fixed
   using ``decrypt_kv`` Jinja filter. (bug fix) #4634
 
   Contributed by Hiroyasu OHYAMA (@userlocalhost).
-* Fix a bug with user-scoped datastore values not working inside action-chain workflows. (bug fi)
+* Fix a bug with user-scoped datastore values not working inside action-chain workflows. (bug fix)
   #4634
 
 2.10.4 - March 15, 2019
