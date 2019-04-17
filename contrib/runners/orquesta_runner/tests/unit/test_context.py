@@ -304,7 +304,8 @@ class OrquestaContextTest(st2tests.ExecutionDbTestCase):
     def test_action_context_source_channel(self):
         wf_name = 'subworkflow-source-channel-from-action-context'
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, wf_name + '.yaml')
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], context={'source_channel': 'general'})
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'],
+                                             context={'source_channel': 'general'})
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result)
