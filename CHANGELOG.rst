@@ -1,8 +1,12 @@
 Changelog
 =========
 
-In development
+in development
 --------------
+
+
+3.0.0 - April 18, 2019
+----------------------
 
 Added
 ~~~~~
