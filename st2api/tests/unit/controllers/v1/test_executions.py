@@ -184,6 +184,27 @@ ACTION_DEFAULT_ENCRYPT = {
     }
 }
 
+ACTION_DEFAULT_ENCRYPT_SECRET_PARAMS = {
+    'name': 'st2.dummy.default_encrypted_value_secret_param',
+    'description': 'An action that uses a jinja template with decrypt_kv filter '
+                   'in default parameter',
+    'enabled': True,
+    'pack': 'starterpack',
+    'runner_type': 'local-shell-cmd',
+    'parameters': {
+        'encrypted_param': {
+            'type': 'string',
+            'default': '{{ st2kv.system.secret | decrypt_kv }}',
+            'secret': True
+        },
+        'encrypted_user_param': {
+            'type': 'string',
+            'default': '{{ st2kv.user.secret | decrypt_kv }}',
+            'secret': True
+        }
+    }
+}
+
 LIVE_ACTION_1 = {
     'action': 'sixpack.st2.dummy.action1',
     'parameters': {
@@ -284,6 +305,9 @@ LIVE_ACTION_DEFAULT_TEMPLATE = {
 LIVE_ACTION_DEFAULT_ENCRYPT = {
     'action': 'starterpack.st2.dummy.default_encrypted_value',
 }
+LIVE_ACTION_DEFAULT_ENCRYPT_SECRET_PARAM = {
+    'action': 'starterpack.st2.dummy.default_encrypted_value_secret_param',
+}
 
 FIXTURES_PACK = 'generic'
 TEST_FIXTURES = {
@@ -335,6 +359,10 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         cls.action_decrypt = copy.deepcopy(ACTION_DEFAULT_ENCRYPT)
         post_resp = cls.app.post_json('/v1/actions', cls.action_decrypt)
         cls.action_decrypt['id'] = post_resp.json['id']
+
+        cls.action_decrypt_secret_param = copy.deepcopy(ACTION_DEFAULT_ENCRYPT_SECRET_PARAMS)
+        post_resp = cls.app.post_json('/v1/actions', cls.action_decrypt_secret_param)
+        cls.action_decrypt_secret_param['id'] = post_resp.json['id']
 
     @classmethod
     def tearDownClass(cls):
@@ -732,17 +760,36 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         kvps = [KeyValuePair.add_or_update(KeyValuePairDB(**x)) for x in register_items]
 
         # By default, encrypt_user_param will be read from stanley's scope
+        # 1. parameters are not marked as secret
         resp = self._do_post(LIVE_ACTION_DEFAULT_ENCRYPT)
         self.assertEqual(resp.status_int, 201)
+        self.assertEqual(resp.json['context']['user'], 'stanley')
         self.assertEqual(resp.json['parameters']['encrypted_param'], 'foo')
         self.assertEqual(resp.json['parameters']['encrypted_user_param'], 'bar')
 
+        # 2. parameters are marked as secret
+        resp = self._do_post(LIVE_ACTION_DEFAULT_ENCRYPT_SECRET_PARAM)
+        self.assertEqual(resp.status_int, 201)
+        self.assertEqual(resp.json['context']['user'], 'stanley')
+        self.assertEqual(resp.json['parameters']['encrypted_param'], MASKED_ATTRIBUTE_VALUE)
+        self.assertEqual(resp.json['parameters']['encrypted_user_param'], MASKED_ATTRIBUTE_VALUE)
+
         # After switching to the 'user1', that value will be read from switched user's scope
         self.use_user(UserDB(name='user1'))
+
+        # 1. parameters are not marked as secret
         resp = self._do_post(LIVE_ACTION_DEFAULT_ENCRYPT)
         self.assertEqual(resp.status_int, 201)
+        self.assertEqual(resp.json['context']['user'], 'user1')
         self.assertEqual(resp.json['parameters']['encrypted_param'], 'foo')
         self.assertEqual(resp.json['parameters']['encrypted_user_param'], 'baz')
+
+        # 2. parameters are marked as secret
+        resp = self._do_post(LIVE_ACTION_DEFAULT_ENCRYPT_SECRET_PARAM)
+        self.assertEqual(resp.status_int, 201)
+        self.assertEqual(resp.json['context']['user'], 'user1')
+        self.assertEqual(resp.json['parameters']['encrypted_param'], MASKED_ATTRIBUTE_VALUE)
+        self.assertEqual(resp.json['parameters']['encrypted_user_param'], MASKED_ATTRIBUTE_VALUE)
 
         # This switches to the 'user2', there is no value in that user's scope. When a request
         # that tries to evaluate Jinja expression to decrypt empty value is sent, a HTTP response
@@ -755,7 +802,8 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
                          'item "st2kv.user.secret" doesn\'t exist or it contains an empty string')
 
         # clean-up values that are registered at first
-        [KeyValuePair.delete(x) for x in kvps]
+        for kvp in kvps:
+            KeyValuePair.delete(kvp)
 
     def test_template_encrypted_params_without_registering(self):
         resp = self._do_post(LIVE_ACTION_DEFAULT_ENCRYPT, expect_errors=True)
