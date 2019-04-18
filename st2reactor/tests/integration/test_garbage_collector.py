@@ -93,7 +93,7 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
                                                     end_timestamp=timestamp,
                                                     status=status,
                                                     action={'ref': 'core.local'},
-                                                    runner={'name': 'run-local'},
+                                                    runner={'name': 'local-shell-cmd'},
                                                     liveaction={'ref': 'foo'})
             ActionExecution.add_or_update(action_execution_db)
 
@@ -123,7 +123,7 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
                                                     end_timestamp=timestamp,
                                                     status=status,
                                                     action={'ref': 'core.local'},
-                                                    runner={'name': 'run-local'},
+                                                    runner={'name': 'local-shell-cmd'},
                                                     liveaction={'ref': 'foo'})
             ActionExecution.add_or_update(action_execution_db)
 
@@ -152,7 +152,7 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
                                                     end_timestamp=timestamp,
                                                     status=status,
                                                     action={'ref': 'core.local'},
-                                                    runner={'name': 'run-local'},
+                                                    runner={'name': 'local-shell-cmd'},
                                                     liveaction={'ref': 'foo'})
             ActionExecution.add_or_update(action_execution_db)
 
@@ -188,7 +188,7 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
         process = self._start_garbage_collector()
 
         # Give it some time to perform garbage collection and kill it
-        eventlet.sleep(10)
+        eventlet.sleep(15)
         process.send_signal(signal.SIGKILL)
         self.remove_process(process=process)
 
@@ -236,7 +236,7 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
         process = self._start_garbage_collector()
 
         # Give it some time to perform garbage collection and kill it
-        eventlet.sleep(10)
+        eventlet.sleep(15)
         process.send_signal(signal.SIGKILL)
         self.remove_process(process=process)
 

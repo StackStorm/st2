@@ -15,7 +15,6 @@
 
 import eventlet
 from six.moves import queue
-from kombu import Connection
 from oslo_config import cfg
 
 from st2common import log as logging
@@ -124,5 +123,5 @@ class ExecutionsExporter(consumers.MessageHandler):
 
 
 def get_worker():
-    with Connection(transport_utils.get_messaging_urls()) as conn:
+    with transport_utils.get_connection() as conn:
         return ExecutionsExporter(conn, [EXPORTER_WORK_QUEUE])

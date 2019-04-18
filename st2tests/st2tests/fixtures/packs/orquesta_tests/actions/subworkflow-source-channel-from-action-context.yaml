@@ -1,0 +1,7 @@
+---
+name: subworkflow-source-channel-from-action-context.yaml
+description: A sample workflow that calls another subworkflow.
+pack: orquesta_tests
+runner_type: orquesta
+entry_point: workflows/subworkflow-source-channel-from-action-context.yaml
+enabled: true

@@ -1,0 +1,6 @@
+---
+name: orquesta-test-yaql-task-nonexistent
+description: A basic workflow testing task related functions.
+runner_type: orquesta
+entry_point: workflows/tests/orquesta-test-yaql-task-nonexistent.yaml
+enabled: true

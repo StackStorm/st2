@@ -16,7 +16,7 @@
 import six
 
 from st2tests.fixturesloader import FixturesLoader
-from tests import FunctionalTest
+from st2tests.api import FunctionalTest
 
 
 DESCENDANTS_PACK = 'descendants'

@@ -21,7 +21,8 @@ import mock
 from kombu.message import Message
 
 from st2actions import worker
-from st2actions import scheduler
+from st2actions.scheduler import entrypoint as scheduling
+from st2actions.scheduler import handler as scheduling_queue
 from st2actions.container.base import RunnerContainer
 from st2common.constants import action as action_constants
 from st2common.models.db.liveaction import LiveActionDB
@@ -31,91 +32,111 @@ from st2common.services import executions
 from st2common.transport.publishers import PoolPublisher
 from st2common.util import action_db
 from st2common.util import date as date_utils
-from st2tests.base import DbTestCase
+from st2tests.base import ExecutionDbTestCase
 
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
 @mock.patch.object(executions, 'update_execution', mock.MagicMock())
 @mock.patch.object(Message, 'ack', mock.MagicMock())
-class QueueConsumerTest(DbTestCase):
+class QueueConsumerTest(ExecutionDbTestCase):
 
     def __init__(self, *args, **kwargs):
         super(QueueConsumerTest, self).__init__(*args, **kwargs)
-        self.scheduler = scheduler.get_scheduler()
+        self.scheduler = scheduling.get_scheduler_entrypoint()
+        self.scheduling_queue = scheduling_queue.get_handler()
         self.dispatcher = worker.get_worker()
 
-    def _get_execution_db_model(self, status=action_constants.LIVEACTION_STATUS_REQUESTED):
-        start_timestamp = date_utils.get_datetime_utc_now()
-        action_ref = ResourceReference(name='test_action', pack='test_pack').ref
-        parameters = None
-        live_action_db = LiveActionDB(status=status, start_timestamp=start_timestamp,
-                                      action=action_ref, parameters=parameters)
-        return action.LiveAction.add_or_update(live_action_db, publish=False)
+    def _create_liveaction_db(self, status=action_constants.LIVEACTION_STATUS_REQUESTED):
+        liveaction_db = LiveActionDB(
+            action=ResourceReference(name='test_action', pack='test_pack').ref,
+            parameters=None,
+            start_timestamp=date_utils.get_datetime_utc_now(),
+            status=status
+        )
+
+        return action.LiveAction.add_or_update(liveaction_db, publish=False)
+
+    def _process_request(self, liveaction_db):
+        self.scheduler._queue_consumer._process_message(liveaction_db)
+        queued_request = self.scheduling_queue._get_next_execution()
+        self.scheduling_queue._handle_execution(queued_request)
 
     @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(return_value={'key': 'value'}))
     def test_execute(self):
-        live_action_db = self._get_execution_db_model(
-            status=action_constants.LIVEACTION_STATUS_REQUESTED)
+        liveaction_db = self._create_liveaction_db()
+        self._process_request(liveaction_db)
 
-        self.scheduler._queue_consumer._process_message(live_action_db)
-        scheduled_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
-        self.assertDictEqual(scheduled_live_action_db.runner_info, {})
-        self.assertEqual(scheduled_live_action_db.status,
-                         action_constants.LIVEACTION_STATUS_SCHEDULED)
+        scheduled_liveaction_db = action_db.get_liveaction_by_id(liveaction_db.id)
+        scheduled_liveaction_db = self._wait_on_status(
+            scheduled_liveaction_db,
+            action_constants.LIVEACTION_STATUS_SCHEDULED
+        )
+        self.assertDictEqual(scheduled_liveaction_db.runner_info, {})
 
-        self.dispatcher._queue_consumer._process_message(scheduled_live_action_db)
-        dispatched_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
-        self.assertGreater(len(list(dispatched_live_action_db.runner_info.keys())), 0)
-        self.assertEqual(dispatched_live_action_db.status,
-                         action_constants.LIVEACTION_STATUS_RUNNING)
+        self.dispatcher._queue_consumer._process_message(scheduled_liveaction_db)
+        dispatched_liveaction_db = action_db.get_liveaction_by_id(liveaction_db.id)
+        self.assertGreater(len(list(dispatched_liveaction_db.runner_info.keys())), 0)
+        self.assertEqual(
+            dispatched_liveaction_db.status,
+            action_constants.LIVEACTION_STATUS_RUNNING
+        )
 
     @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(side_effect=Exception('Boom!')))
     def test_execute_failure(self):
-        live_action_db = self._get_execution_db_model(
-            status=action_constants.LIVEACTION_STATUS_REQUESTED)
+        liveaction_db = self._create_liveaction_db()
+        self._process_request(liveaction_db)
 
-        self.scheduler._queue_consumer._process_message(live_action_db)
-        scheduled_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
-        self.assertEqual(scheduled_live_action_db.status,
-                         action_constants.LIVEACTION_STATUS_SCHEDULED)
+        scheduled_liveaction_db = action_db.get_liveaction_by_id(liveaction_db.id)
+        scheduled_liveaction_db = self._wait_on_status(
+            scheduled_liveaction_db,
+            action_constants.LIVEACTION_STATUS_SCHEDULED
+        )
 
-        self.dispatcher._queue_consumer._process_message(scheduled_live_action_db)
-        dispatched_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
-        self.assertEqual(dispatched_live_action_db.status,
-                         action_constants.LIVEACTION_STATUS_FAILED)
+        self.dispatcher._queue_consumer._process_message(scheduled_liveaction_db)
+        dispatched_liveaction_db = action_db.get_liveaction_by_id(liveaction_db.id)
+        self.assertEqual(dispatched_liveaction_db.status, action_constants.LIVEACTION_STATUS_FAILED)
 
     @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(return_value=None))
     def test_execute_no_result(self):
-        live_action_db = self._get_execution_db_model(
-            status=action_constants.LIVEACTION_STATUS_REQUESTED)
+        liveaction_db = self._create_liveaction_db()
+        self._process_request(liveaction_db)
 
-        self.scheduler._queue_consumer._process_message(live_action_db)
-        scheduled_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
-        self.assertEqual(scheduled_live_action_db.status,
-                         action_constants.LIVEACTION_STATUS_SCHEDULED)
+        scheduled_liveaction_db = action_db.get_liveaction_by_id(liveaction_db.id)
+        scheduled_liveaction_db = self._wait_on_status(
+            scheduled_liveaction_db,
+            action_constants.LIVEACTION_STATUS_SCHEDULED
+        )
 
-        self.dispatcher._queue_consumer._process_message(scheduled_live_action_db)
-        dispatched_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
-        self.assertEqual(dispatched_live_action_db.status,
-                         action_constants.LIVEACTION_STATUS_FAILED)
+        self.dispatcher._queue_consumer._process_message(scheduled_liveaction_db)
+        dispatched_liveaction_db = action_db.get_liveaction_by_id(liveaction_db.id)
+        self.assertEqual(dispatched_liveaction_db.status, action_constants.LIVEACTION_STATUS_FAILED)
 
     @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(return_value=None))
     def test_execute_cancelation(self):
-        live_action_db = self._get_execution_db_model(
-            status=action_constants.LIVEACTION_STATUS_REQUESTED)
+        liveaction_db = self._create_liveaction_db()
+        self._process_request(liveaction_db)
 
-        self.scheduler._queue_consumer._process_message(live_action_db)
-        scheduled_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
-        self.assertEqual(scheduled_live_action_db.status,
-                         action_constants.LIVEACTION_STATUS_SCHEDULED)
+        scheduled_liveaction_db = action_db.get_liveaction_by_id(liveaction_db.id)
+        scheduled_liveaction_db = self._wait_on_status(
+            scheduled_liveaction_db,
+            action_constants.LIVEACTION_STATUS_SCHEDULED
+        )
 
-        action_db.update_liveaction_status(status=action_constants.LIVEACTION_STATUS_CANCELED,
-                                           liveaction_id=live_action_db.id)
-        canceled_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
+        action_db.update_liveaction_status(
+            status=action_constants.LIVEACTION_STATUS_CANCELED,
+            liveaction_id=liveaction_db.id
+        )
 
-        self.dispatcher._queue_consumer._process_message(canceled_live_action_db)
-        dispatched_live_action_db = action_db.get_liveaction_by_id(live_action_db.id)
-        self.assertEqual(dispatched_live_action_db.status,
-                         action_constants.LIVEACTION_STATUS_CANCELED)
-        self.assertDictEqual(dispatched_live_action_db.result,
-                             {'message': 'Action execution canceled by user.'})
+        canceled_liveaction_db = action_db.get_liveaction_by_id(liveaction_db.id)
+        self.dispatcher._queue_consumer._process_message(canceled_liveaction_db)
+        dispatched_liveaction_db = action_db.get_liveaction_by_id(liveaction_db.id)
+
+        self.assertEqual(
+            dispatched_liveaction_db.status,
+            action_constants.LIVEACTION_STATUS_CANCELED
+        )
+
+        self.assertDictEqual(
+            dispatched_liveaction_db.result,
+            {'message': 'Action execution canceled by user.'}
+        )

@@ -19,6 +19,8 @@ import os
 import re
 import collections
 
+import six
+
 from st2common.util import schema as util_schema
 from st2common.constants.pack import MANIFEST_FILE_NAME
 from st2common.constants.pack import PACK_REF_WHITELIST_REGEX
@@ -119,7 +121,7 @@ def validate_config_against_schema(config_schema, config_object, config_path,
             attribute = str(attribute)
 
         msg = ('Failed validating attribute "%s" in config for pack "%s" (%s): %s' %
-               (attribute, pack_name, config_path, str(e)))
+               (attribute, pack_name, config_path, six.text_type(e)))
         raise jsonschema.ValidationError(msg)
 
     return cleaned

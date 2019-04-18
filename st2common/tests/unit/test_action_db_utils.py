@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -88,6 +89,44 @@ class ActionDBUtilsTestCase(DbTestCase):
     def test_get_actionexec_existing(self):
         liveaction = action_db_utils.get_liveaction_by_id(ActionDBUtilsTestCase.liveaction_db.id)
         self.assertEqual(liveaction, ActionDBUtilsTestCase.liveaction_db)
+
+    @mock.patch.object(LiveActionPublisher, 'publish_state', mock.MagicMock())
+    def test_update_liveaction_with_incorrect_output_schema(self):
+        liveaction_db = LiveActionDB()
+        liveaction_db.status = 'initializing'
+        liveaction_db.start_timestamp = get_datetime_utc_now()
+        liveaction_db.action = ResourceReference(
+            name=ActionDBUtilsTestCase.action_db.name,
+            pack=ActionDBUtilsTestCase.action_db.pack).ref
+        params = {
+            'actionstr': 'foo',
+            'some_key_that_aint_exist_in_action_or_runner': 'bar',
+            'runnerint': 555
+        }
+        liveaction_db.parameters = params
+        runner = mock.MagicMock()
+        runner.output_schema = {
+            "notaparam": {
+                "type": "boolean"
+            }
+        }
+        liveaction_db.runner = runner
+        liveaction_db = LiveAction.add_or_update(liveaction_db)
+        origliveaction_db = copy.copy(liveaction_db)
+
+        now = get_datetime_utc_now()
+        status = 'succeeded'
+        result = 'Work is done.'
+        context = {'third_party_id': uuid.uuid4().hex}
+        newliveaction_db = action_db_utils.update_liveaction_status(
+            status=status, result=result, context=context, end_timestamp=now,
+            liveaction_id=liveaction_db.id)
+
+        self.assertEqual(origliveaction_db.id, newliveaction_db.id)
+        self.assertEqual(newliveaction_db.status, status)
+        self.assertEqual(newliveaction_db.result, result)
+        self.assertDictEqual(newliveaction_db.context, context)
+        self.assertEqual(newliveaction_db.end_timestamp, now)
 
     @mock.patch.object(LiveActionPublisher, 'publish_state', mock.MagicMock())
     def test_update_liveaction_status(self):
@@ -360,6 +399,27 @@ class ActionDBUtilsTestCase(DbTestCase):
         pos_args, _ = action_db_utils.get_args(params, ActionDBUtilsTestCase.action_db)
         self.assertListEqual(pos_args, expected_pos_args,
                              'Positional args not parsed / serialized correctly.')
+
+        # Test unicode values
+        params = {
+            'actionstr': 'bar č š hello đ č p ž Ž a 💩😁',
+            'actionint': 20,
+            'runnerint': 555
+        }
+        expected_pos_args = [
+            '20',
+            '',
+            u'bar č š hello đ č p ž Ž a 💩😁',
+            '',
+            '',
+            '',
+            ''
+        ]
+        pos_args, named_args = action_db_utils.get_args(params, ActionDBUtilsTestCase.action_db)
+        self.assertListEqual(pos_args, expected_pos_args, 'Positional args not parsed correctly.')
+        self.assertTrue('actionint' not in named_args)
+        self.assertTrue('actionstr' not in named_args)
+        self.assertEqual(named_args.get('runnerint'), 555)
 
     @classmethod
     def _setup_test_models(cls):

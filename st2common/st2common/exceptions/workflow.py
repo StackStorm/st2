@@ -38,6 +38,10 @@ class WorkflowDefinitionException(st2_exc.StackStormBaseException):
     pass
 
 
+class WorkflowExecutionException(st2_exc.StackStormBaseException):
+    pass
+
+
 class WorkflowExecutionNotFoundException(st2_exc.StackStormBaseException):
 
     def __init__(self, ac_ex_id):

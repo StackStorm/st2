@@ -20,7 +20,7 @@ from six.moves import http_client
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 from st2common.persistence.auth import ApiKey
 from st2tests.fixturesloader import FixturesLoader
-from tests import FunctionalTest
+from st2tests.api import FunctionalTest
 
 FIXTURES_PACK = 'generic'
 
@@ -104,7 +104,8 @@ class TestApiKeyController(FunctionalTest):
         retrieved_ids = [apikey['id'] for apikey in resp.json]
         self.assertEqual(retrieved_ids, [str(self.apikey1.id), str(self.apikey2.id)])
 
-    @mock.patch('st2common.rbac.utils.user_is_admin', mock.Mock(return_value=False))
+    @mock.patch('st2common.rbac.backends.noop.NoOpRBACUtils.user_is_admin',
+                mock.Mock(return_value=False))
     def test_get_all_invalid_limit_too_large_none_admin(self):
         # limit > max_page_size, but user is not admin
         resp = self.app.get('/v1/apikeys?offset=2&limit=1000', expect_errors=True)
@@ -197,6 +198,7 @@ class TestApiKeyController(FunctionalTest):
 
     def test_post_delete_same_key_hash(self):
         api_key = {
+            'id': '5c5dbb576cb8de06a2d79a4d',
             'user': 'herge',
             'key_hash': 'ABCDE'
         }
@@ -207,8 +209,9 @@ class TestApiKeyController(FunctionalTest):
         # drop into the DB since API will be masking this value.
         api_key_db = ApiKey.get_by_id(resp1.json['id'])
 
+        self.assertEqual(resp1.json['id'], api_key['id'], 'PK ID of created API should match.')
         self.assertEqual(api_key_db.key_hash, api_key['key_hash'], 'Key_hash should match.')
-        self.assertEqual(api_key_db.user, api_key['user'], 'Key_hash should match.')
+        self.assertEqual(api_key_db.user, api_key['user'], 'User should match.')
 
         resp = self.app.delete('/v1/apikeys/%s' % resp1.json['id'])
         self.assertEqual(resp.status_int, 204)

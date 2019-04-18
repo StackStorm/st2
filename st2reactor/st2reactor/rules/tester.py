@@ -110,7 +110,7 @@ class RuleTester(object):
                 LOG.info('\t%s: %s', param[0], param[1])
             return True
         except (UndefinedError, ValueError) as e:
-            LOG.error('Failed to resolve parameters\n\tOriginal error : %s', str(e))
+            LOG.error('Failed to resolve parameters\n\tOriginal error : %s', six.text_type(e))
             return False
         except:
             LOG.exception('Failed to resolve parameters.')

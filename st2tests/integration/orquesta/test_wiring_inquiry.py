@@ -63,6 +63,7 @@ class InquiryWiringTest(base.TestWorkflowExecution):
         # Respond to the first inquiry.
         t1_ac_exs = self._wait_for_task(ex, 'ask_jack', ac_const.LIVEACTION_STATUS_PENDING)
         self.st2client.inquiries.respond(t1_ac_exs[0].id, {'approved': True})
+        t1_ac_exs = self._wait_for_task(ex, 'ask_jack', ac_const.LIVEACTION_STATUS_SUCCEEDED)
 
         # Allow some time for the first inquiry to get processed.
         eventlet.sleep(1)
@@ -70,6 +71,7 @@ class InquiryWiringTest(base.TestWorkflowExecution):
         # Respond to the second inquiry.
         t2_ac_exs = self._wait_for_task(ex, 'ask_jill', ac_const.LIVEACTION_STATUS_PENDING)
         self.st2client.inquiries.respond(t2_ac_exs[0].id, {'approved': True})
+        t2_ac_exs = self._wait_for_task(ex, 'ask_jill', ac_const.LIVEACTION_STATUS_SUCCEEDED)
 
         # Wait for completion.
         ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_SUCCEEDED)

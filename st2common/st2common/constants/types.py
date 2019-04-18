@@ -46,6 +46,7 @@ class ResourceType(Enum):
 
     # Other resources
     EXECUTION = 'execution'
+    EXECUTION_REQUEST = 'execution_request'
     KEY_VALUE_PAIR = 'key_value_pair'
 
     WEBHOOK = 'webhook'

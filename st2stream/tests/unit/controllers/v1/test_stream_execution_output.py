@@ -57,7 +57,7 @@ class ActionExecutionOutputStreamControllerTestCase(FunctionalTest):
                                                 end_timestamp=timestamp,
                                                 status=status,
                                                 action={'ref': 'core.local'},
-                                                runner={'name': 'run-local'},
+                                                runner={'name': 'local-shell-cmd'},
                                                 liveaction={'ref': 'foo'})
         action_execution_db = ActionExecution.add_or_update(action_execution_db)
 
@@ -131,7 +131,7 @@ class ActionExecutionOutputStreamControllerTestCase(FunctionalTest):
                                                     end_timestamp=timestamp,
                                                     status=status,
                                                     action={'ref': 'core.local'},
-                                                    runner={'name': 'run-local'},
+                                                    runner={'name': 'local-shell-cmd'},
                                                     liveaction={'ref': 'foo'})
             action_execution_db = ActionExecution.add_or_update(action_execution_db)
 

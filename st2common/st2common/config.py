@@ -24,6 +24,7 @@ from distutils.spawn import find_executable
 from st2common.constants.system import VERSION_STRING
 from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
 from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_LOG_LEVEL
+from st2common.constants.action import LIVEACTION_COMPLETED_STATES
 
 __all__ = [
     'do_register_opts',
@@ -60,6 +61,9 @@ def register_opts(ignore_errors=False):
         cfg.BoolOpt(
             'enable', default=False,
             help='Enable RBAC.'),
+        cfg.StrOpt(
+            'backend', default='noop',
+            help='RBAC backend to use.'),
         cfg.BoolOpt(
             'sync_remote_groups', default=False,
             help='True to synchronize remote groups returned by the auth backed for each '
@@ -110,7 +114,10 @@ def register_opts(ignore_errors=False):
         cfg.BoolOpt(
             'validate_trigger_payload', default=True,
             help='True to validate payload for non-system trigger types when dispatching a trigger '
-                 'inside the sensor. By default, only payload for system triggers is validated.')
+                 'inside the sensor. By default, only payload for system triggers is validated.'),
+        cfg.BoolOpt(
+            'validate_output_schema', default=False,
+            help='True to validate action and runner output against schema.')
     ]
 
     do_register_opts(system_opts, 'system', ignore_errors)
@@ -127,13 +134,15 @@ def register_opts(ignore_errors=False):
             help='Path to the directory which contains system packs.'),
         cfg.StrOpt(
             'system_runners_base_path', default=system_runners_base_path,
-            help='Path to the directory which contains system runners.'),
+            help='Path to the directory which contains system runners. '
+                 'NOTE: This option has been deprecated and it\'s unused since StackStorm v3.0.0'),
         cfg.StrOpt(
             'packs_base_paths', default=None,
             help='Paths which will be searched for integration packs.'),
         cfg.StrOpt(
             'runners_base_paths', default=None,
-            help='Paths which will be searched for runners.'),
+            help='Paths which will be searched for runners. '
+                 'NOTE: This option has been deprecated and it\'s unused since StackStorm v3.0.0'),
         cfg.ListOpt(
             'index_url', default=['https://index.stackstorm.org/v1/index.json'],
             help='A URL pointing to the pack index. StackStorm Exchange is used by '
@@ -196,7 +205,12 @@ def register_opts(ignore_errors=False):
                  'used to validate certificates passed from MongoDB.'),
         cfg.BoolOpt(
             'ssl_match_hostname', default=True,
-            help='If True and `ssl_cert_reqs` is not None, enables hostname verification')
+            help='If True and `ssl_cert_reqs` is not None, enables hostname verification'),
+        cfg.StrOpt(
+            'authentication_mechanism', default=None,
+            help='Specifies database authentication mechanisms. '
+                 'By default, it use SCRAM-SHA-1 with MongoDB 3.0 and later, '
+                 'MONGODB-CR (MongoDB Challenge Response protocol) for older servers.')
     ]
 
     do_register_opts(db_opts, 'database', ignore_errors)
@@ -215,7 +229,28 @@ def register_opts(ignore_errors=False):
             help='How many times should we retry connection before failing.'),
         cfg.IntOpt(
             'connection_retry_wait', default=10000,
-            help='How long should we wait between connection retries.')
+            help='How long should we wait between connection retries.'),
+        cfg.BoolOpt(
+            'ssl', default=False,
+            help='Use SSL / TLS to connect to the messaging server. Same as '
+                 'appending "?ssl=true" at the end of the connection URL string.'),
+        cfg.StrOpt(
+            'ssl_keyfile', default=None,
+            help='Private keyfile used to identify the local connection against RabbitMQ.'),
+        cfg.StrOpt(
+            'ssl_certfile', default=None,
+            help='Certificate file used to identify the local connection (client).'),
+        cfg.StrOpt(
+            'ssl_cert_reqs', default=None, choices='none, optional, required',
+            help='Specifies whether a certificate is required from the other side of the '
+                 'connection, and whether it will be validated if provided.'),
+        cfg.StrOpt(
+            'ssl_ca_certs', default=None,
+            help='ca_certs file contains a set of concatenated CA certificates, which are '
+                 'used to validate certificates passed from RabbitMQ.'),
+        cfg.StrOpt(
+            'login_method', default=None,
+            help='Login method to use (AMQPLAIN, PLAIN, EXTERNAL, etc.).')
     ]
 
     do_register_opts(messaging_opts, 'messaging', ignore_errors)
@@ -314,7 +349,7 @@ def register_opts(ignore_errors=False):
     action_runner_opts = [
         # Common runner options
         cfg.StrOpt(
-            'logging', default='conf/logging.conf',
+            'logging', default='/etc/st2/logging.actionrunner.conf',
             help='location of the logging.conf file'),
 
         # Python runner options
@@ -375,19 +410,14 @@ def register_opts(ignore_errors=False):
 
     do_register_opts(ssh_runner_opts, group='ssh_runner')
 
-    cloudslang_opts = [
-        cfg.StrOpt(
-            'home_dir', default='/opt/cslang',
-            help='CloudSlang home directory.'),
-    ]
-
-    do_register_opts(cloudslang_opts, group='cloudslang')
-
     # Common options (used by action runner and sensor container)
     action_sensor_opts = [
         cfg.BoolOpt(
             'enable', default=True,
             help='Whether to enable or disable the ability to post a trigger on action.'),
+        cfg.ListOpt(
+            'emit_when', default=LIVEACTION_COMPLETED_STATES,
+            help='List of execution statuses for which a trigger will be emitted. ')
     ]
 
     do_register_opts(action_sensor_opts, group='action_sensor')
@@ -414,7 +444,10 @@ def register_opts(ignore_errors=False):
             help='Endpoint for the coordination server.'),
         cfg.IntOpt(
             'lock_timeout', default=60,
-            help='TTL for the lock if backend suports it.')
+            help='TTL for the lock if backend suports it.'),
+        cfg.BoolOpt(
+            'service_registry', default=False,
+            help='True to register StackStorm services in a service registry.'),
     ]
 
     do_register_opts(coord_opts, 'coordination', ignore_errors)
@@ -538,9 +571,62 @@ def register_opts(ignore_errors=False):
         cfg.IntOpt(
             'port', default=8125,
             help='Destination port to connect to if driver requires connection.'),
+        cfg.StrOpt(
+            'prefix', default=None,
+            help='Optional prefix which is prepended to all the metric names. Comes handy when '
+                 'you want to submit metrics from various environment to the same metric '
+                 'backend instance.'),
+        cfg.FloatOpt(
+            'sample_rate', default=1,
+            help='Randomly sample and only send metrics for X% of metric operations to the '
+                 'backend. Default value of 1 means no sampling is done and all the metrics are '
+                 'sent to the backend. E.g. 0.1 would mean 10% of operations are sampled.')
+
     ]
 
     do_register_opts(metrics_opts, group='metrics', ignore_errors=ignore_errors)
+
+    # Common timers engine options
+    timer_logging_opts = [
+        cfg.StrOpt(
+            'logging', default=None,
+            help='Location of the logging configuration file. '
+                 'NOTE: Deprecated in favor of timersengine.logging'),
+    ]
+
+    timers_engine_logging_opts = [
+        cfg.StrOpt(
+            'logging', default='/etc/st2/logging.timersengine.conf',
+            help='Location of the logging configuration file.')
+    ]
+
+    do_register_opts(timer_logging_opts, group='timer', ignore_errors=ignore_errors)
+    do_register_opts(timers_engine_logging_opts, group='timersengine', ignore_errors=ignore_errors)
+
+    # NOTE: We default old style deprecated "timer" options to None so our code
+    # works correclty and "timersengine" has precedence over "timers"
+    # NOTE: "timer" section will be removed in v3.1
+    timer_opts = [
+        cfg.StrOpt(
+            'local_timezone', default=None,
+            help='Timezone pertaining to the location where st2 is run. '
+                 'NOTE: Deprecated in favor of timersengine.local_timezone'),
+        cfg.BoolOpt(
+            'enable', default=None,
+            help='Specify to enable timer service. '
+                 'NOTE: Deprecated in favor of timersengine.enable'),
+    ]
+
+    timers_engine_opts = [
+        cfg.StrOpt(
+            'local_timezone', default='America/Los_Angeles',
+            help='Timezone pertaining to the location where st2 is run.'),
+        cfg.BoolOpt(
+            'enable', default=True,
+            help='Specify to enable timer service.')
+    ]
+    do_register_opts(timer_opts, group='timer', ignore_errors=ignore_errors)
+    do_register_opts(timers_engine_opts, group='timersengine', ignore_errors=ignore_errors)
 
 
 def parse_args(args=None):

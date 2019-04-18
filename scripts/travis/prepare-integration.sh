@@ -6,59 +6,7 @@ if [ "$(whoami)" != 'root' ]; then
     exit 2
 fi
 
-# create and configure user
-# proudly stolen from `./tools/st2_deploy.sh`
-TYPE='debs'
-SYSTEMUSER='stanley'
-STAN="/home/${SYSTEMUSER}/${TYPE}"
-RUNNERS=$(ls -d contrib/runners/*)
-mkdir -p ${STAN}
-
-VIRTUALENV_DIR=virtualenv
-
-create_user() {
-  if [ $(id -u ${SYSTEMUSER} &> /devnull; echo $?) != 0 ]
-  then
-    echo "###########################################################################################"
-    echo "# Creating system user: ${SYSTEMUSER}"
-    useradd ${SYSTEMUSER}
-    mkdir -p /home/${SYSTEMUSER}/.ssh
-    rm -Rf ${STAN}/*
-    chmod 0700 /home/${SYSTEMUSER}/.ssh
-    mkdir -p /home/${SYSTEMUSER}/${TYPE}
-    echo "###########################################################################################"
-    echo "# Generating system user ssh keys"
-    ssh-keygen -f /home/${SYSTEMUSER}/.ssh/stanley_rsa -P ""
-    cat /home/${SYSTEMUSER}/.ssh/stanley_rsa.pub >> /home/${SYSTEMUSER}/.ssh/authorized_keys
-    chmod 0600 /home/${SYSTEMUSER}/.ssh/authorized_keys
-    chown -R ${SYSTEMUSER}:${SYSTEMUSER} /home/${SYSTEMUSER}
-    if [ $(grep 'stanley' /etc/sudoers.d/* &> /dev/null; echo $?) != 0 ]
-    then
-      echo "${SYSTEMUSER}    ALL=(ALL)       NOPASSWD: SETENV: ALL" >> /etc/sudoers.d/st2
-      chmod 0440 /etc/sudoers.d/st2
-    fi
-
-    # make sure requiretty is disabled.
-    sed -i "s/^Defaults\s\+requiretty/# Defaults requiretty/g" /etc/sudoers
-  fi
-}
-
-install_runners() {
-    echo "==========================================================="
-    echo "Installing runners"
-    echo "==========================================================="
-	for component in $RUNNERS; do
-		echo "==========================================================="
-		echo "Installing runner:" $component
-		echo "==========================================================="
-        (. $VIRTUALENV_DIR/bin/activate; cd $component; python setup.py develop)
-	done
-}
-
-create_user
-
-# install screen
-apt-get install -y screen
+UBUNTU_VERSION=`lsb_release -a 2>&1 | grep Codename | grep -v "LSB" | awk '{print $2}'`
 
 # Activate the virtualenv created during make requirements phase
 source ./virtualenv/bin/activate
@@ -67,9 +15,6 @@ source ./virtualenv/bin/activate
 python ./st2client/setup.py develop
 st2 --version
 
-# install runners
-install_runners
-
 # start dev environment in screens
 ./tools/launchdev.sh start -x
 
@@ -77,3 +22,12 @@ install_runners
 # as root can't write to logs/ directory and tests fail
 chmod 777 logs/
 chmod 777 logs/*
+
+# Workaround for Travis on Ubuntu Xenial so local runner integration tests work
+# when executing them under user "stanley" (by default Travis checks out the
+# code and runs tests under a different system user).
+# NOTE: We need to pass "--exe" flag to nosetests when using this workaround.
+if [ "${UBUNTU_VERSION}" == "xenial" ]; then
+  echo "Applying workaround for stanley user permissions issue to /home/travis on Xenial"
+  chmod 777 -R /home/travis
+fi

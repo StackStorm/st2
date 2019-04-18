@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 
 import six
@@ -67,7 +68,7 @@ class SensorsRegistrar(ResourceRegistrar):
                     raise e
 
                 LOG.exception('Failed registering all sensors from pack "%s": %s', sensors_dir,
-                              str(e))
+                              six.text_type(e))
 
         return registered_count
 
@@ -99,7 +100,8 @@ class SensorsRegistrar(ResourceRegistrar):
             if self._fail_on_failure:
                 raise e
 
-            LOG.exception('Failed registering all sensors from pack "%s": %s', sensors_dir, str(e))
+            LOG.exception('Failed registering all sensors from pack "%s": %s', sensors_dir,
+                          six.text_type(e))
 
         return registered_count
 
@@ -108,17 +110,16 @@ class SensorsRegistrar(ResourceRegistrar):
 
     def _register_sensors_from_pack(self, pack, sensors):
         registered_count = 0
-
         for sensor in sensors:
             try:
                 self._register_sensor_from_pack(pack=pack, sensor=sensor)
             except Exception as e:
                 if self._fail_on_failure:
                     msg = ('Failed to register sensor "%s" from pack "%s": %s' % (sensor, pack,
-                                                                                  str(e)))
+                                                                                  six.text_type(e)))
                     raise ValueError(msg)
 
-                LOG.debug('Failed to register sensor "%s": %s', sensor, str(e))
+                LOG.debug('Failed to register sensor "%s": %s', sensor, six.text_type(e))
             else:
                 LOG.debug('Sensor "%s" successfully registered', sensor)
                 registered_count += 1
@@ -142,6 +143,13 @@ class SensorsRegistrar(ResourceRegistrar):
         entry_point = content.get('entry_point', None)
         if not entry_point:
             raise ValueError('Sensor definition missing entry_point')
+
+        # Add in "metadata_file" attribute which stores path to the pack metadata file relative to
+        # the pack directory
+        metadata_file = content_utils.get_relative_path_to_pack_file(pack_ref=pack,
+                                                                     file_path=sensor,
+                                                                     use_pack_cache=True)
+        content['metadata_file'] = metadata_file
 
         sensors_dir = os.path.dirname(sensor_metadata_file_path)
         sensor_file_path = os.path.join(sensors_dir, entry_point)

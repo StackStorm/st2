@@ -14,8 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import re
 
+import six
 import jsonschema
 from jsonschema import Draft3Validator
 from prompt_toolkit import prompt
@@ -76,7 +78,7 @@ class StringReader(object):
         try:
             jsonschema.validate(input, spec, Draft3Validator)
         except jsonschema.ValidationError as e:
-            raise validation.ValidationError(len(input), str(e))
+            raise validation.ValidationError(len(input), six.text_type(e))
 
     def read(self):
         message = self.template.format(self.prefix + self.name, **self.spec)
@@ -154,7 +156,7 @@ class NumberReader(StringReader):
             try:
                 input = float(input)
             except ValueError as e:
-                raise validation.ValidationError(len(input), str(e))
+                raise validation.ValidationError(len(input), six.text_type(e))
 
             super(NumberReader, NumberReader).validate(input, spec)
 
@@ -181,7 +183,7 @@ class IntegerReader(StringReader):
             try:
                 input = int(input)
             except ValueError as e:
-                raise validation.ValidationError(len(input), str(e))
+                raise validation.ValidationError(len(input), six.text_type(e))
 
             super(IntegerReader, IntegerReader).validate(input, spec)
 
@@ -287,7 +289,7 @@ class ArrayReader(StringReader):
             try:
                 StringReader.validate(item, spec.get('items', {}))
             except validation.ValidationError as e:
-                raise validation.ValidationError(index, str(e))
+                raise validation.ValidationError(index, six.text_type(e))
 
     def read(self):
         item_type = self.spec.get('items', {}).get('type', 'string')
@@ -357,7 +359,7 @@ class ArrayEnumReader(EnumReader):
             try:
                 EnumReader.validate(item, spec.get('items', {}))
             except validation.ValidationError as e:
-                raise validation.ValidationError(index, str(e))
+                raise validation.ValidationError(index, six.text_type(e))
 
     def _construct_template(self):
         self.template = u'{0}: '
@@ -417,7 +419,7 @@ class InteractiveForm(object):
                 try:
                     result[field] = self._read_field(field)
                 except ReaderNotImplemented as e:
-                    print('%s. Skipping...' % str(e))
+                    print('%s. Skipping...' % six.text_type(e))
         except DialogInterrupted:
             if self.reraise:
                 raise

@@ -1,8 +1,12 @@
 ---
 name: chatops
 description: ChatOps integration pack
-version: 1.0.0
+version: 1.0.1
+python_versions:
+  - "2"
+  - "3"
 author: StackStorm, Inc.
 contributors:
   - Anthony Shaw <anthonyshaw@apache.org>
+  - Carlos <nzlosh@yahoo.com>
 email: info@stackstorm.com

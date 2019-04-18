@@ -48,7 +48,7 @@ class ResourceReferenceTestCase(unittest2.TestCase):
         ref = ResourceReference.to_string_reference(pack='mapack', name='moname')
         self.assertEqual(ref, 'mapack.moname')
 
-        expected_msg = 'Pack name should not contain "\."'
+        expected_msg = r'Pack name should not contain "\."'
         self.assertRaisesRegexp(ValueError, expected_msg, ResourceReference.to_string_reference,
                                 pack='pack.invalid', name='bar')
 

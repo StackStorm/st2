@@ -19,6 +19,8 @@ import sys
 import json
 import traceback
 
+import six
+
 from st2common import log as logging
 from st2common.constants import action as action_constants
 from st2common.constants.trace import TRACE_CONTEXT
@@ -101,7 +103,7 @@ class RuleEnforcer(object):
         except Exception as e:
             # Record the failure reason in the RuleEnforcement.
             enforcement_db.status = RULE_ENFORCEMENT_STATUS_FAILED
-            enforcement_db.failure_reason = str(e)
+            enforcement_db.failure_reason = six.text_type(e)
             LOG.exception('Failed kicking off execution for rule %s.', self.rule, extra=extra)
         finally:
             self._update_enforcement(enforcement_db)
@@ -207,11 +209,12 @@ class RuleEnforcer(object):
             action_service.update_status(
                 liveaction=liveaction_db,
                 new_status=action_constants.LIVEACTION_STATUS_FAILED,
-                result={'error': str(e), 'traceback': ''.join(traceback.format_tb(tb, 20))})
+                result={'error': six.text_type(e),
+                        'traceback': ''.join(traceback.format_tb(tb, 20))})
 
             # Might be a good idea to return the actual ActionExecution rather than bubble up
             # the exception.
-            raise validation_exc.ValueValidationException(str(e))
+            raise validation_exc.ValueValidationException(six.text_type(e))
 
         liveaction_db, execution_db = action_service.request(liveaction_db)
 

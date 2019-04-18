@@ -12,20 +12,28 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from datetime import datetime, timedelta
+
+import socket
+from datetime import datetime
+from datetime import timedelta
 
 import unittest2
+import mock
 from mock import patch, MagicMock
 
 from oslo_config import cfg
 
 from st2common.metrics import base
+from st2common.metrics.utils import get_full_key_name
 from st2common.metrics.drivers.statsd_driver import StatsdDriver
-from st2common.constants.metrics import METRICS_COUNTER_SUFFIX, METRICS_TIMER_SUFFIX
 from st2common.util.date import get_datetime_utc_now
 
 __all__ = [
-    'TestBaseMetricsDriver'
+    'TestBaseMetricsDriver',
+    'TestStatsDMetricsDriver',
+    'TestCounterContextManager',
+    'TestTimerContextManager',
+    'TestCounterWithTimerContextManager'
 ]
 
 cfg.CONF.set_override('driver', 'noop', group='metrics')
@@ -54,26 +62,31 @@ class TestStatsDMetricsDriver(unittest2.TestCase):
 
     @patch('st2common.metrics.drivers.statsd_driver.statsd')
     def setUp(self, statsd):
+        cfg.CONF.set_override(name='prefix', group='metrics', override=None)
+
         self._driver = StatsdDriver()
 
         statsd.Connection.set_defaults.assert_called_once_with(
             host=cfg.CONF.metrics.host,
-            port=cfg.CONF.metrics.port
+            port=cfg.CONF.metrics.port,
+            sample_rate=1.0
         )
 
-    def test_time(self):
-        statsd = MagicMock()
-        self._driver._timer = statsd.Timer('')
+    @patch('st2common.metrics.drivers.statsd_driver.statsd')
+    def test_time(self, statsd):
+        mock_timer = MagicMock()
+        statsd.Timer('').send.side_effect = mock_timer
         params = ('test', 10)
         self._driver.time(*params)
-        statsd.Timer().send.assert_called_with(*params)
+        statsd.Timer('').send.assert_called_with('st2.test', 10)
 
-    def test_time_with_float(self):
-        statsd = MagicMock()
-        self._driver._timer = statsd.Timer('')
+    @patch('st2common.metrics.drivers.statsd_driver.statsd')
+    def test_time_with_float(self, statsd):
+        mock_timer = MagicMock()
+        statsd.Timer('').send.side_effect = mock_timer
         params = ('test', 10.5)
         self._driver.time(*params)
-        statsd.Timer().send.assert_called_with(*params)
+        statsd.Timer().send.assert_called_with('st2.test', 10.5)
 
     def test_time_with_invalid_key(self):
         params = (2, 2)
@@ -89,17 +102,17 @@ class TestStatsDMetricsDriver(unittest2.TestCase):
     def test_inc_counter_with_default_amount(self, statsd):
         key = 'test'
         mock_counter = MagicMock()
-        statsd.Counter(key).__iadd__.side_effect = mock_counter
+        statsd.Counter(key).increment.side_effect = mock_counter
         self._driver.inc_counter(key)
-        mock_counter.assert_called_once_with(1)
+        mock_counter.assert_called_once_with(delta=1)
 
     @patch('st2common.metrics.drivers.statsd_driver.statsd')
     def test_inc_counter_with_amount(self, statsd):
         params = ('test', 2)
         mock_counter = MagicMock()
-        statsd.Counter(params[0]).__iadd__.side_effect = mock_counter
+        statsd.Counter(params[0]).increment.side_effect = mock_counter
         self._driver.inc_counter(*params)
-        mock_counter.assert_called_once_with(params[1])
+        mock_counter.assert_called_once_with(delta=params[1])
 
     def test_inc_timer_with_invalid_key(self):
         params = (2, 2)
@@ -115,17 +128,17 @@ class TestStatsDMetricsDriver(unittest2.TestCase):
     def test_dec_timer_with_default_amount(self, statsd):
         key = 'test'
         mock_counter = MagicMock()
-        statsd.Counter().__isub__.side_effect = mock_counter
+        statsd.Counter().decrement.side_effect = mock_counter
         self._driver.dec_counter(key)
-        mock_counter.assert_called_once_with(1)
+        mock_counter.assert_called_once_with(delta=1)
 
     @patch('st2common.metrics.drivers.statsd_driver.statsd')
     def test_dec_timer_with_amount(self, statsd):
         params = ('test', 2)
         mock_counter = MagicMock()
-        statsd.Counter().__isub__.side_effect = mock_counter
+        statsd.Counter().decrement.side_effect = mock_counter
         self._driver.dec_counter(*params)
-        mock_counter.assert_called_once_with(params[1])
+        mock_counter.assert_called_once_with(delta=params[1])
 
     def test_dec_timer_with_invalid_key(self):
         params = (2, 2)
@@ -137,6 +150,106 @@ class TestStatsDMetricsDriver(unittest2.TestCase):
         with self.assertRaises(AssertionError):
             self._driver.dec_counter(*params)
 
+    @patch('st2common.metrics.drivers.statsd_driver.statsd')
+    def test_set_gauge_success(self, statsd):
+        params = ('key', 100)
+        mock_gauge = MagicMock()
+        statsd.Gauge().send.side_effect = mock_gauge
+        self._driver.set_gauge(*params)
+        mock_gauge.assert_called_once_with(None, params[1])
+
+    @patch('st2common.metrics.drivers.statsd_driver.statsd')
+    def test_inc_gauge_success(self, statsd):
+        params = ('key1',)
+        mock_gauge = MagicMock()
+        statsd.Gauge().increment.side_effect = mock_gauge
+        self._driver.inc_gauge(*params)
+        mock_gauge.assert_called_once_with(None, 1)
+
+        params = ('key2', 100)
+        mock_gauge = MagicMock()
+        statsd.Gauge().increment.side_effect = mock_gauge
+        self._driver.inc_gauge(*params)
+        mock_gauge.assert_called_once_with(None, params[1])
+
+    @patch('st2common.metrics.drivers.statsd_driver.statsd')
+    def test_dec_gauge_success(self, statsd):
+        params = ('key1',)
+        mock_gauge = MagicMock()
+        statsd.Gauge().decrement.side_effect = mock_gauge
+        self._driver.dec_gauge(*params)
+        mock_gauge.assert_called_once_with(None, 1)
+
+        params = ('key2', 100)
+        mock_gauge = MagicMock()
+        statsd.Gauge().decrement.side_effect = mock_gauge
+        self._driver.dec_gauge(*params)
+        mock_gauge.assert_called_once_with(None, params[1])
+
+    def test_get_full_key_name(self):
+        # No prefix specified in the config
+        cfg.CONF.set_override(name='prefix', group='metrics', override=None)
+
+        result = get_full_key_name('api.requests')
+        self.assertEqual(result, 'st2.api.requests')
+
+        # Prefix is defined in the config
+        cfg.CONF.set_override(name='prefix', group='metrics', override='staging')
+
+        result = get_full_key_name('api.requests')
+        self.assertEqual(result, 'st2.staging.api.requests')
+
+        cfg.CONF.set_override(name='prefix', group='metrics', override='prod')
+
+        result = get_full_key_name('api.requests')
+        self.assertEqual(result, 'st2.prod.api.requests')
+
+    @patch('st2common.metrics.drivers.statsd_driver.LOG')
+    @patch('st2common.metrics.drivers.statsd_driver.statsd')
+    def test_driver_socket_exceptions_are_not_fatal(self, statsd, mock_log):
+        # Socket errors such as DNS resolution errors should be considered non fatal and ignored
+        mock_logger = mock.Mock()
+        StatsdDriver.logger = mock_logger
+
+        # 1. timer
+        mock_timer = MagicMock(side_effect=socket.error('error 1'))
+        statsd.Timer('').send.side_effect = mock_timer
+        params = ('test', 10)
+        self._driver.time(*params)
+        statsd.Timer('').send.assert_called_with('st2.test', 10)
+
+        # 2. counter
+        key = 'test'
+        mock_counter = MagicMock(side_effect=socket.error('error 2'))
+        statsd.Counter(key).increment.side_effect = mock_counter
+        self._driver.inc_counter(key)
+        mock_counter.assert_called_once_with(delta=1)
+
+        key = 'test'
+        mock_counter = MagicMock(side_effect=socket.error('error 3'))
+        statsd.Counter(key).decrement.side_effect = mock_counter
+        self._driver.dec_counter(key)
+        mock_counter.assert_called_once_with(delta=1)
+
+        # 3. gauge
+        params = ('key', 100)
+        mock_gauge = MagicMock(side_effect=socket.error('error 4'))
+        statsd.Gauge().send.side_effect = mock_gauge
+        self._driver.set_gauge(*params)
+        mock_gauge.assert_called_once_with(None, params[1])
+
+        params = ('key1',)
+        mock_gauge = MagicMock(side_effect=socket.error('error 5'))
+        statsd.Gauge().increment.side_effect = mock_gauge
+        self._driver.inc_gauge(*params)
+        mock_gauge.assert_called_once_with(None, 1)
+
+        params = ('key1',)
+        mock_gauge = MagicMock(side_effect=socket.error('error 6'))
+        statsd.Gauge().decrement.side_effect = mock_gauge
+        self._driver.dec_gauge(*params)
+        mock_gauge.assert_called_once_with(None, 1)
+
 
 class TestCounterContextManager(unittest2.TestCase):
     @patch('st2common.metrics.base.METRICS')
@@ -145,7 +258,6 @@ class TestCounterContextManager(unittest2.TestCase):
         with base.Counter(test_key):
             metrics_patch.inc_counter.assert_called_with(test_key)
             metrics_patch.dec_counter.assert_not_called()
-        metrics_patch.dec_counter.assert_called_with(test_key)
 
 
 class TestTimerContextManager(unittest2.TestCase):
@@ -209,8 +321,7 @@ class TestCounterWithTimerContextManager(unittest2.TestCase):
             self.assertTrue(isinstance(timer._start_time, datetime))
             metrics_patch.time.assert_not_called()
             timer.send_time()
-            metrics_patch.time.assert_called_with(
-                "%s%s" % (test_key, METRICS_TIMER_SUFFIX),
+            metrics_patch.time.assert_called_with(test_key,
                 (self.end_time - self.middle_time).total_seconds()
             )
             second_test_key = "lakshmi_has_a_nose"
@@ -224,13 +335,10 @@ class TestCounterWithTimerContextManager(unittest2.TestCase):
                 time_delta.total_seconds(),
                 (self.end_time - self.middle_time).total_seconds()
             )
-            metrics_patch.inc_counter.assert_called_with(
-                "%s%s" % (test_key, METRICS_COUNTER_SUFFIX)
-            )
+            metrics_patch.inc_counter.assert_called_with(test_key)
             metrics_patch.dec_counter.assert_not_called()
-        metrics_patch.dec_counter.assert_called_with("%s%s" % (test_key, METRICS_COUNTER_SUFFIX))
         metrics_patch.time.assert_called_with(
-            "%s%s" % (test_key, METRICS_TIMER_SUFFIX),
+            test_key,
             (self.end_time - self.start_time).total_seconds()
         )
 
@@ -256,8 +364,7 @@ class TestCounterWithTimerDecorator(unittest2.TestCase):
             self.assertTrue(isinstance(metrics_counter_with_timer._start_time, datetime))
             metrics_patch.time.assert_not_called()
             metrics_counter_with_timer.send_time()
-            metrics_patch.time.assert_called_with(
-                "%s%s" % (test_key, METRICS_TIMER_SUFFIX),
+            metrics_patch.time.assert_called_with(test_key,
                 (end_time - middle_time).total_seconds()
             )
             second_test_key = "lakshmi_has_a_nose"
@@ -271,16 +378,12 @@ class TestCounterWithTimerDecorator(unittest2.TestCase):
                 time_delta.total_seconds(),
                 (end_time - middle_time).total_seconds()
             )
-            metrics_patch.inc_counter.assert_called_with(
-                "%s%s" % (test_key, METRICS_COUNTER_SUFFIX)
-            )
+            metrics_patch.inc_counter.assert_called_with(test_key)
             metrics_patch.dec_counter.assert_not_called()
 
         _get_tested()
 
-        metrics_patch.dec_counter.assert_called_with("%s%s" % (test_key, METRICS_COUNTER_SUFFIX))
-        metrics_patch.time.assert_called_with(
-            "%s%s" % (test_key, METRICS_TIMER_SUFFIX),
+        metrics_patch.time.assert_called_with(test_key,
             (end_time - start_time).total_seconds()
         )
 
@@ -295,7 +398,6 @@ class TestCounterDecorator(unittest2.TestCase):
             metrics_patch.inc_counter.assert_called_with(test_key)
             metrics_patch.dec_counter.assert_not_called()
         _get_tested()
-        metrics_patch.dec_counter.assert_called_with(test_key)
 
 
 class TestTimerDecorator(unittest2.TestCase):
@@ -314,7 +416,7 @@ class TestTimerDecorator(unittest2.TestCase):
         ]
         test_key = "test_key"
 
-        @base.Timer(test_key)
+        @base.Timer(test_key, include_parameter=True)
         def _get_tested(metrics_timer=None):
             self.assertTrue(isinstance(metrics_timer._start_time, datetime))
             metrics_patch.time.assert_not_called()
@@ -339,79 +441,3 @@ class TestTimerDecorator(unittest2.TestCase):
             test_key,
             (end_time - start_time).total_seconds()
         )
-
-
-class TestFormatMetrics(unittest2.TestCase):
-    def test_format_metrics_liveaction_db_without_key(self):
-        pack = 'test'
-        action = 'lakface'
-
-        liveaction_db = MagicMock()
-        liveaction_db.context = {'pack': pack}
-        liveaction_db.action = action
-
-        key = base.format_metrics_key(liveaction_db=liveaction_db)
-
-        self.assertEquals(key, "st2.%s.%s" % (pack, action))
-
-    def test_format_metrics_liveaction_db_with_key(self):
-        pack = 'test'
-        action = 'lakface'
-        test_key = 'meh'
-
-        liveaction_db = MagicMock()
-        liveaction_db.context = {'pack': pack}
-        liveaction_db.action = "%s.%s" % (pack, action)
-
-        key = base.format_metrics_key(liveaction_db=liveaction_db, key=test_key)
-
-        self.assertEquals(key, "st2.%s.%s.%s" % (pack, action, test_key))
-
-    def test_format_metrics_liveaction_db_without_pack(self):
-        action = 'lakface'
-        pack = 'unknown'
-
-        liveaction_db = MagicMock()
-        liveaction_db.context = {}
-        liveaction_db.action = "%s.%s" % (pack, action)
-
-        key = base.format_metrics_key(liveaction_db=liveaction_db)
-
-        self.assertEquals(key, "st2.%s.%s" % (pack, action))
-
-    def test_format_metrics_action_db_without_key(self):
-        pack = 'test'
-        action = 'lakface'
-
-        action_db = MagicMock()
-        action_db.pack = pack
-        action_db.name = action
-
-        key = base.format_metrics_key(action_db=action_db)
-
-        self.assertEquals(key, "st2.%s.%s" % (pack, action))
-
-    def test_format_metrics_action_db_with_key(self):
-        pack = 'test'
-        action = 'lakface'
-        test_key = 'meh'
-
-        action_db = MagicMock()
-        action_db.pack = pack
-        action_db.name = action
-
-        key = base.format_metrics_key(action_db=action_db, key=test_key)
-
-        self.assertEquals(key, "st2.%s.%s.%s" % (pack, action, test_key))
-
-    def test_format_metrics_action_db_without_pack(self):
-        action = 'lakface'
-        pack = 'unknown'
-
-        action_db = MagicMock()
-        action_db.pack = None
-        action_db.name = action
-
-        key = base.format_metrics_key(action_db=action_db)
-
-        self.assertEquals(key, "st2.%s.%s" % (pack, action))

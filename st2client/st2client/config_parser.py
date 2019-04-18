@@ -29,6 +29,7 @@ import io
 import six
 from six.moves.configparser import ConfigParser
 
+
 __all__ = [
     'CLIConfigParser',
 
@@ -60,6 +61,10 @@ CONFIG_FILE_OPTIONS = {
         'silence_ssl_warnings': {
             'type': 'bool',
             'default': False
+        },
+        'silence_schema_output': {
+            'type': 'bool',
+            'default': True
         }
     },
     'cli': {

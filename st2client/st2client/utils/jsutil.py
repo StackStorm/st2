@@ -33,7 +33,7 @@ import re
 #  a..b
 #  abc.
 #  a(*
-SIMPLE_EXPRESSION_REGEX = "^([a-zA-Z0-9\-_]+\.)*([a-zA-Z0-9\-_]+)$"
+SIMPLE_EXPRESSION_REGEX = r"^([a-zA-Z0-9\-_]+\.)*([a-zA-Z0-9\-_]+)$"
 SIMPLE_EXPRESSION_REGEX_CMPL = re.compile(SIMPLE_EXPRESSION_REGEX)
 
 

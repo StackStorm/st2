@@ -20,8 +20,8 @@ import json
 
 import six
 
+from st2common.expressions.functions import data
 from st2common.util.compat import to_unicode
-from st2common.util.jinja import NONE_MAGIC_VALUE
 
 
 def _cast_object(x):
@@ -81,7 +81,7 @@ def _cast_none(x):
     """
     Cast function which serializes special magic string value which indicate "None" to None type.
     """
-    if isinstance(x, six.string_types) and x == NONE_MAGIC_VALUE:
+    if isinstance(x, six.string_types) and x == data.NONE_MAGIC_VALUE:
         return None
 
     return x

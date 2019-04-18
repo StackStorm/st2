@@ -36,8 +36,12 @@ LOG = logging.getLogger(LOGGER_NAME)
 
 
 def _setup():
+    capabilities = {
+        'name': 'timerengine',
+        'type': 'passive'
+    }
     common_setup(service='timer_engine', config=config, setup_db=True, register_mq_exchanges=True,
-                 register_signal_handlers=True)
+                 register_signal_handlers=True, service_registry=True, capabilities=capabilities)
 
 
 def _teardown():
@@ -82,7 +86,7 @@ def main():
     except SystemExit as exit_code:
         sys.exit(exit_code)
     except:
-        LOG.exception('(PID=%s) RulesEngine quit due to exception.', os.getpid())
+        LOG.exception('(PID=%s) TimerEngine quit due to exception.', os.getpid())
         return 1
     finally:
         _teardown()

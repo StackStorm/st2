@@ -14,8 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 from st2tests.base import EventletTestCase
 from st2tests.base import DbTestCase
+from st2tests.base import ExecutionDbTestCase
 from st2tests.base import DbModelTestCase
 from st2tests.base import WorkflowTestCase
 
@@ -23,6 +25,7 @@ from st2tests.base import WorkflowTestCase
 __all__ = [
     'EventletTestCase',
     'DbTestCase',
+    'ExecutionDbTestCase',
     'DbModelTestCase',
     'WorkflowTestCase'
 ]

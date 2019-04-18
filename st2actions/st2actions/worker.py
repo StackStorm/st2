@@ -17,8 +17,6 @@ from __future__ import absolute_import
 import sys
 import traceback
 
-from kombu import Connection
-
 from st2actions.container.base import RunnerContainer
 from st2common import log as logging
 from st2common.constants import action as action_constants
@@ -250,5 +248,5 @@ class ActionExecutionDispatcher(MessageHandler):
 
 
 def get_worker():
-    with Connection(transport_utils.get_messaging_urls()) as conn:
+    with transport_utils.get_connection() as conn:
         return ActionExecutionDispatcher(conn, ACTIONRUNNER_QUEUES)

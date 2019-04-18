@@ -22,9 +22,11 @@ timestamp.
 """
 
 from __future__ import absolute_import
-from datetime import datetime
-import pytz
 
+from datetime import datetime
+
+import six
+import pytz
 from oslo_config import cfg
 
 from st2common import config
@@ -79,7 +81,7 @@ def main():
         purge_executions(logger=LOG, timestamp=timestamp, action_ref=action_ref,
                          purge_incomplete=purge_incomplete)
     except Exception as e:
-        LOG.exception(str(e))
+        LOG.exception(six.text_type(e))
         return FAILURE_EXIT_CODE
     finally:
         common_teardown()

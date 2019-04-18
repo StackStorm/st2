@@ -88,8 +88,8 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
         hosts = self.runner_parameters.get(RUNNER_HOSTS, '').split(',')
         self._hosts = [h.strip() for h in hosts if len(h) > 0]
         if len(self._hosts) < 1:
-            raise ActionRunnerPreRunError('No hosts specified to run action for action %s.',
-                                          self.liveaction_id)
+            raise ActionRunnerPreRunError('No hosts specified to run action for action %s.'
+                                          % self.liveaction_id)
         self._username = self.runner_parameters.get(RUNNER_USERNAME, None)
         self._password = self.runner_parameters.get(RUNNER_PASSWORD, None)
         self._private_key = self.runner_parameters.get(RUNNER_PRIVATE_KEY, None)

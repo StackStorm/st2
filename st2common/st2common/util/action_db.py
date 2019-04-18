@@ -21,16 +21,22 @@ except ImportError:
 
 from collections import OrderedDict
 
-from mongoengine import ValidationError
+from oslo_config import cfg
 import six
+from mongoengine import ValidationError
 
 from st2common import log as logging
-from st2common.constants.action import LIVEACTION_STATUSES, LIVEACTION_STATUS_CANCELED
+from st2common.constants.action import (
+    LIVEACTION_STATUSES,
+    LIVEACTION_STATUS_CANCELED,
+    LIVEACTION_STATUS_SUCCEEDED,
+)
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.persistence.action import Action
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.runner import RunnerType
-from st2common.metrics.base import format_metrics_key, get_driver
+from st2common.metrics.base import get_driver
+from st2common.util import output_schema
 
 LOG = logging.getLogger(__name__)
 
@@ -191,28 +197,29 @@ def update_liveaction_status(status=None, result=None, context=None, end_timesta
 
     if status not in LIVEACTION_STATUSES:
         raise ValueError('Attempting to set status for LiveAction "%s" '
-                         'to unknown status string. Unknown status is "%s"',
-                         liveaction_db, status)
+                         'to unknown status string. Unknown status is "%s"'
+                         % (liveaction_db, status))
+
+    if result and cfg.CONF.system.validate_output_schema and status == LIVEACTION_STATUS_SUCCEEDED:
+        action_db = get_action_by_ref(liveaction_db.action)
+        runner_db = get_runnertype_by_name(action_db.runner_type['name'])
+        result, status = output_schema.validate_output(
+            runner_db.output_schema,
+            action_db.output_schema,
+            result,
+            status,
+            runner_db.output_key,
+        )
 
     # If liveaction_db status is set then we need to decrement the counter
     # because it is transitioning to a new state
     if liveaction_db.status:
-        get_driver().dec_counter(
-            format_metrics_key(
-                liveaction_db=liveaction_db,
-                key='action.%s' % liveaction_db.status
-            )
-        )
+        get_driver().dec_counter('action.executions.%s' % (liveaction_db.status))
 
     # If status is provided then we need to increment the timer because the action
     # is transitioning into this new state
     if status:
-        get_driver().inc_counter(
-            format_metrics_key(
-                liveaction_db=liveaction_db,
-                key='action.%s' % status
-            )
-        )
+        get_driver().inc_counter('action.executions.%s' % (status))
 
     extra = {'liveaction_db': liveaction_db}
     LOG.debug('Updating ActionExection: "%s" with status="%s"', liveaction_db.id, status,
@@ -239,6 +246,8 @@ def update_liveaction_status(status=None, result=None, context=None, end_timesta
     if runner_info:
         liveaction_db.runner_info = runner_info
 
+    # TODO: This is not efficient. Perform direct partial update and only update
+    # manipulated fields
     liveaction_db = LiveAction.add_or_update(liveaction_db)
 
     LOG.debug('Updated status for LiveAction object.', extra=extra)
@@ -259,7 +268,16 @@ def serialize_positional_argument(argument_type, argument_value):
     serialized).
     """
     if argument_type in ['string', 'number', 'float']:
-        argument_value = str(argument_value) if argument_value else ''
+        if argument_value is None:
+            argument_value = six.text_type('')
+            return argument_value
+
+        if isinstance(argument_value, (int, float)):
+            argument_value = str(argument_value)
+
+        if not isinstance(argument_value, six.text_type):
+            # cast string non-unicode values to unicode
+            argument_value = argument_value.decode('utf-8')
     elif argument_type == 'boolean':
         # Booleans are serialized as string "1" and "0"
         if argument_value is not None:
@@ -272,12 +290,12 @@ def serialize_positional_argument(argument_type, argument_value):
     elif argument_type == 'object':
         # Objects are serialized as JSON
         argument_value = json.dumps(argument_value) if argument_value else ''
-    elif argument_type is 'null':
+    elif argument_type == 'null':
         # None / null is serialized as en empty string
         argument_value = ''
     else:
-        # Other values are simply cast to strings
-        argument_value = str(argument_value) if argument_value else ''
+        # Other values are simply cast to unicode string
+        argument_value = six.text_type(argument_value) if argument_value else ''
 
     return argument_value
 

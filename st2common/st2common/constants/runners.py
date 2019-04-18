@@ -35,7 +35,9 @@ __all__ = [
     'COMMON_ACTION_ENV_VARIABLE_PREFIX',
     'COMMON_ACTION_ENV_VARIABLES',
 
-    'DEFAULT_SSH_PORT'
+    'DEFAULT_SSH_PORT',
+
+    'RUNNERS_NAMESPACE'
 ]
 
 DEFAULT_SSH_PORT = 22
@@ -82,3 +84,8 @@ COMMON_ACTION_ENV_VARIABLES = [
     'ST2_ACTION_API_URL',
     'ST2_ACTION_AUTH_TOKEN'
 ]
+
+# Namespaces for dynamically loaded runner modules
+RUNNERS_NAMESPACE = "st2common.runners.runner"
+RUNNERS_QUERY_MODULES_NAMESPACE = 'st2common.runners.query'
+RUNNERS_CALLBACK_MODULES_NAMESPACE = 'st2common.runners.callback'

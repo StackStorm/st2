@@ -97,7 +97,9 @@ class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
             {'fields': ['action.ref']},
             {'fields': ['trigger']},
             {'fields': ['context.user']},
-        ] + stormbase.TagsMixin.get_indices() + stormbase.UIDFieldMixin.get_indexes()
+        ] + (stormbase.ContentPackResourceMixin.get_indexes() +
+             stormbase.TagsMixin.get_indexes() +
+             stormbase.UIDFieldMixin.get_indexes())
     }
 
     def __init__(self, *args, **values):

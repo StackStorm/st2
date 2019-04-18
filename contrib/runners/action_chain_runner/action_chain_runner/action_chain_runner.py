@@ -14,13 +14,15 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import copy
+
 import eventlet
 import traceback
 import uuid
 import datetime
 
+import six
 from jsonschema import exceptions as json_schema_exc
+from oslo_config import cfg
 
 from st2common.runners.base import ActionRunner
 from st2common.runners.base import get_metadata as get_runner_metadata
@@ -46,6 +48,7 @@ from st2common.util import date as date_utils
 from st2common.util import jinja as jinja_utils
 from st2common.util import param as param_utils
 from st2common.util.config_loader import get_config
+from st2common.util.ujson import fast_deepcopy
 
 __all__ = [
     'ActionChainRunner',
@@ -81,13 +84,14 @@ class ChainHolder(object):
 
         self.vars = {}
 
-    def init_vars(self, action_parameters):
+    def init_vars(self, action_parameters, action_context=None):
         if self.actionchain.vars:
             self.vars = self._get_rendered_vars(self.actionchain.vars,
-                                                action_parameters=action_parameters)
+                                                action_parameters=action_parameters,
+                                                action_context=action_context)
 
     def restore_vars(self, ctx_vars):
-        self.vars.update(copy.deepcopy(ctx_vars))
+        self.vars.update(fast_deepcopy(ctx_vars))
 
     def validate(self):
         """
@@ -201,14 +205,20 @@ class ChainHolder(object):
         return node_name in all_node_names
 
     @staticmethod
-    def _get_rendered_vars(vars, action_parameters):
+    def _get_rendered_vars(vars, action_parameters, action_context):
         if not vars:
             return {}
+
+        action_context = action_context or {}
+        user = action_context.get('user', cfg.CONF.system_user.user)
+
         context = {}
         context.update({
             kv_constants.DATASTORE_PARENT_SCOPE: {
                 kv_constants.SYSTEM_SCOPE: kv_service.KeyValueLookup(
-                    scope=kv_constants.FULL_SYSTEM_SCOPE)
+                    scope=kv_constants.FULL_SYSTEM_SCOPE),
+                kv_constants.USER_SCOPE: kv_service.UserKeyValueLookup(
+                    scope=kv_constants.FULL_USER_SCOPE, user=user)
             }
         })
         context.update(action_parameters)
@@ -259,7 +269,7 @@ class ActionChainRunner(ActionRunner):
                                                expected_type=dict)
         except Exception as e:
             message = ('Failed to parse action chain definition from "%s": %s' %
-                       (chainspec_file, str(e)))
+                       (chainspec_file, six.text_type(e)))
             LOG.exception('Failed to load action chain definition.')
             raise runner_exc.ActionRunnerPreRunError(message)
 
@@ -268,11 +278,11 @@ class ActionChainRunner(ActionRunner):
         except json_schema_exc.ValidationError as e:
             # preserve the whole nasty jsonschema message as that is better to get to the
             # root cause
-            message = str(e)
+            message = six.text_type(e)
             LOG.exception('Failed to instantiate ActionChain.')
             raise runner_exc.ActionRunnerPreRunError(message)
         except Exception as e:
-            message = str(e)
+            message = six.text_type(e)
             LOG.exception('Failed to instantiate ActionChain.')
             raise runner_exc.ActionRunnerPreRunError(message)
 
@@ -288,7 +298,7 @@ class ActionChainRunner(ActionRunner):
         try:
             self.chain_holder.validate()
         except Exception as e:
-            raise runner_exc.ActionRunnerPreRunError(str(e))
+            raise runner_exc.ActionRunnerPreRunError(six.text_type(e))
 
     def run(self, action_parameters):
         # Run the action chain.
@@ -374,7 +384,8 @@ class ActionChainRunner(ActionRunner):
         try:
             # Initialize vars with the action parameters.
             # This allows action parameers to be referenced from vars.
-            self.chain_holder.init_vars(action_parameters)
+            self.chain_holder.init_vars(action_parameters=action_parameters,
+                                        action_context=self.context)
         except Exception as e:
             chain_status = action_constants.LIVEACTION_STATUS_FAILED
             m = 'Failed initializing ``vars`` in chain.'
@@ -610,7 +621,7 @@ class ActionChainRunner(ActionRunner):
 
     def _format_error(self, e, msg):
         return {
-            'error': '%s. %s' % (msg, str(e)),
+            'error': '%s. %s' % (msg, six.text_type(e)),
             'traceback': traceback.format_exc(10)
         }
 
@@ -657,7 +668,7 @@ class ActionChainRunner(ActionRunner):
             key = getattr(e, 'key', None)
             value = getattr(e, 'value', None)
             msg = ('Failed rendering value for publish parameter "%s" in task "%s" '
-                   '(template string=%s): %s' % (key, action_node.name, value, str(e)))
+                   '(template string=%s): %s' % (key, action_node.name, value, six.text_type(e)))
             raise action_exc.ParameterRenderingFailedException(msg)
 
         return rendered_result
@@ -699,7 +710,7 @@ class ActionChainRunner(ActionRunner):
             key = getattr(e, 'key', None)
             value = getattr(e, 'value', None)
             msg = ('Failed rendering value for action parameter "%s" in task "%s" '
-                   '(template string=%s): %s') % (key, action_node.name, value, str(e))
+                   '(template string=%s): %s') % (key, action_node.name, value, six.text_type(e))
             raise action_exc.ParameterRenderingFailedException(msg)
         LOG.debug('Rendered params: %s: Type: %s', rendered_params, type(rendered_params))
         return rendered_params
@@ -849,4 +860,4 @@ def get_runner():
 
 
 def get_metadata():
-    return get_runner_metadata('action_chain_runner')
+    return get_runner_metadata('action_chain_runner')[0]

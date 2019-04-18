@@ -19,9 +19,13 @@ from st2common.services.rules import get_rules_given_trigger
 from st2common.services.triggers import get_trigger_db_by_ref
 from st2reactor.rules.enforcer import RuleEnforcer
 from st2reactor.rules.matcher import RulesMatcher
-from st2common.metrics.base import format_metrics_key, get_driver
+from st2common.metrics.base import get_driver
 
 LOG = logging.getLogger('st2reactor.rules.RulesEngine')
+
+__all__ = [
+    'RulesEngine'
+]
 
 
 class RulesEngine(object):
@@ -70,14 +74,12 @@ class RulesEngine(object):
         This method is trigger_instance specific therefore if creation of 1 RuleEnforcer
         fails it is likely that all wil be broken.
         """
+        metrics_driver = get_driver()
+
         enforcers = []
         for matching_rule in matching_rules:
-
-            get_driver().inc_counter(
-                format_metrics_key(
-                    key='rule.%s' % matching_rule
-                )
-            )
+            metrics_driver.inc_counter('rule.matched')
+            metrics_driver.inc_counter('rule.%s.matched' % (matching_rule.ref))
 
             enforcers.append(RuleEnforcer(trigger_instance, matching_rule))
         return enforcers

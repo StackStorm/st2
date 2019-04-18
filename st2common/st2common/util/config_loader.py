@@ -89,7 +89,7 @@ class ContentPackConfigLoader(object):
         schema_values = getattr(config_schema_db, 'attributes', {})
         config_values = getattr(config_db, 'values', {})
 
-        config = copy.deepcopy(config_values)
+        config = copy.deepcopy(config_values or {})
 
         # Assign dynamic config values based on the values in the datastore
         config = self._assign_dynamic_config_values(schema=schema_values, config=config)
@@ -206,7 +206,7 @@ class ContentPackConfigLoader(object):
         except Exception as e:
             # Throw a more user-friendly exception on failed render
             exc_class = type(e)
-            original_msg = str(e)
+            original_msg = six.text_type(e)
             msg = ('Failed to render dynamic configuration value for key "%s" with value '
                    '"%s" for pack "%s" config: %s %s ' % (key, value, self.pack_name,
                                                           exc_class, original_msg))
@@ -224,7 +224,7 @@ class ContentPackConfigLoader(object):
 def get_config(pack, user):
     """Returns config for given pack and user.
     """
-    LOG.debug('Attempting to get config')
+    LOG.debug('Attempting to get config for pack "%s" and user "%s"' % (pack, user))
     if pack and user:
         LOG.debug('Pack and user found. Loading config.')
         config_loader = ContentPackConfigLoader(

@@ -23,8 +23,7 @@ from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.models.api.action import ActionAliasAPI
 from st2common.persistence.actionalias import ActionAlias
 from st2common.rbac.types import PermissionType
-from st2common.rbac import utils as rbac_utils
-
+from st2common.rbac.backends import get_rbac_backend
 from st2common.router import abort
 from st2common.router import Response
 from st2common.util.actionalias_matching import get_matching_alias
@@ -56,8 +55,11 @@ class ActionAliasController(resource.ContentPackResourceController):
         'help': ['POST']
     }
 
-    def get_all(self, sort=None, offset=0, limit=None, requester_user=None, **raw_filters):
-        return super(ActionAliasController, self)._get_all(sort=sort,
+    def get_all(self, exclude_attributes=None, include_attributes=None,
+                sort=None, offset=0, limit=None, requester_user=None, **raw_filters):
+        return super(ActionAliasController, self)._get_all(exclude_fields=exclude_attributes,
+                                                           include_fields=include_attributes,
+                                                           sort=sort,
                                                            offset=offset,
                                                            limit=limit,
                                                            raw_filters=raw_filters,
@@ -82,7 +84,7 @@ class ActionAliasController(resource.ContentPackResourceController):
             format_ = get_matching_alias(command=command)
         except ActionAliasAmbiguityException as e:
             LOG.exception('Command "%s" matched (%s) patterns.', e.command, len(e.matches))
-            return abort(http_client.BAD_REQUEST, str(e))
+            return abort(http_client.BAD_REQUEST, six.text_type(e))
 
         # Convert ActionAliasDB to API
         action_alias_api = ActionAliasAPI.from_model(format_['alias'])
@@ -104,8 +106,8 @@ class ActionAliasController(resource.ContentPackResourceController):
             aliases = [ActionAliasAPI(**alias) for alias in aliases_resp.json]
             return generate_helpstring_result(aliases, filter, pack, int(limit), int(offset))
         except (TypeError) as e:
-            LOG.exception('Helpstring request contains an invalid data type: %s.', str(e))
-            return abort(http_client.BAD_REQUEST, str(e))
+            LOG.exception('Helpstring request contains an invalid data type: %s.', six.text_type(e))
+            return abort(http_client.BAD_REQUEST, six.text_type(e))
 
     def post(self, action_alias, requester_user):
         """
@@ -116,6 +118,7 @@ class ActionAliasController(resource.ContentPackResourceController):
         """
 
         permission_type = PermissionType.ACTION_ALIAS_CREATE
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_api_permission(user_db=requester_user,
                                                            resource_api=action_alias,
                                                            permission_type=permission_type)
@@ -127,7 +130,7 @@ class ActionAliasController(resource.ContentPackResourceController):
             action_alias_db = ActionAlias.add_or_update(action_alias_db)
         except (ValidationError, ValueError, ValueValidationException) as e:
             LOG.exception('Validation failed for action alias data=%s.', action_alias)
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
             return
 
         extra = {'action_alias_db': action_alias_db}
@@ -148,6 +151,7 @@ class ActionAliasController(resource.ContentPackResourceController):
                   action_alias_db)
 
         permission_type = PermissionType.ACTION_ALIAS_MODIFY
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=action_alias_db,
                                                           permission_type=permission_type)
@@ -156,7 +160,7 @@ class ActionAliasController(resource.ContentPackResourceController):
             action_alias.id = None
 
         try:
-            if action_alias.id is not None and action_alias.id is not '' and \
+            if action_alias.id is not None and action_alias.id != '' and \
                action_alias.id != ref_or_id:
                 LOG.warning('Discarding mismatched id=%s found in payload and using uri_id=%s.',
                             action_alias.id, ref_or_id)
@@ -166,7 +170,7 @@ class ActionAliasController(resource.ContentPackResourceController):
             action_alias_db = ActionAlias.add_or_update(action_alias_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for action alias data=%s', action_alias)
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
             return
 
         extra = {'old_action_alias_db': old_action_alias_db, 'new_action_alias_db': action_alias_db}
@@ -187,6 +191,7 @@ class ActionAliasController(resource.ContentPackResourceController):
                   action_alias_db)
 
         permission_type = PermissionType.ACTION_ALIAS_DELETE
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=action_alias_db,
                                                           permission_type=permission_type)
@@ -196,7 +201,7 @@ class ActionAliasController(resource.ContentPackResourceController):
         except Exception as e:
             LOG.exception('Database delete encountered exception during delete of id="%s".',
                           ref_or_id)
-            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+            abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
             return
 
         extra = {'action_alias_db': action_alias_db}

@@ -348,8 +348,8 @@ class ParallelSSHClient(object):
     def _handle_command_result(self, stdout, stderr, exit_code):
         # Detect if user provided an invalid sudo password or sudo is not configured for that user
         if self._sudo_password:
-            if re.search('sudo: \d+ incorrect password attempts', stderr):
-                match = re.search('\[sudo\] password for (.+?)\:', stderr)
+            if re.search(r'sudo: \d+ incorrect password attempts', stderr):
+                match = re.search(r'\[sudo\] password for (.+?)\:', stderr)
 
                 if match:
                     username = match.groups()[0]
@@ -376,7 +376,7 @@ class ParallelSSHClient(object):
         if not cmd:
             return cmd
 
-        result = re.sub('ST2_ACTION_AUTH_TOKEN=(.+?)\s+?', 'ST2_ACTION_AUTH_TOKEN=%s ' %
+        result = re.sub(r'ST2_ACTION_AUTH_TOKEN=(.+?)\s+?', 'ST2_ACTION_AUTH_TOKEN=%s ' %
                         (MASKED_ATTRIBUTE_VALUE), cmd)
         return result
 

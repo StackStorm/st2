@@ -73,7 +73,7 @@ PACKS = [
     wf_ex_xport.WorkflowExecutionPublisher,
     'publish_state',
     mock.MagicMock(side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_state))
-class OrquestaRunnerCancelTest(st2tests.DbTestCase):
+class OrquestaRunnerCancelTest(st2tests.ExecutionDbTestCase):
 
     @classmethod
     def setUpClass(cls):

@@ -19,12 +19,13 @@ A utility script which listens on queue for messages and prints them to stdout.
 """
 
 from __future__ import absolute_import
+
 import random
 import argparse
 from pprint import pprint
 
 from kombu.mixins import ConsumerMixin
-from kombu import Connection, Exchange, Queue
+from kombu import Exchange, Queue
 
 from st2common import config
 from st2common.transport import utils as transport_utils
@@ -59,7 +60,8 @@ def main(queue, exchange, routing_key='#'):
     queue = Queue(name=queue, exchange=exchange, routing_key=routing_key,
                   auto_delete=True)
 
-    with Connection(transport_utils.get_messaging_urls()) as connection:
+    with transport_utils.get_connection() as connection:
+        connection.connect()
         watcher = QueueConsumer(connection=connection, queue=queue)
         watcher.run()
 

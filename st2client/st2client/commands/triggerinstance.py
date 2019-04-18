@@ -61,7 +61,7 @@ class TriggerInstanceBranch(resource.ResourceBranch):
                                                                 self.subparsers, add_help=False)
 
 
-class TriggerInstanceListCommand(resource.ResourceCommand):
+class TriggerInstanceListCommand(resource.ResourceViewCommand):
     display_attributes = ['id', 'trigger', 'occurrence_time', 'status']
 
     attribute_transform_functions = {
@@ -122,6 +122,11 @@ class TriggerInstanceListCommand(resource.ResourceCommand):
             kwargs['timestamp_lt'] = args.timestamp_lt
         if args.status:
             kwargs['status'] = args.status
+
+        include_attributes = self._get_include_attributes(args=args)
+        if include_attributes:
+            include_attributes = ','.join(include_attributes)
+            kwargs['params'] = {'include_attributes': include_attributes}
 
         return self.manager.query_with_count(limit=args.last, **kwargs)
 

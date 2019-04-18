@@ -15,9 +15,10 @@
 # pylint: disable=assignment-from-none
 
 from __future__ import absolute_import
+
+import six
 import eventlet
 from kombu.mixins import ConsumerMixin
-from kombu import Connection
 
 from st2common import log as logging
 from st2common.persistence.trigger import Trigger
@@ -100,7 +101,7 @@ class TriggerWatcher(ConsumerMixin):
                 handler(body)
             except Exception as e:
                 LOG.exception('Handling failed. Message body: %s. Exception: %s',
-                              body, e.message)
+                              body, six.text_type(e))
         finally:
             message.ack()
 
@@ -108,7 +109,7 @@ class TriggerWatcher(ConsumerMixin):
 
     def start(self):
         try:
-            self.connection = Connection(transport_utils.get_messaging_urls())
+            self.connection = transport_utils.get_connection()
             self._updates_thread = eventlet.spawn(self.run)
             self._load_thread = eventlet.spawn(self._load_triggers_from_db)
         except:

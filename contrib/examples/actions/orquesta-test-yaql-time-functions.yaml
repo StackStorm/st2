@@ -1,0 +1,6 @@
+---
+name: orquesta-test-yaql-time-functions
+description: A basic workflow testing time related functions.
+runner_type: orquesta
+entry_point: workflows/tests/orquesta-test-yaql-time-functions.yaml
+enabled: true

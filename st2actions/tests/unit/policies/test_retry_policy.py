@@ -25,6 +25,7 @@ from st2common.constants.action import LIVEACTION_STATUS_DELAYED
 from st2common.constants.action import LIVEACTION_STATUS_CANCELING
 from st2common.constants.action import LIVEACTION_STATUS_CANCELED
 from st2common.bootstrap.policiesregistrar import register_policy_types
+from st2common.bootstrap import runnersregistrar as runners_registrar
 from st2common.models.db.action import LiveActionDB
 from st2common.persistence.action import LiveAction, ActionExecution
 from st2common.services import action as action_service
@@ -34,11 +35,12 @@ from st2tests.base import DbTestCase
 from st2tests.base import CleanDbTestCase
 from st2tests.fixturesloader import FixturesLoader
 
+__all__ = [
+    'RetryPolicyTestCase'
+]
+
 PACK = 'generic'
 TEST_FIXTURES = {
-    'runners': [
-        'testrunner1.yaml'
-    ],
     'actions': [
         'action1.yaml'
     ],
@@ -56,6 +58,9 @@ class RetryPolicyTestCase(CleanDbTestCase):
 
     def setUp(self):
         super(RetryPolicyTestCase, self).setUp()
+
+        # Register runners
+        runners_registrar.register_runners()
 
         # Register common policy types
         register_policy_types(st2actions)

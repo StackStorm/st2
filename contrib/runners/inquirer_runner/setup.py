@@ -45,11 +45,11 @@ setup(
     zip_safe=False,
     include_package_data=True,
     packages=find_packages(exclude=['setuptools', 'tests']),
-    package_data={'inquirer': ['runner.yaml']},
+    package_data={'inquirer_runner': ['runner.yaml']},
     scripts=[],
     entry_points={
         'st2common.runners.runner': [
-            'inquirer = inquirer.inquirer',
+            'inquirer = inquirer_runner.inquirer_runner',
         ],
     }
 )

@@ -77,10 +77,12 @@ class BaseAPI(object):
 
     @classmethod
     def _from_model(cls, model, mask_secrets=False):
-        doc = util_mongodb.unescape_chars(model.to_mongo())
+        doc = model.to_mongo()
 
         if '_id' in doc:
             doc['id'] = str(doc.pop('_id'))
+
+        doc = util_mongodb.unescape_chars(doc)
 
         if mask_secrets and cfg.CONF.log.mask_secrets:
             doc = model.mask_secrets(value=doc)

@@ -54,7 +54,9 @@ class TriggerTypeDB(stormbase.StormBaseDB,
     parameters_schema = me.DictField(default={})
 
     meta = {
-        'indexes': stormbase.TagsMixin.get_indices() + stormbase.UIDFieldMixin.get_indexes()
+        'indexes': (stormbase.ContentPackResourceMixin.get_indexes() +
+                    stormbase.TagsMixin.get_indexes() +
+                    stormbase.UIDFieldMixin.get_indexes())
     }
 
     def __init__(self, *args, **values):

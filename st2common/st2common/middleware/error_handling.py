@@ -14,8 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import traceback
 
+import six
 from mongoengine import ValidationError
 
 from st2common.exceptions import db as db_exceptions
@@ -60,30 +62,30 @@ class ErrorHandlingMiddleware(object):
 
             if isinstance(e, exc.HTTPException):
                 status_code = status
-                message = str(e)
+                message = six.text_type(e)
             elif isinstance(e, db_exceptions.StackStormDBObjectNotFoundError):
                 status_code = exc.HTTPNotFound.code
-                message = str(e)
+                message = six.text_type(e)
             elif isinstance(e, db_exceptions.StackStormDBObjectConflictError):
                 status_code = exc.HTTPConflict.code
-                message = str(e)
+                message = six.text_type(e)
                 body['conflict-id'] = getattr(e, 'conflict_id', None)
             elif isinstance(e, rbac_exceptions.AccessDeniedError):
                 status_code = exc.HTTPForbidden.code
-                message = str(e)
+                message = six.text_type(e)
             elif isinstance(e, (ValueValidationException, ValueError, ValidationError)):
                 status_code = exc.HTTPBadRequest.code
-                message = getattr(e, 'message', str(e))
+                message = getattr(e, 'message', six.text_type(e))
             else:
                 status_code = exc.HTTPInternalServerError.code
                 message = 'Internal Server Error'
 
             # Log the error
             is_internal_server_error = status_code == exc.HTTPInternalServerError.code
-            error_msg = getattr(e, 'comment', str(e))
+            error_msg = getattr(e, 'comment', six.text_type(e))
             extra = {
                 'exception_class': e.__class__.__name__,
-                'exception_message': str(e),
+                'exception_message': six.text_type(e),
                 'exception_data': e.__dict__
             }
 

@@ -14,12 +14,13 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import copy
+
 import six
 
 from st2common import log as logging
 from st2common.util import action_db as action_db_util
 from st2common.util.casts import get_cast
+from st2common.util.ujson import fast_deepcopy
 
 LOG = logging.getLogger(__name__)
 
@@ -49,8 +50,15 @@ def _merge_param_meta_values(action_meta=None, runner_meta=None):
 
 
 def get_params_view(action_db=None, runner_db=None, merged_only=False):
-    runner_params = copy.deepcopy(runner_db.runner_parameters) if runner_db else {}
-    action_params = copy.deepcopy(action_db.parameters) if action_db else {}
+    if runner_db:
+        runner_params = fast_deepcopy(getattr(runner_db, 'runner_parameters', {})) or {}
+    else:
+        runner_params = {}
+
+    if action_db:
+        action_params = fast_deepcopy(getattr(action_db, 'parameters', {})) or {}
+    else:
+        action_params = {}
 
     parameters = set(runner_params.keys()).union(set(action_params.keys()))
 
@@ -124,7 +132,7 @@ def cast_params(action_ref, params, cast_overrides=None):
             v_type = type(v).__name__
             msg = ('Failed to cast value "%s" (type: %s) for parameter "%s" of type "%s": %s. '
                    'Perhaps the value is of an invalid type?' %
-                   (v, v_type, k, parameter_type, str(e)))
+                   (v, v_type, k, parameter_type, six.text_type(e)))
             raise ValueError(msg)
 
     return params

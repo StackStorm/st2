@@ -1,0 +1,6 @@
+---
+name: orquesta-test-jinja-time-functions
+description: A basic workflow testing time related functions.
+runner_type: orquesta
+entry_point: workflows/tests/orquesta-test-jinja-time-functions.yaml
+enabled: true

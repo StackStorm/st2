@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -14,11 +15,14 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import unittest2
 
 from st2common.util.misc import rstrip_last_char
 from st2common.util.misc import strip_shell_chars
 from st2common.util.misc import lowercase_value
+from st2common.util.misc import sanitize_output
+from st2common.util.ujson import fast_deepcopy
 
 __all__ = [
     'MiscUtilTestCase'
@@ -26,7 +30,6 @@ __all__ = [
 
 
 class MiscUtilTestCase(unittest2.TestCase):
-
     def test_rstrip_last_char(self):
         self.assertEqual(rstrip_last_char(None, '\n'), None)
         self.assertEqual(rstrip_last_char('stuff', None), 'stuff')
@@ -71,3 +74,66 @@ class MiscUtilTestCase(unittest2.TestCase):
             'teste': 'teste'
         }
         self.assertEqual(expected_value, lowercase_value(value=value))
+
+    def test_fast_deepcopy_success(self):
+        values = [
+            'a',
+            u'٩(̾●̮̮̃̾•̃̾)۶',
+            1,
+            [1, 2, '3', 'b'],
+            {'a': 1, 'b': '3333', 'c': 'd'},
+        ]
+        expected_values = [
+            'a',
+            u'٩(̾●̮̮̃̾•̃̾)۶',
+            1,
+            [1, 2, '3', 'b'],
+            {'a': 1, 'b': '3333', 'c': 'd'},
+        ]
+
+        for value, expected_value in zip(values, expected_values):
+            result = fast_deepcopy(value)
+            self.assertEqual(result, value)
+            self.assertEqual(result, expected_value)
+
+    def test_sanitize_output_use_pyt_false(self):
+        # pty is not used, \r\n shouldn't be replaced with \n
+        input_strs = [
+            'foo',
+            'foo\n',
+            'foo\r\n',
+            'foo\nbar\nbaz\n',
+            'foo\r\nbar\r\nbaz\r\n',
+        ]
+        expected = [
+            'foo',
+            'foo',
+            'foo',
+            'foo\nbar\nbaz',
+            'foo\r\nbar\r\nbaz',
+        ]
+
+        for input_str, expected_output in zip(input_strs, expected):
+            output = sanitize_output(input_str, uses_pty=False)
+            self.assertEqual(expected_output, output)
+
+    def test_sanitize_output_use_pyt_true(self):
+        # pty is used, \r\n should be replaced with \n
+        input_strs = [
+            'foo',
+            'foo\n',
+            'foo\r\n',
+            'foo\nbar\nbaz\n',
+            'foo\r\nbar\r\nbaz\r\n',
+        ]
+        expected = [
+            'foo',
+            'foo',
+            'foo',
+            'foo\nbar\nbaz',
+            'foo\nbar\nbaz',
+        ]
+
+        for input_str, expected_output in zip(input_strs, expected):
+            output = sanitize_output(input_str, uses_pty=True)
+            self.assertEqual(expected_output, output)

@@ -21,6 +21,7 @@ import logging
 import os
 
 import requests
+import six
 from six.moves.configparser import ConfigParser
 from six.moves import http_client
 
@@ -152,11 +153,10 @@ class LoginCommand(resource.ResourceCommand):
         try:
             self.run(args, **kwargs)
         except Exception as e:
-            print('Failed to log in as %s: %s' % (args.username, str(e)))
             if self.app.client.debug:
                 raise
 
-            return
+            raise Exception('Failed to log in as %s: %s' % (args.username, six.text_type(e)))
 
         print('Logged in as %s' % (args.username))
 
@@ -316,7 +316,7 @@ class ApiKeyCreateCommand(resource.ResourceCommand):
             if not instance:
                 raise Exception('Server did not create instance.')
         except Exception as e:
-            message = e.message or str(e)
+            message = six.text_type(e)
             print('ERROR: %s' % (message))
             raise OperationFailureException(message)
         if args.only_key:

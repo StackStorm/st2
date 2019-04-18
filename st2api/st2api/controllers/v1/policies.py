@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import six
 from mongoengine import ValidationError
 from six.moves import http_client
 
@@ -25,7 +26,7 @@ from st2common.persistence.policy import PolicyType, Policy
 from st2common.validators.api.misc import validate_not_part_of_system_pack
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.rbac.types import PermissionType
-from st2common.rbac import utils as rbac_utils
+from st2common.rbac.backends import get_rbac_backend
 from st2common.router import abort
 from st2common.router import Response
 
@@ -36,6 +37,8 @@ class PolicyTypeController(resource.ResourceController):
     model = PolicyTypeAPI
     access = PolicyType
 
+    mandatory_include_fields_retrieve = ['id', 'name', 'resource_type']
+
     supported_filters = {
         'resource_type': 'resource_type'
     }
@@ -44,13 +47,14 @@ class PolicyTypeController(resource.ResourceController):
         'sort': ['resource_type', 'name']
     }
 
-    include_reference = False
-
     def get_one(self, ref_or_id, requester_user):
         return self._get_one(ref_or_id, requester_user=requester_user)
 
-    def get_all(self, sort=None, offset=0, limit=None, requester_user=None, **raw_filters):
-        return self._get_all(sort=sort,
+    def get_all(self, exclude_attributes=None, include_attributes=None, sort=None, offset=0,
+                limit=None, requester_user=None, **raw_filters):
+        return self._get_all(exclude_fields=exclude_attributes,
+                             include_fields=include_attributes,
+                             sort=sort,
                              offset=offset,
                              limit=limit,
                              raw_filters=raw_filters,
@@ -60,23 +64,20 @@ class PolicyTypeController(resource.ResourceController):
         instance = self._get_by_ref_or_id(ref_or_id=ref_or_id)
 
         permission_type = PermissionType.POLICY_TYPE_VIEW
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=instance,
                                                           permission_type=permission_type)
 
         result = self.model.from_model(instance)
-
-        if result and self.include_reference:
-            resource_type = getattr(result, 'resource_type', None)
-            name = getattr(result, 'name', None)
-            result.ref = PolicyTypeReference(resource_type=resource_type, name=name).ref
-
         return result
 
-    def _get_all(self, exclude_fields=None, sort=None, offset=0, limit=None, query_options=None,
-                 from_model_kwargs=None, raw_filters=None, requester_user=None):
+    def _get_all(self, exclude_fields=None, include_fields=None, sort=None, offset=0, limit=None,
+                 query_options=None, from_model_kwargs=None, raw_filters=None,
+                 requester_user=None):
 
         resp = super(PolicyTypeController, self)._get_all(exclude_fields=exclude_fields,
+                                                          include_fields=include_fields,
                                                           sort=sort,
                                                           offset=offset,
                                                           limit=limit,
@@ -84,14 +85,6 @@ class PolicyTypeController(resource.ResourceController):
                                                           from_model_kwargs=from_model_kwargs,
                                                           raw_filters=raw_filters,
                                                           requester_user=requester_user)
-
-        if self.include_reference:
-            result = resp.json
-            for item in result:
-                resource_type = item.get('resource_type', None)
-                name = item.get('name', None)
-                item['ref'] = PolicyTypeReference(resource_type=resource_type, name=name).ref
-            resp.json = result
 
         return resp
 
@@ -139,8 +132,11 @@ class PolicyController(resource.ContentPackResourceController):
         'sort': ['pack', 'name']
     }
 
-    def get_all(self, sort=None, offset=0, limit=None, requester_user=None, **raw_filters):
-        return self._get_all(sort=sort,
+    def get_all(self, exclude_attributes=None, include_attributes=None, sort=None, offset=0,
+                limit=None, requester_user=None, **raw_filters):
+        return self._get_all(exclude_fields=exclude_attributes,
+                             include_fields=include_attributes,
+                             sort=sort,
                              offset=offset,
                              limit=limit,
                              raw_filters=raw_filters,
@@ -158,6 +154,7 @@ class PolicyController(resource.ContentPackResourceController):
                 POST /policies/
         """
         permission_type = PermissionType.POLICY_CREATE
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_api_permission(user_db=requester_user,
                                                            resource_api=instance,
                                                            permission_type=permission_type)
@@ -183,6 +180,7 @@ class PolicyController(resource.ContentPackResourceController):
         LOG.debug('%s found object: %s', op, db_model)
 
         permission_type = PermissionType.POLICY_MODIFY
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=db_model,
                                                           permission_type=permission_type)
@@ -193,7 +191,7 @@ class PolicyController(resource.ContentPackResourceController):
             validate_not_part_of_system_pack(db_model)
         except ValueValidationException as e:
             LOG.exception('%s unable to update object from system pack.', op)
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
 
         if not getattr(instance, 'pack', None):
             instance.pack = db_model.pack
@@ -204,7 +202,7 @@ class PolicyController(resource.ContentPackResourceController):
             db_model = self.access.add_or_update(db_model)
         except (ValidationError, ValueError) as e:
             LOG.exception('%s unable to update object: %s', op, db_model)
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
             return
 
         LOG.debug('%s updated object: %s', op, db_model)
@@ -228,6 +226,7 @@ class PolicyController(resource.ContentPackResourceController):
         LOG.debug('%s found object: %s', op, db_model)
 
         permission_type = PermissionType.POLICY_DELETE
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=db_model,
                                                           permission_type=permission_type)
@@ -236,13 +235,13 @@ class PolicyController(resource.ContentPackResourceController):
             validate_not_part_of_system_pack(db_model)
         except ValueValidationException as e:
             LOG.exception('%s unable to delete object from system pack.', op)
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
 
         try:
             self.access.delete(db_model)
         except Exception as e:
             LOG.exception('%s unable to delete object: %s', op, db_model)
-            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+            abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
             return
 
         LOG.debug('%s deleted object: %s', op, db_model)

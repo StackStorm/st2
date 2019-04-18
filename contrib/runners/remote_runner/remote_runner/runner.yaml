@@ -1,6 +1,4 @@
-- aliases:
-    - run-remote
-  description: A remote execution runner that executes actions as a fixed system user.
+- description: A remote execution runner that executes actions as a fixed system user.
   enabled: true
   name: remote-shell-cmd
   runner_package: remote_runner
@@ -85,9 +83,7 @@
         config is used.
       required: false
       type: string
-- aliases:
-  - run-remote-script
-  description: A remote execution runner that executes actions as a fixed system user.
+- description: A remote execution runner that executes actions as a fixed system user.
   enabled: true
   name: remote-shell-script
   runner_package: remote_runner

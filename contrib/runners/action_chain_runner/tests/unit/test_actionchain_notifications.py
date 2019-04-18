@@ -21,7 +21,7 @@ from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.system.common import ResourceReference
 from st2common.services import action as action_service
 from st2common.util import action_db as action_db_util
-from st2tests import DbTestCase
+from st2tests import ExecutionDbTestCase
 from st2tests.fixturesloader import FixturesLoader
 from action_chain_runner import action_chain_runner as acr
 
@@ -62,7 +62,7 @@ CHAIN_1_PATH = FixturesLoader().get_fixture_file_path_abs(
     action_service,
     'is_action_paused_or_pausing',
     mock.MagicMock(return_value=False))
-class TestActionChainNotifications(DbTestCase):
+class TestActionChainNotifications(ExecutionDbTestCase):
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))

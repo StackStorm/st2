@@ -63,7 +63,7 @@ def _register_app_opts():
             'debug', default=False,
             help='Specify to enable debug mode.'),
         cfg.StrOpt(
-            'logging', default='conf/logging.conf',
+            'logging', default='/etc/st2/logging.stream.conf',
             help='location of the logging.conf file')
     ]
 

@@ -14,8 +14,8 @@
 # limitations under the License.
 
 """
-Utility functions for our sandboxing model which is implemented on top of
-separate processes and virtualenv.
+Utility functions for our sandboxing model which is implemented on top of separate processes and
+virtual environments.
 """
 
 from __future__ import absolute_import
@@ -35,7 +35,9 @@ __all__ = [
     'get_sandbox_python_path',
     'get_sandbox_python_path_for_python_action',
     'get_sandbox_path',
-    'get_sandbox_virtualenv_path'
+    'get_sandbox_virtualenv_path',
+
+    'is_pack_virtualenv_using_python3'
 ]
 
 
@@ -115,7 +117,10 @@ def get_sandbox_python_path(inherit_from_parent=True, inherit_parent_virtualenv=
     if inherit_parent_virtualenv and hasattr(sys, 'real_prefix'):
         # We are running inside virtualenv
         site_packages_dir = get_python_lib()
-        assert sys.prefix in site_packages_dir
+
+        sys_prefix = os.path.abspath(sys.prefix)
+        assert sys_prefix in site_packages_dir
+
         sandbox_python_path.append(site_packages_dir)
 
     sandbox_python_path = ':'.join(sandbox_python_path)
@@ -125,35 +130,29 @@ def get_sandbox_python_path(inherit_from_parent=True, inherit_parent_virtualenv=
 
 def get_sandbox_python_path_for_python_action(pack, inherit_from_parent=True,
                                               inherit_parent_virtualenv=True):
-
     """
-    Same as get_sandbox_python_path function, but it's intended to be used for Python runner actions
-    and also takes into account if a pack virtual environment uses Python 3.
+    Return sandbox PYTHONPATH for a particular Python runner action.
+
+    Same as get_sandbox_python_path() function, but it's intended to be used for Python runner
+    actions and also takes into account if a pack virtual environment uses Python 3.
     """
     sandbox_python_path = get_sandbox_python_path(
         inherit_from_parent=inherit_from_parent,
         inherit_parent_virtualenv=inherit_parent_virtualenv)
 
-    # If python3.? directory exists in pack virtualenv lib/ path it means Python 3 is used by
-    # that virtual environment and we take that in to account when constructing PYTHONPATH
     pack_base_path = get_pack_base_path(pack_name=pack)
     virtualenv_path = get_sandbox_virtualenv_path(pack=pack)
 
-    if virtualenv_path and os.path.isdir(virtualenv_path):
-        pack_actions_lib_paths = os.path.join(pack_base_path, 'actions/lib/')
-        pack_virtualenv_lib_path = os.path.join(virtualenv_path, 'lib')
+    if not virtualenv_path:
+        return sandbox_python_path
 
-        virtualenv_directories = os.listdir(pack_virtualenv_lib_path)
-        virtualenv_directories = [dir_name for dir_name in virtualenv_directories if
-                                  fnmatch.fnmatch(dir_name, 'python3*')]
-        uses_python3 = bool(virtualenv_directories)
-    else:
-        uses_python3 = False
-
+    uses_python3, virtualenv_directories = is_pack_virtualenv_using_python3(pack=pack)
     if uses_python3:
         # Add Python 3 lib directory (lib/python3.x) in front of the PYTHONPATH. This way we avoid
         # issues with scripts trying to use packages / modules from Python 2.7 site-packages
         # directory instead of the versions from Python 3 stdlib.
+        pack_actions_lib_paths = os.path.join(pack_base_path, 'actions/lib/')
+        pack_virtualenv_lib_path = os.path.join(virtualenv_path, 'lib')
         python3_lib_directory = os.path.join(pack_virtualenv_lib_path, virtualenv_directories[0])
 
         # Add Python 3 site-packages directory (lib/python3.x/site-packages) in front of the Python
@@ -166,6 +165,34 @@ def get_sandbox_python_path_for_python_action(pack, inherit_from_parent=True,
                                pack_actions_lib_paths + ':' + sandbox_python_path)
 
     return sandbox_python_path
+
+
+def is_pack_virtualenv_using_python3(pack):
+    """
+    Return True if a particular pack virtual environment is using Python 3.
+
+    :return: (uses_python3_bool, virtualenv_lib_directories)
+    :rtype: ``tuple``
+    """
+    # If python3.? directory exists in pack virtualenv lib/ path it means Python 3 is used by
+    # that virtual environment and we take that in to account when constructing PYTHONPATH
+    virtualenv_path = get_sandbox_virtualenv_path(pack=pack)
+
+    if virtualenv_path and os.path.isdir(virtualenv_path):
+        pack_virtualenv_lib_path = os.path.join(virtualenv_path, 'lib')
+
+        if not os.path.exists(pack_virtualenv_lib_path):
+            return False, None
+
+        virtualenv_directories = os.listdir(pack_virtualenv_lib_path)
+        virtualenv_directories = [dir_name for dir_name in virtualenv_directories if
+                                  fnmatch.fnmatch(dir_name, 'python3*')]
+        uses_python3 = bool(virtualenv_directories)
+    else:
+        uses_python3 = False
+        virtualenv_directories = None
+
+    return uses_python3, virtualenv_directories
 
 
 def get_sandbox_virtualenv_path(pack):

@@ -16,8 +16,17 @@
 # All Exchanges and Queues related to liveaction.
 
 from __future__ import absolute_import
+
 from kombu import Exchange, Queue
+
 from st2common.transport import publishers
+
+__all__ = [
+    'LiveActionPublisher',
+
+    'get_queue',
+    'get_status_management_queue'
+]
 
 
 LIVEACTION_XCHG = Exchange('st2.liveaction', type='topic')
@@ -26,9 +35,9 @@ LIVEACTION_STATUS_MGMT_XCHG = Exchange('st2.liveaction.status', type='topic')
 
 class LiveActionPublisher(publishers.CUDPublisher, publishers.StatePublisherMixin):
 
-    def __init__(self, urls):
-        publishers.CUDPublisher.__init__(self, urls, LIVEACTION_XCHG)
-        publishers.StatePublisherMixin.__init__(self, urls, LIVEACTION_STATUS_MGMT_XCHG)
+    def __init__(self):
+        publishers.CUDPublisher.__init__(self, exchange=LIVEACTION_XCHG)
+        publishers.StatePublisherMixin.__init__(self, exchange=LIVEACTION_STATUS_MGMT_XCHG)
 
 
 def get_queue(name, routing_key):

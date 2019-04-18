@@ -14,13 +14,22 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import copy
 
-from kombu import Connection
 from kombu.messaging import Producer
 
 from st2common import log as logging
+from st2common.metrics.base import Timer
+from st2common.transport import utils as transport_utils
 from st2common.transport.connection_retry_wrapper import ConnectionRetryWrapper
+
+__all__ = [
+    'PoolPublisher',
+    'SharedPoolPublishers',
+    'CUDPublisher',
+    'StatePublisherMixin'
+]
 
 ANY_RK = '*'
 CREATE_RK = 'create'
@@ -31,36 +40,49 @@ LOG = logging.getLogger(__name__)
 
 
 class PoolPublisher(object):
-    def __init__(self, urls):
-        self.pool = Connection(urls, failover_strategy='round-robin').Pool(limit=10)
+    def __init__(self, urls=None):
+        """
+        :param urls: Connection URLs to use. If not provided it uses a default value from th
+                     config.
+        :type urls: ``list``
+        """
+        urls = urls or transport_utils.get_messaging_urls()
+        connection = transport_utils.get_connection(urls=urls,
+                                                    connection_kwargs={'failover_strategy':
+                                                                       'round-robin'})
+        self.pool = connection.Pool(limit=10)
         self.cluster_size = len(urls)
 
     def errback(self, exc, interval):
         LOG.error('Rabbitmq connection error: %s', exc.message, exc_info=False)
 
     def publish(self, payload, exchange, routing_key=''):
-        with self.pool.acquire(block=True) as connection:
-            retry_wrapper = ConnectionRetryWrapper(cluster_size=self.cluster_size, logger=LOG)
+        with Timer(key='amqp.pool_publisher.publish_with_retries.' + exchange.name):
+            with self.pool.acquire(block=True) as connection:
+                retry_wrapper = ConnectionRetryWrapper(cluster_size=self.cluster_size, logger=LOG)
 
-            def do_publish(connection, channel):
-                # ProducerPool ends up creating it own ConnectionPool which ends up completely
-                # invalidating this ConnectionPool. Also, a ConnectionPool for producer does not
-                # really solve any problems for us so better to create a Producer for each
-                # publish.
-                producer = Producer(channel)
-                kwargs = {
-                    'body': payload,
-                    'exchange': exchange,
-                    'routing_key': routing_key,
-                    'serializer': 'pickle',
-                    'content_encoding': 'utf-8'
-                }
-                retry_wrapper.ensured(connection=connection,
-                                      obj=producer,
-                                      to_ensure_func=producer.publish,
-                                      **kwargs)
+                def do_publish(connection, channel):
+                    # ProducerPool ends up creating it own ConnectionPool which ends up
+                    # completely invalidating this ConnectionPool. Also, a ConnectionPool for
+                    # producer does not really solve any problems for us so better to create a
+                    # Producer for each publish.
+                    producer = Producer(channel)
+                    kwargs = {
+                        'body': payload,
+                        'exchange': exchange,
+                        'routing_key': routing_key,
+                        'serializer': 'pickle',
+                        'content_encoding': 'utf-8'
+                    }
 
-            retry_wrapper.run(connection=connection, wrapped_callback=do_publish)
+                    retry_wrapper.ensured(
+                        connection=connection,
+                        obj=producer,
+                        to_ensure_func=producer.publish,
+                        **kwargs
+                    )
+
+                retry_wrapper.run(connection=connection, wrapped_callback=do_publish)
 
 
 class SharedPoolPublishers(object):
@@ -87,27 +109,32 @@ class SharedPoolPublishers(object):
 
 
 class CUDPublisher(object):
-    def __init__(self, urls, exchange):
+    def __init__(self, exchange):
+        urls = transport_utils.get_messaging_urls()
         self._publisher = SharedPoolPublishers().get_publisher(urls=urls)
         self._exchange = exchange
 
     def publish_create(self, payload):
-        self._publisher.publish(payload, self._exchange, CREATE_RK)
+        with Timer(key='amqp.publish.create'):
+            self._publisher.publish(payload, self._exchange, CREATE_RK)
 
     def publish_update(self, payload):
-        self._publisher.publish(payload, self._exchange, UPDATE_RK)
+        with Timer(key='amqp.publish.update'):
+            self._publisher.publish(payload, self._exchange, UPDATE_RK)
 
     def publish_delete(self, payload):
-        self._publisher.publish(payload, self._exchange, DELETE_RK)
+        with Timer(key='amqp.publish.delete'):
+            self._publisher.publish(payload, self._exchange, DELETE_RK)
 
 
 class StatePublisherMixin(object):
-    def __init__(self, urls, exchange):
+    def __init__(self, exchange):
+        urls = transport_utils.get_messaging_urls()
         self._state_publisher = SharedPoolPublishers().get_publisher(urls=urls)
         self._state_exchange = exchange
 
     def publish_state(self, payload, state):
         if not state:
             raise Exception('Unable to publish unassigned state.')
-
-        self._state_publisher.publish(payload, self._state_exchange, state)
+        with Timer(key='amqp.publish.state'):
+            self._state_publisher.publish(payload, self._state_exchange, state)

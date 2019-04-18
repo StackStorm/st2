@@ -27,7 +27,7 @@ from st2common import log as logging
 from st2common.models.system.common import ResourceReference
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.rbac import ResourceAccessDeniedPermissionIsolationError
-from st2common.rbac import utils as rbac_utils
+from st2common.rbac.backends import get_rbac_backend
 from st2common.exceptions.rbac import AccessDeniedError
 from st2common.util import schema as util_schema
 from st2common.router import abort
@@ -66,7 +66,7 @@ def parameter_validation(validator, properties, instance, schema):
         "description": "Input parameters for the action.",
         "type": "object",
         "patternProperties": {
-            "^\w+$": util_schema.get_action_parameters_schema()
+            r"^\w+$": util_schema.get_action_parameters_schema()
         },
         'additionalProperties': False,
         "default": {}
@@ -87,10 +87,15 @@ class ResourceController(object):
     # Default kwargs passed to "APIClass.from_model" method
     from_model_kwargs = {}
 
-    # Maximum value of limit which can be specified by user
-    @property
-    def max_limit(self):
-        return cfg.CONF.api.max_page_size
+    # Mandatory model attributes which are always retrieved from the database when using
+    # ?include_attributes filter. Those attributes need to be included because a lot of code
+    # depends on compound references and primary keys. In addition to that, it's needed for secrets
+    # masking to work, etc.
+    mandatory_include_fields_retrieve = ['id']
+
+    # A list of fields which are always included in the response when ?include_attributes filter is
+    # used. Those are things such as primary keys and similar.
+    mandatory_include_fields_response = ['id']
 
     # Default number of items returned per page if no limit is explicitly provided
     default_limit = 100
@@ -100,8 +105,7 @@ class ResourceController(object):
     }
 
     # A list of optional transformation functions for user provided filter values
-    filter_transform_functions = {
-    }
+    filter_transform_functions = {}
 
     # A list of attributes which can be specified using ?exclude_attributes filter
     # If not provided, no validation is performed.
@@ -121,6 +125,11 @@ class ResourceController(object):
 
         self.get_one_db_method = self._get_by_name_or_id
 
+    # Maximum value of limit which can be specified by user
+    @property
+    def max_limit(self):
+        return cfg.CONF.api.max_page_size
+
     def _get_all(self, exclude_fields=None, include_fields=None, advanced_filters=None,
                  sort=None, offset=0, limit=None, query_options=None,
                  from_model_kwargs=None, raw_filters=None, requester_user=None):
@@ -133,6 +142,14 @@ class ResourceController(object):
         exclude_fields = exclude_fields or []
         include_fields = include_fields or []
         query_options = query_options if query_options else self.query_options
+
+        if exclude_fields and include_fields:
+            msg = ('exclude_fields and include_fields arguments are mutually exclusive. '
+                   'You need to provide either one or another, but not both.')
+            raise ValueError(msg)
+
+        exclude_fields = self._validate_exclude_fields(exclude_fields=exclude_fields)
+        include_fields = self._validate_include_fields(include_fields=include_fields)
 
         # TODO: Why do we use comma delimited string, user can just specify
         # multiple values using ?sort=foo&sort=bar and we get a list back
@@ -200,12 +217,7 @@ class ResourceController(object):
                     self.model.model._lookup_field(path)
                     filters['__'.join(path)] = v
                 except LookUpError as e:
-                    raise ValueError(str(e))
-
-        if exclude_fields and include_fields:
-            msg = ('exclude_fields and include_fields arguments are mutually exclusive. '
-                   'You need to provide either one or another, but not both.')
-            raise ValueError(msg)
+                    raise ValueError(six.text_type(e))
 
         instances = self.access.query(exclude_fields=exclude_fields, only_fields=include_fields,
                                       **filters)
@@ -239,7 +251,9 @@ class ResourceController(object):
 
         result = []
         for instance in instances[offset:eop]:
-            item = model.from_model(instance, **from_model_kwargs)
+            item = self.resource_model_filter(model=model, instance=instance,
+                                              requester_user=requester_user,
+                                              **from_model_kwargs)
             result.append(item)
         return result
 
@@ -251,15 +265,19 @@ class ResourceController(object):
         return item
 
     def _get_one_by_id(self, id, requester_user, permission_type, exclude_fields=None,
-                       from_model_kwargs=None):
+                       include_fields=None, from_model_kwargs=None):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
+        :param include_fields: A list of object fields to include.
+        :type include_fields: ``list``
         """
 
-        instance = self._get_by_id(resource_id=id, exclude_fields=exclude_fields)
+        instance = self._get_by_id(resource_id=id, exclude_fields=exclude_fields,
+                                   include_fields=include_fields)
 
         if permission_type:
+            rbac_utils = get_rbac_backend().get_utils_class()
             rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                               resource_db=instance,
                                                               permission_type=permission_type)
@@ -285,15 +303,19 @@ class ResourceController(object):
         return result
 
     def _get_one_by_name_or_id(self, name_or_id, requester_user, permission_type,
-                               exclude_fields=None, from_model_kwargs=None):
+                               exclude_fields=None, include_fields=None, from_model_kwargs=None):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
+        :param include_fields: A list of object fields to include.
+        :type include_fields: ``list``
         """
 
-        instance = self._get_by_name_or_id(name_or_id=name_or_id, exclude_fields=exclude_fields)
+        instance = self._get_by_name_or_id(name_or_id=name_or_id, exclude_fields=exclude_fields,
+                                           include_fields=include_fields)
 
         if permission_type:
+            rbac_utils = get_rbac_backend().get_utils_class()
             rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                               resource_db=instance,
                                                               permission_type=permission_type)
@@ -400,10 +422,30 @@ class ResourceController(object):
 
         for field in exclude_fields:
             if field not in self.valid_exclude_attributes:
-                msg = 'Invalid or unsupported exclude attribute specified: %s' % (field)
+                msg = ('Invalid or unsupported exclude attribute specified: %s' % (field))
                 raise ValueError(msg)
 
         return exclude_fields
+
+    def _validate_include_fields(self, include_fields):
+        """
+        Validate that provided include fields are valid.
+        """
+        if not include_fields:
+            return include_fields
+
+        result = copy.copy(include_fields)
+        for field in self.mandatory_include_fields_retrieve:
+            # Don't add mandatory field if user already requested the whole dict object (e.g. user
+            # requests action and action.parameters is a mandatory field)
+            partial_field = field.split('.')[0]
+            if partial_field in include_fields:
+                continue
+
+            result.append(field)
+        result = list(set(result))
+
+        return result
 
 
 class BaseResourceIsolationControllerMixin(object):
@@ -445,6 +487,7 @@ class BaseResourceIsolationControllerMixin(object):
 
             return result
 
+        rbac_utils = get_rbac_backend().get_utils_class()
         user_is_admin = rbac_utils.user_is_admin(user_db=requester_user)
         user_is_system_user = (requester_user.name == cfg.CONF.system_user.user)
 
@@ -462,7 +505,12 @@ class BaseResourceIsolationControllerMixin(object):
 
 
 class ContentPackResourceController(ResourceController):
-    include_reference = False
+    # name and pack are mandatory because they compromise primary key - reference (<pack>.<name>)
+    mandatory_include_fields_retrieve = ['pack', 'name']
+
+    # A list of fields which are always included in the response. Those are things such as primary
+    # keys and similar
+    mandatory_include_fields_response = ['id', 'ref']
 
     def __init__(self):
         super(ContentPackResourceController, self).__init__()
@@ -474,11 +522,12 @@ class ContentPackResourceController(ResourceController):
             instance = self._get_by_ref_or_id(ref_or_id=ref_or_id, exclude_fields=exclude_fields,
                                               include_fields=include_fields)
         except Exception as e:
-            LOG.exception(str(e))
-            abort(http_client.NOT_FOUND, str(e))
+            LOG.exception(six.text_type(e))
+            abort(http_client.NOT_FOUND, six.text_type(e))
             return
 
         if permission_type:
+            rbac_utils = get_rbac_backend().get_utils_class()
             rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                               resource_db=instance,
                                                               permission_type=permission_type)
@@ -498,11 +547,6 @@ class ContentPackResourceController(ResourceController):
                                                                resource_api_or_db=instance,
                                                                permission_type=permission_type)
 
-        if result and self.include_reference:
-            pack = getattr(result, 'pack', None)
-            name = getattr(result, 'name', None)
-            result.ref = ResourceReference(pack=pack, name=name).ref
-
         return Response(json=result)
 
     def _get_all(self, exclude_fields=None, include_fields=None,
@@ -518,14 +562,6 @@ class ContentPackResourceController(ResourceController):
                                     from_model_kwargs=from_model_kwargs,
                                     raw_filters=raw_filters,
                                     requester_user=requester_user)
-
-        if self.include_reference:
-            result = resp.json
-            for item in result:
-                pack = item.get('pack', None)
-                name = item.get('name', None)
-                item['ref'] = ResourceReference(pack=pack, name=name).ref
-            resp.json = result
 
         return resp
 
@@ -585,6 +621,7 @@ def validate_limit_query_param(limit, requester_user=None):
     Note: We only perform max_page_size check for non-admin users. Admin users
     can provide arbitrary limit value.
     """
+    rbac_utils = get_rbac_backend().get_utils_class()
     user_is_admin = rbac_utils.user_is_admin(user_db=requester_user)
 
     if limit:

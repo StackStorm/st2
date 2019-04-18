@@ -16,7 +16,7 @@
 from __future__ import absolute_import
 from unittest2 import TestCase
 
-from st2common.jinja.filters import time
+from st2common.expressions.functions import time
 
 
 class TestTimeJinjaFilters(TestCase):

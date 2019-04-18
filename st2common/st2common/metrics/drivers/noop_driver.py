@@ -12,11 +12,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from st2common.metrics.base import BaseMetricsDriver
+
+__all__ = [
+    'NoopDriver'
+]
 
 
 class NoopDriver(BaseMetricsDriver):
-    """ Dummy implementation of BaseMetricsDriver
     """
+    Dummy implementation of BaseMetricsDriver
+    """
+
     def __init__(self, *_args, **_kwargs):
         pass

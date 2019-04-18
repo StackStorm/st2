@@ -27,10 +27,19 @@ from st2common.transport.publishers import PoolPublisher
 from st2common.bootstrap.sensorsregistrar import SensorsRegistrar
 from st2common.bootstrap.rulesregistrar import RulesRegistrar
 
+__all__ = [
+    'SensorRegistrationTestCase',
+    'RuleRegistrationTestCase'
+]
+
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-PACKS_DIR = os.path.join(CURRENT_DIR, '../fixtures/packs')
+PACKS_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '../fixtures/packs'))
 
 
+# NOTE: We need to perform this patching because test fixtures are located outside of the packs
+# base paths directory. This will never happen outside the context of test fixtures.
+@mock.patch('st2common.content.utils.get_pack_base_path',
+            mock.Mock(return_value=os.path.join(PACKS_DIR, 'pack_with_sensor')))
 class SensorRegistrationTestCase(DbTestCase):
 
     @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
@@ -55,10 +64,12 @@ class SensorRegistrationTestCase(DbTestCase):
         self.assertEqual(sensor_dbs[0].name, 'TestSensor')
         self.assertEqual(sensor_dbs[0].poll_interval, 10)
         self.assertTrue(sensor_dbs[0].enabled)
+        self.assertEqual(sensor_dbs[0].metadata_file, 'sensors/test_sensor_1.yaml')
 
         self.assertEqual(sensor_dbs[1].name, 'TestSensorDisabled')
         self.assertEqual(sensor_dbs[1].poll_interval, 10)
         self.assertFalse(sensor_dbs[1].enabled)
+        self.assertEqual(sensor_dbs[1].metadata_file, 'sensors/test_sensor_2.yaml')
 
         self.assertEqual(trigger_type_dbs[0].name, 'trigger_type_1')
         self.assertEqual(trigger_type_dbs[0].pack, 'pack_with_sensor')
@@ -68,6 +79,11 @@ class SensorRegistrationTestCase(DbTestCase):
         self.assertEqual(len(trigger_type_dbs[1].tags), 2)
         self.assertEqual(trigger_type_dbs[1].tags[0].name, 'tag1name')
         self.assertEqual(trigger_type_dbs[1].tags[0].value, 'tag1 value')
+
+        # Triggered which are registered via sensors have metadata_file pointing to the sensor
+        # definition file
+        self.assertEqual(trigger_type_dbs[0].metadata_file, 'sensors/test_sensor_1.yaml')
+        self.assertEqual(trigger_type_dbs[1].metadata_file, 'sensors/test_sensor_1.yaml')
 
         # Verify second call to registration doesn't create a duplicate objects
         registrar.register_from_packs(base_dirs=[PACKS_DIR])
@@ -119,6 +135,10 @@ class SensorRegistrationTestCase(DbTestCase):
         self.assertEqual(trigger_type_dbs[1].description, 'test 2')
 
 
+# NOTE: We need to perform this patching because test fixtures are located outside of the packs
+# base paths directory. This will never happen outside the context of test fixtures.
+@mock.patch('st2common.content.utils.get_pack_base_path',
+            mock.Mock(return_value=os.path.join(PACKS_DIR, 'pack_with_rules')))
 class RuleRegistrationTestCase(DbTestCase):
     def test_register_rules(self):
         # Verify DB is empty at the beginning

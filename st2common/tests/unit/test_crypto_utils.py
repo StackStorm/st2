@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -52,6 +53,31 @@ class CryptoUtilsTestCase(TestCase):
     def setUpClass(cls):
         super(CryptoUtilsTestCase, cls).setUpClass()
         CryptoUtilsTestCase.test_crypto_key = AESKey.generate()
+
+    def test_symmetric_encrypt_decrypt_short_string_needs_to_be_padded(self):
+        original = u'a'
+        crypto = symmetric_encrypt(CryptoUtilsTestCase.test_crypto_key, original)
+        plain = symmetric_decrypt(CryptoUtilsTestCase.test_crypto_key, crypto)
+        self.assertEqual(plain, original)
+
+    def test_symmetric_encrypt_decrypt_utf8_character(self):
+        values = [
+            u'£',
+            u'£££',
+            u'££££££',
+            u'č š hello đ č p ž Ž',
+            u'hello 💩',
+            u'💩💩💩💩💩'
+            u'💩💩💩',
+            u'💩😁'
+        ]
+
+        for index, original in enumerate(values):
+            crypto = symmetric_encrypt(CryptoUtilsTestCase.test_crypto_key, original)
+            plain = symmetric_decrypt(CryptoUtilsTestCase.test_crypto_key, crypto)
+            self.assertEqual(plain, original)
+
+        self.assertEqual(index, (len(values) - 1))
 
     def test_symmetric_encrypt_decrypt(self):
         original = 'secret'

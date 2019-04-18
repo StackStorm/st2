@@ -21,7 +21,7 @@ from st2common.models.api.action import RunnerTypeAPI
 from st2common.persistence.runner import RunnerType
 from st2api.controllers.resource import ResourceController
 from st2common.rbac.types import PermissionType
-from st2common.rbac import utils as rbac_utils
+from st2common.rbac.backends import get_rbac_backend
 from st2common.router import abort
 
 http_client = six.moves.http_client
@@ -45,8 +45,11 @@ class RunnerTypesController(ResourceController):
         'sort': ['name']
     }
 
-    def get_all(self, sort=None, offset=0, limit=None, requester_user=None, **raw_filters):
-        return super(RunnerTypesController, self)._get_all(sort=sort,
+    def get_all(self, exclude_attributes=None, include_attributes=None, sort=None, offset=0,
+                limit=None, requester_user=None, **raw_filters):
+        return super(RunnerTypesController, self)._get_all(exclude_fields=exclude_attributes,
+                                                           include_fields=include_attributes,
+                                                           sort=sort,
                                                            offset=offset,
                                                            limit=limit,
                                                            raw_filters=raw_filters,
@@ -62,6 +65,7 @@ class RunnerTypesController(ResourceController):
         runner_type_db = self._get_by_name_or_id(name_or_id=name_or_id)
 
         permission_type = PermissionType.RUNNER_MODIFY
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=runner_type_db,
                                                           permission_type=permission_type)
@@ -79,7 +83,7 @@ class RunnerTypesController(ResourceController):
             runner_type_db = RunnerType.add_or_update(runner_type_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for runner type data=%s', runner_type_api)
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
             return
 
         extra = {'old_runner_type_db': old_runner_type_db, 'new_runner_type_db': runner_type_db}

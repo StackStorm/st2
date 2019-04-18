@@ -162,7 +162,7 @@ class ResourceManager(object):
                 response.reason += '\nMESSAGE: %s' % fault
         except Exception as e:
             response.reason += ('\nUnable to retrieve detailed message '
-                                'from the HTTP response. %s\n' % str(e))
+                                'from the HTTP response. %s\n' % six.text_type(e))
         response.raise_for_status()
 
     @add_auth_token_to_kwargs_from_env
@@ -375,9 +375,9 @@ class ActionAliasExecutionManager(ResourceManager):
         return instance
 
 
-class LiveActionResourceManager(ResourceManager):
+class ExecutionResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
-    def re_run(self, execution_id, parameters=None, tasks=None, no_reset=None, **kwargs):
+    def re_run(self, execution_id, parameters=None, tasks=None, no_reset=None, delay=0, **kwargs):
         url = '/%s/%s/re_run' % (self.resource.get_url_path_name(), execution_id)
 
         tasks = tasks or []
@@ -389,7 +389,8 @@ class LiveActionResourceManager(ResourceManager):
         data = {
             'parameters': parameters or {},
             'tasks': tasks,
-            'reset': list(set(tasks) - set(no_reset))
+            'reset': list(set(tasks) - set(no_reset)),
+            'delay': delay
         }
 
         response = self.client.post(url, data, **kwargs)
@@ -435,6 +436,22 @@ class LiveActionResourceManager(ResourceManager):
             self.handle_error(response)
 
         return self.resource.deserialize(response.json())
+
+    @add_auth_token_to_kwargs_from_env
+    def get_children(self, execution_id, **kwargs):
+        url = '/%s/%s/children' % (self.resource.get_url_path_name(), execution_id)
+
+        depth = kwargs.pop('depth', -1)
+
+        params = kwargs.pop('params', {})
+
+        if depth:
+            params['depth'] = depth
+
+        response = self.client.get(url=url, params=params, **kwargs)
+        if response.status_code != http_client.OK:
+            self.handle_error(response)
+        return [self.resource.deserialize(item) for item in response.json()]
 
 
 class InquiryResourceManager(ResourceManager):
@@ -582,7 +599,7 @@ class WebhookManager(ResourceManager):
 
 
 class StreamManager(object):
-    def __init__(self, endpoint, cacert, debug):
+    def __init__(self, endpoint, cacert=None, debug=False):
         self._url = httpclient.get_url_without_trailing_slash(endpoint) + '/stream'
         self.debug = debug
         self.cacert = cacert
@@ -595,6 +612,7 @@ class StreamManager(object):
 
         url = self._url
         query_params = {}
+        request_params = {}
 
         if events and isinstance(events, six.string_types):
             events = [events]
@@ -608,10 +626,13 @@ class StreamManager(object):
         if events:
             query_params['events'] = ','.join(events)
 
+        if self.cacert is not None:
+            request_params['verify'] = self.cacert
+
         query_string = '?' + urllib.parse.urlencode(query_params)
         url = url + query_string
 
-        for message in SSEClient(url):
+        for message in SSEClient(url, **request_params):
 
             # If the execution on the API server takes too long, the message
             # can be empty. In this case, rerun the query.
@@ -619,3 +640,94 @@ class StreamManager(object):
                 continue
 
             yield json.loads(message.data)
+
+
+class WorkflowManager(object):
+    def __init__(self, endpoint, cacert, debug):
+        self.debug = debug
+        self.cacert = cacert
+        self.endpoint = endpoint + '/workflows'
+        self.client = httpclient.HTTPClient(root=self.endpoint, cacert=cacert, debug=debug)
+
+    @staticmethod
+    def handle_error(response):
+        try:
+            content = response.json()
+            fault = content.get('faultstring', '') if content else ''
+
+            if fault:
+                response.reason += '\nMESSAGE: %s' % fault
+        except Exception as e:
+            response.reason += (
+                '\nUnable to retrieve detailed message '
+                'from the HTTP response. %s\n' % six.text_type(e)
+            )
+
+        response.raise_for_status()
+
+    @add_auth_token_to_kwargs_from_env
+    def inspect(self, definition, **kwargs):
+        url = '/inspect'
+
+        if not isinstance(definition, six.string_types):
+            raise TypeError('Workflow definition is not type of string.')
+
+        if 'headers' not in kwargs:
+            kwargs['headers'] = {}
+
+        kwargs['headers']['content-type'] = 'text/plain'
+
+        response = self.client.post_raw(url, definition, **kwargs)
+
+        if response.status_code != http_client.OK:
+            self.handle_error(response)
+
+        return response.json()
+
+
+class ServiceRegistryGroupsManager(ResourceManager):
+    @add_auth_token_to_kwargs_from_env
+    def list(self, **kwargs):
+        url = '/service_registry/groups'
+
+        headers = {}
+        response = self.client.get(url, headers=headers, **kwargs)
+
+        if response.status_code != http_client.OK:
+            self.handle_error(response)
+
+        groups = response.json()['groups']
+
+        result = []
+        for group in groups:
+            item = self.resource.deserialize({'group_id': group})
+            result.append(item)
+
+        return result
+
+
+class ServiceRegistryMembersManager(ResourceManager):
+
+    @add_auth_token_to_kwargs_from_env
+    def list(self, group_id, **kwargs):
+        url = '/service_registry/groups/%s/members' % (group_id)
+
+        headers = {}
+        response = self.client.get(url, headers=headers, **kwargs)
+
+        if response.status_code != http_client.OK:
+            self.handle_error(response)
+
+        members = response.json()['members']
+
+        result = []
+        for member in members:
+            data = {
+                'group_id': group_id,
+                'member_id': member['member_id'],
+                'capabilities': member['capabilities']
+            }
+            item = self.resource.deserialize(data)
+            result.append(item)
+
+        return result

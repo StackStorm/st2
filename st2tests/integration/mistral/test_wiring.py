@@ -51,6 +51,21 @@ class WiringTest(base.TestWorkflowExecution):
         self.assertIn('stdout', ex.result)
         self.assertEqual(len(ex.result.get('tasks', [])), 1)
 
+    def test_basic_reverse_workflow(self):
+        ex = self._execute_workflow('examples.mistral-reverse-basic', {'cmd': 'date'})
+        ex = self._wait_for_completion(ex)
+        self.assertEqual(ex.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertIn('stdout', ex.result)
+        self.assertEqual(len(ex.result.get('tasks', [])), 1)
+
+    def test_reverse_workflow_with_requires(self):
+        params = {'question': 'life universe everything'}
+        ex = self._execute_workflow('examples.mistral-reverse-requires', params)
+        ex = self._wait_for_completion(ex)
+        self.assertEqual(ex.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertIn('answer', ex.result)
+        self.assertEqual(len(ex.result.get('tasks', [])), 5)
+
     def test_basic_workbook(self):
         ex = self._execute_workflow('examples.mistral-workbook-basic', {'cmd': 'date'})
         ex = self._wait_for_completion(ex)

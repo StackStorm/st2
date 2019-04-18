@@ -19,20 +19,21 @@ A utility script which sends test messages to a queue.
 """
 
 from __future__ import absolute_import
+
 import argparse
 
+import eventlet
 from kombu import Exchange
 
 from st2common import config
-
-from st2common.transport import utils as transport_utils
 from st2common.transport.publishers import PoolPublisher
 
 
 def main(exchange, routing_key, payload):
     exchange = Exchange(exchange, type='topic')
-    publisher = PoolPublisher(urls=transport_utils.get_messaging_urls())
+    publisher = PoolPublisher()
     publisher.publish(payload=payload, exchange=exchange, routing_key=routing_key)
+    eventlet.sleep(0.5)
 
 
 if __name__ == '__main__':

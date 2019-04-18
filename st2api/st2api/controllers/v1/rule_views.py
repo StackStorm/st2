@@ -84,10 +84,13 @@ class RuleViewController(BaseResourceIsolationControllerMixin, ContentPackResour
         'sort': ['pack', 'name']
     }
 
-    include_reference = True
+    mandatory_include_fields_retrieve = ['pack', 'name', 'trigger']
 
-    def get_all(self, sort=None, offset=0, limit=None, requester_user=None, **raw_filters):
-        rules = super(RuleViewController, self)._get_all(sort=sort,
+    def get_all(self, exclude_attributes=None, include_attributes=None, sort=None, offset=0,
+                limit=None, requester_user=None, **raw_filters):
+        rules = super(RuleViewController, self)._get_all(exclude_fields=exclude_attributes,
+                                                         include_fields=include_attributes,
+                                                         sort=sort,
                                                          offset=offset,
                                                          limit=limit,
                                                          raw_filters=raw_filters,
@@ -107,18 +110,25 @@ class RuleViewController(BaseResourceIsolationControllerMixin, ContentPackResour
         action_by_refs, trigger_by_refs, trigger_type_by_refs = self._get_referenced_models(rules)
 
         for rule in rules:
-            action_db = action_by_refs.get(rule['action']['ref'], None)
-            rule['action']['description'] = action_db.description if action_db else ''
+            action_ref = rule.get('action', {}).get('ref', None)
+            trigger_ref = rule.get('trigger', {}).get('ref', None)
+            trigger_type_ref = rule.get('trigger', {}).get('type', None)
 
-            rule['trigger']['description'] = ''
+            action_db = action_by_refs.get(action_ref, None)
 
-            trigger_db = trigger_by_refs.get(rule['trigger']['ref'], None)
+            if 'action' in rule:
+                rule['action']['description'] = action_db.description if action_db else ''
+
+            if 'trigger' in rule:
+                rule['trigger']['description'] = ''
+
+            trigger_db = trigger_by_refs.get(trigger_ref, None)
             if trigger_db:
                 rule['trigger']['description'] = trigger_db.description
 
-            # If description is not found in trigger get description from triggertype
-            if not rule['trigger']['description']:
-                trigger_type_db = trigger_type_by_refs.get(rule['trigger']['type'], None)
+            # If description is not found in trigger get description from TriggerType
+            if 'trigger' in rule and not rule['trigger']['description']:
+                trigger_type_db = trigger_type_by_refs.get(trigger_type_ref, None)
                 if trigger_type_db:
                     rule['trigger']['description'] = trigger_type_db.description
 
@@ -134,9 +144,18 @@ class RuleViewController(BaseResourceIsolationControllerMixin, ContentPackResour
         trigger_type_refs = set()
 
         for rule in rules:
-            action_refs.add(rule['action']['ref'])
-            trigger_refs.add(rule['trigger']['ref'])
-            trigger_type_refs.add(rule['trigger']['type'])
+            action_ref = rule.get('action', {}).get('ref', None)
+            trigger_ref = rule.get('trigger', {}).get('ref', None)
+            trigger_type_ref = rule.get('trigger', {}).get('type', None)
+
+            if action_ref:
+                action_refs.add(action_ref)
+
+            if trigger_ref:
+                trigger_refs.add(trigger_ref)
+
+            if trigger_type_ref:
+                trigger_type_refs.add(trigger_type_ref)
 
         action_by_refs = {}
         trigger_by_refs = {}

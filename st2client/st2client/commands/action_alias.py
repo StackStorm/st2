@@ -63,13 +63,13 @@ class ActionAliasMatchCommand(resource.ResourceCommand):
     def __init__(self, resource, *args, **kwargs):
         super(ActionAliasMatchCommand, self).__init__(
             resource, 'match',
-            'Get the list of %s that match the command text.' %
-            resource.get_plural_display_name().lower(),
+            'Get the %s that match the command text.' %
+            resource.get_display_name().lower(),
             *args, **kwargs)
 
         self.parser.add_argument('match_text',
                                  metavar='command',
-                                 help=('Get the list of %s that match the command text.' %
+                                 help=('Get the %s that match the command text.' %
                                        resource.get_display_name().lower()))
         self.parser.add_argument('-a', '--attr', nargs='+',
                                  default=self.display_attributes,

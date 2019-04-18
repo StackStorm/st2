@@ -47,7 +47,7 @@ def _register_common_opts():
 def _register_rules_engine_opts():
     logging_opts = [
         cfg.StrOpt(
-            'logging', default='conf/logging.rulesengine.conf',
+            'logging', default='/etc/st2/logging.rulesengine.conf',
             help='Location of the logging configuration file.')
     ]
 

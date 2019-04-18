@@ -19,8 +19,10 @@ corresponding live action objects.
 """
 
 from __future__ import absolute_import
+
 import copy
 
+import six
 from mongoengine.errors import InvalidQueryError
 
 from st2common.constants import action as action_constants
@@ -86,7 +88,7 @@ def purge_executions(logger, timestamp, action_ref=None, purge_incomplete=False)
         deleted_count = ActionExecution.delete_by_query(**exec_filters)
     except InvalidQueryError as e:
         msg = ('Bad query (%s) used to delete execution instances: %s'
-               'Please contact support.' % (exec_filters, str(e)))
+               'Please contact support.' % (exec_filters, six.text_type(e)))
         raise InvalidQueryError(msg)
     except:
         logger.exception('Deletion of execution models failed for query with filters: %s.',
@@ -99,7 +101,7 @@ def purge_executions(logger, timestamp, action_ref=None, purge_incomplete=False)
         deleted_count = LiveAction.delete_by_query(**liveaction_filters)
     except InvalidQueryError as e:
         msg = ('Bad query (%s) used to delete liveaction instances: %s'
-               'Please contact support.' % (liveaction_filters, str(e)))
+               'Please contact support.' % (liveaction_filters, six.text_type(e)))
         raise InvalidQueryError(msg)
     except:
         logger.exception('Deletion of liveaction models failed for query with filters: %s.',
@@ -116,7 +118,7 @@ def purge_executions(logger, timestamp, action_ref=None, purge_incomplete=False)
         deleted_count = ActionExecutionOutput.delete_by_query(**output_dbs_filters)
     except InvalidQueryError as e:
         msg = ('Bad query (%s) used to delete execution output instances: %s'
-               'Please contact support.' % (output_dbs_filters, str(e)))
+               'Please contact support.' % (output_dbs_filters, six.text_type(e)))
         raise InvalidQueryError(msg)
     except:
         logger.exception('Deletion of execution output models failed for query with filters: %s.',
@@ -165,7 +167,7 @@ def purge_execution_output_objects(logger, timestamp, action_ref=None):
         deleted_count = ActionExecutionOutput.delete_by_query(**filters)
     except InvalidQueryError as e:
         msg = ('Bad query (%s) used to delete execution output instances: %s'
-               'Please contact support.' % (filters, str(e)))
+               'Please contact support.' % (filters, six.text_type(e)))
         raise InvalidQueryError(msg)
     except:
         logger.exception('Deletion of execution output models failed for query with filters: %s.',

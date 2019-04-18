@@ -27,10 +27,10 @@ __all__ = [
     'split_host_port'
 ]
 
-BRACKET_PATTERN = "^\[.*\]"  # IPv6 bracket pattern to specify port
+BRACKET_PATTERN = r"^\[.*\]"  # IPv6 bracket pattern to specify port
 COMPILED_BRACKET_PATTERN = re.compile(BRACKET_PATTERN)
 
-HOST_ONLY_IN_BRACKET = "^\[.*\]$"
+HOST_ONLY_IN_BRACKET = r"^\[.*\]$"
 COMPILED_HOST_ONLY_IN_BRACKET_PATTERN = re.compile(HOST_ONLY_IN_BRACKET)
 
 

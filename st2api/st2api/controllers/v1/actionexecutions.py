@@ -47,15 +47,12 @@ from st2common.router import Response
 from st2common.services import action as action_service
 from st2common.services import executions as execution_service
 from st2common.services import trace as trace_service
-from st2common.services import rbac as rbac_service
 from st2common.util import isotime
 from st2common.util import action_db as action_utils
 from st2common.util import param as param_utils
 from st2common.util.jsonify import try_loads
 from st2common.rbac.types import PermissionType
-from st2common.rbac import utils as rbac_utils
-from st2common.rbac.utils import assert_user_has_resource_db_permission
-from st2common.rbac.utils import assert_user_is_admin_if_user_query_param_is_provided
+from st2common.rbac.backends import get_rbac_backend
 
 __all__ = [
     'ActionExecutionsController'
@@ -82,10 +79,21 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
     model = ActionExecutionAPI
     access = ActionExecution
 
+    # Those two attributes are mandatory so we can correctly determine and mask secret execution
+    # parameters
+    mandatory_include_fields_retrieve = [
+        'action.parameters',
+        'runner.runner_parameters',
+        'parameters'
+    ]
+
     # A list of attributes which can be specified using ?exclude_attributes filter
+    # NOTE: Allowing user to exclude attribute such as action and runner would break secrets
+    # masking
     valid_exclude_attributes = [
         'result',
-        'trigger_instance'
+        'trigger_instance',
+        'status'
     ]
 
     def _handle_schedule_execution(self, liveaction_api, requester_user, context_string=None,
@@ -94,7 +102,6 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         :param liveaction: LiveActionAPI object.
         :type liveaction: :class:`LiveActionAPI`
         """
-
         if not requester_user:
             requester_user = UserDB(cfg.CONF.system_user.user)
 
@@ -103,18 +110,21 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         action_db = action_utils.get_action_by_ref(action_ref)
 
         if not action_db:
-            message = 'Action "%s" cannot be found.' % action_ref
+            message = 'Action "%s" cannot be found.' % (action_ref)
             LOG.warning(message)
             abort(http_client.BAD_REQUEST, message)
 
         # Assert the permissions
-        assert_user_has_resource_db_permission(user_db=requester_user, resource_db=action_db,
-                                               permission_type=PermissionType.ACTION_EXECUTE)
+        permission_type = PermissionType.ACTION_EXECUTE
+        rbac_utils = get_rbac_backend().get_utils_class()
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=action_db,
+                                                          permission_type=permission_type)
 
         # Validate that the authenticated user is admin if user query param is provided
         user = liveaction_api.user or requester_user.name
-        assert_user_is_admin_if_user_query_param_is_provided(user_db=requester_user,
-                                                             user=user)
+        rbac_utils.assert_user_is_admin_if_user_query_param_is_provided(user_db=requester_user,
+                                                                        user=user)
 
         try:
             return self._schedule_execution(liveaction=liveaction_api,
@@ -122,34 +132,31 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
                                             user=user,
                                             context_string=context_string,
                                             show_secrets=show_secrets,
-                                            pack=action_db.pack)
+                                            action_db=action_db)
         except ValueError as e:
             LOG.exception('Unable to execute action.')
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
         except jsonschema.ValidationError as e:
             LOG.exception('Unable to execute action. Parameter validation failed.')
-            abort(http_client.BAD_REQUEST, re.sub("u'([^']*)'", r"'\1'", e.message))
+            abort(http_client.BAD_REQUEST, re.sub("u'([^']*)'", r"'\1'",
+                                                  getattr(e, 'message', six.text_type(e))))
         except trace_exc.TraceNotFoundException as e:
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
         except validation_exc.ValueValidationException as e:
             raise e
         except Exception as e:
             LOG.exception('Unable to execute action. Unexpected error encountered.')
-            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+            abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
 
-    def _schedule_execution(self,
-                            liveaction,
-                            requester_user,
-                            user=None,
-                            context_string=None,
-                            show_secrets=False,
-                            pack=None):
+    def _schedule_execution(self, liveaction, requester_user, action_db, user=None,
+                            context_string=None, show_secrets=False):
         # Initialize execution context if it does not exist.
         if not hasattr(liveaction, 'context'):
             liveaction.context = dict()
 
         liveaction.context['user'] = user
-        liveaction.context['pack'] = pack
+        liveaction.context['pack'] = action_db.pack
+
         LOG.debug('User is: %s' % liveaction.context['user'])
 
         # Retrieve other st2 context from request header.
@@ -162,6 +169,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         # Include RBAC context (if RBAC is available and enabled)
         if cfg.CONF.rbac.enable:
             user_db = UserDB(name=user)
+            rbac_service = get_rbac_backend().get_service_class()
             role_dbs = rbac_service.get_roles_for_user(user_db=user_db, include_remote=True)
             roles = [role_db.name for role_db in role_dbs]
             liveaction.context['rbac'] = {
@@ -171,7 +179,6 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
 
         # Schedule the action execution.
         liveaction_db = LiveActionAPI.to_model(liveaction)
-        action_db = action_utils.get_action_by_ref(liveaction_db.action)
         runnertype_db = action_utils.get_runnertype_by_name(action_db.runner_type['name'])
 
         try:
@@ -179,24 +186,28 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
                 runnertype_db.runner_parameters, action_db.parameters, liveaction_db.parameters,
                 liveaction_db.context)
         except param_exc.ParamException:
-
             # We still need to create a request, so liveaction_db is assigned an ID
-            liveaction_db, actionexecution_db = action_service.create_request(liveaction_db)
+            liveaction_db, actionexecution_db = action_service.create_request(
+                liveaction=liveaction_db,
+                action_db=action_db,
+                runnertype_db=runnertype_db)
 
             # By this point the execution is already in the DB therefore need to mark it failed.
             _, e, tb = sys.exc_info()
             action_service.update_status(
                 liveaction=liveaction_db,
                 new_status=action_constants.LIVEACTION_STATUS_FAILED,
-                result={'error': str(e), 'traceback': ''.join(traceback.format_tb(tb, 20))})
+                result={'error': six.text_type(e),
+                        'traceback': ''.join(traceback.format_tb(tb, 20))})
             # Might be a good idea to return the actual ActionExecution rather than bubble up
             # the exception.
-            raise validation_exc.ValueValidationException(str(e))
+            raise validation_exc.ValueValidationException(six.text_type(e))
 
         # The request should be created after the above call to render_live_params
         # so any templates in live parameters have a chance to render.
-        liveaction_db, actionexecution_db = action_service.create_request(liveaction_db)
-        liveaction_db = LiveAction.add_or_update(liveaction_db, publish=False)
+        liveaction_db, actionexecution_db = action_service.create_request(liveaction=liveaction_db,
+            action_db=action_db,
+            runnertype_db=runnertype_db)
 
         _, actionexecution_db = action_service.publish_request(liveaction_db, actionexecution_db)
         mask_secrets = self._get_mask_secrets(requester_user, show_secrets=show_secrets)
@@ -277,16 +288,25 @@ class ActionExecutionAttributeController(BaseActionExecutionNestedController):
         :rtype: ``dict``
         """
         fields = [attribute, 'action__pack', 'action__uid']
-        fields = self._validate_exclude_fields(fields)
+
+        try:
+            fields = self._validate_exclude_fields(fields)
+        except ValueError:
+            valid_attributes = ', '.join(ActionExecutionsControllerMixin.valid_exclude_attributes)
+            msg = ('Invalid attribute "%s" specified. Valid attributes are: %s' %
+                   (attribute, valid_attributes))
+            raise ValueError(msg)
+
         action_exec_db = self.access.impl.model.objects.filter(id=id).only(*fields).get()
 
         permission_type = PermissionType.EXECUTION_VIEW
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=action_exec_db,
                                                           permission_type=permission_type)
 
         result = getattr(action_exec_db, attribute, None)
-        return result
+        return Response(json=result, status=http_client.OK)
 
 
 class ActionExecutionOutputController(ActionExecutionsControllerMixin, ResourceController):
@@ -389,6 +409,11 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
         if list(set(spec_api.reset) - set(spec_api.tasks)):
             raise ValueError('List of tasks to reset does not match the tasks to rerun.')
 
+        delay = None
+
+        if hasattr(spec_api, "delay") and isinstance(spec_api.delay, int):
+            delay = spec_api.delay
+
         no_merge = cast_argument_value(value_type=bool, value=no_merge)
         existing_execution = self._get_one_by_id(id=id, exclude_fields=self.exclude_fields,
                                                  requester_user=requester_user,
@@ -429,7 +454,8 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
         new_liveaction_api = LiveActionCreateAPI(action=action_ref,
                                                  context=context,
                                                  parameters=new_parameters,
-                                                 user=spec_api.user)
+                                                 user=spec_api.user,
+                                                 delay=delay)
 
         return self._handle_schedule_execution(liveaction_api=new_liveaction_api,
                                                requester_user=requester_user,
@@ -471,8 +497,6 @@ class ActionExecutionsController(BaseResourceIsolationControllerMixin,
         :param exclude_attributes: List of attributes to exclude from the object.
         :type exclude_attributes: ``list``
         """
-        exclude_fields = self._validate_exclude_fields(exclude_fields=exclude_attributes)
-
         # Use a custom sort order when filtering on a timestamp so we return a correct result as
         # expected by the user
         query_options = None
@@ -484,7 +508,7 @@ class ActionExecutionsController(BaseResourceIsolationControllerMixin,
         from_model_kwargs = {
             'mask_secrets': self._get_mask_secrets(requester_user, show_secrets=show_secrets)
         }
-        return self._get_action_executions(exclude_fields=exclude_fields,
+        return self._get_action_executions(exclude_fields=exclude_attributes,
                                            include_fields=include_attributes,
                                            from_model_kwargs=from_model_kwargs,
                                            sort=sort,
@@ -495,7 +519,8 @@ class ActionExecutionsController(BaseResourceIsolationControllerMixin,
                                            advanced_filters=advanced_filters,
                                            requester_user=requester_user)
 
-    def get_one(self, id, requester_user, exclude_attributes=None, show_secrets=False):
+    def get_one(self, id, requester_user, exclude_attributes=None, include_attributes=None,
+                show_secrets=False):
         """
         Retrieve a single execution.
 
@@ -506,6 +531,7 @@ class ActionExecutionsController(BaseResourceIsolationControllerMixin,
         :type exclude_attributes: ``list``
         """
         exclude_fields = self._validate_exclude_fields(exclude_fields=exclude_attributes)
+        include_fields = self._validate_include_fields(include_fields=include_attributes)
 
         from_model_kwargs = {
             'mask_secrets': self._get_mask_secrets(requester_user, show_secrets=show_secrets)
@@ -521,6 +547,7 @@ class ActionExecutionsController(BaseResourceIsolationControllerMixin,
             id = str(execution_db.id)
 
         return self._get_one_by_id(id=id, exclude_fields=exclude_fields,
+                                   include_fields=include_fields,
                                    requester_user=requester_user,
                                    from_model_kwargs=from_model_kwargs,
                                    permission_type=PermissionType.EXECUTION_VIEW)
@@ -599,13 +626,13 @@ class ActionExecutionsController(BaseResourceIsolationControllerMixin,
             else:
                 liveaction_db, actionexecution_db = update_status(liveaction_api, liveaction_db)
         except runner_exc.InvalidActionRunnerOperationError as e:
-            LOG.exception('Failed updating liveaction %s. %s', liveaction_db.id, str(e))
-            abort(http_client.BAD_REQUEST, 'Failed updating execution. %s' % str(e))
+            LOG.exception('Failed updating liveaction %s. %s', liveaction_db.id, six.text_type(e))
+            abort(http_client.BAD_REQUEST, 'Failed updating execution. %s' % six.text_type(e))
         except runner_exc.UnexpectedActionExecutionStatusError as e:
-            LOG.exception('Failed updating liveaction %s. %s', liveaction_db.id, str(e))
-            abort(http_client.BAD_REQUEST, 'Failed updating execution. %s' % str(e))
+            LOG.exception('Failed updating liveaction %s. %s', liveaction_db.id, six.text_type(e))
+            abort(http_client.BAD_REQUEST, 'Failed updating execution. %s' % six.text_type(e))
         except Exception as e:
-            LOG.exception('Failed updating liveaction %s. %s', liveaction_db.id, str(e))
+            LOG.exception('Failed updating liveaction %s. %s', liveaction_db.id, six.text_type(e))
             abort(
                 http_client.INTERNAL_SERVER_ERROR,
                 'Failed updating execution due to unexpected error.'

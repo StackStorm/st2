@@ -14,8 +14,9 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import six
 
+import six
+import uuid
 from oslo_config import cfg
 from apscheduler.triggers.cron import CronTrigger
 
@@ -113,7 +114,7 @@ def validate_trigger_payload(trigger_type_ref, payload, throw_on_inexistent_trig
     """
     This function validates trigger payload parameters for system and user-defined triggers.
 
-    :param trigger_type_ref: Reference of a trigger type or a trigger dictionary object.
+    :param trigger_type_ref: Reference of a trigger type / trigger / trigger dictionary object.
     :type trigger_type_ref: ``str``
 
     :param payload: Trigger payload.
@@ -144,7 +145,23 @@ def validate_trigger_payload(trigger_type_ref, payload, throw_on_inexistent_trig
         # System trigger
         payload_schema = SYSTEM_TRIGGER_TYPES[trigger_type_ref]['payload_schema']
     else:
+        # We assume Trigger ref and not TriggerType ref is passed in if second
+        # part (trigger name) is a valid UUID version 4
+        try:
+            trigger_uuid = uuid.UUID(trigger_type_ref.split('.')[-1])
+        except ValueError:
+            is_trigger_db = False
+        else:
+            is_trigger_db = (trigger_uuid.version == 4)
+
+        if is_trigger_db:
+            trigger_db = triggers.get_trigger_db_by_ref(trigger_type_ref)
+
+            if trigger_db:
+                trigger_type_ref = trigger_db.type
+
         trigger_type_db = triggers.get_trigger_type_db(trigger_type_ref)
+
         if not trigger_type_db:
             # Trigger doesn't exist in the database
             if throw_on_inexistent_trigger:

@@ -46,7 +46,7 @@ def _register_common_opts(ignore_errors=False):
 def _register_sensor_container_opts(ignore_errors=False):
     logging_opts = [
         cfg.StrOpt(
-            'logging', default='conf/logging.sensorcontainer.conf',
+            'logging', default='/etc/st2/logging.sensorcontainer.conf',
             help='location of the logging.conf file')
     ]
 

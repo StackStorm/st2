@@ -101,7 +101,7 @@ class HttpRunner(ActionRunner):
         try:
             result = client.run()
         except requests.exceptions.Timeout as e:
-            result = {'error': str(e)}
+            result = {'error': six.text_type(e)}
             status = LIVEACTION_STATUS_TIMED_OUT
         else:
             status = HttpRunner._get_result_status(result.get('status_code', None))
@@ -304,4 +304,4 @@ def get_runner():
 
 
 def get_metadata():
-    return get_runner_metadata('http_runner')
+    return get_runner_metadata('http_runner')[0]

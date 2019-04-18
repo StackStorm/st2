@@ -71,8 +71,8 @@ def get_resource_ref_from_model(model):
         name = model.name
         pack = model.pack
     except AttributeError:
-        raise Exception('Cannot build ResourceReference for model: %s. Name or pack missing.',
-                        model)
+        raise Exception('Cannot build ResourceReference for model: %s. Name or pack missing.'
+                        % model)
     return ResourceReference(name=name, pack=pack)
 
 

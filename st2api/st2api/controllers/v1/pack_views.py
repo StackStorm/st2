@@ -27,7 +27,7 @@ from st2common.models.api.pack import PackAPI
 from st2common.persistence.pack import Pack
 from st2common.content.utils import get_pack_file_abs_path
 from st2common.rbac.types import PermissionType
-from st2common.rbac import utils as rbac_utils
+from st2common.rbac.backends import get_rbac_backend
 from st2common.router import abort
 from st2common.router import Response
 
@@ -112,6 +112,7 @@ class FilesController(BaseFileController):
         """
         pack_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
 
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=pack_db,
                                                           permission_type=PermissionType.PACK_VIEW)
@@ -194,6 +195,7 @@ class FileController(BaseFileController):
         # Note: Until list filtering is in place we don't require RBAC check for icon file
         permission_type = PermissionType.PACK_VIEW
         if file_path not in WHITELISTED_FILE_PATHS:
+            rbac_utils = get_rbac_backend().get_utils_class()
             rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                               resource_db=pack_db,
                                                               permission_type=permission_type)

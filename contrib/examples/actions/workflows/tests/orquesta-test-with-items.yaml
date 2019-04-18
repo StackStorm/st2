@@ -1,0 +1,17 @@
+version: 1.0
+  
+description: A workflow for testing with items and concurrency.
+
+input:
+  - tempfiles
+  - concurrency: <% len(ctx(tempfiles)) %>
+
+tasks:
+  task1:
+    with:
+      items: tempfile in <% ctx(tempfiles) %>
+      concurrency: <% ctx(concurrency) %>
+    action: core.local
+    input:
+      cmd: "while [ -e '<% item(tempfile) %>' ]; do sleep 0.1; done"
+      timeout: 300

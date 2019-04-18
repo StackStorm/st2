@@ -26,10 +26,10 @@ from st2common.constants import action as action_constants
 from st2common.exceptions import inquiry as inquiry_exceptions
 from st2common import log as logging
 from st2common.persistence import liveaction as lv_db_access
-from st2common.rbac import utils as rbac_utils
 from st2common.services import action as action_service
 from st2common.services import executions as execution_service
 from st2common.services import workflows as workflow_service
+from st2common.rbac.backends import get_rbac_backend
 from st2common.util import action_db as action_utils
 from st2common.util import date as date_utils
 from st2common.util import schema as schema_utils
@@ -76,6 +76,7 @@ def check_permission(inquiry, requester):
         roles_passed = True
 
     for role in roles:
+        rbac_utils = get_rbac_backend().get_utils_class()
         user_has_role = rbac_utils.user_has_role(user_db, role)
 
         LOG.debug('Checking user %s is in role %s - %s' % (user_db, role, user_has_role))
@@ -110,7 +111,7 @@ def validate_response(inquiry, response):
     except Exception as e:
         msg = 'Response for inquiry "%s" did not pass schema validation.'
         LOG.exception(msg % str(inquiry.id))
-        raise inquiry_exceptions.InvalidInquiryResponse(str(inquiry.id), str(e))
+        raise inquiry_exceptions.InvalidInquiryResponse(str(inquiry.id), six.text_type(e))
 
 
 def respond(inquiry, response, requester=None):

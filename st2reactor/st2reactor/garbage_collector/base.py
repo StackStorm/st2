@@ -18,10 +18,12 @@ Garbage collection service which deletes old data from the database.
 """
 
 from __future__ import absolute_import
+
 import signal
 import datetime
 import random
 
+import six
 import eventlet
 from eventlet.support import greenlets as greenlet
 from oslo_config import cfg
@@ -86,7 +88,7 @@ class GarbageCollectorService(object):
             self._running = False
             return SUCCESS_EXIT_CODE
         except Exception as e:
-            LOG.exception('Exception in the garbage collector: %s' % (str(e)))
+            LOG.exception('Exception in the garbage collector: %s' % (six.text_type(e)))
             self._running = False
             return FAILURE_EXIT_CODE
 
@@ -132,21 +134,22 @@ class GarbageCollectorService(object):
 
         # Note: We sleep for a bit between garbage collection of each object type to prevent busy
         # waiting
-        if self._action_executions_ttl >= MINIMUM_TTL_DAYS:
+        if self._action_executions_ttl and self._action_executions_ttl >= MINIMUM_TTL_DAYS:
             self._purge_action_executions()
             eventlet.sleep(self._sleep_delay)
         else:
             LOG.debug('Skipping garbage collection for action executions since it\'s not '
                       'configured')
 
-        if self._action_executions_output_ttl >= MINIMUM_TTL_DAYS_EXECUTION_OUTPUT:
+        if self._action_executions_output_ttl and \
+                self._action_executions_output_ttl >= MINIMUM_TTL_DAYS_EXECUTION_OUTPUT:
             self._purge_action_executions_output()
             eventlet.sleep(self._sleep_delay)
         else:
             LOG.debug('Skipping garbage collection for action executions output since it\'s not '
                       'configured')
 
-        if self._trigger_instances_ttl >= MINIMUM_TTL_DAYS:
+        if self._trigger_instances_ttl and self._trigger_instances_ttl >= MINIMUM_TTL_DAYS:
             self._purge_trigger_instances()
             eventlet.sleep(self._sleep_delay)
         else:
@@ -182,7 +185,7 @@ class GarbageCollectorService(object):
         try:
             purge_executions(logger=LOG, timestamp=timestamp)
         except Exception as e:
-            LOG.exception('Failed to delete executions: %s' % (str(e)))
+            LOG.exception('Failed to delete executions: %s' % (six.text_type(e)))
 
         return True
 
@@ -204,7 +207,7 @@ class GarbageCollectorService(object):
         try:
             purge_execution_output_objects(logger=LOG, timestamp=timestamp)
         except Exception as e:
-            LOG.exception('Failed to delete execution output objects: %s' % (str(e)))
+            LOG.exception('Failed to delete execution output objects: %s' % (six.text_type(e)))
 
         return True
 
@@ -229,7 +232,7 @@ class GarbageCollectorService(object):
         try:
             purge_trigger_instances(logger=LOG, timestamp=timestamp)
         except Exception as e:
-            LOG.exception('Failed to trigger instances: %s' % (str(e)))
+            LOG.exception('Failed to trigger instances: %s' % (six.text_type(e)))
 
         return True
 
@@ -241,6 +244,6 @@ class GarbageCollectorService(object):
         try:
             purge_inquiries(logger=LOG)
         except Exception as e:
-            LOG.exception('Failed to purge inquiries: %s' % (str(e)))
+            LOG.exception('Failed to purge inquiries: %s' % (six.text_type(e)))
 
         return True

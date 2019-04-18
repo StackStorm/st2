@@ -20,7 +20,7 @@ import unittest2
 import st2tests.config as tests_config
 tests_config.parse_args()
 
-from st2common.util import loader
+from st2common.runners.base import get_callback_module
 
 
 MISTRAL_RUNNER_NAME = 'mistral_v2'
@@ -29,7 +29,7 @@ MISTRAL_RUNNER_NAME = 'mistral_v2'
 class MistralUtilityTest(unittest2.TestCase):
 
     def test_get_action_execution_id_from_url(self):
-        mistral_callback_module = loader.register_callback_module(MISTRAL_RUNNER_NAME)
+        mistral_callback_module = get_callback_module(MISTRAL_RUNNER_NAME)
 
         self.assertEqual(
             '12345',

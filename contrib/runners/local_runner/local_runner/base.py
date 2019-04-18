@@ -182,8 +182,8 @@ class BaseLocalShellRunner(ActionRunner, ShellRunnerMixin):
 
         # Detect if user provided an invalid sudo password or sudo is not configured for that user
         if self._sudo_password:
-            if re.search('sudo: \d+ incorrect password attempts', stderr):
-                match = re.search('\[sudo\] password for (.+?)\:', stderr)
+            if re.search(r'sudo: \d+ incorrect password attempts', stderr):
+                match = re.search(r'\[sudo\] password for (.+?)\:', stderr)
 
                 if match:
                     username = match.groups()[0]

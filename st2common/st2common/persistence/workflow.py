@@ -19,7 +19,6 @@ from st2common import transport
 from st2common.models import db
 from st2common.models.db import workflow as wf_db_models
 from st2common.persistence import base as persistence
-from st2common.transport import utils as transport_utils
 
 
 __all__ = [
@@ -39,8 +38,7 @@ class WorkflowExecution(persistence.StatusBasedResource):
     @classmethod
     def _get_publisher(cls):
         if not cls.publisher:
-            cls.publisher = transport.workflow.WorkflowExecutionPublisher(
-                urls=transport_utils.get_messaging_urls())
+            cls.publisher = transport.workflow.WorkflowExecutionPublisher()
 
         return cls.publisher
 

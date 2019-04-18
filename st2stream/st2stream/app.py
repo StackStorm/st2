@@ -31,6 +31,8 @@ from st2common.middleware.error_handling import ErrorHandlingMiddleware
 from st2common.middleware.cors import CorsMiddleware
 from st2common.middleware.request_id import RequestIDMiddleware
 from st2common.middleware.logging import LoggingMiddleware
+from st2common.middleware.instrumentation import RequestInstrumentationMiddleware
+from st2common.middleware.instrumentation import ResponseInstrumentationMiddleware
 from st2common.router import Router
 from st2common.util.monkey_patch import monkey_patch
 from st2common.constants.system import VERSION_STRING
@@ -51,6 +53,12 @@ def setup_app(config={}):
         monkey_patch()
 
         st2stream_config.register_opts()
+        capabilities = {
+            'name': 'stream',
+            'listen_host': cfg.CONF.stream.host,
+            'listen_port': cfg.CONF.stream.port,
+            'type': 'active'
+        }
         # This should be called in gunicorn case because we only want
         # workers to connect to db, rabbbitmq etc. In standalone HTTP
         # server case, this setup would have already occurred.
@@ -59,6 +67,8 @@ def setup_app(config={}):
                      register_signal_handlers=True,
                      register_internal_trigger_types=False,
                      run_migrations=False,
+                     service_registry=True,
+                     capabilities=capabilities,
                      config_args=config.get('config_args', None))
 
     router = Router(debug=cfg.CONF.stream.debug, auth=cfg.CONF.auth.enable,
@@ -77,6 +87,8 @@ def setup_app(config={}):
     app = ErrorHandlingMiddleware(app)
     app = CorsMiddleware(app)
     app = LoggingMiddleware(app, router)
+    app = ResponseInstrumentationMiddleware(app, router, service_name='stream')
     app = RequestIDMiddleware(app)
+    app = RequestInstrumentationMiddleware(app, router, service_name='stream')
 
     return app

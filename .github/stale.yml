@@ -1,0 +1,52 @@
+# Configuration for probot-stale - https://github.com/probot/stale
+
+# Number of days of inactivity before an Issue or Pull Request becomes stale
+daysUntilStale: 90
+
+# Number of days of inactivity before a stale Issue or Pull Request is closed.
+# Set to false to disable. If disabled, issues still need to be closed manually, but will remain marked as stale.
+# NOTE: This is set to false because we only mark issues as stale, but don't automatically close them.
+daysUntilClose: false
+
+# Issues or Pull Requests with these labels will never be considered stale. Set to `[]` to disable
+exemptLabels:
+  - WIP
+  - work in progress
+  - important
+  - feature
+  - bug
+  - enhancement
+
+# Set to true to ignore issues in a project (defaults to false)
+exemptProjects: true
+
+# Set to true to ignore issues in a milestone (defaults to false)
+exemptMilestones: true
+
+# Label to use when marking as stale
+staleLabel: stale
+
+# Comment to post when marking as stale. Set to `false` to disable
+markComment: >
+  Thanks for contributing to this issue. As it has been 90 days since the last activity,
+  we are automatically marking is as stale. If this issue is not relevant or applicable
+  anymore (problem has been fixed in a new version or similar), please close the issue
+  or let us know so we can close it. On the contrary, if the issue is still relevant,
+  there is nothing you need to do, but if you have any additional details or context which
+  would help us when working on this issue, please include it as a comment to this issue.
+
+# Comment to post when closing a stale issue. Set to `false` to disable
+closeComment: false
+# Comment to post when removing the stale label.
+# unmarkComment: >
+#   Your comment here.
+
+# Comment to post when closing a stale Issue or Pull Request.
+#closeComment: >
+#  Thanks for contributing to this issue. As it has been 90 days since the last activity, we are automatically closing the issue. This is often because the request was already solved in some way and it just wasn't updated or it's no longer applicable. If that's not the case, please do feel free to either reopen this issue or open a new one. We'll gladly take a look again! You can read more here: https://blog.travis-ci.com/2018-03-09-closing-old-issues
+
+# Limit the number of actions per hour, from 1-30. Default is 30
+limitPerRun: 30
+
+# Limit to only `issues` or `pulls`
+#only: issues

@@ -24,6 +24,20 @@ from st2common import policies as engine
 LOG = logging.getLogger(__name__)
 
 
+def has_policies(lv_ac_db, policy_types=None):
+    query_params = {
+        'resource_ref': lv_ac_db.action,
+        'enabled': True
+    }
+
+    if policy_types:
+        query_params['policy_type__in'] = policy_types
+
+    policy_dbs = pc_db_access.Policy.query(**query_params)
+
+    return policy_dbs.count() > 0
+
+
 def apply_pre_run_policies(lv_ac_db):
     LOG.debug('Applying pre-run policies for liveaction "%s".' % str(lv_ac_db.id))
 
@@ -42,7 +56,7 @@ def apply_pre_run_policies(lv_ac_db):
             message = 'An exception occurred while applying policy "%s" (%s) for liveaction "%s".'
             LOG.exception(message % (policy_db.ref, policy_db.policy_type, str(lv_ac_db.id)))
 
-        if lv_ac_db.status == ac_const.LIVEACTION_STATUS_DELAYED:
+        if lv_ac_db.status == ac_const.LIVEACTION_STATUS_POLICY_DELAYED:
             break
 
     return lv_ac_db

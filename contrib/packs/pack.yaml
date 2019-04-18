@@ -1,6 +1,9 @@
 ---
 name : packs
 description : Pack management functionality.
-version : 1.0.0
+version : 1.0.1
+python_versions:
+  - "2"
+  - "3"
 author : StackStorm, Inc.
 email : info@stackstorm.com

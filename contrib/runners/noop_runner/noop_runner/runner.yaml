@@ -4,4 +4,3 @@
   name: noop
   runner_module: noop_runner
   runner_parameters: {}
-

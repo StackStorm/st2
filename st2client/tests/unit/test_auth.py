@@ -213,7 +213,9 @@ class TestLoginIntPwdAndConfig(TestLoginBase):
             'headers': {
                 'X-Auth-Token': self.TOKEN['token']
             },
-            'params': {}
+            'params': {
+                'include_attributes': 'ref,name,description,version,author'
+            }
         }
         requests.get.assert_called_with('http://127.0.0.1:9101/v1/packs', **expected_kwargs)
 
@@ -289,7 +291,7 @@ class TestLoginUncaughtException(TestLoginBase):
 
         self.assertTrue('Failed to log in as %s' % expected_username in self.stdout.getvalue())
         self.assertTrue('Logged in as' not in self.stdout.getvalue())
-        self.assertEqual(retcode, 0)
+        self.assertEqual(retcode, 1)
 
 
 class TestAuthToken(base.BaseCLITestCase):
@@ -384,7 +386,9 @@ class TestAuthToken(base.BaseCLITestCase):
         requests, 'get',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
     def test_decorate_resource_list(self):
-        url = 'http://127.0.0.1:9101/v1/rules/?limit=50'
+        url = ('http://127.0.0.1:9101/v1/rules/'
+              '?include_attributes=ref,pack,description,enabled&limit=50')
+        url = url.replace(',', '%2C')
 
         # Test without token.
         self.shell.run(['rule', 'list'])

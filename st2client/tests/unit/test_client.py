@@ -25,6 +25,8 @@ from st2client.client import Client
 
 LOG = logging.getLogger(__name__)
 
+NONRESOURCES = ['workflows']
+
 
 class TestClientEndpoints(unittest2.TestCase):
 
@@ -48,7 +50,9 @@ class TestClientEndpoints(unittest2.TestCase):
         for property_name in property_names:
             manager = getattr(client, property_name, None)
             self.assertIsNotNone(manager)
-            self.assertIsInstance(manager, models.ResourceManager)
+
+            if property_name not in NONRESOURCES:
+                self.assertIsInstance(manager, models.ResourceManager)
 
     def test_default(self):
         base_url = 'http://127.0.0.1'

@@ -18,9 +18,11 @@ Script for validating a config file against a a particular config schema.
 """
 
 from __future__ import absolute_import
-import os
-import yaml
 
+import os
+
+import yaml
+import six
 from oslo_config import cfg
 
 from st2common.config import do_register_cli_opts
@@ -73,7 +75,7 @@ def main():
         validate_config_against_schema(config_schema=config_schema, config_object=config_object,
                                        config_path=config_path)
     except Exception as e:
-        print('Failed to validate pack config.\n%s' % str(e))
+        print('Failed to validate pack config.\n%s' % six.text_type(e))
         return FAILURE_EXIT_CODE
 
     print('Config "%s" successfully validated against schema in %s.' % (config_path, schema_path))

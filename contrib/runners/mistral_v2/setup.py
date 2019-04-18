@@ -52,5 +52,11 @@ setup(
         'st2common.runners.runner': [
             'mistral-v2 = mistral_v2.mistral_v2',
         ],
+        'st2common.runners.query': [
+            'mistral-v2 = mistral_v2.query',
+        ],
+        'st2common.runners.callback': [
+            'mistral-v2 = mistral_v2.callback',
+        ],
     }
 )

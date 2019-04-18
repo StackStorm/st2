@@ -19,7 +19,6 @@ from st2common.models.db import MongoDBAccess
 from st2common.models.db.execution import ActionExecutionDB
 from st2common.models.db.execution import ActionExecutionOutputDB
 from st2common.persistence.base import Access
-from st2common.transport import utils as transport_utils
 
 __all__ = [
     'ActionExecution',
@@ -38,8 +37,7 @@ class ActionExecution(Access):
     @classmethod
     def _get_publisher(cls):
         if not cls.publisher:
-            cls.publisher = transport.execution.ActionExecutionPublisher(
-                urls=transport_utils.get_messaging_urls())
+            cls.publisher = transport.execution.ActionExecutionPublisher()
         return cls.publisher
 
     @classmethod
@@ -57,8 +55,7 @@ class ActionExecutionOutput(Access):
     @classmethod
     def _get_publisher(cls):
         if not cls.publisher:
-            cls.publisher = transport.execution.ActionExecutionOutputPublisher(
-                urls=transport_utils.get_messaging_urls())
+            cls.publisher = transport.execution.ActionExecutionOutputPublisher()
         return cls.publisher
 
     @classmethod

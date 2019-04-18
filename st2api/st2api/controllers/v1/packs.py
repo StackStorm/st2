@@ -42,7 +42,7 @@ from st2common.models.api.pack import PackAsyncAPI
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.persistence.pack import Pack
 from st2common.rbac.types import PermissionType
-from st2common.rbac import utils as rbac_utils
+from st2common.rbac.backends import get_rbac_backend
 from st2common.services import packs as packs_service
 from st2common.router import abort
 from st2common.router import Response
@@ -181,6 +181,7 @@ class PackRegisterController(object):
         for type, (Registrar, name) in six.iteritems(ENTITIES):
             if type in types or name in types:
                 registrar = Registrar(use_pack_cache=use_pack_cache,
+                                      use_runners_cache=True,
                                       fail_on_failure=fail_on_failure)
                 if packs:
                     for pack in packs:
@@ -191,8 +192,8 @@ class PackRegisterController(object):
                             result[name] += registered_count
                         except ValueError as e:
                             # Throw more user-friendly exception if requsted pack doesn't exist
-                            if re.match('Directory ".*?" doesn\'t exist', str(e)):
-                                msg = 'Pack "%s" not found on disk: %s' % (pack, str(e))
+                            if re.match('Directory ".*?" doesn\'t exist', six.text_type(e)):
+                                msg = 'Pack "%s" not found on disk: %s' % (pack, six.text_type(e))
                                 raise ValueError(msg)
 
                             raise e
@@ -264,6 +265,7 @@ class BasePacksController(ResourceController):
     def _get_one_by_ref_or_id(self, ref_or_id, requester_user, exclude_fields=None):
         instance = self._get_by_ref_or_id(ref_or_id=ref_or_id, exclude_fields=exclude_fields)
 
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=instance,
                                                           permission_type=PermissionType.PACK_VIEW)
@@ -338,8 +340,11 @@ class PacksController(BasePacksController):
         super(PacksController, self).__init__()
         self.get_one_db_method = self._get_by_ref_or_id
 
-    def get_all(self, sort=None, offset=0, limit=None, requester_user=None, **raw_filters):
-        return super(PacksController, self)._get_all(sort=sort,
+    def get_all(self, exclude_attributes=None, include_attributes=None, sort=None, offset=0,
+                limit=None, requester_user=None, **raw_filters):
+        return super(PacksController, self)._get_all(exclude_fields=exclude_attributes,
+                                                     include_fields=include_attributes,
+                                                     sort=sort,
                                                      offset=offset,
                                                      limit=limit,
                                                      raw_filters=raw_filters,

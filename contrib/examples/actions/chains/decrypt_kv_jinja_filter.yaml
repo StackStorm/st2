@@ -1,9 +1,16 @@
 ---
 vars:
-  encrypted_cmd: "{{ st2kv.system.my_cmd | decrypt_kv }}"
+  encrypted_cmd_system_scope: "{{ st2kv.system.my_cmd | decrypt_kv }}"
+  encrypted_cmd_user_scope: "{{ st2kv.user.my_cmd | decrypt_kv }}"
 chain:
   -
     name: "c1"
     ref: "core.local"
     parameters:
-      cmd: 'echo {{encrypted_cmd}}'
+      cmd: 'echo {{encrypted_cmd_system_scope}}'
+    on-success: "c2"
+  -
+    name: "c2"
+    ref: "core.local"
+    parameters:
+      cmd: 'echo {{encrypted_cmd_user_scope}}'

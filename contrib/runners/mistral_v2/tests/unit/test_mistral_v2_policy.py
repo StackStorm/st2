@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import copy
 import uuid
 
@@ -44,7 +45,7 @@ from st2common.services import action as action_service
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 from st2common.util import loader
-from st2tests import DbTestCase
+from st2tests import ExecutionDbTestCase
 from st2tests import fixturesloader
 from st2tests.mocks.liveaction import MockLiveActionPublisher
 
@@ -84,14 +85,14 @@ WF1_EXEC = copy.deepcopy(MISTRAL_EXECUTION)
     LiveActionPublisher,
     'publish_state',
     mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
-class MistralRunnerPolicyTest(DbTestCase):
+class MistralRunnerPolicyTest(ExecutionDbTestCase):
 
     @classmethod
     def setUpClass(cls):
         super(MistralRunnerPolicyTest, cls).setUpClass()
 
         # Override the retry configuration here otherwise st2tests.config.parse_args
-        # in DbTestCase.setUpClass will reset these overrides.
+        # in ExecutionDbTestCas.setUpClass will reset these overrides.
         cfg.CONF.set_override('retry_exp_msec', 100, group='mistral')
         cfg.CONF.set_override('retry_exp_max_msec', 200, group='mistral')
         cfg.CONF.set_override('retry_stop_max_msec', 200, group='mistral')
@@ -164,8 +165,11 @@ class MistralRunnerPolicyTest(DbTestCase):
         for i in range(0, threshold):
             liveaction = LiveActionDB(action=WF1_NAME, parameters={'friend': 'friend' + str(i)})
             liveaction, execution1 = action_service.request(liveaction)
-            liveaction = LiveAction.get_by_id(str(liveaction.id))
-            self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+
+            liveaction = self._wait_on_status(
+                liveaction,
+                action_constants.LIVEACTION_STATUS_RUNNING
+            )
 
         # Check number of running instances
         running = LiveAction.count(
@@ -174,7 +178,7 @@ class MistralRunnerPolicyTest(DbTestCase):
         self.assertEqual(running, threshold)
 
         # Mock the mistral runner cancel method to assert cancel is called.
-        mistral_runner_cls = self.get_runner_class('mistral_v2')
+        mistral_runner_cls = runners.get_runner('mistral-v2').__class__
         mock_cancel_return_value = (action_constants.LIVEACTION_STATUS_CANCELING, None, None)
         mock_cancel = mock.MagicMock(return_value=mock_cancel_return_value)
 
@@ -193,7 +197,11 @@ class MistralRunnerPolicyTest(DbTestCase):
             liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
 
             # Assert cancel has been called.
-            self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_CANCELING)
+            liveaction2 = self._wait_on_status(
+                liveaction2,
+                action_constants.LIVEACTION_STATUS_CANCELING
+            )
+
             mistral_runner_cls.cancel.assert_called_once_with()
 
     @mock.patch.object(
@@ -228,7 +236,11 @@ class MistralRunnerPolicyTest(DbTestCase):
             liveaction = LiveActionDB(action=WF1_NAME, parameters=params)
             liveaction, execution1 = action_service.request(liveaction)
             liveaction = LiveAction.get_by_id(str(liveaction.id))
-            self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+
+            liveaction = self._wait_on_status(
+                liveaction,
+                action_constants.LIVEACTION_STATUS_RUNNING
+            )
 
         # Check number of running instances
         running = LiveAction.count(
@@ -238,7 +250,7 @@ class MistralRunnerPolicyTest(DbTestCase):
         self.assertEqual(running, threshold)
 
         # Mock the mistral runner cancel method to assert cancel is called.
-        mistral_runner_cls = self.get_runner_class('mistral_v2')
+        mistral_runner_cls = runners.get_runner('mistral-v2').__class__
         mock_cancel_return_value = (action_constants.LIVEACTION_STATUS_CANCELING, None, None)
         mock_cancel = mock.MagicMock(return_value=mock_cancel_return_value)
 
@@ -255,5 +267,9 @@ class MistralRunnerPolicyTest(DbTestCase):
             liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
 
             # Assert cancel has been called.
-            self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_CANCELING)
+            liveaction2 = self._wait_on_status(
+                liveaction2,
+                action_constants.LIVEACTION_STATUS_CANCELING
+            )
+
             mistral_runner_cls.cancel.assert_called_once_with()

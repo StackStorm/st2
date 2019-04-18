@@ -84,7 +84,7 @@ def _build_regex():
     regex_strings = {}
     regexes = {}
     for level in EVILS:
-        regex_string = '|'.join(['\.'.join([log, level]) for log in LOG_VARS])
+        regex_string = '|'.join([r'\.'.join([log, level]) for log in LOG_VARS])
         regex_strings[level] = regex_string
         # print('Level: %s, regex_string: %s' % (level, regex_strings[level]))
         regexes[level] = re.compile(regex_strings[level])

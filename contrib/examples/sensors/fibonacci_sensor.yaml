@@ -2,7 +2,7 @@
   class_name: "FibonacciSensor"
   entry_point: "fibonacci_sensor.py"
   description: "Simple polling sensor that emits fibonacci number."
-  poll_interval: 5
+  poll_interval: 20
   trigger_types:
     -
       name: "fibonacci"

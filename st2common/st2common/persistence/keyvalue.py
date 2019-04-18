@@ -49,7 +49,7 @@ class KeyValuePair(Access):
     }
 
     @classmethod
-    def add_or_update(cls, model_object, publish=True, dispatch_trigger=True):
+    def add_or_update(cls, model_object, publish=True, dispatch_trigger=True, validate=True):
         """
         Note: We override add_or_update because we also want to publish high level "value_change"
         event for this resource.
