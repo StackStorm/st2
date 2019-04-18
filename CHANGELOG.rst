@@ -52,8 +52,7 @@ Added
   StackStorm instance to another which uses the same crypto key.
 
   Contributed by Nick Maludy (Encore Technologies) #4547
-
-* Added ``source_channel`` to Orquesta ``st2()`` context for workflows called via ChatOps. (#4600)
+* Add ``source_channel`` to Orquesta ``st2()`` context for workflows called via ChatOps. #4600
 
 Changed
 ~~~~~~~
