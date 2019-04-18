@@ -53,6 +53,8 @@ Added
 
   Contributed by Nick Maludy (Encore Technologies) #4547
 
+* Added ``source_channel`` to Orquesta ``st2()`` context for workflows called via ChatOps. (#4600)
+
 Changed
 ~~~~~~~
 
@@ -124,6 +126,7 @@ Fixed
   Contributed by Hiroyasu OHYAMA (@userlocalhost).
 * Fix a bug with user-scoped datastore values not working inside action-chain workflows. (bug fix)
   #4634
+* Added missing parameter types to ``linux.wait_for_ssh`` action metadata. (bug fix) #4611
 
 2.10.4 - March 15, 2019
 -----------------------
