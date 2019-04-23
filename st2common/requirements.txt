@@ -7,7 +7,7 @@ flex==6.14.0
 git+https://github.com/StackStorm/orquesta.git@c9af76e25bf9163fddb4dcb0117c3bbf8d5876ef#egg=orquesta
 greenlet==0.4.15
 ipaddr
-jinja2
+jinja2==2.10.1
 jsonpath-rw==1.4.0
 jsonschema==2.6.0
 kombu==4.5.0
