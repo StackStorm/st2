@@ -568,6 +568,9 @@ def request_action_execution(wf_ex_db, task_ex_db, st2_ctx, ac_ex_req, delay=Non
     if st2_ctx.get('api_user'):
         ac_ex_ctx['api_user'] = st2_ctx.get('api_user')
 
+    if st2_ctx.get('source_channel'):
+        ac_ex_ctx['source_channel'] = st2_ctx.get('source_channel')
+
     if item_id is not None:
         ac_ex_ctx['orquesta']['item_id'] = item_id
 
@@ -727,7 +730,7 @@ def handle_action_execution_completion(ac_ex_db):
     task_ex_id = ac_ex_db.context['orquesta']['task_execution_id']
 
     # Acquire lock before write operations.
-    with coord_svc.get_coordinator().get_lock(wf_ex_id):
+    with coord_svc.get_coordinator(start_heart=True).get_lock(wf_ex_id):
         # Get execution records for logging purposes.
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
         task_ex_db = wf_db_access.TaskExecution.get_by_id(task_ex_id)
@@ -920,6 +923,9 @@ def request_next_tasks(wf_ex_db, task_ex_id=None):
                 }
                 if root_st2_ctx.get('api_user'):
                     st2_ctx['api_user'] = root_st2_ctx.get('api_user')
+
+                if root_st2_ctx.get('source_channel'):
+                    st2_ctx['source_channel'] = root_st2_ctx.get('source_channel')
 
                 # Request the task execution.
                 request_task_execution(wf_ex_db, st2_ctx, task)

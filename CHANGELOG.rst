@@ -1,8 +1,12 @@
 Changelog
 =========
 
-In development
+in development
 --------------
+
+
+3.0.0 - April 18, 2019
+----------------------
 
 Added
 ~~~~~
@@ -15,11 +19,44 @@ Added
   (``pack.yaml``). With this attribute pack declares which major Python versions it supports and
   works with (e.g. ``2`` and ``3``).
 
-   For backward compatibility reasons, if pack metadata file doesn't contain that attribute, it's
-   assumed it only works with Python 2. (new feature) #4474
+  For backward compatibility reasons, if pack metadata file doesn't contain that attribute, it's
+  assumed it only works with Python 2. (new feature) #4474
+* Update service bootstrap code and make sure all the services register in a service registry once
+  they come online and become available.
 
-* Adding ``Cache-Control`` header to all API responses so clients will favor
-  refresh from API instead of using cached version.
+  This functionality is only used internally and will only work if configuration backend is
+  correctly configured in ``st2.conf`` (new feature) #4548
+* Add new ``GET /v1/service_registry/groups`` and
+  ``GET /v1/service_registry/groups/<group_id>/members`` API endpoint for listing available service
+  registry groups and members.
+
+  Also add corresponding CLI commands - ``st2 service-registry group list``, ``st2 service registry
+  member list [--group-id=<group id>]``
+
+  NOTE: This API endpoint is behind an RBAC wall and can only be viewed by the admins. (new feature)
+  #4548
+* Add support for ``?include_attributes`` and ``?exclude_attributes`` query param filter to the
+  ``GET /api/v1/executions/{id}`` API endpoint. Also update ``st2 execution get`` CLI command so it
+  only retrieves attributes which are displayed. (new feature) #4497
+
+  Contributed by Nick Maludy (@nmaludy Encore Technologies)
+
+* Add new ``--encrypted`` flag to ``st2 key set`` CLI command that allows users to pass in values
+  which are already encrypted.
+
+  This attribute signals the API that the value is already encrypted and should be used as-is.
+
+  ``st2 key load`` CLI command has also been updated so it knows how to work with values which are
+  already encrypted. This means that ``st2 key list -n 100 -j < data.json ; st2 key load
+  data.json`` will now also work out of the box for encrypted datastore values (values which have
+  ``encrypted: True`` and ``secret: True`` attribute will be treated as already encrypted and used
+  as-is).
+
+  The most common use case for this feature is migrating / restoring datastore values from one
+  StackStorm instance to another which uses the same crypto key.
+
+  Contributed by Nick Maludy (Encore Technologies) #4547
+* Add ``source_channel`` to Orquesta ``st2()`` context for workflows called via ChatOps. #4600
 
 Changed
 ~~~~~~~
@@ -38,6 +75,32 @@ Changed
   by Python action wrapper code.
 
   Contributed by Hiroyasu OHYAMA (@userlocalhost). #4571
+* Improved the way that the ``winrm-ps-script`` runner sends scripts to the target Windows
+  host. Previously the script was read from the local filesystem and serialized as one long
+  command executed on the command line. This failed when the script was longer than either
+  2047 or 8191 bytes (depending on Windows version) as the Windows command line uses this
+  as its maximum length. To overcome this, the ``winrm-ps-script`` runner now uploads the
+  script into a temporary directory on the target host, then executes the script.
+  (improvement) #4514
+
+  Contributed by Nick Maludy (Encore Technologies)
+* Update various internal dependencies to latest stable versions (apscheduler, pyyaml, kombu,
+  mongoengine, pytz, stevedore, sseclient, python-editor). #4610
+* Update logging code so we exclude log messages with log level ``AUDIT`` from a default service
+  log file (e.g. ``st2api.log``). Log messages with level ``AUDIT`` are already logged in a
+  dedicated service audit log file (e.g. ``st2api.audit.log``) so there is no need for them to also
+  be duplicated and included in regular service log file.
+
+  NOTE: To aid with debugging, audit log messages are also included in a regular log file when log
+  level is set to ``DEBUG`` or ``system.debug`` config option is set to ``True``.
+
+  Reported by Nick Maludy. (improvement) #4538 #4502 #4621
+* Add missing ``--user`` argument to ``st2 execution list`` CLI command. (improvement) #4632
+
+  Contributed by Tristan Struthers (@trstruth).
+* Update ``decrypt_kv`` Jinja template filter so it to throws a more user-friendly error message
+  when decryption fails because the variable references a datastore value which doesn't exist.
+  (improvement) #4634
 
 Fixed
 ~~~~~
@@ -54,6 +117,19 @@ Fixed
   is acquired before write operations to avoid write conflicts. (bug fix) Stackstorm/orquesta#125
 * Fix a bug with some API endpoints returning 500 internal server error when an exception contained
   unicode data. (bug fix) #4598
+* Fix the ``st2 workflow inspect`` command so it correctly passes authentication token. (bug fix)
+  #4615
+* Fix an issue with new line characters (``\n``) being converted to ``\r\n`` in remote shell
+  command and script actions which use sudo. (bug fix) #4623
+* Update service bootstrap and ``st2-register-content`` script code so non-fatal errors are
+  suppressed by default and only logged under ``DEBUG`` log level. (bug fix) #3933 #4626 #4630
+* Fix a bug with not being able to decrypt user-scoped datastore values inside Jinja expressions
+  using ``decrypt_kv`` Jinja filter. (bug fix) #4634
+
+  Contributed by Hiroyasu OHYAMA (@userlocalhost).
+* Fix a bug with user-scoped datastore values not working inside action-chain workflows. (bug fix)
+  #4634
+* Added missing parameter types to ``linux.wait_for_ssh`` action metadata. (bug fix) #4611
 * Fix HTTP runner (``http-request``) so it works correctly with unicode (non-ascii) body payloads.
   (bug fix) #4601 #4599
 

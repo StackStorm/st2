@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import copy
 import mongoengine as me
 
@@ -21,7 +22,7 @@ from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 from st2common.constants.types import ResourceType
 from st2common.fields import ComplexDateTimeField
 from st2common.models.db import stormbase
-from st2common.services.rbac import get_roles_for_user
+from st2common.rbac.backends import get_rbac_backend
 from st2common.util import date as date_utils
 
 __all__ = [
@@ -55,7 +56,8 @@ class UserDB(stormbase.StormFoundationDB):
 
         :rtype: ``list`` of :class:`RoleDB`
         """
-        result = get_roles_for_user(user_db=self, include_remote=include_remote)
+        rbac_service = get_rbac_backend().get_service_class()
+        result = rbac_service.get_roles_for_user(user_db=self, include_remote=include_remote)
         return result
 
     def get_permission_assignments(self):

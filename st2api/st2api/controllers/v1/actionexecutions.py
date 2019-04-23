@@ -47,15 +47,12 @@ from st2common.router import Response
 from st2common.services import action as action_service
 from st2common.services import executions as execution_service
 from st2common.services import trace as trace_service
-from st2common.services import rbac as rbac_service
 from st2common.util import isotime
 from st2common.util import action_db as action_utils
 from st2common.util import param as param_utils
 from st2common.util.jsonify import try_loads
 from st2common.rbac.types import PermissionType
-from st2common.rbac import utils as rbac_utils
-from st2common.rbac.utils import assert_user_has_resource_db_permission
-from st2common.rbac.utils import assert_user_is_admin_if_user_query_param_is_provided
+from st2common.rbac.backends import get_rbac_backend
 
 __all__ = [
     'ActionExecutionsController'
@@ -118,13 +115,16 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
             abort(http_client.BAD_REQUEST, message)
 
         # Assert the permissions
-        assert_user_has_resource_db_permission(user_db=requester_user, resource_db=action_db,
-                                               permission_type=PermissionType.ACTION_EXECUTE)
+        permission_type = PermissionType.ACTION_EXECUTE
+        rbac_utils = get_rbac_backend().get_utils_class()
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=action_db,
+                                                          permission_type=permission_type)
 
         # Validate that the authenticated user is admin if user query param is provided
         user = liveaction_api.user or requester_user.name
-        assert_user_is_admin_if_user_query_param_is_provided(user_db=requester_user,
-                                                             user=user)
+        rbac_utils.assert_user_is_admin_if_user_query_param_is_provided(user_db=requester_user,
+                                                                        user=user)
 
         try:
             return self._schedule_execution(liveaction=liveaction_api,
@@ -169,6 +169,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         # Include RBAC context (if RBAC is available and enabled)
         if cfg.CONF.rbac.enable:
             user_db = UserDB(name=user)
+            rbac_service = get_rbac_backend().get_service_class()
             role_dbs = rbac_service.get_roles_for_user(user_db=user_db, include_remote=True)
             roles = [role_db.name for role_db in role_dbs]
             liveaction.context['rbac'] = {
@@ -299,6 +300,7 @@ class ActionExecutionAttributeController(BaseActionExecutionNestedController):
         action_exec_db = self.access.impl.model.objects.filter(id=id).only(*fields).get()
 
         permission_type = PermissionType.EXECUTION_VIEW
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=action_exec_db,
                                                           permission_type=permission_type)
@@ -517,7 +519,8 @@ class ActionExecutionsController(BaseResourceIsolationControllerMixin,
                                            advanced_filters=advanced_filters,
                                            requester_user=requester_user)
 
-    def get_one(self, id, requester_user, exclude_attributes=None, show_secrets=False):
+    def get_one(self, id, requester_user, exclude_attributes=None, include_attributes=None,
+                show_secrets=False):
         """
         Retrieve a single execution.
 
@@ -528,6 +531,7 @@ class ActionExecutionsController(BaseResourceIsolationControllerMixin,
         :type exclude_attributes: ``list``
         """
         exclude_fields = self._validate_exclude_fields(exclude_fields=exclude_attributes)
+        include_fields = self._validate_include_fields(include_fields=include_attributes)
 
         from_model_kwargs = {
             'mask_secrets': self._get_mask_secrets(requester_user, show_secrets=show_secrets)
@@ -543,6 +547,7 @@ class ActionExecutionsController(BaseResourceIsolationControllerMixin,
             id = str(execution_db.id)
 
         return self._get_one_by_id(id=id, exclude_fields=exclude_fields,
+                                   include_fields=include_fields,
                                    requester_user=requester_user,
                                    from_model_kwargs=from_model_kwargs,
                                    permission_type=PermissionType.EXECUTION_VIEW)

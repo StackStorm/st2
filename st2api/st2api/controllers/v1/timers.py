@@ -25,7 +25,7 @@ from st2common.models.system.common import ResourceReference
 from st2common.persistence.trigger import Trigger
 from st2common.models.db.timer import TimerDB
 from st2common.rbac.types import PermissionType
-from st2common.rbac import utils as rbac_utils
+from st2common.rbac.backends import get_rbac_backend
 from st2common.services import triggers as trigger_service
 from st2common.services.triggerwatcher import TriggerWatcher
 from st2common.router import abort
@@ -106,6 +106,8 @@ class TimersController(resource.ContentPackResourceController):
 
         permission_type = PermissionType.TIMER_VIEW
         resource_db = TimerDB(pack=trigger_db.pack, name=trigger_db.name)
+
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=resource_db,
                                                           permission_type=permission_type)

@@ -1,4 +1,3 @@
-#!/usr/bin/env python2.7
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -14,9 +13,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
+from __future__ import absolute_import
 
-from st2common.cmd import apply_rbac_definitions
+from st2client.models import core
 
-if __name__ == '__main__':
-    sys.exit(apply_rbac_definitions.main(sys.argv[1:]))
+__all__ = [
+    'ServiceRegistry',
+
+    'ServiceRegistryGroup',
+    'ServiceRegistryMember'
+]
+
+
+class ServiceRegistry(core.Resource):
+    _alias = 'service-registry'
+    _display_name = 'Service Registry'
+    _plural = 'Service Registry'
+    _plural_display_name = 'Service Registry'
+
+
+class ServiceRegistryGroup(core.Resource):
+    _alias = 'group'
+    _display_name = 'Group'
+    _plural = 'Groups'
+    _plural_display_name = 'Groups'
+    _repr_attributes = ['group_id']
+
+
+class ServiceRegistryMember(core.Resource):
+    _alias = 'member'
+    _display_name = 'Group Member'
+    _plural = 'Group Members'
+    _plural_display_name = 'Group Members'
+    _repr_attributes = ['group_id', 'member_id']

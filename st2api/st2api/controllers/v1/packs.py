@@ -42,7 +42,7 @@ from st2common.models.api.pack import PackAsyncAPI
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.persistence.pack import Pack
 from st2common.rbac.types import PermissionType
-from st2common.rbac import utils as rbac_utils
+from st2common.rbac.backends import get_rbac_backend
 from st2common.services import packs as packs_service
 from st2common.router import abort
 from st2common.router import Response
@@ -265,6 +265,7 @@ class BasePacksController(ResourceController):
     def _get_one_by_ref_or_id(self, ref_or_id, requester_user, exclude_fields=None):
         instance = self._get_by_ref_or_id(ref_or_id=ref_or_id, exclude_fields=exclude_fields)
 
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=instance,
                                                           permission_type=PermissionType.PACK_VIEW)

@@ -22,7 +22,7 @@ from st2common.models.db.execution import ActionExecutionDB
 from st2common.services import action as action_service
 from st2tests.api import SUPER_SECRET_PARAMETER
 from st2tests.fixturesloader import FixturesLoader
-from tests import FunctionalTest
+from st2tests.api import FunctionalTest
 
 FIXTURES_PACK = 'aliases'
 

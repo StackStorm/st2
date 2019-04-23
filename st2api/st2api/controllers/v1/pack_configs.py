@@ -27,7 +27,7 @@ from st2common.bootstrap.configsregistrar import ConfigsRegistrar
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.rbac.types import PermissionType
-from st2common.rbac import utils as rbac_utils
+from st2common.rbac.backends import get_rbac_backend
 from st2common.router import abort
 from st2common.services import packs as packs_service
 from st2common.models.api.pack import ConfigAPI
@@ -88,6 +88,7 @@ class PackConfigsController(ResourceController, BaseRestControllerMixin):
             msg = 'Unable to identify resource with pack_ref "%s".' % (pack_ref)
             abort(http_client.NOT_FOUND, msg)
 
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=instance,
                                                           permission_type=PermissionType.PACK_VIEW)

@@ -1085,6 +1085,8 @@ class ActionExecutionListCommand(ResourceViewCommand):
                                                   status. Possible values are \'%s\', \'%s\', \
                                                   \'%s\', \'%s\', \'%s\', \'%s\' or \'%s\''
                                                   '.' % POSSIBLE_ACTION_STATUS_VALUES))
+        self.group.add_argument('--user',
+                                help='Only return executions created by the provided user.')
         self.group.add_argument('--trigger_instance',
                                 help='Trigger instance id to filter the list.')
         self.parser.add_argument('-tg', '--timestamp-gt', type=str, dest='timestamp_gt',
@@ -1117,6 +1119,8 @@ class ActionExecutionListCommand(ResourceViewCommand):
             kwargs['action'] = args.action
         if args.status:
             kwargs['status'] = args.status
+        if args.user:
+            kwargs['user'] = args.user
         if args.trigger_instance:
             kwargs['trigger_instance'] = args.trigger_instance
         if not args.showall:
@@ -1165,6 +1169,8 @@ class ActionExecutionListCommand(ResourceViewCommand):
 class ActionExecutionGetCommand(ActionRunCommandMixin, ResourceViewCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'parameters', 'status',
                           'start_timestamp', 'end_timestamp', 'result', 'liveaction']
+    include_attributes = ['action.ref', 'action.runner_type', 'start_timestamp',
+                          'end_timestamp']
 
     def __init__(self, resource, *args, **kwargs):
         super(ActionExecutionGetCommand, self).__init__(
@@ -1181,7 +1187,8 @@ class ActionExecutionGetCommand(ActionRunCommandMixin, ResourceViewCommand):
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         # We only retrieve attributes which are needed to speed things up
-        include_attributes = self._get_include_attributes(args=args)
+        include_attributes = self._get_include_attributes(args=args,
+                                                          extra_attributes=self.include_attributes)
         if include_attributes:
             include_attributes = ','.join(include_attributes)
             kwargs['params'] = {'include_attributes': include_attributes}

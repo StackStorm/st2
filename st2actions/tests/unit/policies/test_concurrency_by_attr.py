@@ -97,6 +97,7 @@ class ConcurrencyByAttributePolicyTestCase(EventletTestCase, ExecutionDbTestCase
     @classmethod
     def tearDownClass(cls):
         # Reset the coordinator.
+        coordination.coordinator_teardown(coordination.COORDINATOR)
         coordination.COORDINATOR = None
 
         super(ConcurrencyByAttributePolicyTestCase, cls).tearDownClass()

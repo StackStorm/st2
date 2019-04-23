@@ -17,7 +17,7 @@ import copy
 import glob
 import mock
 
-from tests import FunctionalTest
+from st2tests.api import FunctionalTest
 from st2api.controllers.v1.pack_configs import PackConfigsController
 
 from st2tests.fixturesloader import get_fixtures_packs_base_path

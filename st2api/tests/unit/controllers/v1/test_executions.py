@@ -26,27 +26,33 @@ from six.moves import http_client
 
 from st2common.constants import action as action_constants
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
+from st2common.constants.keyvalue import FULL_USER_SCOPE
 from st2common.content import utils as content_utils
+from st2common.models.api.keyvalue import KeyValuePairAPI
+from st2common.models.db.auth import UserDB
 from st2common.models.db.execution import ActionExecutionDB
 from st2common.models.db.execution import ActionExecutionOutputDB
+from st2common.models.db.keyvalue import KeyValuePairDB
 from st2common.persistence.execution import ActionExecution
 from st2common.persistence.execution import ActionExecutionOutput
 from st2common.persistence.liveaction import LiveAction
+from st2common.persistence.keyvalue import KeyValuePair
 from st2common.persistence.trace import Trace
 from st2common.services import action as action_service
 from st2common.services import trace as trace_service
 from st2common.transport.publishers import PoolPublisher
 from st2common.util import action_db as action_db_util
-from st2common.util import isotime
+from st2common.util import crypto as crypto_utils
 from st2common.util import date as date_utils
+from st2common.util import isotime
 from st2api.controllers.v1.actionexecutions import ActionExecutionsController
 import st2common.validators.api.action as action_validator
-from tests.base import BaseActionExecutionControllerTestCase
+from st2tests.api import BaseActionExecutionControllerTestCase
 from st2tests.api import SUPER_SECRET_PARAMETER
 from st2tests.api import ANOTHER_SUPER_SECRET_PARAMETER
 
-from tests.base import FunctionalTest
-from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
+from st2tests.api import FunctionalTest
+from st2tests.api import APIControllerWithIncludeAndExcludeFilterTestCase
 
 __all__ = [
     'ActionExecutionControllerTestCase',
@@ -159,6 +165,46 @@ ACTION_DEFAULT_TEMPLATE = {
     }
 }
 
+ACTION_DEFAULT_ENCRYPT = {
+    'name': 'st2.dummy.default_encrypted_value',
+    'description': 'An action that uses a jinja template with decrypt_kv filter '
+                   'in default parameter',
+    'enabled': True,
+    'pack': 'starterpack',
+    'runner_type': 'local-shell-cmd',
+    'parameters': {
+        'encrypted_param': {
+            'type': 'string',
+            'default': '{{ st2kv.system.secret | decrypt_kv }}'
+        },
+        'encrypted_user_param': {
+            'type': 'string',
+            'default': '{{ st2kv.user.secret | decrypt_kv }}'
+        }
+    }
+}
+
+ACTION_DEFAULT_ENCRYPT_SECRET_PARAMS = {
+    'name': 'st2.dummy.default_encrypted_value_secret_param',
+    'description': 'An action that uses a jinja template with decrypt_kv filter '
+                   'in default parameter',
+    'enabled': True,
+    'pack': 'starterpack',
+    'runner_type': 'local-shell-cmd',
+    'parameters': {
+        'encrypted_param': {
+            'type': 'string',
+            'default': '{{ st2kv.system.secret | decrypt_kv }}',
+            'secret': True
+        },
+        'encrypted_user_param': {
+            'type': 'string',
+            'default': '{{ st2kv.user.secret | decrypt_kv }}',
+            'secret': True
+        }
+    }
+}
+
 LIVE_ACTION_1 = {
     'action': 'sixpack.st2.dummy.action1',
     'parameters': {
@@ -256,6 +302,12 @@ LIVE_ACTION_WITH_SECRET_PARAM = {
 LIVE_ACTION_DEFAULT_TEMPLATE = {
     'action': 'starterpack.st2.dummy.default_template',
 }
+LIVE_ACTION_DEFAULT_ENCRYPT = {
+    'action': 'starterpack.st2.dummy.default_encrypted_value',
+}
+LIVE_ACTION_DEFAULT_ENCRYPT_SECRET_PARAM = {
+    'action': 'starterpack.st2.dummy.default_encrypted_value_secret_param',
+}
 
 FIXTURES_PACK = 'generic'
 TEST_FIXTURES = {
@@ -304,6 +356,14 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         post_resp = cls.app.post_json('/v1/actions', cls.action_template)
         cls.action_template['id'] = post_resp.json['id']
 
+        cls.action_decrypt = copy.deepcopy(ACTION_DEFAULT_ENCRYPT)
+        post_resp = cls.app.post_json('/v1/actions', cls.action_decrypt)
+        cls.action_decrypt['id'] = post_resp.json['id']
+
+        cls.action_decrypt_secret_param = copy.deepcopy(ACTION_DEFAULT_ENCRYPT_SECRET_PARAMS)
+        post_resp = cls.app.post_json('/v1/actions', cls.action_decrypt_secret_param)
+        cls.action_decrypt_secret_param['id'] = post_resp.json['id']
+
     @classmethod
     def tearDownClass(cls):
         cls.app.delete('/v1/actions/%s' % cls.action1['id'])
@@ -312,6 +372,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         cls.app.delete('/v1/actions/%s' % cls.action4['id'])
         cls.app.delete('/v1/actions/%s' % cls.action_inquiry['id'])
         cls.app.delete('/v1/actions/%s' % cls.action_template['id'])
+        cls.app.delete('/v1/actions/%s' % cls.action_decrypt['id'])
         super(BaseActionExecutionControllerTestCase, cls).tearDownClass()
 
     def test_get_one(self):
@@ -684,6 +745,70 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         # Assert that the template in the parameter default value
         # was not rendered, and the provided parameter was used
         self.assertEqual(post_resp.json['parameters']['intparam'], live_int_param)
+
+    def test_template_encrypted_params(self):
+        # register datastore values which are used in this test case
+        KeyValuePairAPI._setup_crypto()
+        register_items = [
+            {'name': 'secret', 'secret': True,
+             'value': crypto_utils.symmetric_encrypt(KeyValuePairAPI.crypto_key, 'foo')},
+            {'name': 'stanley:secret', 'secret': True, 'scope': FULL_USER_SCOPE,
+             'value': crypto_utils.symmetric_encrypt(KeyValuePairAPI.crypto_key, 'bar')},
+            {'name': 'user1:secret', 'secret': True, 'scope': FULL_USER_SCOPE,
+             'value': crypto_utils.symmetric_encrypt(KeyValuePairAPI.crypto_key, 'baz')},
+        ]
+        kvps = [KeyValuePair.add_or_update(KeyValuePairDB(**x)) for x in register_items]
+
+        # By default, encrypt_user_param will be read from stanley's scope
+        # 1. parameters are not marked as secret
+        resp = self._do_post(LIVE_ACTION_DEFAULT_ENCRYPT)
+        self.assertEqual(resp.status_int, 201)
+        self.assertEqual(resp.json['context']['user'], 'stanley')
+        self.assertEqual(resp.json['parameters']['encrypted_param'], 'foo')
+        self.assertEqual(resp.json['parameters']['encrypted_user_param'], 'bar')
+
+        # 2. parameters are marked as secret
+        resp = self._do_post(LIVE_ACTION_DEFAULT_ENCRYPT_SECRET_PARAM)
+        self.assertEqual(resp.status_int, 201)
+        self.assertEqual(resp.json['context']['user'], 'stanley')
+        self.assertEqual(resp.json['parameters']['encrypted_param'], MASKED_ATTRIBUTE_VALUE)
+        self.assertEqual(resp.json['parameters']['encrypted_user_param'], MASKED_ATTRIBUTE_VALUE)
+
+        # After switching to the 'user1', that value will be read from switched user's scope
+        self.use_user(UserDB(name='user1'))
+
+        # 1. parameters are not marked as secret
+        resp = self._do_post(LIVE_ACTION_DEFAULT_ENCRYPT)
+        self.assertEqual(resp.status_int, 201)
+        self.assertEqual(resp.json['context']['user'], 'user1')
+        self.assertEqual(resp.json['parameters']['encrypted_param'], 'foo')
+        self.assertEqual(resp.json['parameters']['encrypted_user_param'], 'baz')
+
+        # 2. parameters are marked as secret
+        resp = self._do_post(LIVE_ACTION_DEFAULT_ENCRYPT_SECRET_PARAM)
+        self.assertEqual(resp.status_int, 201)
+        self.assertEqual(resp.json['context']['user'], 'user1')
+        self.assertEqual(resp.json['parameters']['encrypted_param'], MASKED_ATTRIBUTE_VALUE)
+        self.assertEqual(resp.json['parameters']['encrypted_user_param'], MASKED_ATTRIBUTE_VALUE)
+
+        # This switches to the 'user2', there is no value in that user's scope. When a request
+        # that tries to evaluate Jinja expression to decrypt empty value is sent, a HTTP response
+        # which has 4xx status code will be returned.
+        self.use_user(UserDB(name='user2'))
+        resp = self._do_post(LIVE_ACTION_DEFAULT_ENCRYPT, expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertEqual(resp.json['faultstring'],
+                         'Failed to render parameter "encrypted_user_param": Referenced datastore '
+                         'item "st2kv.user.secret" doesn\'t exist or it contains an empty string')
+
+        # clean-up values that are registered at first
+        for kvp in kvps:
+            KeyValuePair.delete(kvp)
+
+    def test_template_encrypted_params_without_registering(self):
+        resp = self._do_post(LIVE_ACTION_DEFAULT_ENCRYPT, expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertEqual(resp.json['faultstring'].index('Failed to render parameter'), 0)
 
     def test_re_run_workflow_success(self):
         # Create a new execution
@@ -1296,6 +1421,98 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         self.assertEqual(resp.status_int, 400)
         self.assertTrue('Invalid attribute "start_timestamp" specified.' in
                         resp.json['faultstring'])
+
+    def test_get_single_include_attributes_and_secret_parameters(self):
+        # Verify that secret parameters are correctly masked when using ?include_attributes filter
+        self._do_post(LIVE_ACTION_WITH_SECRET_PARAM)
+        exec_id = self.app.get('/v1/actionexecutions?limit=1').json[0]['id']
+
+        # FYI, the response always contains the 'id' parameter
+        urls = [
+            {
+                'url': '/v1/executions/%s?include_attributes=parameters' % (exec_id),
+                'expected_parameters': ['id', 'parameters'],
+            },
+            {
+                'url': '/v1/executions/%s?include_attributes=parameters,action' % (exec_id),
+                'expected_parameters': ['id', 'parameters', 'action'],
+            },
+            {
+                'url': '/v1/executions/%s?include_attributes=parameters,runner' % (exec_id),
+                'expected_parameters': ['id', 'parameters', 'runner'],
+            },
+            {
+                'url': '/v1/executions/%s?include_attributes=parameters,action,runner' % (exec_id),
+                'expected_parameters': ['id', 'parameters', 'action', 'runner'],
+            }
+        ]
+
+        for item in urls:
+            url = item['url']
+            resp = self.app.get(url)
+
+            self.assertTrue('parameters' in resp.json)
+            self.assertEqual(resp.json['parameters']['a'], 'param a')
+            self.assertEqual(resp.json['parameters']['d'], MASKED_ATTRIBUTE_VALUE)
+            self.assertEqual(resp.json['parameters']['password'], MASKED_ATTRIBUTE_VALUE)
+            self.assertEqual(resp.json['parameters']['hosts'], 'localhost')
+
+            # ensure that the response has only the keys we epect, no more, no less
+            resp_keys = set(resp.json.keys())
+            expected_params = set(item['expected_parameters'])
+            diff = resp_keys.symmetric_difference(expected_params)
+            self.assertEqual(diff, set())
+
+        # With ?show_secrets=True
+        urls = [
+            {
+                'url': '/v1/executions/%s?&include_attributes=parameters' % (exec_id),
+                'expected_parameters': ['id', 'parameters'],
+            },
+            {
+                'url': '/v1/executions/%s?include_attributes=parameters,action' % (exec_id),
+                'expected_parameters': ['id', 'parameters', 'action'],
+            },
+            {
+                'url': '/v1/executions/%s?include_attributes=parameters,runner' % (exec_id),
+                'expected_parameters': ['id', 'parameters', 'runner'],
+            },
+            {
+                'url': '/v1/executions/%s?include_attributes=parameters,action,runner' % (exec_id),
+                'expected_parameters': ['id', 'parameters', 'action', 'runner'],
+            },
+        ]
+
+        for item in urls:
+            url = item['url']
+            resp = self.app.get(url + '&show_secrets=True')
+
+            self.assertTrue('parameters' in resp.json)
+            self.assertEqual(resp.json['parameters']['a'], 'param a')
+            self.assertEqual(resp.json['parameters']['d'], 'secretpassword1')
+            self.assertEqual(resp.json['parameters']['password'], 'secretpassword2')
+            self.assertEqual(resp.json['parameters']['hosts'], 'localhost')
+
+            # ensure that the response has only the keys we epect, no more, no less
+            resp_keys = set(resp.json.keys())
+            expected_params = set(item['expected_parameters'])
+            diff = resp_keys.symmetric_difference(expected_params)
+            self.assertEqual(diff, set())
+
+        # NOTE: We don't allow exclusion of attributes such as "action" and "runner" because
+        # that would break secrets masking
+        urls = [
+            '/v1/executions/%s?limit=1&exclude_attributes=action',
+            '/v1/executions/%s?limit=1&exclude_attributes=runner',
+            '/v1/executions/%s?limit=1&exclude_attributes=action,runner',
+        ]
+
+        for url in urls:
+            resp = self.app.get(url, expect_errors=True)
+
+            self.assertEqual(resp.status_int, 400)
+            self.assertTrue('Invalid or unsupported exclude attribute specified:' in
+                            resp.json['faultstring'])
 
     def _insert_mock_models(self):
         execution_1_id = self._get_actionexecution_id(self._do_post(LIVE_ACTION_1))

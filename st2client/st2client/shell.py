@@ -58,6 +58,7 @@ from st2client.commands import rule
 from st2client.commands import rule_enforcement
 from st2client.commands import rbac
 from st2client.commands import workflow
+from st2client.commands import service_registry
 from st2client.config import set_config
 from st2client.exceptions.operations import OperationFailureException
 from st2client.utils.logging import LogLevelFilter, set_log_level_for_all_loggers
@@ -336,6 +337,11 @@ class Shell(BaseCLIApp):
         self.commands['workflow'] = workflow.WorkflowBranch(
             'Commands for workflow authoring related operations. '
             'Only orquesta workflows are supported.',
+            self, self.subparsers)
+
+        # Service Registry
+        self.commands['service-registry'] = service_registry.ServiceRegistryBranch(
+            'Service registry group and membership related commands.',
             self, self.subparsers)
 
         # RBAC

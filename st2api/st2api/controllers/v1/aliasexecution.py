@@ -13,11 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import six
 import jsonschema
 from jinja2.exceptions import UndefinedError
 from oslo_config import cfg
-
-import six
 
 from st2api.controllers.base import BaseRestControllerMixin
 from st2common import log as logging
@@ -39,7 +38,7 @@ from st2common.util import reference
 from st2common.util.actionalias_matching import get_matching_alias
 from st2common.util.jinja import render_values as render
 from st2common.rbac.types import PermissionType
-from st2common.rbac.utils import assert_user_has_resource_db_permission
+from st2common.rbac.backends import get_rbac_backend
 from st2common.router import abort
 from st2common.router import Response
 
@@ -78,7 +77,7 @@ class ActionAliasExecutionController(BaseRestControllerMixin):
             'format': representation,
             'command': command,
             'user': input_api.user,
-            'source_channel': input_api.source_channel
+            'source_channel': input_api.source_channel,
         }
 
         # Add in any additional parameters provided by the user
@@ -145,7 +144,6 @@ class ActionAliasExecutionController(BaseRestControllerMixin):
             'action_alias_ref': reference.get_ref_from_model(action_alias_db),
             'api_user': payload.user,
             'user': requester_user.name,
-            'source_channel': payload.source_channel
         }
 
         results = []
@@ -206,7 +204,8 @@ class ActionAliasExecutionController(BaseRestControllerMixin):
         on_complete.routes = [route]
         on_complete.data = {
             'user': payload.user,
-            'source_channel': payload.source_channel
+            'source_channel': payload.source_channel,
+            'source_context': getattr(payload, 'source_context', None),
         }
         notify = NotificationSchema()
         notify.on_complete = on_complete
@@ -220,8 +219,11 @@ class ActionAliasExecutionController(BaseRestControllerMixin):
         if not action_db:
             raise StackStormDBObjectNotFoundError('Action with ref "%s" not found ' % (action_ref))
 
-        assert_user_has_resource_db_permission(user_db=requester_user, resource_db=action_db,
-                                               permission_type=PermissionType.ACTION_EXECUTE)
+        rbac_utils = get_rbac_backend().get_utils_class()
+        permission_type = PermissionType.ACTION_EXECUTE
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=action_db,
+                                                          permission_type=permission_type)
 
         try:
             # prior to shipping off the params cast them to the right type.

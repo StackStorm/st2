@@ -16,13 +16,16 @@
       default: 22
     username:
       description: "Username used to authenticate."
+      type: "string"
       required: true
       default: "stanley"
     password:
       description: "Password used to authenticate."
+      type: "string"
       required: false
     keyfile:
       description: "SSH key file used to authenticate."
+      type: "string"
       required: false
     ssh_timeout:
       description: "SSH connection connect timeout (in seconds)."
@@ -40,3 +43,4 @@
       # Note: timeout needs to be >= ((ssh_timeout + sleep_delay) * retries) so we override a
       # default Python runner action timeout with a larger value
       default: 400
+      type: "integer"

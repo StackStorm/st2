@@ -29,8 +29,8 @@ class SynchronizationTest(unittest2.TestCase):
     @classmethod
     def setUpClass(cls):
         super(SynchronizationTest, cls).setUpClass()
-        tests_config.parse_args()
-        cls.coordinator = coordination.get_coordinator()
+        tests_config.parse_args(coordinator_noop=False)
+        cls.coordinator = coordination.get_coordinator(use_cache=False)
 
     @classmethod
     def tearDownClass(cls):

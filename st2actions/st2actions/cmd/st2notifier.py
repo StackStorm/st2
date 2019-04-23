@@ -19,8 +19,12 @@ LOG = logging.getLogger(__name__)
 
 
 def _setup():
+    capabilities = {
+        'name': 'notifier',
+        'type': 'passive'
+    }
     common_setup(service='notifier', config=config, setup_db=True, register_mq_exchanges=True,
-                 register_signal_handlers=True)
+                 register_signal_handlers=True, service_registry=True, capabilities=capabilities)
 
 
 def _run_worker():
