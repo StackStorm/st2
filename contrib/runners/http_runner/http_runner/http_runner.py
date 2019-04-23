@@ -211,6 +211,10 @@ class HTTPClient(object):
             if self.username or self.password:
                 self.auth = HTTPBasicAuth(self.username, self.password)
 
+            # Ensure data is bytes since that what request expects
+            if isinstance(data, six.text_type):
+                data = data.encode('utf-8')
+
             resp = requests.request(
                 self.method,
                 self.url,
