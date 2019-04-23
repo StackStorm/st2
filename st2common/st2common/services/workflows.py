@@ -568,6 +568,9 @@ def request_action_execution(wf_ex_db, task_ex_db, st2_ctx, ac_ex_req, delay=Non
     if st2_ctx.get('api_user'):
         ac_ex_ctx['api_user'] = st2_ctx.get('api_user')
 
+    if st2_ctx.get('source_channel'):
+        ac_ex_ctx['source_channel'] = st2_ctx.get('source_channel')
+
     if item_id is not None:
         ac_ex_ctx['orquesta']['item_id'] = item_id
 
@@ -920,6 +923,9 @@ def request_next_tasks(wf_ex_db, task_ex_id=None):
                 }
                 if root_st2_ctx.get('api_user'):
                     st2_ctx['api_user'] = root_st2_ctx.get('api_user')
+
+                if root_st2_ctx.get('source_channel'):
+                    st2_ctx['source_channel'] = root_st2_ctx.get('source_channel')
 
                 # Request the task execution.
                 request_task_execution(wf_ex_db, st2_ctx, task)

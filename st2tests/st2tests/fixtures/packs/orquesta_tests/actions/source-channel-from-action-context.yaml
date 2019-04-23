@@ -1,0 +1,12 @@
+---
+name: source-channel-from-action-context
+description: Test getting source_channel from context if provided
+pack: orquesta_tests
+runner_type: orquesta
+entry_point: workflows/sequential.yaml
+enabled: true
+parameters:
+  who:
+    required: true
+    type: string
+    default: "{{ 'source_channel' in action_context and action_context.source_channel or 'no_channel' }}"

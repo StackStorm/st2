@@ -77,6 +77,9 @@ class OrquestaRunner(runners.AsyncActionRunner):
         if self.execution.context.get('api_user'):
             st2_ctx['st2']['api_user'] = self.execution.context.get('api_user')
 
+        if self.execution.context.get('source_channel'):
+            st2_ctx['st2']['source_channel'] = self.execution.context.get('source_channel')
+
         if self.execution.context:
             st2_ctx['parent'] = self.execution.context
 
