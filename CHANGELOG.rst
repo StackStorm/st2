@@ -85,7 +85,7 @@ Changed
 
   Contributed by Nick Maludy (Encore Technologies)
 * Update various internal dependencies to latest stable versions (apscheduler, pyyaml, kombu,
-  mongoengine, pytz, stevedore, sseclient, python-editor). #4610
+  mongoengine, pytz, stevedore, sseclient, python-editor, Jinja2). #4610
 * Update logging code so we exclude log messages with log level ``AUDIT`` from a default service
   log file (e.g. ``st2api.log``). Log messages with level ``AUDIT`` are already logged in a
   dedicated service audit log file (e.g. ``st2api.audit.log``) so there is no need for them to also
