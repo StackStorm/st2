@@ -130,6 +130,10 @@ Fixed
 * Fix a bug with user-scoped datastore values not working inside action-chain workflows. (bug fix)
   #4634
 * Added missing parameter types to ``linux.wait_for_ssh`` action metadata. (bug fix) #4611
+* Fix HTTP runner (``http-request``) so it works correctly with unicode (non-ascii) body payloads.
+  (bug fix) #4601 #4599
+
+  Reported by Carlos Santana (@kknyxkk) and Rafael Martins (@rsmartins78).
 
 2.10.4 - March 15, 2019
 -----------------------
