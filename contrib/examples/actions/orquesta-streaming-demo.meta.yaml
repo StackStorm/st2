@@ -1,0 +1,15 @@
+---
+name: "orquesta-streaming-demo"
+description: "Action output streaming functionality demo for Orquesta workflows."
+runner_type: "orquesta"
+entry_point: "workflows/orquesta-streaming-demo.yaml"
+enabled: true
+parameters:
+  count:
+    type: "integer"
+    required: true
+    default: 5
+  sleep_delay:
+    type: "number"
+    required: true
+    default: 0.2
