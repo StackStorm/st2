@@ -15,6 +15,7 @@
 
 import os
 import os.path
+import stat
 import errno
 
 import six
@@ -262,7 +263,18 @@ class ActionsController(resource.ContentPackResourceController):
                                                         file_path=file_path)
 
             LOG.debug('Writing data file "%s" to "%s"' % (str(data_file), file_path))
-            self._write_data_file(pack_ref=pack_ref, file_path=file_path, content=content)
+
+            try:
+                self._write_data_file(pack_ref=pack_ref, file_path=file_path, content=content)
+            except (OSError, IOError) as e:
+                # Throw a more user-friendly exception on Permission denied error
+                if e.errno == errno.EACCES:
+                    msg = ('Unable to write data to "%s" (permission denied). Make sure '
+                           'permissions for that pack directory are configured correctly so '
+                           'st2api can write to it.' % (file_path))
+                    raise ValueError(msg)
+                raise e
+
             written_file_paths.append(file_path)
 
         return written_file_paths
@@ -302,18 +314,8 @@ class ActionsController(resource.ContentPackResourceController):
             mode = stat.S_IRWXU | stat.S_IRWXG | stat.S_IROTH | stat.S_IXOTH
             os.makedirs(directory, mode)
 
-        try:
-            with open(file_path, 'w') as fp:
-                fp.write(content)
-        except IOError as e:
-            # Throw a more user-friendly exception on Permission denied error
-            if e.errno == errno.EACCES:
-                msg = ('Unable to write to pack directory "%s" (permission denied). Make sure '
-                       'permissions for that directory are configured correctly so st2api can '
-                       'write to it.' % (directory))
-                raise ValueError(msg)
-
-            raise e
+        with open(file_path, 'w') as fp:
+            fp.write(content)
 
     def _dispatch_trigger_for_written_data_files(self, action_db, written_data_files):
         trigger = ACTION_FILE_WRITTEN_TRIGGER['name']
