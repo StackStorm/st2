@@ -1,11 +1,7 @@
 Changelog
 =========
 
-in development
---------------
-
-
-3.0.0 - April 18, 2019
+3.0.0 - April 26, 2019
 ----------------------
 
 Added
@@ -85,7 +81,7 @@ Changed
 
   Contributed by Nick Maludy (Encore Technologies)
 * Update various internal dependencies to latest stable versions (apscheduler, pyyaml, kombu,
-  mongoengine, pytz, stevedore, sseclient, python-editor). #4610
+  mongoengine, pytz, stevedore, python-editor, jinja2). #4637
 * Update logging code so we exclude log messages with log level ``AUDIT`` from a default service
   log file (e.g. ``st2api.log``). Log messages with level ``AUDIT`` are already logged in a
   dedicated service audit log file (e.g. ``st2api.audit.log``) so there is no need for them to also
@@ -130,6 +126,10 @@ Fixed
 * Fix a bug with user-scoped datastore values not working inside action-chain workflows. (bug fix)
   #4634
 * Added missing parameter types to ``linux.wait_for_ssh`` action metadata. (bug fix) #4611
+* Fix HTTP runner (``http-request``) so it works correctly with unicode (non-ascii) body payloads.
+  (bug fix) #4601 #4599
+
+  Reported by Carlos Santana (@kknyxkk) and Rafael Martins (@rsmartins78).
 
 2.10.4 - March 15, 2019
 -----------------------
