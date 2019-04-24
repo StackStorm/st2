@@ -107,6 +107,7 @@ fi
 
 echo "Copying asserts, fixtures, tests and examples packs."
 chown -R root:st2packs st2tests/packs/
+chmod -R 775 st2tests/packs/*
 cp -R --preserve st2tests/packs/* /opt/stackstorm/packs/
 cp -Rf --preserve /usr/share/doc/st2/examples /opt/stackstorm/packs/
 
