@@ -297,7 +297,10 @@ class ActionsController(resource.ContentPackResourceController):
         directory = os.path.dirname(file_path)
 
         if not os.path.isdir(directory):
-            os.makedirs(directory)
+            # NOTE: We apply same permission bits as we do on pack install. If we don't do that,
+            # st2api won't be able to write to pack sub-directory
+            mode = stat.S_IRWXU | stat.S_IRWXG | stat.S_IROTH | stat.S_IXOTH
+            os.makedirs(directory, mode)
 
         try:
             with open(file_path, 'w') as fp:
