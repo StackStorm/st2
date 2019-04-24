@@ -101,6 +101,7 @@ Changed
 * Update ``decrypt_kv`` Jinja template filter so it to throws a more user-friendly error message
   when decryption fails because the variable references a datastore value which doesn't exist.
   (improvement) #4634
+* Updated orquesta to v0.5. (improvement)
 
 Fixed
 ~~~~~
