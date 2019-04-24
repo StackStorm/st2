@@ -15,6 +15,7 @@
 
 import os
 import os.path
+import errno
 
 import six
 from mongoengine import ValidationError
@@ -298,8 +299,18 @@ class ActionsController(resource.ContentPackResourceController):
         if not os.path.isdir(directory):
             os.makedirs(directory)
 
-        with open(file_path, 'w') as fp:
-            fp.write(content)
+        try:
+            with open(file_path, 'w') as fp:
+                fp.write(content)
+        except IOError as e:
+            # Throw a more user-friendly exception on Permission denied error
+            if e.errno == errno.EACCES:
+                msg = ('Unable to write to pack directory "%s" (permission denied). Make sure '
+                       'permissions for that directory are configured correctly so st2api can '
+                       'write to it.' % (directory))
+                raise ValueError(msg)
+
+            raise e
 
     def _dispatch_trigger_for_written_data_files(self, action_db, written_data_files):
         trigger = ACTION_FILE_WRITTEN_TRIGGER['name']
