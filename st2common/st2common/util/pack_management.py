@@ -290,7 +290,7 @@ def apply_pack_owner_group(pack_path):
 
 def apply_pack_permissions(pack_path):
     """
-    Recursively apply permission 770 to pack and its contents.
+    Recursively apply permission 775 to pack and its contents.
     """
     # These mask is same as mode = 775
     mode = stat.S_IRWXU | stat.S_IRWXG | stat.S_IROTH | stat.S_IXOTH
