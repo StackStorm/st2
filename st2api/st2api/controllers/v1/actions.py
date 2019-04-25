@@ -15,6 +15,8 @@
 
 import os
 import os.path
+import stat
+import errno
 
 import six
 from mongoengine import ValidationError
@@ -261,7 +263,18 @@ class ActionsController(resource.ContentPackResourceController):
                                                         file_path=file_path)
 
             LOG.debug('Writing data file "%s" to "%s"' % (str(data_file), file_path))
-            self._write_data_file(pack_ref=pack_ref, file_path=file_path, content=content)
+
+            try:
+                self._write_data_file(pack_ref=pack_ref, file_path=file_path, content=content)
+            except (OSError, IOError) as e:
+                # Throw a more user-friendly exception on Permission denied error
+                if e.errno == errno.EACCES:
+                    msg = ('Unable to write data to "%s" (permission denied). Make sure '
+                           'permissions for that pack directory are configured correctly so '
+                           'st2api can write to it.' % (file_path))
+                    raise ValueError(msg)
+                raise e
+
             written_file_paths.append(file_path)
 
         return written_file_paths
@@ -296,7 +309,10 @@ class ActionsController(resource.ContentPackResourceController):
         directory = os.path.dirname(file_path)
 
         if not os.path.isdir(directory):
-            os.makedirs(directory)
+            # NOTE: We apply same permission bits as we do on pack install. If we don't do that,
+            # st2api won't be able to write to pack sub-directory
+            mode = stat.S_IRWXU | stat.S_IRWXG | stat.S_IROTH | stat.S_IXOTH
+            os.makedirs(directory, mode)
 
         with open(file_path, 'w') as fp:
             fp.write(content)
