@@ -1297,8 +1297,11 @@ def identify_orphaned_workflows():
 
 
 @retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
-def request_rerun(wf_ex_id, ac_ex_id, st2_ctx, rerun_options):
+def request_rerun(ac_ex_db, st2_ctx, options):
+    ac_ex_id = str(ac_ex_db.id)
     LOG.info('[%s] Processing rerun request for workflow.', ac_ex_id)
+
+    wf_ex_id = st2_ctx['workflow_execution_id']
     wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
 
     if not wf_ex_db:
@@ -1321,15 +1324,15 @@ def request_rerun(wf_ex_id, ac_ex_id, st2_ctx, rerun_options):
     wf_ex_db.context['parent'] = st2_ctx['parent']
 
     conductor = deserialize_conductor(wf_ex_db)
-    conductor.request_workflow_rerun(rerun_options)
+    conductor.request_workflow_rerun(options)
     data = conductor.serialize()
     status = data['state']['status']
 
     if status in statuses.COMPLETED_STATUSES:
         raise wf_exc.WorkflowExecutionIsCompletedException(str(wf_ex_db.id))
 
-    if status != statuses.RUNNING:
-        msg = '[%s] Workflow execution "%s" is not reran because it is not running.'
+    if status != statuses.RESUMING:
+        msg = '[%s] Workflow execution "%s" is not reran because it is not running status.'
         LOG.info(msg, ac_ex_id, str(wf_ex_db.id))
         return
 
@@ -1338,8 +1341,10 @@ def request_rerun(wf_ex_id, ac_ex_id, st2_ctx, rerun_options):
     wf_ex_db.graph = data['graph']
     wf_ex_db.state = data['state']
 
-    wf_ex_db = wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
+    wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
+    wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(str(wf_ex_db.id))
 
-    request_next_tasks(wf_ex_db)
+    # Publish status change.
+    wf_db_access.WorkflowExecution.publish_status(wf_ex_db)
 
     return wf_ex_db

@@ -30,7 +30,6 @@ from st2common.exceptions import workflow as wf_svc_exc
 from st2common.models.api import notification as notify_api_models
 from st2common.persistence import execution as ex_db_access
 from st2common.persistence import liveaction as lv_db_access
-from st2common.persistence import workflow as wf_db_access
 from st2common.runners import base as runners
 from st2common.services import action as ac_svc
 from st2common.services import workflows as wf_svc
@@ -91,13 +90,33 @@ class OrquestaRunner(runners.AsyncActionRunner):
     def _get_rerun_options(self):
         return self.context.get('re-run', {})
 
+    def handle_workflow_return_value(self, wf_ex_db):
+        if wf_ex_db.status in wf_statuses.COMPLETED_STATUSES:
+            status = wf_ex_db.status
+            result = {'output': wf_ex_db.output or None}
+
+            if wf_ex_db.status in wf_statuses.ABENDED_STATUSES:
+                result['errors'] = wf_ex_db.errors
+
+            for wf_ex_error in wf_ex_db.errors:
+                msg = '[%s] Workflow execution completed with errors.'
+                LOG.error(msg, str(self.execution.id), extra=wf_ex_error)
+
+            return (status, result, self.context)
+
+        # Set return values.
+        status = ac_const.LIVEACTION_STATUS_RUNNING
+        partial_results = {}
+        ctx = self._construct_context(wf_ex_db)
+
+        return (status, partial_results, ctx)
+
     def run(self, action_parameters):
         rerun_options = self._get_rerun_options()
         tasks = rerun_options.get('tasks', None)
-        rerun = self.rerun_ex_ref and tasks
 
-        if rerun:
-            result = self.rerun_workflow(ex_ref=self.rerun_ex_ref, rerun_options=tasks)
+        if self.rerun_ex_ref and tasks:
+            result = self.rerun_workflow(ex_ref=self.rerun_ex_ref, options=rerun_options)
         else:
             result = self.start_workflow(action_parameters=action_parameters)
 
@@ -121,60 +140,23 @@ class OrquestaRunner(runners.AsyncActionRunner):
             result = {'errors': [{'message': six.text_type(e)}], 'output': None}
             return (status, result, self.context)
 
-        if wf_ex_db.status in wf_statuses.COMPLETED_STATUSES:
-            status = wf_ex_db.status
-            result = {'output': wf_ex_db.output or None}
+        return self.handle_workflow_return_value(wf_ex_db)
 
-            if wf_ex_db.status in wf_statuses.ABENDED_STATUSES:
-                result['errors'] = wf_ex_db.errors
-
-            for wf_ex_error in wf_ex_db.errors:
-                msg = '[%s] Workflow execution completed with errors.'
-                LOG.error(msg, str(self.execution.id), extra=wf_ex_error)
-
-            return (status, result, self.context)
-
-        # Set return values.
-        status = ac_const.LIVEACTION_STATUS_RUNNING
-        partial_results = {}
-        ctx = self._construct_context(wf_ex_db)
-
-        return (status, partial_results, ctx)
-
-    def rerun_workflow(self, ex_ref, rerun_options):
+    def rerun_workflow(self, ex_ref, options):
         wf_ex_id = ex_ref.context['workflow_execution']
 
         if not wf_ex_id:
             raise Exception('Unable to rerun because Orquesta workflow execution_id is missing.')
 
-        if ex_ref.status != ac_const.LIVEACTION_STATUS_FAILED:
+        if ex_ref.status not in ac_const.LIVEACTION_FAILED_STATES:
             raise Exception('Workflow execution is not in a rerunable state.')
 
         # Re-run workflow
         st2_ctx = self._construct_st2_context()
         st2_ctx['workflow_execution_id'] = wf_ex_id
-        wf_svc.request_rerun(wf_ex_id, str(self.execution.id), st2_ctx, rerun_options)
+        wf_ex_db = wf_svc.request_rerun(self.execution, st2_ctx, options)
 
-        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
-        if wf_ex_db.status in wf_statuses.COMPLETED_STATUSES:
-            status = wf_ex_db.status
-            result = {'output': wf_ex_db.output or None}
-
-            if wf_ex_db.status in wf_statuses.ABENDED_STATUSES:
-                result['errors'] = wf_ex_db.errors
-
-            for wf_ex_error in wf_ex_db.errors:
-                msg = '[%s] Workflow execution completed with errors.'
-                LOG.error(msg, str(self.execution.id), extra=wf_ex_error)
-
-            return (status, result, self.context)
-
-        # Set return values.
-        status = ac_const.LIVEACTION_STATUS_RUNNING
-        partial_results = {}
-        ctx = self._construct_context(wf_ex_db)
-
-        return (status, partial_results, ctx)
+        return self.handle_workflow_return_value(wf_ex_db)
 
     @staticmethod
     def task_pauseable(ac_ex):
