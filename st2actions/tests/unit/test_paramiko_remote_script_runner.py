@@ -107,7 +107,7 @@ class ParamikoScriptRunnerTestCase(unittest2.TestCase):
         self.assertEqual(result['succeeded'], False)
         self.assertTrue('Failed copying content to remote boxes' in result['error'])
 
-    def test_correct_default_parameter_values_are_used(self):
+    def test_command_construction_correct_default_parameter_values_are_used(self):
         runner_parameters = {}
         action_db_parameters = {
             'project': {
