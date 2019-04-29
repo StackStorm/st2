@@ -33,9 +33,6 @@ from st2common.util import date as date_utils
 from st2common.util import param as param_utils
 from st2common.util.config_loader import get_config
 
-from st2common.models.system.action import ShellScriptAction
-from local_runner.local_shell_script_runner import LocalShellScriptRunner
-
 from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
 
@@ -911,12 +908,6 @@ class ParamsUtilsTest(DbTestCase):
         }
         context = {}
 
-        action_db = ActionDB(pack='dummy', name='action')
-
-        runner = LocalShellScriptRunner('id')
-        runner.runner_parameters = {}
-        runner.action = action_db
-
         # 1. All default values used
         live_action_db_parameters = {
             'project': 'st2flow',
@@ -939,19 +930,6 @@ class ParamsUtilsTest(DbTestCase):
             'update_changelog': False,  # default value used
             'local_repo': '/tmp/repo'
         })
-
-        action_db.parameters = action_db_parameters
-        positional_args, named_args = runner._get_script_args(action_params)
-        named_args = runner._transform_named_args(named_args)
-
-        shell_script_action = ShellScriptAction(name='dummy', action_exec_id='dummy',
-                                                script_local_path_abs='/tmp/local.sh',
-                                                named_args=named_args,
-                                                positional_args=positional_args)
-        command_string = shell_script_action.get_full_command_string()
-
-        expected = '/tmp/local.sh st2flow 3.0.0 StackStorm master 0 0 /tmp/repo'
-        self.assertEqual(command_string, expected)
 
         # 2. Some default values used
         live_action_db_parameters = {
@@ -977,19 +955,6 @@ class ParamsUtilsTest(DbTestCase):
             'local_repo': '/tmp/repob'
         })
 
-        action_db.parameters = action_db_parameters
-        positional_args, named_args = runner._get_script_args(action_params)
-        named_args = runner._transform_named_args(named_args)
-
-        shell_script_action = ShellScriptAction(name='dummy', action_exec_id='dummy',
-                                                script_local_path_abs='/tmp/local.sh',
-                                                named_args=named_args,
-                                                positional_args=positional_args)
-        command_string = shell_script_action.get_full_command_string()
-
-        expected = '/tmp/local.sh st2web 3.1.0 StackStorm1 master 0 1 /tmp/repob'
-        self.assertEqual(command_string, expected)
-
         # 3. None is specified for a boolean parameter, should use a default
         live_action_db_parameters = {
             'project': 'st2rbac',
@@ -1013,15 +978,3 @@ class ParamsUtilsTest(DbTestCase):
             'update_changelog': False,  # default value used
             'local_repo': '/tmp/repoc'
         })
-
-        action_db.parameters = action_db_parameters
-        positional_args, named_args = runner._get_script_args(action_params)
-        named_args = runner._transform_named_args(named_args)
-
-        shell_script_action = ShellScriptAction(name='dummy', action_exec_id='dummy',
-                                                script_local_path_abs='/tmp/local.sh',
-                                                named_args=named_args,
-                                                positional_args=positional_args)
-        command_string = shell_script_action.get_full_command_string()
-
-        expected = '/tmp/local.sh st2rbac 3.2.0 StackStorm2 master 0 0 /tmp/repoc'

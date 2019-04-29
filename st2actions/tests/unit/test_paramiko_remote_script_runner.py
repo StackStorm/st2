@@ -24,10 +24,12 @@ import st2tests.config as tests_config
 tests_config.parse_args()
 
 from st2common.util import jsonify
+from st2common.models.db.action import ActionDB
 from st2common.runners.parallel_ssh import ParallelSSHClient
 from st2common.exceptions.ssh import NoHostsConnectedToException
 from st2common.models.system.paramiko_script_action import ParamikoRemoteScriptAction
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
+from st2common.util import param as param_utils
 
 from remote_runner.remote_script_runner import ParamikoRemoteScriptRunner
 
@@ -104,3 +106,171 @@ class ParamikoScriptRunnerTestCase(unittest2.TestCase):
         self.assertEqual(result['failed'], True)
         self.assertEqual(result['succeeded'], False)
         self.assertTrue('Failed copying content to remote boxes' in result['error'])
+
+    def test_correct_default_parameter_values_are_used(self):
+        runner_parameters = {}
+        action_db_parameters = {
+            'project': {
+                'type': 'string',
+                'default': 'st2',
+                'position': 0,
+            },
+            'version': {
+                'type': 'string',
+                'position': 1,
+                'required': True
+            },
+            'fork': {
+                'type': 'string',
+                'position': 2,
+                'default': 'StackStorm',
+            },
+            'branch': {
+                'type': 'string',
+                'position': 3,
+                'default': 'master',
+            },
+            'update_mistral': {
+                'type': 'boolean',
+                'position': 4,
+                'default': False
+            },
+            'update_changelog': {
+                'type': 'boolean',
+                'position': 5,
+                'default': False
+            },
+            'local_repo': {
+                'type': 'string',
+                'position': 6,
+            }
+        }
+        context = {}
+
+        action_db = ActionDB(pack='dummy', name='action')
+
+        runner = ParamikoRemoteScriptRunner('id')
+        runner.runner_parameters = {}
+        runner.action = action_db
+
+        # 1. All default values used
+        live_action_db_parameters = {
+            'project': 'st2flow',
+            'version': '3.0.0',
+            'fork': 'StackStorm',
+            'local_repo': '/tmp/repo'
+        }
+
+        runner_params, action_params = param_utils.render_final_params(runner_parameters,
+                                                action_db_parameters,
+                                                live_action_db_parameters,
+                                                context)
+
+        self.assertDictEqual(action_params, {
+            'project': 'st2flow',
+            'version': '3.0.0',
+            'fork': 'StackStorm',
+            'branch': 'master',  # default value used
+            'update_mistral': False,  # default value used
+            'update_changelog': False,  # default value used
+            'local_repo': '/tmp/repo'
+        })
+
+        action_db.parameters = action_db_parameters
+        positional_args, named_args = runner._get_script_args(action_params)
+        named_args = runner._transform_named_args(named_args)
+
+        remote_action = ParamikoRemoteScriptAction(
+            'foo-script', 'id',
+            script_local_path_abs='/tmp/script.sh',
+            script_local_libs_path_abs=None,
+            named_args=named_args, positional_args=positional_args, env_vars={},
+            on_behalf_user='svetlana', user='stanley',
+            remote_dir='/tmp', hosts=['127.0.0.1'], cwd='/test/cwd/'
+        )
+
+        command_string = remote_action.get_full_command_string()
+        expected = 'cd /test/cwd/ && /tmp/script.sh st2flow 3.0.0 StackStorm master 0 0 /tmp/repo'
+        self.assertEqual(command_string, expected)
+
+        # 2. Some default values used
+        live_action_db_parameters = {
+            'project': 'st2web',
+            'version': '3.1.0',
+            'fork': 'StackStorm1',
+            'update_changelog': True,
+            'local_repo': '/tmp/repob'
+        }
+
+        runner_params, action_params = param_utils.render_final_params(runner_parameters,
+                                                action_db_parameters,
+                                                live_action_db_parameters,
+                                                context)
+
+        self.assertDictEqual(action_params, {
+            'project': 'st2web',
+            'version': '3.1.0',
+            'fork': 'StackStorm1',
+            'branch': 'master',  # default value used
+            'update_mistral': False,  # default value used
+            'update_changelog': True,  # default value used
+            'local_repo': '/tmp/repob'
+        })
+
+        action_db.parameters = action_db_parameters
+        positional_args, named_args = runner._get_script_args(action_params)
+        named_args = runner._transform_named_args(named_args)
+
+        remote_action = ParamikoRemoteScriptAction(
+            'foo-script', 'id',
+            script_local_path_abs='/tmp/script.sh',
+            script_local_libs_path_abs=None,
+            named_args=named_args, positional_args=positional_args, env_vars={},
+            on_behalf_user='svetlana', user='stanley',
+            remote_dir='/tmp', hosts=['127.0.0.1'], cwd='/test/cwd/'
+        )
+
+        command_string = remote_action.get_full_command_string()
+        expected = 'cd /test/cwd/ && /tmp/script.sh st2web 3.1.0 StackStorm1 master 0 1 /tmp/repob'
+        self.assertEqual(command_string, expected)
+
+        # 3. None is specified for a boolean parameter, should use a default
+        live_action_db_parameters = {
+            'project': 'st2rbac',
+            'version': '3.2.0',
+            'fork': 'StackStorm2',
+            'update_changelog': None,
+            'local_repo': '/tmp/repoc'
+        }
+
+        runner_params, action_params = param_utils.render_final_params(runner_parameters,
+                                                action_db_parameters,
+                                                live_action_db_parameters,
+                                                context)
+
+        self.assertDictEqual(action_params, {
+            'project': 'st2rbac',
+            'version': '3.2.0',
+            'fork': 'StackStorm2',
+            'branch': 'master',  # default value used
+            'update_mistral': False,  # default value used
+            'update_changelog': False,  # default value used
+            'local_repo': '/tmp/repoc'
+        })
+
+        action_db.parameters = action_db_parameters
+        positional_args, named_args = runner._get_script_args(action_params)
+        named_args = runner._transform_named_args(named_args)
+
+        remote_action = ParamikoRemoteScriptAction(
+            'foo-script', 'id',
+            script_local_path_abs='/tmp/script.sh',
+            script_local_libs_path_abs=None,
+            named_args=named_args, positional_args=positional_args, env_vars={},
+            on_behalf_user='svetlana', user='stanley',
+            remote_dir='/tmp', hosts=['127.0.0.1'], cwd='/test/cwd/'
+        )
+
+        command_string = remote_action.get_full_command_string()
+        expected = 'cd /test/cwd/ && /tmp/script.sh st2rbac 3.2.0 StackStorm2 master 0 0 /tmp/repoc'
+        self.assertEqual(command_string, expected)
