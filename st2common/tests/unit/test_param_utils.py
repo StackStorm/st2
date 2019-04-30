@@ -23,7 +23,6 @@ from oslo_config import cfg
 from st2common.constants.keyvalue import FULL_USER_SCOPE
 from st2common.exceptions.param import ParamException
 from st2common.models.system.common import ResourceReference
-from st2common.models.db.action import ActionDB
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.keyvalue import KeyValuePairDB
 from st2common.models.utils import action_param_utils
