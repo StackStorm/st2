@@ -135,6 +135,10 @@ Fixed
   (bug fix) #4601 #4599
 
   Reported by Carlos Santana (@kknyxkk) and Rafael Martins (@rsmartins78).
+* Fix ``st2-self-check`` so it sets correct permissions on pack directories which it copies over
+  to ``/opt/stackstorm/packs``. (bug fix) #4645
+* Fix ``POST /v1/actions`` API endpoint to throw a more user-friendly error when writing data file
+  to disk fails because of incorrect permissions. (bug fix) #4645
 
 2.10.4 - March 15, 2019
 -----------------------
