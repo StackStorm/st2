@@ -40,7 +40,7 @@ class RerunWiringTest(base.TestWorkflowExecution):
             else:
                 os.remove(self.temp_dir_path)
 
-    def test_rerun(self):
+    def test_rerun_workflow(self):
         path = self.temp_dir_path
 
         with open(path, 'w') as f:
@@ -58,8 +58,7 @@ class RerunWiringTest(base.TestWorkflowExecution):
         ex = self.st2client.executions.re_run(orig_st2_ex_id)
         self.assertNotEqual(ex.id, orig_st2_ex_id)
         ex = self._wait_for_state(ex, action_constants.LIVEACTION_STATUS_SUCCEEDED)
-        self.assertNotEqual(ex.context['workflow_execution'],
-                            orig_wf_ex_id)
+        self.assertNotEqual(ex.context['workflow_execution'], orig_wf_ex_id)
 
     def test_rerun_task(self):
         path = self.temp_dir_path
@@ -79,5 +78,4 @@ class RerunWiringTest(base.TestWorkflowExecution):
         ex = self.st2client.executions.re_run(orig_st2_ex_id, tasks=['task1'])
         self.assertNotEqual(ex.id, orig_st2_ex_id)
         ex = self._wait_for_state(ex, action_constants.LIVEACTION_STATUS_SUCCEEDED)
-        self.assertEqual(ex.context['workflow_execution'],
-                         orig_wf_ex_id)
+        self.assertEqual(ex.context['workflow_execution'], orig_wf_ex_id)

@@ -29,6 +29,7 @@ from oslo_config import cfg
 
 from st2common.constants import action as ac_const
 from st2common.exceptions import action as ac_exc
+from st2common.exceptions import db as db_exc
 from st2common.exceptions import workflow as wf_exc
 from st2common import log as logging
 from st2common.models.api import notification as notify_api_models
@@ -1302,20 +1303,16 @@ def request_rerun(ac_ex_db, st2_ctx, options):
     LOG.info('[%s] Processing rerun request for workflow.', ac_ex_id)
 
     wf_ex_id = st2_ctx['workflow_execution_id']
-    wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
-
-    if not wf_ex_db:
-        raise wf_exc.WorkflowExecutionNotFoundException(ac_ex_id)
+    try:
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
+    except db_exc.StackStormDBObjectNotFoundError:
+        msg = '[{0}] Unable to find workflow execution db with id "{1}"'.format(ac_ex_id, wf_ex_id)
+        raise wf_exc.WorkflowExecutionRerunException(msg)
 
     if wf_ex_db.status != statuses.FAILED:
-        msg = '[%s] Workflow execution "%s" is not rerunable because its status is not "%s".'
-        LOG.info(msg, ac_ex_id, wf_ex_id, statuses.FAILED)
-        return
-
-    if wf_ex_db.status in statuses.RUNNING_STATUSES:
-        msg = '[%s] Workflow execution "%s" is not rerunable because it is already active.'
-        LOG.info(msg, ac_ex_id, ac_ex_id)
-        return
+        msg = '[{0}] Workflow execution "{1}" is not rerunable because its status is not "failed"'.\
+            format(ac_ex_id, wf_ex_id)
+        raise wf_exc.WorkflowExecutionRerunException(msg)
 
     wf_ex_db.result = {}
     wf_ex_db.error = {}
@@ -1324,19 +1321,21 @@ def request_rerun(ac_ex_db, st2_ctx, options):
     wf_ex_db.context['parent'] = st2_ctx['parent']
 
     conductor = deserialize_conductor(wf_ex_db)
-    conductor.request_workflow_rerun(options)
-    data = conductor.serialize()
-    status = data['state']['status']
+    try:
+        conductor.request_workflow_rerun(options)
+    except orquesta_exc.WorkflowInvalidRerunStatus as e:
+        raise wf_exc.WorkflowExecutionRerunException(e.args[0])
+    except orquesta_exc.InvalidTask as e:
+        raise wf_exc.WorkflowExecutionRerunException(e.args[0])
 
-    if status in statuses.COMPLETED_STATUSES:
-        raise wf_exc.WorkflowExecutionIsCompletedException(str(wf_ex_db.id))
-
+    status = conductor.get_workflow_status()
     if status != statuses.RESUMING:
-        msg = '[%s] Workflow execution "%s" is not reran because it is not running status.'
-        LOG.info(msg, ac_ex_id, str(wf_ex_db.id))
-        return
+        msg = '[{0}] Unable to rerun workflow execution "{1}". ' \
+              'The workflow execution is in "{2}" status.'.format(ac_ex_id, wf_ex_id, str(status))
+        raise wf_exc.WorkflowExecutionRerunException(msg)
 
-    wf_ex_db.status = status
+    data = conductor.serialize()
+    wf_ex_db.status = data['state']['status']
     wf_ex_db.spec = data['spec']
     wf_ex_db.graph = data['graph']
     wf_ex_db.state = data['state']
