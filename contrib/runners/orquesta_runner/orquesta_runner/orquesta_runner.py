@@ -25,6 +25,7 @@ from orquesta import exceptions as wf_exc
 from orquesta import statuses as wf_statuses
 
 from st2common.constants import action as ac_const
+from st2common.exceptions import workflow as workflow_exc
 from st2common import log as logging
 from st2common.exceptions import workflow as wf_svc_exc
 from st2common.models.api import notification as notify_api_models
@@ -154,9 +155,17 @@ class OrquestaRunner(runners.AsyncActionRunner):
         # Re-run workflow
         st2_ctx = self._construct_st2_context()
         st2_ctx['workflow_execution_id'] = wf_ex_id
-        wf_ex_db = wf_svc.request_rerun(self.execution, st2_ctx, options)
-
-        return self.handle_workflow_return_value(wf_ex_db)
+        try:
+            wf_ex_db = wf_svc.request_rerun(self.execution, st2_ctx, options)
+            return self.handle_workflow_return_value(wf_ex_db)
+        except workflow_exc.WorkflowExecutionRerunException as e:
+            status = ac_const.LIVEACTION_STATUS_FAILED
+            result = {'errors': e.args[0], 'output': None}
+            return (status, result, self.context)
+        except Exception as e:
+            status = ac_const.LIVEACTION_STATUS_FAILED
+            result = {'errors': [{'message': six.text_type(e)}], 'output': None}
+            return (status, result, self.context)
 
     @staticmethod
     def task_pauseable(ac_ex):
