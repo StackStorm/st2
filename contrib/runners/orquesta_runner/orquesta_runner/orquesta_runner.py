@@ -153,11 +153,10 @@ class OrquestaRunner(runners.AsyncActionRunner):
             raise Exception('Workflow execution is not in a rerunable state.')
 
         # Re-run workflow
-        st2_ctx = self._construct_st2_context()
-        st2_ctx['workflow_execution_id'] = wf_ex_id
         try:
+            st2_ctx = self._construct_st2_context()
+            st2_ctx['workflow_execution_id'] = wf_ex_id
             wf_ex_db = wf_svc.request_rerun(self.execution, st2_ctx, options)
-            return self.handle_workflow_return_value(wf_ex_db)
         except workflow_exc.WorkflowExecutionRerunException as e:
             status = ac_const.LIVEACTION_STATUS_FAILED
             result = {'errors': e.args[0], 'output': None}
@@ -166,6 +165,8 @@ class OrquestaRunner(runners.AsyncActionRunner):
             status = ac_const.LIVEACTION_STATUS_FAILED
             result = {'errors': [{'message': six.text_type(e)}], 'output': None}
             return (status, result, self.context)
+
+        return self.handle_workflow_return_value(wf_ex_db)
 
     @staticmethod
     def task_pauseable(ac_ex):

@@ -59,8 +59,7 @@ PACKS = [
 
 RERUN_TASK = 'task1'
 OPTIONS = {
-    'tasks': [RERUN_TASK],
-    'reset': [RERUN_TASK]
+    'tasks': [RERUN_TASK]
 }
 
 
@@ -340,7 +339,7 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase, st2tests.ExecutionDb
         st2_ctx['workflow_execution_id'] = wf_ex_db.id
 
         # With invalid rerun task ids, the orquesta conductor will raise exception.
-        options = {'tasks': ['task2', 'task3'], 'reset': ['task2', 'task3']}
+        options = {'tasks': ['task2', 'task3']}
         # Request workflow rerun execution.
         self.assertRaises(
             wf_exc.WorkflowExecutionRerunException,

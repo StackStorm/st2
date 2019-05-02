@@ -1306,16 +1306,15 @@ def request_rerun(ac_ex_db, st2_ctx, options):
     try:
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
     except db_exc.StackStormDBObjectNotFoundError:
-        msg = '[{0}] Unable to find workflow execution db with id "{1}"'.format(ac_ex_id, wf_ex_id)
-        raise wf_exc.WorkflowExecutionRerunException(msg)
+        msg = '[%s] Unable to find workflow execution db with id "%s"'
+        raise wf_exc.WorkflowExecutionRerunException(msg % (ac_ex_id, wf_ex_id))
 
-    if wf_ex_db.status != statuses.FAILED:
-        msg = '[{0}] Workflow execution "{1}" is not rerunable because its status is not "failed"'.\
-            format(ac_ex_id, wf_ex_id)
-        raise wf_exc.WorkflowExecutionRerunException(msg)
+    if wf_ex_db.status not in statuses.ABENDED_STATUSES:
+        msg = '[%s] Workflow execution "%s" is not rerunable because its status is not "failed"'
+        raise wf_exc.WorkflowExecutionRerunException(msg % (ac_ex_id, wf_ex_id))
 
-    wf_ex_db.result = {}
-    wf_ex_db.error = {}
+    wf_ex_db.output = {}
+    wf_ex_db.error = []
     wf_ex_db.action_execution = ac_ex_id
     wf_ex_db.context['st2'] = st2_ctx['st2']
     wf_ex_db.context['parent'] = st2_ctx['parent']
@@ -1330,9 +1329,9 @@ def request_rerun(ac_ex_db, st2_ctx, options):
 
     status = conductor.get_workflow_status()
     if status != statuses.RESUMING:
-        msg = '[{0}] Unable to rerun workflow execution "{1}". ' \
-              'The workflow execution is in "{2}" status.'.format(ac_ex_id, wf_ex_id, str(status))
-        raise wf_exc.WorkflowExecutionRerunException(msg)
+        msg = '[%s] Unable to rerun workflow execution "%s". ' \
+              'The workflow execution is in "%s" status.'
+        raise wf_exc.WorkflowExecutionRerunException(msg % (ac_ex_id, wf_ex_id, status))
 
     data = conductor.serialize()
     wf_ex_db.status = data['state']['status']
