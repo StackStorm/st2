@@ -1313,8 +1313,6 @@ def request_rerun(ac_ex_db, st2_ctx, options):
         msg = '[%s] Workflow execution "%s" is not rerunable because its status is not "failed"'
         raise wf_exc.WorkflowExecutionRerunException(msg % (ac_ex_id, wf_ex_id))
 
-    wf_ex_db.output = {}
-    wf_ex_db.error = []
     wf_ex_db.action_execution = ac_ex_id
     wf_ex_db.context['st2'] = st2_ctx['st2']
     wf_ex_db.context['parent'] = st2_ctx['parent']
@@ -1322,9 +1320,11 @@ def request_rerun(ac_ex_db, st2_ctx, options):
     conductor = deserialize_conductor(wf_ex_db)
     try:
         conductor.request_workflow_rerun(options)
-    except orquesta_exc.WorkflowInvalidRerunStatus as e:
+    except orquesta_exc.InvalidWorkflowRerunStatus as e:
         raise wf_exc.WorkflowExecutionRerunException(e.args[0])
     except orquesta_exc.InvalidTask as e:
+        raise wf_exc.WorkflowExecutionRerunException(e.args[0])
+    except orquesta_exc.InvalidTaskRerunStatus as e:
         raise wf_exc.WorkflowExecutionRerunException(e.args[0])
 
     status = conductor.get_workflow_status()
