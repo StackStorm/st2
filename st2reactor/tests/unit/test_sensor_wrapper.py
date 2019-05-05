@@ -1,3 +1,5 @@
+# Copyright 2019 Extreme Networks, Inc.
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -151,7 +153,7 @@ class SensorWrapperTestCase(unittest2.TestCase):
                           trigger_types=trigger_types, parent_args=parent_args)
         except NameError as e:
             self.assertTrue('Traceback (most recent call last)' in six.text_type(e))
-            self.assertTrue('line 17, in <module>' in six.text_type(e))
+            self.assertTrue('line 19, in <module>' in six.text_type(e))
         else:
             self.fail('NameError not thrown')
 
