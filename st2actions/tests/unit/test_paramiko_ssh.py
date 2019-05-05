@@ -686,3 +686,86 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         self.assertEqual(mock_handle_stdout_line_func.call_args_list[0][1]['line'], 'stdout 1\n')
         self.assertEqual(mock_handle_stdout_line_func.call_args_list[1][1]['line'], 'stdout 2\n')
         self.assertEqual(mock_handle_stdout_line_func.call_args_list[2][1]['line'], 'stdout 3\n')
+
+    @patch('paramiko.SSHClient')
+    def test_use_ssh_config_port_value_provided_in_the_config(self, mock_sshclient):
+        cfg.CONF.set_override(name='use_ssh_config', override=True, group='ssh_runner')
+
+        ssh_config_file_path = os.path.join(get_resources_base_path(), 'ssh', 'empty_config')
+        cfg.CONF.set_override(name='ssh_config_file_path', override=ssh_config_file_path,
+                              group='ssh_runner')
+
+        # 1. Default port is used (not explicitly provided)
+        mock_client = mock.Mock()
+        mock_sshclient.return_value = mock_client
+        conn_params = {'hostname': 'dummy.host.org',
+                       'username': 'ubuntu',
+                       'password': 'pass',
+                       'timeout': '600'}
+        ssh_client = ParamikoSSHClient(**conn_params)
+        ssh_client.connect()
+
+        call_kwargs = mock_client.connect.call_args[1]
+        self.assertEqual(call_kwargs['port'], 22)
+
+        # 2. Default port is used (explicitly provided)
+        mock_client = mock.Mock()
+        mock_sshclient.return_value = mock_client
+        conn_params = {'hostname': 'dummy.host.org',
+                       'username': 'ubuntu',
+                       'password': 'pass',
+                       'port': 5555,
+                       'timeout': '600'}
+        ssh_client = ParamikoSSHClient(**conn_params)
+        ssh_client.connect()
+
+        call_kwargs = mock_client.connect.call_args[1]
+        self.assertEqual(call_kwargs['port'], 5555)
+
+        # 3. Custom port is specified in the ssh config (it has precedence over default port)
+        ssh_config_file_path = os.path.join(get_resources_base_path(), 'ssh',
+                                            'ssh_config_custom_port')
+        cfg.CONF.set_override(name='ssh_config_file_path', override=ssh_config_file_path,
+                              group='ssh_runner')
+
+        mock_client = mock.Mock()
+        mock_sshclient.return_value = mock_client
+        conn_params = {'hostname': 'dummy.host.org',
+                       'username': 'ubuntu',
+                       'password': 'pass'}
+        ssh_client = ParamikoSSHClient(**conn_params)
+        ssh_client.connect()
+
+        call_kwargs = mock_client.connect.call_args[1]
+        self.assertEqual(call_kwargs['port'], 6677)
+
+        mock_client = mock.Mock()
+        mock_sshclient.return_value = mock_client
+        conn_params = {'hostname': 'dummy.host.org',
+                       'username': 'ubuntu',
+                       'password': 'pass',
+                       'port': 22}
+        ssh_client = ParamikoSSHClient(**conn_params)
+        ssh_client.connect()
+
+        call_kwargs = mock_client.connect.call_args[1]
+        self.assertEqual(call_kwargs['port'], 6677)
+
+        # 3. Custom port is specified in ssh config, but one is also provided via runner paramer
+        # (runner parameter one has precedence)
+        ssh_config_file_path = os.path.join(get_resources_base_path(), 'ssh',
+                                            'ssh_config_custom_port')
+        cfg.CONF.set_override(name='ssh_config_file_path', override=ssh_config_file_path,
+                              group='ssh_runner')
+
+        mock_client = mock.Mock()
+        mock_sshclient.return_value = mock_client
+        conn_params = {'hostname': 'dummy.host.org',
+                       'username': 'ubuntu',
+                       'password': 'pass',
+                       'port': 9999}
+        ssh_client = ParamikoSSHClient(**conn_params)
+        ssh_client.connect()
+
+        call_kwargs = mock_client.connect.call_args[1]
+        self.assertEqual(call_kwargs['port'], 9999)
