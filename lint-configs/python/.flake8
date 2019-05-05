@@ -12,3 +12,8 @@ ignore =
 	H801,H802,H803,H804,H805,H806,H807,H808,H809,
 	H901,H902,H903,H904,H905,H906,H907,H908,H909
 exclude=*.egg/*,build,dist
+
+# Configuration for flake8-copyright extension
+copyright-check = True
+copyright-min-file-size = 1
+select = E,F,W,C
