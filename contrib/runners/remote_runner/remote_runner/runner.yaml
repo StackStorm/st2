@@ -27,8 +27,8 @@
         key1=val1,key2=val2)
       type: object
     hosts:
-      description: A comma delimited string of a list of hosts where the remote command
-        will be executed. For example: example1.com,example2.com,example3.com:5555
+      description: 'A comma delimited string of a list of hosts where the remote command
+        will be executed. For example: example1.com,example2.com,example3.com:5555'
       required: true
       type: string
     kwarg_op:
@@ -107,8 +107,8 @@
         key1=val1,key2=val2)
       type: object
     hosts:
-      description: A comma delimited string of a list of hosts where the remote command
-        will be executed. For example: example1.com,example2.com,example3.com:5555
+      description: 'A comma delimited string of a list of hosts where the remote command
+        will be executed. For example: example1.com,example2.com,example3.com:5555'
       required: true
       type: string
     kwarg_op:
