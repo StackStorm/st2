@@ -213,7 +213,9 @@ class AliasExecutionTestCase(FunctionalTest):
             'user': 'chat-user',
             'source_channel': 'chat-channel',
         }
-        self.assertEquals(mock_request.call_args[0][0].context, expected_context)
+        self.assertEquals('source_channel', mock_request.call_args[0][0].context.keys())
+        print(dir(mock_request.call_args[0][0]))
+        self.assertEquals(mock_request.call_args[0][0].context['source_channel'], 'chat-channel')
 
     @mock.patch.object(action_service, 'request',
                        return_value=(None, EXECUTION))
