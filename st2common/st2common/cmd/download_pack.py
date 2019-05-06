@@ -41,6 +41,8 @@ def _register_cli_opts():
         cfg.BoolOpt('force', default=False,
                     help='True to force pack download and ignore download '
                          'lock file if it exists.'),
+        cfg.BoolOpt('use-python3', default=False,
+                    help='True to use Python3 binary.')
     ]
     do_register_cli_opts(cli_opts)
 
@@ -55,13 +57,15 @@ def main(argv):
     packs = cfg.CONF.pack
     verify_ssl = cfg.CONF.verify_ssl
     force = cfg.CONF.force
+    use_python3 = cfg.CONF.use_python3
 
     proxy_config = get_and_set_proxy_config()
 
     for pack in packs:
         LOG.info('Installing pack "%s"' % (pack))
         result = download_pack(pack=pack, verify_ssl=verify_ssl, force=force,
-                               proxy_config=proxy_config, force_permissions=True)
+                               proxy_config=proxy_config, force_permissions=True,
+                               use_python3=use_python3)
 
         # Raw pack name excluding the version
         pack_name = result[1]
