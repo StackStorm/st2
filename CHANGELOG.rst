@@ -4,6 +4,11 @@ Changelog
 in development
 --------------
 
+Fixed
+~~~~~
+
+* Fixed Mistral workflows that used ``source_channel`` from action aliases #4650
+
 
 3.0.0 - April 18, 2019
 ----------------------
