@@ -638,7 +638,7 @@ class ParamikoSSHClient(object):
 
         # If a custom non-default port is provided in the SSH config file we use that over the
         # default port value provided via runner parameter
-        if ssh_config_port and self.port == DEFAULT_SSH_PORT:
+        if ssh_config_port and (self.port == DEFAULT_SSH_PORT or not self.port):
             self.port = int(ssh_config_port)
         else:
             self.port = self.port or DEFAULT_SSH_PORT

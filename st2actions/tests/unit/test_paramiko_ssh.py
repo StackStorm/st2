@@ -714,6 +714,19 @@ class ParamikoSSHClientTestCase(unittest2.TestCase):
         call_kwargs = mock_client.connect.call_args[1]
         self.assertEqual(call_kwargs['port'], 22)
 
+        mock_client = mock.Mock()
+        mock_sshclient.return_value = mock_client
+        conn_params = {'hostname': 'dummy.host.org',
+                       'username': 'ubuntu',
+                       'password': 'pass',
+                       'port': None,
+                       'timeout': '600'}
+        ssh_client = ParamikoSSHClient(**conn_params)
+        ssh_client.connect()
+
+        call_kwargs = mock_client.connect.call_args[1]
+        self.assertEqual(call_kwargs['port'], 22)
+
         # 2. Default port is used (explicitly provided)
         mock_client = mock.Mock()
         mock_sshclient.return_value = mock_client
