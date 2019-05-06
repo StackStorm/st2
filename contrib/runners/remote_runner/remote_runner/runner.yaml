@@ -28,7 +28,7 @@
       type: object
     hosts:
       description: A comma delimited string of a list of hosts where the remote command
-        will be executed.
+        will be executed. For example: example1.com,example2.com,example3.com:5555
       required: true
       type: string
     kwarg_op:
@@ -52,8 +52,8 @@
       secret: true
       type: string
     port:
-      default: 22
-      description: 'SSH port.'
+      description: 'SSH port. If not specified as part of the hosts list, default port
+        will be used (22).'
       required: false
       type: integer
     private_key:
@@ -108,7 +108,7 @@
       type: object
     hosts:
       description: A comma delimited string of a list of hosts where the remote command
-        will be executed.
+        will be executed. For example: example1.com,example2.com,example3.com:5555
       required: true
       type: string
     kwarg_op:
@@ -132,8 +132,8 @@
       secret: true
       type: string
     port:
-      default: 22
-      description: 'SSH port..'
+      description: 'SSH port. If not specified as part of the hosts list, default port
+        will be used (22).'
       required: false
       type: integer
     private_key:
