@@ -4,6 +4,11 @@ Changelog
 in development
 --------------
 
+Fixed
+~~~~~
+
+* Update pack install action so it works correctly when ``python_versions`` ``pack.yaml`` metadata
+  attribute is used in combination with ``--python3`` pack install flag. (bug fix) #4654 #4662
 
 3.0.0 - April 18, 2019
 ----------------------
