@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 
 import mock
@@ -22,13 +23,18 @@ from oslo_config import cfg
 from mock import call, patch, Mock, MagicMock
 from six.moves import StringIO
 
+from st2common.constants.runners import DEFAULT_SSH_PORT
 from st2common.runners.paramiko_ssh import ParamikoSSHClient
 from st2tests.fixturesloader import get_resources_base_path
 import st2tests.config as tests_config
 tests_config.parse_args()
 
+__all__ = [
+    'ParamikoSSHClientTestCase'
+]
 
-class ParamikoSSHClientTests(unittest2.TestCase):
+
+class ParamikoSSHClientTestCase(unittest2.TestCase):
 
     @patch('paramiko.SSHClient', Mock)
     def setUp(self):
@@ -685,3 +691,114 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         self.assertEqual(mock_handle_stdout_line_func.call_args_list[0][1]['line'], 'stdout 1\n')
         self.assertEqual(mock_handle_stdout_line_func.call_args_list[1][1]['line'], 'stdout 2\n')
         self.assertEqual(mock_handle_stdout_line_func.call_args_list[2][1]['line'], 'stdout 3\n')
+
+    @patch('paramiko.SSHClient')
+    def test_use_ssh_config_port_value_provided_in_the_config(self, mock_sshclient):
+        cfg.CONF.set_override(name='use_ssh_config', override=True, group='ssh_runner')
+
+        ssh_config_file_path = os.path.join(get_resources_base_path(), 'ssh', 'empty_config')
+        cfg.CONF.set_override(name='ssh_config_file_path', override=ssh_config_file_path,
+                              group='ssh_runner')
+
+        # 1. Default port is used (not explicitly provided)
+        mock_client = mock.Mock()
+        mock_sshclient.return_value = mock_client
+        conn_params = {'hostname': 'dummy.host.org',
+                       'username': 'ubuntu',
+                       'password': 'pass',
+                       'timeout': '600'}
+        ssh_client = ParamikoSSHClient(**conn_params)
+        ssh_client.connect()
+
+        call_kwargs = mock_client.connect.call_args[1]
+        self.assertEqual(call_kwargs['port'], 22)
+
+        mock_client = mock.Mock()
+        mock_sshclient.return_value = mock_client
+        conn_params = {'hostname': 'dummy.host.org',
+                       'username': 'ubuntu',
+                       'password': 'pass',
+                       'port': None,
+                       'timeout': '600'}
+        ssh_client = ParamikoSSHClient(**conn_params)
+        ssh_client.connect()
+
+        call_kwargs = mock_client.connect.call_args[1]
+        self.assertEqual(call_kwargs['port'], 22)
+
+        # 2. Default port is used (explicitly provided)
+        mock_client = mock.Mock()
+        mock_sshclient.return_value = mock_client
+        conn_params = {'hostname': 'dummy.host.org',
+                       'username': 'ubuntu',
+                       'password': 'pass',
+                       'port': DEFAULT_SSH_PORT,
+                       'timeout': '600'}
+        ssh_client = ParamikoSSHClient(**conn_params)
+        ssh_client.connect()
+
+        call_kwargs = mock_client.connect.call_args[1]
+        self.assertEqual(call_kwargs['port'], DEFAULT_SSH_PORT)
+        self.assertEqual(call_kwargs['port'], 22)
+
+        # 3. Custom port is used (explicitly provided)
+        mock_client = mock.Mock()
+        mock_sshclient.return_value = mock_client
+        conn_params = {'hostname': 'dummy.host.org',
+                       'username': 'ubuntu',
+                       'password': 'pass',
+                       'port': 5555,
+                       'timeout': '600'}
+        ssh_client = ParamikoSSHClient(**conn_params)
+        ssh_client.connect()
+
+        call_kwargs = mock_client.connect.call_args[1]
+        self.assertEqual(call_kwargs['port'], 5555)
+
+        # 4. Custom port is specified in the ssh config (it has precedence over default port)
+        ssh_config_file_path = os.path.join(get_resources_base_path(), 'ssh',
+                                            'ssh_config_custom_port')
+        cfg.CONF.set_override(name='ssh_config_file_path', override=ssh_config_file_path,
+                              group='ssh_runner')
+
+        mock_client = mock.Mock()
+        mock_sshclient.return_value = mock_client
+        conn_params = {'hostname': 'dummy.host.org',
+                       'username': 'ubuntu',
+                       'password': 'pass'}
+        ssh_client = ParamikoSSHClient(**conn_params)
+        ssh_client.connect()
+
+        call_kwargs = mock_client.connect.call_args[1]
+        self.assertEqual(call_kwargs['port'], 6677)
+
+        mock_client = mock.Mock()
+        mock_sshclient.return_value = mock_client
+        conn_params = {'hostname': 'dummy.host.org',
+                       'username': 'ubuntu',
+                       'password': 'pass',
+                       'port': DEFAULT_SSH_PORT}
+        ssh_client = ParamikoSSHClient(**conn_params)
+        ssh_client.connect()
+
+        call_kwargs = mock_client.connect.call_args[1]
+        self.assertEqual(call_kwargs['port'], 6677)
+
+        # 5. Custom port is specified in ssh config, but one is also provided via runner parameter
+        # (runner parameter one has precedence)
+        ssh_config_file_path = os.path.join(get_resources_base_path(), 'ssh',
+                                            'ssh_config_custom_port')
+        cfg.CONF.set_override(name='ssh_config_file_path', override=ssh_config_file_path,
+                              group='ssh_runner')
+
+        mock_client = mock.Mock()
+        mock_sshclient.return_value = mock_client
+        conn_params = {'hostname': 'dummy.host.org',
+                       'username': 'ubuntu',
+                       'password': 'pass',
+                       'port': 9999}
+        ssh_client = ParamikoSSHClient(**conn_params)
+        ssh_client.connect()
+
+        call_kwargs = mock_client.connect.call_args[1]
+        self.assertEqual(call_kwargs['port'], 9999)
