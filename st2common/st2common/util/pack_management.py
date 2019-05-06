@@ -403,12 +403,17 @@ def verify_pack_version(pack_dir, use_python3=False):
             raise ValueError(msg)
 
     if supported_python_versions:
-        if set(supported_python_versions) == set(['2']) and not six.PY2:
-            msg = ('Pack "%s" requires Python 2.x, but current Python version is "%s". '
-                   'You can override this restriction by providing the "force" flag, but '
-                   'the pack is not guaranteed to work.' % (pack_name, CURRENT_PYTHON_VERSION))
+        if set(supported_python_versions) == set(['2']) and (not six.PY2 or use_python3):
+            if use_python3:
+                msg = ('Pack "%s" requires Python 2.x, but --python3 flag is used. '
+                       'You can override this restriction by providing the "force" flag, but '
+                       'the pack is not guaranteed to work.' % (pack_name))
+            else:
+                msg = ('Pack "%s" requires Python 2.x, but current Python version is "%s". '
+                       'You can override this restriction by providing the "force" flag, but '
+                       'the pack is not guaranteed to work.' % (pack_name, CURRENT_PYTHON_VERSION))
             raise ValueError(msg)
-        elif set(supported_python_versions) == set(['3']) and not six.PY3 and not use_python3:
+        elif set(supported_python_versions) == set(['3']) and (not six.PY3 and not use_python3):
             msg = ('Pack "%s" requires Python 3.x, but current Python version is "%s". '
                    'You can override this restriction by providing the "force" flag, but '
                    'the pack is not guaranteed to work.' % (pack_name, CURRENT_PYTHON_VERSION))
