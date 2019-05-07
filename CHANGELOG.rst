@@ -7,8 +7,17 @@ in development
 Fixed
 ~~~~~
 
-* Fixed Mistral workflows that used ``source_channel`` from action aliases #4650
+* Fix a bug in the remote command and script runner so it correctly uses SSH port from a SSH config
+  file if ``ssh_runner.use_ssh_config`` parameter is set to ``True`` and if a custom (non-default)
+  value for SSH port is specified in the configured SSH config file
+  (``ssh_runner.ssh_config_file_path``). (bug fix) #4660 #4661
+* Update pack install action so it works correctly when ``python_versions`` ``pack.yaml`` metadata
+  attribute is used in combination with ``--python3`` pack install flag. (bug fix) #4654 #4662
+* Add ``source_channel`` back to the context used by Mistral workflows for executions which are
+  triggered via ChatOps (using action alias).
 
+  In StackStorm v3.0.0, this variable was inadvertently removed from the context used by Mistral
+  workflows. (bug fix) #4650 #4656
 
 3.0.0 - April 18, 2019
 ----------------------

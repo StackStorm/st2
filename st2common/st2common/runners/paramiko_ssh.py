@@ -1,9 +1,8 @@
-# Licensed to the Apache Software Foundation (ASF) under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -631,9 +630,17 @@ class ParamikoSSHClient(object):
         if cfg.CONF.ssh_runner.use_ssh_config:
             ssh_config_file_info = self._get_ssh_config_for_host(host)
 
-        self.username = (self.username or ssh_config_file_info.get('user', None) or
-                         cfg.CONF.system_user.user)
-        self.port = self.port or ssh_config_file_info.get('port' or None) or DEFAULT_SSH_PORT
+        ssh_config_username = ssh_config_file_info.get('user', None)
+        ssh_config_port = ssh_config_file_info.get('port', None)
+
+        self.username = (self.username or ssh_config_username or cfg.CONF.system_user.user)
+
+        # If a custom non-default port is provided in the SSH config file we use that over the
+        # default port value provided via runner parameter
+        if ssh_config_port and (self.port == DEFAULT_SSH_PORT or not self.port):
+            self.port = int(ssh_config_port)
+        else:
+            self.port = self.port or DEFAULT_SSH_PORT
 
         # If both key file and key material are provided as action parameters,
         # throw an error informing user only one is required.
@@ -698,6 +705,7 @@ class ParamikoSSHClient(object):
 
         extra = {'_conninfo': conninfo}
         self.logger.debug('Connection info', extra=extra)
+
         try:
             client.connect(**conninfo)
         except SSHException as e:
