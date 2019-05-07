@@ -436,7 +436,7 @@ requirements: virtualenv .sdist-requirements install-runners
 	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
 
 	# Some of the tests rely on submodule so we need to make sure submodules are check out
-	git submodule update --init --recursive
+	git submodule update --recursive --remote
 
 .PHONY: virtualenv
 	# Note: We always want to update virtualenv/bin/activate file to make sure

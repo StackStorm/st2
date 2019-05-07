@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -27,6 +26,7 @@ import stat
 import re
 
 import six
+from oslo_config import cfg
 from git.repo import Repo
 from gitdb.exc import BadName, BadObject
 from lockfile import LockFile
@@ -65,7 +65,8 @@ CURRENT_PYTHON_VERSION = get_python_version()
 
 
 def download_pack(pack, abs_repo_base='/opt/stackstorm/packs', verify_ssl=True, force=False,
-                  proxy_config=None, force_owner_group=True, force_permissions=True, logger=LOG):
+                  proxy_config=None, force_owner_group=True, force_permissions=True,
+                  use_python3=False, logger=LOG):
     """
     Download the pack and move it to /opt/stackstorm/packs.
 
@@ -85,10 +86,20 @@ def download_pack(pack, abs_repo_base='/opt/stackstorm/packs', verify_ssl=True, 
     :param force: Force the installation and ignore / delete the lock file if it already exists.
     :type force: ``bool``
 
+    :param use_python3: True if a python3 binary should be used for this pack.
+    :type use_python3: ``bool``
+
     :return: (pack_url, pack_ref, result)
     :rtype: tuple
     """
     proxy_config = proxy_config or {}
+
+    # Python3 binary check
+    python3_binary = cfg.CONF.actionrunner.python3_binary
+    if use_python3 and not python3_binary:
+        msg = ('Requested to use Python 3, but python3 binary not found on the system or '
+               'actionrunner.python3 config option is not configured correctly.')
+        raise ValueError(msg)
 
     try:
         pack_url, pack_version = get_repo_url(pack, proxy_config=proxy_config)
@@ -126,7 +137,7 @@ def download_pack(pack, abs_repo_base='/opt/stackstorm/packs', verify_ssl=True, 
 
             # 2. Verify that the pack version if compatible with current StackStorm version
             if not force:
-                verify_pack_version(pack_dir=abs_local_path)
+                verify_pack_version(pack_dir=abs_local_path, use_python3=use_python3)
 
             # 3. Move pack to the final location
             move_result = move_pack(abs_repo_base=abs_repo_base, pack_name=pack_ref,
@@ -371,7 +382,7 @@ def is_desired_pack(abs_pack_path, pack_name):
     return (True, '')
 
 
-def verify_pack_version(pack_dir):
+def verify_pack_version(pack_dir, use_python3=False):
     """
     Verify that the pack works with the currently running StackStorm version.
     """
@@ -391,12 +402,17 @@ def verify_pack_version(pack_dir):
             raise ValueError(msg)
 
     if supported_python_versions:
-        if set(supported_python_versions) == set(['2']) and not six.PY2:
-            msg = ('Pack "%s" requires Python 2.x, but current Python version is "%s". '
-                   'You can override this restriction by providing the "force" flag, but '
-                   'the pack is not guaranteed to work.' % (pack_name, CURRENT_PYTHON_VERSION))
+        if set(supported_python_versions) == set(['2']) and (not six.PY2 or use_python3):
+            if use_python3:
+                msg = ('Pack "%s" requires Python 2.x, but --python3 flag is used. '
+                       'You can override this restriction by providing the "force" flag, but '
+                       'the pack is not guaranteed to work.' % (pack_name))
+            else:
+                msg = ('Pack "%s" requires Python 2.x, but current Python version is "%s". '
+                       'You can override this restriction by providing the "force" flag, but '
+                       'the pack is not guaranteed to work.' % (pack_name, CURRENT_PYTHON_VERSION))
             raise ValueError(msg)
-        elif set(supported_python_versions) == set(['3']) and not six.PY3:
+        elif set(supported_python_versions) == set(['3']) and (not six.PY3 and not use_python3):
             msg = ('Pack "%s" requires Python 3.x, but current Python version is "%s". '
                    'You can override this restriction by providing the "force" flag, but '
                    'the pack is not guaranteed to work.' % (pack_name, CURRENT_PYTHON_VERSION))
