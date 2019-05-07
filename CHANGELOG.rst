@@ -13,6 +13,11 @@ Fixed
   (``ssh_runner.ssh_config_file_path``). (bug fix) #4660 #4661
 * Update pack install action so it works correctly when ``python_versions`` ``pack.yaml`` metadata
   attribute is used in combination with ``--python3`` pack install flag. (bug fix) #4654 #4662
+* Add ``source_channel`` back to the context used by Mistral workflows for executions which are
+  triggered via ChatOps (using action alias).
+
+  In StackStorm v3.0.0, this variable was inadvertently removed from the context used by Mistral
+  workflows. (bug fix) #4650 #4656
 
 3.0.0 - April 18, 2019
 ----------------------

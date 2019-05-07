@@ -143,6 +143,7 @@ class ActionAliasExecutionController(BaseRestControllerMixin):
             'action_alias_ref': reference.get_ref_from_model(action_alias_db),
             'api_user': payload.user,
             'user': requester_user.name,
+            'source_channel': payload.source_channel,
         }
 
         results = []
