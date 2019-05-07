@@ -208,7 +208,7 @@ class AliasExecutionTestCase(FunctionalTest):
         # https://github.com/StackStorm/st2/issues/4650
         actual_context = mock_request.call_args[0][0].context
 
-        self.assertTrue('source_channel' in  mock_request.call_args[0][0].context.keys())
+        self.assertTrue('source_channel' in mock_request.call_args[0][0].context.keys())
         self.assertEquals(actual_context['source_channel'], 'chat-channel')
         self.assertEquals(actual_context['api_user'], 'chat-user')
         self.assertEquals(actual_context['user'], 'stanley')
