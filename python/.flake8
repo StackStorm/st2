@@ -1,6 +1,5 @@
 [flake8]
 max-line-length = 100
-ignore = E128,E402,E722,W504
 ignore =
     E128,E402,E722,W504,
     H101,H104,H105,H106,H107,H108,H109,
