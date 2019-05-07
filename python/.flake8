@@ -16,4 +16,7 @@ exclude=*.egg/*,build,dist
 # Configuration for flake8-copyright extension
 copyright-check = True
 copyright-min-file-size = 1
+# NOTE: This requires flake8 >= 3.0.0 to work correctly.
+# If old version is used (< 3.0.0), it will select all the errors and it wont ignore ones
+# listed above as part of ignore list
 select = E,F,W,C
