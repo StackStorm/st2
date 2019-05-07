@@ -206,16 +206,12 @@ class AliasExecutionTestCase(FunctionalTest):
 
         # Also check for source_channel - see
         # https://github.com/StackStorm/st2/issues/4650
-        expected_context = {
-            'action_alias_ref': '',
-            'api_user': '',
-            'user': 'chat-user',
-            'source_channel': 'chat-channel',
-        }
-        self.assertEquals('source_channel', mock_request.call_args[0][0].context.keys())
+        actual_context = mock_request.call_args[0][0].context
 
-        print(dir(mock_request.call_args[0][0]))
-        self.assertEquals(mock_request.call_args[0][0].context['source_channel'], 'chat-channel')
+        self.assertTrue('source_channel' in  mock_request.call_args[0][0].context.keys())
+        self.assertEquals(actual_context['source_channel'], 'chat-channel')
+        self.assertEquals(actual_context['api_user'], 'chat-user')
+        self.assertEquals(actual_context['user'], 'stanley')
 
     @mock.patch.object(action_service, 'request',
                        return_value=(None, EXECUTION))
