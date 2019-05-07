@@ -7,6 +7,10 @@ in development
 Fixed
 ~~~~~
 
+* Fix a bug in the remote command and script runner so it correctly uses SSH port from a SSH config
+  file if ``ssh_runner.use_ssh_config`` parameter is set to ``True`` and if a custom (non-default)
+  value for SSH port is specified in the configured SSH config file
+  (``ssh_runner.ssh_config_file_path``). (bug fix) #4660 #4661
 * Update pack install action so it works correctly when ``python_versions`` ``pack.yaml`` metadata
   attribute is used in combination with ``--python3`` pack install flag. (bug fix) #4654 #4662
 
