@@ -262,9 +262,9 @@ class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
             schedule_q_db = self.scheduling_queue._get_next_execution()
             self.assertIsNone(schedule_q_db)
 
-        mocked_logger.info.assert_called_once()
-        call_args = mocked_logger.info.call_args_list[0][0]
-        self.assertEqual(r'Execution queue item handled by another scheduler: %s', call_args[0])
+        self.assertEqual(mocked_logger.info.call_count, 2)
+        call_args = mocked_logger.info.call_args_list[1][0]
+        self.assertEqual(r'[%s] Item "%s" is already handled by another scheduler.', call_args[0])
 
         schedule_q_db = self.scheduling_queue._get_next_execution()
         self.assertIsNotNone(schedule_q_db)
