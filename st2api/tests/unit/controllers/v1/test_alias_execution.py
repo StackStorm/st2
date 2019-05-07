@@ -214,6 +214,7 @@ class AliasExecutionTestCase(FunctionalTest):
             'source_channel': 'chat-channel',
         }
         self.assertEquals('source_channel', mock_request.call_args[0][0].context.keys())
+
         print(dir(mock_request.call_args[0][0]))
         self.assertEquals(mock_request.call_args[0][0].context['source_channel'], 'chat-channel')
 
