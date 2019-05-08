@@ -224,7 +224,7 @@ class ActionExecutionSchedulingQueueHandler(object):
         extra = {'queue_item_id': queue_item_id}
 
         LOG.info(
-            '[%s] Liveaction "%s" has status "%s before applying policies.',
+            '[%s] Liveaction "%s" has status "%s" before applying policies.',
             action_execution_id, liveaction_id, liveaction_db.status, extra=extra
         )
 
@@ -236,7 +236,7 @@ class ActionExecutionSchedulingQueueHandler(object):
             action_execution_id, liveaction_id, liveaction_db.status, extra=extra
         )
 
-        if liveaction_db.status is action_constants.LIVEACTION_STATUS_POLICY_DELAYED:
+        if liveaction_db.status == action_constants.LIVEACTION_STATUS_DELAYED:
             LOG.info(
                 '[%s] Liveaction "%s" is delayed and scheduling queue is updated.',
                 action_execution_id, liveaction_id, extra=extra
