@@ -115,12 +115,16 @@ class ActionExecutionSchedulingQueueHandler(object):
 
             try:
                 ActionExecutionSchedulingQueue.add_or_update(execution_queue_item_db, publish=False)
-                LOG.info('Removing lock for orphaned execution queue item: %s',
-                         execution_queue_item_db.id)
+                LOG.info(
+                    '[%s] Removing lock for orphaned execution queue item "%s".',
+                    execution_queue_item_db.action_execution_id,
+                    str(execution_queue_item_db.id)
+                )
             except db_exc.StackStormDBObjectWriteConflictError:
                 LOG.info(
-                    'Execution queue item updated before rescheduling: %s',
-                    execution_queue_item_db.id
+                    '[%s] Execution queue item "%s" updated during garbage collection.',
+                    execution_queue_item_db.action_execution_id,
+                    str(execution_queue_item_db.id)
                 )
 
     # NOTE: This method call is intentionally not instrumented since it causes too much overhead
@@ -157,7 +161,7 @@ class ActionExecutionSchedulingQueueHandler(object):
             LOG.info(
                 '[%s] Item "%s" is already handled by another scheduler.',
                 execution_queue_item_db.action_execution_id,
-                execution_queue_item_db.id
+                str(execution_queue_item_db.id)
             )
 
         return None
