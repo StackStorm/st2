@@ -56,3 +56,10 @@ htmlcov
 # Editor Saves
 *~
 \#*\#
+
+# Docker files
+Dockerfile
+
+# Vagrant files
+Vagrantfile
+.vagrant/
