@@ -97,6 +97,7 @@ class SchedulerEntrypoint(consumers.MessageHandler):
         execution_queue_item_db = ActionExecutionSchedulingQueueItemDB()
         execution_queue_item_db.action_execution_id = str(execution.id)
         execution_queue_item_db.liveaction_id = str(liveaction.id)
+        execution_queue_item_db.original_start_timestamp = liveaction.start_timestamp
         execution_queue_item_db.scheduled_start_timestamp = date.append_milliseconds_to_time(
             liveaction.start_timestamp,
             delay or 0
