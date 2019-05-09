@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -14,11 +13,11 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import eventlet
 import six
 
 from collections import defaultdict
-from kombu import Connection
 
 from st2common.query.base import QueryContext
 from st2common import log as logging
@@ -26,7 +25,7 @@ from st2common.models.db.executionstate import ActionExecutionStateDB
 from st2common.persistence.executionstate import ActionExecutionState
 from st2common.transport import consumers
 from st2common.transport import utils as transport_utils
-from st2common.util.loader import register_query_module
+from st2common.runners.base import get_query_module
 from st2common.transport.queues import RESULTSTRACKER_ACTIONSTATE_WORK_QUEUE
 
 __all__ = [
@@ -97,7 +96,7 @@ class ResultsTracker(consumers.MessageHandler):
         if (query_module_name not in self._queriers and
                 query_module_name not in self._failed_imports):
             try:
-                query_module = register_query_module(query_module_name)
+                query_module = get_query_module(query_module_name)
             except:
                 LOG.exception('Failed importing query module: %s', query_module_name)
                 self._failed_imports.add(query_module_name)
@@ -111,5 +110,5 @@ class ResultsTracker(consumers.MessageHandler):
 
 
 def get_tracker():
-    with Connection(transport_utils.get_messaging_urls()) as conn:
+    with transport_utils.get_connection() as conn:
         return ResultsTracker(conn, [RESULTSTRACKER_ACTIONSTATE_WORK_QUEUE])

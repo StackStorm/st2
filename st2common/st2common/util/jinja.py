@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -28,8 +27,6 @@ __all__ = [
     'is_jinja_expression'
 ]
 
-# Magic string to which None type is serialized when using use_none filter
-NONE_MAGIC_VALUE = '%*****__%NONE%__*****%'
 
 JINJA_EXPRESSIONS_START_MARKERS = [
     '{{',
@@ -43,13 +40,6 @@ JINJA_BLOCK_REGEX_PTRN = re.compile(JINJA_BLOCK_REGEX)
 
 
 LOG = logging.getLogger(__name__)
-
-
-def use_none(value):
-    if value is None:
-        return NONE_MAGIC_VALUE
-
-    return value
 
 
 def get_filters():
@@ -91,7 +81,7 @@ def get_filters():
         'version_bump_minor': version.version_bump_minor,
         'version_bump_patch': version.version_bump_patch,
         'version_strip_patch': version.version_strip_patch,
-        'use_none': use_none,
+        'use_none': data.use_none,
 
         'basename': path.basename,
         'dirname': path.dirname

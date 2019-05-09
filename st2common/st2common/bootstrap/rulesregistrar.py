@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -118,6 +117,12 @@ class RulesRegistrar(ResourceRegistrar):
                 if pack_field != pack:
                     raise Exception('Model is in pack "%s" but field "pack" is different: %s' %
                                     (pack, pack_field))
+
+                metadata_file = content_utils.get_relative_path_to_pack_file(pack_ref=pack,
+                                                                     file_path=rule,
+                                                                     use_pack_cache=True)
+                content['metadata_file'] = metadata_file
+
                 rule_api = RuleAPI(**content)
                 rule_api.validate()
                 rule_db = RuleAPI.to_model(rule_api)
@@ -166,7 +171,7 @@ class RulesRegistrar(ResourceRegistrar):
             except Exception as e:
                 if self._fail_on_failure:
                     msg = ('Failed to register rule "%s" from pack "%s": %s' % (rule, pack,
-                                                                                str(e)))
+                                                                                six.text_type(e)))
                     raise ValueError(msg)
 
                 LOG.exception('Failed registering rule from %s.', rule)

@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -14,8 +13,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 from st2tests.base import EventletTestCase
 from st2tests.base import DbTestCase
+from st2tests.base import ExecutionDbTestCase
 from st2tests.base import DbModelTestCase
 from st2tests.base import WorkflowTestCase
 
@@ -23,6 +24,7 @@ from st2tests.base import WorkflowTestCase
 __all__ = [
     'EventletTestCase',
     'DbTestCase',
+    'ExecutionDbTestCase',
     'DbModelTestCase',
     'WorkflowTestCase'
 ]

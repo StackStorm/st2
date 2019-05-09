@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -76,11 +75,11 @@ def create_request(liveaction, action_db=None, runnertype_db=None):
     # Use the user context from the parent action execution. Subtasks in a workflow
     # action can be invoked by a system user and so we want to use the user context
     # from the original workflow action.
-    parent_context = executions.get_parent_context(liveaction)
-    if parent_context:
-        parent_user = parent_context.get('user', None)
-        if parent_user:
-            liveaction.context['user'] = parent_user
+    parent_context = executions.get_parent_context(liveaction) or {}
+    parent_user = parent_context.get('user', None)
+
+    if parent_user:
+        liveaction.context['user'] = parent_user
 
     # Validate action
     if not action_db:
@@ -96,6 +95,9 @@ def create_request(liveaction, action_db=None, runnertype_db=None):
 
     if not hasattr(liveaction, 'parameters'):
         liveaction.parameters = dict()
+
+    # For consistency add pack to the context here in addition to RunnerContainer.dispatch() method
+    liveaction.context['pack'] = action_db.pack
 
     # Validate action parameters.
     schema = util_schema.get_schema_for_action_parameters(action_db, runnertype_db)
@@ -135,7 +137,7 @@ def create_request(liveaction, action_db=None, runnertype_db=None):
         _, trace_db = trace_service.get_trace_db_by_live_action(liveaction)
     except db_exc.StackStormDBObjectNotFoundError as e:
         _cleanup_liveaction(liveaction)
-        raise trace_exc.TraceNotFoundException(str(e))
+        raise trace_exc.TraceNotFoundException(six.text_type(e))
 
     execution = executions.create_execution_object(liveaction=liveaction, action_db=action_db,
                                                    runnertype_db=runnertype_db, publish=False)
@@ -332,14 +334,19 @@ def request_resume(liveaction, requester):
             '"%s" runner.' % (liveaction.id, action_db.runner_type['name'])
         )
 
-    if liveaction.status == action_constants.LIVEACTION_STATUS_RUNNING:
+    running_states = [
+        action_constants.LIVEACTION_STATUS_RUNNING,
+        action_constants.LIVEACTION_STATUS_RESUMING
+    ]
+
+    if liveaction.status in running_states:
         execution = ActionExecution.get(liveaction__id=str(liveaction.id))
         return (liveaction, execution)
 
     if liveaction.status != action_constants.LIVEACTION_STATUS_PAUSED:
         raise runner_exc.UnexpectedActionExecutionStatusError(
-            'Unable to resume liveaction "%s" because it is not in a paused state.'
-            % liveaction.id
+            'Unable to resume liveaction "%s" because it is in "%s" state and '
+            'not in "paused" state.' % (liveaction.id, liveaction.status)
         )
 
     liveaction = update_status(liveaction, action_constants.LIVEACTION_STATUS_RESUMING)

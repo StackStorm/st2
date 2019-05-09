@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -70,7 +69,12 @@ NON_UTF8_RESULT = {
     'return_code': 0
 }
 
+from st2tests.mocks.runners import runner
+from st2tests.mocks.runners import polling_async_runner
 
+
+@mock.patch('st2common.runners.base.get_runner', mock.Mock(return_value=runner.get_runner()))
+@mock.patch('st2actions.container.base.get_runner', mock.Mock(return_value=runner.get_runner()))
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
 class RunnerContainerTest(DbTestCase):
     action_db = None
@@ -82,6 +86,9 @@ class RunnerContainerTest(DbTestCase):
     @classmethod
     def setUpClass(cls):
         super(RunnerContainerTest, cls).setUpClass()
+
+        cfg.CONF.set_override(name='validate_output_schema', override=False, group='system')
+
         models = RunnerContainerTest.fixtures_loader.save_fixtures_to_db(
             fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_FIXTURES)
         RunnerContainerTest.runnertype_db = models['runners']['testrunner1.yaml']
@@ -98,13 +105,12 @@ class RunnerContainerTest(DbTestCase):
         super(RunnerContainerTest, cls).tearDownClass()
 
     def test_get_runner_module(self):
-        runnertype_db = RunnerContainerTest.runnertype_db
-        runner = get_runner(runnertype_db.runner_module, runnertype_db.runner_module)
+        runner = get_runner(name='local-shell-script')
         self.assertTrue(runner is not None, 'TestRunner must be valid.')
 
     def test_pre_run_runner_is_disabled(self):
         runnertype_db = RunnerContainerTest.runnertype_db
-        runner = get_runner(runnertype_db.runner_module, runnertype_db.runner_module)
+        runner = get_runner(name='local-shell-cmd')
 
         runner.runner_type = runnertype_db
         runner.runner_type.enabled = False
@@ -341,7 +347,9 @@ class RunnerContainerTest(DbTestCase):
         executions.create_execution_object(liveaction_db)
 
         # Assert that execution ran without exceptions.
-        runner_container.dispatch(liveaction_db)
+        with mock.patch('st2actions.container.base.get_runner',
+                mock.Mock(return_value=polling_async_runner.get_runner())):
+            runner_container.dispatch(liveaction_db)
         states = ActionExecutionState.get_all()
         found = [state for state in states if state.execution_id == liveaction_db.id]
 

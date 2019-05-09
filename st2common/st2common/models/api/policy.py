@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -65,7 +64,7 @@ class PolicyTypeAPI(BaseAPI, APIUIDMixin):
             "parameters": {
                 "type": "object",
                 "patternProperties": {
-                    "^\w+$": util_schema.get_draft_schema()
+                    r"^\w+$": util_schema.get_draft_schema()
                 },
                 'additionalProperties': False
             }
@@ -125,7 +124,7 @@ class PolicyAPI(BaseAPI, APIUIDMixin):
             "parameters": {
                 "type": "object",
                 "patternProperties": {
-                    "^\w+$": {
+                    r"^\w+$": {
                         "anyOf": [
                             {"type": "array"},
                             {"type": "boolean"},
@@ -138,6 +137,11 @@ class PolicyAPI(BaseAPI, APIUIDMixin):
                 },
                 'additionalProperties': False
 
+            },
+            "metadata_file": {
+                "description": "Path to the metadata file relative to the pack directory.",
+                "type": "string",
+                "default": ""
             }
         },
         "additionalProperties": False
@@ -175,4 +179,5 @@ class PolicyAPI(BaseAPI, APIUIDMixin):
                          enabled=getattr(instance, 'enabled', None),
                          resource_ref=str(instance.resource_ref),
                          policy_type=str(instance.policy_type),
-                         parameters=getattr(instance, 'parameters', dict()))
+                         parameters=getattr(instance, 'parameters', dict()),
+                         metadata_file=getattr(instance, 'metadata_file', None))

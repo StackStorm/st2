@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -17,7 +16,7 @@ from __future__ import absolute_import
 
 import mock
 
-from orquesta import states as wf_states
+from orquesta import statuses as wf_statuses
 
 import st2tests
 
@@ -30,6 +29,7 @@ from tests.unit import base
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar
 from st2common.constants import action as ac_const
+from st2common.expressions.functions import data as data_funcs
 from st2common.models.db import liveaction as lv_db_models
 from st2common.persistence import execution as ex_db_access
 from st2common.persistence import liveaction as lv_db_access
@@ -72,7 +72,7 @@ PACKS = [
     wf_ex_xport.WorkflowExecutionPublisher,
     'publish_state',
     mock.MagicMock(side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_state))
-class OrquestaFunctionTest(st2tests.DbTestCase):
+class OrquestaFunctionTest(st2tests.ExecutionDbTestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -115,7 +115,7 @@ class OrquestaFunctionTest(st2tests.DbTestCase):
 
         # Assert workflow is completed.
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(wf_ex_db.status, wf_statuses.SUCCEEDED)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db.id))
@@ -140,7 +140,9 @@ class OrquestaFunctionTest(st2tests.DbTestCase):
             'data_json_obj_4': {'foo': {'bar': 'foobar'}},
             'data_yaml_str_1': 'foo:\n  bar: foobar\n',
             'data_yaml_str_2': 'foo:\n  bar: foobar\n',
-            'data_query_1': ['foobar']
+            'data_query_1': ['foobar'],
+            'data_none_str': data_funcs.NONE_MAGIC_VALUE,
+            'data_str': 'foobar'
         }
 
         self._execute_workflow(wf_name, expected_output)
@@ -159,7 +161,9 @@ class OrquestaFunctionTest(st2tests.DbTestCase):
             'data_yaml_str_1': 'foo:\n  bar: foobar\n',
             'data_yaml_str_2': 'foo:\n  bar: foobar\n',
             'data_query_1': ['foobar'],
-            'data_pipe_str_1': '{"foo": {"bar": "foobar"}}'
+            'data_pipe_str_1': '{"foo": {"bar": "foobar"}}',
+            'data_none_str': data_funcs.NONE_MAGIC_VALUE,
+            'data_str': 'foobar'
         }
 
         self._execute_workflow(wf_name, expected_output)

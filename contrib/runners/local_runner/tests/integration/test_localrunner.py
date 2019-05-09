@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -433,7 +432,6 @@ class LocalShellScriptRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         status, result, _ = runner.run(action_parameters=action_parameters)
         runner.post_run(status, result)
-
         self.assertEqual(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         self.assertTrue('PARAM_STRING=test string' in result['stdout'])
         self.assertTrue('PARAM_INTEGER=1' in result['stdout'])

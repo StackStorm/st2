@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -14,9 +13,11 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import mock
 
-from kombu import Connection
+import os
+import imp
+
+import mock
 
 from st2common.transport.queues import RESULTSTRACKER_ACTIONSTATE_WORK_QUEUE
 from st2actions.resultstracker.resultstracker import ResultsTracker
@@ -31,7 +32,20 @@ FIXTURES_PACK = 'generic'
 FIXTURES = {'liveactions': ['liveaction1.yaml']}
 loader = FixturesLoader()
 
+CURRENT_DIR = os.path.dirname(__file__)
+ST2CONTENT_DIR = os.path.join(CURRENT_DIR, '../../../st2tests/st2tests/fixtures/packs/runners')
 
+MOCK_RUNNER_NAME = 'test_querymodule'
+
+MOCK_QUERIER_PATH = '{0}/{1}/query/{1}.py'.format(ST2CONTENT_DIR, MOCK_RUNNER_NAME)
+MOCK_QUERIER_PATH = os.path.abspath(MOCK_QUERIER_PATH)
+MOCK_QUERIER_MODULE = imp.load_source(MOCK_RUNNER_NAME + '.query', MOCK_QUERIER_PATH)
+
+
+@mock.patch('st2common.runners.base.get_query_module',
+            mock.Mock(return_value=MOCK_QUERIER_MODULE))
+@mock.patch('st2actions.resultstracker.resultstracker.get_query_module',
+            mock.Mock(return_value=MOCK_QUERIER_MODULE))
 class ActionStateConsumerTests(EventletTestCase, DbTestCase):
     models = None
     liveactions = None
@@ -46,7 +60,7 @@ class ActionStateConsumerTests(EventletTestCase, DbTestCase):
 
     @mock.patch.object(TestQuerier, 'query', mock.MagicMock(return_value=(False, {})))
     def test_process_message(self):
-        with Connection(transport_utils.get_messaging_urls()) as conn:
+        with transport_utils.get_connection() as conn:
             tracker = ResultsTracker(conn, [RESULTSTRACKER_ACTIONSTATE_WORK_QUEUE])
             tracker._bootstrap()
             state = ActionStateConsumerTests.get_state(

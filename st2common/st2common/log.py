@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -40,9 +39,15 @@ __all__ = [
     'FormatNamedFileHandler',
     'ConfigurableSyslogHandler',
 
-    'LoggingStream'
+    'LoggingStream',
+
+    'ignore_lib2to3_log_messages',
+    'ignore_statsd_log_messages'
 ]
 
+# NOTE: We set AUDIT to the highest log level which means AUDIT log messages will always be
+# included (e.g. also if log level is set to INFO). To avoid that, we need to explicitly filter
+# out AUDIT log level in service setup code.
 logging.AUDIT = logging.CRITICAL + 10
 logging.addLevelName(logging.AUDIT, 'AUDIT')
 
@@ -104,7 +109,7 @@ def decorate_log_method(func):
             # See:
             # - https://docs.python.org/release/2.7.3/library/logging.html#logging.Logger.exception
             # - https://docs.python.org/release/2.7.7/library/logging.html#logging.Logger.exception
-            if 'got an unexpected keyword argument \'extra\'' in str(e):
+            if 'got an unexpected keyword argument \'extra\'' in six.text_type(e):
                 kwargs.pop('extra', None)
                 return func(*args, **kwargs)
             raise e
@@ -202,3 +207,36 @@ def setup(config_file, redirect_stderr=True, excludes=None, disable_existing_log
         sys.stderr.write('ERROR: %s' % (msg))
 
         raise exc_cls(six.text_type(msg))
+
+
+def ignore_lib2to3_log_messages():
+    """
+    Work around to ignore "Generating grammar tables from" log messages which are logged under
+    INFO by default by libraries such as networkx which use 2to3.
+    """
+    import lib2to3.pgen2.driver
+
+    class MockLoggingModule(object):
+        def getLogger(self, *args, **kwargs):
+            return logging.getLogger('lib2to3')
+
+    lib2to3.pgen2.driver.logging = MockLoggingModule()
+    logging.getLogger('lib2to3').setLevel(logging.ERROR)
+
+
+def ignore_statsd_log_messages():
+    """
+    By default statsd client logs all the operations under INFO and that causes a lot of noise.
+
+    This pull request silences all the statsd INFO log messages.
+    """
+    import statsd.connection
+    import statsd.client
+
+    class MockLoggingModule(object):
+        def getLogger(self, *args, **kwargs):
+            return logging.getLogger('statsd')
+
+    statsd.connection.logging = MockLoggingModule()
+    statsd.client.logging = MockLoggingModule()
+    logging.getLogger('statsd').setLevel(logging.ERROR)

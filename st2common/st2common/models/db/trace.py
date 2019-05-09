@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -99,14 +98,14 @@ class TraceDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
         parts = []
         parts.append(self.RESOURCE_TYPE)
 
-        componenets_hash = hashlib.md5()
-        componenets_hash.update(str(self.trace_tag).encode())
-        componenets_hash.update(str(self.trigger_instances).encode())
-        componenets_hash.update(str(self.rules).encode())
-        componenets_hash.update(str(self.action_executions).encode())
-        componenets_hash.update(str(self.start_timestamp).encode())
+        components_hash = hashlib.md5()
+        components_hash.update(str(self.trace_tag).encode())
+        components_hash.update(str(self.trigger_instances).encode())
+        components_hash.update(str(self.rules).encode())
+        components_hash.update(str(self.action_executions).encode())
+        components_hash.update(str(self.start_timestamp).encode())
 
-        parts.append(componenets_hash.hexdigest())
+        parts.append(components_hash.hexdigest())
 
         uid = self.UID_SEPARATOR.join(parts)
         return uid

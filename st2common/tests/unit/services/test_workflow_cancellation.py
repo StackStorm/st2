@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -17,9 +16,12 @@ from __future__ import absolute_import
 
 import mock
 
-from orquesta import states as wf_lib_states
+from orquesta import statuses as wf_statuses
 
 import st2tests
+
+import st2tests.config as tests_config
+tests_config.parse_args()
 
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar
@@ -94,18 +96,19 @@ class WorkflowExecutionCancellationTest(st2tests.WorkflowTestCase):
         wf_ex_db = self.prep_wf_ex(wf_ex_db)
 
         # Manually request task executions.
-        self.run_workflow_step(wf_ex_db, 'task1')
-        self.assert_task_running('task2')
+        task_route = 0
+        self.run_workflow_step(wf_ex_db, 'task1', task_route)
+        self.assert_task_running('task2', task_route)
 
         # Cancel the workflow when there is still active task(s).
         wf_ex_db = wf_svc.request_cancellation(ac_ex_db)
         conductor, wf_ex_db = wf_svc.refresh_conductor(str(wf_ex_db.id))
-        self.assertEqual(conductor.get_workflow_state(), wf_lib_states.CANCELING)
-        self.assertEqual(wf_ex_db.status, wf_lib_states.CANCELING)
+        self.assertEqual(conductor.get_workflow_status(), wf_statuses.CANCELING)
+        self.assertEqual(wf_ex_db.status, wf_statuses.CANCELING)
 
         # Manually complete the task and ensure workflow is canceled.
-        self.run_workflow_step(wf_ex_db, 'task2')
-        self.assert_task_not_started('task3')
+        self.run_workflow_step(wf_ex_db, 'task2', task_route)
+        self.assert_task_not_started('task3', task_route)
         conductor, wf_ex_db = wf_svc.refresh_conductor(str(wf_ex_db.id))
-        self.assertEqual(conductor.get_workflow_state(), wf_lib_states.CANCELED)
-        self.assertEqual(wf_ex_db.status, wf_lib_states.CANCELED)
+        self.assertEqual(conductor.get_workflow_status(), wf_statuses.CANCELED)
+        self.assertEqual(wf_ex_db.status, wf_statuses.CANCELED)

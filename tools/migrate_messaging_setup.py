@@ -1,10 +1,9 @@
 #!/usr/bin/env python
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -19,9 +18,9 @@ A migration script that cleans up old queues.
 """
 
 from __future__ import absolute_import
+
 import traceback
 
-from kombu import Connection
 from st2common import config
 from st2common.transport import reactor
 from st2common.transport import utils as transport_utils
@@ -47,7 +46,7 @@ class Migrate_0_13_x_to_1_1_0(object):
         self._cleanup_old_queues()
 
     def _cleanup_old_queues(self):
-        with Connection(transport_utils.get_messaging_urls()) as connection:
+        with transport_utils.get_connection() as connection:
             for q in self.OLD_QS:
                 bound_q = q(connection.default_channel)
                 try:

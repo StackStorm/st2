@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -22,7 +21,7 @@ Command-line interface to StackStorm.
 from __future__ import print_function
 from __future__ import absolute_import
 
-# Ignore CryptographyDeprecationWarning warnings which appear on our Ubuntu build server
+# Ignore CryptographyDeprecationWarning warnings which appear on older versions of Python 2.7
 import warnings
 from cryptography.utils import CryptographyDeprecationWarning
 warnings.filterwarnings("ignore", category=CryptographyDeprecationWarning)
@@ -58,6 +57,7 @@ from st2client.commands import rule
 from st2client.commands import rule_enforcement
 from st2client.commands import rbac
 from st2client.commands import workflow
+from st2client.commands import service_registry
 from st2client.config import set_config
 from st2client.exceptions.operations import OperationFailureException
 from st2client.utils.logging import LogLevelFilter, set_log_level_for_all_loggers
@@ -336,6 +336,11 @@ class Shell(BaseCLIApp):
         self.commands['workflow'] = workflow.WorkflowBranch(
             'Commands for workflow authoring related operations. '
             'Only orquesta workflows are supported.',
+            self, self.subparsers)
+
+        # Service Registry
+        self.commands['service-registry'] = service_registry.ServiceRegistryBranch(
+            'Service registry group and membership related commands.',
             self, self.subparsers)
 
         # RBAC

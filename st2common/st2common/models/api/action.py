@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -106,7 +105,7 @@ class RunnerTypeAPI(BaseAPI):
                 "description": "Input parameters for the action runner.",
                 "type": "object",
                 "patternProperties": {
-                    "^\w+$": util_schema.get_action_parameters_schema()
+                    r"^\w+$": util_schema.get_action_parameters_schema()
                 },
                 'additionalProperties': False
             },
@@ -119,7 +118,7 @@ class RunnerTypeAPI(BaseAPI):
                 "description": "Schema for the runner's output.",
                 "type": "object",
                 "patternProperties": {
-                    "^\w+$": util_schema.get_action_output_schema()
+                    r"^\w+$": util_schema.get_action_output_schema()
                 },
                 'additionalProperties': False,
                 "default": {}
@@ -217,7 +216,7 @@ class ActionAPI(BaseAPI, APIUIDMixin):
                 "description": "Input parameters for the action.",
                 "type": "object",
                 "patternProperties": {
-                    "^\w+$": util_schema.get_action_parameters_schema()
+                    r"^\w+$": util_schema.get_action_parameters_schema()
                 },
                 'additionalProperties': False,
                 "default": {}
@@ -226,7 +225,7 @@ class ActionAPI(BaseAPI, APIUIDMixin):
                 "description": "Schema for the action's output.",
                 "type": "object",
                 "patternProperties": {
-                    "^\w+$": util_schema.get_action_output_schema()
+                    r"^\w+$": util_schema.get_action_output_schema()
                 },
                 'additionalProperties': False,
                 "default": {}
@@ -245,6 +244,11 @@ class ActionAPI(BaseAPI, APIUIDMixin):
                     "on-success": NotificationSubSchemaAPI
                 },
                 "additionalProperties": False
+            },
+            "metadata_file": {
+                "description": "Path to the metadata file relative to the pack directory.",
+                "type": "string",
+                "default": ""
             }
         },
         "additionalProperties": False
@@ -291,10 +295,12 @@ class ActionAPI(BaseAPI, APIUIDMixin):
             # to use an empty document.
             notify = NotificationsHelper.to_model({})
 
+        metadata_file = getattr(action, 'metadata_file', None)
+
         model = cls.model(name=name, description=description, enabled=enabled,
                           entry_point=entry_point, pack=pack, runner_type=runner_type,
                           tags=tags, parameters=parameters, output_schema=output_schema,
-                          notify=notify, ref=ref)
+                          notify=notify, ref=ref, metadata_file=metadata_file)
 
         return model
 
@@ -375,7 +381,7 @@ class LiveActionAPI(BaseAPI):
                 "description": "Input parameters for the action.",
                 "type": "object",
                 "patternProperties": {
-                    "^\w+$": {
+                    r"^\w+$": {
                         "anyOf": [
                             {"type": "array"},
                             {"type": "boolean"},
@@ -415,6 +421,11 @@ class LiveActionAPI(BaseAPI):
                     "on-success": NotificationSubSchemaAPI
                 },
                 "additionalProperties": False
+            },
+            "delay": {
+                "description": ("How long (in milliseconds) to delay the execution before"
+                                "scheduling."),
+                "type": "integer",
             }
         },
         "additionalProperties": False
@@ -452,6 +463,7 @@ class LiveActionAPI(BaseAPI):
         context = getattr(live_action, 'context', dict())
         callback = getattr(live_action, 'callback', dict())
         result = getattr(live_action, 'result', None)
+        delay = getattr(live_action, 'delay', None)
 
         if getattr(live_action, 'notify', None):
             notify = NotificationsHelper.to_model(live_action.notify)
@@ -461,7 +473,7 @@ class LiveActionAPI(BaseAPI):
         model = cls.model(action=action,
                           start_timestamp=start_timestamp, end_timestamp=end_timestamp,
                           status=status, parameters=parameters, context=context,
-                          callback=callback, result=result, notify=notify)
+                          callback=callback, result=result, notify=notify, delay=delay)
 
         return model
 
@@ -611,6 +623,11 @@ class ActionAliasAPI(BaseAPI, APIUIDMixin):
             "extra": {
                 "type": "object",
                 "description": "Extra parameters, usually adapter-specific."
+            },
+            "metadata_file": {
+                "description": "Path to the metadata file relative to the pack directory.",
+                "type": "string",
+                "default": ""
             }
         },
         "additionalProperties": False
@@ -628,10 +645,12 @@ class ActionAliasAPI(BaseAPI, APIUIDMixin):
         ack = getattr(alias, 'ack', None)
         result = getattr(alias, 'result', None)
         extra = getattr(alias, 'extra', None)
+        metadata_file = getattr(alias, 'metadata_file', None)
 
         model = cls.model(name=name, description=description, pack=pack, ref=ref,
                           enabled=enabled, action_ref=action_ref, formats=formats,
-                          ack=ack, result=result, extra=extra)
+                          ack=ack, result=result, extra=extra,
+                          metadata_file=metadata_file)
         return model
 
 
@@ -667,9 +686,16 @@ class AliasExecutionAPI(BaseAPI):
             },
             "source_channel": {
                 "type": "string",
-                "description": "Channel from which the execution was requested. This is not the \
-                                channel as defined by the notification system.",
+                "description": "Channel from which the execution was requested. This is not the "
+                               "channel as defined by the notification system.",
                 "required": True
+            },
+            "source_context": {
+                "type": "object",
+                "description": "ALL data included with the message (also called the message "
+                               "envelope). This is currently only used by the Microsoft Teams "
+                               "adapter.",
+                "required": False
             },
             "notification_channel": {
                 "type": "string",

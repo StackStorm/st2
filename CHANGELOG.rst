@@ -4,20 +4,443 @@ Changelog
 in development
 --------------
 
+Fixed
+~~~~~
+
+* Fix a bug in the remote command and script runner so it correctly uses SSH port from a SSH config
+  file if ``ssh_runner.use_ssh_config`` parameter is set to ``True`` and if a custom (non-default)
+  value for SSH port is specified in the configured SSH config file
+  (``ssh_runner.ssh_config_file_path``). (bug fix) #4660 #4661
+* Update pack install action so it works correctly when ``python_versions`` ``pack.yaml`` metadata
+  attribute is used in combination with ``--python3`` pack install flag. (bug fix) #4654 #4662
+* Add ``source_channel`` back to the context used by Mistral workflows for executions which are
+  triggered via ChatOps (using action alias).
+
+  In StackStorm v3.0.0, this variable was inadvertently removed from the context used by Mistral
+  workflows. (bug fix) #4650 #4656
+
+3.0.0 - April 18, 2019
+----------------------
+
 Added
 ~~~~~
 
+* Allow access to user-scoped datastore items using ``{{ st2kv.user.<key name> }}`` Jinja template
+  notation inside the action parameter default values. (improvement) #4463
+
+  Contributed by Hiroyasu OHYAMA (@userlocalhost).
+* Add support for new ``python_versions`` (``list`` of ``string``) attribute to pack metadata file
+  (``pack.yaml``). With this attribute pack declares which major Python versions it supports and
+  works with (e.g. ``2`` and ``3``).
+
+  For backward compatibility reasons, if pack metadata file doesn't contain that attribute, it's
+  assumed it only works with Python 2. (new feature) #4474
+* Update service bootstrap code and make sure all the services register in a service registry once
+  they come online and become available.
+
+  This functionality is only used internally and will only work if configuration backend is
+  correctly configured in ``st2.conf`` (new feature) #4548
+* Add new ``GET /v1/service_registry/groups`` and
+  ``GET /v1/service_registry/groups/<group_id>/members`` API endpoint for listing available service
+  registry groups and members.
+
+  Also add corresponding CLI commands - ``st2 service-registry group list``, ``st2 service registry
+  member list [--group-id=<group id>]``
+
+  NOTE: This API endpoint is behind an RBAC wall and can only be viewed by the admins. (new feature)
+  #4548
+* Add support for ``?include_attributes`` and ``?exclude_attributes`` query param filter to the
+  ``GET /api/v1/executions/{id}`` API endpoint. Also update ``st2 execution get`` CLI command so it
+  only retrieves attributes which are displayed. (new feature) #4497
+
+  Contributed by Nick Maludy (@nmaludy Encore Technologies)
+
+* Add new ``--encrypted`` flag to ``st2 key set`` CLI command that allows users to pass in values
+  which are already encrypted.
+
+  This attribute signals the API that the value is already encrypted and should be used as-is.
+
+  ``st2 key load`` CLI command has also been updated so it knows how to work with values which are
+  already encrypted. This means that ``st2 key list -n 100 -j < data.json ; st2 key load
+  data.json`` will now also work out of the box for encrypted datastore values (values which have
+  ``encrypted: True`` and ``secret: True`` attribute will be treated as already encrypted and used
+  as-is).
+
+  The most common use case for this feature is migrating / restoring datastore values from one
+  StackStorm instance to another which uses the same crypto key.
+
+  Contributed by Nick Maludy (Encore Technologies) #4547
+* Add ``source_channel`` to Orquesta ``st2()`` context for workflows called via ChatOps. #4600
+
+Changed
+~~~~~~~
+
+* Changed the ``inquiries`` API path from ``/exp`` to ``/api/v1``. #4495
+* Refactored workflow state in orquesta workflow engine. Previously, state in the workflow engine
+  is not status to be consistent with st2. Other terminologies used in the engine are also revised
+  to make it easier for developers to understand. (improvement)
+* Update Python runner code so it prioritizes libraries from pack virtual environment over StackStorm
+  system dependencies.
+
+  For example, if pack depends on ``six==1.11.0`` in pack ``requirements.txt``, but StackStorm depends
+  on ``six==1.10.0``, ``six==1.11.0`` will be used when running Python actions from that pack.
+
+  Keep in mind that will not work correctly if pack depends on a library which brakes functionality used
+  by Python action wrapper code.
+
+  Contributed by Hiroyasu OHYAMA (@userlocalhost). #4571
+* Improved the way that the ``winrm-ps-script`` runner sends scripts to the target Windows
+  host. Previously the script was read from the local filesystem and serialized as one long
+  command executed on the command line. This failed when the script was longer than either
+  2047 or 8191 bytes (depending on Windows version) as the Windows command line uses this
+  as its maximum length. To overcome this, the ``winrm-ps-script`` runner now uploads the
+  script into a temporary directory on the target host, then executes the script.
+  (improvement) #4514
+
+  Contributed by Nick Maludy (Encore Technologies)
+* Update various internal dependencies to latest stable versions (apscheduler, pyyaml, kombu,
+  mongoengine, pytz, stevedore, python-editor, jinja2). #4610
+* Update logging code so we exclude log messages with log level ``AUDIT`` from a default service
+  log file (e.g. ``st2api.log``). Log messages with level ``AUDIT`` are already logged in a
+  dedicated service audit log file (e.g. ``st2api.audit.log``) so there is no need for them to also
+  be duplicated and included in regular service log file.
+
+  NOTE: To aid with debugging, audit log messages are also included in a regular log file when log
+  level is set to ``DEBUG`` or ``system.debug`` config option is set to ``True``.
+
+  Reported by Nick Maludy. (improvement) #4538 #4502 #4621
+* Add missing ``--user`` argument to ``st2 execution list`` CLI command. (improvement) #4632
+
+  Contributed by Tristan Struthers (@trstruth).
+* Update ``decrypt_kv`` Jinja template filter so it to throws a more user-friendly error message
+  when decryption fails because the variable references a datastore value which doesn't exist.
+  (improvement) #4634
+* Updated orquesta to v0.5. (improvement)
+
+Fixed
+~~~~~
+
+* Refactored orquesta execution graph to fix performance issue for workflows with many references
+  to non-join tasks. st2workflowengine and DB models are refactored accordingly. (improvement)
+  StackStorm/orquesta#122.
+* Fix orquesta workflow stuck in running status when one or more items failed execution for a with
+  items task. (bug fix) #4523
+* Fix orquesta workflow bug where context variables are being overwritten on task join. (bug fix)
+  StackStorm/orquesta#112
+* Fix orquesta with items task performance issue. Workflow runtime increase significantly when a
+  with items task has many items and result in many retries on write conflicts. A distributed lock
+  is acquired before write operations to avoid write conflicts. (bug fix) Stackstorm/orquesta#125
+* Fix a bug with some API endpoints returning 500 internal server error when an exception contained
+  unicode data. (bug fix) #4598
+* Fix the ``st2 workflow inspect`` command so it correctly passes authentication token. (bug fix)
+  #4615
+* Fix an issue with new line characters (``\n``) being converted to ``\r\n`` in remote shell
+  command and script actions which use sudo. (bug fix) #4623
+* Update service bootstrap and ``st2-register-content`` script code so non-fatal errors are
+  suppressed by default and only logged under ``DEBUG`` log level. (bug fix) #3933 #4626 #4630
+* Fix a bug with not being able to decrypt user-scoped datastore values inside Jinja expressions
+  using ``decrypt_kv`` Jinja filter. (bug fix) #4634
+
+  Contributed by Hiroyasu OHYAMA (@userlocalhost).
+* Fix a bug with user-scoped datastore values not working inside action-chain workflows. (bug fix)
+  #4634
+* Added missing parameter types to ``linux.wait_for_ssh`` action metadata. (bug fix) #4611
+* Fix HTTP runner (``http-request``) so it works correctly with unicode (non-ascii) body payloads.
+  (bug fix) #4601 #4599
+
+  Reported by Carlos Santana (@kknyxkk) and Rafael Martins (@rsmartins78).
+* Fix ``st2-self-check`` so it sets correct permissions on pack directories which it copies over
+  to ``/opt/stackstorm/packs``. (bug fix) #4645
+* Fix ``POST /v1/actions`` API endpoint to throw a more user-friendly error when writing data file
+  to disk fails because of incorrect permissions. (bug fix) #4645
+
+2.10.4 - March 15, 2019
+-----------------------
+
+Fixed
+~~~~~
+
+* Fix inadvertent regression in notifier service which would cause generic action trigger to only
+  be dispatched for completed states even if custom states were specified using
+  ``action_sensor.emit_when`` config option. (bug fix)
+  Reported by Shu Sugimoto (@shusugmt). #4591
+* Make sure we don't log auth token and api key inside st2api log file if those values are provided
+  via query parameter and not header (``?x-auth-token=foo``, ``?st2-api-key=bar``). (bug fix) #4592
+  #4589
+* Fix rendering of ``{{ config_context. }}`` in orquesta task that references action from a
+  different pack (bug fix) #4570 #4567
+* Add missing default config location (``/etc/st2/st2.conf``) to the following services:
+  ``st2actionrunner``, ``st2scheduler``, ``st2workflowengine``. (bug fix) #4596
+* Update statsd metrics driver so any exception thrown by statsd library is treated as non fatal.
+
+  Previously there was an edge case if user used a hostname instead of an IP address for metrics
+  backend server address. In such scenario, if hostname DNS resolution failed, statsd driver would
+  throw the exception which would propagate all the way up and break the application. (bug fix) #4597
+
+  Reported by Chris McKenzie.
+
+2.10.3 - March 06, 2019
+-----------------------
+
+Fixed
+~~~~~
+
+* Fix improper CORS where request from an origin not listed in ``allowed_origins`` will be responded
+  with ``null`` for the ``Access-Control-Allow-Origin`` header. The fix returns the first of our
+  allowed origins if the requesting origin is not a supported origin. Reported by Barak Tawily.
+  (bug fix)
+
+2.9.3 - March 06, 2019
+-----------------------
+
+Fixed
+~~~~~
+
+* Fix improper CORS where request from an origin not listed in ``allowed_origins`` will be responded
+  with ``null`` for the ``Access-Control-Allow-Origin`` header. The fix returns the first of our
+  allowed origins if the requesting origin is not a supported origin. Reported by Barak Tawily.
+  (bug fix)
+
+2.10.2 - February 21, 2019
+--------------------------
+
+Added
+~~~~~
+
+* Add support for various new SSL / TLS related config options (``ssl_keyfile``, ``ssl_certfile``,
+  ``ssl_ca_certs``, ``ssl_certfile``, ``authentication_mechanism``) to the ``messaging`` section in
+  ``st2.conf`` config file.
+
+  With those config options, user can configure things such as client based certificate
+  authentication, client side verification of a server certificate against a specific CA bundle, etc.
+
+  NOTE: Those options are only supported when using a default and officially supported AMQP backend
+  with RabbitMQ server. (new feature) #4541
+* Add metrics instrumentation to the ``st2notifier`` service. For the available / exposed metrics,
+  please refer to https://docs.stackstorm.com/reference/metrics.html. (improvement) #4536
+
+Changed
+~~~~~~~
+
+* Update logging code so we exclude log messages with log level ``AUDIT`` from a default service
+  log file (e.g. ``st2api.log``). Log messages with level ``AUDIT`` are already logged in a
+  dedicated service audit log file (e.g. ``st2api.audit.log``) so there is no need for them to also
+  be duplicated and included in regular service log file.
+
+  NOTE: To aid with debugging, audit log messages are also included in a regular log file when log
+  level is set to ``DEBUG`` or ``system.debug`` config option is set to ``True``.
+
+  Reported by Nick Maludy. (improvement) #4538 #4502
+* Update ``pyyaml`` dependency to the latest version. This latest version fixes an issue which
+  could result in a code execution vulnerability if code uses ``yaml.load`` in an unsafe manner
+  on untrusted input.
+
+  NOTE: StackStorm platform itself is not affected, because we already used ``yaml.safe_load``
+  everywhere.
+
+  Only custom packs which use ``yaml.load`` with non trusted user input could potentially be
+  affected. (improvement) #4510 #4552 #4554
+* Update Orquesta to ``v0.4``. #4551
+
+Fixed
+~~~~~
+
+* Fixed the ``packs.pack_install`` / ``!pack install {{ packs }}`` action-alias to not have
+  redundant patterns. Previously this prevented it from being executed via
+  ``st2 action-alias execute 'pack install xxx'``. #4511
+
+  Contributed by Nick Maludy (Encore Technologies)
+* Fix datastore value encryption and make sure it also works correctly for unicode (non-ascii)
+  values.
+
+  Reported by @dswebbthg, @nickbaum. (bug fix) #4513 #4527 #4528
+* Fix a bug with action positional parameter serialization used in local and remote script runner
+  not working correctly with non-ascii (unicode) values.
+
+  This would prevent actions such as ``core.sendmail`` which utilize positional parameters from
+  working correctly when a unicode value was provided.
+
+  Reported by @johandahlberg (bug fix) #4533
+* Fix ``core.sendmail`` action so it specifies ``charset=UTF-8`` in the ``Content-Type`` email
+  header. This way it works correctly when an email subject and / or body contains unicode data.
+
+  Reported by @johandahlberg (bug fix) #4533 4534
+
+* Fix CLI ``st2 apikey load`` not being idempotent and API endpoint ``/api/v1/apikeys`` not
+  honoring desired ``ID`` for the new record creation. #4542
+* Moved the lock from concurrency policies into the scheduler to fix a race condition when there
+  are multiple scheduler instances scheduling execution for action with concurrency policies.
+  #4481 (bug fix)
+* Add retries to scheduler to handle temporary hiccup in DB connection. Refactor scheduler
+  service to return proper exit code when there is a failure. #4539 (bug fix)
+* Update service setup code so we always ignore ``kombu`` library ``heartbeat_tick`` debug log
+  messages.
+
+  Previously if ``DEBUG`` log level was set in service logging config file, but ``--debug``
+  service CLI flag / ``system.debug = True`` config option was not used, those messages were
+  still logged which caused a lot of noise which made actual useful log messages hard to find.
+  (improvement) #4557
+
+2.10.1 - December 19, 2018
+--------------------------
+
+Fixed
+~~~~~
+
+* Fix an issue with ``GET /v1/keys`` API endpoint not correctly handling ``?scope=all`` and
+  ``?user=<username>`` query filter parameter inside the open-source edition. This would allow
+  user A to retrieve datastore values from user B and similar.
+
+  NOTE: Enterprise edition with RBAC was not affected, because in RBAC version, correct check is
+  in place which only allows users with an admin role to use ``?scope=all`` and retrieve / view
+  datastore values for arbitrary system users. (security issue bug fix)
+
+2.10.0 - December 13, 2018
+--------------------------
+
+Added
+~~~~~
+
+* Added ``notify`` runner parameter to Orquesta that allows user to specify which task(s) to get
+  notified on completion.
+* Add support for task delay in Orquesta workflows. #4459 (new feature)
+* Add support for task with items in Orquesta workflows. #4400 (new feature)
+* Add support for workflow output on error in Orquesta workflows. #4436 (new feature)
 * Added ``-o`` and ``-m`` CLI options to ``st2-self-check`` script, to skip Orquesta and/or Mistral
   tests. #4347
+* Allow user to specify new ``database.authentication_mechanism`` config option in
+  ``/etc/st2/st2.conf``.
+
+  By default, SCRAM-SHA-1 is used with MongoDB 3.0 and later and MONGODB-CR (MongoDB Challenge
+  Response protocol) for older servers.
+
+  Contributed by @aduca85 #4373
+* Add new ``metadata_file`` attribute to the following models: Action, Action Alias, Rule, Sensor,
+  TriggerType. Value of this attribute points to a metadata file for a specific resource (YAML file
+  which contains actual resource definition). Path is relative to the pack directory (e.g.
+  ``actions/my_action1.meta.yaml``, ``aliases/my_alias.yaml``, ``sensors/my_sensor.yaml``,
+  ``rules/my_rule.yaml``, ``triggers/my_trigger.yaml`` etc.).
+
+  Keep in mind that triggers can be registered in two ways - either via sensor definition file in
+  ``sensors/`` directory or via trigger definition file in ``triggers/`` directory. If
+  ``metadata_file`` attribute on TriggerTypeDB model points to ``sensors/`` directory it means that
+  trigger is registered via sensor definition. (new feature) #4445
+* Add new ``st2client.executions.get_children`` method for returning children execution objects for
+  a specific (parent) execution. (new feature) #4444
+
+  Contributed by Tristan Struthers (@trstruth).
+* Allow user to run a subset of pack tests by utilizing the new ``-f`` command line option in the
+  ``st2-run-pack-tests`` script.
+
+  For example:
+
+  1. Run all tests in a test file (module):
+
+     st2-run-pack-tests -j -x -p contrib/packs/ -f test_action_download
+
+  2. Run a single test class
+
+     st2-run-pack-tests -j -x -p contrib/packs/ -f test_action_download:DownloadGitRepoActionTestCase
+
+  3. Run a single test class method
+
+     st2-run-pack-tests -j -x -p contrib/packs/ -f test_action_download:DownloadGitRepoActionTestCase.test_run_pack_download
+
+  (new feature) #4464
+
+Changed
+~~~~~~~
+
+* Redesigned and rewritten the action execution scheduler. Requested executions are put in a
+  persistent queue for scheduler to process. Architecture is put into place for more complex
+  execution scheduling. Action execution can be delayed on request. (improvement)
+* ``core.http`` action now supports additional HTTP methods: OPTIONS, TRACE, PATCH, PURGE.
+
+  Contributed by @emptywee (improvement) #4379
+* Runner loading code has been updated so it utilizes new "runner as Python package" functionality
+  which has been introduced in a previous release. This means that the runner loading is now fully
+  automatic and dynamic.
+
+  All the available / installed runners are automatically loaded and registering on each StackStorm
+  service startup.
+
+  This means that ``st2ctl reload --register-runners`` flag is now obsolete because runners are
+  automatically registered on service start up. In addition to that,
+  ``content.system_runners_base_path`` and ``content.runners_base_paths`` config options are now
+  also deprecated and unused.
+
+  For users who wish to develop and user custom action runners, they simply need to ensure they are
+  packaged as Python packages and available / installed in StackStorm virtual environment
+  (``/opt/stackstorm/st2``). (improvement) #4217
+* Old runner names which have been deprecated in StackStorm v0.9.0 have been removed (run-local,
+  run-local-script, run-remote, run-remote-script, run-python, http-runner). If you are still using
+  actions which reference runners using old names, you need to update them to keep it working.
+  #4217
+* Update various CLI commands to only retrieve attributes which are displayed in the CLI from the
+  API (``st2 execution list``, ``st2 execution get``, ``st2 action list``, ``st2 rule list``,
+  ``st2 sensor list``). This speeds up run-time and means now those commands now finish faster.
+
+  If user wants to retrieve and view all the attributes, they can use ``--attr all`` CLI command
+  argument (same as before). (improvement) #4396
+* Update various internal dependencies to latest stable versions (greenlet, pymongo, pytz,
+  stevedore, tooz). #4410
+
+* Improve ``st2.conf`` migration for the new services by using prod-friendly logging settings by default #4415
+* Refactor Orquesta workflow to output on error. Depends on PR
+  https://github.com/StackStorm/orquesta/pull/101 and https://github.com/StackStorm/orquesta/pull/102
+  (improvement)
+* Rename ``st2client.liveactions`` to ``st2client.executions``. ``st2client.liveactions`` already
+  represented operations on execution objects, but it was incorrectly named.
+
+  For backward compatibility reasons, ``st2client.liveactions`` will stay as an alias for
+  ``st2client.executions`` and continue to work until it's fully removed in a future release.
+
+Fixed
+~~~~~
+
+* ``st2 login`` CLI commands now exits with non zero exit code when login fails due to invalid
+  credentials. (improvement) #4338
+* Fix ``st2 key load`` that errors when importing an empty file #43
+* Fixed warning in ``st2-run-pack-tests`` about invalid format for ``pip list``. (bug fix)
+
+  Contributed by Nick Maludy (Encore Technologies). #4380
+* Fix a bug with ``st2 execution get`` / ``st2 run`` CLI command throwing an exception if the
+  result field contained a double backslash string which looked like an unicode escape sequence.
+  CLI incorrectly tried to parse that string as unicode escape sequence.
+
+  Reported by James E. King III @jeking3 (bug fix) #4407
+* Fix a bug so ``timersengine`` config section in ``st2.conf`` has precedence over ``timer``
+  section if explicitly specified in the config file.
+
+  Also fix a bug with default config values for ``timer`` section being used if user only
+  specified ``timersengine`` section in the config. Previously user options were incorrectly
+  ignored in favor of the default values. (bug fix) #4424
+* ``st2 pack install -j`` now only spits JSON output. Similarly, ``st2 pack install -y`` only spits
+  YAML output. This change would enable the output to be parsed by tools.
+  The behavior of ``st2 pack install`` hasn't changed and is human friendly. If you want to get meta
+  information about the pack as JSON (count of actions, sensors etc), you should rely on already
+  existing ``st2 pack show -j``.
+
+  Reported by Nick Maludy (improvement) #4260
+* Fix string operations on unicode data in Orquesta workflows, associated with PR
+  https://github.com/StackStorm/orquesta/pull/98. (bug fix)
+* Fix access to st2 and action context in Orquesta workflows, associated with PR
+  https://github.com/StackStorm/orquesta/pull/104. (bug fix)
+* ``st2ctl reload --register-aliases`` and ``st2ctl reload --register-all`` now spits a warning when
+  trying to register aliases with no corresponding action registered in the db.
+
+  Reported by nzlosh (improvement) #4372.
+
+2.9.1 - October 03, 2018
+------------------------
 
 Changed
 ~~~~~~~
 
 * Speed up pack registration through the ``/v1/packs/register`` API endpoint. (improvement) #4342
 * Triggertypes API now sorts by trigger ref by default. ``st2 trigger list`` will now show a sorted
-* ``core.http`` action now supports additional HTTP methods: OPTIONS, TRACE, PATCH, PURGE.
-
-  Contributed by @emptywee (improvement) #4379
+  list. (#4348)
+* Update ``st2-self-check`` script to include per-test timing information. (improvement) #4359
 
 Fixed
 ~~~~~
@@ -31,8 +454,7 @@ Fixed
 * Update ``st2-pack-install`` and ``st2 pack install`` command so it works with local git repos
   (``file://<path to local git repo>``) which are in a detached head state (e.g. specific revision
   is checked out). (improvement) #4366
-* st2 login now exits with non zero exit code when login fails due to invalid credentials.
-  (improvement) #4338
+* Fix a race which occurs when there are multiple concurrent requests to resume a workflow. #4369
 
 2.9.0 - September 16, 2018
 --------------------------
@@ -219,7 +641,7 @@ Fixed
   Reported by @jjm
 
   Contributed by Nick Maludy (Encore Technologies).
-* Mark ``password`` ``http-runner`` parameter as a secret. (bug fix) #4245
+* Mark ``password`` ``http-request`` parameter as a secret. (bug fix) #4245
 
   Reported by @daniel-mckenna
 

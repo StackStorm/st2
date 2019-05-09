@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -42,6 +41,9 @@ def _register_cli_opts():
         cfg.BoolOpt('force', default=False,
                     help='True to force pack installation and ignore install '
                          'lock file if it exists.'),
+        cfg.BoolOpt('use-python3', default=False,
+                    help='True to use Python3 binary when creating virtualenv '
+                         'for this pack.'),
     ]
     do_register_cli_opts(cli_opts)
 
@@ -56,6 +58,7 @@ def main(argv):
     packs = cfg.CONF.pack
     verify_ssl = cfg.CONF.verify_ssl
     force = cfg.CONF.force
+    use_python3 = cfg.CONF.use_python3
 
     proxy_config = get_and_set_proxy_config()
 
@@ -63,7 +66,8 @@ def main(argv):
         # 1. Download the pack
         LOG.info('Installing pack "%s"' % (pack))
         result = download_pack(pack=pack, verify_ssl=verify_ssl, force=force,
-                               proxy_config=proxy_config, force_permissions=True)
+                               proxy_config=proxy_config, force_permissions=True,
+                               use_python3=use_python3)
 
         # Raw pack name excluding the version
         pack_name = result[1]
@@ -79,7 +83,7 @@ def main(argv):
         # 2. Setup pack virtual environment
         LOG.info('Setting up virtualenv for pack "%s"' % (pack_name))
         setup_pack_virtualenv(pack_name=pack_name, update=False, logger=LOG,
-                              proxy_config=proxy_config, use_python3=False,
+                              proxy_config=proxy_config, use_python3=use_python3,
                               no_download=True)
         LOG.info('Successfully set up virtualenv for pack "%s"' % (pack_name))
 

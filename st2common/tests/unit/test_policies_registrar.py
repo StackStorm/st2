@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -130,6 +129,7 @@ class PoliciesRegistrarTestCase(CleanDbTestCase):
         self.assertEqual(p1.policy_type, 'action.concurrency')
         # Verify that a default value for parameter "action" which isn't provided in the file is set
         self.assertEqual(p1.parameters['action'], 'delay')
+        self.assertEqual(p1.metadata_file, 'policies/policy_1.yaml')
 
         p2 = Policy.get_by_ref('dummy_pack_1.test_policy_2')
         self.assertEqual(p2, None)
@@ -152,5 +152,6 @@ class PoliciesRegistrarTestCase(CleanDbTestCase):
 
         expected_msg = '100 is greater than the maximum of 5'
         self.assertRaisesRegexp(jsonschema.ValidationError, expected_msg,
-                                registrar._register_policy, pack='dummy_pack_2',
+                                registrar._register_policy,
+                                pack='dummy_pack_2',
                                 policy=policy_path)

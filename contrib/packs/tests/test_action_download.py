@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -107,7 +106,7 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
     def test_run_pack_download(self):
         action = self.get_action_instance()
         result = action.run(packs=['test'], abs_repo_base=self.repo_base)
-        temp_dir = hashlib.md5(PACK_INDEX['test']['repo_url']).hexdigest()
+        temp_dir = hashlib.md5(PACK_INDEX['test']['repo_url'].encode()).hexdigest()
 
         self.assertEqual(result, {'test': 'Success.'})
         self.clone_from.assert_called_once_with(PACK_INDEX['test']['repo_url'],
@@ -131,8 +130,8 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         action = self.get_action_instance()
         result = action.run(packs=['test', 'test2'], abs_repo_base=self.repo_base)
         temp_dirs = [
-            hashlib.md5(PACK_INDEX['test']['repo_url']).hexdigest(),
-            hashlib.md5(PACK_INDEX['test2']['repo_url']).hexdigest()
+            hashlib.md5(PACK_INDEX['test']['repo_url'].encode()).hexdigest(),
+            hashlib.md5(PACK_INDEX['test2']['repo_url'].encode()).hexdigest()
         ]
 
         self.assertEqual(result, {'test': 'Success.', 'test2': 'Success.'})
@@ -160,7 +159,7 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
 
     def test_run_pack_lock_is_already_acquired(self):
         action = self.get_action_instance()
-        temp_dir = hashlib.md5(PACK_INDEX['test']['repo_url']).hexdigest()
+        temp_dir = hashlib.md5(PACK_INDEX['test']['repo_url'].encode()).hexdigest()
 
         original_acquire = LockFile.acquire
 
@@ -186,7 +185,7 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
     def test_run_pack_lock_is_already_acquired_force_flag(self):
         # Lock is already acquired but force is true so it should be deleted and released
         action = self.get_action_instance()
-        temp_dir = hashlib.md5(PACK_INDEX['test']['repo_url']).hexdigest()
+        temp_dir = hashlib.md5(PACK_INDEX['test']['repo_url'].encode()).hexdigest()
 
         original_acquire = LockFile.acquire
 
@@ -241,40 +240,191 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         action = self.get_action_instance()
 
         # Version is satisfied
-        st2common.util.pack_management.CURRENT_STACKSTROM_VERSION = '2.0.0'
+        st2common.util.pack_management.CURRENT_STACKSTORM_VERSION = '2.0.0'
 
         result = action.run(packs=['test3'], abs_repo_base=self.repo_base)
         self.assertEqual(result['test3'], 'Success.')
 
         # Pack requires a version which is not satisfied by current StackStorm version
-        st2common.util.pack_management.CURRENT_STACKSTROM_VERSION = '2.2.0'
+        st2common.util.pack_management.CURRENT_STACKSTORM_VERSION = '2.2.0'
         expected_msg = ('Pack "test3" requires StackStorm ">=1.6.0, <2.2.0", but '
                         'current version is "2.2.0"')
         self.assertRaisesRegexp(ValueError, expected_msg, action.run, packs=['test3'],
                                 abs_repo_base=self.repo_base)
 
-        st2common.util.pack_management.CURRENT_STACKSTROM_VERSION = '2.3.0'
+        st2common.util.pack_management.CURRENT_STACKSTORM_VERSION = '2.3.0'
         expected_msg = ('Pack "test3" requires StackStorm ">=1.6.0, <2.2.0", but '
                         'current version is "2.3.0"')
         self.assertRaisesRegexp(ValueError, expected_msg, action.run, packs=['test3'],
                                 abs_repo_base=self.repo_base)
 
-        st2common.util.pack_management.CURRENT_STACKSTROM_VERSION = '1.5.9'
+        st2common.util.pack_management.CURRENT_STACKSTORM_VERSION = '1.5.9'
         expected_msg = ('Pack "test3" requires StackStorm ">=1.6.0, <2.2.0", but '
                         'current version is "1.5.9"')
         self.assertRaisesRegexp(ValueError, expected_msg, action.run, packs=['test3'],
                                 abs_repo_base=self.repo_base)
 
-        st2common.util.pack_management.CURRENT_STACKSTROM_VERSION = '1.5.0'
+        st2common.util.pack_management.CURRENT_STACKSTORM_VERSION = '1.5.0'
         expected_msg = ('Pack "test3" requires StackStorm ">=1.6.0, <2.2.0", but '
                         'current version is "1.5.0"')
         self.assertRaisesRegexp(ValueError, expected_msg, action.run, packs=['test3'],
                                 abs_repo_base=self.repo_base)
 
         # Version is not met, but force=true parameter is provided
-        st2common.util.pack_management.CURRENT_STACKSTROM_VERSION = '1.5.0'
+        st2common.util.pack_management.CURRENT_STACKSTORM_VERSION = '1.5.0'
         result = action.run(packs=['test3'], abs_repo_base=self.repo_base, force=True)
         self.assertEqual(result['test3'], 'Success.')
+
+    def test_download_pack_python_version_check(self):
+        action = self.get_action_instance()
+
+        # No python_versions attribute specified in the metadata file
+        with mock.patch('st2common.util.pack_management.get_pack_metadata') as \
+                mock_get_pack_metadata:
+            mock_get_pack_metadata.return_value = {
+                'name': 'test3',
+                'stackstorm_version': '',
+                'python_versions': []
+            }
+
+            st2common.util.pack_management.six.PY2 = True
+            st2common.util.pack_management.six.PY3 = False
+            st2common.util.pack_management.CURRENT_PYTHON_VERSION = '2.7.11'
+
+            result = action.run(packs=['test3'], abs_repo_base=self.repo_base, force=False)
+            self.assertEqual(result['test3'], 'Success.')
+
+        # Pack works with Python 2.x installation is running 2.7
+        with mock.patch('st2common.util.pack_management.get_pack_metadata') as \
+                mock_get_pack_metadata:
+            mock_get_pack_metadata.return_value = {
+                'name': 'test3',
+                'stackstorm_version': '',
+                'python_versions': ['2']
+            }
+
+            st2common.util.pack_management.six.PY2 = True
+            st2common.util.pack_management.six.PY3 = False
+            st2common.util.pack_management.CURRENT_PYTHON_VERSION = '2.7.5'
+
+            result = action.run(packs=['test3'], abs_repo_base=self.repo_base, force=False)
+            self.assertEqual(result['test3'], 'Success.')
+
+            st2common.util.pack_management.CURRENT_PYTHON_VERSION = '2.7.12'
+
+            result = action.run(packs=['test3'], abs_repo_base=self.repo_base, force=False)
+            self.assertEqual(result['test3'], 'Success.')
+
+        # Pack works with Python 2.x installation is running 3.5
+        with mock.patch('st2common.util.pack_management.get_pack_metadata') as \
+                mock_get_pack_metadata:
+            mock_get_pack_metadata.return_value = {
+                'name': 'test3',
+                'stackstorm_version': '',
+                'python_versions': ['2']
+            }
+
+            st2common.util.pack_management.six.PY2 = False
+            st2common.util.pack_management.six.PY3 = True
+
+            st2common.util.pack_management.CURRENT_PYTHON_VERSION = '3.5.2'
+
+            expected_msg = (r'Pack "test3" requires Python 2.x, but current Python version is '
+                            '"3.5.2"')
+            self.assertRaisesRegexp(ValueError, expected_msg, action.run,
+                                    packs=['test3'], abs_repo_base=self.repo_base, force=False)
+
+        # Pack works with Python 3.x installation is running 2.7
+        with mock.patch('st2common.util.pack_management.get_pack_metadata') as \
+                mock_get_pack_metadata:
+            mock_get_pack_metadata.return_value = {
+                'name': 'test3',
+                'stackstorm_version': '',
+                'python_versions': ['3']
+            }
+
+            st2common.util.pack_management.six.PY2 = True
+            st2common.util.pack_management.six.PY3 = False
+            st2common.util.pack_management.CURRENT_PYTHON_VERSION = '2.7.2'
+
+            expected_msg = (r'Pack "test3" requires Python 3.x, but current Python version is '
+                            '"2.7.2"')
+            self.assertRaisesRegexp(ValueError, expected_msg, action.run,
+                                    packs=['test3'], abs_repo_base=self.repo_base, force=False)
+
+        # Pack works with Python 2.x and 3.x installation is running 2.7 and 3.6.1
+        with mock.patch('st2common.util.pack_management.get_pack_metadata') as \
+                mock_get_pack_metadata:
+            mock_get_pack_metadata.return_value = {
+                'name': 'test3',
+                'stackstorm_version': '',
+                'python_versions': ['2', '3']
+            }
+
+            st2common.util.pack_management.six.PY2 = True
+            st2common.util.pack_management.six.PY3 = False
+            st2common.util.pack_management.CURRENT_PYTHON_VERSION = '2.7.5'
+
+            result = action.run(packs=['test3'], abs_repo_base=self.repo_base, force=False)
+            self.assertEqual(result['test3'], 'Success.')
+
+            st2common.util.pack_management.six.PY2 = False
+            st2common.util.pack_management.six.PY3 = True
+            st2common.util.pack_management.CURRENT_PYTHON_VERSION = '3.6.1'
+
+            result = action.run(packs=['test3'], abs_repo_base=self.repo_base, force=False)
+            self.assertEqual(result['test3'], 'Success.')
+
+        # StackStorm is running under Python 2, Pack requires Python 3 and --python3 flag is used
+        with mock.patch('st2common.util.pack_management.get_pack_metadata') as \
+                mock_get_pack_metadata:
+            mock_get_pack_metadata.return_value = {
+                'name': 'test3',
+                'stackstorm_version': '',
+                'python_versions': ['3']
+            }
+
+            st2common.util.pack_management.six.PY2 = True
+            st2common.util.pack_management.six.PY3 = False
+            st2common.util.pack_management.CURRENT_PYTHON_VERSION = '2.7.5'
+
+            result = action.run(packs=['test3'], abs_repo_base=self.repo_base, force=False,
+                                python3=True)
+            self.assertEqual(result['test3'], 'Success.')
+
+        with mock.patch('st2common.util.pack_management.get_pack_metadata') as \
+                mock_get_pack_metadata:
+            mock_get_pack_metadata.return_value = {
+                'name': 'test3',
+                'stackstorm_version': '',
+                'python_versions': ['2', '3']
+            }
+
+            st2common.util.pack_management.six.PY2 = True
+            st2common.util.pack_management.six.PY3 = False
+            st2common.util.pack_management.CURRENT_PYTHON_VERSION = '2.7.5'
+
+            result = action.run(packs=['test3'], abs_repo_base=self.repo_base, force=False,
+                                python3=True)
+            self.assertEqual(result['test3'], 'Success.')
+
+        # StackStorm is running under Python 2, pack requires Python 3 and --python3 flag is used
+        with mock.patch('st2common.util.pack_management.get_pack_metadata') as \
+                mock_get_pack_metadata:
+            mock_get_pack_metadata.return_value = {
+                'name': 'test3',
+                'stackstorm_version': '',
+                'python_versions': ['2']
+            }
+
+            st2common.util.pack_management.six.PY2 = True
+            st2common.util.pack_management.six.PY3 = False
+            st2common.util.pack_management.CURRENT_PYTHON_VERSION = '2.7.5'
+
+            expected_msg = (r'Pack "test3" requires Python 2.x, but --python3 flag is used')
+            self.assertRaisesRegexp(ValueError, expected_msg, action.run,
+                                    packs=['test3'], abs_repo_base=self.repo_base, force=False,
+                                    python3=True)
 
     def test_resolve_urls(self):
         url = eval_repo_url(

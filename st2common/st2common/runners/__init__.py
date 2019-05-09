@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -16,33 +15,22 @@
 # Note: Imports are in-line to avoid large import time overhead
 
 from __future__ import absolute_import
+
+from st2common.util import driver_loader
+
 __all__ = [
     'BACKENDS_NAMESPACE',
 
     'get_available_backends',
-    'get_backend_instance'
+    'get_backend_driver'
 ]
 
 BACKENDS_NAMESPACE = 'st2common.runners.runner'
 
 
 def get_available_backends():
-    """
-    Return names of the available / installed action runners.
-
-    :rtype: ``list`` of ``str``
-    """
-    from stevedore.extension import ExtensionManager
-
-    manager = ExtensionManager(namespace=BACKENDS_NAMESPACE, invoke_on_load=False)
-    return manager.names()
+    return driver_loader.get_available_backends(namespace=BACKENDS_NAMESPACE)
 
 
-def get_backend_instance(name):
-    """
-    Return a class instance for the provided runner name.
-    """
-    from stevedore.driver import DriverManager
-
-    manager = DriverManager(namespace=BACKENDS_NAMESPACE, name=name, invoke_on_load=False)
-    return manager.driver
+def get_backend_driver(name):
+    return driver_loader.get_backend_driver(namespace=BACKENDS_NAMESPACE, name=name)

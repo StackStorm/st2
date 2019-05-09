@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -30,11 +29,11 @@ class BaseConcurrencyApplicator(base.ResourcePolicyApplicator):
         self.threshold = threshold
         self.policy_action = action
 
-        self.coordinator = coordination.get_coordinator()
+        self.coordinator = coordination.get_coordinator(start_heart=True)
 
     def _get_status_for_policy_action(self, action):
         if action == 'delay':
-            status = action_constants.LIVEACTION_STATUS_DELAYED
+            status = action_constants.LIVEACTION_STATUS_POLICY_DELAYED
         elif action == 'cancel':
             status = action_constants.LIVEACTION_STATUS_CANCELING
 

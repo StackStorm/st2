@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -38,7 +37,7 @@ import unittest2
 from orquesta import conducting
 from orquesta import events
 from orquesta.specs import loader as specs_loader
-from orquesta import states as wf_lib_states
+from orquesta import statuses as wf_statuses
 
 from st2common.util.api import get_full_public_api_url
 from st2common.constants import action as ac_const
@@ -46,6 +45,7 @@ from st2common.constants.runners import COMMON_ACTION_ENV_VARIABLES
 from st2common.constants.system import AUTH_TOKEN_ENV_VARIABLE_NAME
 from st2common.exceptions.db import StackStormDBObjectConflictError
 from st2common.models.db import db_setup, db_teardown, db_ensure_indexes
+from st2common.models.db.execution_queue import ActionExecutionSchedulingQueueItemDB
 from st2common.bootstrap.base import ResourceRegistrar
 from st2common.bootstrap.configsregistrar import ConfigsRegistrar
 from st2common.content.utils import get_packs_base_paths
@@ -53,6 +53,7 @@ from st2common.content.loader import MetaLoader
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.persistence import execution as ex_db_access
 from st2common.persistence import workflow as wf_db_access
+from st2common.persistence.action import LiveAction
 from st2common.services import workflows as wf_svc
 from st2common.util import api as api_util
 from st2common.util import loader
@@ -84,6 +85,7 @@ __all__ = [
     'CleanFilesTestCase',
     'IntegrationTestCase',
     'RunnerTestCase',
+    'ExecutionDbTestCase',
     'WorkflowTestCase',
 
     # Pack test classes
@@ -296,6 +298,73 @@ class DbTestCase(BaseDbTestCase):
         self.current_result = result
         self.__class__.current_result = result
         super(DbTestCase, self).run(result=result)
+
+
+class ExecutionDbTestCase(DbTestCase):
+    """"
+    Base test class for tests which test various execution related code paths.
+
+    This class offers some utility methods for waiting on execution status, etc.
+    """
+
+    ensure_indexes = True
+    ensure_indexes_models = [
+        ActionExecutionSchedulingQueueItemDB
+    ]
+
+    def _wait_on_status(self, liveaction_db, status, retries=300, delay=0.1, raise_exc=True):
+        assert isinstance(status, six.string_types), '%s is not of text type' % (status)
+
+        for _ in range(0, retries):
+            eventlet.sleep(delay)
+            liveaction_db = LiveAction.get_by_id(str(liveaction_db.id))
+            if liveaction_db.status == status:
+                break
+
+        if raise_exc:
+            self.assertEqual(liveaction_db.status, status)
+
+        return liveaction_db
+
+    def _wait_on_statuses(self, liveaction_db, statuses, retries=300, delay=0.1, raise_exc=True):
+        assert isinstance(statuses, (list, tuple)), '%s is not of list type' % (statuses)
+
+        for _ in range(0, retries):
+            eventlet.sleep(delay)
+            liveaction_db = LiveAction.get_by_id(str(liveaction_db.id))
+            if liveaction_db.status in statuses:
+                break
+
+        if raise_exc:
+            self.assertIn(liveaction_db.status, statuses)
+
+        return liveaction_db
+
+    def _wait_on_ac_ex_status(self, execution_db, status, retries=300, delay=0.1, raise_exc=True):
+        for _ in range(0, retries):
+            eventlet.sleep(delay)
+            execution_db = ex_db_access.ActionExecution.get_by_id(str(execution_db.id))
+            if execution_db.status == status:
+                break
+
+        if raise_exc:
+            self.assertEqual(execution_db.status, status)
+
+        return execution_db
+
+    def _wait_on_call_count(self, mocked, expected_count, retries=100, delay=0.1, raise_exc=True):
+        for _ in range(0, retries):
+            eventlet.sleep(delay)
+            if mocked.call_count == expected_count:
+                break
+
+        if raise_exc:
+            self.assertEqual(mocked.call_count, expected_count)
+
+    @classmethod
+    def reset(cls):
+        cls.tearDownClass()
+        cls.setUpClass()
 
 
 class DbModelTestCase(DbTestCase):
@@ -520,7 +589,7 @@ class IntegrationTestCase(TestCase):
             self.fail('Process with pid "%s" is still running' % (proc.pid))
 
 
-class WorkflowTestCase(DbTestCase):
+class WorkflowTestCase(ExecutionDbTestCase):
     """
     Base class for workflow service tests to inherit from.
     """
@@ -548,7 +617,8 @@ class WorkflowTestCase(DbTestCase):
         st2_ctx = {
             'st2': {
                 'api_url': api_util.get_full_public_api_url(),
-                'action_execution_id': str(ac_ex_db.id)
+                'action_execution_id': str(ac_ex_db.id),
+                'user': 'stanley'
             }
         }
 
@@ -561,29 +631,28 @@ class WorkflowTestCase(DbTestCase):
         data = {
             'spec': wf_ex_db.spec,
             'graph': wf_ex_db.graph,
-            'state': wf_ex_db.status,
-            'flow': wf_ex_db.flow,
-            'context': wf_ex_db.context,
             'input': wf_ex_db.input,
+            'context': wf_ex_db.context,
+            'state': wf_ex_db.state,
             'output': wf_ex_db.output,
             'errors': wf_ex_db.errors
         }
 
         conductor = conducting.WorkflowConductor.deserialize(data)
-        conductor.request_workflow_state(wf_lib_states.RUNNING)
+        conductor.request_workflow_status(wf_statuses.RUNNING)
 
-        for task in conductor.get_start_tasks():
-            ac_ex_event = events.ActionExecutionEvent(wf_lib_states.RUNNING)
-            conductor.update_task_flow(task['id'], ac_ex_event)
+        for task in conductor.get_next_tasks():
+            ac_ex_event = events.ActionExecutionEvent(wf_statuses.RUNNING)
+            conductor.update_task_state(task['id'], task['route'], ac_ex_event)
 
-        wf_ex_db.status = conductor.get_workflow_state()
-        wf_ex_db.flow = conductor.flow.serialize()
+        wf_ex_db.status = conductor.get_workflow_status()
+        wf_ex_db.state = conductor.workflow_state.serialize()
         wf_ex_db = wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
 
         return wf_ex_db
 
-    def get_task_ex(self, task_id):
-        task_ex_dbs = wf_db_access.TaskExecution.query(task_id=task_id)
+    def get_task_ex(self, task_id, route):
+        task_ex_dbs = wf_db_access.TaskExecution.query(task_id=task_id, task_route=route)
         self.assertGreater(len(task_ex_dbs), 0)
         return task_ex_dbs[0]
 
@@ -597,34 +666,46 @@ class WorkflowTestCase(DbTestCase):
         self.assertEqual(len(ac_ex_dbs), 1)
         return ac_ex_dbs[0]
 
-    def run_workflow_step(self, wf_ex_db, task_id, ctx=None):
+    def run_workflow_step(self, wf_ex_db, task_id, route, ctx=None):
         spec_module = specs_loader.get_spec_module(wf_ex_db.spec['catalog'])
         wf_spec = spec_module.WorkflowSpec.deserialize(wf_ex_db.spec)
-        task_spec = wf_spec.tasks.get_task(task_id)
         st2_ctx = {'execution_id': wf_ex_db.action_execution}
-        task_ex_db = wf_svc.request_task_execution(wf_ex_db, task_id, task_spec, ctx or {}, st2_ctx)
+        task_spec = wf_spec.tasks.get_task(task_id)
+        task_actions = [{'action': task_spec.action, 'input': getattr(task_spec, 'input', {})}]
+
+        task_req = {
+            'id': task_id,
+            'route': route,
+            'spec': task_spec,
+            'ctx': ctx or {},
+            'actions': task_actions
+        }
+
+        task_ex_db = wf_svc.request_task_execution(wf_ex_db, st2_ctx, task_req)
         ac_ex_db = self.get_action_ex(str(task_ex_db.id))
-        self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        ac_ex_db = self._wait_on_ac_ex_status(ac_ex_db, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+
         wf_svc.handle_action_execution_completion(ac_ex_db)
         task_ex_db = wf_db_access.TaskExecution.get_by_id(str(task_ex_db.id))
-        self.assertEqual(task_ex_db.status, wf_lib_states.SUCCEEDED)
+        self.assertEqual(task_ex_db.status, wf_statuses.SUCCEEDED)
 
-    def assert_task_not_started(self, task_id):
-        task_ex_dbs = wf_db_access.TaskExecution.query(task_id=task_id)
+    def assert_task_not_started(self, task_id, route):
+        task_ex_dbs = wf_db_access.TaskExecution.query(task_id=task_id, task_route=route)
         self.assertEqual(len(task_ex_dbs), 0)
 
-    def assert_task_running(self, task_id):
-        task_ex_db = self.get_task_ex(task_id)
+    def assert_task_running(self, task_id, route):
+        task_ex_db = self.get_task_ex(task_id, route)
         self.assertEqual(task_ex_db.task_id, task_id)
-        self.assertEqual(task_ex_db.status, wf_lib_states.RUNNING)
+        self.assertEqual(task_ex_db.task_route, route)
+        self.assertEqual(task_ex_db.status, wf_statuses.RUNNING)
 
-    def assert_workflow_completed(self, wf_ex_id, state=None):
+    def assert_workflow_completed(self, wf_ex_id, status=None):
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
-        self.assertIn(wf_ex_db.status, wf_lib_states.COMPLETED_STATES)
+        self.assertIn(wf_ex_db.status, wf_statuses.COMPLETED_STATUSES)
 
-        if state:
-            self.assertIn(state, wf_lib_states.COMPLETED_STATES)
-            self.assertEqual(wf_ex_db.status, state)
+        if status:
+            self.assertIn(status, wf_statuses.COMPLETED_STATUSES)
+            self.assertEqual(wf_ex_db.status, status)
 
 
 class FakeResponse(object):

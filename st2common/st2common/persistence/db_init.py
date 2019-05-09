@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -62,7 +61,7 @@ def db_func_with_retry(db_func, *args, **kwargs):
 def db_setup_with_retry(db_name, db_host, db_port, username=None, password=None,
                         ensure_indexes=True, ssl=False, ssl_keyfile=None,
                         ssl_certfile=None, ssl_cert_reqs=None, ssl_ca_certs=None,
-                        ssl_match_hostname=True):
+                        authentication_mechanism=None, ssl_match_hostname=True):
     """
     This method is a retry version of db_setup.
     """
@@ -72,4 +71,5 @@ def db_setup_with_retry(db_name, db_host, db_port, username=None, password=None,
                               ssl=ssl, ssl_keyfile=ssl_keyfile,
                               ssl_certfile=ssl_certfile, ssl_cert_reqs=ssl_cert_reqs,
                               ssl_ca_certs=ssl_ca_certs,
+                              authentication_mechanism=authentication_mechanism,
                               ssl_match_hostname=ssl_match_hostname)

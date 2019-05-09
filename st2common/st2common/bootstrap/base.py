@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -23,7 +22,6 @@ from st2common import log as logging
 from st2common.constants.pack import CONFIG_SCHEMA_FILE_NAME
 from st2common.content.loader import MetaLoader
 from st2common.content.loader import ContentPackLoader
-from st2common.content.loader import RunnersLoader
 from st2common.models.api.pack import PackAPI
 from st2common.models.api.pack import ConfigSchemaAPI
 from st2common.persistence.pack import Pack
@@ -73,7 +71,6 @@ class ResourceRegistrar(object):
 
         self._meta_loader = MetaLoader()
         self._pack_loader = ContentPackLoader()
-        self._runner_loader = RunnersLoader()
 
         # Maps runner name -> RunnerTypeDB
         self._runner_type_db_cache = {}
@@ -130,7 +127,7 @@ class ResourceRegistrar(object):
             pack_db, _ = self._register_pack(pack_name=pack_name, pack_dir=pack_dir)
         except Exception as e:
             if self._fail_on_failure:
-                msg = 'Failed to register pack "%s": %s' % (pack_name, str(e))
+                msg = 'Failed to register pack "%s": %s' % (pack_name, six.text_type(e))
                 raise ValueError(msg)
 
             LOG.exception('Failed to register pack "%s"' % (pack_name))
@@ -224,6 +221,3 @@ class ResourceRegistrar(object):
         config_schema_db = ConfigSchema.add_or_update(config_schema_db)
         LOG.debug('Config schema for pack %s registered.' % (pack_name))
         return config_schema_db
-
-    def register_runner(self):
-        pass

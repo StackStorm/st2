@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -14,8 +13,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 
+import six
 import jsonschema
 from oslo_config import cfg
 
@@ -100,6 +101,22 @@ class PackAPI(BaseAPI):
                                '">=1.8.0, <2.2.0"',
                 'pattern': ST2_VERSION_REGEX,
             },
+            'python_versions': {
+                'type': 'array',
+                'description': ('Major Python versions supported by this pack. E.g. '
+                                '"2" for Python 2.7.x and "3" for Python 3.6.x'),
+                'items': {
+                    'type': 'string',
+                    'enum': [
+                        '2',
+                        '3'
+                    ]
+                },
+                'minItems': 1,
+                'maxItems': 2,
+                'uniqueItems': True,
+                'additionalItems': True
+            },
             'author': {
                 'type': 'string',
                 'description': 'Pack author or authors.',
@@ -144,7 +161,10 @@ class PackAPI(BaseAPI):
                 'description': 'Location of the pack on disk in st2 system.',
                 'required': False
             }
-        }
+        },
+        # NOTE: We add this here explicitly so we can gracefuly add new attributs to pack.yaml
+        # without breaking existing installations
+        'additionalProperties': True
     }
 
     def __init__(self, **values):
@@ -161,7 +181,7 @@ class PackAPI(BaseAPI):
         try:
             super(PackAPI, self).validate()
         except jsonschema.ValidationError as e:
-            msg = str(e)
+            msg = six.text_type(e)
 
             # Invalid version
             if "Failed validating 'pattern' in schema['properties']['version']" in msg:
@@ -189,6 +209,7 @@ class PackAPI(BaseAPI):
         version = str(pack.version)
 
         stackstorm_version = getattr(pack, 'stackstorm_version', None)
+        python_versions = getattr(pack, 'python_versions', [])
         author = pack.author
         email = pack.email
         contributors = getattr(pack, 'contributors', [])
@@ -200,7 +221,8 @@ class PackAPI(BaseAPI):
         model = cls.model(ref=ref, name=name, description=description, keywords=keywords,
                           version=version, author=author, email=email, contributors=contributors,
                           files=files, dependencies=dependencies, system=system,
-                          stackstorm_version=stackstorm_version, path=pack_dir)
+                          stackstorm_version=stackstorm_version, path=pack_dir,
+                          python_versions=python_versions)
         return model
 
 
@@ -223,7 +245,7 @@ class ConfigSchemaAPI(BaseAPI):
                 "description": "Config schema attributes.",
                 "type": "object",
                 "patternProperties": {
-                    "^\w+$": util_schema.get_action_parameters_schema()
+                    r"^\w+$": util_schema.get_action_parameters_schema()
                 },
                 'additionalProperties': False,
                 "default": {}

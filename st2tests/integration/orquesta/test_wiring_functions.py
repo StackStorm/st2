@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -33,7 +32,9 @@ class FunctionsWiringTest(base.TestWorkflowExecution):
             'data_json_obj_4': {'foo': {'bar': 'foobar'}},
             'data_yaml_str_1': 'foo:\n  bar: foobar\n',
             'data_yaml_str_2': 'foo:\n  bar: foobar\n',
-            'data_query_1': ['foobar']
+            'data_query_1': ['foobar'],
+            'data_none_str': '%*****__%NONE%__*****%',
+            'data_str': 'foobar'
         }
 
         expected_result = {'output': expected_output}
@@ -54,7 +55,9 @@ class FunctionsWiringTest(base.TestWorkflowExecution):
             'data_yaml_str_1': 'foo:\n  bar: foobar\n',
             'data_yaml_str_2': 'foo:\n  bar: foobar\n',
             'data_query_1': ['foobar'],
-            'data_pipe_str_1': '{"foo": {"bar": "foobar"}}'
+            'data_pipe_str_1': '{"foo": {"bar": "foobar"}}',
+            'data_none_str': '%*****__%NONE%__*****%',
+            'data_str': 'foobar'
         }
 
         expected_result = {'output': expected_output}

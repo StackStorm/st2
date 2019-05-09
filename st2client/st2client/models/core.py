@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -162,7 +161,7 @@ class ResourceManager(object):
                 response.reason += '\nMESSAGE: %s' % fault
         except Exception as e:
             response.reason += ('\nUnable to retrieve detailed message '
-                                'from the HTTP response. %s\n' % str(e))
+                                'from the HTTP response. %s\n' % six.text_type(e))
         response.raise_for_status()
 
     @add_auth_token_to_kwargs_from_env
@@ -375,9 +374,9 @@ class ActionAliasExecutionManager(ResourceManager):
         return instance
 
 
-class LiveActionResourceManager(ResourceManager):
+class ExecutionResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
-    def re_run(self, execution_id, parameters=None, tasks=None, no_reset=None, **kwargs):
+    def re_run(self, execution_id, parameters=None, tasks=None, no_reset=None, delay=0, **kwargs):
         url = '/%s/%s/re_run' % (self.resource.get_url_path_name(), execution_id)
 
         tasks = tasks or []
@@ -389,7 +388,8 @@ class LiveActionResourceManager(ResourceManager):
         data = {
             'parameters': parameters or {},
             'tasks': tasks,
-            'reset': list(set(tasks) - set(no_reset))
+            'reset': list(set(tasks) - set(no_reset)),
+            'delay': delay
         }
 
         response = self.client.post(url, data, **kwargs)
@@ -435,6 +435,22 @@ class LiveActionResourceManager(ResourceManager):
             self.handle_error(response)
 
         return self.resource.deserialize(response.json())
+
+    @add_auth_token_to_kwargs_from_env
+    def get_children(self, execution_id, **kwargs):
+        url = '/%s/%s/children' % (self.resource.get_url_path_name(), execution_id)
+
+        depth = kwargs.pop('depth', -1)
+
+        params = kwargs.pop('params', {})
+
+        if depth:
+            params['depth'] = depth
+
+        response = self.client.get(url=url, params=params, **kwargs)
+        if response.status_code != http_client.OK:
+            self.handle_error(response)
+        return [self.resource.deserialize(item) for item in response.json()]
 
 
 class InquiryResourceManager(ResourceManager):
@@ -643,11 +659,12 @@ class WorkflowManager(object):
         except Exception as e:
             response.reason += (
                 '\nUnable to retrieve detailed message '
-                'from the HTTP response. %s\n' % str(e)
+                'from the HTTP response. %s\n' % six.text_type(e)
             )
 
         response.raise_for_status()
 
+    @add_auth_token_to_kwargs_from_env
     def inspect(self, definition, **kwargs):
         url = '/inspect'
 
@@ -665,3 +682,51 @@ class WorkflowManager(object):
             self.handle_error(response)
 
         return response.json()
+
+
+class ServiceRegistryGroupsManager(ResourceManager):
+    @add_auth_token_to_kwargs_from_env
+    def list(self, **kwargs):
+        url = '/service_registry/groups'
+
+        headers = {}
+        response = self.client.get(url, headers=headers, **kwargs)
+
+        if response.status_code != http_client.OK:
+            self.handle_error(response)
+
+        groups = response.json()['groups']
+
+        result = []
+        for group in groups:
+            item = self.resource.deserialize({'group_id': group})
+            result.append(item)
+
+        return result
+
+
+class ServiceRegistryMembersManager(ResourceManager):
+
+    @add_auth_token_to_kwargs_from_env
+    def list(self, group_id, **kwargs):
+        url = '/service_registry/groups/%s/members' % (group_id)
+
+        headers = {}
+        response = self.client.get(url, headers=headers, **kwargs)
+
+        if response.status_code != http_client.OK:
+            self.handle_error(response)
+
+        members = response.json()['members']
+
+        result = []
+        for member in members:
+            data = {
+                'group_id': group_id,
+                'member_id': member['member_id'],
+                'capabilities': member['capabilities']
+            }
+            item = self.resource.deserialize(data)
+            result.append(item)
+
+        return result

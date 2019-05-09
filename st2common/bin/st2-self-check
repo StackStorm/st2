@@ -66,6 +66,13 @@ if [[ `id -u` != 0 ]]; then
   exit 1
 fi
 
+# Installations which use Python 3 (e.g. Ubuntu Bionic) ship without Mistral
+PYTHON_VERSION=$(/opt/stackstorm/st2/bin/python --version 2>&1 | awk '{print $2'} | awk -F"." '{print $1}')
+
+if [ "${PYTHON_VERSION}" = "3" ]; then
+    RUN_MISTRAL_TESTS=false
+fi
+
 ERRORS=0
 PACKS="tests examples"
 
@@ -100,6 +107,7 @@ fi
 
 echo "Copying asserts, fixtures, tests and examples packs."
 chown -R root:st2packs st2tests/packs/
+chmod -R 775 st2tests/packs/*
 cp -R --preserve st2tests/packs/* /opt/stackstorm/packs/
 cp -Rf --preserve /usr/share/doc/st2/examples /opt/stackstorm/packs/
 
@@ -112,18 +120,27 @@ rm -R st2tests/
 popd
 
 # Retrieve test action list
-TEST_ACTION_LIST=`st2 action list --pack=tests -w 90 | awk '{ print $2 }' | grep -v "|" | grep -v "ref"`
+TEST_ACTION_LIST=`st2 action list --pack=tests -w 90 | awk '{ print $2 }' | grep -v "|" | grep -v "ref" | grep tests.test_`
 
 # Run all the tests
 for TEST in $TEST_ACTION_LIST
 do
     # If -w option is not set, skip Windows related tests
-    # because smbclient is not installed by default.
     if [ ${RUN_WINDOWS_TESTS} = "false" ] && [ ${TEST} = "tests.test_windows_runners" ]; then
         echo "Skipping ${TEST}..."
         continue
     fi
 
+    if [ ${RUN_WINDOWS_TESTS} = "false" ] && [ ${TEST} = "tests.test_winrm_runners" ]; then
+        echo "Skipping ${TEST}..."
+        continue
+    fi
+
+    if [ ${RUN_WINDOWS_TESTS} = "false" ] && [ ${TEST} = "tests.test_winrm_large_script" ]; then
+        echo "Skipping ${TEST}..."
+        continue
+    fi
+ 
     # Skip Mistral Inquiry test if we're not running Mistral tests
     if [ ${RUN_MISTRAL_TESTS} = "false" ] && [ ${TEST} = "tests.test_inquiry_mistral" ]; then
         echo "Skipping ${TEST}..."

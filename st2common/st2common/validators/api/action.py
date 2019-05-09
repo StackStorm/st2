@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -66,7 +65,9 @@ def get_runner_model(action_api):
     try:
         runner_db = get_runnertype_by_name(action_api.runner_type)
     except StackStormDBObjectNotFoundError:
-        msg = 'RunnerType %s is not found.' % action_api.runner_type
+        msg = ('RunnerType %s is not found. If you are using old and deprecated runner name, you '
+               'need to switch to a new one. For more information, please see '
+               'https://docs.stackstorm.com/upgrade_notes.html#st2-v0-9' % (action_api.runner_type))
         raise ValueValidationException(msg)
     return runner_db
 

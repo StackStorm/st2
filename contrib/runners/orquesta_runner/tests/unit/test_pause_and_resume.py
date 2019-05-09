@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -19,7 +18,7 @@ import mock
 
 import st2tests
 
-from orquesta import states as wf_states
+from orquesta import statuses as wf_statuses
 from oslo_config import cfg
 
 # XXX: actionsensor import depends on config being setup.
@@ -75,7 +74,7 @@ PACKS = [
     wf_ex_xport.WorkflowExecutionPublisher,
     'publish_state',
     mock.MagicMock(side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_state))
-class OrquestaRunnerPauseResumeTest(st2tests.DbTestCase):
+class OrquestaRunnerPauseResumeTest(st2tests.ExecutionDbTestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -229,13 +228,13 @@ class OrquestaRunnerPauseResumeTest(st2tests.DbTestCase):
         t1_lv_ac_db = lv_db_access.LiveAction.get_by_id(t1_ac_ex_db.liveaction['id'])
         t1_wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(t1_ac_ex_db.id))[0]
         self.assertEqual(t1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
-        self.assertEqual(t1_wf_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(t1_wf_ex_db.status, wf_statuses.RUNNING)
 
         t2_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk_ex_dbs[1].id))[0]
         t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction['id'])
         t2_wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(t2_ac_ex_db.id))[0]
         self.assertEqual(t2_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
-        self.assertEqual(t2_wf_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(t2_wf_ex_db.status, wf_statuses.RUNNING)
 
         # Pause the subworkflow.
         t1_lv_ac_db, t1_ac_ex_db = ac_svc.request_pause(t1_lv_ac_db, cfg.CONF.system_user.user)
@@ -309,13 +308,13 @@ class OrquestaRunnerPauseResumeTest(st2tests.DbTestCase):
         t1_lv_ac_db = lv_db_access.LiveAction.get_by_id(t1_ac_ex_db.liveaction['id'])
         t1_wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(t1_ac_ex_db.id))[0]
         self.assertEqual(t1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
-        self.assertEqual(t1_wf_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(t1_wf_ex_db.status, wf_statuses.RUNNING)
 
         t2_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk_ex_dbs[1].id))[0]
         t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction['id'])
         t2_wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(t2_ac_ex_db.id))[0]
         self.assertEqual(t2_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
-        self.assertEqual(t2_wf_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(t2_wf_ex_db.status, wf_statuses.RUNNING)
 
         # Pause the subworkflow.
         t1_lv_ac_db, t1_ac_ex_db = ac_svc.request_pause(t1_lv_ac_db, cfg.CONF.system_user.user)
@@ -401,14 +400,14 @@ class OrquestaRunnerPauseResumeTest(st2tests.DbTestCase):
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_PAUSED, lv_ac_db.result)
         wf_ex_dbs = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))
-        self.assertEqual(wf_ex_dbs[0].status, wf_states.PAUSED)
+        self.assertEqual(wf_ex_dbs[0].status, wf_statuses.PAUSED)
 
         # Resume the workflow.
         lv_ac_db, ac_ex_db = ac_svc.request_resume(lv_ac_db, cfg.CONF.system_user.user)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
         wf_ex_dbs = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))
-        self.assertEqual(wf_ex_dbs[0].status, wf_states.RUNNING)
+        self.assertEqual(wf_ex_dbs[0].status, wf_statuses.RUNNING)
         tk_ex_dbs = wf_db_access.TaskExecution.query(workflow_execution=str(wf_ex_dbs[0].id))
         self.assertEqual(len(tk_ex_dbs), 2)
 
@@ -497,13 +496,13 @@ class OrquestaRunnerPauseResumeTest(st2tests.DbTestCase):
         t1_lv_ac_db = lv_db_access.LiveAction.get_by_id(t1_ac_ex_db.liveaction['id'])
         t1_wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(t1_ac_ex_db.id))[0]
         self.assertEqual(t1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
-        self.assertEqual(t1_wf_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(t1_wf_ex_db.status, wf_statuses.RUNNING)
 
         t2_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk_ex_dbs[1].id))[0]
         t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction['id'])
         t2_wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(t2_ac_ex_db.id))[0]
         self.assertEqual(t2_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
-        self.assertEqual(t2_wf_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(t2_wf_ex_db.status, wf_statuses.RUNNING)
 
         # Pause one of the subworkflows.
         t1_lv_ac_db, t1_ac_ex_db = ac_svc.request_pause(t1_lv_ac_db, cfg.CONF.system_user.user)
@@ -608,13 +607,13 @@ class OrquestaRunnerPauseResumeTest(st2tests.DbTestCase):
         t1_lv_ac_db = lv_db_access.LiveAction.get_by_id(t1_ac_ex_db.liveaction['id'])
         t1_wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(t1_ac_ex_db.id))[0]
         self.assertEqual(t1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
-        self.assertEqual(t1_wf_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(t1_wf_ex_db.status, wf_statuses.RUNNING)
 
         t2_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk_ex_dbs[1].id))[0]
         t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction['id'])
         t2_wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(t2_ac_ex_db.id))[0]
         self.assertEqual(t2_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
-        self.assertEqual(t2_wf_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(t2_wf_ex_db.status, wf_statuses.RUNNING)
 
         # Pause the subworkflow.
         t1_lv_ac_db, t1_ac_ex_db = ac_svc.request_pause(t1_lv_ac_db, cfg.CONF.system_user.user)
@@ -726,13 +725,13 @@ class OrquestaRunnerPauseResumeTest(st2tests.DbTestCase):
         t1_lv_ac_db = lv_db_access.LiveAction.get_by_id(t1_ac_ex_db.liveaction['id'])
         t1_wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(t1_ac_ex_db.id))[0]
         self.assertEqual(t1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
-        self.assertEqual(t1_wf_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(t1_wf_ex_db.status, wf_statuses.RUNNING)
 
         t2_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk_ex_dbs[1].id))[0]
         t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction['id'])
         t2_wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(t2_ac_ex_db.id))[0]
         self.assertEqual(t2_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
-        self.assertEqual(t2_wf_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(t2_wf_ex_db.status, wf_statuses.RUNNING)
 
         # Pause the subworkflow.
         t1_lv_ac_db, t1_ac_ex_db = ac_svc.request_pause(t1_lv_ac_db, cfg.CONF.system_user.user)

@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -17,6 +16,7 @@ from __future__ import absolute_import
 
 import os
 import logging
+import warnings
 
 import six
 
@@ -25,7 +25,7 @@ from st2client.utils import httpclient
 from st2client.models.core import ResourceManager
 from st2client.models.core import ActionAliasResourceManager
 from st2client.models.core import ActionAliasExecutionManager
-from st2client.models.core import LiveActionResourceManager
+from st2client.models.core import ExecutionResourceManager
 from st2client.models.core import InquiryResourceManager
 from st2client.models.core import TriggerInstanceResourceManager
 from st2client.models.core import PackResourceManager
@@ -33,6 +33,8 @@ from st2client.models.core import ConfigManager
 from st2client.models.core import WebhookManager
 from st2client.models.core import StreamManager
 from st2client.models.core import WorkflowManager
+from st2client.models.core import ServiceRegistryGroupsManager
+from st2client.models.core import ServiceRegistryMembersManager
 from st2client.models.core import add_auth_token_to_kwargs_from_env
 
 
@@ -129,10 +131,13 @@ class Client(object):
             models.Config, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['ConfigSchema'] = ResourceManager(
             models.ConfigSchema, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
-        self.managers['LiveAction'] = LiveActionResourceManager(
-            models.LiveAction, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        self.managers['Execution'] = ExecutionResourceManager(
+            models.Execution, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        # NOTE: LiveAction has been deprecated in favor of Execution. It will be left here for
+        # backward compatibility reasons until v3.2.0
+        self.managers['LiveAction'] = self.managers['Execution']
         self.managers['Inquiry'] = InquiryResourceManager(
-            models.Inquiry, self.endpoints['exp'], cacert=self.cacert, debug=self.debug)
+            models.Inquiry, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Pack'] = PackResourceManager(
             models.Pack, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Policy'] = ResourceManager(
@@ -163,6 +168,15 @@ class Client(object):
             self.endpoints['stream'], cacert=self.cacert, debug=self.debug)
         self.managers['Workflow'] = WorkflowManager(
             self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+
+        # Service Registry
+        self.managers['ServiceRegistryGroups'] = ServiceRegistryGroupsManager(
+            models.ServiceRegistryGroup, self.endpoints['api'], cacert=self.cacert,
+            debug=self.debug)
+
+        self.managers['ServiceRegistryMembers'] = ServiceRegistryMembersManager(
+            models.ServiceRegistryMember, self.endpoints['api'], cacert=self.cacert,
+            debug=self.debug)
 
         # RBAC
         self.managers['Role'] = ResourceManager(
@@ -200,8 +214,16 @@ class Client(object):
         return self.managers['KeyValuePair']
 
     @property
+    def executions(self):
+        return self.managers['Execution']
+
+    # NOTE: LiveAction has been deprecated in favor of Execution. It will be left here for
+    # backward compatibility reasons until v3.2.0
+    @property
     def liveactions(self):
-        return self.managers['LiveAction']
+        warnings.warn(('st2client.liveactions has been renamed to st2client.executions, please '
+                       'update your code'), DeprecationWarning)
+        return self.executions
 
     @property
     def inquiries(self):

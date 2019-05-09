@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -17,7 +16,7 @@ from __future__ import absolute_import
 
 import mock
 
-from orquesta import states as wf_states
+from orquesta import statuses as wf_statuses
 
 import st2tests
 
@@ -75,7 +74,7 @@ PACKS = [
     wf_ex_xport.WorkflowExecutionPublisher,
     'publish_state',
     mock.MagicMock(side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_state))
-class OrquestaRunnerTest(st2tests.DbTestCase):
+class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -155,7 +154,7 @@ class OrquestaRunnerTest(st2tests.DbTestCase):
         t1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk_ex_dbs[0].id))[0]
         t1_wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(t1_ac_ex_db.id))[0]
         self.assertEqual(t1_ac_ex_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
-        self.assertEqual(t1_wf_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(t1_wf_ex_db.status, wf_statuses.RUNNING)
 
         # Ensure there is only one execution for the task.
         tk_ac_ref = TEST_PACK + '.' + 'sequential'

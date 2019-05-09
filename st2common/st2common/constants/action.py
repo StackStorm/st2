@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -22,6 +21,7 @@ __all__ = [
     'LIVEACTION_STATUS_REQUESTED',
     'LIVEACTION_STATUS_SCHEDULED',
     'LIVEACTION_STATUS_DELAYED',
+    'LIVEACTION_STATUS_POLICY_DELAYED',
     'LIVEACTION_STATUS_RUNNING',
     'LIVEACTION_STATUS_SUCCEEDED',
     'LIVEACTION_STATUS_FAILED',
@@ -35,6 +35,7 @@ __all__ = [
 
     'LIVEACTION_STATUSES',
     'LIVEACTION_RUNNABLE_STATES',
+    'LIVEACTION_DELAYED_STATES',
     'LIVEACTION_CANCELABLE_STATES',
     'LIVEACTION_FAILED_STATES',
     'LIVEACTION_COMPLETED_STATES',
@@ -57,6 +58,7 @@ LIBS_DIR = 'lib'
 LIVEACTION_STATUS_REQUESTED = 'requested'
 LIVEACTION_STATUS_SCHEDULED = 'scheduled'
 LIVEACTION_STATUS_DELAYED = 'delayed'
+LIVEACTION_STATUS_POLICY_DELAYED = 'policy-delayed'
 LIVEACTION_STATUS_RUNNING = 'running'
 LIVEACTION_STATUS_SUCCEEDED = 'succeeded'
 LIVEACTION_STATUS_FAILED = 'failed'
@@ -73,6 +75,7 @@ LIVEACTION_STATUSES = [
     LIVEACTION_STATUS_REQUESTED,
     LIVEACTION_STATUS_SCHEDULED,
     LIVEACTION_STATUS_DELAYED,
+    LIVEACTION_STATUS_POLICY_DELAYED,
     LIVEACTION_STATUS_RUNNING,
     LIVEACTION_STATUS_SUCCEEDED,
     LIVEACTION_STATUS_FAILED,
@@ -99,10 +102,16 @@ LIVEACTION_RUNNABLE_STATES = [
     LIVEACTION_STATUS_RESUMING
 ]
 
+LIVEACTION_DELAYED_STATES = [
+    LIVEACTION_STATUS_DELAYED,
+    LIVEACTION_STATUS_POLICY_DELAYED
+]
+
 LIVEACTION_CANCELABLE_STATES = [
     LIVEACTION_STATUS_REQUESTED,
     LIVEACTION_STATUS_SCHEDULED,
     LIVEACTION_STATUS_DELAYED,
+    LIVEACTION_STATUS_POLICY_DELAYED,
     LIVEACTION_STATUS_RUNNING,
     LIVEACTION_STATUS_PAUSING,
     LIVEACTION_STATUS_PAUSED,

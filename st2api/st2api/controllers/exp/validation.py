@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -13,12 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+try:
+    from mistralclient.api import client as mistral
+except ImportError:
+    # Likely running on installation without Mistral
+    mistral = None
+
+import six
+
 from st2common import log as logging
 from st2common.router import Response
+from st2common.router import abort
 from st2common.validators.workflow.mistral import v2 as mistral_validation_utils
 
 
 LOG = logging.getLogger(__name__)
+
+http_client = six.moves.http_client
 
 
 class MistralValidationController(object):
@@ -28,6 +38,10 @@ class MistralValidationController(object):
         self.validator = mistral_validation_utils.get_validator()
 
     def post(self, def_yaml):
+        if not mistral:
+            abort(http_client.NOT_FOUND)
+            return
+
         result = self.validator.validate(def_yaml)
 
         for error in result:

@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -213,7 +212,9 @@ class TestLoginIntPwdAndConfig(TestLoginBase):
             'headers': {
                 'X-Auth-Token': self.TOKEN['token']
             },
-            'params': {}
+            'params': {
+                'include_attributes': 'ref,name,description,version,author'
+            }
         }
         requests.get.assert_called_with('http://127.0.0.1:9101/v1/packs', **expected_kwargs)
 
@@ -384,7 +385,9 @@ class TestAuthToken(base.BaseCLITestCase):
         requests, 'get',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
     def test_decorate_resource_list(self):
-        url = 'http://127.0.0.1:9101/v1/rules/?limit=50'
+        url = ('http://127.0.0.1:9101/v1/rules/'
+              '?include_attributes=ref,pack,description,enabled&limit=50')
+        url = url.replace(',', '%2C')
 
         # Test without token.
         self.shell.run(['rule', 'list'])

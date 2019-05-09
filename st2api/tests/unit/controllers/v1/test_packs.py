@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -21,14 +20,15 @@ import mock
 from st2common.content.loader import ContentPackLoader
 from st2common.models.db.pack import PackDB
 from st2common.persistence.pack import Pack
+from st2common.persistence.action import Action
 from st2common.router import Response
 from st2common.services import packs as pack_service
 from st2api.controllers.v1.actionexecutions import ActionExecutionsControllerMixin
 from st2api.controllers.v1.packs import PacksController
 from st2api.controllers.v1.packs import ENTITIES
 
-from tests.base import FunctionalTest
-from tests.base import APIControllerWithIncludeAndExcludeFilterTestCase
+from st2tests.api import FunctionalTest
+from st2tests.api import APIControllerWithIncludeAndExcludeFilterTestCase
 
 from st2tests.fixturesloader import get_fixtures_base_path
 
@@ -462,6 +462,10 @@ class PacksControllerTestCase(FunctionalTest,
         self.assertTrue(resp.json['sensors'] >= 1)
         self.assertTrue(resp.json['configs'] >= 1)
 
+        # Verify metadata_file attribute is set
+        action_dbs = Action.query(pack='dummy_pack_1')
+        self.assertEqual(action_dbs[0].metadata_file, 'actions/my_action.yaml')
+
         # Register 'all' resource types should try include any possible content for the pack
         resp = self.app.post_json('/v1/packs/register', {'packs': ['dummy_pack_1'],
                                                          'fail_on_failure': False,
@@ -525,14 +529,14 @@ class PacksControllerTestCase(FunctionalTest,
                                   {'packs': ['dummy_pack_1'], 'types': ['action']})
 
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json, {'actions': 1, 'runners': 18})
+        self.assertEqual(resp.json, {'actions': 1, 'runners': 15})
 
         # Verify that plural name form also works
         resp = self.app.post_json('/v1/packs/register',
                                   {'packs': ['dummy_pack_1'], 'types': ['actions']})
 
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json, {'actions': 1, 'runners': 18})
+        self.assertEqual(resp.json, {'actions': 1, 'runners': 15})
 
         # Register single resource from a single pack specified multiple times - verify that
         # resources from the same pack are only registered once
@@ -542,7 +546,7 @@ class PacksControllerTestCase(FunctionalTest,
                                    'fail_on_failure': False})
 
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json, {'actions': 1, 'runners': 18})
+        self.assertEqual(resp.json, {'actions': 1, 'runners': 15})
 
         # Register resources from a single (non-existent pack)
         resp = self.app.post_json('/v1/packs/register', {'packs': ['doesntexist']},

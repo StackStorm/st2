@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -45,7 +44,7 @@ PYTHON_BINARY = sys.executable
 BINARY = os.path.join(BASE_DIR, '../../../st2reactor/bin/st2sensorcontainer')
 BINARY = os.path.abspath(BINARY)
 
-PACKS_BASE_PATH = os.path.join(BASE_DIR, '../../../contrib')
+PACKS_BASE_PATH = os.path.abspath(os.path.join(BASE_DIR, '../../../contrib'))
 
 DEFAULT_CMD = [
     PYTHON_BINARY,
@@ -56,7 +55,6 @@ DEFAULT_CMD = [
 ]
 
 
-# @unittest2.skipIf(True, 'Skipped until we improve integration tests setup')
 class SensorContainerTestCase(IntegrationTestCase):
     """
     Note: For those tests MongoDB must be running, virtualenv must exist for
@@ -76,6 +74,10 @@ class SensorContainerTestCase(IntegrationTestCase):
         cls.db_connection = db_setup(
             cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
             username=username, password=password, ensure_indexes=False)
+
+        # NOTE: We need to perform this patching because test fixtures are located outside of the
+        # packs base paths directory. This will never happen outside the context of test fixtures.
+        cfg.CONF.content.packs_base_paths = PACKS_BASE_PATH
 
         # Register sensors
         register_sensors(packs_base_paths=[PACKS_BASE_PATH], use_pack_cache=False)
@@ -108,7 +110,7 @@ class SensorContainerTestCase(IntegrationTestCase):
 
         # SIGINT causes graceful shutdown so give it some time to gracefuly shut down the sensor
         # child processes
-        eventlet.sleep(PROCESS_EXIT_TIMEOUT + 2)
+        eventlet.sleep(PROCESS_EXIT_TIMEOUT + 1)
 
         # Verify parent and children processes have exited
         self.assertProcessExited(proc=pp)
@@ -133,7 +135,7 @@ class SensorContainerTestCase(IntegrationTestCase):
 
         # SIGTERM causes graceful shutdown so give it some time to gracefuly shut down the sensor
         # child processes
-        eventlet.sleep(PROCESS_EXIT_TIMEOUT + 1)
+        eventlet.sleep(PROCESS_EXIT_TIMEOUT + 5)
 
         # Verify parent and children processes have exited
         self.assertProcessExited(proc=pp)

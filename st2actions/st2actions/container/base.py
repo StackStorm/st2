@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -18,6 +17,7 @@ from __future__ import absolute_import
 import sys
 import traceback
 
+import six
 from oslo_config import cfg
 
 from st2common import log as logging
@@ -107,7 +107,7 @@ class RunnerContainer(object):
 
                 runner.runner_parameters = runner_params
             except ParamException as e:
-                raise actionrunner.ActionRunnerException(str(e))
+                raise actionrunner.ActionRunnerException(six.text_type(e))
 
             LOG.debug('Performing pre-run for runner: %s', runner.runner_id)
             runner.pre_run()
@@ -335,14 +335,14 @@ class RunnerContainer(object):
         config = None
 
         # Note: Right now configs are only supported by the Python runner actions
-        if runner_type_db.runner_module == 'python_runner':
+        if (runner_type_db.name == 'python-script' or
+                runner_type_db.runner_module == 'python_runner'):
             LOG.debug('Loading config from pack for python runner.')
             config_loader = ContentPackConfigLoader(pack_name=action_db.pack, user=user)
             config = config_loader.get_config()
 
         runner = get_runner(
-            package_name=runner_type_db.runner_package,
-            module_name=runner_type_db.runner_module,
+            name=runner_type_db.name,
             config=config)
 
         # TODO: Pass those arguments to the constructor instead of late

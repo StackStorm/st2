@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -29,9 +28,7 @@ from st2common.models.api.rule import RuleAPI
 from st2common.models.db.auth import UserDB
 from st2common.persistence.rule import Rule
 from st2common.rbac.types import PermissionType
-from st2common.rbac import utils as rbac_utils
-from st2common.rbac.utils import assert_user_has_rule_trigger_and_action_permission
-from st2common.rbac.utils import assert_user_is_admin_if_user_query_param_is_provided
+from st2common.rbac.backends import get_rbac_backend
 from st2common.router import exc
 from st2common.router import abort
 from st2common.router import Response
@@ -95,6 +92,7 @@ class RuleController(BaseResourceIsolationControllerMixin, ContentPackResourceCo
             Handles requests:
                 POST /rules/
         """
+        rbac_utils = get_rbac_backend().get_utils_class()
 
         permission_type = PermissionType.RULE_CREATE
         rbac_utils.assert_user_has_resource_api_permission(user_db=requester_user,
@@ -106,8 +104,8 @@ class RuleController(BaseResourceIsolationControllerMixin, ContentPackResourceCo
 
         # Validate that the authenticated user is admin if user query param is provided
         user = requester_user.name
-        assert_user_is_admin_if_user_query_param_is_provided(user_db=requester_user,
-                                                             user=user)
+        rbac_utils.assert_user_is_admin_if_user_query_param_is_provided(user_db=requester_user,
+                                                                        user=user)
 
         if not hasattr(rule, 'context'):
             rule.context = dict()
@@ -121,8 +119,8 @@ class RuleController(BaseResourceIsolationControllerMixin, ContentPackResourceCo
             # Check referenced trigger and action permissions
             # Note: This needs to happen after "to_model" call since to_model performs some
             # validation (trigger exists, etc.)
-            assert_user_has_rule_trigger_and_action_permission(user_db=requester_user,
-                                                               rule_api=rule)
+            rbac_utils.assert_user_has_rule_trigger_and_action_permission(user_db=requester_user,
+                                                                          rule_api=rule)
 
             rule_db = Rule.add_or_update(rule_db)
             # After the rule has been added modify the ref_count. This way a failure to add
@@ -130,11 +128,11 @@ class RuleController(BaseResourceIsolationControllerMixin, ContentPackResourceCo
             increment_trigger_ref_count(rule_api=rule)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for rule data=%s.', rule)
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
             return
         except (ValueValidationException, jsonschema.ValidationError) as e:
             LOG.exception('Validation failed for rule data=%s.', rule)
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
             return
         except TriggerDoesNotExistException as e:
             msg = ('Trigger "%s" defined in the rule does not exist in system or it\'s missing '
@@ -152,6 +150,7 @@ class RuleController(BaseResourceIsolationControllerMixin, ContentPackResourceCo
     def put(self, rule, rule_ref_or_id, requester_user):
         rule_db = self._get_by_ref_or_id(rule_ref_or_id)
 
+        rbac_utils = get_rbac_backend().get_utils_class()
         permission_type = PermissionType.RULE_MODIFY
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=rule,
@@ -163,15 +162,15 @@ class RuleController(BaseResourceIsolationControllerMixin, ContentPackResourceCo
             requester_user = UserDB(cfg.CONF.system_user.user)
         # Validate that the authenticated user is admin if user query param is provided
         user = requester_user.name
-        assert_user_is_admin_if_user_query_param_is_provided(user_db=requester_user,
-                                                             user=user)
+        rbac_utils.assert_user_is_admin_if_user_query_param_is_provided(user_db=requester_user,
+                                                                        user=user)
 
         if not hasattr(rule, 'context'):
             rule.context = dict()
         rule.context['user'] = user
 
         try:
-            if rule.id is not None and rule.id is not '' and rule.id != rule_ref_or_id:
+            if rule.id is not None and rule.id != '' and rule.id != rule_ref_or_id:
                 LOG.warning('Discarding mismatched id=%s found in payload and using uri_id=%s.',
                             rule.id, rule_ref_or_id)
             old_rule_db = rule_db
@@ -179,14 +178,14 @@ class RuleController(BaseResourceIsolationControllerMixin, ContentPackResourceCo
             try:
                 rule_db = RuleAPI.to_model(rule)
             except TriggerDoesNotExistException as e:
-                abort(http_client.BAD_REQUEST, str(e))
+                abort(http_client.BAD_REQUEST, six.text_type(e))
                 return
 
             # Check referenced trigger and action permissions
             # Note: This needs to happen after "to_model" call since to_model performs some
             # validation (trigger exists, etc.)
-            assert_user_has_rule_trigger_and_action_permission(user_db=requester_user,
-                                                               rule_api=rule)
+            rbac_utils.assert_user_has_rule_trigger_and_action_permission(user_db=requester_user,
+                                                                          rule_api=rule)
 
             rule_db.id = rule_ref_or_id
             rule_db = Rule.add_or_update(rule_db)
@@ -195,7 +194,7 @@ class RuleController(BaseResourceIsolationControllerMixin, ContentPackResourceCo
             increment_trigger_ref_count(rule_api=rule)
         except (ValueValidationException, jsonschema.ValidationError, ValueError) as e:
             LOG.exception('Validation failed for rule data=%s', rule)
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
             return
 
         # use old_rule_db for cleanup.
@@ -217,6 +216,7 @@ class RuleController(BaseResourceIsolationControllerMixin, ContentPackResourceCo
         rule_db = self._get_by_ref_or_id(ref_or_id=rule_ref_or_id)
 
         permission_type = PermissionType.RULE_DELETE
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=rule_db,
                                                           permission_type=permission_type)
@@ -227,7 +227,7 @@ class RuleController(BaseResourceIsolationControllerMixin, ContentPackResourceCo
         except Exception as e:
             LOG.exception('Database delete encountered exception during delete of id="%s".',
                           rule_ref_or_id)
-            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+            abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
             return
 
         # use old_rule_db for cleanup.

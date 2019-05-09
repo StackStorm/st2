@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -20,7 +19,6 @@ from st2common import log as logging
 from st2common.constants.trace import TRACE_CONTEXT
 from st2common.models.api.trace import TraceContext
 from st2common.transport import publishers
-from st2common.transport import utils as transport_utils
 
 __all__ = [
     'TriggerCUDPublisher',
@@ -50,8 +48,8 @@ class SensorCUDPublisher(publishers.CUDPublisher):
     Publisher responsible for publishing Trigger model CUD events.
     """
 
-    def __init__(self, urls):
-        super(SensorCUDPublisher, self).__init__(urls, SENSOR_CUD_XCHG)
+    def __init__(self):
+        super(SensorCUDPublisher, self).__init__(exchange=SENSOR_CUD_XCHG)
 
 
 class TriggerCUDPublisher(publishers.CUDPublisher):
@@ -59,13 +57,13 @@ class TriggerCUDPublisher(publishers.CUDPublisher):
     Publisher responsible for publishing Trigger model CUD events.
     """
 
-    def __init__(self, urls):
-        super(TriggerCUDPublisher, self).__init__(urls, TRIGGER_CUD_XCHG)
+    def __init__(self):
+        super(TriggerCUDPublisher, self).__init__(exchange=TRIGGER_CUD_XCHG)
 
 
 class TriggerInstancePublisher(object):
-    def __init__(self, urls):
-        self._publisher = publishers.PoolPublisher(urls=urls)
+    def __init__(self):
+        self._publisher = publishers.PoolPublisher()
 
     def publish_trigger(self, payload=None, routing_key=None):
         # TODO: We should use trigger reference as a routing key
@@ -78,7 +76,7 @@ class TriggerDispatcher(object):
     """
 
     def __init__(self, logger=LOG):
-        self._publisher = TriggerInstancePublisher(urls=transport_utils.get_messaging_urls())
+        self._publisher = TriggerInstancePublisher()
         self._logger = logger
 
     def dispatch(self, trigger, payload=None, trace_context=None):

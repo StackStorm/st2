@@ -80,7 +80,7 @@ def add_result_tracker(exec_id):
     except (db_exc.StackStormDBObjectConflictError, me.NotUniqueError):
         LOG.error('Action execution "%s" already has a result tracker entry.', exec_id)
     except Exception as e:
-        LOG.error('Unable to create result tracker entry for "%s". %s', exec_id, e.message)
+        LOG.error('Unable to create result tracker entry for "%s". %s', exec_id, str(e))
 
     # Add result tracker for children workflows.
     for child_exec_id in exec_db.children:

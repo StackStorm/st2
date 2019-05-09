@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -23,6 +22,7 @@ from st2common import log as logging
 from st2common.constants.meta import ALLOWED_EXTS
 from st2common.bootstrap.base import ResourceRegistrar
 from st2common.models.api.action import ActionAliasAPI
+from st2common.persistence.action import Action
 from st2common.persistence.actionalias import ActionAlias
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
@@ -105,9 +105,13 @@ class AliasesRegistrar(ResourceRegistrar):
     def _get_aliases_from_pack(self, aliases_dir):
         return self.get_resources_from_pack(resources_dir=aliases_dir)
 
-    def _get_action_alias_db(self, pack, action_alias):
+    def _get_action_alias_db(self, pack, action_alias, ignore_metadata_file_error=False):
         """
         Retrieve ActionAliasDB object.
+
+        :param ignore_metadata_file_error: True to ignore the error when we can't infer
+                                            metadata_file attribute (e.g. inside tests).
+        :type ignore_metadata_file_error: ``bool``
         """
         content = self._meta_loader.load(action_alias)
         pack_field = content.get('pack', None)
@@ -118,6 +122,18 @@ class AliasesRegistrar(ResourceRegistrar):
             raise Exception('Model is in pack "%s" but field "pack" is different: %s' %
                             (pack, pack_field))
 
+        # Add in "metadata_file" attribute which stores path to the pack metadata file relative to
+        # the pack directory
+        try:
+            metadata_file = content_utils.get_relative_path_to_pack_file(pack_ref=pack,
+                                                                         file_path=action_alias,
+                                                                         use_pack_cache=True)
+        except ValueError as e:
+            if not ignore_metadata_file_error:
+                raise e
+        else:
+            content['metadata_file'] = metadata_file
+
         action_alias_api = ActionAliasAPI(**content)
         action_alias_api.validate()
         action_alias_db = ActionAliasAPI.to_model(action_alias_api)
@@ -125,12 +141,20 @@ class AliasesRegistrar(ResourceRegistrar):
         return action_alias_db
 
     def _register_action_alias(self, pack, action_alias):
-        action_alias_db = self._get_action_alias_db(pack=pack, action_alias=action_alias)
+        action_alias_db = self._get_action_alias_db(pack=pack,
+                                                    action_alias=action_alias)
 
         try:
             action_alias_db.id = ActionAlias.get_by_name(action_alias_db.name).id
         except StackStormDBObjectNotFoundError:
             LOG.debug('ActionAlias %s not found. Creating new one.', action_alias)
+
+        action_ref = action_alias_db.action_ref
+
+        action_db = Action.get_by_ref(action_ref)
+        if not action_db:
+            LOG.warning('Action %s not found in DB. Did you forget to register the action?',
+                        action_ref)
 
         try:
             action_alias_db = ActionAlias.add_or_update(action_alias_db)
@@ -151,7 +175,7 @@ class AliasesRegistrar(ResourceRegistrar):
             except Exception as e:
                 if self._fail_on_failure:
                     msg = ('Failed to register alias "%s" from pack "%s": %s' % (alias, pack,
-                                                                                 str(e)))
+                                                                                 six.text_type(e)))
                     raise ValueError(msg)
 
                 LOG.exception('Unable to register alias: %s', alias)

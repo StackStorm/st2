@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -104,10 +103,10 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
         if six.PY2:
             expected_result_re = (r"\[{'a': '1'}, {'h': 3, 'c': 2}, {'e': "
-                                  "<non_simple_type.Test object at .*?>}\]")
+                                  r"<non_simple_type.Test object at .*?>}\]")
         else:
             expected_result_re = (r"\[{'a': '1'}, {'c': 2, 'h': 3}, {'e': "
-                                  "<non_simple_type.Test object at .*?>}\]")
+                                  r"<non_simple_type.Test object at .*?>}\]")
 
         match = re.match(expected_result_re, output['result'])
         self.assertTrue(match)
@@ -624,17 +623,17 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         wrapper = PythonActionWrapper(pack='dummy_pack_5', file_path=ACTION_1_PATH,
                                       user='joe')
 
-        expected_msg = ('Failed to load action class from file ".*?list_repos_doesnt_exist.py" '
-                       '\(action file most likely doesn\'t exist or contains invalid syntax\): '
-                       '\[Errno 2\] No such file or directory')
+        expected_msg = (r'Failed to load action class from file ".*?list_repos_doesnt_exist.py" '
+                       r'\(action file most likely doesn\'t exist or contains invalid syntax\): '
+                       r'\[Errno 2\] No such file or directory')
         self.assertRaisesRegexp(Exception, expected_msg, wrapper._get_action_instance)
 
     def test_python_action_wrapper_action_script_file_contains_invalid_syntax_friendly_error(self):
         wrapper = PythonActionWrapper(pack='dummy_pack_5', file_path=ACTION_2_PATH,
                                       user='joe')
-        expected_msg = ('Failed to load action class from file ".*?invalid_syntax.py" '
-                       '\(action file most likely doesn\'t exist or contains invalid syntax\): '
-                       'No module named \'?invalid\'?')
+        expected_msg = (r'Failed to load action class from file ".*?invalid_syntax.py" '
+                       r'\(action file most likely doesn\'t exist or contains invalid syntax\): '
+                       r'No module named \'?invalid\'?')
         self.assertRaisesRegexp(Exception, expected_msg, wrapper._get_action_instance)
 
     def test_simple_action_log_messages_and_log_level_runner_param(self):
@@ -941,6 +940,7 @@ fatal: invalid reference: vinvalid
         container = RunnerContainer()
 
         runnertype_db = mock.Mock()
+        runnertype_db.name = 'python-script'
         runnertype_db.runner_package = 'python_runner'
         runnertype_db.runner_module = 'python_runner'
         action_db = mock.Mock()

@@ -4,6 +4,7 @@ description: A basic workflow testing data related functions.
 
 vars:
   - data_json_str_1: '{"foo": {"bar": "foobar"}}'
+  - none: null
 
 tasks:
   task1:
@@ -27,3 +28,5 @@ output:
   - data_yaml_str_2: '{{ yaml_dump(ctx("data_json_obj_3")) }}'
   - data_json_obj_4: '{{ yaml_parse(ctx("data_yaml_str_2")) }}'
   - data_json_str_3: '{{ json_dump(ctx("data_json_obj_4")) }}'
+  - data_none_str: '{{ use_none(ctx("none")) }}'
+  - data_str: '{{ use_none("foobar") }}'

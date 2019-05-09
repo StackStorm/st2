@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -63,13 +62,13 @@ class ActionAliasMatchCommand(resource.ResourceCommand):
     def __init__(self, resource, *args, **kwargs):
         super(ActionAliasMatchCommand, self).__init__(
             resource, 'match',
-            'Get the list of %s that match the command text.' %
-            resource.get_plural_display_name().lower(),
+            'Get the %s that match the command text.' %
+            resource.get_display_name().lower(),
             *args, **kwargs)
 
         self.parser.add_argument('match_text',
                                  metavar='command',
-                                 help=('Get the list of %s that match the command text.' %
+                                 help=('Get the %s that match the command text.' %
                                        resource.get_display_name().lower()))
         self.parser.add_argument('-a', '--attr', nargs='+',
                                  default=self.display_attributes,

@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -63,6 +62,11 @@ class TriggerTypeAPI(BaseAPI):
                 'description': 'User associated metadata assigned to this object.',
                 'type': 'array',
                 'items': {'type': 'object'}
+            },
+            "metadata_file": {
+                "description": "Path to the metadata file relative to the pack directory.",
+                "type": "string",
+                "default": ""
             }
         },
         'additionalProperties': False
@@ -76,10 +80,11 @@ class TriggerTypeAPI(BaseAPI):
         payload_schema = getattr(trigger_type, 'payload_schema', {})
         parameters_schema = getattr(trigger_type, 'parameters_schema', {})
         tags = TagsHelper.to_model(getattr(trigger_type, 'tags', []))
+        metadata_file = getattr(trigger_type, 'metadata_file', None)
 
         model = cls.model(name=name, description=description, pack=pack,
                           payload_schema=payload_schema, parameters_schema=parameters_schema,
-                          tags=tags)
+                          tags=tags, metadata_file=metadata_file)
         return model
 
     @classmethod

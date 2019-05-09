@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -245,7 +244,7 @@ def create_trigger_db(trigger_api):
     return trigger_db
 
 
-def create_or_update_trigger_db(trigger):
+def create_or_update_trigger_db(trigger, log_not_unique_error_as_debug=False):
     """
     Create a new TriggerDB model if one doesn't exist yet or update existing
     one.
@@ -269,7 +268,8 @@ def create_or_update_trigger_db(trigger):
     if is_update:
         trigger_db.id = existing_trigger_db.id
 
-    trigger_db = Trigger.add_or_update(trigger_db)
+    trigger_db = Trigger.add_or_update(trigger_db,
+        log_not_unique_error_as_debug=log_not_unique_error_as_debug)
 
     extra = {'trigger_db': trigger_db}
 
@@ -331,12 +331,19 @@ def cleanup_trigger_db_for_rule(rule_db):
     Trigger.delete_if_unreferenced(existing_trigger_db)
 
 
-def create_trigger_type_db(trigger_type):
+def create_trigger_type_db(trigger_type, log_not_unique_error_as_debug=False):
     """
     Creates a trigger type db object in the db given trigger_type definition as dict.
 
     :param trigger_type: Trigger type model.
     :type trigger_type: ``dict``
+
+    :param log_not_unique_error_as_debug: True to lot NotUnique errors under debug instead of
+                                          error log level. This is to be used in scenarios where
+                                          failure is non-fatal (e.g. when services register
+                                          internal trigger types which is an idempotent
+                                          operation).
+    :type log_not_unique_error_as_debug: ``bool``
 
     :rtype: ``object``
     """
@@ -349,13 +356,23 @@ def create_trigger_type_db(trigger_type):
     if not trigger_type_db:
         trigger_type_db = TriggerTypeAPI.to_model(trigger_type_api)
         LOG.debug('verified trigger and formulated TriggerDB=%s', trigger_type_db)
-        trigger_type_db = TriggerType.add_or_update(trigger_type_db)
+        trigger_type_db = TriggerType.add_or_update(trigger_type_db,
+            log_not_unique_error_as_debug=log_not_unique_error_as_debug)
+
     return trigger_type_db
 
 
-def create_shadow_trigger(trigger_type_db):
+def create_shadow_trigger(trigger_type_db, log_not_unique_error_as_debug=False):
     """
     Create a shadow trigger for TriggerType with no parameters.
+
+    :param log_not_unique_error_as_debug: True to lot NotUnique errors under debug instead of
+                                          error log level. This is to be used in scenarios where
+                                          failure is non-fatal (e.g. when services register
+                                          internal trigger types which is an idempotent
+                                          operation).
+    :type log_not_unique_error_as_debug: ``bool``
+
     """
     trigger_type_ref = trigger_type_db.get_reference().ref
 
@@ -368,15 +385,23 @@ def create_shadow_trigger(trigger_type_db):
                'type': trigger_type_ref,
                'parameters': {}}
 
-    return create_or_update_trigger_db(trigger)
+    return create_or_update_trigger_db(trigger,
+                                       log_not_unique_error_as_debug=log_not_unique_error_as_debug)
 
 
-def create_or_update_trigger_type_db(trigger_type):
+def create_or_update_trigger_type_db(trigger_type, log_not_unique_error_as_debug=False):
     """
     Create or update a trigger type db object in the db given trigger_type definition as dict.
 
     :param trigger_type: Trigger type model.
     :type trigger_type: ``dict``
+
+    :param log_not_unique_error_as_debug: True to lot NotUnique errors under debug instead of
+                                          error log level. This is to be used in scenarios where
+                                          failure is non-fatal (e.g. when services register
+                                          internal trigger types which is an idempotent
+                                          operation).
+    :type log_not_unique_error_as_debug: ``bool``
 
     :rtype: ``object``
     """
@@ -399,7 +424,8 @@ def create_or_update_trigger_type_db(trigger_type):
         trigger_type_api.id = existing_trigger_type_db.id
 
     try:
-        trigger_type_db = TriggerType.add_or_update(trigger_type_api)
+        trigger_type_db = TriggerType.add_or_update(trigger_type_api,
+            log_not_unique_error_as_debug=log_not_unique_error_as_debug)
     except StackStormDBObjectConflictError:
         # Operation is idempotent and trigger could have already been created by
         # another process. Ignore object already exists because it simply means
@@ -418,14 +444,15 @@ def create_or_update_trigger_type_db(trigger_type):
 
 
 def _create_trigger_type(pack, name, description=None, payload_schema=None,
-                         parameters_schema=None, tags=None):
+                         parameters_schema=None, tags=None, metadata_file=None):
     trigger_type = {
         'name': name,
         'pack': pack,
         'description': description,
         'payload_schema': payload_schema,
         'parameters_schema': parameters_schema,
-        'tags': tags
+        'tags': tags,
+        'metadata_file': metadata_file
     }
 
     return create_or_update_trigger_type_db(trigger_type=trigger_type)
@@ -474,6 +501,7 @@ def _add_trigger_models(trigger_type):
     parameters_schema = trigger_type['parameters_schema'] \
         if 'parameters_schema' in trigger_type else {}
     tags = trigger_type.get('tags', [])
+    metadata_file = trigger_type.get('metadata_file', None)
 
     trigger_type = _create_trigger_type(
         pack=pack,
@@ -481,7 +509,8 @@ def _add_trigger_models(trigger_type):
         description=description,
         payload_schema=payload_schema,
         parameters_schema=parameters_schema,
-        tags=tags
+        tags=tags,
+        metadata_file=metadata_file,
     )
     trigger = _create_trigger(trigger_type=trigger_type)
     return (trigger_type, trigger)

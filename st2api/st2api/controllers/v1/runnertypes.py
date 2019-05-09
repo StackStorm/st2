@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -21,7 +20,7 @@ from st2common.models.api.action import RunnerTypeAPI
 from st2common.persistence.runner import RunnerType
 from st2api.controllers.resource import ResourceController
 from st2common.rbac.types import PermissionType
-from st2common.rbac import utils as rbac_utils
+from st2common.rbac.backends import get_rbac_backend
 from st2common.router import abort
 
 http_client = six.moves.http_client
@@ -65,6 +64,7 @@ class RunnerTypesController(ResourceController):
         runner_type_db = self._get_by_name_or_id(name_or_id=name_or_id)
 
         permission_type = PermissionType.RUNNER_MODIFY
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=runner_type_db,
                                                           permission_type=permission_type)
@@ -82,7 +82,7 @@ class RunnerTypesController(ResourceController):
             runner_type_db = RunnerType.add_or_update(runner_type_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for runner type data=%s', runner_type_api)
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
             return
 
         extra = {'old_runner_type_db': old_runner_type_db, 'new_runner_type_db': runner_type_db}

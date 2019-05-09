@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -50,7 +49,7 @@ class CancellationWiringTest(base.TestWorkflowExecution, base.WorkflowControlTes
 
         # Cancel the workflow before the temp file is created. The workflow will be paused
         # but task1 will still be running to allow for graceful exit.
-        self.st2client.liveactions.delete(ex)
+        self.st2client.executions.delete(ex)
 
         # Expecting the ex to be canceling, waiting for task1 to be completed.
         ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_CANCELING)
@@ -79,7 +78,7 @@ class CancellationWiringTest(base.TestWorkflowExecution, base.WorkflowControlTes
         task_exs = self._wait_for_task(ex, 'task1', ac_const.LIVEACTION_STATUS_RUNNING)
 
         # Cancel the task execution.
-        self.st2client.liveactions.delete(task_exs[0])
+        self.st2client.executions.delete(task_exs[0])
 
         # Wait for the task and parent workflow to be canceled.
         self._wait_for_task(ex, 'task1', ac_const.LIVEACTION_STATUS_CANCELED)
@@ -101,7 +100,7 @@ class CancellationWiringTest(base.TestWorkflowExecution, base.WorkflowControlTes
 
         # Cancel the workflow before the temp file is deleted. The workflow will be canceled
         # but task1 will still be running to allow for graceful exit.
-        self.st2client.liveactions.delete(ex)
+        self.st2client.executions.delete(ex)
 
         # Expecting the ex to be canceling, waiting for task1 to be completed.
         ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_CANCELING)
@@ -131,7 +130,7 @@ class CancellationWiringTest(base.TestWorkflowExecution, base.WorkflowControlTes
 
         # Cancel the workflow before the temp file is deleted. The workflow will be canceled
         # but task1 will still be running to allow for graceful exit.
-        self.st2client.liveactions.delete(subwf_ex)
+        self.st2client.executions.delete(subwf_ex)
 
         # Assert subworkflow is canceling.
         subwf_ex = self._wait_for_state(subwf_ex, ac_const.LIVEACTION_STATUS_CANCELING)
@@ -165,7 +164,7 @@ class CancellationWiringTest(base.TestWorkflowExecution, base.WorkflowControlTes
 
         # Cancel the workflow before the temp file is deleted. The workflow will be canceled
         # but task1 will still be running to allow for graceful exit.
-        self.st2client.liveactions.delete(subwf_ex_1)
+        self.st2client.executions.delete(subwf_ex_1)
 
         # Assert subworkflow is canceling.
         subwf_ex_1 = self._wait_for_state(subwf_ex_1, ac_const.LIVEACTION_STATUS_CANCELING)

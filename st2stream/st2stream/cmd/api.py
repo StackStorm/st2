@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -49,9 +48,15 @@ WSGI_SERVER_REQUEST_SHUTDOWN_TIME = 2
 
 
 def _setup():
+    capabilities = {
+        'name': 'stream',
+        'listen_host': cfg.CONF.stream.host,
+        'listen_port': cfg.CONF.stream.port,
+        'type': 'active'
+    }
     common_setup(service='stream', config=config, setup_db=True, register_mq_exchanges=True,
                  register_signal_handlers=True, register_internal_trigger_types=False,
-                 run_migrations=False)
+                 run_migrations=False, service_registry=True, capabilities=capabilities)
 
 
 def _run_server():

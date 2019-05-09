@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -41,7 +40,8 @@ def st2kv_(context, key, decrypt=False):
     try:
         user_db = auth_db_access.User.get(username)
     except Exception as e:
-        raise Exception('Failed to retrieve User object for user "%s" % (username)' % (str(e)))
+        raise Exception('Failed to retrieve User object for user "%s" % (username)' %
+                        (six.text_type(e)))
 
     kvp = kvp_util.get_key(key=key, user_db=user_db, decrypt=decrypt)
 

@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -42,7 +41,7 @@ class TestWorkflowExecution(unittest2.TestCase):
 
     def _execute_workflow(self, action, parameters=None):
         ex = models.LiveAction(action=action, parameters=(parameters or {}))
-        ex = self.st2client.liveactions.create(ex)
+        ex = self.st2client.executions.create(ex)
         self.assertIsNotNone(ex.id)
         self.assertEqual(ex.action['ref'], action)
         self.assertIn(ex.status, LIVEACTION_LAUNCHED_STATUSES)
@@ -61,7 +60,7 @@ class TestWorkflowExecution(unittest2.TestCase):
                 raise ValueError('Status %s is not valid.' % state)
 
         try:
-            ex = self.st2client.liveactions.get_by_id(ex.id)
+            ex = self.st2client.executions.get_by_id(ex.id)
             self.assertIn(ex.status, states)
         except:
             if ex.status in action_constants.LIVEACTION_COMPLETED_STATES:
@@ -75,13 +74,13 @@ class TestWorkflowExecution(unittest2.TestCase):
         return ex
 
     def _get_children(self, ex):
-        return self.st2client.liveactions.query(parent=ex.id)
+        return self.st2client.executions.query(parent=ex.id)
 
     @retrying.retry(
         retry_on_exception=retry_on_exceptions,
         wait_fixed=3000, stop_max_delay=900000)
     def _wait_for_task(self, ex, task, status, num_task_exs=1):
-        ex = self.st2client.liveactions.get_by_id(ex.id)
+        ex = self.st2client.executions.get_by_id(ex.id)
 
         task_exs = [
             task_ex for task_ex in self._get_children(ex)

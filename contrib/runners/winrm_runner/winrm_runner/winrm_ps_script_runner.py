@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -48,13 +47,8 @@ class WinRmPsScriptRunner(WinRmBaseRunner, ShellRunnerMixin):
         # this will be our full parameter list when executing the script
         ps_params = self.create_ps_params_string(positional_args, named_args)
 
-        # the following wraps the script (from the file) in a script block ( {} )
-        # executes it, passing in the parameters built above
-        # https://docs.microsoft.com/en-us/powershell/scripting/core-powershell/console/powershell.exe-command-line-help
-        ps_script_and_params = "& {%s} %s" % (ps_script, ps_params)
-
         # execute
-        return self.run_ps(ps_script_and_params)
+        return self.run_ps(ps_script, ps_params)
 
 
 def get_runner():
@@ -62,4 +56,7 @@ def get_runner():
 
 
 def get_metadata():
-    return get_runner_metadata('winrm_ps_script_runner')
+    metadata = get_runner_metadata('winrm_runner')
+    metadata = [runner for runner in metadata if
+                runner['runner_module'] == __name__.split('.')[-1]][0]
+    return metadata

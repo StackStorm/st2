@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -14,8 +13,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 
+import six
 from oslo_config import cfg
 
 from st2common import log as logging
@@ -76,10 +77,11 @@ class ConfigsRegistrar(ResourceRegistrar):
                 if self._fail_on_failure:
                     msg = ('Failed to register config "%s" for pack "%s": %s' % (config_path,
                                                                                  pack_name,
-                                                                                 str(e)))
+                                                                                 six.text_type(e)))
                     raise ValueError(msg)
 
-                LOG.exception('Failed to register config for pack "%s": %s', pack_name, str(e))
+                LOG.exception('Failed to register config for pack "%s": %s', pack_name,
+                              six.text_type(e))
             else:
                 registered_count += 1
 

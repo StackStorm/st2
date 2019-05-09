@@ -1,10 +1,9 @@
 #!/usr/bin/env python
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -15,21 +14,20 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-from stevedore.driver import DriverManager
-from stevedore.extension import ExtensionManager
+
+from st2common.runners import get_available_backends
+from st2common.runners import get_backend_driver
 
 from st2common import config
 config.parse_args()
 
-manager = ExtensionManager(namespace='st2common.runners.runner', invoke_on_load=False)
-extension_names = manager.names()
+runner_names = get_available_backends()
 
 print('Available / installed action runners:')
-for name in extension_names:
-    manager = DriverManager(namespace='st2common.runners.runner', invoke_on_load=False,
-                            name=name)
-    runner_instance = manager.driver.get_runner()
-    runner_metadata = manager.driver.get_metadata()[0]
+for name in runner_names:
+    runner_driver = get_backend_driver(name)
+    runner_instance = runner_driver.get_runner()
+    runner_metadata = runner_driver.get_metadata()
 
     print('- %s (runner_module=%s,cls=%s)' % (name, runner_metadata['runner_module'],
                                               runner_instance.__class__))

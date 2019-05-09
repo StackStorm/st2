@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -88,6 +87,11 @@ class RuleListCommand(resource.ResourceTableCommand):
         if args.iftt:
             # switch attr to display the trigger and action
             args.attr = self.display_attributes_iftt
+
+        include_attributes = self._get_include_attributes(args=args)
+        if include_attributes:
+            include_attributes = ','.join(include_attributes)
+            kwargs['params'] = {'include_attributes': include_attributes}
 
         return self.manager.query_with_count(limit=args.last, **kwargs)
 

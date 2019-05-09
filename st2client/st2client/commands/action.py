@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -33,6 +32,7 @@ from six.moves import range
 from st2client import models
 from st2client.commands import resource
 from st2client.commands.resource import ResourceNotFoundError
+from st2client.commands.resource import ResourceViewCommand
 from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
 from st2client.formatters import table
 from st2client.formatters import execution as execution_formatter
@@ -158,17 +158,18 @@ def format_execution_status(instance):
     executions which are in running state and execution total run time for all the executions
     which have finished.
     """
+    status = getattr(instance, 'status', None)
     start_timestamp = getattr(instance, 'start_timestamp', None)
     end_timestamp = getattr(instance, 'end_timestamp', None)
 
-    if instance.status == LIVEACTION_STATUS_RUNNING and start_timestamp:
+    if status == LIVEACTION_STATUS_RUNNING and start_timestamp:
         start_timestamp = instance.start_timestamp
         start_timestamp = parse_isotime(start_timestamp)
         start_timestamp = calendar.timegm(start_timestamp.timetuple())
         now = int(time.time())
         elapsed_seconds = (now - start_timestamp)
         instance.status = '%s (%ss elapsed)' % (instance.status, elapsed_seconds)
-    elif instance.status in LIVEACTION_COMPLETED_STATES and start_timestamp and end_timestamp:
+    elif status in LIVEACTION_COMPLETED_STATES and start_timestamp and end_timestamp:
         start_timestamp = parse_isotime(start_timestamp)
         start_timestamp = calendar.timegm(start_timestamp.timetuple())
         end_timestamp = parse_isotime(end_timestamp)
@@ -307,6 +308,9 @@ class ActionRunCommandMixin(object):
                                     help=('If result is type of JSON, then print specific '
                                           'key-value pair; dot notation for nested JSON is '
                                           'supported.'))
+        result_arg_grp.add_argument('--delay', type=int, default=None,
+                                    help=('How long (in milliseconds) to delay the '
+                                          'execution before scheduling.'))
 
         # Other options
         detail_arg_grp.add_argument('--tail', action='store_true',
@@ -366,7 +370,7 @@ class ActionRunCommandMixin(object):
             self.print_output(instance, formatter, **options)
 
     def _run_and_print_child_task_list(self, execution, args, **kwargs):
-        action_exec_mgr = self.app.client.managers['LiveAction']
+        action_exec_mgr = self.app.client.managers['Execution']
 
         instance = execution
         options = {'attributes': ['id', 'action.ref', 'parameters', 'status', 'start_timestamp',
@@ -454,7 +458,7 @@ class ActionRunCommandMixin(object):
         if args.tail:
             # Start tailing new execution
             print('Tailing execution "%s"' % (str(execution.id)))
-            execution_manager = self.app.client.managers['LiveAction']
+            execution_manager = self.app.client.managers['Execution']
             stream_manager = self.app.client.managers['Stream']
             ActionExecutionTailCommand.tail_execution(execution=execution,
                                                       execution_manager=execution_manager,
@@ -701,7 +705,7 @@ class ActionRunCommandMixin(object):
                 except Exception as e:
                     # TODO: Move transformers in a separate module and handle
                     # exceptions there
-                    if 'malformed string' in str(e):
+                    if 'malformed string' in six.text_type(e):
                         message = ('Invalid value for boolean parameter. '
                                    'Valid values are: true, false')
                         raise ValueError(message)
@@ -732,7 +736,7 @@ class ActionRunCommandMixin(object):
     def _print_help(self, args, **kwargs):
         # Print appropriate help message if the help option is given.
         action_mgr = self.app.client.managers['Action']
-        action_exec_mgr = self.app.client.managers['LiveAction']
+        action_exec_mgr = self.app.client.managers['Execution']
 
         if args.help:
             action_ref_or_id = getattr(args, 'ref_or_id', None)
@@ -746,7 +750,7 @@ class ActionRunCommandMixin(object):
                 try:
                     action = action_mgr.get_by_ref_or_id(args.ref_or_id, **kwargs)
                     if not action:
-                        raise resource.ResourceNotFoundError('Action %s not found', args.ref_or_id)
+                        raise resource.ResourceNotFoundError('Action %s not found' % args.ref_or_id)
                     runner_mgr = self.app.client.managers['RunnerType']
                     runner = runner_mgr.get_by_name(action.runner_type, **kwargs)
                     parameters, required, optional, _ = self._get_params_types(runner,
@@ -873,9 +877,9 @@ class ActionRunCommandMixin(object):
             task_name_key = 'context.mistral.task_name'
         elif context and 'orquesta' in context:
             task_name_key = 'context.orquesta.task_name'
-        # Use LiveAction as the object so that the formatter lookup does not change.
+        # Use Execution as the object so that the formatter lookup does not change.
         # AKA HACK!
-        return models.action.LiveAction(**{
+        return models.action.Execution(**{
             'id': task.id,
             'status': task.status,
             'task': jsutil.get_value(vars(task), task_name_key),
@@ -992,10 +996,13 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
         action_parameters = self._get_action_parameters_from_args(action=action, runner=runner,
                                                                   args=args)
 
-        execution = models.LiveAction()
+        execution = models.Execution()
         execution.action = action_ref
         execution.parameters = action_parameters
         execution.user = args.user
+
+        if args.delay:
+            execution.delay = args.delay
 
         if not args.trace_id and args.trace_tag:
             execution.context = {'trace_context': {'trace_tag': args.trace_tag}}
@@ -1003,7 +1010,7 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
         if args.trace_id:
             execution.context = {'trace_context': {'id_': args.trace_id}}
 
-        action_exec_mgr = self.app.client.managers['LiveAction']
+        action_exec_mgr = self.app.client.managers['Execution']
 
         execution = action_exec_mgr.create(execution, **kwargs)
         execution = self._get_execution_result(execution=execution,
@@ -1017,7 +1024,7 @@ class ActionExecutionBranch(resource.ResourceBranch):
 
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(ActionExecutionBranch, self).__init__(
-            models.LiveAction, description, app, subparsers,
+            models.Execution, description, app, subparsers,
             parent_parser=parent_parser, read_only=True,
             commands={'list': ActionExecutionListCommand,
                       'get': ActionExecutionGetCommand})
@@ -1040,39 +1047,7 @@ POSSIBLE_ACTION_STATUS_VALUES = ('succeeded', 'running', 'scheduled', 'paused', 
                                  'canceling', 'canceled')
 
 
-class ActionExecutionReadCommand(resource.ResourceCommand):
-    """
-    Base class for read / view commands (list and get).
-    """
-
-    @classmethod
-    def _get_exclude_attributes(cls, args):
-        """
-        Retrieve a list of exclude attributes for particular command line arguments.
-        """
-        exclude_attributes = []
-
-        result_included = False
-        trigger_instance_included = False
-
-        for attr in args.attr:
-            # Note: We perform startswith check so we correctly detected child attribute properties
-            # (e.g. result, result.stdout, result.stderr, etc.)
-            if attr.startswith('result'):
-                result_included = True
-
-            if attr.startswith('trigger_instance'):
-                trigger_instance_included = True
-
-        if not result_included:
-            exclude_attributes.append('result')
-        if not trigger_instance_included:
-            exclude_attributes.append('trigger_instance')
-
-        return exclude_attributes
-
-
-class ActionExecutionListCommand(ActionExecutionReadCommand):
+class ActionExecutionListCommand(ResourceViewCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'status', 'start_timestamp',
                           'end_timestamp']
     attribute_transform_functions = {
@@ -1109,6 +1084,8 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
                                                   status. Possible values are \'%s\', \'%s\', \
                                                   \'%s\', \'%s\', \'%s\', \'%s\' or \'%s\''
                                                   '.' % POSSIBLE_ACTION_STATUS_VALUES))
+        self.group.add_argument('--user',
+                                help='Only return executions created by the provided user.')
         self.group.add_argument('--trigger_instance',
                                 help='Trigger instance id to filter the list.')
         self.parser.add_argument('-tg', '--timestamp-gt', type=str, dest='timestamp_gt',
@@ -1141,6 +1118,8 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
             kwargs['action'] = args.action
         if args.status:
             kwargs['status'] = args.status
+        if args.user:
+            kwargs['user'] = args.user
         if args.trigger_instance:
             kwargs['trigger_instance'] = args.trigger_instance
         if not args.showall:
@@ -1156,11 +1135,10 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
             elif args.sort_order in ['desc', 'descending']:
                 kwargs['sort_desc'] = True
 
-        # We exclude "result" and "trigger_instance" attributes which can contain a lot of data
-        # since they are not displayed nor used which speeds the common operation substantially.
-        exclude_attributes = self._get_exclude_attributes(args=args)
-        exclude_attributes = ','.join(exclude_attributes)
-        kwargs['exclude_attributes'] = exclude_attributes
+        # We only retrieve attributes which are needed to speed things up
+        include_attributes = self._get_include_attributes(args=args)
+        if include_attributes:
+            kwargs['include_attributes'] = ','.join(include_attributes)
 
         return self.manager.query_with_count(limit=args.last, **kwargs)
 
@@ -1187,9 +1165,11 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
                 table.SingleRowTable.note_box(self.resource_name, args.last)
 
 
-class ActionExecutionGetCommand(ActionRunCommandMixin, ActionExecutionReadCommand):
+class ActionExecutionGetCommand(ActionRunCommandMixin, ResourceViewCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'parameters', 'status',
                           'start_timestamp', 'end_timestamp', 'result', 'liveaction']
+    include_attributes = ['action.ref', 'action.runner_type', 'start_timestamp',
+                          'end_timestamp']
 
     def __init__(self, resource, *args, **kwargs):
         super(ActionExecutionGetCommand, self).__init__(
@@ -1205,12 +1185,12 @@ class ActionExecutionGetCommand(ActionRunCommandMixin, ActionExecutionReadComman
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        # We exclude "result" and / or "trigger_instance" attribute if it's not explicitly
-        # requested by user either via "--attr" flag or by default.
-        exclude_attributes = self._get_exclude_attributes(args=args)
-        exclude_attributes = ','.join(exclude_attributes)
-
-        kwargs['params'] = {'exclude_attributes': exclude_attributes}
+        # We only retrieve attributes which are needed to speed things up
+        include_attributes = self._get_include_attributes(args=args,
+                                                          extra_attributes=self.include_attributes)
+        if include_attributes:
+            include_attributes = ','.join(include_attributes)
+            kwargs['params'] = {'include_attributes': include_attributes}
 
         execution = self.get_resource_by_id(id=args.id, **kwargs)
         return execution
@@ -1304,7 +1284,6 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
         self.parser.add_argument('-h', '--help',
                                  action='store_true', dest='help',
                                  help='Print usage for the given action.')
-
         self._add_common_options()
 
     @add_auth_token_to_kwargs_from_cli
@@ -1317,7 +1296,7 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
 
         action_mgr = self.app.client.managers['Action']
         runner_mgr = self.app.client.managers['RunnerType']
-        action_exec_mgr = self.app.client.managers['LiveAction']
+        action_exec_mgr = self.app.client.managers['Execution']
 
         action_ref = existing_execution.action['ref']
         action = action_mgr.get_by_ref_or_id(action_ref)
@@ -1330,6 +1309,7 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
                                            parameters=action_parameters,
                                            tasks=args.tasks,
                                            no_reset=args.no_reset,
+                                           delay=args.delay if args.delay else 0,
                                            **kwargs)
 
         execution = self._get_execution_result(execution=execution,
@@ -1339,7 +1319,7 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
         return execution
 
 
-class ActionExecutionPauseCommand(ActionRunCommandMixin, ActionExecutionReadCommand):
+class ActionExecutionPauseCommand(ActionRunCommandMixin, ResourceViewCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'parameters', 'status',
                           'start_timestamp', 'end_timestamp', 'result', 'liveaction']
 
@@ -1382,7 +1362,7 @@ class ActionExecutionPauseCommand(ActionRunCommandMixin, ActionExecutionReadComm
         return self._print_execution_details(execution=execution, args=args, **kwargs)
 
 
-class ActionExecutionResumeCommand(ActionRunCommandMixin, ActionExecutionReadCommand):
+class ActionExecutionResumeCommand(ActionRunCommandMixin, ResourceViewCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'parameters', 'status',
                           'start_timestamp', 'end_timestamp', 'result', 'liveaction']
 

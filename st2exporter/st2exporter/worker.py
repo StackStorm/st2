@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -15,7 +14,6 @@
 
 import eventlet
 from six.moves import queue
-from kombu import Connection
 from oslo_config import cfg
 
 from st2common import log as logging
@@ -124,5 +122,5 @@ class ExecutionsExporter(consumers.MessageHandler):
 
 
 def get_worker():
-    with Connection(transport_utils.get_messaging_urls()) as conn:
+    with transport_utils.get_connection() as conn:
         return ExecutionsExporter(conn, [EXPORTER_WORK_QUEUE])

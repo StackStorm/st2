@@ -1,5 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
 set -e
+
+if [ "$(whoami)" != 'root' ]; then
+    echo 'Please run with sudo'
+    exit 2
+fi
 
 # Create an SSH system user (default `stanley` user may be already created)
 if (! id stanley 2>/dev/null); then

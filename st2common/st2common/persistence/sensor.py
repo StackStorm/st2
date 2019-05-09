@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -14,10 +13,14 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 from st2common import transport
 from st2common.models.db.sensor import sensor_type_access
 from st2common.persistence.base import ContentPackResource
-from st2common.transport import utils as transport_utils
+
+__all__ = [
+    'SensorType'
+]
 
 
 class SensorType(ContentPackResource):
@@ -31,6 +34,5 @@ class SensorType(ContentPackResource):
     @classmethod
     def _get_publisher(cls):
         if not cls.publisher:
-            cls.publisher = transport.reactor.SensorCUDPublisher(
-                urls=transport_utils.get_messaging_urls())
+            cls.publisher = transport.reactor.SensorCUDPublisher()
         return cls.publisher

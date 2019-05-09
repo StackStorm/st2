@@ -6,5 +6,8 @@ keywords:
     - example
     - test
 version: 0.1.0
+python_versions:
+  - "2"
+  - "3"
 author: StackStorm, Inc.
 email: info@stackstorm.com

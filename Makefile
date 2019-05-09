@@ -2,14 +2,18 @@ ROOT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 SHELL := /bin/bash
 TOX_DIR := .tox
 OS := $(shell uname)
+
 # We separate the OSX X and Linux virtualenvs so we can run in a Docker
 # container (st2devbox) while doing things on our host Mac machine
 ifeq ($(OS),Darwin)
 	VIRTUALENV_DIR ?= virtualenv-osx
+	VIRTUALENV_ST2CLIENT_DIR ?= virtualenv-st2client-osx
 else
 	VIRTUALENV_DIR ?= virtualenv
+	VIRTUALENV_ST2CLIENT_DIR ?= virtualenv-st2client
 endif
-PYTHON_VERSION = python2.7
+
+PYTHON_VERSION ?= python2.7
 
 BINARIES := bin
 
@@ -41,8 +45,6 @@ COMPONENTS_TEST_MODULES_COMMA := $(subst $(space_char),$(comma),$(COMPONENTS_TES
 
 COVERAGE_GLOBS := .coverage.unit.* .coverage.integration.* .coverage.mistral.*
 COVERAGE_GLOBS_QUOTED := $(foreach glob,$(COVERAGE_GLOBS),'$(glob)')
-
-PYTHON_TARGET := 2.7
 
 REQUIREMENTS := test-requirements.txt requirements.txt
 PIP_OPTIONS := $(ST2_PIP_OPTIONS)
@@ -130,10 +132,14 @@ play:
 	@echo
 
 .PHONY: check
-check: requirements flake8 checklogs
+check: check-requirements flake8 checklogs
 
+# NOTE: We pass --no-deps to the script so we don't install all the
+# package dependencies which are already installed as part of "requirements"
+# make targets. This speeds up the build
 .PHONY: install-runners
 install-runners:
+
 	@echo ""
 	@echo "================== INSTALL RUNNERS ===================="
 	@echo ""
@@ -141,8 +147,17 @@ install-runners:
 		echo "==========================================================="; \
 		echo "Installing runner:" $$component; \
 		echo "==========================================================="; \
-        (. $(VIRTUALENV_DIR)/bin/activate; cd $$component; python setup.py develop); \
+		(. $(VIRTUALENV_DIR)/bin/activate; cd $$component; python setup.py develop --no-deps); \
 	done
+
+.PHONY: check-requirements
+check-requirements: requirements
+	@echo
+	@echo "============== CHECKING REQUIREMENTS =============="
+	@echo
+	# Update requirements and then make sure no files were changed
+	git status -- *requirements.txt */*requirements.txt | grep -q "nothing to commit"
+	@echo "All requirements files up-to-date!"
 
 .PHONY: checklogs
 checklogs:
@@ -173,6 +188,19 @@ configgen: requirements .configgen
 	@echo "================== pylint ===================="
 	@echo
 	# Lint st2 components
+	@for component in $(COMPONENTS); do\
+		echo "==========================================================="; \
+		echo "Running pylint on" $$component; \
+		echo "==========================================================="; \
+		. $(VIRTUALENV_DIR)/bin/activate ; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models --load-plugins=pylint_plugins.db_models $$component/$$component || exit 1; \
+	done
+	# Lint runner modules and packages
+	@for component in $(COMPONENTS_RUNNERS); do\
+		echo "==========================================================="; \
+		echo "Running pylint on" $$component; \
+		echo "==========================================================="; \
+		. $(VIRTUALENV_DIR)/bin/activate ; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models --load-plugins=pylint_plugins.db_models $$component/*.py || exit 1; \
+	done
 	# Lint Python pack management actions
 	. $(VIRTUALENV_DIR)/bin/activate; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models contrib/packs/actions/*.py || exit 1;
 	. $(VIRTUALENV_DIR)/bin/activate; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models contrib/packs/actions/*/*.py || exit 1;
@@ -232,6 +260,31 @@ flake8: requirements .flake8
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./lint-configs/python/.flake8 tools/
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./lint-configs/python/.flake8 pylint_plugins/
 
+# Make task which verifies st2client installs and works fine
+.PHONY: .st2client-install-check
+.st2client-install-check:
+	@echo
+	@echo "==================== st2client install check ===================="
+	@echo
+	test -f $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) --no-site-packages $(VIRTUALENV_ST2CLIENT_DIR) --no-download
+
+	# Setup PYTHONPATH in bash activate script...
+	# Delete existing entries (if any)
+	sed -i '/_OLD_PYTHONPATHp/d' $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
+	sed -i '/PYTHONPATH=/d' $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
+	sed -i '/export PYTHONPATH/d' $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
+
+	echo '_OLD_PYTHONPATH=$$PYTHONPATH' >> $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
+	echo 'PYTHONPATH=${ROOT_DIR}:$(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
+	echo 'export PYTHONPATH' >> $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
+	touch $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
+	chmod +x $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
+
+	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "pip>=9.0,<9.1"
+	$(VIRTUALENV_ST2CLIENT_DIR)/bin/activate; cd st2client ; ../$(VIRTUALENV_ST2CLIENT_DIR)/bin/python setup.py install ; cd ..
+	$(VIRTUALENV_ST2CLIENT_DIR)/bin/st2 --version
+	$(VIRTUALENV_ST2CLIENT_DIR)/bin/python -c "import st2client"
+
 .PHONY: bandit
 bandit: requirements .bandit
 
@@ -240,13 +293,13 @@ bandit: requirements .bandit
 	@echo
 	@echo "==================== bandit ===================="
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; bandit -r $(COMPONENTS_WITH_RUNNERS) -lll
+	. $(VIRTUALENV_DIR)/bin/activate; bandit -r $(COMPONENTS_WITH_RUNNERS) -lll -x build,dist
 
 .PHONY: lint
 lint: requirements .lint
 
 .PHONY: .lint
-.lint: .generate-api-spec .flake8 .pylint .bandit .st2client-dependencies-check .st2common-circular-dependencies-check .rst-check
+.lint: .generate-api-spec .flake8 .pylint .st2client-dependencies-check .st2common-circular-dependencies-check .rst-check .st2client-install-check
 
 .PHONY: clean
 clean: .cleanpycs
@@ -255,13 +308,13 @@ clean: .cleanpycs
 compile:
 	@echo "======================= compile ========================"
 	@echo "------- Compile all .py files (syntax check test - Python 2) ------"
-	@if python -c 'import compileall,re; compileall.compile_dir(".", rx=re.compile(r"/virtualenv|virtualenv-osx|.tox"), quiet=True)' | grep .; then exit 1; else exit 0; fi
+	@if python -c 'import compileall,re; compileall.compile_dir(".", rx=re.compile(r"/virtualenv|virtualenv-osx|virtualenv-py3|.tox|.git|.venv-st2devbox"), quiet=True)' | grep .; then exit 1; else exit 0; fi
 
 .PHONY: compilepy3
 compilepy3:
 	@echo "======================= compile ========================"
 	@echo "------- Compile all .py files (syntax check test - Python 3) ------"
-	@if python3 -c 'import compileall,re; compileall.compile_dir(".", rx=re.compile(r"/virtualenv|virtualenv-osx|.tox|./st2tests/st2tests/fixtures/packs/test"), quiet=True)' | grep .; then exit 1; else exit 0; fi
+	@if python3 -c 'import compileall,re; compileall.compile_dir(".", rx=re.compile(r"/virtualenv|virtualenv-osx|virtualenv-py3|.tox|.git|.venv-st2devbox|./st2tests/st2tests/fixtures/packs/test"), quiet=True)' | grep .; then exit 1; else exit 0; fi
 
 .PHONY: .cleanpycs
 .cleanpycs:
@@ -353,6 +406,11 @@ requirements: virtualenv .sdist-requirements install-runners
 	# Fix for Travis CI race
 	$(VIRTUALENV_DIR)/bin/pip install "six==1.11.0"
 
+	# Fix for Travis CI caching issue
+	$(VIRTUALENV_DIR)/bin/pip uninstall -y "pytz" || echo "not installed"
+	$(VIRTUALENV_DIR)/bin/pip uninstall -y "python-dateutil" || echo "not installed"
+	$(VIRTUALENV_DIR)/bin/pip uninstall -y "orquesta" || echo "not installed"
+
 	# Install requirements
 	#
 	for req in $(REQUIREMENTS); do \
@@ -361,8 +419,10 @@ requirements: virtualenv .sdist-requirements install-runners
 	done
 
 	# Install st2common package to load drivers defined in st2common setup.py
-	(cd st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop)
-
+	# NOTE: We pass --no-deps to the script so we don't install all the
+	# package dependencies which are already installed as part of "requirements"
+	# make targets. This speeds up the build
+	(cd st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
 
 	# Note: We install prance here and not as part of any component
 	# requirements.txt because it has a conflict with our dependency (requires
@@ -370,10 +430,13 @@ requirements: virtualenv .sdist-requirements install-runners
 	$(VIRTUALENV_DIR)/bin/pip install "prance==0.6.1"
 
 	# Install st2common to register metrics drivers
-	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop)
+	# NOTE: We pass --no-deps to the script so we don't install all the
+	# package dependencies which are already installed as part of "requirements"
+	# make targets. This speeds up the build
+	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
 
 	# Some of the tests rely on submodule so we need to make sure submodules are check out
-	git submodule update --init --recursive
+	git submodule update --recursive --remote
 
 .PHONY: virtualenv
 	# Note: We always want to update virtualenv/bin/activate file to make sure
@@ -388,9 +451,17 @@ virtualenv:
 
 	# Setup PYTHONPATH in bash activate script...
 	# Delete existing entries (if any)
+ifeq ($(OS),Darwin)
+	echo 'Setting up virtualenv on $(OS)...'
+	sed -i '' '/_OLD_PYTHONPATHp/d' $(VIRTUALENV_DIR)/bin/activate
+	sed -i '' '/PYTHONPATH=/d' $(VIRTUALENV_DIR)/bin/activate
+	sed -i '' '/export PYTHONPATH/d' $(VIRTUALENV_DIR)/bin/activate
+else
+	echo 'Setting up virtualenv on $(OS)...'
 	sed -i '/_OLD_PYTHONPATHp/d' $(VIRTUALENV_DIR)/bin/activate
 	sed -i '/PYTHONPATH=/d' $(VIRTUALENV_DIR)/bin/activate
 	sed -i '/export PYTHONPATH/d' $(VIRTUALENV_DIR)/bin/activate
+endif
 
 	echo '_OLD_PYTHONPATH=$$PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate
 	#echo 'PYTHONPATH=$$_OLD_PYTHONPATH:$(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_DIR)/bin/activate
@@ -542,7 +613,7 @@ endif
 		echo "-----------------------------------------------------------"; \
 		. $(VIRTUALENV_DIR)/bin/activate; \
 		    COVERAGE_FILE=.coverage.integration.$$(echo $$component | tr '/' '.') \
-		    nosetests $(NOSE_OPTS) -s -v $(NOSE_COVERAGE_FLAGS) \
+		    nosetests $(NOSE_OPTS) -s -v --exe $(NOSE_COVERAGE_FLAGS) \
 		    $(NOSE_COVERAGE_PACKAGES) \
 		    $$component/tests/integration || exit 1; \
 		echo "-----------------------------------------------------------"; \
@@ -788,7 +859,7 @@ debs:
 ci: ci-checks ci-unit ci-integration ci-mistral ci-packs-tests
 
 .PHONY: ci-checks
-ci-checks: compile .generated-files-check .pylint .flake8 .bandit .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check
+ci-checks: compile .generated-files-check .pylint .flake8 check-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check
 
 .PHONY: ci-py3-unit
 ci-py3-unit:
@@ -796,6 +867,7 @@ ci-py3-unit:
 	@echo "==================== ci-py3-unit ===================="
 	@echo
 	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-unit -vv
+	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-packs -vv
 
 .PHONY: ci-py3-integration
 ci-py3-integration: requirements .ci-prepare-integration .ci-py3-integration

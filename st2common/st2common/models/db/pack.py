@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -47,6 +46,7 @@ class PackDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin,
     keywords = me.ListField(field=me.StringField())
     version = me.StringField(regex=PACK_VERSION_REGEX, required=True)
     stackstorm_version = me.StringField(regex=ST2_VERSION_REGEX)
+    python_versions = me.ListField(field=me.StringField())
     author = me.StringField(required=True)
     email = me.EmailField()
     contributors = me.ListField(field=me.StringField())

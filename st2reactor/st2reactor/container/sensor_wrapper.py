@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -14,12 +13,14 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 import json
 import atexit
 import argparse
 import traceback
 
+import six
 from oslo_config import cfg
 
 from st2common import log as logging
@@ -181,6 +182,7 @@ class SensorWrapper(object):
                             ssl_certfile=cfg.CONF.database.ssl_certfile,
                             ssl_cert_reqs=cfg.CONF.database.ssl_cert_reqs,
                             ssl_ca_certs=cfg.CONF.database.ssl_ca_certs,
+                            authentication_mechanism=cfg.CONF.database.authentication_mechanism,
                             ssl_match_hostname=cfg.CONF.database.ssl_match_hostname)
 
         # 3. Instantiate the watcher
@@ -199,6 +201,10 @@ class SensorWrapper(object):
 
         if '--debug' in parent_args:
             set_log_level_for_all_loggers()
+        else:
+            # NOTE: statsd logger logs everything by default under INFO so we ignore those log
+            # messages unless verbose / debug mode is used
+            logging.ignore_statsd_log_messages()
 
         self._sensor_instance = self._get_sensor_instance()
 
@@ -224,7 +230,7 @@ class SensorWrapper(object):
         except Exception as e:
             # Include traceback
             msg = ('Sensor "%s" run method raised an exception: %s.' %
-                   (self._class_name, str(e)))
+                   (self._class_name, six.text_type(e)))
             self._logger.warn(msg, exc_info=True)
             raise Exception(msg)
 
@@ -283,7 +289,7 @@ class SensorWrapper(object):
         except Exception as e:
             tb_msg = traceback.format_exc()
             msg = ('Failed to load sensor class from file "%s" (sensor file most likely doesn\'t '
-                   'exist or contains invalid syntax): %s' % (self._file_path, str(e)))
+                   'exist or contains invalid syntax): %s' % (self._file_path, six.text_type(e)))
             msg += '\n\n' + tb_msg
             exc_cls = type(e)
             raise exc_cls(msg)

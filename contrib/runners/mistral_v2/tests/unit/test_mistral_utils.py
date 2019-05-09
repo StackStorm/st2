@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -20,7 +19,7 @@ import unittest2
 import st2tests.config as tests_config
 tests_config.parse_args()
 
-from st2common.util import loader
+from st2common.runners.base import get_callback_module
 
 
 MISTRAL_RUNNER_NAME = 'mistral_v2'
@@ -29,7 +28,7 @@ MISTRAL_RUNNER_NAME = 'mistral_v2'
 class MistralUtilityTest(unittest2.TestCase):
 
     def test_get_action_execution_id_from_url(self):
-        mistral_callback_module = loader.register_callback_module(MISTRAL_RUNNER_NAME)
+        mistral_callback_module = get_callback_module(MISTRAL_RUNNER_NAME)
 
         self.assertEqual(
             '12345',

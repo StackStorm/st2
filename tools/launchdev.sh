@@ -1,27 +1,35 @@
 #!/usr/bin/env bash
 
 function usage() {
-    echo "Usage: $0 [start|stop|restart|startclean] [-r runner_count] [-g] [-x] [-c] [-6] [-m]" >&2
+    echo "Usage: $0 [start|stop|restart|startclean] [-r runner_count] [-s scheduler_count] [-w workflow_engine_count] [-g] [-x] [-c] [-6] [-m]" >&2
 }
 
 subcommand=$1; shift
 runner_count=1
+scheduler_count=1
+workflow_engine_count=1
 use_gunicorn=true
-copy_examples=false
+copy_test_packs=false
 load_content=true
 use_ipv6=false
 include_mistral=false
 
-while getopts ":r:gxcu6m" o; do
+while getopts ":r:s:w:gxcu6m" o; do
     case "${o}" in
         r)
             runner_count=${OPTARG}
+            ;;
+        s)
+            scheduler_count=${OPTARG}
+            ;;
+        w)
+            workflow_engine_count=${OPTARG}
             ;;
         g)
             use_gunicorn=false
             ;;
         x)
-            copy_examples=true
+            copy_test_packs=true
             ;;
         c)
             load_content=false
@@ -59,14 +67,19 @@ function init(){
         ST2_REPO=${CURRENT_DIR}/${COMMAND_PATH}/..
     fi
 
-    VENV=${ST2_REPO}/virtualenv
-    PY=${VENV}/bin/python
-    echo "Using virtualenv: ${VENV}"
-    echo "Using python: ${PY}"
+    VIRTUALENV=${VIRTUALENV_DIR:-${ST2_REPO}/virtualenv}
+    VIRTUALENV=$(readlink -f ${VIRTUALENV})
+    PY=${VIRTUALENV}/bin/python
+    PYTHON_VERSION=$(${PY} --version 2>&1)
+
+    echo "Using virtualenv: ${VIRTUALENV}"
+    echo "Using python: ${PY} (${PYTHON_VERSION})"
 
     if [ -z "$ST2_CONF" ]; then
         ST2_CONF=${ST2_REPO}/conf/st2.dev.conf
     fi
+
+    ST2_CONF=$(readlink -f ${ST2_CONF})
     echo "Using st2 config file: $ST2_CONF"
 
     if [ ! -f "$ST2_CONF" ]; then
@@ -151,14 +164,8 @@ function st2start(){
     # that this script is located under st2/tools.
 
     # Change working directory to the root of the repo.
-    echo "Changing working directory to ${ST2_REPO}..."
+    echo "Changing working directory to ${ST2_REPO}"
     cd ${ST2_REPO}
-    RUNNERS_BASE_DIR=$(grep 'runners_base_path' ${ST2_CONF} \
-        | awk 'BEGIN {FS=" = "}; {print $2}')
-    if [ -z $RUNNERS_BASE_DIR ]; then
-        RUNNERS_BASE_DIR="/opt/stackstorm/runners"
-    fi
-    echo "Using runners base dir: $RUNNERS_BASE_DIR"
 
     BASE_DIR=$(grep 'base_path' ${ST2_CONF} \
         | awk 'BEGIN {FS=" = "}; {print $2}')
@@ -184,7 +191,6 @@ function st2start(){
     if [ ! -d "$ST2_BASE_DIR" ]; then
         echo "$ST2_BASE_DIR doesn't exist. Creating..."
         sudo mkdir -p $PACKS_BASE_DIR
-        sudo mkdir -p $RUNNERS_BASE_DIR
     fi
 
     if [ "${use_ipv6}" = true ]; then
@@ -200,22 +206,30 @@ function st2start(){
     sudo mkdir -p $PACKS_BASE_DIR/default/actions/
     sudo mkdir -p $PACKS_BASE_DIR/default/rules/
     sudo mkdir -p $VIRTUALENVS_DIR
-    sudo mkdir -p $RUNNERS_BASE_DIR
     sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $PACKS_BASE_DIR
-    sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $RUNNERS_BASE_DIR
     sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $VIRTUALENVS_DIR
     sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $CONFIG_BASE_DIR
     cp -Rp ./contrib/core/ $PACKS_BASE_DIR
     cp -Rp ./contrib/packs/ $PACKS_BASE_DIR
-    cp -Rp ./contrib/runners/* $RUNNERS_BASE_DIR
 
-    if [ "$copy_examples" = true ]; then
-        echo "Copying examples from ./contrib/examples to $PACKS_BASE_DIR"
+    if [ "$copy_test_packs" = true ]; then
+        echo "Copying test packs examples and fixtures to $PACKS_BASE_DIR"
         cp -Rp ./contrib/examples $PACKS_BASE_DIR
+        # Clone st2tests in /tmp directory.
+        pushd /tmp
+        git clone https://github.com/StackStorm/st2tests.git
+        ret=$?
+        if [ ${ret} -eq 0 ]; then
+            cp -Rp ./st2tests/packs/fixtures $PACKS_BASE_DIR
+            rm -R st2tests/
+        else
+            echo "Failed to clone st2tests repo"
+        fi
+        popd
     fi
 
     # activate virtualenv to set PYTHONPATH
-    source ./virtualenv/bin/activate
+    source ${VIRTUALENV}/bin/activate
 
     # Kill existing st2 screens
     screen -wipe
@@ -236,10 +250,10 @@ function st2start(){
     if [ "${use_gunicorn}" = true ]; then
         echo '  using gunicorn to run st2-api...'
         export ST2_CONFIG_PATH=${ST2_CONF}
-        screen -d -m -S st2-api ./virtualenv/bin/gunicorn \
+        screen -d -m -S st2-api ${VIRTUALENV}/bin/gunicorn \
             st2api.wsgi:application -k eventlet -b "$BINDING_ADDRESS:9101" --workers 1
     else
-        screen -d -m -S st2-api ./virtualenv/bin/python \
+        screen -d -m -S st2-api ${VIRTUALENV}/bin/python \
             ./st2api/bin/st2api \
             --config-file $ST2_CONF
     fi
@@ -248,66 +262,86 @@ function st2start(){
     if [ "${use_gunicorn}" = true ]; then
         echo '  using gunicorn to run st2-stream'
         export ST2_CONFIG_PATH=${ST2_CONF}
-        screen -d -m -S st2-stream ./virtualenv/bin/gunicorn \
+        screen -d -m -S st2-stream ${VIRTUALENV}/bin/gunicorn \
             st2stream.wsgi:application -k eventlet -b "$BINDING_ADDRESS:9102" --workers 1
     else
-        screen -d -m -S st2-stream ./virtualenv/bin/python \
+        screen -d -m -S st2-stream ${VIRTUALENV}/bin/python \
             ./st2stream/bin/st2stream \
             --config-file $ST2_CONF
     fi
 
     # Run the workflow engine server
-    echo 'Starting screen session st2-workflow'
-    screen -d -m -S st2-workflow ./virtualenv/bin/python \
-        ./st2actions/bin/st2workflowengine \
-        --config-file $ST2_CONF
+    echo 'Starting screen session st2-workflow(s)'
+    WORKFLOW_ENGINE_SCREENS=()
+    for i in $(seq 1 $workflow_engine_count)
+    do
+        WORKFLOW_ENGINE_NAME=st2-workflow-$i
+        WORKFLOW_ENGINE_SCREENS+=($WORKFLOW_ENGINE_NAME)
+        echo '  starting '$WORKFLOW_ENGINE_NAME'...'
+        screen -d -m -S $WORKFLOW_ENGINE_NAME ${VIRTUALENV}/bin/python \
+            ./st2actions/bin/st2workflowengine \
+            --config-file $ST2_CONF
+    done
 
     # Start a screen for every runner
-    echo 'Starting screen sessions for st2-actionrunner(s)...'
+    echo 'Starting screen sessions for st2-actionrunner(s)'
     RUNNER_SCREENS=()
     for i in $(seq 1 $runner_count)
     do
         RUNNER_NAME=st2-actionrunner-$i
         RUNNER_SCREENS+=($RUNNER_NAME)
         echo '  starting '$RUNNER_NAME'...'
-        screen -d -m -S $RUNNER_NAME ./virtualenv/bin/python \
+        screen -d -m -S $RUNNER_NAME ${VIRTUALENV}/bin/python \
             ./st2actions/bin/st2actionrunner \
             --config-file $ST2_CONF
     done
 
-    # Run the scheduler server
-    echo 'Starting screen session st2-scheduler'
-    screen -d -m -S st2-scheduler ./virtualenv/bin/python \
-        ./st2actions/bin/st2scheduler \
+    # Run the garbage collector service
+    echo 'Starting screen session st2-garbagecollector'
+    screen -d -m -S st2-garbagecollector ${VIRTUALENV}/bin/python \
+        ./st2reactor/bin/st2garbagecollector \
         --config-file $ST2_CONF
+
+    # Run the scheduler server
+    echo 'Starting screen session st2-scheduler(s)'
+    SCHEDULER_SCREENS=()
+    for i in $(seq 1 $scheduler_count)
+    do
+        SCHEDULER_NAME=st2-scheduler-$i
+        SCHEDULER_SCREENS+=($SCHEDULER_NAME)
+        echo '  starting '$SCHEDULER_NAME'...'
+        screen -d -m -S $SCHEDULER_NAME ${VIRTUALENV}/bin/python \
+            ./st2actions/bin/st2scheduler \
+            --config-file $ST2_CONF
+    done
 
     # Run the sensor container server
     echo 'Starting screen session st2-sensorcontainer'
-    screen -d -m -S st2-sensorcontainer ./virtualenv/bin/python \
+    screen -d -m -S st2-sensorcontainer ${VIRTUALENV}/bin/python \
         ./st2reactor/bin/st2sensorcontainer \
         --config-file $ST2_CONF
 
     # Run the rules engine server
     echo 'Starting screen session st2-rulesengine...'
-    screen -d -m -S st2-rulesengine ./virtualenv/bin/python \
+    screen -d -m -S st2-rulesengine ${VIRTUALENV}/bin/python \
         ./st2reactor/bin/st2rulesengine \
         --config-file $ST2_CONF
 
     # Run the timer engine server
     echo 'Starting screen session st2-timersengine...'
-    screen -d -m -S st2-rulesengine ./virtualenv/bin/python \
+    screen -d -m -S st2-timersengine ${VIRTUALENV}/bin/python \
         ./st2reactor/bin/st2timersengine \
         --config-file $ST2_CONF
 
     # Run the results tracker
     echo 'Starting screen session st2-resultstracker...'
-    screen -d -m -S st2-resultstracker ./virtualenv/bin/python \
+    screen -d -m -S st2-resultstracker ${VIRTUALENV}/bin/python \
         ./st2actions/bin/st2resultstracker \
         --config-file $ST2_CONF
 
     # Run the actions notifier
     echo 'Starting screen session st2-notifier...'
-    screen -d -m -S st2-notifier ./virtualenv/bin/python \
+    screen -d -m -S st2-notifier ${VIRTUALENV}/bin/python \
         ./st2actions/bin/st2notifier \
         --config-file $ST2_CONF
 
@@ -316,10 +350,10 @@ function st2start(){
     if [ "${use_gunicorn}" = true ]; then
         echo '  using gunicorn to run st2-auth...'
         export ST2_CONFIG_PATH=${ST2_CONF}
-        screen -d -m -S st2-auth ./virtualenv/bin/gunicorn \
+        screen -d -m -S st2-auth ${VIRTUALENV}/bin/gunicorn \
             st2auth.wsgi:application -k eventlet -b "$BINDING_ADDRESS:9100" --workers 1
     else
-        screen -d -m -S st2-auth ./virtualenv/bin/python \
+        screen -d -m -S st2-auth ${VIRTUALENV}/bin/python \
             ./st2auth/bin/st2auth \
             --config-file $ST2_CONF
     fi
@@ -330,7 +364,7 @@ function st2start(){
         sudo mkdir -p $EXPORTS_DIR
         sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $EXPORTS_DIR
         echo 'Starting screen session st2-exporter...'
-        screen -d -m -S st2-exporter ./virtualenv/bin/python \
+        screen -d -m -S st2-exporter ${VIRTUALENV}/bin/python \
             ./st2exporter/bin/st2exporter \
             --config-file $ST2_CONF
     fi
@@ -359,7 +393,8 @@ function st2start(){
     # Check whether screen sessions are started
     SCREENS=(
         "st2-api"
-        "st2-workflow"
+        "${WORKFLOW_ENGINE_SCREENS[@]}"
+        "${SCHEDULER_SCREENS[@]}"
         "${RUNNER_SCREENS[@]}"
         "st2-sensorcontainer"
         "st2-rulesengine"
@@ -367,7 +402,7 @@ function st2start(){
         "st2-notifier"
         "st2-auth"
         "st2-timersengine"
-        "st2-scheduler"
+        "st2-garbagecollector"
     )
 
     if [ "${include_mistral}" = true ]; then
@@ -387,9 +422,16 @@ function st2start(){
     if [ "$load_content" = true ]; then
         # Register contents
         echo 'Registering sensors, runners, actions, rules, aliases, and policies...'
-        ./virtualenv/bin/python \
+        ${VIRTUALENV}/bin/python \
             ./st2common/bin/st2-register-content \
             --config-file $ST2_CONF --register-all
+    fi
+
+    if [ "$copy_test_packs" = true ]; then
+        st2 run packs.setup_virtualenv packs=fixtures
+        if [ $? != 0 ]; then
+            echo "Warning: Unable to setup virtualenv for the \"tests\" pack. Please setup virtualenv for the \"tests\" pack before running integration tests"
+        fi
     fi
 
     # List screen sessions
@@ -410,7 +452,7 @@ function st2stop(){
     fi
 
     if [ "${use_gunicorn}" = true ]; then
-        pids=`ps -ef | grep "gunicorn_config.py" | awk '{print $2}'`
+        pids=`ps -ef | grep "wsgi:application" | awk '{print $2}'`
         if [ -n "$pids" ]; then
             echo "Killing gunicorn processes"
             # true ensures that any failure to kill a process which does not exist will not lead
@@ -425,7 +467,7 @@ function st2stop(){
 
 function st2clean(){
     # clean mongo
-    . ${VENV}/bin/activate
+    . ${VIRTUALENV}/bin/activate
     python ${ST2_REPO}/st2common/bin/st2-cleanup-db --config-file $ST2_CONF
     deactivate
 

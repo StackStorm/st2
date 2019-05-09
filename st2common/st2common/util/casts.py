@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -20,8 +19,8 @@ import json
 
 import six
 
+from st2common.expressions.functions import data
 from st2common.util.compat import to_unicode
-from st2common.util.jinja import NONE_MAGIC_VALUE
 
 
 def _cast_object(x):
@@ -81,7 +80,7 @@ def _cast_none(x):
     """
     Cast function which serializes special magic string value which indicate "None" to None type.
     """
-    if isinstance(x, six.string_types) and x == NONE_MAGIC_VALUE:
+    if isinstance(x, six.string_types) and x == data.NONE_MAGIC_VALUE:
         return None
 
     return x

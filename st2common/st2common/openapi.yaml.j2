@@ -148,7 +148,7 @@ info:
     # -------- begin 37703888 request ----------
     curl -X GET -H  'Connection: keep-alive' -H  'Accept-Encoding: gzip, deflate' -H  'Accept: */*' -H  'User-Agent: python-requests/2.11.1' -H  'X-Auth-Token: b99d3f74a16e471992f2a10935637916' 'http://127.0.0.1:9101/v1/actions?pack=chatops'
     # -------- begin 37703888 response ----------
-    [{"name": "format_execution_result", "parameters": {"execution_id": {"required": true, "type": "string", "description": "Id of execution to format"}}, "tags": [], "description": "Format an execution result for chatops", "enabled": true, "entry_point": "format_execution_result.py", "notify": {}, "uid": "action:chatops:format_execution_result", "pack": "chatops", "ref": "chatops.format_execution_result", "id": "58b7089ac4da5f6aa779b847", "runner_type": "run-python"}, {"name": "post_message", "parameters": {"extra": {"type": "object", "description": "Extra adapter-specific parameters."}, "whisper": {"default": false, "type": "boolean", "description": "Send a private message to user"}, "route": {"default": "chatops"}, "experimental": {"default": true, "immutable": true}, "user": {"type": "string", "description": "Explicitly notify a user"}, "message": {"required": true, "type": "string", "description": "Message to send."}, "channel": {"required": true, "type": "string", "description": "Channel to post to"}}, "tags": [], "description": "Post a message to stream for chatops", "enabled": true, "entry_point": "", "notify": {}, "uid": "action:chatops:post_message", "pack": "chatops", "ref": "chatops.post_message", "id": "58b7089ac4da5f6aa779b848", "runner_type": "announcement"}, {"name": "post_result", "parameters": {"whisper": {"default": false, "type": "boolean", "description": "Send a private message to user"}, "user": {"type": "string", "description": "Explicitly notify a user"}, "execution_id": {"required": true, "type": "string", "description": "ID of an execution to send"}, "channel": {"required": true, "type": "string", "description": "Channel to post to"}}, "tags": [], "description": "Post an execution result to stream for chatops", "enabled": true, "entry_point": "workflows/post_result.yaml", "notify": {}, "uid": "action:chatops:post_result", "pack": "chatops", "ref": "chatops.post_result", "id": "58b7089ac4da5f6aa779b849", "runner_type": "action-chain"}]
+    [{"name": "format_execution_result", "parameters": {"execution_id": {"required": true, "type": "string", "description": "Id of execution to format"}}, "tags": [], "description": "Format an execution result for chatops", "enabled": true, "entry_point": "format_execution_result.py", "notify": {}, "uid": "action:chatops:format_execution_result", "pack": "chatops", "ref": "chatops.format_execution_result", "id": "58b7089ac4da5f6aa779b847", "runner_type": "python-script"}, {"name": "post_message", "parameters": {"extra": {"type": "object", "description": "Extra adapter-specific parameters."}, "whisper": {"default": false, "type": "boolean", "description": "Send a private message to user"}, "route": {"default": "chatops"}, "experimental": {"default": true, "immutable": true}, "user": {"type": "string", "description": "Explicitly notify a user"}, "message": {"required": true, "type": "string", "description": "Message to send."}, "channel": {"required": true, "type": "string", "description": "Channel to post to"}}, "tags": [], "description": "Post a message to stream for chatops", "enabled": true, "entry_point": "", "notify": {}, "uid": "action:chatops:post_message", "pack": "chatops", "ref": "chatops.post_message", "id": "58b7089ac4da5f6aa779b848", "runner_type": "announcement"}, {"name": "post_result", "parameters": {"whisper": {"default": false, "type": "boolean", "description": "Send a private message to user"}, "user": {"type": "string", "description": "Explicitly notify a user"}, "execution_id": {"required": true, "type": "string", "description": "ID of an execution to send"}, "channel": {"required": true, "type": "string", "description": "Channel to post to"}}, "tags": [], "description": "Post an execution result to stream for chatops", "enabled": true, "entry_point": "workflows/post_result.yaml", "notify": {}, "uid": "action:chatops:post_result", "pack": "chatops", "ref": "chatops.post_result", "id": "58b7089ac4da5f6aa779b849", "runner_type": "action-chain"}]
     # -------- end 37703888 response ------------
 
     +---------------------------------+---------+--------------------------------------------+
@@ -1073,6 +1073,20 @@ paths:
           description: Entity id
           type: string
           required: true
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
+          required: false
         - name: show_secrets
           in: query
           description: Show secrets in plain text
@@ -1222,6 +1236,9 @@ paths:
               user:
                 type: string
                 default: ''
+              delay:
+                description: How long (in milliseconds) to delay the execution before scheduling.
+                type: integer
         - name: show_secrets
           in: query
           description: Show secrets in plain text
@@ -1354,9 +1371,9 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /api/exp/inquiries:
+  /api/v1/inquiries:
     get:
-      operationId: st2api.controllers.exp.inquiries:inquiries_controller.get_all
+      operationId: st2api.controllers.v1.inquiries:inquiries_controller.get_all
       x-permissions: {{ PERMISSION_TYPE.INQUIRY_LIST }}
       description: Returns a list of all inquiries
       parameters:
@@ -1394,9 +1411,9 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /api/exp/inquiries/{inquiry_id}:
+  /api/v1/inquiries/{inquiry_id}:
     get:
-      operationId: st2api.controllers.exp.inquiries:inquiries_controller.get_one
+      operationId: st2api.controllers.v1.inquiries:inquiries_controller.get_one
       description: |
         Get a specific Inquiry based on ID.
       parameters:
@@ -1420,7 +1437,7 @@ paths:
           schema:
             $ref: '#/definitions/Error'
     put:
-      operationId: st2api.controllers.exp.inquiries:inquiries_controller.put
+      operationId: st2api.controllers.v1.inquiries:inquiries_controller.put
       description: |
         Respond to an Inquiry.
       parameters:
@@ -4293,6 +4310,49 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /api/v1/service_registry/groups:
+    get:
+      operationId: st2api.controllers.v1.service_registry:groups_controller.get_all
+      description: Retrieve available service registry groups.
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: List of available groups.
+          schema:
+            type: object
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/service_registry/groups/{group_id}/members:
+    get:
+      operationId: st2api.controllers.v1.service_registry:members_controller.get_one
+      description: Retrieve active / available members for a particular group.
+      parameters:
+        - name: group_id
+          in: path
+          description: Group ID.
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: List of available members.
+          schema:
+            type: object
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
 
   /auth/v1/tokens:
     post:
@@ -4670,6 +4730,9 @@ definitions:
           extra:
             type: object
             description: Extra parameters, usually adapter-specific
+          delay:
+            description: How long (in milliseconds) to delay the execution before scheduling.
+            type: integer
       execution:
         type: object
         description: Execution result
@@ -4790,6 +4853,9 @@ definitions:
             status:
               type: string
               enum: {{ LIVEACTION_STATUSES }}
+      delay:
+        description: How long (in milliseconds) to delay the execution before scheduling.
+        type: integer
     required:
       - id
     additionalProperties: False
@@ -4875,6 +4941,9 @@ definitions:
         type: string
       secret:
         description: Encrypt value before saving the value.
+        type: boolean
+      encrypted:
+        description: Value provided is already encrypted with this instances crypto key and should be stored as-is. This is useful when migrating / loading keys from one StackStorm instance to another.
         type: boolean
       scope:
         description: "Scope the item is under. Example: 'user'."
@@ -5140,6 +5209,9 @@ definitions:
           on-failure: {$ref: '#/definitions/NotificationPropertySubSchema'}
           on-success: {$ref: '#/definitions/NotificationPropertySubSchema'}
         additionalProperties: False
+      delay:
+        description: How long (in milliseconds) to delay the execution before scheduling.
+        type: integer
     required:
       - action
   Webhook:

@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -25,6 +24,7 @@ from st2common.constants.action import LIVEACTION_STATUS_DELAYED
 from st2common.constants.action import LIVEACTION_STATUS_CANCELING
 from st2common.constants.action import LIVEACTION_STATUS_CANCELED
 from st2common.bootstrap.policiesregistrar import register_policy_types
+from st2common.bootstrap import runnersregistrar as runners_registrar
 from st2common.models.db.action import LiveActionDB
 from st2common.persistence.action import LiveAction, ActionExecution
 from st2common.services import action as action_service
@@ -34,11 +34,12 @@ from st2tests.base import DbTestCase
 from st2tests.base import CleanDbTestCase
 from st2tests.fixturesloader import FixturesLoader
 
+__all__ = [
+    'RetryPolicyTestCase'
+]
+
 PACK = 'generic'
 TEST_FIXTURES = {
-    'runners': [
-        'testrunner1.yaml'
-    ],
     'actions': [
         'action1.yaml'
     ],
@@ -56,6 +57,9 @@ class RetryPolicyTestCase(CleanDbTestCase):
 
     def setUp(self):
         super(RetryPolicyTestCase, self).setUp()
+
+        # Register runners
+        runners_registrar.register_runners()
 
         # Register common policy types
         register_policy_types(st2actions)

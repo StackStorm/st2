@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -15,7 +14,7 @@
 
 from __future__ import absolute_import
 
-from st2client.models import Resource, Trace, TriggerInstance, Rule, LiveAction
+from st2client.models import Resource, Trace, TriggerInstance, Rule, Execution
 from st2client.exceptions.operations import OperationFailureException
 from st2client.formatters import table
 from st2client.formatters import execution as execution_formatter
@@ -94,7 +93,7 @@ class SingleTraceDisplayMixin(object):
                                for rule in trace.rules])
         if any(attr in args.attr for attr in ACTION_EXECUTION_DISPLAY_OPTIONS):
             components.extend([Resource(**{'id': execution['object_id'],
-                                           'type': LiveAction._alias.lower(),
+                                           'type': Execution._alias.lower(),
                                            'ref': execution['ref'],
                                            'updated_at': execution['updated_at']})
                                for execution in trace.action_executions])
@@ -182,7 +181,7 @@ class TraceListCommand(resource.ResourceCommand, SingleTraceDisplayMixin):
 
             if not args.json and not args.yaml:
                 if args.last and count and count > args.last:
-                        table.SingleRowTable.note_box(self.resource_name, 1)
+                    table.SingleRowTable.note_box(self.resource_name, 1)
         else:
             if args.json or args.yaml:
                 self.print_output(instances, table.MultiColumnTable,

@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -73,7 +72,7 @@ class NotifierTestCase(CleanDbTestCase):
                     self.tester.assertEqual('core.local', payload['action_ref'])
                     self.tester.assertEqual('Action succeeded.', payload['message'])
                     self.tester.assertTrue('data' in payload)
-                    self.tester.assertTrue('run-local-cmd', payload['runner_ref'])
+                    self.tester.assertTrue('local-shell-cmd', payload['runner_ref'])
 
                 if args[0] == self.action_trigger:
                     self.tester.assertEqual(payload['status'], 'succeeded')
@@ -84,18 +83,18 @@ class NotifierTestCase(CleanDbTestCase):
                     self.tester.assertEqual('core.local', payload['action_ref'])
                     self.tester.assertTrue('result' in payload)
                     self.tester.assertTrue('parameters' in payload)
-                    self.tester.assertTrue('run-local-cmd', payload['runner_ref'])
+                    self.tester.assertTrue('local-shell-cmd', payload['runner_ref'])
 
             except Exception:
                 self.tester.fail('Test failed')
 
     @mock.patch('st2common.util.action_db.get_action_by_ref', mock.MagicMock(
-        return_value=ActionDB(pack='core', name='local', runner_type={'name': 'run-local-cmd'},
+        return_value=ActionDB(pack='core', name='local', runner_type={'name': 'local-shell-cmd'},
                               parameters={})))
     @mock.patch('st2common.util.action_db.get_runnertype_by_name', mock.MagicMock(
         return_value=RunnerTypeDB(name='foo', runner_parameters={})))
     @mock.patch.object(Action, 'get_by_ref', mock.MagicMock(
-        return_value={'runner_type': {'name': 'run-local-cmd'}}))
+        return_value={'runner_type': {'name': 'local-shell-cmd'}}))
     @mock.patch.object(Policy, 'query', mock.MagicMock(
         return_value=[]))
     @mock.patch.object(Notifier, '_get_trace_context', mock.MagicMock(return_value={}))
@@ -110,8 +109,8 @@ class NotifierTestCase(CleanDbTestCase):
         liveaction_db.notify = NotificationSchema(on_success=on_success,
                                                   on_failure=on_failure)
         liveaction_db.start_timestamp = date_utils.get_datetime_utc_now()
-        liveaction_db.end_timestamp = (liveaction_db.start_timestamp +
-                                       datetime.timedelta(seconds=50))
+        liveaction_db.end_timestamp = \
+            (liveaction_db.start_timestamp + datetime.timedelta(seconds=50))
         LiveAction.add_or_update(liveaction_db)
 
         execution = MOCK_EXECUTION
@@ -123,12 +122,12 @@ class NotifierTestCase(CleanDbTestCase):
         notifier.process(execution)
 
     @mock.patch('st2common.util.action_db.get_action_by_ref', mock.MagicMock(
-        return_value=ActionDB(pack='core', name='local', runner_type={'name': 'run-local-cmd'},
+        return_value=ActionDB(pack='core', name='local', runner_type={'name': 'local-shell-cmd'},
                               parameters={})))
     @mock.patch('st2common.util.action_db.get_runnertype_by_name', mock.MagicMock(
         return_value=RunnerTypeDB(name='foo', runner_parameters={})))
     @mock.patch.object(Action, 'get_by_ref', mock.MagicMock(
-        return_value={'runner_type': {'name': 'run-local-cmd'}}))
+        return_value={'runner_type': {'name': 'local-shell-cmd'}}))
     @mock.patch.object(Policy, 'query', mock.MagicMock(
         return_value=[]))
     @mock.patch.object(Notifier, '_get_trace_context', mock.MagicMock(return_value={}))
@@ -160,11 +159,11 @@ class NotifierTestCase(CleanDbTestCase):
         notifier.process(execution)
 
     @mock.patch('st2common.util.action_db.get_action_by_ref', mock.MagicMock(
-        return_value=ActionDB(pack='core', name='local', runner_type={'name': 'run-local-cmd'})))
+        return_value=ActionDB(pack='core', name='local', runner_type={'name': 'local-shell-cmd'})))
     @mock.patch('st2common.util.action_db.get_runnertype_by_name', mock.MagicMock(
         return_value=RunnerTypeDB(name='foo', runner_parameters={'runner_foo': 'foo'})))
     @mock.patch.object(Action, 'get_by_ref', mock.MagicMock(
-        return_value={'runner_type': {'name': 'run-local-cmd'}}))
+        return_value={'runner_type': {'name': 'local-shell-cmd'}}))
     @mock.patch.object(Policy, 'query', mock.MagicMock(
         return_value=[]))
     @mock.patch.object(Notifier, '_post_generic_trigger', mock.MagicMock(
@@ -181,8 +180,8 @@ class NotifierTestCase(CleanDbTestCase):
                                            data={'stdout': '{{action_results.stdout}}'})
         liveaction_db.notify = NotificationSchema(on_success=on_success)
         liveaction_db.start_timestamp = date_utils.get_datetime_utc_now()
-        liveaction_db.end_timestamp = (liveaction_db.start_timestamp +
-                                       datetime.timedelta(seconds=50))
+        liveaction_db.end_timestamp = \
+            (liveaction_db.start_timestamp + datetime.timedelta(seconds=50))
 
         LiveAction.add_or_update(liveaction_db)
 
@@ -194,7 +193,7 @@ class NotifierTestCase(CleanDbTestCase):
         notifier.process(execution)
         exp = {'status': 'succeeded',
                'start_timestamp': isotime.format(liveaction_db.start_timestamp),
-               'route': 'notify.default', 'runner_ref': 'run-local-cmd',
+               'route': 'notify.default', 'runner_ref': 'local-shell-cmd',
                'channel': 'notify.default', 'message': u'Command mamma mia succeeded.',
                'data': {'result': '{}', 'stdout': 'stuff happens'},
                'action_ref': u'core.local',
@@ -205,7 +204,7 @@ class NotifierTestCase(CleanDbTestCase):
         notifier.process(execution)
 
     @mock.patch.object(Notifier, '_get_runner_ref', mock.MagicMock(
-        return_value='run-local-cmd'))
+        return_value='local-shell-cmd'))
     @mock.patch.object(Notifier, '_get_trace_context', mock.MagicMock(
         return_value={}))
     @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
@@ -225,7 +224,7 @@ class NotifierTestCase(CleanDbTestCase):
                        'start_timestamp': str(liveaction_db.start_timestamp),
                        'result': {}, 'parameters': {},
                        'action_ref': u'core.local',
-                       'runner_ref': 'run-local-cmd',
+                       'runner_ref': 'local-shell-cmd',
                        'execution_id': str(MOCK_EXECUTION.id),
                        'action_name': u'core.local'}
                 dispatch.assert_called_with('core.st2.generic.actiontrigger',
@@ -236,7 +235,7 @@ class NotifierTestCase(CleanDbTestCase):
     @mock.patch('oslo_config.cfg.CONF.action_sensor', mock.MagicMock(
         emit_when=['scheduled', 'pending', 'abandoned']))
     @mock.patch.object(Notifier, '_get_runner_ref', mock.MagicMock(
-        return_value='run-local-cmd'))
+        return_value='local-shell-cmd'))
     @mock.patch.object(Notifier, '_get_trace_context', mock.MagicMock(
         return_value={}))
     @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
@@ -256,10 +255,90 @@ class NotifierTestCase(CleanDbTestCase):
                        'start_timestamp': str(liveaction_db.start_timestamp),
                        'result': {}, 'parameters': {},
                        'action_ref': u'core.local',
-                       'runner_ref': 'run-local-cmd',
+                       'runner_ref': 'local-shell-cmd',
                        'execution_id': str(MOCK_EXECUTION.id),
                        'action_name': u'core.local'}
                 dispatch.assert_called_with('core.st2.generic.actiontrigger',
                                             payload=exp, trace_context={})
 
         self.assertEqual(dispatch.call_count, 3)
+
+    @mock.patch('oslo_config.cfg.CONF.action_sensor.enable', mock.MagicMock(
+        return_value=True))
+    @mock.patch.object(Notifier, '_get_runner_ref', mock.MagicMock(
+        return_value='local-shell-cmd'))
+    @mock.patch.object(Notifier, '_get_trace_context', mock.MagicMock(
+        return_value={}))
+    @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
+    @mock.patch('st2actions.notifier.notifier.LiveAction')
+    @mock.patch('st2actions.notifier.notifier.policy_service.apply_post_run_policies', mock.Mock())
+    def test_process_post_generic_notify_trigger_on_completed_state_default(self,
+            mock_LiveAction, mock_dispatch):
+        # Verify that generic action trigger is posted on all completed states when action sensor
+        # is enabled
+        for status in LIVEACTION_STATUSES:
+            notifier = Notifier(connection=None, queues=[])
+
+            liveaction_db = LiveActionDB(id=bson.ObjectId(), action='core.local')
+            liveaction_db.status = status
+            execution = MOCK_EXECUTION
+            execution.liveaction = vars(LiveActionAPI.from_model(liveaction_db))
+            execution.status = liveaction_db.status
+
+            mock_LiveAction.get_by_id.return_value = liveaction_db
+
+            notifier = Notifier(connection=None, queues=[])
+            notifier.process(execution)
+
+            if status in LIVEACTION_COMPLETED_STATES:
+                exp = {'status': status,
+                       'start_timestamp': str(liveaction_db.start_timestamp),
+                       'result': {}, 'parameters': {},
+                       'action_ref': u'core.local',
+                       'runner_ref': 'local-shell-cmd',
+                       'execution_id': str(MOCK_EXECUTION.id),
+                       'action_name': u'core.local'}
+                mock_dispatch.assert_called_with('core.st2.generic.actiontrigger',
+                                                 payload=exp, trace_context={})
+
+        self.assertEqual(mock_dispatch.call_count, len(LIVEACTION_COMPLETED_STATES))
+
+    @mock.patch('oslo_config.cfg.CONF.action_sensor', mock.MagicMock(
+        enable=True, emit_when=['scheduled', 'pending', 'abandoned']))
+    @mock.patch.object(Notifier, '_get_runner_ref', mock.MagicMock(
+        return_value='local-shell-cmd'))
+    @mock.patch.object(Notifier, '_get_trace_context', mock.MagicMock(
+        return_value={}))
+    @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
+    @mock.patch('st2actions.notifier.notifier.LiveAction')
+    @mock.patch('st2actions.notifier.notifier.policy_service.apply_post_run_policies', mock.Mock())
+    def test_process_post_generic_notify_trigger_on_custom_emit_when_states(self,
+            mock_LiveAction, mock_dispatch):
+        # Verify that generic action trigger is posted on all completed states when action sensor
+        # is enabled
+        for status in LIVEACTION_STATUSES:
+            notifier = Notifier(connection=None, queues=[])
+
+            liveaction_db = LiveActionDB(id=bson.ObjectId(), action='core.local')
+            liveaction_db.status = status
+            execution = MOCK_EXECUTION
+            execution.liveaction = vars(LiveActionAPI.from_model(liveaction_db))
+            execution.status = liveaction_db.status
+
+            mock_LiveAction.get_by_id.return_value = liveaction_db
+
+            notifier = Notifier(connection=None, queues=[])
+            notifier.process(execution)
+
+            if status in ['scheduled', 'pending', 'abandoned']:
+                exp = {'status': status,
+                       'start_timestamp': str(liveaction_db.start_timestamp),
+                       'result': {}, 'parameters': {},
+                       'action_ref': u'core.local',
+                       'runner_ref': 'local-shell-cmd',
+                       'execution_id': str(MOCK_EXECUTION.id),
+                       'action_name': u'core.local'}
+                mock_dispatch.assert_called_with('core.st2.generic.actiontrigger',
+                                                 payload=exp, trace_context={})
+
+        self.assertEqual(mock_dispatch.call_count, 3)

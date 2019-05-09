@@ -1,6 +1,4 @@
-- aliases:
-    - run-remote
-  description: A remote execution runner that executes actions as a fixed system user.
+- description: A remote execution runner that executes actions as a fixed system user.
   enabled: true
   name: remote-shell-cmd
   runner_package: remote_runner
@@ -8,8 +6,7 @@
   runner_parameters:
     bastion_host:
       description: 'The host SSH connections will be proxied through. Note: This connection
-        is made using the same parameters as the final connection, and is only used
-        in ParamikoSSHRunner.'
+        is made using the same parameters as the final connection.'
       required: false
       type: string
     cmd:
@@ -30,8 +27,8 @@
         key1=val1,key2=val2)
       type: object
     hosts:
-      description: A comma delimited string of a list of hosts where the remote command
-        will be executed.
+      description: 'A comma delimited string of a list of hosts where the remote command
+        will be executed. For example: example1.com,example2.com,example3.com:5555'
       required: true
       type: string
     kwarg_op:
@@ -55,8 +52,8 @@
       secret: true
       type: string
     port:
-      default: 22
-      description: 'SSH port. Note: This parameter is used only in ParamikoSSHRunner.'
+      description: 'SSH port. If not specified as part of the hosts list, default port
+        will be used (22).'
       required: false
       type: integer
     private_key:
@@ -85,9 +82,7 @@
         config is used.
       required: false
       type: string
-- aliases:
-  - run-remote-script
-  description: A remote execution runner that executes actions as a fixed system user.
+- description: A remote execution runner that executes actions as a fixed system user.
   enabled: true
   name: remote-shell-script
   runner_package: remote_runner
@@ -95,8 +90,7 @@
   runner_parameters:
     bastion_host:
       description: 'The host SSH connections will be proxied through. Note: This connection
-        is made using the same parameters as the final connection, and is only used
-        in ParamikoSSHRunner.'
+        is made using the same parameters as the final connection.'
       required: false
       type: string
     cwd:
@@ -113,8 +107,8 @@
         key1=val1,key2=val2)
       type: object
     hosts:
-      description: A comma delimited string of a list of hosts where the remote command
-        will be executed.
+      description: 'A comma delimited string of a list of hosts where the remote command
+        will be executed. For example: example1.com,example2.com,example3.com:5555'
       required: true
       type: string
     kwarg_op:
@@ -138,8 +132,8 @@
       secret: true
       type: string
     port:
-      default: 22
-      description: 'SSH port. Note: This parameter is used only in ParamikoSSHRunner.'
+      description: 'SSH port. If not specified as part of the hosts list, default port
+        will be used (22).'
       required: false
       type: integer
     private_key:

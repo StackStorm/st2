@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -14,8 +13,6 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-
-from kombu import Connection
 
 from st2common import log as logging
 from st2common.constants.trace import TRACE_CONTEXT, TRACE_ID
@@ -119,5 +116,5 @@ class TriggerInstanceDispatcher(consumers.StagedMessageHandler):
 
 
 def get_worker():
-    with Connection(transport_utils.get_messaging_urls()) as conn:
+    with transport_utils.get_connection() as conn:
         return TriggerInstanceDispatcher(conn, [RULESENGINE_WORK_QUEUE])

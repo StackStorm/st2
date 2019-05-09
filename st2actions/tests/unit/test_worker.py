@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -29,6 +28,7 @@ from st2common.persistence.execution import ActionExecution
 from st2common.persistence.liveaction import LiveAction
 from st2common.services import executions
 from st2common.util import date as date_utils
+from st2common.bootstrap import runnersregistrar as runners_registrar
 from local_runner.local_shell_command_runner import LocalShellCommandRunner
 
 from st2tests.base import DbTestCase
@@ -38,14 +38,12 @@ from six.moves import range
 tests_config.parse_args()
 
 TEST_FIXTURES = {
-    'runners': ['run-local.yaml'],
     'actions': ['local.yaml']
 }
 
 FIXTURES_PACK = 'generic'
 
 NON_UTF8_RESULT = {'stderr': '', 'stdout': '\x82\n', 'succeeded': True, 'failed': False,
-
                    'return_code': 0}
 
 
@@ -55,9 +53,11 @@ class WorkerTestCase(DbTestCase):
     @classmethod
     def setUpClass(cls):
         super(WorkerTestCase, cls).setUpClass()
+
+        runners_registrar.register_runners()
+
         models = WorkerTestCase.fixtures_loader.save_fixtures_to_db(
             fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_FIXTURES)
-        WorkerTestCase.local_runnertype_db = models['runners']['run-local.yaml']
         WorkerTestCase.local_action_db = models['actions']['local.yaml']
 
     def _get_liveaction_model(self, action_db, params):

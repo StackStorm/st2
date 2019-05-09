@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -48,7 +47,7 @@ class ResourceReferenceTestCase(unittest2.TestCase):
         ref = ResourceReference.to_string_reference(pack='mapack', name='moname')
         self.assertEqual(ref, 'mapack.moname')
 
-        expected_msg = 'Pack name should not contain "\."'
+        expected_msg = r'Pack name should not contain "\."'
         self.assertRaisesRegexp(ValueError, expected_msg, ResourceReference.to_string_reference,
                                 pack='pack.invalid', name='bar')
 

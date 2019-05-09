@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -93,7 +92,7 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
                                                     end_timestamp=timestamp,
                                                     status=status,
                                                     action={'ref': 'core.local'},
-                                                    runner={'name': 'run-local'},
+                                                    runner={'name': 'local-shell-cmd'},
                                                     liveaction={'ref': 'foo'})
             ActionExecution.add_or_update(action_execution_db)
 
@@ -123,7 +122,7 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
                                                     end_timestamp=timestamp,
                                                     status=status,
                                                     action={'ref': 'core.local'},
-                                                    runner={'name': 'run-local'},
+                                                    runner={'name': 'local-shell-cmd'},
                                                     liveaction={'ref': 'foo'})
             ActionExecution.add_or_update(action_execution_db)
 
@@ -152,7 +151,7 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
                                                     end_timestamp=timestamp,
                                                     status=status,
                                                     action={'ref': 'core.local'},
-                                                    runner={'name': 'run-local'},
+                                                    runner={'name': 'local-shell-cmd'},
                                                     liveaction={'ref': 'foo'})
             ActionExecution.add_or_update(action_execution_db)
 
@@ -188,7 +187,7 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
         process = self._start_garbage_collector()
 
         # Give it some time to perform garbage collection and kill it
-        eventlet.sleep(10)
+        eventlet.sleep(15)
         process.send_signal(signal.SIGKILL)
         self.remove_process(process=process)
 
@@ -236,7 +235,7 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
         process = self._start_garbage_collector()
 
         # Give it some time to perform garbage collection and kill it
-        eventlet.sleep(10)
+        eventlet.sleep(15)
         process.send_signal(signal.SIGKILL)
         self.remove_process(process=process)
 

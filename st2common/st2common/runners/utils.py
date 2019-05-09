@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -133,7 +132,7 @@ def get_action_class_instance(action_cls, config=None, action_service=None):
     try:
         action_instance = action_cls(**kwargs)
     except TypeError as e:
-        if 'unexpected keyword argument \'action_service\'' not in str(e):
+        if 'unexpected keyword argument \'action_service\'' not in six.text_type(e):
             raise e
 
         LOG.debug('Action class (%s) constructor doesn\'t take "action_service" argument, '
@@ -207,9 +206,7 @@ def invoke_post_run(liveaction_db, action_db=None):
     # Get instance of the action runner and related configuration.
     runner_type_db = action_db_utils.get_runnertype_by_name(action_db.runner_type['name'])
 
-    runner = runners.get_runner(
-        package_name=runner_type_db.runner_package,
-        module_name=runner_type_db.runner_module)
+    runner = runners.get_runner(name=runner_type_db.name)
 
     entry_point = content_utils.get_entry_point_abs_path(
         pack=action_db.pack,

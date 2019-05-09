@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -19,7 +18,7 @@ from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar
 
 import st2tests
-import tests as st2api_tests
+from st2tests.api import FunctionalTest
 
 
 TEST_PACK = 'orquesta_tests'
@@ -27,7 +26,7 @@ TEST_PACK_PATH = st2tests.fixturesloader.get_fixtures_packs_base_path() + '/' + 
 PACKS = [TEST_PACK_PATH, st2tests.fixturesloader.get_fixtures_packs_base_path() + '/core']
 
 
-class WorkflowInspectionControllerTest(st2api_tests.FunctionalTest, st2tests.WorkflowTestCase):
+class WorkflowInspectionControllerTest(FunctionalTest, st2tests.WorkflowTestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -73,7 +72,7 @@ class WorkflowInspectionControllerTest(st2api_tests.FunctionalTest, st2tests.Wor
             {
                 'type': 'content',
                 'message': 'The action "std.noop" is not registered in the database.',
-                'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.action',
+                'schema_path': r'properties.tasks.patternProperties.^\w+$.properties.action',
                 'spec_path': 'tasks.task3.action'
             },
             {
@@ -81,7 +80,7 @@ class WorkflowInspectionControllerTest(st2api_tests.FunctionalTest, st2tests.Wor
                 'language': 'yaql',
                 'expression': '<% ctx().foobar %>',
                 'message': 'Variable "foobar" is referenced before assignment.',
-                'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.input',
+                'schema_path': r'properties.tasks.patternProperties.^\w+$.properties.input',
                 'spec_path': 'tasks.task1.input',
             },
             {
@@ -93,15 +92,18 @@ class WorkflowInspectionControllerTest(st2api_tests.FunctionalTest, st2tests.Wor
                     'position 0 of expression \'<% succeeded()\''
                 ),
                 'schema_path': (
-                    'properties.tasks.patternProperties.^\w+$.'
+                    r'properties.tasks.patternProperties.^\w+$.'
                     'properties.next.items.properties.when'
                 ),
                 'spec_path': 'tasks.task2.next[0].when'
             },
             {
                 'type': 'syntax',
-                'message': '[{\'cmd\': \'echo <% ctx().macro %>\'}] is not of type \'object\'',
-                'schema_path': 'properties.tasks.patternProperties.^\w+$.properties.input.type',
+                'message': (
+                    '[{\'cmd\': \'echo <% ctx().macro %>\'}] is '
+                    'not valid under any of the given schemas'
+                ),
+                'schema_path': r'properties.tasks.patternProperties.^\w+$.properties.input.oneOf',
                 'spec_path': 'tasks.task2.input'
             }
         ]

@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -14,7 +13,7 @@
 # limitations under the License.
 
 from oslo_config import cfg
-from tests import FunctionalTest
+from st2tests.api import FunctionalTest
 
 
 class TestBase(FunctionalTest):
@@ -47,12 +46,30 @@ class TestBase(FunctionalTest):
                          'http://dev')
 
     def test_wrong_origin(self):
+        # Invalid origin  (not specified in the config), we return first allowed origin specified
+        # in the config
         response = self.app.get('/', headers={
             'origin': 'http://xss'
         })
         self.assertEqual(response.status_int, 200)
-        self.assertEqual(response.headers['Access-Control-Allow-Origin'],
-                         'null')
+        self.assertEqual(response.headers.get('Access-Control-Allow-Origin'),
+                        'http://127.0.0.1:3000')
+
+        invalid_origins = [
+            'http://',
+            'https://',
+            'https://www.example.com',
+            'null',
+            '*'
+        ]
+
+        for origin in invalid_origins:
+            response = self.app.get('/', headers={
+                'origin': origin
+            })
+            self.assertEqual(response.status_int, 200)
+            self.assertEqual(response.headers.get('Access-Control-Allow-Origin'),
+                            'http://127.0.0.1:3000')
 
     def test_wildcard_origin(self):
         try:

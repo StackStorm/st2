@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -167,7 +166,7 @@ class TagsMixin(object):
     tags = me.ListField(field=me.EmbeddedDocumentField(TagField))
 
     @classmethod
-    def get_indices(cls):
+    def get_indexes(cls):
         return ['tags.name', 'tags.value']
 
 
@@ -250,6 +249,11 @@ class ContentPackResourceMixin(object):
     Mixin class provides utility methods for models which belong to a pack.
     """
 
+    metadata_file = me.StringField(
+        required=False,
+        help_text=('Path to the metadata file (file on disk which contains resource definition) '
+                   'relative to the pack directory.'))
+
     def get_pack_uid(self):
         """
         Return an UID of a pack this resource belongs to.
@@ -272,6 +276,14 @@ class ContentPackResourceMixin(object):
             ref = ResourceReference(pack=self.pack, name=self.name)
 
         return ref
+
+    @classmethod
+    def get_indexes(cls):
+        return [
+            {
+                'fields': ['metadata_file'],
+            }
+        ]
 
 
 class ChangeRevisionFieldMixin(object):

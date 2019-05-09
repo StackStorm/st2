@@ -1,10 +1,9 @@
 #!/usr/bin/env python
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -19,12 +18,13 @@ A utility script which listens on queue for messages and prints them to stdout.
 """
 
 from __future__ import absolute_import
+
 import random
 import argparse
 from pprint import pprint
 
 from kombu.mixins import ConsumerMixin
-from kombu import Connection, Exchange, Queue
+from kombu import Exchange, Queue
 
 from st2common import config
 from st2common.transport import utils as transport_utils
@@ -59,7 +59,8 @@ def main(queue, exchange, routing_key='#'):
     queue = Queue(name=queue, exchange=exchange, routing_key=routing_key,
                   auto_delete=True)
 
-    with Connection(transport_utils.get_messaging_urls()) as connection:
+    with transport_utils.get_connection() as connection:
+        connection.connect()
         watcher = QueueConsumer(connection=connection, queue=queue)
         watcher.run()
 

@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -45,7 +44,7 @@ class ActionAliasDB(stormbase.StormFoundationDB, stormbase.ContentPackResourceMi
         formats: Alias format strings.
     """
 
-    RESOURCE_TYPE = ResourceType.ACTION
+    RESOURCE_TYPE = ResourceType.ACTION_ALIAS
     UID_FIELDS = ['pack', 'name']
 
     name = me.StringField(required=True)
@@ -78,7 +77,8 @@ class ActionAliasDB(stormbase.StormFoundationDB, stormbase.ContentPackResourceMi
             {'fields': ['name']},
             {'fields': ['enabled']},
             {'fields': ['formats']},
-        ] + stormbase.UIDFieldMixin.get_indexes()
+        ] + (stormbase.ContentPackResourceMixin().get_indexes() +
+             stormbase.UIDFieldMixin.get_indexes())
     }
 
     def __init__(self, *args, **values):

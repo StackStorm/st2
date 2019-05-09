@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -63,7 +62,7 @@ def _register_app_opts():
             'key', default='/etc/apache2/ssl/mycert.key',
             help='Path to the SSL private key file. Only used when "use_ssl" is specified.'),
         cfg.StrOpt(
-            'logging', default='conf/logging.conf',
+            'logging', default='/etc/st2/logging.auth.conf',
             help='Path to the logging config.'),
         cfg.BoolOpt(
             'debug', default=False,

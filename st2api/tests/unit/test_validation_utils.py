@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -39,5 +38,23 @@ class ValidationUtilsTestCase(unittest2.TestCase):
 
         expected_msg = ('Authentication is not enabled. RBAC only works when authentication is '
                         'enabled. You can either enable authentication or disable RBAC.')
+        self.assertRaisesRegexp(ValueError, expected_msg,
+                                validate_rbac_is_correctly_configured)
+
+    def test_validate_rbac_is_correctly_configured_non_enterprise_backend_set(self):
+        cfg.CONF.set_override(group='rbac', name='enable', override=True)
+        cfg.CONF.set_override(group='rbac', name='backend', override='invalid')
+        cfg.CONF.set_override(group='auth', name='enable', override=True)
+
+        expected_msg = ('You have enabled RBAC, but RBAC backend is not set to "enterprise".')
+        self.assertRaisesRegexp(ValueError, expected_msg,
+                                validate_rbac_is_correctly_configured)
+
+    def test_validate_rbac_is_correctly_configured_enterprise_backend_not_available(self):
+        cfg.CONF.set_override(group='rbac', name='enable', override=True)
+        cfg.CONF.set_override(group='rbac', name='backend', override='enterprise')
+        cfg.CONF.set_override(group='auth', name='enable', override=True)
+
+        expected_msg = ('"enterprise" RBAC backend is not available. ')
         self.assertRaisesRegexp(ValueError, expected_msg,
                                 validate_rbac_is_correctly_configured)

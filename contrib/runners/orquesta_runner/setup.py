@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -32,7 +31,7 @@ install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
 
 apply_vagrant_workaround()
 setup(
-    name='stackstorm-runner-orchestra',
+    name='stackstorm-runner-orquesta',
     version=__version__,
     description='Orquesta workflow runner for StackStorm event-driven automation platform',
     author='StackStorm',
@@ -70,6 +69,7 @@ setup(
                 'st2common.expressions.functions.time:to_human_time_from_seconds'),
             'to_json_string = st2common.expressions.functions.data:to_json_string',
             'to_yaml_string = st2common.expressions.functions.data:to_yaml_string',
+            'use_none = st2common.expressions.functions.data:use_none',
             'version_compare = st2common.expressions.functions.version:version_compare',
             'version_more_than = st2common.expressions.functions.version:version_more_than',
             'version_less_than = st2common.expressions.functions.version:version_less_than',

@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -84,7 +83,7 @@ class KeyValuePairListCommand(resource.ResourceTableCommand):
         # Filter options
         self.parser.add_argument('--prefix', help=('Only return values with names starting with '
                                                    'the provided prefix.'))
-        self.parser.add_argument('--decrypt', action='store_true',
+        self.parser.add_argument('-d', '--decrypt', action='store_true',
                                  help='Decrypt secrets and displays plain text.')
         self.parser.add_argument('-s', '--scope', default=DEFAULT_LIST_SCOPE, dest='scope',
                                  help='Scope item is under. Example: "user".')
@@ -159,15 +158,24 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
             *args, **kwargs
         )
 
+        # --encrypt and --encrypted options are mutually exclusive.
+        # --encrypt implies provided value is plain text and should be encrypted whereas
+        # --encrypted implies value is already encrypted and should be treated as-is.
+        encryption_group = self.parser.add_mutually_exclusive_group()
+        encryption_group.add_argument('-e', '--encrypt', dest='secret',
+                                      action='store_true',
+                                      help='Encrypt value before saving.')
+        encryption_group.add_argument('--encrypted', dest='encrypted',
+                                      action='store_true',
+                                      help=('Value provided is already encrypted with the '
+                                            'instance crypto key and should be stored as-is.'))
+
         self.parser.add_argument('name',
                                  metavar='name',
                                  help='Name of the key value pair.')
         self.parser.add_argument('value', help='Value paired with the key.')
         self.parser.add_argument('-l', '--ttl', dest='ttl', type=int, default=None,
                                  help='TTL (in seconds) for this value.')
-        self.parser.add_argument('-e', '--encrypt', dest='secret',
-                                 action='store_true',
-                                 help='Encrypt value before saving.')
         self.parser.add_argument('-s', '--scope', dest='scope', default=DEFAULT_CUD_SCOPE,
                                  help='Specify the scope under which you want ' +
                                       'to place the item.')
@@ -185,6 +193,9 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
 
         if args.secret:
             instance.secret = args.secret
+
+        if args.encrypted:
+            instance.encrypted = args.encrypted
 
         if args.ttl:
             instance.ttl = args.ttl
@@ -220,8 +231,8 @@ class KeyValuePairDeleteCommand(resource.ResourceDeleteCommand):
         instance = self.get_resource(resource_id, **kwargs)
 
         if not instance:
-            raise resource.ResourceNotFoundError('KeyValuePair with id "%s" not found',
-                                                 resource_id)
+            raise resource.ResourceNotFoundError('KeyValuePair with id "%s" not found'
+                                                 % resource_id)
 
         instance.id = resource_id  # TODO: refactor and get rid of id
         self.manager.delete(instance, **kwargs)
@@ -294,12 +305,16 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
         # load the data (JSON/YAML) from the file
         kvps = resource.load_meta_file(file_path)
 
+        instances = []
+        # bail out if file was empty
+        if not kvps:
+            return instances
+
         # if the data is not a list (ie. it's a single entry)
         # then make it a list so our process loop is generic
         if not isinstance(kvps, list):
             kvps = [kvps]
 
-        instances = []
         for item in kvps:
             # parse required KeyValuePair properties
             name = item['name']
@@ -308,6 +323,7 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
             # parse optional KeyValuePair properties
             scope = item.get('scope', DEFAULT_CUD_SCOPE)
             user = item.get('user', None)
+            encrypted = item.get('encrypted', False)
             secret = item.get('secret', False)
             ttl = item.get('ttl', None)
 
@@ -328,12 +344,20 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
             instance.name = name
             instance.value = value
             instance.scope = scope
+
             if user:
                 instance.user = user
+            if encrypted:
+                instance.encrypted = encrypted
             if secret:
                 instance.secret = secret
             if ttl:
                 instance.ttl = ttl
+
+            # encrypted=True and secret=True implies that the value is already encrypted and should
+            # be used as such
+            if encrypted and secret:
+                instance.encrypted = True
 
             # call the API to create/update the KeyValuePair
             self.manager.update(instance, **kwargs)

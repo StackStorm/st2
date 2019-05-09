@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -88,8 +87,8 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
         hosts = self.runner_parameters.get(RUNNER_HOSTS, '').split(',')
         self._hosts = [h.strip() for h in hosts if len(h) > 0]
         if len(self._hosts) < 1:
-            raise ActionRunnerPreRunError('No hosts specified to run action for action %s.',
-                                          self.liveaction_id)
+            raise ActionRunnerPreRunError('No hosts specified to run action for action %s.'
+                                          % self.liveaction_id)
         self._username = self.runner_parameters.get(RUNNER_USERNAME, None)
         self._password = self.runner_parameters.get(RUNNER_PASSWORD, None)
         self._private_key = self.runner_parameters.get(RUNNER_PRIVATE_KEY, None)

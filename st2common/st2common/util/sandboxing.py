@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -117,7 +116,10 @@ def get_sandbox_python_path(inherit_from_parent=True, inherit_parent_virtualenv=
     if inherit_parent_virtualenv and hasattr(sys, 'real_prefix'):
         # We are running inside virtualenv
         site_packages_dir = get_python_lib()
-        assert sys.prefix in site_packages_dir
+
+        sys_prefix = os.path.abspath(sys.prefix)
+        assert sys_prefix in site_packages_dir
+
         sandbox_python_path.append(site_packages_dir)
 
     sandbox_python_path = ':'.join(sandbox_python_path)

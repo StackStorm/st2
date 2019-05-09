@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -197,8 +196,8 @@ def update_liveaction_status(status=None, result=None, context=None, end_timesta
 
     if status not in LIVEACTION_STATUSES:
         raise ValueError('Attempting to set status for LiveAction "%s" '
-                         'to unknown status string. Unknown status is "%s"',
-                         liveaction_db, status)
+                         'to unknown status string. Unknown status is "%s"'
+                         % (liveaction_db, status))
 
     if result and cfg.CONF.system.validate_output_schema and status == LIVEACTION_STATUS_SUCCEEDED:
         action_db = get_action_by_ref(liveaction_db.action)
@@ -268,7 +267,16 @@ def serialize_positional_argument(argument_type, argument_value):
     serialized).
     """
     if argument_type in ['string', 'number', 'float']:
-        argument_value = str(argument_value) if argument_value else ''
+        if argument_value is None:
+            argument_value = six.text_type('')
+            return argument_value
+
+        if isinstance(argument_value, (int, float)):
+            argument_value = str(argument_value)
+
+        if not isinstance(argument_value, six.text_type):
+            # cast string non-unicode values to unicode
+            argument_value = argument_value.decode('utf-8')
     elif argument_type == 'boolean':
         # Booleans are serialized as string "1" and "0"
         if argument_value is not None:
@@ -281,12 +289,12 @@ def serialize_positional_argument(argument_type, argument_value):
     elif argument_type == 'object':
         # Objects are serialized as JSON
         argument_value = json.dumps(argument_value) if argument_value else ''
-    elif argument_type is 'null':
+    elif argument_type == 'null':
         # None / null is serialized as en empty string
         argument_value = ''
     else:
-        # Other values are simply cast to strings
-        argument_value = str(argument_value) if argument_value else ''
+        # Other values are simply cast to unicode string
+        argument_value = six.text_type(argument_value) if argument_value else ''
 
     return argument_value
 

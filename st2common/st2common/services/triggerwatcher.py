@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -15,9 +14,10 @@
 # pylint: disable=assignment-from-none
 
 from __future__ import absolute_import
+
+import six
 import eventlet
 from kombu.mixins import ConsumerMixin
-from kombu import Connection
 
 from st2common import log as logging
 from st2common.persistence.trigger import Trigger
@@ -100,7 +100,7 @@ class TriggerWatcher(ConsumerMixin):
                 handler(body)
             except Exception as e:
                 LOG.exception('Handling failed. Message body: %s. Exception: %s',
-                              body, e.message)
+                              body, six.text_type(e))
         finally:
             message.ack()
 
@@ -108,7 +108,7 @@ class TriggerWatcher(ConsumerMixin):
 
     def start(self):
         try:
-            self.connection = Connection(transport_utils.get_messaging_urls())
+            self.connection = transport_utils.get_connection()
             self._updates_thread = eventlet.spawn(self.run)
             self._load_thread = eventlet.spawn(self._load_triggers_from_db)
         except:

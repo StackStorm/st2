@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -114,8 +113,9 @@ class FileBasedPartitioner(DefaultPartitioner):
             partition_map = yaml.safe_load(f)
             sensor_refs = partition_map.get(self.sensor_node_name, None)
             if sensor_refs is None:
-                raise SensorPartitionMapMissingException('Sensor partition not found for %s in %s.',
-                                                         self.sensor_node_name, self.partition_file)
+                raise SensorPartitionMapMissingException('Sensor partition not found for %s in %s.'
+                                                         % (self.sensor_node_name,
+                                                            self.partition_file))
             self._supported_sensor_refs = set(sensor_refs)
             return self._supported_sensor_refs
 

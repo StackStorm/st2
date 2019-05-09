@@ -1,0 +1,16 @@
+---
+name: orquesta-with-items-concurrency
+description: A workflow demonstrating with items and concurrent processing.
+runner_type: orquesta
+entry_point: workflows/orquesta-with-items-concurrency.yaml
+enabled: true
+parameters:
+  members:
+    required: true
+    type: array
+    default:
+      - Lakshmi
+      - Lindsay
+      - Tomaz
+  concurrency:
+    type: integer

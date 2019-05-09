@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -11,7 +10,7 @@
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
-#
+# limitations under the License.
 
 """
 Module for performing eventlet and other monkey patching.
@@ -31,17 +30,23 @@ USE_DEBUGGER_FLAG = '--use-debugger'
 PARENT_ARGS_FLAG = '--parent-args='
 
 
-def monkey_patch():
+def monkey_patch(patch_thread=None):
     """
     Function which performs eventlet monkey patching and also takes into account "--use-debugger"
     argument in the command line arguments.
 
     If this argument is found, no monkey patching is performed for the thread module. This allows
     user to use remote debuggers.
+
+    :param patch_thread: True to also patch the thread module. If not provided, thread module is
+                         patched unless debugger is used.
+    :type patch_thread: ``bool``
     """
     import eventlet
 
-    patch_thread = not is_use_debugger_flag_provided()
+    if patch_thread is None:
+        patch_thread = not is_use_debugger_flag_provided()
+
     eventlet.monkey_patch(os=True, select=True, socket=True, thread=patch_thread, time=True)
 
 

@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -51,7 +50,7 @@ class DatastoreFunctionTest(unittest2.TestCase):
         self.assertRaises(TypeError, st2kv.st2kv_, {}, [1, 2])
 
 
-class UserScopeDatastoreFunctionTest(st2tests.DbTestCase):
+class UserScopeDatastoreFunctionTest(st2tests.ExecutionDbTestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -98,7 +97,7 @@ class UserScopeDatastoreFunctionTest(st2tests.DbTestCase):
         self.assertEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'fu', decrypt=True), 'bar')
 
 
-class SystemScopeDatastoreFunctionTest(st2tests.DbTestCase):
+class SystemScopeDatastoreFunctionTest(st2tests.ExecutionDbTestCase):
 
     @classmethod
     def setUpClass(cls):

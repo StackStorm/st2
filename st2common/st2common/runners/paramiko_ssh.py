@@ -1,9 +1,8 @@
-# Licensed to the Apache Software Foundation (ASF) under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -31,6 +30,7 @@ from paramiko.ssh_exception import SSHException
 
 from st2common.log import logging
 from st2common.util.misc import strip_shell_chars
+from st2common.util.misc import sanitize_output
 from st2common.util.shell import quote_unix
 from st2common.constants.runners import DEFAULT_SSH_PORT, REMOTE_RUNNER_PRIVATE_KEY_HEADER
 import six
@@ -363,7 +363,13 @@ class ParamikoSSHClient(object):
         if cmd.startswith('sudo'):
             # Note that fabric does this as well. If you set pty, stdout and stderr
             # streams will be combined into one.
+            # NOTE: If pty is used, every new line character \n will be converted to \r\n which
+            # isn't desired. Because of that we sanitize the output and replace \r\n with \n at the
+            # bottom of this method
+            uses_pty = True
             chan.get_pty()
+        else:
+            uses_pty = False
         chan.exec_command(cmd)
 
         stdout = StringIO()
@@ -404,8 +410,8 @@ class ParamikoSSHClient(object):
                 # TODO: Is this the right way to clean up?
                 chan.close()
 
-                stdout = strip_shell_chars(stdout.getvalue())
-                stderr = strip_shell_chars(stderr.getvalue())
+                stdout = sanitize_output(stdout.getvalue(), uses_pty=uses_pty)
+                stderr = sanitize_output(stderr.getvalue(), uses_pty=uses_pty)
                 raise SSHCommandTimeoutError(cmd=cmd, timeout=timeout, stdout=stdout,
                                              stderr=stderr)
 
@@ -434,8 +440,8 @@ class ParamikoSSHClient(object):
         # Receive the exit status code of the command we ran.
         status = chan.recv_exit_status()
 
-        stdout = strip_shell_chars(stdout.getvalue())
-        stderr = strip_shell_chars(stderr.getvalue())
+        stdout = sanitize_output(stdout.getvalue(), uses_pty=uses_pty)
+        stderr = sanitize_output(stderr.getvalue(), uses_pty=uses_pty)
 
         extra = {'_status': status, '_stdout': stdout, '_stderr': stderr}
         self.logger.debug('Command finished', extra=extra)
@@ -624,9 +630,17 @@ class ParamikoSSHClient(object):
         if cfg.CONF.ssh_runner.use_ssh_config:
             ssh_config_file_info = self._get_ssh_config_for_host(host)
 
-        self.username = (self.username or ssh_config_file_info.get('user', None) or
-                         cfg.CONF.system_user.user)
-        self.port = self.port or ssh_config_file_info.get('port' or None) or DEFAULT_SSH_PORT
+        ssh_config_username = ssh_config_file_info.get('user', None)
+        ssh_config_port = ssh_config_file_info.get('port', None)
+
+        self.username = (self.username or ssh_config_username or cfg.CONF.system_user.user)
+
+        # If a custom non-default port is provided in the SSH config file we use that over the
+        # default port value provided via runner parameter
+        if ssh_config_port and (self.port == DEFAULT_SSH_PORT or not self.port):
+            self.port = int(ssh_config_port)
+        else:
+            self.port = self.port or DEFAULT_SSH_PORT
 
         # If both key file and key material are provided as action parameters,
         # throw an error informing user only one is required.
@@ -691,10 +705,11 @@ class ParamikoSSHClient(object):
 
         extra = {'_conninfo': conninfo}
         self.logger.debug('Connection info', extra=extra)
+
         try:
             client.connect(**conninfo)
         except SSHException as e:
-            paramiko_msg = e.message
+            paramiko_msg = six.text_type(e)
 
             if conninfo.get('password', None):
                 conninfo['password'] = '<redacted>'

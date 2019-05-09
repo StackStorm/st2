@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -206,7 +205,7 @@ class ContentPackConfigLoader(object):
         except Exception as e:
             # Throw a more user-friendly exception on failed render
             exc_class = type(e)
-            original_msg = str(e)
+            original_msg = six.text_type(e)
             msg = ('Failed to render dynamic configuration value for key "%s" with value '
                    '"%s" for pack "%s" config: %s %s ' % (key, value, self.pack_name,
                                                           exc_class, original_msg))
@@ -224,7 +223,7 @@ class ContentPackConfigLoader(object):
 def get_config(pack, user):
     """Returns config for given pack and user.
     """
-    LOG.debug('Attempting to get config')
+    LOG.debug('Attempting to get config for pack "%s" and user "%s"' % (pack, user))
     if pack and user:
         LOG.debug('Pack and user found. Loading config.')
         config_loader = ContentPackConfigLoader(

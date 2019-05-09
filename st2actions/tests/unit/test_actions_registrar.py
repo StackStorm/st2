@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -14,6 +13,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
+import os
+
+import six
 import jsonschema
 import mock
 import yaml
@@ -22,13 +25,20 @@ import st2common.bootstrap.actionsregistrar as actions_registrar
 from st2common.persistence.action import Action
 import st2common.validators.api.action as action_validator
 from st2common.models.db.runner import RunnerTypeDB
+
 import st2tests.base as tests_base
 import st2tests.fixturesloader as fixtures_loader
+from st2tests.fixturesloader import get_fixtures_base_path
 
 MOCK_RUNNER_TYPE_DB = RunnerTypeDB(name='run-local', runner_module='st2.runners.local')
 
 
+# NOTE: We need to perform this patching because test fixtures are located outside of the packs
+# base paths directory. This will never happen outside the context of test fixtures.
+@mock.patch('st2common.content.utils.get_pack_base_path',
+            mock.Mock(return_value=os.path.join(get_fixtures_base_path(), 'generic')))
 class ActionsRegistrarTest(tests_base.DbTestCase):
+
     @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(return_value=True))
     @mock.patch.object(action_validator, 'get_runner_model',
                        mock.MagicMock(return_value=MOCK_RUNNER_TYPE_DB))
@@ -38,11 +48,15 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
             all_actions_in_db = Action.get_all()
             actions_registrar.register_actions(packs_base_paths=[packs_base_path])
         except Exception as e:
-            print(str(e))
+            print(six.text_type(e))
             self.fail('All actions must be registered without exceptions.')
         else:
             all_actions_in_db = Action.get_all()
             self.assertTrue(len(all_actions_in_db) > 0)
+
+        # Assert metadata_file field is populated
+        expected_path = 'actions/action-with-no-parameters.yaml'
+        self.assertEqual(all_actions_in_db[0].metadata_file, expected_path)
 
     def test_register_actions_from_bad_pack(self):
         packs_base_path = tests_base.get_fixtures_path()
@@ -66,8 +80,8 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
             content = yaml.safe_load(fd)
             action_name = str(content['name'])
             action_db = Action.get_by_name(action_name)
-            self.assertEqual(action_db.pack, 'dummy', 'Content pack must be ' +
-                             'set to dummy')
+            expected_msg = 'Content pack must be set to dummy'
+            self.assertEqual(action_db.pack, 'dummy', expected_msg)
             Action.delete(action_db)
 
     @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(return_value=True))
@@ -92,7 +106,8 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
 
         expected_msg = '\'list\' is not valid under any of the given schema'
         self.assertRaisesRegexp(jsonschema.ValidationError, expected_msg,
-                                registrar._register_action, 'dummy', action_file)
+                                registrar._register_action,
+                                'dummy', action_file)
 
     @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(return_value=True))
     @mock.patch.object(action_validator, 'get_runner_model',
@@ -106,7 +121,8 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
         expected_msg = ('Parameter name "action-name" is invalid. Valid characters for '
                         'parameter name are')
         self.assertRaisesRegexp(jsonschema.ValidationError, expected_msg,
-                                registrar._register_action, 'dummy', action_file)
+                                registrar._register_action,
+                                'generic', action_file)
 
     @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(return_value=True))
     @mock.patch.object(action_validator, 'get_runner_model',
@@ -117,7 +133,7 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
         action_file = loader.get_fixture_file_path_abs(
             'generic', 'actions', 'action-invalid-schema-params.yaml')
         try:
-            registrar._register_action('dummy', action_file)
+            registrar._register_action('generic', action_file)
             self.fail('Invalid action schema. Should have failed.')
         except jsonschema.ValidationError:
             pass
@@ -138,6 +154,6 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
             content = yaml.safe_load(fd)
             action_name = str(content['name'])
             action_db = Action.get_by_name(action_name)
-            self.assertEqual(action_db.pack, 'wolfpack', 'Content pack must be ' +
-                             'set to wolfpack')
+            expected_msg = 'Content pack must be set to wolfpack'
+            self.assertEqual(action_db.pack, 'wolfpack', expected_msg)
             Action.delete(action_db)

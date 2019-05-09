@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -34,7 +33,7 @@ from st2common.persistence.runner import RunnerType
 from st2common.services import action as action_service
 from st2common.util import action_db as action_db_util
 from st2common.exceptions.action import ParameterRenderingFailedException
-from st2tests import DbTestCase
+from st2tests import ExecutionDbTestCase
 from st2tests.fixturesloader import FixturesLoader
 
 
@@ -130,7 +129,7 @@ CHAIN_NOTIFY_DB = NotificationsHelper.to_model(CHAIN_NOTIFY_API)
     action_service,
     'is_action_paused_or_pausing',
     mock.MagicMock(return_value=False))
-class TestActionChainRunner(DbTestCase):
+class TestActionChainRunner(ExecutionDbTestCase):
 
     def test_runner_creation(self):
         runner = acr.get_runner()
@@ -687,7 +686,7 @@ class TestActionChainRunner(DbTestCase):
             # rendering failure
             expected_error = ('Failed rendering value for publish parameter "p1" in '
                               'task "c2" (template string={{ not_defined }}):')
-            self.assertTrue(expected_error in str(e))
+            self.assertTrue(expected_error in six.text_type(e))
             pass
         else:
             self.fail('Exception was not thrown')
@@ -702,8 +701,8 @@ class TestActionChainRunner(DbTestCase):
         chain_runner.pre_run()
 
         action_parameters = {}
-        expected_msg = ('Failed to cast value "stringnotanarray" \(type: str\) for parameter '
-                        '"arrtype" of type "array"')
+        expected_msg = (r'Failed to cast value "stringnotanarray" \(type: str\) for parameter '
+                        r'"arrtype" of type "array"')
         self.assertRaisesRegexp(ValueError, expected_msg, chain_runner.run,
                                 action_parameters=action_parameters)
 

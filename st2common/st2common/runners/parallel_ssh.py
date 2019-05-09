@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -50,8 +49,6 @@ class ParallelSSHClient(object):
                                         new stderr line is received.
         :type handle_stderr_line_func: ``func``
         """
-        self._ssh_user = user
-
         self._ssh_user = user
         self._ssh_key_file = pkey_file
         self._ssh_key_material = pkey_material
@@ -348,8 +345,8 @@ class ParallelSSHClient(object):
     def _handle_command_result(self, stdout, stderr, exit_code):
         # Detect if user provided an invalid sudo password or sudo is not configured for that user
         if self._sudo_password:
-            if re.search('sudo: \d+ incorrect password attempts', stderr):
-                match = re.search('\[sudo\] password for (.+?)\:', stderr)
+            if re.search(r'sudo: \d+ incorrect password attempts', stderr):
+                match = re.search(r'\[sudo\] password for (.+?)\:', stderr)
 
                 if match:
                     username = match.groups()[0]
@@ -376,7 +373,7 @@ class ParallelSSHClient(object):
         if not cmd:
             return cmd
 
-        result = re.sub('ST2_ACTION_AUTH_TOKEN=(.+?)\s+?', 'ST2_ACTION_AUTH_TOKEN=%s ' %
+        result = re.sub(r'ST2_ACTION_AUTH_TOKEN=(.+?)\s+?', 'ST2_ACTION_AUTH_TOKEN=%s ' %
                         (MASKED_ATTRIBUTE_VALUE), cmd)
         return result
 

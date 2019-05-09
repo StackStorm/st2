@@ -1,10 +1,9 @@
 #!/usr/bin/env python
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -25,6 +24,7 @@ from oslo_config import cfg
 
 
 CONFIGS = ['st2actions.config',
+           'st2actions.scheduler.config',
            'st2actions.notifier.config',
            'st2actions.resultstracker.config',
            'st2actions.workflows.config',
@@ -40,7 +40,7 @@ CONFIGS = ['st2actions.config',
 
 SKIP_GROUPS = ['api_pecan', 'rbac', 'results_tracker']
 
-# We group auth options together to nake it a bit more clear what applies where
+# We group auth options together to make it a bit more clear what applies where
 AUTH_OPTIONS = {
     'common': [
         'enable',
@@ -62,7 +62,7 @@ AUTH_OPTIONS = {
     ]
 }
 
-# Some of the config values change depenending on the environment where this script is ran so we
+# Some of the config values change depending on the environment where this script is ran so we
 # set them to static values to ensure consistent and stable output
 STATIC_OPTION_VALUES = {
     'actionrunner': {

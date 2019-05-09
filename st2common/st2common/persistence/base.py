@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -135,14 +134,14 @@ class Access(object):
             model_object = cls._get_impl().insert(model_object)
         except NotUniqueError as e:
             if log_not_unique_error_as_debug:
-                LOG.debug('Conflict while trying to save in DB: %s.', str(e))
+                LOG.debug('Conflict while trying to save in DB: %s.', six.text_type(e))
             else:
                 LOG.exception('Conflict while trying to save in DB.')
             # On a conflict determine the conflicting object and return its id in
             # the raised exception.
             conflict_object = cls._get_by_object(model_object)
             conflict_id = str(conflict_object.id) if conflict_object else None
-            message = str(e)
+            message = six.text_type(e)
             raise StackStormDBObjectConflictError(message=message, conflict_id=conflict_id,
                                                   model_object=model_object)
 
@@ -174,14 +173,14 @@ class Access(object):
             model_object = cls._get_impl().add_or_update(model_object, validate=True)
         except NotUniqueError as e:
             if log_not_unique_error_as_debug:
-                LOG.debug('Conflict while trying to save in DB: %s.', str(e))
+                LOG.debug('Conflict while trying to save in DB: %s.', six.text_type(e))
             else:
                 LOG.exception('Conflict while trying to save in DB.')
             # On a conflict determine the conflicting object and return its id in
             # the raised exception.
             conflict_object = cls._get_by_object(model_object)
             conflict_id = str(conflict_object.id) if conflict_object else None
-            message = str(e)
+            message = six.text_type(e)
             raise StackStormDBObjectConflictError(message=message, conflict_id=conflict_id,
                                                   model_object=model_object)
 
