@@ -18,8 +18,8 @@ from __future__ import absolute_import
 import mock
 import os
 import shutil
-import tempfile
 
+from orquesta import events
 from orquesta import statuses as wf_statuses
 
 import st2tests
@@ -59,8 +59,10 @@ PACKS = [
 
 RERUN_TASK = 'task1'
 OPTIONS = {
-    'tasks': [RERUN_TASK]
+    'tasks': [RERUN_TASK],
 }
+
+TEMPFILE = '/tmp/rerun.txt'
 
 
 @mock.patch.object(
@@ -96,28 +98,23 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase, st2tests.ExecutionDb
     def setUp(self):
         super(WorkflowExecutionRerunTest, self).setUp()
 
-        # Create temporary directory used by the tests
-        _, self.temp_dir_path = tempfile.mkstemp()
-        os.chmod(self.temp_dir_path, 0o755)  # nosec
-
-        with open(self.temp_dir_path, 'w') as f:
-            f.write('1\n')
+        with open(TEMPFILE, 'w') as f:
+            f.write('1')
 
     def tearDown(self):
-        if self.temp_dir_path and os.path.exists(self.temp_dir_path):
-            if os.path.isdir(self.temp_dir_path):
-                shutil.rmtree(self.temp_dir_path)
+        if TEMPFILE and os.path.exists(TEMPFILE):
+            if os.path.isdir(TEMPFILE):
+                shutil.rmtree(TEMPFILE)
             else:
-                os.remove(self.temp_dir_path)
+                os.remove(TEMPFILE)
 
     def test_rerun(self):
         task_route = 0
-        param = {'tempfile': self.temp_dir_path}
 
         # 1. Fail task1 and workflow
         # Manually create the liveaction and action execution objects without publishing.
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][0])
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=param)
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.create_request(lv_ac_db)
 
         # Request and pre-process the workflow execution.
@@ -135,35 +132,42 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase, st2tests.ExecutionDb
         self.assertEqual(conductor.get_workflow_status(), wf_statuses.FAILED)
         self.assertEqual(wf_ex_db.status, wf_statuses.FAILED)
 
-        # 2. Rerun workflow
         # Manually create the liveaction and action execution objects without publishing.
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=param)
-        lv_ac_db, ac_ex_db = ac_svc.create_request(lv_ac_db)
-
         # prepare rerun.
-        with open(self.temp_dir_path, 'w') as f:
+        with open(TEMPFILE, 'w') as f:
             f.write('0')
 
-        st2_ctx = self.mock_st2_context(ac_ex_db, st2_ctx)
+        lv_ac_db1 = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        lv_ac_db1, ac_ex_db1 = ac_svc.create_request(lv_ac_db1)
+
+        st2_ctx = self.mock_st2_context(ac_ex_db1, ac_ex_db1.context)
         st2_ctx['workflow_execution_id'] = wf_ex_db.id
 
         # Request workflow rerun execution.
         wf_ex_db = wf_svc.request_rerun(ac_ex_db, st2_ctx, OPTIONS)
-        self.assertIsNotNone(wf_ex_db.id)
-        self.assertGreater(wf_ex_db.rev, 0)
-        self.assertEqual(wf_ex_db.action_execution, str(ac_ex_db.id))
-        self.assertEqual(wf_ex_db.status, wf_statuses.RESUMING)
+        conductor = wf_svc.deserialize_conductor(wf_ex_db)
+
+        task = conductor.get_task(RERUN_TASK, 0)
+        ac_ex_event = events.ActionExecutionEvent(wf_statuses.RUNNING)
+        conductor.update_task_state(task['id'], task['route'], ac_ex_event)
+
+        wf_ex_db.status = conductor.get_workflow_status()
+        wf_ex_db.state = conductor.workflow_state.serialize()
+        wf_ex_db = wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
+
+        self.run_workflow_step(wf_ex_db, RERUN_TASK, 0)
+
+        conductor, wf_ex_db = wf_svc.refresh_conductor(str(wf_ex_db.id))
+        self.assertEqual(wf_ex_db.status, wf_statuses.SUCCEEDED)
 
     def test_rerun_with_running_status(self):
-        param = {'tempfile': self.temp_dir_path}
-
-        with open(self.temp_dir_path, 'w') as f:
+        with open(TEMPFILE, 'w') as f:
             f.write('0')
 
         # 1. Fail task1 and workflow
         # Manually create the liveaction and action execution objects without publishing.
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][0])
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=param)
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.create_request(lv_ac_db)
 
         # Request and pre-process the workflow execution.
@@ -179,13 +183,12 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase, st2tests.ExecutionDb
 
         # 2. Rerun workflow
         # Manually create the liveaction and action execution objects without publishing.
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=param)
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.create_request(lv_ac_db)
 
         st2_ctx = self.mock_st2_context(ac_ex_db)
         st2_ctx['workflow_execution_id'] = wf_ex_db.id
         st2_ctx['parent'] = ac_ex_db.context
-
         # Request workflow rerun execution.
         self.assertRaises(
             wf_exc.WorkflowExecutionRerunException,
@@ -196,15 +199,13 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase, st2tests.ExecutionDb
         )
 
     def test_rerun_with_completed_status(self):
-        param = {'tempfile': self.temp_dir_path}
-
-        with open(self.temp_dir_path, 'w') as f:
+        with open(TEMPFILE, 'w') as f:
             f.write('0')
 
         # 1. Cancel and workflow
         # Manually create the liveaction and action execution objects without publishing.
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][0])
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=param)
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.create_request(lv_ac_db)
 
         # Request and pre-process the workflow execution.
@@ -220,7 +221,7 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase, st2tests.ExecutionDb
 
         # 2. Rerun workflow
         # Manually create the liveaction and action execution objects without publishing.
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=param)
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.create_request(lv_ac_db)
 
         st2_ctx = self.mock_st2_context(ac_ex_db)
@@ -237,13 +238,12 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase, st2tests.ExecutionDb
         )
 
     def test_rerun_when_rerunning_is_active(self):
-        param = {'tempfile': self.temp_dir_path}
         task_route = 0
 
         # 1. Fail task1 and workflow
         # Manually create the liveaction and action execution objects without publishing.
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][0])
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=param)
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.create_request(lv_ac_db)
 
         # Request and pre-process the workflow execution.
@@ -263,11 +263,11 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase, st2tests.ExecutionDb
 
         # 2. Rerun workflow
         # Manually create the liveaction and action execution objects without publishing.
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=param)
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.create_request(lv_ac_db)
 
         # prepare rerun.
-        with open(self.temp_dir_path, 'w') as f:
+        with open(TEMPFILE, 'w') as f:
             f.write('0')
 
         st2_ctx = self.mock_st2_context(ac_ex_db, st2_ctx)
@@ -286,7 +286,7 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase, st2tests.ExecutionDb
 
         # 3. Retry Rerun workflow again
         # Manually create the liveaction and action execution objects without publishing.
-        lv_ac_db2 = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=param)
+        lv_ac_db2 = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db2, ac_ex_db2 = ac_svc.create_request(lv_ac_db2)
 
         st2_ctx = self.mock_st2_context(ac_ex_db2, st2_ctx)
@@ -302,13 +302,12 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase, st2tests.ExecutionDb
         )
 
     def test_rerun_with_status_not_running_after_conducting(self):
-        param = {'tempfile': self.temp_dir_path}
         task_route = 0
 
         # 1. Fail task1 and workflow
         # Manually create the liveaction and action execution objects without publishing.
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][0])
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=param)
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.create_request(lv_ac_db)
 
         # Request and pre-process the workflow execution.
@@ -328,11 +327,11 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase, st2tests.ExecutionDb
 
         # 2. Rerun workflow
         # Manually create the liveaction and action execution objects without publishing.
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=param)
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.create_request(lv_ac_db)
 
         # prepare rerun.
-        with open(self.temp_dir_path, 'w') as f:
+        with open(TEMPFILE, 'w') as f:
             f.write('0')
 
         st2_ctx = self.mock_st2_context(ac_ex_db, st2_ctx)
@@ -350,12 +349,10 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase, st2tests.ExecutionDb
         )
 
     def test_rerun_with_workflow_execution_does_not_exist(self):
-        param = {'tempfile': self.temp_dir_path}
-
         # 1. Fail task1 and workflow
         # Manually create the liveaction and action execution objects without publishing.
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][0])
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=param)
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.create_request(lv_ac_db)
 
         st2_ctx = self.mock_st2_context(ac_ex_db)

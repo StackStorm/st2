@@ -52,11 +52,8 @@ PACKS = [
 ]
 
 OPTIONS = {
-    'tasks': ['task1'],
-    'reset': ['task1']
+    'tasks': ['task1']
 }
-
-PARAM = {"tempfile": "temp_file"}
 
 
 @mock.patch.object(
@@ -93,6 +90,12 @@ class OrquestRunnerTest(st2tests.WorkflowTestCase, st2tests.ExecutionDbTestCase)
     def get_runner_class(runner_name):
         return runners.get_runner(runner_name).__class__
 
+    def assert_raises_with_message(self, msg, func, *args, **kwargs):
+        try:
+            self.assertRaises(func, *args, **kwargs)
+        except Exception as inst:
+            self.assertEqual(inst.message, msg)
+
     def test_rerun_option(self):
         patched_orquesta_runner = self.get_runner_class('orquesta')
 
@@ -106,7 +109,7 @@ class OrquestRunnerTest(st2tests.WorkflowTestCase, st2tests.ExecutionDbTestCase)
                                mock.MagicMock(return_value=mock_rerun_result)):
 
             wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][0])
-            lv_ac_db1 = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=PARAM)
+            lv_ac_db1 = lv_db_models.LiveActionDB(action=wf_meta['name'])
             lv_ac_db1, ac_ex_db1 = ac_svc.request(lv_ac_db1)
             self.assertFalse(patched_orquesta_runner.rerun_workflow.called)
 
@@ -118,8 +121,7 @@ class OrquestRunnerTest(st2tests.WorkflowTestCase, st2tests.ExecutionDbTestCase)
                 }
             }
 
-            lv_ac_db2 = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=PARAM,
-                                                  context=context)
+            lv_ac_db2 = lv_db_models.LiveActionDB(action=wf_meta['name'], context=context)
             lv_ac_db2, ac_ex_db2 = ac_svc.request(lv_ac_db2)
 
             self._wait_on_status(
@@ -136,7 +138,7 @@ class OrquestRunnerTest(st2tests.WorkflowTestCase, st2tests.ExecutionDbTestCase)
 
     def test_rerun_with_invalid_workflow_id(self):
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][0])
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=PARAM)
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.create_request(lv_ac_db)
 
         # Rerun option.
@@ -144,8 +146,17 @@ class OrquestRunnerTest(st2tests.WorkflowTestCase, st2tests.ExecutionDbTestCase)
             're-run': OPTIONS
         }
 
+        # At this point, workflow execution value is not assigned yet
+        # and action execution status is requested
+        self.assertEqual(ac_ex_db.workflow_execution, None)
+        self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_REQUESTED)
+
+        # Manually setup workflow status to failed in order to test invalid workflow ID.
+        ac_ex_db.status = ac_const.LIVEACTION_STATUS_FAILED
+
         orquesta_runner = self.get_runner_class('orquesta')
-        self.assertRaises(
+        self.assert_raises_with_message(
+            'Unable to rerun because Orquesta workflow execution_id is missing.',
             Exception,
             orquesta_runner.rerun_workflow,
             ac_ex_db,
@@ -154,17 +165,25 @@ class OrquestRunnerTest(st2tests.WorkflowTestCase, st2tests.ExecutionDbTestCase)
 
     def test_rerun_with_unrerunnable_status(self):
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][0])
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=PARAM)
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db, ac_ex_db = ac_svc.create_request(lv_ac_db)
 
         # Rerun option.
         context = {
             're-run': OPTIONS
         }
-        ac_ex_db['status'] = ac_const.LIVEACTION_STATUS_RUNNING
+
+        # At this point, workflow execution value is not assigned yet
+        # and action execution status is requested
+        self.assertEqual(ac_ex_db.workflow_execution, None)
+        self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_REQUESTED)
+
+        # Manually setup workflow execution id in order to test unrerunnable status
+        ac_ex_db.workflow_execution = '5cd31c9d076129256abd70c7'
 
         orquesta_runner = self.get_runner_class('orquesta')
-        self.assertRaises(
+        self.assert_raises_with_message(
+            'Workflow execution is not in a rerunable state.',
             Exception,
             orquesta_runner.rerun_workflow,
             ac_ex_db,

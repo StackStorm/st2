@@ -1322,9 +1322,7 @@ def request_rerun(ac_ex_db, st2_ctx, options):
         conductor.request_workflow_rerun(options)
     except orquesta_exc.InvalidWorkflowRerunStatus as e:
         raise wf_exc.WorkflowExecutionRerunException(e.args[0])
-    except orquesta_exc.InvalidTask as e:
-        raise wf_exc.WorkflowExecutionRerunException(e.args[0])
-    except orquesta_exc.InvalidTaskRerunStatus as e:
+    except orquesta_exc.InvalidRerunTasks as e:
         raise wf_exc.WorkflowExecutionRerunException(e.args[0])
 
     status = conductor.get_workflow_status()

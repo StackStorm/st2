@@ -2,11 +2,8 @@ version: 1.0
 
 description: A sample workflow used to test the rerun feature.
 
-input:
-  - tempfile
-  
 tasks:
   task1:
     action: core.local
     input:
-      cmd: "exit `cat <% ctx().tempfile %>`"
+      cmd: "exit `cat /tmp/rerun.txt`"
