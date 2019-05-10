@@ -43,7 +43,7 @@ HOSTNAME = socket.gethostname()
 
 class SendmailActionTestCase(RunnerTestCase, CleanDbTestCase, CleanFilesTestCase):
     """
-    NOTE: Those tests rely on stanley user being available on the system and having paswordless
+    NOTE: Those tests rely on stanley user being available on the system and having passwordless
     sudo access.
     """
     fixtures_loader = FixturesLoader()

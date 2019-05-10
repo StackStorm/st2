@@ -18,6 +18,10 @@ Fixed
 
   In StackStorm v3.0.0, this variable was inadvertently removed from the context used by Mistral
   workflows. (bug fix) #4650 #4656
+* Fix a bug with ``timestamp`` attribute in the ``execution.log`` attribute being incorrect when
+  server time where st2api is running was not set to UTC. (bug fix) #4668
+
+  Contributed by Igor Cherkaev. (@emptywee)
 
 3.0.0 - April 18, 2019
 ----------------------
