@@ -79,8 +79,6 @@ server {
   location /stream/ {
     error_page 502 = @streamError;
 
-    rewrite ^/stream/(.*)  /$1 break;
-
     proxy_pass            https://st2/stream/;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
