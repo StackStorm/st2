@@ -1,6 +1,6 @@
 [flake8]
 max-line-length = 100
-# L102 - apache license header
+# L101 - proprietary license header
 enable-extensions = L101,L102
 ignore = E128,E402,E722,W504
 exclude=*.egg/*,build,dist
@@ -9,8 +9,7 @@ exclude=*.egg/*,build,dist
 copyright-check = True
 copyright-min-file-size = 1
 
-# Settings for flake8-license
-license-type = apache
+license-type = proprietary
 
 # NOTE: This requires flake8 >= 3.0.0 to work correctly.
 # If old version is used (< 3.0.0), it will select all the errors and it wont ignore ones
