@@ -1,13 +1,26 @@
 ---
+# Pack reference. It can only contain letters, digits and underscores.
 ref: hello_st2
+# User-friendly pack name. If this attribute contains spaces or any other special characters, then
+# the "ref" attribute must also be specified (see above).
 name: Hello StackStorm
+# User-friendly pack description.
 description: Simple pack containing examples of sensor, rule, and action.
+# Keywords which are used when searching for packs.
 keywords:
     - example
     - test
+# Pack version which must follow semver format (<major>.<minor>.<patch> e.g. 1.0.0)
 version: 3.0.0
+# A list of major Python versions pack is tested with and works with.
 python_versions:
   - "2"
   - "3"
+# Name of the pack author.
 author: StackStorm, Inc.
+# Email of the pack author.
 email: info@stackstorm.com
+# Optional list of additional contributors to the pack.
+contributors:
+  - "John Doe1 <john.doe1@gmail.com>"
+  - "John Doe2 <john.doe2@gmail.com>"
