@@ -48,8 +48,16 @@ server {
   add_header              Front-End-Https on;
   add_header              X-Content-Type-Options nosniff;
 
+  location @apiError {
+    add_header Content-Type application/json always;
+    return 503 '{ "faultstring": "Nginx is unable to reach st2api. Make sure service is running." }';
+  }
+
   location /api/ {
+    error_page 502 = @apiError;
+
     proxy_pass            https://st2/api/;
+    proxy_next_upstream error timeout http_500 http_502 http_503 http_504;
     proxy_read_timeout    90;
     proxy_connect_timeout 90;
     proxy_redirect        off;
@@ -78,6 +86,7 @@ server {
     error_page 502 = @streamError;
 
     proxy_pass            https://st2/stream/;
+    proxy_next_upstream error timeout http_500 http_502 http_503 http_504;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -95,8 +104,16 @@ server {
     proxy_cache off;
   }
 
+  location @authError {
+    add_header Content-Type application/json always;
+    return 503 '{ "faultstring": "Nginx is unable to reach st2auth. Make sure service is running." }';
+  }
+
   location /auth/ {
+    error_page 502 = @authError;
+
     proxy_pass            https://st2/auth/;
+    proxy_next_upstream error timeout http_500 http_502 http_503 http_504;
     proxy_read_timeout    90;
     proxy_connect_timeout 90;
     proxy_redirect        off;
@@ -115,6 +132,7 @@ server {
 
   location /mistral/ {
     proxy_pass            https://st2/mistral/;
+    proxy_next_upstream error timeout http_500 http_502 http_503 http_504;
     proxy_read_timeout    90;
     proxy_connect_timeout 90;
     proxy_redirect        off;
