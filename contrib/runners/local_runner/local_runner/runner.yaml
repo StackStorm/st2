@@ -24,7 +24,7 @@
       type: boolean
     sudo_password:
       default: null
-      description: Sudo password. To be used when paswordless sudo is not allowed.
+      description: Sudo password. To be used when passwordless sudo is not allowed.
       type: string
       secret: true
       required: false
@@ -65,7 +65,7 @@
       type: boolean
     sudo_password:
       default: null
-      description: Sudo password. To be used when paswordless sudo is not allowed.
+      description: Sudo password. To be used when passwordless sudo is not allowed.
       type: string
       required: false
       secret: true
