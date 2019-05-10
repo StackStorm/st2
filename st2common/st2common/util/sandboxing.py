@@ -184,7 +184,7 @@ def get_sandbox_python_path_for_python_action(pack, inherit_from_parent=True,
         full_sandbox_python_path.append(pack_actions_lib_paths)
         full_sandbox_python_path.append(sandbox_python_path)
 
-        sandbox_python_path= ':'.join(full_sandbox_python_path)
+        sandbox_python_path = ':'.join(full_sandbox_python_path)
 
     return sandbox_python_path
 
