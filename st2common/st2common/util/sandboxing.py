@@ -160,8 +160,30 @@ def get_sandbox_python_path_for_python_action(pack, inherit_from_parent=True,
         python3_site_packages_directory = os.path.join(pack_virtualenv_lib_path,
                                                        virtualenv_directories[0],
                                                        'site-packages')
-        sandbox_python_path = (python3_lib_directory + ':' + python3_site_packages_directory + ':' +
-                               pack_actions_lib_paths + ':' + sandbox_python_path)
+
+        # Work around to make sure we also add system lib dir to PYTHONPATH and not just virtualenv
+        # one
+        # NOTE: abc.py is always available in base lib directory which is symlinked to virtualenv
+        # lib directory
+        abc_module_path = os.path.join(python3_lib_directory, 'abc.py')
+        link_path = os.path.realpath(abc_module_path)
+        python3_system_lib_directory = os.path.dirname(link_path)
+
+        if not os.path.exists(python3_system_lib_directory):
+            python3_system_lib_directory = None
+
+        full_sandbox_python_path = []
+
+        # NOTE: Order here is very important for imports to function correctly
+        if python3_lib_directory:
+            full_sandbox_python_path.append(python3_system_lib_directory)
+
+        full_sandbox_python_path.append(python3_lib_directory)
+        full_sandbox_python_path.append(python3_site_packages_directory)
+        full_sandbox_python_path.append(pack_actions_lib_paths)
+        full_sandbox_python_path.append(sandbox_python_path)
+
+        sandbox_python_path = ':'.join(full_sandbox_python_path)
 
     return sandbox_python_path
 
