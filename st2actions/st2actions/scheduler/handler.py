@@ -30,6 +30,7 @@ from st2common.services import action as action_service
 from st2common.services import coordination as coordination_service
 from st2common.services import executions as execution_service
 from st2common.services import policies as policy_service
+from st2common.persistence.execution import ActionExecution
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution_queue import ActionExecutionSchedulingQueue
 from st2common.util import action_db as action_utils
@@ -123,6 +124,20 @@ class ActionExecutionSchedulingQueueHandler(object):
                     execution_queue_item_db.action_execution_id,
                     str(execution_queue_item_db.id)
                 )
+
+    # TODO: Remove this function for fixing missing action_execution_id in v3.2.
+    # A new field is added to ActionExecutionSchedulingQueue. This is a temporary patch
+    # to populate the action_execution_id when empty.
+    def _fix_missing_action_execution_id(self):
+        """
+        Auto-populate the action_execution_id in ActionExecutionSchedulingQueue if empty.
+        """
+        for entry in ActionExecutionSchedulingQueue.query(action_execution_id__in=['', None]):
+            execution_db = ActionExecution.get(liveaction__id=entry.liveaction_id)
+            msg = '[%s] Populating action_execution_id for item "%s".'
+            LOG.info(msg, str(execution_db.id), str(entry.id))
+            entry.action_execution_id = str(execution_db.id)
+            ActionExecutionSchedulingQueue.add_or_update(entry, publish=False)
 
     # TODO: Remove this function for cleanup policy-delayed in v3.2.
     # This is a temporary cleanup to remove executions in deprecated policy-delayed status.

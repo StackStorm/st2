@@ -75,6 +75,13 @@ def _run_scheduler():
     except Exception:
         LOG.exception('(PID=%s) Scheduler unable to perform migration cleanup.', os.getpid())
 
+    # TODO: Remove this try block for _fix_missing_action_execution_id in v3.2.
+    # This is a temporary fix to auto-populate action_execution_id.
+    try:
+        handler._fix_missing_action_execution_id()
+    except Exception:
+        LOG.exception('(PID=%s) Scheduler unable to populate action_execution_id.', os.getpid())
+
     try:
         handler.start()
         entrypoint.start()
