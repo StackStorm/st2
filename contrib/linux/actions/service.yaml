@@ -7,7 +7,7 @@
   parameters:
     act:
       type: "string"
-      description: "Action to perform on service"
+      description: "Action to perform on service (e.g. start, stop, restart, etc.)"
       position: 0
     service:
       type: "string"
