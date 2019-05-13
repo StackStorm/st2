@@ -132,7 +132,6 @@ class SandboxingUtilsTestCase(unittest.TestCase):
     @mock.patch('os.path.exists', mock.Mock(return_value=True))
     @mock.patch('os.path.isdir', mock.Mock(return_value=True))
     @mock.patch('os.listdir', mock.Mock(return_value=['python3.6']))
-    @mock.patch('os.path.realpath', mock.Mock(return_value='/usr/lib/python3.6/abc.py'))
     @mock.patch('st2common.util.sandboxing.get_python_lib')
     @mock.patch('st2common.util.sandboxing.get_pack_base_path',
                 mock.Mock(return_value='/tmp/packs/dummy_pack'))
