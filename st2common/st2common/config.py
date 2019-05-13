@@ -359,7 +359,11 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt(
             'python3_binary', default=default_python3_bin_path,
             help='Python 3 binary which will be used by Python actions for packs which '
-                 'use Python 3 virtual environment'),
+                 'use Python 3 virtual environment.'),
+        cfg.StrOpt(
+            'python3_prefix', default=None,
+            help='Prefix for Python 3 installation (e.g. /opt/python3.6). If not specified, it '
+                 'tries to find Python 3 libraries in /usr/lib and /usr/local/lib.'),
         cfg.StrOpt(
             'virtualenv_binary', default=default_virtualenv_bin_path,
             help='Virtualenv binary which should be used to create pack virtualenvs.'),
