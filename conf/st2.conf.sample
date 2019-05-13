@@ -14,16 +14,18 @@ actions_pool_size = 60
 python_runner_log_level = DEBUG
 # Internal pool size for dispatcher used by workflow actions.
 workflows_pool_size = 40
+# Prefix for Python 3 installation (e.g. /opt/python3.6). If not specified, it tries to find Python 3 libraries in /usr/lib and /usr/local/lib.
+python3_prefix = None
 # Virtualenv binary which should be used to create pack virtualenvs.
 virtualenv_binary = /usr/bin/virtualenv
-# Python 3 binary which will be used by Python actions for packs which use Python 3 virtual environment
+# Python 3 binary which will be used by Python actions for packs which use Python 3 virtual environment.
 python3_binary = /usr/bin/python3
-# location of the logging.conf file
-logging = /etc/st2/logging.actionrunner.conf
-# True to store and stream action output (stdout and stderr) in real-time.
-stream_output = True
 # List of virtualenv options to be passsed to "virtualenv" command that creates pack virtualenv.
 virtualenv_opts = --system-site-packages # comma separated list allowed here.
+# True to store and stream action output (stdout and stderr) in real-time.
+stream_output = True
+# location of the logging.conf file
+logging = /etc/st2/logging.actionrunner.conf
 # Python binary which will be used by Python actions.
 python_binary = /usr/bin/python
 
