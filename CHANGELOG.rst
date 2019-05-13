@@ -29,6 +29,11 @@ Fixed
 
   In such scenario, package / module was incorrectly loaded from Python 2 site-packages instead of
   Python 3 standard library which broke such packs. (bug fix) #4658 #4674
+* Fix a possible shell injection in ``linux.service`` action. User who had access to run this
+  action could cause a shell injection by passing compromise value for either the ``service`` of
+  ``action`` parameter. (bug fix)
+
+  Reported by James Robinson (Netskope and Veracode).
 
 3.0.0 - April 18, 2019
 ----------------------
