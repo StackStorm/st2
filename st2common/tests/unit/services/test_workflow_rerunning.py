@@ -188,9 +188,13 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase, st2tests.ExecutionDb
         st2_ctx = self.mock_st2_context(ac_ex_db)
         st2_ctx['workflow_execution_id'] = wf_ex_db.id
         st2_ctx['parent'] = ac_ex_db.context
+
+        expected_message = 'Workflow execution "%s" is not rerunable because its status ' \
+                           'is not "failed"' % wf_ex_db.id
         # Request workflow rerun execution.
-        self.assertRaises(
+        self.assertRaisesRegexp(
             wf_exc.WorkflowExecutionRerunException,
+            expected_message,
             wf_svc.request_rerun,
             ac_ex_db,
             st2_ctx,
@@ -227,9 +231,12 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase, st2tests.ExecutionDb
         st2_ctx['workflow_execution_id'] = wf_ex_db.id
         st2_ctx['parent'] = ac_ex_db.context
 
+        expected_message = 'Workflow execution "%s" is not rerunable because its status ' \
+                           'is not "failed"' % wf_ex_db.id
         # Request workflow rerun execution.
-        self.assertRaises(
+        self.assertRaisesRegexp(
             wf_exc.WorkflowExecutionRerunException,
+            expected_message,
             wf_svc.request_rerun,
             ac_ex_db,
             st2_ctx,
@@ -291,11 +298,14 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase, st2tests.ExecutionDb
         st2_ctx = self.mock_st2_context(ac_ex_db2, st2_ctx)
         st2_ctx['workflow_execution_id'] = wf_ex_db.id
 
+        expected_message = 'Workflow execution "%s" is not rerunable because its status ' \
+                           'is not "failed"' % wf_ex_db.id
         # Request workflow rerun execution.
-        self.assertRaises(
+        self.assertRaisesRegexp(
             wf_exc.WorkflowExecutionRerunException,
+            expected_message,
             wf_svc.request_rerun,
-            ac_ex_db2,
+            ac_ex_db,
             st2_ctx,
             OPTIONS
         )
@@ -338,9 +348,12 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase, st2tests.ExecutionDb
 
         # With invalid rerun task ids, the orquesta conductor will raise exception.
         options = {'tasks': ['task2', 'task3']}
+        expected_msg = 'Unable to rerun workflow because one or more tasks is not found or not' \
+                       ' in failed status: %s' % ', '.join(options.get('tasks', None))
         # Request workflow rerun execution.
-        self.assertRaises(
+        self.assertRaisesRegexp(
             wf_exc.WorkflowExecutionRerunException,
+            expected_msg,
             wf_svc.request_rerun,
             ac_ex_db,
             st2_ctx,
@@ -358,8 +371,9 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase, st2tests.ExecutionDb
         # Mock workflow execution ID
         st2_ctx['workflow_execution_id'] = '5ca7dbe307612960d7b1d878'
 
-        self.assertRaises(
+        self.assertRaisesRegexp(
             wf_exc.WorkflowExecutionRerunException,
+            'Unable to find workflow execution db with id',
             wf_svc.request_rerun,
             ac_ex_db,
             st2_ctx,

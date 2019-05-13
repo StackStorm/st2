@@ -89,12 +89,6 @@ class OrquestRunnerTest(st2tests.WorkflowTestCase, st2tests.ExecutionDbTestCase)
     def get_runner_class(runner_name):
         return runners.get_runner(runner_name).__class__
 
-    def assert_raises_with_message(self, msg, func, *args, **kwargs):
-        try:
-            self.assertRaises(func, *args, **kwargs)
-        except Exception as inst:
-            self.assertEqual(inst.message, msg)
-
     def test_rerun_option(self):
         patched_orquesta_runner = self.get_runner_class('orquesta')
 
@@ -151,12 +145,13 @@ class OrquestRunnerTest(st2tests.WorkflowTestCase, st2tests.ExecutionDbTestCase)
         self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_REQUESTED)
 
         # Manually setup workflow status to failed in order to test invalid workflow ID.
+        ac_ex_db.context['workflow_execution'] = None
         ac_ex_db.status = ac_const.LIVEACTION_STATUS_FAILED
 
-        orquesta_runner = self.get_runner_class('orquesta')
-        self.assert_raises_with_message(
-            'Unable to rerun because Orquesta workflow execution_id is missing.',
+        orquesta_runner = runners.get_runner(name='orquesta')
+        self.assertRaisesRegexp(
             Exception,
+            'Unable to rerun because Orquesta workflow execution_id is missing.',
             orquesta_runner.rerun_workflow,
             ac_ex_db,
             context
@@ -178,12 +173,12 @@ class OrquestRunnerTest(st2tests.WorkflowTestCase, st2tests.ExecutionDbTestCase)
         self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_REQUESTED)
 
         # Manually setup workflow execution id in order to test unrerunnable status
-        ac_ex_db.workflow_execution = '5cd31c9d076129256abd70c7'
+        ac_ex_db.context['workflow_execution'] = '5cd31c9d076129256abd70c7'
 
-        orquesta_runner = self.get_runner_class('orquesta')
-        self.assert_raises_with_message(
-            'Workflow execution is not in a rerunable state.',
+        orquesta_runner = runners.get_runner(name='orquesta')
+        self.assertRaisesRegexp(
             Exception,
+            'Workflow execution is not in a rerunable state.',
             orquesta_runner.rerun_workflow,
             ac_ex_db,
             context
