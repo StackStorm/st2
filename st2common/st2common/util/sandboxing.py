@@ -162,20 +162,25 @@ def get_sandbox_python_path_for_python_action(pack, inherit_from_parent=True,
                                                        'site-packages')
 
         # Work around to make sure we also add system lib dir to PYTHONPATH and not just virtualenv
-        # one
-        # NOTE: abc.py is always available in base lib directory which is symlinked to virtualenv
-        # lib directory
-        abc_module_path = os.path.join(python3_lib_directory, 'abc.py')
-        link_path = os.path.realpath(abc_module_path)
-        python3_system_lib_directory = os.path.dirname(link_path)
+        # one (e.g. /usr/lib/python3.6)
+        # NOTE: We can't simply use sys.prefix dir since it will be set to /opt/stackstorm/st2
+        system_prefix_dirs = ['/usr/lib', '/usr/local/lib']
 
-        if not os.path.exists(python3_system_lib_directory):
+        # TODO: Support for custom prefix via st2.conf?
+        for system_prefix_dir in system_prefix_dirs:
+            python3_system_lib_directory = os.path.join(system_prefix_dir,
+                                                        virtualenv_directories[0])
+
+            if os.path.exists(python3_system_lib_directory):
+                break
+
+        if not python3_system_lib_directory or not os.path.exists(python3_system_lib_directory):
             python3_system_lib_directory = None
 
         full_sandbox_python_path = []
 
         # NOTE: Order here is very important for imports to function correctly
-        if python3_lib_directory:
+        if python3_system_lib_directory:
             full_sandbox_python_path.append(python3_system_lib_directory)
 
         full_sandbox_python_path.append(python3_lib_directory)
