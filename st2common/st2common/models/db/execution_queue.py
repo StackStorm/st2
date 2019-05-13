@@ -43,10 +43,10 @@ class ActionExecutionSchedulingQueueItemDB(stormbase.StormFoundationDB,
     RESOURCE_TYPE = ResourceType.EXECUTION_REQUEST
     UID_FIELDS = ['id']
 
-    action_execution_id = me.StringField(required=True,
-        help_text='Foreign key to the ActionExecutionDB which is to be scheduled')
     liveaction_id = me.StringField(required=True,
         help_text='Foreign key to the LiveActionDB which is to be scheduled')
+    action_execution_id = me.StringField(
+        help_text='Foreign key to the ActionExecutionDB which is to be scheduled')
     original_start_timestamp = ComplexDateTimeField(
         default=date_utils.get_datetime_utc_now,
         help_text='The timestamp when the liveaction was created and originally be scheduled to '

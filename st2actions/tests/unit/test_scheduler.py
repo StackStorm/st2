@@ -315,3 +315,28 @@ class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
         self.assertNotEqual(str(schedule_q_db.id), str(new_schedule_q_db.id))
         self.assertEqual(schedule_q_db.action_execution_id, new_schedule_q_db.action_execution_id)
         self.assertEqual(schedule_q_db.liveaction_id, new_schedule_q_db.liveaction_id)
+
+    # TODO: Remove this test case for populating action_execution_id in v3.2.
+    # This is a temporary cleanup to autopopulate action_execution_id if missing.
+    def test_populate_action_execution_id(self):
+        self.reset()
+
+        liveaction_db = self._create_liveaction_db()
+
+        schedule_q_db = self.scheduler._create_execution_queue_item_db_from_liveaction(
+            liveaction_db
+        )
+
+        # Manually unset the action_execution_id ot mock DB model of previous version.
+        schedule_q_db.action_execution_id = None
+        schedule_q_db = ActionExecutionSchedulingQueue.add_or_update(schedule_q_db)
+        schedule_q_db = ActionExecutionSchedulingQueue.get_by_id(str(schedule_q_db.id))
+        self.assertIsNone(schedule_q_db.action_execution_id)
+
+        # Run the clean up logic.
+        self.scheduling_queue._fix_missing_action_execution_id()
+
+        # Check that the action_execution_id is populated.
+        schedule_q_db = ActionExecutionSchedulingQueue.get_by_id(str(schedule_q_db.id))
+        execution_db = execution_service.update_execution(liveaction_db)
+        self.assertEqual(schedule_q_db.action_execution_id, str(execution_db.id))
