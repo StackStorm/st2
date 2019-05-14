@@ -67,12 +67,23 @@ class IsoTimeUtilsTestCase(unittest.TestCase):
         dt_str_offset = '2000-01-01T12:00:00+00:00'
         dt_str = '2000-01-01T12:00:00Z'
         dt_unicode = u'2000-01-01T12:00:00Z'
+
+        # datetime object
         self.assertEqual(isotime.format(dt, usec=True, offset=True), dt_str_usec_offset)
         self.assertEqual(isotime.format(dt, usec=True, offset=False), dt_str_usec)
         self.assertEqual(isotime.format(dt, usec=False, offset=True), dt_str_offset)
         self.assertEqual(isotime.format(dt, usec=False, offset=False), dt_str)
         self.assertEqual(isotime.format(dt_str, usec=False, offset=False), dt_str)
         self.assertEqual(isotime.format(dt_unicode, usec=False, offset=False), dt_unicode)
+
+        # unix timestamp (epoch)
+        dt = 1557390483
+        self.assertEqual(isotime.format(dt, usec=True, offset=True),
+                         '2019-05-09T08:28:03.000000+00:00')
+        self.assertEqual(isotime.format(dt, usec=False, offset=False),
+                         '2019-05-09T08:28:03Z')
+        self.assertEqual(isotime.format(dt, usec=False, offset=True),
+                         '2019-05-09T08:28:03+00:00')
 
     def test_format_tz_naive(self):
         dt1 = datetime.datetime.utcnow()
