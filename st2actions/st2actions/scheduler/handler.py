@@ -206,6 +206,9 @@ class ActionExecutionSchedulingQueueHandler(object):
         """
         Sort execution requests by FIFO and priority and get the latest, highest priority item from
         the queue and pop it off.
+
+        NOTE: FIFO order is not guaranteed anymore for executions which are re-scheduled and delayed
+        due to a policy.
         """
         query = {
             'scheduled_start_timestamp__lte': date.get_datetime_utc_now(),
