@@ -55,7 +55,7 @@ EXECUTION_SCHEDUELING_TIMEOUT_THRESHOLD_MS = (60 * 1000)
 
 # When a policy delayed execution is detected it will be try to be rescheduled by the scheduler
 # again in this amount of milliseconds.
-POLICY_DELAYED_EXECUTION_RESCHEDULE_TIME_MS = 1500
+POLICY_DELAYED_EXECUTION_RESCHEDULE_TIME_MS = 3000
 
 
 class ActionExecutionSchedulingQueueHandler(object):
@@ -214,6 +214,7 @@ class ActionExecutionSchedulingQueueHandler(object):
             'limit': 1,
             'order_by': [
                 '+scheduled_start_timestamp',
+                '+original_start_timestamp'
             ]
         }
 
