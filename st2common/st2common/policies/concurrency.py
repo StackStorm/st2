@@ -33,7 +33,7 @@ class BaseConcurrencyApplicator(base.ResourcePolicyApplicator):
 
     def _get_status_for_policy_action(self, action):
         if action == 'delay':
-            status = action_constants.LIVEACTION_STATUS_POLICY_DELAYED
+            status = action_constants.LIVEACTION_STATUS_DELAYED
         elif action == 'cancel':
             status = action_constants.LIVEACTION_STATUS_CANCELING
 

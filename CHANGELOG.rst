@@ -29,6 +29,7 @@ Fixed
 
   In such scenario, package / module was incorrectly loaded from Python 2 site-packages instead of
   Python 3 standard library which broke such packs. (bug fix) #4658 #4674
+* Remove policy-delayed status to avoid bouncing between delayed statuses. (bug fix) #4655
 * Fix a possible shell injection in the ``linux.service`` action. User who had access to run this
   action could cause a shell command injection by passing a compromised value for either the
   ``service`` or ``action`` parameter. (bug fix) #4675
