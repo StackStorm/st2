@@ -134,6 +134,10 @@ class ActionExecutionSchedulingQueueHandler(object):
         """
         for entry in ActionExecutionSchedulingQueue.query(action_execution_id__in=['', None]):
             execution_db = ActionExecution.get(liveaction__id=entry.liveaction_id)
+
+            if not execution_db:
+                continue
+
             msg = '[%s] Populating action_execution_id for item "%s".'
             LOG.info(msg, str(execution_db.id), str(entry.id))
             entry.action_execution_id = str(execution_db.id)
