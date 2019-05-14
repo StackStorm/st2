@@ -54,6 +54,6 @@ set_permissions() {
 create_users
 
 # We perform upgrade (when install count > 1)
-if [ "$1" -ge 1 ]; then
+if [ "$1" -gt 1 ]; then
   set_permissions "$RESET_PERMS"
 fi
