@@ -24,6 +24,7 @@ from st2common.bootstrap.policiesregistrar import register_policy_types
 from st2common.constants import action as action_constants
 from st2common.models.db.action import LiveActionDB
 from st2common.persistence.action import LiveAction
+from st2common.persistence.execution import ActionExecution
 from st2common.persistence.execution_queue import ActionExecutionSchedulingQueue
 from st2common.persistence.policy import Policy
 from st2common.services import action as action_service
@@ -185,6 +186,12 @@ class ConcurrencyPolicyTestCase(EventletTestCase, ExecutionDbTestCase):
         liveaction = self._wait_on_statuses(liveaction, SCHEDULED_STATES)
         self.assertEqual(expected_num_pubs, LiveActionPublisher.publish_state.call_count)
         self.assertEqual(expected_num_exec, runner.MockActionRunner.run.call_count)
+
+        # Check the status changes.
+        execution = ActionExecution.get(liveaction__id=str(liveaction.id))
+        expected_status_changes = ['requested', 'delayed', 'requested', 'scheduled', 'running']
+        actual_status_changes = [entry['status'] for entry in execution.log]
+        self.assertListEqual(actual_status_changes, expected_status_changes)
 
     @mock.patch.object(
         runner.MockActionRunner, 'run',

@@ -794,14 +794,6 @@ def update_task_state(task_ex_id, ac_ex_status, ac_ex_result=None, ac_ex_ctx=Non
     if ac_ex_status not in statuses_to_process:
         return
 
-    # Replace/Simplify specific statuses.
-    statuses_to_collapse = {
-        ac_const.LIVEACTION_STATUS_POLICY_DELAYED: ac_const.LIVEACTION_STATUS_DELAYED
-    }
-
-    if ac_ex_status in statuses_to_collapse:
-        ac_ex_status = statuses_to_collapse[ac_ex_status]
-
     # Refresh records
     task_ex_db = wf_db_access.TaskExecution.get_by_id(task_ex_id)
     conductor, wf_ex_db = refresh_conductor(task_ex_db.workflow_execution)
