@@ -24,7 +24,11 @@ import unittest2
 
 from st2common.models.system.action import ShellCommandAction
 from st2common.models.system.action import ShellScriptAction
+from st2common.models.db.action import ActionDB
+from st2common.util import param as param_utils
 from st2common.logging.formatters import MASKED_ATTRIBUTE_VALUE
+
+from local_runner.local_shell_script_runner import LocalShellScriptRunner
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 FIXTURES_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '../fixtures'))
@@ -338,3 +342,159 @@ class ShellScriptActionTestCase(unittest2.TestCase):
         action = ShellScriptAction(**kwargs)
         command = action.get_full_command_string()
         self.assertEqual(command, u"/tmp/foo.sh 'ｆｏｏ'='ｂａｒ'")
+
+    def test_command_construction_correct_default_parameter_values_are_used(self):
+        runner_parameters = {}
+        action_db_parameters = {
+            'project': {
+                'type': 'string',
+                'default': 'st2',
+                'position': 0,
+            },
+            'version': {
+                'type': 'string',
+                'position': 1,
+                'required': True
+            },
+            'fork': {
+                'type': 'string',
+                'position': 2,
+                'default': 'StackStorm',
+            },
+            'branch': {
+                'type': 'string',
+                'position': 3,
+                'default': 'master',
+            },
+            'update_mistral': {
+                'type': 'boolean',
+                'position': 4,
+                'default': False
+            },
+            'update_changelog': {
+                'type': 'boolean',
+                'position': 5,
+                'default': False
+            },
+            'local_repo': {
+                'type': 'string',
+                'position': 6,
+            }
+        }
+        context = {}
+
+        action_db = ActionDB(pack='dummy', name='action')
+
+        runner = LocalShellScriptRunner('id')
+        runner.runner_parameters = {}
+        runner.action = action_db
+
+        # 1. All default values used
+        live_action_db_parameters = {
+            'project': 'st2flow',
+            'version': '3.0.0',
+            'fork': 'StackStorm',
+            'local_repo': '/tmp/repo'
+        }
+
+        runner_params, action_params = param_utils.render_final_params(runner_parameters,
+                                                action_db_parameters,
+                                                live_action_db_parameters,
+                                                context)
+
+        self.assertDictEqual(action_params, {
+            'project': 'st2flow',
+            'version': '3.0.0',
+            'fork': 'StackStorm',
+            'branch': 'master',  # default value used
+            'update_mistral': False,  # default value used
+            'update_changelog': False,  # default value used
+            'local_repo': '/tmp/repo'
+        })
+
+        action_db.parameters = action_db_parameters
+        positional_args, named_args = runner._get_script_args(action_params)
+        named_args = runner._transform_named_args(named_args)
+
+        shell_script_action = ShellScriptAction(name='dummy', action_exec_id='dummy',
+                                                script_local_path_abs='/tmp/local.sh',
+                                                named_args=named_args,
+                                                positional_args=positional_args)
+        command_string = shell_script_action.get_full_command_string()
+
+        expected = '/tmp/local.sh st2flow 3.0.0 StackStorm master 0 0 /tmp/repo'
+        self.assertEqual(command_string, expected)
+
+        # 2. Some default values used
+        live_action_db_parameters = {
+            'project': 'st2web',
+            'version': '3.1.0',
+            'fork': 'StackStorm1',
+            'update_changelog': True,
+            'local_repo': '/tmp/repob'
+        }
+
+        runner_params, action_params = param_utils.render_final_params(runner_parameters,
+                                                action_db_parameters,
+                                                live_action_db_parameters,
+                                                context)
+
+        self.assertDictEqual(action_params, {
+            'project': 'st2web',
+            'version': '3.1.0',
+            'fork': 'StackStorm1',
+            'branch': 'master',  # default value used
+            'update_mistral': False,  # default value used
+            'update_changelog': True,  # default value used
+            'local_repo': '/tmp/repob'
+        })
+
+        action_db.parameters = action_db_parameters
+        positional_args, named_args = runner._get_script_args(action_params)
+        named_args = runner._transform_named_args(named_args)
+
+        shell_script_action = ShellScriptAction(name='dummy', action_exec_id='dummy',
+                                                script_local_path_abs='/tmp/local.sh',
+                                                named_args=named_args,
+                                                positional_args=positional_args)
+        command_string = shell_script_action.get_full_command_string()
+
+        expected = '/tmp/local.sh st2web 3.1.0 StackStorm1 master 0 1 /tmp/repob'
+        self.assertEqual(command_string, expected)
+
+        # 3. None is specified for a boolean parameter, should use a default
+        live_action_db_parameters = {
+            'project': 'st2rbac',
+            'version': '3.2.0',
+            'fork': 'StackStorm2',
+            'update_changelog': None,
+            'local_repo': '/tmp/repoc'
+        }
+
+        runner_params, action_params = param_utils.render_final_params(runner_parameters,
+                                                action_db_parameters,
+                                                live_action_db_parameters,
+                                                context)
+
+        self.assertDictEqual(action_params, {
+            'project': 'st2rbac',
+            'version': '3.2.0',
+            'fork': 'StackStorm2',
+            'branch': 'master',  # default value used
+            'update_mistral': False,  # default value used
+            'update_changelog': False,  # default value used
+            'local_repo': '/tmp/repoc'
+        })
+
+        action_db.parameters = action_db_parameters
+        positional_args, named_args = runner._get_script_args(action_params)
+        named_args = runner._transform_named_args(named_args)
+
+        shell_script_action = ShellScriptAction(name='dummy', action_exec_id='dummy',
+                                                script_local_path_abs='/tmp/local.sh',
+                                                named_args=named_args,
+                                                positional_args=positional_args)
+        command_string = shell_script_action.get_full_command_string()
+
+        expected = '/tmp/local.sh st2rbac 3.2.0 StackStorm2 master 0 0 /tmp/repoc'
+        self.assertEqual(command_string, expected)
