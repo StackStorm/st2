@@ -59,6 +59,7 @@ htmlcov
 
 # Docker files
 Dockerfile
+docker-compose.yml
 
 # Vagrant files
 Vagrantfile
