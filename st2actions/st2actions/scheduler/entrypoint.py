@@ -95,6 +95,11 @@ class SchedulerEntrypoint(consumers.MessageHandler):
         """
         execution = ActionExecution.get(liveaction__id=str(liveaction.id))
 
+        if not execution:
+            msg = ('Corresponding ActionExecution object for LiveAction with id "%s" not found' %
+                   (str(liveaction.id)))
+            raise StackStormDBObjectNotFoundError(msg)
+
         execution_queue_item_db = ActionExecutionSchedulingQueueItemDB()
         execution_queue_item_db.action_execution_id = str(execution.id)
         execution_queue_item_db.liveaction_id = str(liveaction.id)
