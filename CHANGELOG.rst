@@ -18,6 +18,23 @@ Fixed
 
   In StackStorm v3.0.0, this variable was inadvertently removed from the context used by Mistral
   workflows. (bug fix) #4650 #4656
+* Fix a bug with ``timestamp`` attribute in the ``execution.log`` attribute being incorrect when
+  server time where st2api is running was not set to UTC. (bug fix) #4668
+
+  Contributed by Igor Cherkaev. (@emptywee)
+* Fix a bug with some packs which use ``--python3`` flag (running Python 3 actions on installation
+  where StackStorm components run under Python 2) which rely on modules from Python 3 standard
+  library which are also available in Python 2 site-packages (e.g. ``concurrent``) not working
+  correctly.
+
+  In such scenario, package / module was incorrectly loaded from Python 2 site-packages instead of
+  Python 3 standard library which broke such packs. (bug fix) #4658 #4674
+* Remove policy-delayed status to avoid bouncing between delayed statuses. (bug fix) #4655
+* Fix a possible shell injection in the ``linux.service`` action. User who had access to run this
+  action could cause a shell command injection by passing a compromised value for either the
+  ``service`` or ``action`` parameter. (bug fix) #4675
+
+  Reported by James Robinson (Netskope and Veracode).
 
 3.0.0 - April 18, 2019
 ----------------------

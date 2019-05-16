@@ -100,8 +100,7 @@ class ConcurrencyByAttributeApplicator(BaseConcurrencyApplicator):
 
         valid_states = [
             action_constants.LIVEACTION_STATUS_REQUESTED,
-            action_constants.LIVEACTION_STATUS_DELAYED,
-            action_constants.LIVEACTION_STATUS_POLICY_DELAYED,
+            action_constants.LIVEACTION_STATUS_DELAYED
         ]
 
         # Exit if target not in valid state.
