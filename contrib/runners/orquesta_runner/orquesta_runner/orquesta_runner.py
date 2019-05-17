@@ -144,22 +144,16 @@ class OrquestaRunner(runners.AsyncActionRunner):
         return self.handle_workflow_return_value(wf_ex_db)
 
     def rerun_workflow(self, ex_ref, options):
-        wf_ex_id = ex_ref.context['workflow_execution']
+        wf_ex_id = ex_ref.context.get('workflow_execution')
 
-        if not wf_ex_id:
-            raise Exception('Unable to rerun because Orquesta workflow execution_id is missing.')
-
-        if ex_ref.status not in ac_const.LIVEACTION_FAILED_STATES:
-            raise Exception('Workflow execution is not in a rerunable state.')
-
-        # Re-run workflow
         try:
+            # Request rerun of workflow execution.
             st2_ctx = self._construct_st2_context()
             st2_ctx['workflow_execution_id'] = wf_ex_id
             wf_ex_db = wf_svc.request_rerun(self.execution, st2_ctx, options)
         except workflow_exc.WorkflowExecutionRerunException as e:
             status = ac_const.LIVEACTION_STATUS_FAILED
-            result = {'errors': e.args[0], 'output': None}
+            result = {'errors': [{'message': six.text_type(e)}], 'output': None}
             return (status, result, self.context)
         except Exception as e:
             status = ac_const.LIVEACTION_STATUS_FAILED

@@ -1,9 +1,0 @@
-version: 1.0
-
-description: A sample workflow used to test the rerun feature.
-
-tasks:
-  task1:
-    action: core.local
-    input:
-      cmd: "exit `cat /tmp/rerun.txt`"

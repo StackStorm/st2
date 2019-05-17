@@ -1302,34 +1302,37 @@ def request_rerun(ac_ex_db, st2_ctx, options):
     ac_ex_id = str(ac_ex_db.id)
     LOG.info('[%s] Processing rerun request for workflow.', ac_ex_id)
 
-    wf_ex_id = st2_ctx['workflow_execution_id']
+    wf_ex_id = st2_ctx.get('workflow_execution_id')
+
+    if not wf_ex_id:
+        msg = 'Unable to rerun workflow execution because workflow_execution_id is not provided.'
+        raise wf_exc.WorkflowExecutionRerunException(msg)
+
     try:
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
     except db_exc.StackStormDBObjectNotFoundError:
-        msg = '[%s] Unable to find workflow execution db with id "%s"'
-        raise wf_exc.WorkflowExecutionRerunException(msg % (ac_ex_id, wf_ex_id))
+        msg = 'Unable to rerun workflow execution "%s" because it does not exist.'
+        raise wf_exc.WorkflowExecutionRerunException(msg % wf_ex_id)
 
     if wf_ex_db.status not in statuses.ABENDED_STATUSES:
-        msg = '[%s] Workflow execution "%s" is not rerunable because its status is not "failed"'
-        raise wf_exc.WorkflowExecutionRerunException(msg % (ac_ex_id, wf_ex_id))
+        msg = 'Unable to rerun workflow execution "%s" because it is not in a failed state.'
+        raise wf_exc.WorkflowExecutionRerunException(msg % wf_ex_id)
 
     wf_ex_db.action_execution = ac_ex_id
     wf_ex_db.context['st2'] = st2_ctx['st2']
     wf_ex_db.context['parent'] = st2_ctx['parent']
-
     conductor = deserialize_conductor(wf_ex_db)
+
     try:
         conductor.request_workflow_rerun(options)
     except orquesta_exc.InvalidWorkflowRerunStatus as e:
-        raise wf_exc.WorkflowExecutionRerunException(e.args[0])
+        raise wf_exc.WorkflowExecutionRerunException(six.text_type(e))
     except orquesta_exc.InvalidRerunTasks as e:
-        raise wf_exc.WorkflowExecutionRerunException(e.args[0])
+        raise wf_exc.WorkflowExecutionRerunException(six.text_type(e))
 
-    status = conductor.get_workflow_status()
-    if status != statuses.RESUMING:
-        msg = '[%s] Unable to rerun workflow execution "%s". ' \
-              'The workflow execution is in "%s" status.'
-        raise wf_exc.WorkflowExecutionRerunException(msg % (ac_ex_id, wf_ex_id, status))
+    if conductor.get_workflow_status() != statuses.RESUMING:
+        msg = 'Unable to rerun workflow execution "%s" due to an unknown cause.'
+        raise wf_exc.WorkflowExecutionRerunException(msg % wf_ex_id)
 
     data = conductor.serialize()
     wf_ex_db.status = data['state']['status']

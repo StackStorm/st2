@@ -15,32 +15,30 @@
 from __future__ import absolute_import
 
 import mock
-import uuid
 
 import st2tests
 
 import st2tests.config as tests_config
 tests_config.parse_args()
 
+from local_runner import local_shell_command_runner
+from orquesta import statuses as wf_statuses
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar
-from st2common.constants import action as ac_const
+from st2common.constants import action as action_constants
 from st2common.models.db import liveaction as lv_db_models
-from st2common.runners import base as runners
-from st2common.services import action as ac_svc
+from st2common.persistence import execution as ex_db_access
+from st2common.persistence import liveaction as lv_db_access
+from st2common.persistence import workflow as wf_db_access
+from st2common.services import action as action_service
+from st2common.services import executions as execution_service
+from st2common.services import workflows as workflow_service
 from st2common.transport import liveaction as lv_ac_xport
+from st2common.transport import workflow as wf_ex_xport
 from st2common.transport import publishers
 from st2tests.mocks import liveaction as mock_lv_ac_xport
+from st2tests.mocks import workflow as mock_wf_ex_xport
 
-
-TEST_FIXTURES = {
-    'workflows': [
-        'rerun.yaml'
-    ],
-    'actions': [
-        'rerun.yaml'
-    ]
-}
 
 TEST_PACK = 'orquesta_tests'
 TEST_PACK_PATH = st2tests.fixturesloader.get_fixtures_packs_base_path() + '/' + TEST_PACK
@@ -50,9 +48,9 @@ PACKS = [
     st2tests.fixturesloader.get_fixtures_packs_base_path() + '/core'
 ]
 
-OPTIONS = {
-    'tasks': ['task1']
-}
+RUNNER_RESULT_FAILED = (action_constants.LIVEACTION_STATUS_FAILED, {}, {})
+RUNNER_RESULT_CANCELED = (action_constants.LIVEACTION_STATUS_CANCELED, {}, {})
+RUNNER_RESULT_SUCCEEDED = (action_constants.LIVEACTION_STATUS_SUCCEEDED, {'stdout': 'foobar'}, {})
 
 
 @mock.patch.object(
@@ -67,7 +65,15 @@ OPTIONS = {
     lv_ac_xport.LiveActionPublisher,
     'publish_state',
     mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_state))
-class OrquestRunnerTest(st2tests.WorkflowTestCase, st2tests.ExecutionDbTestCase):
+@mock.patch.object(
+    wf_ex_xport.WorkflowExecutionPublisher,
+    'publish_create',
+    mock.MagicMock(side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_create))
+@mock.patch.object(
+    wf_ex_xport.WorkflowExecutionPublisher,
+    'publish_state',
+    mock.MagicMock(side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_state))
+class OrquestRunnerTest(st2tests.WorkflowTestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -85,101 +91,284 @@ class OrquestRunnerTest(st2tests.WorkflowTestCase, st2tests.ExecutionDbTestCase)
         for pack in PACKS:
             actions_registrar.register_from_pack(pack)
 
-    @staticmethod
-    def get_runner_class(runner_name):
-        return runners.get_runner(runner_name).__class__
+    @mock.patch.object(
+        local_shell_command_runner.LocalShellCommandRunner, 'run',
+        mock.MagicMock(side_effect=[RUNNER_RESULT_FAILED, RUNNER_RESULT_SUCCEEDED]))
+    def test_rerun_workflow(self):
+        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
+        wf_input = {'who': 'Thanos'}
+        lv_ac_db1 = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=wf_input)
+        lv_ac_db1, ac_ex_db1 = action_service.request(lv_ac_db1)
+        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db1.id))[0]
 
-    def test_rerun_option(self):
-        patched_orquesta_runner = self.get_runner_class('orquesta')
+        # Process task1.
+        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task1'}
+        tk1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        tk1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk1_ex_db.id))[0]
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction['id'])
+        self.assertEqual(tk1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_FAILED)
+        workflow_service.handle_action_execution_completion(tk1_ac_ex_db)
+        tk1_ex_db = wf_db_access.TaskExecution.get_by_id(tk1_ex_db.id)
+        self.assertEqual(tk1_ex_db.status, wf_statuses.FAILED)
 
-        mock_rerun_result = (
-            ac_const.LIVEACTION_STATUS_RUNNING,
-            {'tasks': []},
-            {'execution_id': str(uuid.uuid4())}
-        )
+        # Assert workflow is completed.
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
+        self.assertEqual(wf_ex_db.status, wf_statuses.FAILED)
+        lv_ac_db1 = lv_db_access.LiveAction.get_by_id(str(lv_ac_db1.id))
+        self.assertEqual(lv_ac_db1.status, action_constants.LIVEACTION_STATUS_FAILED)
+        ac_ex_db1 = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db1.id))
+        self.assertEqual(ac_ex_db1.status, action_constants.LIVEACTION_STATUS_FAILED)
 
-        with mock.patch.object(patched_orquesta_runner, 'rerun_workflow',
-                               mock.MagicMock(return_value=mock_rerun_result)):
-
-            wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][0])
-            lv_ac_db1 = lv_db_models.LiveActionDB(action=wf_meta['name'])
-            lv_ac_db1, ac_ex_db1 = ac_svc.request(lv_ac_db1)
-            self.assertFalse(patched_orquesta_runner.rerun_workflow.called)
-
-            # Rerun the execution.
-            context = {
-                're-run': {
-                    'ref': ac_ex_db1.id,
-                    'tasks': ['task1']
-                }
-            }
-
-            lv_ac_db2 = lv_db_models.LiveActionDB(action=wf_meta['name'], context=context)
-            lv_ac_db2, ac_ex_db2 = ac_svc.request(lv_ac_db2)
-
-            self._wait_on_status(
-                lv_ac_db2,
-                ac_const.LIVEACTION_STATUS_RUNNING
-            )
-
-            options = {
-                'ref': ac_ex_db1.id,
-                'tasks': ['task1'],
-            }
-            patched_orquesta_runner.rerun_workflow.assert_called_with(ex_ref=ac_ex_db1,
-                                                                      options=options)
-
-    def test_rerun_with_invalid_workflow_id(self):
-        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][0])
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
-        lv_ac_db, ac_ex_db = ac_svc.create_request(lv_ac_db)
-
-        # Rerun option.
+        # Rerun the execution.
         context = {
-            're-run': OPTIONS
+            're-run': {
+                'ref': str(ac_ex_db1.id),
+                'tasks': ['task1']
+            }
         }
 
-        # At this point, workflow execution value is not assigned yet
-        # and action execution status is requested
-        self.assertEqual(ac_ex_db.workflow_execution, None)
-        self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_REQUESTED)
+        lv_ac_db2 = lv_db_models.LiveActionDB(action=wf_meta['name'], context=context)
+        lv_ac_db2, ac_ex_db2 = action_service.request(lv_ac_db2)
 
-        # Manually setup workflow status to failed in order to test invalid workflow ID.
-        ac_ex_db.context['workflow_execution'] = None
-        ac_ex_db.status = ac_const.LIVEACTION_STATUS_FAILED
+        # Assert the workflow reran ok and is running.
+        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db2.id))[0]
+        self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
+        lv_ac_db2 = lv_db_access.LiveAction.get_by_id(str(lv_ac_db2.id))
+        self.assertEqual(lv_ac_db2.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        ac_ex_db2 = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db2.id))
+        self.assertEqual(ac_ex_db2.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
-        orquesta_runner = runners.get_runner(name='orquesta')
-        self.assertRaisesRegexp(
-            Exception,
-            'Unable to rerun because Orquesta workflow execution_id is missing.',
-            orquesta_runner.rerun_workflow,
-            ac_ex_db,
-            context
+        # Process task1 and make sure it succeeds.
+        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task1'}
+        tk1_ex_dbs = wf_db_access.TaskExecution.query(**query_filters)
+        self.assertEqual(len(tk1_ex_dbs), 2)
+        tk1_ex_dbs = sorted(tk1_ex_dbs, key=lambda x: x.start_timestamp)
+        tk1_ex_db = tk1_ex_dbs[-1]
+        tk1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk1_ex_db.id))[0]
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction['id'])
+        self.assertEqual(tk1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        workflow_service.handle_action_execution_completion(tk1_ac_ex_db)
+        tk1_ex_db = wf_db_access.TaskExecution.get_by_id(tk1_ex_db.id)
+        self.assertEqual(tk1_ex_db.status, wf_statuses.SUCCEEDED)
+
+    @mock.patch.object(
+        local_shell_command_runner.LocalShellCommandRunner, 'run',
+        mock.MagicMock(side_effect=[RUNNER_RESULT_FAILED]))
+    def test_rerun_with_missing_workflow_execution_id(self):
+        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
+        wf_input = {'who': 'Thanos'}
+        lv_ac_db1 = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=wf_input)
+        lv_ac_db1, ac_ex_db1 = action_service.request(lv_ac_db1)
+        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db1.id))[0]
+
+        # Process task1.
+        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task1'}
+        tk1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        tk1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk1_ex_db.id))[0]
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction['id'])
+        self.assertEqual(tk1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_FAILED)
+        workflow_service.handle_action_execution_completion(tk1_ac_ex_db)
+        tk1_ex_db = wf_db_access.TaskExecution.get_by_id(tk1_ex_db.id)
+        self.assertEqual(tk1_ex_db.status, wf_statuses.FAILED)
+
+        # Assert workflow is completed.
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
+        self.assertEqual(wf_ex_db.status, wf_statuses.FAILED)
+        lv_ac_db1 = lv_db_access.LiveAction.get_by_id(str(lv_ac_db1.id))
+        self.assertEqual(lv_ac_db1.status, action_constants.LIVEACTION_STATUS_FAILED)
+        ac_ex_db1 = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db1.id))
+        self.assertEqual(ac_ex_db1.status, action_constants.LIVEACTION_STATUS_FAILED)
+
+        # Delete the workflow execution.
+        wf_db_access.WorkflowExecution.delete(wf_ex_db, publish=False)
+
+        # Manually delete the workflow_execution_id from context of the action execution.
+        lv_ac_db1.context.pop('workflow_execution')
+        lv_ac_db1 = lv_db_access.LiveAction.add_or_update(lv_ac_db1, publish=False)
+        ac_ex_db1 = execution_service.update_execution(lv_ac_db1, publish=False)
+
+        # Rerun the execution.
+        context = {
+            're-run': {
+                'ref': str(ac_ex_db1.id),
+                'tasks': ['task1']
+            }
+        }
+
+        lv_ac_db2 = lv_db_models.LiveActionDB(action=wf_meta['name'], context=context)
+        lv_ac_db2, ac_ex_db2 = action_service.request(lv_ac_db2)
+
+        expected_error = (
+            'Unable to rerun workflow execution because '
+            'workflow_execution_id is not provided.'
         )
 
+        # Assert the workflow rerrun fails.
+        lv_ac_db2 = lv_db_access.LiveAction.get_by_id(str(lv_ac_db2.id))
+        self.assertEqual(lv_ac_db2.status, action_constants.LIVEACTION_STATUS_FAILED)
+        self.assertEqual(expected_error, lv_ac_db2.result['errors'][0]['message'])
+        ac_ex_db2 = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db2.id))
+        self.assertEqual(ac_ex_db2.status, action_constants.LIVEACTION_STATUS_FAILED)
+        self.assertEqual(expected_error, ac_ex_db2.result['errors'][0]['message'])
+
+    @mock.patch.object(
+        local_shell_command_runner.LocalShellCommandRunner, 'run',
+        mock.MagicMock(side_effect=[RUNNER_RESULT_FAILED]))
+    def test_rerun_with_invalid_workflow_execution(self):
+        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
+        wf_input = {'who': 'Thanos'}
+        lv_ac_db1 = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=wf_input)
+        lv_ac_db1, ac_ex_db1 = action_service.request(lv_ac_db1)
+        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db1.id))[0]
+
+        # Process task1.
+        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task1'}
+        tk1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        tk1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk1_ex_db.id))[0]
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction['id'])
+        self.assertEqual(tk1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_FAILED)
+        workflow_service.handle_action_execution_completion(tk1_ac_ex_db)
+        tk1_ex_db = wf_db_access.TaskExecution.get_by_id(tk1_ex_db.id)
+        self.assertEqual(tk1_ex_db.status, wf_statuses.FAILED)
+
+        # Assert workflow is completed.
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
+        self.assertEqual(wf_ex_db.status, wf_statuses.FAILED)
+        lv_ac_db1 = lv_db_access.LiveAction.get_by_id(str(lv_ac_db1.id))
+        self.assertEqual(lv_ac_db1.status, action_constants.LIVEACTION_STATUS_FAILED)
+        ac_ex_db1 = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db1.id))
+        self.assertEqual(ac_ex_db1.status, action_constants.LIVEACTION_STATUS_FAILED)
+
+        # Delete the workflow execution.
+        wf_db_access.WorkflowExecution.delete(wf_ex_db, publish=False)
+
+        # Rerun the execution.
+        context = {
+            're-run': {
+                'ref': str(ac_ex_db1.id),
+                'tasks': ['task1']
+            }
+        }
+
+        lv_ac_db2 = lv_db_models.LiveActionDB(action=wf_meta['name'], context=context)
+        lv_ac_db2, ac_ex_db2 = action_service.request(lv_ac_db2)
+
+        expected_error = (
+            'Unable to rerun workflow execution "%s" because '
+            'it does not exist.' % str(wf_ex_db.id)
+        )
+
+        # Assert the workflow rerrun fails.
+        lv_ac_db2 = lv_db_access.LiveAction.get_by_id(str(lv_ac_db2.id))
+        self.assertEqual(lv_ac_db2.status, action_constants.LIVEACTION_STATUS_FAILED)
+        self.assertEqual(expected_error, lv_ac_db2.result['errors'][0]['message'])
+        ac_ex_db2 = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db2.id))
+        self.assertEqual(ac_ex_db2.status, action_constants.LIVEACTION_STATUS_FAILED)
+        self.assertEqual(expected_error, ac_ex_db2.result['errors'][0]['message'])
+
+    @mock.patch.object(
+        local_shell_command_runner.LocalShellCommandRunner, 'run',
+        mock.MagicMock(side_effect=[RUNNER_RESULT_CANCELED]))
     def test_rerun_with_unrerunnable_status(self):
-        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, TEST_FIXTURES['workflows'][0])
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
-        lv_ac_db, ac_ex_db = ac_svc.create_request(lv_ac_db)
+        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
+        wf_input = {'who': 'Thanos'}
+        lv_ac_db1 = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=wf_input)
+        lv_ac_db1, ac_ex_db1 = action_service.request(lv_ac_db1)
+        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db1.id))[0]
 
-        # Rerun option.
+        # Process task1.
+        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task1'}
+        tk1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        tk1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk1_ex_db.id))[0]
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction['id'])
+        self.assertEqual(tk1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_CANCELED)
+        workflow_service.handle_action_execution_completion(tk1_ac_ex_db)
+        tk1_ex_db = wf_db_access.TaskExecution.get_by_id(tk1_ex_db.id)
+        self.assertEqual(tk1_ex_db.status, wf_statuses.CANCELED)
+
+        # Assert workflow is completed.
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
+        self.assertEqual(wf_ex_db.status, wf_statuses.CANCELED)
+        lv_ac_db1 = lv_db_access.LiveAction.get_by_id(str(lv_ac_db1.id))
+        self.assertEqual(lv_ac_db1.status, action_constants.LIVEACTION_STATUS_CANCELED)
+        ac_ex_db1 = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db1.id))
+        self.assertEqual(ac_ex_db1.status, action_constants.LIVEACTION_STATUS_CANCELED)
+
+        # Rerun the execution.
         context = {
-            're-run': OPTIONS
+            're-run': {
+                'ref': str(ac_ex_db1.id),
+                'tasks': ['task1']
+            }
         }
 
-        # At this point, workflow execution value is not assigned yet
-        # and action execution status is requested
-        self.assertEqual(ac_ex_db.workflow_execution, None)
-        self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_REQUESTED)
+        lv_ac_db2 = lv_db_models.LiveActionDB(action=wf_meta['name'], context=context)
+        lv_ac_db2, ac_ex_db2 = action_service.request(lv_ac_db2)
 
-        # Manually setup workflow execution id in order to test unrerunnable status
-        ac_ex_db.context['workflow_execution'] = '5cd31c9d076129256abd70c7'
-
-        orquesta_runner = runners.get_runner(name='orquesta')
-        self.assertRaisesRegexp(
-            Exception,
-            'Workflow execution is not in a rerunable state.',
-            orquesta_runner.rerun_workflow,
-            ac_ex_db,
-            context
+        expected_error = (
+            'Unable to rerun workflow execution "%s" because '
+            'it is not in a failed state.' % str(wf_ex_db.id)
         )
+
+        # Assert the workflow rerrun fails.
+        lv_ac_db2 = lv_db_access.LiveAction.get_by_id(str(lv_ac_db2.id))
+        self.assertEqual(lv_ac_db2.status, action_constants.LIVEACTION_STATUS_FAILED)
+        self.assertEqual(expected_error, lv_ac_db2.result['errors'][0]['message'])
+        ac_ex_db2 = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db2.id))
+        self.assertEqual(ac_ex_db2.status, action_constants.LIVEACTION_STATUS_FAILED)
+        self.assertEqual(expected_error, ac_ex_db2.result['errors'][0]['message'])
+
+    @mock.patch.object(
+        workflow_service, 'request_rerun',
+        mock.MagicMock(side_effect=Exception('Unexpected.')))
+    @mock.patch.object(
+        local_shell_command_runner.LocalShellCommandRunner, 'run',
+        mock.MagicMock(side_effect=[RUNNER_RESULT_FAILED]))
+    def test_rerun_with_unexpected_error(self):
+        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
+        wf_input = {'who': 'Thanos'}
+        lv_ac_db1 = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=wf_input)
+        lv_ac_db1, ac_ex_db1 = action_service.request(lv_ac_db1)
+        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db1.id))[0]
+
+        # Process task1.
+        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task1'}
+        tk1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        tk1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk1_ex_db.id))[0]
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction['id'])
+        self.assertEqual(tk1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_FAILED)
+        workflow_service.handle_action_execution_completion(tk1_ac_ex_db)
+        tk1_ex_db = wf_db_access.TaskExecution.get_by_id(tk1_ex_db.id)
+        self.assertEqual(tk1_ex_db.status, wf_statuses.FAILED)
+
+        # Assert workflow is completed.
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
+        self.assertEqual(wf_ex_db.status, wf_statuses.FAILED)
+        lv_ac_db1 = lv_db_access.LiveAction.get_by_id(str(lv_ac_db1.id))
+        self.assertEqual(lv_ac_db1.status, action_constants.LIVEACTION_STATUS_FAILED)
+        ac_ex_db1 = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db1.id))
+        self.assertEqual(ac_ex_db1.status, action_constants.LIVEACTION_STATUS_FAILED)
+
+        # Delete the workflow execution.
+        wf_db_access.WorkflowExecution.delete(wf_ex_db, publish=False)
+
+        # Rerun the execution.
+        context = {
+            're-run': {
+                'ref': str(ac_ex_db1.id),
+                'tasks': ['task1']
+            }
+        }
+
+        lv_ac_db2 = lv_db_models.LiveActionDB(action=wf_meta['name'], context=context)
+        lv_ac_db2, ac_ex_db2 = action_service.request(lv_ac_db2)
+
+        expected_error = 'Unexpected.'
+
+        # Assert the workflow rerrun fails.
+        lv_ac_db2 = lv_db_access.LiveAction.get_by_id(str(lv_ac_db2.id))
+        self.assertEqual(lv_ac_db2.status, action_constants.LIVEACTION_STATUS_FAILED)
+        self.assertEqual(expected_error, lv_ac_db2.result['errors'][0]['message'])
+        ac_ex_db2 = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db2.id))
+        self.assertEqual(ac_ex_db2.status, action_constants.LIVEACTION_STATUS_FAILED)
+        self.assertEqual(expected_error, ac_ex_db2.result['errors'][0]['message'])
