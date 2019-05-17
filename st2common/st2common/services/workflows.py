@@ -431,6 +431,58 @@ def request_cancellation(ac_ex_db):
     return wf_ex_db
 
 
+@retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
+def request_rerun(ac_ex_db, st2_ctx, options):
+    ac_ex_id = str(ac_ex_db.id)
+    LOG.info('[%s] Processing rerun request for workflow.', ac_ex_id)
+
+    wf_ex_id = st2_ctx.get('workflow_execution_id')
+
+    if not wf_ex_id:
+        msg = 'Unable to rerun workflow execution because workflow_execution_id is not provided.'
+        raise wf_exc.WorkflowExecutionRerunException(msg)
+
+    try:
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
+    except db_exc.StackStormDBObjectNotFoundError:
+        msg = 'Unable to rerun workflow execution "%s" because it does not exist.'
+        raise wf_exc.WorkflowExecutionRerunException(msg % wf_ex_id)
+
+    if wf_ex_db.status not in statuses.ABENDED_STATUSES:
+        msg = 'Unable to rerun workflow execution "%s" because it is not in a failed state.'
+        raise wf_exc.WorkflowExecutionRerunException(msg % wf_ex_id)
+
+    wf_ex_db.action_execution = ac_ex_id
+    wf_ex_db.context['st2'] = st2_ctx['st2']
+    wf_ex_db.context['parent'] = st2_ctx['parent']
+    conductor = deserialize_conductor(wf_ex_db)
+
+    try:
+        conductor.request_workflow_rerun(options)
+    except orquesta_exc.InvalidWorkflowRerunStatus as e:
+        raise wf_exc.WorkflowExecutionRerunException(six.text_type(e))
+    except orquesta_exc.InvalidRerunTasks as e:
+        raise wf_exc.WorkflowExecutionRerunException(six.text_type(e))
+
+    if conductor.get_workflow_status() != statuses.RESUMING:
+        msg = 'Unable to rerun workflow execution "%s" due to an unknown cause.'
+        raise wf_exc.WorkflowExecutionRerunException(msg % wf_ex_id)
+
+    data = conductor.serialize()
+    wf_ex_db.status = data['state']['status']
+    wf_ex_db.spec = data['spec']
+    wf_ex_db.graph = data['graph']
+    wf_ex_db.state = data['state']
+
+    wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
+    wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(str(wf_ex_db.id))
+
+    # Publish status change.
+    wf_db_access.WorkflowExecution.publish_status(wf_ex_db)
+
+    return wf_ex_db
+
+
 def request_task_execution(wf_ex_db, st2_ctx, task_ex_req):
     wf_ac_ex_id = wf_ex_db.action_execution
     task_id = task_ex_req['id']
