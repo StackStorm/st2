@@ -31,10 +31,10 @@ client will assume localhost and default ports.
    assume default ports for the API servers are used. If any of the API
    server URL is provided, it will override the base URL and default
    port.
+- ``ST2_AUTH_URL`` - URL to the auth API endpoint used for authentication.
 -  ``ST2_API_URL`` - Endpoint for the Action REST API (i.e.
    https://example.com/api) for managing actions, executions, triggers,
    rules and other resources.
-- ``ST2_AUTH_URL`` - URL to the auth API endpoint used for authentication.
 - ``ST2_STREAM_URL`` - URL to the stream API endpoind uses for event-stream data.
 
 The default endpoint configuration can be explicitly specified at the
@@ -43,7 +43,7 @@ via optional parameters (i.e. ``--url`` for base URL, ``--auth-url``, ``--api-ur
 ``--stream-url``).
 
 For the python client, the endpoints are provided via the Client init as kwargs (i.e.
-``base_url``, ``api_url``, ``auth_url``, ``stream_url``).
+``base_url``, ``auth_url``, ``api_url``, ``stream_url``).
 
 CLI
 ---
