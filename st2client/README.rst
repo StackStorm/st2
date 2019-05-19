@@ -116,7 +116,7 @@ as **triggers**, **rules**, **actions**, **executions**, and **keys**.
 The operations get\_all, get\_by\_name, get\_by\_id, create, update, and
 delete are generally implemented for these resource managers.
 
--  ``get\_all returns a list of resource instances.
+-  ``get_all`` returns a list of resource instances.
 -  ``get_by_name`` and ``get_by_id`` takes name and id respectively
    and returns the matching resource instance.
 -  ``create`` takes a resource instance as input and creates the
