@@ -257,32 +257,41 @@ class TestResourceManager(unittest2.TestCase):
         instance = mgr.get_by_name('abc')
         self.assertRaises(Exception, mgr.delete, instance)
 
+    @mock.patch('requests.get')
     @mock.patch('sseclient.SSEClient')
-    def test_stream_resource_listen(self, mock):
+    def test_stream_resource_listen(self, mock_sseclient, mock_requests):
         mock_msg = mock.Mock()
         mock_msg.data = json.dumps(base.RESOURCES)
 
         # checking the case to specify valid 'cacert' parameter to the StreamManager
-        def side_effect_checking_verify_parameter_is(endpoint_url, **kwargs):
-            self.assertEqual(endpoint_url, 'https://example.com/stream?events=foo%2Cbar')
-            self.assertEqual(kwargs['verify'], '/path/ca.crt')
+        def side_effect_checking_verify_parameter_is():
             return [mock_msg]
 
-        mock.side_effect = side_effect_checking_verify_parameter_is
+        mock_sseclient.return_value.events.side_effect = side_effect_checking_verify_parameter_is
         mgr = models.StreamManager('https://example.com', cacert='/path/ca.crt')
 
         resp = mgr.listen(events=['foo', 'bar'])
         self.assertEqual(list(resp), [base.RESOURCES])
 
+        call_args = tuple(['https://example.com/stream?events=foo%2Cbar'])
+        call_kwargs = {'stream': True, 'verify': '/path/ca.crt'}
+
+        self.assertEqual(mock_requests.call_args_list[0][0], call_args)
+        self.assertEqual(mock_requests.call_args_list[0][1], call_kwargs)
+
         # checking the case not to specify valid 'cacert' parameter to the StreamManager
-        def side_effect_checking_verify_parameter_is_not(endpoint_url, **kwargs):
-            # checking endpoint_url in case of no event specification
-            self.assertEqual(endpoint_url, 'https://example.com/stream?')
-            self.assertFalse('verify' in kwargs)
+        def side_effect_checking_verify_parameter_is_not():
             return [mock_msg]
 
-        mock.side_effect = side_effect_checking_verify_parameter_is_not
+        mock_sseclient.return_value.events.side_effect = \
+            side_effect_checking_verify_parameter_is_not
         mgr = models.StreamManager('https://example.com')
 
         resp = mgr.listen()
         self.assertEqual(list(resp), [base.RESOURCES])
+
+        call_args = tuple(['https://example.com/stream?'])
+        call_kwargs = {'stream': True}
+
+        self.assertEqual(mock_requests.call_args_list[1][0], call_args)
+        self.assertEqual(mock_requests.call_args_list[1][1], call_kwargs)

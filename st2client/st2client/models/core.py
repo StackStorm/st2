@@ -637,7 +637,7 @@ class StreamManager(object):
             import requests
             return requests.get(url, stream=True, **kwargs)
 
-        response = with_requests(url)
+        response = with_requests(url, **request_params)
         client = SSEClient(response)
 
         for message in client.events():
