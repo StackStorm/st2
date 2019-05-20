@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 import json
 import logging
@@ -631,8 +632,14 @@ class StreamManager(object):
         query_string = '?' + urllib.parse.urlencode(query_params)
         url = url + query_string
 
-        for message in SSEClient(url, **request_params):
+        def with_requests(url, **kwargs):
+            import requests
+            return requests.get(url, stream=True, **kwargs)
 
+        response = with_requests(url)
+        client = SSEClient(response)
+
+        for message in client.events():
             # If the execution on the API server takes too long, the message
             # can be empty. In this case, rerun the query.
             if not message.data:

@@ -8,7 +8,7 @@ jsonschema
 jsonpath-rw
 requests
 six
-sseclient
+sseclient-py
 python-editor
 prompt-toolkit
 cryptography

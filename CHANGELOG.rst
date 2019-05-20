@@ -35,6 +35,9 @@ Fixed
   ``service`` or ``action`` parameter. (bug fix) #4675
 
   Reported by James Robinson (Netskope and Veracode).
+* Replace ``sseclient`` library on which CLI depends on with ``sseclient-py``. ``sseclient`` has
+  various issue which cause client to sometimes hang and keep the connection open which also causes
+  ``st2 execution tail`` command to sometimes hang for a long time. (improvement)
 
 3.0.0 - April 18, 2019
 ----------------------
