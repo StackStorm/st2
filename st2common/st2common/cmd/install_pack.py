@@ -67,7 +67,8 @@ def main(argv):
         # 1. Download the pack
         LOG.info('Installing pack "%s"' % (pack))
         result = download_pack(pack=pack, verify_ssl=verify_ssl, force=force,
-                               proxy_config=proxy_config, force_permissions=True)
+                               proxy_config=proxy_config, force_permissions=True,
+                               use_python3=use_python3)
 
         # Raw pack name excluding the version
         pack_name = result[1]

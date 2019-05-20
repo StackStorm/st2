@@ -68,6 +68,20 @@ def _run_scheduler():
     handler = scheduler_handler.get_handler()
     entrypoint = scheduler_entrypoint.get_scheduler_entrypoint()
 
+    # TODO: Remove this try block for _cleanup_policy_delayed in v3.2.
+    # This is a temporary cleanup to remove executions in deprecated policy-delayed status.
+    try:
+        handler._cleanup_policy_delayed()
+    except Exception:
+        LOG.exception('(PID=%s) Scheduler unable to perform migration cleanup.', os.getpid())
+
+    # TODO: Remove this try block for _fix_missing_action_execution_id in v3.2.
+    # This is a temporary fix to auto-populate action_execution_id.
+    try:
+        handler._fix_missing_action_execution_id()
+    except Exception:
+        LOG.exception('(PID=%s) Scheduler unable to populate action_execution_id.', os.getpid())
+
     try:
         handler.start()
         entrypoint.start()

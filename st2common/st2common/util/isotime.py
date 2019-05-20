@@ -20,6 +20,7 @@ ISO8601 date related utility functions.
 from __future__ import absolute_import
 import re
 import datetime
+from dateutil import tz as tzi
 
 from st2common.util import date as date_utils
 import six
@@ -48,7 +49,7 @@ def format(dt, usec=True, offset=True):
         dt = parse(dt)
     elif isinstance(dt, int):
         # unix epoch
-        dt = datetime.datetime.fromtimestamp(dt)
+        dt = datetime.datetime.fromtimestamp(dt, tzi.tzutc())
 
     fmt = ISO8601_FORMAT_MICROSECOND if usec else ISO8601_FORMAT
     if offset:

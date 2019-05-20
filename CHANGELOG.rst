@@ -1,6 +1,41 @@
 Changelog
 =========
 
+in development
+--------------
+
+Fixed
+~~~~~
+
+* Fix a bug in the remote command and script runner so it correctly uses SSH port from a SSH config
+  file if ``ssh_runner.use_ssh_config`` parameter is set to ``True`` and if a custom (non-default)
+  value for SSH port is specified in the configured SSH config file
+  (``ssh_runner.ssh_config_file_path``). (bug fix) #4660 #4661
+* Update pack install action so it works correctly when ``python_versions`` ``pack.yaml`` metadata
+  attribute is used in combination with ``--python3`` pack install flag. (bug fix) #4654 #4662
+* Add ``source_channel`` back to the context used by Mistral workflows for executions which are
+  triggered via ChatOps (using action alias).
+
+  In StackStorm v3.0.0, this variable was inadvertently removed from the context used by Mistral
+  workflows. (bug fix) #4650 #4656
+* Fix a bug with ``timestamp`` attribute in the ``execution.log`` attribute being incorrect when
+  server time where st2api is running was not set to UTC. (bug fix) #4668
+
+  Contributed by Igor Cherkaev. (@emptywee)
+* Fix a bug with some packs which use ``--python3`` flag (running Python 3 actions on installation
+  where StackStorm components run under Python 2) which rely on modules from Python 3 standard
+  library which are also available in Python 2 site-packages (e.g. ``concurrent``) not working
+  correctly.
+
+  In such scenario, package / module was incorrectly loaded from Python 2 site-packages instead of
+  Python 3 standard library which broke such packs. (bug fix) #4658 #4674
+* Remove policy-delayed status to avoid bouncing between delayed statuses. (bug fix) #4655
+* Fix a possible shell injection in the ``linux.service`` action. User who had access to run this
+  action could cause a shell command injection by passing a compromised value for either the
+  ``service`` or ``action`` parameter. (bug fix) #4675
+
+  Reported by James Robinson (Netskope and Veracode).
+
 3.0.0 - April 26, 2019
 ----------------------
 

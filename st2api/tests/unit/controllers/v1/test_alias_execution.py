@@ -188,9 +188,9 @@ class AliasExecutionTestCase(FunctionalTest):
                        return_value=(None, EXECUTION))
     def test_match_and_execute_matches_one(self, mock_request):
         base_data = {
-            'source_channel': 'chat',
+            'source_channel': 'chat-channel',
             'notification_route': 'hubot',
-            'user': 'chat-user'
+            'user': 'chat-user',
         }
 
         # Command matches - should result in action execution
@@ -204,6 +204,15 @@ class AliasExecutionTestCase(FunctionalTest):
 
         expected_parameters = {'cmd': 'date', 'hosts': 'localhost'}
         self.assertEquals(mock_request.call_args[0][0].parameters, expected_parameters)
+
+        # Also check for source_channel - see
+        # https://github.com/StackStorm/st2/issues/4650
+        actual_context = mock_request.call_args[0][0].context
+
+        self.assertTrue('source_channel' in mock_request.call_args[0][0].context.keys())
+        self.assertEquals(actual_context['source_channel'], 'chat-channel')
+        self.assertEquals(actual_context['api_user'], 'chat-user')
+        self.assertEquals(actual_context['user'], 'stanley')
 
     @mock.patch.object(action_service, 'request',
                        return_value=(None, EXECUTION))

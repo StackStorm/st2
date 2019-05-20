@@ -31,6 +31,7 @@ from st2common.transport.publishers import PoolPublisher
 from st2common.util import date as date_utils
 from st2common.util import param as param_utils
 from st2common.util.config_loader import get_config
+
 from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
 
@@ -865,3 +866,114 @@ class ParamsUtilsTest(DbTestCase):
         }
         result = param_utils._cast_params_from({'templateparam': '4'}, context, schemas)
         self.assertEquals(result, {'templateparam': 4})
+
+    def test_render_final_params_and_shell_script_action_command_strings(self):
+        runner_parameters = {}
+        action_db_parameters = {
+            'project': {
+                'type': 'string',
+                'default': 'st2',
+                'position': 0,
+            },
+            'version': {
+                'type': 'string',
+                'position': 1,
+                'required': True
+            },
+            'fork': {
+                'type': 'string',
+                'position': 2,
+                'default': 'StackStorm',
+            },
+            'branch': {
+                'type': 'string',
+                'position': 3,
+                'default': 'master',
+            },
+            'update_mistral': {
+                'type': 'boolean',
+                'position': 4,
+                'default': False
+            },
+            'update_changelog': {
+                'type': 'boolean',
+                'position': 5,
+                'default': False
+            },
+            'local_repo': {
+                'type': 'string',
+                'position': 6,
+            }
+        }
+        context = {}
+
+        # 1. All default values used
+        live_action_db_parameters = {
+            'project': 'st2flow',
+            'version': '3.0.0',
+            'fork': 'StackStorm',
+            'local_repo': '/tmp/repo'
+        }
+
+        runner_params, action_params = param_utils.render_final_params(runner_parameters,
+                                                action_db_parameters,
+                                                live_action_db_parameters,
+                                                context)
+
+        self.assertDictEqual(action_params, {
+            'project': 'st2flow',
+            'version': '3.0.0',
+            'fork': 'StackStorm',
+            'branch': 'master',  # default value used
+            'update_mistral': False,  # default value used
+            'update_changelog': False,  # default value used
+            'local_repo': '/tmp/repo'
+        })
+
+        # 2. Some default values used
+        live_action_db_parameters = {
+            'project': 'st2web',
+            'version': '3.1.0',
+            'fork': 'StackStorm1',
+            'update_changelog': True,
+            'local_repo': '/tmp/repob'
+        }
+
+        runner_params, action_params = param_utils.render_final_params(runner_parameters,
+                                                action_db_parameters,
+                                                live_action_db_parameters,
+                                                context)
+
+        self.assertDictEqual(action_params, {
+            'project': 'st2web',
+            'version': '3.1.0',
+            'fork': 'StackStorm1',
+            'branch': 'master',  # default value used
+            'update_mistral': False,  # default value used
+            'update_changelog': True,  # default value used
+            'local_repo': '/tmp/repob'
+        })
+
+        # 3. None is specified for a boolean parameter, should use a default
+        live_action_db_parameters = {
+            'project': 'st2rbac',
+            'version': '3.2.0',
+            'fork': 'StackStorm2',
+            'update_changelog': None,
+            'local_repo': '/tmp/repoc'
+        }
+
+        runner_params, action_params = param_utils.render_final_params(runner_parameters,
+                                                action_db_parameters,
+                                                live_action_db_parameters,
+                                                context)
+
+        self.assertDictEqual(action_params, {
+            'project': 'st2rbac',
+            'version': '3.2.0',
+            'fork': 'StackStorm2',
+            'branch': 'master',  # default value used
+            'update_mistral': False,  # default value used
+            'update_changelog': False,  # default value used
+            'local_repo': '/tmp/repoc'
+        })

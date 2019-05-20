@@ -20,6 +20,7 @@ from st2common.util import date
 from st2common.constants import action as action_constants
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.db.liveaction import LiveActionDB
+from st2common.persistence.execution import ActionExecution
 from st2common.transport import consumers
 from st2common.transport import utils as transport_utils
 from st2common.transport.queues import ACTIONSCHEDULER_REQUEST_QUEUE
@@ -92,8 +93,17 @@ class SchedulerEntrypoint(consumers.MessageHandler):
         """
         Create ActionExecutionSchedulingQueueItemDB from live action.
         """
+        execution = ActionExecution.get(liveaction__id=str(liveaction.id))
+
+        if not execution:
+            msg = ('Corresponding ActionExecution object for LiveAction with id "%s" not found' %
+                   (str(liveaction.id)))
+            raise StackStormDBObjectNotFoundError(msg)
+
         execution_queue_item_db = ActionExecutionSchedulingQueueItemDB()
+        execution_queue_item_db.action_execution_id = str(execution.id)
         execution_queue_item_db.liveaction_id = str(liveaction.id)
+        execution_queue_item_db.original_start_timestamp = liveaction.start_timestamp
         execution_queue_item_db.scheduled_start_timestamp = date.append_milliseconds_to_time(
             liveaction.start_timestamp,
             delay or 0

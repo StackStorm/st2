@@ -51,8 +51,6 @@ class ParallelSSHClient(object):
         :type handle_stderr_line_func: ``func``
         """
         self._ssh_user = user
-
-        self._ssh_user = user
         self._ssh_key_file = pkey_file
         self._ssh_key_material = pkey_material
         self._ssh_password = password
