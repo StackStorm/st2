@@ -21,6 +21,7 @@ import mock
 from jinja2.exceptions import UndefinedError
 
 from st2common import log as logging
+from st2common.exceptions.param import ParamException
 from st2common.content.loader import MetaLoader
 from st2common.models.db.rule import RuleDB
 from st2common.models.db.trigger import TriggerDB
@@ -87,6 +88,7 @@ class RuleTester(object):
         runner_type_db = mock.Mock()
         runner_type_db.runner_parameters = {}
         action_db = mock.Mock()
+        action_db.pack = 'mock'
         action_db.parameters = {}
         params = rule_db.action.parameters  # pylint: disable=no-member
 
@@ -108,7 +110,7 @@ class RuleTester(object):
             for param in six.iteritems(params):
                 LOG.info('\t%s: %s', param[0], param[1])
             return True
-        except (UndefinedError, ValueError) as e:
+        except (UndefinedError, ParamException, ValueError) as e:
             LOG.error('Failed to resolve parameters\n\tOriginal error : %s', six.text_type(e))
             return False
         except:
