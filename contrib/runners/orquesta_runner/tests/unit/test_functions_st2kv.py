@@ -14,6 +14,7 @@
 
 from __future__ import absolute_import
 
+import six
 import unittest2
 
 import st2tests
@@ -57,37 +58,47 @@ class UserScopeDatastoreFunctionTest(st2tests.ExecutionDbTestCase):
         super(UserScopeDatastoreFunctionTest, cls).setUpClass()
         user = auth_db.UserDB(name='stanley')
         user.save()
-
-    def setUp(self):
-        super(UserScopeDatastoreFunctionTest, self).setUp()
         scope = kvp_const.FULL_USER_SCOPE
+        cls.kvps = {}
 
-        # Plain key
-        key_id = 'stanley:foo'
-        instance = kvp_db.KeyValuePairDB(name=key_id, value='bar', scope=scope)
-        self.kvp = kvp_db_access.KeyValuePair.add_or_update(instance)
+        # Plain keys
+        keys = {
+            'stanley:foo': 'bar',
+            'stanley:foo_empty': '',
+            'stanley:foo_null': None
+        }
+
+        for k, v in six.iteritems(keys):
+            instance = kvp_db.KeyValuePairDB(name=k, value=v, scope=scope)
+            cls.kvps[k] = kvp_db_access.KeyValuePair.add_or_update(instance)
 
         # Secret key
-        key_id = 'stanley:fu'
-        value = crypto.symmetric_encrypt(kvp_api.KeyValuePairAPI.crypto_key, 'bar')
-        instance = kvp_db.KeyValuePairDB(name=key_id, value=value, scope=scope, secret=True)
-        self.secret_kvp = kvp_db_access.KeyValuePair.add_or_update(instance)
+        keys = {
+            'stanley:fu': 'bar',
+            'stanley:fu_empty': ''
+        }
 
-    def tearDown(self):
-        if hasattr(self, 'kvp') and self.kvp:
-            self.kvp.delete()
+        for k, v in six.iteritems(keys):
+            value = crypto.symmetric_encrypt(kvp_api.KeyValuePairAPI.crypto_key, v)
+            instance = kvp_db.KeyValuePairDB(name=k, value=value, scope=scope, secret=True)
+            cls.kvps[k] = kvp_db_access.KeyValuePair.add_or_update(instance)
 
-        if hasattr(self, 'secret_kvp') and self.secret_kvp:
-            self.secret_kvp.delete()
+    @classmethod
+    def tearDownClass(cls):
+        for k, v in six.iteritems(cls.kvps):
+            v.delete()
 
-        super(UserScopeDatastoreFunctionTest, self).tearDown()
+        super(UserScopeDatastoreFunctionTest, cls).tearDownClass()
 
     def test_key_exists(self):
         self.assertEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'foo'), 'bar')
+        self.assertEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'foo_empty'), '')
+        self.assertIsNone(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'foo_null'))
 
     def test_key_does_not_exist(self):
-        self.assertRaises(
+        self.assertRaisesRegexp(
             exc.ExpressionEvaluationException,
+            'The key ".*" does not exist in the StackStorm datastore.',
             st2kv.st2kv_,
             MOCK_ORCHESTRA_CTX,
             'foobar'
@@ -95,6 +106,7 @@ class UserScopeDatastoreFunctionTest(st2tests.ExecutionDbTestCase):
 
     def test_key_decrypt(self):
         self.assertEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'fu', decrypt=True), 'bar')
+        self.assertEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'fu_empty', decrypt=True), '')
 
 
 class SystemScopeDatastoreFunctionTest(st2tests.ExecutionDbTestCase):
@@ -104,37 +116,47 @@ class SystemScopeDatastoreFunctionTest(st2tests.ExecutionDbTestCase):
         super(SystemScopeDatastoreFunctionTest, cls).setUpClass()
         user = auth_db.UserDB(name='stanley')
         user.save()
-
-    def setUp(self):
-        super(SystemScopeDatastoreFunctionTest, self).setUp()
         scope = kvp_const.FULL_SYSTEM_SCOPE
+        cls.kvps = {}
 
         # Plain key
-        key_id = 'foo'
-        instance = kvp_db.KeyValuePairDB(name=key_id, value='bar', scope=scope)
-        self.kvp = kvp_db_access.KeyValuePair.add_or_update(instance)
+        keys = {
+            'foo': 'bar',
+            'foo_empty': '',
+            'foo_null': None
+        }
+
+        for k, v in six.iteritems(keys):
+            instance = kvp_db.KeyValuePairDB(name=k, value=v, scope=scope)
+            cls.kvps[k] = kvp_db_access.KeyValuePair.add_or_update(instance)
 
         # Secret key
-        key_id = 'fu'
-        value = crypto.symmetric_encrypt(kvp_api.KeyValuePairAPI.crypto_key, 'bar')
-        instance = kvp_db.KeyValuePairDB(name=key_id, value=value, scope=scope, secret=True)
-        self.secret_kvp = kvp_db_access.KeyValuePair.add_or_update(instance)
+        keys = {
+            'fu': 'bar',
+            'fu_empty': ''
+        }
 
-    def tearDown(self):
-        if hasattr(self, 'kvp') and self.kvp:
-            self.kvp.delete()
+        for k, v in six.iteritems(keys):
+            value = crypto.symmetric_encrypt(kvp_api.KeyValuePairAPI.crypto_key, v)
+            instance = kvp_db.KeyValuePairDB(name=k, value=value, scope=scope, secret=True)
+            cls.kvps[k] = kvp_db_access.KeyValuePair.add_or_update(instance)
 
-        if hasattr(self, 'secret_kvp') and self.secret_kvp:
-            self.secret_kvp.delete()
+    @classmethod
+    def tearDownClass(cls):
+        for k, v in six.iteritems(cls.kvps):
+            v.delete()
 
-        super(SystemScopeDatastoreFunctionTest, self).tearDown()
+        super(SystemScopeDatastoreFunctionTest, cls).tearDownClass()
 
     def test_key_exists(self):
         self.assertEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'system.foo'), 'bar')
+        self.assertEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'system.foo_empty'), '')
+        self.assertIsNone(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'system.foo_null'))
 
     def test_key_does_not_exist(self):
-        self.assertRaises(
+        self.assertRaisesRegexp(
             exc.ExpressionEvaluationException,
+            'The key ".*" does not exist in the StackStorm datastore.',
             st2kv.st2kv_,
             MOCK_ORCHESTRA_CTX,
             'foo'
@@ -142,3 +164,4 @@ class SystemScopeDatastoreFunctionTest(st2tests.ExecutionDbTestCase):
 
     def test_key_decrypt(self):
         self.assertEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'system.fu', decrypt=True), 'bar')
+        self.assertEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'system.fu_empty', decrypt=True), '')

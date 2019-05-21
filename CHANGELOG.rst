@@ -44,6 +44,7 @@ Fixed
   NOTE: AWS DocumentDB is not officially supported. Use at your own risk. (improvement) #4688 #4690
 
   Reported by Guillaume Truchot (@GuiTeK)
+* Fix orquesta st2kv to return empty string and null values. (bug fix) #4678
 
 3.0.0 - April 18, 2019
 ----------------------

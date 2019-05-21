@@ -43,11 +43,9 @@ def st2kv_(context, key, decrypt=False):
         raise Exception('Failed to retrieve User object for user "%s" % (username)' %
                         (six.text_type(e)))
 
-    kvp = kvp_util.get_key(key=key, user_db=user_db, decrypt=decrypt)
-
-    if not kvp:
-        raise exc.ExpressionEvaluationException(
-            'Key %s does not exist in StackStorm datastore.' % key
-        )
+    try:
+        kvp = kvp_util.get_key(key=key, user_db=user_db, decrypt=decrypt)
+    except Exception as e:
+        raise exc.ExpressionEvaluationException(str(e))
 
     return kvp
