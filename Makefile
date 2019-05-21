@@ -251,7 +251,6 @@ flake8: requirements .flake8
 	@echo
 	@echo "==================== flake ===================="
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; cd ./lint-configs/python/flake8_plugins; python setup.py develop
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./lint-configs/python/.flake8 $(COMPONENTS)
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./lint-configs/python/.flake8 $(COMPONENTS_RUNNERS)
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./lint-configs/python/.flake8 contrib/packs/actions/
