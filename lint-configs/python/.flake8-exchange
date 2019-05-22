@@ -6,7 +6,7 @@ ignore = E128,E402,E722,W504
 exclude=*.egg/*,build,dist
 
 # Configuration for flake8-copyright extension
-copyright-check = False
+copyright-check = True
 copyright-min-file-size = 1
 
 # Settings for flake8-license

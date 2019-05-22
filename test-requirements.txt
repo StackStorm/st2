@@ -1,8 +1,7 @@
 # NOTE: codecov only supports coverage==4.5.2
 coverage==4.5.2
 pep8==1.7.1
-flake8==3.7.7
-flake8-copyright==0.2.2
+st2flake8==0.1.0
 astroid==1.6.5
 pylint==1.9.4
 pylint-plugin-utils>=0.4
