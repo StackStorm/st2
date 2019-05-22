@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 import json
 import logging
@@ -22,6 +23,7 @@ from functools import wraps
 import six
 from six.moves import urllib
 from six.moves import http_client
+import requests
 
 from st2client.utils import httpclient
 
@@ -632,8 +634,10 @@ class StreamManager(object):
         query_string = '?' + urllib.parse.urlencode(query_params)
         url = url + query_string
 
-        for message in SSEClient(url, **request_params):
+        response = requests.get(url, stream=True, **request_params)
+        client = SSEClient(response)
 
+        for message in client.events():
             # If the execution on the API server takes too long, the message
             # can be empty. In this case, rerun the query.
             if not message.data:
