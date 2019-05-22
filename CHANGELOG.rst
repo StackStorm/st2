@@ -5,7 +5,7 @@ In development
 --------------
 
 
-3.0.1 - May 20, 2019
+3.0.1 - May 24, 2019
 --------------------
 
 Fixed
@@ -42,6 +42,12 @@ Fixed
 * Replace ``sseclient`` library on which CLI depends on with ``sseclient-py``. ``sseclient`` has
   various issue which cause client to sometimes hang and keep the connection open which also causes
   ``st2 execution tail`` command to sometimes hang for a long time. (improvement)
+* Truncate some database index names so they are less than 65 characters long in total. This way it
+  also works with AWS DocumentDB which doesn't support longer index name at the moment.
+
+  NOTE: AWS DocumentDB is not officially supported. Use at your own risk. (improvement) #4688 #4690
+
+  Reported by Guillaume Truchot (@GuiTeK)
 
 3.0.0 - April 26, 2019
 ----------------------
