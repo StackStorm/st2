@@ -1579,9 +1579,6 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
             else:
                 sys.stdout.write(event['data'])
 
-        # Workaround for sseclient sometimes keeping the connection open and not closing it
-        sys.exit(0)
-
     @classmethod
     def get_normalized_context_execution_task_event(cls, event):
         """
