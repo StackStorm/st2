@@ -34,14 +34,14 @@ from st2common.persistence import keyvalue as kvp_db_access
 from st2common.util import crypto
 
 
-MOCK_ORCHESTRA_CTX = {'__vars': {'st2': {'user': 'stanley'}}}
-MOCK_ORCHESTRA_CTX_NO_USER = {'__vars': {'st2': {}}}
+MOCK_CTX = {'__vars': {'st2': {'user': 'stanley'}}}
+MOCK_CTX_NO_USER = {'__vars': {'st2': {}}}
 
 
 class DatastoreFunctionTest(unittest2.TestCase):
 
     def test_missing_user_context(self):
-        self.assertRaises(KeyError, st2kv.st2kv_, MOCK_ORCHESTRA_CTX_NO_USER, 'foo')
+        self.assertRaises(KeyError, st2kv.st2kv_, MOCK_CTX_NO_USER, 'foo')
 
     def test_invalid_input(self):
         self.assertRaises(TypeError, st2kv.st2kv_, None, 123)
@@ -91,26 +91,26 @@ class UserScopeDatastoreFunctionTest(st2tests.ExecutionDbTestCase):
         super(UserScopeDatastoreFunctionTest, cls).tearDownClass()
 
     def test_key_exists(self):
-        self.assertEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'foo'), 'bar')
-        self.assertEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'foo_empty'), '')
-        self.assertIsNone(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'foo_null'))
+        self.assertEqual(st2kv.st2kv_(MOCK_CTX, 'foo'), 'bar')
+        self.assertEqual(st2kv.st2kv_(MOCK_CTX, 'foo_empty'), '')
+        self.assertIsNone(st2kv.st2kv_(MOCK_CTX, 'foo_null'))
 
     def test_key_does_not_exist(self):
         self.assertRaisesRegexp(
             exc.ExpressionEvaluationException,
             'The key ".*" does not exist in the StackStorm datastore.',
             st2kv.st2kv_,
-            MOCK_ORCHESTRA_CTX,
+            MOCK_CTX,
             'foobar'
         )
 
     def test_key_decrypt(self):
-        self.assertNotEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'fu'), 'bar')
-        self.assertNotEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'fu', decrypt=False), 'bar')
-        self.assertEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'fu', decrypt=True), 'bar')
-        self.assertNotEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'fu_empty'), '')
-        self.assertNotEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'fu_empty', decrypt=False), '')
-        self.assertEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'fu_empty', decrypt=True), '')
+        self.assertNotEqual(st2kv.st2kv_(MOCK_CTX, 'fu'), 'bar')
+        self.assertNotEqual(st2kv.st2kv_(MOCK_CTX, 'fu', decrypt=False), 'bar')
+        self.assertEqual(st2kv.st2kv_(MOCK_CTX, 'fu', decrypt=True), 'bar')
+        self.assertNotEqual(st2kv.st2kv_(MOCK_CTX, 'fu_empty'), '')
+        self.assertNotEqual(st2kv.st2kv_(MOCK_CTX, 'fu_empty', decrypt=False), '')
+        self.assertEqual(st2kv.st2kv_(MOCK_CTX, 'fu_empty', decrypt=True), '')
 
 
 class SystemScopeDatastoreFunctionTest(st2tests.ExecutionDbTestCase):
@@ -153,23 +153,23 @@ class SystemScopeDatastoreFunctionTest(st2tests.ExecutionDbTestCase):
         super(SystemScopeDatastoreFunctionTest, cls).tearDownClass()
 
     def test_key_exists(self):
-        self.assertEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'system.foo'), 'bar')
-        self.assertEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'system.foo_empty'), '')
-        self.assertIsNone(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'system.foo_null'))
+        self.assertEqual(st2kv.st2kv_(MOCK_CTX, 'system.foo'), 'bar')
+        self.assertEqual(st2kv.st2kv_(MOCK_CTX, 'system.foo_empty'), '')
+        self.assertIsNone(st2kv.st2kv_(MOCK_CTX, 'system.foo_null'))
 
     def test_key_does_not_exist(self):
         self.assertRaisesRegexp(
             exc.ExpressionEvaluationException,
             'The key ".*" does not exist in the StackStorm datastore.',
             st2kv.st2kv_,
-            MOCK_ORCHESTRA_CTX,
+            MOCK_CTX,
             'foo'
         )
 
     def test_key_decrypt(self):
-        self.assertNotEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'system.fu'), 'bar')
-        self.assertNotEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'system.fu', decrypt=False), 'bar')
-        self.assertEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'system.fu', decrypt=True), 'bar')
-        self.assertNotEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'system.fu_empty'), '')
-        self.assertNotEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'system.fu_empty', decrypt=False), '')
-        self.assertEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'system.fu_empty', decrypt=True), '')
+        self.assertNotEqual(st2kv.st2kv_(MOCK_CTX, 'system.fu'), 'bar')
+        self.assertNotEqual(st2kv.st2kv_(MOCK_CTX, 'system.fu', decrypt=False), 'bar')
+        self.assertEqual(st2kv.st2kv_(MOCK_CTX, 'system.fu', decrypt=True), 'bar')
+        self.assertNotEqual(st2kv.st2kv_(MOCK_CTX, 'system.fu_empty'), '')
+        self.assertNotEqual(st2kv.st2kv_(MOCK_CTX, 'system.fu_empty', decrypt=False), '')
+        self.assertEqual(st2kv.st2kv_(MOCK_CTX, 'system.fu_empty', decrypt=True), '')
