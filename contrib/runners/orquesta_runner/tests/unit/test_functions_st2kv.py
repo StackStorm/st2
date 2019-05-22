@@ -105,7 +105,11 @@ class UserScopeDatastoreFunctionTest(st2tests.ExecutionDbTestCase):
         )
 
     def test_key_decrypt(self):
+        self.assertNotEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'fu'), 'bar')
+        self.assertNotEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'fu', decrypt=False), 'bar')
         self.assertEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'fu', decrypt=True), 'bar')
+        self.assertNotEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'fu_empty'), '')
+        self.assertNotEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'fu_empty', decrypt=False), '')
         self.assertEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'fu_empty', decrypt=True), '')
 
 
@@ -163,5 +167,9 @@ class SystemScopeDatastoreFunctionTest(st2tests.ExecutionDbTestCase):
         )
 
     def test_key_decrypt(self):
+        self.assertNotEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'system.fu'), 'bar')
+        self.assertNotEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'system.fu', decrypt=False), 'bar')
         self.assertEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'system.fu', decrypt=True), 'bar')
+        self.assertNotEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'system.fu_empty'), '')
+        self.assertNotEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'system.fu_empty', decrypt=False), '')
         self.assertEqual(st2kv.st2kv_(MOCK_ORCHESTRA_CTX, 'system.fu_empty', decrypt=True), '')

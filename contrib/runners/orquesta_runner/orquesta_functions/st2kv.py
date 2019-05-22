@@ -25,9 +25,11 @@ from st2common.util import keyvalue as kvp_util
 LOG = logging.getLogger(__name__)
 
 
-def st2kv_(context, key, decrypt=False):
+def st2kv_(context, key, **kwargs):
     if not isinstance(key, six.string_types):
         raise TypeError('Given key is not typeof string.')
+
+    decrypt = kwargs.get('decrypt', False)
 
     if not isinstance(decrypt, bool):
         raise TypeError('Decrypt parameter is not typeof bool.')
