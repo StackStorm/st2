@@ -4,6 +4,7 @@ Changelog
 in development
 --------------
 
+
 Fixed
 ~~~~~
 
@@ -35,6 +36,12 @@ Fixed
   ``service`` or ``action`` parameter. (bug fix) #4675
 
   Reported by James Robinson (Netskope and Veracode).
+* Truncate some database index names so they are less than 65 characters long in total. This way it
+  also works with AWS DocumentDB which doesn't support longer index name at the moment.
+
+  NOTE: AWS DocumentDB is not officially supported. Use at your own risk. (improvement) #4688 #4690
+
+  Reported by Guillaume Truchot (@GuiTeK)
 
 3.0.0 - April 18, 2019
 ----------------------
