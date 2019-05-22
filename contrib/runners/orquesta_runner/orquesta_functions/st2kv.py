@@ -45,9 +45,13 @@ def st2kv_(context, key, **kwargs):
         raise Exception('Failed to retrieve User object for user "%s" % (username)' %
                         (six.text_type(e)))
 
-    try:
-        kvp = kvp_util.get_key(key=key, user_db=user_db, decrypt=decrypt)
-    except Exception as e:
-        raise exc.ExpressionEvaluationException(str(e))
+    has_default = 'default' in kwargs
+    default_value = kwargs.get('default')
 
-    return kvp
+    try:
+        return kvp_util.get_key(key=key, user_db=user_db, decrypt=decrypt)
+    except Exception as e:
+        if not has_default:
+            raise exc.ExpressionEvaluationException(str(e))
+        else:
+            return default_value

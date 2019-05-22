@@ -104,6 +104,11 @@ class UserScopeDatastoreFunctionTest(st2tests.ExecutionDbTestCase):
             'foobar'
         )
 
+    def test_key_does_not_exist_but_return_default(self):
+        self.assertEqual(st2kv.st2kv_(MOCK_CTX, 'foobar', default='foosball'), 'foosball')
+        self.assertEqual(st2kv.st2kv_(MOCK_CTX, 'foobar', default=''), '')
+        self.assertIsNone(st2kv.st2kv_(MOCK_CTX, 'foobar', default=None))
+
     def test_key_decrypt(self):
         self.assertNotEqual(st2kv.st2kv_(MOCK_CTX, 'fu'), 'bar')
         self.assertNotEqual(st2kv.st2kv_(MOCK_CTX, 'fu', decrypt=False), 'bar')
@@ -165,6 +170,11 @@ class SystemScopeDatastoreFunctionTest(st2tests.ExecutionDbTestCase):
             MOCK_CTX,
             'foo'
         )
+
+    def test_key_does_not_exist_but_return_default(self):
+        self.assertEqual(st2kv.st2kv_(MOCK_CTX, 'system.foobar', default='foosball'), 'foosball')
+        self.assertEqual(st2kv.st2kv_(MOCK_CTX, 'system.foobar', default=''), '')
+        self.assertIsNone(st2kv.st2kv_(MOCK_CTX, 'system.foobar', default=None))
 
     def test_key_decrypt(self):
         self.assertNotEqual(st2kv.st2kv_(MOCK_CTX, 'system.fu'), 'bar')

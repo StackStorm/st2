@@ -95,3 +95,79 @@ class DatastoreFunctionTest(base.TestWorkflowExecution):
         self.assertIn('value', output.result['output'])
         self.assertEqual(value, output.result['output']['value'])
         self.del_kvp(key)
+
+    def test_st2kv_nonexistent(self):
+        key = 'matt'
+
+        wf_name = 'examples.orquesta-st2kv'
+        wf_input = {
+            'key_name': 'system.%s' % key,
+            'decrypt': True
+        }
+
+        execution = self._execute_workflow(wf_name, wf_input)
+
+        output = self._wait_for_completion(execution)
+
+        self.assertEqual(output.status, ac_const.LIVEACTION_STATUS_FAILED)
+
+        expected_error = 'The key "%s" does not exist in the StackStorm datastore.' % key
+
+        self.assertIn(expected_error, output.result['errors'][0]['message'])
+
+    def test_st2kv_default_value(self):
+        key = 'matt'
+
+        wf_name = 'examples.orquesta-st2kv-default'
+        wf_input = {
+            'key_name': 'system.%s' % key,
+            'decrypt': True,
+            'default': 'stone'
+        }
+
+        execution = self._execute_workflow(wf_name, wf_input)
+
+        output = self._wait_for_completion(execution)
+
+        self.assertEqual(output.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertIn('output', output.result)
+        self.assertIn('value', output.result['output'])
+        self.assertEqual(wf_input['default'], output.result['output']['value'])
+
+    def test_st2kv_default_value_with_empty_string(self):
+        key = 'matt'
+
+        wf_name = 'examples.orquesta-st2kv-default'
+        wf_input = {
+            'key_name': 'system.%s' % key,
+            'decrypt': True,
+            'default': ''
+        }
+
+        execution = self._execute_workflow(wf_name, wf_input)
+
+        output = self._wait_for_completion(execution)
+
+        self.assertEqual(output.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertIn('output', output.result)
+        self.assertIn('value', output.result['output'])
+        self.assertEqual(wf_input['default'], output.result['output']['value'])
+
+    def test_st2kv_default_value_with_null(self):
+        key = 'matt'
+
+        wf_name = 'examples.orquesta-st2kv-default'
+        wf_input = {
+            'key_name': 'system.%s' % key,
+            'decrypt': True,
+            'default': None
+        }
+
+        execution = self._execute_workflow(wf_name, wf_input)
+
+        output = self._wait_for_completion(execution)
+
+        self.assertEqual(output.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertIn('output', output.result)
+        self.assertIn('value', output.result['output'])
+        self.assertEqual(wf_input['default'], output.result['output']['value'])
