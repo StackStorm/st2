@@ -58,7 +58,7 @@ class DbIndexNameTestCase(TestCase):
     """
     Test which verifies that model index name are not longer than the specified limit.
     """
-    LIMIT = 70
+    LIMIT = 65
 
     def test_index_name_length(self):
         db_name = 'st2'
@@ -79,8 +79,6 @@ class DbIndexNameTestCase(TestCase):
                     index_field_name = '.'.join(index_fields)
 
                 index_name = '%s.%s.%s' % (db_name, collection_name, index_field_name)
-                print index_name
-                continue
 
                 if len(index_name) > self.LIMIT:
                     self.fail('Index name "%s" for model "%s" is longer than %s characters. '
