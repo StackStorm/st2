@@ -23,6 +23,7 @@ from functools import wraps
 import six
 from six.moves import urllib
 from six.moves import http_client
+import requests
 
 from st2client.utils import httpclient
 
@@ -633,11 +634,7 @@ class StreamManager(object):
         query_string = '?' + urllib.parse.urlencode(query_params)
         url = url + query_string
 
-        def with_requests(url, **kwargs):
-            import requests
-            return requests.get(url, stream=True, **kwargs)
-
-        response = with_requests(url, **request_params)
+        response = requests.get(url, stream=True, **request_params)
         client = SSEClient(response)
 
         for message in client.events():
