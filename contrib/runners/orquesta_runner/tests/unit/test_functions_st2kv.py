@@ -131,6 +131,7 @@ class UserScopeDatastoreFunctionTest(st2tests.ExecutionDbTestCase):
             'foo'
         )
 
+
 class SystemScopeDatastoreFunctionTest(st2tests.ExecutionDbTestCase):
 
     @classmethod
