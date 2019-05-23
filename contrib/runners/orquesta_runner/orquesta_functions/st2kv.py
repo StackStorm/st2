@@ -18,6 +18,7 @@ import six
 
 from orquesta import exceptions as exc
 
+from st2common.exceptions import db as db_exc
 from st2common.persistence import auth as auth_db_access
 from st2common.util import keyvalue as kvp_util
 
@@ -50,8 +51,10 @@ def st2kv_(context, key, **kwargs):
 
     try:
         return kvp_util.get_key(key=key, user_db=user_db, decrypt=decrypt)
-    except Exception as e:
+    except db_exc.StackStormDBObjectNotFoundError as e:
         if not has_default:
             raise exc.ExpressionEvaluationException(str(e))
         else:
             return default_value
+    except Exception as e:
+        raise exc.ExpressionEvaluationException(str(e))

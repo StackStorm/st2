@@ -14,6 +14,7 @@
 
 from __future__ import absolute_import
 
+import mock
 import six
 import unittest2
 
@@ -32,6 +33,7 @@ from st2common.models.db import auth as auth_db
 from st2common.models.db import keyvalue as kvp_db
 from st2common.persistence import keyvalue as kvp_db_access
 from st2common.util import crypto
+from st2common.util import keyvalue as kvp_util
 
 
 MOCK_CTX = {'__vars': {'st2': {'user': 'stanley'}}}
@@ -117,6 +119,17 @@ class UserScopeDatastoreFunctionTest(st2tests.ExecutionDbTestCase):
         self.assertNotEqual(st2kv.st2kv_(MOCK_CTX, 'fu_empty', decrypt=False), '')
         self.assertEqual(st2kv.st2kv_(MOCK_CTX, 'fu_empty', decrypt=True), '')
 
+    @mock.patch.object(
+        kvp_util, 'get_key',
+        mock.MagicMock(side_effect=Exception('Mock failure.')))
+    def test_get_key_exception(self):
+        self.assertRaisesRegexp(
+            exc.ExpressionEvaluationException,
+            'Mock failure.',
+            st2kv.st2kv_,
+            MOCK_CTX,
+            'foo'
+        )
 
 class SystemScopeDatastoreFunctionTest(st2tests.ExecutionDbTestCase):
 
@@ -183,3 +196,15 @@ class SystemScopeDatastoreFunctionTest(st2tests.ExecutionDbTestCase):
         self.assertNotEqual(st2kv.st2kv_(MOCK_CTX, 'system.fu_empty'), '')
         self.assertNotEqual(st2kv.st2kv_(MOCK_CTX, 'system.fu_empty', decrypt=False), '')
         self.assertEqual(st2kv.st2kv_(MOCK_CTX, 'system.fu_empty', decrypt=True), '')
+
+    @mock.patch.object(
+        kvp_util, 'get_key',
+        mock.MagicMock(side_effect=Exception('Mock failure.')))
+    def test_get_key_exception(self):
+        self.assertRaisesRegexp(
+            exc.ExpressionEvaluationException,
+            'Mock failure.',
+            st2kv.st2kv_,
+            MOCK_CTX,
+            'system.foo'
+        )
