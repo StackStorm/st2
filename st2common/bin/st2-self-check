@@ -140,7 +140,7 @@ do
         echo "Skipping ${TEST}..."
         continue
     fi
- 
+
     # Skip Mistral Inquiry test if we're not running Mistral tests
     if [ ${RUN_MISTRAL_TESTS} = "false" ] && [ ${TEST} = "tests.test_inquiry_mistral" ]; then
         echo "Skipping ${TEST}..."
@@ -150,13 +150,15 @@ do
     echo -n "Attempting Test ${TEST}..."
 
     START_TS=$(date +%s)
-    st2 run ${TEST} protocol=${PROTOCOL} token=${ST2_AUTH_TOKEN} | grep "status" | grep -q "succeeded"
+    OUTPUT=$(st2 run ${TEST} protocol=${PROTOCOL} token=${ST2_AUTH_TOKEN})
+    echo ${OUTPUT} | grep "status" | grep -q "succeeded"
     EXIT_CODE=$?
     END_TS=$(date +%s)
     DURATION=$(expr ${END_TS} - ${START_TS})
 
     if [ ${EXIT_CODE} -ne 0 ]; then
         echo -e "ERROR! (${DURATION}s)"
+        echo "Test output: ${OUTPUT}"
         ((ERRORS++))
     else
         echo "OK! (${DURATION}s)"
@@ -167,13 +169,15 @@ if [ ${RUN_MISTRAL_TESTS} = "true" ]; then
     echo -n "Attempting Example examples.mistral_examples..."
 
     START_TS=$(date +%s)
-    st2 run examples.mistral_examples | grep "status" | grep -q "succeeded"
+    OUTPUT=$(st2 run examples.mistral_examples)
+    echo ${OUTPUT} | grep "status" | grep -q "succeeded"
     EXIT_CODE=$?
     END_TS=$(date +%s)
     DURATION=$(expr ${END_TS} - ${START_TS})
 
     if [ ${EXIT_CODE} -ne 0 ]; then
         echo -e "ERROR! (${DURATION}s)"
+        echo "Test output: ${OUTPUT}"
         ((ERRORS++))
     else
         echo "OK! (${DURATION}s)"
@@ -186,13 +190,15 @@ if [ ${RUN_ORQUESTA_TESTS} = "true" ]; then
     echo -n "Attempting Example examples.orquesta-examples..."
 
     START_TS=$(date +%s)
-    st2 run examples.orquesta-examples | grep "status" | grep -q "succeeded"
+    OUTPUT=$(st2 run examples.orquesta-examples)
+    echo ${OUTPUT} | grep "status" | grep -q "succeeded"
     EXIT_CODE=$?
     END_TS=$(date +%s)
     DURATION=$(expr ${END_TS} - ${START_TS})
 
     if [ ${EXIT_CODE} -ne 0 ]; then
         echo -e "ERROR! (${DURATION}s)"
+        echo "Test output: ${OUTPUT}"
         ((ERRORS++))
     else
         echo "OK! (${DURATION}s)"
