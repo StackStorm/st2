@@ -8,7 +8,8 @@ input:
   - default: null
 
 output:
-  - value: <% st2kv(ctx().key_name, decrypt => ctx().decrypt, default => ctx().default) %>
+  - value_from_yaql: <% st2kv(ctx().key_name, decrypt => ctx().decrypt, default => ctx().default) %>
+  - value_from_jinja: "{{ st2kv(ctx().key_name, decrypt=ctx().decrypt, default=ctx().default) }}"
 
 tasks:
   task1:

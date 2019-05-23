@@ -131,8 +131,10 @@ class DatastoreFunctionTest(base.TestWorkflowExecution):
 
         self.assertEqual(output.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         self.assertIn('output', output.result)
-        self.assertIn('value', output.result['output'])
-        self.assertEqual(wf_input['default'], output.result['output']['value'])
+        self.assertIn('value_from_yaql', output.result['output'])
+        self.assertEqual(wf_input['default'], output.result['output']['value_from_yaql'])
+        self.assertIn('value_from_jinja', output.result['output'])
+        self.assertEqual(wf_input['default'], output.result['output']['value_from_jinja'])
 
     def test_st2kv_default_value_with_empty_string(self):
         key = 'matt'
@@ -150,8 +152,10 @@ class DatastoreFunctionTest(base.TestWorkflowExecution):
 
         self.assertEqual(output.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         self.assertIn('output', output.result)
-        self.assertIn('value', output.result['output'])
-        self.assertEqual(wf_input['default'], output.result['output']['value'])
+        self.assertIn('value_from_yaql', output.result['output'])
+        self.assertEqual(wf_input['default'], output.result['output']['value_from_yaql'])
+        self.assertIn('value_from_jinja', output.result['output'])
+        self.assertEqual(wf_input['default'], output.result['output']['value_from_jinja'])
 
     def test_st2kv_default_value_with_null(self):
         key = 'matt'
@@ -169,5 +173,7 @@ class DatastoreFunctionTest(base.TestWorkflowExecution):
 
         self.assertEqual(output.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         self.assertIn('output', output.result)
-        self.assertIn('value', output.result['output'])
-        self.assertEqual(wf_input['default'], output.result['output']['value'])
+        self.assertIn('value_from_yaql', output.result['output'])
+        self.assertEqual(wf_input['default'], output.result['output']['value_from_yaql'])
+        self.assertIn('value_from_jinja', output.result['output'])
+        self.assertEqual(wf_input['default'], output.result['output']['value_from_jinja'])
