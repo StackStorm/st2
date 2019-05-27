@@ -48,6 +48,8 @@ __all__ = [
     'PollingAsyncActionRunner',
     'ShellRunnerMixin',
 
+    'get_runner_module',
+
     'get_runner',
     'get_metadata',
 
@@ -70,6 +72,25 @@ def get_runner(name, config=None):
     """
     LOG.debug('Runner loading Python module: %s', name)
 
+    module = get_runner_module(name=name)
+
+    LOG.debug('Instance of runner module: %s', module)
+
+    if config:
+        runner_kwargs = {'config': config}
+    else:
+        runner_kwargs = {}
+
+    runner = module.get_runner(**runner_kwargs)
+    LOG.debug('Instance of runner: %s', runner)
+    return runner
+
+
+def get_runner_module(name):
+    """
+    Load runner driver and return reference to the runner driver module.
+    """
+
     # NOTE: For backward compatibility we also support "_" in place of "-"
     from stevedore.exception import NoMatches
 
@@ -90,16 +111,7 @@ def get_runner(name, config=None):
 
             raise exc.ActionRunnerCreateError('%s\n\n%s' % (msg, six.text_type(e)))
 
-    LOG.debug('Instance of runner module: %s', module)
-
-    if config:
-        runner_kwargs = {'config': config}
-    else:
-        runner_kwargs = {}
-
-    runner = module.get_runner(**runner_kwargs)
-    LOG.debug('Instance of runner: %s', runner)
-    return runner
+    return module
 
 
 def get_query_module(name):
