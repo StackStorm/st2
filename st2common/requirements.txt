@@ -5,6 +5,7 @@ cryptography==2.6.1
 eventlet==0.24.1
 flex==6.14.0
 git+https://github.com/StackStorm/orquesta.git@v0.5#egg=orquesta
+gitpython==2.1.11
 greenlet==0.4.15
 ipaddr
 jinja2==2.10.1
