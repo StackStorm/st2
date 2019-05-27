@@ -12,6 +12,7 @@ jinja2==2.10.1
 jsonpath-rw==1.4.0
 jsonschema==2.6.0
 kombu==4.5.0
+lockfile==0.12.2
 mongoengine==0.17.0
 networkx==1.11
 oslo.config<1.13,>=1.12.1
