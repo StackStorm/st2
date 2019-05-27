@@ -30,6 +30,7 @@ from oslo_config import cfg
 from git.repo import Repo
 from gitdb.exc import BadName, BadObject
 from lockfile import LockFile
+from distutils.spawn import find_executable
 
 from st2common import log as logging
 from st2common.content import utils
@@ -62,6 +63,8 @@ LOG = logging.getLogger(__name__)
 CONFIG_FILE = 'config.yaml'
 CURRENT_STACKSTORM_VERSION = get_stackstorm_version()
 CURRENT_PYTHON_VERSION = get_python_version()
+
+SUDO_BINARY = find_executable('sudo')
 
 
 def download_pack(pack, abs_repo_base='/opt/stackstorm/packs', verify_ssl=True, force=False,
@@ -237,7 +240,7 @@ def clone_repo(temp_dir, repo_url, verify_ssl=True, ref='master'):
 
 
 def move_pack(abs_repo_base, pack_name, abs_local_path, force_owner_group=True,
-             force_permissions=True, logger=LOG):
+              force_permissions=True, logger=LOG):
     """
     Move pack directory into the final location.
     """
@@ -289,7 +292,14 @@ def apply_pack_owner_group(pack_path):
 
     if pack_group:
         LOG.debug('Changing owner group of "%s" directory to %s' % (pack_path, pack_group))
-        exit_code, _, stderr, _ = shell.run_command(['sudo', 'chgrp', '-R', pack_group, pack_path])
+
+        if SUDO_BINARY:
+            args = ['sudo', 'chgrp', '-R', pack_group, pack_path]
+        else:
+            # Environments where sudo is not available (e.g. docker)
+            args = ['chgrp', '-R', pack_group, pack_path]
+
+        exit_code, _, stderr, _ = shell.run_command(args)
 
         if exit_code != 0:
             # Non fatal, but we still log it
