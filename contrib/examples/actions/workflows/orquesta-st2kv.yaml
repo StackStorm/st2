@@ -7,14 +7,10 @@ input:
   - decrypt
 
 output:
-  - value: <% ctx().value %>
+  - value: <% task(task1).result.stdout %>
 
 tasks:
-  create_vm:
+  task1:
     action: core.local
     input:
       cmd: "echo <% st2kv(ctx().key_name, decrypt => ctx().decrypt) %>"
-    next:
-      - when: <% succeeded() %>
-        publish:
-          - value: <% result().stdout %>

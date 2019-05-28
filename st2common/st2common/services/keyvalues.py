@@ -21,6 +21,7 @@ from st2common.constants.keyvalue import SYSTEM_SCOPE, FULL_SYSTEM_SCOPE
 from st2common.constants.keyvalue import USER_SCOPE, FULL_USER_SCOPE
 from st2common.constants.keyvalue import ALLOWED_SCOPES
 from st2common.constants.keyvalue import DATASTORE_KEY_SEPARATOR
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.keyvalue import InvalidScopeException, InvalidUserException
 from st2common.models.system.keyvalue import UserKeyReference
 from st2common.persistence.keyvalue import KeyValuePair
@@ -148,7 +149,12 @@ class KeyValueLookup(BaseKeyValueLookup):
     def _get_kv(self, key):
         scope = self._scope
         LOG.debug('Lookup system kv: scope: %s and key: %s', scope, key)
-        kvp = KeyValuePair.get_by_scope_and_name(scope=scope, name=key)
+
+        try:
+            kvp = KeyValuePair.get_by_scope_and_name(scope=scope, name=key)
+        except StackStormDBObjectNotFoundError:
+            kvp = None
+
         if kvp:
             LOG.debug('Got value %s from datastore.', kvp.value)
         return kvp.value if kvp else ''
@@ -203,7 +209,12 @@ class UserKeyValueLookup(BaseKeyValueLookup):
 
     def _get_kv(self, key):
         scope = self._scope
-        kvp = KeyValuePair.get_by_scope_and_name(scope=scope, name=key)
+
+        try:
+            kvp = KeyValuePair.get_by_scope_and_name(scope=scope, name=key)
+        except StackStormDBObjectNotFoundError:
+            kvp = None
+
         return kvp.value if kvp else ''
 
 
