@@ -218,3 +218,35 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
         ex = self._wait_for_completion(ex)
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
         self.assertDictEqual(ex.result, {'errors': expected_errors, 'output': None})
+
+    def test_fail_manually(self):
+        expected_errors = [
+            {
+                'task_id': 'task1',
+                'type': 'error',
+                'message': 'Execution failed. See result for details.',
+                'result': {
+                    'failed': True,
+                    'return_code': 1,
+                    'stderr': '',
+                    'stdout': '',
+                    'succeeded': False
+                }
+            },
+            {
+                'task_id': 'fail',
+                'type': 'error',
+                'message': 'Execution failed. See result for details.'
+            }
+        ]
+
+        ex = self._execute_workflow('examples.orquesta-fail-manually')
+        ex = self._wait_for_completion(ex)
+
+        # Assert that the log task is executed.
+        self._wait_for_task(ex, 'task1', ac_const.LIVEACTION_STATUS_FAILED)
+        self._wait_for_task(ex, 'log', ac_const.LIVEACTION_STATUS_SUCCEEDED)
+
+        # Assert workflow status and result.
+        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
+        self.assertDictEqual(ex.result, {'errors': expected_errors, 'output': None})

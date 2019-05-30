@@ -1,0 +1,6 @@
+---
+name: orquesta-fail-manually
+description: A workflow that demonstrates how to fail manually.
+runner_type: orquesta
+entry_point: workflows/orquesta-fail-manually.yaml
+enabled: true
