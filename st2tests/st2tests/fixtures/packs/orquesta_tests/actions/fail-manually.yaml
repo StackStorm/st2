@@ -1,0 +1,7 @@
+---
+name: fail-manually
+description: A workflow that demonstrates how to fail manually.
+pack: orquesta_tests
+runner_type: orquesta
+entry_point: workflows/fail-manually.yaml
+enabled: true
