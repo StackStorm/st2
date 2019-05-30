@@ -771,3 +771,66 @@ class OrquestaErrorHandlingTest(st2tests.ExecutionDbTestCase):
         ]
 
         self.assertListEqual(self.sort_wf_runtime_errors(wf_ex_db.errors), expected_errors)
+
+    def test_fail_manually_with_recovery_failure(self):
+        wf_file = 'fail-manually-with-recovery-failure.yaml'
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, wf_file)
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
+        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
+
+        # Assert task1 and workflow execution failed due to fail in the task transition.
+        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task1'}
+        tk1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        tk1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk1_ex_db.id))[0]
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction['id'])
+        self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_FAILED)
+        wf_svc.handle_action_execution_completion(tk1_ac_ex_db)
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
+        self.assertEqual(wf_ex_db.status, wf_statuses.FAILED)
+
+        # Assert recover task is scheduled even though the workflow execution failed manually.
+        # The recover task in the workflow is setup to fail.
+        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'recover'}
+        tk2_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        tk2_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk2_ex_db.id))[0]
+        tk2_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk2_ac_ex_db.liveaction['id'])
+        self.assertEqual(tk2_lv_ac_db.status, ac_const.LIVEACTION_STATUS_FAILED)
+        wf_svc.handle_action_execution_completion(tk2_ac_ex_db)
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
+        self.assertEqual(wf_ex_db.status, wf_statuses.FAILED)
+
+        # Check errors and output.
+        expected_errors = [
+            {
+                'task_id': 'fail',
+                'type': 'error',
+                'message': 'Execution failed. See result for details.'
+            },
+            {
+                'task_id': 'recover',
+                'type': 'error',
+                'message': 'Execution failed. See result for details.',
+                'result': {
+                    'failed': True,
+                    'return_code': 1,
+                    'stderr': '',
+                    'stdout': '',
+                    'succeeded': False
+                }
+            },
+            {
+                'task_id': 'task1',
+                'type': 'error',
+                'message': 'Execution failed. See result for details.',
+                'result': {
+                    'failed': True,
+                    'return_code': 1,
+                    'stderr': '',
+                    'stdout': '',
+                    'succeeded': False
+                }
+            }
+        ]
+
+        self.assertListEqual(self.sort_wf_runtime_errors(wf_ex_db.errors), expected_errors)
