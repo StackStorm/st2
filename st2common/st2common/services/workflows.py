@@ -849,12 +849,6 @@ def request_next_tasks(wf_ex_db, task_ex_id=None):
         LOG.info('[%s] No tasks identified to execute next.', wf_ac_ex_id)
         update_execution_records(wf_ex_db, conductor)
 
-    # If workflow execution is no longer active, then stop processing here.
-    if wf_ex_db.status in statuses.COMPLETED_STATUSES:
-        msg = '[%s] Workflow execution is in completed status "%s".'
-        LOG.info(msg, wf_ac_ex_id, wf_ex_db.status)
-        return
-
     # Iterate while there are next tasks identified for processing. In the case for
     # task with no action execution defined, the task execution will complete
     # immediately with a new set of tasks available.
@@ -892,12 +886,6 @@ def request_next_tasks(wf_ex_db, task_ex_id=None):
         # Update workflow execution and related liveaction and action execution.
         LOG.debug('[%s] %s', wf_ac_ex_id, conductor.serialize())
         update_execution_records(wf_ex_db, conductor)
-
-        # If workflow execution is no longer active, then stop processing here.
-        if wf_ex_db.status in statuses.COMPLETED_STATUSES:
-            msg = '[%s] Workflow execution is in completed status "%s".'
-            LOG.info(msg, wf_ac_ex_id, wf_ex_db.status)
-            break
 
         # Request task execution for the tasks.
         for task in next_tasks:

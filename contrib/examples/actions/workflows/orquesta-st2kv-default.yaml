@@ -1,0 +1,16 @@
+version: 1.0
+
+description: A sample workflow that demonstrates st2kv usage.
+
+input:
+  - key_name
+  - decrypt
+  - default: null
+
+output:
+  - value_from_yaql: <% st2kv(ctx().key_name, decrypt => ctx().decrypt, default => ctx().default) %>
+  - value_from_jinja: "{{ st2kv(ctx().key_name, decrypt=ctx().decrypt, default=ctx().default) }}"
+
+tasks:
+  task1:
+    action: core.noop

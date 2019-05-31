@@ -18,6 +18,7 @@ import six
 
 from orquesta import exceptions as exc
 
+from st2common.exceptions import db as db_exc
 from st2common.persistence import auth as auth_db_access
 from st2common.util import keyvalue as kvp_util
 
@@ -25,9 +26,11 @@ from st2common.util import keyvalue as kvp_util
 LOG = logging.getLogger(__name__)
 
 
-def st2kv_(context, key, decrypt=False):
+def st2kv_(context, key, **kwargs):
     if not isinstance(key, six.string_types):
         raise TypeError('Given key is not typeof string.')
+
+    decrypt = kwargs.get('decrypt', False)
 
     if not isinstance(decrypt, bool):
         raise TypeError('Decrypt parameter is not typeof bool.')
@@ -43,11 +46,15 @@ def st2kv_(context, key, decrypt=False):
         raise Exception('Failed to retrieve User object for user "%s" % (username)' %
                         (six.text_type(e)))
 
-    kvp = kvp_util.get_key(key=key, user_db=user_db, decrypt=decrypt)
+    has_default = 'default' in kwargs
+    default_value = kwargs.get('default')
 
-    if not kvp:
-        raise exc.ExpressionEvaluationException(
-            'Key %s does not exist in StackStorm datastore.' % key
-        )
-
-    return kvp
+    try:
+        return kvp_util.get_key(key=key, user_db=user_db, decrypt=decrypt)
+    except db_exc.StackStormDBObjectNotFoundError as e:
+        if not has_default:
+            raise exc.ExpressionEvaluationException(str(e))
+        else:
+            return default_value
+    except Exception as e:
+        raise exc.ExpressionEvaluationException(str(e))

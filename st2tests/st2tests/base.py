@@ -66,6 +66,7 @@ import st2common.models.db.keyvalue as keyvalue_model
 import st2common.models.db.runner as runner_model
 import st2common.models.db.execution as execution_model
 import st2common.models.db.executionstate as executionstate_model
+import st2common.models.db.execution_queue as execution_queue_model
 import st2common.models.db.liveaction as liveaction_model
 import st2common.models.db.actionalias as actionalias_model
 import st2common.models.db.policy as policy_model
@@ -111,6 +112,7 @@ ALL_MODELS.extend(keyvalue_model.MODELS)
 ALL_MODELS.extend(runner_model.MODELS)
 ALL_MODELS.extend(execution_model.MODELS)
 ALL_MODELS.extend(executionstate_model.MODELS)
+ALL_MODELS.extend(execution_queue_model.MODELS)
 ALL_MODELS.extend(liveaction_model.MODELS)
 ALL_MODELS.extend(actionalias_model.MODELS)
 ALL_MODELS.extend(policy_model.MODELS)

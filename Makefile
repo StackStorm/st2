@@ -251,7 +251,6 @@ flake8: requirements .flake8
 	@echo
 	@echo "==================== flake ===================="
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; cd ./lint-configs/python/flake8_plugins; python setup.py develop
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./lint-configs/python/.flake8 $(COMPONENTS)
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./lint-configs/python/.flake8 $(COMPONENTS_RUNNERS)
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./lint-configs/python/.flake8 contrib/packs/actions/
@@ -282,6 +281,8 @@ flake8: requirements .flake8
 	chmod +x $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
 
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "pip>=9.0,<9.1"
+	# NOTE We need to upgrade setuptools to avoid bug with dependency resolving in old versions
+	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "setuptools==41.0.1"
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/activate; cd st2client ; ../$(VIRTUALENV_ST2CLIENT_DIR)/bin/python setup.py install ; cd ..
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/st2 --version
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/python -c "import st2client"

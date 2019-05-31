@@ -110,12 +110,11 @@ def get_key(key=None, user_db=None, scope=None, decrypt=False):
     _validate_decrypt_query_parameter(decrypt=decrypt, scope=scope, is_admin=is_admin,
                                       user_db=user_db)
 
-    value = KeyValuePair.get_by_scope_and_name(scope, key_id)
+    # Get the key value pair by scope and name.
+    kvp = KeyValuePair.get_by_scope_and_name(scope, key_id)
 
-    if value:
-        return deserialize_key_value(
-            value.value,
-            decrypt
-        )
+    # Decrypt in deserialize_key_value cannot handle NoneType.
+    if kvp.value is None:
+        return kvp.value
 
-    return None
+    return deserialize_key_value(kvp.value, decrypt)
