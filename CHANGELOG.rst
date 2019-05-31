@@ -4,12 +4,17 @@ Changelog
 in development
 --------------
 
+Changed
+~~~~~~~
+
+* Allow the orquesta st2kv function to return default for nonexistent key. (improvement) #4678
+* Update requests library to latest version (2.22.0) in requirements. (improvement) #4680
+
 Fixed
 ~~~~~
 
 * Fix orquesta st2kv to return empty string and null values. (bug fix) #4678
-* Allow the orquesta st2kv function to return default for nonexistent key. (improvement) #4678
-* Update requests library to latest version (2.22.0) in requirements. (improvement) #4680
+* Allow tasks defined in the same task transition with ``fail`` to run for orquesta. (bug fix)
 
 3.0.1 - May 24, 2019
 --------------------
