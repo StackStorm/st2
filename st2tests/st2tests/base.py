@@ -691,6 +691,9 @@ class WorkflowTestCase(ExecutionDbTestCase):
         task_ex_db = wf_db_access.TaskExecution.get_by_id(str(task_ex_db.id))
         self.assertEqual(task_ex_db.status, wf_statuses.SUCCEEDED)
 
+    def sort_workflow_errors(self, errors):
+        return sorted(errors, key=lambda x: x.get('task_id', None))
+
     def assert_task_not_started(self, task_id, route):
         task_ex_dbs = wf_db_access.TaskExecution.query(task_id=task_id, task_route=route)
         self.assertEqual(len(task_ex_dbs), 0)
