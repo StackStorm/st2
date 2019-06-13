@@ -318,15 +318,17 @@ class PythonRunner(GitWorktreeActionRunner):
             action_result = split[1].strip()
             stdout = split[0] + split[2]
         else:
+            # Timeout or similar
             action_result = None
 
-        # Parse the serialized action result object
-        try:
-            action_result = json.loads(action_result)
-        except Exception as e:
-            # Failed to de-serialize the result, probably it contains non-simple type or similar
-            LOG.warning('Failed to de-serialize result "%s": %s' % (str(action_result),
-                                                                    six.text_type(e)))
+        # Parse the serialized action result object (if available)
+        if action_result:
+            try:
+                action_result = json.loads(action_result)
+            except Exception as e:
+                # Failed to de-serialize the result, probably it contains non-simple type or similar
+                LOG.warning('Failed to de-serialize result "%s": %s' % (str(action_result),
+                                                                        six.text_type(e)))
 
         if action_result:
             if isinstance(action_result, dict):
