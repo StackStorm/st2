@@ -33,8 +33,8 @@ networkx==1.11
 python-keyczar==0.716
 cryptography==2.6.1
 retrying==1.3.3
-# Note: We use latest version of virtualenv which uses pip 9.0
-virtualenv==15.1.0
+# Note: We use latest version of virtualenv which uses pip 19
+virtualenv==16.6.0
 # NOTE: sseclient has various issues which sometimes hang the connection for a long time, etc.
 sseclient-py==1.7
 python-editor==1.0.4
