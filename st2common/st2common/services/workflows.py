@@ -24,6 +24,7 @@ from orquesta import exceptions as orquesta_exc
 from orquesta.expressions import base as expressions
 from orquesta.specs import loader as specs_loader
 from orquesta import statuses
+from oslo_config import cfg
 
 from st2common.constants import action as ac_const
 from st2common.exceptions import action as ac_exc
@@ -276,7 +277,12 @@ def request(wf_def, ac_ex_db, st2_ctx, notify_cfg=None):
     return wf_ex_db
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
+@retrying.retry(retry_on_exception=wf_exc.retry_on_transient_db_errors)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_connection_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 def request_pause(ac_ex_db):
     wf_ac_ex_id = str(ac_ex_db.id)
     LOG.info('[%s] Processing pause request for workflow.', wf_ac_ex_id)
@@ -311,7 +317,12 @@ def request_pause(ac_ex_db):
     return wf_ex_db
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
+@retrying.retry(retry_on_exception=wf_exc.retry_on_transient_db_errors)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_connection_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 def request_resume(ac_ex_db):
     wf_ac_ex_id = str(ac_ex_db.id)
     LOG.info('[%s] Processing resume request for workflow.', wf_ac_ex_id)
@@ -360,7 +371,12 @@ def request_resume(ac_ex_db):
     return wf_ex_db
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
+@retrying.retry(retry_on_exception=wf_exc.retry_on_transient_db_errors)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_connection_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 def request_cancellation(ac_ex_db):
     wf_ac_ex_id = str(ac_ex_db.id)
     LOG.info('[%s] Processing cancelation request for workflow.', wf_ac_ex_id)
@@ -525,7 +541,12 @@ def eval_action_execution_delay(task_ex_req, ac_ex_req, itemized=False):
     return None
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
+@retrying.retry(retry_on_exception=wf_exc.retry_on_transient_db_errors)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_connection_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 def request_action_execution(wf_ex_db, task_ex_db, st2_ctx, ac_ex_req, delay=None):
     wf_ac_ex_id = wf_ex_db.action_execution
     action_ref = ac_ex_req['action']
@@ -716,6 +737,11 @@ def handle_action_execution_resume(ac_ex_db):
             handle_action_execution_resume(parent_ac_ex_db)
 
 
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_connection_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 def handle_action_execution_completion(ac_ex_db):
     # Check that the action execution is completed.
     if ac_ex_db.status not in ac_const.LIVEACTION_COMPLETED_STATES:
@@ -783,7 +809,12 @@ def refresh_conductor(wf_ex_id):
     return conductor, wf_ex_db
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
+@retrying.retry(retry_on_exception=wf_exc.retry_on_transient_db_errors)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_connection_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 def update_task_state(task_ex_id, ac_ex_status, ac_ex_result=None, ac_ex_ctx=None, publish=True):
     # Return if action execution status is not in the list of statuses to process.
     statuses_to_process = (
@@ -816,7 +847,12 @@ def update_task_state(task_ex_id, ac_ex_status, ac_ex_result=None, ac_ex_ctx=Non
     )
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
+@retrying.retry(retry_on_exception=wf_exc.retry_on_transient_db_errors)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_connection_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 def request_next_tasks(wf_ex_db, task_ex_id=None):
     iteration = 0
 
@@ -926,7 +962,12 @@ def request_next_tasks(wf_ex_db, task_ex_id=None):
             LOG.info('[%s] No tasks identified to execute next.', wf_ac_ex_id)
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
+@retrying.retry(retry_on_exception=wf_exc.retry_on_transient_db_errors)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_connection_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 def update_task_execution(task_ex_id, ac_ex_status, ac_ex_result=None, ac_ex_ctx=None):
     if ac_ex_status not in statuses.COMPLETED_STATUSES + [statuses.PAUSED, statuses.PENDING]:
         return
@@ -981,7 +1022,12 @@ def update_task_execution(task_ex_id, ac_ex_status, ac_ex_result=None, ac_ex_ctx
     wf_db_access.TaskExecution.update(task_ex_db, publish=False)
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
+@retrying.retry(retry_on_exception=wf_exc.retry_on_transient_db_errors)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_connection_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 def resume_task_execution(task_ex_id):
     # Update task execution to running.
     task_ex_db = wf_db_access.TaskExecution.get_by_id(task_ex_id)
@@ -996,7 +1042,12 @@ def resume_task_execution(task_ex_id):
     wf_db_access.TaskExecution.update(task_ex_db, publish=False)
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
+@retrying.retry(retry_on_exception=wf_exc.retry_on_transient_db_errors)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_connection_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 def update_workflow_execution(wf_ex_id):
     conductor, wf_ex_db = refresh_conductor(wf_ex_id)
 
@@ -1006,7 +1057,12 @@ def update_workflow_execution(wf_ex_id):
         update_execution_records(wf_ex_db, conductor)
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
+@retrying.retry(retry_on_exception=wf_exc.retry_on_transient_db_errors)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_connection_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 def resume_workflow_execution(wf_ex_id, task_ex_id):
     # Update workflow execution to running.
     conductor, wf_ex_db = refresh_conductor(wf_ex_id)
@@ -1021,7 +1077,12 @@ def resume_workflow_execution(wf_ex_id, task_ex_id):
     update_execution_records(wf_ex_db, conductor)
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
+@retrying.retry(retry_on_exception=wf_exc.retry_on_transient_db_errors)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_connection_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 def fail_workflow_execution(wf_ex_id, exception, task=None):
     conductor, wf_ex_db = refresh_conductor(wf_ex_id)
 

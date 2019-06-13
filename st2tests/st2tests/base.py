@@ -34,6 +34,13 @@ from oslo_config import cfg
 from unittest2 import TestCase
 import unittest2
 
+# Import and parse the test config here otherwise config override at module level
+# will not be applied to the following st2common modules. There is another
+# parse_args when BaseDbTestCase runs class setup. If that is removed, unit tests
+# will failed due to conflict with duplicate DB keys.
+import st2tests.config as tests_config
+tests_config.parse_args()
+
 from orquesta import conducting
 from orquesta import events
 from orquesta.specs import loader as specs_loader
@@ -70,7 +77,6 @@ import st2common.models.db.execution_queue as execution_queue_model
 import st2common.models.db.liveaction as liveaction_model
 import st2common.models.db.actionalias as actionalias_model
 import st2common.models.db.policy as policy_model
-import st2tests.config
 
 # Imports for backward compatibility (those classes have been moved to standalone modules)
 from st2tests.actions import BaseActionTestCase
@@ -203,7 +209,7 @@ class BaseDbTestCase(BaseTestCase):
 
     @classmethod
     def setUpClass(cls):
-        st2tests.config.parse_args()
+        tests_config.parse_args()
 
         if cls.DISPLAY_LOG_MESSAGES:
             config_path = os.path.join(BASE_DIR, '../conf/logging.conf')

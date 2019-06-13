@@ -14,6 +14,9 @@
 
 from __future__ import absolute_import
 
+import mongoengine
+import tooz
+
 from st2common import exceptions as st2_exc
 from st2common.exceptions import db as db_exc
 from st2common import log as logging
@@ -22,13 +25,29 @@ from st2common import log as logging
 LOG = logging.getLogger(__name__)
 
 
-def retry_on_exceptions(exc):
+def retry_on_connection_errors(exc):
     LOG.warning('Determining if exception %s should be retried.', type(exc))
 
-    retrying = isinstance(exc, db_exc.StackStormDBObjectWriteConflictError)
+    retrying = (
+        isinstance(exc, tooz.coordination.ToozConnectionError) or
+        isinstance(exc, mongoengine.connection.MongoEngineConnectionError)
+    )
 
     if retrying:
-        LOG.warning('Retrying operation due to database write conflict.')
+        LOG.warning('Retrying operation due to connection error: %s', type(exc))
+
+    return retrying
+
+
+def retry_on_transient_db_errors(exc):
+    LOG.warning('Determining if exception %s should be retried.', type(exc))
+
+    retrying = (
+        isinstance(exc, db_exc.StackStormDBObjectWriteConflictError)
+    )
+
+    if retrying:
+        LOG.warning('Retrying operation due to transient database error: %s', type(exc))
 
     return retrying
 

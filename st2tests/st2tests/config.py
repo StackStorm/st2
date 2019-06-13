@@ -52,6 +52,7 @@ def _override_config_opts(coordinator_noop=False):
     _override_api_opts()
     _override_keyvalue_opts()
     _override_scheduler_opts()
+    _override_workflow_engine_opts()
     _override_coordinator_opts(noop=coordinator_noop)
 
 
@@ -107,6 +108,12 @@ def _override_coordinator_opts(noop=False):
     driver = None if noop else 'zake://'
     CONF.set_override(name='url', override=driver, group='coordination')
     CONF.set_override(name='lock_timeout', override=1, group='coordination')
+
+
+def _override_workflow_engine_opts():
+    cfg.CONF.set_override('retry_stop_max_msec', 500, group='workflow_engine')
+    cfg.CONF.set_override('retry_wait_fixed_msec', 100, group='workflow_engine')
+    cfg.CONF.set_override('retry_max_jitter_msec', 100, group='workflow_engine')
 
 
 def _register_common_opts():
