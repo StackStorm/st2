@@ -38,6 +38,9 @@ from st2common.persistence.rule import Rule
 from st2common.persistence.trigger import TriggerType, Trigger, TriggerInstance
 from st2tests import DbTestCase
 
+from unittest2 import TestCase
+from st2tests.base import ALL_MODELS
+
 
 __all__ = [
     'DbConnectionTestCase',
@@ -49,6 +52,38 @@ __all__ = [
 
 SKIP_DELETE = False
 DUMMY_DESCRIPTION = 'Sample Description.'
+
+
+class DbIndexNameTestCase(TestCase):
+    """
+    Test which verifies that model index name are not longer than the specified limit.
+    """
+    LIMIT = 65
+
+    def test_index_name_length(self):
+        db_name = 'st2'
+
+        for model in ALL_MODELS:
+            collection_name = model._get_collection_name()
+            model_indexes = model._meta['index_specs']
+
+            for index_specs in model_indexes:
+                index_name = index_specs.get('name', None)
+                if index_name:
+                    # Custom index name defined by the developer
+                    index_field_name = index_name
+                else:
+                    # No explicit index name specified, one is auto-generated using
+                    # <db name>.<collection name>.<index field names> schema
+                    index_fields = dict(index_specs['fields']).keys()
+                    index_field_name = '.'.join(index_fields)
+
+                index_name = '%s.%s.%s' % (db_name, collection_name, index_field_name)
+
+                if len(index_name) > self.LIMIT:
+                    self.fail('Index name "%s" for model "%s" is longer than %s characters. '
+                              'Please manually define name for this index so it\'s shorter than '
+                              'that' % (index_name, model.__name__, self.LIMIT))
 
 
 class DbConnectionTestCase(DbTestCase):

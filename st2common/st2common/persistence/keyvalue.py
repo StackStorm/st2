@@ -13,11 +13,13 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 from st2common import log as logging
 from st2common.constants.triggers import KEY_VALUE_PAIR_CREATE_TRIGGER
 from st2common.constants.triggers import KEY_VALUE_PAIR_UPDATE_TRIGGER
 from st2common.constants.triggers import KEY_VALUE_PAIR_VALUE_CHANGE_TRIGGER
 from st2common.constants.triggers import KEY_VALUE_PAIR_DELETE_TRIGGER
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.api.keyvalue import KeyValuePairAPI
 from st2common.models.db.keyvalue import keyvaluepair_access
 from st2common.models.system.common import ResourceReference
@@ -107,6 +109,11 @@ class KeyValuePair(Access):
         :rtype: :class:`KeyValuePairDB` or ``None``
         """
         query_result = cls.impl.query(scope=scope, name=name)
+
+        if not query_result:
+            msg = 'The key "%s" does not exist in the StackStorm datastore.'
+            raise StackStormDBObjectNotFoundError(msg % name)
+
         return query_result.first() if query_result else None
 
     @classmethod

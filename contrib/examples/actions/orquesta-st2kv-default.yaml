@@ -1,0 +1,17 @@
+---
+name: orquesta-st2kv-default
+description: A sample workflow that demonstrates st2kv usage
+runner_type: orquesta
+entry_point: workflows/orquesta-st2kv-default.yaml
+enabled: true
+parameters:
+  key_name:
+    required: true
+    type: string
+  decrypt:
+    required: false
+    type: boolean
+    default: false
+  default:
+    required: False
+    type: string

@@ -1,0 +1,18 @@
+version: 1.0
+
+description: A workflow to test task failure after workflow already failed manually.
+
+tasks:
+  task1:
+    action: core.local cmd="exit 1"
+    next:
+      - when: <% failed() %>
+        publish:
+          - task_name: <% task().task_name %>
+          - task_exit_code: <% task().result.stdout %>
+        do:
+          - recover
+          - fail
+
+  recover:
+    action: core.local cmd="exit 1"

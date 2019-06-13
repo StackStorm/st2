@@ -1,0 +1,7 @@
+---
+name: fail-manually-with-recovery-failure
+description: A workflow to test task failure after workflow already failed manually.
+pack: orquesta_tests
+runner_type: orquesta
+entry_point: workflows/fail-manually-with-recovery-failure.yaml
+enabled: true

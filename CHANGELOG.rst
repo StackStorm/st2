@@ -4,6 +4,21 @@ Changelog
 in development
 --------------
 
+Changed
+~~~~~~~
+
+* Allow the orquesta st2kv function to return default for nonexistent key. (improvement) #4678
+* Update requests library to latest version (2.22.0) in requirements. (improvement) #4680
+
+Fixed
+~~~~~
+
+* Fix orquesta st2kv to return empty string and null values. (bug fix) #4678
+* Allow tasks defined in the same task transition with ``fail`` to run for orquesta. (bug fix)
+
+3.0.1 - May 24, 2019
+--------------------
+
 Fixed
 ~~~~~
 
@@ -35,9 +50,15 @@ Fixed
   ``service`` or ``action`` parameter. (bug fix) #4675
 
   Reported by James Robinson (Netskope and Veracode).
-* Replace ``sseclient`` library on which st2client and CLI depends on with ``sseclient-py``.
-  ``sseclient`` has various issue which cause client to sometimes hang and keep the connection open
-  which also causes ``st2 execution tail`` command to hang for a long time. (improvement) #4686
+* Replace ``sseclient`` library on which CLI depends on with ``sseclient-py``. ``sseclient`` has
+  various issue which cause client to sometimes hang and keep the connection open which also causes
+  ``st2 execution tail`` command to sometimes hang for a long time. (improvement)
+* Truncate some database index names so they are less than 65 characters long in total. This way it
+  also works with AWS DocumentDB which doesn't support longer index name at the moment.
+
+  NOTE: AWS DocumentDB is not officially supported. Use at your own risk. (improvement) #4688 #4690
+
+  Reported by Guillaume Truchot (@GuiTeK)
 
 3.0.0 - April 18, 2019
 ----------------------
