@@ -34,17 +34,17 @@ from oslo_config import cfg
 from unittest2 import TestCase
 import unittest2
 
+from orquesta import conducting
+from orquesta import events
+from orquesta.specs import loader as specs_loader
+from orquesta import statuses as wf_statuses
+
 # Import and parse the test config here otherwise config override at module level
 # will not be applied to the following st2common modules. There is another
 # parse_args when BaseDbTestCase runs class setup. If that is removed, unit tests
 # will failed due to conflict with duplicate DB keys.
 import st2tests.config as tests_config
 tests_config.parse_args()
-
-from orquesta import conducting
-from orquesta import events
-from orquesta.specs import loader as specs_loader
-from orquesta import statuses as wf_statuses
 
 from st2common.util.api import get_full_public_api_url
 from st2common.constants import action as ac_const
@@ -77,6 +77,10 @@ import st2common.models.db.execution_queue as execution_queue_model
 import st2common.models.db.liveaction as liveaction_model
 import st2common.models.db.actionalias as actionalias_model
 import st2common.models.db.policy as policy_model
+
+# After the st2common modules are loaded, reset the test configuration
+# to avoid registration conflicts in other tests that loads st2tests.base.
+tests_config.reset()
 
 # Imports for backward compatibility (those classes have been moved to standalone modules)
 from st2tests.actions import BaseActionTestCase
