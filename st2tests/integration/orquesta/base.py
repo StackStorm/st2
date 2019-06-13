@@ -127,8 +127,8 @@ class TestWorkflowExecution(unittest2.TestCase):
         except:
             if ex.status in action_constants.LIVEACTION_COMPLETED_STATES:
                 raise Exception(
-                    'Execution is in completed state and does not '
-                    'match expected number of tasks.'
+                    'Execution is in completed state and does not match expected number of '
+                    'tasks. Expected: %s Actual: %s' % (str(num_task_exs), str(len(task_exs)))
                 )
             else:
                 raise
