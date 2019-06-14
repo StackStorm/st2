@@ -11,6 +11,8 @@ Changed
 * Update requests library to latest version (2.22.0) in requirements. (improvement) #4680
 * Upgrade ``tooz`` library to latest stable version (1.65.0) so it uses latest version of
   ``grpcio`` library. (improvement) #4713
+* Update ``st2-pack-install`` CLI command so it supports installing packs from local directories
+  which are not git repositories. (improvement) #4713
 
 Fixed
 ~~~~~
