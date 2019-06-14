@@ -94,10 +94,8 @@ cache:
     #- .tox/
 
 before_install:
-  # Work around for apt Travis timeout issues, see https://github.com/travis-ci/travis-ci/issues/9112
-  #- sudo apt-get update --option Acquire::Retries=100 --option Acquire::http::Timeout="60"
-  - pip install --upgrade "pip>=9.0,<9.1"
-  - sudo pip install --upgrade "virtualenv==15.1.0"
+  - pip install --upgrade "pip>=19.0,<20.0"
+  - sudo pip install --upgrade "virtualenv==16.6.0"
 
 install:
   - ./scripts/travis/install-requirements.sh
