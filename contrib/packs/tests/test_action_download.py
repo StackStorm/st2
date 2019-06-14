@@ -69,6 +69,18 @@ PACK_INDEX = {
 }
 
 
+original_is_dir_func = os.path.isdir
+
+
+def mock_is_dir_func(path):
+    """
+    Mock function which returns True if path ends with .git
+    """
+    if path.endswith('.git'):
+        return True
+    return original_is_dir_func(path)
+
+
 @mock.patch.object(pack_service, 'fetch_pack_index', mock.MagicMock(return_value=(PACK_INDEX, {})))
 class DownloadGitRepoActionTestCase(BaseActionTestCase):
     action_cls = DownloadGitRepoAction
@@ -525,6 +537,7 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
             result = action.run(packs=packs, abs_repo_base=self.repo_base)
             self.assertEqual(result, {'test': 'Success.'})
 
+    @mock.patch('os.path.isdir', mock_is_dir_func)
     def test_run_pack_dowload_local_git_repo_detached_head_state(self):
         action = self.get_action_instance()
 
