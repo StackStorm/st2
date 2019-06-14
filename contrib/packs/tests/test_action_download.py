@@ -35,6 +35,8 @@ from st2common.util.pack_management import eval_repo_url
 
 from pack_mgmt.download import DownloadGitRepoAction
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 PACK_INDEX = {
     "test": {
         "version": "0.4.0",
@@ -79,8 +81,9 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         self.addCleanup(clone_from.stop)
         self.clone_from = clone_from.start()
 
+        self.expand_user_path = tempfile.mkdtemp()
         expand_user = mock.patch.object(os.path, 'expanduser',
-                                        mock.MagicMock(return_value=tempfile.mkdtemp()))
+                                        mock.MagicMock(return_value=self.expand_user_path))
 
         self.addCleanup(expand_user.stop)
         self.expand_user = expand_user.start()
@@ -528,10 +531,31 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         type(self.repo_instance).active_branch = \
             mock.PropertyMock(side_effect=TypeError('detached head'))
 
-        result = action.run(packs=['file:///stackstorm-test'], abs_repo_base=self.repo_base)
+        pack_path = os.path.join(BASE_DIR, 'fixtures/stackstorm-test')
+
+        result = action.run(packs=['file://%s' % (pack_path)], abs_repo_base=self.repo_base)
         self.assertEqual(result, {'test': 'Success.'})
 
         # Verify function has bailed out early
         self.repo_instance.git.checkout.assert_not_called()
         self.repo_instance.git.branch.assert_not_called()
         self.repo_instance.git.checkout.assert_not_called()
+
+    def test_run_pack_download_local_directory(self):
+        action = self.get_action_instance()
+
+        # 1. Local directory doesn't exist
+        expected_msg = r'Local pack directory ".*" doesn\'t exist'
+        self.assertRaisesRegexp(ValueError, expected_msg, action.run,
+                                packs=['file://doesnt_exist'], abs_repo_base=self.repo_base)
+
+        # 2. Local pack which is not a git repository
+        pack_path = os.path.join(BASE_DIR, 'fixtures/stackstorm-test4')
+
+        result = action.run(packs=['file://%s' % (pack_path)], abs_repo_base=self.repo_base)
+        self.assertEqual(result, {'test4': 'Success.'})
+
+        # Verify pack contents have been copied over
+        destination_path = os.path.join(self.repo_base, 'test4')
+        self.assertTrue(os.path.exists(destination_path))
+        self.assertTrue(os.path.exists(os.path.join(destination_path, 'pack.yaml')))
