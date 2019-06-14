@@ -9,12 +9,22 @@ Changed
 
 * Allow the orquesta st2kv function to return default for nonexistent key. (improvement) #4678
 * Update requests library to latest version (2.22.0) in requirements. (improvement) #4680
+* Upgrade ``tooz`` library to latest stable version (1.65.0) so it uses latest version of
+  ``grpcio`` library. (improvement) #4713
 
 Fixed
 ~~~~~
 
 * Fix orquesta st2kv to return empty string and null values. (bug fix) #4678
 * Allow tasks defined in the same task transition with ``fail`` to run for orquesta. (bug fix)
+* Fix timeout handling in the Python runner. In some scenarios where action would time out before
+  producing any output (stdout, stder), timeout was not correctly propagated to the user. (bug fix)
+  #4713
+* Update ``st2common/setup.py`` file so it correctly declares all the dependencies and script
+  files it provides. This way ``st2-pack-*`` commands can be used in a standalone fashion just by
+  installing ``st2common`` Python package and nothing else. (bug fix) #4713
+* Fix ``st2-pack-download`` command so it works in the environments where ``sudo`` binary is not
+  available (e.g. Docker). (bug fix) #4713
 
 3.0.1 - May 24, 2019
 --------------------
