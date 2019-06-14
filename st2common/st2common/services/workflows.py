@@ -277,7 +277,10 @@ def request(wf_def, ac_ex_db, st2_ctx, notify_cfg=None):
     return wf_ex_db
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_transient_db_errors)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 @retrying.retry(
     retry_on_exception=wf_exc.retry_on_connection_errors,
     stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
@@ -317,7 +320,10 @@ def request_pause(ac_ex_db):
     return wf_ex_db
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_transient_db_errors)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 @retrying.retry(
     retry_on_exception=wf_exc.retry_on_connection_errors,
     stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
@@ -371,7 +377,10 @@ def request_resume(ac_ex_db):
     return wf_ex_db
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_transient_db_errors)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 @retrying.retry(
     retry_on_exception=wf_exc.retry_on_connection_errors,
     stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
@@ -541,7 +550,10 @@ def eval_action_execution_delay(task_ex_req, ac_ex_req, itemized=False):
     return None
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_transient_db_errors)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 @retrying.retry(
     retry_on_exception=wf_exc.retry_on_connection_errors,
     stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
@@ -809,7 +821,10 @@ def refresh_conductor(wf_ex_id):
     return conductor, wf_ex_db
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_transient_db_errors)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 @retrying.retry(
     retry_on_exception=wf_exc.retry_on_connection_errors,
     stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
@@ -847,7 +862,10 @@ def update_task_state(task_ex_id, ac_ex_status, ac_ex_result=None, ac_ex_ctx=Non
     )
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_transient_db_errors)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 @retrying.retry(
     retry_on_exception=wf_exc.retry_on_connection_errors,
     stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
@@ -962,7 +980,10 @@ def request_next_tasks(wf_ex_db, task_ex_id=None):
             LOG.info('[%s] No tasks identified to execute next.', wf_ac_ex_id)
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_transient_db_errors)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 @retrying.retry(
     retry_on_exception=wf_exc.retry_on_connection_errors,
     stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
@@ -1022,7 +1043,10 @@ def update_task_execution(task_ex_id, ac_ex_status, ac_ex_result=None, ac_ex_ctx
     wf_db_access.TaskExecution.update(task_ex_db, publish=False)
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_transient_db_errors)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 @retrying.retry(
     retry_on_exception=wf_exc.retry_on_connection_errors,
     stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
@@ -1042,7 +1066,10 @@ def resume_task_execution(task_ex_id):
     wf_db_access.TaskExecution.update(task_ex_db, publish=False)
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_transient_db_errors)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 @retrying.retry(
     retry_on_exception=wf_exc.retry_on_connection_errors,
     stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
@@ -1057,7 +1084,10 @@ def update_workflow_execution(wf_ex_id):
         update_execution_records(wf_ex_db, conductor)
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_transient_db_errors)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 @retrying.retry(
     retry_on_exception=wf_exc.retry_on_connection_errors,
     stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
@@ -1077,7 +1107,10 @@ def resume_workflow_execution(wf_ex_id, task_ex_id):
     update_execution_records(wf_ex_db, conductor)
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_transient_db_errors)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 @retrying.retry(
     retry_on_exception=wf_exc.retry_on_connection_errors,
     stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
