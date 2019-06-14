@@ -13,16 +13,19 @@
 # limitations under the License.
 
 """
-Compatibility layer which supports two sets of concurrency libraries - eventlet and gevent.
+Module which acts as a compatibility later between eventlet and gevent.
+
+It dispatches function call to the concurrency library which is configured using
+"set_concurrency_library" functoion.
 """
 
 try:
-    import eventlet
+    import eventlet  # pylint: disable=import-error
 except ImportError:
     eventlet = None
 
 try:
-    import gevent
+    import gevent  # pylint: disable=import-error
 except ImportError:
     gevent = None
 
@@ -30,8 +33,10 @@ CONCURRENCY_LIBRARY = 'eventlet'
 
 __all__ = [
     'set_concurrency_library',
+    'get_concurrency_library',
 
     'get_subprocess_module',
+    'subprocess_popen',
 
     'spawn',
     'wait',
@@ -49,15 +54,27 @@ def set_concurrency_library(library):
     CONCURRENCY_LIBRARY = library
 
 
+def get_concurrency_library():
+    global CONCURRENCY_LIBRARY
+    return CONCURRENCY_LIBRARY
+
+
 def get_subprocess_module():
     if CONCURRENCY_LIBRARY == 'eventlet':
-        from eventlet.green import subprocess
+        from eventlet.green import subprocess  # pylint: disable=import-error
         return subprocess
     elif CONCURRENCY_LIBRARY == 'gevent':
-        from gevent import subprocess
+        from gevent import subprocess  # pylint: disable=import-error
         return subprocess
-    else:
-        raise ValueError('Unsupported concurrency library')
+
+
+def subprocess_popen(*args, **kwargs):
+    if CONCURRENCY_LIBRARY == 'eventlet':
+        from eventlet.green import subprocess  # pylint: disable=import-error
+        return subprocess.Popen(*args, **kwargs)
+    elif CONCURRENCY_LIBRARY == 'gevent':
+        from gevent import subprocess  # pylint: disable=import-error
+        return subprocess.Popen(*args, **kwargs)
 
 
 def spawn(func, *args, **kwargs):

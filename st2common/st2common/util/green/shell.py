@@ -103,11 +103,11 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
 
     subprocess = concurrency.get_subprocess_module()
 
-    # Note: We are using eventlet friendly implementation of subprocess
-    # which uses GreenPipe so it doesn't block
+    # Note: We are using eventlet / gevent friendly implementation of subprocess which uses
+    # GreenPipe so it doesn't block
     LOG.debug('Creating subprocess.')
-    process = subprocess.Popen(args=cmd, stdin=stdin, stdout=stdout, stderr=stderr,
-                               env=env, cwd=cwd, shell=shell, preexec_fn=preexec_func)
+    process = concurrency.subprocess_popen(args=cmd, stdin=stdin, stdout=stdout, stderr=stderr,
+                                           env=env, cwd=cwd, shell=shell, preexec_fn=preexec_func)
 
     if read_stdout_func:
         LOG.debug('Spawning read_stdout_func function')
