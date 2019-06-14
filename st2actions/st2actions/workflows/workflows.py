@@ -79,7 +79,38 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
             msg = 'Handler function for message type "%s" is not defined.' % type(message)
             raise ValueError(msg)
 
-        handler_function(message)
+        try:
+            handler_function(message)
+        except Exception as e:
+            self.fail_workflow_execution(message, e)
+
+    def fail_workflow_execution(self, message, exception):
+        # Prepare attributes based on message type.
+        if isinstance(message, wf_db_models.WorkflowExecutionDB):
+            msg_type = 'workflow'
+            wf_ex_db = message
+            wf_ex_id = str(wf_ex_db.id)
+            task = None
+        else:
+            msg_type = 'task'
+            ac_ex_db = message
+            wf_ex_id = ac_ex_db.context['orquesta']['workflow_execution_id']
+            task_ex_id = ac_ex_db.context['orquesta']['task_execution_id']
+            wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
+            task_ex_db = wf_db_access.TaskExecution.get_by_id(task_ex_id)
+            task = {'id': task_ex_db.task_id, 'route': task_ex_db.task_route}
+
+        # Log the error.
+        LOG.error(
+            '[%s] Unknown error caught while processing %s execution. %s: %s',
+            wf_ex_db.action_execution,
+            msg_type,
+            exception.__class__.__name__,
+            str(exception)
+        )
+
+        # Fail the workflow execution.
+        wf_svc.fail_workflow_execution(wf_ex_id, exception, task=task)
 
     def handle_workflow_execution(self, wf_ex_db):
         # Request the next set of tasks to execute.
