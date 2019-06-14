@@ -152,8 +152,8 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         self.assertEqual(result['stdout'].strip(), 'root\nponiesponies')
 
-    @mock.patch('st2common.util.green.shell.subprocess.Popen')
-    @mock.patch('st2common.util.green.shell.eventlet.spawn')
+    @mock.patch('st2common.util.concurrency.subprocess_popen')
+    @mock.patch('st2common.util.concurrency.spawn')
     def test_action_stdout_and_stderr_is_stored_in_the_db(self, mock_spawn, mock_popen):
         # Feature is enabled
         cfg.CONF.set_override(name='stream_output', group='actionrunner', override=True)
@@ -210,8 +210,8 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(output_dbs[1].data, mock_stderr[1])
         self.assertEqual(output_dbs[2].data, mock_stderr[2])
 
-    @mock.patch('st2common.util.green.shell.subprocess.Popen')
-    @mock.patch('st2common.util.green.shell.eventlet.spawn')
+    @mock.patch('st2common.util.concurrency.subprocess_popen')
+    @mock.patch('st2common.util.concurrency.spawn')
     def test_action_stdout_and_stderr_is_stored_in_the_db_short_running_action(self, mock_spawn,
                                                                                mock_popen):
         # Verify that we correctly retrieve all the output and wait for stdout and stderr reading
@@ -331,7 +331,7 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
             self.assertEquals(result['stdout'], sudo_password)
 
         # Verify new process which provides password via stdin to the command is created
-        with mock.patch('eventlet.green.subprocess.Popen') as mock_subproc_popen:
+        with mock.patch('st2common.util.concurrency.subprocess_popen') as mock_subproc_popen:
             index = 0
             for sudo_password in sudo_passwords:
                 runner = self._get_runner(action_db, cmd=cmd)
@@ -510,8 +510,8 @@ class LocalShellScriptRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         output_dbs = ActionExecutionOutput.query(output_type='stderr')
         self.assertEqual(len(output_dbs), 0)
 
-    @mock.patch('st2common.util.green.shell.subprocess.Popen')
-    @mock.patch('st2common.util.green.shell.eventlet.spawn')
+    @mock.patch('st2common.util.concurrency.subprocess_popen')
+    @mock.patch('st2common.util.concurrency.spawn')
     def test_action_stdout_and_stderr_is_stored_in_the_db(self, mock_spawn, mock_popen):
         # Feature is enabled
         cfg.CONF.set_override(name='stream_output', group='actionrunner', override=True)

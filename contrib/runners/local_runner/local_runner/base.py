@@ -22,7 +22,6 @@ import functools
 
 import six
 from oslo_config import cfg
-from eventlet.green import subprocess
 from six.moves import StringIO
 
 from st2common.constants import action as action_constants
@@ -35,6 +34,7 @@ from st2common.util.misc import strip_shell_chars
 from st2common.util.green import shell
 from st2common.util.shell import kill_process
 from st2common.util import jsonify
+from st2common.util import concurrency
 from st2common.services.action import store_execution_output_data
 from st2common.runners.utils import make_read_and_store_stream_func
 
@@ -138,13 +138,15 @@ class BaseLocalShellRunner(ActionRunner, ShellRunnerMixin):
         read_and_store_stderr = make_read_and_store_stream_func(execution_db=self.execution,
             action_db=self.action, store_data_func=store_execution_stderr_line)
 
+        subprocess = concurrency.get_subprocess_module()
+
         # If sudo password is provided, pass it to the subprocess via stdin>
         # Note: We don't need to explicitly escape the argument because we pass command as a list
         # to subprocess.Popen and all the arguments are escaped by the function.
         if self._sudo_password:
             LOG.debug('Supplying sudo password via stdin')
-            echo_process = subprocess.Popen(['echo', self._sudo_password + '\n'],
-                                            stdout=subprocess.PIPE)
+            echo_process = concurrency.subprocess_popen(['echo', self._sudo_password + '\n'],
+                                                        stdout=subprocess.PIPE)
             stdin = echo_process.stdout
         else:
             stdin = None
