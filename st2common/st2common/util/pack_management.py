@@ -131,9 +131,28 @@ def download_pack(pack, abs_repo_base='/opt/stackstorm/packs', verify_ssl=True, 
             user_home = os.path.expanduser('~')
             abs_local_path = os.path.join(user_home, temp_dir_name)
 
-            # 1. Clone / download the repo
-            clone_repo(temp_dir=abs_local_path, repo_url=pack_url, verify_ssl=verify_ssl,
-                       ref=pack_version)
+            if pack_url.startswith('file://'):
+                # Local pack
+                local_pack_directory = os.path.abspath(os.path.join(pack_url.split('file://')[1]))
+            else:
+                local_pack_directory = None
+
+            # If it's a local pack which is not a git repository, just copy the directory content
+            # over
+            if local_pack_directory and not os.path.isdir(
+                    os.path.join(local_pack_directory, '.git')):
+                if not os.path.isdir(local_pack_directory):
+                    raise ValueError('Local pack directory "%s" doesn\'t exist' %
+                                     (local_pack_directory))
+
+                logger.debug('Detected local pack directory which is not a git repository, just '
+                             'copying files over...')
+
+                shutil.copytree(local_pack_directory, abs_local_path)
+            else:
+                # 1. Clone / download the repo
+                clone_repo(temp_dir=abs_local_path, repo_url=pack_url, verify_ssl=verify_ssl,
+                           ref=pack_version)
 
             pack_ref = get_pack_ref(pack_dir=abs_local_path)
             result[1] = pack_ref
