@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 
 import copy
+import datetime
 import retrying
 import six
 
@@ -1202,3 +1203,61 @@ def update_execution_records(wf_ex_db, conductor, update_lv_ac_on_statuses=None,
     if status_changed and wf_lv_ac_db.status in ac_const.LIVEACTION_COMPLETED_STATES:
         LOG.info('[%s] Workflow action execution is completed and invoking post run.', wf_ac_ex_id)
         runners_utils.invoke_post_run(wf_lv_ac_db)
+
+
+def identify_orphaned_workflows():
+    orphaned = []
+
+    # Identify expiry datetime.
+    gc_max_idle = cfg.CONF.workflow_engine.gc_max_idle_sec
+    utc_now_dt = date_utils.get_datetime_utc_now()
+    expiry_dt = utc_now_dt - datetime.timedelta(seconds=gc_max_idle)
+
+    # Identify action executions that are still running. The action execution start timestamp
+    # does not necessary means it is the max idle time. The use of workflow_executions_idled_ttl
+    # to filter is to reduce the number of action executions that need to be evaluated.
+    query_filters = {
+        'runner__name': 'orquesta',
+        'status': ac_const.LIVEACTION_STATUS_RUNNING,
+        'start_timestamp__lte': expiry_dt
+    }
+    ac_ex_dbs = ex_db_access.ActionExecution.query(**query_filters)
+
+    for ac_ex_db in ac_ex_dbs:
+        # Figure out the runtime for the action execution.
+        status_change_logs = sorted(
+            [log for log in ac_ex_db.log if log['status'] == ac_const.LIVEACTION_STATUS_RUNNING],
+            lambda x: x['timestamp'],
+            reverse=True
+        )
+
+        if len(status_change_logs) <= 0:
+            continue
+
+        runtime = (utc_now_dt - status_change_logs[0]['timestamp']).total_seconds()
+
+        # Fetch the task executions for the workflow execution.
+        wf_ex_id = ac_ex_db.context['workflow_execution']
+        query_filters = {'context__orquesta__workflow_execution_id': wf_ex_id}
+        tk_ac_ex_dbs = ex_db_access.ActionExecution.query(**query_filters)
+        tk_ac_ex_dbs = sorted(tk_ac_ex_dbs, lambda x: x.end_timestamp, reverse=True)
+
+        # The workflow execution is orphaned if there are
+        # no task executions and runtime passed expiry.
+        if len(tk_ac_ex_dbs) <= 0 and runtime > gc_max_idle:
+            msg = '[%s] Workflow action execution will be canceled by garbage collector.'
+            LOG.info(msg, str(ac_ex_db.id))
+            orphaned.append(ac_ex_db)
+            continue
+
+        # The workflow execution is orphaned if there are no active task execution and
+        # the end_timestamp of the most recent task execution passed expiry.
+        if (len(tk_ac_ex_dbs) > 0 and
+                tk_ac_ex_dbs[-1].end_timestamp is not None and
+                tk_ac_ex_dbs[0].end_timestamp <= expiry_dt):
+            msg = '[%s] Workflow action execution will be canceled by garbage collector.'
+            LOG.info(msg, str(ac_ex_db.id))
+            orphaned.append(ac_ex_db)
+            continue
+
+    return orphaned

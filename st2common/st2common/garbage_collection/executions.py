@@ -28,6 +28,8 @@ from st2common.constants import action as action_constants
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
 from st2common.persistence.execution import ActionExecutionOutput
+from st2common.services import action as action_service
+from st2common.services import workflows as workflow_service
 
 __all__ = [
     'purge_executions',
@@ -173,3 +175,12 @@ def purge_execution_output_objects(logger, timestamp, action_ref=None):
                          filters)
     else:
         logger.info('Deleted %s execution output objects' % (deleted_count))
+
+
+def purge_orphaned_workflow_executions(logger):
+    """
+    Purge workflow executions that are idled and identified as orphans.
+    """
+    for ac_ex_db in workflow_service.identify_orphaned_workflows():
+        lv_ac_db = LiveAction.get(id=ac_ex_db.liveaction['id'])
+        action_service.request_cancellation(lv_ac_db, None)

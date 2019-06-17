@@ -14,11 +14,13 @@
 
 from __future__ import absolute_import
 
+import eventlet
 import mock
 
 import st2tests
 
 from orquesta import statuses as wf_statuses
+from oslo_config import cfg
 from tooz import coordination
 
 # XXX: actionsensor import depends on config being setup.
@@ -38,6 +40,7 @@ from st2common.services import coordination as coordination_service
 from st2common.transport import liveaction as lv_ac_xport
 from st2common.transport import workflow as wf_ex_xport
 from st2common.transport import publishers
+from st2reactor.garbage_collector import base as garbage_collector
 from st2tests.mocks import liveaction as mock_lv_ac_xport
 from st2tests.mocks import workflow as mock_wf_ex_xport
 
@@ -205,3 +208,14 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
+
+        # Sleep up to the test config gc_max_idle_sec before running gc.
+        eventlet.sleep(cfg.CONF.workflow_engine.gc_max_idle_sec)
+
+        # Run garbage collection.
+        gc = garbage_collector.GarbageCollectorService()
+        gc._purge_orphaned_workflow_executions()
+
+        # Assert workflow execution is cleaned up and canceled.
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_CANCELED)

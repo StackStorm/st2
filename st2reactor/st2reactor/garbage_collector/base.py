@@ -38,6 +38,7 @@ from st2common.util import isotime
 from st2common.util.date import get_datetime_utc_now
 from st2common.garbage_collection.executions import purge_executions
 from st2common.garbage_collection.executions import purge_execution_output_objects
+from st2common.garbage_collection.executions import purge_orphaned_workflow_executions
 from st2common.garbage_collection.inquiries import purge_inquiries
 from st2common.garbage_collection.trigger_instances import purge_trigger_instances
 
@@ -66,6 +67,7 @@ class GarbageCollectorService(object):
         self._action_executions_output_ttl = cfg.CONF.garbagecollector.action_executions_output_ttl
         self._trigger_instances_ttl = cfg.CONF.garbagecollector.trigger_instances_ttl
         self._purge_inquiries = cfg.CONF.garbagecollector.purge_inquiries
+        self._workflow_execution_max_idle = cfg.CONF.workflow_engine.gc_max_idle_sec
 
         self._validate_ttl_values()
 
@@ -162,6 +164,13 @@ class GarbageCollectorService(object):
             LOG.debug('Skipping garbage collection for Inquiries since it\'s not '
                       'configured')
 
+        if self._workflow_execution_max_idle > 0:
+            self._purge_orphaned_workflow_executions()
+            eventlet.sleep(self._sleep_delay)
+        else:
+            LOG.debug('Skipping garbage collection for orphaned workflow executions since '
+                      'it\'s not configured')
+
     def _purge_action_executions(self):
         """
         Purge action executions and corresponding live action, stdout and stderr object which match
@@ -244,5 +253,18 @@ class GarbageCollectorService(object):
             purge_inquiries(logger=LOG)
         except Exception as e:
             LOG.exception('Failed to purge inquiries: %s' % (six.text_type(e)))
+
+        return True
+
+    def _purge_orphaned_workflow_executions(self):
+        """
+        Purge workflow executions that are idled and orphaned.
+        """
+        LOG.info('Performing garbage collection on workflow executions.')
+
+        try:
+            purge_orphaned_workflow_executions(logger=LOG)
+        except Exception as e:
+            LOG.exception('Failed to purge orphaned workflow executions: %s' % (six.text_type(e)))
 
         return True

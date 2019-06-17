@@ -641,7 +641,11 @@ def register_opts(ignore_errors=False):
             help='Interval inbetween retries.'),
         cfg.FloatOpt(
             'retry_max_jitter_msec', default=1000,
-            help='Max jitter interval to smooth out retries.')
+            help='Max jitter interval to smooth out retries.'),
+        cfg.IntOpt(
+            'gc_max_idle_sec', default=900,
+            help='Max seconds to allow workflow execution be idled before it is identified as '
+                 'orphaned and cancelled by the garbage collector.')
     ]
 
     do_register_opts(workflow_engine_opts, group='workflow_engine', ignore_errors=ignore_errors)
