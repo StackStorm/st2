@@ -141,6 +141,11 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
     def test_process_error_handling(self):
         expected_errors = [
             {
+                'message': 'Execution failed. See result for details.',
+                'type': 'error',
+                'task_id': 'task1'
+            },
+            {
                 'type': 'error',
                 'message': 'ToozConnectionError: foobar',
                 'task_id': 'task1',
@@ -163,6 +168,10 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         t1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
         t1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t1_ex_db.id))[0]
         workflows.get_engine().process(t1_ac_ex_db)
+
+        # Assert the task is marked as failed.
+        t1_ex_db = wf_db_access.TaskExecution.get_by_id(str(t1_ex_db.id))
+        self.assertEqual(t1_ex_db.status, wf_statuses.FAILED)
 
         # Assert the workflow has failed with expected errors.
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)

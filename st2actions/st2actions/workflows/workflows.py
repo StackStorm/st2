@@ -106,14 +106,24 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
 
         # Log the error.
         LOG.error(
-            '[%s] Unknown error caught while processing %s execution. %s: %s',
+            '[%s] Unknown error while processing %s execution. %s: %s',
             wf_ex_db.action_execution,
             msg_type,
             exception.__class__.__name__,
             str(exception)
         )
 
+        # Fail the task execution so it's marked correctly in the
+        # conductor state to allow for task rerun if needed.
+        if isinstance(message, ex_db_models.ActionExecutionDB):
+            msg = '[%s] Unknown error while processing %s execution. Failing task execution "%s".'
+            LOG.error(msg, wf_ex_db.action_execution, msg_type, task_ex_id)
+            wf_svc.update_task_execution(task_ex_id, ac_const.LIVEACTION_STATUS_FAILED)
+            wf_svc.update_task_state(task_ex_id, ac_const.LIVEACTION_STATUS_FAILED)
+
         # Fail the workflow execution.
+        msg = '[%s] Unknown error while processing %s execution. Failing workflow execution "%s".'
+        LOG.error(msg, wf_ex_db.action_execution, msg_type, wf_ex_id)
         wf_svc.fail_workflow_execution(wf_ex_id, exception, task=task)
 
     def handle_workflow_execution(self, wf_ex_db):
