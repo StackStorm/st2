@@ -82,6 +82,10 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
         try:
             handler_function(message)
         except Exception as e:
+            # If the exception is caused by DB connection error, then the following
+            # error handling routine will fail as well because it will try to update
+            # the database and fail the workflow execution gracefully. In this case,
+            # the garbage collector will find and cancel these workflow executions.
             self.fail_workflow_execution(message, e)
 
     def fail_workflow_execution(self, message, exception):
