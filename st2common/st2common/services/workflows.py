@@ -1238,9 +1238,8 @@ def identify_orphaned_workflows():
 
         # Fetch the task executions for the workflow execution.
         wf_ex_id = ac_ex_db.context['workflow_execution']
-        query_filters = {'context__orquesta__workflow_execution_id': wf_ex_id}
+        query_filters = {'workflow_execution': wf_ex_id}
         tk_ac_ex_dbs = ex_db_access.ActionExecution.query(**query_filters)
-        tk_ac_ex_dbs = sorted(tk_ac_ex_dbs, lambda x: x.end_timestamp, reverse=True)
 
         # The workflow execution is orphaned if there are
         # no task executions and runtime passed expiry.
@@ -1252,9 +1251,23 @@ def identify_orphaned_workflows():
 
         # The workflow execution is orphaned if there are no active task execution and
         # the end_timestamp of the most recent task execution passed expiry.
-        if (len(tk_ac_ex_dbs) > 0 and
-                tk_ac_ex_dbs[-1].end_timestamp is not None and
-                tk_ac_ex_dbs[0].end_timestamp <= expiry_dt):
+        has_active_tasks = len([t for t in tk_ac_ex_dbs if t.end_timestamp is None]) > 0
+
+        completed_tasks = [
+            t for t in tk_ac_ex_dbs
+            if t.end_timestamp is not None and t.end_timestamp <= expiry_dt
+        ]
+
+        completed_tasks = sorted(completed_tasks, key=lambda x: x.end_timestamp)
+
+        most_recent_completed_task_expired = (
+            completed_tasks[-1].end_timestamp <= expiry_dt
+            if len(completed_tasks) > 0 else False
+        )
+
+        if (len(tk_ac_ex_dbs) > 0 and (
+                has_active_tasks or (
+                not has_active_tasks and most_recent_completed_task_expired))):
             msg = '[%s] Workflow action execution will be canceled by garbage collector.'
             LOG.info(msg, str(ac_ex_db.id))
             orphaned.append(ac_ex_db)
