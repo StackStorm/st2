@@ -1227,7 +1227,7 @@ def identify_orphaned_workflows():
         # Figure out the runtime for the action execution.
         status_change_logs = sorted(
             [log for log in ac_ex_db.log if log['status'] == ac_const.LIVEACTION_STATUS_RUNNING],
-            lambda x: x['timestamp'],
+            key=lambda x: x['timestamp'],
             reverse=True
         )
 
