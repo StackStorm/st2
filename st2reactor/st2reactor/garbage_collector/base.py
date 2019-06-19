@@ -133,51 +133,57 @@ class GarbageCollectorService(object):
     def _perform_garbage_collection(self):
         LOG.info('Performing garbage collection...')
 
+        proc_message = "Performing garbage collection for %s."
+        skip_message = "Skipping garbage collection for %s since it's not configured."
+
         # Note: We sleep for a bit between garbage collection of each object type to prevent busy
         # waiting
+        obj_type = 'action executions'
         if self._action_executions_ttl and self._action_executions_ttl >= MINIMUM_TTL_DAYS:
+            LOG.info(proc_message, obj_type)
             self._purge_action_executions()
             eventlet.sleep(self._sleep_delay)
         else:
-            LOG.debug('Skipping garbage collection for action executions since it\'s not '
-                      'configured')
+            LOG.debug(skip_message, obj_type)
 
+        obj_type = 'action executions output'
         if self._action_executions_output_ttl and \
                 self._action_executions_output_ttl >= MINIMUM_TTL_DAYS_EXECUTION_OUTPUT:
+            LOG.info(proc_message, obj_type)
             self._purge_action_executions_output()
             eventlet.sleep(self._sleep_delay)
         else:
-            LOG.debug('Skipping garbage collection for action executions output since it\'s not '
-                      'configured')
+            LOG.debug(skip_message, obj_type)
 
+        obj_type = 'trigger instances'
         if self._trigger_instances_ttl and self._trigger_instances_ttl >= MINIMUM_TTL_DAYS:
+            LOG.info(proc_message, obj_type)
             self._purge_trigger_instances()
             eventlet.sleep(self._sleep_delay)
         else:
-            LOG.debug('Skipping garbage collection for trigger instances since it\'s not '
-                      'configured')
+            LOG.debug(skip_message, obj_type)
 
+        obj_type = 'inquiries'
         if self._purge_inquiries:
+            LOG.info(proc_message, obj_type)
             self._timeout_inquiries()
             eventlet.sleep(self._sleep_delay)
         else:
-            LOG.debug('Skipping garbage collection for Inquiries since it\'s not '
-                      'configured')
+            LOG.debug(skip_message, obj_type)
 
+        obj_type = 'orphaned workflow executions'
         if self._workflow_execution_max_idle > 0:
+            LOG.info(proc_message, obj_type)
             self._purge_orphaned_workflow_executions()
             eventlet.sleep(self._sleep_delay)
         else:
-            LOG.debug('Skipping garbage collection for orphaned workflow executions since '
-                      'it\'s not configured')
+            LOG.debug(skip_message, obj_type)
 
     def _purge_action_executions(self):
         """
         Purge action executions and corresponding live action, stdout and stderr object which match
         the criteria defined in the config.
         """
-        LOG.info('Performing garbage collection for action executions and related objects')
-
         utc_now = get_datetime_utc_now()
         timestamp = (utc_now - datetime.timedelta(days=self._action_executions_ttl))
 
@@ -198,8 +204,6 @@ class GarbageCollectorService(object):
         return True
 
     def _purge_action_executions_output(self):
-        LOG.info('Performing garbage collection for action executions output objects')
-
         utc_now = get_datetime_utc_now()
         timestamp = (utc_now - datetime.timedelta(days=self._action_executions_output_ttl))
 
@@ -223,8 +227,6 @@ class GarbageCollectorService(object):
         """
         Purge trigger instances which match the criteria defined in the config.
         """
-        LOG.info('Performing garbage collection for trigger instances')
-
         utc_now = get_datetime_utc_now()
         timestamp = (utc_now - datetime.timedelta(days=self._trigger_instances_ttl))
 
@@ -247,8 +249,6 @@ class GarbageCollectorService(object):
     def _timeout_inquiries(self):
         """Mark Inquiries as "timeout" that have exceeded their TTL
         """
-        LOG.info('Performing garbage collection for Inquiries')
-
         try:
             purge_inquiries(logger=LOG)
         except Exception as e:
@@ -260,8 +260,6 @@ class GarbageCollectorService(object):
         """
         Purge workflow executions that are idled and orphaned.
         """
-        LOG.info('Performing garbage collection on workflow executions.')
-
         try:
             purge_orphaned_workflow_executions(logger=LOG)
         except Exception as e:
