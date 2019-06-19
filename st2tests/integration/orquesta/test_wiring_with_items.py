@@ -111,6 +111,14 @@ class WithItemsWiringTest(base.TestWorkflowExecution):
         ex = self._execute_workflow(wf_name, wf_input)
         ex = self._wait_for_state(ex, [ac_const.LIVEACTION_STATUS_RUNNING])
 
+        # Wait for action executions to run.
+        self._wait_for_task(
+            ex,
+            'task1',
+            ac_const.LIVEACTION_STATUS_RUNNING,
+            num_task_exs=concurrency
+        )
+
         # Cancel the workflow execution.
         self.st2client.executions.delete(ex)
 
