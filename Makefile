@@ -392,7 +392,7 @@ requirements: virtualenv .sdist-requirements install-runners
 	# Make sure we use latest version of pip which is 19
 	$(VIRTUALENV_DIR)/bin/pip --version
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip>=19.0,<20.0"
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "virtualenv==16.6.0" # Required for packs.install in dev envs.
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "virtualenv==16.6.0" # Required for packs.install in dev envs
 
 	# Generate all requirements to support current CI pipeline.
 	$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s st2*/in-requirements.txt contrib/runners/*/in-requirements.txt -f fixed-requirements.txt -o requirements.txt
