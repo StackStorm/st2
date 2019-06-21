@@ -168,10 +168,9 @@ class ConfigsRegistrarTestCase(CleanDbTestCase):
         registrar._register_pack(pack_name='dummy_pack_11', pack_dir=PACK_11_PATH)
         packs_base_paths = content_utils.get_packs_base_paths()
 
-        expected_msg = ('Values specified as secret: True in config schema '
-                        'are automatically decrypted by default. Use of '
-                        'decrypt_kv jinja filter is not allowed for such '
-                        'values.')
+        expected_msg = ('Values specified as "secret: True" in config schema are automatically '
+                        'decrypted by default. Use of "decrypt_kv" jinja filter is not allowed '
+                        'for such values.')
 
         self.assertRaisesRegexp(ValueError, expected_msg,
                                 registrar.register_from_packs,
